@@ -1,0 +1,13 @@
+Vercel CLI 56.3.1 (Node.js 24.20.0)
+Retrieving project…
+Retrieving project…
+> Removed trailing newline from stdin input
+Saving…
+
+✓ Added           ENABLE_EXPERIMENTAL_COREPACK
+  Project         newonathes-projects/happy-cookie-ops-demo
+  Environments    Preview
+  Type            Sensitive
+Common next commands:
+- `vercel env ls`
+- `vercel env pull`

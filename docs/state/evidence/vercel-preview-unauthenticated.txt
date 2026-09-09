@@ -1,0 +1,2 @@
+STATUS:302
+REDIRECT:https://vercel.com/sso-api?url=https%3A%2F%2Fhappy-cookie-ops-demo-m0wbduoz7-newonathes-projects.vercel.app%2F&nonce=580a4bbcba783e0e4c7833b7f9b0828b47679d0272a217ac4c740c2c03c13d9b

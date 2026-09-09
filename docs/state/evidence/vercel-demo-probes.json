@@ -1,0 +1,25 @@
+[
+  {
+    "path": "/",
+    "cliExit": 0,
+    "status": "200",
+    "hasBrand": true,
+    "responseBytes": 51541
+  },
+  {
+    "path": "/api/health",
+    "cliExit": 0,
+    "status": "200",
+    "body": {
+      "status": "ok",
+      "database": "not-configured",
+      "ms": 0
+    }
+  },
+  {
+    "path": "/api/sync",
+    "cliExit": 0,
+    "status": "500",
+    "bodyIsJson": false
+  }
+]

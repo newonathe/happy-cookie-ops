@@ -1,0 +1,182 @@
+Vercel CLI 56.3.1 (Node.js 24.20.0)
+Fetching deployment "happy-cookie-ops-demo-m0wbduoz7-newonathes-projects.vercel.app" in newonathes-projects
+2026-09-09T07:53:28.413Z  Running build in Washington, D.C., USA (East) – iad1
+2026-09-09T07:53:28.414Z  Build machine configuration: 2 cores, 8 GB
+2026-09-09T07:53:28.445Z  Retrieving list of deployment files...
+2026-09-09T07:53:28.531Z  Previous build caches not available.
+2026-09-09T07:53:28.783Z  Downloading 242 deployment files...
+2026-09-09T07:53:29.778Z  Running "vercel build"
+2026-09-09T07:53:29.800Z  Vercel CLI 59.11.7
+2026-09-09T07:53:30.293Z  > Detected ENABLE_EXPERIMENTAL_COREPACK=1 and "pnpm@9.12.3" in package.json
+2026-09-09T07:53:30.566Z  Installing dependencies...
+2026-09-09T07:53:30.756Z  ! Corepack is about to download http://127.0.0.1:8402/pnpm/-/pnpm-9.12.3.tgz
+2026-09-09T07:53:31.835Z  (node:83) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-09-09T07:53:31.835Z  (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-09-09T07:53:31.901Z  Lockfile is up to date, resolution step is skipped
+2026-09-09T07:53:31.997Z  Progress: resolved 1, reused 0, downloaded 0, added 0
+2026-09-09T07:53:32.231Z  Packages: +1177
+2026-09-09T07:53:32.232Z  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+2026-09-09T07:53:32.998Z  Progress: resolved 1177, reused 0, downloaded 16, added 0
+2026-09-09T07:53:33.998Z  Progress: resolved 1177, reused 0, downloaded 41, added 25
+2026-09-09T07:53:35.001Z  Progress: resolved 1177, reused 0, downloaded 81, added 67
+2026-09-09T07:53:36.000Z  Progress: resolved 1177, reused 0, downloaded 107, added 91
+2026-09-09T07:53:37.012Z  Progress: resolved 1177, reused 0, downloaded 149, added 133
+2026-09-09T07:53:38.012Z  Progress: resolved 1177, reused 0, downloaded 164, added 149
+2026-09-09T07:53:40.135Z  Progress: resolved 1177, reused 0, downloaded 165, added 149
+2026-09-09T07:53:41.134Z  Progress: resolved 1177, reused 0, downloaded 175, added 161
+2026-09-09T07:53:42.135Z  Progress: resolved 1177, reused 0, downloaded 180, added 164
+2026-09-09T07:53:43.135Z  Progress: resolved 1177, reused 0, downloaded 185, added 169
+2026-09-09T07:53:44.135Z  Progress: resolved 1177, reused 0, downloaded 212, added 197
+2026-09-09T07:53:45.137Z  Progress: resolved 1177, reused 0, downloaded 241, added 225
+2026-09-09T07:53:46.136Z  Progress: resolved 1177, reused 0, downloaded 327, added 314
+2026-09-09T07:53:47.137Z  Progress: resolved 1177, reused 0, downloaded 439, added 428
+2026-09-09T07:53:48.137Z  Progress: resolved 1177, reused 0, downloaded 473, added 462
+2026-09-09T07:53:49.141Z  Progress: resolved 1177, reused 0, downloaded 582, added 566
+2026-09-09T07:53:50.138Z  Progress: resolved 1177, reused 0, downloaded 617, added 601
+2026-09-09T07:53:51.139Z  Progress: resolved 1177, reused 0, downloaded 738, added 723
+2026-09-09T07:53:52.139Z  Progress: resolved 1177, reused 0, downloaded 875, added 859
+2026-09-09T07:53:53.144Z  Progress: resolved 1177, reused 0, downloaded 979, added 964
+2026-09-09T07:53:54.140Z  Progress: resolved 1177, reused 0, downloaded 1039, added 1023
+2026-09-09T07:53:55.141Z  Progress: resolved 1177, reused 0, downloaded 1092, added 1079
+2026-09-09T07:53:56.142Z  Progress: resolved 1177, reused 0, downloaded 1095, added 1080
+2026-09-09T07:53:57.145Z  Progress: resolved 1177, reused 0, downloaded 1109, added 1094
+2026-09-09T07:53:58.145Z  Progress: resolved 1177, reused 0, downloaded 1158, added 1147
+2026-09-09T07:53:58.338Z  Progress: resolved 1177, reused 0, downloaded 1177, added 1177, done
+2026-09-09T07:53:58.764Z  .../node_modules/core-js-pure postinstall$ node -e "try{require('./postinstall')}catch(e){}"
+2026-09-09T07:53:58.789Z  .../esbuild@0.25.12/node_modules/esbuild postinstall$ node install.js
+2026-09-09T07:53:58.790Z  .../esbuild@0.28.2/node_modules/esbuild postinstall$ node install.js
+2026-09-09T07:53:58.790Z  .../node_modules/@sentry/cli postinstall$ node ./scripts/install.js
+2026-09-09T07:53:58.864Z  .../node_modules/core-js-pure postinstall: Done
+2026-09-09T07:53:58.870Z  .../node_modules/unrs-resolver postinstall$ node postinstall.js
+2026-09-09T07:53:58.987Z  .../esbuild@0.25.12/node_modules/esbuild postinstall: Done
+2026-09-09T07:53:59.015Z  .../esbuild@0.28.2/node_modules/esbuild postinstall: Done
+2026-09-09T07:53:59.077Z  .../node_modules/unrs-resolver postinstall: Done
+2026-09-09T07:53:59.104Z  .../node_modules/@sentry/cli postinstall: Done
+2026-09-09T07:53:59.823Z  
+2026-09-09T07:53:59.823Z  dependencies:
+2026-09-09T07:53:59.823Z  + @sentry/nextjs 10.73.0
+2026-09-09T07:53:59.823Z  + @supabase/ssr 0.7.0
+2026-09-09T07:53:59.824Z  + @supabase/supabase-js 2.115.0
+2026-09-09T07:53:59.824Z  + next 16.3.3
+2026-09-09T07:53:59.824Z  + react 19.2.8
+2026-09-09T07:53:59.824Z  + react-dom 19.2.8
+2026-09-09T07:53:59.824Z  + zod 4.5.4
+2026-09-09T07:53:59.824Z  
+2026-09-09T07:53:59.824Z  devDependencies:
+2026-09-09T07:53:59.824Z  + @eslint/eslintrc 3.3.7
+2026-09-09T07:53:59.825Z  + @lhci/cli 0.15.1
+2026-09-09T07:53:59.825Z  + @playwright/test 1.63.0
+2026-09-09T07:53:59.825Z  + @storybook/nextjs 10.2.10
+2026-09-09T07:53:59.826Z  + @tailwindcss/postcss 4.3.3
+2026-09-09T07:53:59.826Z  + @testing-library/dom 10.4.1
+2026-09-09T07:53:59.826Z  + @testing-library/jest-dom 6.10.0
+2026-09-09T07:53:59.827Z  + @testing-library/react 16.3.3
+2026-09-09T07:53:59.827Z  + @types/node 22.20.1
+2026-09-09T07:53:59.827Z  + @types/react 19.2.18
+2026-09-09T07:53:59.827Z  + @types/react-dom 19.2.7
+2026-09-09T07:53:59.827Z  + @vitejs/plugin-react 5.2.0
+2026-09-09T07:53:59.828Z  + eslint 9.39.5
+2026-09-09T07:53:59.828Z  + eslint-config-next 16.3.3
+2026-09-09T07:53:59.828Z  + eslint-config-prettier 10.1.8
+2026-09-09T07:53:59.828Z  + eslint-plugin-jsx-a11y 6.10.2
+2026-09-09T07:53:59.828Z  + husky 9.1.7
+2026-09-09T07:53:59.828Z  + jsdom 26.1.0
+2026-09-09T07:53:59.828Z  + lint-staged 16.4.0
+2026-09-09T07:53:59.828Z  + prettier 3.9.6
+2026-09-09T07:53:59.828Z  + storybook 10.2.10
+2026-09-09T07:53:59.828Z  + supabase 2.116.0
+2026-09-09T07:53:59.828Z  + tailwindcss 4.3.3
+2026-09-09T07:53:59.828Z  + typescript 5.9.3
+2026-09-09T07:53:59.828Z  + vitest 3.2.7
+2026-09-09T07:53:59.828Z  
+2026-09-09T07:53:59.842Z  
+2026-09-09T07:53:59.843Z  > happy-cookie-ops@0.1.0 prepare /vercel/path0
+2026-09-09T07:53:59.843Z  > husky
+2026-09-09T07:53:59.843Z  
+2026-09-09T07:54:01.202Z  .git can't be foundDone in 29.8s
+2026-09-09T07:54:01.251Z  Detected Next.js version: 16.3.3
+2026-09-09T07:54:01.290Z  Running "pnpm run build"
+2026-09-09T07:54:01.727Z  
+2026-09-09T07:54:01.727Z  > happy-cookie-ops@0.1.0 build /vercel/path0
+2026-09-09T07:54:01.727Z  > next build
+2026-09-09T07:54:01.727Z  
+2026-09-09T07:54:02.224Z  ▲ Next.js 16.3.3 (Turbopack)
+2026-09-09T07:54:02.781Z  Applying modifyConfig from Vercel
+2026-09-09T07:54:02.784Z  ✓ Running next.config.ts took 559ms
+2026-09-09T07:54:02.791Z  Attention: Next.js now collects completely anonymous telemetry regarding usage.
+2026-09-09T07:54:02.791Z  This information is used to shape Next.js' roadmap and prioritize features.
+2026-09-09T07:54:02.792Z  You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+2026-09-09T07:54:02.792Z  https://nextjs.org/telemetry
+2026-09-09T07:54:02.792Z  
+2026-09-09T07:54:02.811Z  - Experiments (use with caution):
+2026-09-09T07:54:02.811Z  · clientTraceMetadata
+2026-09-09T07:54:02.812Z  
+2026-09-09T07:54:02.815Z  ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead.
+2026-09-09T07:54:02.816Z  
+2026-09-09T07:54:02.816Z  To migrate automatically, run:
+2026-09-09T07:54:02.816Z  npx @next/codemod@canary middleware-to-proxy .
+2026-09-09T07:54:02.816Z  
+2026-09-09T07:54:02.816Z  Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+2026-09-09T07:54:02.847Z  Creating an optimized production build ...
+2026-09-09T07:54:21.529Z  ✓ Compiled successfully in 17.5s
+2026-09-09T07:54:21.530Z  Running next.config.js provided runAfterProductionCompile ...
+2026-09-09T07:54:21.908Z  [@sentry/nextjs - After Production Compile] Info: Sending telemetry data on issues and performance to Sentry. To disable telemetry, set `options.telemetry` to `false`.
+2026-09-09T07:54:21.965Z  [@sentry/nextjs - After Production Compile] Warning: No auth token provided. Will not create release. Please set the `authToken` option. You can find information on how to generate a Sentry auth token here: https://docs.sentry.io/api/auth/
+2026-09-09T07:54:21.974Z  [@sentry/nextjs - After Production Compile] Warning: No auth token provided. Will not upload source maps. Please set the `authToken` option. You can find information on how to generate a Sentry auth token here: https://docs.sentry.io/api/auth/
+2026-09-09T07:54:22.145Z  ✓ Completed runAfterProductionCompile in 619ms
+2026-09-09T07:54:22.153Z  Running TypeScript ...
+2026-09-09T07:54:32.423Z  Finished TypeScript in 10.3s ...
+2026-09-09T07:54:32.427Z  Collecting page data using 1 worker ...
+2026-09-09T07:54:33.135Z  Generating static pages using 1 worker (0/28) ...
+2026-09-09T07:54:33.628Z  Generating static pages using 1 worker (7/28)
+2026-09-09T07:54:33.963Z  Generating static pages using 1 worker (14/28)
+2026-09-09T07:54:34.316Z  Generating static pages using 1 worker (21/28)
+2026-09-09T07:54:34.465Z  ✓ Generating static pages using 1 worker (28/28) in 1330ms
+2026-09-09T07:54:34.472Z  Finalizing page optimization ...
+2026-09-09T07:54:34.564Z  Running onBuildComplete from Vercel
+2026-09-09T07:54:34.923Z  
+2026-09-09T07:54:34.926Z  Route (app)
+2026-09-09T07:54:34.926Z  ┌ ○ /
+2026-09-09T07:54:34.926Z  ├ ○ /_not-found
+2026-09-09T07:54:34.926Z  ├ ƒ /api/health
+2026-09-09T07:54:34.926Z  ├ ƒ /api/sync
+2026-09-09T07:54:34.926Z  ├ ○ /bake
+2026-09-09T07:54:34.926Z  ├ ○ /batch
+2026-09-09T07:54:34.926Z  ├ ○ /bazaar
+2026-09-09T07:54:34.926Z  ├ ○ /checkout
+2026-09-09T07:54:34.926Z  ├ ○ /drops
+2026-09-09T07:54:34.926Z  ├ ○ /formqueue
+2026-09-09T07:54:34.926Z  ├ ○ /grocery
+2026-09-09T07:54:34.926Z  ├ ○ /health
+2026-09-09T07:54:34.926Z  ├ ○ /inventory
+2026-09-09T07:54:34.926Z  ├ ○ /lookup
+2026-09-09T07:54:34.926Z  ├ ○ /more
+2026-09-09T07:54:34.926Z  ├ ○ /notifications
+2026-09-09T07:54:34.926Z  ├ ○ /order
+2026-09-09T07:54:34.926Z  ├ ○ /orders
+2026-09-09T07:54:34.926Z  ├ ○ /pnl
+2026-09-09T07:54:34.926Z  ├ ○ /products
+2026-09-09T07:54:34.926Z  ├ ○ /recipes
+2026-09-09T07:54:34.926Z  ├ ○ /reconcile
+2026-09-09T07:54:34.926Z  ├ ○ /sales
+2026-09-09T07:54:34.926Z  ├ ○ /settings
+2026-09-09T07:54:34.926Z  ├ ○ /shop
+2026-09-09T07:54:34.926Z  ├ ○ /sign-in
+2026-09-09T07:54:34.926Z  ├ ○ /status
+2026-09-09T07:54:34.927Z  ├ ○ /stocktake
+2026-09-09T07:54:34.927Z  └ ○ /suppliers
+2026-09-09T07:54:34.927Z  
+2026-09-09T07:54:34.927Z  
+2026-09-09T07:54:34.927Z  ƒ Proxy (Middleware)
+2026-09-09T07:54:34.927Z  
+2026-09-09T07:54:34.927Z  ○  (Static)   prerendered as static content
+2026-09-09T07:54:34.927Z  ƒ  (Dynamic)  server-rendered on demand
+2026-09-09T07:54:34.927Z  
+2026-09-09T07:54:35.330Z  Build Completed in /vercel/output [1m]
+2026-09-09T07:54:35.355Z  Deploying outputs...
+2026-09-09T07:54:46.432Z  Deployment completed
+2026-09-09T07:54:46.436Z  Creating build cache...
+2026-09-09T07:55:19.590Z  Created build cache: 33s
+2026-09-09T07:55:19.590Z  Uploading build cache [421.86 MB]
+2026-09-09T07:55:27.124Z  Build cache uploaded: 7.534s
+status	● Ready

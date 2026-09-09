@@ -3,7 +3,8 @@ import { withSentryConfig } from '@sentry/nextjs/config';
 
 const config: NextConfig = {
   reactStrictMode: true,
-  output: 'standalone',
+  // Vercel's adapter packages its own runtime; standalone remains for local/Docker use.
+  output: process.env.VERCEL === '1' ? undefined : 'standalone',
   poweredByHeader: false,
   // The books live on the device until Postgres is wired (docs/TECH-DEBT.md, item 1),
   // so nothing in this app may be cached by a shared proxy.
