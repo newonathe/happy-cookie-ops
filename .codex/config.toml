@@ -1,0 +1,40 @@
+# Project-scoped Codex configuration. Merged on top of your ~/.codex/config.toml —
+# it adds to your personal setup rather than replacing it, so a clone of this repo
+# inherits the team's guardrails without touching your global tools.
+#
+# Verify what actually took effect with /status before a high-impact run: CLI flags,
+# -c overrides and a selected profile all outrank this file.
+#
+# The rules themselves live in AGENTS.md. This file is only the machinery.
+
+# Write inside the working directory, ask before stepping outside it. The repo's own
+# guard scripts (scripts/check-port-integrity.mjs) are what protect the ported files;
+# this is the outer boundary.
+sandbox_mode = "workspace-write"
+approval_policy = "on-request"
+
+# Off by default. Turn it on per session for a task that genuinely needs docs
+# (`codex --search`) rather than leaving the agent a standing network channel.
+[tools]
+web_search = false
+
+[sandbox_workspace_write]
+network_access = false
+# pnpm and Next both write outside the project; without these the sandbox fights the build.
+writable_roots = ["~/.cache/pnpm", "~/.local/share/pnpm", "/tmp"]
+
+# Codex reads AGENTS.md first. CLAUDE.md is listed as a fallback because the two say the
+# same thing on purpose — if one is missing, the other is still correct.
+project_doc_fallback_filenames = ["AGENTS.md", "CLAUDE.md"]
+project_doc_max_bytes = 32768
+
+# Read-only profile for the job Codex is best at here: reviewing Claude's diffs with
+# fresh context. It cannot edit, so it cannot "helpfully" fix what it is reviewing.
+[profiles.review]
+sandbox_mode = "read-only"
+approval_policy = "never"
+
+# Implementation profile for the mechanical tasks in docs/TASKS.md marked **X**.
+[profiles.build]
+sandbox_mode = "workspace-write"
+approval_policy = "on-request"

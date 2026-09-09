@@ -1,0 +1,98 @@
+{
+  "name": "happy-cookie-ops",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Production, ordering and bookkeeping for The Happy Cookie.",
+  "engines": {
+    "node": ">=24.19.0 <25"
+  },
+  "packageManager": "pnpm@9.12.3",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "node scripts/start-standalone.mjs",
+    "lint": "eslint . --max-warnings 0",
+    "lint:fix": "eslint . --fix",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test --project=phone --project=desktop --project=webkit",
+    "test:e2e:ui": "playwright test --ui",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build",
+    "db:start": "supabase start",
+    "db:reset": "supabase db reset",
+    "db:types": "supabase gen types typescript --local > src/lib/types/database.ts",
+    "prepare": "husky",
+    "verify": "pnpm verify:port && pnpm verify:engine && pnpm typecheck && pnpm typecheck:e2e && pnpm lint && pnpm test",
+    "verify:port": "node scripts/check-port-integrity.mjs",
+    "verify:port:update": "node scripts/check-port-integrity.mjs --update",
+    "verify:all": "bash scripts/verify.sh",
+    "db:seed:gen": "node scripts/gen-seed.mjs",
+    "test:visual": "playwright test --project=visual --project=visual-tablet --project=visual-desktop",
+    "test:visual:update": "playwright test --project=visual --project=visual-tablet --project=visual-desktop --update-snapshots",
+    "test:load": "k6 run tests/load/drop-open.js",
+    "lighthouse": "lhci autorun",
+    "verify:engine": "node scripts/check-engine-contract.mjs",
+    "test:port-gates": "node scripts/test-port-gates.mjs",
+    "test:g0:journeys": "playwright test screens.spec.ts bazaar-offline.spec.ts --project=phone",
+    "test:g0:evidence": "playwright test --project=evidence",
+    "verify:release": "pnpm verify && pnpm build && pnpm test:release:offline && pnpm test:e2e && pnpm test:visual",
+    "test:release:offline": "vitest run --config vitest.release.config.ts",
+    "typecheck:e2e": "tsc --noEmit --project tsconfig.e2e.json"
+  },
+  "dependencies": {
+    "next": "16.3.3",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "@supabase/ssr": "0.7.0",
+    "@supabase/supabase-js": "2.115.0",
+    "zod": "4.5.4",
+    "@sentry/nextjs": "10.73.0"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3",
+    "@types/node": "22.20.1",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.7",
+    "tailwindcss": "4.3.3",
+    "@tailwindcss/postcss": "4.3.3",
+    "eslint": "9.39.5",
+    "eslint-config-next": "16.3.3",
+    "@eslint/eslintrc": "3.3.7",
+    "eslint-plugin-jsx-a11y": "6.10.2",
+    "eslint-config-prettier": "10.1.8",
+    "prettier": "3.9.6",
+    "husky": "9.1.7",
+    "lint-staged": "16.4.0",
+    "vitest": "3.2.7",
+    "@vitejs/plugin-react": "5.2.0",
+    "jsdom": "26.1.0",
+    "@testing-library/react": "16.3.3",
+    "@testing-library/dom": "10.4.1",
+    "@testing-library/jest-dom": "6.10.0",
+    "@playwright/test": "1.63.0",
+    "storybook": "10.2.10",
+    "@storybook/nextjs": "10.2.10",
+    "supabase": "2.116.0",
+    "@lhci/cli": "0.15.1"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx,css,md,json}": [
+      "prettier --write"
+    ],
+    "*.{ts,tsx}": [
+      "eslint --fix"
+    ]
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@sentry/cli",
+      "core-js-pure",
+      "esbuild",
+      "unrs-resolver"
+    ]
+  }
+}

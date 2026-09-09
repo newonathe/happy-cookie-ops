@@ -1,0 +1,10 @@
+
+ RUN  v3.2.7 C:/Users/ethan/dev/happy-cookie-ops-g0
+
+ ✓ tests/unit/reporting-integration.test.ts (1 test) 112ms
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  23:21:20
+   Duration  162.10s (transform 6.00s, setup 2.48s, collect 116.83s, tests 112ms, environment 0ms, prepare 27.36s)
+

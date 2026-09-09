@@ -1,0 +1,13 @@
+Vercel CLI 56.3.1 (Node.js 24.14.1)
+
+  Directory       ~\dev\happy-cookie-ops-g0
+
+Searching for existing projects…
+
+✓ Linked          newonathes-projects/happy-cookie-ops-demo
+
+Retrieving project…
+> Downloading a fresh `VERCEL_OIDC_TOKEN` for newonathes-projects/happy-cookie-ops-demo
+Downloading
+
+✓ Created         .env.local file and added it to .gitignore

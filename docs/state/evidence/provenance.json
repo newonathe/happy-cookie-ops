@@ -1,0 +1,30 @@
+{
+  "source": "C:\\Users\\ethan\\OneDrive\\Documents\\Projects\\Cine Cookie Business\\Main Project\\happy-cookie-ops",
+  "working_root": "C:\\Users\\ethan\\dev\\happy-cookie-ops-g0",
+  "original_count": 347,
+  "original_changed": [
+    "AGENTS.md",
+    "CLAUDE.md",
+    "HANDOFF.md",
+    "NEXT.md",
+    "README.md",
+    "START-HERE.md",
+    "docs/CONTRACTS.md",
+    "docs/DEPLOY.md",
+    "docs/FREE-TIER.md",
+    "docs/GAPS.md",
+    "docs/PROMPTS.md",
+    "docs/TASKS.md",
+    "docs/prompts/README.md"
+  ],
+  "copied_files": 675,
+  "copy_hashes_match": true,
+  "history_search": "Cine Cookie Business subtree, adjacent delivery ZIP names, project docs and candidate non-synced development roots; no .git or verified remote recovered",
+  "runtime": {
+    "node": "24.14.1",
+    "pnpm": "9.12.3",
+    "python": "3.14.2",
+    "git": "2.43.0.windows.1"
+  },
+  "docker": "Linux daemon pipe unavailable; no reconfiguration attempted"
+}

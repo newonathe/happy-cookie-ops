@@ -1,0 +1,11 @@
+FROM node:24.20.0-bookworm AS node
+FROM mcr.microsoft.com/playwright:v1.63.0-noble
+COPY --from=node /usr/local/ /usr/local/
+RUN corepack enable pnpm && corepack prepare pnpm@9.12.3 --activate
+WORKDIR /app
+COPY package.json pnpm-lock.yaml .npmrc ./
+RUN pnpm install --frozen-lockfile
+COPY . .
+ENV NEXT_TELEMETRY_DISABLED=1
+RUN pnpm build
+CMD ["pnpm", "test:visual"]

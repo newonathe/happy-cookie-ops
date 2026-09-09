@@ -1,0 +1,30 @@
+{
+  "historicalPackaging": {
+    "before": 168.44,
+    "after": 180
+  },
+  "closeThenReset": {
+    "afterLoad": 5,
+    "afterClose": 10,
+    "tableAfterClose": 5,
+    "afterReset": 15
+  },
+  "onlineSaleImmediatelySynced": true,
+  "reusedDisplayIds": [
+    "S2",
+    "S2"
+  ],
+  "zeroQuantityInRecordedItems": {
+    "dcf": 0,
+    "hc": 1
+  },
+  "capacityMembership": {
+    "Payment review": 0,
+    "Confirmed": 1,
+    "Preparing": 1,
+    "Ready": 1,
+    "Completed": 1,
+    "No-show": 1,
+    "Cancelled": 0
+  }
+}

@@ -1,0 +1,348 @@
+original_path,baseline_sha256,family,audit_chapters,review_method,current_hash_matches
+.dockerignore,3e7b4034e49fcf1a1e9ba1fdd904121c5acfe81cf7b2fae3eb693dade241850e,root configuration and agent integration,"00, 03, 09","configuration, provenance, workflow and toolchain review",True
+.env.example,35495d0d5fb2116af0d83264596b0ca3049fac2054a8da52a74bdf9e8eeadd69,root configuration and agent integration,"00, 03, 09","configuration, provenance, workflow and toolchain review",True
+.gitignore,6d52312a8ead19535069a46d44df817342c55b983cd143d0932164b284b9d2bc,root configuration and agent integration,"00, 03, 09","configuration, provenance, workflow and toolchain review",True
+.nvmrc,068f688a6a9b066ba8c547527df5359505e3e0cae71d49351bf5134b26f71bcd,root configuration and agent integration,"00, 03, 09","configuration, provenance, workflow and toolchain review",True
+.prettierignore,62ac3ab0a282def0cdc7dbf9ddd92a5667017be00c38c081aec1fa7feb18b079,root configuration and agent integration,"00, 03, 09","configuration, provenance, workflow and toolchain review",True
+AGENTS.md,181e85002e9d0b2151defd1b3322152b002fe526876ef4a180fc4a3285dab9be,root configuration and agent integration,"00, 03, 09","configuration, provenance, workflow and toolchain review",False
+CLAUDE.md,13d41a22eccd4346708e7fb8c73b69a4fe6aecff628dacb93cf5b690d5858eb1,root configuration and agent integration,"00, 03, 09","configuration, provenance, workflow and toolchain review",False
+Dockerfile,849e50383d41cb950454166fb020468a282509029a7512884f0adaa25269461e,root configuration and agent integration,"00, 03, 09","configuration, provenance, workflow and toolchain review",True
+eslint.config.mjs,e563b35d2f215815383c17ab578306a81cc4dce2fe8f97b5d197e7a254468764,root configuration and agent integration,"00, 03, 09","configuration, provenance, workflow and toolchain review",True
+HANDOFF.md,35218634632731599af5da28bedca0df59b5ebdcf9668e1daab15107d6823848,root configuration and agent integration,"00, 03, 09","configuration, provenance, workflow and toolchain review",False
+instrumentation-client.ts,d6a030dddbea7ffbc55f8daf33383c614cbbc28582870d2e3a1b403fad70325f,root configuration and agent integration,"00, 03, 09","configuration, provenance, workflow and toolchain review",True
+instrumentation.ts,39eab98420bfec8fd5459dd7c1e9f74248028f448a7f71bf5e7db58e1e17b3b9,root configuration and agent integration,"00, 03, 09","configuration, provenance, workflow and toolchain review",True
+lighthouserc.json,bfe40ca3a0eb324bc576415da7ba3eb1debeb0dc9bc0c34e034976f3834305d3,root configuration and agent integration,"00, 03, 09","configuration, provenance, workflow and toolchain review",True
+next.config.ts,9ab0717ffab839d06412a2905587c02ad9521e53a859f33699d7d0d4e7f49652,root configuration and agent integration,"00, 03, 09","configuration, provenance, workflow and toolchain review",True
+NEXT.md,c6788378412a1e232f798e58656ce73d8fe34c264cb1153768d206513807cb93,root configuration and agent integration,"00, 03, 09","configuration, provenance, workflow and toolchain review",False
+package.json,4569c6c6f2bba44778be8ccb702fcbb9a959cc10fbb16c4ffba70c8d18a454c0,root configuration and agent integration,"00, 03, 09","configuration, provenance, workflow and toolchain review",True
+playwright.config.ts,1a35bc48ff4eec5a7ad76f491eda43d81eb06429547ecb33e7a8c768bc1931a1,root configuration and agent integration,"00, 03, 09","configuration, provenance, workflow and toolchain review",True
+postcss.config.mjs,80dea3f7e51832ca107a0a8348df27cf6b467f35ce9200a50d261622fbe2dd8a,root configuration and agent integration,"00, 03, 09","configuration, provenance, workflow and toolchain review",True
+prettier.config.mjs,9235c32ea45dc17842086cf488de0725f880dfe4c9d238a64d0967e632d0e184,root configuration and agent integration,"00, 03, 09","configuration, provenance, workflow and toolchain review",True
+README.md,adbd46a19baa12e4e6de55a0c741abc6631efb09289f646e2cbe0bf82d78bedd,root configuration and agent integration,"00, 03, 09","configuration, provenance, workflow and toolchain review",False
+sentry.edge.config.ts,547778cf6cfa9437e019ebb2bf3d91b9d5dd80fefca68fbde82b51458f90173e,root configuration and agent integration,"00, 03, 09","configuration, provenance, workflow and toolchain review",True
+sentry.server.config.ts,693a0be5bf0ca34db735283385863ca21c93ca581040e6492e20c82d343ca0ec,root configuration and agent integration,"00, 03, 09","configuration, provenance, workflow and toolchain review",True
+START-HERE.md,f394504122dbbede283d2eaf310a21326c3eb100b368cef9509ff4d780ada4d2,root configuration and agent integration,"00, 03, 09","configuration, provenance, workflow and toolchain review",False
+tsconfig.json,aff3fe008d97101b37d4ec16ba2d4fec24ceb0035f560544f2d118347460a1b1,root configuration and agent integration,"00, 03, 09","configuration, provenance, workflow and toolchain review",True
+vercel.json,7ee0887e34feae799e85ec140c538485454cdac6a1f9731f1331a5a17fb067b2,root configuration and agent integration,"00, 03, 09","configuration, provenance, workflow and toolchain review",True
+vitest.config.ts,53d092c2edd0ac673cff21f4c3373bf918593709bf2bce65470ead3c5da58d81,root configuration and agent integration,"00, 03, 09","configuration, provenance, workflow and toolchain review",True
+.claude/settings.json,00e4f393cf2bd6f0a11e9a2f1767090edeac6b433b2b555de64ae6a7d2258fcd,root configuration and agent integration,"00, 03, 09","configuration, provenance, workflow and toolchain review",True
+.codex/config.toml,56309e774f95e74a676e0563a41d84828a9d71906bd388fd6af88ca8adf2a29a,root configuration and agent integration,"00, 03, 09","configuration, provenance, workflow and toolchain review",True
+.codex/hooks.json,41173c8916fc1e92c3695f324ec7c0410999d69ec339cd1c0c9968ee8215ba30,root configuration and agent integration,"00, 03, 09","configuration, provenance, workflow and toolchain review",True
+.github/dependabot.yml,2487dfa40a33fd0b11ae6171e8a6a0b8ec2954662f5887f7489c9b60c0c44d08,"tests, gates and CI","00, 01, 03, 08",source assertions and executed checks as itemized in 00,True
+.github/pull_request_template.md,fdff5be270b0e1766b9435697a57e2aab0a674b34fe4feea7380db7e74201520,"tests, gates and CI","00, 01, 03, 08",source assertions and executed checks as itemized in 00,True
+.husky/pre-commit,7dd41504cef666b3244937f2ace5d8034968180a5b0377086a4496123353a827,root configuration and agent integration,"00, 03, 09","configuration, provenance, workflow and toolchain review",True
+.storybook/main.ts,00faf4e46ff2945cefbee1099b05e8b5e19c3c66e330d81d92a0a27939f67336,root configuration and agent integration,"00, 03, 09","configuration, provenance, workflow and toolchain review",True
+.storybook/preview.tsx,20581a52a87b8de8a02f61ba1de5f6c178b70ce2162309786280784057b7f887,root configuration and agent integration,"00, 03, 09","configuration, provenance, workflow and toolchain review",True
+docs/ARCHITECTURE.md,d58c39163d3827c2eb1d95837ef1f8b16f0938962dde92a148423bb969488f49,reference and project documentation,"00, 01, 05, 07, 10","source-claim reconciliation, prototype relationships and task supersession",True
+docs/BUILD-LOG.md,aabd48b8ea6c6cfa9432f21708bc67e5a92d58647f908186620d32265c71ccd4,reference and project documentation,"00, 01, 05, 07, 10","source-claim reconciliation, prototype relationships and task supersession",True
+docs/CODEX.md,002f973a55bbb56b37a66112ea196958cc0a7013557070903ff568e1e0ebd02d,reference and project documentation,"00, 01, 05, 07, 10","source-claim reconciliation, prototype relationships and task supersession",True
+docs/CONTRACTS.md,3b06714579b67098649a3098f23969a15ee3668d34444b6a33c4b09c20171d22,reference and project documentation,"00, 01, 05, 07, 10","source-claim reconciliation, prototype relationships and task supersession",False
+docs/DATA.md,9e837a92c0adc1f8b7a1e1e00ca4fc581ee040667648f760a0141565bb0dcf35,reference and project documentation,"00, 01, 05, 07, 10","source-claim reconciliation, prototype relationships and task supersession",True
+docs/DEPLOY.md,c4c4ad461f082c90cf1fb18203bff85e3d6c3545ad692e35f197596e7d544d8c,reference and project documentation,"00, 01, 05, 07, 10","source-claim reconciliation, prototype relationships and task supersession",False
+docs/ENVIRONMENTS.md,7dbc50e9115443ced586e4f5beadd2ac3e7ffbf23e6c080ea8329da2bd08aea8,reference and project documentation,"00, 01, 05, 07, 10","source-claim reconciliation, prototype relationships and task supersession",True
+docs/FREE-TIER.md,81f433c43ae58f55076f4dea6ed9079c2bc082d551fc63e61e2b66981c48b01f,reference and project documentation,"00, 01, 05, 07, 10","source-claim reconciliation, prototype relationships and task supersession",False
+docs/GAPS.md,0c5d07ce9abea31eeb2d6e1001d1b10baa064c4613027a998cb0ca3a2790c679,reference and project documentation,"00, 01, 05, 07, 10","source-claim reconciliation, prototype relationships and task supersession",False
+docs/MESSAGING.md,a35487134c30cd885851769e4100c95d9ce65aeddb39dd4014522f0d9218d1ad,reference and project documentation,"00, 01, 05, 07, 10","source-claim reconciliation, prototype relationships and task supersession",True
+docs/OBSERVABILITY.md,b7de31bb05c6f3dde1393e269a488389509770cc40720bcda4b56c8889305088,reference and project documentation,"00, 01, 05, 07, 10","source-claim reconciliation, prototype relationships and task supersession",True
+docs/OFFLINE.md,8734e120636692a3096506e25efb3ac2c24e4f7e767c64cf3da67c4fa6e9d8a7,reference and project documentation,"00, 01, 05, 07, 10","source-claim reconciliation, prototype relationships and task supersession",True
+docs/PORTING.md,ed2286457feff682b24bdc279112a3b4ff7578e10ae6182a0c8ce032e0d94394,reference and project documentation,"00, 01, 05, 07, 10","source-claim reconciliation, prototype relationships and task supersession",True
+docs/PROMPTS.md,d2e38322efbce4729fa5651c32eed1ad293749c9b1aec992d82134f4eddc6ccf,reference and project documentation,"00, 01, 05, 07, 10","source-claim reconciliation, prototype relationships and task supersession",False
+docs/RUNBOOK.md,22a689cba0ed8b39a59d3633f768a284ce361f5d698c1b3da0ac20624d2fe1d0,reference and project documentation,"00, 01, 05, 07, 10","source-claim reconciliation, prototype relationships and task supersession",True
+docs/SCREENS.md,9e0f1b5cd0f69525c59896187768872400aab3031738ec5b888e636a98dbbf02,reference and project documentation,"00, 01, 05, 07, 10","source-claim reconciliation, prototype relationships and task supersession",True
+docs/SESSIONS.md,6e137a8ed458c0bf30a79b88e8e651ed744ce4632cfcdb5e6a0f8e56bc256b30,reference and project documentation,"00, 01, 05, 07, 10","source-claim reconciliation, prototype relationships and task supersession",True
+docs/STAGING.md,49028cc05c61eba2e48a999105728826d9acf649a6a222035928be978ceec8d0,reference and project documentation,"00, 01, 05, 07, 10","source-claim reconciliation, prototype relationships and task supersession",True
+docs/TASKS.md,9564a70967585a56084a0c984445297b4159c19b47955cd616c6ea4d8c8f9ec7,reference and project documentation,"00, 01, 05, 07, 10","source-claim reconciliation, prototype relationships and task supersession",False
+docs/TECH-DEBT.md,425a8ff978444a69a1291ffec57024dadaa3d7d2b0b79d4a835c94a388a34a1e,reference and project documentation,"00, 01, 05, 07, 10","source-claim reconciliation, prototype relationships and task supersession",True
+docs/TESTING.md,0ecc8ca4e76589c1640e3cc4b3de5cd4e2e216fcbe7fcacec5765a25cb6588e4,reference and project documentation,"00, 01, 05, 07, 10","source-claim reconciliation, prototype relationships and task supersession",True
+docs/WORKFLOW.md,67ad576ccb68a4118ee92acc128980dd6872cbc01ae1d8e2f0afd1a68d74a393,reference and project documentation,"00, 01, 05, 07, 10","source-claim reconciliation, prototype relationships and task supersession",True
+public/manifest.webmanifest,2e891ab7e63f7de6bbf2af734620a81fe6b1680d7fa614aaa0ccc5e8cd1e08b0,root configuration and agent integration,"00, 03, 09","configuration, provenance, workflow and toolchain review",True
+public/sw.js,bd81acbc19dda12088eaf16595c6564c38dc500460c63ffab0c78d0182f9559f,engine and offline,"02, 06",source flow and selected diagnostic counterexamples,True
+scripts/check-engine-contract.mjs,2837f5a5f89ad98fabd2833cbb91688b9ac4b2a5f9a4ed8bc285911d4ea23dc2,"tests, gates and CI","00, 01, 03, 08",source assertions and executed checks as itemized in 00,True
+scripts/check-port-integrity.mjs,9f4bad975a9a51c6f78df00bd56463deb0ed74be45c62e5a703f70419c293bd5,"tests, gates and CI","00, 01, 03, 08",source assertions and executed checks as itemized in 00,True
+scripts/gen-seed.mjs,c50dfb676212819525fe4dd1313983a863b93bb13bce22cbfc70961edbf8640a,"tests, gates and CI","00, 01, 03, 08",source assertions and executed checks as itemized in 00,True
+scripts/port-baseline.json,dbb1d3d2ff5708460886a92a277c92f83fe0914f33834aa7d03480e2fd18574c,"tests, gates and CI","00, 01, 03, 08",source assertions and executed checks as itemized in 00,True
+scripts/verify.sh,f0049ac141e8814efac65952497312396e3a00e1a4da9e9d4ef494b733a80bd6,"tests, gates and CI","00, 01, 03, 08",source assertions and executed checks as itemized in 00,True
+src/middleware.ts,5658cf08bc2e63e911b3e323f9e497639ac183519a3223ec50a42d9dc6b94258,application infrastructure,"01, 02, 03, 04",source boundary/configuration/API/security review,True
+supabase/config.toml,1aecd4c8d5334e80463f7f25ef7be1eaf17c95845839d72ee4eb4a3ef57f3d32,database and generated seed,"02, 03, 06",static SQL/schema/grant and generated-seed review; no DB execution,True
+supabase/seed.sql,131f081528e10da3408a5966542739c4a8afdffba017dcfdb20514ba3d2be34e,database and generated seed,"02, 03, 06",static SQL/schema/grant and generated-seed review; no DB execution,True
+tests/setup.ts,691d8596540f55dd36316de140b27bf600e0f3bf85daa1ad29d68ee0fc122a63,"tests, gates and CI","00, 01, 03, 08",source assertions and executed checks as itemized in 00,True
+.agents/skills/source-command-handoff/SKILL.md,203c226f89a6ebb2cbc68eb4a4e3e6908414e50a3ad8fda751f6788174c8081d,root configuration and agent integration,"00, 03, 09","configuration, provenance, workflow and toolchain review",True
+.agents/skills/source-command-review/SKILL.md,d03200183bf3bcaa915797b016a205182867521b1e03c190bff2ed2f4e8686af,root configuration and agent integration,"00, 03, 09","configuration, provenance, workflow and toolchain review",True
+.agents/skills/source-command-verify/SKILL.md,b356f57b4c1ab29b3ea74cf6822e09e51c46c4e069f77638782584b90609864a,root configuration and agent integration,"00, 03, 09","configuration, provenance, workflow and toolchain review",True
+.claude/agents/port-auditor.md,3318fbb4a501e054fe89dfd1a4db2b3969b2aa1646f1a77bdc8e6d7df4b3272a,root configuration and agent integration,"00, 03, 09","configuration, provenance, workflow and toolchain review",True
+.claude/agents/security-reviewer.md,70a651bed03949bd552c8ae13c82b0fdf20c308cef2b16c0ac8a115a7bc457fe,root configuration and agent integration,"00, 03, 09","configuration, provenance, workflow and toolchain review",True
+.claude/agents/test-author.md,054a29256b6b90e6a56f81289ac1628afb220dd8df43ae11094126fa05f7bc85,root configuration and agent integration,"00, 03, 09","configuration, provenance, workflow and toolchain review",True
+.claude/commands/handoff.md,0f6606f56045fe9a1eecaf0cb2b2de7547983ee7ff0086a9083bebda313151f0,root configuration and agent integration,"00, 03, 09","configuration, provenance, workflow and toolchain review",True
+.claude/commands/review.md,96f2a61c23c234b344ad7ce8185e22a70ee97f5660bf2b1ca8ffa743761b3ff3,root configuration and agent integration,"00, 03, 09","configuration, provenance, workflow and toolchain review",True
+.claude/commands/task.md,da4aaf41859180d4410e464d74cd9f07072b006c345ba476f1c9ca95f06f4402,root configuration and agent integration,"00, 03, 09","configuration, provenance, workflow and toolchain review",True
+.claude/commands/verify.md,5c82e1cbff6900ce2cb00735f1023ae5e16775206aca2fa518f91743164800f9,root configuration and agent integration,"00, 03, 09","configuration, provenance, workflow and toolchain review",True
+.claude/hooks/format-and-typecheck.sh,b872ac585d7eb7376ae8dbe68575f59ce0c029fdd863e32b7529e139dc62ce75,root configuration and agent integration,"00, 03, 09","configuration, provenance, workflow and toolchain review",True
+.claude/hooks/guard-protected-paths.sh,055704ebd9aa65a7c7aa8c357e1262248ed0d00604469baecf2dae3203600df2,root configuration and agent integration,"00, 03, 09","configuration, provenance, workflow and toolchain review",True
+.claude/hooks/remind-verify.sh,4859afecc0de66c1caae90b60668e6adeb01a41207f4f5e2607311a0b1188e4e,root configuration and agent integration,"00, 03, 09","configuration, provenance, workflow and toolchain review",True
+.codex/agents/port-auditor.toml,9c60971f0afad1c6fb96085e82adf55e170bca0b77da2dd42e6574a1b59ad25e,root configuration and agent integration,"00, 03, 09","configuration, provenance, workflow and toolchain review",True
+.codex/agents/security-reviewer.toml,3ebd7d3e8a89f31dab45571737c1cad23de9b29f888f8a578b656734f0287cfc,root configuration and agent integration,"00, 03, 09","configuration, provenance, workflow and toolchain review",True
+.codex/agents/test-author.toml,a6285f2900e44f6c7cb5c4c7b0e1539a5de2ec4b799ee11aa2026c060f9623b3,root configuration and agent integration,"00, 03, 09","configuration, provenance, workflow and toolchain review",True
+.github/workflows/ci.yml,bedbdf6134ec19228d97bf72f4ab7967990e6d9b62d8014304f300acfcc44688,"tests, gates and CI","00, 01, 03, 08",source assertions and executed checks as itemized in 00,True
+.github/workflows/uptime.yml,539e545fd5ac72b3e576a6e388d468c8a464c22be3c2c43e9d164170ddd8265a,"tests, gates and CI","00, 01, 03, 08",source assertions and executed checks as itemized in 00,True
+docs/prompts/00-session-protocol.md,6ff940d07c6680c38673eb25abfaf0420e9a7d154b63f36007ced77d458e1d09,reference and project documentation,"00, 01, 05, 07, 10","source-claim reconciliation, prototype relationships and task supersession",True
+docs/prompts/01-foundation.md,485f8f3adbef79f68ec15febdb0268a6d5db33e636f30da758be042f4f288d7d,reference and project documentation,"00, 01, 05, 07, 10","source-claim reconciliation, prototype relationships and task supersession",True
+docs/prompts/02-identity.md,bc4bea36231f4096c0f2ef8efd0684e3109d98739d3ad14dd0575018fcee22d6,reference and project documentation,"00, 01, 05, 07, 10","source-claim reconciliation, prototype relationships and task supersession",True
+docs/prompts/03-test-net.md,17cdfea20bb810a56eb0b4f2cd26606de41b40bf3feda3a8a11dca2aee9cb9b2,reference and project documentation,"00, 01, 05, 07, 10","source-claim reconciliation, prototype relationships and task supersession",True
+docs/prompts/04-postgres.md,7dc22f083593898b0905bc2363a1bb845f099f502301e603218046525c466bdb,reference and project documentation,"00, 01, 05, 07, 10","source-claim reconciliation, prototype relationships and task supersession",True
+docs/prompts/05-quality.md,7a559b2c30e290ef0d70b9d5e57e88d7105eba6d0236969b979b5d99892197d4,reference and project documentation,"00, 01, 05, 07, 10","source-claim reconciliation, prototype relationships and task supersession",True
+docs/prompts/06-production.md,a1e35eb3f6d914f7262804ca866e105f2875f666a8393c584d976bb54c1f4828,reference and project documentation,"00, 01, 05, 07, 10","source-claim reconciliation, prototype relationships and task supersession",True
+docs/prompts/07-review-library.md,34871178c80e8decad3ea3cf43e4011ef75668b99e53dab6a86d44719d08476d,reference and project documentation,"00, 01, 05, 07, 10","source-claim reconciliation, prototype relationships and task supersession",True
+docs/prompts/08-recovery.md,c899d76c9d3ea588642919157e931bbdfd643d5e2edc83688b75346dfdf9bc99,reference and project documentation,"00, 01, 05, 07, 10","source-claim reconciliation, prototype relationships and task supersession",True
+docs/prompts/09-maintenance.md,309dbcc60486eed392f1e31cf8d3fa9f31947c5c2d779993d7a3a66a259b5072,reference and project documentation,"00, 01, 05, 07, 10","source-claim reconciliation, prototype relationships and task supersession",True
+docs/prompts/README.md,6b203ddaeec00e3a7c47fae00814e88bdfc7a544f3a376296d923cf41a8bb246,reference and project documentation,"00, 01, 05, 07, 10","source-claim reconciliation, prototype relationships and task supersession",False
+docs/reference/prototype.dc.html,41a45940608a25c09abe07d077f4ed975a1636a3eec868cf596bba975c7b31f6,reference and project documentation,"00, 01, 05, 07, 10","source-claim reconciliation, prototype relationships and task supersession",True
+docs/reference/spec/01-screens.md,87f04b232ce00853cf86d893b3455420443a7ab8cd50e4dbe080607edd983ec8,reference and project documentation,"00, 01, 05, 07, 10","source-claim reconciliation, prototype relationships and task supersession",True
+docs/reference/spec/02-data-model.md,c71b160540670d0fdeeccbeb3e9039f0fc368b5481bf5fda4d8b269db66c078a,reference and project documentation,"00, 01, 05, 07, 10","source-claim reconciliation, prototype relationships and task supersession",True
+docs/reference/spec/03-business-rules.md,2839a616510a8caf2f28634bc809eabfdf71a3d98ceb53dc25a541bf651b15c2,reference and project documentation,"00, 01, 05, 07, 10","source-claim reconciliation, prototype relationships and task supersession",True
+docs/reference/spec/04-design-tokens.md,ddb44eb96991380a751fbe132ab9b06bc34d3ad12b61d2c24b418d21dd588128,reference and project documentation,"00, 01, 05, 07, 10","source-claim reconciliation, prototype relationships and task supersession",True
+docs/reference/screens/desktop/01-home.png,d324ca7fbbb2628761229855bf91b1e1116e3887263be5f4910c615dbe7606e8,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/desktop/02-orders.png,3a7c2cdf2a80813836e49d42bd27402f8e352b0ff8fc2eb7884d87f44180b298,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/desktop/03-order-detail.png,398e5c14ed4ffbe85bf50243c868552c8ecc46c84c9c9bad85bd4a1032e573c8,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/desktop/04-bake-plan.png,009ce45774d16db101b5093445728cbebd1026f729b17a442399954eaabc5598,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/desktop/05-production.png,edbf3b5688b06b29cb7dc1a534d30ac14d6652fb01a5b379f0249d5c009e4351,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/desktop/06-inventory.png,22d32f58906ef6809a7c7052f3cf2f72c14e50376049ac32234591ff60d81669,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/desktop/07-stocktake.png,6c4a7c0a075c922cb4b884c0590397f301c3e198cf3b707a770e691e28353688,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/desktop/08-grocery-list.png,24d6eecc6367b1574f5556e272a2abddf189a5749ae8dbb68c6710db06ec0fbf,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/desktop/09-bazaar-mode.png,e67b4a7df561241bcc5c5c58ac5e790ed126af44fc47197574c0c10e644cf804,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/desktop/10-sales-log.png,774f8ceab254ce423534183f47e8e3ec4c22a0aab28198f969cb1a7a59307132,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/desktop/11-payments.png,2eec82e70890fa574bc40ea717b9bab3c43f248fc3c8b0c9ebb145480d7fd339,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/desktop/12-profit-and-loss.png,8ea9ead60864683e8dc430880fe61884f9956ee2f6941f8c1f4e98476065bf9e,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/desktop/13-form-queue.png,630daf5ff4fd1a7228483af1a34d49de14293d7f759f89a79e86640b6c82f8a0,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/desktop/14-drops.png,876cc0bf9aefdbab27502dcec541a06ee13a977a4a93687ff6001126fb6d5836,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/desktop/15-products.png,482ac00ef1231ef79545c64f2d9c6bfcf86513463473910302d036cb3287e73f,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/desktop/16-recipes.png,351f25f205d827a82c9a5b69547b28f13f426545f34798f6389313617918ec3e,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/desktop/17-suppliers.png,a852f5d3813255059c616cb4b756e6f1dd17bb6185ade3bd99fb4c3fae0a8b97,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/desktop/18-settings.png,c8f1ebd5cad60a74f1b78f7b4ee35b735d30ecbebde871741b6adb0ad4a833a4,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/desktop/19-notifications.png,e33276630b2b79a7eba5549542366053559aae42af32d97c1d2773f56729123e,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/desktop/20-system-health.png,139844de19386af135bae46b235217b05baa3671543c697ea92b43d5c2bcb1d9,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/desktop/21-all-tools.png,5b06b3cd90ac68628729d982be814520cda653eaf8775e69f1d35ef1fc606645,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/desktop/22-shop.png,bb2df50327fca5f19d9421c1226bfd3b89bade92f866c22985c8aa829fb64a73,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/desktop/23-checkout.png,5d1b642538ae92177e6ab1be21cc036976eceda1cbb6e673a91d48a1622865a1,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/desktop/24-order-status.png,cd708930b751a6627ce4bb6d3bdfc3965d3589503da40cc35b2a7bd5fce5e5c2,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/desktop/25-find-my-order.png,f5b751d5a6a36f6a94975ed2155e07488c9cc686f026eea2382d4bc7c1f40924,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/mobile/01-home.png,3babcc4f220f6d3299e0fee22ca4c0e36f6f56e8511deaf25262f8e4b5c123b1,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/mobile/02-orders.png,d526a3ab13c3a8f5611629d4ab7066bb4eddf315858c0926cc261c6deb1be0bf,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/mobile/03-order-detail.png,70fc3a7a53d27715556888242b22127804a9eb1da4d88849a8821f7ee8d4db9c,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/mobile/04-bake-plan.png,a15fe6ef1e6fc31941f6a54f0675658575f2cc2a6b741efeee1a2cd3d760a795,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/mobile/05-production.png,ebae4b41f21ffb943affab3029d48e1137cc7273fd7b40ca59b138707e15ef61,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/mobile/06-inventory.png,a16622d3918c30cbcf42eeea981455c275aff78a8ab2b0dea3a737acc5d1ef59,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/mobile/07-stocktake.png,6df7712cff5e55eb593a3b32686f441746c0c4b6cbe6fc08864d81768b3b1e7e,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/mobile/08-grocery-list.png,71dfc011c365ec1881d7f35f509e4607162322a0342bf80214a4b2fe87bbc884,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/mobile/09-bazaar-mode.png,b5de29148f0e102c4b2903fb4da241dbd906335c2ddceda7694e4533ad1f3902,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/mobile/10-sales-log.png,c6dc1cc7c8f743c5a44cc94d9c490d45e8e92d1f7559effb7a0fd90cab811212,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/mobile/11-payments.png,12ae60337bc25633a49df8227287e96473043143aabdd7fdff54426ba0515437,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/mobile/12-profit-and-loss.png,b9826f5ca005137fc1ffabd2dae058ae5614126984cf324afb7ffbe9f4c2d0da,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/mobile/13-form-queue.png,fc3f8fd2a376654db0ad3abfea9abfa1a7ecc50e6ec6bb2b877988784c4cf46f,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/mobile/14-drops.png,47c9984bb2d6adb45dec37d14bcd4170abb295f6de8ac1d3e1daac139ead7ffc,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/mobile/15-products.png,04bb2016b5d30aa3d8d34273296477a28b8f4a9291060805d2de2eade4eaeade,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/mobile/16-recipes.png,6378547e5484c82c68efecc9f4e7f012b5c823efdcfc9e2c48de79241be73b3f,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/mobile/17-suppliers.png,5d4875fe87d796e14168b94f25a9a410e9a2ddbb05e003e5b7a121540f0ac693,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/mobile/18-settings.png,30fa727dc6078d245a891be4f2f633543e26d886ea057fc5b903dd8c7e16c56a,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/mobile/19-notifications.png,e6c1b82b8f0b7b92cdafa9185cff4c853d0813a85d12d70246ea4849d65be24e,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/mobile/20-system-health.png,c04d34dcecd21f49603e1dc677dccf23d2040b47d4a871577ed5f38cf419d98b,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/mobile/21-all-tools.png,4ab2d53859ae652b72b565fd1f14068f90fc296af94d4e8fe9f4aef670c7b26b,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/mobile/22-shop.png,78cdf40b5d3311020479ccaa0cd9e1b6a09458935cdf653dae934d90bc6f75cc,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/mobile/23-checkout.png,422ffd2c88917357e33d5d1263af2fad492119b3ca7e924a5d6d3c17150442dd,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/mobile/24-order-status.png,26976866c7605430b9e7c5150e5d424dff5654dc61740aaf926ea6632572b362,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/mobile/25-find-my-order.png,eb142c874150799801111eef51a65083c42d2acb98ea4fff68cb000d2e96ce33,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/states/01-sheet-confirm-payment.png,26324184526d35978fa9f69c298df2ae4fbbd67e6d9d40d2eb8e7f90216e1cbd,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/states/02-sheet-no-show.png,b479171316b144784c8c749127981f0e7623a617e07a768743dccc1b1cc44183,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/states/03-sheet-refund.png,e73656d8ad0e9be8b6151c6df3c0eb4670c9f46f5327bbf8553d1b261f3bed76,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/states/04-sheet-write-off.png,ab0c394cf61add1525a409d9208036cc99f26585603a036f358e9a3b9c88efa0,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/states/05-sheet-receive-stock.png,65c611bbb0ad58ceff4b8e025a10ad204ade7f3d6da7998146902afddc29a48f,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/states/06-sheet-closeout.png,c1d5d6544575eb60fa45abc164beb99b892d8a2a848774aa5891b23a44afb98e,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/states/07-sheet-shop-status.png,7f5f8bde897a7615a56eee987e51b5719f3f68f6e477d702d8a53f9ef9f85ded,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/states/08-sheet-rules.png,b795645262318a15cbc5891204b345f6ee3be4a91e5c4face9912ff85998a325,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/states/09-sheet-reset-data.png,649d2d9ef0cf739234e401fb868cd9fd9084cc9de79b9496f71c37d3f654b598,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/states/10-sheet-edit-price.png,f8bac196ed46dddd6248006c359243be204c325d6be86cdce70130cb82cfa594,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/states/11-bazaar-offline.png,10ffa01d4301baef83174be370b3e48e15e0a818c9c3f61506e74817a5e9ae1f,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/states/12-role-helper-home.png,5e78079b9c2f1bfc9e335f4bf1d37310d359d45963252a0eb10ef1f77139d5a1,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/states/13-role-helper-bake.png,752f8984064a6dd861f504f8129e82221aaaddf8556f997bfba07ec3c0a20499,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/states/14-role-support-home.png,fd320217972ca06f947e22259f8d9a20a5bdd745f2a6e6451fbe3cdd8aa2af8c,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/states/15-desktop-orders-split-and-toast.png,7d881adbfc30bf61687bd877cf9d438dd027edfcdd18cce8c8168ffc9a8ee1cd,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/states/16-desktop-recipes-wide.png,eccb67231a54b6a669be4c7e383cef1ab5a0b8fd37591b10926fbec208c090f5,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/tablet/01-home.png,fbdd6d81171f19571412df970c5630aa659cbde029806801f7549ceb111bb817,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/tablet/02-orders.png,f1cb82091da47ed624219d3f4802634e6cedeabb30d9553457f0b108196d3f15,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/tablet/03-order-detail.png,f831fe4f03238472ff1b520a99b94d613280ef4fc64ed6d48b42211f1a1044a2,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/tablet/04-bake-plan.png,29aab238f1fabf76829ad770e35f388c3eefd357268417fffc3d3bc6c8cb41e1,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/tablet/05-production.png,3897b12894627d560f6801089ebc624bc5f346224362933badc050d2ac67329e,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/tablet/06-inventory.png,fe8b51251b4c4966ce0ef19686074e6bb0f6e53dfea8ac081761b6d3fa2a59af,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/tablet/07-stocktake.png,60b1baa7849f87e69da412e6218dccbe82dee940bfba8d66eed92ced2be5d14e,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/tablet/08-grocery-list.png,1687415f17e5583005a25812e2f68808093639448ac9fa1f14eb2d8da5006b59,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/tablet/09-bazaar-mode.png,290ca72844a0fce87ea5629555442f3116ec812297b43c0fbdbfac15047c0ac4,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/tablet/10-sales-log.png,fbed543699ee5a836acab98acca166232269fe5abe11da182fa51b93853d87d1,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/tablet/11-payments.png,84df7de07e12024322874015112bd75919fdc6d9c023edac5a093711225e736b,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/tablet/12-profit-and-loss.png,3b9bf0353da88337ae368ae5ab8bd68765caad8d3c0eaab05b924b677465935b,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/tablet/13-form-queue.png,15ad4f122ed223d4078456315d78fcfe33f2312a4c2956e731c0fc694bd7eec8,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/tablet/14-drops.png,b5e62c8becfe133bb928e3748a4eb556620cedd87561b5579de7ddfc0f8879f0,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/tablet/15-products.png,799c7961a8c0531aa03d48cfc469ddca6e5a33f5c8388f4ea69498ef0bc452dd,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/tablet/16-recipes.png,8ccba940eafd567566e3fe7f9b515261b4f35055c6b4efadccc61cdffe1f6464,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/tablet/17-suppliers.png,528d90aa3748630007d172770cfb261ba2d691a2e56793a9497d4e471a1ae2a5,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/tablet/18-settings.png,7283f082fbd5610d62c0862fff335ff5eef59c8046782ad27a0a1610b5612096,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/tablet/19-notifications.png,f7a53f41d0fc43d2060ab38536e8673d2ef7e3c67cb523dea184e18e6803e081,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/tablet/20-system-health.png,c02b41cda7b1e4f75393511c8a6ed1e431c7420b66865ec7d18083256317407c,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/tablet/21-all-tools.png,d1e6f71cfa585ca9e7f7cc8ba2d0e5fe44dd88b0196da55bbd885965f33b4ee6,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/tablet/22-shop.png,c6f84328b97a06c26b3e59e0953d3bc17eae0778cad9dab3f18d4d421e6ba7dd,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/tablet/23-checkout.png,1faa71d6d7660cb843397d44f352f4d3c5e03a0714c91eebd2c7144e4eec6c4f,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/tablet/24-order-status.png,954500b4fcd3be537ddf304eabda811d908144e6c9dd960f19b3c0628d379003,reference images,"00, 01",reference visual inventory and contact sheets,True
+docs/reference/screens/tablet/25-find-my-order.png,9ce80c941fdcab4abd78e1a02aa12c16333b65be7eea117664f991ad85a5d15b,reference images,"00, 01",reference visual inventory and contact sheets,True
+public/assets/double-chocolate-fudge.png,2ee8a1f7cea527cf21d955956bd3f41c40c6e07bcec6e36bb37e7d03a2f18a5b,public assets,"00, 01",asset inventory and rendered/broken-image browser checks,True
+public/assets/happy-camper.png,191b0cf8d567664f5cb7d823e4970077ace2ab3ceab18839fc91a9a4c441be07,public assets,"00, 01",asset inventory and rendered/broken-image browser checks,True
+public/assets/logo-full.png,996e7893496845e3996f137e971bcd2629ce3db726eab5e3cd5ffca18056ff16,public assets,"00, 01",asset inventory and rendered/broken-image browser checks,True
+public/assets/logo-wordmark.png,2c1090dfbf1474a80fa8b68040b0cd1d21326190f0b87cc38dc32095c537e358,public assets,"00, 01",asset inventory and rendered/broken-image browser checks,True
+public/assets/mark-outline.png,5f7dfe11f13943f46e77fe76fa202b609c1ba575db67c7f049cd79bd7b71be6c,public assets,"00, 01",asset inventory and rendered/broken-image browser checks,True
+public/assets/mark-solid.png,c7601803007cd7462cd74c48b52e3e476c1026815d5bd7f264a0db950ad0e475,public assets,"00, 01",asset inventory and rendered/broken-image browser checks,True
+public/assets/nutella-churro.png,7200586b1c2b3c99a002744afd01bf87dbc60dd2bd88d0b28419015652af0ba5,public assets,"00, 01",asset inventory and rendered/broken-image browser checks,True
+public/assets/pb-miso.png,2ad0d90fa52092cee33faac142e60535b0ca7f314be4d2d47895d280110d7344,public assets,"00, 01",asset inventory and rendered/broken-image browser checks,True
+public/assets/qr-gcash.png,c094ecaf102e5365fc83237ef7013cd6d7adea570746316c4021e1c6a3477e59,public assets,"00, 01",asset inventory and rendered/broken-image browser checks,True
+public/assets/qr-gotyme.png,82fe7e882415ce5d6d5be43520dcf478892725dedb9f60764da05f3fae4fcad7,public assets,"00, 01",asset inventory and rendered/broken-image browser checks,True
+public/assets/qr-maya.png,dcd2d71e290a83443b03383da134932ebc261013349d0b75bb5325d1862d7a5b,public assets,"00, 01",asset inventory and rendered/broken-image browser checks,True
+public/assets/red-velvet-cheesecake.png,9c95fc907bfc76055b266623367ee53e375b26117bbcbac0c3ce3ba4d42e3364,public assets,"00, 01",asset inventory and rendered/broken-image browser checks,True
+public/assets/white-chocolate-biscoff.png,14ca5c843bae62a917f6e6342d292e66160460e3274861c88d857299e7cadc9b,public assets,"00, 01",asset inventory and rendered/broken-image browser checks,True
+src/app/error.tsx,cbc9a05f8882f55652e5f72ececda05c617a91044231ab7493437aea0f7a3caa,application infrastructure,"01, 02, 03, 04",source boundary/configuration/API/security review,True
+src/app/globals.css,ec9f746d3d5dfe612c15714c017e79aab868d4b6448c9a5e07eb12e1b965ad10,application infrastructure,"01, 02, 03, 04",source boundary/configuration/API/security review,True
+src/app/layout.tsx,2aaa4cb75a89227c4e29bf1b434f407dff2116fd371e2a940d22dc8904c72ea5,application infrastructure,"01, 02, 03, 04",source boundary/configuration/API/security review,True
+src/app/not-found.tsx,de73e4bd18fd5fd1dc3983e8dcd63f644e7d39762586cc80b4877c52eb8b301b,application infrastructure,"01, 02, 03, 04",source boundary/configuration/API/security review,True
+src/app/page.tsx,63251eebe93e7fd1ac2a219b351caf1e813d144c751334e1241db985987bcc50,application infrastructure,"01, 02, 03, 04",source boundary/configuration/API/security review,True
+src/components/tokens.stories.tsx,f99233d9092ecf26042870d01d4f7b7048905216a6fff03ea9258840821c33c7,view and state binding,"01, 06",source and screen/state mapping; browser evidence where reachable,True
+src/lib/css.ts,06712751f6ae4a76c5a52acd4108974af8806d72e32a7d4f327dabbd6cc55087,application infrastructure,"01, 02, 03, 04",source boundary/configuration/API/security review,True
+src/lib/device.ts,ff9bf3b8cd275f201ea3ec937f0d299768894833ed48efa5b45971348b3338b4,application infrastructure,"01, 02, 03, 04",source boundary/configuration/API/security review,True
+src/lib/idempotency.ts,73d69dda5c0b0295df97db60dede585f482a7c82d9e562f1de71f58d5c20098d,application infrastructure,"01, 02, 03, 04",source boundary/configuration/API/security review,True
+src/lib/money.ts,d325e39658420b874dff1bb14bd5e39cd94c3d5b8f3904dd70f0dd2673041fce,application infrastructure,"01, 02, 03, 04",source boundary/configuration/API/security review,True
+src/lib/rate-limit.ts,366bab04e5e4864f831baac592fd95e73acc62aeb0c0e054d00b7a7cbb031ebc,application infrastructure,"01, 02, 03, 04",source boundary/configuration/API/security review,True
+src/lib/screens.ts,1804789db7d8d823699eb40e4a907c52d71dadc12afc2eb88ba19dd44558b633,view and state binding,"01, 06",source and screen/state mapping; browser evidence where reachable,True
+src/store/ops-runtime.tsx,9d3900a035aacdec6b36e06caf1c493610ea1eebb5bdb5b4753ce64e70935e9f,engine and offline,"02, 06",source flow and selected diagnostic counterexamples,True
+src/store/use-ops.ts,636244f62f184dc17719ea183842850abc0629b9bf5295fed205d34faf03a7cb,engine and offline,"02, 06",source flow and selected diagnostic counterexamples,True
+src/view-models/vals.ts,ebce41d5e859842087892eff0d8b957867c64082934e8afa01f6afbf90c2d01d,view and state binding,"01, 06",source and screen/state mapping; browser evidence where reachable,True
+src/app/bake/page.tsx,ec5899102f660d3fb33c9d36f8f3305ad8f26c5f1cd888c14440ccd2264b37dc,application infrastructure,"01, 02, 03, 04",source boundary/configuration/API/security review,True
+src/app/batch/page.tsx,560ee176df40282149a6488d33531930191ae6f9a10bab0c78cf58e8c4b2d992,application infrastructure,"01, 02, 03, 04",source boundary/configuration/API/security review,True
+src/app/bazaar/page.tsx,4d307c1831517d827ec8fbad536cba80e158d7c7b8bde6995f5ace93ce108a32,application infrastructure,"01, 02, 03, 04",source boundary/configuration/API/security review,True
+src/app/checkout/page.tsx,4abf50ec2e387ef9add30c3591fa380fcafe3b39ae131183c7e4e4c18d195384,application infrastructure,"01, 02, 03, 04",source boundary/configuration/API/security review,True
+src/app/drops/page.tsx,3ec242f155589472034aa1ca609c861b6b8ed3082d029bf9b6d89cc82ce896a1,application infrastructure,"01, 02, 03, 04",source boundary/configuration/API/security review,True
+src/app/formqueue/page.tsx,52e4758e4af748c8b736dd4ddee52ce0b4ce8f382eff84ab3ba6aed16046562f,application infrastructure,"01, 02, 03, 04",source boundary/configuration/API/security review,True
+src/app/grocery/page.tsx,52444b945da24670d3c89fe590671b74c5c216e1b00f82f1813f381d0f4d26f5,application infrastructure,"01, 02, 03, 04",source boundary/configuration/API/security review,True
+src/app/health/page.tsx,0a87186a71876c1214f7783528f7a5ee4f7d9d465484c83485e8887528b343f3,application infrastructure,"01, 02, 03, 04",source boundary/configuration/API/security review,True
+src/app/inventory/page.tsx,1ebcb725cda9ed79a70d132174ef0af44a55c0926232a27757875dc8bf6209e4,application infrastructure,"01, 02, 03, 04",source boundary/configuration/API/security review,True
+src/app/lookup/page.tsx,16bcd95ffbab540d3e5b98b94bd9c6bd3ca337d6ae4e8ee56492d01b73e4526d,application infrastructure,"01, 02, 03, 04",source boundary/configuration/API/security review,True
+src/app/more/page.tsx,8048308bd7f1a04b047afda68b7247effccce26fe3ba364857a779c401527bf1,application infrastructure,"01, 02, 03, 04",source boundary/configuration/API/security review,True
+src/app/notifications/page.tsx,64be00af185bcca1867434c41028559b39aad436ba335208657fb8ae8208e7ee,application infrastructure,"01, 02, 03, 04",source boundary/configuration/API/security review,True
+src/app/order/page.tsx,a8a15c035f908842127e0a791ff09358cc864577c023b119186593d853a3df25,application infrastructure,"01, 02, 03, 04",source boundary/configuration/API/security review,True
+src/app/orders/page.tsx,b50f2ece0675b52cb27af2cccdbcd94f46a2c288edfe95e3846b349b209459e0,application infrastructure,"01, 02, 03, 04",source boundary/configuration/API/security review,True
+src/app/pnl/page.tsx,eb4aaac57727beb9d9bd86c5e9830834d1eeaa19709225fa01363472785f71e4,application infrastructure,"01, 02, 03, 04",source boundary/configuration/API/security review,True
+src/app/products/page.tsx,aa9c3f7e1d82708979c4a23c38d3a475dd63495a0a43ed770bf39b153ad9fa89,application infrastructure,"01, 02, 03, 04",source boundary/configuration/API/security review,True
+src/app/recipes/page.tsx,178757dfd6dbf298f21f9994b8aec4c2ae017bfce07ce431639ef2c89cabc354,application infrastructure,"01, 02, 03, 04",source boundary/configuration/API/security review,True
+src/app/reconcile/page.tsx,ba8e9109cb1207205e28f72217d3d77d5f90afdef09fb5ca0a3a880c228b3331,application infrastructure,"01, 02, 03, 04",source boundary/configuration/API/security review,True
+src/app/sales/page.tsx,aef2c6eba0f347615849564eb2b7c9cb65b4eb8c9e99e4c94604584deff47a24,application infrastructure,"01, 02, 03, 04",source boundary/configuration/API/security review,True
+src/app/settings/page.tsx,b3bde6a64e8f120cc226333c70a660214a5851aa4d743effca9c3ebca4dd4b9f,application infrastructure,"01, 02, 03, 04",source boundary/configuration/API/security review,True
+src/app/shop/page.tsx,e2292927a26b139dd8935f15e19b13b29210d8ae6f75303ac981c044a1704c72,application infrastructure,"01, 02, 03, 04",source boundary/configuration/API/security review,True
+src/app/sign-in/page.tsx,e768e217d3e61dd8cc106af5ead4d2b7e9bf1e5487680463ba3021bd5b18d35e,application infrastructure,"01, 02, 03, 04",source boundary/configuration/API/security review,True
+src/app/sign-in/sign-in-form.tsx,c600a8d8c15e6ac1cf4ded40e4a7fa01aaadc343659da32c320be605fead4c00,application infrastructure,"01, 02, 03, 04",source boundary/configuration/API/security review,True
+src/app/status/page.tsx,ef363b163d0c4d0537cbc2def92f0f12219d9da8f3ec3983a09f8073fcd12b30,application infrastructure,"01, 02, 03, 04",source boundary/configuration/API/security review,True
+src/app/stocktake/page.tsx,a44c5cbb14d088ec98cd17c81a19127bcdc6d67a4ac40e7d0637cac3c0c2720a,application infrastructure,"01, 02, 03, 04",source boundary/configuration/API/security review,True
+src/app/suppliers/page.tsx,931533a7d8c19d8c19c776ef8515f01c4f67a92368304e318f26337be7acdd73,application infrastructure,"01, 02, 03, 04",source boundary/configuration/API/security review,True
+src/app/api/health/route.ts,27146eb66ea114d9396063dc1053c64a2e0a307a4bc627c6f1a824849fc521ec,application infrastructure,"01, 02, 03, 04",source boundary/configuration/API/security review,True
+src/app/api/sync/route.ts,e093d623c568231441d8bc519b63387061c9aecc9bb2054d8c66eca268bce3b2,application infrastructure,"01, 02, 03, 04",source boundary/configuration/API/security review,True
+src/components/app/offline-bridge.tsx,13bef02a42a90808d2baba1c27930687ea2f09ed77fadc629b61872504a145ff,view and state binding,"01, 06",source and screen/state mapping; browser evidence where reachable,True
+src/components/app/ops-app.tsx,beb7e3ce57766c070bc7d5e6c98f7d9df49745b9eb4fb1c90f0808e3a29d7092,view and state binding,"01, 06",source and screen/state mapping; browser evidence where reachable,True
+src/components/app/route-sync.tsx,3cd9841f7b5fb3b12ae2aea0b00bbb62f492c09d403335db081e73fa651ac1b2,view and state binding,"01, 06",source and screen/state mapping; browser evidence where reachable,True
+src/components/app/screen-boundary.tsx,be8e7ceb2c730733bc1cf80cd33035c9d3544d0382fc07a86f20dd47f4396a6a,view and state binding,"01, 06",source and screen/state mapping; browser evidence where reachable,True
+src/components/screens/all-tools.tsx,b7bf0f26c513d7d567b69ecf7b991281988208968a9493471dd53cbb0f535d91,view and state binding,"01, 06",source and screen/state mapping; browser evidence where reachable,True
+src/components/screens/bake-plan.tsx,48fcdda612ca60dcada30ace11c6b08e9130989b1c28f55d1967bc631b97bd5c,view and state binding,"01, 06",source and screen/state mapping; browser evidence where reachable,True
+src/components/screens/bazaar-mode.tsx,c8861bd7a58ec5a3225cc7685b1404fd3cede1fc608f2c4ae90097e9cbace698,view and state binding,"01, 06",source and screen/state mapping; browser evidence where reachable,True
+src/components/screens/checkout.tsx,03d304619afdc05e99db3cd9cb79c2277584ffe48751c264329aee7d2ca36cec,view and state binding,"01, 06",source and screen/state mapping; browser evidence where reachable,True
+src/components/screens/drops.tsx,e68a46e918c95a0279b7411080823b8f85dedcdae1865d862b03359839746b0a,view and state binding,"01, 06",source and screen/state mapping; browser evidence where reachable,True
+src/components/screens/find-my-order.tsx,6b96c49f94544e943fc129cabcea33c5685bf6c7158170227397fc1225f6b6bd,view and state binding,"01, 06",source and screen/state mapping; browser evidence where reachable,True
+src/components/screens/form-queue.tsx,d28c24799a458ee47094174b628c9b0e0dc7b402468804611712fd6d7ce849b5,view and state binding,"01, 06",source and screen/state mapping; browser evidence where reachable,True
+src/components/screens/grocery-list.tsx,7f18f38f37484d1a5cce45957b70a607e704d593bce3fdf455bc413ad664ba23,view and state binding,"01, 06",source and screen/state mapping; browser evidence where reachable,True
+src/components/screens/home.tsx,f8ffe1fe99c0f4741f0476baccdfef24e026dde7727d25238f5ec605c817a098,view and state binding,"01, 06",source and screen/state mapping; browser evidence where reachable,True
+src/components/screens/inventory.tsx,be4be3a0015a21566a331254c40a8b609047de0ea513b551c126b3431568b90d,view and state binding,"01, 06",source and screen/state mapping; browser evidence where reachable,True
+src/components/screens/notifications.tsx,f3d68f59f5f9d5d46d62f3e449fc016cd8234c4d86c6fd68d92af882d906de9f,view and state binding,"01, 06",source and screen/state mapping; browser evidence where reachable,True
+src/components/screens/order-detail.tsx,debf6b3835e9e473c7427e199cc5655a2d324227d9232ac5cbc8419bc65eb3fa,view and state binding,"01, 06",source and screen/state mapping; browser evidence where reachable,True
+src/components/screens/order-status.tsx,928f967122c89a8d761c9ddb5e09a5f7fbd4e90ae293570107750af28e090eaf,view and state binding,"01, 06",source and screen/state mapping; browser evidence where reachable,True
+src/components/screens/orders.tsx,e87d6d6a0cc8f527bec40bfd401de7d08433fe230cf2c47ab6ddac3df708332e,view and state binding,"01, 06",source and screen/state mapping; browser evidence where reachable,True
+src/components/screens/payments.tsx,a359ecdbd250c9bcce027fda20e23f26da2e7275e8bb10169795f934fd2bacdd,view and state binding,"01, 06",source and screen/state mapping; browser evidence where reachable,True
+src/components/screens/production-focus.tsx,1f88895c10aca791bb9c9609da03250bb3135ad1ec8e3c44ac2f833d5a7c7ca7,view and state binding,"01, 06",source and screen/state mapping; browser evidence where reachable,True
+src/components/screens/products.tsx,a3a7033758d57e67a91d9a5487aaf4b47b23f48e4fe5c2f26964105d5d0347e8,view and state binding,"01, 06",source and screen/state mapping; browser evidence where reachable,True
+src/components/screens/profit-and-loss.tsx,9121bb6c0534905f5d29e5210cfe32ae7d30c93a3bb2015ab1e799b5efeb719b,view and state binding,"01, 06",source and screen/state mapping; browser evidence where reachable,True
+src/components/screens/recipes.tsx,c626ba45eea257a6efda581f7668b3d79b73ad341214d39559e459b3c011fca1,view and state binding,"01, 06",source and screen/state mapping; browser evidence where reachable,True
+src/components/screens/sales-log.tsx,c76d9632dcf121da17d20bd7e00a0bdd69696c8af51e486dfc90366d2298cd2d,view and state binding,"01, 06",source and screen/state mapping; browser evidence where reachable,True
+src/components/screens/settings.tsx,7b5f8771c02f33e2d5734822801a35b1d83a4d473656da4338f4c124a9b772bb,view and state binding,"01, 06",source and screen/state mapping; browser evidence where reachable,True
+src/components/screens/shop.tsx,722eab1181ab72cc1576413d130a64aa4757527e0a0d1c88e5d80e2a2aae69c6,view and state binding,"01, 06",source and screen/state mapping; browser evidence where reachable,True
+src/components/screens/suppliers.tsx,14193be4005a67debf7c1e2420c0b695bd410a5e46b212a8a8e286d0ce752ba4,view and state binding,"01, 06",source and screen/state mapping; browser evidence where reachable,True
+src/components/screens/system-health.tsx,83dbe452c7187f92714360d80a31fe298f1e3661f1efd34415d0822d6cf5c3f5,view and state binding,"01, 06",source and screen/state mapping; browser evidence where reachable,True
+src/components/sheets/add-inv.tsx,c8f7ef72802387d5a086cf739fccce594bc46ae3991e260b167e56f638527a74,view and state binding,"01, 06",source and screen/state mapping; browser evidence where reachable,True
+src/components/sheets/categories.tsx,4f7570736e921d5a43f71ddc17c1e3e3c75262b0b7ddfe0b354792eefdfb4a38,view and state binding,"01, 06",source and screen/state mapping; browser evidence where reachable,True
+src/components/sheets/close-drop.tsx,b5165ca95d4e99c9d33cfcffad955f9934e8f0c4446421b201e2daddfa0ca2f4,view and state binding,"01, 06",source and screen/state mapping; browser evidence where reachable,True
+src/components/sheets/closeout.tsx,1fd8929690fa5643c8d675978235d997e4a71a0d8f2129531fad3ce611030e88,view and state binding,"01, 06",source and screen/state mapping; browser evidence where reachable,True
+src/components/sheets/customers.tsx,05dea52721b90fb1ce5f80144745e680a145641869822ccfef540e25974ca4c1,view and state binding,"01, 06",source and screen/state mapping; browser evidence where reachable,True
+src/components/sheets/draw.tsx,e6caa11a2596e3d60fdb5d48becc550d6a343f2fe752088b7d59ec7d1272e993,view and state binding,"01, 06",source and screen/state mapping; browser evidence where reachable,True
+src/components/sheets/drop-state.tsx,b95c5a68b69be5cdd295fea9b206ff6832269f6788d31633b6969e564f952058,view and state binding,"01, 06",source and screen/state mapping; browser evidence where reachable,True
+src/components/sheets/edit-price.tsx,3639ef8ba0802dad70ed60ab071ce2fd75d2ced25d8d1e442c15ec5ab46b600e,view and state binding,"01, 06",source and screen/state mapping; browser evidence where reachable,True
+src/components/sheets/ev-exp.tsx,938af5fbe02d2e4f0dd2ef9554d00802d70ce1ca09f228e2dfc89bf08616c0a2,view and state binding,"01, 06",source and screen/state mapping; browser evidence where reachable,True
+src/components/sheets/expense.tsx,35c4c48ff381a8053ccb94a2776b63538ef269c2aa20ab3d73a87e08e560b06b,view and state binding,"01, 06",source and screen/state mapping; browser evidence where reachable,True
+src/components/sheets/inv-edit.tsx,31d2e7ed923fbe9185ec3d67346b5399de2f1d937cd5cf100428dac809e71898,view and state binding,"01, 06",source and screen/state mapping; browser evidence where reachable,True
+src/components/sheets/no-show.tsx,99c76b38293bde41ce02169ef3b1837e2bd557a13c3151036469a0d622531190,view and state binding,"01, 06",source and screen/state mapping; browser evidence where reachable,True
+src/components/sheets/overage.tsx,84f4b1c3d6711cb5b7dfa7f68a7d75497fdd6a0606372cd2c8a089fe1f7ea52a,view and state binding,"01, 06",source and screen/state mapping; browser evidence where reachable,True
+src/components/sheets/pay-rules.tsx,dfd860e83eeca241174e4b6ba3fda0b06afe92df6b0314127ce5a680a5351989,view and state binding,"01, 06",source and screen/state mapping; browser evidence where reachable,True
+src/components/sheets/pay.tsx,1e9cfe039041cd2b984fd114d8b08d2441d191ffc3bcce5e0262eae1a0a29d7c,view and state binding,"01, 06",source and screen/state mapping; browser evidence where reachable,True
+src/components/sheets/pricing.tsx,fff1e52c50f747251b5a397682fb9ad8e43bf04681f766482a852f1e912a865a,view and state binding,"01, 06",source and screen/state mapping; browser evidence where reachable,True
+src/components/sheets/proof.tsx,6c1b483835836897427c933c48354cb87bb83a6603808a5a4f2f0cfbf957d0ab,view and state binding,"01, 06",source and screen/state mapping; browser evidence where reachable,True
+src/components/sheets/receive.tsx,c0a53e5951525319db332d6164bf6dd6656b22786dd8b466817e2115e629413a,view and state binding,"01, 06",source and screen/state mapping; browser evidence where reachable,True
+src/components/sheets/refund.tsx,0696c5d37fee07e103ea8206afc2d069a285fc4304a350ca202e124d1c8acf7b,view and state binding,"01, 06",source and screen/state mapping; browser evidence where reachable,True
+src/components/sheets/reset.tsx,53a8a545e371da86375c552cb71f8bfa311609dd68bf94f1f7eaeac5be912d56,view and state binding,"01, 06",source and screen/state mapping; browser evidence where reachable,True
+src/components/sheets/retention.tsx,464bde0c9667b2ff7cc4af34447dee9bdb9df1a27d4414972707679565d868f1,view and state binding,"01, 06",source and screen/state mapping; browser evidence where reachable,True
+src/components/sheets/rules.tsx,b4298afdf22a9b455d0b4c41ae18d149720061057b44ee8ffd40a8eedb8ca38f,view and state binding,"01, 06",source and screen/state mapping; browser evidence where reachable,True
+src/components/sheets/spoil.tsx,854346d63c305a110dcf767544fb2899b12f5bb95b007ce20834ef69ddeba00c,view and state binding,"01, 06",source and screen/state mapping; browser evidence where reachable,True
+src/components/sheets/statuses.tsx,0b037df9f547310adfc9ef946918c43602e21678be2cea75ed8a04ec114b3d8b,view and state binding,"01, 06",source and screen/state mapping; browser evidence where reachable,True
+src/components/sheets/storage.tsx,b0c63a4fbc91e6bd38c4f75e5116bd4ac570adc56f2bfacd6df37e6dea10b61e,view and state binding,"01, 06",source and screen/state mapping; browser evidence where reachable,True
+src/components/sheets/supplier.tsx,b070cc463ca0a58fe1d8593d14c59a81ea1e3017ab5ea8f557069a555b4fc801,view and state binding,"01, 06",source and screen/state mapping; browser evidence where reachable,True
+src/components/sheets/swap.tsx,cbe394f1cc4df410db56e107c5ecad3cac88cc7fa54f6dd96354b06b1db0bbef,view and state binding,"01, 06",source and screen/state mapping; browser evidence where reachable,True
+src/components/sheets/users.tsx,40df2435cd0b9f11ff8fbc92b45c08f0d39d47da4fd45e97938c281f78e0cc21,view and state binding,"01, 06",source and screen/state mapping; browser evidence where reachable,True
+src/components/sheets/why.tsx,4a4328ac07816e6a45ee75a17cb7e156434272a45827ec917c5fd93d86d86e8c,view and state binding,"01, 06",source and screen/state mapping; browser evidence where reachable,True
+src/components/shell/app-frame.tsx,80367992c0d7ba3a4d0d14c91a671f8a2dae07d514306bfb2924488df9a6b424,view and state binding,"01, 06",source and screen/state mapping; browser evidence where reachable,True
+src/components/ui/pressable.stories.tsx,c7de6c03d882ebbd597ddee475141ec8613297d1e99ae385a9080787e6c90bc8,view and state binding,"01, 06",source and screen/state mapping; browser evidence where reachable,True
+src/components/ui/pressable.tsx,bf44add9ac346a21c5ca62dd0f2850650bc746d12a0fd4ee76633879d14c6aa0,view and state binding,"01, 06",source and screen/state mapping; browser evidence where reachable,True
+src/lib/messaging/index.ts,f58a2279ded0df959827337fd88f84619bfc1068bf92daf7d4ce7182b9b6bb22,application infrastructure,"01, 02, 03, 04",source boundary/configuration/API/security review,True
+src/lib/messaging/templates.ts,0ae7acdcb69ec6f516aa746a17f218f3bf362c0e13e57603be7dab493fd6f40c,application infrastructure,"01, 02, 03, 04",source boundary/configuration/API/security review,True
+src/lib/messaging/types.ts,80bee1d5051614ae196def8597076f7284132735395a09fc37e2c1c7933bfdeb,application infrastructure,"01, 02, 03, 04",source boundary/configuration/API/security review,True
+src/lib/observability/scrub.ts,6a5d0fb49194e1aa04f085c7f3441c232cc853e3851eba6e90a03e1adeef3e57,application infrastructure,"01, 02, 03, 04",source boundary/configuration/API/security review,True
+src/lib/offline/idb.ts,be3e493f3f725ddcddc0469b78a22d02f3f4e30c310aed449adc3fea71f23a8e,engine and offline,"02, 06",source flow and selected diagnostic counterexamples,True
+src/lib/offline/queue.ts,4440a87c343d42fa80fb45d05c53174c5e7b48ed8438c92068d1b397798614ca,engine and offline,"02, 06",source flow and selected diagnostic counterexamples,True
+src/lib/offline/sync.ts,98503fad8fd605f836b86e609b30294fa14a8a99a325c3c914af466f0d73033a,engine and offline,"02, 06",source flow and selected diagnostic counterexamples,True
+src/lib/rules/capacity.ts,a746e5444497423c73c70b7e7c1af95f152f6766e710c9e37622921f4198eec6,application infrastructure,"01, 02, 03, 04",source boundary/configuration/API/security review,True
+src/lib/supabase/client.ts,91675ac78d265bd2ffd47601d96109cbe3146a63aa137299898a7361e28684c0,application infrastructure,"01, 02, 03, 04",source boundary/configuration/API/security review,True
+src/lib/supabase/config.ts,b4748d3fd021e8552bb1af00a2aa72b278d2c48aed178ab18d62ebcfe2fb87f2,application infrastructure,"01, 02, 03, 04",source boundary/configuration/API/security review,True
+src/lib/supabase/server.ts,faf4def24071cafd44aea081ce744444a90d5857cc4d026043aa43d9079570cc,application infrastructure,"01, 02, 03, 04",source boundary/configuration/API/security review,True
+src/lib/supabase/service.ts,9220bb5b0c57c0788fcf5fc7182fea348d54747f84584d93d7717593be363b89,application infrastructure,"01, 02, 03, 04",source boundary/configuration/API/security review,True
+src/lib/types/database.ts,18473b76c6429233b07258713b107f15912c240f636b2f433e30e2c9cc757453,application infrastructure,"01, 02, 03, 04",source boundary/configuration/API/security review,True
+src/store/engine/ops-engine.d.ts,0afd421df30d3e49243be1b1de75ea3e680a6a6ae36119e7fee0f7aec613d687,engine and offline,"02, 06",source flow and selected diagnostic counterexamples,True
+src/store/engine/ops-engine.js,92a7a56201e550341dd1fdf9ed6ec8be51a95fbedfaddce549a1b780351cd8d2,engine and offline,"02, 06",source flow and selected diagnostic counterexamples,True
+supabase/migrations/20260101000000_init.sql,93131b520602be04994885e9cbf8dca64e22d7cb378da77b1d0cecf814570a21,database and generated seed,"02, 03, 06",static SQL/schema/grant and generated-seed review; no DB execution,True
+supabase/migrations/20260101000100_sync_sales.sql,6d4b9d110413cb2dd79687e590e17dfa73a80f39a8892e404cb2532c7c027815,database and generated seed,"02, 03, 06",static SQL/schema/grant and generated-seed review; no DB execution,True
+supabase/migrations/20260101000200_catalogue_fidelity.sql,2f0d7afc512e9d09ca98d3b54fc54c6861af9284bf4cc3f0bab9cc4c914dea04,database and generated seed,"02, 03, 06",static SQL/schema/grant and generated-seed review; no DB execution,True
+supabase/migrations/20260101000300_rate_limits.sql,f178558c82f4181a53983aeae3c6b7ef1fe3faa4a5be5bd122f3d76a3be3882f,database and generated seed,"02, 03, 06",static SQL/schema/grant and generated-seed review; no DB execution,True
+supabase/migrations/20260101000400_capacity_parity.sql,348f917f5c661cb6b9fd00aaa18b183820deb11ee1da0f4aeeb6d99b402fa65a,database and generated seed,"02, 03, 06",static SQL/schema/grant and generated-seed review; no DB execution,True
+supabase/migrations/20260101000500_retention.sql,9156de7b17a85fe21ea820c60c849fc62700e11fc6a7758fcc802118179571eb,database and generated seed,"02, 03, 06",static SQL/schema/grant and generated-seed review; no DB execution,True
+supabase/migrations/20260101000600_concurrency.sql,2275ba1be999abdfcca2c6beb45a8e09923b8abce3d137805a18e5cca2375090,database and generated seed,"02, 03, 06",static SQL/schema/grant and generated-seed review; no DB execution,True
+supabase/migrations/20260101000700_settings.sql,e54163cf7f7bd079d7960b87fa57d33bbaf2a019608f194b2488b685d0c5d29a,database and generated seed,"02, 03, 06",static SQL/schema/grant and generated-seed review; no DB execution,True
+tests/e2e/bazaar-offline.spec.ts,55f67807252079e4ad5d00d1016159a27e06920f766beecfc1bdbbbcadc82b4b,"tests, gates and CI","00, 01, 03, 08",source assertions and executed checks as itemized in 00,True
+tests/e2e/capacity-parity.spec.ts,6ee92fb8628fe6a982589a5a7febb2365b1633c386c6eff03beada61aeb9acf8,"tests, gates and CI","00, 01, 03, 08",source assertions and executed checks as itemized in 00,True
+tests/e2e/screens.spec.ts,5f01b0b3c9fd6a756338b252482f5dcbf053a4dd206cf439bc5b00663691608d,"tests, gates and CI","00, 01, 03, 08",source assertions and executed checks as itemized in 00,True
+tests/e2e/visual.spec.ts,92c098f21d6a3eef58d0a581b54f45554660c9912a5be854fe2d86f21ab4018b,"tests, gates and CI","00, 01, 03, 08",source assertions and executed checks as itemized in 00,True
+tests/fixtures/capacity-cases.json,7dd2a1423768f7d664940a0ba1ab486edfb73dee5b1f3e433b02a093a8d9a2b7,"tests, gates and CI","00, 01, 03, 08",source assertions and executed checks as itemized in 00,True
+tests/load/drop-open.js,47989f7fd76fd13f4e95a829638a1a6703eddb774460ee6bd96758a715fd658d,"tests, gates and CI","00, 01, 03, 08",source assertions and executed checks as itemized in 00,True
+tests/unit/capacity-parity.test.ts,04a5638603eac9667856068254ce12f5264d5544edfb09d3dea3185016ead9fb,"tests, gates and CI","00, 01, 03, 08",source assertions and executed checks as itemized in 00,True
+tests/unit/css.test.ts,4386316453ce247d266d35160a5f05d4b643a6bbff8e35ab5162eb73a814a6e2,"tests, gates and CI","00, 01, 03, 08",source assertions and executed checks as itemized in 00,True
+tests/unit/idempotency.test.ts,4a82330f4fbe9737cf8e4a8a64ae1ce3fdfe3a40f86cd9c92672b85fb0553df9,"tests, gates and CI","00, 01, 03, 08",source assertions and executed checks as itemized in 00,True
+tests/unit/money-conversion.test.ts,03393264d21ff62b3fe6546aebc5812ab5ac1ac114191669fe2975dd6f06c3c1,"tests, gates and CI","00, 01, 03, 08",source assertions and executed checks as itemized in 00,True
+tests/unit/money.test.ts,1a15121a96b8828af38488aac0c0fa664b16d060cc3bc7869951f08d71ccff59,"tests, gates and CI","00, 01, 03, 08",source assertions and executed checks as itemized in 00,True
+tests/unit/offline-queue.test.ts,d6a1d8deb49dbd7731440cd0ba3b762c450f36db7e360ffabe0b14940225a5b5,"tests, gates and CI","00, 01, 03, 08",source assertions and executed checks as itemized in 00,True
+tests/unit/order-rules.test.ts,702c9664e4c8e24427a7800a326022f01860381bdff281ebbf8ae16cc1c4dd25,"tests, gates and CI","00, 01, 03, 08",source assertions and executed checks as itemized in 00,True
+tests/unit/screen-boundary.test.tsx,42727bf7b9a4745c72dc1d8846c3296855612830ac1273c12c9a3cbe03032c7b,"tests, gates and CI","00, 01, 03, 08",source assertions and executed checks as itemized in 00,True
+tests/unit/screens.test.ts,1d119a0eea9450b9d68303da199f79edf50c3d1a27825228c89f7e796c3d7ca8,"tests, gates and CI","00, 01, 03, 08",source assertions and executed checks as itemized in 00,True
+tests/unit/scrub.test.ts,5df3a680720429a56ea1c456499718c595ba7429fb71115d41b5053411c39c58,"tests, gates and CI","00, 01, 03, 08",source assertions and executed checks as itemized in 00,True

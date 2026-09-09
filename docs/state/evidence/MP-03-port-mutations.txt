@@ -1,0 +1,11 @@
+
+> happy-cookie-ops@0.1.0 test:port-gates C:\Users\ethan\dev\happy-cookie-ops-g0
+> node scripts/test-port-gates.mjs
+
+PASS detected style value
+PASS detected handler
+PASS detected copy
+PASS detected structure
+PASS detected relationship
+PASS declaration mutability and invalid-syntax probes
+PASS formatting-only change; authoritative source never mutated. Disposable probes: C:\Users\ethan\AppData\Local\Temp\happy-cookie-port-probes-tDsRJo

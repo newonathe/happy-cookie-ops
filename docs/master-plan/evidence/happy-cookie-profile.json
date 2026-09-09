@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "project_id": "happy-cookie-ops",
+  "project_root": "C:\\Users\\ethan\\OneDrive\\Documents\\Projects\\Cine Cookie Business\\Main Project\\happy-cookie-ops",
+  "business_owner": null,
+  "technical_owner": null,
+  "domain_classification": {
+    "functional_families": [],
+    "vertical": null,
+    "deployment": null,
+    "scale": null,
+    "jurisdictions": []
+  },
+  "data_classification": "Current source fixtures are fabricated demo records; future live contacts and payments require controlled access.",
+  "ui_ux_locked": true,
+  "prototype_path": "docs/reference/prototype.dc.html",
+  "protected_paths": [
+    "src/components/screens/**",
+    "src/components/sheets/**",
+    "src/components/shell/**",
+    "src/store/engine/ops-engine.js",
+    "supabase/migrations/*.sql (applied)",
+    "scripts/port-baseline.json",
+    "supabase/seed.sql",
+    "tests/e2e/visual.spec.ts baselines"
+  ],
+  "single_source_of_truth": "MASTER-PLAN.md",
+  "task_catalog": "docs/master-plan/tasks.json",
+  "monthly_additional_spend_limit": 0,
+  "existing_subscription_exceptions": [
+    "Claude Pro",
+    "Codex Plus"
+  ],
+  "offline_writer_count": 1,
+  "live_data_migration_required": false,
+  "required_platforms": [
+    "MacBook web/Safari",
+    "iPhone/iPad web and installed PWA"
+  ],
+  "verified_commands": [],
+  "environment_allowlist": [
+    "local",
+    "staging"
+  ],
+  "production_operations_allowed": false,
+  "runtime_directory_outside_sync": null,
+  "git_remote_verified": null,
+  "backup_destination_verified": null,
+  "resolved_decisions": [],
+  "unresolved_decisions": [
+    "DP-00",
+    "DP-01",
+    "DP-02",
+    "DP-03",
+    "DP-04",
+    "DP-05",
+    "DP-06",
+    "DP-07",
+    "DP-08",
+    "DP-09",
+    "DP-10"
+  ],
+  "runner_enabled": false
+}

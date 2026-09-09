@@ -1,0 +1,32 @@
+
+> happy-cookie-ops@0.1.0 lint C:\Users\ethan\dev\happy-cookie-ops-g0
+> eslint . --max-warnings 0
+
+
+C:\Users\ethan\dev\happy-cookie-ops-g0\eslint.config.mjs
+  6:1  warning  Assign array to a variable before exporting as module default  import/no-anonymous-default-export
+
+C:\Users\ethan\dev\happy-cookie-ops-g0\prettier.config.mjs
+  2:1  warning  Assign object to a variable before exporting as module default  import/no-anonymous-default-export
+
+C:\Users\ethan\dev\happy-cookie-ops-g0\src\app\sign-in\sign-in-form.tsx
+  68:9  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\ethan\dev\happy-cookie-ops-g0\src\components\screens\drops.tsx
+  83:92  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+C:\Users\ethan\dev\happy-cookie-ops-g0\src\components\screens\shop.tsx
+  42:22  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+C:\Users\ethan\dev\happy-cookie-ops-g0\src\components\sheets\proof.tsx
+  13:91  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+C:\Users\ethan\dev\happy-cookie-ops-g0\src\lib\offline\queue.ts
+  32:18  error  An interface declaring no members is equivalent to its supertype  @typescript-eslint/no-empty-object-type
+
+C:\Users\ethan\dev\happy-cookie-ops-g0\tests\load\drop-open.js
+  67:1  warning  Unexpected default export of anonymous function  import/no-anonymous-default-export
+
+✖ 8 problems (4 errors, 4 warnings)
+
+ ELIFECYCLE  Command failed with exit code 1.

@@ -1,0 +1,78 @@
+[WARN] The "pnpm" field in package.json is no longer read by pnpm. The following keys were ignored: "pnpm.onlyBuiltDependencies". See https://pnpm.io/settings for the new home of each setting.
+Lockfile is up to date, resolution step is skipped
+Progress: resolved 1, reused 0, downloaded 0, added 0
+Packages: +1168
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Progress: resolved 1168, reused 249, downloaded 0, added 0
+Progress: resolved 1168, reused 951, downloaded 0, added 0
+Progress: resolved 1168, reused 1165, downloaded 0, added 64
+Progress: resolved 1168, reused 1167, downloaded 0, added 89
+Progress: resolved 1168, reused 1167, downloaded 0, added 105
+Progress: resolved 1168, reused 1168, downloaded 0, added 159
+Progress: resolved 1168, reused 1168, downloaded 0, added 195
+Progress: resolved 1168, reused 1168, downloaded 0, added 229
+Progress: resolved 1168, reused 1168, downloaded 0, added 283
+Progress: resolved 1168, reused 1168, downloaded 0, added 404
+Progress: resolved 1168, reused 1168, downloaded 0, added 572
+Progress: resolved 1168, reused 1168, downloaded 0, added 651
+Progress: resolved 1168, reused 1168, downloaded 0, added 763
+Progress: resolved 1168, reused 1168, downloaded 0, added 966
+Progress: resolved 1168, reused 1168, downloaded 0, added 1099
+Progress: resolved 1168, reused 1168, downloaded 0, added 1155
+Progress: resolved 1168, reused 1168, downloaded 0, added 1161
+Progress: resolved 1168, reused 1168, downloaded 0, added 1164
+Progress: resolved 1168, reused 1168, downloaded 0, added 1165
+Progress: resolved 1168, reused 1168, downloaded 0, added 1166
+Progress: resolved 1168, reused 1168, downloaded 0, added 1167
+Progress: resolved 1168, reused 1168, downloaded 0, added 1168
+Progress: resolved 1168, reused 1168, downloaded 0, added 1168, done
+.../node_modules/@sentry/cli postinstall$ node ./scripts/install.js
+.../esbuild@0.25.12/node_modules/esbuild postinstall$ node install.js
+.../esbuild@0.28.2/node_modules/esbuild postinstall$ node install.js
+.../node_modules/unrs-resolver postinstall$ node postinstall.js
+.../node_modules/unrs-resolver postinstall: Done
+.../esbuild@0.28.2/node_modules/esbuild postinstall: Done
+.../esbuild@0.25.12/node_modules/esbuild postinstall: Done
+.../node_modules/@sentry/cli postinstall: Done
+
+dependencies:
++ @sentry/nextjs 10.73.0
++ @supabase/ssr 0.7.0
++ @supabase/supabase-js 2.115.0
++ next 16.3.3
++ react 19.2.8
++ react-dom 19.2.8
++ zod 4.5.4
+
+devDependencies:
++ @eslint/eslintrc 3.3.7
++ @lhci/cli 0.15.1
++ @playwright/test 1.63.0
++ @storybook/nextjs 10.2.10
++ @tailwindcss/postcss 4.3.3
++ @testing-library/dom 10.4.1
++ @testing-library/jest-dom 6.10.0
++ @testing-library/react 16.3.3
++ @types/node 22.20.1
++ @types/react 19.2.18
++ @types/react-dom 19.2.7
++ @vitejs/plugin-react 5.2.0
++ eslint 9.39.5
++ eslint-config-next 16.3.3
++ eslint-config-prettier 10.1.8
++ eslint-plugin-jsx-a11y 6.10.2
++ husky 9.1.7
++ jsdom 26.1.0
++ lint-staged 16.4.0
++ prettier 3.9.6
++ storybook 10.2.10
++ supabase 2.116.0
++ tailwindcss 4.3.3
++ typescript 5.9.3
++ vitest 3.2.7
+
+
+> happy-cookie-ops@0.1.0 prepare C:\Users\ethan\dev\happy-cookie-install-check-20260908
+> husky
+
+.git can't be foundDone in 40s

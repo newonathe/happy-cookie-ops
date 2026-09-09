@@ -1,0 +1,16 @@
+{
+  "ui-results.json": {
+    "captures": 104,
+    "non_200": 0,
+    "page_errors": 0,
+    "route_mismatches": 96,
+    "broken_images": 0
+  },
+  "ui-driven-results.json": {
+    "captures": 104,
+    "non_200": 0,
+    "page_errors": 0,
+    "route_mismatches": 96,
+    "broken_images": 0
+  }
+}

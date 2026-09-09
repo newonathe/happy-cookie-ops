@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard-protected-paths.sh\""
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/format-and-typecheck.sh\""
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/remind-verify.sh\""
+          }
+        ]
+      }
+    ]
+  },
+  "permissions": {
+    "allow": [
+      "Bash(pnpm install)",
+      "Bash(pnpm dev:*)",
+      "Bash(pnpm build)",
+      "Bash(pnpm verify)",
+      "Bash(pnpm typecheck)",
+      "Bash(pnpm lint:*)",
+      "Bash(pnpm test:*)",
+      "Bash(pnpm db:*)",
+      "Bash(node scripts/*)",
+      "Bash(git status)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git checkout -b:*)",
+      "Bash(git worktree:*)"
+    ],
+    "deny": [
+      "Read(./.env.local)",
+      "Read(./.env.production)",
+      "Read(./.env)",
+      "Bash(git push --force:*)",
+      "Bash(rm -rf:*)",
+      "Bash(supabase db push:*)"
+    ]
+  }
+}

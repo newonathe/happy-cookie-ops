@@ -1,0 +1,34 @@
+{
+  "name": "The Happy Cookie Ops",
+  "short_name": "Happy Cookie",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F1EFEE",
+  "theme_color": "#F1EFEE",
+  "description": "Production, ordering and bookkeeping for The Happy Cookie.",
+  "icons": [
+    {
+      "src": "/assets/mark-solid.png",
+      "sizes": "3039x2727",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Bake plan",
+      "url": "/bake"
+    },
+    {
+      "name": "Orders",
+      "url": "/orders"
+    },
+    {
+      "name": "Bazaar Mode",
+      "url": "/bazaar"
+    }
+  ]
+}

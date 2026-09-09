@@ -1,0 +1,2526 @@
+[
+  {
+    "profile": "chromium-phone",
+    "route": "/",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Home · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nHome\nC\nWednesday, 4 Mar\nGood morning, Cine.\n\n4 things need you before baking.\n\nDrop 32\nOpen\nCloses Thu · 9:00 PM\n78\nof 200 cookies confirmed\n78 / 200 confirmed\n18 awaiting payment\n122 still open\nPrepare\n14\ncookies to bake\n\n10 confirmed orders · 4 portions still to mix\n\n5\n4\n3\n2\nStart baking\n3\nitems short\n₱1,150 estimate\nBiscoff spread, Box of 6, Brand sticker\n4\nbelow your level\nUnsalted butter 900 g · Biscoff spread 90 g\n1 problem\nLast successful backup was 2 days ago\nReview\nProfit this month\n₱19,260\nRevenue ₱41,690\nExpenses ₱22,430\n14\nOrders\n3\nTo review\n11\nPickups\n39%\nDrop full\nYour business\nOrders\nOrders & payments\n3 to review\nDrops\nDrop 32 · closes Thu 9 PM\nCustomers & waitlist\n14 customers kept for 1 year\nForm queue\n3 waiting · temporary\nKitchen\nBake & dough\n14 to bake\nInventory\n4 low\nGrocery\n3 items · ₱1,150\nRecipes\n6 flavours · v1\nBusiness\nProfit & loss\nAugust\nPayments\nMatch refs to your wallet\nBazaar Mode\nWorks offline\nProducts\n4 permanent, 2 rotating\nSuppliers\n8 saved\nSystem\nNotifications\n6 need attention\nSettings\nEverything you control\nSystem health\nNeeds attention\nBackups & export\nLast backup failed\nCustomer view\nPreview shop\nPreview checkout\nPreview order status\n3\n3\n4",
+      "width": 390,
+      "scrollWidth": 390,
+      "brokenImages": [],
+      "inputs": []
+    },
+    "screenshot": "ui-driven\\chromium-phone\\01-home.png"
+  },
+  {
+    "profile": "chromium-phone",
+    "route": "/sales",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Sales log · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nSales log\nEvery sale recorded\nC\n4\nsales recorded\nKatipunan Weekend Market\n8:59 PM\n₱9,880\nDrop 31 · 13 orders · 78 cookies\n8:58 PM\n₱6,890\nDrop 30 · 15 orders · 90 cookies\n8:57 PM\n₱7,460\nDrop 29 · 14 orders · 84 cookies\n8:56 PM\n₱6,980\n3\n3\n4\nPicked up where you left off — this device had your books saved.",
+      "width": 390,
+      "scrollWidth": 390,
+      "brokenImages": [],
+      "inputs": []
+    },
+    "screenshot": "ui-driven\\chromium-phone\\02-sales.png"
+  },
+  {
+    "profile": "chromium-phone",
+    "route": "/orders",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Orders · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nOrders\n14 in Drop 32\nC\n3 payments need review\nCheck the reference and the amount on each one.\nOrdered this drop, all customers\n78 cookies\n20×\nWhite Chocolate Biscoff\n17×\nDouble Chocolate Fudge\n14×\nHappy Camper\n12×\nPB & Miso\n11×\nRed Velvet Cheesecake\n4×\nNutella Churro\nAll\n14\nTo review\n3\nPaid\n10\nReady\n1\nClosed\n0\nMariel Aquino\nHC-1055\n₱990\n2× Nutella Churro, 2× Red Velvet Cheesecake, 2× White Chocolate Biscoff\nAwaiting payment\nMon 9 · 6 cookies\nScreenshot is cropped — reference number is not readable\nReview payment\nIvan Del Rosario\nHC-1054\n₱630\n3× Double Chocolate Fudge, 3× PB & Miso\nAwaiting payment\nMon 9 · 6 cookies\nPaid ₱600 but the order total is ₱630\nReview payment\nGrace Ocampo\nHC-1053\n₱870\n2× White Chocolate Biscoff, 2× Happy Camper, 2× Red Velvet Cheesecake\nAwaiting payment\nMon 9 · 6 cookies\nReference 1027 8880 1902 was already used by HC-1050\nReview payment\nChloe Tan\nHC-1052\n₱800\n4× Double Chocolate Fudge, 2× Happy Camper\nPaid\nMon 9 · 6 cookies\nMark ready\nDenise Alonzo\nHC-1051\n₱930\n4× White Chocolate Biscoff, 1× Red Velvet Cheesecake, 1× Nutella Churro\nPaid\nMon 9 · 6 cookies\nMark ready\nRafael Gomez\nHC-1050\n₱1,290\n6× PB & Miso, 3× Double Chocolate Fudge, 3× Happy Camper\nPaid\nMon 9 · 12 cookies\nMark ready\nNikka Domingo\nHC-1049\n₱885\n3× White Chocolate Biscoff, 3× Red Velvet Cheesecake\nReady\nMon 9 · 6 cookies\nMark collected\nAndrei Bautista\nHC-1048\n₱800\n4× Double Chocolate Fudge, 2× Happy Camper\nPaid\nMon 9 · 6 cookies\nMark ready\nTrisha Lim\nHC-1047\n₱795\n3× White Chocolate Biscoff, 2× PB & Miso, 1× Nutella Churro\nPaid\nMon 9 · 6 cookies\nMark ready\nPaolo Cruz\nHC-1046\n₱810\n3× Happy Camper, 3× Double Chocolate Fudge\nPaid\nMon 9 · 6 cookies\nMark ready\nKarla Mendoza\nHC-1045\n₱885\n3× Red Velvet Cheesecake, 3× White Chocolate Biscoff\nPaid\nMon 9 · 6 cookies\nMark ready\nJoanna Reyes\nHC-1044\n₱1,740\n4× White Chocolate Biscoff, 4× Red Velvet Cheesecake, 2× Nutella Churro, 2× PB & Miso\nBaking\nMon 9 · 12 cookies\nMark ready\nMiguel Santos\nHC-1043\n₱700\n2× Double Chocolate Fudge, 2× Happy Camper, 2× PB & Miso\nPaid\nMon 9 · 6 cookies\nMark ready\nBea Villanueva\nHC-1042\n₱845\n3× White Chocolate Biscoff, 2× Happy Camper, 1× Double Chocolate Fudge\nPaid\nMon 9 · 6 cookies\nMark ready\n3\n3\n4\nPicked up where you left off — this device had your books saved.",
+      "width": 390,
+      "scrollWidth": 390,
+      "brokenImages": [],
+      "inputs": [
+        {
+          "type": "text",
+          "placeholder": "Search name, order number or reference",
+          "label": null
+        }
+      ]
+    },
+    "screenshot": "ui-driven\\chromium-phone\\03-orders.png"
+  },
+  {
+    "profile": "chromium-phone",
+    "route": "/order",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Order detail · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nOrder\nC\n3\n3\n4\nPicked up where you left off — this device had your books saved.",
+      "width": 390,
+      "scrollWidth": 390,
+      "brokenImages": [],
+      "inputs": []
+    },
+    "screenshot": "ui-driven\\chromium-phone\\04-order.png"
+  },
+  {
+    "profile": "chromium-phone",
+    "route": "/lookup",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Find my order · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nFind my order\n\nLost the link we emailed you? Your order number, payment reference or email will find it.\n\nFind it\nPicked up where you left off — this device had your books saved.",
+      "width": 390,
+      "scrollWidth": 390,
+      "brokenImages": [],
+      "inputs": [
+        {
+          "type": "text",
+          "placeholder": "HC-1042, a reference, or your email",
+          "label": null
+        }
+      ]
+    },
+    "screenshot": "ui-driven\\chromium-phone\\05-lookup.png"
+  },
+  {
+    "profile": "chromium-phone",
+    "route": "/reconcile",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Payments · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nPayments\nMatch refs to your wallet\nC\nOpen your GCash and Maya activity, then tick each reference you can see landing.\n14 references still to tick off\nTick all\nStart over\nGCash\n₱8,275\n₱8,275 unticked\nMaya\n₱2,185\n₱2,185 unticked\nGoTyme\n₱1,685\n₱1,685 unticked\nBank transfer\n₱795\n₱795 unticked\n1027 8842 1190\nHC-1042\n· Bea Villanueva\n· GCash\n₱845\nMY-77120\nHC-1043\n· Miguel Santos\n· Maya\n₱700\n1027 8851 0034\nHC-1044\n· Joanna Reyes\n· GCash\n₱1,740\nGT-40218\nHC-1045\n· Karla Mendoza\n· GoTyme\n₱885\n1027 8860 7741\nHC-1046\n· Paolo Cruz\n· GCash\n₱810\nBPI-882140\nHC-1047\n· Trisha Lim\n· Bank transfer\n₱795\n1027 8871 2265\nHC-1048\n· Andrei Bautista\n· GCash\n₱800\nMY-77390\nHC-1049\n· Nikka Domingo\n· Maya\n₱885\n1027 8880 1902\nHC-1050\n· Rafael Gomez\n· GCash\nSame ref as HC-1053\n₱1,290\n1027 8881 4477\nHC-1051\n· Denise Alonzo\n· GCash\n₱930\nGT-40566\nHC-1052\n· Chloe Tan\n· GoTyme\n₱800\n1027 8880 1902\nHC-1053\n· Grace Ocampo\n· GCash\nNot confirmed\nSame ref as HC-1050\n₱870\nMY-77502\nHC-1054\n· Ivan Del Rosario\n· Maya\nNot confirmed\n₱600\n1027 8890 3311\nHC-1055\n· Mariel Aquino\n· GCash\nNot confirmed\n₱990\nTotal in the book\n₱12,940\n3\n3\n4\nPicked up where you left off — this device had your books saved.",
+      "width": 390,
+      "scrollWidth": 390,
+      "brokenImages": [],
+      "inputs": []
+    },
+    "screenshot": "ui-driven\\chromium-phone\\06-reconcile.png"
+  },
+  {
+    "profile": "chromium-phone",
+    "route": "/bake",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Bake plan · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nBake plan\nDrop 32 · bake day\nC\n14\ncookies still to bake\n4 portions still to mix.\nStart production\nDouble Chocolate Fudge\n5\nto bake\n18 chilled dough\nBake 5\nMix\nHappy Camper\n4\nto bake\nno dough yet\nMix 4\nWhite Chocolate Biscoff\n3\nto bake\n12 chilled dough\nBake 3\nMix\nPB & Miso\n2\nto bake\n6 chilled dough\nBake 2\nMix\nRed Velvet Cheesecake\nDone\nNutella Churro\nDone\n3\n3\n4\nPicked up where you left off — this device had your books saved.",
+      "width": 390,
+      "scrollWidth": 390,
+      "brokenImages": [],
+      "inputs": []
+    },
+    "screenshot": "ui-driven\\chromium-phone\\07-bake.png"
+  },
+  {
+    "profile": "chromium-phone",
+    "route": "/batch",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Production · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nProduction\nC\n3\n3\n4\nPicked up where you left off — this device had your books saved.",
+      "width": 390,
+      "scrollWidth": 390,
+      "brokenImages": [],
+      "inputs": []
+    },
+    "screenshot": "ui-driven\\chromium-phone\\08-batch.png"
+  },
+  {
+    "profile": "chromium-phone",
+    "route": "/inventory",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Inventory · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nInventory\nIngredients, packaging, dough, baked\nC\nIngredients\nPackaging\nDough\nBaked stock\n24 items · 2 need attention\nAdd stock\nUnsalted butter\nReorder at 2 kg · S&R Membership · counted 8:29 PM\nLow\n900 g\nBread flour\nReorder at 3 kg · Landers · counted 8:29 PM\n4.2 kg\nAll-purpose flour\nReorder at 2.5 kg · Landers · counted 8:29 PM\n3.8 kg\nBrown sugar\nReorder at 2 kg · Puregold · counted 8:29 PM\n2.6 kg\nWhite sugar\nReorder at 1.5 kg · Puregold · counted 8:29 PM\n1.9 kg\nEggs\nReorder at 18 pcs · Wet market · counted 8:29 PM\n24 pcs\nDark chocolate 55%\nReorder at 1 kg · Chocolate Lover · counted 8:29 PM\n1.45 kg\nMilk chocolate\nReorder at 600 g · Chocolate Lover · counted 8:29 PM\n820 g\nWhite chocolate chips\nReorder at 800 g · Chocolate Lover · counted 8:29 PM\n1.1 kg\nCocoa powder\nReorder at 400 g · Landers · counted 8:29 PM\n640 g\nBiscoff spread\nReorder at 500 g · Landers · counted 8:29 PM\nLow\n90 g\nBiscoff biscuits\nReorder at 300 g · Landers · counted 8:29 PM\n480 g\nChunky peanut butter\nReorder at 600 g · S&R Membership · counted 8:29 PM\n900 g\nShiro miso\nReorder at 150 g · Japanese grocery · counted 8:29 PM\n220 g\nCream cheese\nReorder at 500 g · S&R Membership · counted 8:29 PM\n700 g\nNutella\nReorder at 600 g · Landers · counted 8:29 PM\n950 g\nMini marshmallows\nReorder at 300 g · Puregold · counted 8:29 PM\n380 g\nGraham crackers\nReorder at 250 g · Puregold · counted 8:29 PM\n420 g\nCinnamon\nReorder at 80 g · Landers · counted 8:29 PM\n160 g\nBaking soda\nReorder at 100 g · Puregold · counted 8:29 PM\n240 g\nFine salt\nReorder at 200 g · Puregold · counted 8:29 PM\n500 g\nMaldon sea salt\nReorder at 100 g · Healthy Options · counted 8:29 PM\n180 g\nVanilla extract\nReorder at 60 ml · Landers · counted 8:29 PM\n120 ml\nRed velvet gel colour\nReorder at 20 ml · Baking supply · counted 8:29 PM\n45 ml\n3\n3\n4\nPicked up where you left off — this device had your books saved.",
+      "width": 390,
+      "scrollWidth": 390,
+      "brokenImages": [],
+      "inputs": [
+        {
+          "type": "text",
+          "placeholder": "Search this list",
+          "label": null
+        }
+      ]
+    },
+    "screenshot": "ui-driven\\chromium-phone\\09-inventory.png"
+  },
+  {
+    "profile": "chromium-phone",
+    "route": "/stocktake",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Stock count · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nHome\nC\n3\n3\n4\nPicked up where you left off — this device had your books saved.",
+      "width": 390,
+      "scrollWidth": 390,
+      "brokenImages": [],
+      "inputs": []
+    },
+    "screenshot": "ui-driven\\chromium-phone\\10-stocktake.png"
+  },
+  {
+    "profile": "chromium-phone",
+    "route": "/more",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "All tools · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nAll tools\nEvery part of the business\nC\nOrders\nOrders & payments\n14 orders in Drop 32\nDrops\nDrop 32 open\nShop status\nOpen · on schedule\nCustomers & waitlist\n3 people waiting for the next drop\nForm queue\n3 responses waiting\n3\nKitchen\nBake & dough\nPlan, batches, portions\nInventory\nIngredients, packaging, dough\nGrocery\n3 items short\n3\nRecipes\nVersioned, cost per cookie\nBusiness\nProfit & loss\nRevenue, expenses, profit\nPayments\n11 references unticked\n11\nBazaar Mode\nFast selling, offline safe\nProducts\n6 on the menu\nSuppliers\nPrices you have actually paid\nSystem\nNotifications\nWhat you get told about\nSettings\nRules you control\nSystem health\nNeeds attention\n1\nBackups & export\nYour data, downloadable\nCustomer view\nPreview shop\nWhat customers see\nPreview checkout\nOrder, details, payment\nPreview order status\nThe private link\n3\n3\n4\nPicked up where you left off — this device had your books saved.",
+      "width": 390,
+      "scrollWidth": 390,
+      "brokenImages": [],
+      "inputs": []
+    },
+    "screenshot": "ui-driven\\chromium-phone\\11-more.png"
+  },
+  {
+    "profile": "chromium-phone",
+    "route": "/grocery",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Grocery list · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nGrocery\nFor Drop 32\nC\n₱1,150\nestimate\n₱4,850 left of your ₱6,000 budget\n3 items to buy for this drop.\nAttach the receipt\nBiscoff spread\nAt or below your reorder level\n2 × 400 g jar\n₱570\nLanders\nNeed\n0 g\nOn hand\n90 g\nReorder at\n500 g\nBuy\n410 g\nI bought this\nWhy?\nBox of 6\nNeeded for orders still to pack\n1 × Pack of 25\n₱375\nDivisoria Packaging\nNeed\n12 pcs\nOn hand\n9 pcs\nShort\n3 pcs\nI bought this\nWhy?\nBrand sticker\nNeeded for orders still to pack\n1 × Roll of 100\n₱205\nSticker Shop PH\nNeed\n12 pcs\nOn hand\n4 pcs\nShort\n8 pcs\nI bought this\nWhy?\n3\n3\n4\nPicked up where you left off — this device had your books saved.",
+      "width": 390,
+      "scrollWidth": 390,
+      "brokenImages": [],
+      "inputs": []
+    },
+    "screenshot": "ui-driven\\chromium-phone\\12-grocery.png"
+  },
+  {
+    "profile": "chromium-phone",
+    "route": "/bazaar",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Bazaar Mode · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nBazaar Mode\nEvent selling\nC\nStart an event\nSell fast. Works with no signal.\nKatipunan Weekend Market\nSaturday, 7 Mar · 10 AM – 8 PM · Katipunan Ave, QC\nUP Town Center Pop-up\nSunday, 15 Mar · 11 AM – 9 PM · UP Town Center, QC\n3\n3\n4\nPicked up where you left off — this device had your books saved.",
+      "width": 390,
+      "scrollWidth": 390,
+      "brokenImages": [],
+      "inputs": []
+    },
+    "screenshot": "ui-driven\\chromium-phone\\13-bazaar.png"
+  },
+  {
+    "profile": "chromium-phone",
+    "route": "/pnl",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Profit & loss · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nProfit & loss\nMar 2026\nC\nProfit · August 2026\n₱19,260\nSales minus every expense, helper wages included.\nRevenue\n₱41,690\nDrops ₱31,810\nBazaar ₱9,880\nExpenses\n₱22,430\n46% margin\nSet aside for tax\n₱1,251\nTake money out\nSet aside 3% of takings.\nProfit, last four months\n₱9k\nMay\n₱12k\nJun\n₱13k\nJul\n₱19k\nMar\nWhere the money went\nRecord expense\nCategories\nIngredients\n9 records\n₱11,240\nHelper wages\n3 records\n₱4,500\nPackaging\n4 records\n₱2,180\nBazaar rent\n1 record\n₱1,500\nMarketing / influencer\n2 records\n₱1,200\nTransport\n5 records\n₱860\nPrinting / collateral\n1 record\n₱640\nOther\n2 records\n₱310\nWhat each flavour earns you\nDouble Chocolate Fudge\n17 sold\n₱103.38\n80%\n₱1,757\nHappy Camper\n14 sold\n₱102.10\n73%\n₱1,429\nWhite Chocolate Biscoff\n20 sold\n₱112.42\n78%\n₱2,248\nPB & Miso\n12 sold\n₱61.86\n77%\n₱742\nRed Velvet Cheesecake\n11 sold\n₱121.78\n81%\n₱1,340\nNutella Churro\n4 sold\n₱162.31\n81%\n₱649\nPer cookie, margin, and what it has brought in this month.\n3\n3\n4\nPicked up where you left off — this device had your books saved.",
+      "width": 390,
+      "scrollWidth": 390,
+      "brokenImages": [],
+      "inputs": []
+    },
+    "screenshot": "ui-driven\\chromium-phone\\14-pnl.png"
+  },
+  {
+    "profile": "chromium-phone",
+    "route": "/formqueue",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Form queue · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nForm queue\nTemporary · one to two weeks\nC\nNothing here becomes an order until you accept it.\nAngela Ramos\nCheck this\nhi! 2 boxes po. 1 all biscoff, and the other one mixed na lang, surprise me 😅 pickup sat morning. gcash sent\n2 Double Chocolate Fudge, 2 Happy Camper, 6 White Chocolate Biscoff, 2 Red Velvet Cheesecake\n12 cookies · Monday 9 Mar\nSecond box is not specified. Confirm the six flavours before accepting.\nPayment reference\nAccept\nReject\nJomar Silva\n1 box of 6: 2 double choc, 2 happy camper, 2 pb miso. sunday pickup. paid via maya ref MY-77611\n2 Double Chocolate Fudge, 2 Happy Camper, 2 PB & Miso\n6 cookies · Monday 9 Mar\nPayment reference\nAccept\nReject\nPatricia Yu\nCheck this\nbox of 6 all nutella churro if available, if not red velvet. saturday. will send proof later\n6 Nutella Churro\n6 cookies · Monday 9 Mar\nConditional order and no payment proof attached.\nPayment reference\nAccept\nReject\n3\n3\n4\nPicked up where you left off — this device had your books saved.",
+      "width": 390,
+      "scrollWidth": 390,
+      "brokenImages": [],
+      "inputs": [
+        {
+          "type": "text",
+          "placeholder": "Type it from their message",
+          "label": null
+        },
+        {
+          "type": "text",
+          "placeholder": "Type it from their message",
+          "label": null
+        },
+        {
+          "type": "text",
+          "placeholder": "Type it from their message",
+          "label": null
+        }
+      ]
+    },
+    "screenshot": "ui-driven\\chromium-phone\\15-formqueue.png"
+  },
+  {
+    "profile": "chromium-phone",
+    "route": "/health",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "System health · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nSystem health\nBackups, sync, errors\nC\nNeeds attention\nBackup needs attention. Last successful backup was 8:29 PM.\nAutomatic backup\nFailed 8:29 PM\nYour data is still here on this device. The off-device copy could not be completed.\nRetry\nSaved on this device\nSaved 8:29 PM\nOrders, stock, recipes, expenses and your rules stay here between visits. A backup is what protects you if the device is lost.\nBazaar sync\nUp to date\nEverything recorded on this phone has been sent.\nBooks balance\n31 records · all traceable\nEvery peso in the P&L (₱41,690 in, ₱22,430 out) comes from a record you can open.\nStock sanity\nNothing below zero\nNo item has been deducted past what you had.\nData export\nExport any time\nOrders, inventory, ledger and expenses as a spreadsheet, so nothing is locked in here.\nExport my data\nReport a problem\n3\n3\n4\nPicked up where you left off — this device had your books saved.",
+      "width": 390,
+      "scrollWidth": 390,
+      "brokenImages": [],
+      "inputs": []
+    },
+    "screenshot": "ui-driven\\chromium-phone\\16-health.png"
+  },
+  {
+    "profile": "chromium-phone",
+    "route": "/products",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Products · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nProducts\n4 permanent · 2 rotating\nC\nNew prices apply to new orders only.\nDouble Chocolate Fudge\n₱130\n₱26.62 cost\ngolden-brown edges and soft, pillowy center studded with pools of molten chocolate.\nEdit price\nRecipe\nHappy Camper\n₱140\n₱37.90 cost\nbrowned butter, toasted marshmallow pockets, melted milk chocolate, graham cracker crunch.\nEdit price\nRecipe\nWhite Chocolate Biscoff\nBest seller\n₱145\n₱32.58 cost\ncrunchy, caramelized biscuit, biscoff cookie butter. white chocolate chips that melts in your mouth.\nEdit price\nRecipe\nPB & Miso\nBest seller\n₱80\n₱18.14 cost\nwhite shiro miso infused with chunky peanut butter. sugar-crusted outside, soft center.\nEdit price\nRecipe\nRed Velvet Cheesecake\nRotating\nNew\n₱150\n₱28.22 cost\nrich red velvet packed with melted white chocolate and a tangy cream cheese center.\nEdit price\nRecipe\nNutella Churro\nRotating\nNew\nSold out\n₱200\n₱37.69 cost\nchurro-inspired cinnamon sugar base, soft cookie center filled with rich molten nutella.\nEdit price\nRecipe\n3\n3\n4\nPicked up where you left off — this device had your books saved.",
+      "width": 390,
+      "scrollWidth": 390,
+      "brokenImages": [],
+      "inputs": []
+    },
+    "screenshot": "ui-driven\\chromium-phone\\17-products.png"
+  },
+  {
+    "profile": "chromium-phone",
+    "route": "/notifications",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Notifications · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nNotifications\n6 need attention\nC\nEach one points at something you can act on. They come back if the problem is still there.\nClear all\nAutomatic backup failed\nSystem · 8:29 PM · Action needed now\n3 payments need review\nOrders · today · Needs attention soon\nUnsalted butter is below your level\nInventory · today · Needs attention soon\n3 items short for Drop 32\nGrocery · today · Needs attention soon\nNew order from Mariel Aquino\nOrders · 7:29 PM · Information\nPickup reminder: 6 orders Mon 9\nFulfilment · in 5 days · Information\nWhat you get told about\nNew order\nLow stock\nGrocery shortage\nPickup reminder\nBackup failure\nSystem error\nPayment proof received\nDough nearing expiry\n3\n3\n4\nPicked up where you left off — this device had your books saved.",
+      "width": 390,
+      "scrollWidth": 390,
+      "brokenImages": [],
+      "inputs": []
+    },
+    "screenshot": "ui-driven\\chromium-phone\\18-notifications.png"
+  },
+  {
+    "profile": "chromium-phone",
+    "route": "/shop",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Shop · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nBack to ops\nPreview · customer view\nOpen\nClosing soon\nClosed\nSold out\nThis week's drop\n4 classics + 2 rotating flavours, baked fresh this weekend.\nOrders are open\nClosing Thursday 9:00 PM · baking this weekend\nDouble Chocolate Fudge\n₱130\ngolden-brown edges and soft, pillowy center studded with pools of molten chocolate.\nContains milk, eggs, wheat, soy\n0\nHappy Camper\n₱140\nbrowned butter, toasted marshmallow pockets, melted milk chocolate, graham cracker crunch.\nContains milk, eggs, wheat, soy\n0\nWhite Chocolate Biscoff\nBEST SELLER\n₱145\ncrunchy, caramelized biscuit, biscoff cookie butter. white chocolate chips that melts in your mouth.\nContains milk, eggs, wheat, soy\n0\nPB & Miso\nBEST SELLER\n₱80\nwhite shiro miso infused with chunky peanut butter. sugar-crusted outside, soft center.\nContains milk, eggs, wheat, soy, peanuts\n0\nRed Velvet Cheesecake\nTHIS MONTH ONLY\n₱150\nrich red velvet packed with melted white chocolate and a tangy cream cheese center.\nContains milk, eggs, wheat, soy\n0\nNutella Churro\nTHIS MONTH ONLY\n₱200\nchurro-inspired cinnamon sugar base, soft cookie center filled with rich molten nutella.\nContains milk, eggs, wheat, soy, tree nuts\nSold out this drop\nYour order\n0 cookies picked\nNothing picked yet\n₱0\nYou pay per cookie — no extra packaging charge.\nBIR\nREGISTERED\nThe Happy Cookie · TIN 123-456-789-000\nAn invoice is issued for every confirmed order. Contains milk, eggs, wheat and soy; peanuts and tree nuts in some flavours.\nAlready ordered? Find my order\nPicked up where you left off — this device had your books saved.",
+      "width": 390,
+      "scrollWidth": 390,
+      "brokenImages": [],
+      "inputs": []
+    },
+    "screenshot": "ui-driven\\chromium-phone\\19-shop.png"
+  },
+  {
+    "profile": "chromium-phone",
+    "route": "/checkout",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Checkout · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nAlmost yours\nYour order\n0 cookies\n₱0\nYou pay per cookie — no extra packaging charge.\nAbout you\nName\nMobile number\nEmail\nInstagram handle (optional)\nCollection\nBook your own Grab or Lalamove.\nMonday 9 Mar\n9 AM – 5 PM · 122 slots left\nPayment\nSend ₱0 to one of these, then attach the screenshot.\nGCash\n0962 962 •••• · Francine Reyna To\nMaya\n+63 ••• ••• 5341 · @cinereyna\nGoTyme\n••••••• 7002 · Francine Reyna To\nPick a payment method above and the QR to scan appears here. Bank transfer to 0962 962 5341 and cash on pickup are also accepted — message Cine to arrange either.\nReference number\nPick how you paid first\nAmount you sent\nShould match ₱0 exactly\nPayment screenshot\nAttach your screenshot\nRequired before you can submit\nSubmit order\nYour slot is held once Cine verifies the payment.\nPicked up where you left off — this device had your books saved.",
+      "width": 390,
+      "scrollWidth": 390,
+      "brokenImages": [],
+      "inputs": [
+        {
+          "type": "text",
+          "placeholder": "Who is this box for?",
+          "label": null
+        },
+        {
+          "type": "text",
+          "placeholder": "What's your mobile number?",
+          "label": null
+        },
+        {
+          "type": "text",
+          "placeholder": "you@email.com",
+          "label": null
+        },
+        {
+          "type": "text",
+          "placeholder": "@yourhandle",
+          "label": null
+        },
+        {
+          "type": "text",
+          "placeholder": "From your receipt",
+          "label": null
+        },
+        {
+          "type": "text",
+          "placeholder": "0",
+          "label": null
+        }
+      ]
+    },
+    "screenshot": "ui-driven\\chromium-phone\\20-checkout.png"
+  },
+  {
+    "profile": "chromium-phone",
+    "route": "/status",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Order status · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nPreview · customer view\nBack to ops\nOrder received\n\nWe have your order and your payment proof. Your order is confirmed after Cine verifies it.\n\n—\nOrder received\nWe have your order and your payment proof\nPayment verification\nCine checks every payment by hand\nBaking\nThis weekend\nReady for pickup\nWe send the exact address the morning of your slot\nCollected\nDuring your window\nCollection\nMonday 9 Mar · 9 AM – 5 PM\nBook your Grab or Lalamove for that window. We send the exact address that morning.\nOrder this cookie again\nContains milk, eggs, wheat and soy. Peanut Butter Miso contains peanuts and Nutella Churro contains tree nuts. Baked in a kitchen that handles all of these.\nPicked up where you left off — this device had your books saved.",
+      "width": 390,
+      "scrollWidth": 390,
+      "brokenImages": [],
+      "inputs": []
+    },
+    "screenshot": "ui-driven\\chromium-phone\\21-status.png"
+  },
+  {
+    "profile": "chromium-phone",
+    "route": "/recipes",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Recipes · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nRecipes\nEditing creates a new version\nC\nDouble Chocolate Fudge\nHappy Camper\nWhite Chocolate Biscoff\nPB & Miso\nRed Velvet Cheesecake\nNutella Churro\nWhite Chocolate Biscoff\nVersion 1 · makes 24 cookies · ₱32.58 per cookie\n24\nmakes\ng\nml\npcs\ng\nml\npcs\ng\nml\npcs\ng\nml\npcs\ng\nml\npcs\ng\nml\npcs\ng\nml\npcs\ng\nml\npcs\ng\nml\npcs\ng\nml\npcs\nAdd ingredient\nVersion 1 · current\n1 batch baked on this version. Editing creates a new version — anything already baked keeps its old cost.\n3\n3\n4\nPicked up where you left off — this device had your books saved.",
+      "width": 390,
+      "scrollWidth": 390,
+      "brokenImages": [],
+      "inputs": [
+        {
+          "type": "text",
+          "placeholder": "Ingredient",
+          "label": null
+        },
+        {
+          "type": "text",
+          "placeholder": "",
+          "label": "Quantity"
+        },
+        {
+          "type": "text",
+          "placeholder": "Ingredient",
+          "label": null
+        },
+        {
+          "type": "text",
+          "placeholder": "",
+          "label": "Quantity"
+        },
+        {
+          "type": "text",
+          "placeholder": "Ingredient",
+          "label": null
+        },
+        {
+          "type": "text",
+          "placeholder": "",
+          "label": "Quantity"
+        },
+        {
+          "type": "text",
+          "placeholder": "Ingredient",
+          "label": null
+        },
+        {
+          "type": "text",
+          "placeholder": "",
+          "label": "Quantity"
+        },
+        {
+          "type": "text",
+          "placeholder": "Ingredient",
+          "label": null
+        },
+        {
+          "type": "text",
+          "placeholder": "",
+          "label": "Quantity"
+        },
+        {
+          "type": "text",
+          "placeholder": "Ingredient",
+          "label": null
+        },
+        {
+          "type": "text",
+          "placeholder": "",
+          "label": "Quantity"
+        },
+        {
+          "type": "text",
+          "placeholder": "Ingredient",
+          "label": null
+        },
+        {
+          "type": "text",
+          "placeholder": "",
+          "label": "Quantity"
+        },
+        {
+          "type": "text",
+          "placeholder": "Ingredient",
+          "label": null
+        },
+        {
+          "type": "text",
+          "placeholder": "",
+          "label": "Quantity"
+        },
+        {
+          "type": "text",
+          "placeholder": "Ingredient",
+          "label": null
+        },
+        {
+          "type": "text",
+          "placeholder": "",
+          "label": "Quantity"
+        },
+        {
+          "type": "text",
+          "placeholder": "Ingredient",
+          "label": null
+        },
+        {
+          "type": "text",
+          "placeholder": "",
+          "label": "Quantity"
+        }
+      ]
+    },
+    "screenshot": "ui-driven\\chromium-phone\\22-recipes.png"
+  },
+  {
+    "profile": "chromium-phone",
+    "route": "/drops",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Drops · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nDrops\nDrop 32 · this week\nC\nDrop 32\nOpen for orders\nOrdering Monday 9 AM to Thursday 9 PM\n78\nof 200 cookies confirmed\nCookies per drop\nClose ordering\nSee the shop\nThis drop's menu\nDouble Chocolate Fudge\n₱130\nMark sold out\nHappy Camper\n₱140\nMark sold out\nWhite Chocolate Biscoff\n₱145\nMark sold out\nPB & Miso\n₱80\nMark sold out\nRed Velvet Cheesecake\n₱150\nMark sold out\nNutella Churro\n₱200\nSold out\nBack in stock\nPast drops\nDrop 31\n31 Aug\n13 orders · 78 cookies · ₱6,890\nDrop 30\n24 Aug\n15 orders · 90 cookies · ₱7,460\nDrop 29\n17 Aug\n14 orders · 84 cookies · ₱6,980\n3\n3\n4\nPicked up where you left off — this device had your books saved.",
+      "width": 390,
+      "scrollWidth": 390,
+      "brokenImages": [],
+      "inputs": [
+        {
+          "type": "text",
+          "placeholder": "",
+          "label": "Weekly capacity in cookies"
+        }
+      ]
+    },
+    "screenshot": "ui-driven\\chromium-phone\\23-drops.png"
+  },
+  {
+    "profile": "chromium-phone",
+    "route": "/suppliers",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Suppliers · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nSuppliers\nLowest recent price is suggested\nC\nPrices you have actually paid.\nS&R Membership\nLanders\nChocolate Lover\nDivisoria Packaging\nSticker Shop PH\nPuregold\nWet market\nBaking supply\nS&R Membership\nCongressional Ave · 3 items bought here\nUnsalted butter\n₱420\n1 kg block · Last bought 2 Aug\nBefore: ₱438, ₱445\nCheapest you have paid\nCream cheese\n₱610\n900 g tub · Last bought 2 Aug\nBefore: ₱598\nCheapest you have paid\nChunky peanut butter\n₱385\n1 kg jar · Last bought 11 Aug\nBefore: ₱399\nCheapest you have paid\n3\n3\n4\nPicked up where you left off — this device had your books saved.",
+      "width": 390,
+      "scrollWidth": 390,
+      "brokenImages": [],
+      "inputs": [
+        {
+          "type": "text",
+          "placeholder": "Search items at this supplier",
+          "label": null
+        }
+      ]
+    },
+    "screenshot": "ui-driven\\chromium-phone\\24-suppliers.png"
+  },
+  {
+    "profile": "chromium-phone",
+    "route": "/settings",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Settings · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nSettings\nWhat you can change yourself\nC\nOrders & payments\nPayment methods and proof rule\nProof required\nOrder statuses\n7 statuses in use\nCollection options\nCourier pickup\nDrops & capacity\nDrop schedule\nMon 9 AM – Thu 9 PM\nWeekly capacity\n200 cookies\nPricing rule\nSum of menu prices\nProducts & recipes\nProducts and prices\n6 on the menu\nRecipes and versions\nUp to v1\nInventory & grocery\nTracked items\n30 items\nWeekly count\nIngredients, packaging, dough\nGrocery period\nNext weekly drop\nSupplier suggestion\nLowest recent price\nCustomer experience\nPreview the shop\nLive\nPreview checkout\nWaitlist\n3 people waiting\nCustomer feedback\nOff for now\nPeople\nWho can see what\n2 helpers, 2 temporary\nTechnical support access\nKETH AI\nMoney rules\nTax set-aside\n3% of takings\nBazaar float\n₱1,000\nQuick discounts\n₱20 / ₱50\nKitchen rules\nDough rest window\n24 hours\nFlag dough older than\n14 days\nGrocery budget\n₱6,000 a week\nNotifications & data\nAlerts\n6 on\nKeep customer details for\n1 year\nBackups and export\nNeeds attention\nGoogle Form bridge\nOn · temporary\nSaved on this device\nSaved 8:30 PM\n3\n3\n4\nPicked up where you left off — this device had your books saved.",
+      "width": 390,
+      "scrollWidth": 390,
+      "brokenImages": [],
+      "inputs": []
+    },
+    "screenshot": "ui-driven\\chromium-phone\\25-settings.png"
+  },
+  {
+    "profile": "chromium-phone",
+    "route": "/sign-in",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Sign in · The Happy Cookie Ops",
+      "url": "/sign-in",
+      "text": "Sign in\nEmail\nPassword\nSign in",
+      "width": 390,
+      "scrollWidth": 390,
+      "brokenImages": [],
+      "inputs": [
+        {
+          "type": "email",
+          "placeholder": "",
+          "label": null
+        },
+        {
+          "type": "password",
+          "placeholder": "",
+          "label": null
+        }
+      ]
+    },
+    "screenshot": "ui-driven\\chromium-phone\\26-sign-in.png"
+  },
+  {
+    "profile": "chromium-tablet",
+    "route": "/",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Home · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nHappy Cookie Ops\nQuick add\nHome\nSales log\nOrders\n3\nBake\nInventory\nGrocery\n3\nBazaar\nP&L\nAll tools\n4\nC\nCine To · owner\nHome\nC\nWednesday, 4 Mar\nGood morning, Cine.\n\n4 things need you before baking.\n\nDrop 32\nOpen\nCloses Thu · 9:00 PM\n78\nof 200 cookies confirmed\n78 / 200 confirmed\n18 awaiting payment\n122 still open\nPrepare\n14\ncookies to bake\n\n10 confirmed orders · 4 portions still to mix\n\n5\n4\n3\n2\nStart baking\n3\nitems short\n₱1,150 estimate\nBiscoff spread, Box of 6, Brand sticker\n4\nbelow your level\nUnsalted butter 900 g · Biscoff spread 90 g\n1 problem\nLast successful backup was 2 days ago\nReview\nProfit this month\n₱19,260\nRevenue ₱41,690\nExpenses ₱22,430\n14\nOrders\n3\nTo review\n11\nPickups\n39%\nDrop full\nYour business\nOrders\nOrders & payments\n3 to review\nDrops\nDrop 32 · closes Thu 9 PM\nCustomers & waitlist\n14 customers kept for 1 year\nForm queue\n3 waiting · temporary\nKitchen\nBake & dough\n14 to bake\nInventory\n4 low\nGrocery\n3 items · ₱1,150\nRecipes\n6 flavours · v1\nBusiness\nProfit & loss\nAugust\nPayments\nMatch refs to your wallet\nBazaar Mode\nWorks offline\nProducts\n4 permanent, 2 rotating\nSuppliers\n8 saved\nSystem\nNotifications\n6 need attention\nSettings\nEverything you control\nSystem health\nNeeds attention\nBackups & export\nLast backup failed\nCustomer view\nPreview shop\nPreview checkout\nPreview order status",
+      "width": 834,
+      "scrollWidth": 834,
+      "brokenImages": [],
+      "inputs": []
+    },
+    "screenshot": "ui-driven\\chromium-tablet\\01-home.png"
+  },
+  {
+    "profile": "chromium-tablet",
+    "route": "/sales",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Sales log · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nHappy Cookie Ops\nQuick add\nHome\nSales log\nOrders\n3\nBake\nInventory\nGrocery\n3\nBazaar\nP&L\nAll tools\n4\nC\nCine To · owner\nSales log\nEvery sale recorded\nC\n4\nsales recorded\nKatipunan Weekend Market\n9:00 PM\n₱9,880\nDrop 31 · 13 orders · 78 cookies\n8:59 PM\n₱6,890\nDrop 30 · 15 orders · 90 cookies\n8:58 PM\n₱7,460\nDrop 29 · 14 orders · 84 cookies\n8:57 PM\n₱6,980\nPicked up where you left off — this device had your books saved.",
+      "width": 834,
+      "scrollWidth": 834,
+      "brokenImages": [],
+      "inputs": []
+    },
+    "screenshot": "ui-driven\\chromium-tablet\\02-sales.png"
+  },
+  {
+    "profile": "chromium-tablet",
+    "route": "/orders",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Orders · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nHappy Cookie Ops\nQuick add\nHome\nSales log\nOrders\n3\nBake\nInventory\nGrocery\n3\nBazaar\nP&L\nAll tools\n4\nC\nCine To · owner\nOrders\n14 in Drop 32\nC\n3 payments need review\nCheck the reference and the amount on each one.\nOrdered this drop, all customers\n78 cookies\n20×\nWhite Chocolate Biscoff\n17×\nDouble Chocolate Fudge\n14×\nHappy Camper\n12×\nPB & Miso\n11×\nRed Velvet Cheesecake\n4×\nNutella Churro\nAll\n14\nTo review\n3\nPaid\n10\nReady\n1\nClosed\n0\nMariel Aquino\nHC-1055\n₱990\n2× Nutella Churro, 2× Red Velvet Cheesecake, 2× White Chocolate Biscoff\nAwaiting payment\nMon 9 · 6 cookies\nScreenshot is cropped — reference number is not readable\nReview payment\nIvan Del Rosario\nHC-1054\n₱630\n3× Double Chocolate Fudge, 3× PB & Miso\nAwaiting payment\nMon 9 · 6 cookies\nPaid ₱600 but the order total is ₱630\nReview payment\nGrace Ocampo\nHC-1053\n₱870\n2× White Chocolate Biscoff, 2× Happy Camper, 2× Red Velvet Cheesecake\nAwaiting payment\nMon 9 · 6 cookies\nReference 1027 8880 1902 was already used by HC-1050\nReview payment\nChloe Tan\nHC-1052\n₱800\n4× Double Chocolate Fudge, 2× Happy Camper\nPaid\nMon 9 · 6 cookies\nMark ready\nDenise Alonzo\nHC-1051\n₱930\n4× White Chocolate Biscoff, 1× Red Velvet Cheesecake, 1× Nutella Churro\nPaid\nMon 9 · 6 cookies\nMark ready\nRafael Gomez\nHC-1050\n₱1,290\n6× PB & Miso, 3× Double Chocolate Fudge, 3× Happy Camper\nPaid\nMon 9 · 12 cookies\nMark ready\nNikka Domingo\nHC-1049\n₱885\n3× White Chocolate Biscoff, 3× Red Velvet Cheesecake\nReady\nMon 9 · 6 cookies\nMark collected\nAndrei Bautista\nHC-1048\n₱800\n4× Double Chocolate Fudge, 2× Happy Camper\nPaid\nMon 9 · 6 cookies\nMark ready\nTrisha Lim\nHC-1047\n₱795\n3× White Chocolate Biscoff, 2× PB & Miso, 1× Nutella Churro\nPaid\nMon 9 · 6 cookies\nMark ready\nPaolo Cruz\nHC-1046\n₱810\n3× Happy Camper, 3× Double Chocolate Fudge\nPaid\nMon 9 · 6 cookies\nMark ready\nKarla Mendoza\nHC-1045\n₱885\n3× Red Velvet Cheesecake, 3× White Chocolate Biscoff\nPaid\nMon 9 · 6 cookies\nMark ready\nJoanna Reyes\nHC-1044\n₱1,740\n4× White Chocolate Biscoff, 4× Red Velvet Cheesecake, 2× Nutella Churro, 2× PB & Miso\nBaking\nMon 9 · 12 cookies\nMark ready\nMiguel Santos\nHC-1043\n₱700\n2× Double Chocolate Fudge, 2× Happy Camper, 2× PB & Miso\nPaid\nMon 9 · 6 cookies\nMark ready\nBea Villanueva\nHC-1042\n₱845\n3× White Chocolate Biscoff, 2× Happy Camper, 1× Double Chocolate Fudge\nPaid\nMon 9 · 6 cookies\nMark ready\nPicked up where you left off — this device had your books saved.",
+      "width": 834,
+      "scrollWidth": 834,
+      "brokenImages": [],
+      "inputs": [
+        {
+          "type": "text",
+          "placeholder": "Search name, order number or reference",
+          "label": null
+        }
+      ]
+    },
+    "screenshot": "ui-driven\\chromium-tablet\\03-orders.png"
+  },
+  {
+    "profile": "chromium-tablet",
+    "route": "/order",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Order detail · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nHappy Cookie Ops\nQuick add\nHome\nSales log\nOrders\n3\nBake\nInventory\nGrocery\n3\nBazaar\nP&L\nAll tools\n4\nC\nCine To · owner\nOrder\nC\nPicked up where you left off — this device had your books saved.",
+      "width": 834,
+      "scrollWidth": 834,
+      "brokenImages": [],
+      "inputs": []
+    },
+    "screenshot": "ui-driven\\chromium-tablet\\04-order.png"
+  },
+  {
+    "profile": "chromium-tablet",
+    "route": "/lookup",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Find my order · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nFind my order\n\nLost the link we emailed you? Your order number, payment reference or email will find it.\n\nFind it\nPicked up where you left off — this device had your books saved.",
+      "width": 834,
+      "scrollWidth": 834,
+      "brokenImages": [],
+      "inputs": [
+        {
+          "type": "text",
+          "placeholder": "HC-1042, a reference, or your email",
+          "label": null
+        }
+      ]
+    },
+    "screenshot": "ui-driven\\chromium-tablet\\05-lookup.png"
+  },
+  {
+    "profile": "chromium-tablet",
+    "route": "/reconcile",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Payments · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nHappy Cookie Ops\nQuick add\nHome\nSales log\nOrders\n3\nBake\nInventory\nGrocery\n3\nBazaar\nP&L\nAll tools\n4\nC\nCine To · owner\nPayments\nMatch refs to your wallet\nC\nOpen your GCash and Maya activity, then tick each reference you can see landing.\n14 references still to tick off\nTick all\nStart over\nGCash\n₱8,275\n₱8,275 unticked\nMaya\n₱2,185\n₱2,185 unticked\nGoTyme\n₱1,685\n₱1,685 unticked\nBank transfer\n₱795\n₱795 unticked\n1027 8842 1190\nHC-1042\n· Bea Villanueva\n· GCash\n₱845\nMY-77120\nHC-1043\n· Miguel Santos\n· Maya\n₱700\n1027 8851 0034\nHC-1044\n· Joanna Reyes\n· GCash\n₱1,740\nGT-40218\nHC-1045\n· Karla Mendoza\n· GoTyme\n₱885\n1027 8860 7741\nHC-1046\n· Paolo Cruz\n· GCash\n₱810\nBPI-882140\nHC-1047\n· Trisha Lim\n· Bank transfer\n₱795\n1027 8871 2265\nHC-1048\n· Andrei Bautista\n· GCash\n₱800\nMY-77390\nHC-1049\n· Nikka Domingo\n· Maya\n₱885\n1027 8880 1902\nHC-1050\n· Rafael Gomez\n· GCash\nSame ref as HC-1053\n₱1,290\n1027 8881 4477\nHC-1051\n· Denise Alonzo\n· GCash\n₱930\nGT-40566\nHC-1052\n· Chloe Tan\n· GoTyme\n₱800\n1027 8880 1902\nHC-1053\n· Grace Ocampo\n· GCash\nNot confirmed\nSame ref as HC-1050\n₱870\nMY-77502\nHC-1054\n· Ivan Del Rosario\n· Maya\nNot confirmed\n₱600\n1027 8890 3311\nHC-1055\n· Mariel Aquino\n· GCash\nNot confirmed\n₱990\nTotal in the book\n₱12,940\nPicked up where you left off — this device had your books saved.",
+      "width": 834,
+      "scrollWidth": 834,
+      "brokenImages": [],
+      "inputs": []
+    },
+    "screenshot": "ui-driven\\chromium-tablet\\06-reconcile.png"
+  },
+  {
+    "profile": "chromium-tablet",
+    "route": "/bake",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Bake plan · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nHappy Cookie Ops\nQuick add\nHome\nSales log\nOrders\n3\nBake\nInventory\nGrocery\n3\nBazaar\nP&L\nAll tools\n4\nC\nCine To · owner\nBake plan\nDrop 32 · bake day\nC\n14\ncookies still to bake\n4 portions still to mix.\nStart production\nDouble Chocolate Fudge\n5\nto bake\n18 chilled dough\nBake 5\nMix\nHappy Camper\n4\nto bake\nno dough yet\nMix 4\nWhite Chocolate Biscoff\n3\nto bake\n12 chilled dough\nBake 3\nMix\nPB & Miso\n2\nto bake\n6 chilled dough\nBake 2\nMix\nRed Velvet Cheesecake\nDone\nNutella Churro\nDone\nPicked up where you left off — this device had your books saved.",
+      "width": 834,
+      "scrollWidth": 834,
+      "brokenImages": [],
+      "inputs": []
+    },
+    "screenshot": "ui-driven\\chromium-tablet\\07-bake.png"
+  },
+  {
+    "profile": "chromium-tablet",
+    "route": "/batch",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Production · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nHappy Cookie Ops\nQuick add\nHome\nSales log\nOrders\n3\nBake\nInventory\nGrocery\n3\nBazaar\nP&L\nAll tools\n4\nC\nCine To · owner\nProduction\nC\nPicked up where you left off — this device had your books saved.",
+      "width": 834,
+      "scrollWidth": 834,
+      "brokenImages": [],
+      "inputs": []
+    },
+    "screenshot": "ui-driven\\chromium-tablet\\08-batch.png"
+  },
+  {
+    "profile": "chromium-tablet",
+    "route": "/inventory",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Inventory · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nHappy Cookie Ops\nQuick add\nHome\nSales log\nOrders\n3\nBake\nInventory\nGrocery\n3\nBazaar\nP&L\nAll tools\n4\nC\nCine To · owner\nInventory\nIngredients, packaging, dough, baked\nC\nIngredients\nPackaging\nDough\nBaked stock\n24 items · 2 need attention\nAdd stock\nUnsalted butter\nReorder at 2 kg · S&R Membership · counted 8:30 PM\nLow\n900 g\nBread flour\nReorder at 3 kg · Landers · counted 8:30 PM\n4.2 kg\nAll-purpose flour\nReorder at 2.5 kg · Landers · counted 8:30 PM\n3.8 kg\nBrown sugar\nReorder at 2 kg · Puregold · counted 8:30 PM\n2.6 kg\nWhite sugar\nReorder at 1.5 kg · Puregold · counted 8:30 PM\n1.9 kg\nEggs\nReorder at 18 pcs · Wet market · counted 8:30 PM\n24 pcs\nDark chocolate 55%\nReorder at 1 kg · Chocolate Lover · counted 8:30 PM\n1.45 kg\nMilk chocolate\nReorder at 600 g · Chocolate Lover · counted 8:30 PM\n820 g\nWhite chocolate chips\nReorder at 800 g · Chocolate Lover · counted 8:30 PM\n1.1 kg\nCocoa powder\nReorder at 400 g · Landers · counted 8:30 PM\n640 g\nBiscoff spread\nReorder at 500 g · Landers · counted 8:30 PM\nLow\n90 g\nBiscoff biscuits\nReorder at 300 g · Landers · counted 8:30 PM\n480 g\nChunky peanut butter\nReorder at 600 g · S&R Membership · counted 8:30 PM\n900 g\nShiro miso\nReorder at 150 g · Japanese grocery · counted 8:30 PM\n220 g\nCream cheese\nReorder at 500 g · S&R Membership · counted 8:30 PM\n700 g\nNutella\nReorder at 600 g · Landers · counted 8:30 PM\n950 g\nMini marshmallows\nReorder at 300 g · Puregold · counted 8:30 PM\n380 g\nGraham crackers\nReorder at 250 g · Puregold · counted 8:30 PM\n420 g\nCinnamon\nReorder at 80 g · Landers · counted 8:30 PM\n160 g\nBaking soda\nReorder at 100 g · Puregold · counted 8:30 PM\n240 g\nFine salt\nReorder at 200 g · Puregold · counted 8:30 PM\n500 g\nMaldon sea salt\nReorder at 100 g · Healthy Options · counted 8:30 PM\n180 g\nVanilla extract\nReorder at 60 ml · Landers · counted 8:30 PM\n120 ml\nRed velvet gel colour\nReorder at 20 ml · Baking supply · counted 8:30 PM\n45 ml\nPicked up where you left off — this device had your books saved.",
+      "width": 834,
+      "scrollWidth": 834,
+      "brokenImages": [],
+      "inputs": [
+        {
+          "type": "text",
+          "placeholder": "Search this list",
+          "label": null
+        }
+      ]
+    },
+    "screenshot": "ui-driven\\chromium-tablet\\09-inventory.png"
+  },
+  {
+    "profile": "chromium-tablet",
+    "route": "/stocktake",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Stock count · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nHappy Cookie Ops\nQuick add\nHome\nSales log\nOrders\n3\nBake\nInventory\nGrocery\n3\nBazaar\nP&L\nAll tools\n4\nC\nCine To · owner\nHome\nC\nPicked up where you left off — this device had your books saved.",
+      "width": 834,
+      "scrollWidth": 834,
+      "brokenImages": [],
+      "inputs": []
+    },
+    "screenshot": "ui-driven\\chromium-tablet\\10-stocktake.png"
+  },
+  {
+    "profile": "chromium-tablet",
+    "route": "/more",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "All tools · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nHappy Cookie Ops\nQuick add\nHome\nSales log\nOrders\n3\nBake\nInventory\nGrocery\n3\nBazaar\nP&L\nAll tools\n4\nC\nCine To · owner\nAll tools\nEvery part of the business\nC\nOrders\nOrders & payments\n14 orders in Drop 32\nDrops\nDrop 32 open\nShop status\nOpen · on schedule\nCustomers & waitlist\n3 people waiting for the next drop\nForm queue\n3 responses waiting\n3\nKitchen\nBake & dough\nPlan, batches, portions\nInventory\nIngredients, packaging, dough\nGrocery\n3 items short\n3\nRecipes\nVersioned, cost per cookie\nBusiness\nProfit & loss\nRevenue, expenses, profit\nPayments\n11 references unticked\n11\nBazaar Mode\nFast selling, offline safe\nProducts\n6 on the menu\nSuppliers\nPrices you have actually paid\nSystem\nNotifications\nWhat you get told about\nSettings\nRules you control\nSystem health\nNeeds attention\n1\nBackups & export\nYour data, downloadable\nCustomer view\nPreview shop\nWhat customers see\nPreview checkout\nOrder, details, payment\nPreview order status\nThe private link\nPicked up where you left off — this device had your books saved.",
+      "width": 834,
+      "scrollWidth": 834,
+      "brokenImages": [],
+      "inputs": []
+    },
+    "screenshot": "ui-driven\\chromium-tablet\\11-more.png"
+  },
+  {
+    "profile": "chromium-tablet",
+    "route": "/grocery",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Grocery list · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nHappy Cookie Ops\nQuick add\nHome\nSales log\nOrders\n3\nBake\nInventory\nGrocery\n3\nBazaar\nP&L\nAll tools\n4\nC\nCine To · owner\nGrocery\nFor Drop 32\nC\n₱1,150\nestimate\n₱4,850 left of your ₱6,000 budget\n3 items to buy for this drop.\nAttach the receipt\nBiscoff spread\nAt or below your reorder level\n2 × 400 g jar\n₱570\nLanders\nNeed\n0 g\nOn hand\n90 g\nReorder at\n500 g\nBuy\n410 g\nI bought this\nWhy?\nBox of 6\nNeeded for orders still to pack\n1 × Pack of 25\n₱375\nDivisoria Packaging\nNeed\n12 pcs\nOn hand\n9 pcs\nShort\n3 pcs\nI bought this\nWhy?\nBrand sticker\nNeeded for orders still to pack\n1 × Roll of 100\n₱205\nSticker Shop PH\nNeed\n12 pcs\nOn hand\n4 pcs\nShort\n8 pcs\nI bought this\nWhy?\nPicked up where you left off — this device had your books saved.",
+      "width": 834,
+      "scrollWidth": 834,
+      "brokenImages": [],
+      "inputs": []
+    },
+    "screenshot": "ui-driven\\chromium-tablet\\12-grocery.png"
+  },
+  {
+    "profile": "chromium-tablet",
+    "route": "/bazaar",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Bazaar Mode · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nHappy Cookie Ops\nQuick add\nHome\nSales log\nOrders\n3\nBake\nInventory\nGrocery\n3\nBazaar\nP&L\nAll tools\n4\nC\nCine To · owner\nBazaar Mode\nEvent selling\nC\nStart an event\nSell fast. Works with no signal.\nKatipunan Weekend Market\nSaturday, 7 Mar · 10 AM – 8 PM · Katipunan Ave, QC\nUP Town Center Pop-up\nSunday, 15 Mar · 11 AM – 9 PM · UP Town Center, QC\nPicked up where you left off — this device had your books saved.",
+      "width": 834,
+      "scrollWidth": 834,
+      "brokenImages": [],
+      "inputs": []
+    },
+    "screenshot": "ui-driven\\chromium-tablet\\13-bazaar.png"
+  },
+  {
+    "profile": "chromium-tablet",
+    "route": "/pnl",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Profit & loss · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nHappy Cookie Ops\nQuick add\nHome\nSales log\nOrders\n3\nBake\nInventory\nGrocery\n3\nBazaar\nP&L\nAll tools\n4\nC\nCine To · owner\nProfit & loss\nMar 2026\nC\nProfit · August 2026\n₱19,260\nSales minus every expense, helper wages included.\nRevenue\n₱41,690\nDrops ₱31,810\nBazaar ₱9,880\nExpenses\n₱22,430\n46% margin\nSet aside for tax\n₱1,251\nTake money out\nSet aside 3% of takings.\nProfit, last four months\n₱9k\nMay\n₱12k\nJun\n₱13k\nJul\n₱19k\nMar\nWhere the money went\nRecord expense\nCategories\nIngredients\n9 records\n₱11,240\nHelper wages\n3 records\n₱4,500\nPackaging\n4 records\n₱2,180\nBazaar rent\n1 record\n₱1,500\nMarketing / influencer\n2 records\n₱1,200\nTransport\n5 records\n₱860\nPrinting / collateral\n1 record\n₱640\nOther\n2 records\n₱310\nWhat each flavour earns you\nDouble Chocolate Fudge\n17 sold\n₱103.38\n80%\n₱1,757\nHappy Camper\n14 sold\n₱102.10\n73%\n₱1,429\nWhite Chocolate Biscoff\n20 sold\n₱112.42\n78%\n₱2,248\nPB & Miso\n12 sold\n₱61.86\n77%\n₱742\nRed Velvet Cheesecake\n11 sold\n₱121.78\n81%\n₱1,340\nNutella Churro\n4 sold\n₱162.31\n81%\n₱649\nPer cookie, margin, and what it has brought in this month.\nPicked up where you left off — this device had your books saved.",
+      "width": 834,
+      "scrollWidth": 834,
+      "brokenImages": [],
+      "inputs": []
+    },
+    "screenshot": "ui-driven\\chromium-tablet\\14-pnl.png"
+  },
+  {
+    "profile": "chromium-tablet",
+    "route": "/formqueue",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Form queue · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nHappy Cookie Ops\nQuick add\nHome\nSales log\nOrders\n3\nBake\nInventory\nGrocery\n3\nBazaar\nP&L\nAll tools\n4\nC\nCine To · owner\nForm queue\nTemporary · one to two weeks\nC\nNothing here becomes an order until you accept it.\nAngela Ramos\nCheck this\nhi! 2 boxes po. 1 all biscoff, and the other one mixed na lang, surprise me 😅 pickup sat morning. gcash sent\n2 Double Chocolate Fudge, 2 Happy Camper, 6 White Chocolate Biscoff, 2 Red Velvet Cheesecake\n12 cookies · Monday 9 Mar\nSecond box is not specified. Confirm the six flavours before accepting.\nPayment reference\nAccept\nReject\nJomar Silva\n1 box of 6: 2 double choc, 2 happy camper, 2 pb miso. sunday pickup. paid via maya ref MY-77611\n2 Double Chocolate Fudge, 2 Happy Camper, 2 PB & Miso\n6 cookies · Monday 9 Mar\nPayment reference\nAccept\nReject\nPatricia Yu\nCheck this\nbox of 6 all nutella churro if available, if not red velvet. saturday. will send proof later\n6 Nutella Churro\n6 cookies · Monday 9 Mar\nConditional order and no payment proof attached.\nPayment reference\nAccept\nReject\nPicked up where you left off — this device had your books saved.",
+      "width": 834,
+      "scrollWidth": 834,
+      "brokenImages": [],
+      "inputs": [
+        {
+          "type": "text",
+          "placeholder": "Type it from their message",
+          "label": null
+        },
+        {
+          "type": "text",
+          "placeholder": "Type it from their message",
+          "label": null
+        },
+        {
+          "type": "text",
+          "placeholder": "Type it from their message",
+          "label": null
+        }
+      ]
+    },
+    "screenshot": "ui-driven\\chromium-tablet\\15-formqueue.png"
+  },
+  {
+    "profile": "chromium-tablet",
+    "route": "/health",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "System health · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nHappy Cookie Ops\nQuick add\nHome\nSales log\nOrders\n3\nBake\nInventory\nGrocery\n3\nBazaar\nP&L\nAll tools\n4\nC\nCine To · owner\nSystem health\nBackups, sync, errors\nC\nNeeds attention\nBackup needs attention. Last successful backup was 8:30 PM.\nAutomatic backup\nFailed 8:30 PM\nYour data is still here on this device. The off-device copy could not be completed.\nRetry\nSaved on this device\nSaved 8:30 PM\nOrders, stock, recipes, expenses and your rules stay here between visits. A backup is what protects you if the device is lost.\nBazaar sync\nUp to date\nEverything recorded on this phone has been sent.\nBooks balance\n31 records · all traceable\nEvery peso in the P&L (₱41,690 in, ₱22,430 out) comes from a record you can open.\nStock sanity\nNothing below zero\nNo item has been deducted past what you had.\nData export\nExport any time\nOrders, inventory, ledger and expenses as a spreadsheet, so nothing is locked in here.\nExport my data\nReport a problem\nPicked up where you left off — this device had your books saved.",
+      "width": 834,
+      "scrollWidth": 834,
+      "brokenImages": [],
+      "inputs": []
+    },
+    "screenshot": "ui-driven\\chromium-tablet\\16-health.png"
+  },
+  {
+    "profile": "chromium-tablet",
+    "route": "/products",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Products · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nHappy Cookie Ops\nQuick add\nHome\nSales log\nOrders\n3\nBake\nInventory\nGrocery\n3\nBazaar\nP&L\nAll tools\n4\nC\nCine To · owner\nProducts\n4 permanent · 2 rotating\nC\nNew prices apply to new orders only.\nDouble Chocolate Fudge\n₱130\n₱26.62 cost\ngolden-brown edges and soft, pillowy center studded with pools of molten chocolate.\nEdit price\nRecipe\nHappy Camper\n₱140\n₱37.90 cost\nbrowned butter, toasted marshmallow pockets, melted milk chocolate, graham cracker crunch.\nEdit price\nRecipe\nWhite Chocolate Biscoff\nBest seller\n₱145\n₱32.58 cost\ncrunchy, caramelized biscuit, biscoff cookie butter. white chocolate chips that melts in your mouth.\nEdit price\nRecipe\nPB & Miso\nBest seller\n₱80\n₱18.14 cost\nwhite shiro miso infused with chunky peanut butter. sugar-crusted outside, soft center.\nEdit price\nRecipe\nRed Velvet Cheesecake\nRotating\nNew\n₱150\n₱28.22 cost\nrich red velvet packed with melted white chocolate and a tangy cream cheese center.\nEdit price\nRecipe\nNutella Churro\nRotating\nNew\nSold out\n₱200\n₱37.69 cost\nchurro-inspired cinnamon sugar base, soft cookie center filled with rich molten nutella.\nEdit price\nRecipe\nPicked up where you left off — this device had your books saved.",
+      "width": 834,
+      "scrollWidth": 834,
+      "brokenImages": [],
+      "inputs": []
+    },
+    "screenshot": "ui-driven\\chromium-tablet\\17-products.png"
+  },
+  {
+    "profile": "chromium-tablet",
+    "route": "/notifications",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Notifications · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nHappy Cookie Ops\nQuick add\nHome\nSales log\nOrders\n3\nBake\nInventory\nGrocery\n3\nBazaar\nP&L\nAll tools\n4\nC\nCine To · owner\nNotifications\n6 need attention\nC\nEach one points at something you can act on. They come back if the problem is still there.\nClear all\nAutomatic backup failed\nSystem · 8:30 PM · Action needed now\n3 payments need review\nOrders · today · Needs attention soon\nUnsalted butter is below your level\nInventory · today · Needs attention soon\n3 items short for Drop 32\nGrocery · today · Needs attention soon\nNew order from Mariel Aquino\nOrders · 7:30 PM · Information\nPickup reminder: 6 orders Mon 9\nFulfilment · in 5 days · Information\nWhat you get told about\nNew order\nLow stock\nGrocery shortage\nPickup reminder\nBackup failure\nSystem error\nPayment proof received\nDough nearing expiry\nPicked up where you left off — this device had your books saved.",
+      "width": 834,
+      "scrollWidth": 834,
+      "brokenImages": [],
+      "inputs": []
+    },
+    "screenshot": "ui-driven\\chromium-tablet\\18-notifications.png"
+  },
+  {
+    "profile": "chromium-tablet",
+    "route": "/shop",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Shop · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nBack to ops\nPreview · customer view\nOpen\nClosing soon\nClosed\nSold out\nThis week's drop\n4 classics + 2 rotating flavours, baked fresh this weekend.\nOrders are open\nClosing Thursday 9:00 PM · baking this weekend\nDouble Chocolate Fudge\n₱130\ngolden-brown edges and soft, pillowy center studded with pools of molten chocolate.\nContains milk, eggs, wheat, soy\n0\nHappy Camper\n₱140\nbrowned butter, toasted marshmallow pockets, melted milk chocolate, graham cracker crunch.\nContains milk, eggs, wheat, soy\n0\nWhite Chocolate Biscoff\nBEST SELLER\n₱145\ncrunchy, caramelized biscuit, biscoff cookie butter. white chocolate chips that melts in your mouth.\nContains milk, eggs, wheat, soy\n0\nPB & Miso\nBEST SELLER\n₱80\nwhite shiro miso infused with chunky peanut butter. sugar-crusted outside, soft center.\nContains milk, eggs, wheat, soy, peanuts\n0\nRed Velvet Cheesecake\nTHIS MONTH ONLY\n₱150\nrich red velvet packed with melted white chocolate and a tangy cream cheese center.\nContains milk, eggs, wheat, soy\n0\nNutella Churro\nTHIS MONTH ONLY\n₱200\nchurro-inspired cinnamon sugar base, soft cookie center filled with rich molten nutella.\nContains milk, eggs, wheat, soy, tree nuts\nSold out this drop\nYour order\n0 cookies picked\nNothing picked yet\n₱0\nYou pay per cookie — no extra packaging charge.\nBIR\nREGISTERED\nThe Happy Cookie · TIN 123-456-789-000\nAn invoice is issued for every confirmed order. Contains milk, eggs, wheat and soy; peanuts and tree nuts in some flavours.\nAlready ordered? Find my order\nPicked up where you left off — this device had your books saved.",
+      "width": 834,
+      "scrollWidth": 834,
+      "brokenImages": [],
+      "inputs": []
+    },
+    "screenshot": "ui-driven\\chromium-tablet\\19-shop.png"
+  },
+  {
+    "profile": "chromium-tablet",
+    "route": "/checkout",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Checkout · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nAlmost yours\nYour order\n0 cookies\n₱0\nYou pay per cookie — no extra packaging charge.\nAbout you\nName\nMobile number\nEmail\nInstagram handle (optional)\nCollection\nBook your own Grab or Lalamove.\nMonday 9 Mar\n9 AM – 5 PM · 122 slots left\nPayment\nSend ₱0 to one of these, then attach the screenshot.\nGCash\n0962 962 •••• · Francine Reyna To\nMaya\n+63 ••• ••• 5341 · @cinereyna\nGoTyme\n••••••• 7002 · Francine Reyna To\nPick a payment method above and the QR to scan appears here. Bank transfer to 0962 962 5341 and cash on pickup are also accepted — message Cine to arrange either.\nReference number\nPick how you paid first\nAmount you sent\nShould match ₱0 exactly\nPayment screenshot\nAttach your screenshot\nRequired before you can submit\nSubmit order\nYour slot is held once Cine verifies the payment.\nPicked up where you left off — this device had your books saved.",
+      "width": 834,
+      "scrollWidth": 834,
+      "brokenImages": [],
+      "inputs": [
+        {
+          "type": "text",
+          "placeholder": "Who is this box for?",
+          "label": null
+        },
+        {
+          "type": "text",
+          "placeholder": "What's your mobile number?",
+          "label": null
+        },
+        {
+          "type": "text",
+          "placeholder": "you@email.com",
+          "label": null
+        },
+        {
+          "type": "text",
+          "placeholder": "@yourhandle",
+          "label": null
+        },
+        {
+          "type": "text",
+          "placeholder": "From your receipt",
+          "label": null
+        },
+        {
+          "type": "text",
+          "placeholder": "0",
+          "label": null
+        }
+      ]
+    },
+    "screenshot": "ui-driven\\chromium-tablet\\20-checkout.png"
+  },
+  {
+    "profile": "chromium-tablet",
+    "route": "/status",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Order status · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nPreview · customer view\nBack to ops\nOrder received\n\nWe have your order and your payment proof. Your order is confirmed after Cine verifies it.\n\n—\nOrder received\nWe have your order and your payment proof\nPayment verification\nCine checks every payment by hand\nBaking\nThis weekend\nReady for pickup\nWe send the exact address the morning of your slot\nCollected\nDuring your window\nCollection\nMonday 9 Mar · 9 AM – 5 PM\nBook your Grab or Lalamove for that window. We send the exact address that morning.\nOrder this cookie again\nContains milk, eggs, wheat and soy. Peanut Butter Miso contains peanuts and Nutella Churro contains tree nuts. Baked in a kitchen that handles all of these.\nPicked up where you left off — this device had your books saved.",
+      "width": 834,
+      "scrollWidth": 834,
+      "brokenImages": [],
+      "inputs": []
+    },
+    "screenshot": "ui-driven\\chromium-tablet\\21-status.png"
+  },
+  {
+    "profile": "chromium-tablet",
+    "route": "/recipes",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Recipes · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nHappy Cookie Ops\nQuick add\nHome\nSales log\nOrders\n3\nBake\nInventory\nGrocery\n3\nBazaar\nP&L\nAll tools\n4\nC\nCine To · owner\nRecipes\nEditing creates a new version\nC\nDouble Chocolate Fudge\nHappy Camper\nWhite Chocolate Biscoff\nPB & Miso\nRed Velvet Cheesecake\nNutella Churro\nWhite Chocolate Biscoff\nVersion 1 · makes 24 cookies · ₱32.58 per cookie\n24\nmakes\ng\nml\npcs\ng\nml\npcs\ng\nml\npcs\ng\nml\npcs\ng\nml\npcs\ng\nml\npcs\ng\nml\npcs\ng\nml\npcs\ng\nml\npcs\ng\nml\npcs\nAdd ingredient\nVersion 1 · current\n1 batch baked on this version. Editing creates a new version — anything already baked keeps its old cost.\nPicked up where you left off — this device had your books saved.",
+      "width": 834,
+      "scrollWidth": 834,
+      "brokenImages": [],
+      "inputs": [
+        {
+          "type": "text",
+          "placeholder": "Ingredient",
+          "label": null
+        },
+        {
+          "type": "text",
+          "placeholder": "",
+          "label": "Quantity"
+        },
+        {
+          "type": "text",
+          "placeholder": "Ingredient",
+          "label": null
+        },
+        {
+          "type": "text",
+          "placeholder": "",
+          "label": "Quantity"
+        },
+        {
+          "type": "text",
+          "placeholder": "Ingredient",
+          "label": null
+        },
+        {
+          "type": "text",
+          "placeholder": "",
+          "label": "Quantity"
+        },
+        {
+          "type": "text",
+          "placeholder": "Ingredient",
+          "label": null
+        },
+        {
+          "type": "text",
+          "placeholder": "",
+          "label": "Quantity"
+        },
+        {
+          "type": "text",
+          "placeholder": "Ingredient",
+          "label": null
+        },
+        {
+          "type": "text",
+          "placeholder": "",
+          "label": "Quantity"
+        },
+        {
+          "type": "text",
+          "placeholder": "Ingredient",
+          "label": null
+        },
+        {
+          "type": "text",
+          "placeholder": "",
+          "label": "Quantity"
+        },
+        {
+          "type": "text",
+          "placeholder": "Ingredient",
+          "label": null
+        },
+        {
+          "type": "text",
+          "placeholder": "",
+          "label": "Quantity"
+        },
+        {
+          "type": "text",
+          "placeholder": "Ingredient",
+          "label": null
+        },
+        {
+          "type": "text",
+          "placeholder": "",
+          "label": "Quantity"
+        },
+        {
+          "type": "text",
+          "placeholder": "Ingredient",
+          "label": null
+        },
+        {
+          "type": "text",
+          "placeholder": "",
+          "label": "Quantity"
+        },
+        {
+          "type": "text",
+          "placeholder": "Ingredient",
+          "label": null
+        },
+        {
+          "type": "text",
+          "placeholder": "",
+          "label": "Quantity"
+        }
+      ]
+    },
+    "screenshot": "ui-driven\\chromium-tablet\\22-recipes.png"
+  },
+  {
+    "profile": "chromium-tablet",
+    "route": "/drops",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Drops · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nHappy Cookie Ops\nQuick add\nHome\nSales log\nOrders\n3\nBake\nInventory\nGrocery\n3\nBazaar\nP&L\nAll tools\n4\nC\nCine To · owner\nDrops\nDrop 32 · this week\nC\nDrop 32\nOpen for orders\nOrdering Monday 9 AM to Thursday 9 PM\n78\nof 200 cookies confirmed\nCookies per drop\nClose ordering\nSee the shop\nThis drop's menu\nDouble Chocolate Fudge\n₱130\nMark sold out\nHappy Camper\n₱140\nMark sold out\nWhite Chocolate Biscoff\n₱145\nMark sold out\nPB & Miso\n₱80\nMark sold out\nRed Velvet Cheesecake\n₱150\nMark sold out\nNutella Churro\n₱200\nSold out\nBack in stock\nPast drops\nDrop 31\n31 Aug\n13 orders · 78 cookies · ₱6,890\nDrop 30\n24 Aug\n15 orders · 90 cookies · ₱7,460\nDrop 29\n17 Aug\n14 orders · 84 cookies · ₱6,980\nPicked up where you left off — this device had your books saved.",
+      "width": 834,
+      "scrollWidth": 834,
+      "brokenImages": [],
+      "inputs": [
+        {
+          "type": "text",
+          "placeholder": "",
+          "label": "Weekly capacity in cookies"
+        }
+      ]
+    },
+    "screenshot": "ui-driven\\chromium-tablet\\23-drops.png"
+  },
+  {
+    "profile": "chromium-tablet",
+    "route": "/suppliers",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Suppliers · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nHappy Cookie Ops\nQuick add\nHome\nSales log\nOrders\n3\nBake\nInventory\nGrocery\n3\nBazaar\nP&L\nAll tools\n4\nC\nCine To · owner\nSuppliers\nLowest recent price is suggested\nC\nPrices you have actually paid.\nS&R Membership\nLanders\nChocolate Lover\nDivisoria Packaging\nSticker Shop PH\nPuregold\nWet market\nBaking supply\nS&R Membership\nCongressional Ave · 3 items bought here\nUnsalted butter\n₱420\n1 kg block · Last bought 2 Aug\nBefore: ₱438, ₱445\nCheapest you have paid\nCream cheese\n₱610\n900 g tub · Last bought 2 Aug\nBefore: ₱598\nCheapest you have paid\nChunky peanut butter\n₱385\n1 kg jar · Last bought 11 Aug\nBefore: ₱399\nCheapest you have paid\nPicked up where you left off — this device had your books saved.",
+      "width": 834,
+      "scrollWidth": 834,
+      "brokenImages": [],
+      "inputs": [
+        {
+          "type": "text",
+          "placeholder": "Search items at this supplier",
+          "label": null
+        }
+      ]
+    },
+    "screenshot": "ui-driven\\chromium-tablet\\24-suppliers.png"
+  },
+  {
+    "profile": "chromium-tablet",
+    "route": "/settings",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Settings · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nHappy Cookie Ops\nQuick add\nHome\nSales log\nOrders\n3\nBake\nInventory\nGrocery\n3\nBazaar\nP&L\nAll tools\n4\nC\nCine To · owner\nSettings\nWhat you can change yourself\nC\nOrders & payments\nPayment methods and proof rule\nProof required\nOrder statuses\n7 statuses in use\nCollection options\nCourier pickup\nDrops & capacity\nDrop schedule\nMon 9 AM – Thu 9 PM\nWeekly capacity\n200 cookies\nPricing rule\nSum of menu prices\nProducts & recipes\nProducts and prices\n6 on the menu\nRecipes and versions\nUp to v1\nInventory & grocery\nTracked items\n30 items\nWeekly count\nIngredients, packaging, dough\nGrocery period\nNext weekly drop\nSupplier suggestion\nLowest recent price\nCustomer experience\nPreview the shop\nLive\nPreview checkout\nWaitlist\n3 people waiting\nCustomer feedback\nOff for now\nPeople\nWho can see what\n2 helpers, 2 temporary\nTechnical support access\nKETH AI\nMoney rules\nTax set-aside\n3% of takings\nBazaar float\n₱1,000\nQuick discounts\n₱20 / ₱50\nKitchen rules\nDough rest window\n24 hours\nFlag dough older than\n14 days\nGrocery budget\n₱6,000 a week\nNotifications & data\nAlerts\n6 on\nKeep customer details for\n1 year\nBackups and export\nNeeds attention\nGoogle Form bridge\nOn · temporary\nSaved on this device\nSaving as you work\nPicked up where you left off — this device had your books saved.",
+      "width": 834,
+      "scrollWidth": 834,
+      "brokenImages": [],
+      "inputs": []
+    },
+    "screenshot": "ui-driven\\chromium-tablet\\25-settings.png"
+  },
+  {
+    "profile": "chromium-tablet",
+    "route": "/sign-in",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Sign in · The Happy Cookie Ops",
+      "url": "/sign-in",
+      "text": "Sign in\nEmail\nPassword\nSign in",
+      "width": 834,
+      "scrollWidth": 834,
+      "brokenImages": [],
+      "inputs": [
+        {
+          "type": "email",
+          "placeholder": "",
+          "label": null
+        },
+        {
+          "type": "password",
+          "placeholder": "",
+          "label": null
+        }
+      ]
+    },
+    "screenshot": "ui-driven\\chromium-tablet\\26-sign-in.png"
+  },
+  {
+    "profile": "chromium-desktop",
+    "route": "/",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Home · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nHappy Cookie Ops\nQuick add\nHome\nSales log\nOrders\n3\nBake\nInventory\nGrocery\n3\nBazaar\nP&L\nAll tools\n4\nC\nCine To · owner\nHome\nC\nWednesday, 4 Mar\nGood morning, Cine.\n\n4 things need you before baking.\n\nDrop 32\nOpen\nCloses Thu · 9:00 PM\n78\nof 200 cookies confirmed\n78 / 200 confirmed\n18 awaiting payment\n122 still open\nPrepare\n14\ncookies to bake\n\n10 confirmed orders · 4 portions still to mix\n\n5\n4\n3\n2\nStart baking\n3\nitems short\n₱1,150 estimate\nBiscoff spread, Box of 6, Brand sticker\n4\nbelow your level\nUnsalted butter 900 g · Biscoff spread 90 g\n1 problem\nLast successful backup was 2 days ago\nReview\nProfit this month\n₱19,260\nRevenue ₱41,690\nExpenses ₱22,430\n14\nOrders\n3\nTo review\n11\nPickups\n39%\nDrop full\nYour business\nOrders\nOrders & payments\n3 to review\nDrops\nDrop 32 · closes Thu 9 PM\nCustomers & waitlist\n14 customers kept for 1 year\nForm queue\n3 waiting · temporary\nKitchen\nBake & dough\n14 to bake\nInventory\n4 low\nGrocery\n3 items · ₱1,150\nRecipes\n6 flavours · v1\nBusiness\nProfit & loss\nAugust\nPayments\nMatch refs to your wallet\nBazaar Mode\nWorks offline\nProducts\n4 permanent, 2 rotating\nSuppliers\n8 saved\nSystem\nNotifications\n6 need attention\nSettings\nEverything you control\nSystem health\nNeeds attention\nBackups & export\nLast backup failed\nCustomer view\nPreview shop\nPreview checkout\nPreview order status",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "brokenImages": [],
+      "inputs": []
+    },
+    "screenshot": "ui-driven\\chromium-desktop\\01-home.png"
+  },
+  {
+    "profile": "chromium-desktop",
+    "route": "/sales",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Sales log · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nHappy Cookie Ops\nQuick add\nHome\nSales log\nOrders\n3\nBake\nInventory\nGrocery\n3\nBazaar\nP&L\nAll tools\n4\nC\nCine To · owner\nSales log\nEvery sale recorded\nC\n4\nsales recorded\nKatipunan Weekend Market\n9:01 PM\n₱9,880\nDrop 31 · 13 orders · 78 cookies\n9:00 PM\n₱6,890\nDrop 30 · 15 orders · 90 cookies\n8:59 PM\n₱7,460\nDrop 29 · 14 orders · 84 cookies\n8:58 PM\n₱6,980\nPicked up where you left off — this device had your books saved.",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "brokenImages": [],
+      "inputs": []
+    },
+    "screenshot": "ui-driven\\chromium-desktop\\02-sales.png"
+  },
+  {
+    "profile": "chromium-desktop",
+    "route": "/orders",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Orders · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nHappy Cookie Ops\nQuick add\nHome\nSales log\nOrders\n3\nBake\nInventory\nGrocery\n3\nBazaar\nP&L\nAll tools\n4\nC\nCine To · owner\nOrders\n14 in Drop 32\nC\n3 payments need review\nCheck the reference and the amount on each one.\nOrdered this drop, all customers\n78 cookies\n20×\nWhite Chocolate Biscoff\n17×\nDouble Chocolate Fudge\n14×\nHappy Camper\n12×\nPB & Miso\n11×\nRed Velvet Cheesecake\n4×\nNutella Churro\nAll\n14\nTo review\n3\nPaid\n10\nReady\n1\nClosed\n0\nMariel Aquino\nHC-1055\n₱990\n2× Nutella Churro, 2× Red Velvet Cheesecake, 2× White Chocolate Biscoff\nAwaiting payment\nMon 9 · 6 cookies\nScreenshot is cropped — reference number is not readable\nReview payment\nIvan Del Rosario\nHC-1054\n₱630\n3× Double Chocolate Fudge, 3× PB & Miso\nAwaiting payment\nMon 9 · 6 cookies\nPaid ₱600 but the order total is ₱630\nReview payment\nGrace Ocampo\nHC-1053\n₱870\n2× White Chocolate Biscoff, 2× Happy Camper, 2× Red Velvet Cheesecake\nAwaiting payment\nMon 9 · 6 cookies\nReference 1027 8880 1902 was already used by HC-1050\nReview payment\nChloe Tan\nHC-1052\n₱800\n4× Double Chocolate Fudge, 2× Happy Camper\nPaid\nMon 9 · 6 cookies\nMark ready\nDenise Alonzo\nHC-1051\n₱930\n4× White Chocolate Biscoff, 1× Red Velvet Cheesecake, 1× Nutella Churro\nPaid\nMon 9 · 6 cookies\nMark ready\nRafael Gomez\nHC-1050\n₱1,290\n6× PB & Miso, 3× Double Chocolate Fudge, 3× Happy Camper\nPaid\nMon 9 · 12 cookies\nMark ready\nNikka Domingo\nHC-1049\n₱885\n3× White Chocolate Biscoff, 3× Red Velvet Cheesecake\nReady\nMon 9 · 6 cookies\nMark collected\nAndrei Bautista\nHC-1048\n₱800\n4× Double Chocolate Fudge, 2× Happy Camper\nPaid\nMon 9 · 6 cookies\nMark ready\nTrisha Lim\nHC-1047\n₱795\n3× White Chocolate Biscoff, 2× PB & Miso, 1× Nutella Churro\nPaid\nMon 9 · 6 cookies\nMark ready\nPaolo Cruz\nHC-1046\n₱810\n3× Happy Camper, 3× Double Chocolate Fudge\nPaid\nMon 9 · 6 cookies\nMark ready\nKarla Mendoza\nHC-1045\n₱885\n3× Red Velvet Cheesecake, 3× White Chocolate Biscoff\nPaid\nMon 9 · 6 cookies\nMark ready\nJoanna Reyes\nHC-1044\n₱1,740\n4× White Chocolate Biscoff, 4× Red Velvet Cheesecake, 2× Nutella Churro, 2× PB & Miso\nBaking\nMon 9 · 12 cookies\nMark ready\nMiguel Santos\nHC-1043\n₱700\n2× Double Chocolate Fudge, 2× Happy Camper, 2× PB & Miso\nPaid\nMon 9 · 6 cookies\nMark ready\nBea Villanueva\nHC-1042\n₱845\n3× White Chocolate Biscoff, 2× Happy Camper, 1× Double Chocolate Fudge\nPaid\nMon 9 · 6 cookies\nMark ready\nGrace Ocampo\nHC-1053\n· @graceocampo\n· 3:31 PM\nAwaiting payment\nWhite Chocolate Biscoff\n2×\n₱290\nHappy Camper\n2×\n₱280\nRed Velvet Cheesecake\n2×\n₱300\nOrder total\n₱870\nConfirm payment\nOpen full order\nPicked up where you left off — this device had your books saved.",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "brokenImages": [],
+      "inputs": [
+        {
+          "type": "text",
+          "placeholder": "Search name, order number or reference",
+          "label": null
+        }
+      ]
+    },
+    "screenshot": "ui-driven\\chromium-desktop\\03-orders.png"
+  },
+  {
+    "profile": "chromium-desktop",
+    "route": "/order",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Order detail · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nHappy Cookie Ops\nQuick add\nHome\nSales log\nOrders\n3\nBake\nInventory\nGrocery\n3\nBazaar\nP&L\nAll tools\n4\nC\nCine To · owner\nOrder\nC\nAwaiting payment\nHC-1053\n3:31 PM\nGrace Ocampo\n@graceocampo\n· 0995 330 2214\n· grace@mailbox.ph\nCheck this payment\nView proof\nExpected\n₱870\nThey sent\n₱870\nGCash · 1027 8880 1902\nSubmitted\n3:31 PM\nCollecting\nMonday 9 Mar · 9 AM – 5 PM\nThis reference is already on HC-1050\nRafael Gomez used the same number. Compare them before confirming.\nReference 1027 8880 1902 was already used by HC-1050\nConfirm payment\nAsk for clearer proof\nReject\nNothing is reserved until you confirm. Confirming books capacity and adds this order to the bake plan and grocery list.\nIn this order\nWhite Chocolate Biscoff\n2× ₱145\n₱290\nRan out\nHappy Camper\n2× ₱140\n₱280\nRan out\nRed Velvet Cheesecake\n2× ₱150\n₱300\nRan out\nTotal\n₱870\nProgress\nOrder submitted with proof\n3:31 PM\nPayment waiting for approval\nWaiting\nBaked\n—\nReady for pickup\n—\nPrivate order link\nhappycookie.ph/o/hc-1053\nEmailed when they submitted\nCopy\nPicked up where you left off — this device had your books saved.",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "brokenImages": [],
+      "inputs": []
+    },
+    "screenshot": "ui-driven\\chromium-desktop\\04-order.png"
+  },
+  {
+    "profile": "chromium-desktop",
+    "route": "/lookup",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Find my order · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nFind my order\n\nLost the link we emailed you? Your order number, payment reference or email will find it.\n\nFind it\nPicked up where you left off — this device had your books saved.",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "brokenImages": [],
+      "inputs": [
+        {
+          "type": "text",
+          "placeholder": "HC-1042, a reference, or your email",
+          "label": null
+        }
+      ]
+    },
+    "screenshot": "ui-driven\\chromium-desktop\\05-lookup.png"
+  },
+  {
+    "profile": "chromium-desktop",
+    "route": "/reconcile",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Payments · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nHappy Cookie Ops\nQuick add\nHome\nSales log\nOrders\n3\nBake\nInventory\nGrocery\n3\nBazaar\nP&L\nAll tools\n4\nC\nCine To · owner\nPayments\nMatch refs to your wallet\nC\nOpen your GCash and Maya activity, then tick each reference you can see landing.\n14 references still to tick off\nTick all\nStart over\nGCash\n₱8,275\n₱8,275 unticked\nMaya\n₱2,185\n₱2,185 unticked\nGoTyme\n₱1,685\n₱1,685 unticked\nBank transfer\n₱795\n₱795 unticked\n1027 8842 1190\nHC-1042\n· Bea Villanueva\n· GCash\n₱845\nMY-77120\nHC-1043\n· Miguel Santos\n· Maya\n₱700\n1027 8851 0034\nHC-1044\n· Joanna Reyes\n· GCash\n₱1,740\nGT-40218\nHC-1045\n· Karla Mendoza\n· GoTyme\n₱885\n1027 8860 7741\nHC-1046\n· Paolo Cruz\n· GCash\n₱810\nBPI-882140\nHC-1047\n· Trisha Lim\n· Bank transfer\n₱795\n1027 8871 2265\nHC-1048\n· Andrei Bautista\n· GCash\n₱800\nMY-77390\nHC-1049\n· Nikka Domingo\n· Maya\n₱885\n1027 8880 1902\nHC-1050\n· Rafael Gomez\n· GCash\nSame ref as HC-1053\n₱1,290\n1027 8881 4477\nHC-1051\n· Denise Alonzo\n· GCash\n₱930\nGT-40566\nHC-1052\n· Chloe Tan\n· GoTyme\n₱800\n1027 8880 1902\nHC-1053\n· Grace Ocampo\n· GCash\nNot confirmed\nSame ref as HC-1050\n₱870\nMY-77502\nHC-1054\n· Ivan Del Rosario\n· Maya\nNot confirmed\n₱600\n1027 8890 3311\nHC-1055\n· Mariel Aquino\n· GCash\nNot confirmed\n₱990\nTotal in the book\n₱12,940\nPicked up where you left off — this device had your books saved.",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "brokenImages": [],
+      "inputs": []
+    },
+    "screenshot": "ui-driven\\chromium-desktop\\06-reconcile.png"
+  },
+  {
+    "profile": "chromium-desktop",
+    "route": "/bake",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Bake plan · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nHappy Cookie Ops\nQuick add\nHome\nSales log\nOrders\n3\nBake\nInventory\nGrocery\n3\nBazaar\nP&L\nAll tools\n4\nC\nCine To · owner\nBake plan\nDrop 32 · bake day\nC\n14\ncookies still to bake\n4 portions still to mix.\nStart production\nDouble Chocolate Fudge\n5\nto bake\n18 chilled dough\nBake 5\nMix\nHappy Camper\n4\nto bake\nno dough yet\nMix 4\nWhite Chocolate Biscoff\n3\nto bake\n12 chilled dough\nBake 3\nMix\nPB & Miso\n2\nto bake\n6 chilled dough\nBake 2\nMix\nRed Velvet Cheesecake\nDone\nNutella Churro\nDone\nPicked up where you left off — this device had your books saved.",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "brokenImages": [],
+      "inputs": []
+    },
+    "screenshot": "ui-driven\\chromium-desktop\\07-bake.png"
+  },
+  {
+    "profile": "chromium-desktop",
+    "route": "/batch",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Production · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nHappy Cookie Ops\nQuick add\nHome\nSales log\nOrders\n3\nBake\nInventory\nGrocery\n3\nBazaar\nP&L\nAll tools\n4\nC\nCine To · owner\nProduction\nC\nPicked up where you left off — this device had your books saved.",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "brokenImages": [],
+      "inputs": []
+    },
+    "screenshot": "ui-driven\\chromium-desktop\\08-batch.png"
+  },
+  {
+    "profile": "chromium-desktop",
+    "route": "/inventory",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Inventory · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nHappy Cookie Ops\nQuick add\nHome\nSales log\nOrders\n3\nBake\nInventory\nGrocery\n3\nBazaar\nP&L\nAll tools\n4\nC\nCine To · owner\nInventory\nIngredients, packaging, dough, baked\nC\nIngredients\nPackaging\nDough\nBaked stock\n24 items · 2 need attention\nAdd stock\nUnsalted butter\nReorder at 2 kg · S&R Membership · counted 8:31 PM\nLow\n900 g\nBread flour\nReorder at 3 kg · Landers · counted 8:31 PM\n4.2 kg\nAll-purpose flour\nReorder at 2.5 kg · Landers · counted 8:31 PM\n3.8 kg\nBrown sugar\nReorder at 2 kg · Puregold · counted 8:31 PM\n2.6 kg\nWhite sugar\nReorder at 1.5 kg · Puregold · counted 8:31 PM\n1.9 kg\nEggs\nReorder at 18 pcs · Wet market · counted 8:31 PM\n24 pcs\nDark chocolate 55%\nReorder at 1 kg · Chocolate Lover · counted 8:31 PM\n1.45 kg\nMilk chocolate\nReorder at 600 g · Chocolate Lover · counted 8:31 PM\n820 g\nWhite chocolate chips\nReorder at 800 g · Chocolate Lover · counted 8:31 PM\n1.1 kg\nCocoa powder\nReorder at 400 g · Landers · counted 8:31 PM\n640 g\nBiscoff spread\nReorder at 500 g · Landers · counted 8:31 PM\nLow\n90 g\nBiscoff biscuits\nReorder at 300 g · Landers · counted 8:31 PM\n480 g\nChunky peanut butter\nReorder at 600 g · S&R Membership · counted 8:31 PM\n900 g\nShiro miso\nReorder at 150 g · Japanese grocery · counted 8:31 PM\n220 g\nCream cheese\nReorder at 500 g · S&R Membership · counted 8:31 PM\n700 g\nNutella\nReorder at 600 g · Landers · counted 8:31 PM\n950 g\nMini marshmallows\nReorder at 300 g · Puregold · counted 8:31 PM\n380 g\nGraham crackers\nReorder at 250 g · Puregold · counted 8:31 PM\n420 g\nCinnamon\nReorder at 80 g · Landers · counted 8:31 PM\n160 g\nBaking soda\nReorder at 100 g · Puregold · counted 8:31 PM\n240 g\nFine salt\nReorder at 200 g · Puregold · counted 8:31 PM\n500 g\nMaldon sea salt\nReorder at 100 g · Healthy Options · counted 8:31 PM\n180 g\nVanilla extract\nReorder at 60 ml · Landers · counted 8:31 PM\n120 ml\nRed velvet gel colour\nReorder at 20 ml · Baking supply · counted 8:31 PM\n45 ml\nPicked up where you left off — this device had your books saved.",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "brokenImages": [],
+      "inputs": [
+        {
+          "type": "text",
+          "placeholder": "Search this list",
+          "label": null
+        }
+      ]
+    },
+    "screenshot": "ui-driven\\chromium-desktop\\09-inventory.png"
+  },
+  {
+    "profile": "chromium-desktop",
+    "route": "/stocktake",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Stock count · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nHappy Cookie Ops\nQuick add\nHome\nSales log\nOrders\n3\nBake\nInventory\nGrocery\n3\nBazaar\nP&L\nAll tools\n4\nC\nCine To · owner\nHome\nC\nPicked up where you left off — this device had your books saved.",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "brokenImages": [],
+      "inputs": []
+    },
+    "screenshot": "ui-driven\\chromium-desktop\\10-stocktake.png"
+  },
+  {
+    "profile": "chromium-desktop",
+    "route": "/more",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "All tools · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nHappy Cookie Ops\nQuick add\nHome\nSales log\nOrders\n3\nBake\nInventory\nGrocery\n3\nBazaar\nP&L\nAll tools\n4\nC\nCine To · owner\nAll tools\nEvery part of the business\nC\nOrders\nOrders & payments\n14 orders in Drop 32\nDrops\nDrop 32 open\nShop status\nOpen · on schedule\nCustomers & waitlist\n3 people waiting for the next drop\nForm queue\n3 responses waiting\n3\nKitchen\nBake & dough\nPlan, batches, portions\nInventory\nIngredients, packaging, dough\nGrocery\n3 items short\n3\nRecipes\nVersioned, cost per cookie\nBusiness\nProfit & loss\nRevenue, expenses, profit\nPayments\n11 references unticked\n11\nBazaar Mode\nFast selling, offline safe\nProducts\n6 on the menu\nSuppliers\nPrices you have actually paid\nSystem\nNotifications\nWhat you get told about\nSettings\nRules you control\nSystem health\nNeeds attention\n1\nBackups & export\nYour data, downloadable\nCustomer view\nPreview shop\nWhat customers see\nPreview checkout\nOrder, details, payment\nPreview order status\nThe private link\nPicked up where you left off — this device had your books saved.",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "brokenImages": [],
+      "inputs": []
+    },
+    "screenshot": "ui-driven\\chromium-desktop\\11-more.png"
+  },
+  {
+    "profile": "chromium-desktop",
+    "route": "/grocery",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Grocery list · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nHappy Cookie Ops\nQuick add\nHome\nSales log\nOrders\n3\nBake\nInventory\nGrocery\n3\nBazaar\nP&L\nAll tools\n4\nC\nCine To · owner\nGrocery\nFor Drop 32\nC\n₱1,150\nestimate\n₱4,850 left of your ₱6,000 budget\n3 items to buy for this drop.\nAttach the receipt\nBiscoff spread\nAt or below your reorder level\n2 × 400 g jar\n₱570\nLanders\nNeed\n0 g\nOn hand\n90 g\nReorder at\n500 g\nBuy\n410 g\nI bought this\nWhy?\nBox of 6\nNeeded for orders still to pack\n1 × Pack of 25\n₱375\nDivisoria Packaging\nNeed\n12 pcs\nOn hand\n9 pcs\nShort\n3 pcs\nI bought this\nWhy?\nBrand sticker\nNeeded for orders still to pack\n1 × Roll of 100\n₱205\nSticker Shop PH\nNeed\n12 pcs\nOn hand\n4 pcs\nShort\n8 pcs\nI bought this\nWhy?\nPicked up where you left off — this device had your books saved.",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "brokenImages": [],
+      "inputs": []
+    },
+    "screenshot": "ui-driven\\chromium-desktop\\12-grocery.png"
+  },
+  {
+    "profile": "chromium-desktop",
+    "route": "/bazaar",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Bazaar Mode · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nHappy Cookie Ops\nQuick add\nHome\nSales log\nOrders\n3\nBake\nInventory\nGrocery\n3\nBazaar\nP&L\nAll tools\n4\nC\nCine To · owner\nBazaar Mode\nEvent selling\nC\nStart an event\nSell fast. Works with no signal.\nKatipunan Weekend Market\nSaturday, 7 Mar · 10 AM – 8 PM · Katipunan Ave, QC\nUP Town Center Pop-up\nSunday, 15 Mar · 11 AM – 9 PM · UP Town Center, QC\nPicked up where you left off — this device had your books saved.",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "brokenImages": [],
+      "inputs": []
+    },
+    "screenshot": "ui-driven\\chromium-desktop\\13-bazaar.png"
+  },
+  {
+    "profile": "chromium-desktop",
+    "route": "/pnl",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Profit & loss · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nHappy Cookie Ops\nQuick add\nHome\nSales log\nOrders\n3\nBake\nInventory\nGrocery\n3\nBazaar\nP&L\nAll tools\n4\nC\nCine To · owner\nProfit & loss\nMar 2026\nC\nProfit · August 2026\n₱19,260\nSales minus every expense, helper wages included.\nRevenue\n₱41,690\nDrops ₱31,810\nBazaar ₱9,880\nExpenses\n₱22,430\n46% margin\nSet aside for tax\n₱1,251\nTake money out\nSet aside 3% of takings.\nProfit, last four months\n₱9k\nMay\n₱12k\nJun\n₱13k\nJul\n₱19k\nMar\nWhere the money went\nRecord expense\nCategories\nIngredients\n9 records\n₱11,240\nHelper wages\n3 records\n₱4,500\nPackaging\n4 records\n₱2,180\nBazaar rent\n1 record\n₱1,500\nMarketing / influencer\n2 records\n₱1,200\nTransport\n5 records\n₱860\nPrinting / collateral\n1 record\n₱640\nOther\n2 records\n₱310\nWhat each flavour earns you\nDouble Chocolate Fudge\n17 sold\n₱103.38\n80%\n₱1,757\nHappy Camper\n14 sold\n₱102.10\n73%\n₱1,429\nWhite Chocolate Biscoff\n20 sold\n₱112.42\n78%\n₱2,248\nPB & Miso\n12 sold\n₱61.86\n77%\n₱742\nRed Velvet Cheesecake\n11 sold\n₱121.78\n81%\n₱1,340\nNutella Churro\n4 sold\n₱162.31\n81%\n₱649\nPer cookie, margin, and what it has brought in this month.\nPicked up where you left off — this device had your books saved.",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "brokenImages": [],
+      "inputs": []
+    },
+    "screenshot": "ui-driven\\chromium-desktop\\14-pnl.png"
+  },
+  {
+    "profile": "chromium-desktop",
+    "route": "/formqueue",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Form queue · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nHappy Cookie Ops\nQuick add\nHome\nSales log\nOrders\n3\nBake\nInventory\nGrocery\n3\nBazaar\nP&L\nAll tools\n4\nC\nCine To · owner\nForm queue\nTemporary · one to two weeks\nC\nNothing here becomes an order until you accept it.\nAngela Ramos\nCheck this\nhi! 2 boxes po. 1 all biscoff, and the other one mixed na lang, surprise me 😅 pickup sat morning. gcash sent\n2 Double Chocolate Fudge, 2 Happy Camper, 6 White Chocolate Biscoff, 2 Red Velvet Cheesecake\n12 cookies · Monday 9 Mar\nSecond box is not specified. Confirm the six flavours before accepting.\nPayment reference\nAccept\nReject\nJomar Silva\n1 box of 6: 2 double choc, 2 happy camper, 2 pb miso. sunday pickup. paid via maya ref MY-77611\n2 Double Chocolate Fudge, 2 Happy Camper, 2 PB & Miso\n6 cookies · Monday 9 Mar\nPayment reference\nAccept\nReject\nPatricia Yu\nCheck this\nbox of 6 all nutella churro if available, if not red velvet. saturday. will send proof later\n6 Nutella Churro\n6 cookies · Monday 9 Mar\nConditional order and no payment proof attached.\nPayment reference\nAccept\nReject\nPicked up where you left off — this device had your books saved.",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "brokenImages": [],
+      "inputs": [
+        {
+          "type": "text",
+          "placeholder": "Type it from their message",
+          "label": null
+        },
+        {
+          "type": "text",
+          "placeholder": "Type it from their message",
+          "label": null
+        },
+        {
+          "type": "text",
+          "placeholder": "Type it from their message",
+          "label": null
+        }
+      ]
+    },
+    "screenshot": "ui-driven\\chromium-desktop\\15-formqueue.png"
+  },
+  {
+    "profile": "chromium-desktop",
+    "route": "/health",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "System health · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nHappy Cookie Ops\nQuick add\nHome\nSales log\nOrders\n3\nBake\nInventory\nGrocery\n3\nBazaar\nP&L\nAll tools\n4\nC\nCine To · owner\nSystem health\nBackups, sync, errors\nC\nNeeds attention\nBackup needs attention. Last successful backup was 8:31 PM.\nAutomatic backup\nFailed 8:31 PM\nYour data is still here on this device. The off-device copy could not be completed.\nRetry\nSaved on this device\nSaved 8:31 PM\nOrders, stock, recipes, expenses and your rules stay here between visits. A backup is what protects you if the device is lost.\nBazaar sync\nUp to date\nEverything recorded on this phone has been sent.\nBooks balance\n31 records · all traceable\nEvery peso in the P&L (₱41,690 in, ₱22,430 out) comes from a record you can open.\nStock sanity\nNothing below zero\nNo item has been deducted past what you had.\nData export\nExport any time\nOrders, inventory, ledger and expenses as a spreadsheet, so nothing is locked in here.\nExport my data\nReport a problem\nPicked up where you left off — this device had your books saved.",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "brokenImages": [],
+      "inputs": []
+    },
+    "screenshot": "ui-driven\\chromium-desktop\\16-health.png"
+  },
+  {
+    "profile": "chromium-desktop",
+    "route": "/products",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Products · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nHappy Cookie Ops\nQuick add\nHome\nSales log\nOrders\n3\nBake\nInventory\nGrocery\n3\nBazaar\nP&L\nAll tools\n4\nC\nCine To · owner\nProducts\n4 permanent · 2 rotating\nC\nNew prices apply to new orders only.\nDouble Chocolate Fudge\n₱130\n₱26.62 cost\ngolden-brown edges and soft, pillowy center studded with pools of molten chocolate.\nEdit price\nRecipe\nHappy Camper\n₱140\n₱37.90 cost\nbrowned butter, toasted marshmallow pockets, melted milk chocolate, graham cracker crunch.\nEdit price\nRecipe\nWhite Chocolate Biscoff\nBest seller\n₱145\n₱32.58 cost\ncrunchy, caramelized biscuit, biscoff cookie butter. white chocolate chips that melts in your mouth.\nEdit price\nRecipe\nPB & Miso\nBest seller\n₱80\n₱18.14 cost\nwhite shiro miso infused with chunky peanut butter. sugar-crusted outside, soft center.\nEdit price\nRecipe\nRed Velvet Cheesecake\nRotating\nNew\n₱150\n₱28.22 cost\nrich red velvet packed with melted white chocolate and a tangy cream cheese center.\nEdit price\nRecipe\nNutella Churro\nRotating\nNew\nSold out\n₱200\n₱37.69 cost\nchurro-inspired cinnamon sugar base, soft cookie center filled with rich molten nutella.\nEdit price\nRecipe\nPicked up where you left off — this device had your books saved.",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "brokenImages": [],
+      "inputs": []
+    },
+    "screenshot": "ui-driven\\chromium-desktop\\17-products.png"
+  },
+  {
+    "profile": "chromium-desktop",
+    "route": "/notifications",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Notifications · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nHappy Cookie Ops\nQuick add\nHome\nSales log\nOrders\n3\nBake\nInventory\nGrocery\n3\nBazaar\nP&L\nAll tools\n4\nC\nCine To · owner\nNotifications\n6 need attention\nC\nEach one points at something you can act on. They come back if the problem is still there.\nClear all\nAutomatic backup failed\nSystem · 8:31 PM · Action needed now\n3 payments need review\nOrders · today · Needs attention soon\nUnsalted butter is below your level\nInventory · today · Needs attention soon\n3 items short for Drop 32\nGrocery · today · Needs attention soon\nNew order from Mariel Aquino\nOrders · 7:31 PM · Information\nPickup reminder: 6 orders Mon 9\nFulfilment · in 5 days · Information\nWhat you get told about\nNew order\nLow stock\nGrocery shortage\nPickup reminder\nBackup failure\nSystem error\nPayment proof received\nDough nearing expiry\nPicked up where you left off — this device had your books saved.",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "brokenImages": [],
+      "inputs": []
+    },
+    "screenshot": "ui-driven\\chromium-desktop\\18-notifications.png"
+  },
+  {
+    "profile": "chromium-desktop",
+    "route": "/shop",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Shop · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nBack to ops\nPreview · customer view\nOpen\nClosing soon\nClosed\nSold out\nThis week's drop\n4 classics + 2 rotating flavours, baked fresh this weekend.\nOrders are open\nClosing Thursday 9:00 PM · baking this weekend\nDouble Chocolate Fudge\n₱130\ngolden-brown edges and soft, pillowy center studded with pools of molten chocolate.\nContains milk, eggs, wheat, soy\n0\nHappy Camper\n₱140\nbrowned butter, toasted marshmallow pockets, melted milk chocolate, graham cracker crunch.\nContains milk, eggs, wheat, soy\n0\nWhite Chocolate Biscoff\nBEST SELLER\n₱145\ncrunchy, caramelized biscuit, biscoff cookie butter. white chocolate chips that melts in your mouth.\nContains milk, eggs, wheat, soy\n0\nPB & Miso\nBEST SELLER\n₱80\nwhite shiro miso infused with chunky peanut butter. sugar-crusted outside, soft center.\nContains milk, eggs, wheat, soy, peanuts\n0\nRed Velvet Cheesecake\nTHIS MONTH ONLY\n₱150\nrich red velvet packed with melted white chocolate and a tangy cream cheese center.\nContains milk, eggs, wheat, soy\n0\nNutella Churro\nTHIS MONTH ONLY\n₱200\nchurro-inspired cinnamon sugar base, soft cookie center filled with rich molten nutella.\nContains milk, eggs, wheat, soy, tree nuts\nSold out this drop\nYour order\n0 cookies picked\nNothing picked yet\n₱0\nYou pay per cookie — no extra packaging charge.\nBIR\nREGISTERED\nThe Happy Cookie · TIN 123-456-789-000\nAn invoice is issued for every confirmed order. Contains milk, eggs, wheat and soy; peanuts and tree nuts in some flavours.\nAlready ordered? Find my order\nPicked up where you left off — this device had your books saved.",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "brokenImages": [],
+      "inputs": []
+    },
+    "screenshot": "ui-driven\\chromium-desktop\\19-shop.png"
+  },
+  {
+    "profile": "chromium-desktop",
+    "route": "/checkout",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Checkout · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nAlmost yours\nYour order\n0 cookies\n₱0\nYou pay per cookie — no extra packaging charge.\nAbout you\nName\nMobile number\nEmail\nInstagram handle (optional)\nCollection\nBook your own Grab or Lalamove.\nMonday 9 Mar\n9 AM – 5 PM · 122 slots left\nPayment\nSend ₱0 to one of these, then attach the screenshot.\nGCash\n0962 962 •••• · Francine Reyna To\nMaya\n+63 ••• ••• 5341 · @cinereyna\nGoTyme\n••••••• 7002 · Francine Reyna To\nPick a payment method above and the QR to scan appears here. Bank transfer to 0962 962 5341 and cash on pickup are also accepted — message Cine to arrange either.\nReference number\nPick how you paid first\nAmount you sent\nShould match ₱0 exactly\nPayment screenshot\nAttach your screenshot\nRequired before you can submit\nSubmit order\nYour slot is held once Cine verifies the payment.\nPicked up where you left off — this device had your books saved.",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "brokenImages": [],
+      "inputs": [
+        {
+          "type": "text",
+          "placeholder": "Who is this box for?",
+          "label": null
+        },
+        {
+          "type": "text",
+          "placeholder": "What's your mobile number?",
+          "label": null
+        },
+        {
+          "type": "text",
+          "placeholder": "you@email.com",
+          "label": null
+        },
+        {
+          "type": "text",
+          "placeholder": "@yourhandle",
+          "label": null
+        },
+        {
+          "type": "text",
+          "placeholder": "From your receipt",
+          "label": null
+        },
+        {
+          "type": "text",
+          "placeholder": "0",
+          "label": null
+        }
+      ]
+    },
+    "screenshot": "ui-driven\\chromium-desktop\\20-checkout.png"
+  },
+  {
+    "profile": "chromium-desktop",
+    "route": "/status",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Order status · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nPreview · customer view\nBack to ops\nOrder received\n\nWe have your order and your payment proof. Your order is confirmed after Cine verifies it.\n\n—\nOrder received\nWe have your order and your payment proof\nPayment verification\nCine checks every payment by hand\nBaking\nThis weekend\nReady for pickup\nWe send the exact address the morning of your slot\nCollected\nDuring your window\nCollection\nMonday 9 Mar · 9 AM – 5 PM\nBook your Grab or Lalamove for that window. We send the exact address that morning.\nOrder this cookie again\nContains milk, eggs, wheat and soy. Peanut Butter Miso contains peanuts and Nutella Churro contains tree nuts. Baked in a kitchen that handles all of these.\nPicked up where you left off — this device had your books saved.",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "brokenImages": [],
+      "inputs": []
+    },
+    "screenshot": "ui-driven\\chromium-desktop\\21-status.png"
+  },
+  {
+    "profile": "chromium-desktop",
+    "route": "/recipes",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Recipes · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nHappy Cookie Ops\nQuick add\nHome\nSales log\nOrders\n3\nBake\nInventory\nGrocery\n3\nBazaar\nP&L\nAll tools\n4\nC\nCine To · owner\nRecipes\nEditing creates a new version\nC\nDouble Chocolate Fudge\nHappy Camper\nWhite Chocolate Biscoff\nPB & Miso\nRed Velvet Cheesecake\nNutella Churro\nWhite Chocolate Biscoff\nVersion 1 · makes 24 cookies · ₱32.58 per cookie\n24\nmakes\ng\nml\npcs\ng\nml\npcs\ng\nml\npcs\ng\nml\npcs\ng\nml\npcs\ng\nml\npcs\ng\nml\npcs\ng\nml\npcs\ng\nml\npcs\ng\nml\npcs\nAdd ingredient\nVersion 1 · current\n1 batch baked on this version. Editing creates a new version — anything already baked keeps its old cost.\nPicked up where you left off — this device had your books saved.",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "brokenImages": [],
+      "inputs": [
+        {
+          "type": "text",
+          "placeholder": "Ingredient",
+          "label": null
+        },
+        {
+          "type": "text",
+          "placeholder": "",
+          "label": "Quantity"
+        },
+        {
+          "type": "text",
+          "placeholder": "Ingredient",
+          "label": null
+        },
+        {
+          "type": "text",
+          "placeholder": "",
+          "label": "Quantity"
+        },
+        {
+          "type": "text",
+          "placeholder": "Ingredient",
+          "label": null
+        },
+        {
+          "type": "text",
+          "placeholder": "",
+          "label": "Quantity"
+        },
+        {
+          "type": "text",
+          "placeholder": "Ingredient",
+          "label": null
+        },
+        {
+          "type": "text",
+          "placeholder": "",
+          "label": "Quantity"
+        },
+        {
+          "type": "text",
+          "placeholder": "Ingredient",
+          "label": null
+        },
+        {
+          "type": "text",
+          "placeholder": "",
+          "label": "Quantity"
+        },
+        {
+          "type": "text",
+          "placeholder": "Ingredient",
+          "label": null
+        },
+        {
+          "type": "text",
+          "placeholder": "",
+          "label": "Quantity"
+        },
+        {
+          "type": "text",
+          "placeholder": "Ingredient",
+          "label": null
+        },
+        {
+          "type": "text",
+          "placeholder": "",
+          "label": "Quantity"
+        },
+        {
+          "type": "text",
+          "placeholder": "Ingredient",
+          "label": null
+        },
+        {
+          "type": "text",
+          "placeholder": "",
+          "label": "Quantity"
+        },
+        {
+          "type": "text",
+          "placeholder": "Ingredient",
+          "label": null
+        },
+        {
+          "type": "text",
+          "placeholder": "",
+          "label": "Quantity"
+        },
+        {
+          "type": "text",
+          "placeholder": "Ingredient",
+          "label": null
+        },
+        {
+          "type": "text",
+          "placeholder": "",
+          "label": "Quantity"
+        }
+      ]
+    },
+    "screenshot": "ui-driven\\chromium-desktop\\22-recipes.png"
+  },
+  {
+    "profile": "chromium-desktop",
+    "route": "/drops",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Drops · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nHappy Cookie Ops\nQuick add\nHome\nSales log\nOrders\n3\nBake\nInventory\nGrocery\n3\nBazaar\nP&L\nAll tools\n4\nC\nCine To · owner\nDrops\nDrop 32 · this week\nC\nDrop 32\nOpen for orders\nOrdering Monday 9 AM to Thursday 9 PM\n78\nof 200 cookies confirmed\nCookies per drop\nClose ordering\nSee the shop\nThis drop's menu\nDouble Chocolate Fudge\n₱130\nMark sold out\nHappy Camper\n₱140\nMark sold out\nWhite Chocolate Biscoff\n₱145\nMark sold out\nPB & Miso\n₱80\nMark sold out\nRed Velvet Cheesecake\n₱150\nMark sold out\nNutella Churro\n₱200\nSold out\nBack in stock\nPast drops\nDrop 31\n31 Aug\n13 orders · 78 cookies · ₱6,890\nDrop 30\n24 Aug\n15 orders · 90 cookies · ₱7,460\nDrop 29\n17 Aug\n14 orders · 84 cookies · ₱6,980\nPicked up where you left off — this device had your books saved.",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "brokenImages": [],
+      "inputs": [
+        {
+          "type": "text",
+          "placeholder": "",
+          "label": "Weekly capacity in cookies"
+        }
+      ]
+    },
+    "screenshot": "ui-driven\\chromium-desktop\\23-drops.png"
+  },
+  {
+    "profile": "chromium-desktop",
+    "route": "/suppliers",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Suppliers · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nHappy Cookie Ops\nQuick add\nHome\nSales log\nOrders\n3\nBake\nInventory\nGrocery\n3\nBazaar\nP&L\nAll tools\n4\nC\nCine To · owner\nSuppliers\nLowest recent price is suggested\nC\nPrices you have actually paid.\nS&R Membership\nLanders\nChocolate Lover\nDivisoria Packaging\nSticker Shop PH\nPuregold\nWet market\nBaking supply\nS&R Membership\nCongressional Ave · 3 items bought here\nUnsalted butter\n₱420\n1 kg block · Last bought 2 Aug\nBefore: ₱438, ₱445\nCheapest you have paid\nCream cheese\n₱610\n900 g tub · Last bought 2 Aug\nBefore: ₱598\nCheapest you have paid\nChunky peanut butter\n₱385\n1 kg jar · Last bought 11 Aug\nBefore: ₱399\nCheapest you have paid\nPicked up where you left off — this device had your books saved.",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "brokenImages": [],
+      "inputs": [
+        {
+          "type": "text",
+          "placeholder": "Search items at this supplier",
+          "label": null
+        }
+      ]
+    },
+    "screenshot": "ui-driven\\chromium-desktop\\24-suppliers.png"
+  },
+  {
+    "profile": "chromium-desktop",
+    "route": "/settings",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Settings · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nHappy Cookie Ops\nQuick add\nHome\nSales log\nOrders\n3\nBake\nInventory\nGrocery\n3\nBazaar\nP&L\nAll tools\n4\nC\nCine To · owner\nSettings\nWhat you can change yourself\nC\nOrders & payments\nPayment methods and proof rule\nProof required\nOrder statuses\n7 statuses in use\nCollection options\nCourier pickup\nDrops & capacity\nDrop schedule\nMon 9 AM – Thu 9 PM\nWeekly capacity\n200 cookies\nPricing rule\nSum of menu prices\nProducts & recipes\nProducts and prices\n6 on the menu\nRecipes and versions\nUp to v1\nInventory & grocery\nTracked items\n30 items\nWeekly count\nIngredients, packaging, dough\nGrocery period\nNext weekly drop\nSupplier suggestion\nLowest recent price\nCustomer experience\nPreview the shop\nLive\nPreview checkout\nWaitlist\n3 people waiting\nCustomer feedback\nOff for now\nPeople\nWho can see what\n2 helpers, 2 temporary\nTechnical support access\nKETH AI\nMoney rules\nTax set-aside\n3% of takings\nBazaar float\n₱1,000\nQuick discounts\n₱20 / ₱50\nKitchen rules\nDough rest window\n24 hours\nFlag dough older than\n14 days\nGrocery budget\n₱6,000 a week\nNotifications & data\nAlerts\n6 on\nKeep customer details for\n1 year\nBackups and export\nNeeds attention\nGoogle Form bridge\nOn · temporary\nSaved on this device\nSaving as you work\nPicked up where you left off — this device had your books saved.",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "brokenImages": [],
+      "inputs": []
+    },
+    "screenshot": "ui-driven\\chromium-desktop\\25-settings.png"
+  },
+  {
+    "profile": "chromium-desktop",
+    "route": "/sign-in",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Sign in · The Happy Cookie Ops",
+      "url": "/sign-in",
+      "text": "Sign in\nEmail\nPassword\nSign in",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "brokenImages": [],
+      "inputs": [
+        {
+          "type": "email",
+          "placeholder": "",
+          "label": null
+        },
+        {
+          "type": "password",
+          "placeholder": "",
+          "label": null
+        }
+      ]
+    },
+    "screenshot": "ui-driven\\chromium-desktop\\26-sign-in.png"
+  },
+  {
+    "profile": "webkit-phone",
+    "route": "/",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Home · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nHome\nC\nWednesday, 4 Mar\nGood morning, Cine.\n\n4 things need you before baking.\n\nDrop 32\nOpen\nCloses Thu · 9:00 PM\n78\nof 200 cookies confirmed\n78 / 200 confirmed\n18 awaiting payment\n122 still open\nPrepare\n14\ncookies to bake\n\n10 confirmed orders · 4 portions still to mix\n\n5\n4\n3\n2\nStart baking\n3\nitems short\n₱1,150 estimate\nBiscoff spread, Box of 6, Brand sticker\n4\nbelow your level\nUnsalted butter 900 g · Biscoff spread 90 g\n1 problem\nLast successful backup was 2 days ago\nReview\nProfit this month\n₱19,260\nRevenue ₱41,690\nExpenses ₱22,430\n14\nOrders\n3\nTo review\n11\nPickups\n39%\nDrop full\nYour business\nOrders\nOrders & payments\n3 to review\nDrops\nDrop 32 · closes Thu 9 PM\nCustomers & waitlist\n14 customers kept for 1 year\nForm queue\n3 waiting · temporary\nKitchen\nBake & dough\n14 to bake\nInventory\n4 low\nGrocery\n3 items · ₱1,150\nRecipes\n6 flavours · v1\nBusiness\nProfit & loss\nAugust\nPayments\nMatch refs to your wallet\nBazaar Mode\nWorks offline\nProducts\n4 permanent, 2 rotating\nSuppliers\n8 saved\nSystem\nNotifications\n6 need attention\nSettings\nEverything you control\nSystem health\nNeeds attention\nBackups & export\nLast backup failed\nCustomer view\nPreview shop\nPreview checkout\nPreview order status\n3\n3\n4",
+      "width": 390,
+      "scrollWidth": 383,
+      "brokenImages": [],
+      "inputs": []
+    },
+    "screenshot": "ui-driven\\webkit-phone\\01-home.png"
+  },
+  {
+    "profile": "webkit-phone",
+    "route": "/sales",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Sales log · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nSales log\nEvery sale recorded\nC\n4\nsales recorded\nKatipunan Weekend Market\n9:02 PM\n₱9,880\nDrop 31 · 13 orders · 78 cookies\n9:01 PM\n₱6,890\nDrop 30 · 15 orders · 90 cookies\n9:00 PM\n₱7,460\nDrop 29 · 14 orders · 84 cookies\n8:59 PM\n₱6,980\n3\n3\n4",
+      "width": 390,
+      "scrollWidth": 383,
+      "brokenImages": [],
+      "inputs": []
+    },
+    "screenshot": "ui-driven\\webkit-phone\\02-sales.png"
+  },
+  {
+    "profile": "webkit-phone",
+    "route": "/orders",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Orders · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nOrders\n14 in Drop 32\nC\n3 payments need review\nCheck the reference and the amount on each one.\nOrdered this drop, all customers\n78 cookies\n20×\nWhite Chocolate Biscoff\n17×\nDouble Chocolate Fudge\n14×\nHappy Camper\n12×\nPB & Miso\n11×\nRed Velvet Cheesecake\n4×\nNutella Churro\nAll\n14\nTo review\n3\nPaid\n10\nReady\n1\nClosed\n0\nMariel Aquino\nHC-1055\n₱990\n2× Nutella Churro, 2× Red Velvet Cheesecake, 2× White Chocolate Biscoff\nAwaiting payment\nMon 9 · 6 cookies\nScreenshot is cropped — reference number is not readable\nReview payment\nIvan Del Rosario\nHC-1054\n₱630\n3× Double Chocolate Fudge, 3× PB & Miso\nAwaiting payment\nMon 9 · 6 cookies\nPaid ₱600 but the order total is ₱630\nReview payment\nGrace Ocampo\nHC-1053\n₱870\n2× White Chocolate Biscoff, 2× Happy Camper, 2× Red Velvet Cheesecake\nAwaiting payment\nMon 9 · 6 cookies\nReference 1027 8880 1902 was already used by HC-1050\nReview payment\nChloe Tan\nHC-1052\n₱800\n4× Double Chocolate Fudge, 2× Happy Camper\nPaid\nMon 9 · 6 cookies\nMark ready\nDenise Alonzo\nHC-1051\n₱930\n4× White Chocolate Biscoff, 1× Red Velvet Cheesecake, 1× Nutella Churro\nPaid\nMon 9 · 6 cookies\nMark ready\nRafael Gomez\nHC-1050\n₱1,290\n6× PB & Miso, 3× Double Chocolate Fudge, 3× Happy Camper\nPaid\nMon 9 · 12 cookies\nMark ready\nNikka Domingo\nHC-1049\n₱885\n3× White Chocolate Biscoff, 3× Red Velvet Cheesecake\nReady\nMon 9 · 6 cookies\nMark collected\nAndrei Bautista\nHC-1048\n₱800\n4× Double Chocolate Fudge, 2× Happy Camper\nPaid\nMon 9 · 6 cookies\nMark ready\nTrisha Lim\nHC-1047\n₱795\n3× White Chocolate Biscoff, 2× PB & Miso, 1× Nutella Churro\nPaid\nMon 9 · 6 cookies\nMark ready\nPaolo Cruz\nHC-1046\n₱810\n3× Happy Camper, 3× Double Chocolate Fudge\nPaid\nMon 9 · 6 cookies\nMark ready\nKarla Mendoza\nHC-1045\n₱885\n3× Red Velvet Cheesecake, 3× White Chocolate Biscoff\nPaid\nMon 9 · 6 cookies\nMark ready\nJoanna Reyes\nHC-1044\n₱1,740\n4× White Chocolate Biscoff, 4× Red Velvet Cheesecake, 2× Nutella Churro, 2× PB & Miso\nBaking\nMon 9 · 12 cookies\nMark ready\nMiguel Santos\nHC-1043\n₱700\n2× Double Chocolate Fudge, 2× Happy Camper, 2× PB & Miso\nPaid\nMon 9 · 6 cookies\nMark ready\nBea Villanueva\nHC-1042\n₱845\n3× White Chocolate Biscoff, 2× Happy Camper, 1× Double Chocolate Fudge\nPaid\nMon 9 · 6 cookies\nMark ready\n3\n3\n4",
+      "width": 390,
+      "scrollWidth": 383,
+      "brokenImages": [],
+      "inputs": [
+        {
+          "type": "text",
+          "placeholder": "Search name, order number or reference",
+          "label": null
+        }
+      ]
+    },
+    "screenshot": "ui-driven\\webkit-phone\\03-orders.png"
+  },
+  {
+    "profile": "webkit-phone",
+    "route": "/order",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Order detail · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nOrder\nC\n3\n3\n4",
+      "width": 390,
+      "scrollWidth": 383,
+      "brokenImages": [],
+      "inputs": []
+    },
+    "screenshot": "ui-driven\\webkit-phone\\04-order.png"
+  },
+  {
+    "profile": "webkit-phone",
+    "route": "/lookup",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Find my order · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nFind my order\n\nLost the link we emailed you? Your order number, payment reference or email will find it.\n\nFind it",
+      "width": 390,
+      "scrollWidth": 383,
+      "brokenImages": [],
+      "inputs": [
+        {
+          "type": "text",
+          "placeholder": "HC-1042, a reference, or your email",
+          "label": null
+        }
+      ]
+    },
+    "screenshot": "ui-driven\\webkit-phone\\05-lookup.png"
+  },
+  {
+    "profile": "webkit-phone",
+    "route": "/reconcile",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Payments · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nPayments\nMatch refs to your wallet\nC\nOpen your GCash and Maya activity, then tick each reference you can see landing.\n14 references still to tick off\nTick all\nStart over\nGCash\n₱8,275\n₱8,275 unticked\nMaya\n₱2,185\n₱2,185 unticked\nGoTyme\n₱1,685\n₱1,685 unticked\nBank transfer\n₱795\n₱795 unticked\n1027 8842 1190\nHC-1042\n· Bea Villanueva\n· GCash\n₱845\nMY-77120\nHC-1043\n· Miguel Santos\n· Maya\n₱700\n1027 8851 0034\nHC-1044\n· Joanna Reyes\n· GCash\n₱1,740\nGT-40218\nHC-1045\n· Karla Mendoza\n· GoTyme\n₱885\n1027 8860 7741\nHC-1046\n· Paolo Cruz\n· GCash\n₱810\nBPI-882140\nHC-1047\n· Trisha Lim\n· Bank transfer\n₱795\n1027 8871 2265\nHC-1048\n· Andrei Bautista\n· GCash\n₱800\nMY-77390\nHC-1049\n· Nikka Domingo\n· Maya\n₱885\n1027 8880 1902\nHC-1050\n· Rafael Gomez\n· GCash\nSame ref as HC-1053\n₱1,290\n1027 8881 4477\nHC-1051\n· Denise Alonzo\n· GCash\n₱930\nGT-40566\nHC-1052\n· Chloe Tan\n· GoTyme\n₱800\n1027 8880 1902\nHC-1053\n· Grace Ocampo\n· GCash\nNot confirmed\nSame ref as HC-1050\n₱870\nMY-77502\nHC-1054\n· Ivan Del Rosario\n· Maya\nNot confirmed\n₱600\n1027 8890 3311\nHC-1055\n· Mariel Aquino\n· GCash\nNot confirmed\n₱990\nTotal in the book\n₱12,940\n3\n3\n4",
+      "width": 390,
+      "scrollWidth": 383,
+      "brokenImages": [],
+      "inputs": []
+    },
+    "screenshot": "ui-driven\\webkit-phone\\06-reconcile.png"
+  },
+  {
+    "profile": "webkit-phone",
+    "route": "/bake",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Bake plan · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nBake plan\nDrop 32 · bake day\nC\n14\ncookies still to bake\n4 portions still to mix.\nStart production\nDouble Chocolate Fudge\n5\nto bake\n18 chilled dough\nBake 5\nMix\nHappy Camper\n4\nto bake\nno dough yet\nMix 4\nWhite Chocolate Biscoff\n3\nto bake\n12 chilled dough\nBake 3\nMix\nPB & Miso\n2\nto bake\n6 chilled dough\nBake 2\nMix\nRed Velvet Cheesecake\nDone\nNutella Churro\nDone\n3\n3\n4\nPicked up where you left off — this device had your books saved.",
+      "width": 390,
+      "scrollWidth": 383,
+      "brokenImages": [],
+      "inputs": []
+    },
+    "screenshot": "ui-driven\\webkit-phone\\07-bake.png"
+  },
+  {
+    "profile": "webkit-phone",
+    "route": "/batch",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Production · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nProduction\nC\n3\n3\n4\nPicked up where you left off — this device had your books saved.",
+      "width": 390,
+      "scrollWidth": 383,
+      "brokenImages": [],
+      "inputs": []
+    },
+    "screenshot": "ui-driven\\webkit-phone\\08-batch.png"
+  },
+  {
+    "profile": "webkit-phone",
+    "route": "/inventory",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Inventory · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nInventory\nIngredients, packaging, dough, baked\nC\nIngredients\nPackaging\nDough\nBaked stock\n24 items · 2 need attention\nAdd stock\nUnsalted butter\nReorder at 2 kg · S&R Membership · counted 8:32 PM\nLow\n900 g\nBread flour\nReorder at 3 kg · Landers · counted 8:32 PM\n4.2 kg\nAll-purpose flour\nReorder at 2.5 kg · Landers · counted 8:32 PM\n3.8 kg\nBrown sugar\nReorder at 2 kg · Puregold · counted 8:32 PM\n2.6 kg\nWhite sugar\nReorder at 1.5 kg · Puregold · counted 8:32 PM\n1.9 kg\nEggs\nReorder at 18 pcs · Wet market · counted 8:32 PM\n24 pcs\nDark chocolate 55%\nReorder at 1 kg · Chocolate Lover · counted 8:32 PM\n1.45 kg\nMilk chocolate\nReorder at 600 g · Chocolate Lover · counted 8:32 PM\n820 g\nWhite chocolate chips\nReorder at 800 g · Chocolate Lover · counted 8:32 PM\n1.1 kg\nCocoa powder\nReorder at 400 g · Landers · counted 8:32 PM\n640 g\nBiscoff spread\nReorder at 500 g · Landers · counted 8:32 PM\nLow\n90 g\nBiscoff biscuits\nReorder at 300 g · Landers · counted 8:32 PM\n480 g\nChunky peanut butter\nReorder at 600 g · S&R Membership · counted 8:32 PM\n900 g\nShiro miso\nReorder at 150 g · Japanese grocery · counted 8:32 PM\n220 g\nCream cheese\nReorder at 500 g · S&R Membership · counted 8:32 PM\n700 g\nNutella\nReorder at 600 g · Landers · counted 8:32 PM\n950 g\nMini marshmallows\nReorder at 300 g · Puregold · counted 8:32 PM\n380 g\nGraham crackers\nReorder at 250 g · Puregold · counted 8:32 PM\n420 g\nCinnamon\nReorder at 80 g · Landers · counted 8:32 PM\n160 g\nBaking soda\nReorder at 100 g · Puregold · counted 8:32 PM\n240 g\nFine salt\nReorder at 200 g · Puregold · counted 8:32 PM\n500 g\nMaldon sea salt\nReorder at 100 g · Healthy Options · counted 8:32 PM\n180 g\nVanilla extract\nReorder at 60 ml · Landers · counted 8:32 PM\n120 ml\nRed velvet gel colour\nReorder at 20 ml · Baking supply · counted 8:32 PM\n45 ml\n3\n3\n4",
+      "width": 390,
+      "scrollWidth": 383,
+      "brokenImages": [],
+      "inputs": [
+        {
+          "type": "text",
+          "placeholder": "Search this list",
+          "label": null
+        }
+      ]
+    },
+    "screenshot": "ui-driven\\webkit-phone\\09-inventory.png"
+  },
+  {
+    "profile": "webkit-phone",
+    "route": "/stocktake",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Stock count · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nHome\nC\n3\n3\n4\nPicked up where you left off — this device had your books saved.",
+      "width": 390,
+      "scrollWidth": 383,
+      "brokenImages": [],
+      "inputs": []
+    },
+    "screenshot": "ui-driven\\webkit-phone\\10-stocktake.png"
+  },
+  {
+    "profile": "webkit-phone",
+    "route": "/more",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "All tools · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nAll tools\nEvery part of the business\nC\nOrders\nOrders & payments\n14 orders in Drop 32\nDrops\nDrop 32 open\nShop status\nOpen · on schedule\nCustomers & waitlist\n3 people waiting for the next drop\nForm queue\n3 responses waiting\n3\nKitchen\nBake & dough\nPlan, batches, portions\nInventory\nIngredients, packaging, dough\nGrocery\n3 items short\n3\nRecipes\nVersioned, cost per cookie\nBusiness\nProfit & loss\nRevenue, expenses, profit\nPayments\n11 references unticked\n11\nBazaar Mode\nFast selling, offline safe\nProducts\n6 on the menu\nSuppliers\nPrices you have actually paid\nSystem\nNotifications\nWhat you get told about\nSettings\nRules you control\nSystem health\nNeeds attention\n1\nBackups & export\nYour data, downloadable\nCustomer view\nPreview shop\nWhat customers see\nPreview checkout\nOrder, details, payment\nPreview order status\nThe private link\n3\n3\n4",
+      "width": 390,
+      "scrollWidth": 383,
+      "brokenImages": [],
+      "inputs": []
+    },
+    "screenshot": "ui-driven\\webkit-phone\\11-more.png"
+  },
+  {
+    "profile": "webkit-phone",
+    "route": "/grocery",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Grocery list · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nGrocery\nFor Drop 32\nC\n₱1,150\nestimate\n₱4,850 left of your ₱6,000 budget\n3 items to buy for this drop.\nAttach the receipt\nBiscoff spread\nAt or below your reorder level\n2 × 400 g jar\n₱570\nLanders\nNeed\n0 g\nOn hand\n90 g\nReorder at\n500 g\nBuy\n410 g\nI bought this\nWhy?\nBox of 6\nNeeded for orders still to pack\n1 × Pack of 25\n₱375\nDivisoria Packaging\nNeed\n12 pcs\nOn hand\n9 pcs\nShort\n3 pcs\nI bought this\nWhy?\nBrand sticker\nNeeded for orders still to pack\n1 × Roll of 100\n₱205\nSticker Shop PH\nNeed\n12 pcs\nOn hand\n4 pcs\nShort\n8 pcs\nI bought this\nWhy?\n3\n3\n4",
+      "width": 390,
+      "scrollWidth": 383,
+      "brokenImages": [],
+      "inputs": []
+    },
+    "screenshot": "ui-driven\\webkit-phone\\12-grocery.png"
+  },
+  {
+    "profile": "webkit-phone",
+    "route": "/bazaar",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Bazaar Mode · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nBazaar Mode\nEvent selling\nC\nStart an event\nSell fast. Works with no signal.\nKatipunan Weekend Market\nSaturday, 7 Mar · 10 AM – 8 PM · Katipunan Ave, QC\nUP Town Center Pop-up\nSunday, 15 Mar · 11 AM – 9 PM · UP Town Center, QC\n3\n3\n4",
+      "width": 390,
+      "scrollWidth": 383,
+      "brokenImages": [],
+      "inputs": []
+    },
+    "screenshot": "ui-driven\\webkit-phone\\13-bazaar.png"
+  },
+  {
+    "profile": "webkit-phone",
+    "route": "/pnl",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Profit & loss · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nProfit & loss\nMar 2026\nC\nProfit · August 2026\n₱19,260\nSales minus every expense, helper wages included.\nRevenue\n₱41,690\nDrops ₱31,810\nBazaar ₱9,880\nExpenses\n₱22,430\n46% margin\nSet aside for tax\n₱1,251\nTake money out\nSet aside 3% of takings.\nProfit, last four months\n₱9k\nMay\n₱12k\nJun\n₱13k\nJul\n₱19k\nMar\nWhere the money went\nRecord expense\nCategories\nIngredients\n9 records\n₱11,240\nHelper wages\n3 records\n₱4,500\nPackaging\n4 records\n₱2,180\nBazaar rent\n1 record\n₱1,500\nMarketing / influencer\n2 records\n₱1,200\nTransport\n5 records\n₱860\nPrinting / collateral\n1 record\n₱640\nOther\n2 records\n₱310\nWhat each flavour earns you\nDouble Chocolate Fudge\n17 sold\n₱103.38\n80%\n₱1,757\nHappy Camper\n14 sold\n₱102.10\n73%\n₱1,429\nWhite Chocolate Biscoff\n20 sold\n₱112.42\n78%\n₱2,248\nPB & Miso\n12 sold\n₱61.86\n77%\n₱742\nRed Velvet Cheesecake\n11 sold\n₱121.78\n81%\n₱1,340\nNutella Churro\n4 sold\n₱162.31\n81%\n₱649\nPer cookie, margin, and what it has brought in this month.\n3\n3\n4",
+      "width": 390,
+      "scrollWidth": 383,
+      "brokenImages": [],
+      "inputs": []
+    },
+    "screenshot": "ui-driven\\webkit-phone\\14-pnl.png"
+  },
+  {
+    "profile": "webkit-phone",
+    "route": "/formqueue",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Form queue · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nForm queue\nTemporary · one to two weeks\nC\nNothing here becomes an order until you accept it.\nAngela Ramos\nCheck this\nhi! 2 boxes po. 1 all biscoff, and the other one mixed na lang, surprise me 😅 pickup sat morning. gcash sent\n2 Double Chocolate Fudge, 2 Happy Camper, 6 White Chocolate Biscoff, 2 Red Velvet Cheesecake\n12 cookies · Monday 9 Mar\nSecond box is not specified. Confirm the six flavours before accepting.\nPayment reference\nAccept\nReject\nJomar Silva\n1 box of 6: 2 double choc, 2 happy camper, 2 pb miso. sunday pickup. paid via maya ref MY-77611\n2 Double Chocolate Fudge, 2 Happy Camper, 2 PB & Miso\n6 cookies · Monday 9 Mar\nPayment reference\nAccept\nReject\nPatricia Yu\nCheck this\nbox of 6 all nutella churro if available, if not red velvet. saturday. will send proof later\n6 Nutella Churro\n6 cookies · Monday 9 Mar\nConditional order and no payment proof attached.\nPayment reference\nAccept\nReject\n3\n3\n4",
+      "width": 390,
+      "scrollWidth": 383,
+      "brokenImages": [],
+      "inputs": [
+        {
+          "type": "text",
+          "placeholder": "Type it from their message",
+          "label": null
+        },
+        {
+          "type": "text",
+          "placeholder": "Type it from their message",
+          "label": null
+        },
+        {
+          "type": "text",
+          "placeholder": "Type it from their message",
+          "label": null
+        }
+      ]
+    },
+    "screenshot": "ui-driven\\webkit-phone\\15-formqueue.png"
+  },
+  {
+    "profile": "webkit-phone",
+    "route": "/health",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "System health · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nSystem health\nBackups, sync, errors\nC\nNeeds attention\nBackup needs attention. Last successful backup was 8:32 PM.\nAutomatic backup\nFailed 8:32 PM\nYour data is still here on this device. The off-device copy could not be completed.\nRetry\nSaved on this device\nSaving as you work\nOrders, stock, recipes, expenses and your rules stay here between visits. A backup is what protects you if the device is lost.\nBazaar sync\nUp to date\nEverything recorded on this phone has been sent.\nBooks balance\n31 records · all traceable\nEvery peso in the P&L (₱41,690 in, ₱22,430 out) comes from a record you can open.\nStock sanity\nNothing below zero\nNo item has been deducted past what you had.\nData export\nExport any time\nOrders, inventory, ledger and expenses as a spreadsheet, so nothing is locked in here.\nExport my data\nReport a problem\n3\n3\n4",
+      "width": 390,
+      "scrollWidth": 383,
+      "brokenImages": [],
+      "inputs": []
+    },
+    "screenshot": "ui-driven\\webkit-phone\\16-health.png"
+  },
+  {
+    "profile": "webkit-phone",
+    "route": "/products",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Products · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nProducts\n4 permanent · 2 rotating\nC\nNew prices apply to new orders only.\nDouble Chocolate Fudge\n₱130\n₱26.62 cost\ngolden-brown edges and soft, pillowy center studded with pools of molten chocolate.\nEdit price\nRecipe\nHappy Camper\n₱140\n₱37.90 cost\nbrowned butter, toasted marshmallow pockets, melted milk chocolate, graham cracker crunch.\nEdit price\nRecipe\nWhite Chocolate Biscoff\nBest seller\n₱145\n₱32.58 cost\ncrunchy, caramelized biscuit, biscoff cookie butter. white chocolate chips that melts in your mouth.\nEdit price\nRecipe\nPB & Miso\nBest seller\n₱80\n₱18.14 cost\nwhite shiro miso infused with chunky peanut butter. sugar-crusted outside, soft center.\nEdit price\nRecipe\nRed Velvet Cheesecake\nRotating\nNew\n₱150\n₱28.22 cost\nrich red velvet packed with melted white chocolate and a tangy cream cheese center.\nEdit price\nRecipe\nNutella Churro\nRotating\nNew\nSold out\n₱200\n₱37.69 cost\nchurro-inspired cinnamon sugar base, soft cookie center filled with rich molten nutella.\nEdit price\nRecipe\n3\n3\n4",
+      "width": 390,
+      "scrollWidth": 383,
+      "brokenImages": [],
+      "inputs": []
+    },
+    "screenshot": "ui-driven\\webkit-phone\\17-products.png"
+  },
+  {
+    "profile": "webkit-phone",
+    "route": "/notifications",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Notifications · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nNotifications\n6 need attention\nC\nEach one points at something you can act on. They come back if the problem is still there.\nClear all\nAutomatic backup failed\nSystem · 8:32 PM · Action needed now\n3 payments need review\nOrders · today · Needs attention soon\nUnsalted butter is below your level\nInventory · today · Needs attention soon\n3 items short for Drop 32\nGrocery · today · Needs attention soon\nNew order from Mariel Aquino\nOrders · 7:32 PM · Information\nPickup reminder: 6 orders Mon 9\nFulfilment · in 5 days · Information\nWhat you get told about\nNew order\nLow stock\nGrocery shortage\nPickup reminder\nBackup failure\nSystem error\nPayment proof received\nDough nearing expiry\n3\n3\n4",
+      "width": 390,
+      "scrollWidth": 383,
+      "brokenImages": [],
+      "inputs": []
+    },
+    "screenshot": "ui-driven\\webkit-phone\\18-notifications.png"
+  },
+  {
+    "profile": "webkit-phone",
+    "route": "/shop",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Shop · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nBack to ops\nPreview · customer view\nOpen\nClosing soon\nClosed\nSold out\nThis week's drop\n4 classics + 2 rotating flavours, baked fresh this weekend.\nOrders are open\nClosing Thursday 9:00 PM · baking this weekend\nDouble Chocolate Fudge\n₱130\ngolden-brown edges and soft, pillowy center studded with pools of molten chocolate.\nContains milk, eggs, wheat, soy\n0\nHappy Camper\n₱140\nbrowned butter, toasted marshmallow pockets, melted milk chocolate, graham cracker crunch.\nContains milk, eggs, wheat, soy\n0\nWhite Chocolate Biscoff\nBEST SELLER\n₱145\ncrunchy, caramelized biscuit, biscoff cookie butter. white chocolate chips that melts in your mouth.\nContains milk, eggs, wheat, soy\n0\nPB & Miso\nBEST SELLER\n₱80\nwhite shiro miso infused with chunky peanut butter. sugar-crusted outside, soft center.\nContains milk, eggs, wheat, soy, peanuts\n0\nRed Velvet Cheesecake\nTHIS MONTH ONLY\n₱150\nrich red velvet packed with melted white chocolate and a tangy cream cheese center.\nContains milk, eggs, wheat, soy\n0\nNutella Churro\nTHIS MONTH ONLY\n₱200\nchurro-inspired cinnamon sugar base, soft cookie center filled with rich molten nutella.\nContains milk, eggs, wheat, soy, tree nuts\nSold out this drop\nYour order\n0 cookies picked\nNothing picked yet\n₱0\nYou pay per cookie — no extra packaging charge.\nBIR\nREGISTERED\nThe Happy Cookie · TIN 123-456-789-000\nAn invoice is issued for every confirmed order. Contains milk, eggs, wheat and soy; peanuts and tree nuts in some flavours.\nAlready ordered? Find my order",
+      "width": 390,
+      "scrollWidth": 383,
+      "brokenImages": [],
+      "inputs": []
+    },
+    "screenshot": "ui-driven\\webkit-phone\\19-shop.png"
+  },
+  {
+    "profile": "webkit-phone",
+    "route": "/checkout",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Checkout · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nAlmost yours\nYour order\n0 cookies\n₱0\nYou pay per cookie — no extra packaging charge.\nAbout you\nName\nMobile number\nEmail\nInstagram handle (optional)\nCollection\nBook your own Grab or Lalamove.\nMonday 9 Mar\n9 AM – 5 PM · 122 slots left\nPayment\nSend ₱0 to one of these, then attach the screenshot.\nGCash\n0962 962 •••• · Francine Reyna To\nMaya\n+63 ••• ••• 5341 · @cinereyna\nGoTyme\n••••••• 7002 · Francine Reyna To\nPick a payment method above and the QR to scan appears here. Bank transfer to 0962 962 5341 and cash on pickup are also accepted — message Cine to arrange either.\nReference number\nPick how you paid first\nAmount you sent\nShould match ₱0 exactly\nPayment screenshot\nAttach your screenshot\nRequired before you can submit\nSubmit order\nYour slot is held once Cine verifies the payment.",
+      "width": 390,
+      "scrollWidth": 383,
+      "brokenImages": [],
+      "inputs": [
+        {
+          "type": "text",
+          "placeholder": "Who is this box for?",
+          "label": null
+        },
+        {
+          "type": "text",
+          "placeholder": "What's your mobile number?",
+          "label": null
+        },
+        {
+          "type": "text",
+          "placeholder": "you@email.com",
+          "label": null
+        },
+        {
+          "type": "text",
+          "placeholder": "@yourhandle",
+          "label": null
+        },
+        {
+          "type": "text",
+          "placeholder": "From your receipt",
+          "label": null
+        },
+        {
+          "type": "text",
+          "placeholder": "0",
+          "label": null
+        }
+      ]
+    },
+    "screenshot": "ui-driven\\webkit-phone\\20-checkout.png"
+  },
+  {
+    "profile": "webkit-phone",
+    "route": "/status",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Order status · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nPreview · customer view\nBack to ops\nOrder received\n\nWe have your order and your payment proof. Your order is confirmed after Cine verifies it.\n\n—\nOrder received\nWe have your order and your payment proof\nPayment verification\nCine checks every payment by hand\nBaking\nThis weekend\nReady for pickup\nWe send the exact address the morning of your slot\nCollected\nDuring your window\nCollection\nMonday 9 Mar · 9 AM – 5 PM\nBook your Grab or Lalamove for that window. We send the exact address that morning.\nOrder this cookie again\nContains milk, eggs, wheat and soy. Peanut Butter Miso contains peanuts and Nutella Churro contains tree nuts. Baked in a kitchen that handles all of these.",
+      "width": 390,
+      "scrollWidth": 383,
+      "brokenImages": [],
+      "inputs": []
+    },
+    "screenshot": "ui-driven\\webkit-phone\\21-status.png"
+  },
+  {
+    "profile": "webkit-phone",
+    "route": "/recipes",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Recipes · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nRecipes\nEditing creates a new version\nC\nDouble Chocolate Fudge\nHappy Camper\nWhite Chocolate Biscoff\nPB & Miso\nRed Velvet Cheesecake\nNutella Churro\nWhite Chocolate Biscoff\nVersion 1 · makes 24 cookies · ₱32.58 per cookie\n24\nmakes\nAdd ingredient\nVersion 1 · current\n1 batch baked on this version. Editing creates a new version — anything already baked keeps its old cost.\n3\n3\n4",
+      "width": 390,
+      "scrollWidth": 383,
+      "brokenImages": [],
+      "inputs": [
+        {
+          "type": "text",
+          "placeholder": "Ingredient",
+          "label": null
+        },
+        {
+          "type": "text",
+          "placeholder": "",
+          "label": "Quantity"
+        },
+        {
+          "type": "text",
+          "placeholder": "Ingredient",
+          "label": null
+        },
+        {
+          "type": "text",
+          "placeholder": "",
+          "label": "Quantity"
+        },
+        {
+          "type": "text",
+          "placeholder": "Ingredient",
+          "label": null
+        },
+        {
+          "type": "text",
+          "placeholder": "",
+          "label": "Quantity"
+        },
+        {
+          "type": "text",
+          "placeholder": "Ingredient",
+          "label": null
+        },
+        {
+          "type": "text",
+          "placeholder": "",
+          "label": "Quantity"
+        },
+        {
+          "type": "text",
+          "placeholder": "Ingredient",
+          "label": null
+        },
+        {
+          "type": "text",
+          "placeholder": "",
+          "label": "Quantity"
+        },
+        {
+          "type": "text",
+          "placeholder": "Ingredient",
+          "label": null
+        },
+        {
+          "type": "text",
+          "placeholder": "",
+          "label": "Quantity"
+        },
+        {
+          "type": "text",
+          "placeholder": "Ingredient",
+          "label": null
+        },
+        {
+          "type": "text",
+          "placeholder": "",
+          "label": "Quantity"
+        },
+        {
+          "type": "text",
+          "placeholder": "Ingredient",
+          "label": null
+        },
+        {
+          "type": "text",
+          "placeholder": "",
+          "label": "Quantity"
+        },
+        {
+          "type": "text",
+          "placeholder": "Ingredient",
+          "label": null
+        },
+        {
+          "type": "text",
+          "placeholder": "",
+          "label": "Quantity"
+        },
+        {
+          "type": "text",
+          "placeholder": "Ingredient",
+          "label": null
+        },
+        {
+          "type": "text",
+          "placeholder": "",
+          "label": "Quantity"
+        }
+      ]
+    },
+    "screenshot": "ui-driven\\webkit-phone\\22-recipes.png"
+  },
+  {
+    "profile": "webkit-phone",
+    "route": "/drops",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Drops · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nDrops\nDrop 32 · this week\nC\nDrop 32\nOpen for orders\nOrdering Monday 9 AM to Thursday 9 PM\n78\nof 200 cookies confirmed\nCookies per drop\nClose ordering\nSee the shop\nThis drop's menu\nDouble Chocolate Fudge\n₱130\nMark sold out\nHappy Camper\n₱140\nMark sold out\nWhite Chocolate Biscoff\n₱145\nMark sold out\nPB & Miso\n₱80\nMark sold out\nRed Velvet Cheesecake\n₱150\nMark sold out\nNutella Churro\n₱200\nSold out\nBack in stock\nPast drops\nDrop 31\n31 Aug\n13 orders · 78 cookies · ₱6,890\nDrop 30\n24 Aug\n15 orders · 90 cookies · ₱7,460\nDrop 29\n17 Aug\n14 orders · 84 cookies · ₱6,980\n3\n3\n4",
+      "width": 390,
+      "scrollWidth": 383,
+      "brokenImages": [],
+      "inputs": [
+        {
+          "type": "text",
+          "placeholder": "",
+          "label": "Weekly capacity in cookies"
+        }
+      ]
+    },
+    "screenshot": "ui-driven\\webkit-phone\\23-drops.png"
+  },
+  {
+    "profile": "webkit-phone",
+    "route": "/suppliers",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Suppliers · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nSuppliers\nLowest recent price is suggested\nC\nPrices you have actually paid.\nS&R Membership\nLanders\nChocolate Lover\nDivisoria Packaging\nSticker Shop PH\nPuregold\nWet market\nBaking supply\nS&R Membership\nCongressional Ave · 3 items bought here\nUnsalted butter\n₱420\n1 kg block · Last bought 2 Aug\nBefore: ₱438, ₱445\nCheapest you have paid\nCream cheese\n₱610\n900 g tub · Last bought 2 Aug\nBefore: ₱598\nCheapest you have paid\nChunky peanut butter\n₱385\n1 kg jar · Last bought 11 Aug\nBefore: ₱399\nCheapest you have paid\n3\n3\n4",
+      "width": 390,
+      "scrollWidth": 383,
+      "brokenImages": [],
+      "inputs": [
+        {
+          "type": "text",
+          "placeholder": "Search items at this supplier",
+          "label": null
+        }
+      ]
+    },
+    "screenshot": "ui-driven\\webkit-phone\\24-suppliers.png"
+  },
+  {
+    "profile": "webkit-phone",
+    "route": "/settings",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Settings · The Happy Cookie Ops",
+      "url": "/",
+      "text": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nSettings\nWhat you can change yourself\nC\nOrders & payments\nPayment methods and proof rule\nProof required\nOrder statuses\n7 statuses in use\nCollection options\nCourier pickup\nDrops & capacity\nDrop schedule\nMon 9 AM – Thu 9 PM\nWeekly capacity\n200 cookies\nPricing rule\nSum of menu prices\nProducts & recipes\nProducts and prices\n6 on the menu\nRecipes and versions\nUp to v1\nInventory & grocery\nTracked items\n30 items\nWeekly count\nIngredients, packaging, dough\nGrocery period\nNext weekly drop\nSupplier suggestion\nLowest recent price\nCustomer experience\nPreview the shop\nLive\nPreview checkout\nWaitlist\n3 people waiting\nCustomer feedback\nOff for now\nPeople\nWho can see what\n2 helpers, 2 temporary\nTechnical support access\nKETH AI\nMoney rules\nTax set-aside\n3% of takings\nBazaar float\n₱1,000\nQuick discounts\n₱20 / ₱50\nKitchen rules\nDough rest window\n24 hours\nFlag dough older than\n14 days\nGrocery budget\n₱6,000 a week\nNotifications & data\nAlerts\n6 on\nKeep customer details for\n1 year\nBackups and export\nNeeds attention\nGoogle Form bridge\nOn · temporary\nSaved on this device\nSaving as you work\n3\n3\n4",
+      "width": 390,
+      "scrollWidth": 383,
+      "brokenImages": [],
+      "inputs": []
+    },
+    "screenshot": "ui-driven\\webkit-phone\\25-settings.png"
+  },
+  {
+    "profile": "webkit-phone",
+    "route": "/sign-in",
+    "errors": [],
+    "failedRequests": [],
+    "status": 200,
+    "dom": {
+      "title": "Sign in · The Happy Cookie Ops",
+      "url": "/sign-in",
+      "text": "Sign in\nEmail\nPassword\nSign in",
+      "width": 390,
+      "scrollWidth": 390,
+      "brokenImages": [],
+      "inputs": [
+        {
+          "type": "email",
+          "placeholder": "",
+          "label": null
+        },
+        {
+          "type": "password",
+          "placeholder": "",
+          "label": null
+        }
+      ]
+    },
+    "screenshot": "ui-driven\\webkit-phone\\26-sign-in.png"
+  }
+]

@@ -1,0 +1,67 @@
+Progress: resolved 1, reused 0, downloaded 0, added 0
+ WARN  deprecated eslint@9.39.5: This version is no longer supported. Please see https://eslint.org/version-support for other options.
+ WARN  deprecated @testing-library/jest-dom@6.10.0: Incorrect minor release with breaking changes (Node >=22 and required @testing-library/dom peer). Use 6.9.1 for the 6.x line, or upgrade to 7.0.0.
+Progress: resolved 34, reused 26, downloaded 2, added 0
+Progress: resolved 100, reused 90, downloaded 4, added 0
+Progress: resolved 180, reused 168, downloaded 6, added 0
+Progress: resolved 255, reused 217, downloaded 10, added 0
+Progress: resolved 330, reused 287, downloaded 11, added 0
+Progress: resolved 393, reused 353, downloaded 12, added 0
+Progress: resolved 514, reused 436, downloaded 13, added 0
+Progress: resolved 560, reused 489, downloaded 15, added 0
+Progress: resolved 691, reused 607, downloaded 16, added 0
+Progress: resolved 812, reused 680, downloaded 16, added 0
+Progress: resolved 952, reused 776, downloaded 17, added 0
+Progress: resolved 1066, reused 878, downloaded 18, added 0
+Progress: resolved 1188, reused 1001, downloaded 19, added 0
+Progress: resolved 1302, reused 1115, downloaded 19, added 0
+ WARN  6 deprecated subdependencies found: glob@7.2.3, inflight@1.0.6, rimraf@2.7.1, rimraf@3.0.2, uuid@8.3.2, whatwg-encoding@3.1.1
+Packages: +41
++++++++++++++++++++++++++++++++++++++++++
+Progress: resolved 1326, reused 1143, downloaded 20, added 37
+Progress: resolved 1326, reused 1143, downloaded 20, added 40
+Progress: resolved 1326, reused 1143, downloaded 21, added 40
+Progress: resolved 1326, reused 1143, downloaded 21, added 41
+Progress: resolved 1326, reused 1143, downloaded 21, added 41, done
+
+dependencies:
++ @supabase/ssr 0.7.0 (0.12.6 is available)
++ @supabase/supabase-js 2.115.0
+- next 16.3.1
++ next 16.3.3 (16.3.4 is available)
+- react 19.2.0
++ react 19.2.8
+- react-dom 19.2.0
++ react-dom 19.2.8
++ zod 4.5.4
+
+devDependencies:
++ @eslint/eslintrc 3.3.7
++ @lhci/cli 0.15.1
++ @playwright/test 1.63.0
+- @storybook/nextjs 9.1.20
++ @storybook/nextjs 10.0.0 (10.6.0 is available)
++ @tailwindcss/postcss 4.3.3
++ @testing-library/dom 10.4.1
++ @testing-library/jest-dom 6.10.0 (7.0.1 is available) deprecated
++ @types/node 22.20.1 (26.4.1 is available)
++ @types/react 19.2.18
++ @types/react-dom 19.2.7
++ @vitejs/plugin-react 5.2.0 (6.1.1 is available)
++ eslint 9.39.5 (10.10.0 is available) deprecated
+- eslint-config-next 16.3.1
++ eslint-config-next 16.3.3 (16.3.4 is available)
++ eslint-config-prettier 10.1.8
++ eslint-plugin-jsx-a11y 6.10.2
++ husky 9.1.7
++ jsdom 26.1.0 (30.0.1 is available)
++ lint-staged 16.4.0 (17.5.0 is available)
++ prettier 3.9.6
+- storybook 9.1.20
++ storybook 10.0.0 (10.6.0 is available)
++ supabase 2.116.0
++ tailwindcss 4.3.3
++ typescript 5.9.3 (7.0.2 is available)
++ vitest 3.2.7 (5.0.0 is available)
+
+Done in 1m 19.9s

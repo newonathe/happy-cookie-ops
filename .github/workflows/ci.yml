@@ -1,0 +1,156 @@
+name: CI
+
+# Runs on pushes to main and on pull requests. Not on every push to every branch: on a
+# private repo the free allowance is 2,000 Actions minutes a month and a full run is
+# roughly 8 of them, so an agent pushing twenty times a day would spend it in a fortnight.
+#
+# Run `pnpm verify` locally instead — it is the same gate and it is instant.
+on:
+  push:
+    branches: [main]
+    paths-ignore: ['docs/**', '**/*.md']
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  verify:
+    name: Types, lint and unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.12.3
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Port integrity (ported markup unchanged)
+        run: pnpm verify:port
+      - name: Engine contract (claims about the engine are true)
+        run: pnpm verify:engine
+      - run: pnpm typecheck
+      - run: pnpm typecheck:e2e
+      - run: pnpm lint
+      - run: pnpm format:check
+      - run: pnpm test
+
+  build:
+    name: Production build
+    runs-on: ubuntu-latest
+    needs: verify
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.12.3
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # Some failures only exist in the production build: a route signature, a hook that
+      # suspends without a boundary, a server-only import reaching a client component.
+      - run: pnpm build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: build-only-anon-key
+
+  e2e:
+    name: Browser flows
+    runs-on: ubuntu-latest
+    needs: verify
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.12.3
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium webkit
+      - run: pnpm build
+      - run: pnpm test:e2e
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: local-anon-key-for-build-only
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: playwright-report
+          retention-days: 7
+
+  storybook:
+    name: Storybook builds
+    runs-on: ubuntu-latest
+    needs: verify
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.12.3
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build-storybook --quiet
+
+  visual:
+    name: Visual regression
+    runs-on: ubuntu-latest
+    needs: verify
+    # In a container, so the baselines committed to the repo were rendered by the same
+    # font stack. Running this on the bare runner diffs on font hinting and teaches
+    # everyone to ignore the job.
+    container:
+      image: mcr.microsoft.com/playwright:v1.63.0-noble
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.12.3
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - run: pnpm test:visual
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-anon-key
+          NEXT_PUBLIC_HARNESS: '0'
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: visual-diffs
+          path: test-results/
+          retention-days: 7
+
+  lighthouse:
+    name: Performance budget
+    runs-on: ubuntu-latest
+    needs: build
+    # Advisory until T-18 sets a real baseline from measurement. A budget invented
+    # without numbers gets switched off the first time it is inconvenient.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.12.3
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-anon-key
+      - run: pnpm lighthouse

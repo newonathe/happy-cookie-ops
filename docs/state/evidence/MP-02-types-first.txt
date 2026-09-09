@@ -1,0 +1,51 @@
+
+> happy-cookie-ops@0.1.0 typecheck C:\Users\ethan\dev\happy-cookie-ops-g0
+> tsc --noEmit
+
+instrumentation-client.ts(41,5): error TS2322: Type '(event: ErrorEvent) => ReportLike' is not assignable to type '(event: ErrorEvent, hint: EventHint) => ErrorEvent | PromiseLike<ErrorEvent | null> | null'.
+  Type 'ReportLike' is not assignable to type 'ErrorEvent | PromiseLike<ErrorEvent | null> | null'.
+    Property 'type' is missing in type 'ReportLike' but required in type 'ErrorEvent'.
+instrumentation-client.ts(41,40): error TS2345: Argument of type 'ErrorEvent' is not assignable to parameter of type 'ReportLike'.
+  Types of property 'breadcrumbs' are incompatible.
+    Type 'Breadcrumb[] | undefined' is not assignable to type '{ [k: string]: unknown; message?: unknown; data?: unknown; }[] | undefined'.
+      Type 'Breadcrumb[]' is not assignable to type '{ [k: string]: unknown; message?: unknown; data?: unknown; }[]'.
+        Type 'Breadcrumb' is not assignable to type '{ [k: string]: unknown; message?: unknown; data?: unknown; }'.
+          Index signature for type 'string' is missing in type 'Breadcrumb'.
+instrumentation-client.ts(42,5): error TS2322: Type '(crumb: Breadcrumb) => ReportLike' is not assignable to type '(breadcrumb: Breadcrumb, hint?: BreadcrumbHint | undefined) => Breadcrumb | null'.
+  Call signature return types 'ReportLike' and 'Breadcrumb | null' are incompatible.
+    The types of 'message' are incompatible between these types.
+      Type 'unknown' is not assignable to type 'string | undefined'.
+instrumentation-client.ts(42,46): error TS2345: Argument of type 'Breadcrumb' is not assignable to parameter of type 'ReportLike'.
+  Index signature for type 'string' is missing in type 'Breadcrumb'.
+sentry.edge.config.ts(14,5): error TS2322: Type '(event: ErrorEvent) => ReportLike' is not assignable to type '(event: ErrorEvent, hint: EventHint) => ErrorEvent | PromiseLike<ErrorEvent | null> | null'.
+  Type 'ReportLike' is not assignable to type 'ErrorEvent | PromiseLike<ErrorEvent | null> | null'.
+    Property 'type' is missing in type 'ReportLike' but required in type 'ErrorEvent'.
+sentry.edge.config.ts(14,40): error TS2345: Argument of type 'ErrorEvent' is not assignable to parameter of type 'ReportLike'.
+  Types of property 'breadcrumbs' are incompatible.
+    Type 'Breadcrumb[] | undefined' is not assignable to type '{ [k: string]: unknown; message?: unknown; data?: unknown; }[] | undefined'.
+      Type 'Breadcrumb[]' is not assignable to type '{ [k: string]: unknown; message?: unknown; data?: unknown; }[]'.
+        Type 'Breadcrumb' is not assignable to type '{ [k: string]: unknown; message?: unknown; data?: unknown; }'.
+          Index signature for type 'string' is missing in type 'Breadcrumb'.
+sentry.server.config.ts(16,5): error TS2322: Type '(event: ErrorEvent) => ReportLike' is not assignable to type '(event: ErrorEvent, hint: EventHint) => ErrorEvent | PromiseLike<ErrorEvent | null> | null'.
+  Type 'ReportLike' is not assignable to type 'ErrorEvent | PromiseLike<ErrorEvent | null> | null'.
+    Property 'type' is missing in type 'ReportLike' but required in type 'ErrorEvent'.
+sentry.server.config.ts(16,40): error TS2345: Argument of type 'ErrorEvent' is not assignable to parameter of type 'ReportLike'.
+  Types of property 'breadcrumbs' are incompatible.
+    Type 'Breadcrumb[] | undefined' is not assignable to type '{ [k: string]: unknown; message?: unknown; data?: unknown; }[] | undefined'.
+      Type 'Breadcrumb[]' is not assignable to type '{ [k: string]: unknown; message?: unknown; data?: unknown; }[]'.
+        Type 'Breadcrumb' is not assignable to type '{ [k: string]: unknown; message?: unknown; data?: unknown; }'.
+          Index signature for type 'string' is missing in type 'Breadcrumb'.
+sentry.server.config.ts(17,5): error TS2322: Type '(crumb: Breadcrumb) => ReportLike' is not assignable to type '(breadcrumb: Breadcrumb, hint?: BreadcrumbHint | undefined) => Breadcrumb | null'.
+  Call signature return types 'ReportLike' and 'Breadcrumb | null' are incompatible.
+    The types of 'message' are incompatible between these types.
+      Type 'unknown' is not assignable to type 'string | undefined'.
+sentry.server.config.ts(17,46): error TS2345: Argument of type 'Breadcrumb' is not assignable to parameter of type 'ReportLike'.
+  Index signature for type 'string' is missing in type 'Breadcrumb'.
+src/components/screens/notifications.tsx(50,81): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/screens/products.tsx(63,77): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/screens/products.tsx(65,29): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/lib/rate-limit.ts(100,70): error TS2345: Argument of type '{ p_key: string; p_limit: number; p_window_s: number; }' is not assignable to parameter of type 'undefined'.
+ ELIFECYCLE  Command failed with exit code 2.

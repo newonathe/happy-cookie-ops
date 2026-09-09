@@ -1,0 +1,22 @@
+
+> happy-cookie-ops@0.1.0 test:g0:evidence C:\Users\ethan\dev\happy-cookie-ops-g0
+> playwright test --project=evidence
+
+[WebServer] (node:9864) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:5756) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 5 tests using 2 workers
+
+(node:9856) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:21328) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 2 [evidence] › tests\e2e\fidelity-evidence.spec.ts:13:7 › FIDELITY-add-inv approved guard preserves valid sheet (1.2s)
+  ok 1 [evidence] › tests\e2e\fidelity-evidence.spec.ts:13:7 › FIDELITY-edit-price approved guard preserves valid sheet (1.2s)
+  ok 4 [evidence] › tests\e2e\fidelity-evidence.spec.ts:13:7 › FIDELITY-why approved guard preserves valid sheet (808ms)
+  ok 3 [evidence] › tests\e2e\fidelity-evidence.spec.ts:13:7 › FIDELITY-inv-edit approved guard preserves valid sheet (833ms)
+  ok 5 [evidence] › tests\e2e\fidelity-evidence.spec.ts:13:7 › FIDELITY-proof approved guard preserves valid sheet (698ms)
+
+  5 passed (5.7s)

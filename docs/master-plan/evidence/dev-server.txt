@@ -1,0 +1,329 @@
+
+> happy-cookie-ops@0.1.0 dev C:\Users\ethan\AppData\Local\Temp\happy-cookie-audit-20260907-88_xncyc
+> next dev "--port" "3137"
+
+▲ Next.js 16.3.1 (Turbopack)
+- Local:         http://localhost:3137
+- Network:       http://10.11.115.212:3137
+✓ Ready in 1528ms
+[@sentry/nextjs] Importing `withSentryConfig` from `@sentry/nextjs` is deprecated and will stop working in v11. Import it from `@sentry/nextjs/config` instead:
+  import { withSentryConfig } from '@sentry/nextjs/config';
+[@sentry/nextjs] DEPRECATION WARNING: disableLogger is deprecated and will be removed in a future version. Use webpack.treeshake.removeDebugLogging instead. (Not supported with Turbopack.)
+⚠ `eslint` configuration in next.config.ts is no longer supported. See more info here: https://nextjs.org/docs/app/api-reference/cli/next#next-lint-options
+⚠ Invalid next.config.ts options detected: 
+⚠     Unrecognized key(s) in object: 'eslint'
+⚠ See more info here: https://nextjs.org/docs/messages/invalid-next-config
+✓ Running next.config.ts took 3.4s
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead.
+
+  To migrate automatically, run:
+  npx @next/codemod@canary middleware-to-proxy .
+
+  Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+- Experiments (use with caution):
+  · clientTraceMetadata
+
+✓ Generated AGENTS.md for AI agents. Set `agentRules: false` in next.config to disable.
+○ Compiling / ...
+ GET / 200 in 5.5s (next.js: 4.5s, proxy.ts: 307ms, application-code: 676ms)
+⚠ Blocked cross-origin request to Next.js dev resource /_next/static/chunks/0jwx_next_dist_00t-dqt._.js from "127.0.0.1".
+Cross-origin access to Next.js dev resources is blocked by default for safety.
+
+To allow this host in development, add it to "allowedDevOrigins" in next.config.js and restart the dev server:
+
+// next.config.js
+module.exports = {
+  allowedDevOrigins: ['127.0.0.1'],
+}
+
+Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
+⚠ Blocked cross-origin request to Next.js dev resource /_next/static/chunks/_1ilsrgy._.js from "127.0.0.1".
+Cross-origin access to Next.js dev resources is blocked by default for safety.
+
+To allow this host in development, add it to "allowedDevOrigins" in next.config.js and restart the dev server:
+
+// next.config.js
+module.exports = {
+  allowedDevOrigins: ['127.0.0.1'],
+}
+
+Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
+⚠ Blocked cross-origin request to Next.js dev resource /_next/static/chunks/0jwx_next_dist_1x2coga._.js from "127.0.0.1".
+Cross-origin access to Next.js dev resources is blocked by default for safety.
+
+To allow this host in development, add it to "allowedDevOrigins" in next.config.js and restart the dev server:
+
+// next.config.js
+module.exports = {
+  allowedDevOrigins: ['127.0.0.1'],
+}
+
+Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
+⚠ Blocked cross-origin request to Next.js dev resource /_next/static/chunks/src_store_061tklq._.js from "127.0.0.1".
+Cross-origin access to Next.js dev resources is blocked by default for safety.
+
+To allow this host in development, add it to "allowedDevOrigins" in next.config.js and restart the dev server:
+
+// next.config.js
+module.exports = {
+  allowedDevOrigins: ['127.0.0.1'],
+}
+
+Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
+⚠ Blocked cross-origin request to Next.js dev resource /_next/static/chunks/src_components_screens_home_tsx_14uyx56._.js from "127.0.0.1".
+Cross-origin access to Next.js dev resources is blocked by default for safety.
+
+To allow this host in development, add it to "allowedDevOrigins" in next.config.js and restart the dev server:
+
+// next.config.js
+module.exports = {
+  allowedDevOrigins: ['127.0.0.1'],
+}
+
+Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
+⚠ Blocked cross-origin request to Next.js dev resource /_next/static/chunks/src_components_screens_order-detail_tsx_1n7w863._.js from "127.0.0.1".
+Cross-origin access to Next.js dev resources is blocked by default for safety.
+
+To allow this host in development, add it to "allowedDevOrigins" in next.config.js and restart the dev server:
+
+// next.config.js
+module.exports = {
+  allowedDevOrigins: ['127.0.0.1'],
+}
+
+Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
+⚠ Blocked cross-origin request to Next.js dev resource /_next/static/chunks/src_components_screens_production-focus_tsx_0k-sn4c._.js from "127.0.0.1".
+Cross-origin access to Next.js dev resources is blocked by default for safety.
+
+To allow this host in development, add it to "allowedDevOrigins" in next.config.js and restart the dev server:
+
+// next.config.js
+module.exports = {
+  allowedDevOrigins: ['127.0.0.1'],
+}
+
+Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
+⚠ Blocked cross-origin request to Next.js dev resource /_next/static/chunks/src_components_screens_bazaar-mode_tsx_0_tbsqo._.js from "127.0.0.1".
+Cross-origin access to Next.js dev resources is blocked by default for safety.
+
+To allow this host in development, add it to "allowedDevOrigins" in next.config.js and restart the dev server:
+
+// next.config.js
+module.exports = {
+  allowedDevOrigins: ['127.0.0.1'],
+}
+
+Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
+⚠ Blocked cross-origin request to Next.js dev resource /_next/static/chunks/src_components_screens_checkout_tsx_18hvifq._.js from "127.0.0.1".
+Cross-origin access to Next.js dev resources is blocked by default for safety.
+
+To allow this host in development, add it to "allowedDevOrigins" in next.config.js and restart the dev server:
+
+// next.config.js
+module.exports = {
+  allowedDevOrigins: ['127.0.0.1'],
+}
+
+Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
+⚠ Blocked cross-origin request to Next.js dev resource /_next/static/chunks/src_components_screens_1sgmf-1._.js from "127.0.0.1".
+Cross-origin access to Next.js dev resources is blocked by default for safety.
+
+To allow this host in development, add it to "allowedDevOrigins" in next.config.js and restart the dev server:
+
+// next.config.js
+module.exports = {
+  allowedDevOrigins: ['127.0.0.1'],
+}
+
+Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
+⚠ Blocked cross-origin request to Next.js dev resource /_next/static/chunks/src_components_sheets_0cswv27._.js from "127.0.0.1".
+Cross-origin access to Next.js dev resources is blocked by default for safety.
+
+To allow this host in development, add it to "allowedDevOrigins" in next.config.js and restart the dev server:
+
+// next.config.js
+module.exports = {
+  allowedDevOrigins: ['127.0.0.1'],
+}
+
+Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
+⚠ Blocked cross-origin request to Next.js dev resource /_next/static/chunks/src_components_shell_app-frame_tsx_1v-b-7k._.js from "127.0.0.1".
+Cross-origin access to Next.js dev resources is blocked by default for safety.
+
+To allow this host in development, add it to "allowedDevOrigins" in next.config.js and restart the dev server:
+
+// next.config.js
+module.exports = {
+  allowedDevOrigins: ['127.0.0.1'],
+}
+
+Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
+⚠ Blocked cross-origin request to Next.js dev resource /_next/static/chunks/src_components_1szn5zp._.js from "127.0.0.1".
+Cross-origin access to Next.js dev resources is blocked by default for safety.
+
+To allow this host in development, add it to "allowedDevOrigins" in next.config.js and restart the dev server:
+
+// next.config.js
+module.exports = {
+  allowedDevOrigins: ['127.0.0.1'],
+}
+
+Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
+⚠ Blocked cross-origin request to Next.js dev resource /_next/static/chunks/src_lib_1etpaxu._.js from "127.0.0.1".
+Cross-origin access to Next.js dev resources is blocked by default for safety.
+
+To allow this host in development, add it to "allowedDevOrigins" in next.config.js and restart the dev server:
+
+// next.config.js
+module.exports = {
+  allowedDevOrigins: ['127.0.0.1'],
+}
+
+Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
+⚠ Blocked cross-origin request to Next.js dev resource /_next/static/chunks/0jwx_next_dist_compiled_react_1aae-9_._.js from "127.0.0.1".
+Cross-origin access to Next.js dev resources is blocked by default for safety.
+
+To allow this host in development, add it to "allowedDevOrigins" in next.config.js and restart the dev server:
+
+// next.config.js
+module.exports = {
+  allowedDevOrigins: ['127.0.0.1'],
+}
+
+Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
+⚠ Blocked cross-origin request to Next.js dev resource /_next/hmr from "127.0.0.1".
+Cross-origin access to Next.js dev resources is blocked by default for safety.
+
+To allow this host in development, add it to "allowedDevOrigins" in next.config.js and restart the dev server:
+
+// next.config.js
+module.exports = {
+  allowedDevOrigins: ['127.0.0.1'],
+}
+
+Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
+ GET /sales 200 in 1045ms (next.js: 812ms, proxy.ts: 11ms, application-code: 223ms)
+ GET /orders 200 in 696ms (next.js: 428ms, proxy.ts: 9ms, application-code: 258ms)
+ GET /order 200 in 636ms (next.js: 435ms, proxy.ts: 6ms, application-code: 195ms)
+ GET /lookup 200 in 515ms (next.js: 343ms, proxy.ts: 7ms, application-code: 165ms)
+ GET /reconcile 200 in 561ms (next.js: 358ms, proxy.ts: 6ms, application-code: 197ms)
+ GET /bake 200 in 568ms (next.js: 387ms, proxy.ts: 18ms, application-code: 162ms)
+ GET /batch 200 in 656ms (next.js: 408ms, proxy.ts: 8ms, application-code: 241ms)
+ GET /inventory 200 in 547ms (next.js: 344ms, proxy.ts: 8ms, application-code: 195ms)
+ GET /stocktake 200 in 543ms (next.js: 329ms, proxy.ts: 6ms, application-code: 209ms)
+ GET /more 200 in 553ms (next.js: 381ms, proxy.ts: 5ms, application-code: 167ms)
+ GET /grocery 200 in 534ms (next.js: 351ms, proxy.ts: 5ms, application-code: 179ms)
+ GET /bazaar 200 in 605ms (next.js: 427ms, proxy.ts: 6ms, application-code: 172ms)
+ GET /pnl 200 in 801ms (next.js: 555ms, proxy.ts: 9ms, application-code: 237ms)
+ GET /formqueue 200 in 725ms (next.js: 515ms, proxy.ts: 8ms, application-code: 202ms)
+ GET /health 200 in 793ms (next.js: 595ms, proxy.ts: 7ms, application-code: 191ms)
+ GET /products 200 in 774ms (next.js: 511ms, proxy.ts: 11ms, application-code: 252ms)
+ GET /notifications 200 in 1363ms (next.js: 1030ms, proxy.ts: 10ms, application-code: 324ms)
+ GET /shop 200 in 759ms (next.js: 534ms, proxy.ts: 7ms, application-code: 218ms)
+ GET /checkout 200 in 748ms (next.js: 494ms, proxy.ts: 6ms, application-code: 248ms)
+ GET /status 200 in 722ms (next.js: 496ms, proxy.ts: 8ms, application-code: 218ms)
+ GET /recipes 200 in 641ms (next.js: 423ms, proxy.ts: 7ms, application-code: 212ms)
+ GET /drops 200 in 558ms (next.js: 369ms, proxy.ts: 6ms, application-code: 183ms)
+ GET /suppliers 200 in 532ms (next.js: 370ms, proxy.ts: 5ms, application-code: 158ms)
+ GET /settings 200 in 515ms (next.js: 347ms, proxy.ts: 5ms, application-code: 163ms)
+ GET /sign-in 200 in 934ms (next.js: 748ms, proxy.ts: 4ms, application-code: 182ms)
+⚠ Blocked cross-origin request to Next.js dev resource /_next/static/chunks/node_modules__pnpm_1-0xkjc._.js from "127.0.0.1".
+Cross-origin access to Next.js dev resources is blocked by default for safety.
+
+To allow this host in development, add it to "allowedDevOrigins" in next.config.js and restart the dev server:
+
+// next.config.js
+module.exports = {
+  allowedDevOrigins: ['127.0.0.1'],
+}
+
+Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
+⚠ Blocked cross-origin request to Next.js dev resource /_next/static/chunks/src_13__e25._.js from "127.0.0.1".
+Cross-origin access to Next.js dev resources is blocked by default for safety.
+
+To allow this host in development, add it to "allowedDevOrigins" in next.config.js and restart the dev server:
+
+// next.config.js
+module.exports = {
+  allowedDevOrigins: ['127.0.0.1'],
+}
+
+Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
+ GET / 200 in 204ms (next.js: 13ms, proxy.ts: 6ms, application-code: 185ms)
+ GET /sales 200 in 226ms (next.js: 12ms, proxy.ts: 5ms, application-code: 208ms)
+ GET /orders 200 in 222ms (next.js: 14ms, proxy.ts: 7ms, application-code: 201ms)
+ GET /order 200 in 235ms (next.js: 13ms, proxy.ts: 6ms, application-code: 216ms)
+ GET /lookup 200 in 218ms (next.js: 12ms, proxy.ts: 6ms, application-code: 200ms)
+ GET /reconcile 200 in 191ms (next.js: 12ms, proxy.ts: 5ms, application-code: 175ms)
+ GET /bake 200 in 209ms (next.js: 16ms, proxy.ts: 8ms, application-code: 185ms)
+ GET /batch 200 in 187ms (next.js: 12ms, proxy.ts: 6ms, application-code: 169ms)
+ GET /inventory 200 in 178ms (next.js: 12ms, proxy.ts: 5ms, application-code: 161ms)
+ GET /stocktake 200 in 188ms (next.js: 13ms, proxy.ts: 5ms, application-code: 170ms)
+ GET /more 200 in 155ms (next.js: 11ms, proxy.ts: 6ms, application-code: 138ms)
+ GET /grocery 200 in 216ms (next.js: 17ms, proxy.ts: 4ms, application-code: 195ms)
+ GET /bazaar 200 in 181ms (next.js: 12ms, proxy.ts: 6ms, application-code: 163ms)
+ GET /pnl 200 in 162ms (next.js: 14ms, proxy.ts: 4ms, application-code: 143ms)
+ GET /formqueue 200 in 168ms (next.js: 11ms, proxy.ts: 4ms, application-code: 152ms)
+ GET /health 200 in 152ms (next.js: 12ms, proxy.ts: 4ms, application-code: 135ms)
+ GET /products 200 in 176ms (next.js: 11ms, proxy.ts: 6ms, application-code: 160ms)
+ GET /notifications 200 in 148ms (next.js: 10ms, proxy.ts: 5ms, application-code: 132ms)
+ GET /shop 200 in 170ms (next.js: 10ms, proxy.ts: 4ms, application-code: 156ms)
+ GET /checkout 200 in 209ms (next.js: 10ms, proxy.ts: 5ms, application-code: 194ms)
+ GET /status 200 in 195ms (next.js: 14ms, proxy.ts: 8ms, application-code: 174ms)
+ GET /recipes 200 in 210ms (next.js: 12ms, proxy.ts: 6ms, application-code: 192ms)
+ GET /drops 200 in 174ms (next.js: 13ms, proxy.ts: 5ms, application-code: 156ms)
+ GET /suppliers 200 in 166ms (next.js: 12ms, proxy.ts: 5ms, application-code: 149ms)
+ GET /settings 200 in 172ms (next.js: 9ms, proxy.ts: 5ms, application-code: 158ms)
+ GET /sign-in 200 in 114ms (next.js: 13ms, proxy.ts: 5ms, application-code: 96ms)
+ GET / 200 in 169ms (next.js: 11ms, proxy.ts: 7ms, application-code: 151ms)
+ GET /sales 200 in 149ms (next.js: 11ms, proxy.ts: 5ms, application-code: 134ms)
+ GET /orders 200 in 228ms (next.js: 12ms, proxy.ts: 6ms, application-code: 210ms)
+ GET /order 200 in 441ms (next.js: 148ms, proxy.ts: 15ms, application-code: 277ms)
+ GET /lookup 200 in 261ms (next.js: 51ms, proxy.ts: 5ms, application-code: 204ms)
+ GET /reconcile 200 in 191ms (next.js: 17ms, proxy.ts: 5ms, application-code: 169ms)
+ GET /bake 200 in 155ms (next.js: 13ms, proxy.ts: 5ms, application-code: 137ms)
+ GET /batch 200 in 212ms (next.js: 15ms, proxy.ts: 6ms, application-code: 191ms)
+ GET /inventory 200 in 169ms (next.js: 15ms, proxy.ts: 5ms, application-code: 149ms)
+ GET /stocktake 200 in 218ms (next.js: 21ms, proxy.ts: 6ms, application-code: 191ms)
+ GET /more 200 in 244ms (next.js: 16ms, proxy.ts: 7ms, application-code: 221ms)
+ GET /grocery 200 in 177ms (next.js: 16ms, proxy.ts: 8ms, application-code: 153ms)
+ GET /bazaar 200 in 205ms (next.js: 14ms, proxy.ts: 6ms, application-code: 185ms)
+ GET /pnl 200 in 146ms (next.js: 14ms, proxy.ts: 5ms, application-code: 128ms)
+ GET /formqueue 200 in 125ms (next.js: 13ms, proxy.ts: 4ms, application-code: 108ms)
+ GET /health 200 in 210ms (next.js: 15ms, proxy.ts: 6ms, application-code: 189ms)
+ GET /products 200 in 127ms (next.js: 11ms, proxy.ts: 4ms, application-code: 112ms)
+ GET /notifications 200 in 130ms (next.js: 18ms, proxy.ts: 4ms, application-code: 108ms)
+ GET /shop 200 in 138ms (next.js: 15ms, proxy.ts: 4ms, application-code: 120ms)
+ GET /checkout 200 in 157ms (next.js: 19ms, proxy.ts: 5ms, application-code: 133ms)
+ GET /status 200 in 131ms (next.js: 13ms, proxy.ts: 4ms, application-code: 114ms)
+ GET /recipes 200 in 184ms (next.js: 14ms, proxy.ts: 4ms, application-code: 166ms)
+ GET /drops 200 in 149ms (next.js: 15ms, proxy.ts: 6ms, application-code: 129ms)
+ GET /suppliers 200 in 165ms (next.js: 14ms, proxy.ts: 4ms, application-code: 147ms)
+ GET /settings 200 in 145ms (next.js: 13ms, proxy.ts: 4ms, application-code: 127ms)
+ GET /sign-in 200 in 64ms (next.js: 13ms, proxy.ts: 5ms, application-code: 46ms)
+ GET / 200 in 116ms (next.js: 11ms, proxy.ts: 4ms, application-code: 102ms)
+ GET /sales 200 in 129ms (next.js: 11ms, proxy.ts: 4ms, application-code: 113ms)
+ GET /orders 200 in 125ms (next.js: 10ms, proxy.ts: 4ms, application-code: 111ms)
+ GET /order 200 in 122ms (next.js: 10ms, proxy.ts: 4ms, application-code: 108ms)
+ GET /lookup 200 in 143ms (next.js: 10ms, proxy.ts: 6ms, application-code: 127ms)
+ GET /reconcile 200 in 119ms (next.js: 8ms, proxy.ts: 3ms, application-code: 108ms)
+ GET /bake 200 in 122ms (next.js: 8ms, proxy.ts: 4ms, application-code: 111ms)
+ GET /batch 200 in 125ms (next.js: 9ms, proxy.ts: 4ms, application-code: 113ms)
+ GET /inventory 200 in 126ms (next.js: 8ms, proxy.ts: 4ms, application-code: 114ms)
+ GET /stocktake 200 in 116ms (next.js: 8ms, proxy.ts: 3ms, application-code: 105ms)
+ GET /more 200 in 124ms (next.js: 8ms, proxy.ts: 4ms, application-code: 112ms)
+ GET /grocery 200 in 127ms (next.js: 8ms, proxy.ts: 3ms, application-code: 116ms)
+ GET /bazaar 200 in 124ms (next.js: 8ms, proxy.ts: 3ms, application-code: 113ms)
+ GET /pnl 200 in 124ms (next.js: 8ms, proxy.ts: 4ms, application-code: 112ms)
+ GET /formqueue 200 in 125ms (next.js: 8ms, proxy.ts: 4ms, application-code: 113ms)
+ GET /health 200 in 124ms (next.js: 8ms, proxy.ts: 4ms, application-code: 112ms)
+ GET /products 200 in 120ms (next.js: 8ms, proxy.ts: 4ms, application-code: 108ms)
+ GET /notifications 200 in 126ms (next.js: 8ms, proxy.ts: 3ms, application-code: 114ms)
+ GET /shop 200 in 127ms (next.js: 9ms, proxy.ts: 4ms, application-code: 114ms)
+ GET /checkout 200 in 123ms (next.js: 8ms, proxy.ts: 3ms, application-code: 111ms)
+ GET /status 200 in 141ms (next.js: 8ms, proxy.ts: 4ms, application-code: 129ms)
+ GET /recipes 200 in 122ms (next.js: 8ms, proxy.ts: 3ms, application-code: 111ms)
+ GET /drops 200 in 168ms (next.js: 11ms, proxy.ts: 6ms, application-code: 151ms)
+ GET /suppliers 200 in 220ms (next.js: 13ms, proxy.ts: 6ms, application-code: 202ms)
+ GET /settings 200 in 179ms (next.js: 11ms, proxy.ts: 5ms, application-code: 163ms)
+ GET /sign-in 200 in 77ms (next.js: 10ms, proxy.ts: 6ms, application-code: 61ms)

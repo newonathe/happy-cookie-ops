@@ -1,0 +1,19 @@
+{
+  "$comment": "Project hooks for Codex. Mirrors .claude/hooks — the same two rules must hold whichever agent is driving, or the guardrail is only as strong as your choice of tool.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|Patch",
+        "command": "bash .claude/hooks/guard-protected-paths.sh",
+        "$comment": "Blocks writes to ported markup and the engine. Set HC_ALLOW_PORTED_EDITS=1 to opt in deliberately."
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|Patch",
+        "command": "bash .claude/hooks/format-and-typecheck.sh",
+        "$comment": "Formats the written file and surfaces type errors while the change is still in context."
+      }
+    ]
+  }
+}

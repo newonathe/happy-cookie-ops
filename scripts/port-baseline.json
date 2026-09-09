@@ -1,0 +1,384 @@
+{
+  "note": "Fingerprint of the ported markup at the moment of the port. scripts/check-port-integrity.mjs compares against this. Regenerate ONLY with an approved copy or style change: pnpm verify:port --update",
+  "generated": "2026-09-04",
+  "files": {
+    "src/components/screens/all-tools.tsx": {
+      "copy": "811c9dc5",
+      "copyCount": 0,
+      "styles": 9,
+      "dynamicStyles": 1,
+      "elements": 13
+    },
+    "src/components/screens/bake-plan.tsx": {
+      "copy": "ed905704",
+      "copyCount": 3,
+      "styles": 24,
+      "dynamicStyles": 2,
+      "elements": 30
+    },
+    "src/components/screens/bazaar-mode.tsx": {
+      "copy": "594298f3",
+      "copyCount": 12,
+      "styles": 97,
+      "dynamicStyles": 2,
+      "elements": 115
+    },
+    "src/components/screens/checkout.tsx": {
+      "copy": "16d02c0c",
+      "copyCount": 6,
+      "styles": 89,
+      "dynamicStyles": 2,
+      "elements": 100
+    },
+    "src/components/screens/drops.tsx": {
+      "copy": "cebe9704",
+      "copyCount": 4,
+      "styles": 37,
+      "dynamicStyles": 2,
+      "elements": 45
+    },
+    "src/components/screens/find-my-order.tsx": {
+      "copy": "74b938db",
+      "copyCount": 4,
+      "styles": 9,
+      "dynamicStyles": 0,
+      "elements": 11
+    },
+    "src/components/screens/form-queue.tsx": {
+      "copy": "0a169d14",
+      "copyCount": 4,
+      "styles": 32,
+      "dynamicStyles": 0,
+      "elements": 35
+    },
+    "src/components/screens/grocery-list.tsx": {
+      "copy": "d03ee157",
+      "copyCount": 6,
+      "styles": 37,
+      "dynamicStyles": 1,
+      "elements": 46
+    },
+    "src/components/screens/home.tsx": {
+      "copy": "13063131",
+      "copyCount": 4,
+      "styles": 103,
+      "dynamicStyles": 7,
+      "elements": 131
+    },
+    "src/components/screens/inventory.tsx": {
+      "copy": "df5969fc",
+      "copyCount": 6,
+      "styles": 48,
+      "dynamicStyles": 3,
+      "elements": 62
+    },
+    "src/components/screens/notifications.tsx": {
+      "copy": "144653d9",
+      "copyCount": 3,
+      "styles": 25,
+      "dynamicStyles": 1,
+      "elements": 32
+    },
+    "src/components/screens/order-detail.tsx": {
+      "copy": "5a036132",
+      "copyCount": 16,
+      "styles": 100,
+      "dynamicStyles": 2,
+      "elements": 112
+    },
+    "src/components/screens/order-status.tsx": {
+      "copy": "a1926c18",
+      "copyCount": 6,
+      "styles": 32,
+      "dynamicStyles": 0,
+      "elements": 35
+    },
+    "src/components/screens/orders.tsx": {
+      "copy": "fecd73c1",
+      "copyCount": 3,
+      "styles": 59,
+      "dynamicStyles": 5,
+      "elements": 71
+    },
+    "src/components/screens/payments.tsx": {
+      "copy": "76852bbb",
+      "copyCount": 5,
+      "styles": 30,
+      "dynamicStyles": 1,
+      "elements": 36
+    },
+    "src/components/screens/production-focus.tsx": {
+      "copy": "c2a96a6c",
+      "copyCount": 9,
+      "styles": 63,
+      "dynamicStyles": 2,
+      "elements": 84
+    },
+    "src/components/screens/products.tsx": {
+      "copy": "a7226842",
+      "copyCount": 5,
+      "styles": 18,
+      "dynamicStyles": 3,
+      "elements": 24
+    },
+    "src/components/screens/profit-and-loss.tsx": {
+      "copy": "ee57847c",
+      "copyCount": 6,
+      "styles": 58,
+      "dynamicStyles": 5,
+      "elements": 72
+    },
+    "src/components/screens/recipes.tsx": {
+      "copy": "7f2b5636",
+      "copyCount": 2,
+      "styles": 32,
+      "dynamicStyles": 1,
+      "elements": 44
+    },
+    "src/components/screens/sales-log.tsx": {
+      "copy": "811c9dc5",
+      "copyCount": 0,
+      "styles": 10,
+      "dynamicStyles": 0,
+      "elements": 11
+    },
+    "src/components/screens/settings.tsx": {
+      "copy": "811c9dc5",
+      "copyCount": 0,
+      "styles": 8,
+      "dynamicStyles": 0,
+      "elements": 11
+    },
+    "src/components/screens/shop.tsx": {
+      "copy": "b9ed733a",
+      "copyCount": 6,
+      "styles": 49,
+      "dynamicStyles": 6,
+      "elements": 64
+    },
+    "src/components/screens/suppliers.tsx": {
+      "copy": "f10261dc",
+      "copyCount": 2,
+      "styles": 22,
+      "dynamicStyles": 1,
+      "elements": 26
+    },
+    "src/components/screens/system-health.tsx": {
+      "copy": "725299ce",
+      "copyCount": 4,
+      "styles": 30,
+      "dynamicStyles": 1,
+      "elements": 36
+    },
+    "src/components/sheets/add-inv.tsx": {
+      "copy": "811c9dc5",
+      "copyCount": 0,
+      "styles": 8,
+      "dynamicStyles": 0,
+      "elements": 8
+    },
+    "src/components/sheets/categories.tsx": {
+      "copy": "899d019c",
+      "copyCount": 2,
+      "styles": 8,
+      "dynamicStyles": 0,
+      "elements": 9
+    },
+    "src/components/sheets/close-drop.tsx": {
+      "copy": "d9073b5d",
+      "copyCount": 2,
+      "styles": 4,
+      "dynamicStyles": 0,
+      "elements": 4
+    },
+    "src/components/sheets/closeout.tsx": {
+      "copy": "3ae9fc86",
+      "copyCount": 2,
+      "styles": 35,
+      "dynamicStyles": 0,
+      "elements": 39
+    },
+    "src/components/sheets/customers.tsx": {
+      "copy": "b82bb590",
+      "copyCount": 1,
+      "styles": 12,
+      "dynamicStyles": 0,
+      "elements": 14
+    },
+    "src/components/sheets/draw.tsx": {
+      "copy": "a37ac26d",
+      "copyCount": 2,
+      "styles": 9,
+      "dynamicStyles": 0,
+      "elements": 9
+    },
+    "src/components/sheets/drop-state.tsx": {
+      "copy": "6671193f",
+      "copyCount": 1,
+      "styles": 8,
+      "dynamicStyles": 0,
+      "elements": 9
+    },
+    "src/components/sheets/edit-price.tsx": {
+      "copy": "2b43f4c5",
+      "copyCount": 1,
+      "styles": 6,
+      "dynamicStyles": 0,
+      "elements": 6
+    },
+    "src/components/sheets/ev-exp.tsx": {
+      "copy": "b337d538",
+      "copyCount": 1,
+      "styles": 5,
+      "dynamicStyles": 0,
+      "elements": 7
+    },
+    "src/components/sheets/expense.tsx": {
+      "copy": "de64d781",
+      "copyCount": 2,
+      "styles": 10,
+      "dynamicStyles": 0,
+      "elements": 15
+    },
+    "src/components/sheets/inv-edit.tsx": {
+      "copy": "5782f49c",
+      "copyCount": 5,
+      "styles": 21,
+      "dynamicStyles": 0,
+      "elements": 23
+    },
+    "src/components/sheets/no-show.tsx": {
+      "copy": "1acb7746",
+      "copyCount": 2,
+      "styles": 4,
+      "dynamicStyles": 0,
+      "elements": 4
+    },
+    "src/components/sheets/overage.tsx": {
+      "copy": "d76819d9",
+      "copyCount": 2,
+      "styles": 4,
+      "dynamicStyles": 0,
+      "elements": 4
+    },
+    "src/components/sheets/pay-rules.tsx": {
+      "copy": "0f9eb65f",
+      "copyCount": 1,
+      "styles": 9,
+      "dynamicStyles": 0,
+      "elements": 11
+    },
+    "src/components/sheets/pay.tsx": {
+      "copy": "811c9dc5",
+      "copyCount": 0,
+      "styles": 23,
+      "dynamicStyles": 1,
+      "elements": 27
+    },
+    "src/components/sheets/pricing.tsx": {
+      "copy": "4e3e1d87",
+      "copyCount": 3,
+      "styles": 11,
+      "dynamicStyles": 0,
+      "elements": 12
+    },
+    "src/components/sheets/proof.tsx": {
+      "copy": "03842246",
+      "copyCount": 2,
+      "styles": 11,
+      "dynamicStyles": 0,
+      "elements": 14
+    },
+    "src/components/sheets/receive.tsx": {
+      "copy": "a2789a7c",
+      "copyCount": 2,
+      "styles": 21,
+      "dynamicStyles": 0,
+      "elements": 23
+    },
+    "src/components/sheets/refund.tsx": {
+      "copy": "1eee3867",
+      "copyCount": 2,
+      "styles": 7,
+      "dynamicStyles": 0,
+      "elements": 7
+    },
+    "src/components/sheets/reset.tsx": {
+      "copy": "c7c2cd70",
+      "copyCount": 3,
+      "styles": 4,
+      "dynamicStyles": 0,
+      "elements": 4
+    },
+    "src/components/sheets/retention.tsx": {
+      "copy": "811c9dc5",
+      "copyCount": 0,
+      "styles": 5,
+      "dynamicStyles": 0,
+      "elements": 6
+    },
+    "src/components/sheets/rules.tsx": {
+      "copy": "811c9dc5",
+      "copyCount": 0,
+      "styles": 22,
+      "dynamicStyles": 0,
+      "elements": 25
+    },
+    "src/components/sheets/spoil.tsx": {
+      "copy": "2b84aede",
+      "copyCount": 2,
+      "styles": 9,
+      "dynamicStyles": 0,
+      "elements": 9
+    },
+    "src/components/sheets/statuses.tsx": {
+      "copy": "704a4672",
+      "copyCount": 1,
+      "styles": 5,
+      "dynamicStyles": 0,
+      "elements": 6
+    },
+    "src/components/sheets/storage.tsx": {
+      "copy": "da248a68",
+      "copyCount": 3,
+      "styles": 5,
+      "dynamicStyles": 0,
+      "elements": 5
+    },
+    "src/components/sheets/supplier.tsx": {
+      "copy": "f2af0750",
+      "copyCount": 1,
+      "styles": 6,
+      "dynamicStyles": 0,
+      "elements": 7
+    },
+    "src/components/sheets/swap.tsx": {
+      "copy": "9e97784e",
+      "copyCount": 1,
+      "styles": 8,
+      "dynamicStyles": 1,
+      "elements": 10
+    },
+    "src/components/sheets/users.tsx": {
+      "copy": "811c9dc5",
+      "copyCount": 0,
+      "styles": 6,
+      "dynamicStyles": 1,
+      "elements": 8
+    },
+    "src/components/sheets/why.tsx": {
+      "copy": "811c9dc5",
+      "copyCount": 0,
+      "styles": 4,
+      "dynamicStyles": 0,
+      "elements": 4
+    },
+    "src/components/shell/app-frame.tsx": {
+      "copy": "8f7ed5b6",
+      "copyCount": 15,
+      "styles": 146,
+      "dynamicStyles": 10,
+      "elements": 243
+    }
+  }
+}

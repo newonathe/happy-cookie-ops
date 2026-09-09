@@ -1,0 +1,51 @@
+
+> happy-cookie-ops@0.1.0 verify C:\Users\ethan\dev\happy-cookie-ops-g0
+> pnpm verify:port && pnpm verify:engine && pnpm typecheck && pnpm typecheck:e2e && pnpm lint && pnpm test
+
+
+> happy-cookie-ops@0.1.0 verify:port C:\Users\ethan\dev\happy-cookie-ops-g0
+> node scripts/check-port-integrity.mjs
+
+Port integrity OK — 54 files match the copy/style and AST baselines.
+
+> happy-cookie-ops@0.1.0 verify:engine C:\Users\ethan\dev\happy-cookie-ops-g0
+> node scripts/check-engine-contract.mjs
+
+Engine contract OK — 49 exports, 21 settings keys, 19 tables documented, provenance claims verified against the prototype.
+
+> happy-cookie-ops@0.1.0 typecheck C:\Users\ethan\dev\happy-cookie-ops-g0
+> tsc --noEmit
+
+
+> happy-cookie-ops@0.1.0 typecheck:e2e C:\Users\ethan\dev\happy-cookie-ops-g0
+> tsc --noEmit --project tsconfig.e2e.json
+
+
+> happy-cookie-ops@0.1.0 lint C:\Users\ethan\dev\happy-cookie-ops-g0
+> eslint . --max-warnings 0
+
+
+> happy-cookie-ops@0.1.0 test C:\Users\ethan\dev\happy-cookie-ops-g0
+> vitest run
+
+
+ RUN  v3.2.7 C:/Users/ethan/dev/happy-cookie-ops-g0
+
+ ✓ tests/unit/css.test.ts (4 tests) 4ms
+ ✓ tests/unit/capacity-parity.test.ts (15 tests) 6ms
+ ✓ tests/unit/idempotency.test.ts (7 tests) 6ms
+ ✓ tests/unit/scrub.test.ts (13 tests) 9ms
+ ✓ tests/unit/acceptance-gates.test.ts (26 tests) 10ms
+ ✓ tests/unit/reporting-hooks.test.ts (3 tests) 211ms
+ ✓ tests/unit/order-rules.test.ts (7 tests) 6ms
+ ✓ tests/unit/screens.test.ts (4 tests) 6ms
+ ✓ tests/unit/money-conversion.test.ts (11 tests) 7ms
+ ✓ tests/unit/money.test.ts (6 tests) 35ms
+ ✓ tests/unit/offline-queue.test.ts (4 tests) 57ms
+ ✓ tests/unit/screen-boundary.test.tsx (2 tests) 67ms
+
+ Test Files  12 passed (12)
+      Tests  102 passed (102)
+   Start at  23:08:05
+   Duration  18.30s (transform 1.24s, setup 52.13s, collect 3.60s, tests 425ms, environment 140.65s, prepare 9.47s)
+

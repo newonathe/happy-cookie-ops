@@ -1,0 +1,18 @@
+import type { OpsVals } from '@/view-models/vals';
+
+export function OverageSheet({ v }: { v: OpsVals }) {
+  const { closeSheet, overageConfirm, overageText } = v;
+  return (
+    <>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <span style={{ fontSize: '13px', color: '#6E574B', lineHeight: '1.55' }}>{overageText}</span>
+        <button onClick={overageConfirm} style={{ minHeight: '50px', border: '0', borderRadius: '12px', background: '#C24A15', color: '#FFFFFF', fontSize: '14px', fontWeight: '600' }}>
+          Confirm anyway
+        </button>
+        <button onClick={closeSheet} style={{ minHeight: '44px', border: '1px solid #E7E1DC', background: '#FFFFFF', borderRadius: '11px', fontSize: '13px', fontWeight: '600' }}>
+          Leave it in review
+        </button>
+      </div>
+    </>
+  );
+}

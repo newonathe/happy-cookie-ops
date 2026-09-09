@@ -1,0 +1,11 @@
+{
+  "id": "prj_d5kL015X43Ul0monuFJsIAEe2A79",
+  "name": "happy-cookie-ops-demo",
+  "framework": "nextjs",
+  "nodeVersion": "24.x",
+  "ssoProtection": {
+    "deploymentType": "prod_deployment_urls_and_all_previews"
+  },
+  "accountId": "team_cBCsCeinaKcjnCe3ABmhiBU4",
+  "environmentVariableCount": 0
+}

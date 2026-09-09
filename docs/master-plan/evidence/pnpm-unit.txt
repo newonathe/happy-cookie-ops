@@ -1,0 +1,55 @@
+
+> happy-cookie-ops@0.1.0 test C:\Users\ethan\AppData\Local\Temp\happy-cookie-audit-20260907-88_xncyc
+> vitest run
+
+
+ RUN  v3.2.7 C:/Users/ethan/AppData/Local/Temp/happy-cookie-audit-20260907-88_xncyc
+
+ ✓ tests/unit/css.test.ts (4 tests) 12ms
+ ✓ tests/unit/idempotency.test.ts (7 tests) 13ms
+ ✓ tests/unit/capacity-parity.test.ts (15 tests) 21ms
+ ❯ tests/unit/scrub.test.ts (11 tests | 1 failed) 42ms
+   ✓ scrubText > removes a Philippine mobile number however it was typed 4ms
+   ✓ scrubText > removes a phone number embedded in an error message 1ms
+   ✓ scrubText > removes an email address 1ms
+   ✓ scrubText > removes a payment reference but leaves a peso amount alone 0ms
+   ✓ scrubValue > keeps the keys that help you fix the bug 2ms
+   ✓ scrubValue > redacts a key it has never seen, rather than passing it through 1ms
+   ✓ scrubValue > redacts a denied key even when its name is buried 1ms
+   ✓ scrubValue > keeps an array length but not its contents 0ms
+   ✓ scrubReport > strips a lookup query string, which is where the phone number is 1ms
+   ✓ scrubReport > drops request headers and cookies entirely 1ms
+   × scrubReport > leaves nothing of a fixture customer anywhere in the payload 26ms
+     → expected '{"message":"failed to save order for …' not to contain 'Maria Santos'
+ ✓ tests/unit/order-rules.test.ts (7 tests) 10ms
+ ✓ tests/unit/screens.test.ts (4 tests) 12ms
+ ✓ tests/unit/money-conversion.test.ts (11 tests) 11ms
+ ✓ tests/unit/offline-queue.test.ts (4 tests) 101ms
+ ✓ tests/unit/money.test.ts (6 tests) 61ms
+ ✓ tests/unit/screen-boundary.test.tsx (2 tests) 196ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/scrub.test.ts > scrubReport > leaves nothing of a fixture customer anywhere in the payload
+AssertionError: expected '{"message":"failed to save order for …' not to contain 'Maria Santos'
+
+Expected: "Maria Santos"
+Received: "{"message":"failed to save order for Maria Santos [phone]","user":{"email":"[redacted]","id":"[redacted]"},"extra":{"customerName":"[redacted]","phone":"[redacted]","items":"[redacted]"},"breadcrumbs":[{"message":"POST /api/orders?phone=[phone]","data":{"phone":"[redacted]"}}],"exception":{"values":[{"value":"duplicate phone [phone]"}]}}"
+
+ ❯ tests/unit/scrub.test.ts:80:28
+     78|     expect(serialised).not.toContain('09171234567');
+     79|     expect(serialised).not.toContain('maria@example.com');
+     80|     expect(serialised).not.toContain('Maria Santos');
+       |                            ^
+     81|   });
+     82| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 9 passed (10)
+      Tests  1 failed | 70 passed (71)
+   Start at  11:43:01
+   Duration  37.91s (transform 2.12s, setup 116.01s, collect 5.84s, tests 477ms, environment 224.27s, prepare 13.30s)
+
+ ELIFECYCLE  Test failed. See above for more details.

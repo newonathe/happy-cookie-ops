@@ -1,0 +1,77 @@
+(node:8884) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+Lockfile is up to date, resolution step is skipped
+Progress: resolved 1, reused 0, downloaded 0, added 0
+Packages: +1168
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Progress: resolved 1168, reused 166, downloaded 0, added 0
+Progress: resolved 1168, reused 335, downloaded 0, added 0
+Progress: resolved 1168, reused 656, downloaded 0, added 0
+Progress: resolved 1168, reused 881, downloaded 0, added 0
+Progress: resolved 1168, reused 1128, downloaded 0, added 0
+Progress: resolved 1168, reused 1167, downloaded 0, added 78
+Progress: resolved 1168, reused 1167, downloaded 0, added 88
+Progress: resolved 1168, reused 1168, downloaded 0, added 94
+Progress: resolved 1168, reused 1168, downloaded 0, added 138
+Progress: resolved 1168, reused 1168, downloaded 0, added 169
+Progress: resolved 1168, reused 1168, downloaded 0, added 214
+Progress: resolved 1168, reused 1168, downloaded 0, added 257
+Progress: resolved 1168, reused 1168, downloaded 0, added 320
+Progress: resolved 1168, reused 1168, downloaded 0, added 468
+Progress: resolved 1168, reused 1168, downloaded 0, added 577
+Progress: resolved 1168, reused 1168, downloaded 0, added 644
+Progress: resolved 1168, reused 1168, downloaded 0, added 716
+Progress: resolved 1168, reused 1168, downloaded 0, added 787
+Progress: resolved 1168, reused 1168, downloaded 0, added 913
+Progress: resolved 1168, reused 1168, downloaded 0, added 1032
+Progress: resolved 1168, reused 1168, downloaded 0, added 1137
+Progress: resolved 1168, reused 1168, downloaded 0, added 1154
+Progress: resolved 1168, reused 1168, downloaded 0, added 1162
+Progress: resolved 1168, reused 1168, downloaded 0, added 1164
+Progress: resolved 1168, reused 1168, downloaded 0, added 1165
+Progress: resolved 1168, reused 1168, downloaded 0, added 1166
+Progress: resolved 1168, reused 1168, downloaded 0, added 1167
+Progress: resolved 1168, reused 1168, downloaded 0, added 1168
+Progress: resolved 1168, reused 1168, downloaded 0, added 1168, done
+
+dependencies:
++ @sentry/nextjs 10.73.0
++ @supabase/ssr 0.7.0
++ @supabase/supabase-js 2.115.0
++ next 16.3.3
++ react 19.2.8
++ react-dom 19.2.8
++ zod 4.5.4
+
+devDependencies:
++ @eslint/eslintrc 3.3.7
++ @lhci/cli 0.15.1
++ @playwright/test 1.63.0
++ @storybook/nextjs 10.2.10
++ @tailwindcss/postcss 4.3.3
++ @testing-library/dom 10.4.1
++ @testing-library/jest-dom 6.10.0
++ @testing-library/react 16.3.3
++ @types/node 22.20.1
++ @types/react 19.2.18
++ @types/react-dom 19.2.7
++ @vitejs/plugin-react 5.2.0
++ eslint 9.39.5
++ eslint-config-next 16.3.3
++ eslint-config-prettier 10.1.8
++ eslint-plugin-jsx-a11y 6.10.2
++ husky 9.1.7
++ jsdom 26.1.0
++ lint-staged 16.4.0
++ prettier 3.9.6
++ storybook 10.2.10
++ supabase 2.116.0
++ tailwindcss 4.3.3
++ typescript 5.9.3
++ vitest 3.2.7
+
+
+> happy-cookie-ops@0.1.0 prepare C:\Users\ethan\dev\happy-cookie-install-check-pinned-20260908
+> husky
+
+.git can't be foundDone in 38.7s

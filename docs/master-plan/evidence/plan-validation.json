@@ -1,0 +1,213 @@
+{
+  "validated_at_utc": "2026-09-07T18:52:57.101535+00:00",
+  "scope": "Planning structure and source preservation only; not application release validation.",
+  "validator": {
+    "python": "3.12.14",
+    "jsonschema": "4.26.0"
+  },
+  "passed": true,
+  "checks": [
+    {
+      "check": "task_schema_meta_validation",
+      "passed": true
+    },
+    {
+      "check": "event_schema_meta_validation",
+      "passed": true
+    },
+    {
+      "check": "task_catalog_json_schema",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "check": "unique_36_work_packages",
+      "passed": true
+    },
+    {
+      "check": "all_work_remains_planned",
+      "passed": true
+    },
+    {
+      "check": "valid_dependency_ids",
+      "passed": true
+    },
+    {
+      "check": "acyclic_dependency_graph",
+      "passed": true,
+      "detail": [
+        "MP-00",
+        "MP-01",
+        "AR-00",
+        "MP-02",
+        "AR-01",
+        "MP-03",
+        "MP-05",
+        "AR-02",
+        "MP-04",
+        "MP-06",
+        "AR-03",
+        "MP-08",
+        "AR-04",
+        "MP-07",
+        "MP-09",
+        "AR-05",
+        "MP-10",
+        "MP-16",
+        "AR-06",
+        "MP-11",
+        "MP-17",
+        "MP-12",
+        "MP-14",
+        "MP-18",
+        "MP-13",
+        "MP-15",
+        "MP-19",
+        "MP-22",
+        "MP-20",
+        "MP-23",
+        "MP-21",
+        "MP-24",
+        "MP-25",
+        "MP-26",
+        "MP-27",
+        "MP-28"
+      ]
+    },
+    {
+      "check": "all_11_decisions_and_valid_references",
+      "passed": true
+    },
+    {
+      "check": "bounded_task_contract_fields",
+      "passed": true
+    },
+    {
+      "check": "read_first_paths_exist",
+      "passed": true
+    },
+    {
+      "check": "one_prompt_per_task",
+      "passed": true
+    },
+    {
+      "check": "catalog_and_prompts_reproduce_exactly",
+      "passed": true,
+      "detail": "Generated 36 planned work packages"
+    },
+    {
+      "check": "all_55_findings_traced_once",
+      "passed": true
+    },
+    {
+      "check": "trace_task_references_valid",
+      "passed": true
+    },
+    {
+      "check": "original_inventory_complete",
+      "passed": true,
+      "detail": {
+        "missing": []
+      }
+    },
+    {
+      "check": "only_13_document_navigation_notices_changed",
+      "passed": true,
+      "detail": [
+        "AGENTS.md",
+        "CLAUDE.md",
+        "HANDOFF.md",
+        "NEXT.md",
+        "README.md",
+        "START-HERE.md",
+        "docs/CONTRACTS.md",
+        "docs/DEPLOY.md",
+        "docs/FREE-TIER.md",
+        "docs/GAPS.md",
+        "docs/PROMPTS.md",
+        "docs/TASKS.md",
+        "docs/prompts/README.md"
+      ]
+    },
+    {
+      "check": "all_original_application_assets_sql_tests_unchanged",
+      "passed": true
+    },
+    {
+      "check": "installed_copy_matches_original_baseline",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "check": "agent_authority_notices_match",
+      "passed": true
+    },
+    {
+      "check": "synthetic_event_schema_and_hash",
+      "passed": true,
+      "detail": {
+        "errors": [],
+        "eventHash": "216e3a920927ed577e3549fd188c6cc74f1d6aec387099ac4c532eea7d5d25fe"
+      }
+    },
+    {
+      "check": "runner_disabled_and_no_spend_bypass",
+      "passed": true
+    },
+    {
+      "check": "project_profile_preserves_user_scope",
+      "passed": true
+    },
+    {
+      "check": "all_template_json_parses",
+      "passed": true
+    },
+    {
+      "check": "local_markdown_destinations_exist",
+      "passed": true,
+      "detail": {
+        "checked": 246,
+        "broken": []
+      }
+    },
+    {
+      "check": "final_app_verify_failure_evidence_preserved",
+      "passed": true,
+      "detail": {
+        "typescript_diagnostics": 108,
+        "application_verify_passed": false
+      }
+    },
+    {
+      "check": "browser_evidence_counts_consistent",
+      "passed": true
+    },
+    {
+      "check": "engine_counterexamples_reproduce",
+      "passed": true
+    }
+  ],
+  "original_file_count": 347,
+  "unchanged_original_files": 334,
+  "changed_original_docs": [
+    "AGENTS.md",
+    "CLAUDE.md",
+    "HANDOFF.md",
+    "NEXT.md",
+    "README.md",
+    "START-HERE.md",
+    "docs/CONTRACTS.md",
+    "docs/DEPLOY.md",
+    "docs/FREE-TIER.md",
+    "docs/GAPS.md",
+    "docs/PROMPTS.md",
+    "docs/TASKS.md",
+    "docs/prompts/README.md"
+  ],
+  "work_packages": 36,
+  "findings": 55,
+  "application_verify_passed": false,
+  "application_typescript_diagnostics": 108,
+  "runner_implemented": false,
+  "failures": []
+}

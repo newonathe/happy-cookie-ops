@@ -1,0 +1,2 @@
+# Validate without autoformatting protected delivery sources.
+pnpm verify

@@ -1,0 +1,1333 @@
+docs/master-plan/11-traceability.md:109: new blank line at EOF.
+docs/master-plan/evidence/codex-exec-help.txt:22: trailing whitespace.
++          
+docs/master-plan/evidence/codex-exec-help.txt:54: trailing whitespace.
++          
+docs/master-plan/evidence/codex-exec-help.txt:88: trailing whitespace.
++          
+docs/master-plan/evidence/codex-resume-help.txt:18: trailing whitespace.
++          
+docs/master-plan/evidence/dev-server-second.txt:13: trailing whitespace.
++⚠ Invalid next.config.ts options detected: 
+docs/master-plan/evidence/dev-server.txt:13: trailing whitespace.
++⚠ Invalid next.config.ts options detected: 
+docs/master-plan/evidence/erp-manual-extracted.txt:2: trailing whitespace.
++Web-Based ERP Provider, Startup and Software 
+docs/master-plan/evidence/erp-manual-extracted.txt:4: trailing whitespace.
++Universal ERP lifecycle + functional-domain methods + industry-specific 
+docs/master-plan/evidence/erp-manual-extracted.txt:14: trailing whitespace.
++Executive Summary; Research Basis; Startup Business Model; Master Lifecycle; Lead Development; Discovery; Requirements; 
+docs/master-plan/evidence/erp-manual-extracted.txt:17: trailing whitespace.
++Architecture Strategy; ERP Domain Engineering; Multi-Tenancy; Data Architecture; Integration/API Engineering; Identity and 
+docs/master-plan/evidence/erp-manual-extracted.txt:20: trailing whitespace.
++Testing; Data Migration; UAT and Training; Cutover and Go-Live; Hypercare and Support; Observability/SLO/Recovery; 
+docs/master-plan/evidence/erp-manual-extracted.txt:24: trailing whitespace.
++Specific Considerations; Stage-Gate Checklist; Template Library; Copy-and-Use Templates; Founder Rules; Final Operating 
+docs/master-plan/evidence/erp-manual-extracted.txt:28: trailing whitespace.
++playbook schema; reusable Financial, Procurement, Inventory/Distribution, Manufacturing, Project/PSA, Service, HCM/Payroll 
+docs/master-plan/evidence/erp-manual-extracted.txt:31: trailing whitespace.
++Wholesale/Distribution; Retail/Omnichannel; Discrete Manufacturing; Process/Batch Manufacturing; Food and Beverage; 
+docs/master-plan/evidence/erp-manual-extracted.txt:32: trailing whitespace.
++Pharma/Life Sciences; Engineer-to-Order/Job Shop; Construction; Professional Services; Real Estate/Property/Development; 
+docs/master-plan/evidence/erp-manual-extracted.txt:33: trailing whitespace.
++Healthcare/Hospital Administration; Higher Education; Hospitality; Logistics/3PL; Field Service; EAM; Utilities; 
+docs/master-plan/evidence/erp-manual-extracted.txt:34: trailing whitespace.
++Government/FMIS; Nonprofit/Grants; Agriculture/Commodities; Automotive Dealer; Aerospace/MRO; Mining/Oil & Gas; 
+docs/master-plan/evidence/erp-manual-extracted.txt:37: trailing whitespace.
++Pooled SaaS; mixed pool/silo; dedicated cloud; on-premise; hybrid; two-tier ERP; SMB, mid-market and enterprise/global rollout 
+docs/master-plan/evidence/erp-manual-extracted.txt:40: trailing whitespace.
++Cross-vertical expertise matrix; startup market-selection complexity matrix; master vertical-playbook template; rules for 
+docs/master-plan/evidence/erp-manual-extracted.txt:42: trailing whitespace.
++How to use this manual: Chapters 3-10 are the customer-delivery operating system; Chapters 11-27 are the 
+docs/master-plan/evidence/erp-manual-extracted.txt:43: trailing whitespace.
++product/engineering standard; Chapters 28-38 are the startup management and reusable-asset layer; Chapters 39-42 
+docs/master-plan/evidence/erp-manual-extracted.txt:44: trailing whitespace.
++define the universal type-aware method; Chapters 43-67 are industry-specific delivery playbooks; Chapters 68-73 apply 
+docs/master-plan/evidence/erp-manual-extracted.txt:51: trailing whitespace.
++A web-based ERP startup is not merely a software-development company. It is a coordinated system for discovering business 
+docs/master-plan/evidence/erp-manual-extracted.txt:52: trailing whitespace.
++problems, converting them into reusable product capabilities, implementing those capabilities safely inside customer 
+docs/master-plan/evidence/erp-manual-extracted.txt:53: trailing whitespace.
++organizations, and operating the resulting service over years. The research base supplied for this report correctly identified the 
+docs/master-plan/evidence/erp-manual-extracted.txt:54: trailing whitespace.
++central structural idea: the startup should run two linked lifecycles rather than one undifferentiated project stream - a 
+docs/master-plan/evidence/erp-manual-extracted.txt:55: trailing whitespace.
++product/platform lifecycle and a customer implementation lifecycle. That distinction is preserved and expanded throughout 
+docs/master-plan/evidence/erp-manual-extracted.txt:59: trailing whitespace.
++1. A product company that owns one coherent platform, common domain models, reusable modules, architecture 
+docs/master-plan/evidence/erp-manual-extracted.txt:62: trailing whitespace.
++standard and fit-gap analysis, configures and extends the platform, migrates data, integrates surrounding systems, 
+docs/master-plan/evidence/erp-manual-extracted.txt:64: trailing whitespace.
++3. A service operation that treats go-live as the beginning of the production lifecycle, not the end of development. It 
+docs/master-plan/evidence/erp-manual-extracted.txt:65: trailing whitespace.
++owns monitoring, incident response, vulnerability management, backups, release management, support, service 
+docs/master-plan/evidence/erp-manual-extracted.txt:67: trailing whitespace.
++The most important strategic recommendation is to begin with a vertical ERP wedge rather than attempting to build a complete 
+docs/master-plan/evidence/erp-manual-extracted.txt:68: trailing whitespace.
++horizontal ERP suite at once. Pick a customer segment in which you understand a painful end-to-end value stream, such as 
+docs/master-plan/evidence/erp-manual-extracted.txt:69: trailing whitespace.
++distribution order-to-cash and inventory, project-based professional services, specialty manufacturing, field operations, or a 
+docs/master-plan/evidence/erp-manual-extracted.txt:70: trailing whitespace.
++similarly coherent vertical. Build the smallest domain spine that solves that value stream extremely well, then widen the product 
+docs/master-plan/evidence/erp-manual-extracted.txt:73: trailing whitespace.
++Sell a measurable business outcome; discover the actual process; adopt or configure standard behavior first; 
+docs/master-plan/evidence/erp-manual-extracted.txt:74: trailing whitespace.
++extend only where justified; preserve one core product; automate quality, security, and operations early; and 
+docs/master-plan/evidence/erp-manual-extracted.txt:78: trailing whitespace.
++This lifecycle is compatible with modern enterprise implementation guidance. Microsoft’s current 2026 Dynamics 365 guidance 
+docs/master-plan/evidence/erp-manual-extracted.txt:79: trailing whitespace.
++describes an implementation lifecycle of Discover, Initiate, Implement, Prepare, Operate and explicitly recommends 
+docs/master-plan/evidence/erp-manual-extracted.txt:80: trailing whitespace.
++organizing implementation around end-to-end business processes. SAP Activate uses Discover, Prepare, Explore, Realize, 
+docs/master-plan/evidence/erp-manual-extracted.txt:85: trailing whitespace.
++Deploy, Run, with fit-to-standard workshops in Explore. ISO/IEC/IEEE 12207:2026 provides the broader software lifecycle 
+docs/master-plan/evidence/erp-manual-extracted.txt:88: trailing whitespace.
++The supplied deep-research report was substantively strong. The cross-check did, however, identify several places where a 
+docs/master-plan/evidence/erp-manual-extracted.txt:91: trailing whitespace.
++Microsoft lifecycle named “Strategize -> Initiate 
+docs/master-plan/evidence/erp-manual-extracted.txt:93: trailing whitespace.
++Current 2026 Microsoft guidance uses Discover 
+docs/master-plan/evidence/erp-manual-extracted.txt:95: trailing whitespace.
++Vertical ERP wedge Strong startup product judgment, not an industry 
+docs/master-plan/evidence/erp-manual-extracted.txt:97: trailing whitespace.
++Modular monolith as startup architecture Strong engineering judgment, not a universal 
+docs/master-plan/evidence/erp-manual-extracted.txt:99: trailing whitespace.
++Retained with decision criteria and escape 
+docs/master-plan/evidence/erp-manual-extracted.txt:101: trailing whitespace.
++Shared DB/shared schema multi-tenancy Cost-efficient option, not inherently the “correct” 
+docs/master-plan/evidence/erp-manual-extracted.txt:103: trailing whitespace.
++Reframed as one tenancy tier with explicit 
+docs/master-plan/evidence/erp-manual-extracted.txt:105: trailing whitespace.
++20/30 qualification threshold Internal heuristic Replaced with mandatory gates plus optional 
+docs/master-plan/evidence/erp-manual-extracted.txt:109: trailing whitespace.
++99.9% SLO and example RPO/RTO Engineering examples Must be derived from business impact and 
+docs/master-plan/evidence/erp-manual-extracted.txt:111: trailing whitespace.
++NIST SSDF 1.2 Still an Initial Public Draft in September 2026; 
+docs/master-plan/evidence/erp-manual-extracted.txt:114: trailing whitespace.
++OpenAPI 3.2.0, published 19 September 2025, is current 
+docs/master-plan/evidence/erp-manual-extracted.txt:117: trailing whitespace.
++A second improvement is that this manual separates evidence-backed lifecycle principles from startup choices. Standards 
+docs/master-plan/evidence/erp-manual-extracted.txt:118: trailing whitespace.
++tell you what kinds of lifecycle work must exist; ERP methodologies tell you how mature implementations organize that work; 
+docs/master-plan/evidence/erp-manual-extracted.txt:119: trailing whitespace.
++your startup still has to decide its market, stack, architecture, tenancy economics, pricing, service levels, staffing, and release 
+docs/master-plan/evidence/erp-manual-extracted.txt:125: trailing whitespace.
++• ISO/IEC/IEEE 29148:2018 for requirements engineering. ISO confirmed the 2018 edition in 2024, although a revision 
+docs/master-plan/evidence/erp-manual-extracted.txt:127: trailing whitespace.
++• Microsoft process-focused implementation guidance for end-to-end processes, fit-to-standard, fit-gap, testing, 
+docs/master-plan/evidence/erp-manual-extracted.txt:129: trailing whitespace.
++• SAP Activate as an independent ERP-methodology cross-check, particularly for fit-to-standard and phased 
+docs/master-plan/evidence/erp-manual-extracted.txt:146: trailing whitespace.
++ERP is an operating system for business processes. A feature list is an implementation artifact, not the starting point. The 
+docs/master-plan/evidence/erp-manual-extracted.txt:147: trailing whitespace.
++provider should understand the trigger, actors, decisions, data, exceptions, controls, handoffs, outputs, and KPIs of the process 
+docs/master-plan/evidence/erp-manual-extracted.txt:150: trailing whitespace.
++Customer implementations may differ, but the startup should preserve one versioned product core. Differences should be 
+docs/master-plan/evidence/erp-manual-extracted.txt:151: trailing whitespace.
++expressed through configuration, extension points, integrations, customer data, permissions, templates, and isolated custom 
+docs/master-plan/evidence/erp-manual-extracted.txt:154: trailing whitespace.
++Fit-to-standard analysis exists to challenge the assumption that a legacy process must be reproduced. If standard behavior can 
+docs/master-plan/evidence/erp-manual-extracted.txt:157: trailing whitespace.
++Every important production behavior should be traceable from business objective through requirement, design, test, training, 
+docs/master-plan/evidence/erp-manual-extracted.txt:164: trailing whitespace.
++The implementation moves from project delivery into production ownership. Hypercare, support, SLO management, 
+docs/master-plan/evidence/erp-manual-extracted.txt:167: trailing whitespace.
++The provider should know the customer’s baseline and target: order cycle time, inventory accuracy, days to close, procurement 
+docs/master-plan/evidence/erp-manual-extracted.txt:168: trailing whitespace.
++turnaround, manual re-entry, approval latency, collection performance, utilization, or another vertical KPI. A feature delivered 
+docs/master-plan/evidence/erp-manual-extracted.txt:174: trailing whitespace.
++Bespoke ERP development Project fees Fits unusual requirements quickly Becomes a collection of unrelated 
+docs/master-plan/evidence/erp-manual-extracted.txt:176: trailing whitespace.
++Pure horizontal SaaS ERP Recurring subscription High product scalability Requires broad product maturity 
+docs/master-plan/evidence/erp-manual-extracted.txt:183: trailing whitespace.
++Productized ERP + 
+docs/master-plan/evidence/erp-manual-extracted.txt:185: trailing whitespace.
++Recurring SaaS + paid 
+docs/master-plan/evidence/erp-manual-extracted.txt:187: trailing whitespace.
++Balances reusable IP and customer 
+docs/master-plan/evidence/erp-manual-extracted.txt:189: trailing whitespace.
++Requires disciplined product 
+docs/master-plan/evidence/erp-manual-extracted.txt:191: trailing whitespace.
++For a startup, the third model is usually the most robust. The provider sells a reusable platform and charges separately for 
+docs/master-plan/evidence/erp-manual-extracted.txt:194: trailing whitespace.
++Do not define the target as “SMEs that need ERP.” Define it as a recognizable operating context. A useful ICP definition 
+docs/master-plan/evidence/erp-manual-extracted.txt:223: trailing whitespace.
++ERP discovery Process maps, pain analysis, scope, risk, 
+docs/master-plan/evidence/erp-manual-extracted.txt:233: trailing whitespace.
++Training/change enablement Role-based training, SOPs, super-user 
+docs/master-plan/evidence/erp-manual-extracted.txt:236: trailing whitespace.
++Managed support Support SLA, operational management, service 
+docs/master-plan/evidence/erp-manual-extracted.txt:244: trailing whitespace.
++Configurable capability Same capability, customer-specific 
+docs/master-plan/evidence/erp-manual-extracted.txt:258: trailing whitespace.
++The startup should institutionalize the following eighteen-stage flow. For management simplicity, these can be grouped into the 
+docs/master-plan/evidence/erp-manual-extracted.txt:259: trailing whitespace.
++twelve branded stages Qualify, Discover, Analyze, Design, Blueprint, Plan, Build, Verify, Adopt, Transition, Stabilize, 
+docs/master-plan/evidence/erp-manual-extracted.txt:263: trailing whitespace.
++Lead development How do we create relevant opportunities? Account/contact, trigger, source, engagement 
+docs/master-plan/evidence/erp-manual-extracted.txt:265: trailing whitespace.
++Qualification Should we invest discovery effort? Need, sponsor, decision process, timing, fit, 
+docs/master-plan/evidence/erp-manual-extracted.txt:267: trailing whitespace.
++Pre-discovery What can we learn before workshops? Document request, stakeholder map, current 
+docs/master-plan/evidence/erp-manual-extracted.txt:269: trailing whitespace.
++Discovery How does the business really work? Interviews, process catalog, pain/KPI baseline, 
+docs/master-plan/evidence/erp-manual-extracted.txt:271: trailing whitespace.
++AS-IS analysis Where are failure, waste, control and data 
+docs/master-plan/evidence/erp-manual-extracted.txt:274: trailing whitespace.
++Requirements What must the solution prove? Functional/NFR/data/security/reporting 
+docs/master-plan/evidence/erp-manual-extracted.txt:277: trailing whitespace.
++Blueprint How will the whole solution work? Functional, data, integration, security, tenancy, 
+docs/master-plan/evidence/erp-manual-extracted.txt:279: trailing whitespace.
++Estimate + commercial What are effort, risk, price and obligations? WBS, assumptions, SOW, subscription, change 
+docs/master-plan/evidence/erp-manual-extracted.txt:283: trailing whitespace.
++QA + migration rehearsal Does it work safely at realistic conditions? Test evidence, reconciled migration, quality 
+docs/master-plan/evidence/erp-manual-extracted.txt:287: trailing whitespace.
++Hypercare Is the new operation stable? Stable process/integration/performance/support 
+docs/master-plan/evidence/erp-manual-extracted.txt:292: trailing whitespace.
++ERP demand is more effectively generated around operational problems than around generic “ERP software” messaging. Build 
+docs/master-plan/evidence/erp-manual-extracted.txt:305: trailing whitespace.
++• webinars with accountants, process consultants, technology partners, banks, e-commerce providers, or industry 
+docs/master-plan/evidence/erp-manual-extracted.txt:329: trailing whitespace.
++BANT - Budget, Authority, Need, Timeline - is a useful minimum structure, but complex ERP deals usually need more than 
+docs/master-plan/evidence/erp-manual-extracted.txt:330: trailing whitespace.
++BANT because multiple functions, process owners, IT/security reviewers, procurement, finance, and an economic buyer can all 
+docs/master-plan/evidence/erp-manual-extracted.txt:331: trailing whitespace.
++participate. Use a hybrid qualification record with concepts from complex B2B methods such as MEDDIC/MEDDICC where 
+docs/master-plan/evidence/erp-manual-extracted.txt:332: trailing whitespace.
++appropriate: measurable outcomes, economic buyer, decision criteria, decision process, pain, champion, and 
+docs/master-plan/evidence/erp-manual-extracted.txt:342: trailing whitespace.
++Optional 0-3 scoring can help prioritization, but never let a high total score compensate for the absence of a real business 
+docs/master-plan/evidence/erp-manual-extracted.txt:356: trailing whitespace.
++• Which systems run accounting, sales, procurement, inventory, payroll, reporting, commerce, service, production, 
+docs/master-plan/evidence/erp-manual-extracted.txt:372: trailing whitespace.
++Actor -> Trigger -> Input -> Decision/rule -> Action -> System -> Data changed -> Approval -> Exception -> Output -> 
+docs/master-plan/evidence/erp-manual-extracted.txt:385: trailing whitespace.
++Managers describe the nominal process; front-line users reveal the real process. Use interviews, shadowing, samples of 
+docs/master-plan/evidence/erp-manual-extracted.txt:411: trailing whitespace.
++Use BPMN 2.0.2 or another consistently governed process notation when diagrams become complex. The notation matters 
+docs/master-plan/evidence/erp-manual-extracted.txt:446: trailing whitespace.
++ISO/IEC/IEEE 29148 treats requirements engineering as a lifecycle process and defines requirements-related information 
+docs/master-plan/evidence/erp-manual-extracted.txt:529: trailing whitespace.
++For complex workflows use a formal use case with preconditions, main flow, alternate flows, exception flows, postconditions, 
+docs/master-plan/evidence/erp-manual-extracted.txt:532: trailing whitespace.
++Fit-to-standard should precede fit-gap. Microsoft explicitly warns that copying legacy processes can create unnecessary 
+docs/master-plan/evidence/erp-manual-extracted.txt:541: trailing whitespace.
++Decision: Fit | Configure | Extend | Partner | Customer extension | Process change | Defer | 
+docs/master-plan/evidence/erp-manual-extracted.txt:563: trailing whitespace.
++Do not treat this as mathematically objective. Add regulatory deadlines, customer concentration risk, architecture debt, support 
+docs/master-plan/evidence/erp-manual-extracted.txt:566: trailing whitespace.
++No salesperson, customer, or developer should be able to commit a core roadmap feature alone. A product/architecture council 
+docs/master-plan/evidence/erp-manual-extracted.txt:569: trailing whitespace.
++The Solution Blueprint is the bridge between business design and executable delivery. It should be a living architecture and 
+docs/master-plan/evidence/erp-manual-extracted.txt:622: trailing whitespace.
++A startup should avoid performing a full ERP assessment for free merely to discover what price to quote. Use a staged 
+docs/master-plan/evidence/erp-manual-extracted.txt:667: trailing whitespace.
++After signature, perform a formal sales-to-delivery handover so promises, assumptions and risks are not trapped in sales 
+docs/master-plan/evidence/erp-manual-extracted.txt:689: trailing whitespace.
++Weekly/biweekly Customer working session decisions, process/configuration, data, 
+docs/master-plan/evidence/erp-manual-extracted.txt:701: trailing whitespace.
++The uploaded research recommended a modular monolith rather than early microservices. That remains a sound default, not a 
+docs/master-plan/evidence/erp-manual-extracted.txt:702: trailing whitespace.
++universal rule. The reason is operational economics: a small team usually benefits from one deployable application, 
+docs/master-plan/evidence/erp-manual-extracted.txt:703: trailing whitespace.
++straightforward local transactions, easier debugging, fewer network failure modes, and lower platform overhead while still 
+docs/master-plan/evidence/erp-manual-extracted.txt:721: trailing whitespace.
++Next.js/React/TypeScript -> ASP.NET Core/C# -> PostgreSQL -> Redis where justified -> managed queue -> OpenAPI 
+docs/master-plan/evidence/erp-manual-extracted.txt:723: trailing whitespace.
++This is a decision recommendation, not a standard. The best stack is the one your team can operate securely for years and 
+docs/master-plan/evidence/erp-manual-extracted.txt:728: trailing whitespace.
++Core backend ASP.NET Core NestJS, Spring Boot domain complexity, typing, 
+docs/master-plan/evidence/erp-manual-extracted.txt:730: trailing whitespace.
++Transaction DB PostgreSQL SQL Server, MySQL/InnoDB relational integrity, operations, 
+docs/master-plan/evidence/erp-manual-extracted.txt:733: trailing whitespace.
++Async work managed queue / RabbitMQ-class 
+docs/master-plan/evidence/erp-manual-extracted.txt:734: trailing whitespace.
++broker Kafka for genuine streaming ordering, replay, throughput, 
+docs/master-plan/evidence/erp-manual-extracted.txt:738: trailing whitespace.
++SSO, enterprise federation, cost, 
+docs/master-plan/evidence/erp-manual-extracted.txt:745: trailing whitespace.
++Hosting managed/serverless containers PaaS, Kubernetes when justified ops maturity, networking, 
+docs/master-plan/evidence/erp-manual-extracted.txt:747: trailing whitespace.
++Observability OpenTelemetry vendor-native instrumentation too portability and cross-service 
+docs/master-plan/evidence/erp-manual-extracted.txt:762: trailing whitespace.
++ERP software is not simply a set of forms over database tables. It encodes business invariants. A technically elegant 
+docs/master-plan/evidence/erp-manual-extracted.txt:778: trailing whitespace.
++Enforce this invariant in domain logic and tests. A journal should have a header plus lines, posting date, legal entity/ledger, 
+docs/master-plan/evidence/erp-manual-extracted.txt:781: trailing whitespace.
++Once a financial transaction is posted, correction should normally occur through reversal, credit/debit note, adjustment, or 
+docs/master-plan/evidence/erp-manual-extracted.txt:788: trailing whitespace.
++Support open/closed fiscal periods and role-controlled reopening if the market requires it. Prevent ordinary posting into a closed 
+docs/master-plan/evidence/erp-manual-extracted.txt:791: trailing whitespace.
++AR, AP, inventory, fixed assets and other subledgers should reconcile to control accounts. Build reconciliation as a first-class 
+docs/master-plan/evidence/erp-manual-extracted.txt:794: trailing whitespace.
++Define numbering scopes and uniqueness: legal entity, branch, document class, fiscal year, statutory sequence, or customer 
+docs/master-plan/evidence/erp-manual-extracted.txt:836: trailing whitespace.
++Define who may cause each transition, its preconditions, side effects, audit event, integration event and rollback/reversal 
+docs/master-plan/evidence/erp-manual-extracted.txt:839: trailing whitespace.
++Avoid customer-specific code such as if company == ABC and amount > 100000. Build a configurable policy engine 
+docs/master-plan/evidence/erp-manual-extracted.txt:858: trailing whitespace.
++Use deliberate transaction boundaries, database constraints, optimistic/pessimistic concurrency where appropriate, 
+docs/master-plan/evidence/erp-manual-extracted.txt:875: trailing whitespace.
++Protect audit logs against ordinary business-user mutation. Avoid logging secrets or unnecessary personal/sensitive business 
+docs/master-plan/evidence/erp-manual-extracted.txt:878: trailing whitespace.
++SaaS is a delivery/business model; multitenancy is an architecture choice. AWS explicitly distinguishes tenant isolation from 
+docs/master-plan/evidence/erp-manual-extracted.txt:879: trailing whitespace.
++ordinary authentication and authorization. Azure treats tenant-to-resource mapping as a design spectrum with cost and isolation 
+docs/master-plan/evidence/erp-manual-extracted.txt:883: trailing whitespace.
++Shared app + shared 
+docs/master-plan/evidence/erp-manual-extracted.txt:884: trailing whitespace.
++DB/schema + tenant 
+docs/master-plan/evidence/erp-manual-extracted.txt:887: trailing whitespace.
++Cost-sensitive SaaS if 
+docs/master-plan/evidence/erp-manual-extracted.txt:888: trailing whitespace.
++isolation is rigorously 
+docs/master-plan/evidence/erp-manual-extracted.txt:890: trailing whitespace.
++Shared app + schema 
+docs/master-plan/evidence/erp-manual-extracted.txt:891: trailing whitespace.
++per tenant Higher namespace separation High Migrations multiply Moderate tenant count 
+docs/master-plan/evidence/erp-manual-extracted.txt:893: trailing whitespace.
++Shared app + DB per 
+docs/master-plan/evidence/erp-manual-extracted.txt:894: trailing whitespace.
++tenant Stronger data separation Medium Provisioning/ops multiply Premium or regulated 
+docs/master-plan/evidence/erp-manual-extracted.txt:896: trailing whitespace.
++Full deployment stamp 
+docs/master-plan/evidence/erp-manual-extracted.txt:898: trailing whitespace.
++Highest infrastructure 
+docs/master-plan/evidence/erp-manual-extracted.txt:900: trailing whitespace.
++Exceptional 
+docs/master-plan/evidence/erp-manual-extracted.txt:901: trailing whitespace.
++contractual/regulatory 
+docs/master-plan/evidence/erp-manual-extracted.txt:903: trailing whitespace.
++There is no universally correct default. Choose based on customer isolation requirements, unit economics, operating maturity, 
+docs/master-plan/evidence/erp-manual-extracted.txt:907: trailing whitespace.
++identity -> request -> authorization -> domain/service -> repository/query -> database/RLS where used -> cache key -> 
+docs/master-plan/evidence/erp-manual-extracted.txt:909: trailing whitespace.
++PostgreSQL row-level security can add valuable defense in depth in a shared-schema design, but RLS must not be the only 
+docs/master-plan/evidence/erp-manual-extracted.txt:939: trailing whitespace.
++Typical master data includes organizations, legal entities, branches, customers, vendors, items, UOMs, warehouses, accounts, 
+docs/master-plan/evidence/erp-manual-extracted.txt:942: trailing whitespace.
++ERP core data is highly relational and transactional. Use normalized relational models for authoritative commercial, inventory 
+docs/master-plan/evidence/erp-manual-extracted.txt:988: trailing whitespace.
++EDI trading-partner transactions partner maps, acknowledgements, version 
+docs/master-plan/evidence/erp-manual-extracted.txt:995: trailing whitespace.
++When a committed ERP transaction must reliably create an asynchronous external event, avoid a distributed transaction across 
+docs/master-plan/evidence/erp-manual-extracted.txt:1002: trailing whitespace.
++Exactly-once behavior across independent external systems is frequently unrealistic. Design for at-least-once delivery + 
+docs/master-plan/evidence/erp-manual-extracted.txt:1005: trailing whitespace.
++Do not invent your own identity protocol. Use a standards-compliant identity provider and OIDC/OAuth patterns. RFC 9700 is 
+docs/master-plan/evidence/erp-manual-extracted.txt:1030: trailing whitespace.
++ERP users may spend hours per day in the system. Optimize for task throughput and correctness, not marketing-site 
+docs/master-plan/evidence/erp-manual-extracted.txt:1103: trailing whitespace.
++Add dedicated migration/performance/training/DR environments only when the project needs them. Do not casually copy raw 
+docs/master-plan/evidence/erp-manual-extracted.txt:1104: trailing whitespace.
++production personal or commercially sensitive data into lower environments. Use generated, masked or governed 
+docs/master-plan/evidence/erp-manual-extracted.txt:1132: trailing whitespace.
++Version network, compute, database policies, storage, queues, monitoring primitives, secret references and environment 
+docs/master-plan/evidence/erp-manual-extracted.txt:1133: trailing whitespace.
++configuration. A production environment should be reconstructable and reviewable, not a collection of undocumented console 
+docs/master-plan/evidence/erp-manual-extracted.txt:1136: trailing whitespace.
++ERP quality requires tests at multiple levels. Mature ERP implementation guidance includes unit, integration, system, UAT, 
+docs/master-plan/evidence/erp-manual-extracted.txt:1157: trailing whitespace.
++Do not optimize for a magic test-percentage ratio. Optimize for fast feedback at the lowest effective layer and strong 
+docs/master-plan/evidence/erp-manual-extracted.txt:1178: trailing whitespace.
++Then build representative scenarios. A system that handles 100 demo rows says little about a customer’s 5 million ledger lines 
+docs/master-plan/evidence/erp-manual-extracted.txt:1241: trailing whitespace.
++UAT should execute realistic end-to-end scenarios against representative migrated data and working integrations. It is not 
+docs/master-plan/evidence/erp-manual-extracted.txt:1288: trailing whitespace.
++Cutover is a controlled production transition. Build a detailed runbook with owner, start time, expected duration, dependency, 
+docs/master-plan/evidence/erp-manual-extracted.txt:1346: trailing whitespace.
++Exit when process completion, issue rate, integration health, performance, data integrity and support capacity are stable 
+docs/master-plan/evidence/erp-manual-extracted.txt:1350: trailing whitespace.
++P1 Critical Production unavailable, widespread corruption/security event, or core 
+docs/master-plan/evidence/erp-manual-extracted.txt:1360: trailing whitespace.
++Your SLA must distinguish initial response, communication cadence, service restoration, and permanent resolution. Do 
+docs/master-plan/evidence/erp-manual-extracted.txt:1373: trailing whitespace.
++OpenTelemetry defines traces, metrics and logs as core telemetry signals and is a useful vendor-neutral instrumentation layer. 
+docs/master-plan/evidence/erp-manual-extracted.txt:1388: trailing whitespace.
++Also monitor business health, such as failed postings, unprocessed invoices, stuck approvals, reconciliation mismatch, queue 
+docs/master-plan/evidence/erp-manual-extracted.txt:1391: trailing whitespace.
++Do not copy 99.9% because it sounds professional. Derive SLOs from customer impact, architecture, support capacity and 
+docs/master-plan/evidence/erp-manual-extracted.txt:1392: trailing whitespace.
++price. Google SRE recommends user-focused SLOs and error budgets rather than treating 100% availability as a sensible 
+docs/master-plan/evidence/erp-manual-extracted.txt:1410: trailing whitespace.
++Derive them from business impact. Then design backup/PITR, replicas, restore automation, operational staffing and cost to 
+docs/master-plan/evidence/erp-manual-extracted.txt:1414: trailing whitespace.
++OWASP ASVS 5.0.0 is the current stable ASVS release and can be used as a control-verification and procurement baseline. 
+docs/master-plan/evidence/erp-manual-extracted.txt:1415: trailing whitespace.
++NIST SSDF 1.1 remains the current final SSDF publication as of this report; version 1.2 is still an Initial Public Draft. NIST CSF 
+docs/master-plan/evidence/erp-manual-extracted.txt:1437: trailing whitespace.
++Perform threat modeling before implementation of consequential architecture and revisit it when trust boundaries change. 
+docs/master-plan/evidence/erp-manual-extracted.txt:1458: trailing whitespace.
++Generate a Software Bill of Materials for releases where practical, track critical dependencies and licenses, and maintain a 
+docs/master-plan/evidence/erp-manual-extracted.txt:1459: trailing whitespace.
++vulnerability-response process. The objective is not paperwork; it is the ability to answer “Are we affected?” quickly when a 
+docs/master-plan/evidence/erp-manual-extracted.txt:1463: trailing whitespace.
++What did we learn that should become reusable product capability, configuration, documentation, a connector, an 
+docs/master-plan/evidence/erp-manual-extracted.txt:1494: trailing whitespace.
++Use categories such as Now, Next, Later, Explore, Not Planned. Do not let sales promise a roadmap date without product and 
+docs/master-plan/evidence/erp-manual-extracted.txt:1512: trailing whitespace.
++Avoid hiding unlimited implementation inside the SaaS fee. It destroys transparency in both customer expectations and internal 
+docs/master-plan/evidence/erp-manual-extracted.txt:1557: trailing whitespace.
++For a two-founder startup, the functions may initially collapse into two people plus fractional specialists, but preserve these 
+docs/master-plan/evidence/erp-manual-extracted.txt:1560: trailing whitespace.
++ERP requirements involve accounting, inventory, procurement, operations and controls. A developer can implement a bad 
+docs/master-plan/evidence/erp-manual-extracted.txt:1679: trailing whitespace.
++Once a reusable product exists, a bounded SMB/mid-market implementation may use these rough planning ranges. Real 
+docs/master-plan/evidence/erp-manual-extracted.txt:1683: trailing whitespace.
++Discovery 2-4 weeks scope/process/NFR/data/integrations 
+docs/master-plan/evidence/erp-manual-extracted.txt:1695: trailing whitespace.
++This section is operational guidance for a Philippine ERP provider, not legal or tax advice. Confirm customer-specific obligations 
+docs/master-plan/evidence/erp-manual-extracted.txt:1698: trailing whitespace.
++The Philippine BIR continues to maintain registration processes for Computerized Accounting Systems (CAS), 
+docs/master-plan/evidence/erp-manual-extracted.txt:1699: trailing whitespace.
++Computerized Books of Accounts (CBA), and components such as electronic storage, middleware and similar 
+docs/master-plan/evidence/erp-manual-extracted.txt:1700: trailing whitespace.
++systems. Current official BIR materials list supporting artifacts including a system description, sample invoices/books/reports as 
+docs/master-plan/evidence/erp-manual-extracted.txt:1701: trailing whitespace.
++applicable, an audit trail output, and standard functional/technical requirements. RMO No. 9-2021 describes systems that 
+docs/master-plan/evidence/erp-manual-extracted.txt:1708: trailing whitespace.
++Implication for product design: if your ERP will be used as a customer’s accounting/CAS component, build audit trail, 
+docs/master-plan/evidence/erp-manual-extracted.txt:1709: trailing whitespace.
++controlled posting, report reproducibility, document/form configuration and system documentation as product 
+docs/master-plan/evidence/erp-manual-extracted.txt:1712: trailing whitespace.
++BIR Revenue Regulation No. 11-2025 implements statutory provisions concerning electronic invoices and electronic sales 
+docs/master-plan/evidence/erp-manual-extracted.txt:1713: trailing whitespace.
++reporting for covered cases, and the BIR continues to operate its EIS/certification infrastructure. Requirements can evolve, so 
+docs/master-plan/evidence/erp-manual-extracted.txt:1716: trailing whitespace.
++Section 20 of RA 10173 requires reasonable and appropriate organizational, physical and technical safeguards. The NPC IRR 
+docs/master-plan/evidence/erp-manual-extracted.txt:1717: trailing whitespace.
++also requires processing by a personal information processor to be governed by a contract or legal act with defined processing 
+docs/master-plan/evidence/erp-manual-extracted.txt:1730: trailing whitespace.
++Do not embed Philippine-specific tax, numbering, language, currency or privacy behavior directly into universal core logic. Use 
+docs/master-plan/evidence/erp-manual-extracted.txt:1740: trailing whitespace.
++G0 Market vertical/ICP, pain hypothesis, reference process, competitor/alternative 
+docs/master-plan/evidence/erp-manual-extracted.txt:1742: trailing whitespace.
++G1 Qualification material pain, sponsor, decision path, timing, product fit, plausible 
+docs/master-plan/evidence/erp-manual-extracted.txt:1746: trailing whitespace.
++G4 Commercial approved estimate, assumptions/exclusions, SOW, acceptance, 
+docs/master-plan/evidence/erp-manual-extracted.txt:1755: trailing whitespace.
++G7 UAT ready stable build, representative data, working integrations, known defects 
+docs/master-plan/evidence/erp-manual-extracted.txt:1757: trailing whitespace.
++G8 Go-live ready UAT, cutover rehearsal, reconciliation, perf/security, backup/restore, 
+docs/master-plan/evidence/erp-manual-extracted.txt:1760: trailing whitespace.
++G10 Quarterly value review adoption/outcomes, SLA/SLO, economics, roadmap and expansion 
+docs/master-plan/evidence/erp-manual-extracted.txt:1925: trailing whitespace.
++9. Never measure product success only by features shipped. Measure process outcomes and repeated 
+docs/master-plan/evidence/erp-manual-extracted.txt:1929: trailing whitespace.
++12. Always turn implementation learning into reusable IP: product, configuration, connector, template, test, 
+docs/master-plan/evidence/erp-manual-extracted.txt:1956: trailing whitespace.
++The codebase is only one component. The real product is the combination of domain knowledge, repeatable process, 
+docs/master-plan/evidence/erp-manual-extracted.txt:1962: trailing whitespace.
++Part V - ERP Taxonomy, Universal Template and Functional 
+docs/master-plan/evidence/erp-manual-extracted.txt:1965: trailing whitespace.
++The phrase “type of ERP” is ambiguous. An ERP can be classified by the business capability it manages, by the industry in 
+docs/master-plan/evidence/erp-manual-extracted.txt:1966: trailing whitespace.
++which it is deployed, by its deployment/tenancy architecture, and by the scale and organizational complexity of the customer. 
+docs/master-plan/evidence/erp-manual-extracted.txt:1967: trailing whitespace.
++Treating these as one flat list creates bad sales qualification and bad architecture decisions. The startup should therefore 
+docs/master-plan/evidence/erp-manual-extracted.txt:1973: trailing whitespace.
++Financial management Record-to-report ledgers, AR/AP, cash, budgets, tax, 
+docs/master-plan/evidence/erp-manual-extracted.txt:1975: trailing whitespace.
++accounting, controllership, treasury, 
+docs/master-plan/evidence/erp-manual-extracted.txt:1977: trailing whitespace.
++Sales / commercial Prospect-to-quote, order-to-cash CRM, quotation, pricing, credit, 
+docs/master-plan/evidence/erp-manual-extracted.txt:1979: trailing whitespace.
++Procurement Source-to-pay sourcing, contracts, requisitions, 
+docs/master-plan/evidence/erp-manual-extracted.txt:1981: trailing whitespace.
++procurement, category 
+docs/master-plan/evidence/erp-manual-extracted.txt:1983: trailing whitespace.
++Inventory / distribution Inventory-to-deliver stock, warehouses, replenishment, 
+docs/master-plan/evidence/erp-manual-extracted.txt:1985: trailing whitespace.
++warehouse, logistics, inventory 
+docs/master-plan/evidence/erp-manual-extracted.txt:1987: trailing whitespace.
++Manufacturing Forecast-to-plan, plan-to-produce BOM/formula, routing, MRP, 
+docs/master-plan/evidence/erp-manual-extracted.txt:1989: trailing whitespace.
++manufacturing engineering, 
+docs/master-plan/evidence/erp-manual-extracted.txt:1991: trailing whitespace.
++Project / PSA Project-to-profit contracts, WBS, resources, 
+docs/master-plan/evidence/erp-manual-extracted.txt:1994: trailing whitespace.
++case/work order, scheduling, 
+docs/master-plan/evidence/erp-manual-extracted.txt:1995: trailing whitespace.
++dispatch, parts, labor, service 
+docs/master-plan/evidence/erp-manual-extracted.txt:1997: trailing whitespace.
++service operations, dispatch, 
+docs/master-plan/evidence/erp-manual-extracted.txt:2000: trailing whitespace.
++org/job/position, recruiting, 
+docs/master-plan/evidence/erp-manual-extracted.txt:2001: trailing whitespace.
++onboarding, time, comp, benefits, 
+docs/master-plan/evidence/erp-manual-extracted.txt:2004: trailing whitespace.
++Asset / EAM Acquire-to-dispose asset registry, maintenance, work 
+docs/master-plan/evidence/erp-manual-extracted.txt:2006: trailing whitespace.
++reliability, maintenance, asset 
+docs/master-plan/evidence/erp-manual-extracted.txt:2008: trailing whitespace.
++Microsoft’s July 2026 business-process catalog is useful as a vendor-neutral process vocabulary, even though the catalog is 
+docs/master-plan/evidence/erp-manual-extracted.txt:2009: trailing whitespace.
++published for Dynamics 365. It contains 15 L1 end-to-end processes and 6,834 rows of progressively detailed process content, 
+docs/master-plan/evidence/erp-manual-extracted.txt:2043: trailing whitespace.
++The decisive difference is usually not the web framework. It is the domain model, process rules, regulatory burden, integration 
+docs/master-plan/evidence/erp-manual-extracted.txt:2047: trailing whitespace.
++premise, hybrid cloud/on-premise, or as part of a two-tier ERP landscape. AWS explicitly distinguishes pooled, siloed and 
+docs/master-plan/evidence/erp-manual-extracted.txt:2050: trailing whitespace.
++SMB, mid-market, enterprise and global ERP implementations can use the same functional domain but require very different 
+docs/master-plan/evidence/erp-manual-extracted.txt:2077: trailing whitespace.
++Universal ERP lifecycle + functional domain modules + vertical playbook + deployment overlay + 
+docs/master-plan/evidence/erp-manual-extracted.txt:2079: trailing whitespace.
++This avoids creating twenty unrelated delivery methods while still recognizing that a pharmaceutical plant and a consulting firm 
+docs/master-plan/evidence/erp-manual-extracted.txt:2081: trailing whitespace.
++40. Universal ERP Software Development Process - Master 
+docs/master-plan/evidence/erp-manual-extracted.txt:2083: trailing whitespace.
++The earlier chapters describe each discipline in depth. This chapter provides the single operational template a project 
+docs/master-plan/evidence/erp-manual-extracted.txt:2084: trailing whitespace.
++manager or founder can use from lead creation through steady-state operations. Every vertical playbook in Part VI plugs into 
+docs/master-plan/evidence/erp-manual-extracted.txt:2101: trailing whitespace.
++Artifacts: ICP, vertical hypothesis, process catalog, capability map, architecture baseline, service catalog, pricing guardrails, 
+docs/master-plan/evidence/erp-manual-extracted.txt:2103: trailing whitespace.
++Exit gate: the team can state whom it serves, which value stream it improves, which capabilities are in product scope, and what 
+docs/master-plan/evidence/erp-manual-extracted.txt:2132: trailing whitespace.
++system screenshots, integration documentation, volume metrics, compliance obligations, close calendars, approval matrices 
+docs/master-plan/evidence/erp-manual-extracted.txt:2136: trailing whitespace.
++Interview executives for strategy/outcomes; functional owners for policy/rules; frontline users for actual work; finance for 
+docs/master-plan/evidence/erp-manual-extracted.txt:2143: trailing whitespace.
++Model current workflows, systems, manual workarounds, duplicate entry, reconciliations, queue/wait time, errors, control 
+docs/master-plan/evidence/erp-manual-extracted.txt:2145: trailing whitespace.
++Do not merely document screens. Identify why the current process exists and whether each step is business-required, 
+docs/master-plan/evidence/erp-manual-extracted.txt:2148: trailing whitespace.
++Design target operating processes using standard capability first. Resolve ownership, approvals, segregation of duties, 
+docs/master-plan/evidence/erp-manual-extracted.txt:2149: trailing whitespace.
++exceptions, automation, service levels and downstream effects. The system should support a target operating model, not 
+docs/master-plan/evidence/erp-manual-extracted.txt:2156: trailing whitespace.
++Build traceable business, functional, rule, data, reporting, integration, security, privacy and measurable non-functional 
+docs/master-plan/evidence/erp-manual-extracted.txt:2157: trailing whitespace.
++requirements. Link each accepted requirement to process owner, rationale, acceptance criteria and test evidence. 
+docs/master-plan/evidence/erp-manual-extracted.txt:2162: trailing whitespace.
++Estimate both implementation cost and recurring maintenance cost. A one-day custom feature that creates a permanent 
+docs/master-plan/evidence/erp-manual-extracted.txt:2165: trailing whitespace.
++Approve functional, application, data, integration, security, tenancy, reporting, environment, migration, testing, cutover, 
+docs/master-plan/evidence/erp-manual-extracted.txt:2169: trailing whitespace.
++Build a WBS from processes/features plus migration, integration, QA, security, training, project management, cutover, 
+docs/master-plan/evidence/erp-manual-extracted.txt:2170: trailing whitespace.
++hypercare and contingency. Separate one-time implementation from recurring subscription/support. Define acceptance and 
+docs/master-plan/evidence/erp-manual-extracted.txt:2173: trailing whitespace.
++Perform sales-to-delivery handover. Establish charter, RACI, RAID, decisions, scope/change log, schedule, meeting cadence, 
+docs/master-plan/evidence/erp-manual-extracted.txt:2176: trailing whitespace.
++Complete domain models, state machines, posting rules, UX, permission/SoD matrix, API contracts, event semantics, 
+docs/master-plan/evidence/erp-manual-extracted.txt:2179: trailing whitespace.
++Deliver vertical slices of working business process. Prefer a complete thin path such as quote -> approval -> order -> 
+docs/master-plan/evidence/erp-manual-extracted.txt:2182: trailing whitespace.
++Run domain/unit, DB, API, integration/contract, UI/component, selected E2E, security, tenant-isolation, migration, performance, 
+docs/master-plan/evidence/erp-manual-extracted.txt:2183: trailing whitespace.
++resilience and regression tests throughout delivery. The relevant vertical playbook adds its own domain invariants and test 
+docs/master-plan/evidence/erp-manual-extracted.txt:2186: trailing whitespace.
++Inventory -> profile -> cleanse -> map -> transform -> load -> reconcile -> correct -> repeat. Financial migrations reconcile 
+docs/master-plan/evidence/erp-manual-extracted.txt:2187: trailing whitespace.
++monetary control totals; inventory reconciles quantity and value; projects reconcile budgets/commitments/actuals; regulated 
+docs/master-plan/evidence/erp-manual-extracted.txt:2190: trailing whitespace.
++Process owners execute scripted real-world scenarios including negative/exception flows. UAT verifies the future business 
+docs/master-plan/evidence/erp-manual-extracted.txt:2197: trailing whitespace.
++Train by role and event/process. Validate super-users, SOPs, support route, access/role provisioning and operational 
+docs/master-plan/evidence/erp-manual-extracted.txt:2200: trailing whitespace.
++Rehearse final migration, integration switch, reconciliation, validation, communications and rollback. Record timing and 
+docs/master-plan/evidence/erp-manual-extracted.txt:2201: trailing whitespace.
++blockers. Formal go-live readiness includes UAT, security/performance, restore capability, monitoring/runbooks and named 
+docs/master-plan/evidence/erp-manual-extracted.txt:2204: trailing whitespace.
++Execute version-controlled runbook, migration/delta load, reconciliations, service activation, smoke tests and business 
+docs/master-plan/evidence/erp-manual-extracted.txt:2207: trailing whitespace.
++Run enhanced monitoring and rapid triage until transaction completion, data reconciliation, integrations, performance, user 
+docs/master-plan/evidence/erp-manual-extracted.txt:2210: trailing whitespace.
++Own incident response, backups/restores, vulnerability/dependency management, cost/capacity, release management, 
+docs/master-plan/evidence/erp-manual-extracted.txt:2213: trailing whitespace.
++Classify recurring customer needs into core, configuration, reusable vertical capability, connector or isolated extension. 
+docs/master-plan/evidence/erp-manual-extracted.txt:2225: trailing whitespace.
++UAT ready stable candidate + representative 
+docs/master-plan/evidence/erp-manual-extracted.txt:2227: trailing whitespace.
++Production ready UAT, migration/cutover rehearsal, security/perf, 
+docs/master-plan/evidence/erp-manual-extracted.txt:2236: trailing whitespace.
++A vertical playbook is the controlled overlay that changes discovery and technical decisions without changing the universal 
+docs/master-plan/evidence/erp-manual-extracted.txt:2260: trailing whitespace.
++A functional SME is not simply a requirements note-taker. The SME supplies the test oracle - the knowledge required to 
+docs/master-plan/evidence/erp-manual-extracted.txt:2269: trailing whitespace.
++• a quantity surveyor/cost engineer determines whether commitments, variations, progress and forecast-to-complete 
+docs/master-plan/evidence/erp-manual-extracted.txt:2271: trailing whitespace.
++• a property manager and real-estate accountant determine how lease charges, deposits, escalations and tenant 
+docs/master-plan/evidence/erp-manual-extracted.txt:2273: trailing whitespace.
++• a healthcare integration specialist determines what should remain in the clinical system and how administrative ERP 
+docs/master-plan/evidence/erp-manual-extracted.txt:2286: trailing whitespace.
++Vendor documentation is useful evidence that a process pattern exists; it is not proof that the vendor’s exact workflow is the 
+docs/master-plan/evidence/erp-manual-extracted.txt:2289: trailing whitespace.
++Before the industry playbooks, the startup should maintain reusable domain playbooks. Most verticals are compositions of 
+docs/master-plan/evidence/erp-manual-extracted.txt:2292: trailing whitespace.
++Core process: accounting policy -> transaction capture/subledgers -> posting -> cash/reconciliation -> period close -> 
+docs/master-plan/evidence/erp-manual-extracted.txt:2293: trailing whitespace.
++statements/analysis. Microsoft’s July 2026 Record-to-Report areas include defining accounting policies, managing cash and 
+docs/master-plan/evidence/erp-manual-extracted.txt:2296: trailing whitespace.
++Core data: legal entity, ledger, chart of accounts, fiscal calendar, currency/rates, dimensions, tax, customer/vendor, bank, 
+docs/master-plan/evidence/erp-manual-extracted.txt:2306: trailing whitespace.
++Development sequence: organizational/ledger model -> chart/dimensions -> journal/posting engine -> AR/AP -> cash/bank -> 
+docs/master-plan/evidence/erp-manual-extracted.txt:2312: trailing whitespace.
++Critical tests: duplicate invoice, closed period, rounding, partial payment, credit memo, reversal, FX gain/loss, cross-entity 
+docs/master-plan/evidence/erp-manual-extracted.txt:2315: trailing whitespace.
++Microsoft’s current Source-to-Pay areas cover procurement strategy, catalogs, supplier relationships, sourcing/contracts, 
+docs/master-plan/evidence/erp-manual-extracted.txt:2318: trailing whitespace.
++Core flow: need -> requisition -> budget/approval -> sourcing/contract -> PO -> receipt/service confirmation -> invoice match 
+docs/master-plan/evidence/erp-manual-extracted.txt:2320: trailing whitespace.
++Critical controls: approval authority, supplier master changes, segregation between request/approve/receive/pay, 
+docs/master-plan/evidence/erp-manual-extracted.txt:2323: trailing whitespace.
++Microsoft’s Inventory-to-Deliver areas cover warehouse operations, inventory levels, inbound, outbound, inventory quality, 
+docs/master-plan/evidence/erp-manual-extracted.txt:2327: trailing whitespace.
++Invariants: stock cannot silently disappear; every quantity/value change has a transaction reason; reservation and physical 
+docs/master-plan/evidence/erp-manual-extracted.txt:2330: trailing whitespace.
++Microsoft’s Plan-to-Produce areas cover production strategy, planning, production operation, outsourcing, quality and 
+docs/master-plan/evidence/erp-manual-extracted.txt:2331: trailing whitespace.
++production costs. [S27] ISA-95/IEC 62264 is important for distinguishing ERP/business planning at Level 4 from MES/MOM 
+docs/master-plan/evidence/erp-manual-extracted.txt:2333: trailing whitespace.
++Core model: item/material, BOM or formula, version, routing/operation, resource/work center, production/batch order, material 
+docs/master-plan/evidence/erp-manual-extracted.txt:2335: trailing whitespace.
++Do not blur boundaries: ERP may own demand, master planning, procurement, costing and production orders while MES 
+docs/master-plan/evidence/erp-manual-extracted.txt:2344: trailing whitespace.
++Core model: project, WBS/task, resource, skill, rate, budget, commitment, time, expense, milestone/deliverable, billing rule, 
+docs/master-plan/evidence/erp-manual-extracted.txt:2346: trailing whitespace.
++Invariants: approved time/expense affects cost once; project revenue/cost is traceable to contract/rules; budget/forecast/actual 
+docs/master-plan/evidence/erp-manual-extracted.txt:2349: trailing whitespace.
++The current Service-to-Deliver model includes service strategy, planning, work management, service delivery and performance 
+docs/master-plan/evidence/erp-manual-extracted.txt:2351: trailing whitespace.
++Core model: customer asset/site, entitlement/service agreement, request/case, work order, task, technician/resource, 
+docs/master-plan/evidence/erp-manual-extracted.txt:2353: trailing whitespace.
++Special technical concerns: mobile/offline, geolocation where justified, dispatch concurrency, parts van stock, signature/photo 
+docs/master-plan/evidence/erp-manual-extracted.txt:2356: trailing whitespace.
++Microsoft’s July 2026 Hire-to-Retire structure covers people strategy, recruiting/onboarding, workplace compliance, 
+docs/master-plan/evidence/erp-manual-extracted.txt:2359: trailing whitespace.
++Core model: worker/person, employment, job, position, department, manager hierarchy, contract, compensation, benefit 
+docs/master-plan/evidence/erp-manual-extracted.txt:2361: trailing whitespace.
++Critical controls: effective dating; joiner/mover/leaver access synchronization; payroll approval; separation between employee 
+docs/master-plan/evidence/erp-manual-extracted.txt:2363: trailing whitespace.
++Important boundary: payroll is jurisdiction-sensitive. The universal product can own the employee/time/compensation model 
+docs/master-plan/evidence/erp-manual-extracted.txt:2370: trailing whitespace.
++Microsoft’s Acquire-to-Dispose areas include asset strategy/policies, plan/budget, acquisition, active asset management, 
+docs/master-plan/evidence/erp-manual-extracted.txt:2371: trailing whitespace.
++financials, maintenance/repair, retirement/disposal and analytics. ISO 55000:2024 frames asset management around lifecycle 
+docs/master-plan/evidence/erp-manual-extracted.txt:2374: trailing whitespace.
++Core model: asset hierarchy, location, equipment/component, meter/counter, condition, failure mode, maintenance strategy, 
+docs/master-plan/evidence/erp-manual-extracted.txt:2376: trailing whitespace.
++Critical tests: preventive trigger, meter rollover, serialized spare issue/return, asset transfer, work-order costing, maintenance 
+docs/master-plan/evidence/erp-manual-extracted.txt:2383: trailing whitespace.
++The following playbooks are not separate SDLCs. Each one adds domain-specific requirements to the universal lifecycle 
+docs/master-plan/evidence/erp-manual-extracted.txt:2384: trailing whitespace.
++in Chapter 40. The “recommended build order” is an engineering/product sequencing recommendation; it should be adapted to 
+docs/master-plan/evidence/erp-manual-extracted.txt:2388: trailing whitespace.
++Wholesale/distribution ERP serves organizations that buy, store, move and resell physical goods. Typical customers include 
+docs/master-plan/evidence/erp-manual-extracted.txt:2389: trailing whitespace.
++importers, distributors, trading companies, spare-parts businesses, multi-warehouse wholesalers and B2B fulfillment 
+docs/master-plan/evidence/erp-manual-extracted.txt:2420: trailing whitespace.
++This maps strongly to Source-to-Pay, Inventory-to-Deliver and Order-to-Cash. Microsoft’s current Inventory-to-Deliver model 
+docs/master-plan/evidence/erp-manual-extracted.txt:2475: trailing whitespace.
++Inventory quantity and inventory value must be modeled separately but reconciled. If financial statements are in scope, define 
+docs/master-plan/evidence/erp-manual-extracted.txt:2477: trailing whitespace.
++average cost formulas for ordinarily interchangeable inventory, while inventory is measured at the lower of cost and net 
+docs/master-plan/evidence/erp-manual-extracted.txt:2497: trailing whitespace.
++GS1 standards are highly relevant where trading partners use standardized identifiers and EDI. GS1 EDI covers master data, 
+docs/master-plan/evidence/erp-manual-extracted.txt:2498: trailing whitespace.
++ordering/delivery, settlement and transport/warehouse management. EPCIS is relevant when event visibility is needed across 
+docs/master-plan/evidence/erp-manual-extracted.txt:2528: trailing whitespace.
++Migrate item/UOM, customers/suppliers, warehouses/bins, opening stock by required control dimension, open POs, open sales 
+docs/master-plan/evidence/erp-manual-extracted.txt:2529: trailing whitespace.
++orders, reserved stock and costing balances. Reconcile quantities and values, then freeze or tightly control movements during 
+docs/master-plan/evidence/erp-manual-extracted.txt:2544: trailing whitespace.
++Retail ERP combines product/merchandising, pricing/promotions, store/online inventory, procurement, fulfillment, settlement 
+docs/master-plan/evidence/erp-manual-extracted.txt:2545: trailing whitespace.
++and finance. A POS, ecommerce storefront or marketplace may be part of the product or an integrated channel. The ERP 
+docs/master-plan/evidence/erp-manual-extracted.txt:2546: trailing whitespace.
++should be designed around a single commercial/inventory truth across channels without assuming every channel is always 
+docs/master-plan/evidence/erp-manual-extracted.txt:2607: trailing whitespace.
++GS1 product identifiers are commonly used across retail, distribution, POS and ecommerce. GS1’s current standards material 
+docs/master-plan/evidence/erp-manual-extracted.txt:2635: trailing whitespace.
++Retail cutover must coordinate product/prices/promotions, opening store/channel inventory, POS/device deployment, 
+docs/master-plan/evidence/erp-manual-extracted.txt:2636: trailing whitespace.
++payment/fiscal certification where required, ecommerce synchronization and operational freeze. Monitor sales feed freshness, 
+docs/master-plan/evidence/erp-manual-extracted.txt:2640: trailing whitespace.
++Discrete manufacturing produces countable units from components, often using BOMs and routings: fabricated parts, 
+docs/master-plan/evidence/erp-manual-extracted.txt:2641: trailing whitespace.
++equipment, furniture, electronics, vehicles/components and machinery. ERP typically owns planning, procurement, inventory, 
+docs/master-plan/evidence/erp-manual-extracted.txt:2642: trailing whitespace.
++production orders, costing and financial integration; MES/MOM may own detailed shop-floor execution. ISA-95 is a useful 
+docs/master-plan/evidence/erp-manual-extracted.txt:2672: trailing whitespace.
++Microsoft’s Plan-to-Produce process areas explicitly include production strategy, planning, running production, outsourcing, 
+docs/master-plan/evidence/erp-manual-extracted.txt:2734: trailing whitespace.
++Migration is harder than ordinary inventory because open production orders may contain issued components, WIP, scheduled 
+docs/master-plan/evidence/erp-manual-extracted.txt:2735: trailing whitespace.
++operations and partial outputs. Decide whether to migrate open orders, finish them in legacy, or convert them at a controlled 
+docs/master-plan/evidence/erp-manual-extracted.txt:2743: trailing whitespace.
++Process manufacturing transforms ingredients through formulas/recipes and batch operations. Quantities may be continuous, 
+docs/master-plan/evidence/erp-manual-extracted.txt:2744: trailing whitespace.
++yields variable, quality attributes material, and co-products/by-products normal. Microsoft’s process-manufacturing 
+docs/master-plan/evidence/erp-manual-extracted.txt:2800: trailing whitespace.
++Formula scaling, partial consumption, potency adjustment, lot substitution, expiry, yield variance, co-product cost allocation, 
+docs/master-plan/evidence/erp-manual-extracted.txt:2811: trailing whitespace.
++Codex’s General Principles of Food Hygiene remains a foundational international food-hygiene/HACCP reference; GS1 
+docs/master-plan/evidence/erp-manual-extracted.txt:2812: trailing whitespace.
++traceability provides standardized identification/event concepts, and U.S. FDA FSMA traceability rules provide a concrete 
+docs/master-plan/evidence/erp-manual-extracted.txt:2813: trailing whitespace.
++example of critical tracking events/key data elements in regulated food chains. Applicability depends on jurisdiction and product. 
+docs/master-plan/evidence/erp-manual-extracted.txt:2862: trailing whitespace.
++Test rework, split lots, merged lots, repacking, returns, quality hold, expiry, label version and recall scope. Treat traceability as a 
+docs/master-plan/evidence/erp-manual-extracted.txt:2865: trailing whitespace.
++Opening stock must carry required lot/expiry/quality attributes. Cutover should not create “anonymous” stock that breaks 
+docs/master-plan/evidence/erp-manual-extracted.txt:2866: trailing whitespace.
++genealogy. Run mock recall/traceability verification before production approval. Production KPIs include yield, giveaway/loss, 
+docs/master-plan/evidence/erp-manual-extracted.txt:2874: trailing whitespace.
++Pharma/life-sciences ERP extends process manufacturing with a controlled quality and validation environment. Regulatory 
+docs/master-plan/evidence/erp-manual-extracted.txt:2875: trailing whitespace.
++requirements depend heavily on jurisdiction, product and the role of the system. FDA Part 11 is relevant where electronic 
+docs/master-plan/evidence/erp-manual-extracted.txt:2876: trailing whitespace.
++records/signatures are subject to FDA predicate rules; FDA Q7 provides GMP guidance for APIs and illustrates the detailed 
+docs/master-plan/evidence/erp-manual-extracted.txt:2878: trailing whitespace.
++The startup must never sell generic “Part 11 compliant” software as a checkbox claim. Compliance depends on intended 
+docs/master-plan/evidence/erp-manual-extracted.txt:2936: trailing whitespace.
++For relevant medical-device production/QMS software, FDA finalized Computer Software Assurance guidance in February 2026 
+docs/master-plan/evidence/erp-manual-extracted.txt:2937: trailing whitespace.
++emphasizing risk-based assurance; do not assume that document directly governs every pharma ERP, but its risk-based 
+docs/master-plan/evidence/erp-manual-extracted.txt:2949: trailing whitespace.
++Define exactly which historical records, master versions, open batches, quality status, signatures/audit history and supporting 
+docs/master-plan/evidence/erp-manual-extracted.txt:2950: trailing whitespace.
++documents must be migrated versus retained read-only in validated legacy. Data migration itself may require approved 
+docs/master-plan/evidence/erp-manual-extracted.txt:2953: trailing whitespace.
++ETO combines sales, engineering, project control, procurement and manufacturing. The product is not fully defined before the 
+docs/master-plan/evidence/erp-manual-extracted.txt:3008: trailing whitespace.
++Project/estimate foundation -> engineering item/BOM revision -> procurement commitments -> project-driven production -> 
+docs/master-plan/evidence/erp-manual-extracted.txt:3010: trailing whitespace.
++The biggest risk is building ordinary make-to-stock production and then bolting project cost on later. ETO requires 
+docs/master-plan/evidence/erp-manual-extracted.txt:3014: trailing whitespace.
++Construction ERP is project controls + procurement/subcontracts + job costing + contracts/change + progress billing + 
+docs/master-plan/evidence/erp-manual-extracted.txt:3115: trailing whitespace.
++to-date, approved/unapproved changes, receivables/payables, retention and forecast. Reconcile each active job as its own 
+docs/master-plan/evidence/erp-manual-extracted.txt:3118: trailing whitespace.
++Committed cost, actual cost, cost variance, cost-to-complete, EAC, margin forecast, change-order aging, billing-to-progress, 
+docs/master-plan/evidence/erp-manual-extracted.txt:3122: trailing whitespace.
++Professional-services ERP or PSA manages sellable expertise: pipeline/contract -> project -> staffing -> time/expense -> 
+docs/master-plan/evidence/erp-manual-extracted.txt:3123: trailing whitespace.
++delivery -> billing -> revenue/margin. Examples include consulting, engineering services, agencies, software implementation 
+docs/master-plan/evidence/erp-manual-extracted.txt:3162: trailing whitespace.
++Core: client, contract, project, WBS/task, resource, skill, calendar, rate card, assignment, timesheet, expense, milestone, 
+docs/master-plan/evidence/erp-manual-extracted.txt:3164: trailing whitespace.
++Recommended sequence: contract/project -> resource/time -> expense -> approvals -> billing -> project accounting -> resource 
+docs/master-plan/evidence/erp-manual-extracted.txt:3175: trailing whitespace.
++Utilization, realization, billable ratio, backlog, project gross margin, forecast variance, DSO, revenue per resource, staffing 
+docs/master-plan/evidence/erp-manual-extracted.txt:3188: trailing whitespace.
++OSCRE’s Industry Data Model is useful evidence of this breadth: it spans over 130 use cases and covers lease administration, 
+docs/master-plan/evidence/erp-manual-extracted.txt:3189: trailing whitespace.
++investment portfolio management, occupancy cost, space/facilities management, valuation/appraisal and property transactions. 
+docs/master-plan/evidence/erp-manual-extracted.txt:3190: trailing whitespace.
++[S43] Commercial platforms such as Yardi similarly combine accounting/property operations with leasing, budgets/forecasts, 
+docs/master-plan/evidence/erp-manual-extracted.txt:3218: trailing whitespace.
++Commercial leasing may add rent-free periods, indexation/escalation, CAM/operating expense recovery, percentage rent, 
+docs/master-plan/evidence/erp-manual-extracted.txt:3271: trailing whitespace.
++OSCRE can be consulted when designing canonical real-estate terminology/data exchange rather than inventing every entity 
+docs/master-plan/evidence/erp-manual-extracted.txt:3274: trailing whitespace.
++Property accounting may require property/entity/dimension-level ledgers, tenant receivables, deposits, recoveries, owner 
+docs/master-plan/evidence/erp-manual-extracted.txt:3275: trailing whitespace.
++reporting and fixed assets. For lessee/occupier lease-accounting functionality under IFRS reporting, IFRS 16 generally requires 
+docs/master-plan/evidence/erp-manual-extracted.txt:3276: trailing whitespace.
++recognition of a right-of-use asset and lease liability for leases longer than 12 months other than specified exemptions; 
+docs/master-plan/evidence/erp-manual-extracted.txt:3320: trailing whitespace.
++Property migration is contract-heavy: properties/units, active leases/amendments, charge schedules, deposits, tenant balances, 
+docs/master-plan/evidence/erp-manual-extracted.txt:3321: trailing whitespace.
++open work orders, owner/entity data, development contracts and buyer collection balances. Validate future scheduled charges 
+docs/master-plan/evidence/erp-manual-extracted.txt:3325: trailing whitespace.
++Healthcare ERP should be deliberately separated from the clinical system of record. The ERP usually manages finance, 
+docs/master-plan/evidence/erp-manual-extracted.txt:3326: trailing whitespace.
++procurement, inventory, workforce, projects, facilities/assets and enterprise reporting. The EHR/EMR manages clinical records 
+docs/master-plan/evidence/erp-manual-extracted.txt:3328: trailing whitespace.
++HL7 FHIR is a current published standard for electronic healthcare data exchange and includes administrative, clinical, 
+docs/master-plan/evidence/erp-manual-extracted.txt:3329: trailing whitespace.
++financial, security, consent, provenance and audit resources. It is therefore relevant to the integration boundary, not evidence 
+docs/master-plan/evidence/erp-manual-extracted.txt:3371: trailing whitespace.
++Hire-to-Retire and Record-to-Report remain standard enterprise processes but typically require healthcare-specific 
+docs/master-plan/evidence/erp-manual-extracted.txt:3385: trailing whitespace.
++GS1 healthcare standards support product identification and production data such as lot, expiration and serial numbers; GTIN 
+docs/master-plan/evidence/erp-manual-extracted.txt:3386: trailing whitespace.
++plus batch/expiry can support traceability from supply chain toward patient delivery when the healthcare process requires it. 
+docs/master-plan/evidence/erp-manual-extracted.txt:3388: trailing whitespace.
++ERP should minimize clinical data replication. If a use case only requires cost-center allocation, do not copy diagnoses or full 
+docs/master-plan/evidence/erp-manual-extracted.txt:3413: trailing whitespace.
++Prioritize supplier/item masters, departmental inventory, open POs/AP, capital assets, maintenance schedules and financial 
+docs/master-plan/evidence/erp-manual-extracted.txt:3414: trailing whitespace.
++balances. Clinical master data should usually remain mastered in clinical platforms and integrated rather than migrated 
+docs/master-plan/evidence/erp-manual-extracted.txt:3418: trailing whitespace.
++maintenance compliance, procurement spend, invoice cycle, asset downtime, payroll/finance close performance and integration 
+docs/master-plan/evidence/erp-manual-extracted.txt:3422: trailing whitespace.
++Higher-education ERP is unusually broad. EDUCAUSE defines higher-ed ERP as an integrated administrative suite that usually 
+docs/master-plan/evidence/erp-manual-extracted.txt:3423: trailing whitespace.
++includes student systems, finance, HR/payroll and planning/data tools. The Student Information System (SIS) covers 
+docs/master-plan/evidence/erp-manual-extracted.txt:3483: trailing whitespace.
++1EdTech’s Edu-API is designed to standardize exchange of higher-education enterprise data among SIS, LMS and campus 
+docs/master-plan/evidence/erp-manual-extracted.txt:3484: trailing whitespace.
++applications, including organizations, courses, enrollments and outcomes. LTI standardizes secure learning-tool integration. 
+docs/master-plan/evidence/erp-manual-extracted.txt:3486: trailing whitespace.
++The startup should prefer open/standard integration contracts where practical rather than building one-off LMS connectors that 
+docs/master-plan/evidence/erp-manual-extracted.txt:3531: trailing whitespace.
++Education migrations can be very historical. Decide whether all historical terms/transcripts move into the new SIS or whether a 
+docs/master-plan/evidence/erp-manual-extracted.txt:3532: trailing whitespace.
++legacy read-only repository remains. Active-student program/curriculum, current enrollment, balances, holds and upcoming 
+docs/master-plan/evidence/erp-manual-extracted.txt:3533: trailing whitespace.
++schedules are usually critical to cutover. Avoid go-live immediately before the highest-volume registration window unless the 
+docs/master-plan/evidence/erp-manual-extracted.txt:3541: trailing whitespace.
++A hotel PMS owns guest/reservation/room/folio operations. Enterprise ERP owns accounting, procurement, AP, budgets, 
+docs/master-plan/evidence/erp-manual-extracted.txt:3542: trailing whitespace.
++assets, projects/CapEx, HR and consolidated reporting. Oracle’s current OPERA Cloud documentation illustrates a PMS 
+docs/master-plan/evidence/erp-manual-extracted.txt:3543: trailing whitespace.
++handling reservation accounts, charges/payments/folios and a broad property-interface ecosystem, while Oracle also provides 
+docs/master-plan/evidence/erp-manual-extracted.txt:3574: trailing whitespace.
++Modern PMS environments may integrate POS, locks, PBX, minibar, payment, building management, Wi-Fi and fiscal systems. 
+docs/master-plan/evidence/erp-manual-extracted.txt:3613: trailing whitespace.
++Hotels operate continuously, so hard freezes are difficult. Use a carefully chosen business-date boundary, control PMS-to-ERP 
+docs/master-plan/evidence/erp-manual-extracted.txt:3617: trailing whitespace.
++3PL ERP combines contract/customer billing with warehouse and transportation execution. A specialized WMS/TMS may be 
+docs/master-plan/evidence/erp-manual-extracted.txt:3618: trailing whitespace.
++integrated rather than rebuilt. The unique ERP requirement is customer-owned inventory, logistics events and 
+docs/master-plan/evidence/erp-manual-extracted.txt:3680: trailing whitespace.
++Contract/customer -> inventory ownership -> inbound/outbound WMS basics -> shipment/transport events -> rating/charge 
+docs/master-plan/evidence/erp-manual-extracted.txt:3683: trailing whitespace.
++Customer A must never transact Customer B-owned stock without authorized ownership change; rating must be reproducible 
+docs/master-plan/evidence/erp-manual-extracted.txt:3684: trailing whitespace.
++from shipment/storage events; event retries are idempotent; POD and delivery status drive billing only according to contract; 
+docs/master-plan/evidence/erp-manual-extracted.txt:3688: trailing whitespace.
++Field-service ERP is centered on distributed work performed at customer sites. It combines customer assets/service contracts, 
+docs/master-plan/evidence/erp-manual-extracted.txt:3689: trailing whitespace.
++work orders, dispatch, mobile execution, parts/labor and billing. Microsoft’s current Service-to-Deliver process provides a 
+docs/master-plan/evidence/erp-manual-extracted.txt:3731: trailing whitespace.
++Customer/site/asset -> request/work order -> schedule/dispatch -> mobile execution -> parts/labor -> completion/evidence -> 
+docs/master-plan/evidence/erp-manual-extracted.txt:3734: trailing whitespace.
++Offline completion and later sync; duplicate sync; reassignment while technician is offline; part reservation/van stock; 
+docs/master-plan/evidence/erp-manual-extracted.txt:3735: trailing whitespace.
++entitlement/warranty; customer-signature integrity; failed payment/invoice; time-zone/daylight/date handling for service 
+docs/master-plan/evidence/erp-manual-extracted.txt:3739: trailing whitespace.
++EAM is deeper than fixed-asset accounting. It manages physical asset performance, maintenance and lifecycle economics. ISO 
+docs/master-plan/evidence/erp-manual-extracted.txt:3803: trailing whitespace.
++Asset/location master -> work request/order -> preventive plan -> labor/spares -> scheduling -> meters/condition -> failure 
+docs/master-plan/evidence/erp-manual-extracted.txt:3815: trailing whitespace.
++Utilities commonly combine enterprise finance/procurement/HCM/EAM with network/GIS, outage/work management, 
+docs/master-plan/evidence/erp-manual-extracted.txt:3816: trailing whitespace.
++customer/meter/billing and field systems. ERP should not automatically absorb GIS, SCADA or meter-data-management 
+docs/master-plan/evidence/erp-manual-extracted.txt:3818: trailing whitespace.
++IEC 61968 addresses application integration at electric utilities/distribution-management level, and IEC 61970/61968 Common 
+docs/master-plan/evidence/erp-manual-extracted.txt:3872: trailing whitespace.
++For an ERP startup, enter utilities through a narrow wedge such as work/asset + procurement/finance integration rather 
+docs/master-plan/evidence/erp-manual-extracted.txt:3875: trailing whitespace.
++Network/asset identity consistency; GIS-to-EAM synchronization; installed/removed serialized equipment; emergency work; 
+docs/master-plan/evidence/erp-manual-extracted.txt:3876: trailing whitespace.
++material issue/return; capitalization; offline field execution; meter/billing volumes if in scope; reconciliation between operational 
+docs/master-plan/evidence/erp-manual-extracted.txt:3884: trailing whitespace.
++Government financial systems often control budget authority and commitment as strongly as accounting cash flows. The 
+docs/master-plan/evidence/erp-manual-extracted.txt:3885: trailing whitespace.
++World Bank describes FMIS as supporting budget formulation/execution, commitment controls, cash/debt/treasury, accounting 
+docs/master-plan/evidence/erp-manual-extracted.txt:3897: trailing whitespace.
++IPSAS can be a reference in jurisdictions adopting or aligning with it; the 2026 IPSASB Handbook is the current compilation as 
+docs/master-plan/evidence/erp-manual-extracted.txt:3914: trailing whitespace.
++The World Bank FMIS handbook specifically identifies budget management, commitment management, payments, fixed assets, 
+docs/master-plan/evidence/erp-manual-extracted.txt:3963: trailing whitespace.
++Public-sector ERP frequently fails when treated as a pure IT project. Budget/accounting reform, procurement rules, 
+docs/master-plan/evidence/erp-manual-extracted.txt:3964: trailing whitespace.
++organizational authority and political/administrative change are part of the implementation. Requirements should therefore be 
+docs/master-plan/evidence/erp-manual-extracted.txt:3972: trailing whitespace.
++Nonprofit/grant ERP combines ordinary finance/projects with restricted funding, sponsor terms, cost allowability, award 
+docs/master-plan/evidence/erp-manual-extracted.txt:3973: trailing whitespace.
++budgets, billing/reimbursement and donor reporting. Oracle’s current Grants Management documentation describes 
+docs/master-plan/evidence/erp-manual-extracted.txt:3974: trailing whitespace.
++awards linked to sponsored projects, award budgets, award costs, sponsor invoicing and revenue, with explicit funding-source 
+docs/master-plan/evidence/erp-manual-extracted.txt:4033: trailing whitespace.
++Finance/project foundation -> award/funding model -> budget/funds control -> cost capture/allocations -> sponsor billing -> 
+docs/master-plan/evidence/erp-manual-extracted.txt:4051: trailing whitespace.
++A startup should choose one. Commodity-trading ERP, for example, is contract/quality/logistics/settlement intensive. SAP’s 
+docs/master-plan/evidence/erp-manual-extracted.txt:4052: trailing whitespace.
++current Agricultural Contract Management documentation describes complex commodity contracts with quality-based pricing 
+docs/master-plan/evidence/erp-manual-extracted.txt:4066: trailing whitespace.
++For farm operations add agronomy, crop planning, field operations, input/harvest and biological/seasonal expertise appropriate 
+docs/master-plan/evidence/erp-manual-extracted.txt:4082: trailing whitespace.
++SAP documents contract capture as defining counterparty, contract period, commodity, quality and tolerance terms that govern 
+docs/master-plan/evidence/erp-manual-extracted.txt:4117: trailing whitespace.
++Counterparty/commodity -> contract/version/approval -> load/receipt/quality -> contract application -> stock/position -> pricing 
+docs/master-plan/evidence/erp-manual-extracted.txt:4128: trailing whitespace.
++Automotive dealer ERP combines serialized vehicle inventory, vehicle sales, trade-in, workshop/service, spare parts, 
+docs/master-plan/evidence/erp-manual-extracted.txt:4129: trailing whitespace.
++warranty and finance. It is different from automotive manufacturing ERP. SAP’s current automotive documentation covers 
+docs/master-plan/evidence/erp-manual-extracted.txt:4130: trailing whitespace.
++vehicle management across procurement, sales, rework, returns, trade-in and service; its Dealer Portal supports vehicle sales, 
+docs/master-plan/evidence/erp-manual-extracted.txt:4159: trailing whitespace.
++SAP’s current vehicle-sales documentation includes procurement from OEM, incoming invoice, quotation, credit-limit check, 
+docs/master-plan/evidence/erp-manual-extracted.txt:4193: trailing whitespace.
++Vehicle master/inventory -> procurement/logistics -> retail quote/sale/delivery -> parts inventory -> workshop/service order -> 
+docs/master-plan/evidence/erp-manual-extracted.txt:4196: trailing whitespace.
++VIN uniqueness; vehicle status prevents double sale; location/ownership traceability; trade-in acquisition and resale costing; 
+docs/master-plan/evidence/erp-manual-extracted.txt:4197: trailing whitespace.
++service part issue/return; warranty versus customer-pay split; recall/campaign identification; OEM interface retry; deal 
+docs/master-plan/evidence/erp-manual-extracted.txt:4201: trailing whitespace.
++Aerospace/MRO ERP is asset- and configuration-intensive. The core concern is maintaining the identity, eligibility, life limits and 
+docs/master-plan/evidence/erp-manual-extracted.txt:4202: trailing whitespace.
++maintenance history of aircraft and serialized/rotable components. SAP aerospace MRO documentation emphasizes ensuring 
+docs/master-plan/evidence/erp-manual-extracted.txt:4203: trailing whitespace.
++airworthiness, tracking components throughout their lifecycle whether installed, stored or in workshop, and managing 
+docs/master-plan/evidence/erp-manual-extracted.txt:4267: trailing whitespace.
++Mining and oil/gas share asset intensity, remote operations, heavy maintenance, projects, procurement and commodity 
+docs/master-plan/evidence/erp-manual-extracted.txt:4268: trailing whitespace.
++production, but oil/gas may add joint venture accounting, production allocation and partner billing. SAP’s mining material 
+docs/master-plan/evidence/erp-manual-extracted.txt:4269: trailing whitespace.
++describes integrated production, commercial and support processes; Oracle’s current Joint Venture Management supports 
+docs/master-plan/evidence/erp-manual-extracted.txt:4296: trailing whitespace.
++asset maintenance + fuel + spares + labor + contractors + projects + procurement + cost 
+docs/master-plan/evidence/erp-manual-extracted.txt:4312: trailing whitespace.
++Start with asset/project/procurement/cost foundation. Add production/quality integration next. Add specialized 
+docs/master-plan/evidence/erp-manual-extracted.txt:4327: trailing whitespace.
++66. Telecommunications / Communications-Service ERP and 
+docs/master-plan/evidence/erp-manual-extracted.txt:4330: trailing whitespace.
++A telecom has enterprise ERP for finance, procurement, assets/projects and HCM, but revenue/customer/network operations 
+docs/master-plan/evidence/erp-manual-extracted.txt:4331: trailing whitespace.
++often live in BSS/OSS. TM Forum’s Open Digital Architecture provides current business, information, implementation and API 
+docs/master-plan/evidence/erp-manual-extracted.txt:4332: trailing whitespace.
++architecture for CSPs; TM Forum Open APIs are designed for interoperable lifecycle management across multi-partner digital 
+docs/master-plan/evidence/erp-manual-extracted.txt:4334: trailing whitespace.
++Oracle Communications BRM is an example of a specialized BSS revenue platform that configures offers/accounts, charges 
+docs/master-plan/evidence/erp-manual-extracted.txt:4367: trailing whitespace.
++Oracle BRM explicitly separates charging, billing, payment processing and customer management and supports 
+docs/master-plan/evidence/erp-manual-extracted.txt:4379: trailing whitespace.
++TM Forum’s current Open API program includes REST, event-driven and domain-specific APIs plus a shared data model, and 
+docs/master-plan/evidence/erp-manual-extracted.txt:4392: trailing whitespace.
++A small ERP startup should usually enter through enterprise ERP integration or a narrow BSS capability, not attempt a 
+docs/master-plan/evidence/erp-manual-extracted.txt:4394: trailing whitespace.
++67. Banking, Insurance and Financial-Services Internal ERP - 
+docs/master-plan/evidence/erp-manual-extracted.txt:4396: trailing whitespace.
++Financial institutions use ERP for enterprise finance, procurement, HCM, assets, projects and expense management. Core 
+docs/master-plan/evidence/erp-manual-extracted.txt:4397: trailing whitespace.
++banking, trading, policy administration, claims, payment switching and risk engines are not ordinary ERP modules. 
+docs/master-plan/evidence/erp-manual-extracted.txt:4398: trailing whitespace.
++Oracle’s current banking documentation, for example, describes a separate core-banking platform for account lifecycle, 
+docs/master-plan/evidence/erp-manual-extracted.txt:4399: trailing whitespace.
++transaction control, deposits, pricing and channel integration, while Oracle’s insurance suite separately handles policy 
+docs/master-plan/evidence/erp-manual-extracted.txt:4400: trailing whitespace.
++administration and claims adjudication. These are useful boundary examples: they show why an ERP provider should integrate 
+docs/master-plan/evidence/erp-manual-extracted.txt:4401: trailing whitespace.
++to specialized financial-services cores rather than silently rebuilding them as ERP submodules. [S68] This distinction is 
+docs/master-plan/evidence/erp-manual-extracted.txt:4402: trailing whitespace.
++strategically important because replacing a bank’s core ledger/transaction platform requires a completely different regulatory 
+docs/master-plan/evidence/erp-manual-extracted.txt:4423: trailing whitespace.
++Treat core platforms as source systems and define controlled summarized or transaction-level interfaces. Do not create a 
+docs/master-plan/evidence/erp-manual-extracted.txt:4426: trailing whitespace.
++source-to-GL completeness, no duplicate interfaces, effective-dated mappings, reconciliation by source batch, restricted 
+docs/master-plan/evidence/erp-manual-extracted.txt:4434: trailing whitespace.
++Industry playbooks change what the ERP does. Deployment overlays change how it is delivered, isolated, upgraded and 
+docs/master-plan/evidence/erp-manual-extracted.txt:4438: trailing whitespace.
++Multiple tenants share application and potentially database resources. Tenant isolation is an explicit security property separate 
+docs/master-plan/evidence/erp-manual-extracted.txt:4439: trailing whitespace.
++from authentication. AWS emphasizes that an authenticated/authorized user can still be cross-tenant unsafe if tenant context is 
+docs/master-plan/evidence/erp-manual-extracted.txt:4468: trailing whitespace.
++AWS documents mixed full-stack pool and silo models in one SaaS service, and Azure describes patterns where some tenants 
+docs/master-plan/evidence/erp-manual-extracted.txt:4473: trailing whitespace.
++Each customer receives dedicated database or full deployment resources, but provider operations remain 
+docs/master-plan/evidence/erp-manual-extracted.txt:4505: trailing whitespace.
++Testing must include fresh install, upgrade from supported versions, backup/restore and degraded dependency cases 
+docs/master-plan/evidence/erp-manual-extracted.txt:4508: trailing whitespace.
++Hybrid means material components remain in different locations, such as cloud ERP with local MES/machines, local fiscal 
+docs/master-plan/evidence/erp-manual-extracted.txt:4521: trailing whitespace.
++SAP defines two-tier ERP as different ERP systems at two organizational levels, commonly a corporate Tier 1 backbone and 
+docs/master-plan/evidence/erp-manual-extracted.txt:4553: trailing whitespace.
++SAP’s current cloud-ERP definition is simply ERP delivered over the internet, typically SaaS. [S64] Cloud does not 
+docs/master-plan/evidence/erp-manual-extracted.txt:4554: trailing whitespace.
++automatically mean microservices, serverless, public multi-tenancy or zero customization. The architecture must be selected 
+docs/master-plan/evidence/erp-manual-extracted.txt:4565: trailing whitespace.
++The opportunity is fast time-to-value. The danger is under-discovery because the project “looks small” while critical 
+docs/master-plan/evidence/erp-manual-extracted.txt:4602: trailing whitespace.
++The startup should not sell an enterprise-global implementation merely because the software can technically create multiple 
+docs/master-plan/evidence/erp-manual-extracted.txt:4608: trailing whitespace.
++Part VIII - Expertise, Market Selection and Reusable Vertical 
+docs/master-plan/evidence/erp-manual-extracted.txt:4611: trailing whitespace.
++ERP type Primary SME(s) Secondary expertise often 
+docs/master-plan/evidence/erp-manual-extracted.txt:4613: trailing whitespace.
++Financial controller/accountant tax, treasury, consolidation posting, close, reconciliation, 
+docs/master-plan/evidence/erp-manual-extracted.txt:4616: trailing whitespace.
++sourcing, approvals, 
+docs/master-plan/evidence/erp-manual-extracted.txt:4617: trailing whitespace.
++match/tolerance, supplier 
+docs/master-plan/evidence/erp-manual-extracted.txt:4619: trailing whitespace.
++Distribution warehouse/logistics demand planning, costing, 
+docs/master-plan/evidence/erp-manual-extracted.txt:4621: trailing whitespace.
++stock-state, fulfillment and 
+docs/master-plan/evidence/erp-manual-extracted.txt:4625: trailing whitespace.
++Discrete manufacturing manufacturing engineer/planner quality, cost accountant, MES BOM/routing/MRP/production 
+docs/master-plan/evidence/erp-manual-extracted.txt:4627: trailing whitespace.
++Process manufacturing process/formulation SME QA/QC, costing formula, batch, yield, lot/quality 
+docs/master-plan/evidence/erp-manual-extracted.txt:4629: trailing whitespace.
++Food food technologist + QA/food safety cold chain, traceability release, shelf-life, allergen/recall 
+docs/master-plan/evidence/erp-manual-extracted.txt:4631: trailing whitespace.
++Pharma/life science QA/regulatory + process SME validation, QC/LIMS, security regulated records, disposition and 
+docs/master-plan/evidence/erp-manual-extracted.txt:4633: trailing whitespace.
++ETO/job shop engineer + project controller procurement, production, 
+docs/master-plan/evidence/erp-manual-extracted.txt:4635: trailing whitespace.
++design change + project/production 
+docs/master-plan/evidence/erp-manual-extracted.txt:4637: trailing whitespace.
++Construction PM + quantity surveyor/cost 
+docs/master-plan/evidence/erp-manual-extracted.txt:4638: trailing whitespace.
++engineer contracts, project accounting, field WBS, commitments, variations, 
+docs/master-plan/evidence/erp-manual-extracted.txt:4640: trailing whitespace.
++Professional services service ops + project accountant resource manager, HR utilization, rate, project billing and 
+docs/master-plan/evidence/erp-manual-extracted.txt:4642: trailing whitespace.
++Real estate property manager + RE accountant leasing, facilities, 
+docs/master-plan/evidence/erp-manual-extracted.txt:4644: trailing whitespace.
++lease/charge/property/tenant 
+docs/master-plan/evidence/erp-manual-extracted.txt:4646: trailing whitespace.
++Healthcare health admin + supply chain/health 
+docs/master-plan/evidence/erp-manual-extracted.txt:4647: trailing whitespace.
++IT biomedical, privacy, finance clinical-system boundary, 
+docs/master-plan/evidence/erp-manual-extracted.txt:4649: trailing whitespace.
++Higher education registrar/academic admin bursar, admissions, LMS 
+docs/master-plan/evidence/erp-manual-extracted.txt:4651: trailing whitespace.
++curriculum/term/student-lifecycle 
+docs/master-plan/evidence/erp-manual-extracted.txt:4655: trailing whitespace.
++3PL/logistics warehouse + transport EDI, contract rating, billing ownership/event/rating/POD 
+docs/master-plan/evidence/erp-manual-extracted.txt:4657: trailing whitespace.
++Field service service manager/technician mobile/offline, inventory dispatch/work/parts/evidence 
+docs/master-plan/evidence/erp-manual-extracted.txt:4659: trailing whitespace.
++EAM reliability/maintenance engineer spares, fixed assets asset hierarchy, maintenance 
+docs/master-plan/evidence/erp-manual-extracted.txt:4661: trailing whitespace.
++Utilities utility ops/asset + GIS meter/CIS, field, regulatory finance network/asset/system-of-record 
+docs/master-plan/evidence/erp-manual-extracted.txt:4663: trailing whitespace.
++Government public finance/budget procurement, treasury, audit appropriations/commitments/fiscal 
+docs/master-plan/evidence/erp-manual-extracted.txt:4665: trailing whitespace.
++Nonprofit/grants fund/grant accountant program manager, sponsor restrictions, allowability, award 
+docs/master-plan/evidence/erp-manual-extracted.txt:4670: trailing whitespace.
++ERP type Primary SME(s) Secondary expertise often 
+docs/master-plan/evidence/erp-manual-extracted.txt:4673: trailing whitespace.
++Agriculture/commodity trader/origination + quality logistics, settlement, risk contract/quality/load/settlement 
+docs/master-plan/evidence/erp-manual-extracted.txt:4675: trailing whitespace.
++Automotive dealer dealer sales/service/parts warranty/OEM integration VIN lifecycle, workshop, warranty, 
+docs/master-plan/evidence/erp-manual-extracted.txt:4677: trailing whitespace.
++Aerospace/MRO aviation maintenance/technical 
+docs/master-plan/evidence/erp-manual-extracted.txt:4678: trailing whitespace.
++records quality, rotables, planning configuration, life limits, 
+docs/master-plan/evidence/erp-manual-extracted.txt:4680: trailing whitespace.
++Mining/oil-gas operations + asset/project JV accountant, production reporting remote assets/production/JV 
+docs/master-plan/evidence/erp-manual-extracted.txt:4682: trailing whitespace.
++Telecom telecom BSS/OSS or enterprise 
+docs/master-plan/evidence/erp-manual-extracted.txt:4684: trailing whitespace.
++TM Forum, charging/billing, 
+docs/master-plan/evidence/erp-manual-extracted.txt:4686: trailing whitespace.
++system-boundary and high-volume 
+docs/master-plan/evidence/erp-manual-extracted.txt:4703: trailing whitespace.
++The staffing ratio changes by vertical. Regulated pharma needs proportionally more QA/validation; 3PL/telecom need more 
+docs/master-plan/evidence/erp-manual-extracted.txt:4704: trailing whitespace.
++integration; field service needs mobile expertise; manufacturing needs domain/plant integration; enterprise SaaS needs more 
+docs/master-plan/evidence/erp-manual-extracted.txt:4707: trailing whitespace.
++The following is a founder planning heuristic, not an industry ranking. It helps decide where a new ERP provider should 
+docs/master-plan/evidence/erp-manual-extracted.txt:4709: trailing whitespace.
++Vertical Domain complexity Integration intensity Regulatory/control 
+docs/master-plan/evidence/erp-manual-extracted.txt:4711: trailing whitespace.
++Data/migration 
+docs/master-plan/evidence/erp-manual-extracted.txt:4713: trailing whitespace.
++Startup entry 
+docs/master-plan/evidence/erp-manual-extracted.txt:4716: trailing whitespace.
++strong early wedge if 
+docs/master-plan/evidence/erp-manual-extracted.txt:4717: trailing whitespace.
++team understands 
+docs/master-plan/evidence/erp-manual-extracted.txt:4720: trailing whitespace.
++strong wedge with 
+docs/master-plan/evidence/erp-manual-extracted.txt:4721: trailing whitespace.
++good 
+docs/master-plan/evidence/erp-manual-extracted.txt:4722: trailing whitespace.
++warehouse/inventory 
+docs/master-plan/evidence/erp-manual-extracted.txt:4725: trailing whitespace.
++strong if 
+docs/master-plan/evidence/erp-manual-extracted.txt:4726: trailing whitespace.
++mobile/service 
+docs/master-plan/evidence/erp-manual-extracted.txt:4732: trailing whitespace.
++Vertical Domain complexity Integration intensity Regulatory/control 
+docs/master-plan/evidence/erp-manual-extracted.txt:4734: trailing whitespace.
++Data/migration 
+docs/master-plan/evidence/erp-manual-extracted.txt:4736: trailing whitespace.
++Startup entry 
+docs/master-plan/evidence/erp-manual-extracted.txt:4738: trailing whitespace.
++Property management high medium medium-high high contract data strong niche with 
+docs/master-plan/evidence/erp-manual-extracted.txt:4740: trailing whitespace.
++Construction high medium-high high commercial 
+docs/master-plan/evidence/erp-manual-extracted.txt:4742: trailing whitespace.
++high active-project 
+docs/master-plan/evidence/erp-manual-extracted.txt:4744: trailing whitespace.
++good niche, requires 
+docs/master-plan/evidence/erp-manual-extracted.txt:4746: trailing whitespace.
++Retail high high medium-high 
+docs/master-plan/evidence/erp-manual-extracted.txt:4748: trailing whitespace.
++enter through specific 
+docs/master-plan/evidence/erp-manual-extracted.txt:4749: trailing whitespace.
++retail model, not all 
+docs/master-plan/evidence/erp-manual-extracted.txt:4751: trailing whitespace.
++Discrete 
+docs/master-plan/evidence/erp-manual-extracted.txt:4753: trailing whitespace.
++requires 
+docs/master-plan/evidence/erp-manual-extracted.txt:4754: trailing whitespace.
++manufacturing SME 
+docs/master-plan/evidence/erp-manual-extracted.txt:4755: trailing whitespace.
++and longer product 
+docs/master-plan/evidence/erp-manual-extracted.txt:4757: trailing whitespace.
++Food/process very high high high quality/traceability high lot/WIP niche only with 
+docs/master-plan/evidence/erp-manual-extracted.txt:4760: trailing whitespace.
++not first vertical 
+docs/master-plan/evidence/erp-manual-extracted.txt:4761: trailing whitespace.
++without experienced 
+docs/master-plan/evidence/erp-manual-extracted.txt:4763: trailing whitespace.
++Healthcare very high very high very high 
+docs/master-plan/evidence/erp-manual-extracted.txt:4766: trailing whitespace.
++office ERP/integration 
+docs/master-plan/evidence/erp-manual-extracted.txt:4769: trailing whitespace.
++long 
+docs/master-plan/evidence/erp-manual-extracted.txt:4770: trailing whitespace.
++procurement/change 
+docs/master-plan/evidence/erp-manual-extracted.txt:4771: trailing whitespace.
++cycle; 
+docs/master-plan/evidence/erp-manual-extracted.txt:4772: trailing whitespace.
++domain/governance 
+docs/master-plan/evidence/erp-manual-extracted.txt:4774: trailing whitespace.
++Utilities very high very high very high very high narrow asset/work 
+docs/master-plan/evidence/erp-manual-extracted.txt:4777: trailing whitespace.
++narrow 
+docs/master-plan/evidence/erp-manual-extracted.txt:4778: trailing whitespace.
++ERP/integration/BSS 
+docs/master-plan/evidence/erp-manual-extracted.txt:4780: trailing whitespace.
++Aerospace MRO very high high very high 
+docs/master-plan/evidence/erp-manual-extracted.txt:4781: trailing whitespace.
++safety/records very high only with aviation 
+docs/master-plan/evidence/erp-manual-extracted.txt:4936: trailing whitespace.
++73. How to Use the General Template and Specific Playbooks 
+docs/master-plan/evidence/erp-manual-extracted.txt:4976: trailing whitespace.
++This compositional method is the recommended operating model for the startup because it maximizes repeatability without 
+docs/master-plan/evidence/erp-manual-extracted.txt:4983: trailing whitespace.
++The manual uses human-readable source IDs so a process, control or vertical statement can be traced without interrupting the operational 
+docs/master-plan/evidence/erp-manual-extracted.txt:4984: trailing whitespace.
++templates. The hierarchy used when sources conflict is: law/regulator/mandatory standard -> recognized accounting/industry standard -> 
+docs/master-plan/evidence/erp-manual-extracted.txt:4985: trailing whitespace.
++official interoperability/data model -> mature implementation methodology -> mature product/vendor documentation -> customer 
+docs/master-plan/evidence/erp-manual-extracted.txt:4986: trailing whitespace.
++SOP/SME evidence -> startup heuristic. Vendor documentation is evidence that a process boundary or pattern exists; it is not treated as a 
+docs/master-plan/evidence/erp-manual-extracted.txt:4989: trailing whitespace.
++[S1] Microsoft Learn. “Base the implementation lifecycle on your business processes.” Current process-focused Dynamics 365 
+docs/master-plan/evidence/erp-manual-extracted.txt:4990: trailing whitespace.
++implementation guidance; lifecycle Discover -> Initiate -> Implement -> Prepare -> Operate. 
+docs/master-plan/evidence/erp-manual-extracted.txt:4992: trailing whitespace.
++[S2] Microsoft Learn. “Optimize your implementation by using fit-to-standard and fit-gap analysis.” Updated 3 February 2026. 
+docs/master-plan/evidence/erp-manual-extracted.txt:4994: trailing whitespace.
++[S3] SAP Learning. SAP Activate Methodology: Discover, Prepare, Explore, Realize, Deploy, Run; fit-to-standard in Explore and controlled 
+docs/master-plan/evidence/erp-manual-extracted.txt:4997: trailing whitespace.
++[S4] ISO. ISO/IEC/IEEE 12207:2026, Systems and software engineering - Software life cycle processes. 
+docs/master-plan/evidence/erp-manual-extracted.txt:4999: trailing whitespace.
++[S5] ISO. ISO/IEC/IEEE 29148:2018, Life cycle processes - Requirements engineering; the 2018 edition remains published while a revision is 
+docs/master-plan/evidence/erp-manual-extracted.txt:5001: trailing whitespace.
++[S6] Microsoft Learn. Dynamics 365 implementation guidance library: process-focused design, solution architecture, testing, migration, 
+docs/master-plan/evidence/erp-manual-extracted.txt:5005: trailing whitespace.
++[S8] NIST. SP 800-218 Secure Software Development Framework (SSDF) Version 1.1, Final; NIST also lists the 1.2 work as draft at the 
+docs/master-plan/evidence/erp-manual-extracted.txt:5008: trailing whitespace.
++[S10] AWS. SaaS Architecture Fundamentals - tenant isolation as a distinct property from authentication/authorization. 
+docs/master-plan/evidence/erp-manual-extracted.txt:5010: trailing whitespace.
++[S11] Microsoft Azure Architecture Center. Multitenant/SaaS architecture and tenant resource mapping guidance. 
+docs/master-plan/evidence/erp-manual-extracted.txt:5020: trailing whitespace.
++[S19] Bureau of Internal Revenue, Philippines. Secondary registration and application pathways for computerized accounting 
+docs/master-plan/evidence/erp-manual-extracted.txt:5022: trailing whitespace.
++[S20] Bureau of Internal Revenue, Philippines. Revenue Memorandum Order No. 9-2021 and current Citizen’s Charter materials on 
+docs/master-plan/evidence/erp-manual-extracted.txt:5024: trailing whitespace.
++[S21] Bureau of Internal Revenue, Philippines. Revenue Regulations No. 11-2025 and Electronic Invoicing System materials concerning 
+docs/master-plan/evidence/erp-manual-extracted.txt:5026: trailing whitespace.
++[S22] National Privacy Commission, Philippines. Implementing Rules and Regulations of RA 10173, including safeguards and contractual 
+docs/master-plan/evidence/erp-manual-extracted.txt:5033: trailing whitespace.
++[S23] Microsoft Learn. July 2026 Dynamics 365 Business Process Catalog release and catalog overview. The July 2026 catalog contains 
+docs/master-plan/evidence/erp-manual-extracted.txt:5034: trailing whitespace.
++6,834 rows: 15 L1 end-to-end processes, 94 L2 process areas, 677 L3 processes, 3,592 L4 scenarios, 827 L5 system processes and 1,628 L6 
+docs/master-plan/evidence/erp-manual-extracted.txt:5035: trailing whitespace.
++test cases. https://learn.microsoft.com/en-us/dynamics365/guidance/business-processes/about-whats-new-2026-july and 
+docs/master-plan/evidence/erp-manual-extracted.txt:5043: trailing whitespace.
++[S27] Microsoft Learn. Plan-to-Produce business process areas and production domain framing. 
+docs/master-plan/evidence/erp-manual-extracted.txt:5049: trailing whitespace.
++[S30] Microsoft Learn. Hire-to-Retire end-to-end process and business-process areas. 
+docs/master-plan/evidence/erp-manual-extracted.txt:5054: trailing whitespace.
++[S32] ISA. ISA-95 / IEC 62264 enterprise-control system integration; useful Level 4 ERP/business-planning versus Level 3 MOM/MES 
+docs/master-plan/evidence/erp-manual-extracted.txt:5056: trailing whitespace.
++[S33] IFRS Foundation. IAS 2 Inventories: cost formulas, measurement and net-realizable-value concepts used as an accounting reference 
+docs/master-plan/evidence/erp-manual-extracted.txt:5058: trailing whitespace.
++[S34] GS1. GS1 barcode/identification standards and current retail 2D-barcode implementation guidance; GTIN, batch/lot, serial and expiry 
+docs/master-plan/evidence/erp-manual-extracted.txt:5060: trailing whitespace.
++[S35] GS1. GS1 Electronic Data Interchange standards for master data, orders/delivery, settlement, transport and warehouse messaging. 
+docs/master-plan/evidence/erp-manual-extracted.txt:5062: trailing whitespace.
++[S36] GS1. EPCIS event-visibility standard for interoperable “what, when, where, why/how” supply-chain event data. 
+docs/master-plan/evidence/erp-manual-extracted.txt:5064: trailing whitespace.
++[S37] U.S. FDA. 21 CFR Part 11 guidance on electronic records/electronic signatures in scope of FDA predicate rules. 
+docs/master-plan/evidence/erp-manual-extracted.txt:5067: trailing whitespace.
++[S38] U.S. FDA. Q7 Good Manufacturing Practice Guidance for Active Pharmaceutical Ingredients; batch, material, equipment, laboratory, 
+docs/master-plan/evidence/erp-manual-extracted.txt:5074: trailing whitespace.
++[S69] U.S. FDA. Food Traceability Final Rule. It defines Critical Tracking Events, Key Data Elements and traceability-lot-code requirements for 
+docs/master-plan/evidence/erp-manual-extracted.txt:5075: trailing whitespace.
++covered foods; as of September 2026 FDA notes the Congressional direction not to enforce before 20 July 2028. 
+docs/master-plan/evidence/erp-manual-extracted.txt:5077: trailing whitespace.
++[S70] U.S. FDA. Computer Software Assurance for Production and Quality Management System Software, Final Guidance, February 2026; 
+docs/master-plan/evidence/erp-manual-extracted.txt:5085: trailing whitespace.
++[S41] AACE International. Recommended-practice material on work breakdown structures and project controls. 
+docs/master-plan/evidence/erp-manual-extracted.txt:5087: trailing whitespace.
++[S42] AACE International. Recommended Practice 17R-97, Cost Estimate Classification System. 
+docs/master-plan/evidence/erp-manual-extracted.txt:5089: trailing whitespace.
++[S43] OSCRE International. Industry Data Model / toolkit for real-estate data and use cases including lease administration, occupancy/space, 
+docs/master-plan/evidence/erp-manual-extracted.txt:5091: trailing whitespace.
++[S44] Yardi. Current product portfolio used as mature-market evidence of the breadth of property ERP: accounting/property operations, leasing, 
+docs/master-plan/evidence/erp-manual-extracted.txt:5093: trailing whitespace.
++[S45] IFRS Foundation. IFRS 16 Leases, used as the financial-reporting reference for lessee lease-accounting capabilities where IFRS 
+docs/master-plan/evidence/erp-manual-extracted.txt:5096: trailing whitespace.
++[S46] HL7. HL7 FHIR R5 (5.0.0), current published FHIR version at the research date; standard for health-care data exchange, including 
+docs/master-plan/evidence/erp-manual-extracted.txt:5098: trailing whitespace.
++[S47] GS1. Healthcare standards for standardized identification and traceability of products/locations, including GTIN, lot/batch, serial and 
+docs/master-plan/evidence/erp-manual-extracted.txt:5100: trailing whitespace.
++[S48] EDUCAUSE. Higher-education analytics/survey glossary definitions for ERP and Student Information Systems, used to distinguish the 
+docs/master-plan/evidence/erp-manual-extracted.txt:5102: trailing whitespace.
++[S49] 1EdTech Consortium. Edu-API for standardized higher-education enterprise data exchange and LTI 1.3 for secure learning-tool 
+docs/master-plan/evidence/erp-manual-extracted.txt:5104: trailing whitespace.
++[S50] Oracle Hospitality. OPERA Cloud property-interface and OHIP integration documentation; evidence of PMS boundaries and integrations 
+docs/master-plan/evidence/erp-manual-extracted.txt:5105: trailing whitespace.
++with POS, payments, locks, PBX, minibar, building-management and other hotel systems. 
+docs/master-plan/evidence/erp-manual-extracted.txt:5107: trailing whitespace.
++[S67] Oracle Hospitality. OPERA Cloud billing/folio/AR documentation and financial-interface material, used to distinguish guest-folio/PMS 
+docs/master-plan/evidence/erp-manual-extracted.txt:5110: trailing whitespace.
++[S51] ISO. ISO 55000:2024, Asset management - vocabulary, overview and principles; lifecycle value and organizational-objective framing. 
+docs/master-plan/evidence/erp-manual-extracted.txt:5112: trailing whitespace.
++[S52] IEC. IEC 61968-11 / Common Information Model (CIM) for electric-utility distribution/enterprise information exchange. 
+docs/master-plan/evidence/erp-manual-extracted.txt:5114: trailing whitespace.
++[S53] World Bank. Financial Management Information Systems (FMIS) resources and practitioner handbook covering budget 
+docs/master-plan/evidence/erp-manual-extracted.txt:5115: trailing whitespace.
++formulation/execution, commitment controls, treasury/cash, accounting, reconciliation and reporting. 
+docs/master-plan/evidence/erp-manual-extracted.txt:5116: trailing whitespace.
++https://www.worldbank.org/en/topic/governance/brief/financial-management-information-systems-fmis and 
+docs/master-plan/evidence/erp-manual-extracted.txt:5119: trailing whitespace.
++[S54] IPSASB. 2026 Handbook of International Public Sector Accounting Standards Board Pronouncements, published 17 August 2026 and 
+docs/master-plan/evidence/erp-manual-extracted.txt:5122: trailing whitespace.
++[S55] Oracle. Current Grants Management documentation: awards, sponsored projects, award budgets/costs, sponsor invoicing/revenue and 
+docs/master-plan/evidence/erp-manual-extracted.txt:5125: trailing whitespace.
++[S71] Oracle Utilities. Work and Asset Management integration documentation, including ERP and GIS integration patterns, used as 
+docs/master-plan/evidence/erp-manual-extracted.txt:5126: trailing whitespace.
++contemporary utility-integration examples. https://www.oracle.com/utilities/products/work-and-asset-cloud/ and 
+docs/master-plan/evidence/erp-manual-extracted.txt:5129: trailing whitespace.
++[S56] SAP. Agricultural Contract Management documentation: commodity contracts, quality/tolerances, deliveries, application, 
+docs/master-plan/evidence/erp-manual-extracted.txt:5135: trailing whitespace.
++[S57] SAP. Automotive Vehicle Management / dealer-facing documentation: vehicle procurement/sales, trade-in, rework/returns, parts and 
+docs/master-plan/evidence/erp-manual-extracted.txt:5137: trailing whitespace.
++[S58] SAP. Aerospace & Defense / maintenance-service processing documentation: serialized/rotable component lifecycle and 
+docs/master-plan/evidence/erp-manual-extracted.txt:5140: trailing whitespace.
++[S59] SAP. Mining industry solution documentation, used as integrated production/commercial/support process evidence. 
+docs/master-plan/evidence/erp-manual-extracted.txt:5142: trailing whitespace.
++[S60] Oracle. Joint Venture Management documentation, including operational measures/states, distributions and joint-interest reporting 
+docs/master-plan/evidence/erp-manual-extracted.txt:5144: trailing whitespace.
++[S61] TM Forum. Open Digital Architecture and Open APIs for communications-service providers. Current materials describe REST-based 
+docs/master-plan/evidence/erp-manual-extracted.txt:5145: trailing whitespace.
++interoperable APIs, shared data model/API governance; REST API Design Guidelines v5.0.0 were approved 23 July 2026 and Open API Map 
+docs/master-plan/evidence/erp-manual-extracted.txt:5146: trailing whitespace.
++v26.0 on 6 September 2026. https://www.tmforum.org/oda/about-oda and 
+docs/master-plan/evidence/erp-manual-extracted.txt:5148: trailing whitespace.
++[S62] Oracle Communications. Billing and Revenue Management (BRM), used as boundary evidence for specialized BSS charging, billing, 
+docs/master-plan/evidence/erp-manual-extracted.txt:5152: trailing whitespace.
++[S68] Oracle. Oracle Banking Current and Savings Account Cloud Service and Oracle Health Insurance Cloud Services. The former is explicitly 
+docs/master-plan/evidence/erp-manual-extracted.txt:5153: trailing whitespace.
++a core-banking platform for account lifecycle/transaction/deposit operations and channel integration; the latter supports policy administration 
+docs/master-plan/evidence/erp-manual-extracted.txt:5154: trailing whitespace.
++and claims adjudication. These sources are used to establish specialized-core boundaries, not to recommend Oracle. 
+docs/master-plan/evidence/erp-manual-extracted.txt:5155: trailing whitespace.
++https://docs.oracle.com/en/industries/financial-services/current-savings-account-cloud/index.html and 
+docs/master-plan/evidence/erp-manual-extracted.txt:5157: trailing whitespace.
++[S63] SAP. Two-tier ERP concept: different ERP systems at corporate Tier 1 and subsidiary/regional Tier 2 levels. 
+docs/master-plan/evidence/erp-manual-extracted.txt:5159: trailing whitespace.
++[S64] SAP. Cloud ERP overview, used only for delivery-model terminology rather than as an architecture prescription. 
+docs/master-plan/evidence/erp-manual-extracted.txt:5161: trailing whitespace.
++[S65] Microsoft Azure Architecture Center. Multitenant solution tenancy models, including shared and dedicated deployment-stamp 
+docs/master-plan/evidence/erp-manual-extracted.txt:5163: trailing whitespace.
++[S66] AWS. SaaS Lens / SaaS Architecture Fundamentals on silo, pool and bridge resource models and explicit tenant isolation. 
+docs/master-plan/evidence/erp-manual-extracted.txt:5164: trailing whitespace.
++https://docs.aws.amazon.com/wellarchitected/latest/saas-lens/silo-pool-and-bridge-models.html and 
+docs/master-plan/evidence/erp-manual-extracted.txt:5170: trailing whitespace.
++• mature implementation/vendor evidence - useful for process patterns, interfaces and product boundaries but not automatically 
+docs/master-plan/evidence/erp-manual-extracted.txt:5172: trailing whitespace.
++• startup operating judgment - recommended sequencing, scoring, staffing, architecture and commercial heuristics that must be 
+docs/master-plan/evidence/erp-manual-extracted.txt:5174: trailing whitespace.
++Versions, tax/e-invoicing rules, security standards, cloud services, healthcare/education/telecom interoperability specifications and sector 
+docs/master-plan/evidence/pnpm-build-original.txt:10: trailing whitespace.
++⚠ Invalid next.config.ts options detected: 
+docs/master-plan/evidence/pnpm-build-original.txt:35: space before tab in indent.
++  	- include was updated to add '.next/dev/types/**/*.ts'
+docs/master-plan/evidence/pnpm-build-original.txt:39: space before tab in indent.
++  	- jsx was set to react-jsx (next.js uses the React automatic runtime)
+docs/master-plan/evidence/pnpm-lint.txt:17: trailing whitespace.
++Referenced from: 
+docs/master-plan/evidence/probe-hydration.cjs:5: new blank line at EOF.
+docs/state/evidence/G0-build-latest.txt:24: trailing whitespace.
++  Generating static pages using 15 workers (7/28) 
+docs/state/evidence/G0-build-latest.txt:25: trailing whitespace.
++  Generating static pages using 15 workers (14/28) 
+docs/state/evidence/G0-build-latest.txt:26: trailing whitespace.
++  Generating static pages using 15 workers (21/28) 
+docs/state/evidence/G0-build-latest.txt:66: new blank line at EOF.
+docs/state/evidence/G0-verify-candidate.txt:51: new blank line at EOF.
+docs/state/evidence/G0-verify-final.txt:52: new blank line at EOF.
+docs/state/evidence/G0-verify-latest.txt:51: new blank line at EOF.
+docs/state/evidence/MP-02-build.txt:24: trailing whitespace.
++  Generating static pages using 15 workers (7/28) 
+docs/state/evidence/MP-02-build.txt:25: trailing whitespace.
++  Generating static pages using 15 workers (14/28) 
+docs/state/evidence/MP-02-build.txt:26: trailing whitespace.
++  Generating static pages using 15 workers (21/28) 
+docs/state/evidence/MP-02-build.txt:66: new blank line at EOF.
+docs/state/evidence/MP-02-protected-null-guards.patch:4: trailing whitespace.
++ 
+docs/state/evidence/MP-02-protected-null-guards.patch:14: trailing whitespace.
++ 
+docs/state/evidence/MP-02-protected-null-guards.patch:34: trailing whitespace.
++ 
+docs/state/evidence/MP-02-protected-null-guards.patch:44: trailing whitespace.
++ 
+docs/state/evidence/MP-02-reporting-integration.txt:10: new blank line at EOF.
+docs/state/evidence/MP-02-verify.txt:45: new blank line at EOF.
+docs/state/evidence/MP-03-e2e-types.txt:5: new blank line at EOF.
+docs/state/evidence/MP-03-journeys-latest.txt:90: trailing whitespace.
++  1) [phone] › tests\e2e\bazaar-offline.spec.ts:6:5 › OFFLINE-01 one real sale survives reload and requires its acknowledgment 
+docs/state/evidence/MP-03-journeys-latest.txt:526: trailing whitespace.
++  18) [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-notifications direct URL retains Notifications 
+docs/state/evidence/MP-03-journeys-latest.txt:578: trailing whitespace.
++  20) [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-checkout direct URL retains Customer checkout 
+docs/state/evidence/MP-03-journeys-latest.txt:604: trailing whitespace.
++  21) [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-status direct URL retains Customer order status 
+docs/state/evidence/MP-03-journeys-latest.txt:735: trailing whitespace.
++    [phone] › tests\e2e\bazaar-offline.spec.ts:6:5 › OFFLINE-01 one real sale survives reload and requires its acknowledgment 
+docs/state/evidence/MP-03-journeys-latest.txt:755: trailing whitespace.
++    [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-status direct URL retains Customer order status 
+docs/state/evidence/MP-03-journeys.txt:93: trailing whitespace.
++  1) [phone] › tests\e2e\bazaar-offline.spec.ts:6:5 › OFFLINE-01 one real sale survives reload and requires its acknowledgment 
+docs/state/evidence/MP-03-journeys.txt:559: trailing whitespace.
++  19) [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-notifications direct URL retains Notifications 
+docs/state/evidence/MP-03-journeys.txt:611: trailing whitespace.
++  21) [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-checkout direct URL retains Customer checkout 
+docs/state/evidence/MP-03-journeys.txt:637: trailing whitespace.
++  22) [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-status direct URL retains Customer order status 
+docs/state/evidence/MP-03-journeys.txt:768: trailing whitespace.
++    [phone] › tests\e2e\bazaar-offline.spec.ts:6:5 › OFFLINE-01 one real sale survives reload and requires its acknowledgment 
+docs/state/evidence/MP-03-journeys.txt:789: trailing whitespace.
++    [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-status direct URL retains Customer order status 
+docs/state/evidence/baseline-build.txt:10: trailing whitespace.
++⚠ Invalid next.config.ts options detected: 
+docs/state/evidence/baseline-build.txt:35: space before tab in indent.
++  	- include was updated to add '.next/dev/types/**/*.ts'
+docs/state/evidence/baseline-build.txt:39: space before tab in indent.
++  	- jsx was set to react-jsx (next.js uses the React automatic runtime)
+docs/state/evidence/baseline-lint.txt:17: trailing whitespace.
++Referenced from: 
+docs/state/evidence/lifecycle-setup.txt:4: trailing whitespace.
++.../node_modules/core-js-pure postinstall: > https://opencollective.com/core-js 
+docs/state/evidence/lifecycle-setup.txt:5: trailing whitespace.
++.../node_modules/core-js-pure postinstall: > https://patreon.com/zloirock 
+docs/state/evidence/lifecycle-setup.txt:6: trailing whitespace.
++.../node_modules/core-js-pure postinstall: > https://boosty.to/zloirock 
+docs/state/evidence/lifecycle-setup.txt:7: trailing whitespace.
++.../node_modules/core-js-pure postinstall: > bitcoin: bc1qlea7544qtsmj2rayg0lthvza9fau63ux0fstcz 
+docs/state/evidence/lifecycle-setup.txt:8: trailing whitespace.
++.../node_modules/core-js-pure postinstall: I highly recommend reading this: https://github.com/zloirock/core-js/blob/master/docs/2023-02-14-so-whats-next.md 
+docs/state/evidence/lifecycle-setup.txt:23: new blank line at EOF.
+docs/state/evidence/vercel-build-failure.txt:13: trailing whitespace.
++2026-09-08T20:56:28.954Z  
+docs/state/evidence/vercel-build-failure.txt:15: trailing whitespace.
++2026-09-08T20:56:28.954Z  
+docs/state/evidence/vercel-build-failure.txt:18: trailing whitespace.
++2026-09-08T20:56:28.954Z  

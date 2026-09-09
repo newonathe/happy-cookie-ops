@@ -1,0 +1,10 @@
+node_modules
+.next
+.git
+coverage
+playwright-report
+storybook-static
+tests
+docs
+.env*
+!.env.example

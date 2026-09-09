@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "progress_authority": "docs/state/task-status.json",
+  "catalog_role": "planned scope only; generated files retain historical planned status",
+  "packages": {
+    "MP-00": {
+      "status": "in_progress",
+      "slices": {
+        "a": "provenance and copy verified"
+      }
+    },
+    "MP-01": {
+      "status": "complete"
+    },
+    "MP-02": {
+      "status": "complete"
+    },
+    "MP-03": {
+      "status": "in_progress",
+      "blockers": [
+        "Docker visual candidate comparison and approval pending",
+        "Full state traceability evidence pending"
+      ]
+    }
+  }
+}

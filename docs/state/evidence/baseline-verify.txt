@@ -1,0 +1,24 @@
+
+> happy-cookie-ops@0.1.0 verify C:\Users\ethan\dev\happy-cookie-ops-g0
+> pnpm verify:port && pnpm verify:engine && pnpm typecheck && pnpm lint && pnpm test
+
+
+> happy-cookie-ops@0.1.0 verify:port C:\Users\ethan\dev\happy-cookie-ops-g0
+> node scripts/check-port-integrity.mjs
+
+Port integrity OK — 54 files match the baseline.
+
+> happy-cookie-ops@0.1.0 verify:engine C:\Users\ethan\dev\happy-cookie-ops-g0
+> node scripts/check-engine-contract.mjs
+
+Engine contract OK — 49 exports, 21 settings keys, 19 tables documented, provenance claims verified against the prototype.
+
+> happy-cookie-ops@0.1.0 typecheck C:\Users\ethan\dev\happy-cookie-ops-g0
+> tsc --noEmit
+
+'tsc' is not recognized as an internal or external command,
+operable program or batch file.
+ ELIFECYCLE  Command failed with exit code 1.
+ WARN   Local package.json exists, but node_modules missing, did you mean to install?
+ ELIFECYCLE  Command failed with exit code 1.
+ WARN   Local package.json exists, but node_modules missing, did you mean to install?

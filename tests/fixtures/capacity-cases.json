@@ -1,0 +1,85 @@
+{
+  "note": "Shared cases for the capacity rule. Read by tests/unit/capacity-parity.test.ts, which runs them against BOTH the TypeScript implementation and the SQL function. Add a case here and both sides must satisfy it.",
+  "cases": [
+    {
+      "name": "an empty drop takes a normal order",
+      "capacity": 200,
+      "committed": 0,
+      "requested": 3,
+      "ok": true,
+      "remaining": 200
+    },
+    {
+      "name": "the last box can be taken",
+      "capacity": 200,
+      "committed": 199,
+      "requested": 1,
+      "ok": true,
+      "remaining": 1
+    },
+    {
+      "name": "one past the last box is refused",
+      "capacity": 200,
+      "committed": 199,
+      "requested": 2,
+      "ok": false,
+      "remaining": 1
+    },
+    {
+      "name": "a full drop refuses everything",
+      "capacity": 200,
+      "committed": 200,
+      "requested": 1,
+      "ok": false,
+      "remaining": 0
+    },
+    {
+      "name": "an oversold drop reports zero rather than a negative",
+      "capacity": 200,
+      "committed": 210,
+      "requested": 1,
+      "ok": false,
+      "remaining": 0
+    },
+    {
+      "name": "a request for the whole capacity fits exactly",
+      "capacity": 200,
+      "committed": 0,
+      "requested": 200,
+      "ok": true,
+      "remaining": 200
+    },
+    {
+      "name": "a zero-box request is a bug, not an order",
+      "capacity": 200,
+      "committed": 0,
+      "requested": 0,
+      "ok": false,
+      "remaining": 200
+    },
+    {
+      "name": "a negative request is refused",
+      "capacity": 200,
+      "committed": 0,
+      "requested": -5,
+      "ok": false,
+      "remaining": 200
+    },
+    {
+      "name": "a zero-capacity drop is closed",
+      "capacity": 0,
+      "committed": 0,
+      "requested": 1,
+      "ok": false,
+      "remaining": 0
+    },
+    {
+      "name": "fractional committed counts are floored, not rounded up",
+      "capacity": 10,
+      "committed": 2.9,
+      "requested": 8,
+      "ok": true,
+      "remaining": 8
+    }
+  ]
+}

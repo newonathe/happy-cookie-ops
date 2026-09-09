@@ -1,0 +1,12 @@
+.env*
+.git/**
+.next/**
+node_modules/**
+.claude/**
+.codex/**
+.agents/**
+docs/**
+test-results/**
+playwright-report/**
+coverage/**
+storybook-static/**

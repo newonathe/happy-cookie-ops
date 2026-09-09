@@ -1,0 +1,105 @@
+name: Uptime
+
+# Hourly health check that opens a GitHub issue when production stops answering.
+#
+# WHY HOURLY, NOT EVERY 15 MINUTES.
+#
+# GitHub bills Actions in whole minutes with a one-minute minimum per run. A 15-minute
+# cron is 96 runs a day — about 2,880 billed minutes a month against a 2,000-minute free
+# allowance for a private repository. It would exhaust the allowance around day 20 and
+# then CI stops running too, which is a far worse failure than slow outage detection.
+#
+# Hourly is ~720 minutes a month, leaving room for CI (roughly 8 minutes a push).
+#
+# If you want 5-minute checks for free, use an external monitor instead — it costs no
+# Actions minutes at all. docs/FREE-TIER.md has the recommendation. Keep this workflow
+# either way: it is the one that files an issue in the repo where the fix happens.
+
+on:
+  schedule:
+    - cron: '17 * * * *' # hourly, off the hour — the top of the hour is congested
+  workflow_dispatch:
+
+permissions:
+  issues: write
+
+jobs:
+  health:
+    name: Health check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ask the app whether it is well
+        id: check
+        run: |
+          set +e
+          response=$(curl -sS -o body.txt -w '%{http_code}' --max-time 20 "${{ vars.PRODUCTION_URL }}/api/health")
+          echo "status=$response" >> "$GITHUB_OUTPUT"
+          echo "body=$(cat body.txt | head -c 500)" >> "$GITHUB_OUTPUT"
+          cat body.txt
+          [ "$response" = "200" ]
+
+      - name: Open an issue if it is not
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const status = '${{ steps.check.outputs.status }}';
+            const body = `/api/health returned \`${status}\`.
+
+            Response: \`${{ steps.check.outputs.body }}\`
+
+            Runbook: \`docs/RUNBOOK.md\` — start at "Is it down?".
+
+            Her sales are safe on the device either way. Bazaar sales queue in IndexedDB
+            and retry; nothing is lost while this is broken.`;
+
+            // One open issue, not one per check — a fifteen-minute cron would otherwise
+            // file 96 issues a day for a single outage.
+            const existing = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: 'outage',
+              state: 'open'
+            });
+            if (existing.data.length) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existing.data[0].number,
+                body: `Still down as of ${new Date().toISOString()} (status ${status}).`
+              });
+              return;
+            }
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `Production is not answering (${status})`,
+              labels: ['outage'],
+              body
+            });
+
+      - name: Close the outage issue once it recovers
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const open = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: 'outage',
+              state: 'open'
+            });
+            for (const issue of open.data) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                body: 'Recovered — /api/health is answering 200.'
+              });
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                state: 'closed'
+              });
+            }

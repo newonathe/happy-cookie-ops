@@ -1,0 +1,84 @@
+(node:27968) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+Lockfile is up to date, resolution step is skipped
+Progress: resolved 1, reused 0, downloaded 0, added 0
+Packages: +1164
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Progress: resolved 1164, reused 185, downloaded 0, added 0
+Progress: resolved 1164, reused 340, downloaded 0, added 0
+Progress: resolved 1164, reused 341, downloaded 0, added 0
+
+   ╭──────────────────────────────────────────────────────────────────╮
+   │                                                                  │
+   │                Update available! 9.12.3 → 12.3.4.                │
+   │   Changelog: https://github.com/pnpm/pnpm/releases/tag/v12.3.4   │
+   │                Run "pnpm add -g pnpm" to update.                 │
+   │                                                                  │
+   │         Follow @pnpmjs for updates: https://x.com/pnpmjs         │
+   │                                                                  │
+   ╰──────────────────────────────────────────────────────────────────╯
+
+Progress: resolved 1164, reused 1076, downloaded 0, added 0
+Progress: resolved 1164, reused 1161, downloaded 0, added 27
+Progress: resolved 1164, reused 1163, downloaded 0, added 87
+Progress: resolved 1164, reused 1163, downloaded 0, added 99
+Progress: resolved 1164, reused 1163, downloaded 0, added 168
+Progress: resolved 1164, reused 1163, downloaded 0, added 209
+Progress: resolved 1164, reused 1163, downloaded 0, added 225
+Progress: resolved 1164, reused 1163, downloaded 0, added 226
+Progress: resolved 1164, reused 1164, downloaded 0, added 307
+Progress: resolved 1164, reused 1164, downloaded 0, added 365
+Progress: resolved 1164, reused 1164, downloaded 0, added 443
+Progress: resolved 1164, reused 1164, downloaded 0, added 649
+Progress: resolved 1164, reused 1164, downloaded 0, added 689
+Progress: resolved 1164, reused 1164, downloaded 0, added 813
+Progress: resolved 1164, reused 1164, downloaded 0, added 940
+Progress: resolved 1164, reused 1164, downloaded 0, added 945
+Progress: resolved 1164, reused 1164, downloaded 0, added 1093
+Progress: resolved 1164, reused 1164, downloaded 0, added 1151
+Progress: resolved 1164, reused 1164, downloaded 0, added 1154
+Progress: resolved 1164, reused 1164, downloaded 0, added 1159
+Progress: resolved 1164, reused 1164, downloaded 0, added 1160
+Progress: resolved 1164, reused 1164, downloaded 0, added 1161
+Progress: resolved 1164, reused 1164, downloaded 0, added 1162
+Progress: resolved 1164, reused 1164, downloaded 0, added 1163
+Progress: resolved 1164, reused 1164, downloaded 0, added 1164
+Progress: resolved 1164, reused 1164, downloaded 0, added 1164, done
+
+dependencies:
++ @sentry/nextjs 10.73.0
++ @supabase/ssr 0.7.0
++ @supabase/supabase-js 2.115.0
++ next 16.3.1
++ react 19.2.0
++ react-dom 19.2.0
++ zod 4.5.4
+
+devDependencies:
++ @eslint/eslintrc 3.3.7
++ @lhci/cli 0.15.1
++ @playwright/test 1.63.0
++ @storybook/nextjs 9.1.20
++ @tailwindcss/postcss 4.3.3
++ @testing-library/dom 10.4.1
++ @testing-library/jest-dom 6.10.0
++ @testing-library/react 16.3.3
++ @types/node 22.20.1
++ @types/react 19.2.18
++ @types/react-dom 19.2.7
++ @vitejs/plugin-react 5.2.0
++ eslint 9.39.5
++ eslint-config-next 16.3.1
++ eslint-config-prettier 10.1.8
++ eslint-plugin-jsx-a11y 6.10.2
++ husky 9.1.7
++ jsdom 26.1.0
++ lint-staged 16.4.0
++ prettier 3.9.6
++ storybook 9.1.20
++ supabase 2.116.0
++ tailwindcss 4.3.3
++ typescript 5.9.3
++ vitest 3.2.7
+
+Done in 51.2s

@@ -1,0 +1,125 @@
+import type * as React from 'react';
+import type { OpsVals } from '@/view-models/vals';
+import type { ScreenKey } from '@/lib/screens';
+
+export type { ScreenKey };
+export type Role = 'owner' | 'helper' | 'support';
+
+/** Owner-editable defaults the prototype exposed as props. */
+export interface OpsEngineProps {
+  boxPricing?: string;
+  packagingFee?: number;
+  flatBoxPrice?: number;
+  capacity?: number;
+  showFlowStrip?: boolean;
+  children?: React.ReactNode;
+}
+
+/** One sale taken at a bazaar. Written on the device before it is sent. */
+export interface EventSale {
+  id: string;
+  items: Record<string, number>;
+  total: number;
+  gross: number;
+  discount: number;
+  pay: string;
+  ref: string;
+  clerk: string;
+  at: number;
+  tendered: number;
+  change: number;
+  synced: boolean;
+  failed: boolean;
+  ledgerId: string | null;
+}
+
+/**
+ * The engine's state. The keys the app itself reads are typed; the rest of the
+ * prototype's state (84 keys of books, stock and drafts) stays behind the index
+ * signature until it is moved to Postgres — see docs/TECH-DEBT.md.
+ */
+export interface OpsEngineState {
+  screen: ScreenKey;
+  role: Role;
+  orderId: string | null;
+  online: boolean;
+  sales: EventSale[];
+  unsynced: number;
+  syncState: 'syncing' | 'partial' | 'synced' | null;
+  syncTried: boolean;
+  event: { id?: string; name?: string; stage?: string } | null;
+  restored?: boolean;
+  [key: string]: unknown;
+}
+
+export declare class OpsEngine extends React.Component<OpsEngineProps, OpsEngineState> {
+  renderVals(): OpsVals;
+  toast(message: string, tone?: 'ok' | 'warn', undo?: unknown): void;
+  go(screen: ScreenKey, opts?: { orderId?: string; replace?: boolean }): void;
+  setRole(role: Role): void;
+  syncNow: () => void;
+  retrySale: (id: string) => void;
+  toggleOnline: () => void;
+}
+
+export declare class OpsProvider extends OpsEngine {}
+
+export const OpsContext: React.Context<OpsVals | null>;
+export const OpsEngineContext: React.Context<OpsEngine | null>;
+
+export const SCREENS: ScreenKey[];
+export const CUSTOMER_SCREENS: ScreenKey[];
+export const SCREEN_NAMES: Record<string, string>;
+export const PRODUCTS: Array<{ id: string; name: string; short: string; price: number; img: string; kind: string; tag: string; desc: string }>;
+export const DEFAULT_CFG: Record<string, unknown>;
+export const RECIPES: Record<string, { yield: number; ingredients: Array<{ name: string; qty: number; unit: string }> }>;
+export const INVENTORY: Array<Record<string, unknown>>;
+export const SUPPLIERS: Array<Record<string, unknown>>;
+export const PACK_SIZE: Record<string, number>;
+export const ROLES: Record<
+  Role,
+  {
+    /** The person's name as the app addresses them — 'Cine' for the owner. */
+    label: string;
+    /** The attribution line: 'Cine To · owner'. */
+    who: string;
+    /** Whether this role may see money at all. The P&L and payments gate on it. */
+    money: boolean;
+    /** Whether they may run the bazaar cash-up. */
+    cashup: boolean;
+    /** Where they land on sign-in. */
+    home: string;
+    /** null means every screen; otherwise the allowlist. */
+    screens: string[] | null;
+    /** null means the full All-tools list; otherwise the allowlist. */
+    more: string[] | null;
+    sub: string;
+    note: string;
+  }
+>;
+export const PAY_ACCOUNTS: Array<{ id: string; num: string; name: string; qr: string }>;
+export const RAW_ORDERS: Array<Record<string, unknown>>;
+export const SEED_LEDGER: Array<Record<string, unknown>>;
+export const STORE_KEY: string;
+
+export function PESO(n: number): string;
+export function PESO2(n: number): string;
+export function amt(n: number, unit: string): string;
+export function amtExact(n: number, unit: string): string;
+export function plural(n: number, one: string, many: string): string;
+/**
+ * The ordering week containing `now`. All timestamps are epoch ms:
+ *   open      the order window opens
+ *   close     it closes (plus cfg.extendH if the owner extended it)
+ *   nextOpen  open + 7 days
+ *   mon       pickup - the first Monday after close, 9am
+ *   sat, sun  the weekend windows inside the cycle
+ * These are NOT in chronological order: sat precedes mon.
+ */
+export function dropCycle(
+  now: number,
+  cfg: Record<string, unknown>
+): { open: number; close: number; nextOpen: number; mon: number; sat: number; sun: number };
+export function orderCount(order: { items: Record<string, number> }): number;
+export function loadState(): OpsEngineState;
+export function BASE_STATE(): OpsEngineState;

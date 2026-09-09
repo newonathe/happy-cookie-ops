@@ -1,0 +1,50 @@
+--- a/src/components/sheets/add-inv.tsx
++++ b/src/components/sheets/add-inv.tsx
+@@ -2,6 +2,7 @@
+ 
+ export function AddInvSheet({ v }: { v: OpsVals }) {
+   const { saveAddInv, sheet } = v;
++  if (!sheet) throw new Error('add-inv sheet requires active sheet data.');
+   return (
+     <>
+       <form onSubmit={saveAddInv} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+--- a/src/components/sheets/edit-price.tsx
++++ b/src/components/sheets/edit-price.tsx
+@@ -2,6 +2,7 @@
+ 
+ export function EditPriceSheet({ v }: { v: OpsVals }) {
+   const { savePrice, sheet } = v;
++  if (!sheet) throw new Error('edit-price sheet requires active sheet data.');
+   return (
+     <>
+       <form onSubmit={savePrice} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+--- a/src/components/sheets/inv-edit.tsx
++++ b/src/components/sheets/inv-edit.tsx
+@@ -7,6 +7,7 @@
+       invMeta, invPickList, invSubtract, openSpoil, pickInvItem, removeInvItem, saveInvDelta,
+       saveInvEdit, setSheetQty, sheet
+   } = v;
++  if (!sheet) throw new Error('inv-edit sheet requires active sheet data.');
+   return (
+     <>
+       <form onSubmit={saveInvEdit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+--- a/src/components/sheets/why.tsx
++++ b/src/components/sheets/why.tsx
+@@ -2,6 +2,7 @@
+ 
+ export function WhySheet({ v }: { v: OpsVals }) {
+   const { sheet } = v;
++  if (!sheet) throw new Error('why sheet requires active sheet data.');
+   return (
+     <>
+       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+--- a/src/components/sheets/proof.tsx
++++ b/src/components/sheets/proof.tsx
+@@ -2,6 +2,7 @@
+ 
+ export function ProofSheet({ v }: { v: OpsVals }) {
+   const { ic, od } = v;
++  if (!od) throw new Error('proof sheet requires active order data.');
+   return (
+     <>
+       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>

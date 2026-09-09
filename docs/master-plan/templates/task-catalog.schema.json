@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Master plan work package catalog",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "baseline_date", "tasks"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "baseline_date": {"type": "string", "format": "date"},
+    "tasks": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/task"}}
+  },
+  "$defs": {
+    "strings": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+    "task": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "title", "status", "depends_on", "gate", "priority", "model_class", "owner", "owned_paths", "decision_gates", "scope", "acceptance", "verification", "rollback", "read_first", "evidence", "definition_of_ready", "authorization"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^(MP|AR)-[0-9]{2}$"},
+        "title": {"type": "string", "minLength": 1},
+        "status": {"enum": ["planned", "ready", "claimed", "running", "verifying", "review", "complete", "waiting_quota", "blocked_input", "interrupted", "cancelled", "superseded", "failed_environment", "outcome_unknown"]},
+        "depends_on": {"$ref": "#/$defs/strings"},
+        "gate": {"enum": ["G0", "G1", "G2", "G3", "G4", "G5", "GA"]},
+        "priority": {"enum": ["P0", "P1", "P2"]},
+        "model_class": {"enum": ["focused", "standard", "deep"]},
+        "owner": {"type": "string"},
+        "owned_paths": {"$ref": "#/$defs/strings"},
+        "decision_gates": {"$ref": "#/$defs/strings"},
+        "scope": {"type": "string", "minLength": 1},
+        "acceptance": {"$ref": "#/$defs/strings"},
+        "verification": {"type": "string", "minLength": 1},
+        "rollback": {"type": "string", "minLength": 1},
+        "read_first": {"$ref": "#/$defs/strings"},
+        "evidence": {"$ref": "#/$defs/strings"},
+        "definition_of_ready": {"type": "string", "minLength": 1},
+        "authorization": {"type": "string", "minLength": 1}
+      }
+    }
+  }
+}

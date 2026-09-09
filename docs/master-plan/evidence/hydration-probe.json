@@ -1,0 +1,59 @@
+{
+  "events": [
+    {
+      "type": "log",
+      "text": "[Client Instrumentation Hook] Slow execution detected: 18ms (Note: Code download overhead is not included in this measurement)"
+    },
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+    },
+    {
+      "type": "log",
+      "text": "[HMR] connected"
+    }
+  ],
+  "state": {
+    "ready": "complete",
+    "engine": true,
+    "screen": "today",
+    "body": "The Happy Cookie Ops\nInteractive prototype · owner view · mock data\nOnline\nFree roam\nCustomer order\nPayment review\nProduction\nGrocery\nStocktake\nBazaar + offline\nMoney\nForm queue\nBackup fix\nHome\nC\nMonday, 7 Sep\nGood evening, Cine.\n\n4 things need you before baking.\n\nDrop 32\nOpen\nCloses Thu · 9:00 PM\n78\nof 200 cookies confirmed\n78 / 200 confirmed\n18 awaiting payment\n122 still open\nPrepare\n14\ncookies to bake\n\n10 confirmed orders · 4 portions still to mix\n\n5\n4\n3\n2\nStart baking\n3\nitems short\n₱1,150 estimate\nBiscoff spread, Box of 6, Brand sticker\n4\nbelow your level\nUnsalted butter 900 g · Biscoff spread 90 g\n1 problem\nLast successful backup was 2 days ago\nReview\nProfit this month\n₱19,260\nRevenue ₱41,690\nExpenses ₱22,430\n14\nOrders\n3\nTo review\n11\nPickups\n39%\nDrop full\nYour business\nOrders\nOrders & payments\n3 to review\nDrops\nDrop 32 · closes Thu 9 PM\nCustomers & waitlist\n14 customers kept for 1 year\nForm queue\n3 waiting · temporary\nKitchen\nBake & dough\n14 to bake\nInventory\n4 low\nGrocery\n3 items · ₱1,150\nRecipes\n6 flavours · v1\nBusiness\nProfit & loss\nAugust\nPayments\nMatch refs to your wallet\nBazaar Mode\nWorks offline\nProducts\n4 permanent, 2 rotating\nSuppliers\n8 saved\nSystem\nNotifications\n6 need attention\nSettings\nEverything you control\nSystem health\nNeeds attention\nBackups & export\nLast backup failed\nCustomer view\nPreview shop\nPreview checkout\nPreview order status\n3\n3\n4",
+    "scripts": [
+      "http://localhost:3137/_next/static/chunks/0jwx_next_dist_compiled_react-dom_1_cih54._.js",
+      "http://localhost:3137/_next/static/chunks/0jwx_next_dist_compiled_next-devtools_index_1sa-tbh.js",
+      "http://localhost:3137/_next/static/chunks/0jwx_next_dist_compiled_react-server-dom-turbopack_0qkbr9c._.js",
+      "http://localhost:3137/_next/static/chunks/0jwx_next_dist_compiled_03qf4in._.js",
+      "http://localhost:3137/_next/static/chunks/0jwx_next_dist_shared_lib_1he9m5q._.js",
+      "http://localhost:3137/_next/static/chunks/0jwx_next_dist_client_1l16b19._.js",
+      "http://localhost:3137/_next/static/chunks/0jwx_next_dist_195hwi4._.js",
+      "http://localhost:3137/_next/static/chunks/0jwx_next_router_0id4yek.js",
+      "http://localhost:3137/_next/static/chunks/0xcg_%40sentry_core_build_esm_14wo0wa._.js",
+      "http://localhost:3137/_next/static/chunks/1hnf_%40sentry_browser_build_npm_esm_dev_1a7i27v._.js",
+      "http://localhost:3137/_next/static/chunks/1a-a_%40sentry_conventions_dist_attributes_mjs_1x5u9iw._.js",
+      "http://localhost:3137/_next/static/chunks/09qk_%40sentry_browser-utils_build_esm_1vepr0t._.js",
+      "http://localhost:3137/_next/static/chunks/node_modules__pnpm_018zvu3._.js",
+      "http://localhost:3137/_next/static/chunks/_02j52bg._.js",
+      "http://localhost:3137/_next/static/chunks/_1anvha4._.js",
+      "http://localhost:3137/_next/static/chunks/turbopack-_19qzqc2._.js",
+      "http://localhost:3137/_next/static/chunks/_0c5w3gw._.js",
+      "http://localhost:3137/_next/static/chunks/0jwx_next_dist_00t-dqt._.js",
+      "http://localhost:3137/_next/static/chunks/_1ilsrgy._.js",
+      "http://localhost:3137/_next/static/chunks/0jwx_next_dist_1x2coga._.js",
+      "http://localhost:3137/_next/static/chunks/src_store_061tklq._.js",
+      "http://localhost:3137/_next/static/chunks/src_components_screens_home_tsx_14uyx56._.js",
+      "http://localhost:3137/_next/static/chunks/src_components_screens_order-detail_tsx_1n7w863._.js",
+      "http://localhost:3137/_next/static/chunks/src_components_screens_production-focus_tsx_0k-sn4c._.js",
+      "http://localhost:3137/_next/static/chunks/src_components_screens_bazaar-mode_tsx_0_tbsqo._.js",
+      "http://localhost:3137/_next/static/chunks/src_components_screens_checkout_tsx_18hvifq._.js",
+      "http://localhost:3137/_next/static/chunks/src_components_screens_1sgmf-1._.js",
+      "http://localhost:3137/_next/static/chunks/src_components_sheets_0cswv27._.js",
+      "http://localhost:3137/_next/static/chunks/src_components_shell_app-frame_tsx_1v-b-7k._.js",
+      "http://localhost:3137/_next/static/chunks/src_components_1szn5zp._.js",
+      "http://localhost:3137/_next/static/chunks/src_lib_1etpaxu._.js",
+      "http://localhost:3137/_next/static/chunks/0jwx_next_dist_compiled_react_1aae-9_._.js",
+      "http://localhost:3137/_next/static/chunks/0jwx_next_dist_build_polyfills_polyfill-nomodule.js",
+      "http://localhost:3137/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_1mojsay._.js",
+      "http://localhost:3137/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_0j675lf._.js"
+    ]
+  }
+}

@@ -1,0 +1,35 @@
+# Security updates only.
+#
+# A full dependency bot on a repository this size opens a PR a day, they get ignored, and
+# then the one that matters gets ignored too. M-03 in docs/prompts/09-maintenance.md is
+# the monthly manual pass for everything else, deliberately.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    # Only vulnerabilities. Feature updates go through the monthly ritual, where somebody
+    # reads the changelog.
+    allow:
+      - dependency-type: all
+    labels: ['dependencies', 'security']
+    commit-message:
+      prefix: 'chore(deps)'
+    groups:
+      # next, react and tailwind break in ways that are hard to attribute. Never batch
+      # them with anything else.
+      framework:
+        patterns: ['next', 'react', 'react-dom', 'tailwindcss', '@tailwindcss/*']
+      everything-else:
+        patterns: ['*']
+        exclude-patterns: ['next', 'react', 'react-dom', 'tailwindcss', '@tailwindcss/*']
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: 'chore(ci)'

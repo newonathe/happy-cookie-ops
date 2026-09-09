@@ -1,0 +1,239 @@
+
+> happy-cookie-ops@0.1.0 verify C:\Users\ethan\AppData\Local\Temp\happy-cookie-audit-20260907-88_xncyc
+> pnpm verify:port && pnpm verify:engine && pnpm typecheck && pnpm lint && pnpm test
+
+
+> happy-cookie-ops@0.1.0 verify:port C:\Users\ethan\AppData\Local\Temp\happy-cookie-audit-20260907-88_xncyc
+> node scripts/check-port-integrity.mjs
+
+Port integrity OK — 54 files match the baseline.
+
+> happy-cookie-ops@0.1.0 verify:engine C:\Users\ethan\AppData\Local\Temp\happy-cookie-audit-20260907-88_xncyc
+> node scripts/check-engine-contract.mjs
+
+Engine contract OK — 49 exports, 21 settings keys, 19 tables documented, provenance claims verified against the prototype.
+
+> happy-cookie-ops@0.1.0 typecheck C:\Users\ethan\AppData\Local\Temp\happy-cookie-audit-20260907-88_xncyc
+> tsc --noEmit
+
+instrumentation-client.ts(41,5): error TS2322: Type '(event: ErrorEvent) => ReportLike' is not assignable to type '(event: ErrorEvent, hint: EventHint) => ErrorEvent | PromiseLike<ErrorEvent | null> | null'.
+  Type 'ReportLike' is not assignable to type 'ErrorEvent | PromiseLike<ErrorEvent | null> | null'.
+    Property 'type' is missing in type 'ReportLike' but required in type 'ErrorEvent'.
+instrumentation-client.ts(41,40): error TS2345: Argument of type 'ErrorEvent' is not assignable to parameter of type 'ReportLike'.
+  Types of property 'breadcrumbs' are incompatible.
+    Type 'Breadcrumb[] | undefined' is not assignable to type '{ [k: string]: unknown; message?: unknown; data?: unknown; }[] | undefined'.
+      Type 'Breadcrumb[]' is not assignable to type '{ [k: string]: unknown; message?: unknown; data?: unknown; }[]'.
+        Type 'Breadcrumb' is not assignable to type '{ [k: string]: unknown; message?: unknown; data?: unknown; }'.
+          Index signature for type 'string' is missing in type 'Breadcrumb'.
+instrumentation-client.ts(42,5): error TS2322: Type '(crumb: Breadcrumb) => ReportLike' is not assignable to type '(breadcrumb: Breadcrumb, hint?: BreadcrumbHint | undefined) => Breadcrumb | null'.
+  Call signature return types 'ReportLike' and 'Breadcrumb | null' are incompatible.
+    The types of 'message' are incompatible between these types.
+      Type 'unknown' is not assignable to type 'string | undefined'.
+instrumentation-client.ts(42,46): error TS2345: Argument of type 'Breadcrumb' is not assignable to parameter of type 'ReportLike'.
+  Index signature for type 'string' is missing in type 'Breadcrumb'.
+next.config.ts(10,3): error TS2353: Object literal may only specify known properties, and 'eslint' does not exist in type 'NextConfig'.
+sentry.edge.config.ts(14,5): error TS2322: Type '(event: ErrorEvent) => ReportLike' is not assignable to type '(event: ErrorEvent, hint: EventHint) => ErrorEvent | PromiseLike<ErrorEvent | null> | null'.
+  Type 'ReportLike' is not assignable to type 'ErrorEvent | PromiseLike<ErrorEvent | null> | null'.
+    Property 'type' is missing in type 'ReportLike' but required in type 'ErrorEvent'.
+sentry.edge.config.ts(14,40): error TS2345: Argument of type 'ErrorEvent' is not assignable to parameter of type 'ReportLike'.
+  Types of property 'breadcrumbs' are incompatible.
+    Type 'Breadcrumb[] | undefined' is not assignable to type '{ [k: string]: unknown; message?: unknown; data?: unknown; }[] | undefined'.
+      Type 'Breadcrumb[]' is not assignable to type '{ [k: string]: unknown; message?: unknown; data?: unknown; }[]'.
+        Type 'Breadcrumb' is not assignable to type '{ [k: string]: unknown; message?: unknown; data?: unknown; }'.
+          Index signature for type 'string' is missing in type 'Breadcrumb'.
+sentry.server.config.ts(16,5): error TS2322: Type '(event: ErrorEvent) => ReportLike' is not assignable to type '(event: ErrorEvent, hint: EventHint) => ErrorEvent | PromiseLike<ErrorEvent | null> | null'.
+  Type 'ReportLike' is not assignable to type 'ErrorEvent | PromiseLike<ErrorEvent | null> | null'.
+    Property 'type' is missing in type 'ReportLike' but required in type 'ErrorEvent'.
+sentry.server.config.ts(16,40): error TS2345: Argument of type 'ErrorEvent' is not assignable to parameter of type 'ReportLike'.
+  Types of property 'breadcrumbs' are incompatible.
+    Type 'Breadcrumb[] | undefined' is not assignable to type '{ [k: string]: unknown; message?: unknown; data?: unknown; }[] | undefined'.
+      Type 'Breadcrumb[]' is not assignable to type '{ [k: string]: unknown; message?: unknown; data?: unknown; }[]'.
+        Type 'Breadcrumb' is not assignable to type '{ [k: string]: unknown; message?: unknown; data?: unknown; }'.
+          Index signature for type 'string' is missing in type 'Breadcrumb'.
+sentry.server.config.ts(17,5): error TS2322: Type '(crumb: Breadcrumb) => ReportLike' is not assignable to type '(breadcrumb: Breadcrumb, hint?: BreadcrumbHint | undefined) => Breadcrumb | null'.
+  Call signature return types 'ReportLike' and 'Breadcrumb | null' are incompatible.
+    The types of 'message' are incompatible between these types.
+      Type 'unknown' is not assignable to type 'string | undefined'.
+sentry.server.config.ts(17,46): error TS2345: Argument of type 'Breadcrumb' is not assignable to parameter of type 'ReportLike'.
+  Index signature for type 'string' is missing in type 'Breadcrumb'.
+src/components/screens/all-tools.tsx(20,31): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/screens/bake-plan.tsx(21,21): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/screens/bazaar-mode.tsx(27,27): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/screens/bazaar-mode.tsx(34,27): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/screens/bazaar-mode.tsx(60,29): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/screens/bazaar-mode.tsx(67,29): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/screens/bazaar-mode.tsx(113,39): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/screens/bazaar-mode.tsx(119,39): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/screens/checkout.tsx(14,21): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/screens/checkout.tsx(161,25): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/screens/checkout.tsx(205,27): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/screens/checkout.tsx(224,27): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/screens/drops.tsx(50,27): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/screens/drops.tsx(56,27): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/screens/find-my-order.tsx(11,19): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/screens/form-queue.tsx(12,19): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/screens/grocery-list.tsx(20,25): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/screens/grocery-list.tsx(54,29): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/screens/grocery-list.tsx(72,29): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/screens/home.tsx(68,29): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/screens/home.tsx(156,33): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/screens/home.tsx(180,35): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/screens/home.tsx(203,31): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/screens/home.tsx(219,35): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/screens/home.tsx(236,35): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/screens/home.tsx(300,37): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/screens/inventory.tsx(27,27): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/screens/inventory.tsx(40,29): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/screens/inventory.tsx(46,29): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/screens/inventory.tsx(105,25): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/screens/inventory.tsx(133,25): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/screens/notifications.tsx(50,81): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/screens/notifications.tsx(51,29): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/screens/notifications.tsx(61,27): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/screens/order-detail.tsx(37,31): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/screens/order-detail.tsx(80,33): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/screens/order-detail.tsx(90,33): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/screens/order-detail.tsx(101,33): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/screens/order-detail.tsx(110,33): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/screens/order-status.tsx(13,21): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/screens/orders.tsx(28,21): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/screens/orders.tsx(124,37): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/screens/payments.tsx(59,31): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/screens/payments.tsx(103,23): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/screens/production-focus.tsx(90,31): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/screens/production-focus.tsx(98,31): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/screens/production-focus.tsx(115,33): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/screens/production-focus.tsx(123,33): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/screens/production-focus.tsx(152,33): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/screens/production-focus.tsx(175,31): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/screens/production-focus.tsx(218,41): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/screens/production-focus.tsx(223,41): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/screens/products.tsx(63,77): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/screens/products.tsx(65,29): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/screens/profit-and-loss.tsx(24,23): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/screens/profit-and-loss.tsx(40,23): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/screens/recipes.tsx(44,23): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/screens/recipes.tsx(53,23): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/screens/recipes.tsx(73,27): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/screens/settings.tsx(21,31): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/screens/shop.tsx(18,21): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/screens/shop.tsx(83,35): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/screens/shop.tsx(91,35): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/screens/suppliers.tsx(28,21): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/screens/system-health.tsx(19,25): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/sheets/add-inv.tsx(16,19): error TS18047: 'sheet' is possibly 'null'.
+src/components/sheets/edit-price.tsx(10,44): error TS18047: 'sheet' is possibly 'null'.
+src/components/sheets/inv-edit.tsx(15,26): error TS18047: 'sheet' is possibly 'null'.
+src/components/sheets/inv-edit.tsx(24,89): error TS18047: 'sheet' is possibly 'null'.
+src/components/sheets/inv-edit.tsx(25,36): error TS18047: 'sheet' is possibly 'null'.
+src/components/sheets/inv-edit.tsx(40,85): error TS18047: 'sheet' is possibly 'null'.
+src/components/sheets/pay-rules.tsx(11,19): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/sheets/proof.tsx(10,19): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/sheets/proof.tsx(14,53): error TS18047: 'od' is possibly 'null'.
+src/components/sheets/proof.tsx(15,91): error TS18047: 'od' is possibly 'null'.
+src/components/sheets/proof.tsx(18,10): error TS18047: 'od' is possibly 'null'.
+src/components/sheets/proof.tsx(22,23): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/sheets/proof.tsx(24,89): error TS18047: 'od' is possibly 'null'.
+src/components/sheets/proof.tsx(28,26): error TS18047: 'od' is possibly 'null'.
+src/components/sheets/proof.tsx(31,26): error TS18047: 'od' is possibly 'null'.
+src/components/sheets/why.tsx(8,64): error TS18047: 'sheet' is possibly 'null'.
+src/components/sheets/why.tsx(9,92): error TS18047: 'sheet' is possibly 'null'.
+src/components/shell/app-frame.tsx(201,29): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/shell/app-frame.tsx(212,35): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/shell/app-frame.tsx(243,35): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/shell/app-frame.tsx(271,31): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/shell/app-frame.tsx(292,35): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/shell/app-frame.tsx(342,37): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/shell/app-frame.tsx(379,45): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/shell/app-frame.tsx(411,45): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/shell/app-frame.tsx(559,29): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/shell/app-frame.tsx(570,39): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/shell/app-frame.tsx(600,35): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/shell/app-frame.tsx(610,41): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/shell/app-frame.tsx(641,35): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/shell/app-frame.tsx(648,35): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/lib/rate-limit.ts(100,70): error TS2345: Argument of type '{ p_key: string; p_limit: number; p_window_s: number; }' is not assignable to parameter of type 'undefined'.
+ ELIFECYCLE  Command failed with exit code 2.
+ ELIFECYCLE  Command failed with exit code 2.

@@ -1,0 +1,5 @@
+[WARN] The "pnpm" field in package.json is no longer read by pnpm. The following keys were ignored: "pnpm.onlyBuiltDependencies". See https://pnpm.io/settings for the new home of each setting.
+
+> happy-cookie-ops@0.1.0 typecheck:e2e C:\Users\ethan\dev\happy-cookie-ops-g0
+> tsc --noEmit --project tsconfig.e2e.json
+

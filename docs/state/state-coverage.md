@@ -1,0 +1,13 @@
+# State coverage ledger
+
+This ledger translates the complete route/state matrix and priority findings in [01-feature-and-state-audit.md](../master-plan/01-feature-and-state-audit.md) into stable rows. The CSV is the machine-readable source for the row IDs; this page explains the evidence boundary.
+
+The route fixture has 25 paths. `ROUTE-*` IDs are the direct URL tests in [screens.spec.ts](../../tests/e2e/screens.spec.ts); `VISUAL-*` IDs are the Docker-gated screenshot tests in [visual.spec.ts](../../tests/e2e/visual.spec.ts). Their existence means a test is defined, not that every state variant passed. `FIDELITY-*` covers exactly five engine-forced valid sheets in [fidelity-evidence.spec.ts](../../tests/e2e/fidelity-evidence.spec.ts): `addInv`, `editPrice`, `invEdit`, `why` and `proof`, all using an `/orders` backdrop. They do not establish route or unrelated sheet coverage. `OFFLINE-01` is the intended nonzero sale journey and currently fails before durable queue evidence; `OFFLINE-ACK-01` reproduces the empty-ack regression in [runtime-sync.test.ts](../../tests/release/runtime-sync.test.ts).
+
+The latest phone evidence establishes one Home pass and 24 direct-route redirects to Home. Docker image construction is available, but visual candidates and comparison remain pending. Windows sheet screenshots are diagnostic engine-forced captures, not deep-link or accepted baseline evidence. No physical Apple or Safari evidence exists.
+
+Rows marked “baseline layout covered” identify a rendered or fixture-backed layout. “Actually exercised” names the specific test fixture. “Known failing release journey” records a current failure. “NOT YET EXECUTABLE” means the required environment, device, or implementation is not available. Future MP owners come directly from [11-traceability.md](../master-plan/11-traceability.md); no additional outcomes are inferred.
+
+Use [current.md](current.md) for current release boundaries and [visual-review.md](visual-review.md) for the later Docker comparison outcome once that work is complete.
+
+The CSV also includes the audit’s 33 rendered sheet content kinds: 29 sheet files and four inline variants. Rows `SC-035`–`SC-067` preserve each audit kind and its intended operational owner; `SC-068`–`SC-070` cover Quick add, Toast/undo and the guided device harness overlays. For every kind other than the five `FIDELITY-*` rows, the absence of a test ID means a proposed check has not been implemented; it is not an environment failure or passing coverage. The five captures are valid-sheet guards only, with diagnostic screenshots and no claim that their surrounding `/orders` route or other sheet states passed.

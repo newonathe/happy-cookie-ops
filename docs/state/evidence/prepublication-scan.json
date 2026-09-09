@@ -1,0 +1,10 @@
+{
+  "files": 783,
+  "bytes": 35576620,
+  "credential_shape_hit_paths": [],
+  "over_90MiB_paths": [],
+  "staged_env_paths": [
+    ".env.example"
+  ],
+  "limitations": "Shape scan only; not a guarantee of all possible secrets."
+}

@@ -1,0 +1,23 @@
+.../node_modules/core-js-pure postinstall$ node -e "try{require('./postinstall')}catch(e){}"
+.../node_modules/core-js-pure postinstall: Thank you for using core-js ( https://github.com/zloirock/core-js ) for polyfilling JavaScript standard library!
+.../node_modules/core-js-pure postinstall: The project needs your help! Please consider supporting core-js:
+.../node_modules/core-js-pure postinstall: > https://opencollective.com/core-js 
+.../node_modules/core-js-pure postinstall: > https://patreon.com/zloirock 
+.../node_modules/core-js-pure postinstall: > https://boosty.to/zloirock 
+.../node_modules/core-js-pure postinstall: > bitcoin: bc1qlea7544qtsmj2rayg0lthvza9fau63ux0fstcz 
+.../node_modules/core-js-pure postinstall: I highly recommend reading this: https://github.com/zloirock/core-js/blob/master/docs/2023-02-14-so-whats-next.md 
+.../node_modules/core-js-pure postinstall: Done
+.../esbuild@0.28.2/node_modules/esbuild postinstall$ node install.js
+.../esbuild@0.25.12/node_modules/esbuild postinstall$ node install.js
+.../esbuild@0.28.2/node_modules/esbuild postinstall: Done
+.../esbuild@0.25.12/node_modules/esbuild postinstall: Done
+.../node_modules/@sentry/cli postinstall$ node ./scripts/install.js
+.../node_modules/@sentry/cli postinstall: Done
+.../node_modules/unrs-resolver postinstall$ node postinstall.js
+.../node_modules/unrs-resolver postinstall: Done
+. prepare$ husky
+. prepare: Done
+
+> happy-cookie-ops@0.1.0 prepare C:\Users\ethan\dev\happy-cookie-ops-g0
+> husky
+
