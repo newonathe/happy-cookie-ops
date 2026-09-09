@@ -83,7 +83,7 @@
       "check": "current planning continuity",
       "evidence": "evidence/g0-validation.json",
       "recorded_exit": 0,
-      "sha256": "223cd67bbbb5b0604ab5c4777fd37c0ef1f91703169830ff9ad2f4112243ab32"
+      "sha256": "5ca94314e5ed25c14c2ea6fe887a3d0143ee2255b5326bc657c84887b4ef49d9"
     },
     {
       "check": "authenticated preview probes",
