@@ -9,6 +9,16 @@ put it there and note here that you did.
 
 ---
 
+## 2026-09-09 — G0 foundation and protected cloud preview
+
+Completed MP-00–03 in `C:\Users\ethan\dev\happy-cookie-ops-g0`; original delivery preserved. Private GitHub bootstrap `32e37da`, Vercel packaging fix `e38fa33`, accepted75Docker regression snapshots and70-row state mapping. `pnpm verify`103tests pass; local/Docker/Vercel builds pass; readonly single-worker visual comparison75passes; continuity validator1,181checks0failures. Source/reference protection permits only the five owner-approved guard lines.
+
+[Live preview](https://happy-cookie-ops-demo-m0wbduoz7-newonathes-projects.vercel.app) requires Vercel login; backend remains unconfigured. [Current state](state/current.md), [evidence](state/evidence-index.json), [visual conditions](state/visual-review.md) and [handoff](state/continuation.md) distinguish foundation completion from release readiness.
+
+Latest full browser suite78failures/30database skips: Home hydration418,24redirects per profile, missing durable queue. Actual empty-ack regression remains. Owners MP-07/18–21; SQL MP-05/06. GitHub CI stops at inherited formatting. Physical Apple, real backend and hosted browser journeys remain unverified.
+
+[Shared agent policy](state/agent-orchestration.md) persists: default1worker, maximum2across Codex/Claude includingchildren; explicit economical models, narrow prompts, no paid fallback. Claude login refreshed and Sonnet review succeeded. Stop atG0; next authorized planning boundary isG1/MP-04, then dependency-gated backend work. Preview updates remain manual; no automatic runner/deployment integration.
+
 ## 2026-09-09 — state coverage handoff
 
 Added [state coverage](state/state-coverage.md) and its CSV ledger, mapping the 25 route fixture IDs, five valid sheet guards, offline/runtime-sync failures, and audit01 accessibility, clipping and review-chrome gaps to exact future MP owners from traceability. The ledger distinguishes layout coverage, actually exercised fixtures, known failing release journeys and NOT YET EXECUTABLE evidence. Docker visual candidate comparison and cloud preview outcomes remain pending; see [current state](state/current.md), [continuation](state/continuation.md) and the later [visual review](state/visual-review.md). No product code, historical plan or generated task status was changed.

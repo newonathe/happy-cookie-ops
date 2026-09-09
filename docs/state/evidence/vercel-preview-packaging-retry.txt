@@ -1,0 +1,29 @@
+Vercel CLI 56.3.1 (Node.js 24.20.0)
+Retrieving project…
+Deploying newonathes-projects/happy-cookie-ops-demo
+Uploading [--------------------] (0.0B/1.8KB)
+Uploading [====================] (1.8KB/1.8KB)
+  Inspect         https://vercel.com/newonathes-projects/happy-cookie-ops-demo/3Ag2zUk5pt7ZLA7Ryrh6EWrrBZZh
+  Preview         https://happy-cookie-ops-demo-m0wbduoz7-newonathes-projects.vercel.app
+{
+  "status": "ok",
+  "deployment": {
+    "id": "dpl_3Ag2zUk5pt7ZLA7Ryrh6EWrrBZZh",
+    "url": "https://happy-cookie-ops-demo-m0wbduoz7-newonathes-projects.vercel.app",
+    "inspectorUrl": "https://vercel.com/newonathes-projects/happy-cookie-ops-demo/3Ag2zUk5pt7ZLA7Ryrh6EWrrBZZh",
+    "readyState": "INITIALIZING",
+    "target": null,
+    "deploymentApiUrl": "https://api.vercel.com/v13/deployments/dpl_3Ag2zUk5pt7ZLA7Ryrh6EWrrBZZh"
+  },
+  "message": "Deployment happy-cookie-ops-demo-m0wbduoz7-newonathes-projects.vercel.app ready.",
+  "next": [
+    {
+      "command": "vercel inspect happy-cookie-ops-demo-m0wbduoz7-newonathes-projects.vercel.app --scope newonathes-projects",
+      "when": "Inspect deployment"
+    },
+    {
+      "command": "vercel deploy --prod --scope newonathes-projects",
+      "when": "Promote to production"
+    }
+  ]
+}

@@ -5880,6 +5880,34 @@
       "check": "agent_authority_notices_aligned",
       "passed": true,
       "detail": null
+    },
+    {
+      "check": "shared_worker_policy_aligned",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "current_and_master_local_document_links",
+      "passed": true,
+      "detail": {
+        "checked": 287,
+        "broken": []
+      }
+    },
+    {
+      "check": "accepted_docker_baseline_count",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "accepted_docker_baseline_hashes",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "state_coverage_unique_70_rows",
+      "passed": true,
+      "detail": null
     }
   ],
   "changed_delivery_files": [
@@ -5917,6 +5945,6 @@
     "src/components/sheets/why.tsx",
     ".github/workflows/ci.yml"
   ],
-  "generator_scratch": "C:\\Users\\ethan\\AppData\\Local\\Temp\\happy-cookie-catalog-u3h6u0nq",
+  "generator_scratch": "C:\\Users\\ethan\\AppData\\Local\\Temp\\happy-cookie-catalog-bjuhxz5k",
   "failures": []
 }

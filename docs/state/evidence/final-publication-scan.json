@@ -1,0 +1,8 @@
+{
+  "scope": "staged changes after bootstrap and cloud commits",
+  "files": 103,
+  "bytes": 7318767,
+  "credential_shape_hit_paths": [],
+  "forbidden_paths": [],
+  "limitations": "Shape scan only; does not prove absence of every possible secret."
+}

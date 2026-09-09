@@ -3,6 +3,7 @@ from pathlib import Path
 from graphlib import TopologicalSorter
 from urllib.parse import unquote
 import hashlib
+import csv
 import json
 import os
 import re
@@ -95,6 +96,19 @@ for source in link_sources:
             broken_links.append({'source': source.relative_to(ROOT).as_posix(), 'target': target})
 check('current_and_master_local_document_links', not broken_links,
       {'checked': link_count, 'broken': broken_links})
+baseline_entries = [line.split('  ', 1) for line in
+                    (EVIDENCE / 'docker-visual-candidate-sha256-final-20260909.txt').read_text().splitlines()
+                    if line.strip()]
+baseline_root = ROOT / 'tests/e2e/visual.spec.ts-snapshots'
+check('accepted_docker_baseline_count', len(baseline_entries) == 75
+      and len(list(baseline_root.glob('*.png'))) == 75)
+check('accepted_docker_baseline_hashes', all(Path(name).name == name
+      and (baseline_root / name).is_file() and digest(baseline_root / name) == expected
+      for expected, name in baseline_entries))
+with (ROOT / 'docs/state/state-coverage.csv').open(encoding='utf-8-sig', newline='') as handle:
+    coverage = list(csv.DictReader(handle))
+coverage_ids = [next(iter(row.values())) for row in coverage]
+check('state_coverage_unique_70_rows', len(coverage) == 70 and len(set(coverage_ids)) == 70)
 report = dict(scope='G0 continuity, not application readiness', checks=checks, changed_delivery_files=changes,
               generator_scratch=str(scratch), failures=[c for c in checks if not c['passed']])
 (EVIDENCE / 'g0-validation.json').write_text(json.dumps(report, indent=2) + '\n')

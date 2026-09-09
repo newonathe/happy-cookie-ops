@@ -1,0 +1,196 @@
+
+> happy-cookie-ops@0.1.0 test:visual:update /app
+> playwright test --project=visual --project=visual-tablet --project=visual-desktop --update-snapshots
+
+
+Running 75 tests using 2 workers
+
+  ✓   2 [visual] › tests/e2e/visual.spec.ts:10:7 › VISUAL-home Home (1.2s)
+  ✓   1 [visual] › tests/e2e/visual.spec.ts:10:7 › VISUAL-pnl P and L (1.2s)
+  ✓   3 [visual] › tests/e2e/visual.spec.ts:10:7 › VISUAL-sales Sales log (941ms)
+  ✓   4 [visual] › tests/e2e/visual.spec.ts:10:7 › VISUAL-formqueue Form queue (927ms)
+  ✓   6 [visual] › tests/e2e/visual.spec.ts:10:7 › VISUAL-health System health (793ms)
+  ✓   5 [visual] › tests/e2e/visual.spec.ts:10:7 › VISUAL-orders Orders (1.2s)
+  ✓   8 [visual] › tests/e2e/visual.spec.ts:10:7 › VISUAL-order Order detail (796ms)
+  ✓   7 [visual] › tests/e2e/visual.spec.ts:10:7 › VISUAL-products Products (1.1s)
+  ✓   9 [visual] › tests/e2e/visual.spec.ts:10:7 › VISUAL-lookup Find my order (780ms)
+  ✓  10 [visual] › tests/e2e/visual.spec.ts:10:7 › VISUAL-notifications Notifications (826ms)
+  ✓  11 [visual] › tests/e2e/visual.spec.ts:10:7 › VISUAL-reconcile Payments (875ms)
+  ✓  12 [visual] › tests/e2e/visual.spec.ts:10:7 › VISUAL-shop Customer shop (1.1s)
+  ✓  14 [visual] › tests/e2e/visual.spec.ts:10:7 › VISUAL-checkout Customer checkout (812ms)
+  ✓  13 [visual] › tests/e2e/visual.spec.ts:10:7 › VISUAL-bake Bake plan (1.2s)
+  ✓  15 [visual] › tests/e2e/visual.spec.ts:10:7 › VISUAL-status Customer order status (789ms)
+  ✓  16 [visual] › tests/e2e/visual.spec.ts:10:7 › VISUAL-batch Production focus (836ms)
+  ✓  17 [visual] › tests/e2e/visual.spec.ts:10:7 › VISUAL-recipes Recipes (864ms)
+  ✓  18 [visual] › tests/e2e/visual.spec.ts:10:7 › VISUAL-inventory Inventory (898ms)
+  ✓  19 [visual] › tests/e2e/visual.spec.ts:10:7 › VISUAL-drops Drops (1.2s)
+  ✓  21 [visual] › tests/e2e/visual.spec.ts:10:7 › VISUAL-suppliers Suppliers (760ms)
+  ✓  22 [visual] › tests/e2e/visual.spec.ts:10:7 › VISUAL-settings Settings (830ms)
+  ✓  23 [visual-tablet] › tests/e2e/visual.spec.ts:10:7 › VISUAL-home Home (1.1s)
+  ✓  24 [visual-tablet] › tests/e2e/visual.spec.ts:10:7 › VISUAL-sales Sales log (838ms)
+  ✘  20 [visual] › tests/e2e/visual.spec.ts:10:7 › VISUAL-stocktake Inventory (5.7s)
+  ✓  25 [visual-tablet] › tests/e2e/visual.spec.ts:10:7 › VISUAL-orders Orders (1.2s)
+  ✓  26 [visual] › tests/e2e/visual.spec.ts:10:7 › VISUAL-more All tools (943ms)
+  ✓  27 [visual-tablet] › tests/e2e/visual.spec.ts:10:7 › VISUAL-order Order detail (1.0s)
+  ✓  28 [visual] › tests/e2e/visual.spec.ts:10:7 › VISUAL-grocery Grocery list (829ms)
+  ✓  29 [visual-tablet] › tests/e2e/visual.spec.ts:10:7 › VISUAL-lookup Find my order (901ms)
+  ✓  30 [visual] › tests/e2e/visual.spec.ts:10:7 › VISUAL-bazaar Bazaar Mode (875ms)
+  ✓  31 [visual-tablet] › tests/e2e/visual.spec.ts:10:7 › VISUAL-reconcile Payments (995ms)
+  ✓  32 [visual-tablet] › tests/e2e/visual.spec.ts:10:7 › VISUAL-bake Bake plan (1.2s)
+  ✓  33 [visual-tablet] › tests/e2e/visual.spec.ts:10:7 › VISUAL-pnl P and L (1.2s)
+  ✓  34 [visual-tablet] › tests/e2e/visual.spec.ts:10:7 › VISUAL-batch Production focus (1.0s)
+  ✓  35 [visual-tablet] › tests/e2e/visual.spec.ts:10:7 › VISUAL-formqueue Form queue (1.1s)
+  ✓  36 [visual-tablet] › tests/e2e/visual.spec.ts:10:7 › VISUAL-inventory Inventory (1.0s)
+  ✓  37 [visual-tablet] › tests/e2e/visual.spec.ts:10:7 › VISUAL-health System health (1.0s)
+  ✓  39 [visual-tablet] › tests/e2e/visual.spec.ts:10:7 › VISUAL-products Products (1.3s)
+  ✓  40 [visual-tablet] › tests/e2e/visual.spec.ts:10:7 › VISUAL-notifications Notifications (910ms)
+  ✓  41 [visual-tablet] › tests/e2e/visual.spec.ts:10:7 › VISUAL-shop Customer shop (1.2s)
+  ✓  42 [visual-tablet] › tests/e2e/visual.spec.ts:10:7 › VISUAL-checkout Customer checkout (880ms)
+  ✓  43 [visual-tablet] › tests/e2e/visual.spec.ts:10:7 › VISUAL-status Customer order status (848ms)
+  ✘  38 [visual-tablet] › tests/e2e/visual.spec.ts:10:7 › VISUAL-stocktake Inventory (5.8s)
+  ✓  44 [visual-tablet] › tests/e2e/visual.spec.ts:10:7 › VISUAL-recipes Recipes (1.0s)
+  ✓  45 [visual-tablet] › tests/e2e/visual.spec.ts:10:7 › VISUAL-more All tools (1.1s)
+  ✓  46 [visual-tablet] › tests/e2e/visual.spec.ts:10:7 › VISUAL-drops Drops (1.3s)
+  ✓  47 [visual-tablet] › tests/e2e/visual.spec.ts:10:7 › VISUAL-grocery Grocery list (1.0s)
+  ✓  48 [visual-tablet] › tests/e2e/visual.spec.ts:10:7 › VISUAL-suppliers Suppliers (967ms)
+  ✓  49 [visual-tablet] › tests/e2e/visual.spec.ts:10:7 › VISUAL-bazaar Bazaar Mode (987ms)
+  ✓  50 [visual-tablet] › tests/e2e/visual.spec.ts:10:7 › VISUAL-settings Settings (993ms)
+  ✓  51 [visual-desktop] › tests/e2e/visual.spec.ts:10:7 › VISUAL-home Home (1.2s)
+  ✓  52 [visual-desktop] › tests/e2e/visual.spec.ts:10:7 › VISUAL-pnl P and L (1.1s)
+  ✓  53 [visual-desktop] › tests/e2e/visual.spec.ts:10:7 › VISUAL-sales Sales log (973ms)
+  ✓  54 [visual-desktop] › tests/e2e/visual.spec.ts:10:7 › VISUAL-formqueue Form queue (1.0s)
+  ✓  56 [visual-desktop] › tests/e2e/visual.spec.ts:10:7 › VISUAL-health System health (1.0s)
+  ✓  55 [visual-desktop] › tests/e2e/visual.spec.ts:10:7 › VISUAL-orders Orders (1.3s)
+  ✓  58 [visual-desktop] › tests/e2e/visual.spec.ts:10:7 › VISUAL-order Order detail (966ms)
+  ✓  57 [visual-desktop] › tests/e2e/visual.spec.ts:10:7 › VISUAL-products Products (1.3s)
+  ✓  59 [visual-desktop] › tests/e2e/visual.spec.ts:10:7 › VISUAL-lookup Find my order (946ms)
+  ✓  60 [visual-desktop] › tests/e2e/visual.spec.ts:10:7 › VISUAL-notifications Notifications (1.0s)
+  ✓  61 [visual-desktop] › tests/e2e/visual.spec.ts:10:7 › VISUAL-reconcile Payments (967ms)
+  ✓  62 [visual-desktop] › tests/e2e/visual.spec.ts:10:7 › VISUAL-shop Customer shop (1.2s)
+  ✓  63 [visual-desktop] › tests/e2e/visual.spec.ts:10:7 › VISUAL-bake Bake plan (1.2s)
+  ✓  64 [visual-desktop] › tests/e2e/visual.spec.ts:10:7 › VISUAL-checkout Customer checkout (929ms)
+  ✓  65 [visual-desktop] › tests/e2e/visual.spec.ts:10:7 › VISUAL-batch Production focus (947ms)
+  ✓  66 [visual-desktop] › tests/e2e/visual.spec.ts:10:7 › VISUAL-status Customer order status (952ms)
+  ✓  67 [visual-desktop] › tests/e2e/visual.spec.ts:10:7 › VISUAL-inventory Inventory (1.0s)
+  ✓  68 [visual-desktop] › tests/e2e/visual.spec.ts:10:7 › VISUAL-recipes Recipes (1.1s)
+  ✓  70 [visual-desktop] › tests/e2e/visual.spec.ts:10:7 › VISUAL-drops Drops (1.2s)
+  ✓  71 [visual-desktop] › tests/e2e/visual.spec.ts:10:7 › VISUAL-suppliers Suppliers (876ms)
+  ✓  72 [visual-desktop] › tests/e2e/visual.spec.ts:10:7 › VISUAL-settings Settings (874ms)
+  ✘  69 [visual-desktop] › tests/e2e/visual.spec.ts:10:7 › VISUAL-stocktake Inventory (5.9s)
+  ✓  73 [visual-desktop] › tests/e2e/visual.spec.ts:10:7 › VISUAL-more All tools (1.1s)
+  ✓  74 [visual-desktop] › tests/e2e/visual.spec.ts:10:7 › VISUAL-grocery Grocery list (959ms)
+  ✓  75 [visual-desktop] › tests/e2e/visual.spec.ts:10:7 › VISUAL-bazaar Bazaar Mode (890ms)
+
+
+  1) [visual] › tests/e2e/visual.spec.ts:10:7 › VISUAL-stocktake Inventory ─────────────────────────
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('[data-screen-label="Inventory"]')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" locator('[data-screen-label="Inventory"]') with timeout 5000ms
+      - waiting for locator('[data-screen-label="Inventory"]')
+
+
+       at fixture.ts:77
+
+      75 | }
+      76 | export async function requireScreen(page: Page, label: string): Promise<void> {
+    > 77 |   await expect(page.locator(`[data-screen-label="${label}"]`)).toBeVisible();
+         |                                                                ^
+      78 | }
+      79 |
+        at requireScreen (/app/tests/e2e/fixture.ts:77:64)
+        at /app/tests/e2e/visual.spec.ts:15:24
+
+    Error Context: test-results/visual-VISUAL-stocktake-Inventory-visual/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/visual-VISUAL-stocktake-Inventory-visual/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results/visual-VISUAL-stocktake-Inventory-visual/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) [visual-tablet] › tests/e2e/visual.spec.ts:10:7 › VISUAL-stocktake Inventory ──────────────────
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('[data-screen-label="Inventory"]')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" locator('[data-screen-label="Inventory"]') with timeout 5000ms
+      - waiting for locator('[data-screen-label="Inventory"]')
+
+
+       at fixture.ts:77
+
+      75 | }
+      76 | export async function requireScreen(page: Page, label: string): Promise<void> {
+    > 77 |   await expect(page.locator(`[data-screen-label="${label}"]`)).toBeVisible();
+         |                                                                ^
+      78 | }
+      79 |
+        at requireScreen (/app/tests/e2e/fixture.ts:77:64)
+        at /app/tests/e2e/visual.spec.ts:15:24
+
+    Error Context: test-results/visual-VISUAL-stocktake-Inventory-visual-tablet/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/visual-VISUAL-stocktake-Inventory-visual-tablet/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results/visual-VISUAL-stocktake-Inventory-visual-tablet/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3) [visual-desktop] › tests/e2e/visual.spec.ts:10:7 › VISUAL-stocktake Inventory ─────────────────
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('[data-screen-label="Inventory"]')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" locator('[data-screen-label="Inventory"]') with timeout 5000ms
+      - waiting for locator('[data-screen-label="Inventory"]')
+
+
+       at fixture.ts:77
+
+      75 | }
+      76 | export async function requireScreen(page: Page, label: string): Promise<void> {
+    > 77 |   await expect(page.locator(`[data-screen-label="${label}"]`)).toBeVisible();
+         |                                                                ^
+      78 | }
+      79 |
+        at requireScreen (/app/tests/e2e/fixture.ts:77:64)
+        at /app/tests/e2e/visual.spec.ts:15:24
+
+    Error Context: test-results/visual-VISUAL-stocktake-Inventory-visual-desktop/error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/visual-VISUAL-stocktake-Inventory-visual-desktop/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results/visual-VISUAL-stocktake-Inventory-visual-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3 failed
+    [visual] › tests/e2e/visual.spec.ts:10:7 › VISUAL-stocktake Inventory ──────────────────────────
+    [visual-tablet] › tests/e2e/visual.spec.ts:10:7 › VISUAL-stocktake Inventory ───────────────────
+    [visual-desktop] › tests/e2e/visual.spec.ts:10:7 › VISUAL-stocktake Inventory ──────────────────
+  72 passed (53.0s)
+ ELIFECYCLE  Command failed with exit code 1.
+DOCKER_EXIT=1

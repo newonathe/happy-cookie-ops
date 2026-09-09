@@ -1,0 +1,131 @@
+#0 building with "desktop-linux" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile.visual
+#1 transferring dockerfile: 584B done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for mcr.microsoft.com/playwright:v1.63.0-noble
+#2 ...
+
+#3 [auth] library/node:pull token for registry-1.docker.io
+#3 DONE 0.0s
+
+#2 [internal] load metadata for mcr.microsoft.com/playwright:v1.63.0-noble
+#2 DONE 0.5s
+
+#4 [internal] load metadata for docker.io/library/node:24.20.0-bookworm
+#4 DONE 1.3s
+
+#5 [node 1/1] FROM docker.io/library/node:24.20.0-bookworm@sha256:be23f54a88d34e8824c741b19b91064094f92c1c97b194144bfc8b50d67258e2
+#5 resolve docker.io/library/node:24.20.0-bookworm@sha256:be23f54a88d34e8824c741b19b91064094f92c1c97b194144bfc8b50d67258e2 0.0s done
+#5 DONE 0.0s
+
+#6 [stage-1 1/8] FROM mcr.microsoft.com/playwright:v1.63.0-noble@sha256:eff16c30e6f3f4af0a03fa4b706120d5e9b0891c344a27d64559aff5900a4a27
+#6 resolve mcr.microsoft.com/playwright:v1.63.0-noble@sha256:eff16c30e6f3f4af0a03fa4b706120d5e9b0891c344a27d64559aff5900a4a27 0.0s done
+#6 DONE 0.0s
+
+#7 [internal] load build context
+#7 transferring context: 16.04kB 0.0s done
+#7 DONE 0.0s
+
+#8 [stage-1 2/8] COPY --from=node /usr/local/ /usr/local/
+#8 CACHED
+
+#9 [stage-1 3/8] RUN corepack enable pnpm && corepack prepare pnpm@9.12.3 --activate
+#9 CACHED
+
+#10 [stage-1 4/8] WORKDIR /app
+#10 CACHED
+
+#11 [stage-1 5/8] COPY package.json pnpm-lock.yaml .npmrc ./
+#11 CACHED
+
+#12 [stage-1 6/8] RUN pnpm install --frozen-lockfile
+#12 CACHED
+
+#13 [stage-1 7/8] COPY . .
+#13 DONE 0.2s
+
+#14 [stage-1 8/8] RUN pnpm build
+#14 0.827 
+#14 0.827 > happy-cookie-ops@0.1.0 build /app
+#14 0.827 > next build
+#14 0.827 
+#14 1.255 ▲ Next.js 16.3.3 (Turbopack)
+#14 1.667 ✓ Running next.config.ts took 412ms
+#14 1.684 - Experiments (use with caution):
+#14 1.684   · clientTraceMetadata
+#14 1.684 
+#14 1.686 ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead.
+#14 1.686 
+#14 1.686   To migrate automatically, run:
+#14 1.686   npx @next/codemod@canary middleware-to-proxy .
+#14 1.686 
+#14 1.686   Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+#14 1.711   Creating an optimized production build ...
+#14 11.38 ✓ Compiled successfully in 9.1s
+#14 11.38   Running next.config.js provided runAfterProductionCompile ...
+#14 11.93 ✓ Completed runAfterProductionCompile in 550ms
+#14 11.93   Running TypeScript ...
+#14 21.75 ✓ Finished writing to filesystem cache in 10.4s
+#14 28.66   Finished TypeScript in 16.7s ...
+#14 28.67   Collecting page data using 7 workers ...
+#14 38.74   Generating static pages using 7 workers (0/28) ...
+#14 41.07   Generating static pages using 7 workers (7/28) 
+#14 41.19   Generating static pages using 7 workers (14/28) 
+#14 41.36   Generating static pages using 7 workers (21/28) 
+#14 41.48 ✓ Generating static pages using 7 workers (28/28) in 2.7s
+#14 41.49   Finalizing page optimization ...
+#14 46.50 
+#14 46.51 Route (app)
+#14 46.51 ┌ ○ /
+#14 46.51 ├ ○ /_not-found
+#14 46.51 ├ ƒ /api/health
+#14 46.51 ├ ƒ /api/sync
+#14 46.51 ├ ○ /bake
+#14 46.51 ├ ○ /batch
+#14 46.51 ├ ○ /bazaar
+#14 46.51 ├ ○ /checkout
+#14 46.51 ├ ○ /drops
+#14 46.51 ├ ○ /formqueue
+#14 46.51 ├ ○ /grocery
+#14 46.51 ├ ○ /health
+#14 46.51 ├ ○ /inventory
+#14 46.51 ├ ○ /lookup
+#14 46.51 ├ ○ /more
+#14 46.51 ├ ○ /notifications
+#14 46.51 ├ ○ /order
+#14 46.51 ├ ○ /orders
+#14 46.51 ├ ○ /pnl
+#14 46.51 ├ ○ /products
+#14 46.51 ├ ○ /recipes
+#14 46.51 ├ ○ /reconcile
+#14 46.51 ├ ○ /sales
+#14 46.51 ├ ○ /settings
+#14 46.51 ├ ○ /shop
+#14 46.51 ├ ○ /sign-in
+#14 46.51 ├ ○ /status
+#14 46.51 ├ ○ /stocktake
+#14 46.51 └ ○ /suppliers
+#14 46.51 
+#14 46.51 
+#14 46.51 ƒ Proxy (Middleware)
+#14 46.51 
+#14 46.51 ○  (Static)   prerendered as static content
+#14 46.51 ƒ  (Dynamic)  server-rendered on demand
+#14 46.51 
+#14 DONE 47.9s
+
+#15 exporting to image
+#15 exporting layers
+#15 exporting layers 65.8s done
+#15 exporting manifest sha256:31da3121af6e89b7cc22c117377e7eae8acc3caaffe8aa1f5483e8c56994df8e
+#15 exporting manifest sha256:31da3121af6e89b7cc22c117377e7eae8acc3caaffe8aa1f5483e8c56994df8e 0.3s done
+#15 exporting config sha256:15c0b207677902083c4068799a28da59f13a9f18fab48a359349e202b4f71c63
+#15 exporting config sha256:15c0b207677902083c4068799a28da59f13a9f18fab48a359349e202b4f71c63 0.0s done
+#15 exporting attestation manifest sha256:4d81491182cd8415b91ef911047a070f34f38439cf79904ed8f76ee199cd1398 0.0s done
+#15 exporting manifest list sha256:c64d55e48fd7a6b714e821c3ac2f7b95dabc4c3dcc115f465afd7b7a7a1a6923 0.0s done
+#15 naming to docker.io/library/happy-cookie-g0-visual:20260908 done
+#15 unpacking to docker.io/library/happy-cookie-g0-visual:20260908
+#15 unpacking to docker.io/library/happy-cookie-g0-visual:20260908 113.0s done
+#15 DONE 179.3s

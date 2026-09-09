@@ -1,38 +1,36 @@
 # G0 current state — 2026-09-09
 
-Authoritative root: `C:\Users\ethan\dev\happy-cookie-ops-g0`.
+Authoritative root: `C:\Users\ethan\dev\happy-cookie-ops-g0`. The original OneDrive delivery is preserved with a working-copy pointer. No previous Git ancestry was recovered; migration application history remains UNKNOWN for MP-05.
 
-Branch: `agent/codex/MP-00-g0-foundation`. This is a newly initialized delivery repository; no earlier Git ancestry or remote was recovered. The original OneDrive folder is preserved with a working-copy pointer. Migration history remains UNKNOWN for MP-05.
+Manual progress authority: [task-status.json](task-status.json). The generated master-plan catalog and audit remain historical planned scope; regeneration must not overwrite implementation progress. Read the [shared Codex/Claude policy](agent-orchestration.md) before delegation.
 
-Manual progress authority: [task-status.json](task-status.json). The generated master-plan catalog remains the immutable planned scope; it is not the implementation status store. Regeneration must not overwrite manual status.
+## Outcome
 
-Evidence: [provenance](evidence/provenance.json), [delivery hashes](evidence/delivery-manifest.json). Original audit manifest preserved unchanged.
+MP-00 through MP-03 foundation acceptance is complete. Product release acceptance remains red. The owner additionally authorized private GitHub publication and a Vercel demo preview; no production backend, customer operation, paid upgrade or automatic runner was introduced.
 
-The user authorized MP-00–03 and later added private GitHub publication and a Vercel development preview. This provides development visibility with fabricated fixtures. No production credentials, real business operation, paid upgrade, customer messaging or automatic runner is authorized.
+- [Private GitHub source](https://github.com/newonathe/happy-cookie-ops): bootstrap `main` commit `32e37da`, followed by the recorded packaging and baseline checkpoints. Local branch `agent/codex/MP-00-g0-foundation`; final checkpoint publication is recorded in the handoff.
+- [Protected live preview](https://happy-cookie-ops-demo-m0wbduoz7-newonathes-projects.vercel.app): READY; sign in with the owner's Vercel account. This is a manually deployed demo, not a Git-connected automatic deployment.
+- [Cloud evidence and configuration](cloud-preview.md): authenticated app 200, health 200/database not-configured, sync 500/no acknowledgment, unauthenticated 302 to Vercel sign-in. No hosted browser-hydration or production-readiness claim.
 
-## Current evidence
+## Foundation evidence
 
-- MP-00: 675 delivered files copied and hashed; historical 347-file audit manifest preserved. Current validator checks catalog/schema/DAG, generator reproduction, protected delivery bytes, five exact approved exceptions, document links and shared agent policy. Local Git checkpoint pending.
-- MP-01: Node 24.20.0, pnpm 9.12.3, Next 16.3.3, React 19.2.8, strict peers and frozen lock. Clean install with actual pinned pnpm and lifecycle setup passed. See [toolchain](toolchain.md).
-- MP-02: 108 initial TypeScript diagnostics repaired; flat lint works; deny-by-default reporting tightened. `pnpm verify` exit 0: 13 files, 103 tests; production build exit 0. Five one-line sheet guards explicitly approved; other protected bytes preserved. See [exception](protected-exception.md).
-- MP-03: style/handler/copy/structure/relationship/declaration mutation probes pass; 24 negative non-Home route fixtures prevent false success. Deterministic demo snapshot generated from the unchanged engine. Five valid-sheet browser cases pass. Docker image built successfully; 75-layout candidate comparison/review in progress.
+| Package | Verified outcome |
+| --- | --- |
+| MP-00 | 675 delivered files preserved; original 347-file audit manifest unchanged. Private source checkpoint established. Current validator: 1,181 checks, zero failures, including schema/DAG/generator reproduction, protected hashes, policy/document links, 70 coverage rows and 75 baseline hashes. |
+| MP-01 | Node 24.20.0 locally/CI/Docker; pnpm 9.12.3 and frozen lock. Verified clean pinned install and reviewed lifecycle setup. Hosted Node 24.19.0 is within the documented supported range and cloud build passes with pinned pnpm through Corepack. |
+| MP-02 | Initial 108 TypeScript diagnostics repaired; flat lint and reporting privacy tests pass. `pnpm verify`: 13 test files, 103 tests, exit 0. Local standalone, Docker and Vercel production builds pass. Five exact owner-approved null guards; other protected render bodies unchanged. |
+| MP-03 | Copy/style/handler/structure/relationship/declaration mutation probes detect changes. Route/offline false positives are rejected. Deterministic fixtures, five valid-sheet captures and 70-row state ledger. All 75 Docker regression snapshots accepted after source/visual review and independent readonly comparison, exit 0. |
 
-## Retained release failures
+See [toolchain](toolchain.md), [protected exception](protected-exception.md), [visual acceptance](visual-review.md), [state coverage](state-coverage.md), and [evidence index](evidence-index.json). The original prototype remains the design answer key. Regression images have visible review controls, frozen fixture/prerequisite differences and inherited clipping; they do not certify prototype pixel identity or all conditional states.
 
-Latest phone run: one Home pass, 24 direct routes redirect to `/`, and one offline flow fails because its nonzero engine sale never reaches the IndexedDB queue. The actual-runtime regression proves an empty acknowledgment can incorrectly mark a sale synced. Downstream owners: MP-07 and MP-18–21. Earlier Home hydration failure did not recur in the final fixture run.
+## Retained failures and unknowns
 
-Windows screenshots use a 390×844 Chromium viewport, Manila timezone, frozen demo timestamps, blocked service workers and explicitly forced engine navigation. They are valid-sheet diagnostics, not route proof or accepted Docker baselines. No physical Safari/device claim. The prototype harness remains visible in this development configuration.
+Latest full `pnpm test:e2e`: **78 failed, 30 skipped**, exit 1. Each phone Chromium, desktop Chromium and emulated iPhone WebKit run records 24 non-Home route redirects, one Home hydration error (React 418), and one nonzero sale without a durable IndexedDB queue row. Earlier focused phone Home passed; the fresh-build full run proves that hydration is still an intermittent release defect. MP-07 owns bootstrap/routing; MP-18–21 own offline persistence/reconciliation. The actual-runtime empty-ack test also remains red for MP-20.
 
-Claude Code used Claude Pro and completed a read-only Sonnet 5/high review. No demonstrated privacy escape in assigned paths; test names corrected. Absolute request URLs are intentionally discarded. Request-error composition is checked separately. See [review](evidence/claude-review-result.json).
+Thirty SQL capacity cases skipped because no isolated database URL/key was configured. This is unavailable integration evidence, not a pass; MP-05/06 must supply it. No real database, physical iPhone/macOS Safari, PWA or hosted performance acceptance is claimed.
 
-## Next action
+The first two-worker visual comparison passed 73 and timed out during page setup for two mobile tests; a full single-worker comparison passed all 75 without changing assertions or timeouts. Hosted CI pixel parity/concurrency remains unverified. GitHub bootstrap CI failed its inherited whole-repository formatting check; dependent jobs were skipped. Do not mass-format locked source or historical evidence to hide it. Dependency audit retains 11 transitive tooling advisories (5 high, 3 moderate, 3 low; zero critical), documented in the toolchain evidence.
 
-Finish Docker visual candidate comparison/review, publish the verified source checkpoint privately, then deploy and verify a demo-only Vercel preview after exposure review. Finish evidence index, state traceability and handoff. G0 remains incomplete until remaining MP-03 acceptance is resolved.
+## Next boundary
 
-Logs: [verify](evidence/G0-verify-final.txt), [build](evidence/G0-build-latest.txt), [journeys](evidence/MP-03-journeys-latest.txt), [ack regression](evidence/MP-03-release-offline.txt), [five sheets](evidence/MP-03-browser-evidence-latest.txt), [port probes](evidence/MP-03-port-mutations.txt), [continuity](evidence/g0-validation.json).
-
-## Coordination and cloud checkpoint
-
-Read [shared agent policy](agent-orchestration.md) before delegation: one worker by default, at most two across Codex and Claude including children, explicit efficient models and bounded prompts. Claude was reauthorized; the first new attempt stopped at expired OAuth with zero model tokens, then the owner signed in again. Earlier review results were retained.
-
-Private GitHub repository created: https://github.com/newonathe/happy-cookie-ops; source push pending. Vercel demo project has zero environment variables and Standard Authentication protection. The first deployment failed its Node engine check and was classified Production by Vercel's first-deployment behavior. The second is Preview (API target null), has no alias, and is building; unauthenticated root returns 302. Do not call it live until READY and authenticated health checks pass.
+Stop at G0. The next product work follows G1/MP-04 onward and its decision gates; routing and offline fixes require their assigned packages. See [continuation](continuation.md). Keep preview fixtures isolated and use a fresh reviewed origin for eventual production. No further owner setup is needed for the current demo; future database/hosting decisions are not silently settled by this preview.

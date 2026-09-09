@@ -1,0 +1,107 @@
+{
+  "scope": "G0 foundation; release failures are explicit, not waived",
+  "checks": [
+    {
+      "check": "delivery provenance",
+      "evidence": "evidence/provenance.json",
+      "recorded_exit": 0,
+      "sha256": "e099efe55283c4f196a21bb973c2e9954b2722ddace13b863aec7632380bf7d3"
+    },
+    {
+      "check": "delivery hashes",
+      "evidence": "evidence/delivery-manifest.json",
+      "recorded_exit": 0,
+      "sha256": "c5b7e0f20ac8db000175216f8485e2abdeda594ec99defaacbd1e1263bcecd00"
+    },
+    {
+      "check": "frozen pinned clean install",
+      "evidence": "evidence/clean-install-pinned.txt",
+      "recorded_exit": 0,
+      "sha256": "5d0dd6eb7731387222c744f78547b49db7b598e0eab2924f7283ec43a1d32461"
+    },
+    {
+      "check": "pnpm verify before cloud packaging commit",
+      "evidence": "evidence/cloud-packaging-commit.txt",
+      "recorded_exit": 0,
+      "sha256": "795b7a96ae5f2ae114d02c53b0c08d20d7d820a336de0efb3d4da5c2755f065d"
+    },
+    {
+      "check": "local standalone build",
+      "evidence": "evidence/G0-build-final.txt",
+      "recorded_exit": 0,
+      "sha256": "ca004243b25ad920ce1a51e09762f3fb9237ecae6a759aded1724bf69097d96c"
+    },
+    {
+      "check": "Docker build",
+      "evidence": "evidence/docker-visual-build.txt",
+      "recorded_exit": 0,
+      "sha256": "9681d2f4fc3d5ca99f90165fa05853d0810d4fe253d457315a805aff2661b8a4"
+    },
+    {
+      "check": "Vercel build",
+      "evidence": "evidence/vercel-preview-build-final.txt",
+      "recorded_exit": 0,
+      "sha256": "ba69171e5f7e285980105ffe571f48d7bbc8c0ca3640e670015c6d3722c6ffb0"
+    },
+    {
+      "check": "port mutation probes",
+      "evidence": "evidence/MP-03-port-mutations.txt",
+      "recorded_exit": 0,
+      "sha256": "bcbdf3c98a6fb7c6fcf5cd5925cb5a51d5f341e8d7ae29d8f5ec0845750c7672"
+    },
+    {
+      "check": "five valid protected-guard sheets",
+      "evidence": "evidence/MP-03-browser-evidence-latest.txt",
+      "recorded_exit": 0,
+      "sha256": "2ba79ab337b5843286b8fafa71609b8b658f71db5e208c124be9d1d803d8bdd4"
+    },
+    {
+      "check": "full browser release suite:78failed30skipped",
+      "evidence": "evidence/G0-e2e-full.txt",
+      "recorded_exit": 1,
+      "sha256": "c9cd96b9c8d6cd4b0e631059eb434c3b51dfdd1c2ed6dd5c03a6719622c6a5bb"
+    },
+    {
+      "check": "actual runtime acknowledgment regression",
+      "evidence": "evidence/MP-03-release-offline.txt",
+      "recorded_exit": 1,
+      "sha256": "df5cb41870fdff2b152188a7b5d401f0b898eb66b483e1d63bffecc25bbce1e6"
+    },
+    {
+      "check": "75 Docker comparison; readonly; workers1",
+      "evidence": "evidence/docker-visual-serial-compare-20260909.txt",
+      "recorded_exit": 0,
+      "sha256": "21d371285f86c9c5b23b48a34c24a56faf132aed78e3ebec1f70511ed6331c6c"
+    },
+    {
+      "check": "accepted 75 image hashes",
+      "evidence": "evidence/docker-visual-candidate-sha256-final-20260909.txt",
+      "recorded_exit": 0,
+      "sha256": "082d616bc8fc4175337541d9b05397298c3b448a01fcdf93e487dfc91d150efe"
+    },
+    {
+      "check": "current planning continuity",
+      "evidence": "evidence/g0-validation.json",
+      "recorded_exit": 0,
+      "sha256": "223cd67bbbb5b0604ab5c4777fd37c0ef1f91703169830ff9ad2f4112243ab32"
+    },
+    {
+      "check": "authenticated preview probes",
+      "evidence": "evidence/vercel-demo-probes.json",
+      "recorded_exit": 0,
+      "sha256": "0a5b384c89574ebfa486d0d42fd67b472192bc12f95f9b3cf4a468ad86c8f4d4"
+    },
+    {
+      "check": "Claude independent visual gate review",
+      "evidence": "evidence/claude-visual-gate-result.json",
+      "recorded_exit": 0,
+      "sha256": "e38fa7e03765260a56dd68f41141cdabb51595d630e9399bcffc100f61ca1518"
+    },
+    {
+      "check": "dependency audit retained11advisories",
+      "evidence": "evidence/dependency-audit-final.json",
+      "recorded_exit": 1,
+      "sha256": "4e9268486499381c9d102c18be5124f22a53e23d2d5547b552687bc07fb3d610"
+    }
+  ]
+}

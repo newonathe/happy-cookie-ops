@@ -4,10 +4,11 @@
   "catalog_role": "planned scope only; generated files retain historical planned status",
   "packages": {
     "MP-00": {
-      "status": "in_progress",
+      "status": "complete",
       "slices": {
         "a": "provenance and copy verified"
-      }
+      },
+      "evidence": "Private GitHub bootstrap32e37da; delivery hashes and current continuity validation"
     },
     "MP-01": {
       "status": "complete"
@@ -16,11 +17,9 @@
       "status": "complete"
     },
     "MP-03": {
-      "status": "in_progress",
-      "blockers": [
-        "Docker visual candidate comparison and approval pending",
-        "Full state traceability evidence pending"
-      ]
+      "status": "complete",
+      "evidence": "75 accepted Docker regression snapshots; independent serial comparison75pass; 70-row coverage ledger; gate mutation probes"
     }
-  }
+  },
+  "release_acceptance": "FAIL: MP-07 routing/hydration; MP-18-21 offline; unavailable SQL integration; inherited CI formatting findings"
 }
