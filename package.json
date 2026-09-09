@@ -44,7 +44,7 @@
     "typecheck:e2e": "tsc --noEmit --project tsconfig.e2e.json"
   },
   "dependencies": {
-    "next": "16.3.3",
+    "next": "16.3.4",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "@supabase/ssr": "0.7.0",
