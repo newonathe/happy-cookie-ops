@@ -14,10 +14,14 @@ Work slice **$1**.
 3. Check `depends_on` and the decision gates. If a dependency is incomplete or a gate is
    still open, stop and say which one blocks you.
 4. State your plan: the files you will change, the test you will write, and anything in
-   the task you think is wrong or ambiguous. **Do not write code yet.** Wait for approval.
-5. After approval: implement, then run `pnpm verify`. Paste the output.
-6. Record the result in `docs/state` (slice plan, `task-status.json`, evidence) before any
-   commit. Commit only with Ethan's approval and after cross-review, as
+   the task you think is wrong or ambiguous. Inside an approved `/goal` from
+   `docs/state/next-goal.md`, the goal is the approval: state the plan in two or three lines and
+   proceed. Outside a goal, wait for approval before writing more than about 50 lines.
+5. Implement, then run `pnpm verify`. Paste the summary line.
+6. Record the result in one place only: commit it (standing approval: secret scan first, one
+   logical change, checks in the message) and push the working branch. Update the status line
+   in `docs/state/current.md` and `task-status.json` when a package closes. Do not create
+   per-slice plan files or evidence receipts ([lean plan](../../docs/state/lean-plan.md)). Commit as
    `<type>(<scope>): <summary>` with `Task: $1` in the body.
 
 Constraints for every task: `AGENTS.md` is binding. Do not edit ported markup or the

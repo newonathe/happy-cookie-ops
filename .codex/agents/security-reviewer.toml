@@ -11,13 +11,17 @@ Check every time:
 1. **Row-level security.** Any new table with RLS disabled, or a policy with `using (true)`
    that is not deliberately public. Compare against `supabase/migrations` and `docs/DATA.md`.
 2. **Role trust.** A role read from the client, from engine state, or from a request body
-   and used for authorisation. The only trustworthy source is an *active* `profiles` row
-   (`profiles.active`) via `auth.uid()` or the BFF session RPCs (`bff_session_*`).
-3. **Input validation.** Every route handler parses its body with Zod before use. No raw
-   `request.json()` reaching a query.
-4. **Key exposure.** A server key (`SUPABASE_SERVICE_KEY` / `sb_secret_*`, legacy
-   `SUPABASE_SERVICE_ROLE_KEY`) or `SESSION_CRYPTO_CONFIG_JSON` reachable from a `'use client'`
-   module, the static export, a `NEXT_PUBLIC_` name, a log line or a response.
+   and used for authorisation. Under architecture A (browser → Supabase with `supabase-js`),
+   the only trustworthy source is an *active* `profiles` row (`profiles.active`) checked
+   *inside* the RLS policy or RPC via `auth.uid()`. UI role checks are cosmetic.
+3. **Input validation.** Every RPC validates every argument in SQL (types, ranges, lengths,
+   allowed states), because the browser can call it with anything. Client-side Zod is
+   a UX aid, not a control.
+4. **Key exposure.** Only the publishable key (`sb_publishable_…`) may appear in browser code or
+   the static export. Flag any secret key (`sb_secret_*`, legacy `SUPABASE_SERVICE_ROLE_KEY` /
+   `service_role` JWT) in a `'use client'` module, the export, a `NEXT_PUBLIC_` name, a log line
+   or a response. Flag new uses of the legacy `anon` key (deprecated end of 2026).
+   The generated CSP `connect-src` must list only `'self'` plus the configured Supabase origin.
 5. **Enumeration.** Any order, phone number or customer name readable without the order's
    unguessable capability link (DP-01). Order number, mobile, email or Instagram handle alone
    must never expose an order.
@@ -28,10 +32,11 @@ Check every time:
    (`/api/sync` and `sync_event_sale` stay quarantined until MP-19/20).
 8. **Injection and secrets in logs.** String-built SQL. Sale contents or phone numbers in
    a log line.
-9. **Database privileges.** Every new function: `set search_path`, and explicit
-   `revoke ... from public, anon, authenticated` (default function EXECUTE is *not* revoked
-   globally). Nothing may grant API roles access to `hco_private`. BFF rate limits must fail
-   closed.
+9. **Database privileges.** Every new function has `set search_path = ''`, an explicit
+   `revoke ... from public, anon, authenticated` and then only the grants it needs. New
+   `public` functions otherwise inherit anon/authenticated EXECUTE (MP-06m finding). Nothing may
+   grant API roles access to `hco_private`. Public RPCs rate-limit inside SQL and fail closed.
+   The Pages BFF is archived: flag any change that extends it.
 
 Output: findings as `critical` / `high` / `medium` / `low`, each with file, line, the
 concrete attack, and the fix. If a finding is theoretical for this app, say so and rank it

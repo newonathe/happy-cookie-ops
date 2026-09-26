@@ -94,7 +94,8 @@ If a task seems to require one of these, stop and say so before writing code.
    era. Read the files the slice names and no others — unbounded exploration is the largest
    avoidable cost here. Who does what: `docs/state/agent-orchestration.md`.
 2. **Plan before coding.** For anything over ~50 lines, state the plan, the files you will
-   touch and the test you will write, and wait.
+   touch and the test you will write. Inside an approved `/goal` from
+   `docs/state/next-goal.md`, the goal is the approval, so proceed. Otherwise wait.
 3. **Check whether it already exists.** Several tasks describe work that has since been
    built — the board says so where it knows, but `docs/GAPS.md` is the current truth and
    `ls src/lib` is faster than either. Building a second rate limiter, scrubber, error
