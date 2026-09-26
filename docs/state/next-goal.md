@@ -23,30 +23,18 @@ When a goal finishes, the agent deletes its block here, leaves the next one on t
 ## Goal 1 of 3 — MP-06 default-privilege hardening (run first)
 
 ```text
-/goal MP-06 default-privilege hardening is done. Proven by command output in this session:
-- A new migration 20260101002700_* (existing migrations untouched) runs BOTH
+/goal MP-06 default-privilege hardening is done. First read docs/state/next-goal.md "Before starting" and follow it (pinned PATH, Docker running, codebase-memory-mcp; if its tools are missing, use Grep/Read). Proven by command output in this session:
+- New migration supabase/migrations/20260101002700_function_default_privileges.sql (existing migrations untouched) runs BOTH
   ALTER DEFAULT PRIVILEGES FOR ROLE postgres REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC;  and
   ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public REVOKE EXECUTE ON FUNCTIONS FROM anon, authenticated;
-  (the global statement alone is insufficient here: MP-06m proved the public-schema default still grants
-  anon/authenticated). Every function that is meant to be callable keeps an explicit GRANT.
-  tests/fixtures/function-authority.json matches.
-- Migration 28 is added to tests/fixtures/mp08g-source-pins.json. Every hardcoded 27-migration expectation derives
-  from the pin file instead: scripts/test-auth-fixture.py L103, test-db-bootstrap.py L97,
-  test-cleanup-recovery-rpcs.py L131, test-pages-provider-fixture.py L187, test-session-repository.py L691,
-  tests/unit/test_auth_fixture.py L62-64.
-- The MP-06m fixture and runner are updated to the new expected state: a post-change public function is NOT
-  executable by anon/authenticated/PUBLIC, and service_role behaviour is recorded. The probe passes on two fresh
-  28-migration resets with cleanup passed.
-- A catalog-wide guard is added to the SQL role suite and passes: every public table (relkind r/p) has
-  relrowsecurity=true; the only public views are shop_products and shop_drops (their exact column allowlists
-  stay as tested in public-catalog.sql); no API role has any privilege in hco_private. A table added later without
-  RLS must fail this guard.
-- The SQL role suite (python scripts/test-db-security.py; 474 cases plus the new guard, and any change to the count
-  needs a stated reason) passes on a fresh reset, all 4 Python guard folders pass, and pnpm verify exits 0.
-- One independent review of the migration by a different model, with no P0-P2 open.
-- Committed and pushed; docs/state/current.md status line updated; this block removed from next-goal.md.
-No other package, no protected-path edits, no deploy. Stop and report if a check still fails after 2 fix attempts,
-or after 30 turns.
+  (global alone is insufficient: MP-06m proved the public-schema default still grants anon/authenticated). Existing function grants are unchanged; tests/fixtures/function-authority.json still matches (checked inside scripts/test-db-security.py).
+- Migration 28 is added to tests/fixtures/mp08g-source-pins.json, and every hardcoded 27-migration expectation derives from that pin file instead: scripts/test-auth-fixture.py L103, scripts/test-db-bootstrap.py L97, scripts/test-cleanup-recovery-rpcs.py L131, scripts/test-pages-provider-fixture.py L187, scripts/test-session-repository.py L691, tests/unit/test_auth_fixture.py L62-64.
+- tests/integration/security/future-function-defaults.sql and scripts/probe-future-function-defaults.py expect the new state: a post-change public function is NOT executable by anon/authenticated/PUBLIC, and service_role behaviour is recorded. python scripts/probe-future-function-defaults.py passes with two identical 28-migration resets and cleanup passed.
+- A catalog-wide guard in the SQL role suite passes: every public table (relkind r/p) has relrowsecurity=true; the only public views are shop_products and shop_drops (column allowlists stay as tested in public-catalog.sql); no API role has any privilege in hco_private. A deliberate table without RLS makes the guard fail (show it once, then roll back).
+- python scripts/test-db-security.py passes on a fresh reset (474 cases plus the guard; any count change needs a stated reason). All 4 Python guard folders pass (python -m unittest discover -s <dir> -p "test_*.py" for tests/unit, tests/integration/auth, tests/integration/db, tests/integration/security, with G0_PYTHON_LIBS set). pnpm verify exits 0.
+- The security-reviewer subagent, run on a different model from this session, reviews the migration, guard and probe diffs with no P0-P2 open.
+- Committed (one logical change each, after a secret scan) and pushed to the current branch. Evidence files rewritten by the fixtures are committed as-is. The docs/state/current.md status line says MP-06 hardening is done locally, and the Goal 1 block is removed from docs/state/next-goal.md.
+Do not start Goal 2. No protected-path edits, no hosted resources, no deploy, no merge to main. Stop and report if a check still fails after 2 fix attempts, or after 30 turns.
 ```
 
 ## Goal 2 of 3 — sign-in, role bootstrap, idle sign-out, accounts (MP-07/MP-08)
