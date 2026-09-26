@@ -1,0 +1,7 @@
+{"status": "failed", "error": "injected failure after owned container startup", "cleanup": "passed"}
+{"status": "failed", "mode": "--write", "scope": "public schema types and catalog only; no auth/RLS acceptance", "error": "injected readiness failure", "artifact_unchanged": true}
+.................
+----------------------------------------------------------------------
+Ran 17 tests in 4.466s
+
+OK

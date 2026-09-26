@@ -1,0 +1,7 @@
+{
+  "status": "FAIL",
+  "sql_sha256": "42c4f191a726c0ac2d3ab9ba79fa8dc2dd95001aae83365044bc2232c516021f",
+  "fixture_created": "delegated to owned fixture; see bootstrap report",
+  "runs": [],
+  "bootstrap_report": "MP-08e-bootstrap-ddfdbce11ecd.json"
+}

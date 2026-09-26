@@ -1,0 +1,59 @@
+{
+  "scope": "MP-06.a only; read-only reviews supplement root-owned live tests",
+  "claude": {
+    "model": "claude-sonnet-5",
+    "effort": "medium",
+    "observed_turns": 7,
+    "requested_turns": 6,
+    "requested_turn_limit_enforced": false,
+    "permission_denials": [],
+    "children": 0,
+    "auxiliary_model": "claude-haiku-4-5-20251001",
+    "auth": "first-party Pro; see sanitized auth evidence",
+    "accepted": [
+      "exact three-function revoke/grant scope",
+      "existing service-client compatibility",
+      "SQL-role tests do not prove JWT validation"
+    ],
+    "rejected": [
+      "Pruner revocations are not no-ops: baseline effective PUBLIC/anon execution existed.",
+      "Per-schema default REVOKE cannot cancel global PUBLIC EXECUTE."
+    ],
+    "deferred": [
+      "DB-side parameter limits",
+      "creator-global default privilege scope"
+    ]
+  },
+  "codex": {
+    "agent": "maintenance_review",
+    "model": "gpt-5.6-sol",
+    "effort": "high",
+    "role": "security-reviewer",
+    "children": 0,
+    "findings_fixed": [
+      "Fresh-session absence check proves rollback for all synthetic order/counter keys.",
+      "Initialize failed evidence before bootstrap preflight; persist final report on exception."
+    ],
+    "final_static_verdict": "No remaining blocking finding; safe to merge narrow slice contingent on root live rerun.",
+    "live_execution": "Root-owned; reviewer did not independently execute Docker."
+  },
+  "root_verification": {
+    "security_result": "MP-06a-security.json",
+    "role_checks": 36,
+    "deliberate_unsafe_grants_detected": 6,
+    "fresh_session_rollback": true,
+    "catalog_delta": "Only three function ACL/effective EXECUTE entries differ from MP-05b; other catalog sections equal.",
+    "types_unchanged": true,
+    "python_guard_tests": 16
+  },
+  "environment": {
+    "docker_engine": "29.5.3",
+    "recovery": "Preserved stale socket directories by renaming; no image/volume/WSL reset.",
+    "preserved_paths": [
+      "C:/Users/ethan/AppData/Local/Docker/run.mp06a-20260911",
+      "C:/Users/ethan/AppData/Local/docker-secrets-engine.mp06a-20260911"
+    ],
+    "prior_backups": "Retained",
+    "hosted_actions": false
+  }
+}

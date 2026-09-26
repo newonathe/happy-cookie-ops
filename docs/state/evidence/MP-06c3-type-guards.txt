@@ -1,0 +1,6 @@
+......
+----------------------------------------------------------------------
+Ran 6 tests in 0.046s
+
+OK
+{"status": "failed", "mode": "--write", "scope": "public schema types and catalog only; no auth/RLS acceptance", "error": "injected readiness failure", "artifact_unchanged": true}

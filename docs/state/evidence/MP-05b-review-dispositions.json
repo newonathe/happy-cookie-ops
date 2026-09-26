@@ -1,0 +1,17 @@
+{
+  "scope": "MP-05.b generated types, isolated generation, schema/consumer reconciliation",
+  "workers": [
+    { "provider": "Claude Pro firstParty", "model": "claude-sonnet-5", "effort": "medium", "task": "schema and consumer analysis", "actual_turns": 24, "result": "completed; root reconciled against actual catalog" },
+    { "provider": "Claude Pro firstParty", "model": "claude-sonnet-5", "effort": "medium", "task": "final isolation and behavior review", "actual_turns": 10, "result": "completed; no blocking finding" }
+  ],
+  "concurrency": "one worker at a time alongside root; no children, API fallback or model escalation",
+  "limits": "Each subprocess had a 180-second deadline. Requested six-turn limits were not enforced by the top-level CLI. Final reviewer skipped the type-contract file; root compiled it in typecheck/verify.",
+  "dispositions": [
+    { "finding": "Two client factories were untyped; rate limiter retained placeholder-era cast.", "result": "Added Database generics and removed only obsolete cast/comment. Compiler and final reviewer confirm compatibility; runtime logic unchanged." },
+    { "finding": "Source comments/grant statements imply settings_effective excludes anon.", "result": "Rejected as an effective-privilege claim. Actual catalog reports anon EXECUTE true, including default/PUBLIC grants. Recorded for MP-06 without policy mutation." },
+    { "finding": "SELECT text should directly cause a compile error.", "result": "Replaced proposed test with invalid table/RPC/insert/indexed-column contracts; SDK can represent SELECT errors in result types." },
+    { "finding": "Order/checkout package ownership was unknown in the bounded excerpt.", "result": "Root resolved MP-10; MP-11 is private attachments." },
+    { "finding": "Final review identified missing generator identity/cleanup-ID negative coverage.", "result": "Added simulated wrong-namespace and mismatched creation-ID tests; verified parent retention marker prevents cleanup. Six generator tests passed." },
+    { "finding": "Json RPC and bigint-as-number types do not enforce sale payload/security/precision.", "result": "Documented explicit limits and owners; no casts or schema changes hide these gaps. Runtime sale replay tests remain MP-19/20." }
+  ]
+}

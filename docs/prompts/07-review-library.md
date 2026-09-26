@@ -1,5 +1,7 @@
 # Phase 07 — The review library
 
+> **Historical context (T-task era, before the 2026-09-08 master plan):** where this page conflicts with [MASTER-PLAN.md](../../MASTER-PLAN.md), [docs/state/current.md](../../docs/state/current.md) or the [decision register](../../docs/state/decision-register.md), those win. Its protection rules still apply unless they say otherwise.
+
 Run these against every diff, in the **other** model from the one that wrote it. A model
 reviewing its own work agrees with its own reasoning; the value is in the fresh context,
 not the checklist.

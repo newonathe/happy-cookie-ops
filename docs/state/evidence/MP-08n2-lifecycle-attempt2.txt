@@ -1,0 +1,2 @@
+{"reason": "private integration test failed: AssertionError", "status": "FAIL"}
+EXIT_CODE=1

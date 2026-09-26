@@ -2,7 +2,9 @@
 description: Write a session handoff note before context runs out
 ---
 
-Append a dated entry to `docs/SESSIONS.md` covering, in under 200 words:
+Update the current slice's `docs/state/MP-*-plan.md`, `docs/state/task-status.json` and the
+"Current checkpoint" in `docs/state/current.md`, using `docs/master-plan/templates/checkpoint.md`
+(`docs/SESSIONS.md` is historical). Cover, in under 200 words:
 
 - what you were asked to do;
 - what is actually done and verified (with the `pnpm verify` result);

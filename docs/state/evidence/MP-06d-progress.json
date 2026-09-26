@@ -1,0 +1,12 @@
+{
+  "classification": "progress",
+  "completed": "MP06d local SQL/API quarantine and verified evidence",
+  "parent_goal": "G1 remains active and incomplete",
+  "next": "MP06 trigger/helper/search-path authority inventory; then role/default gaps and MP08/07 integration",
+  "unresolved": [
+    "Hosted Cloudflare acceptance",
+    "Real JWT/session authorization",
+    "Routing/hydration E2E failures",
+    "Offline persisted runtime integration"
+  ]
+}

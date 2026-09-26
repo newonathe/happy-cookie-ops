@@ -1,0 +1,34 @@
+{
+  "scope": "MP-06.c.2 active-profile SQL authority only",
+  "implementation": "Root Codex; one complementary Claude read-only security review",
+  "claude": {
+    "model": "claude-sonnet-5",
+    "effort": "high",
+    "observed_turns": 10,
+    "requested_turns": 6,
+    "permission_denials": [],
+    "children": 0,
+    "models_observed": [
+      "claude-haiku-4-5-20251001",
+      "claude-sonnet-5"
+    ],
+    "auth": "first-party Pro",
+    "verdict": "No blocking issues conditional on root execution"
+  },
+  "root_qualifications": [
+    "DDL lock duration and production rollout impact were not measured; do not interpret metadata-only ADD COLUMN as zero operational risk.",
+    "Upgrade proof uses synthetic data, not real accounts.",
+    "Profile snapshots compare field values, not physical storage bytes.",
+    "Owner self-deactivation/last-owner safeguard and audited activation/recovery product commands remain unimplemented; documented in runbook."
+  ],
+  "verification": {
+    "sql_scenarios": 130,
+    "red_probes": 18,
+    "populated_upgrade_rehearsals": 2,
+    "python_guard_tests": 16,
+    "application_tests": 105,
+    "catalog_delta": "profiles.active default false NOT NULL; current_role_name search_path metadata only; body in new migration",
+    "types_delta": "Three active fields only"
+  },
+  "limits": "No hosted auth/JWT/BFF acceptance, real activation, UI/UX change, deployment, purchase or credit reset."
+}

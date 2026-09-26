@@ -1,0 +1,438 @@
+
+> happy-cookie-ops@0.1.0 build:pages:spike C:\Users\ethan\dev\happy-cookie-ops-g0
+> node scripts/build-pages-spike.mjs
+
+▲ Next.js 16.3.3 (webpack)
+✓ Running next.config.ts took 90ms
+⚠ No build cache found. Please configure build caching for faster rebuilds. Read more: https://nextjs.org/docs/messages/no-cache
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 15.5s
+  Running TypeScript ...
+  Finished TypeScript in 10.2s ...
+  Collecting page data using 15 workers ...
+  Generating static pages using 15 workers (0/28) ...
+  Generating static pages using 15 workers (7/28) 
+  Generating static pages using 15 workers (14/28) 
+  Generating static pages using 15 workers (21/28) 
+✓ Generating static pages using 15 workers (28/28) in 809ms
+  Finalizing page optimization ...
+  Collecting build traces ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ○ /bake
+├ ○ /batch
+├ ○ /bazaar
+├ ○ /checkout
+├ ○ /drops
+├ ○ /formqueue
+├ ○ /grocery
+├ ○ /health
+├ ○ /inventory
+├ ○ /lookup
+├ ○ /more
+├ ○ /notifications
+├ ○ /order
+├ ○ /orders
+├ ○ /pnl
+├ ○ /products
+├ ○ /recipes
+├ ○ /reconcile
+├ ○ /sales
+├ ○ /settings
+├ ○ /shop
+├ ○ /sign-in
+├ ○ /status
+├ ○ /stocktake
+└ ○ /suppliers
+
+
+○  (Static)  prerendered as static content
+
+{
+  "artifactRoot": "C:\\Users\\ethan\\dev\\happy-cookie-ops-g0\\build\\pages-spike",
+  "stage": "C:\\Users\\ethan\\dev\\happy-cookie-pages-stage-e60AeZ",
+  "manifest": {
+    "scope": "local static Pages artifact; session API requires server bindings and remains unverified end-to-end; sync and readiness are unavailable",
+    "selectedCurrent": "public",
+    "publicOutput": "C:\\Users\\ethan\\dev\\happy-cookie-ops-g0\\build\\pages-spike\\public",
+    "copied": 141,
+    "copiedInputs": [
+      "package.json",
+      "pnpm-lock.yaml",
+      "postcss.config.mjs",
+      "public/assets/double-chocolate-fudge.png",
+      "public/assets/happy-camper.png",
+      "public/assets/logo-full.png",
+      "public/assets/logo-wordmark.png",
+      "public/assets/mark-outline.png",
+      "public/assets/mark-solid.png",
+      "public/assets/nutella-churro.png",
+      "public/assets/pb-miso.png",
+      "public/assets/qr-gcash.png",
+      "public/assets/qr-gotyme.png",
+      "public/assets/qr-maya.png",
+      "public/assets/red-velvet-cheesecake.png",
+      "public/assets/white-chocolate-biscoff.png",
+      "public/manifest.webmanifest",
+      "public/sw.js",
+      "src/app/bake/page.tsx",
+      "src/app/batch/page.tsx",
+      "src/app/bazaar/page.tsx",
+      "src/app/checkout/page.tsx",
+      "src/app/drops/page.tsx",
+      "src/app/error.tsx",
+      "src/app/formqueue/page.tsx",
+      "src/app/globals.css",
+      "src/app/grocery/page.tsx",
+      "src/app/health/page.tsx",
+      "src/app/inventory/page.tsx",
+      "src/app/layout.tsx",
+      "src/app/lookup/page.tsx",
+      "src/app/more/page.tsx",
+      "src/app/not-found.tsx",
+      "src/app/notifications/page.tsx",
+      "src/app/order/page.tsx",
+      "src/app/orders/page.tsx",
+      "src/app/page.tsx",
+      "src/app/pnl/page.tsx",
+      "src/app/products/page.tsx",
+      "src/app/recipes/page.tsx",
+      "src/app/reconcile/page.tsx",
+      "src/app/sales/page.tsx",
+      "src/app/settings/page.tsx",
+      "src/app/shop/page.tsx",
+      "src/app/sign-in/page.tsx",
+      "src/app/sign-in/sign-in-form.tsx",
+      "src/app/status/page.tsx",
+      "src/app/stocktake/page.tsx",
+      "src/app/suppliers/page.tsx",
+      "src/components/app/offline-bridge.tsx",
+      "src/components/app/ops-app.tsx",
+      "src/components/app/route-sync.tsx",
+      "src/components/app/screen-boundary.tsx",
+      "src/components/screens/all-tools.tsx",
+      "src/components/screens/bake-plan.tsx",
+      "src/components/screens/bazaar-mode.tsx",
+      "src/components/screens/checkout.tsx",
+      "src/components/screens/drops.tsx",
+      "src/components/screens/find-my-order.tsx",
+      "src/components/screens/form-queue.tsx",
+      "src/components/screens/grocery-list.tsx",
+      "src/components/screens/home.tsx",
+      "src/components/screens/inventory.tsx",
+      "src/components/screens/notifications.tsx",
+      "src/components/screens/order-detail.tsx",
+      "src/components/screens/order-status.tsx",
+      "src/components/screens/orders.tsx",
+      "src/components/screens/payments.tsx",
+      "src/components/screens/production-focus.tsx",
+      "src/components/screens/products.tsx",
+      "src/components/screens/profit-and-loss.tsx",
+      "src/components/screens/recipes.tsx",
+      "src/components/screens/sales-log.tsx",
+      "src/components/screens/settings.tsx",
+      "src/components/screens/shop.tsx",
+      "src/components/screens/suppliers.tsx",
+      "src/components/screens/system-health.tsx",
+      "src/components/sheets/add-inv.tsx",
+      "src/components/sheets/categories.tsx",
+      "src/components/sheets/close-drop.tsx",
+      "src/components/sheets/closeout.tsx",
+      "src/components/sheets/customers.tsx",
+      "src/components/sheets/draw.tsx",
+      "src/components/sheets/drop-state.tsx",
+      "src/components/sheets/edit-price.tsx",
+      "src/components/sheets/ev-exp.tsx",
+      "src/components/sheets/expense.tsx",
+      "src/components/sheets/inv-edit.tsx",
+      "src/components/sheets/no-show.tsx",
+      "src/components/sheets/overage.tsx",
+      "src/components/sheets/pay-rules.tsx",
+      "src/components/sheets/pay.tsx",
+      "src/components/sheets/pricing.tsx",
+      "src/components/sheets/proof.tsx",
+      "src/components/sheets/receive.tsx",
+      "src/components/sheets/refund.tsx",
+      "src/components/sheets/reset.tsx",
+      "src/components/sheets/retention.tsx",
+      "src/components/sheets/rules.tsx",
+      "src/components/sheets/spoil.tsx",
+      "src/components/sheets/statuses.tsx",
+      "src/components/sheets/storage.tsx",
+      "src/components/sheets/supplier.tsx",
+      "src/components/sheets/swap.tsx",
+      "src/components/sheets/users.tsx",
+      "src/components/sheets/why.tsx",
+      "src/components/shell/app-frame.tsx",
+      "src/components/tokens.stories.tsx",
+      "src/components/ui/pressable.stories.tsx",
+      "src/components/ui/pressable.tsx",
+      "src/lib/css.ts",
+      "src/lib/device.ts",
+      "src/lib/idempotency.ts",
+      "src/lib/messaging/index.ts",
+      "src/lib/messaging/templates.ts",
+      "src/lib/messaging/types.ts",
+      "src/lib/money.ts",
+      "src/lib/observability/scrub.ts",
+      "src/lib/offline/idb.ts",
+      "src/lib/offline/queue.ts",
+      "src/lib/offline/sync.ts",
+      "src/lib/rate-limit.ts",
+      "src/lib/rules/capacity.ts",
+      "src/lib/screens.ts",
+      "src/lib/supabase/client.ts",
+      "src/lib/supabase/config.ts",
+      "src/lib/supabase/server.ts",
+      "src/lib/supabase/service.ts",
+      "src/lib/types/database.ts",
+      "src/store/engine/ops-engine.d.ts",
+      "src/store/engine/ops-engine.js",
+      "src/store/ops-runtime.tsx",
+      "src/store/use-ops.ts",
+      "src/view-models/vals.ts",
+      "tsconfig.json",
+      "src/lib/auth/persistent-session-authority.ts",
+      "src/lib/auth/request-policy.ts",
+      "src/lib/auth/return-path.ts",
+      "src/lib/auth/session-crypto.ts",
+      "src/lib/auth/session-handler.ts",
+      "src/lib/auth/supabase-auth-transport.ts"
+    ],
+    "exclusions": [
+      ".env.example",
+      "src/app/api/health/route.ts",
+      "src/app/api/sync/route.ts",
+      "src/middleware.ts"
+    ],
+    "protectedSourceHashes": {
+      "src/components/screens/all-tools.tsx": "b7bf0f26c513d7d567b69ecf7b991281988208968a9493471dd53cbb0f535d91",
+      "src/components/screens/bake-plan.tsx": "48fcdda612ca60dcada30ace11c6b08e9130989b1c28f55d1967bc631b97bd5c",
+      "src/components/screens/bazaar-mode.tsx": "c8861bd7a58ec5a3225cc7685b1404fd3cede1fc608f2c4ae90097e9cbace698",
+      "src/components/screens/checkout.tsx": "03d304619afdc05e99db3cd9cb79c2277584ffe48751c264329aee7d2ca36cec",
+      "src/components/screens/drops.tsx": "e68a46e918c95a0279b7411080823b8f85dedcdae1865d862b03359839746b0a",
+      "src/components/screens/find-my-order.tsx": "6b96c49f94544e943fc129cabcea33c5685bf6c7158170227397fc1225f6b6bd",
+      "src/components/screens/form-queue.tsx": "d28c24799a458ee47094174b628c9b0e0dc7b402468804611712fd6d7ce849b5",
+      "src/components/screens/grocery-list.tsx": "7f18f38f37484d1a5cce45957b70a607e704d593bce3fdf455bc413ad664ba23",
+      "src/components/screens/home.tsx": "f8ffe1fe99c0f4741f0476baccdfef24e026dde7727d25238f5ec605c817a098",
+      "src/components/screens/inventory.tsx": "be4be3a0015a21566a331254c40a8b609047de0ea513b551c126b3431568b90d",
+      "src/components/screens/notifications.tsx": "f3d68f59f5f9d5d46d62f3e449fc016cd8234c4d86c6fd68d92af882d906de9f",
+      "src/components/screens/order-detail.tsx": "debf6b3835e9e473c7427e199cc5655a2d324227d9232ac5cbc8419bc65eb3fa",
+      "src/components/screens/order-status.tsx": "928f967122c89a8d761c9ddb5e09a5f7fbd4e90ae293570107750af28e090eaf",
+      "src/components/screens/orders.tsx": "e87d6d6a0cc8f527bec40bfd401de7d08433fe230cf2c47ab6ddac3df708332e",
+      "src/components/screens/payments.tsx": "a359ecdbd250c9bcce027fda20e23f26da2e7275e8bb10169795f934fd2bacdd",
+      "src/components/screens/production-focus.tsx": "1f88895c10aca791bb9c9609da03250bb3135ad1ec8e3c44ac2f833d5a7c7ca7",
+      "src/components/screens/products.tsx": "a3a7033758d57e67a91d9a5487aaf4b47b23f48e4fe5c2f26964105d5d0347e8",
+      "src/components/screens/profit-and-loss.tsx": "9121bb6c0534905f5d29e5210cfe32ae7d30c93a3bb2015ab1e799b5efeb719b",
+      "src/components/screens/recipes.tsx": "c626ba45eea257a6efda581f7668b3d79b73ad341214d39559e459b3c011fca1",
+      "src/components/screens/sales-log.tsx": "c76d9632dcf121da17d20bd7e00a0bdd69696c8af51e486dfc90366d2298cd2d",
+      "src/components/screens/settings.tsx": "7b5f8771c02f33e2d5734822801a35b1d83a4d473656da4338f4c124a9b772bb",
+      "src/components/screens/shop.tsx": "722eab1181ab72cc1576413d130a64aa4757527e0a0d1c88e5d80e2a2aae69c6",
+      "src/components/screens/suppliers.tsx": "14193be4005a67debf7c1e2420c0b695bd410a5e46b212a8a8e286d0ce752ba4",
+      "src/components/screens/system-health.tsx": "83dbe452c7187f92714360d80a31fe298f1e3661f1efd34415d0822d6cf5c3f5",
+      "src/components/sheets/add-inv.tsx": "678f7900d58dc2874ea24fc9e4fd688faedd6c7ed3dc797ddc89af0450899cd0",
+      "src/components/sheets/categories.tsx": "4f7570736e921d5a43f71ddc17c1e3e3c75262b0b7ddfe0b354792eefdfb4a38",
+      "src/components/sheets/close-drop.tsx": "b5165ca95d4e99c9d33cfcffad955f9934e8f0c4446421b201e2daddfa0ca2f4",
+      "src/components/sheets/closeout.tsx": "1fd8929690fa5643c8d675978235d997e4a71a0d8f2129531fad3ce611030e88",
+      "src/components/sheets/customers.tsx": "05dea52721b90fb1ce5f80144745e680a145641869822ccfef540e25974ca4c1",
+      "src/components/sheets/draw.tsx": "e6caa11a2596e3d60fdb5d48becc550d6a343f2fe752088b7d59ec7d1272e993",
+      "src/components/sheets/drop-state.tsx": "b95c5a68b69be5cdd295fea9b206ff6832269f6788d31633b6969e564f952058",
+      "src/components/sheets/edit-price.tsx": "dd48d7641e0cfcf099d53eea31630cef04c3fffbe5b93da4501d77e8e9effc46",
+      "src/components/sheets/ev-exp.tsx": "938af5fbe02d2e4f0dd2ef9554d00802d70ce1ca09f228e2dfc89bf08616c0a2",
+      "src/components/sheets/expense.tsx": "35c4c48ff381a8053ccb94a2776b63538ef269c2aa20ab3d73a87e08e560b06b",
+      "src/components/sheets/inv-edit.tsx": "5c3d3fd4adc35c20422fba7f3fe78538f76454b0463479caf1b4e8da936c333b",
+      "src/components/sheets/no-show.tsx": "99c76b38293bde41ce02169ef3b1837e2bd557a13c3151036469a0d622531190",
+      "src/components/sheets/overage.tsx": "84f4b1c3d6711cb5b7dfa7f68a7d75497fdd6a0606372cd2c8a089fe1f7ea52a",
+      "src/components/sheets/pay-rules.tsx": "dfd860e83eeca241174e4b6ba3fda0b06afe92df6b0314127ce5a680a5351989",
+      "src/components/sheets/pay.tsx": "1e9cfe039041cd2b984fd114d8b08d2441d191ffc3bcce5e0262eae1a0a29d7c",
+      "src/components/sheets/pricing.tsx": "fff1e52c50f747251b5a397682fb9ad8e43bf04681f766482a852f1e912a865a",
+      "src/components/sheets/proof.tsx": "2ee23c1d0732b1c7acdc66f0c97627dc43027fafcc37c4410a969321bd9cba87",
+      "src/components/sheets/receive.tsx": "c0a53e5951525319db332d6164bf6dd6656b22786dd8b466817e2115e629413a",
+      "src/components/sheets/refund.tsx": "0696c5d37fee07e103ea8206afc2d069a285fc4304a350ca202e124d1c8acf7b",
+      "src/components/sheets/reset.tsx": "53a8a545e371da86375c552cb71f8bfa311609dd68bf94f1f7eaeac5be912d56",
+      "src/components/sheets/retention.tsx": "464bde0c9667b2ff7cc4af34447dee9bdb9df1a27d4414972707679565d868f1",
+      "src/components/sheets/rules.tsx": "b4298afdf22a9b455d0b4c41ae18d149720061057b44ee8ffd40a8eedb8ca38f",
+      "src/components/sheets/spoil.tsx": "854346d63c305a110dcf767544fb2899b12f5bb95b007ce20834ef69ddeba00c",
+      "src/components/sheets/statuses.tsx": "0b037df9f547310adfc9ef946918c43602e21678be2cea75ed8a04ec114b3d8b",
+      "src/components/sheets/storage.tsx": "b0c63a4fbc91e6bd38c4f75e5116bd4ac570adc56f2bfacd6df37e6dea10b61e",
+      "src/components/sheets/supplier.tsx": "b070cc463ca0a58fe1d8593d14c59a81ea1e3017ab5ea8f557069a555b4fc801",
+      "src/components/sheets/swap.tsx": "cbe394f1cc4df410db56e107c5ecad3cac88cc7fa54f6dd96354b06b1db0bbef",
+      "src/components/sheets/users.tsx": "40df2435cd0b9f11ff8fbc92b45c08f0d39d47da4fd45e97938c281f78e0cc21",
+      "src/components/sheets/why.tsx": "77e473898d83c6310778627c3effc5ff441a3cb21e0d2d9eb75a4933706e5da9",
+      "src/components/shell/app-frame.tsx": "80367992c0d7ba3a4d0d14c91a671f8a2dae07d514306bfb2924488df9a6b424",
+      "src/store/engine/ops-engine.js": "92a7a56201e550341dd1fdf9ed6ec8be51a95fbedfaddce549a1b780351cd8d2"
+    },
+    "emittedPages": [
+      {
+        "source": "src/app/page.tsx",
+        "html": "index.html",
+        "emitted": true
+      },
+      {
+        "source": "src/app/suppliers/page.tsx",
+        "html": "suppliers.html",
+        "emitted": true
+      },
+      {
+        "source": "src/app/stocktake/page.tsx",
+        "html": "stocktake.html",
+        "emitted": true
+      },
+      {
+        "source": "src/app/status/page.tsx",
+        "html": "status.html",
+        "emitted": true
+      },
+      {
+        "source": "src/app/sign-in/page.tsx",
+        "html": "sign-in.html",
+        "emitted": true
+      },
+      {
+        "source": "src/app/shop/page.tsx",
+        "html": "shop.html",
+        "emitted": true
+      },
+      {
+        "source": "src/app/settings/page.tsx",
+        "html": "settings.html",
+        "emitted": true
+      },
+      {
+        "source": "src/app/sales/page.tsx",
+        "html": "sales.html",
+        "emitted": true
+      },
+      {
+        "source": "src/app/reconcile/page.tsx",
+        "html": "reconcile.html",
+        "emitted": true
+      },
+      {
+        "source": "src/app/recipes/page.tsx",
+        "html": "recipes.html",
+        "emitted": true
+      },
+      {
+        "source": "src/app/products/page.tsx",
+        "html": "products.html",
+        "emitted": true
+      },
+      {
+        "source": "src/app/pnl/page.tsx",
+        "html": "pnl.html",
+        "emitted": true
+      },
+      {
+        "source": "src/app/orders/page.tsx",
+        "html": "orders.html",
+        "emitted": true
+      },
+      {
+        "source": "src/app/order/page.tsx",
+        "html": "order.html",
+        "emitted": true
+      },
+      {
+        "source": "src/app/notifications/page.tsx",
+        "html": "notifications.html",
+        "emitted": true
+      },
+      {
+        "source": "src/app/more/page.tsx",
+        "html": "more.html",
+        "emitted": true
+      },
+      {
+        "source": "src/app/lookup/page.tsx",
+        "html": "lookup.html",
+        "emitted": true
+      },
+      {
+        "source": "src/app/inventory/page.tsx",
+        "html": "inventory.html",
+        "emitted": true
+      },
+      {
+        "source": "src/app/health/page.tsx",
+        "html": "health.html",
+        "emitted": true
+      },
+      {
+        "source": "src/app/grocery/page.tsx",
+        "html": "grocery.html",
+        "emitted": true
+      },
+      {
+        "source": "src/app/formqueue/page.tsx",
+        "html": "formqueue.html",
+        "emitted": true
+      },
+      {
+        "source": "src/app/drops/page.tsx",
+        "html": "drops.html",
+        "emitted": true
+      },
+      {
+        "source": "src/app/checkout/page.tsx",
+        "html": "checkout.html",
+        "emitted": true
+      },
+      {
+        "source": "src/app/bazaar/page.tsx",
+        "html": "bazaar.html",
+        "emitted": true
+      },
+      {
+        "source": "src/app/batch/page.tsx",
+        "html": "batch.html",
+        "emitted": true
+      },
+      {
+        "source": "src/app/bake/page.tsx",
+        "html": "bake.html",
+        "emitted": true
+      }
+    ],
+    "missingPages": [],
+    "staticHeaders": {
+      "contentSecurityPolicy": "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; script-src 'self' 'sha256-+Q/2OA0e+PjrJLvJ/Pqe5E9X7CRwTUU/3kD/hfMvCWE=' 'sha256-AlIMnNsTuTR7Qomam5yJTx/227HNRCrASywOtvst6wg=' 'sha256-BwuVLlrnzRpncW5jxUnRy9AdSucWhgdVAK/3EiO+fnw=' 'sha256-HTCMZ/xtfgYZrGQ0sFfOETHxzsQ1/Gq4TRC1afBin+8=' 'sha256-OBTN3RiyCV4Bq7dFqZ5a2pAXjnCcCYeTJMO2I/LYKeo=' 'sha256-OR1tL+7ht4V7q8lmu80tVMb0Pl8Fab8wChyXj08ohDQ=' 'sha256-PSi4nXzlGUhGODOu+39tJSwbIEwdZvk7Zw8Rf2ILNb8=' 'sha256-Q1G59+lJGAEIB4AHF6otALlusf8lRRZCO0yJK+AuUvk=' 'sha256-SdxYv3t2QRJRV+llZ258XYC9fLOr4DjJgM742VQUQaQ=' 'sha256-THB3OqSilLW/IztlYwQ8Vwm5Ya58C0gDrTt2GgRwWLo=' 'sha256-VbLuIJcqhVj6FJ2v403nBisBl8kWM6aBmJyy2Sv/CJQ=' 'sha256-ZV9YRZifeblG1IRVvF6pavSaiU/geJlaS5jppfDtQbs=' 'sha256-aR01wNpB83I5NMIrMVPTY7Jkb95wjINzFF9mQBUpDic=' 'sha256-bOEhOETZM4O2csR30zuWhUKv6GmleJod6yLGg7z3Dlk=' 'sha256-dszKBXsfb0d8pgg3SSvuZWEX7GfpfPObDXI7J9vSD3w=' 'sha256-eGcIRUwOUce61CGdwUIGAWYcgHwNbVXWNw+mcjwNowo=' 'sha256-eUf9XSb+ZbWGROpEtFa7Fm8sU8G8I4hr3mSEyOowQwE=' 'sha256-i9LHsnHcl2YqMp4W/qz8MVNTu+t/ZVy3X9EGAqx536w=' 'sha256-iKHY6HZIKtaV3gb2WVCwhjN3JfU7A6LAGm+Aza7gnVw=' 'sha256-k13MPqmEvKZIFiMWvhq63lJFYO7+gblsrp6RanDkdm0=' 'sha256-lpLN0PrqFHSjWzxThRxTD9oFY7ybnJbNEi/qvcjDPLA=' 'sha256-m0jsB9JOFklGNrUetaDnMgn63JQWrf6zJH10LP4enLA=' 'sha256-mLnRsaSII8o9KFPrOQ4NgdAelhYc/zBRdHT1zfDSIo0=' 'sha256-nyYRb46ycANehAXhbMfR7BgCJO6CTJz2g0/G7T39kds=' 'sha256-t4hSByyzV5v1v0GyTtdi1DNsXLgiR3s3EnoRuNDPaD8=' 'sha256-t6nyshSIejRzTUmYkNKtOANXBFdYNf+tEACzYAm3aFU=' 'sha256-wxXV0yhL3OY7CzzvH+0EokJlAbQVUEaJaIcQkpiC4pI=' 'sha256-xr1FnXFv7HWZ2b76pLUIqwocQFzaeI9BB6S6MH2gGhk='; style-src 'self' 'unsafe-inline'",
+      "scriptHashes": [
+        "'sha256-+Q/2OA0e+PjrJLvJ/Pqe5E9X7CRwTUU/3kD/hfMvCWE='",
+        "'sha256-AlIMnNsTuTR7Qomam5yJTx/227HNRCrASywOtvst6wg='",
+        "'sha256-BwuVLlrnzRpncW5jxUnRy9AdSucWhgdVAK/3EiO+fnw='",
+        "'sha256-HTCMZ/xtfgYZrGQ0sFfOETHxzsQ1/Gq4TRC1afBin+8='",
+        "'sha256-OBTN3RiyCV4Bq7dFqZ5a2pAXjnCcCYeTJMO2I/LYKeo='",
+        "'sha256-OR1tL+7ht4V7q8lmu80tVMb0Pl8Fab8wChyXj08ohDQ='",
+        "'sha256-PSi4nXzlGUhGODOu+39tJSwbIEwdZvk7Zw8Rf2ILNb8='",
+        "'sha256-Q1G59+lJGAEIB4AHF6otALlusf8lRRZCO0yJK+AuUvk='",
+        "'sha256-SdxYv3t2QRJRV+llZ258XYC9fLOr4DjJgM742VQUQaQ='",
+        "'sha256-THB3OqSilLW/IztlYwQ8Vwm5Ya58C0gDrTt2GgRwWLo='",
+        "'sha256-VbLuIJcqhVj6FJ2v403nBisBl8kWM6aBmJyy2Sv/CJQ='",
+        "'sha256-ZV9YRZifeblG1IRVvF6pavSaiU/geJlaS5jppfDtQbs='",
+        "'sha256-aR01wNpB83I5NMIrMVPTY7Jkb95wjINzFF9mQBUpDic='",
+        "'sha256-bOEhOETZM4O2csR30zuWhUKv6GmleJod6yLGg7z3Dlk='",
+        "'sha256-dszKBXsfb0d8pgg3SSvuZWEX7GfpfPObDXI7J9vSD3w='",
+        "'sha256-eGcIRUwOUce61CGdwUIGAWYcgHwNbVXWNw+mcjwNowo='",
+        "'sha256-eUf9XSb+ZbWGROpEtFa7Fm8sU8G8I4hr3mSEyOowQwE='",
+        "'sha256-i9LHsnHcl2YqMp4W/qz8MVNTu+t/ZVy3X9EGAqx536w='",
+        "'sha256-iKHY6HZIKtaV3gb2WVCwhjN3JfU7A6LAGm+Aza7gnVw='",
+        "'sha256-k13MPqmEvKZIFiMWvhq63lJFYO7+gblsrp6RanDkdm0='",
+        "'sha256-lpLN0PrqFHSjWzxThRxTD9oFY7ybnJbNEi/qvcjDPLA='",
+        "'sha256-m0jsB9JOFklGNrUetaDnMgn63JQWrf6zJH10LP4enLA='",
+        "'sha256-mLnRsaSII8o9KFPrOQ4NgdAelhYc/zBRdHT1zfDSIo0='",
+        "'sha256-nyYRb46ycANehAXhbMfR7BgCJO6CTJz2g0/G7T39kds='",
+        "'sha256-t4hSByyzV5v1v0GyTtdi1DNsXLgiR3s3EnoRuNDPaD8='",
+        "'sha256-t6nyshSIejRzTUmYkNKtOANXBFdYNf+tEACzYAm3aFU='",
+        "'sha256-wxXV0yhL3OY7CzzvH+0EokJlAbQVUEaJaIcQkpiC4pI='",
+        "'sha256-xr1FnXFv7HWZ2b76pLUIqwocQFzaeI9BB6S6MH2gGhk='"
+      ],
+      "htmlFiles": 28,
+      "inlineScripts": 56,
+      "staticFiles": 57
+    }
+  }
+}

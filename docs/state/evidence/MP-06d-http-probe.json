@@ -1,0 +1,48 @@
+{
+  "status": "PASS",
+  "at": "2026-09-12T04:03:45.745Z",
+  "environment": {
+    "host": "127.0.0.1",
+    "supabase_values_explicitly_empty": true
+  },
+  "probes": [
+    {
+      "name": "ordinary_json",
+      "request_bytes": 43,
+      "status": 503,
+      "cache_control": "no-store",
+      "response": {
+        "error": "sync_unavailable",
+        "accepted": []
+      }
+    },
+    {
+      "name": "malformed_json",
+      "request_bytes": 9,
+      "status": 503,
+      "cache_control": "no-store",
+      "response": {
+        "error": "sync_unavailable",
+        "accepted": []
+      }
+    },
+    {
+      "name": "one_mebibyte_synthetic",
+      "request_bytes": 1048576,
+      "status": 503,
+      "cache_control": "no-store",
+      "response": {
+        "error": "sync_unavailable",
+        "accepted": []
+      }
+    }
+  ],
+  "port": 55077,
+  "build_id": "bP9zVUkgO1Eq32XddKUHO",
+  "source_hashes": {
+    "route_ts_sha256": "aee7bf1091e860a21f73563967c6e6c0e171660d69a72b632f631f5d5099b2f7",
+    "middleware_ts_sha256": "d8e7e508ed2459c5d1851ffa04e441ce87d1e544488f1ed27f462d8081c8456c",
+    "standalone_server_js_sha256": "23b8088984375c44177e82eed7b61af4b7afd3009648d7fd683b681614188fcd"
+  },
+  "owned_child_terminated": true
+}

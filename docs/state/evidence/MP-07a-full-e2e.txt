@@ -1,0 +1,245 @@
+
+> happy-cookie-ops@0.1.0 test:e2e C:\Users\ethan\dev\happy-cookie-ops-g0
+> playwright test --project=phone --project=desktop --project=webkit "--reporter=line"
+
+
+[WebServer] (node:21548) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:25900) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+
+Running 120 tests using 2 workers
+
+[1/120] [phone] › tests\e2e\capacity-parity.spec.ts:31:9 › capacity rule parity: SQL vs TypeScript › an empty drop takes a normal order
+[2/120] [phone] › tests\e2e\capacity-parity.spec.ts:31:9 › capacity rule parity: SQL vs TypeScript › the last box can be taken
+[3/120] [phone] › tests\e2e\capacity-parity.spec.ts:31:9 › capacity rule parity: SQL vs TypeScript › one past the last box is refused
+[4/120] [phone] › tests\e2e\capacity-parity.spec.ts:31:9 › capacity rule parity: SQL vs TypeScript › a full drop refuses everything
+[5/120] [phone] › tests\e2e\capacity-parity.spec.ts:31:9 › capacity rule parity: SQL vs TypeScript › an oversold drop reports zero rather than a negative
+[6/120] [phone] › tests\e2e\capacity-parity.spec.ts:31:9 › capacity rule parity: SQL vs TypeScript › a request for the whole capacity fits exactly
+[7/120] [phone] › tests\e2e\capacity-parity.spec.ts:31:9 › capacity rule parity: SQL vs TypeScript › a zero-box request is a bug, not an order
+[8/120] [phone] › tests\e2e\capacity-parity.spec.ts:31:9 › capacity rule parity: SQL vs TypeScript › a negative request is refused
+[9/120] [phone] › tests\e2e\capacity-parity.spec.ts:31:9 › capacity rule parity: SQL vs TypeScript › a zero-capacity drop is closed
+[10/120] [phone] › tests\e2e\capacity-parity.spec.ts:31:9 › capacity rule parity: SQL vs TypeScript › fractional committed counts are floored, not rounded up
+(node:33300) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+(node:17432) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+[11/120] [phone] › tests\e2e\bazaar-offline.spec.ts:6:5 › OFFLINE-01 one real sale survives reload and requires its acknowledgment
+[12/120] [phone] › tests\e2e\hydration-diagnostic.spec.ts:3:5 › Home hydrates when client clock is later than prerender
+[13/120] [phone] › tests\e2e\navigation-history.spec.ts:4:5 › browser Back and Forward retain the current runtime and route content
+[14/120] [phone] › tests\e2e\navigation-history.spec.ts:44:5 › bake action without a navigation tick retains the Bake plan browser entry
+[15/120] [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-home direct URL retains Home
+[16/120] [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-sales direct URL retains Sales log
+[17/120] [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-orders direct URL retains Orders
+  1) [phone] › tests\e2e\bazaar-offline.spec.ts:6:5 › OFFLINE-01 one real sale survives reload and requires its acknowledgment 
+
+    Error: page.evaluate: Error: Sale queue absent; read must not create it
+        at open.onupgradeneeded (eval at evaluate (:311:30), <anonymous>:6:14)
+
+    Call Log:
+    - Timeout 5000ms exceeded while waiting on the predicate
+        at open.onupgradeneeded (eval at evaluate (:311:30), <anonymous>:6:14)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\bazaar-offline.spec.ts:39:71
+
+    Error Context: test-results\bazaar-offline-OFFLINE-01--757b6-requires-its-acknowledgment-phone\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\bazaar-offline-OFFLINE-01--757b6-requires-its-acknowledgment-phone\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\bazaar-offline-OFFLINE-01--757b6-requires-its-acknowledgment-phone\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[18/120] [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-lookup direct URL retains Find my order
+(node:20840) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[19/120] [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-order direct URL retains Order detail
+[20/120] [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-reconcile direct URL retains Payments
+[21/120] [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-bake direct URL retains Bake plan
+[22/120] [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-batch direct URL retains Production focus
+[23/120] [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-inventory direct URL retains Inventory
+[24/120] [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-stocktake direct URL retains Inventory
+[25/120] [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-more direct URL retains All tools
+[26/120] [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-grocery direct URL retains Grocery list
+[27/120] [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-bazaar direct URL retains Bazaar Mode
+[28/120] [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-pnl direct URL retains P and L
+[29/120] [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-formqueue direct URL retains Form queue
+[30/120] [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-health direct URL retains System health
+[31/120] [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-products direct URL retains Products
+[32/120] [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-notifications direct URL retains Notifications
+[33/120] [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-shop direct URL retains Customer shop
+[34/120] [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-checkout direct URL retains Customer checkout
+[35/120] [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-status direct URL retains Customer order status
+[36/120] [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-recipes direct URL retains Recipes
+[37/120] [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-drops direct URL retains Drops
+[38/120] [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-suppliers direct URL retains Suppliers
+[39/120] [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-settings direct URL retains Settings
+[40/120] [phone] › tests\e2e\stocktake-resume.spec.ts:4:5 › direct stocktake can pause and resume after reload
+
+(node:19092) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+[41/120] [webkit] › tests\e2e\bazaar-offline.spec.ts:6:5 › OFFLINE-01 one real sale survives reload and requires its acknowledgment
+[42/120] [webkit] › tests\e2e\capacity-parity.spec.ts:31:9 › capacity rule parity: SQL vs TypeScript › an empty drop takes a normal order
+[43/120] [webkit] › tests\e2e\capacity-parity.spec.ts:31:9 › capacity rule parity: SQL vs TypeScript › the last box can be taken
+[44/120] [webkit] › tests\e2e\capacity-parity.spec.ts:31:9 › capacity rule parity: SQL vs TypeScript › one past the last box is refused
+[45/120] [webkit] › tests\e2e\capacity-parity.spec.ts:31:9 › capacity rule parity: SQL vs TypeScript › a full drop refuses everything
+[46/120] [webkit] › tests\e2e\capacity-parity.spec.ts:31:9 › capacity rule parity: SQL vs TypeScript › an oversold drop reports zero rather than a negative
+[47/120] [webkit] › tests\e2e\capacity-parity.spec.ts:31:9 › capacity rule parity: SQL vs TypeScript › a request for the whole capacity fits exactly
+[48/120] [webkit] › tests\e2e\capacity-parity.spec.ts:31:9 › capacity rule parity: SQL vs TypeScript › a zero-box request is a bug, not an order
+[49/120] [webkit] › tests\e2e\capacity-parity.spec.ts:31:9 › capacity rule parity: SQL vs TypeScript › a negative request is refused
+[50/120] [webkit] › tests\e2e\capacity-parity.spec.ts:31:9 › capacity rule parity: SQL vs TypeScript › a zero-capacity drop is closed
+[51/120] [webkit] › tests\e2e\capacity-parity.spec.ts:31:9 › capacity rule parity: SQL vs TypeScript › fractional committed counts are floored, not rounded up
+
+(node:35124) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+[52/120] [webkit] › tests\e2e\hydration-diagnostic.spec.ts:3:5 › Home hydrates when client clock is later than prerender
+[53/120] [webkit] › tests\e2e\navigation-history.spec.ts:4:5 › browser Back and Forward retain the current runtime and route content
+[54/120] [webkit] › tests\e2e\navigation-history.spec.ts:44:5 › bake action without a navigation tick retains the Bake plan browser entry
+[55/120] [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-home direct URL retains Home
+  2) [webkit] › tests\e2e\bazaar-offline.spec.ts:6:5 › OFFLINE-01 one real sale survives reload and requires its acknowledgment 
+
+    Error: page.evaluate: Error: Sale queue absent; read must not create it
+
+    Call Log:
+    - Timeout 5000ms exceeded while waiting on the predicate
+
+      37 |   })).toBe(1);
+      38 |   await info.attach('engine-sale', { body: JSON.stringify(await page.evaluate(() => window.__hcOps?.state.sales)), contentType: 'application/json' });
+    > 39 |   await expect(async () => assertRecordedSale(await readSales(page))).toPass({ timeout: 5000 });
+         |                                                                       ^
+      40 |   const before = await readSales(page);
+      41 |   const sale = assertRecordedSale(before);
+      42 |   expect(sale.items).toEqual({ dcf: 1 });
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\bazaar-offline.spec.ts:39:71
+
+    Error Context: test-results\bazaar-offline-OFFLINE-01--757b6-requires-its-acknowledgment-webkit\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\bazaar-offline-OFFLINE-01--757b6-requires-its-acknowledgment-webkit\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\bazaar-offline-OFFLINE-01--757b6-requires-its-acknowledgment-webkit\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+(node:28052) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+[56/120] [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-sales direct URL retains Sales log
+[57/120] [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-orders direct URL retains Orders
+[58/120] [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-order direct URL retains Order detail
+[59/120] [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-lookup direct URL retains Find my order
+[60/120] [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-reconcile direct URL retains Payments
+[61/120] [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-bake direct URL retains Bake plan
+[62/120] [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-batch direct URL retains Production focus
+[63/120] [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-inventory direct URL retains Inventory
+[64/120] [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-stocktake direct URL retains Inventory
+[65/120] [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-more direct URL retains All tools
+[66/120] [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-grocery direct URL retains Grocery list
+[67/120] [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-bazaar direct URL retains Bazaar Mode
+[68/120] [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-pnl direct URL retains P and L
+[69/120] [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-formqueue direct URL retains Form queue
+[70/120] [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-health direct URL retains System health
+[71/120] [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-products direct URL retains Products
+[72/120] [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-notifications direct URL retains Notifications
+[73/120] [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-shop direct URL retains Customer shop
+[74/120] [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-checkout direct URL retains Customer checkout
+[75/120] [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-status direct URL retains Customer order status
+[76/120] [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-recipes direct URL retains Recipes
+[77/120] [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-drops direct URL retains Drops
+[78/120] [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-suppliers direct URL retains Suppliers
+[79/120] [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-settings direct URL retains Settings
+[80/120] [webkit] › tests\e2e\stocktake-resume.spec.ts:4:5 › direct stocktake can pause and resume after reload
+
+(node:9976) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+[81/120] [desktop] › tests\e2e\bazaar-offline.spec.ts:6:5 › OFFLINE-01 one real sale survives reload and requires its acknowledgment
+[82/120] [desktop] › tests\e2e\capacity-parity.spec.ts:31:9 › capacity rule parity: SQL vs TypeScript › an empty drop takes a normal order
+[83/120] [desktop] › tests\e2e\capacity-parity.spec.ts:31:9 › capacity rule parity: SQL vs TypeScript › the last box can be taken
+[84/120] [desktop] › tests\e2e\capacity-parity.spec.ts:31:9 › capacity rule parity: SQL vs TypeScript › one past the last box is refused
+[85/120] [desktop] › tests\e2e\capacity-parity.spec.ts:31:9 › capacity rule parity: SQL vs TypeScript › a full drop refuses everything
+[86/120] [desktop] › tests\e2e\capacity-parity.spec.ts:31:9 › capacity rule parity: SQL vs TypeScript › an oversold drop reports zero rather than a negative
+[87/120] [desktop] › tests\e2e\capacity-parity.spec.ts:31:9 › capacity rule parity: SQL vs TypeScript › a request for the whole capacity fits exactly
+[88/120] [desktop] › tests\e2e\capacity-parity.spec.ts:31:9 › capacity rule parity: SQL vs TypeScript › a zero-box request is a bug, not an order
+[89/120] [desktop] › tests\e2e\capacity-parity.spec.ts:31:9 › capacity rule parity: SQL vs TypeScript › a negative request is refused
+[90/120] [desktop] › tests\e2e\capacity-parity.spec.ts:31:9 › capacity rule parity: SQL vs TypeScript › a zero-capacity drop is closed
+[91/120] [desktop] › tests\e2e\capacity-parity.spec.ts:31:9 › capacity rule parity: SQL vs TypeScript › fractional committed counts are floored, not rounded up
+(node:12500) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+[92/120] [desktop] › tests\e2e\hydration-diagnostic.spec.ts:3:5 › Home hydrates when client clock is later than prerender
+[93/120] [desktop] › tests\e2e\navigation-history.spec.ts:4:5 › browser Back and Forward retain the current runtime and route content
+[94/120] [desktop] › tests\e2e\navigation-history.spec.ts:44:5 › bake action without a navigation tick retains the Bake plan browser entry
+[95/120] [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-home direct URL retains Home
+  3) [desktop] › tests\e2e\bazaar-offline.spec.ts:6:5 › OFFLINE-01 one real sale survives reload and requires its acknowledgment 
+
+    Error: page.evaluate: Error: Sale queue absent; read must not create it
+        at open.onupgradeneeded (eval at evaluate (:311:30), <anonymous>:6:14)
+
+    Call Log:
+    - Timeout 5000ms exceeded while waiting on the predicate
+        at open.onupgradeneeded (eval at evaluate (:311:30), <anonymous>:6:14)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\bazaar-offline.spec.ts:39:71
+
+    Error Context: test-results\bazaar-offline-OFFLINE-01--757b6-requires-its-acknowledgment-desktop\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\bazaar-offline-OFFLINE-01--757b6-requires-its-acknowledgment-desktop\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\bazaar-offline-OFFLINE-01--757b6-requires-its-acknowledgment-desktop\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[96/120] [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-orders direct URL retains Orders
+
+(node:35584) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+[97/120] [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-sales direct URL retains Sales log
+[98/120] [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-order direct URL retains Order detail
+[99/120] [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-lookup direct URL retains Find my order
+[100/120] [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-reconcile direct URL retains Payments
+[101/120] [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-bake direct URL retains Bake plan
+[102/120] [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-batch direct URL retains Production focus
+[103/120] [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-inventory direct URL retains Inventory
+[104/120] [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-stocktake direct URL retains Inventory
+[105/120] [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-more direct URL retains All tools
+[106/120] [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-grocery direct URL retains Grocery list
+[107/120] [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-bazaar direct URL retains Bazaar Mode
+[108/120] [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-pnl direct URL retains P and L
+[109/120] [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-formqueue direct URL retains Form queue
+[110/120] [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-health direct URL retains System health
+[111/120] [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-products direct URL retains Products
+[112/120] [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-notifications direct URL retains Notifications
+[113/120] [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-shop direct URL retains Customer shop
+[114/120] [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-checkout direct URL retains Customer checkout
+[115/120] [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-status direct URL retains Customer order status
+[116/120] [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-recipes direct URL retains Recipes
+[117/120] [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-drops direct URL retains Drops
+[118/120] [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-suppliers direct URL retains Suppliers
+[119/120] [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-settings direct URL retains Settings
+[120/120] [desktop] › tests\e2e\stocktake-resume.spec.ts:4:5 › direct stocktake can pause and resume after reload
+  3 failed
+    [phone] › tests\e2e\bazaar-offline.spec.ts:6:5 › OFFLINE-01 one real sale survives reload and requires its acknowledgment 
+    [webkit] › tests\e2e\bazaar-offline.spec.ts:6:5 › OFFLINE-01 one real sale survives reload and requires its acknowledgment 
+    [desktop] › tests\e2e\bazaar-offline.spec.ts:6:5 › OFFLINE-01 one real sale survives reload and requires its acknowledgment 
+  30 skipped
+  87 passed (1.3m)
+ ELIFECYCLE  Command failed with exit code 1.

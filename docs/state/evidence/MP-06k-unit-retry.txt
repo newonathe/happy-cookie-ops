@@ -1,0 +1,26 @@
+
+ RUN  v3.2.7 C:/Users/ethan/dev/happy-cookie-ops-g0
+
+ ✓ tests/unit/reporting-hooks.test.ts (3 tests) 153ms
+ ✓ tests/unit/sync-unavailable.test.ts (5 tests) 1156ms
+   ✓ the quarantined sync endpoint > returns a non-cacheable unavailable response to an ordinary request  1063ms
+ ✓ tests/unit/money.test.ts (6 tests) 55ms
+ ✓ tests/unit/pages-spike.test.ts (2 tests) 9ms
+ ✓ tests/unit/screen-boundary.test.tsx (2 tests) 69ms
+ ✓ tests/unit/offline-queue.test.ts (4 tests) 15ms
+ ✓ tests/unit/acceptance-gates.test.ts (26 tests) 7ms
+ ✓ tests/unit/money-conversion.test.ts (11 tests) 4ms
+ ✓ tests/unit/screens.test.ts (4 tests) 4ms
+ ✓ tests/unit/scrub.test.ts (13 tests) 6ms
+ ✓ tests/unit/order-rules.test.ts (7 tests) 3ms
+ ✓ tests/unit/capacity-parity.test.ts (15 tests) 4ms
+ ✓ tests/unit/idempotency.test.ts (7 tests) 4ms
+ ✓ tests/unit/css.test.ts (4 tests) 3ms
+ ✓ tests/unit/reporting-integration.test.ts (1 test) 62ms
+ ✓ tests/unit/sync-middleware.test.ts (5 tests) 8ms
+
+ Test Files  16 passed (16)
+      Tests  115 passed (115)
+   Start at  22:19:54
+   Duration  39.33s (transform 695ms, setup 15.17s, collect 14.27s, tests 1.56s, environment 28.58s, prepare 3.17s)
+

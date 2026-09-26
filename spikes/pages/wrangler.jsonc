@@ -1,0 +1,6 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "happy-cookie-ops-pages-spike",
+  "compatibility_date": "2026-09-08",
+  "pages_build_output_dir": "../../build/pages-spike/public"
+}

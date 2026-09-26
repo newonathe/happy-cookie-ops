@@ -1,0 +1,41 @@
+{
+  "status": "accepted_for_bounded_local_slice",
+  "scope": "MP-06.c.3 private settings SELECT policy and CRUD regression tests; broader MP06/G1 incomplete",
+  "implementation": "Root wrote forward migration and harness. Terra/medium test-author settings_tests wrote settings.sql; root added missing snapshot SELECT grant and full-row/table preservation before execution/review.",
+  "independent_review": {
+    "provider": "Claude first-party Pro",
+    "requested_model": "claude-sonnet-5",
+    "effort": "medium",
+    "exit_code": 0,
+    "actual_turns": 12,
+    "requested_turns": 6,
+    "permission_denials": [],
+    "children": 0,
+    "observed_models": [
+      "claude-sonnet-5",
+      "claude-haiku-4-5-20251001"
+    ],
+    "findings": "No blocking issue"
+  },
+  "root_dispositions": [
+    "Reject reviewer statement that turn budget was met: actual12 exceeds requested6; timeout180s is the enforced boundary.",
+    "SQL roles/claims are fixture identity tests, not signed JWT or HTTP auth evidence.",
+    "Snapshot equality compares logical values including metadata, not physical storage bytes.",
+    "TRUNCATE/REFERENCES/TRIGGER grants and other staff policies remain open. No full settings write protection or G1 claim."
+  ],
+  "verification": {
+    "sql_scenarios": 210,
+    "regression_detections": 20,
+    "profile_upgrades": 2,
+    "python_guards": 16,
+    "pnpm_verify_tests": 105,
+    "pnpm_verify_exit": 0,
+    "e2e_exit": 1,
+    "e2e_failed": 78,
+    "e2e_skipped": 30,
+    "type_artifact_unchanged": true,
+    "catalog_delta": "Only settings staff read policy removed",
+    "cleanup": "passed"
+  },
+  "limits": "No hosted/auth session, deployment, build refresh, real-account activation or Apple hardware acceptance. CLI E2E used existing local production build; no UI/runtime change in this slice."
+}

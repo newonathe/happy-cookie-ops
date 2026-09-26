@@ -94,16 +94,13 @@ export async function checkRateLimit(
 
   try {
     const supabase = createServiceClient();
-    // Typed explicitly rather than relying on the generated types: the generic is a
-    // permissive placeholder until `pnpm db:types` runs, and an `any` here would let a
-    // renamed column fail silently as `undefined` — which reads as "allowed".
+    // The result shape is inferred from the generated schema; retain the runtime guard.
     const { data, error } = await supabase.rpc('consume_rate_limit', {
       p_key: name + ':' + identifier,
       p_limit: config.limit,
       p_window_s: config.windowSeconds
     });
-    const rows = data as Array<{ allowed: boolean; remaining: number; reset_at: string }> | null;
-    const row = rows?.[0];
+    const row = data?.[0];
     if (error || !row || typeof row.allowed !== 'boolean') {
       throw error ?? new Error('consume_rate_limit returned an unexpected shape');
     }

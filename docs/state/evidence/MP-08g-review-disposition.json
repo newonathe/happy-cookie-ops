@@ -1,0 +1,38 @@
+{
+  "status": "reviewed_with_explicit_limit",
+  "review_model": "Codex Sol high, read-only",
+  "review_scope": "MP-08g metadata-only local fixture",
+  "findings": [
+    {
+      "issue": "Unpinned migrations could drift while retaining filenames",
+      "resolution": "Fixed: exact 23 filename and SHA-256 pins are checked before Docker and the captured bytes are executed",
+      "evidence": "tests/fixtures/mp08g-source-pins.json; scripts/test-auth-fixture.py; MP-08g-live-final.txt"
+    },
+    {
+      "issue": "Preflight drift or contract-only JSON could counterfeit PASS",
+      "resolution": "Fixed: preflight bytes are pinned and captured before Docker; output requires the exact three metadata relations",
+      "evidence": "tests/integration/auth/provider-session-preflight.sql; tests/unit/test_auth_fixture.py"
+    },
+    {
+      "issue": "Only auth.sessions single-column primary key was checked",
+      "resolution": "Fixed: auth.sessions, auth.users and public.profiles id primary keys are all checked",
+      "evidence": "tests/integration/auth/provider-session-preflight.sql; MP-08g-live-final.txt"
+    },
+    {
+      "issue": "No evidence of ports, pair identity, schema preservation or cleanup",
+      "resolution": "Fixed: final receipt includes two distinct IDs, before/after port and internal-network checks, schema-only Auth digest, source hashes and zero owned resources; independent read-only cleanup query agreed",
+      "evidence": "MP-08g-live-final.txt; MP-08g-guards-final.txt"
+    },
+    {
+      "issue": "Schema-only dumps cannot prove absence of Auth row DML",
+      "resolution": "Bounded: the exact pinned migration corpus was separately source-reviewed; Auth references are auth.uid() and auth.users foreign keys, and dynamic DDL targets five named public tables. Future migration pin changes require a fresh source review. No general runtime Auth-row-write proof is claimed.",
+      "evidence": "MP-08g-plan.md; supabase/migrations/20260101000600_concurrency.sql"
+    }
+  ],
+  "not_verified": [
+    "GoTrue HTTP login, refresh or logout",
+    "browser cookies or hosted runtime",
+    "BFF session persistence, revocation or concurrent refresh",
+    "production customer data"
+  ]
+}

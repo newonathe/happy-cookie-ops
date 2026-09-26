@@ -1,5 +1,7 @@
 # Runbook
 
+> **Historical context (T-task era, before the 2026-09-08 master plan):** where this page conflicts with [MASTER-PLAN.md](../MASTER-PLAN.md), [docs/state/current.md](../docs/state/current.md) or the [decision register](../docs/state/decision-register.md), those win. Its protection rules still apply unless they say otherwise.
+
 For the moment something is broken and a drop closes at noon. Operational only — no
 architecture, no explanation you do not need at 6am.
 

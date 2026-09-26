@@ -1,0 +1,2 @@
+{"reason": "private integration test failed: fixture_login_http_503", "status": "FAIL"}
+EXIT_CODE=1

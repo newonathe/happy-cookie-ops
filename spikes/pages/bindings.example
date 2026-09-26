@@ -1,0 +1,28 @@
+# Bindings read by functions/lib/session-composition.ts (names and purpose only; no real values).
+# Locally, pass them as `wrangler pages dev --binding=NAME=VALUE` flags, as
+# scripts/test-pages-session-boot.mjs does. Do NOT create .dev.vars or .env files in
+# spikes/pages: the emulator tests refuse to run if any exist. Hosted previews set them
+# as platform secrets, never in the static build.
+# No real values belong in this file.
+
+# Exact app origin. HTTPS, or http://localhost / 127.0.0.1 / [::1] for local tests.
+APP_ORIGIN=http://localhost:8788
+
+# Supabase project origin. Must be HTTPS; there is no insecure local exception.
+SUPABASE_URL=
+
+# Publishable key (sb_publishable_…), sent as `apikey` to Auth.
+SUPABASE_PUBLISHABLE_KEY=
+
+# Secret key (sb_secret_…), used only for the allowlisted bff_session_* / consume_rate_limit RPCs.
+SUPABASE_SERVICE_KEY=
+# sb_secret for real projects. legacy_jwt is accepted only with a loopback APP_ORIGIN.
+SUPABASE_SERVICE_KEY_KIND=sb_secret
+
+# AES-GCM session envelope keys: {"activeKeyId":"k1","keys":{"k1":"<43-char base64url of 32 random bytes>"}}
+# 1–3 keys; keep an old key listed until every session sealed with it has expired (8 h).
+SESSION_CRYPTO_CONFIG_JSON=
+
+# Local emulator only (loopback APP_ORIGIN). Fixed rate-limit caller id, format local:<id>.
+# Leave unset in hosted environments, where the caller comes from CF-Connecting-IP.
+# HCO_LOCAL_TRUSTED_CALLER_ID=local:dev

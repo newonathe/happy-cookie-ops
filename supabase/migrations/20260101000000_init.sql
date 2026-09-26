@@ -366,7 +366,7 @@ language sql
 stable
 security definer
 set search_path = public
-as $
+as $$
   -- Only orders that reserve capacity count, per state_reserves_capacity() above, which
   -- is the engine's RESERVING list. A cancelled or no-show order releases its boxes.
   --
@@ -384,7 +384,7 @@ as $
             and state_reserves_capacity(o.state)
         ), 0)
   );
-$;
+$$;
 
 create or replace function touch_updated_at() returns trigger
 language plpgsql as $$

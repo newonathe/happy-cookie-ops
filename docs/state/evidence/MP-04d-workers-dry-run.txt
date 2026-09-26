@@ -1,0 +1,11 @@
+
+ ⛅️ wrangler 4.130.0
+────────────────────
+
+X [ERROR] The directory specified by the "assets.directory" field in your configuration file does not exist:
+
+  C:\Users\ethan\dev\happy-cookie-ops-g0\build\pages-spike\public
+
+
+🪵  Logs were written to "C:\Users\ethan\AppData\Roaming\xdg.config\.wrangler\logs\wrangler-2026-09-25_10-10-48_311.log"
+exit_code=1

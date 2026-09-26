@@ -1,0 +1,15 @@
+{
+  "reviewer": "Codex Luna high",
+  "scope": "final read-only MP-08k persistent SessionAuthority adapter and focused tests",
+  "verdict": "no P0, P1, or P2 findings",
+  "resolved": [
+    "refresh rejection schedules durable cleanup",
+    "begin-revoke failure or no row cannot count as durable success"
+  ],
+  "verification": {
+    "focused_tests": 80,
+    "pnpm_verify": "24 files, 363 tests",
+    "checks": ["TypeScript", "ESLint", "diff check"]
+  },
+  "boundary": "unwired adapter only; no route, service client, configuration, deployment, or integrated browser claim"
+}

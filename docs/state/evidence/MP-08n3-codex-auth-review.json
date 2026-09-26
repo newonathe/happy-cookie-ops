@@ -1,0 +1,22 @@
+{
+  "reviewer": "Codex GPT-6 Sol/high, read-only",
+  "scope": "MP-08 auth/session composition, private provider fixture and BFF SQL repository",
+  "findings": [
+    {
+      "severity": "P2",
+      "status": "open",
+      "file": "src/lib/auth/persistent-session-authority.ts",
+      "line": 235,
+      "issue": "claimCleanup is implemented but has no production caller; expired idle sessions and failed cleanup can retain encrypted refresh credentials indefinitely and provider logout is not retried.",
+      "related_sql": "supabase/migrations/20260101002300_private_bff_sessions.sql:334",
+      "next_owner": "MP-08 closure: bounded scheduled or request-deferred cleanup with live expiry and failure-retry evidence"
+    }
+  ],
+  "scope_limits": [
+    "MP-08n.2 passes use an injected private Docker bridge, not Workerd networking or TLS.",
+    "The two passes do not cover account deactivation, missing provider session, provider logout failure or background cleanup retry.",
+    "The PostgREST smoke checks consume_rate_limit only; it does not enumerate every BFF RPC grant."
+  ],
+  "other_verified_p0_to_p2_findings": 0,
+  "files_changed_by_reviewer": 0
+}

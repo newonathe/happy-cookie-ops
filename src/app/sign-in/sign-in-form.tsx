@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import { returnPathFromSearch } from '@/lib/auth/return-path';
 
 /**
  * Staff sign-in. Styled from the prototype's own control vocabulary — the same 44px
@@ -11,7 +12,7 @@ import { createClient } from '@/lib/supabase/client';
  */
 export function SignInForm() {
   const router = useRouter();
-  const next = useSearchParams().get('next') || '/';
+  const next = returnPathFromSearch(useSearchParams());
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);

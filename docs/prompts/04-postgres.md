@@ -1,5 +1,7 @@
 # Phase 04 — Move the books to Postgres
 
+> **Historical context (T-task era, before the 2026-09-08 master plan):** where this page conflicts with [MASTER-PLAN.md](../../MASTER-PLAN.md), [docs/state/current.md](../../docs/state/current.md) or the [decision register](../../docs/state/decision-register.md), those win. Its protection rules still apply unless they say otherwise.
+
 Tech-debt item 1, and the largest piece of work left. The books — orders, ledger, stock,
 drops — still live in one `localStorage` object, as they did in the prototype. One device,
 no backup, one cleared cache away from losing a year.

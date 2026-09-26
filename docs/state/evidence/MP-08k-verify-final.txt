@@ -1,0 +1,67 @@
+[WARN] The "pnpm" field in package.json is no longer read by pnpm. The following keys were ignored: "pnpm.overrides", "pnpm.onlyBuiltDependencies". See https://pnpm.io/settings for the new home of each setting.
+
+> happy-cookie-ops@0.1.0 verify C:\Users\ethan\dev\happy-cookie-ops-g0
+> pnpm verify:port && pnpm verify:engine && pnpm typecheck && pnpm typecheck:e2e && pnpm lint && pnpm test
+
+
+> happy-cookie-ops@0.1.0 verify:port C:\Users\ethan\dev\happy-cookie-ops-g0
+> node scripts/check-port-integrity.mjs
+
+Port integrity OK — 54 files match the copy/style and AST baselines.
+
+> happy-cookie-ops@0.1.0 verify:engine C:\Users\ethan\dev\happy-cookie-ops-g0
+> node scripts/check-engine-contract.mjs
+
+Engine contract OK — 49 exports, 21 settings keys, 20 tables documented, provenance claims verified against the prototype.
+
+> happy-cookie-ops@0.1.0 typecheck C:\Users\ethan\dev\happy-cookie-ops-g0
+> tsc --noEmit
+
+
+> happy-cookie-ops@0.1.0 typecheck:e2e C:\Users\ethan\dev\happy-cookie-ops-g0
+> tsc --noEmit --project tsconfig.e2e.json
+
+
+> happy-cookie-ops@0.1.0 lint C:\Users\ethan\dev\happy-cookie-ops-g0
+> eslint . --max-warnings 0
+
+
+> happy-cookie-ops@0.1.0 test C:\Users\ethan\dev\happy-cookie-ops-g0
+> vitest run
+
+
+ RUN  v3.2.7 C:/Users/ethan/dev/happy-cookie-ops-g0
+
+ ✓ tests/unit/css.test.ts (4 tests) 12ms
+ ✓ tests/unit/capacity-parity.test.ts (15 tests) 10ms
+ ✓ tests/unit/idempotency.test.ts (7 tests) 11ms
+ ✓ tests/unit/pages-spike.test.ts (2 tests) 27ms
+ ✓ tests/unit/scrub.test.ts (13 tests) 14ms
+ ✓ tests/unit/acceptance-gates.test.ts (26 tests) 19ms
+ ✓ tests/unit/screens.test.ts (4 tests) 13ms
+ ✓ tests/unit/order-rules.test.ts (7 tests) 10ms
+ ✓ tests/unit/reporting-hooks.test.ts (3 tests) 294ms
+ ✓ tests/unit/money-conversion.test.ts (11 tests) 15ms
+ ✓ tests/unit/offline-queue.test.ts (4 tests) 170ms
+ ✓ tests/unit/money.test.ts (6 tests) 281ms
+ ✓ tests/unit/screen-boundary.test.tsx (2 tests) 250ms
+ ✓ tests/unit/sign-in-return-path.test.tsx (5 tests) 570ms
+   ✓ uses only a safe replacement after successful sign-in: next=/orders  329ms
+ ✓ tests/unit/return-path.test.ts (33 tests) 25ms
+ ✓ tests/unit/session-crypto.test.ts (7 tests) 46ms
+ ✓ tests/unit/session-crypto-interop.test.ts (14 tests) 50ms
+ ✓ tests/unit/sync-unavailable.test.ts (5 tests) 2782ms
+   ✓ the quarantined sync endpoint > returns a non-cacheable unavailable response to an ordinary request  2720ms
+ ✓ tests/unit/sync-middleware.test.ts (5 tests) 27ms
+ ✓ tests/unit/session-request-policy.test.ts (65 tests) 93ms
+ ✓ tests/unit/persistent-session-authority.test.ts (26 tests) 106ms
+ ✓ tests/unit/session-handler.test.ts (44 tests) 207ms
+ ✓ tests/unit/supabase-auth-transport.test.ts (54 tests) 263ms
+ ✓ tests/unit/reporting-integration.test.ts (1 test) 115ms
+
+ Test Files  24 passed (24)
+      Tests  363 passed (363)
+   Start at  17:12:32
+   Duration  49.82s (transform 4.40s, setup 31.13s, collect 35.96s, tests 5.41s, environment 322.42s, prepare 11.25s)
+
+EXIT_CODE=0

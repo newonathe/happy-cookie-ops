@@ -1,0 +1,19 @@
+{
+  "status": "passed",
+  "resets": 2,
+  "function": {
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+    "name": "anonymise_customer",
+    "owner": "postgres",
+    "config": [
+      "search_path=pg_catalog, public, pg_temp"
+    ],
+    "returns": "integer",
+    "body_md5": "b02890dcc9af44635413ddd4a3c46f2c",
+    "identity": "p_phone text, p_note text",
+    "execute_anon": false,
+    "security_definer": true,
+    "execute_service_role": true,
+    "execute_authenticated": true
+  }
+}

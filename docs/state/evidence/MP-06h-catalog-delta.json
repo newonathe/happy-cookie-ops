@@ -1,0 +1,140 @@
+{
+  "status": "passed",
+  "config_changes": [
+    {
+      "name": "anonymise_customer",
+      "before": [
+        "search_path=public"
+      ],
+      "after": [
+        "search_path=pg_catalog, public, pg_temp"
+      ]
+    },
+    {
+      "name": "capacity_allows",
+      "before": null,
+      "after": [
+        "search_path=pg_catalog, public, pg_temp"
+      ]
+    },
+    {
+      "name": "consume_rate_limit",
+      "before": [
+        "search_path=public"
+      ],
+      "after": [
+        "search_path=pg_catalog, public, pg_temp"
+      ]
+    },
+    {
+      "name": "drop_remaining",
+      "before": [
+        "search_path=public"
+      ],
+      "after": [
+        "search_path=pg_catalog, public, pg_temp"
+      ]
+    },
+    {
+      "name": "is_owner",
+      "before": [
+        "search_path=public"
+      ],
+      "after": [
+        "search_path=pg_catalog, public, pg_temp"
+      ]
+    },
+    {
+      "name": "is_staff",
+      "before": [
+        "search_path=public"
+      ],
+      "after": [
+        "search_path=pg_catalog, public, pg_temp"
+      ]
+    },
+    {
+      "name": "lookup_order",
+      "before": [
+        "search_path=public"
+      ],
+      "after": [
+        "search_path=pg_catalog, public, pg_temp"
+      ]
+    },
+    {
+      "name": "prune_personal_data",
+      "before": [
+        "search_path=public"
+      ],
+      "after": [
+        "search_path=pg_catalog, public, pg_temp"
+      ]
+    },
+    {
+      "name": "prune_rate_limits",
+      "before": [
+        "search_path=public"
+      ],
+      "after": [
+        "search_path=pg_catalog, public, pg_temp"
+      ]
+    },
+    {
+      "name": "settings_effective",
+      "before": null,
+      "after": [
+        "search_path=pg_catalog, public, pg_temp"
+      ]
+    },
+    {
+      "name": "settings_touch",
+      "before": null,
+      "after": [
+        "search_path=pg_catalog, public, pg_temp"
+      ]
+    },
+    {
+      "name": "state_is_recognised",
+      "before": null,
+      "after": [
+        "search_path=pg_catalog, public, pg_temp"
+      ]
+    },
+    {
+      "name": "state_reserves_capacity",
+      "before": null,
+      "after": [
+        "search_path=pg_catalog, public, pg_temp"
+      ]
+    },
+    {
+      "name": "sync_event_sale",
+      "before": [
+        "search_path=public"
+      ],
+      "after": [
+        "search_path=pg_catalog, public, pg_temp"
+      ]
+    },
+    {
+      "name": "touch_updated_at",
+      "before": null,
+      "after": [
+        "search_path=pg_catalog, public, pg_temp"
+      ]
+    },
+    {
+      "name": "update_order_state",
+      "before": [
+        "search_path=public"
+      ],
+      "after": [
+        "search_path=pg_catalog, public, pg_temp"
+      ]
+    }
+  ],
+  "all17_function_bodies_match_prior_live_authority_inventory": true,
+  "owners_grants_identities_returns_and_all_other_existing_fields_unchanged": true,
+  "inventory_extension": "body_md5 for drift comparison; exact source snapshots use SHA256 separately"
+}

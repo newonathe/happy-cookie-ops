@@ -1,0 +1,9 @@
+
+> happy-cookie-ops@0.1.0 build:pages:spike C:\Users\ethan\dev\happy-cookie-ops-g0
+> node scripts/build-pages-spike.mjs
+
+▲ Next.js 16.3.3 (Turbopack)
+✓ Running next.config.ts took 523ms
+
+  Creating an optimized production build ...
+ ELIFECYCLE  Command failed with exit code 1.

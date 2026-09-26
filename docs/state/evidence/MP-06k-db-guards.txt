@@ -1,0 +1,25 @@
+{"status": "failed", "mode": "--write", "scope": "public schema types and catalog only; no auth/RLS acceptance", "error": "injected readiness failure", "artifact_unchanged": true}
+........E........
+======================================================================
+ERROR: test_real_failure_cleanup_preserves_unrelated_container (test_bootstrap_harness.Guards.test_real_failure_cleanup_preserves_unrelated_container)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\ethan\dev\happy-cookie-ops-g0\tests\integration\db\test_bootstrap_harness.py", line 106, in test_real_failure_cleanup_preserves_unrelated_container
+    h.require_local_docker(ROOT)
+    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\ethan\dev\happy-cookie-ops-g0\scripts\test-db-bootstrap.py", line 72, in require_local_docker
+    docker(["version", "--format", "{{.Server.Version}}"], cwd=workdir, timeout=20)
+    ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ethan\dev\happy-cookie-ops-g0\scripts\test-db-bootstrap.py", line 66, in docker
+    return run(DOCKER + args, cwd=cwd, timeout=timeout, input_text=input_text)
+  File "C:\Users\ethan\dev\happy-cookie-ops-g0\scripts\test-db-bootstrap.py", line 62, in run
+    fail(f"command exit {child.returncode}: {safe_error(output)}")
+    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ethan\dev\happy-cookie-ops-g0\scripts\test-db-bootstrap.py", line 31, in fail
+    raise RuntimeError(message)
+RuntimeError: command exit 1: failed to connect to the docker API at npipe:////./pipe/docker_engine; check if the path is correct and if the daemon is running: open //./pipe/docker_engine: The system cannot find the file specified.
+
+----------------------------------------------------------------------
+Ran 17 tests in 0.396s
+
+FAILED (errors=1)

@@ -1,0 +1,28 @@
+{
+  "claude_attempt": {
+    "model": "claude-sonnet-5",
+    "effort": "medium",
+    "exit_code": 124,
+    "timeout_seconds": 180,
+    "files_written": [],
+    "named_process_after_exit": "none observed",
+    "stderr": "workspace trust advisory; no result or explicit tool-denial report; no trust configuration changed"
+  },
+  "fallback": {
+    "worker": "session_crypto_fallback",
+    "model": "gpt-5.6-terra",
+    "effort": "medium",
+    "ownership": [
+      "src/lib/auth/session-crypto.ts",
+      "tests/unit/session-crypto.test.ts"
+    ],
+    "status": "completed; root full verification passed285tests",
+    "reported_checks": "typecheck, owned-file lint, focused15tests before root final cases"
+  },
+  "reviewer": "reused Codex Sol/high session_policy_review",
+  "root": "independent Node AES-GCM tests, architecture, integration",
+  "maximum_workers": 2,
+  "children": 0,
+  "billing": "subscription only; no API fallback or paid reset",
+  "claude_quota": "UNKNOWN"
+}

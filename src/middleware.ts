@@ -14,6 +14,9 @@ const PUBLIC_PATHS = ['/shop', '/checkout', '/status', '/lookup'];
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });
 
+  // The quarantined endpoint returns only 503/no ACK and must never contact auth.
+  if (request.nextUrl.pathname === '/api/sync') return response;
+
   /**
    * No backend configured — run the app anyway, unauthenticated.
    *

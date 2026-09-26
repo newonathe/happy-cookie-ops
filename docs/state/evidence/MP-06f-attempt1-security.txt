@@ -1,0 +1,3 @@
+Running explicit loopback CLI reset 1 and catalog assertions.
+{"status": "failed", "error": "command exit 3: ERROR:  constraints on temporary tables may reference only temporary tables", "cleanup": "passed"}
+{"status": "failed", "cases_per_reset": null, "resets": null}

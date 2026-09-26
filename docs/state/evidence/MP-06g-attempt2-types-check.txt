@@ -1,0 +1,4 @@
+Running explicit loopback CLI reset 1 and catalog assertions.
+Running explicit loopback CLI reset 2 and catalog assertions.
+{"status": "failed", "error": "catalog or public schema differs across two explicit loopback resets", "cleanup": "passed"}
+{"status": "failed", "mode": "--check", "scope": "public schema types and catalog only; no auth/RLS acceptance", "error": "type generation fixture failed; see sanitized bootstrap evidence", "artifact_unchanged": true}

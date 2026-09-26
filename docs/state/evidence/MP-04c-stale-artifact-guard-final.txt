@@ -1,0 +1,14 @@
+
+> happy-cookie-ops@0.1.0 build:pages:spike C:\Users\ethan\dev\happy-cookie-ops-g0
+> node scripts/build-pages-spike.mjs
+
+file:///C:/Users/ethan/dev/happy-cookie-ops-g0/scripts/build-pages-spike.mjs:100
+if (process.env.PAGES_SPIKE_TEST_FORCE_FAILURE === '1') throw new Error('Forced Pages artifact invalidation check.');
+                                                              ^
+
+Error: Forced Pages artifact invalidation check.
+    at file:///C:/Users/ethan/dev/happy-cookie-ops-g0/scripts/build-pages-spike.mjs:100:63
+
+Node.js v24.20.0
+ ELIFECYCLE  Command failed with exit code 1.
+exit=1 public=False manifest=False

@@ -1,0 +1,2 @@
+{"status": "FAIL", "reason": "child_scheduled_scheduled_log_invalid"}
+exit_code=1

@@ -1,0 +1,67 @@
+
+> happy-cookie-ops@0.1.0 build C:\Users\ethan\dev\happy-cookie-ops-g0
+> next build
+
+▲ Next.js 16.3.3 (Turbopack)
+- Environments: .env.local
+✓ Running next.config.ts took 914ms
+- Experiments (use with caution):
+  · clientTraceMetadata
+
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead.
+
+  To migrate automatically, run:
+  npx @next/codemod@canary middleware-to-proxy .
+
+  Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+  Creating an optimized production build ...
+✓ Compiled successfully in 8.9s
+  Running next.config.js provided runAfterProductionCompile ...
+✓ Completed runAfterProductionCompile in 801ms
+  Running TypeScript ...
+  Finished TypeScript in 4.2s ...
+  Collecting page data using 15 workers ...
+  Generating static pages using 15 workers (0/28) ...
+  Generating static pages using 15 workers (7/28) 
+  Generating static pages using 15 workers (14/28) 
+  Generating static pages using 15 workers (21/28) 
+✓ Generating static pages using 15 workers (28/28) in 910ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ƒ /api/health
+├ ƒ /api/sync
+├ ○ /bake
+├ ○ /batch
+├ ○ /bazaar
+├ ○ /checkout
+├ ○ /drops
+├ ○ /formqueue
+├ ○ /grocery
+├ ○ /health
+├ ○ /inventory
+├ ○ /lookup
+├ ○ /more
+├ ○ /notifications
+├ ○ /order
+├ ○ /orders
+├ ○ /pnl
+├ ○ /products
+├ ○ /recipes
+├ ○ /reconcile
+├ ○ /sales
+├ ○ /settings
+├ ○ /shop
+├ ○ /sign-in
+├ ○ /status
+├ ○ /stocktake
+└ ○ /suppliers
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

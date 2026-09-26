@@ -2,9 +2,10 @@
 
 > **Current planning authority (2026-09-08):** Read [MASTER-PLAN.md](MASTER-PLAN.md) first. Its audited findings, task catalog and decision gates supersede conflicting readiness claims and old T-task ordering. UI/UX remains locked; current records are demo fixtures; launch has one offline sales device. The 2026-09-08 user request authorizes local G0 implementation (MP-00 through MP-03). Read [current state](docs/state/current.md) for actual progress; later product packages and the automatic runner remain deferred. All protection and verification rules below remain in force.
 
-Operating instructions for coding agents in this repository. Claude Code also reads
-`CLAUDE.md`; Codex and other tools read this file. They say the same thing — if you
-change one, change both.
+Operating instructions for coding agents in this repository. This file is the single source
+of rules: Codex and other tools read it directly, and `CLAUDE.md` imports it (`@AGENTS.md`)
+and adds only Claude Code specifics. The "Current planning authority" and "Shared worker
+policy" lines must stay byte-identical in both files (`scripts/validate-g0.py` checks this).
 
 ## What this project is
 
@@ -33,6 +34,7 @@ pnpm db:seed:gen          # regenerate supabase/seed.sql from the engine's const
 ```
 
 `pnpm verify` is the definition of "it works". Do not report a task complete without it.
+Run every `pnpm` command with the pinned toolchain from [docs/state/toolchain.md](docs/state/toolchain.md) (Node 24.20.0, pnpm 9.12.3). A global pnpm ≥10 silently ignores `pnpm.overrides`.
 
 ## Do not touch
 
@@ -61,11 +63,12 @@ If a task seems to require one of these, stop and say so before writing code.
 | Business rule | `src/store/engine/ops-engine.js` or a subclass, plus a test in `tests/unit` |
 | New screen | `src/components/screens/` + a route + a key in `src/lib/screens.ts` |
 | Shared control | `src/components/ui/` with a Storybook story |
-| Server behaviour | `src/app/api/*/route.ts`, input validated with Zod |
+| Server behaviour | BFF: `spikes/pages/functions/**` + `src/lib/auth/*` (MP-08; hosting per DP-14), input validated with Zod. `src/app/api/*` serves only the Vercel demo |
 | Schema | a new file in `supabase/migrations/` |
 | Offline behaviour | `src/lib/offline/` — read `docs/OFFLINE.md` first |
 | Anything visual | Check `docs/SCREENS.md` first — the screenshot is the answer key |
-| Rate limit on a new route | `RATE_LIMITS` in `src/lib/rate-limit.ts`, then apply it in the handler |
+| Rate limit on a new route | `rateRules` in `spikes/pages/functions/lib/session-composition.ts` (fail-closed; caller from `CF-Connecting-IP` only). `src/lib/rate-limit.ts` and `src/lib/idempotency.ts` are legacy with no production callers: they fail open and trust `X-Forwarded-For`. Do not extend them |
+| A business rule the owner must decide | [docs/state/decision-register.md](docs/state/decision-register.md). The prototype and specs are evidence, not decisions |
 | Anything sent to a customer | `src/lib/messaging/` — read `docs/MESSAGING.md`; it costs her money |
 | Error reporting | Already wired. Widen `scrub.ts` if a report lacks something, with a test |
 
@@ -81,11 +84,12 @@ If a task seems to require one of these, stop and say so before writing code.
 
 ## Working agreement
 
-1. **Read before writing.** `docs/WORKFLOW.md` has the loop; `docs/TASKS.md` has the work,
-   already decomposed into agent-sized tasks with acceptance criteria and an explicit file
-   list, and `docs/prompts/` has the prompt for each one. Read the files the task's *Context*
-   line names and no others — unbounded exploration is the largest avoidable cost here.
-   Codex specifics are in `docs/CODEX.md`.
+1. **Read before writing.** Current work and status: `MASTER-PLAN.md`,
+   `docs/state/current.md`, `docs/state/task-status.json` and the relevant
+   `docs/state/MP-*-plan.md`. Planned scope: `docs/master-plan/tasks.json` and its generated
+   prompts. `docs/TASKS.md`, `docs/prompts/` and `docs/WORKFLOW.md` are the historical T-task
+   era. Read the files the slice names and no others — unbounded exploration is the largest
+   avoidable cost here. Who does what: `docs/state/agent-orchestration.md`.
 2. **Plan before coding.** For anything over ~50 lines, state the plan, the files you will
    touch and the test you will write, and wait.
 3. **Check whether it already exists.** Several tasks describe work that has since been
@@ -107,7 +111,10 @@ If a task seems to require one of these, stop and say so before writing code.
   tree and closes the open sheet.
 - `stocktake` is a screen key with no screen file; it renders inside inventory.
 - `useSearchParams()` needs a Suspense boundary or the build fails.
-- The review harness is switched off by starving `renderVals()`, not by editing markup.
+- The review harness is switched off by starving `renderVals()` (`NEXT_PUBLIC_HARNESS=0`
+  makes `OpsRuntime.renderVals()` return empty `devices`/`roles`), not by editing markup.
+- `src/view-models/vals.ts` is generated-shaped: it mirrors what `renderVals()` returns.
+  Widen a type only alongside the engine change that produces it.
 
 ## Current G0 execution and preview authorization
 
@@ -116,3 +123,7 @@ The owner's later 2026-09-08 message also authorizes publishing this work to a p
 On this Windows installation, use headless command-line Playwright only. Never invoke the in-app Browser or Chrome-control plugins until the owner confirms the Codex GPU crash has been fixed.
 
 Shared worker policy: read [docs/state/agent-orchestration.md](docs/state/agent-orchestration.md) before delegation. It governs the combined Codex/Claude limit, explicit models, bounded prompts and review rules for this conversation.
+
+Current G1 authorization: the owner's latest request supersedes the G0 stopping boundary for local next-goal work. Read docs/state/G1-plan.md for exact slices, current results and unresolved setup/plan gates. Preserve all protected-source rules. The automatic runner and production deployment remain deferred.
+
+MP-05.a approval: the owner confirmed no database/SQL history and approved the two delimiter corrections in supabase/migrations/20260101000000_init.sql plus disposable local bootstrap checks. The continuity validator reverses only those exact delimiters before checking original delivery bytes. All other migration/source protection remains in force.

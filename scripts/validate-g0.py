@@ -38,7 +38,7 @@ from jsonschema import Draft202012Validator
 errors = [e.message for e in Draft202012Validator(load(PLAN / 'templates/task-catalog.schema.json')).iter_errors(catalog)]
 check('catalog_schema', not errors, errors)
 status = load(ROOT / 'docs/state/task-status.json')
-check('manual_progress_scope', set(status['packages']) == {'MP-00', 'MP-01', 'MP-02', 'MP-03'})
+check('manual_progress_scope', {'MP-00', 'MP-01', 'MP-02', 'MP-03'} <= set(status['packages']) <= ids)
 check('manual_status_values', all(p['status'] in {'pending', 'in_progress', 'complete', 'blocked'} for p in status['packages'].values()))
 scratch = Path(tempfile.mkdtemp(prefix='happy-cookie-catalog-'))
 (scratch / 'evidence').mkdir()
@@ -67,6 +67,17 @@ for entry in load(EVIDENCE / 'delivery-manifest.json'):
     protected = rel.startswith(('src/components/screens/', 'src/components/sheets/', 'src/components/shell/', 'docs/reference/', 'docs/master-plan/')) or rel in {'src/store/engine/ops-engine.js', 'scripts/port-baseline.json', 'supabase/seed.sql'} or rel.startswith('supabase/migrations/')
     if protected:
         data = file.read_bytes()
+        if rel == 'supabase/migrations/20260101000000_init.sql':
+            # DP-09: owner confirmed never applied and approved these two delimiters only.
+            match = re.search(rb'create or replace function drop_remaining\(p_drop_id uuid\).*?(?=create or replace function touch_updated_at)', data, re.S)
+            check('approved_bootstrap_function_present', match is not None)
+            if match:
+                block = match.group(0)
+                check('approved_bootstrap_open_quote', len(re.findall(rb'(?m)^as \$\$\r?$', block)) == 1)
+                check('approved_bootstrap_close_quote', len(re.findall(rb'(?m)^\$\$;\r?$', block)) == 1)
+                restored = re.sub(rb'(?m)^as \$\$(\r?)$', rb'as $\1', block, count=1)
+                restored = re.sub(rb'(?m)^\$\$;(\r?)$', rb'$;\1', restored, count=1)
+                data = data[:match.start()] + restored + data[match.end():]
         if rel.startswith('src/components/sheets/') and file.stem in guards:
             guard = guards[file.stem]
             check('approved_guard_once:' + rel, data.count(guard) == 1)
@@ -111,6 +122,9 @@ coverage_ids = [next(iter(row.values())) for row in coverage]
 check('state_coverage_unique_70_rows', len(coverage) == 70 and len(set(coverage_ids)) == 70)
 report = dict(scope='G0 continuity, not application readiness', checks=checks, changed_delivery_files=changes,
               generator_scratch=str(scratch), failures=[c for c in checks if not c['passed']])
-(EVIDENCE / 'g0-validation.json').write_text(json.dumps(report, indent=2) + '\n')
+report_name = os.environ.get('CONTINUITY_REPORT_NAME', 'g0-validation.json')
+if Path(report_name).name != report_name:
+    raise ValueError('Continuity report must be a filename within the evidence directory')
+(EVIDENCE / report_name).write_text(json.dumps(report, indent=2) + '\n')
 print(json.dumps({'checks': len(checks), 'failures': report['failures'], 'changed_delivery_files': changes}, indent=2))
 raise SystemExit(bool(report['failures']))

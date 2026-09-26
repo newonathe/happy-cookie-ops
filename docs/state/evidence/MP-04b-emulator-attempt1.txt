@@ -1,0 +1,17 @@
+
+> happy-cookie-ops@0.1.0 test:pages:spike C:\Users\ethan\dev\happy-cookie-ops-g0
+> node scripts/test-pages-spike.mjs
+
+file:///C:/Users/ethan/dev/happy-cookie-ops-g0/scripts/test-pages-spike.mjs:46
+    if (spawnError || child.exitCode !== null) throw new Error(`Emulator exited early: ${spawnError?.message ?? logs.slice(-500)}`);
+                                                     ^
+
+Error: Emulator exited early: X [ERROR] Pages does not support custom paths for the Wrangler configuration file. Remove the --config flag, or use a standard wrangler.jsonc in your project root.
+
+
+
+    at ready (file:///C:/Users/ethan/dev/happy-cookie-ops-g0/scripts/test-pages-spike.mjs:46:54)
+    at async file:///C:/Users/ethan/dev/happy-cookie-ops-g0/scripts/test-pages-spike.mjs:56:3
+
+Node.js v24.20.0
+ ELIFECYCLE  Command failed with exit code 1.

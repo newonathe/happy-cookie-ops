@@ -1,0 +1,2 @@
+Starting disposable local Supabase; image downloads may take several minutes.
+{"status": "failed", "error": "disposable project exposes a container outside loopback", "cleanup": "passed"}

@@ -1,0 +1,366 @@
+{
+  "status": "passed",
+  "baseline": "MP-06j-schema-inventory.json",
+  "current": "MP-06k-schema-inventory.json",
+  "added_columns": [
+    {
+      "udt_name": "bool",
+      "data_type": "boolean",
+      "table_name": "drops",
+      "column_name": "published",
+      "is_nullable": "NO",
+      "column_default": "false",
+      "ordinal_position": 9
+    },
+    {
+      "udt_name": "bool",
+      "data_type": "boolean",
+      "table_name": "products",
+      "column_name": "published",
+      "is_nullable": "NO",
+      "column_default": "false",
+      "ordinal_position": 11
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "shop_drops",
+      "column_name": "id",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 1
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "shop_drops",
+      "column_name": "week_label",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 2
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "shop_drops",
+      "column_name": "opens_at",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 3
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "shop_drops",
+      "column_name": "closes_at",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 4
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "shop_drops",
+      "column_name": "pickup_at",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 5
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "shop_products",
+      "column_name": "id",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 1
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "shop_products",
+      "column_name": "name",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 2
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "shop_products",
+      "column_name": "short_name",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 3
+    },
+    {
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "table_name": "shop_products",
+      "column_name": "price_cents",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 4
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "shop_products",
+      "column_name": "kind",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 5
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "shop_products",
+      "column_name": "tag",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 6
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "shop_products",
+      "column_name": "description",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 7
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "shop_products",
+      "column_name": "image_path",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 8
+    },
+    {
+      "udt_name": "int4",
+      "data_type": "integer",
+      "table_name": "shop_products",
+      "column_name": "sort_order",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 9
+    }
+  ],
+  "changed_policies": [
+    {
+      "before": {
+        "cmd": "SELECT",
+        "qual": "true",
+        "roles": [
+          "public"
+        ],
+        "tablename": "drops",
+        "permissive": "PERMISSIVE",
+        "policyname": "drops public read",
+        "with_check": null
+      },
+      "after": {
+        "cmd": "SELECT",
+        "qual": "is_owner()",
+        "roles": [
+          "public"
+        ],
+        "tablename": "drops",
+        "permissive": "PERMISSIVE",
+        "policyname": "drops public read",
+        "with_check": null
+      }
+    },
+    {
+      "before": {
+        "cmd": "SELECT",
+        "qual": "(active OR is_staff())",
+        "roles": [
+          "public"
+        ],
+        "tablename": "products",
+        "permissive": "PERMISSIVE",
+        "policyname": "catalogue public read",
+        "with_check": null
+      },
+      "after": {
+        "cmd": "SELECT",
+        "qual": "is_owner()",
+        "roles": [
+          "public"
+        ],
+        "tablename": "products",
+        "permissive": "PERMISSIVE",
+        "policyname": "catalogue public read",
+        "with_check": null
+      }
+    }
+  ],
+  "added_grants": [
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "shop_drops",
+      "is_grantable": "NO",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "shop_drops",
+      "is_grantable": "NO",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "shop_drops",
+      "is_grantable": "YES",
+      "privilege_type": "DELETE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "shop_drops",
+      "is_grantable": "YES",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "shop_drops",
+      "is_grantable": "YES",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "shop_drops",
+      "is_grantable": "YES",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "shop_drops",
+      "is_grantable": "YES",
+      "privilege_type": "TRIGGER"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "shop_drops",
+      "is_grantable": "YES",
+      "privilege_type": "TRUNCATE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "shop_drops",
+      "is_grantable": "YES",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "shop_drops",
+      "is_grantable": "NO",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "shop_products",
+      "is_grantable": "NO",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "shop_products",
+      "is_grantable": "NO",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "shop_products",
+      "is_grantable": "YES",
+      "privilege_type": "DELETE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "shop_products",
+      "is_grantable": "YES",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "shop_products",
+      "is_grantable": "YES",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "shop_products",
+      "is_grantable": "YES",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "shop_products",
+      "is_grantable": "YES",
+      "privilege_type": "TRIGGER"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "shop_products",
+      "is_grantable": "YES",
+      "privilege_type": "TRUNCATE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "shop_products",
+      "is_grantable": "YES",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "shop_products",
+      "is_grantable": "NO",
+      "privilege_type": "SELECT"
+    }
+  ],
+  "views": [
+    {
+      "acl": "{postgres=arwdDxt/postgres,anon=r/postgres,authenticated=r/postgres,service_role=r/postgres}",
+      "name": "shop_drops",
+      "owner": "postgres",
+      "options": [
+        "security_barrier=true",
+        "security_invoker=false"
+      ],
+      "definition": " SELECT drops.id,\n    drops.week_label,\n    drops.opens_at,\n    drops.closes_at,\n    drops.pickup_at\n   FROM drops\n  WHERE drops.published;"
+    },
+    {
+      "acl": "{postgres=arwdDxt/postgres,anon=r/postgres,authenticated=r/postgres,service_role=r/postgres}",
+      "name": "shop_products",
+      "owner": "postgres",
+      "options": [
+        "security_barrier=true",
+        "security_invoker=false"
+      ],
+      "definition": " SELECT products.id,\n    products.name,\n    products.short_name,\n    products.price_cents,\n    products.kind,\n    products.tag,\n    products.description,\n    products.image_path,\n    products.sort_order\n   FROM products\n  WHERE products.published AND products.active;"
+    }
+  ],
+  "other_sections_unchanged": true
+}

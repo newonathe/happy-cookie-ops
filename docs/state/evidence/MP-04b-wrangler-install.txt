@@ -1,0 +1,107 @@
+(node:12680) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+
+   ╭──────────────────────────────────────────────────────────────────╮
+   │                                                                  │
+   │                Update available! 9.12.3 → 12.3.4.                │
+   │   Changelog: https://github.com/pnpm/pnpm/releases/tag/v12.3.4   │
+   │                Run "pnpm add -g pnpm" to update.                 │
+   │                                                                  │
+   │         Follow @pnpmjs for updates: https://x.com/pnpmjs         │
+   │                                                                  │
+   ╰──────────────────────────────────────────────────────────────────╯
+
+Progress: resolved 1, reused 0, downloaded 0, added 0
+ WARN  deprecated eslint@9.39.5: This version is no longer supported. Please see https://eslint.org/version-support for other options.
+ WARN  deprecated @testing-library/jest-dom@6.10.0: Incorrect minor release with breaking changes (Node >=22 and required @testing-library/dom peer). Use 6.9.1 for the 6.x line, or upgrade to 7.0.0.
+Progress: resolved 30, reused 29, downloaded 1, added 0
+Progress: resolved 32, reused 31, downloaded 1, added 0
+Progress: resolved 32, reused 32, downloaded 1, added 0
+Progress: resolved 172, reused 133, downloaded 1, added 0
+Progress: resolved 302, reused 230, downloaded 1, added 0
+Progress: resolved 384, reused 258, downloaded 1, added 0
+Progress: resolved 433, reused 285, downloaded 1, added 0
+Progress: resolved 501, reused 322, downloaded 1, added 0
+Progress: resolved 552, reused 351, downloaded 1, added 0
+Progress: resolved 630, reused 402, downloaded 1, added 0
+Progress: resolved 693, reused 465, downloaded 1, added 0
+Progress: resolved 742, reused 514, downloaded 1, added 0
+Progress: resolved 763, reused 538, downloaded 2, added 0
+Progress: resolved 800, reused 580, downloaded 3, added 0
+Progress: resolved 833, reused 613, downloaded 3, added 0
+Progress: resolved 861, reused 641, downloaded 3, added 0
+Progress: resolved 875, reused 660, downloaded 3, added 0
+Progress: resolved 890, reused 675, downloaded 7, added 0
+Progress: resolved 901, reused 687, downloaded 7, added 0
+Progress: resolved 910, reused 696, downloaded 9, added 0
+Progress: resolved 935, reused 723, downloaded 10, added 0
+Progress: resolved 955, reused 743, downloaded 11, added 0
+Progress: resolved 955, reused 744, downloaded 11, added 0
+Progress: resolved 974, reused 762, downloaded 11, added 0
+Progress: resolved 984, reused 772, downloaded 12, added 0
+Progress: resolved 992, reused 780, downloaded 12, added 0
+Progress: resolved 1000, reused 788, downloaded 12, added 0
+Progress: resolved 1007, reused 795, downloaded 12, added 0
+Progress: resolved 1013, reused 800, downloaded 15, added 0
+Progress: resolved 1036, reused 810, downloaded 16, added 0
+Progress: resolved 1073, reused 830, downloaded 17, added 0
+Progress: resolved 1086, reused 842, downloaded 18, added 0
+Progress: resolved 1096, reused 852, downloaded 19, added 0
+Progress: resolved 1118, reused 874, downloaded 21, added 0
+Progress: resolved 1137, reused 893, downloaded 24, added 0
+Progress: resolved 1160, reused 908, downloaded 25, added 0
+Progress: resolved 1179, reused 927, downloaded 26, added 0
+Progress: resolved 1202, reused 953, downloaded 26, added 0
+Progress: resolved 1202, reused 954, downloaded 26, added 0
+Progress: resolved 1286, reused 1041, downloaded 28, added 0
+Progress: resolved 1322, reused 1079, downloaded 28, added 0
+Progress: resolved 1408, reused 1165, downloaded 28, added 0
+ WARN  6 deprecated subdependencies found: glob@7.2.3, inflight@1.0.6, rimraf@2.7.1, rimraf@3.0.2, uuid@8.3.2, whatwg-encoding@3.1.1
+Progress: resolved 1418, reused 1175, downloaded 28, added 0
+Packages: +27
++++++++++++++++++++++++++++
+Progress: resolved 1418, reused 1175, downloaded 28, added 20
+Progress: resolved 1418, reused 1175, downloaded 28, added 22
+Progress: resolved 1418, reused 1175, downloaded 28, added 23
+Progress: resolved 1418, reused 1175, downloaded 28, added 25
+Progress: resolved 1418, reused 1175, downloaded 28, added 26
+Progress: resolved 1418, reused 1175, downloaded 28, added 27, done
+
+dependencies:
++ @sentry/nextjs 10.73.0
++ @supabase/ssr 0.7.0
++ @supabase/supabase-js 2.115.0
++ next 16.3.3
++ react 19.2.8
++ react-dom 19.2.8
++ zod 4.5.4
+
+devDependencies:
++ @eslint/eslintrc 3.3.7
++ @lhci/cli 0.15.1
++ @playwright/test 1.63.0
++ @storybook/nextjs 10.2.10
++ @tailwindcss/postcss 4.3.3
++ @testing-library/dom 10.4.1
++ @testing-library/jest-dom 6.10.0 deprecated
++ @testing-library/react 16.3.3
++ @types/node 22.20.1
++ @types/react 19.2.18
++ @types/react-dom 19.2.7
++ @vitejs/plugin-react 5.2.0
++ eslint 9.39.5 deprecated
++ eslint-config-next 16.3.3
++ eslint-config-prettier 10.1.8
++ eslint-plugin-jsx-a11y 6.10.2
++ husky 9.1.7
++ jsdom 26.1.0
++ lint-staged 16.4.0
++ prettier 3.9.6
++ storybook 10.2.10
++ supabase 2.116.0
++ tailwindcss 4.3.3
++ typescript 5.9.3
++ vitest 3.2.7
++ wrangler 4.130.0
+
+Done in 1m 34.3s

@@ -1,0 +1,22 @@
+{
+  "scope": "local Workerd scheduled-dispatch boundary without secret bindings",
+  "toolchain": "pinned Node 24.20.0, pnpm 9.12.3, Wrangler 4.130.0",
+  "config": "spikes/cleanup-worker/wrangler.jsonc",
+  "command": "pnpm exec wrangler dev --config spikes/cleanup-worker/wrangler.jsonc --test-scheduled --local --ip 127.0.0.1 --port 8791",
+  "ready": true,
+  "scheduled_request": {
+    "path": "/cdn-cgi/local/scheduled?format=json",
+    "http_status": 500,
+    "body": { "outcome": "exception", "noRetry": false },
+    "allowlisted_log": { "event": "scheduled_cleanup", "outcome": "failure", "errorClass": "configuration" }
+  },
+  "ordinary_http_request": {
+    "path": "/",
+    "http_status": 500,
+    "body": "Error: Handler does not export a fetch() function."
+  },
+  "secrets_supplied": false,
+  "provider_contacted": false,
+  "hosted_cpu_measured": false,
+  "notes": "The first dev attempt rejected future compatibility_date 2026-09-25. The config was corrected to the existing Pages spike date 2026-09-08, after which local dispatch behaved as recorded. No deployment or cron activation occurred."
+}

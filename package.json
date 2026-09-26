@@ -24,7 +24,8 @@
     "build-storybook": "storybook build",
     "db:start": "supabase start",
     "db:reset": "supabase db reset",
-    "db:types": "supabase gen types typescript --local > src/lib/types/database.ts",
+    "db:types": "python scripts/generate-db-types.py --write",
+    "db:types:check": "python scripts/generate-db-types.py --check",
     "prepare": "husky",
     "verify": "pnpm verify:port && pnpm verify:engine && pnpm typecheck && pnpm typecheck:e2e && pnpm lint && pnpm test",
     "verify:port": "node scripts/check-port-integrity.mjs",
@@ -41,7 +42,10 @@
     "test:g0:evidence": "playwright test --project=evidence",
     "verify:release": "pnpm verify && pnpm build && pnpm test:release:offline && pnpm test:e2e && pnpm test:visual",
     "test:release:offline": "vitest run --config vitest.release.config.ts",
-    "typecheck:e2e": "tsc --noEmit --project tsconfig.e2e.json"
+    "typecheck:e2e": "tsc --noEmit --project tsconfig.e2e.json",
+    "build:pages:spike": "node scripts/build-pages-spike.mjs",
+    "test:pages:spike": "node scripts/test-pages-spike.mjs",
+    "test:workers:spike": "node scripts/test-workers-web-spike.mjs"
   },
   "dependencies": {
     "next": "16.3.3",
@@ -77,7 +81,8 @@
     "storybook": "10.2.10",
     "@storybook/nextjs": "10.2.10",
     "supabase": "2.116.0",
-    "@lhci/cli": "0.15.1"
+    "@lhci/cli": "0.15.1",
+    "wrangler": "4.130.0"
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx,css,md,json}": [
@@ -88,11 +93,15 @@
     ]
   },
   "pnpm": {
+    "overrides": {
+      "miniflare>sharp": "0.35.4"
+    },
     "onlyBuiltDependencies": [
       "@sentry/cli",
       "core-js-pure",
       "esbuild",
-      "unrs-resolver"
+      "unrs-resolver",
+      "workerd"
     ]
   }
 }

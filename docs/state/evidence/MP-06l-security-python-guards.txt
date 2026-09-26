@@ -1,0 +1,25 @@
+{"status": "failed", "cases_per_reset": null, "resets": null}
+{"status": "failed", "cases_per_reset": null, "resets": null}
+FF....
+======================================================================
+FAIL: test_authority_and_body_mutations_fail (test_function_authority.FunctionAuthority.test_authority_and_body_mutations_fail)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\ethan\dev\happy-cookie-ops-g0\tests\integration\security\test_function_authority.py", line 30, in test_authority_and_body_mutations_fail
+    self.assertNotEqual(rows[0][field], value)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False == False
+
+======================================================================
+FAIL: test_exact_inventory_and_reordering_pass (test_function_authority.FunctionAuthority.test_exact_inventory_and_reordering_pass)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\ethan\dev\happy-cookie-ops-g0\tests\integration\security\test_function_authority.py", line 15, in test_exact_inventory_and_reordering_pass
+    self.assertEqual(guard['verify_functions'](BASE), 17)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 26 != 17
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.041s
+
+FAILED (failures=2)

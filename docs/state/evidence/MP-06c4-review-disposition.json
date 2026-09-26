@@ -1,0 +1,40 @@
+{
+  "status": "accepted_for_bounded_local_slice",
+  "scope": "MP-06.c.4 current public-table TRUNCATE containment; no whole MP06/G1 claim",
+  "implementation": "Root wrote forward migration and runner integration. Reused Terra/medium settings_tests authored table-truncate.sql. Root added auth.users preservation and cleared subject for service positive.",
+  "independent_review": {
+    "provider": "Claude first-party Pro",
+    "requested_model": "claude-sonnet-5",
+    "effort": "medium",
+    "exit_code": 0,
+    "actual_turns": 10,
+    "requested_turns": 6,
+    "permission_denials": [],
+    "children": 0,
+    "observed_models": [
+      "claude-sonnet-5",
+      "claude-haiku-4-5-20251001"
+    ],
+    "findings": "No blocking issue"
+  },
+  "root_dispositions": [
+    "Reject review item7: expected_versions combines filename discovery with exact hardcoded fourteen-version validation. Root explicitly increased range from13 to14.",
+    "Clarify item4: settings preservation is checked after each actor block; profiles are checked before the trusted truncate, auth.users after it.",
+    "Requested6 turns is advisory; actual10, timeout180s enforced.",
+    "First live run caught two FOREACH syntax errors near [. Corrected IN ARRAY array constructor syntax, retained failed evidence and successful cleanup, reran complete suite. No assertion weakened.",
+    "No exposed HTTP TRUNCATE endpoint or signed JWT behavior is claimed.",
+    "Service/admin retains maintenance privileges; this does not make every database role unable to delete audit data. Future-object defaults and other privileged operations remain open."
+  ],
+  "verification": {
+    "sql_scenarios": 298,
+    "regression_detections": 22,
+    "profile_upgrades": 2,
+    "python_guards": 16,
+    "pnpm_verify_tests": 105,
+    "pnpm_verify_exit": 0,
+    "type_artifact_unchanged": true,
+    "catalog_delta": "Exactly36 removed TRUNCATE grants,18 each for anon/authenticated; service19 preserved",
+    "cleanup": "passed"
+  },
+  "limits": "CLI E2E earlier in same continuation (MP06c3) remained78failed/30skipped. No UI/runtime change since that run; not repeated. No build refresh, hosted/auth session, deployment, account activation or Apple hardware acceptance."
+}

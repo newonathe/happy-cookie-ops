@@ -1,0 +1,11 @@
+{
+  "status": "BLOCKED_ENVIRONMENT",
+  "scope": "Final live Docker inspection after verified MP06c5 tests; does not invalidate earlier executed fixture evidence",
+  "observation": "docker --context default ps could not connect to npipe:////./pipe/docker_engine; pipe not found",
+  "normal_start": "Docker Desktop executable launched with WindowStyle Hidden, then exited; no Desktop/backend processes visible after attempt",
+  "log_observation": "Backend log recorded error dialog and Quit; cause not established. No repeated launch after exit.",
+  "fixture_cleanup_at_test_time": "passed",
+  "current_container_inventory": "not available while daemon stopped",
+  "next_action": "Recover local Docker before next SQL fixture; API/source work can proceed independently",
+  "destructive_actions": "none; no volumes/images/WSL reset or socket-directory move"
+}

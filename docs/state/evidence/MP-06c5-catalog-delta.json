@@ -1,0 +1,68 @@
+{
+  "status": "passed",
+  "changed_catalog_sections": [
+    "policies",
+    "table_grants"
+  ],
+  "removed": {
+    "policies": [
+      {
+        "cmd": "INSERT",
+        "qual": null,
+        "roles": [
+          "public"
+        ],
+        "tablename": "audit_log",
+        "permissive": "PERMISSIVE",
+        "policyname": "audit staff insert",
+        "with_check": "is_staff()"
+      }
+    ],
+    "table_grants": [
+      {
+        "grantee": "anon",
+        "grantor": "postgres",
+        "table_name": "audit_log",
+        "is_grantable": "NO",
+        "privilege_type": "DELETE"
+      },
+      {
+        "grantee": "anon",
+        "grantor": "postgres",
+        "table_name": "audit_log",
+        "is_grantable": "NO",
+        "privilege_type": "INSERT"
+      },
+      {
+        "grantee": "anon",
+        "grantor": "postgres",
+        "table_name": "audit_log",
+        "is_grantable": "NO",
+        "privilege_type": "UPDATE"
+      },
+      {
+        "grantee": "authenticated",
+        "grantor": "postgres",
+        "table_name": "audit_log",
+        "is_grantable": "NO",
+        "privilege_type": "DELETE"
+      },
+      {
+        "grantee": "authenticated",
+        "grantor": "postgres",
+        "table_name": "audit_log",
+        "is_grantable": "NO",
+        "privilege_type": "INSERT"
+      },
+      {
+        "grantee": "authenticated",
+        "grantor": "postgres",
+        "table_name": "audit_log",
+        "is_grantable": "NO",
+        "privilege_type": "UPDATE"
+      }
+    ]
+  },
+  "other_catalog_sections_equal": true,
+  "types_unchanged": true
+}

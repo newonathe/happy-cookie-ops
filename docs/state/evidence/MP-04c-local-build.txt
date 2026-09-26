@@ -1,0 +1,44 @@
+
+> happy-cookie-ops@0.1.0 build:pages:spike C:\Users\ethan\dev\happy-cookie-ops-g0
+> node scripts/build-pages-spike.mjs
+
+▲ Next.js 16.3.3 (Turbopack)
+✓ Running next.config.ts took 915ms
+
+  Creating an optimized production build ...
+
+> Build error occurred
+Error: Turbopack build failed with 1 error:
+./happy-cookie-pages-stage-kyNF05/input/src/app/sign-in/sign-in-form.tsx:6:1
+Error: Module not found: Can't resolve '@/lib/auth/return-path'
+  4 | import { useRouter, useSearchParams } from 'next/navigation';
+  5 | import { createClient } from '@/lib/supabase/client';
+> 6 | import { returnPathFromSearch } from '@/lib/auth/return-path';
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  7 |
+  8 | /**
+  9 |  * Staff sign-in. Styled from the prototype's own control vocabulary — the same 44px
+
+Import map: aliased to relative './src/lib/auth/return-path' inside of [project]/happy-cookie-pages-stage-kyNF05/input
+
+
+Import trace:
+  Server Component:
+    ./happy-cookie-pages-stage-kyNF05/input/src/app/sign-in/sign-in-form.tsx
+    ./happy-cookie-pages-stage-kyNF05/input/src/app/sign-in/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+    at <unknown> (./happy-cookie-pages-stage-kyNF05/input/src/app/sign-in/sign-in-form.tsx:6:1)
+    at <unknown> (https://nextjs.org/docs/messages/module-not-found)
+file:///C:/Users/ethan/dev/happy-cookie-ops-g0/scripts/build-pages-spike.mjs:97
+if (build.code !== 0) throw new Error(`Static Pages build failed (exit ${build.code ?? `signal ${build.signal}`}).`);
+                            ^
+
+Error: Static Pages build failed (exit 1).
+    at file:///C:/Users/ethan/dev/happy-cookie-ops-g0/scripts/build-pages-spike.mjs:97:29
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+
+Node.js v24.20.0
+ ELIFECYCLE  Command failed with exit code 1.

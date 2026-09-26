@@ -18,7 +18,12 @@ for (const [path, label] of routeCases) {
     await info.attach('route-observation', { body: JSON.stringify({ ...observation, fixture: 'G0-demo-v1', navigation: 'direct URL; prerequisite selection only', serviceWorkers: 'blocked' }), contentType: 'application/json' });
     assertRoute(observation, label);
     await requireScreen(page, label);
-    await expect(page.locator(`[data-screen-label="${label}"] button, [data-screen-label="${label}"] input`).first()).toBeVisible();
+    if (path === '/sales') {
+      // Sales log is intentionally read-only; the fixture record proves its content loaded.
+      await expect(page.locator('[data-screen-label="Sales log"]')).toContainText('Katipunan Weekend Market');
+    } else {
+      await expect(page.locator(`[data-screen-label="${label}"] button, [data-screen-label="${label}"] input`).first()).toBeVisible();
+    }
     expect(errors).toEqual([]);
   });
 }

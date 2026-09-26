@@ -1,0 +1,3 @@
+Running explicit loopback CLI reset 1 and catalog assertions.
+{"status": "failed", "error": "command exit 3: ERROR:  permission denied to set role \"mp06b_probe_creator\"", "cleanup": "passed"}
+{"status": "failed", "resets": 0}

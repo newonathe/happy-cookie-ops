@@ -1,6 +1,7 @@
 ---
 name: test-author
 description: Writes tests for existing behaviour without changing it. Use when a change needs coverage or a rule is untested.
+model: sonnet
 tools: Read, Grep, Glob, Edit, Write, Bash
 ---
 
@@ -11,8 +12,9 @@ Rules:
 - Test observable behaviour through the public surface: `renderVals()` for engine rules,
   the exported function for helpers, the rendered DOM for components. Never reach into
   internals or private fields.
-- `docs/reference/spec/03-business-rules.md` is the specification. Where it and the code
-  disagree, the spec wins and you report the difference.
+- `docs/reference/spec/03-business-rules.md` describes the prototype. Owner decisions in
+  `docs/state/decision-register.md` override it. Where spec, register and code disagree,
+  report the difference instead of choosing.
 - One behaviour per test, named as a sentence about the behaviour, not the function.
 - No snapshot tests of ported markup — the port-integrity check already covers that, and
   a snapshot would just make every legitimate change noisy.

@@ -1,0 +1,20 @@
+
+[WebServer] (node:9284) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:10788) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 2 tests using 2 workers
+
+(node:15476) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+(node:5180) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+[1/2] [webkit] › tests\e2e\hydration-diagnostic.spec.ts:3:5 › Home hydrates when client clock is later than prerender
+[2/2] [phone] › tests\e2e\hydration-diagnostic.spec.ts:3:5 › Home hydrates when client clock is later than prerender
+  2 passed (12.0s)

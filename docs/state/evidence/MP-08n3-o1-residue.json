@@ -1,0 +1,7 @@
+{
+  "scope": "post-run fixture ownership, 2026-09-24",
+  "owned_containers": 0,
+  "owned_networks": 0,
+  "owned_workdirs": 0,
+  "wrangler_driver_processes": 0
+}

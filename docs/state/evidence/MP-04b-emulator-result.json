@@ -1,0 +1,12 @@
+{
+  "status": "passed",
+  "port": 60232,
+  "checks": {
+    "health": 200,
+    "head": 200,
+    "method": 405,
+    "sync": 503,
+    "shop": 200,
+    "unknown": 404
+  }
+}

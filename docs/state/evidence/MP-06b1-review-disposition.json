@@ -1,0 +1,32 @@
+{
+  "scope": "MP-06.b.1 only",
+  "codex": {
+    "model": "gpt-5.6-terra",
+    "effort": "medium",
+    "role": "test-author",
+    "owned_file": "tests/integration/security/read-rpcs.sql",
+    "root_corrections": [
+      "Null-safe positive checks",
+      "Private setting override",
+      "Full synthetic-row snapshot comparison"
+    ],
+    "known_gap": "Current capacity statuses differ from domain target; Confirmed fixture tests existing behavior only"
+  },
+  "claude": {
+    "model": "claude-sonnet-5",
+    "effort": "medium",
+    "turns": 11,
+    "permission_denials": [],
+    "children": 0,
+    "verdict": "No blocking findings; root live tests required"
+  },
+  "root_evidence": {
+    "role_checks": 72,
+    "unsafe_grants_detected": 12,
+    "python_tests": 16,
+    "pnpm_verify_tests": 105,
+    "types_unchanged": true,
+    "catalog_delta": "Exactly three read-function ACL entries"
+  },
+  "no_hosted_action": true
+}

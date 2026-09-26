@@ -1,0 +1,31 @@
+{
+  "scope": "MP-04.b independent reviews and root dispositions",
+  "claude": {
+    "model": "claude-sonnet-5",
+    "effort": "medium",
+    "result": "MP-04b-claude-result.json",
+    "actual_turns": 11,
+    "finding": "Full inherited environment",
+    "resolution": "OS allowlist, fixture environment-file rejection, dotenv disabled"
+  },
+  "codex": {
+    "model": "gpt-5.6-terra",
+    "effort": "medium",
+    "role": "security-reviewer",
+    "findings": [
+      "Build timeout only signaled, could wait indefinitely",
+      "Emulator artifact parents lacked junction checks",
+      "Sibling staging retained each run"
+    ],
+    "resolution": [
+      "Terminal timeout rejection plus bounded process-tree kill",
+      "lstat and realpath checks before persistence",
+      "Verified owned sibling stage removed in finally"
+    ]
+  },
+  "limits": [
+    "No hosted auth or readiness inference",
+    "No denial bypass, deployment or child review agents"
+  ],
+  "tested": "Final actual build/emulator/verify logs; no claim of mutation testing for timeout failure path"
+}

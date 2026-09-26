@@ -1,5 +1,7 @@
 # Staging
 
+> **Historical context (T-task era, before the 2026-09-08 master plan):** where this page conflicts with [MASTER-PLAN.md](../MASTER-PLAN.md), [docs/state/current.md](../docs/state/current.md) or the [decision register](../docs/state/decision-register.md), those win. Its protection rules still apply unless they say otherwise.
+
 One environment is the gap that matters most before T-14. That task migrates a year of the
 owner's real bookkeeping out of `localStorage`, and right now a migration that behaves
 differently against real data has nowhere to fail safely.

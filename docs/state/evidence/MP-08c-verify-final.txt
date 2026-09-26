@@ -1,0 +1,58 @@
+
+> happy-cookie-ops@0.1.0 verify C:\Users\ethan\dev\happy-cookie-ops-g0
+> pnpm verify:port && pnpm verify:engine && pnpm typecheck && pnpm typecheck:e2e && pnpm lint && pnpm test
+
+
+> happy-cookie-ops@0.1.0 verify:port C:\Users\ethan\dev\happy-cookie-ops-g0
+> node scripts/check-port-integrity.mjs
+
+Port integrity OK — 54 files match the copy/style and AST baselines.
+
+> happy-cookie-ops@0.1.0 verify:engine C:\Users\ethan\dev\happy-cookie-ops-g0
+> node scripts/check-engine-contract.mjs
+
+Engine contract OK — 49 exports, 21 settings keys, 19 tables documented, provenance claims verified against the prototype.
+
+> happy-cookie-ops@0.1.0 typecheck C:\Users\ethan\dev\happy-cookie-ops-g0
+> tsc --noEmit
+
+
+> happy-cookie-ops@0.1.0 typecheck:e2e C:\Users\ethan\dev\happy-cookie-ops-g0
+> tsc --noEmit --project tsconfig.e2e.json
+
+
+> happy-cookie-ops@0.1.0 lint C:\Users\ethan\dev\happy-cookie-ops-g0
+> eslint . --max-warnings 0
+
+
+> happy-cookie-ops@0.1.0 test C:\Users\ethan\dev\happy-cookie-ops-g0
+> vitest run
+
+
+ RUN  v3.2.7 C:/Users/ethan/dev/happy-cookie-ops-g0
+
+ ✓ tests/unit/reporting-hooks.test.ts (3 tests) 60ms
+ ✓ tests/unit/sync-unavailable.test.ts (5 tests) 127ms
+ ✓ tests/unit/screen-boundary.test.tsx (2 tests) 63ms
+ ✓ tests/unit/money.test.ts (6 tests) 16ms
+ ✓ tests/unit/offline-queue.test.ts (4 tests) 13ms
+ ✓ tests/unit/pages-spike.test.ts (2 tests) 9ms
+ ✓ tests/unit/acceptance-gates.test.ts (26 tests) 7ms
+ ✓ tests/unit/scrub.test.ts (13 tests) 5ms
+ ✓ tests/unit/screens.test.ts (4 tests) 3ms
+ ✓ tests/unit/money-conversion.test.ts (11 tests) 4ms
+ ✓ tests/unit/capacity-parity.test.ts (15 tests) 3ms
+ ✓ tests/unit/idempotency.test.ts (7 tests) 4ms
+ ✓ tests/unit/order-rules.test.ts (7 tests) 3ms
+ ✓ tests/unit/css.test.ts (4 tests) 3ms
+ ✓ tests/unit/session-handler.test.ts (41 tests) 110ms
+ ✓ tests/unit/reporting-integration.test.ts (1 test) 51ms
+ ✓ tests/unit/session-request-policy.test.ts (65 tests) 29ms
+ ✓ tests/unit/supabase-auth-transport.test.ts (39 tests) 64ms
+ ✓ tests/unit/sync-middleware.test.ts (5 tests) 8ms
+
+ Test Files  19 passed (19)
+      Tests  260 passed (260)
+   Start at  03:55:37
+   Duration  10.63s (transform 415ms, setup 5.03s, collect 1.87s, tests 583ms, environment 8.33s, prepare 2.29s)
+

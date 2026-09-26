@@ -1,0 +1,10 @@
+{
+  "status": "disclosed",
+  "path": "docs/state/evidence/MP-05a-failure-cleanup.json",
+  "prior_index_sha256": "6c49b59c8affab526b2bb2f7a940d1521c07e16c9f56bb3537eef56315f0d9c7",
+  "current_sha256": "953804439883cdd762e1dceeb954af4958217cbb1663cea627c93de1b45e1431",
+  "cause": "The inherited real-failure Python guard wrote its new disposable cleanup receipt to the historical MP-05a evidence path during the first MP-06l database-guard run.",
+  "correction": "The guard now writes to its own temporary directory. A fresh 17-test run passed and verified that the current historical file hash did not change again.",
+  "original_bytes_restored": false,
+  "scope": "evidence history only; no migration, customer data, application artifact, or acceptance result was modified by this overwrite"
+}

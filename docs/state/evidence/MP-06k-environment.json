@@ -1,0 +1,13 @@
+{
+  "status": "blocked_environment",
+  "docker_startup": "initializing Inference manager: inaccessible dockerInference socket",
+  "normal_startup_attempted": true,
+  "failed_startup_processes_stopped": true,
+  "socket_move": "failed: file cannot be accessed",
+  "socket_remove": "automatic approval policy rejected; not executed",
+  "data_reset": false,
+  "pending_fixture": "C:/Users/ethan/dev/.hcb-bootstrap-6aa6b1d9-301dde",
+  "new_sql_behavior": "NOT_RUN",
+  "application_verify": "passed115tests",
+  "python_guards": "22passed;1realDockercheck blocked"
+}

@@ -2,7 +2,7 @@
 
 <!-- One paragraph. What a reviewer needs before reading the diff. -->
 
-**Task** T-XX
+**Slice** MP-XX.x (see `docs/state/task-status.json`) · **Decision gates** DP-XX (see `docs/state/decision-register.md`)
 
 ## Verified
 

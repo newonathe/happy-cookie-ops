@@ -1,0 +1,1 @@
+{"status": "FAIL", "error": "child exit 3: ERROR:  \"supabase_auth_admin\" is a reserved role, only superusers can modify it"}

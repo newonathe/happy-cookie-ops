@@ -1,0 +1,1 @@
+{"owned_fixture_cleanup": "passed", "workdir_absent": true, "project_id": "hcb-6aa6b1d9-301dde"}

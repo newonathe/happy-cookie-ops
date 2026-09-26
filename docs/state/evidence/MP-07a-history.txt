@@ -1,0 +1,36 @@
+
+[WebServer] (node:2652) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:16892) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 6 tests using 2 workers
+
+(node:13976) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+(node:7904) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+[1/6] [phone] › tests\e2e\navigation-history.spec.ts:4:5 › browser Back and Forward retain the current runtime and route content
+[2/6] [phone] › tests\e2e\navigation-history.spec.ts:44:5 › bake action without a navigation tick retains the Bake plan browser entry
+(node:35136) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[3/6] [webkit] › tests\e2e\navigation-history.spec.ts:4:5 › browser Back and Forward retain the current runtime and route content
+(node:10940) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+[4/6] [webkit] › tests\e2e\navigation-history.spec.ts:44:5 › bake action without a navigation tick retains the Bake plan browser entry
+
+(node:28412) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+[5/6] [desktop] › tests\e2e\navigation-history.spec.ts:4:5 › browser Back and Forward retain the current runtime and route content
+[6/6] [desktop] › tests\e2e\navigation-history.spec.ts:44:5 › bake action without a navigation tick retains the Bake plan browser entry
+  6 passed (17.7s)

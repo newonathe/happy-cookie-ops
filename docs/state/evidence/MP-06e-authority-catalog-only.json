@@ -1,0 +1,1168 @@
+{
+  "status": "passed",
+  "scope": "local read-only catalog; no behavior or hosted acceptance",
+  "runs": [
+    {
+      "schema": {
+        "acl": "{pg_database_owner=UC/pg_database_owner,=U/pg_database_owner,postgres=U/pg_database_owner,anon=U/pg_database_owner,authenticated=U/pg_database_owner,service_role=U/pg_database_owner}",
+        "owner": "pg_database_owner"
+      },
+      "triggers": [
+        {
+          "name": "bake_batches_touch",
+          "table": "bake_batches",
+          "enabled": "O",
+          "function": "touch_updated_at()",
+          "definition": "CREATE TRIGGER bake_batches_touch BEFORE UPDATE ON public.bake_batches FOR EACH ROW EXECUTE FUNCTION touch_updated_at()"
+        },
+        {
+          "name": "drops_touch",
+          "table": "drops",
+          "enabled": "O",
+          "function": "touch_updated_at()",
+          "definition": "CREATE TRIGGER drops_touch BEFORE UPDATE ON public.drops FOR EACH ROW EXECUTE FUNCTION touch_updated_at()"
+        },
+        {
+          "name": "inventory_items_touch",
+          "table": "inventory_items",
+          "enabled": "O",
+          "function": "touch_updated_at()",
+          "definition": "CREATE TRIGGER inventory_items_touch BEFORE UPDATE ON public.inventory_items FOR EACH ROW EXECUTE FUNCTION touch_updated_at()"
+        },
+        {
+          "name": "order_items_touch",
+          "table": "order_items",
+          "enabled": "O",
+          "function": "touch_updated_at()",
+          "definition": "CREATE TRIGGER order_items_touch BEFORE UPDATE ON public.order_items FOR EACH ROW EXECUTE FUNCTION touch_updated_at()"
+        },
+        {
+          "name": "orders_touch",
+          "table": "orders",
+          "enabled": "O",
+          "function": "touch_updated_at()",
+          "definition": "CREATE TRIGGER orders_touch BEFORE UPDATE ON public.orders FOR EACH ROW EXECUTE FUNCTION touch_updated_at()"
+        },
+        {
+          "name": "settings_touch_trg",
+          "table": "settings",
+          "enabled": "O",
+          "function": "settings_touch()",
+          "definition": "CREATE TRIGGER settings_touch_trg BEFORE INSERT OR UPDATE ON public.settings FOR EACH ROW EXECUTE FUNCTION settings_touch()"
+        }
+      ],
+      "functions": [
+        {
+          "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+          "body": "\ndeclare\n  v_norm    text;\n  v_blocked integer := 0;\n  v_removed integer := 0;\nbegin\n  if not is_owner() then\n    raise exception 'only the owner may action an erasure request';\n  end if;\n\n  -- Must match normalisePhone() in src/lib/idempotency.ts and lookup_order().\n  v_norm := regexp_replace(p_phone, '\\D', '', 'g');\n  if left(v_norm, 2) = '63' then v_norm := '0' || substr(v_norm, 3); end if;\n\n  -- Live orders: nothing to preserve, remove them.\n  with removed as (\n    delete from orders\n    where regexp_replace(phone, '\\D', '', 'g') = v_norm\n      -- 'Payment review' is where an order sits before proof of payment arrives. Nothing\n      -- has been paid and no tax record exists, so there is nothing to preserve.\n      and state = 'Payment review'\n      and pay_state = 'unpaid'\n    returning 1\n  )\n  select count(*) into v_removed from removed;\n\n  -- Everything else is a financial record. Block, do not erase.\n  with blocked as (\n    update orders\n       set customer_name = 'Removed on request',\n           phone = '',\n           notes = ''\n     where regexp_replace(phone, '\\D', '', 'g') = v_norm\n    returning 1\n  )\n  select count(*) into v_blocked from blocked;\n\n  insert into erasure_requests (phone_hash, actioned_at, action, note, orders_affected)\n  values (encode(digest(v_norm, 'sha256'), 'hex'), now(), 'anonymised', p_note, v_blocked + v_removed);\n\n  return v_blocked + v_removed;\nend;\n",
+          "owner": "postgres",
+          "config": [
+            "search_path=public"
+          ],
+          "signature": "anonymise_customer(text,text)",
+          "security_definer": true
+        },
+        {
+          "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+          "body": "\n  select p_requested > 0\n     and p_requested <= greatest(0, greatest(0, floor(p_capacity)::integer)\n                                    - greatest(0, floor(p_committed)::integer));\n",
+          "owner": "postgres",
+          "config": null,
+          "signature": "capacity_allows(integer,integer,integer)",
+          "security_definer": false
+        },
+        {
+          "acl": "{postgres=X/postgres,service_role=X/postgres}",
+          "body": "\ndeclare\n  v_start timestamptz;\n  v_count integer;\nbegin\n  if p_limit <= 0 or p_window_s <= 0 then\n    raise exception 'consume_rate_limit: limit and window must be positive';\n  end if;\n\n  -- Truncate now() to the window, so every caller in the same window agrees on the key.\n  v_start := to_timestamp(floor(extract(epoch from now()) / p_window_s) * p_window_s);\n\n  insert into rate_limits (key, window_start, count)\n  values (p_key, v_start, 1)\n  on conflict (key, window_start)\n    do update set count = rate_limits.count + 1\n  returning rate_limits.count into v_count;\n\n  return query select\n    v_count <= p_limit,\n    greatest(p_limit - v_count, 0),\n    v_start + make_interval(secs => p_window_s);\nend;\n",
+          "owner": "postgres",
+          "config": [
+            "search_path=public"
+          ],
+          "signature": "consume_rate_limit(text,integer,integer)",
+          "security_definer": true
+        },
+        {
+          "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+          "body": "\n  select p.role from public.profiles as p\n  where p.id = auth.uid() and p.active is true\n",
+          "owner": "postgres",
+          "config": [
+            "search_path=\"\""
+          ],
+          "signature": "current_role_name()",
+          "security_definer": true
+        },
+        {
+          "acl": "{postgres=X/postgres,service_role=X/postgres}",
+          "body": "\n  -- Only orders that reserve capacity count, per state_reserves_capacity() above, which\n  -- is the engine's RESERVING list. A cancelled or no-show order releases its boxes.\n  --\n  -- The check has to happen inside the insert transaction, not before it: checking and\n  -- then inserting is a race, and the race is two customers taking the last box. See\n  -- src/lib/rules/capacity.ts and tests/fixtures/capacity-cases.json.\n  select greatest(\n    0,\n    coalesce((select capacity from drops where id = p_drop_id), 0)\n      - coalesce((\n          select sum(oi.qty)::int\n          from orders o\n          join order_items oi on oi.order_id = o.id\n          where o.drop_id = p_drop_id\n            and state_reserves_capacity(o.state)\n        ), 0)\n  );\n",
+          "owner": "postgres",
+          "config": [
+            "search_path=public"
+          ],
+          "signature": "drop_remaining(uuid)",
+          "security_definer": true
+        },
+        {
+          "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+          "body": "\n  select coalesce(current_role_name() = 'owner', false)\n",
+          "owner": "postgres",
+          "config": [
+            "search_path=public"
+          ],
+          "signature": "is_owner()",
+          "security_definer": true
+        },
+        {
+          "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+          "body": "\n  select current_role_name() is not null\n",
+          "owner": "postgres",
+          "config": [
+            "search_path=public"
+          ],
+          "signature": "is_staff()",
+          "security_definer": true
+        },
+        {
+          "acl": "{postgres=X/postgres,service_role=X/postgres}",
+          "body": "\n  select o.id, o.customer_name, o.state, o.pay_state, o.total_cents, d.pickup_at, o.placed_at\n  from orders o left join drops d on d.id = o.drop_id\n  where o.id = p_order_id\n    and regexp_replace(o.phone, '[^0-9]', '', 'g') = regexp_replace(p_phone, '[^0-9]', '', 'g')\n  limit 1\n",
+          "owner": "postgres",
+          "config": [
+            "search_path=public"
+          ],
+          "signature": "lookup_order(text,text)",
+          "security_definer": true
+        },
+        {
+          "acl": "{postgres=X/postgres,service_role=X/postgres}",
+          "body": "\ndeclare\n  v_count integer;\nbegin\n  with pruned as (\n    update orders\n       set customer_name = 'Past customer',\n           phone = '',\n           notes = ''\n     where placed_at < now() - make_interval(days => p_retain_days)\n       and phone <> ''\n    returning 1\n  )\n  select count(*) into v_count from pruned;\n  return v_count;\nend;\n",
+          "owner": "postgres",
+          "config": [
+            "search_path=public"
+          ],
+          "signature": "prune_personal_data(integer)",
+          "security_definer": true
+        },
+        {
+          "acl": "{postgres=X/postgres,service_role=X/postgres}",
+          "body": "\ndeclare\n  v_deleted integer;\nbegin\n  delete from rate_limits where window_start < now() - interval '2 hours';\n  get diagnostics v_deleted = row_count;\n  return v_deleted;\nend;\n",
+          "owner": "postgres",
+          "config": [
+            "search_path=public"
+          ],
+          "signature": "prune_rate_limits()",
+          "security_definer": true
+        },
+        {
+          "acl": "{postgres=X/postgres,service_role=X/postgres}",
+          "body": "\n  with defaults (key, int_value, text_value, cents_value) as (\n    values\n      ('capacity', 200, null::text, null::bigint),\n      ('taxRate', 3, null::text, null::bigint),\n      ('drawerFloat', null::bigint, null::text, 100000),\n      ('discountA', 20, null::text, null::bigint),\n      ('discountB', 50, null::text, null::bigint),\n      ('restHours', 24, null::text, null::bigint),\n      ('doughWarnDays', 14, null::text, null::bigint),\n      ('groceryBudget', null::bigint, null::text, 600000),\n      ('packagingFee', null::bigint, null::text, 3844),\n      ('flatBoxPrice', null::bigint, null::text, 86000),\n      ('cogsMultiple', 4, null::text, null::bigint),\n      ('priceMode', null::bigint, null::text, null::bigint),\n      ('openDow', 1, null::text, null::bigint),\n      ('openH', 9, null::text, null::bigint),\n      ('openM', 0, null::text, null::bigint),\n      ('closeDow', 4, null::text, null::bigint),\n      ('closeH', 21, null::text, null::bigint),\n      ('closeM', 0, null::text, null::bigint),\n      ('extendH', 0, null::text, null::bigint),\n      ('retention', null::bigint, '1 year', null::bigint),\n      ('maxPerOrder', 24, null::text, null::bigint)\n  )\n  select d.key,\n         coalesce(s.int_value,   d.int_value),\n         coalesce(s.text_value,  d.text_value),\n         coalesce(s.cents_value, d.cents_value),\n         s.key is null\n    from defaults d\n    left join settings s on s.key = d.key;\n",
+          "owner": "postgres",
+          "config": null,
+          "signature": "settings_effective()",
+          "security_definer": false
+        },
+        {
+          "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+          "body": "\nbegin\n  new.updated_at := now();\n  new.updated_by := auth.uid();\n  return new;\nend;\n",
+          "owner": "postgres",
+          "config": null,
+          "signature": "settings_touch()",
+          "security_definer": false
+        },
+        {
+          "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+          "body": "\n  select p_state in ('Confirmed', 'Preparing', 'Ready', 'Completed', 'No-show');\n",
+          "owner": "postgres",
+          "config": null,
+          "signature": "state_is_recognised(order_state)",
+          "security_definer": false
+        },
+        {
+          "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+          "body": "\n  select p_state in ('Confirmed', 'Preparing');\n",
+          "owner": "postgres",
+          "config": null,
+          "signature": "state_reserves_capacity(order_state)",
+          "security_definer": false
+        },
+        {
+          "acl": "{postgres=X/postgres,service_role=X/postgres}",
+          "body": "\ndeclare\n  v_client_id text := p_sale ->> 'clientId';\n  v_existing  uuid;\n  v_sale_id   uuid;\n  v_ledger_id uuid;\n  v_item      jsonb;\nbegin\n  if not is_staff() then\n    raise exception 'not authorised' using errcode = '42501';\n  end if;\n  if v_client_id is null or length(v_client_id) = 0 then\n    raise exception 'clientId is required' using errcode = '22023';\n  end if;\n\n  select es.id into v_existing from event_sales es where es.client_id = v_client_id;\n  if v_existing is not null then\n    return query select v_client_id, v_existing, true;\n    return;\n  end if;\n\n  insert into ledger_entries (kind, category, memo, amount_cents, occurred_at, created_by)\n  values (\n    'sale', 'Bazaar', 'Stall sale ' || v_client_id,\n    (p_sale ->> 'total')::numeric * 100,\n    to_timestamp((p_sale ->> 'at')::bigint / 1000.0),\n    auth.uid()\n  )\n  returning id into v_ledger_id;\n\n  insert into event_sales (\n    client_id, event_id, gross_cents, discount_cents, total_cents,\n    pay_method, pay_ref, tendered_cents, change_cents, clerk, sold_at, ledger_id\n  ) values (\n    v_client_id,\n    nullif(p_sale ->> 'eventId', '')::uuid,\n    (p_sale ->> 'gross')::numeric * 100,\n    coalesce((p_sale ->> 'discount')::numeric, 0) * 100,\n    (p_sale ->> 'total')::numeric * 100,\n    coalesce(p_sale ->> 'pay', 'cash'),\n    coalesce(p_sale ->> 'ref', ''),\n    coalesce((p_sale ->> 'tendered')::numeric, 0) * 100,\n    coalesce((p_sale ->> 'change')::numeric, 0) * 100,\n    coalesce(p_sale ->> 'clerk', ''),\n    to_timestamp((p_sale ->> 'at')::bigint / 1000.0),\n    v_ledger_id\n  )\n  returning id into v_sale_id;\n\n  for v_item in select * from jsonb_each(coalesce(p_sale -> 'items', '{}'::jsonb))\n  loop\n    insert into event_sale_items (sale_id, product_id, qty, unit_price_cents)\n    select v_sale_id, p.id, (v_item -> 1)::text::int, p.price_cents\n    from products p where p.id = (v_item -> 0)::text;\n  end loop;\n\n  insert into audit_log (actor, action, entity, entity_id, detail)\n  values (auth.uid(), 'sale.synced', 'event_sales', v_sale_id::text, p_sale);\n\n  return query select v_client_id, v_sale_id, false;\nend ",
+          "owner": "postgres",
+          "config": [
+            "search_path=public"
+          ],
+          "signature": "sync_event_sale(jsonb)",
+          "security_definer": true
+        },
+        {
+          "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+          "body": "\nbegin\n  new.updated_at := now();\n  return new;\nend;\n",
+          "owner": "postgres",
+          "config": null,
+          "signature": "touch_updated_at()",
+          "security_definer": false
+        },
+        {
+          "acl": "{postgres=X/postgres,service_role=X/postgres}",
+          "body": "\nbegin\n  if not is_staff() then\n    raise exception 'only staff may change an order';\n  end if;\n\n  return query\n    update orders o\n       set state     = coalesce(p_state, o.state),\n           pay_state = coalesce(p_pay_state, o.pay_state),\n           pay_ref   = coalesce(p_pay_ref, o.pay_ref)\n     where o.id = p_order_id\n       -- The guard. Millisecond equality is exact here: updated_at is set by the trigger,\n       -- never by a client, so the value the caller read is the value in the row.\n       and o.updated_at = p_seen_at\n    returning o.id, o.state, o.pay_state, o.updated_at;\nend;\n",
+          "owner": "postgres",
+          "config": [
+            "search_path=public"
+          ],
+          "signature": "update_order_state(text,timestamp with time zone,text,text,text)",
+          "security_definer": true
+        }
+      ],
+      "sequences": [
+        {
+          "acl": "{postgres=rwU/postgres,anon=rwU/postgres,authenticated=rwU/postgres,service_role=rwU/postgres}",
+          "name": "audit_log_id_seq"
+        }
+      ],
+      "role_privileges": [
+        {
+          "role": "anon",
+          "schema_usage": true,
+          "database_temp": true,
+          "schema_create": false
+        },
+        {
+          "role": "authenticated",
+          "schema_usage": true,
+          "database_temp": true,
+          "schema_create": false
+        },
+        {
+          "role": "service_role",
+          "schema_usage": true,
+          "database_temp": true,
+          "schema_create": false
+        }
+      ],
+      "table_privileges": [
+        {
+          "role": "anon",
+          "table": "audit_log",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "authenticated",
+          "table": "audit_log",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "service_role",
+          "table": "audit_log",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "anon",
+          "table": "bake_batches",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "authenticated",
+          "table": "bake_batches",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "service_role",
+          "table": "bake_batches",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "anon",
+          "table": "drops",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "authenticated",
+          "table": "drops",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "service_role",
+          "table": "drops",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "anon",
+          "table": "erasure_requests",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "authenticated",
+          "table": "erasure_requests",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "service_role",
+          "table": "erasure_requests",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "anon",
+          "table": "event_sale_items",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "authenticated",
+          "table": "event_sale_items",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "service_role",
+          "table": "event_sale_items",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "anon",
+          "table": "event_sales",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "authenticated",
+          "table": "event_sales",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "service_role",
+          "table": "event_sales",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "anon",
+          "table": "events",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "authenticated",
+          "table": "events",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "service_role",
+          "table": "events",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "anon",
+          "table": "inventory_items",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "authenticated",
+          "table": "inventory_items",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "service_role",
+          "table": "inventory_items",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "anon",
+          "table": "ledger_entries",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "authenticated",
+          "table": "ledger_entries",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "service_role",
+          "table": "ledger_entries",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "anon",
+          "table": "order_items",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "authenticated",
+          "table": "order_items",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "service_role",
+          "table": "order_items",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "anon",
+          "table": "orders",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "authenticated",
+          "table": "orders",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "service_role",
+          "table": "orders",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "anon",
+          "table": "products",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "authenticated",
+          "table": "products",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "service_role",
+          "table": "products",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "anon",
+          "table": "profiles",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "authenticated",
+          "table": "profiles",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "service_role",
+          "table": "profiles",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "anon",
+          "table": "rate_limits",
+          "trigger": false,
+          "references": false
+        },
+        {
+          "role": "authenticated",
+          "table": "rate_limits",
+          "trigger": false,
+          "references": false
+        },
+        {
+          "role": "service_role",
+          "table": "rate_limits",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "anon",
+          "table": "recipe_ingredients",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "authenticated",
+          "table": "recipe_ingredients",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "service_role",
+          "table": "recipe_ingredients",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "anon",
+          "table": "recipes",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "authenticated",
+          "table": "recipes",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "service_role",
+          "table": "recipes",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "anon",
+          "table": "settings",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "authenticated",
+          "table": "settings",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "service_role",
+          "table": "settings",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "anon",
+          "table": "supplier_prices",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "authenticated",
+          "table": "supplier_prices",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "service_role",
+          "table": "supplier_prices",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "anon",
+          "table": "suppliers",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "authenticated",
+          "table": "suppliers",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "service_role",
+          "table": "suppliers",
+          "trigger": true,
+          "references": true
+        }
+      ]
+    },
+    {
+      "schema": {
+        "acl": "{pg_database_owner=UC/pg_database_owner,=U/pg_database_owner,postgres=U/pg_database_owner,anon=U/pg_database_owner,authenticated=U/pg_database_owner,service_role=U/pg_database_owner}",
+        "owner": "pg_database_owner"
+      },
+      "triggers": [
+        {
+          "name": "bake_batches_touch",
+          "table": "bake_batches",
+          "enabled": "O",
+          "function": "touch_updated_at()",
+          "definition": "CREATE TRIGGER bake_batches_touch BEFORE UPDATE ON public.bake_batches FOR EACH ROW EXECUTE FUNCTION touch_updated_at()"
+        },
+        {
+          "name": "drops_touch",
+          "table": "drops",
+          "enabled": "O",
+          "function": "touch_updated_at()",
+          "definition": "CREATE TRIGGER drops_touch BEFORE UPDATE ON public.drops FOR EACH ROW EXECUTE FUNCTION touch_updated_at()"
+        },
+        {
+          "name": "inventory_items_touch",
+          "table": "inventory_items",
+          "enabled": "O",
+          "function": "touch_updated_at()",
+          "definition": "CREATE TRIGGER inventory_items_touch BEFORE UPDATE ON public.inventory_items FOR EACH ROW EXECUTE FUNCTION touch_updated_at()"
+        },
+        {
+          "name": "order_items_touch",
+          "table": "order_items",
+          "enabled": "O",
+          "function": "touch_updated_at()",
+          "definition": "CREATE TRIGGER order_items_touch BEFORE UPDATE ON public.order_items FOR EACH ROW EXECUTE FUNCTION touch_updated_at()"
+        },
+        {
+          "name": "orders_touch",
+          "table": "orders",
+          "enabled": "O",
+          "function": "touch_updated_at()",
+          "definition": "CREATE TRIGGER orders_touch BEFORE UPDATE ON public.orders FOR EACH ROW EXECUTE FUNCTION touch_updated_at()"
+        },
+        {
+          "name": "settings_touch_trg",
+          "table": "settings",
+          "enabled": "O",
+          "function": "settings_touch()",
+          "definition": "CREATE TRIGGER settings_touch_trg BEFORE INSERT OR UPDATE ON public.settings FOR EACH ROW EXECUTE FUNCTION settings_touch()"
+        }
+      ],
+      "functions": [
+        {
+          "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+          "body": "\ndeclare\n  v_norm    text;\n  v_blocked integer := 0;\n  v_removed integer := 0;\nbegin\n  if not is_owner() then\n    raise exception 'only the owner may action an erasure request';\n  end if;\n\n  -- Must match normalisePhone() in src/lib/idempotency.ts and lookup_order().\n  v_norm := regexp_replace(p_phone, '\\D', '', 'g');\n  if left(v_norm, 2) = '63' then v_norm := '0' || substr(v_norm, 3); end if;\n\n  -- Live orders: nothing to preserve, remove them.\n  with removed as (\n    delete from orders\n    where regexp_replace(phone, '\\D', '', 'g') = v_norm\n      -- 'Payment review' is where an order sits before proof of payment arrives. Nothing\n      -- has been paid and no tax record exists, so there is nothing to preserve.\n      and state = 'Payment review'\n      and pay_state = 'unpaid'\n    returning 1\n  )\n  select count(*) into v_removed from removed;\n\n  -- Everything else is a financial record. Block, do not erase.\n  with blocked as (\n    update orders\n       set customer_name = 'Removed on request',\n           phone = '',\n           notes = ''\n     where regexp_replace(phone, '\\D', '', 'g') = v_norm\n    returning 1\n  )\n  select count(*) into v_blocked from blocked;\n\n  insert into erasure_requests (phone_hash, actioned_at, action, note, orders_affected)\n  values (encode(digest(v_norm, 'sha256'), 'hex'), now(), 'anonymised', p_note, v_blocked + v_removed);\n\n  return v_blocked + v_removed;\nend;\n",
+          "owner": "postgres",
+          "config": [
+            "search_path=public"
+          ],
+          "signature": "anonymise_customer(text,text)",
+          "security_definer": true
+        },
+        {
+          "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+          "body": "\n  select p_requested > 0\n     and p_requested <= greatest(0, greatest(0, floor(p_capacity)::integer)\n                                    - greatest(0, floor(p_committed)::integer));\n",
+          "owner": "postgres",
+          "config": null,
+          "signature": "capacity_allows(integer,integer,integer)",
+          "security_definer": false
+        },
+        {
+          "acl": "{postgres=X/postgres,service_role=X/postgres}",
+          "body": "\ndeclare\n  v_start timestamptz;\n  v_count integer;\nbegin\n  if p_limit <= 0 or p_window_s <= 0 then\n    raise exception 'consume_rate_limit: limit and window must be positive';\n  end if;\n\n  -- Truncate now() to the window, so every caller in the same window agrees on the key.\n  v_start := to_timestamp(floor(extract(epoch from now()) / p_window_s) * p_window_s);\n\n  insert into rate_limits (key, window_start, count)\n  values (p_key, v_start, 1)\n  on conflict (key, window_start)\n    do update set count = rate_limits.count + 1\n  returning rate_limits.count into v_count;\n\n  return query select\n    v_count <= p_limit,\n    greatest(p_limit - v_count, 0),\n    v_start + make_interval(secs => p_window_s);\nend;\n",
+          "owner": "postgres",
+          "config": [
+            "search_path=public"
+          ],
+          "signature": "consume_rate_limit(text,integer,integer)",
+          "security_definer": true
+        },
+        {
+          "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+          "body": "\n  select p.role from public.profiles as p\n  where p.id = auth.uid() and p.active is true\n",
+          "owner": "postgres",
+          "config": [
+            "search_path=\"\""
+          ],
+          "signature": "current_role_name()",
+          "security_definer": true
+        },
+        {
+          "acl": "{postgres=X/postgres,service_role=X/postgres}",
+          "body": "\n  -- Only orders that reserve capacity count, per state_reserves_capacity() above, which\n  -- is the engine's RESERVING list. A cancelled or no-show order releases its boxes.\n  --\n  -- The check has to happen inside the insert transaction, not before it: checking and\n  -- then inserting is a race, and the race is two customers taking the last box. See\n  -- src/lib/rules/capacity.ts and tests/fixtures/capacity-cases.json.\n  select greatest(\n    0,\n    coalesce((select capacity from drops where id = p_drop_id), 0)\n      - coalesce((\n          select sum(oi.qty)::int\n          from orders o\n          join order_items oi on oi.order_id = o.id\n          where o.drop_id = p_drop_id\n            and state_reserves_capacity(o.state)\n        ), 0)\n  );\n",
+          "owner": "postgres",
+          "config": [
+            "search_path=public"
+          ],
+          "signature": "drop_remaining(uuid)",
+          "security_definer": true
+        },
+        {
+          "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+          "body": "\n  select coalesce(current_role_name() = 'owner', false)\n",
+          "owner": "postgres",
+          "config": [
+            "search_path=public"
+          ],
+          "signature": "is_owner()",
+          "security_definer": true
+        },
+        {
+          "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+          "body": "\n  select current_role_name() is not null\n",
+          "owner": "postgres",
+          "config": [
+            "search_path=public"
+          ],
+          "signature": "is_staff()",
+          "security_definer": true
+        },
+        {
+          "acl": "{postgres=X/postgres,service_role=X/postgres}",
+          "body": "\n  select o.id, o.customer_name, o.state, o.pay_state, o.total_cents, d.pickup_at, o.placed_at\n  from orders o left join drops d on d.id = o.drop_id\n  where o.id = p_order_id\n    and regexp_replace(o.phone, '[^0-9]', '', 'g') = regexp_replace(p_phone, '[^0-9]', '', 'g')\n  limit 1\n",
+          "owner": "postgres",
+          "config": [
+            "search_path=public"
+          ],
+          "signature": "lookup_order(text,text)",
+          "security_definer": true
+        },
+        {
+          "acl": "{postgres=X/postgres,service_role=X/postgres}",
+          "body": "\ndeclare\n  v_count integer;\nbegin\n  with pruned as (\n    update orders\n       set customer_name = 'Past customer',\n           phone = '',\n           notes = ''\n     where placed_at < now() - make_interval(days => p_retain_days)\n       and phone <> ''\n    returning 1\n  )\n  select count(*) into v_count from pruned;\n  return v_count;\nend;\n",
+          "owner": "postgres",
+          "config": [
+            "search_path=public"
+          ],
+          "signature": "prune_personal_data(integer)",
+          "security_definer": true
+        },
+        {
+          "acl": "{postgres=X/postgres,service_role=X/postgres}",
+          "body": "\ndeclare\n  v_deleted integer;\nbegin\n  delete from rate_limits where window_start < now() - interval '2 hours';\n  get diagnostics v_deleted = row_count;\n  return v_deleted;\nend;\n",
+          "owner": "postgres",
+          "config": [
+            "search_path=public"
+          ],
+          "signature": "prune_rate_limits()",
+          "security_definer": true
+        },
+        {
+          "acl": "{postgres=X/postgres,service_role=X/postgres}",
+          "body": "\n  with defaults (key, int_value, text_value, cents_value) as (\n    values\n      ('capacity', 200, null::text, null::bigint),\n      ('taxRate', 3, null::text, null::bigint),\n      ('drawerFloat', null::bigint, null::text, 100000),\n      ('discountA', 20, null::text, null::bigint),\n      ('discountB', 50, null::text, null::bigint),\n      ('restHours', 24, null::text, null::bigint),\n      ('doughWarnDays', 14, null::text, null::bigint),\n      ('groceryBudget', null::bigint, null::text, 600000),\n      ('packagingFee', null::bigint, null::text, 3844),\n      ('flatBoxPrice', null::bigint, null::text, 86000),\n      ('cogsMultiple', 4, null::text, null::bigint),\n      ('priceMode', null::bigint, null::text, null::bigint),\n      ('openDow', 1, null::text, null::bigint),\n      ('openH', 9, null::text, null::bigint),\n      ('openM', 0, null::text, null::bigint),\n      ('closeDow', 4, null::text, null::bigint),\n      ('closeH', 21, null::text, null::bigint),\n      ('closeM', 0, null::text, null::bigint),\n      ('extendH', 0, null::text, null::bigint),\n      ('retention', null::bigint, '1 year', null::bigint),\n      ('maxPerOrder', 24, null::text, null::bigint)\n  )\n  select d.key,\n         coalesce(s.int_value,   d.int_value),\n         coalesce(s.text_value,  d.text_value),\n         coalesce(s.cents_value, d.cents_value),\n         s.key is null\n    from defaults d\n    left join settings s on s.key = d.key;\n",
+          "owner": "postgres",
+          "config": null,
+          "signature": "settings_effective()",
+          "security_definer": false
+        },
+        {
+          "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+          "body": "\nbegin\n  new.updated_at := now();\n  new.updated_by := auth.uid();\n  return new;\nend;\n",
+          "owner": "postgres",
+          "config": null,
+          "signature": "settings_touch()",
+          "security_definer": false
+        },
+        {
+          "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+          "body": "\n  select p_state in ('Confirmed', 'Preparing', 'Ready', 'Completed', 'No-show');\n",
+          "owner": "postgres",
+          "config": null,
+          "signature": "state_is_recognised(order_state)",
+          "security_definer": false
+        },
+        {
+          "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+          "body": "\n  select p_state in ('Confirmed', 'Preparing');\n",
+          "owner": "postgres",
+          "config": null,
+          "signature": "state_reserves_capacity(order_state)",
+          "security_definer": false
+        },
+        {
+          "acl": "{postgres=X/postgres,service_role=X/postgres}",
+          "body": "\ndeclare\n  v_client_id text := p_sale ->> 'clientId';\n  v_existing  uuid;\n  v_sale_id   uuid;\n  v_ledger_id uuid;\n  v_item      jsonb;\nbegin\n  if not is_staff() then\n    raise exception 'not authorised' using errcode = '42501';\n  end if;\n  if v_client_id is null or length(v_client_id) = 0 then\n    raise exception 'clientId is required' using errcode = '22023';\n  end if;\n\n  select es.id into v_existing from event_sales es where es.client_id = v_client_id;\n  if v_existing is not null then\n    return query select v_client_id, v_existing, true;\n    return;\n  end if;\n\n  insert into ledger_entries (kind, category, memo, amount_cents, occurred_at, created_by)\n  values (\n    'sale', 'Bazaar', 'Stall sale ' || v_client_id,\n    (p_sale ->> 'total')::numeric * 100,\n    to_timestamp((p_sale ->> 'at')::bigint / 1000.0),\n    auth.uid()\n  )\n  returning id into v_ledger_id;\n\n  insert into event_sales (\n    client_id, event_id, gross_cents, discount_cents, total_cents,\n    pay_method, pay_ref, tendered_cents, change_cents, clerk, sold_at, ledger_id\n  ) values (\n    v_client_id,\n    nullif(p_sale ->> 'eventId', '')::uuid,\n    (p_sale ->> 'gross')::numeric * 100,\n    coalesce((p_sale ->> 'discount')::numeric, 0) * 100,\n    (p_sale ->> 'total')::numeric * 100,\n    coalesce(p_sale ->> 'pay', 'cash'),\n    coalesce(p_sale ->> 'ref', ''),\n    coalesce((p_sale ->> 'tendered')::numeric, 0) * 100,\n    coalesce((p_sale ->> 'change')::numeric, 0) * 100,\n    coalesce(p_sale ->> 'clerk', ''),\n    to_timestamp((p_sale ->> 'at')::bigint / 1000.0),\n    v_ledger_id\n  )\n  returning id into v_sale_id;\n\n  for v_item in select * from jsonb_each(coalesce(p_sale -> 'items', '{}'::jsonb))\n  loop\n    insert into event_sale_items (sale_id, product_id, qty, unit_price_cents)\n    select v_sale_id, p.id, (v_item -> 1)::text::int, p.price_cents\n    from products p where p.id = (v_item -> 0)::text;\n  end loop;\n\n  insert into audit_log (actor, action, entity, entity_id, detail)\n  values (auth.uid(), 'sale.synced', 'event_sales', v_sale_id::text, p_sale);\n\n  return query select v_client_id, v_sale_id, false;\nend ",
+          "owner": "postgres",
+          "config": [
+            "search_path=public"
+          ],
+          "signature": "sync_event_sale(jsonb)",
+          "security_definer": true
+        },
+        {
+          "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+          "body": "\nbegin\n  new.updated_at := now();\n  return new;\nend;\n",
+          "owner": "postgres",
+          "config": null,
+          "signature": "touch_updated_at()",
+          "security_definer": false
+        },
+        {
+          "acl": "{postgres=X/postgres,service_role=X/postgres}",
+          "body": "\nbegin\n  if not is_staff() then\n    raise exception 'only staff may change an order';\n  end if;\n\n  return query\n    update orders o\n       set state     = coalesce(p_state, o.state),\n           pay_state = coalesce(p_pay_state, o.pay_state),\n           pay_ref   = coalesce(p_pay_ref, o.pay_ref)\n     where o.id = p_order_id\n       -- The guard. Millisecond equality is exact here: updated_at is set by the trigger,\n       -- never by a client, so the value the caller read is the value in the row.\n       and o.updated_at = p_seen_at\n    returning o.id, o.state, o.pay_state, o.updated_at;\nend;\n",
+          "owner": "postgres",
+          "config": [
+            "search_path=public"
+          ],
+          "signature": "update_order_state(text,timestamp with time zone,text,text,text)",
+          "security_definer": true
+        }
+      ],
+      "sequences": [
+        {
+          "acl": "{postgres=rwU/postgres,anon=rwU/postgres,authenticated=rwU/postgres,service_role=rwU/postgres}",
+          "name": "audit_log_id_seq"
+        }
+      ],
+      "role_privileges": [
+        {
+          "role": "anon",
+          "schema_usage": true,
+          "database_temp": true,
+          "schema_create": false
+        },
+        {
+          "role": "authenticated",
+          "schema_usage": true,
+          "database_temp": true,
+          "schema_create": false
+        },
+        {
+          "role": "service_role",
+          "schema_usage": true,
+          "database_temp": true,
+          "schema_create": false
+        }
+      ],
+      "table_privileges": [
+        {
+          "role": "anon",
+          "table": "audit_log",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "authenticated",
+          "table": "audit_log",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "service_role",
+          "table": "audit_log",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "anon",
+          "table": "bake_batches",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "authenticated",
+          "table": "bake_batches",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "service_role",
+          "table": "bake_batches",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "anon",
+          "table": "drops",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "authenticated",
+          "table": "drops",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "service_role",
+          "table": "drops",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "anon",
+          "table": "erasure_requests",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "authenticated",
+          "table": "erasure_requests",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "service_role",
+          "table": "erasure_requests",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "anon",
+          "table": "event_sale_items",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "authenticated",
+          "table": "event_sale_items",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "service_role",
+          "table": "event_sale_items",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "anon",
+          "table": "event_sales",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "authenticated",
+          "table": "event_sales",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "service_role",
+          "table": "event_sales",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "anon",
+          "table": "events",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "authenticated",
+          "table": "events",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "service_role",
+          "table": "events",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "anon",
+          "table": "inventory_items",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "authenticated",
+          "table": "inventory_items",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "service_role",
+          "table": "inventory_items",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "anon",
+          "table": "ledger_entries",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "authenticated",
+          "table": "ledger_entries",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "service_role",
+          "table": "ledger_entries",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "anon",
+          "table": "order_items",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "authenticated",
+          "table": "order_items",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "service_role",
+          "table": "order_items",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "anon",
+          "table": "orders",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "authenticated",
+          "table": "orders",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "service_role",
+          "table": "orders",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "anon",
+          "table": "products",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "authenticated",
+          "table": "products",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "service_role",
+          "table": "products",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "anon",
+          "table": "profiles",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "authenticated",
+          "table": "profiles",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "service_role",
+          "table": "profiles",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "anon",
+          "table": "rate_limits",
+          "trigger": false,
+          "references": false
+        },
+        {
+          "role": "authenticated",
+          "table": "rate_limits",
+          "trigger": false,
+          "references": false
+        },
+        {
+          "role": "service_role",
+          "table": "rate_limits",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "anon",
+          "table": "recipe_ingredients",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "authenticated",
+          "table": "recipe_ingredients",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "service_role",
+          "table": "recipe_ingredients",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "anon",
+          "table": "recipes",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "authenticated",
+          "table": "recipes",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "service_role",
+          "table": "recipes",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "anon",
+          "table": "settings",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "authenticated",
+          "table": "settings",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "service_role",
+          "table": "settings",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "anon",
+          "table": "supplier_prices",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "authenticated",
+          "table": "supplier_prices",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "service_role",
+          "table": "supplier_prices",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "anon",
+          "table": "suppliers",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "authenticated",
+          "table": "suppliers",
+          "trigger": true,
+          "references": true
+        },
+        {
+          "role": "service_role",
+          "table": "suppliers",
+          "trigger": true,
+          "references": true
+        }
+      ]
+    }
+  ],
+  "resets": 2,
+  "probe_sha256": "f3520f1649405d633515084f4f78802e7645aa10ae142e7dc6547502e39e3422"
+}

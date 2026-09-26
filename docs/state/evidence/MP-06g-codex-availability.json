@@ -1,0 +1,7 @@
+{
+  "worker": "Terra/medium future_grant_tests",
+  "status": "quota_after_partial_file",
+  "file": "tests/integration/security/future-object-authority.sql",
+  "acceptance": "not reviewed or executed;no completion claim",
+  "fallback": "Root diagnosing prerequisite reset drift;no retry/purchase/API fallback"
+}

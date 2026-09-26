@@ -1,0 +1,7 @@
+{
+  "status": "passed",
+  "actual_source_line": "    schema = re.sub(r\"(?m)^\\\\(?:un)?restrict .*\\n?\", \"\", schema)",
+  "source_sha256": "7fb014230984297d3fbc4af98cca4ab1173972ef5b75d8d32e14e59ff24362ea",
+  "proof": "Actual helper invoked successfully; backslash restrict markers removed; grant permutation canonicalized",
+  "disposition": "Reject reviewer unbalanced-parenthesis claim: actual source has escaped backslash, as serialized actual_source_line records; no code correction needed."
+}

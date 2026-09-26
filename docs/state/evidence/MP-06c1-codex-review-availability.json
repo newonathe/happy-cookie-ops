@@ -1,0 +1,9 @@
+{
+  "status": "BLOCKED_ENVIRONMENT",
+  "agent": "order_insert_review",
+  "model": "gpt-5.6-sol",
+  "effort": "high",
+  "reason": "Codex usage limit; no review returned",
+  "writes_authorized": false,
+  "fallback": "One bounded first-party Pro Claude review; no purchase/reset/account switch/safety denial bypass"
+}

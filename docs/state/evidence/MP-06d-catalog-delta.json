@@ -1,0 +1,96 @@
+{
+  "status": "PASS",
+  "before": "MP-06c5-schema-inventory.json",
+  "after": "MP-06d-schema-inventory.json",
+  "exactly_one_entry_per_target_in_each_catalog": true,
+  "top_level_sha256": {
+    "enums": {
+      "before": "42fcdcf90ee273c69404aaa2e69bf76bdf655a5e8055eaee7b3ecfc18cfc5112",
+      "after": "42fcdcf90ee273c69404aaa2e69bf76bdf655a5e8055eaee7b3ecfc18cfc5112",
+      "identical": true
+    },
+    "columns": {
+      "before": "66d2cb3f81a93809b1f81c1d89f10145264c1863cb7ed6a6d06697d5d9513ad7",
+      "after": "66d2cb3f81a93809b1f81c1d89f10145264c1863cb7ed6a6d06697d5d9513ad7",
+      "identical": true
+    },
+    "indexes": {
+      "before": "650fda1ae0223ef969644ef2ae83582b81ea38778a1f64f658ad62ebbc9a5a52",
+      "after": "650fda1ae0223ef969644ef2ae83582b81ea38778a1f64f658ad62ebbc9a5a52",
+      "identical": true
+    },
+    "policies": {
+      "before": "51911b5b03bc03984de47ad3c6321f7b8d13ed1e8000c588cfd4020ecb4e21fb",
+      "after": "51911b5b03bc03984de47ad3c6321f7b8d13ed1e8000c588cfd4020ecb4e21fb",
+      "identical": true
+    },
+    "functions": {
+      "before": "48a6b25df3a74b0ec73c4992656574786996f2788d568584acdc789cc001d562",
+      "after": "4e17d23ee42631871b57727ff51900f29b54e60837bfde73e1c9dd254b2ff82b",
+      "identical": false
+    },
+    "constraints": {
+      "before": "d32b4a412b915eb727c78f766a084f1a4913881b3e2246bc96d320589e482a15",
+      "after": "d32b4a412b915eb727c78f766a084f1a4913881b3e2246bc96d320589e482a15",
+      "identical": true
+    },
+    "table_grants": {
+      "before": "2ef4248a5155f4794cff78622784cc7ee956efe10d3e3a6a2aad0892c1c645ff",
+      "after": "2ef4248a5155f4794cff78622784cc7ee956efe10d3e3a6a2aad0892c1c645ff",
+      "identical": true
+    },
+    "table_security": {
+      "before": "274801942f0404cb9857901290b8233e835aaab60e6750512c63155353e40c52",
+      "after": "274801942f0404cb9857901290b8233e835aaab60e6750512c63155353e40c52",
+      "identical": true
+    },
+    "default_privileges": {
+      "before": "de0217b8cf604ceaa4398a2b292b19cdbe0835186f89198526dab0d45a860b00",
+      "after": "de0217b8cf604ceaa4398a2b292b19cdbe0835186f89198526dab0d45a860b00",
+      "identical": true
+    }
+  },
+  "expected_function_delta_only": true,
+  "changes": [
+    {
+      "name": "sync_event_sale",
+      "changed_fields": [
+        "acl",
+        "execute_anon",
+        "execute_authenticated"
+      ],
+      "before": {
+        "acl": "{postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+        "execute_anon": true,
+        "execute_authenticated": true
+      },
+      "after": {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "execute_anon": false,
+        "execute_authenticated": false
+      },
+      "service_role_retained": true,
+      "other_fields_identical": true
+    },
+    {
+      "name": "update_order_state",
+      "changed_fields": [
+        "acl",
+        "execute_anon",
+        "execute_authenticated"
+      ],
+      "before": {
+        "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+        "execute_anon": true,
+        "execute_authenticated": true
+      },
+      "after": {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "execute_anon": false,
+        "execute_authenticated": false
+      },
+      "service_role_retained": true,
+      "other_fields_identical": true
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+Running explicit loopback CLI reset 1 and catalog assertions.
+Running explicit loopback CLI reset 2 and catalog assertions.
+{"status": "passed", "error": null, "cleanup": "passed"}
+{"function_inventory": "passed", "resets": 2, "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}"}

@@ -1,0 +1,1 @@
+{"status": "FAIL", "reason": "raw private HTTP probe is not equivalent to wget before logout; status=500"}

@@ -1,0 +1,31 @@
+{
+  "status": "passed",
+  "scope": "rollback-only PostgreSQL 15 local diagnostic; not a migration or managed-upgrade acceptance",
+  "resets": 2,
+  "runs": [
+    {
+      "result_rows": [
+        "SEC_RESULT|mp06m|global_default_delta|one_postgres_function_entry",
+        "SEC_RESULT|mp06m|managed_and_existing_acls|unchanged",
+        "SEC_RESULT|mp06m|public_global_only|insufficient_explicit_public_defaults_persist",
+        "SEC_RESULT|mp06m|scratch_global_revoke|implicit_execute_removed"
+      ],
+      "catalog_restored": true,
+      "probe_objects_absent": true
+    },
+    {
+      "result_rows": [
+        "SEC_RESULT|mp06m|global_default_delta|one_postgres_function_entry",
+        "SEC_RESULT|mp06m|managed_and_existing_acls|unchanged",
+        "SEC_RESULT|mp06m|public_global_only|insufficient_explicit_public_defaults_persist",
+        "SEC_RESULT|mp06m|scratch_global_revoke|implicit_execute_removed"
+      ],
+      "catalog_restored": true,
+      "probe_objects_absent": true
+    }
+  ],
+  "cleanup": "passed",
+  "identical_resets": true,
+  "expected_migrations": 27,
+  "fixture_sha256": "ce72eb143c1c8dccbcc6136ac3641578f2a20c669405e27d2a66db216a184089"
+}

@@ -1,6 +1,7 @@
 ---
 name: port-auditor
 description: Verifies a change against the prototype. Use PROACTIVELY whenever ported markup, copy or engine behaviour is involved.
+model: sonnet
 tools: Read, Grep, Glob, Bash
 ---
 

@@ -1,0 +1,11 @@
+
+ RUN  v3.2.7 C:/Users/ethan/dev/happy-cookie-ops-g0
+
+ ✓ tests/unit/pages-service-rpc.test.ts (16 tests) 31ms
+ ✓ tests/unit/supabase-auth-transport.test.ts (54 tests) 153ms
+
+ Test Files  2 passed (2)
+      Tests  70 passed (70)
+   Start at  22:15:06
+   Duration  2.00s (transform 174ms, setup 1.19s, collect 499ms, tests 184ms, environment 1ms, prepare 741ms)
+

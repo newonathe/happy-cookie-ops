@@ -1,0 +1,9 @@
+{
+  "status": "failed",
+  "scope": "Legacy RPC quarantine, direct audit mutations, API-role TRUNCATE, private-settings CRUD, active-profile SQL/RLS and six RPC/two insert restrictions; not JWT/API/full MP-06 acceptance",
+  "runs": [],
+  "regressions_detected": [],
+  "upgrade_runs": 1,
+  "legacy_regression_diagnostics": [],
+  "sequence_restorations": 1
+}

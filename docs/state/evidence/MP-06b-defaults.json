@@ -1,0 +1,413 @@
+{
+  "status": "passed",
+  "scope": "local default-privilege planning experiment; no persistent ACL migration",
+  "runs": [
+    {
+      "catalog": {
+        "defaults": [
+          {
+            "acl": "{postgres=rwU/supabase_admin,anon=rwU/supabase_admin,authenticated=rwU/supabase_admin,service_role=rwU/supabase_admin}",
+            "kind": "S",
+            "schema": "public",
+            "creator": "supabase_admin"
+          },
+          {
+            "acl": "{postgres=X/supabase_admin,anon=X/supabase_admin,authenticated=X/supabase_admin,service_role=X/supabase_admin}",
+            "kind": "f",
+            "schema": "public",
+            "creator": "supabase_admin"
+          },
+          {
+            "acl": "{postgres=arwdDxt/supabase_admin,anon=arwdDxt/supabase_admin,authenticated=arwdDxt/supabase_admin,service_role=arwdDxt/supabase_admin}",
+            "kind": "r",
+            "schema": "public",
+            "creator": "supabase_admin"
+          },
+          {
+            "acl": "{postgres=r*w*U*/supabase_admin}",
+            "kind": "S",
+            "schema": "extensions",
+            "creator": "supabase_admin"
+          },
+          {
+            "acl": "{postgres=X*/supabase_admin}",
+            "kind": "f",
+            "schema": "extensions",
+            "creator": "supabase_admin"
+          },
+          {
+            "acl": "{postgres=a*r*w*d*D*x*t*/supabase_admin}",
+            "kind": "r",
+            "schema": "extensions",
+            "creator": "supabase_admin"
+          },
+          {
+            "acl": "{postgres=rwU/supabase_admin,dashboard_user=rwU/supabase_admin}",
+            "kind": "S",
+            "schema": "realtime",
+            "creator": "supabase_admin"
+          },
+          {
+            "acl": "{postgres=X/supabase_admin,dashboard_user=X/supabase_admin}",
+            "kind": "f",
+            "schema": "realtime",
+            "creator": "supabase_admin"
+          },
+          {
+            "acl": "{postgres=arwdDxt/supabase_admin,dashboard_user=arwdDxt/supabase_admin}",
+            "kind": "r",
+            "schema": "realtime",
+            "creator": "supabase_admin"
+          },
+          {
+            "acl": "{postgres=rwU/supabase_admin,anon=rwU/supabase_admin,authenticated=rwU/supabase_admin,service_role=rwU/supabase_admin}",
+            "kind": "S",
+            "schema": "graphql_public",
+            "creator": "supabase_admin"
+          },
+          {
+            "acl": "{postgres=X/supabase_admin,anon=X/supabase_admin,authenticated=X/supabase_admin,service_role=X/supabase_admin}",
+            "kind": "f",
+            "schema": "graphql_public",
+            "creator": "supabase_admin"
+          },
+          {
+            "acl": "{postgres=arwdDxt/supabase_admin,anon=arwdDxt/supabase_admin,authenticated=arwdDxt/supabase_admin,service_role=arwdDxt/supabase_admin}",
+            "kind": "r",
+            "schema": "graphql_public",
+            "creator": "supabase_admin"
+          },
+          {
+            "acl": "{postgres=rwU/supabase_admin,anon=rwU/supabase_admin,authenticated=rwU/supabase_admin,service_role=rwU/supabase_admin}",
+            "kind": "S",
+            "schema": "graphql",
+            "creator": "supabase_admin"
+          },
+          {
+            "acl": "{postgres=X/supabase_admin,anon=X/supabase_admin,authenticated=X/supabase_admin,service_role=X/supabase_admin}",
+            "kind": "f",
+            "schema": "graphql",
+            "creator": "supabase_admin"
+          },
+          {
+            "acl": "{postgres=arwdDxt/supabase_admin,anon=arwdDxt/supabase_admin,authenticated=arwdDxt/supabase_admin,service_role=arwdDxt/supabase_admin}",
+            "kind": "r",
+            "schema": "graphql",
+            "creator": "supabase_admin"
+          },
+          {
+            "acl": "{postgres=rwU/postgres,anon=rwU/postgres,authenticated=rwU/postgres,service_role=rwU/postgres}",
+            "kind": "S",
+            "schema": "public",
+            "creator": "postgres"
+          },
+          {
+            "acl": "{postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+            "kind": "f",
+            "schema": "public",
+            "creator": "postgres"
+          },
+          {
+            "acl": "{postgres=arwdDxt/postgres,anon=arwdDxt/postgres,authenticated=arwdDxt/postgres,service_role=arwdDxt/postgres}",
+            "kind": "r",
+            "schema": "public",
+            "creator": "postgres"
+          },
+          {
+            "acl": "{postgres=rwU/postgres,anon=rwU/postgres,authenticated=rwU/postgres,service_role=rwU/postgres}",
+            "kind": "S",
+            "schema": "storage",
+            "creator": "postgres"
+          },
+          {
+            "acl": "{postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+            "kind": "f",
+            "schema": "storage",
+            "creator": "postgres"
+          },
+          {
+            "acl": "{postgres=arwdDxt/postgres,anon=arwdDxt/postgres,authenticated=arwdDxt/postgres,service_role=arwdDxt/postgres}",
+            "kind": "r",
+            "schema": "storage",
+            "creator": "postgres"
+          },
+          {
+            "acl": "{postgres=rwU/supabase_auth_admin,dashboard_user=rwU/supabase_auth_admin}",
+            "kind": "S",
+            "schema": "auth",
+            "creator": "supabase_auth_admin"
+          },
+          {
+            "acl": "{postgres=X/supabase_auth_admin,dashboard_user=X/supabase_auth_admin}",
+            "kind": "f",
+            "schema": "auth",
+            "creator": "supabase_auth_admin"
+          },
+          {
+            "acl": "{postgres=arwdDxt/supabase_auth_admin,dashboard_user=arwdDxt/supabase_auth_admin}",
+            "kind": "r",
+            "schema": "auth",
+            "creator": "supabase_auth_admin"
+          }
+        ],
+        "current_user": "postgres",
+        "session_user": "postgres",
+        "public_function_owners": {
+          "postgres": 17
+        }
+      },
+      "acl_transitions": {
+        "baseline": [
+          {
+            "acl": "{postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+            "schema": "public"
+          },
+          {
+            "acl": "{postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+            "schema": "storage"
+          }
+        ],
+        "after_schema_revoke": [
+          {
+            "acl": "{postgres=X/postgres,service_role=X/postgres}",
+            "schema": "public"
+          },
+          {
+            "acl": "{postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+            "schema": "storage"
+          }
+        ],
+        "after_global_revoke": [
+          {
+            "acl": "{postgres=X/postgres}",
+            "schema": "<global>"
+          },
+          {
+            "acl": "{postgres=X/postgres,service_role=X/postgres}",
+            "schema": "public"
+          },
+          {
+            "acl": "{postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+            "schema": "storage"
+          }
+        ]
+      },
+      "assertions": [
+        "baseline_public|true",
+        "schema_only_still_public|true",
+        "future_anon_denied|true",
+        "future_authenticated_denied|true",
+        "public_service_retained|true",
+        "existing_unchanged|true",
+        "other_schema_affected|true",
+        "other_creator_unaffected|true",
+        "explicit_grant_callable|true"
+      ],
+      "rollback_verified": true
+    },
+    {
+      "catalog": {
+        "defaults": [
+          {
+            "acl": "{postgres=rwU/supabase_admin,anon=rwU/supabase_admin,authenticated=rwU/supabase_admin,service_role=rwU/supabase_admin}",
+            "kind": "S",
+            "schema": "public",
+            "creator": "supabase_admin"
+          },
+          {
+            "acl": "{postgres=X/supabase_admin,anon=X/supabase_admin,authenticated=X/supabase_admin,service_role=X/supabase_admin}",
+            "kind": "f",
+            "schema": "public",
+            "creator": "supabase_admin"
+          },
+          {
+            "acl": "{postgres=arwdDxt/supabase_admin,anon=arwdDxt/supabase_admin,authenticated=arwdDxt/supabase_admin,service_role=arwdDxt/supabase_admin}",
+            "kind": "r",
+            "schema": "public",
+            "creator": "supabase_admin"
+          },
+          {
+            "acl": "{postgres=r*w*U*/supabase_admin}",
+            "kind": "S",
+            "schema": "extensions",
+            "creator": "supabase_admin"
+          },
+          {
+            "acl": "{postgres=X*/supabase_admin}",
+            "kind": "f",
+            "schema": "extensions",
+            "creator": "supabase_admin"
+          },
+          {
+            "acl": "{postgres=a*r*w*d*D*x*t*/supabase_admin}",
+            "kind": "r",
+            "schema": "extensions",
+            "creator": "supabase_admin"
+          },
+          {
+            "acl": "{postgres=rwU/supabase_admin,dashboard_user=rwU/supabase_admin}",
+            "kind": "S",
+            "schema": "realtime",
+            "creator": "supabase_admin"
+          },
+          {
+            "acl": "{postgres=X/supabase_admin,dashboard_user=X/supabase_admin}",
+            "kind": "f",
+            "schema": "realtime",
+            "creator": "supabase_admin"
+          },
+          {
+            "acl": "{postgres=arwdDxt/supabase_admin,dashboard_user=arwdDxt/supabase_admin}",
+            "kind": "r",
+            "schema": "realtime",
+            "creator": "supabase_admin"
+          },
+          {
+            "acl": "{postgres=rwU/supabase_admin,anon=rwU/supabase_admin,authenticated=rwU/supabase_admin,service_role=rwU/supabase_admin}",
+            "kind": "S",
+            "schema": "graphql_public",
+            "creator": "supabase_admin"
+          },
+          {
+            "acl": "{postgres=X/supabase_admin,anon=X/supabase_admin,authenticated=X/supabase_admin,service_role=X/supabase_admin}",
+            "kind": "f",
+            "schema": "graphql_public",
+            "creator": "supabase_admin"
+          },
+          {
+            "acl": "{postgres=arwdDxt/supabase_admin,anon=arwdDxt/supabase_admin,authenticated=arwdDxt/supabase_admin,service_role=arwdDxt/supabase_admin}",
+            "kind": "r",
+            "schema": "graphql_public",
+            "creator": "supabase_admin"
+          },
+          {
+            "acl": "{postgres=rwU/supabase_admin,anon=rwU/supabase_admin,authenticated=rwU/supabase_admin,service_role=rwU/supabase_admin}",
+            "kind": "S",
+            "schema": "graphql",
+            "creator": "supabase_admin"
+          },
+          {
+            "acl": "{postgres=X/supabase_admin,anon=X/supabase_admin,authenticated=X/supabase_admin,service_role=X/supabase_admin}",
+            "kind": "f",
+            "schema": "graphql",
+            "creator": "supabase_admin"
+          },
+          {
+            "acl": "{postgres=arwdDxt/supabase_admin,anon=arwdDxt/supabase_admin,authenticated=arwdDxt/supabase_admin,service_role=arwdDxt/supabase_admin}",
+            "kind": "r",
+            "schema": "graphql",
+            "creator": "supabase_admin"
+          },
+          {
+            "acl": "{postgres=rwU/postgres,anon=rwU/postgres,authenticated=rwU/postgres,service_role=rwU/postgres}",
+            "kind": "S",
+            "schema": "public",
+            "creator": "postgres"
+          },
+          {
+            "acl": "{postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+            "kind": "f",
+            "schema": "public",
+            "creator": "postgres"
+          },
+          {
+            "acl": "{postgres=arwdDxt/postgres,anon=arwdDxt/postgres,authenticated=arwdDxt/postgres,service_role=arwdDxt/postgres}",
+            "kind": "r",
+            "schema": "public",
+            "creator": "postgres"
+          },
+          {
+            "acl": "{postgres=rwU/postgres,anon=rwU/postgres,authenticated=rwU/postgres,service_role=rwU/postgres}",
+            "kind": "S",
+            "schema": "storage",
+            "creator": "postgres"
+          },
+          {
+            "acl": "{postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+            "kind": "f",
+            "schema": "storage",
+            "creator": "postgres"
+          },
+          {
+            "acl": "{postgres=arwdDxt/postgres,anon=arwdDxt/postgres,authenticated=arwdDxt/postgres,service_role=arwdDxt/postgres}",
+            "kind": "r",
+            "schema": "storage",
+            "creator": "postgres"
+          },
+          {
+            "acl": "{postgres=rwU/supabase_auth_admin,dashboard_user=rwU/supabase_auth_admin}",
+            "kind": "S",
+            "schema": "auth",
+            "creator": "supabase_auth_admin"
+          },
+          {
+            "acl": "{postgres=X/supabase_auth_admin,dashboard_user=X/supabase_auth_admin}",
+            "kind": "f",
+            "schema": "auth",
+            "creator": "supabase_auth_admin"
+          },
+          {
+            "acl": "{postgres=arwdDxt/supabase_auth_admin,dashboard_user=arwdDxt/supabase_auth_admin}",
+            "kind": "r",
+            "schema": "auth",
+            "creator": "supabase_auth_admin"
+          }
+        ],
+        "current_user": "postgres",
+        "session_user": "postgres",
+        "public_function_owners": {
+          "postgres": 17
+        }
+      },
+      "acl_transitions": {
+        "baseline": [
+          {
+            "acl": "{postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+            "schema": "public"
+          },
+          {
+            "acl": "{postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+            "schema": "storage"
+          }
+        ],
+        "after_schema_revoke": [
+          {
+            "acl": "{postgres=X/postgres,service_role=X/postgres}",
+            "schema": "public"
+          },
+          {
+            "acl": "{postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+            "schema": "storage"
+          }
+        ],
+        "after_global_revoke": [
+          {
+            "acl": "{postgres=X/postgres}",
+            "schema": "<global>"
+          },
+          {
+            "acl": "{postgres=X/postgres,service_role=X/postgres}",
+            "schema": "public"
+          },
+          {
+            "acl": "{postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+            "schema": "storage"
+          }
+        ]
+      },
+      "assertions": [
+        "baseline_public|true",
+        "schema_only_still_public|true",
+        "future_anon_denied|true",
+        "future_authenticated_denied|true",
+        "public_service_retained|true",
+        "existing_unchanged|true",
+        "other_schema_affected|true",
+        "other_creator_unaffected|true",
+        "explicit_grant_callable|true"
+      ],
+      "rollback_verified": true
+    }
+  ],
+  "probe_sha256": "6b6158131ee0abaaace9a10c6a453fe20133dc5989dfc5392f3b3ce6882fc0e4"
+}

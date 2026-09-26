@@ -1,0 +1,392 @@
+{
+  "status": "passed",
+  "baseline": "MP-06h-schema-inventory.json",
+  "current": "MP-06j-schema-inventory.json",
+  "changes": [
+    {
+      "before": {
+        "cmd": "ALL",
+        "qual": "is_staff()",
+        "roles": [
+          "public"
+        ],
+        "tablename": "bake_batches",
+        "permissive": "PERMISSIVE",
+        "policyname": "batches staff all",
+        "with_check": "is_staff()"
+      },
+      "after": {
+        "cmd": "ALL",
+        "qual": "is_owner()",
+        "roles": [
+          "public"
+        ],
+        "tablename": "bake_batches",
+        "permissive": "PERMISSIVE",
+        "policyname": "batches staff all",
+        "with_check": "is_owner()"
+      }
+    },
+    {
+      "before": {
+        "cmd": "INSERT",
+        "qual": null,
+        "roles": [
+          "public"
+        ],
+        "tablename": "event_sale_items",
+        "permissive": "PERMISSIVE",
+        "policyname": "sale items staff insert",
+        "with_check": "is_staff()"
+      },
+      "after": {
+        "cmd": "INSERT",
+        "qual": null,
+        "roles": [
+          "public"
+        ],
+        "tablename": "event_sale_items",
+        "permissive": "PERMISSIVE",
+        "policyname": "sale items staff insert",
+        "with_check": "is_owner()"
+      }
+    },
+    {
+      "before": {
+        "cmd": "SELECT",
+        "qual": "is_staff()",
+        "roles": [
+          "public"
+        ],
+        "tablename": "event_sale_items",
+        "permissive": "PERMISSIVE",
+        "policyname": "sale items staff read",
+        "with_check": null
+      },
+      "after": {
+        "cmd": "SELECT",
+        "qual": "is_owner()",
+        "roles": [
+          "public"
+        ],
+        "tablename": "event_sale_items",
+        "permissive": "PERMISSIVE",
+        "policyname": "sale items staff read",
+        "with_check": null
+      }
+    },
+    {
+      "before": {
+        "cmd": "INSERT",
+        "qual": null,
+        "roles": [
+          "public"
+        ],
+        "tablename": "event_sales",
+        "permissive": "PERMISSIVE",
+        "policyname": "sales staff insert",
+        "with_check": "is_staff()"
+      },
+      "after": {
+        "cmd": "INSERT",
+        "qual": null,
+        "roles": [
+          "public"
+        ],
+        "tablename": "event_sales",
+        "permissive": "PERMISSIVE",
+        "policyname": "sales staff insert",
+        "with_check": "is_owner()"
+      }
+    },
+    {
+      "before": {
+        "cmd": "SELECT",
+        "qual": "is_staff()",
+        "roles": [
+          "public"
+        ],
+        "tablename": "event_sales",
+        "permissive": "PERMISSIVE",
+        "policyname": "sales staff read",
+        "with_check": null
+      },
+      "after": {
+        "cmd": "SELECT",
+        "qual": "is_owner()",
+        "roles": [
+          "public"
+        ],
+        "tablename": "event_sales",
+        "permissive": "PERMISSIVE",
+        "policyname": "sales staff read",
+        "with_check": null
+      }
+    },
+    {
+      "before": {
+        "cmd": "SELECT",
+        "qual": "is_staff()",
+        "roles": [
+          "public"
+        ],
+        "tablename": "events",
+        "permissive": "PERMISSIVE",
+        "policyname": "events staff read",
+        "with_check": null
+      },
+      "after": {
+        "cmd": "SELECT",
+        "qual": "is_owner()",
+        "roles": [
+          "public"
+        ],
+        "tablename": "events",
+        "permissive": "PERMISSIVE",
+        "policyname": "events staff read",
+        "with_check": null
+      }
+    },
+    {
+      "before": {
+        "cmd": "SELECT",
+        "qual": "is_staff()",
+        "roles": [
+          "public"
+        ],
+        "tablename": "inventory_items",
+        "permissive": "PERMISSIVE",
+        "policyname": "stock staff read",
+        "with_check": null
+      },
+      "after": {
+        "cmd": "SELECT",
+        "qual": "is_owner()",
+        "roles": [
+          "public"
+        ],
+        "tablename": "inventory_items",
+        "permissive": "PERMISSIVE",
+        "policyname": "stock staff read",
+        "with_check": null
+      }
+    },
+    {
+      "before": {
+        "cmd": "UPDATE",
+        "qual": "is_staff()",
+        "roles": [
+          "public"
+        ],
+        "tablename": "inventory_items",
+        "permissive": "PERMISSIVE",
+        "policyname": "stock staff write",
+        "with_check": "is_staff()"
+      },
+      "after": {
+        "cmd": "UPDATE",
+        "qual": "is_owner()",
+        "roles": [
+          "public"
+        ],
+        "tablename": "inventory_items",
+        "permissive": "PERMISSIVE",
+        "policyname": "stock staff write",
+        "with_check": "is_owner()"
+      }
+    },
+    {
+      "before": {
+        "cmd": "SELECT",
+        "qual": "is_staff()",
+        "roles": [
+          "public"
+        ],
+        "tablename": "order_items",
+        "permissive": "PERMISSIVE",
+        "policyname": "order items staff read",
+        "with_check": null
+      },
+      "after": {
+        "cmd": "SELECT",
+        "qual": "is_owner()",
+        "roles": [
+          "public"
+        ],
+        "tablename": "order_items",
+        "permissive": "PERMISSIVE",
+        "policyname": "order items staff read",
+        "with_check": null
+      }
+    },
+    {
+      "before": {
+        "cmd": "UPDATE",
+        "qual": "is_staff()",
+        "roles": [
+          "public"
+        ],
+        "tablename": "order_items",
+        "permissive": "PERMISSIVE",
+        "policyname": "order items staff write",
+        "with_check": "is_staff()"
+      },
+      "after": {
+        "cmd": "UPDATE",
+        "qual": "is_owner()",
+        "roles": [
+          "public"
+        ],
+        "tablename": "order_items",
+        "permissive": "PERMISSIVE",
+        "policyname": "order items staff write",
+        "with_check": "is_owner()"
+      }
+    },
+    {
+      "before": {
+        "cmd": "SELECT",
+        "qual": "is_staff()",
+        "roles": [
+          "public"
+        ],
+        "tablename": "orders",
+        "permissive": "PERMISSIVE",
+        "policyname": "orders staff read",
+        "with_check": null
+      },
+      "after": {
+        "cmd": "SELECT",
+        "qual": "is_owner()",
+        "roles": [
+          "public"
+        ],
+        "tablename": "orders",
+        "permissive": "PERMISSIVE",
+        "policyname": "orders staff read",
+        "with_check": null
+      }
+    },
+    {
+      "before": {
+        "cmd": "UPDATE",
+        "qual": "is_staff()",
+        "roles": [
+          "public"
+        ],
+        "tablename": "orders",
+        "permissive": "PERMISSIVE",
+        "policyname": "orders staff write",
+        "with_check": "is_staff()"
+      },
+      "after": {
+        "cmd": "UPDATE",
+        "qual": "is_owner()",
+        "roles": [
+          "public"
+        ],
+        "tablename": "orders",
+        "permissive": "PERMISSIVE",
+        "policyname": "orders staff write",
+        "with_check": "is_owner()"
+      }
+    },
+    {
+      "before": {
+        "cmd": "SELECT",
+        "qual": "is_staff()",
+        "roles": [
+          "public"
+        ],
+        "tablename": "recipe_ingredients",
+        "permissive": "PERMISSIVE",
+        "policyname": "recipe items staff read",
+        "with_check": null
+      },
+      "after": {
+        "cmd": "SELECT",
+        "qual": "is_owner()",
+        "roles": [
+          "public"
+        ],
+        "tablename": "recipe_ingredients",
+        "permissive": "PERMISSIVE",
+        "policyname": "recipe items staff read",
+        "with_check": null
+      }
+    },
+    {
+      "before": {
+        "cmd": "SELECT",
+        "qual": "is_staff()",
+        "roles": [
+          "public"
+        ],
+        "tablename": "recipes",
+        "permissive": "PERMISSIVE",
+        "policyname": "recipes staff read",
+        "with_check": null
+      },
+      "after": {
+        "cmd": "SELECT",
+        "qual": "is_owner()",
+        "roles": [
+          "public"
+        ],
+        "tablename": "recipes",
+        "permissive": "PERMISSIVE",
+        "policyname": "recipes staff read",
+        "with_check": null
+      }
+    },
+    {
+      "before": {
+        "cmd": "SELECT",
+        "qual": "is_staff()",
+        "roles": [
+          "public"
+        ],
+        "tablename": "supplier_prices",
+        "permissive": "PERMISSIVE",
+        "policyname": "supplier prices staff read",
+        "with_check": null
+      },
+      "after": {
+        "cmd": "SELECT",
+        "qual": "is_owner()",
+        "roles": [
+          "public"
+        ],
+        "tablename": "supplier_prices",
+        "permissive": "PERMISSIVE",
+        "policyname": "supplier prices staff read",
+        "with_check": null
+      }
+    },
+    {
+      "before": {
+        "cmd": "SELECT",
+        "qual": "is_staff()",
+        "roles": [
+          "public"
+        ],
+        "tablename": "suppliers",
+        "permissive": "PERMISSIVE",
+        "policyname": "suppliers staff read",
+        "with_check": null
+      },
+      "after": {
+        "cmd": "SELECT",
+        "qual": "is_owner()",
+        "roles": [
+          "public"
+        ],
+        "tablename": "suppliers",
+        "permissive": "PERMISSIVE",
+        "policyname": "suppliers staff read",
+        "with_check": null
+      }
+    }
+  ],
+  "all_other_sections_equal": true
+}

@@ -1,0 +1,8 @@
+
+> happy-cookie-ops@0.1.0 db:types:check C:\Users\ethan\dev\happy-cookie-ops-g0
+> python scripts/generate-db-types.py --check
+
+Running explicit loopback CLI reset 1 and catalog assertions.
+Running explicit loopback CLI reset 2 and catalog assertions.
+{"status": "passed", "error": null, "cleanup": "passed"}
+{"status": "passed", "mode": "--check", "scope": "public schema types and catalog only; no auth/RLS acceptance", "generations": 2, "outputs_equal": true, "inventory_equal": true, "generator_image": "public.ecr.aws/supabase/postgres-meta:v0.98.0", "generator_image_id": "sha256:cef71ba901751dcc242cc685cf13786935ea8926820fb342f23bb0fbef77de5a", "types_sha256": "c1495eded3b0d204191ecbe8e797fa627477b301024df3d91aaa85ba9eb39dbe", "generator_sha256": "5449bb2acf7f00442702e7ee140bd811ee6348ae82b18f88679f175939ca7868", "fixture_sha256": "0f386eccb7ec025c9045f4cd1ac1f77a5ddfbc62fad84762223792de4aa43cf0", "artifact_unchanged": true}

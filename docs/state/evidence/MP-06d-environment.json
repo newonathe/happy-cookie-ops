@@ -1,0 +1,12 @@
+{
+  "status": "recovered",
+  "engine": "29.5.3",
+  "method": "preserved stale socket folders then normal hidden Docker Desktop start",
+  "data_reset": false,
+  "preserved_paths": [
+    "C:/Users/ethan/AppData/Local/Docker/run.mp06d-20260912",
+    "C:/Users/ethan/AppData/Local/Docker/run.mp06d-20260912-second",
+    "C:/Users/ethan/AppData/Local/docker-secrets-engine.mp06d-20260912"
+  ],
+  "verification": "subsequent owned SQL and type fixtures passed with cleanup"
+}

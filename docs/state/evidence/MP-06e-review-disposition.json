@@ -1,0 +1,17 @@
+{
+  "status": "review_reconciled_not_accepted_verbatim",
+  "accepted": [
+    "Test actual existing trigger firing after revocation",
+    "Preserve helper null/role semantics; qualify public.current_role_name",
+    "Keep existing applied migration bodies untouched"
+  ],
+  "rejected": [
+    "CREATE TRIGGER requires EXECUTE on its function as well as table TRIGGER; reviewer incorrectly said function EXECUTE is irrelevant. PostgreSQL15 CREATE TRIGGER documentation explicitly requires it.",
+    "Do not prescribe42809 for all ordinary calls: permission denial can precede trigger-context validation. Use effective privilege and actual CREATE TRIGGER denial oracles.",
+    "PUBLIC-only revocation leaves explicit anon/authenticated grants and the verified attachment path intact; not sufficient containment.",
+    "DROP TRIGGER ownership is distinct from CREATE TRIGGER permission; do not combine them."
+  ],
+  "evidence": "Actual anon/authenticated trigger attachment succeeds in both rollback-only reset probes; cleanup passed",
+  "source": "https://www.postgresql.org/docs/15/sql-createtrigger.html",
+  "scope": "plan review, no implementation approval or G1 closure"
+}

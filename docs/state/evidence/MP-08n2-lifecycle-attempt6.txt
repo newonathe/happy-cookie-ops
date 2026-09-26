@@ -1,0 +1,2 @@
+{"reason": "private integration test failed: fixture_stage_refresh_projection", "status": "FAIL"}
+EXIT_CODE=1

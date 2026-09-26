@@ -1,5 +1,7 @@
 # Session log
 
+> **Historical context (T-task era, before the 2026-09-08 master plan):** where this page conflicts with [MASTER-PLAN.md](../MASTER-PLAN.md), [docs/state/current.md](../docs/state/current.md) or the [decision register](../docs/state/decision-register.md), those win. Its protection rules still apply unless they say otherwise.
+
 Appended by `/handoff` at the end of a working session. The point is that a fresh session
 can start from the last entry with no other context — and that a gotcha discovered once is
 never rediscovered.

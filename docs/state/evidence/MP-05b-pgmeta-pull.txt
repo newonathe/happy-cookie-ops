@@ -1,0 +1,36 @@
+v0.98.0: Pulling from supabase/postgres-meta
+c0ed9f2d0e0e: Pulling fs layer
+7505145a46ec: Pulling fs layer
+23c96171f2fe: Pulling fs layer
+753ab3b39a58: Pulling fs layer
+5c18a8cdfd6b: Pulling fs layer
+4b118796ff6a: Pulling fs layer
+5404bc2cc13c: Pulling fs layer
+555d35074583: Pulling fs layer
+039e6f9f9752: Pulling fs layer
+8f99eb9866f3: Pulling fs layer
+44136fa355b3: Already exists
+c0ed9f2d0e0e: Download complete
+23c96171f2fe: Download complete
+5c18a8cdfd6b: Download complete
+5404bc2cc13c: Download complete
+7505145a46ec: Download complete
+8f99eb9866f3: Download complete
+8a9aedb7cce2: Download complete
+4b118796ff6a: Download complete
+039e6f9f9752: Download complete
+753ab3b39a58: Download complete
+039e6f9f9752: Pull complete
+555d35074583: Download complete
+5404bc2cc13c: Pull complete
+555d35074583: Pull complete
+c0ed9f2d0e0e: Pull complete
+8f99eb9866f3: Pull complete
+4b118796ff6a: Pull complete
+23c96171f2fe: Pull complete
+753ab3b39a58: Pull complete
+5c18a8cdfd6b: Pull complete
+7505145a46ec: Pull complete
+Digest: sha256:cef71ba901751dcc242cc685cf13786935ea8926820fb342f23bb0fbef77de5a
+Status: Downloaded newer image for public.ecr.aws/supabase/postgres-meta:v0.98.0
+public.ecr.aws/supabase/postgres-meta:v0.98.0

@@ -1,0 +1,30 @@
+{
+  "status": "failed",
+  "scope": "Legacy RPC quarantine, direct audit mutations, API-role TRUNCATE, private-settings CRUD, active-profile SQL/RLS and six RPC/two insert restrictions; not JWT/API/full MP-06 acceptance",
+  "runs": [],
+  "regressions_detected": [
+    "orders_references",
+    "sequence_select",
+    "sequence_usage",
+    "sequence_update",
+    "orders_trigger",
+    "touch_updated_at()",
+    "settings_touch()",
+    "consume_rate_limit(text,integer,integer)",
+    "prune_rate_limits()",
+    "prune_personal_data(integer)",
+    "lookup_order(text,text)",
+    "drop_remaining(uuid)",
+    "settings_effective()",
+    "orders",
+    "order_items",
+    "sync_event_sale(jsonb)",
+    "update_order_state(text,timestamptz,text,text,text)"
+  ],
+  "upgrade_runs": 1,
+  "legacy_regression_diagnostics": [
+    "command exit 3: ERROR:  legacy EXECUTE boundary missing: active_owner / sync_event_sale succeeded",
+    "command exit 3: ERROR:  legacy EXECUTE boundary missing: active_owner / update_order_state SQLSTATE 42804"
+  ],
+  "sequence_restorations": 5
+}

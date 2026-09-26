@@ -1,0 +1,18 @@
+{
+  "status": "guard_review_accepted_and_plan_reconciled",
+  "remaining_guard_blockers": 0,
+  "model": "claude-sonnet-5",
+  "effort": "medium",
+  "models": [
+    "claude-haiku-4-5-20251001",
+    "claude-sonnet-5"
+  ],
+  "turns": 5,
+  "permission_denials": [],
+  "plan_review_corrections": [
+    "MP06g changed table/sequence defaults as well as explicitobjectgrants; it was not solelyperobject.",
+    "Live postgres is confirmed nonsuperuser,CREATEROLE,BYPASSRLS;localshape is known but nothosted upgrade proof."
+  ],
+  "open": "Global functiondefault/managedupgrade compatibility,erasure42883 and remainingcapability/session/routing/hosted requirements",
+  "evidence": "Actual4functionguardboundaries/636SQL/52red/10seqrestores/2upgrades;creator/erasuretworesetprobe;115tests/23Python guards"
+}

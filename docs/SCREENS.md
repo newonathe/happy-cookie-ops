@@ -1,5 +1,7 @@
 # Screen reference
 
+> **Historical context (T-task era, before the 2026-09-08 master plan):** where this page conflicts with [MASTER-PLAN.md](../MASTER-PLAN.md), [docs/state/current.md](../docs/state/current.md) or the [decision register](../docs/state/decision-register.md), those win. Its protection rules still apply unless they say otherwise.
+
 91 screenshots of the working prototype, captured by driving its real engine — every
 number, label and state in them is genuine, not mocked.
 
@@ -55,7 +57,7 @@ are the same screen.
 | 22 | Shop | `shop` | `/shop` | `shop.tsx` | Public. No login. The quantity picker clamps to remaining capacity. |
 | 23 | Checkout | `checkout` | `/checkout` | `checkout.tsx` | Public. Name, phone, payment method. |
 | 24 | Order status | `status` | `/status` | `order-status.tsx` | What a customer sees after ordering. |
-| 25 | Find my order | `lookup` | `/lookup` | `find-my-order.tsx` | Two factors: order number and phone. Both required. |
+| 25 | Find my order | `lookup` | `/lookup` | `find-my-order.tsx` | One field accepting order number, reference, mobile, email or Instagram (corrected 2026-09-24; audit F04). Secure capability-link lookup is DP-01. |
 
 ## States, sheets and roles
 

@@ -1,0 +1,15 @@
+{
+  "status": "review_reconciled",
+  "remaining_blockers": 0,
+  "requested_model": "claude-sonnet-5",
+  "effort": "medium",
+  "models": [
+    "claude-haiku-4-5-20251001",
+    "claude-sonnet-5"
+  ],
+  "turns": 30,
+  "permission_denials": [],
+  "rejected_finding": "Invalid regex claim contradicts actual source bytes and direct execution; see MP-06g-regex-review-proof.json. Tested helper SHA matches live fixture report.",
+  "accepted": "Reviewer found no other scope/grant/oracle issues;root separately verifies full existing catalog parity and only2default changes",
+  "scope": "Local current-object compatibility and future table/sequence defaults;function defaults/session/hosting remain open"
+}

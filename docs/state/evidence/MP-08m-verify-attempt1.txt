@@ -1,0 +1,68 @@
+[WARN] The "pnpm" field in package.json is no longer read by pnpm. The following keys were ignored: "pnpm.overrides", "pnpm.onlyBuiltDependencies". See https://pnpm.io/settings for the new home of each setting.
+
+> happy-cookie-ops@0.1.0 verify C:\Users\ethan\dev\happy-cookie-ops-g0
+> pnpm verify:port && pnpm verify:engine && pnpm typecheck && pnpm typecheck:e2e && pnpm lint && pnpm test
+
+
+> happy-cookie-ops@0.1.0 verify:port C:\Users\ethan\dev\happy-cookie-ops-g0
+> node scripts/check-port-integrity.mjs
+
+Port integrity OK — 54 files match the copy/style and AST baselines.
+
+> happy-cookie-ops@0.1.0 verify:engine C:\Users\ethan\dev\happy-cookie-ops-g0
+> node scripts/check-engine-contract.mjs
+
+Engine contract OK — 49 exports, 21 settings keys, 20 tables documented, provenance claims verified against the prototype.
+
+> happy-cookie-ops@0.1.0 typecheck C:\Users\ethan\dev\happy-cookie-ops-g0
+> tsc --noEmit
+
+
+> happy-cookie-ops@0.1.0 typecheck:e2e C:\Users\ethan\dev\happy-cookie-ops-g0
+> tsc --noEmit --project tsconfig.e2e.json
+
+
+> happy-cookie-ops@0.1.0 lint C:\Users\ethan\dev\happy-cookie-ops-g0
+> eslint . --max-warnings 0
+
+
+> happy-cookie-ops@0.1.0 test C:\Users\ethan\dev\happy-cookie-ops-g0
+> vitest run
+
+
+ RUN  v3.2.7 C:/Users/ethan/dev/happy-cookie-ops-g0
+
+ ✓ tests/unit/pages-service-rpc.test.ts (15 tests) 48ms
+ ✓ tests/unit/session-crypto.test.ts (7 tests) 50ms
+ ✓ tests/unit/session-crypto-interop.test.ts (14 tests) 61ms
+ ✓ tests/unit/return-path.test.ts (33 tests) 25ms
+ ✓ tests/unit/session-request-policy.test.ts (65 tests) 90ms
+ ✓ tests/unit/pages-session-composition.test.ts (9 tests) 110ms
+ ✓ tests/unit/persistent-session-authority.test.ts (26 tests) 170ms
+ ✓ tests/unit/session-handler.test.ts (44 tests) 252ms
+ ✓ tests/unit/supabase-auth-transport.test.ts (54 tests) 349ms
+ ✓ tests/unit/sync-middleware.test.ts (5 tests) 29ms
+ ✓ tests/unit/scrub.test.ts (13 tests) 15ms
+ ✓ tests/unit/sync-unavailable.test.ts (5 tests) 458ms
+   ✓ the quarantined sync endpoint > returns a non-cacheable unavailable response to an ordinary request  329ms
+ ✓ tests/unit/offline-queue.test.ts (4 tests) 102ms
+ ✓ tests/unit/money-conversion.test.ts (11 tests) 11ms
+ ✓ tests/unit/order-rules.test.ts (7 tests) 11ms
+ ✓ tests/unit/capacity-parity.test.ts (15 tests) 12ms
+ ✓ tests/unit/acceptance-gates.test.ts (26 tests) 25ms
+ ✓ tests/unit/idempotency.test.ts (7 tests) 12ms
+ ✓ tests/unit/reporting-hooks.test.ts (3 tests) 235ms
+ ✓ tests/unit/money.test.ts (6 tests) 63ms
+ ✓ tests/unit/screens.test.ts (4 tests) 11ms
+ ✓ tests/unit/pages-spike.test.ts (2 tests) 28ms
+ ✓ tests/unit/screen-boundary.test.tsx (2 tests) 197ms
+ ✓ tests/unit/sign-in-return-path.test.tsx (5 tests) 499ms
+ ✓ tests/unit/css.test.ts (4 tests) 8ms
+ ✓ tests/unit/reporting-integration.test.ts (1 test) 107ms
+
+ Test Files  26 passed (26)
+      Tests  387 passed (387)
+   Start at  11:32:30
+   Duration  26.85s (transform 2.92s, setup 32.96s, collect 35.16s, tests 2.98s, environment 39.46s, prepare 14.04s)
+
+EXIT_CODE=0

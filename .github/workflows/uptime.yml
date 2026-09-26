@@ -26,32 +26,47 @@ permissions:
 jobs:
   health:
     name: Health check
+    # No production exists until MP-27. Without a URL this job would fail every hour
+    # and file a false outage (85 failed runs and issue #4 before 2026-09-24).
+    if: ${{ vars.PRODUCTION_URL != '' }}
     runs-on: ubuntu-latest
     steps:
       - name: Ask the app whether it is well
         id: check
+        env:
+          PRODUCTION_URL: ${{ vars.PRODUCTION_URL }}
         run: |
           set +e
-          response=$(curl -sS -o body.txt -w '%{http_code}' --max-time 20 "${{ vars.PRODUCTION_URL }}/api/health")
-          echo "status=$response" >> "$GITHUB_OUTPUT"
-          echo "body=$(cat body.txt | head -c 500)" >> "$GITHUB_OUTPUT"
-          cat body.txt
+          response=$(curl -sS -o body.txt -w '%{http_code}' --max-time 20 "$PRODUCTION_URL/api/health")
+          # Only the numeric status goes to outputs; the body is read from the file below,
+          # never interpolated into a script (GitHub Actions script-injection guidance).
+          echo "status=${response//[^0-9]/}" >> "$GITHUB_OUTPUT"
+          head -c 500 body.txt
           [ "$response" = "200" ]
 
       - name: Open an issue if it is not
         if: failure()
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
+        env:
+          STATUS: ${{ steps.check.outputs.status }}
         with:
           script: |
-            const status = '${{ steps.check.outputs.status }}';
-            const body = `/api/health returned \`${status}\`.
-
-            Response: \`${{ steps.check.outputs.body }}\`
-
-            Runbook: \`docs/RUNBOOK.md\` — start at "Is it down?".
-
-            Her sales are safe on the device either way. Bazaar sales queue in IndexedDB
-            and retry; nothing is lost while this is broken.`;
+            const fs = require('fs');
+            const status = process.env.STATUS || 'unknown';
+            const response = fs.existsSync('body.txt') ? fs.readFileSync('body.txt', 'utf8').slice(0, 500) : '';
+            const body = [
+              `/api/health returned \`${status}\`.`,
+              '',
+              'Response:',
+              '```',
+              response,
+              '```',
+              '',
+              'Runbook: `docs/RUNBOOK.md` — start at "Is it down?".',
+              '',
+              'Offline bazaar sales are not yet guaranteed durable (MP-18–21): check the selling',
+              'device before clearing any browser data.'
+            ].join('\n');
 
             // One open issue, not one per check — a fifteen-minute cron would otherwise
             // file 96 issues a day for a single outage.
@@ -80,7 +95,7 @@ jobs:
 
       - name: Close the outage issue once it recovers
         if: success()
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const open = await github.rest.issues.listForRepo({

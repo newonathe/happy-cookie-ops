@@ -1,0 +1,5 @@
+{
+  "finding": "Claude formatter hook changed form formatting despite exact-edit instructions; root hash check rejected it",
+  "disposition": "Restored original form source after matching prior tail hash; retained only helper import and safe next computation",
+  "worker_claim": "No other lines touched was contradicted by actual diff"
+}

@@ -1,0 +1,2 @@
+{"status": "FAIL", "reason": "initial_provider_sessions"}
+exit_code=1

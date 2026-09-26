@@ -1,0 +1,11 @@
+
+ RUN  v3.2.7 C:/Users/ethan/dev/happy-cookie-ops-g0
+
+ ✓ tests/unit/session-request-policy.test.ts (65 tests) 29ms
+ ✓ tests/unit/session-handler.test.ts (41 tests) 110ms
+
+ Test Files  2 passed (2)
+      Tests  106 passed (106)
+   Start at  03:42:29
+   Duration  877ms (transform 94ms, setup 550ms, collect 309ms, tests 139ms, environment 0ms, prepare 247ms)
+

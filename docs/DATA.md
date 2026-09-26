@@ -1,5 +1,11 @@
 # Data
 
+> MP-06.b.1 authority update: `settings_effective()` now permits only service_role among API-facing roles. Its previous general-staff grant is revoked; the settings descriptions below preserve historical behavior, not authorization to restore that grant. Use the [current RPC plan](state/MP-06b-authority-plan.md) and owner/public projection boundaries. Direct table-policy hardening remains pending.
+
+> MP-06.c.1 authority update: direct INSERT into `orders` and `order_items` is denied to anon/authenticated. The historical role table below does not authorize customer row insertion; future checkout must use a validated server command. Other table-policy gaps remain open. See [the insertion plan](state/MP-06c-plan.md).
+
+> MP-08.j session boundary: `hco_private.bff_sessions` stores only hashed browser-session identifiers and encrypted provider credentials. API roles have no schema or table access. The service infrastructure can use only the seven `bff_session_*` functions for create/read, fenced refresh, local-first revocation, bounded expired-session cleanup and fence-checked cleanup completion. Browser code never receives provider credentials or this private row.
+
 Money is stored as **centavos in `bigint`**. The prototype worked in pesos with two
 decimals, which is fine in a display layer and not fine in a ledger. Conversion happens
 at the API boundary, not in the engine.
@@ -22,6 +28,7 @@ at the API boundary, not in the engine.
 | `ledger_entries` | the books | signed centavos; costs negative; append-only |
 | `events`, `event_sales`, `event_sale_items` | bazaars | `client_id` is the queue's idempotency key |
 | `audit_log` | who changed money or stock | append-only, owner-readable |
+| `hco_private.bff_sessions` | durable BFF session authority | private schema; SHA-256 cookie hash, independent CSRF token, encrypted credential envelope, fixed 8-hour lifetime, refresh/cleanup fences; no direct API-role access |
 
 ## Roles
 

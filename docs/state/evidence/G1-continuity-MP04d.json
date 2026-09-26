@@ -1,0 +1,6013 @@
+{
+  "scope": "G0 continuity, not application readiness",
+  "checks": [
+    {
+      "check": "unique_task_ids",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "known_dependencies",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "acyclic_dependencies",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "catalog_schema",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "check": "manual_progress_scope",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "manual_status_values",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "historical_generator_reproduces_catalog_and_prompts",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "check": "delivery_file_present:.dockerignore",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:.env.example",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:.gitignore",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:.nvmrc",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:.prettierignore",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:AGENTS.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:CLAUDE.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:Dockerfile",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:eslint.config.mjs",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:HANDOFF.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:instrumentation-client.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:instrumentation.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:lighthouserc.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:MASTER-PLAN.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:next.config.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:NEXT.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:package.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:playwright.config.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:postcss.config.mjs",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:prettier.config.mjs",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:README.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:sentry.edge.config.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:sentry.server.config.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:START-HERE.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:tsconfig.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:vercel.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:vitest.config.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:.claude/settings.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:.codex/config.toml",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:.codex/hooks.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:.github/dependabot.yml",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:.github/pull_request_template.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:.husky/pre-commit",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:.storybook/main.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:.storybook/preview.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/ARCHITECTURE.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/BUILD-LOG.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/CODEX.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/CONTRACTS.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/DATA.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/DEPLOY.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/ENVIRONMENTS.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/FREE-TIER.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/GAPS.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/MESSAGING.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/OBSERVABILITY.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/OFFLINE.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/PORTING.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/PROMPTS.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/RUNBOOK.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/SCREENS.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/SESSIONS.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/STAGING.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/TASKS.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/TECH-DEBT.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/TESTING.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/WORKFLOW.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:public/manifest.webmanifest",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:public/sw.js",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:scripts/check-engine-contract.mjs",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:scripts/check-port-integrity.mjs",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:scripts/gen-seed.mjs",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:scripts/port-baseline.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:scripts/port-baseline.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:scripts/verify.sh",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/middleware.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:supabase/config.toml",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:supabase/seed.sql",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:supabase/seed.sql",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:tests/setup.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:tests/e2e/bazaar-offline.spec.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:tests/e2e/capacity-parity.spec.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:tests/e2e/screens.spec.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:tests/e2e/visual.spec.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:tests/fixtures/capacity-cases.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:tests/load/drop-open.js",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:tests/unit/capacity-parity.test.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:tests/unit/css.test.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:tests/unit/idempotency.test.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:tests/unit/money-conversion.test.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:tests/unit/money.test.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:tests/unit/offline-queue.test.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:tests/unit/order-rules.test.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:tests/unit/screen-boundary.test.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:tests/unit/screens.test.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:tests/unit/scrub.test.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:supabase/migrations/20260101000000_init.sql",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "approved_bootstrap_function_present",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "approved_bootstrap_open_quote",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "approved_bootstrap_close_quote",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:supabase/migrations/20260101000000_init.sql",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:supabase/migrations/20260101000100_sync_sales.sql",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:supabase/migrations/20260101000100_sync_sales.sql",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:supabase/migrations/20260101000200_catalogue_fidelity.sql",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:supabase/migrations/20260101000200_catalogue_fidelity.sql",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:supabase/migrations/20260101000300_rate_limits.sql",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:supabase/migrations/20260101000300_rate_limits.sql",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:supabase/migrations/20260101000400_capacity_parity.sql",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:supabase/migrations/20260101000400_capacity_parity.sql",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:supabase/migrations/20260101000500_retention.sql",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:supabase/migrations/20260101000500_retention.sql",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:supabase/migrations/20260101000600_concurrency.sql",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:supabase/migrations/20260101000600_concurrency.sql",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:supabase/migrations/20260101000700_settings.sql",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:supabase/migrations/20260101000700_settings.sql",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/app/error.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/app/globals.css",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/app/layout.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/app/not-found.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/app/page.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/components/tokens.stories.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/lib/css.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/lib/device.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/lib/idempotency.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/lib/money.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/lib/rate-limit.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/lib/screens.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/store/ops-runtime.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/store/use-ops.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/view-models/vals.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/store/engine/ops-engine.d.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/store/engine/ops-engine.js",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:src/store/engine/ops-engine.js",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/lib/messaging/index.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/lib/messaging/templates.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/lib/messaging/types.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/lib/observability/scrub.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/lib/offline/idb.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/lib/offline/queue.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/lib/offline/sync.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/lib/rules/capacity.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/lib/supabase/client.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/lib/supabase/config.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/lib/supabase/server.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/lib/supabase/service.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/lib/types/database.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/components/app/offline-bridge.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/components/app/ops-app.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/components/app/route-sync.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/components/app/screen-boundary.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/components/screens/all-tools.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:src/components/screens/all-tools.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/components/screens/bake-plan.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:src/components/screens/bake-plan.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/components/screens/bazaar-mode.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:src/components/screens/bazaar-mode.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/components/screens/checkout.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:src/components/screens/checkout.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/components/screens/drops.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:src/components/screens/drops.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/components/screens/find-my-order.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:src/components/screens/find-my-order.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/components/screens/form-queue.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:src/components/screens/form-queue.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/components/screens/grocery-list.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:src/components/screens/grocery-list.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/components/screens/home.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:src/components/screens/home.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/components/screens/inventory.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:src/components/screens/inventory.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/components/screens/notifications.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:src/components/screens/notifications.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/components/screens/order-detail.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:src/components/screens/order-detail.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/components/screens/order-status.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:src/components/screens/order-status.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/components/screens/orders.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:src/components/screens/orders.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/components/screens/payments.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:src/components/screens/payments.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/components/screens/production-focus.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:src/components/screens/production-focus.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/components/screens/products.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:src/components/screens/products.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/components/screens/profit-and-loss.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:src/components/screens/profit-and-loss.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/components/screens/recipes.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:src/components/screens/recipes.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/components/screens/sales-log.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:src/components/screens/sales-log.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/components/screens/settings.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:src/components/screens/settings.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/components/screens/shop.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:src/components/screens/shop.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/components/screens/suppliers.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:src/components/screens/suppliers.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/components/screens/system-health.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:src/components/screens/system-health.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/components/sheets/add-inv.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "approved_guard_once:src/components/sheets/add-inv.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:src/components/sheets/add-inv.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/components/sheets/categories.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:src/components/sheets/categories.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/components/sheets/close-drop.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:src/components/sheets/close-drop.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/components/sheets/closeout.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:src/components/sheets/closeout.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/components/sheets/customers.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:src/components/sheets/customers.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/components/sheets/draw.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:src/components/sheets/draw.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/components/sheets/drop-state.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:src/components/sheets/drop-state.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/components/sheets/edit-price.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "approved_guard_once:src/components/sheets/edit-price.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:src/components/sheets/edit-price.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/components/sheets/ev-exp.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:src/components/sheets/ev-exp.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/components/sheets/expense.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:src/components/sheets/expense.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/components/sheets/inv-edit.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "approved_guard_once:src/components/sheets/inv-edit.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:src/components/sheets/inv-edit.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/components/sheets/no-show.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:src/components/sheets/no-show.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/components/sheets/overage.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:src/components/sheets/overage.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/components/sheets/pay-rules.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:src/components/sheets/pay-rules.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/components/sheets/pay.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:src/components/sheets/pay.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/components/sheets/pricing.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:src/components/sheets/pricing.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/components/sheets/proof.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "approved_guard_once:src/components/sheets/proof.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:src/components/sheets/proof.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/components/sheets/receive.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:src/components/sheets/receive.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/components/sheets/refund.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:src/components/sheets/refund.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/components/sheets/reset.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:src/components/sheets/reset.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/components/sheets/retention.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:src/components/sheets/retention.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/components/sheets/rules.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:src/components/sheets/rules.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/components/sheets/spoil.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:src/components/sheets/spoil.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/components/sheets/statuses.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:src/components/sheets/statuses.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/components/sheets/storage.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:src/components/sheets/storage.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/components/sheets/supplier.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:src/components/sheets/supplier.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/components/sheets/swap.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:src/components/sheets/swap.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/components/sheets/users.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:src/components/sheets/users.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/components/sheets/why.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "approved_guard_once:src/components/sheets/why.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:src/components/sheets/why.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/components/shell/app-frame.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:src/components/shell/app-frame.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/components/ui/pressable.stories.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/components/ui/pressable.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/app/bake/page.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/app/batch/page.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/app/bazaar/page.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/app/checkout/page.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/app/drops/page.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/app/formqueue/page.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/app/grocery/page.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/app/health/page.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/app/inventory/page.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/app/lookup/page.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/app/more/page.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/app/notifications/page.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/app/order/page.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/app/orders/page.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/app/pnl/page.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/app/products/page.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/app/recipes/page.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/app/reconcile/page.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/app/sales/page.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/app/settings/page.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/app/shop/page.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/app/sign-in/page.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/app/sign-in/sign-in-form.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/app/status/page.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/app/stocktake/page.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/app/suppliers/page.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/app/api/health/route.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:src/app/api/sync/route.ts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:public/assets/double-chocolate-fudge.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:public/assets/happy-camper.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:public/assets/logo-full.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:public/assets/logo-wordmark.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:public/assets/mark-outline.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:public/assets/mark-solid.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:public/assets/nutella-churro.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:public/assets/pb-miso.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:public/assets/qr-gcash.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:public/assets/qr-gotyme.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:public/assets/qr-maya.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:public/assets/red-velvet-cheesecake.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:public/assets/white-chocolate-biscoff.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/00-audit-evidence.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/00-audit-evidence.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/01-feature-and-state-audit.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/01-feature-and-state-audit.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/02-data-engine-and-offline-audit.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/02-data-engine-and-offline-audit.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/03-security-and-operations-audit.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/03-security-and-operations-audit.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/04-architecture.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/04-architecture.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/05-manual-crosswalk.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/05-manual-crosswalk.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/06-domain-contracts.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/06-domain-contracts.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/07-build-backlog.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/07-build-backlog.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/08-validation-and-operations.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/08-validation-and-operations.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/09-agent-operating-system.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/09-agent-operating-system.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/10-decisions-and-sources.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/10-decisions-and-sources.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/11-traceability.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/11-traceability.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/12-plan-validation.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/12-plan-validation.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/tasks.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/tasks.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/prompts/00-session-protocol.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/prompts/01-foundation.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/prompts/02-identity.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/prompts/03-test-net.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/prompts/04-postgres.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/prompts/05-quality.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/prompts/06-production.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/prompts/07-review-library.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/prompts/08-recovery.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/prompts/09-maintenance.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/prompts/README.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/prototype.dc.html",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/prototype.dc.html",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/spec/01-screens.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/spec/01-screens.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/spec/02-data-model.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/spec/02-data-model.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/spec/03-business-rules.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/spec/03-business-rules.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/spec/04-design-tokens.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/spec/04-design-tokens.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/desktop/01-home.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/desktop/01-home.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/desktop/02-orders.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/desktop/02-orders.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/desktop/03-order-detail.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/desktop/03-order-detail.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/desktop/04-bake-plan.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/desktop/04-bake-plan.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/desktop/05-production.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/desktop/05-production.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/desktop/06-inventory.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/desktop/06-inventory.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/desktop/07-stocktake.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/desktop/07-stocktake.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/desktop/08-grocery-list.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/desktop/08-grocery-list.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/desktop/09-bazaar-mode.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/desktop/09-bazaar-mode.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/desktop/10-sales-log.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/desktop/10-sales-log.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/desktop/11-payments.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/desktop/11-payments.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/desktop/12-profit-and-loss.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/desktop/12-profit-and-loss.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/desktop/13-form-queue.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/desktop/13-form-queue.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/desktop/14-drops.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/desktop/14-drops.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/desktop/15-products.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/desktop/15-products.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/desktop/16-recipes.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/desktop/16-recipes.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/desktop/17-suppliers.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/desktop/17-suppliers.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/desktop/18-settings.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/desktop/18-settings.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/desktop/19-notifications.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/desktop/19-notifications.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/desktop/20-system-health.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/desktop/20-system-health.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/desktop/21-all-tools.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/desktop/21-all-tools.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/desktop/22-shop.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/desktop/22-shop.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/desktop/23-checkout.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/desktop/23-checkout.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/desktop/24-order-status.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/desktop/24-order-status.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/desktop/25-find-my-order.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/desktop/25-find-my-order.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/mobile/01-home.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/mobile/01-home.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/mobile/02-orders.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/mobile/02-orders.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/mobile/03-order-detail.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/mobile/03-order-detail.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/mobile/04-bake-plan.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/mobile/04-bake-plan.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/mobile/05-production.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/mobile/05-production.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/mobile/06-inventory.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/mobile/06-inventory.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/mobile/07-stocktake.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/mobile/07-stocktake.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/mobile/08-grocery-list.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/mobile/08-grocery-list.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/mobile/09-bazaar-mode.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/mobile/09-bazaar-mode.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/mobile/10-sales-log.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/mobile/10-sales-log.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/mobile/11-payments.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/mobile/11-payments.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/mobile/12-profit-and-loss.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/mobile/12-profit-and-loss.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/mobile/13-form-queue.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/mobile/13-form-queue.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/mobile/14-drops.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/mobile/14-drops.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/mobile/15-products.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/mobile/15-products.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/mobile/16-recipes.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/mobile/16-recipes.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/mobile/17-suppliers.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/mobile/17-suppliers.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/mobile/18-settings.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/mobile/18-settings.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/mobile/19-notifications.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/mobile/19-notifications.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/mobile/20-system-health.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/mobile/20-system-health.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/mobile/21-all-tools.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/mobile/21-all-tools.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/mobile/22-shop.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/mobile/22-shop.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/mobile/23-checkout.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/mobile/23-checkout.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/mobile/24-order-status.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/mobile/24-order-status.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/mobile/25-find-my-order.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/mobile/25-find-my-order.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/states/01-sheet-confirm-payment.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/states/01-sheet-confirm-payment.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/states/02-sheet-no-show.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/states/02-sheet-no-show.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/states/03-sheet-refund.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/states/03-sheet-refund.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/states/04-sheet-write-off.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/states/04-sheet-write-off.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/states/05-sheet-receive-stock.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/states/05-sheet-receive-stock.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/states/06-sheet-closeout.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/states/06-sheet-closeout.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/states/07-sheet-shop-status.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/states/07-sheet-shop-status.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/states/08-sheet-rules.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/states/08-sheet-rules.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/states/09-sheet-reset-data.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/states/09-sheet-reset-data.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/states/10-sheet-edit-price.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/states/10-sheet-edit-price.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/states/11-bazaar-offline.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/states/11-bazaar-offline.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/states/12-role-helper-home.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/states/12-role-helper-home.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/states/13-role-helper-bake.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/states/13-role-helper-bake.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/states/14-role-support-home.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/states/14-role-support-home.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/states/15-desktop-orders-split-and-toast.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/states/15-desktop-orders-split-and-toast.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/states/16-desktop-recipes-wide.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/states/16-desktop-recipes-wide.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/tablet/01-home.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/tablet/01-home.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/tablet/02-orders.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/tablet/02-orders.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/tablet/03-order-detail.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/tablet/03-order-detail.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/tablet/04-bake-plan.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/tablet/04-bake-plan.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/tablet/05-production.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/tablet/05-production.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/tablet/06-inventory.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/tablet/06-inventory.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/tablet/07-stocktake.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/tablet/07-stocktake.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/tablet/08-grocery-list.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/tablet/08-grocery-list.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/tablet/09-bazaar-mode.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/tablet/09-bazaar-mode.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/tablet/10-sales-log.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/tablet/10-sales-log.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/tablet/11-payments.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/tablet/11-payments.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/tablet/12-profit-and-loss.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/tablet/12-profit-and-loss.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/tablet/13-form-queue.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/tablet/13-form-queue.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/tablet/14-drops.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/tablet/14-drops.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/tablet/15-products.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/tablet/15-products.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/tablet/16-recipes.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/tablet/16-recipes.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/tablet/17-suppliers.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/tablet/17-suppliers.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/tablet/18-settings.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/tablet/18-settings.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/tablet/19-notifications.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/tablet/19-notifications.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/tablet/20-system-health.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/tablet/20-system-health.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/tablet/21-all-tools.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/tablet/21-all-tools.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/tablet/22-shop.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/tablet/22-shop.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/tablet/23-checkout.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/tablet/23-checkout.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/tablet/24-order-status.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/tablet/24-order-status.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/reference/screens/tablet/25-find-my-order.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/reference/screens/tablet/25-find-my-order.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/audit-ui.cjs",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/audit-ui.cjs",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/build-task-catalog.py",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/build-task-catalog.py",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/claude-cli-help.txt",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/claude-cli-help.txt",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/codex-exec-help.txt",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/codex-exec-help.txt",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/codex-resume-help.txt",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/codex-resume-help.txt",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/dev-server-second.txt",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/dev-server-second.txt",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/dev-server.txt",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/dev-server.txt",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/engine-probes.cjs",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/engine-probes.cjs",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/engine-probes.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/engine-probes.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/erp-manual-extracted.txt",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/erp-manual-extracted.txt",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/happy-cookie-profile.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/happy-cookie-profile.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/hydration-probe.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/hydration-probe.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/hydration-shop.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/hydration-shop.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/live-chromium-desktop-contact.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/live-chromium-desktop-contact.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/live-chromium-phone-contact.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/live-chromium-phone-contact.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/live-chromium-tablet-contact.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/live-chromium-tablet-contact.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/live-webkit-phone-contact.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/live-webkit-phone-contact.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/make-contacts.py",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/make-contacts.py",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/plan-validation.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/plan-validation.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/playwright-install.txt",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/playwright-install.txt",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/pnpm-build-original.txt",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/pnpm-build-original.txt",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/pnpm-lint.txt",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/pnpm-lint.txt",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/pnpm-unit.txt",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/pnpm-unit.txt",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/pnpm-verify-final.txt",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/pnpm-verify-final.txt",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/pnpm-verify-installed.txt",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/pnpm-verify-installed.txt",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/pnpm-verify-original.txt",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/pnpm-verify-original.txt",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/probe-hydration.cjs",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/probe-hydration.cjs",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/reference-desktop-contact.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/reference-desktop-contact.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/reference-mobile-contact.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/reference-mobile-contact.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/reference-states-contact.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/reference-states-contact.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/reference-tablet-contact.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/reference-tablet-contact.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/repository-coverage.csv",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/repository-coverage.csv",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/repository-manifest.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/repository-manifest.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/scratch-install.txt",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/scratch-install.txt",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/scratch-location.txt",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/scratch-location.txt",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/scratch-next-generated-diff.txt",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/scratch-next-generated-diff.txt",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-chromium-desktop-contact.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-chromium-desktop-contact.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-chromium-phone-contact.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-chromium-phone-contact.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-chromium-tablet-contact.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-chromium-tablet-contact.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven-chromium-desktop-contact.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven-chromium-desktop-contact.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven-chromium-phone-contact.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven-chromium-phone-contact.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven-chromium-tablet-contact.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven-chromium-tablet-contact.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven-results.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven-results.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven-run.txt",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven-run.txt",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven-webkit-phone-contact.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven-webkit-phone-contact.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-hydrated-run.txt",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-hydrated-run.txt",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-results.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-results.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-run.txt",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-run.txt",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-shell-initial.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-shell-initial.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-summary.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-summary.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-webkit-phone-contact.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-webkit-phone-contact.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/validate-plan.py",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/validate-plan.py",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/prompts/AR-00.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/prompts/AR-00.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/prompts/AR-01.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/prompts/AR-01.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/prompts/AR-02.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/prompts/AR-02.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/prompts/AR-03.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/prompts/AR-03.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/prompts/AR-04.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/prompts/AR-04.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/prompts/AR-05.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/prompts/AR-05.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/prompts/AR-06.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/prompts/AR-06.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/prompts/MP-00.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/prompts/MP-00.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/prompts/MP-01.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/prompts/MP-01.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/prompts/MP-02.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/prompts/MP-02.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/prompts/MP-03.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/prompts/MP-03.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/prompts/MP-04.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/prompts/MP-04.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/prompts/MP-05.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/prompts/MP-05.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/prompts/MP-06.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/prompts/MP-06.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/prompts/MP-07.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/prompts/MP-07.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/prompts/MP-08.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/prompts/MP-08.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/prompts/MP-09.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/prompts/MP-09.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/prompts/MP-10.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/prompts/MP-10.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/prompts/MP-11.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/prompts/MP-11.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/prompts/MP-12.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/prompts/MP-12.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/prompts/MP-13.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/prompts/MP-13.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/prompts/MP-14.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/prompts/MP-14.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/prompts/MP-15.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/prompts/MP-15.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/prompts/MP-16.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/prompts/MP-16.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/prompts/MP-17.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/prompts/MP-17.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/prompts/MP-18.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/prompts/MP-18.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/prompts/MP-19.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/prompts/MP-19.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/prompts/MP-20.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/prompts/MP-20.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/prompts/MP-21.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/prompts/MP-21.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/prompts/MP-22.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/prompts/MP-22.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/prompts/MP-23.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/prompts/MP-23.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/prompts/MP-24.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/prompts/MP-24.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/prompts/MP-25.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/prompts/MP-25.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/prompts/MP-26.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/prompts/MP-26.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/prompts/MP-27.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/prompts/MP-27.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/prompts/MP-28.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/prompts/MP-28.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/prompts/README.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/prompts/README.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/templates/checkpoint.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/templates/checkpoint.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/templates/decision.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/templates/decision.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/templates/event.example.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/templates/event.example.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/templates/event.schema.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/templates/event.schema.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/templates/incident.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/templates/incident.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/templates/project-profile.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/templates/project-profile.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/templates/readiness-checklist.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/templates/readiness-checklist.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/templates/README.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/templates/README.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/templates/research-prompt.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/templates/research-prompt.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/templates/resume-prompt.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/templates/resume-prompt.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/templates/review-prompt.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/templates/review-prompt.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/templates/runner-policy.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/templates/runner-policy.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/templates/task-catalog.schema.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/templates/task-catalog.schema.json",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/templates/task-prompt.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/templates/task-prompt.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/templates/uat-record.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/templates/uat-record.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/templates/verification-prompt.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/templates/verification-prompt.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-desktop/01-home.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-desktop/01-home.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-desktop/02-sales.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-desktop/02-sales.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-desktop/03-orders.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-desktop/03-orders.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-desktop/04-order.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-desktop/04-order.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-desktop/05-lookup.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-desktop/05-lookup.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-desktop/06-reconcile.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-desktop/06-reconcile.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-desktop/07-bake.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-desktop/07-bake.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-desktop/08-batch.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-desktop/08-batch.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-desktop/09-inventory.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-desktop/09-inventory.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-desktop/10-stocktake.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-desktop/10-stocktake.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-desktop/11-more.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-desktop/11-more.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-desktop/12-grocery.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-desktop/12-grocery.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-desktop/13-bazaar.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-desktop/13-bazaar.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-desktop/14-pnl.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-desktop/14-pnl.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-desktop/15-formqueue.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-desktop/15-formqueue.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-desktop/16-health.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-desktop/16-health.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-desktop/17-products.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-desktop/17-products.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-desktop/18-notifications.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-desktop/18-notifications.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-desktop/19-shop.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-desktop/19-shop.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-desktop/20-checkout.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-desktop/20-checkout.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-desktop/21-status.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-desktop/21-status.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-desktop/22-recipes.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-desktop/22-recipes.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-desktop/23-drops.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-desktop/23-drops.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-desktop/24-suppliers.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-desktop/24-suppliers.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-desktop/25-settings.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-desktop/25-settings.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-desktop/26-sign-in.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-desktop/26-sign-in.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-phone/01-home.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-phone/01-home.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-phone/02-sales.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-phone/02-sales.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-phone/03-orders.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-phone/03-orders.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-phone/04-order.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-phone/04-order.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-phone/05-lookup.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-phone/05-lookup.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-phone/06-reconcile.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-phone/06-reconcile.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-phone/07-bake.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-phone/07-bake.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-phone/08-batch.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-phone/08-batch.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-phone/09-inventory.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-phone/09-inventory.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-phone/10-stocktake.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-phone/10-stocktake.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-phone/11-more.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-phone/11-more.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-phone/12-grocery.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-phone/12-grocery.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-phone/13-bazaar.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-phone/13-bazaar.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-phone/14-pnl.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-phone/14-pnl.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-phone/15-formqueue.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-phone/15-formqueue.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-phone/16-health.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-phone/16-health.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-phone/17-products.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-phone/17-products.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-phone/18-notifications.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-phone/18-notifications.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-phone/19-shop.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-phone/19-shop.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-phone/20-checkout.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-phone/20-checkout.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-phone/21-status.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-phone/21-status.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-phone/22-recipes.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-phone/22-recipes.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-phone/23-drops.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-phone/23-drops.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-phone/24-suppliers.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-phone/24-suppliers.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-phone/25-settings.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-phone/25-settings.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-phone/26-sign-in.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-phone/26-sign-in.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-tablet/01-home.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-tablet/01-home.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-tablet/02-sales.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-tablet/02-sales.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-tablet/03-orders.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-tablet/03-orders.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-tablet/04-order.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-tablet/04-order.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-tablet/05-lookup.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-tablet/05-lookup.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-tablet/06-reconcile.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-tablet/06-reconcile.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-tablet/07-bake.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-tablet/07-bake.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-tablet/08-batch.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-tablet/08-batch.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-tablet/09-inventory.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-tablet/09-inventory.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-tablet/10-stocktake.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-tablet/10-stocktake.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-tablet/11-more.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-tablet/11-more.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-tablet/12-grocery.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-tablet/12-grocery.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-tablet/13-bazaar.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-tablet/13-bazaar.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-tablet/14-pnl.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-tablet/14-pnl.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-tablet/15-formqueue.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-tablet/15-formqueue.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-tablet/16-health.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-tablet/16-health.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-tablet/17-products.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-tablet/17-products.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-tablet/18-notifications.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-tablet/18-notifications.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-tablet/19-shop.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-tablet/19-shop.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-tablet/20-checkout.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-tablet/20-checkout.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-tablet/21-status.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-tablet/21-status.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-tablet/22-recipes.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-tablet/22-recipes.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-tablet/23-drops.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-tablet/23-drops.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-tablet/24-suppliers.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-tablet/24-suppliers.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-tablet/25-settings.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-tablet/25-settings.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/chromium-tablet/26-sign-in.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/chromium-tablet/26-sign-in.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/webkit-phone/01-home.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/webkit-phone/01-home.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/webkit-phone/02-sales.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/webkit-phone/02-sales.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/webkit-phone/03-orders.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/webkit-phone/03-orders.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/webkit-phone/04-order.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/webkit-phone/04-order.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/webkit-phone/05-lookup.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/webkit-phone/05-lookup.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/webkit-phone/06-reconcile.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/webkit-phone/06-reconcile.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/webkit-phone/07-bake.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/webkit-phone/07-bake.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/webkit-phone/08-batch.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/webkit-phone/08-batch.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/webkit-phone/09-inventory.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/webkit-phone/09-inventory.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/webkit-phone/10-stocktake.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/webkit-phone/10-stocktake.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/webkit-phone/11-more.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/webkit-phone/11-more.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/webkit-phone/12-grocery.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/webkit-phone/12-grocery.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/webkit-phone/13-bazaar.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/webkit-phone/13-bazaar.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/webkit-phone/14-pnl.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/webkit-phone/14-pnl.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/webkit-phone/15-formqueue.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/webkit-phone/15-formqueue.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/webkit-phone/16-health.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/webkit-phone/16-health.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/webkit-phone/17-products.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/webkit-phone/17-products.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/webkit-phone/18-notifications.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/webkit-phone/18-notifications.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/webkit-phone/19-shop.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/webkit-phone/19-shop.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/webkit-phone/20-checkout.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/webkit-phone/20-checkout.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/webkit-phone/21-status.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/webkit-phone/21-status.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/webkit-phone/22-recipes.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/webkit-phone/22-recipes.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/webkit-phone/23-drops.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/webkit-phone/23-drops.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/webkit-phone/24-suppliers.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/webkit-phone/24-suppliers.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/webkit-phone/25-settings.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/webkit-phone/25-settings.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui-driven/webkit-phone/26-sign-in.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui-driven/webkit-phone/26-sign-in.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-desktop/01-home.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-desktop/01-home.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-desktop/02-sales.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-desktop/02-sales.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-desktop/03-orders.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-desktop/03-orders.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-desktop/04-order.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-desktop/04-order.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-desktop/05-lookup.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-desktop/05-lookup.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-desktop/06-reconcile.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-desktop/06-reconcile.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-desktop/07-bake.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-desktop/07-bake.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-desktop/08-batch.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-desktop/08-batch.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-desktop/09-inventory.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-desktop/09-inventory.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-desktop/10-stocktake.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-desktop/10-stocktake.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-desktop/11-more.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-desktop/11-more.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-desktop/12-grocery.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-desktop/12-grocery.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-desktop/13-bazaar.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-desktop/13-bazaar.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-desktop/14-pnl.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-desktop/14-pnl.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-desktop/15-formqueue.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-desktop/15-formqueue.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-desktop/16-health.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-desktop/16-health.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-desktop/17-products.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-desktop/17-products.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-desktop/18-notifications.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-desktop/18-notifications.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-desktop/19-shop.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-desktop/19-shop.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-desktop/20-checkout.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-desktop/20-checkout.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-desktop/21-status.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-desktop/21-status.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-desktop/22-recipes.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-desktop/22-recipes.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-desktop/23-drops.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-desktop/23-drops.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-desktop/24-suppliers.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-desktop/24-suppliers.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-desktop/25-settings.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-desktop/25-settings.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-desktop/26-sign-in.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-desktop/26-sign-in.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-phone/01-home.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-phone/01-home.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-phone/02-sales.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-phone/02-sales.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-phone/03-orders.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-phone/03-orders.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-phone/04-order.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-phone/04-order.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-phone/05-lookup.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-phone/05-lookup.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-phone/06-reconcile.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-phone/06-reconcile.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-phone/07-bake.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-phone/07-bake.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-phone/08-batch.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-phone/08-batch.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-phone/09-inventory.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-phone/09-inventory.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-phone/10-stocktake.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-phone/10-stocktake.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-phone/11-more.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-phone/11-more.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-phone/12-grocery.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-phone/12-grocery.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-phone/13-bazaar.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-phone/13-bazaar.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-phone/14-pnl.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-phone/14-pnl.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-phone/15-formqueue.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-phone/15-formqueue.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-phone/16-health.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-phone/16-health.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-phone/17-products.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-phone/17-products.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-phone/18-notifications.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-phone/18-notifications.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-phone/19-shop.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-phone/19-shop.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-phone/20-checkout.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-phone/20-checkout.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-phone/21-status.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-phone/21-status.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-phone/22-recipes.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-phone/22-recipes.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-phone/23-drops.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-phone/23-drops.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-phone/24-suppliers.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-phone/24-suppliers.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-phone/25-settings.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-phone/25-settings.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-phone/26-sign-in.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-phone/26-sign-in.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-tablet/01-home.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-tablet/01-home.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-tablet/02-sales.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-tablet/02-sales.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-tablet/03-orders.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-tablet/03-orders.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-tablet/04-order.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-tablet/04-order.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-tablet/05-lookup.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-tablet/05-lookup.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-tablet/06-reconcile.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-tablet/06-reconcile.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-tablet/07-bake.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-tablet/07-bake.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-tablet/08-batch.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-tablet/08-batch.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-tablet/09-inventory.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-tablet/09-inventory.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-tablet/10-stocktake.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-tablet/10-stocktake.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-tablet/11-more.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-tablet/11-more.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-tablet/12-grocery.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-tablet/12-grocery.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-tablet/13-bazaar.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-tablet/13-bazaar.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-tablet/14-pnl.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-tablet/14-pnl.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-tablet/15-formqueue.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-tablet/15-formqueue.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-tablet/16-health.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-tablet/16-health.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-tablet/17-products.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-tablet/17-products.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-tablet/18-notifications.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-tablet/18-notifications.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-tablet/19-shop.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-tablet/19-shop.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-tablet/20-checkout.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-tablet/20-checkout.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-tablet/21-status.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-tablet/21-status.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-tablet/22-recipes.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-tablet/22-recipes.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-tablet/23-drops.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-tablet/23-drops.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-tablet/24-suppliers.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-tablet/24-suppliers.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-tablet/25-settings.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-tablet/25-settings.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/chromium-tablet/26-sign-in.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/chromium-tablet/26-sign-in.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/webkit-phone/01-home.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/webkit-phone/01-home.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/webkit-phone/02-sales.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/webkit-phone/02-sales.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/webkit-phone/03-orders.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/webkit-phone/03-orders.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/webkit-phone/04-order.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/webkit-phone/04-order.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/webkit-phone/05-lookup.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/webkit-phone/05-lookup.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/webkit-phone/06-reconcile.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/webkit-phone/06-reconcile.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/webkit-phone/07-bake.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/webkit-phone/07-bake.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/webkit-phone/08-batch.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/webkit-phone/08-batch.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/webkit-phone/09-inventory.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/webkit-phone/09-inventory.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/webkit-phone/10-stocktake.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/webkit-phone/10-stocktake.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/webkit-phone/11-more.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/webkit-phone/11-more.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/webkit-phone/12-grocery.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/webkit-phone/12-grocery.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/webkit-phone/13-bazaar.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/webkit-phone/13-bazaar.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/webkit-phone/14-pnl.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/webkit-phone/14-pnl.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/webkit-phone/15-formqueue.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/webkit-phone/15-formqueue.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/webkit-phone/16-health.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/webkit-phone/16-health.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/webkit-phone/17-products.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/webkit-phone/17-products.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/webkit-phone/18-notifications.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/webkit-phone/18-notifications.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/webkit-phone/19-shop.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/webkit-phone/19-shop.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/webkit-phone/20-checkout.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/webkit-phone/20-checkout.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/webkit-phone/21-status.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/webkit-phone/21-status.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/webkit-phone/22-recipes.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/webkit-phone/22-recipes.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/webkit-phone/23-drops.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/webkit-phone/23-drops.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/webkit-phone/24-suppliers.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/webkit-phone/24-suppliers.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/webkit-phone/25-settings.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/webkit-phone/25-settings.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:docs/master-plan/evidence/ui/webkit-phone/26-sign-in.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "protected_delivery_bytes:docs/master-plan/evidence/ui/webkit-phone/26-sign-in.png",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:.github/workflows/ci.yml",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:.github/workflows/uptime.yml",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:.codex/agents/port-auditor.toml",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:.codex/agents/security-reviewer.toml",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:.codex/agents/test-author.toml",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:.claude/agents/port-auditor.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:.claude/agents/security-reviewer.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:.claude/agents/test-author.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:.claude/commands/handoff.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:.claude/commands/review.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:.claude/commands/task.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:.claude/commands/verify.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:.claude/hooks/format-and-typecheck.sh",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:.claude/hooks/guard-protected-paths.sh",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:.claude/hooks/remind-verify.sh",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:.agents/skills/source-command-handoff/SKILL.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:.agents/skills/source-command-review/SKILL.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "delivery_file_present:.agents/skills/source-command-verify/SKILL.md",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "agent_authority_notices_aligned",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "shared_worker_policy_aligned",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "current_and_master_local_document_links",
+      "passed": true,
+      "detail": {
+        "checked": 722,
+        "broken": []
+      }
+    },
+    {
+      "check": "accepted_docker_baseline_count",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "accepted_docker_baseline_hashes",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "state_coverage_unique_70_rows",
+      "passed": true,
+      "detail": null
+    }
+  ],
+  "changed_delivery_files": [
+    ".env.example",
+    ".gitignore",
+    ".nvmrc",
+    "AGENTS.md",
+    "CLAUDE.md",
+    "Dockerfile",
+    "eslint.config.mjs",
+    "instrumentation-client.ts",
+    "MASTER-PLAN.md",
+    "next.config.ts",
+    "package.json",
+    "playwright.config.ts",
+    "prettier.config.mjs",
+    "sentry.edge.config.ts",
+    "sentry.server.config.ts",
+    "tsconfig.json",
+    ".github/dependabot.yml",
+    ".github/pull_request_template.md",
+    ".husky/pre-commit",
+    "docs/ARCHITECTURE.md",
+    "docs/BUILD-LOG.md",
+    "docs/CODEX.md",
+    "docs/DATA.md",
+    "docs/ENVIRONMENTS.md",
+    "docs/GAPS.md",
+    "docs/MESSAGING.md",
+    "docs/OBSERVABILITY.md",
+    "docs/OFFLINE.md",
+    "docs/PORTING.md",
+    "docs/RUNBOOK.md",
+    "docs/SCREENS.md",
+    "docs/SESSIONS.md",
+    "docs/STAGING.md",
+    "docs/TECH-DEBT.md",
+    "docs/TESTING.md",
+    "docs/WORKFLOW.md",
+    "scripts/check-port-integrity.mjs",
+    "src/middleware.ts",
+    "tests/e2e/bazaar-offline.spec.ts",
+    "tests/e2e/screens.spec.ts",
+    "tests/e2e/visual.spec.ts",
+    "tests/load/drop-open.js",
+    "tests/unit/scrub.test.ts",
+    "supabase/migrations/20260101000000_init.sql",
+    "src/lib/rate-limit.ts",
+    "src/view-models/vals.ts",
+    "src/lib/observability/scrub.ts",
+    "src/lib/offline/queue.ts",
+    "src/lib/supabase/client.ts",
+    "src/lib/supabase/server.ts",
+    "src/lib/types/database.ts",
+    "src/components/app/ops-app.tsx",
+    "src/components/app/route-sync.tsx",
+    "src/components/sheets/add-inv.tsx",
+    "src/components/sheets/edit-price.tsx",
+    "src/components/sheets/inv-edit.tsx",
+    "src/components/sheets/proof.tsx",
+    "src/components/sheets/why.tsx",
+    "src/app/sign-in/sign-in-form.tsx",
+    "src/app/api/sync/route.ts",
+    "docs/prompts/00-session-protocol.md",
+    "docs/prompts/01-foundation.md",
+    "docs/prompts/02-identity.md",
+    "docs/prompts/03-test-net.md",
+    "docs/prompts/04-postgres.md",
+    "docs/prompts/05-quality.md",
+    "docs/prompts/06-production.md",
+    "docs/prompts/07-review-library.md",
+    "docs/prompts/08-recovery.md",
+    "docs/prompts/09-maintenance.md",
+    ".github/workflows/ci.yml",
+    ".github/workflows/uptime.yml",
+    ".codex/agents/port-auditor.toml",
+    ".codex/agents/security-reviewer.toml",
+    ".codex/agents/test-author.toml",
+    ".claude/agents/port-auditor.md",
+    ".claude/agents/security-reviewer.md",
+    ".claude/agents/test-author.md",
+    ".claude/commands/handoff.md",
+    ".claude/commands/task.md",
+    ".agents/skills/source-command-handoff/SKILL.md"
+  ],
+  "generator_scratch": "C:\\Users\\ethan\\AppData\\Local\\Temp\\happy-cookie-catalog-1w_xpasb",
+  "failures": []
+}

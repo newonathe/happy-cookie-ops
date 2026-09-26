@@ -1,0 +1,8 @@
+{
+  "status": "historical_report_overwritten",
+  "original_sealed_sha256": "d309012c279f312b47953f21b4a69a3708639c37dc460567f808dc7e3209fa50",
+  "incident": "MP06e script-generation failure left old report destinations active; guard-failed run overwrote this historical JSON. Original accepted bytes are unavailable, not reconstructed.",
+  "recorded_prior_result": "MP06d local acceptance recorded in MP-06d-security.txt and prior conversation; this tombstone is not raw passing SQL evidence.",
+  "preserved_failed_run": "MP-06e-attempt0-bootstrap.json",
+  "current_successor": "MP-06e-security.json and MP-06e-bootstrap.json, only if their current status passes"
+}

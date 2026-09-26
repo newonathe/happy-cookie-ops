@@ -1,0 +1,6 @@
+{
+  "worker": "Terra/medium local_evidence",
+  "status": "quota_after_deliverables",
+  "evidence": "Final scripts/results existed and root verified saved PASS/cleanup; worker later returned usage-limit error",
+  "fallback": "No retry, purchase or paid fallback"
+}

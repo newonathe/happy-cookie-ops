@@ -1,0 +1,12 @@
+test_check_rejects_drift_without_writing (__main__.Generation.test_check_rejects_drift_without_writing) ... ok
+test_early_failure_preserves_artifact_and_records_failure (__main__.Generation.test_early_failure_preserves_artifact_and_records_failure) ... ok
+test_existing_pending_file_prevents_replacement (__main__.Generation.test_existing_pending_file_prevents_replacement) ... ok
+test_external_target_is_rejected_before_docker (__main__.Generation.test_external_target_is_rejected_before_docker) ... ok
+test_generator_identity_refusal_and_cleanup_id_mismatch (__main__.Generation.test_generator_identity_refusal_and_cleanup_id_mismatch) ... ok
+test_write_replaces_complete_artifact (__main__.Generation.test_write_replaces_complete_artifact) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.044s
+
+OK
+{"status": "failed", "mode": "--write", "scope": "public schema types and catalog only; no auth/RLS acceptance", "error": "injected readiness failure", "artifact_unchanged": true}

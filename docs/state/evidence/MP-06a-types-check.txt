@@ -1,0 +1,4 @@
+Running explicit loopback CLI reset 1 and catalog assertions.
+Running explicit loopback CLI reset 2 and catalog assertions.
+{"status": "passed", "error": null, "cleanup": "passed"}
+{"status": "passed", "mode": "--check", "scope": "public schema types and catalog only; no auth/RLS acceptance", "generations": 2, "outputs_equal": true, "inventory_equal": true, "generator_image": "public.ecr.aws/supabase/postgres-meta:v0.98.0", "generator_image_id": "sha256:cef71ba901751dcc242cc685cf13786935ea8926820fb342f23bb0fbef77de5a", "types_sha256": "c1495eded3b0d204191ecbe8e797fa627477b301024df3d91aaa85ba9eb39dbe", "generator_sha256": "6f67121404f315d0b1f821e738a4e7af4e91358cf87cc697bd0c5633e92dc40d", "fixture_sha256": "461c20cc92789382631dd15e6aa963620366a43927f72289433257cb50aafc8c", "artifact_unchanged": true}

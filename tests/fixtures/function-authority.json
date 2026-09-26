@@ -1,0 +1,395 @@
+{
+  "scope": "Reviewed local function-authority drift baseline through MP-06l; erasure digest/ACL repaired, full capability/domain and hosted acceptance remain open",
+  "functions": [
+    {
+      "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "name": "anonymise_customer",
+      "owner": "postgres",
+      "config": [
+        "search_path=pg_catalog, public, pg_temp"
+      ],
+      "returns": "integer",
+      "body_md5": "b02890dcc9af44635413ddd4a3c46f2c",
+      "identity": "p_phone text, p_note text",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "name": "bff_session_acquire_refresh",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(p_user_id uuid, p_provider_session_id uuid, p_credential_envelope text, p_credentials_version integer, p_next_credentials_version integer, p_refresh_fence bigint, p_lease_until timestamp with time zone)",
+      "body_md5": "e67d765f0f9b962993b177c258e60f8f",
+      "identity": "p_session_hash text",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "name": "bff_session_begin_revoke",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(p_user_id uuid, p_provider_session_id uuid, p_credential_envelope text, p_credentials_version integer, p_refresh_fence bigint)",
+      "body_md5": "12322e5d0208b0e9f3c6a0a918250146",
+      "identity": "p_session_hash text",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "name": "bff_session_claim_cleanup",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(p_session_hash text, p_user_id uuid, p_provider_session_id uuid, p_credential_envelope text, p_credentials_version integer, p_refresh_fence bigint)",
+      "body_md5": "aef012e2ca0788f2ca918d6fd2422541",
+      "identity": "p_limit integer",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "name": "bff_session_complete_cleanup",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(p_completed_at timestamp with time zone)",
+      "body_md5": "118790a22233a3dfefe7876716c11c46",
+      "identity": "p_session_hash text, p_refresh_fence bigint",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "name": "bff_session_complete_if_provider_absent",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(p_completed_at timestamp with time zone)",
+      "body_md5": "41c3a3b0d7f5c249b237eb31069419e8",
+      "identity": "p_session_hash text, p_refresh_fence bigint, p_user_id uuid, p_provider_session_id uuid",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "name": "bff_session_create",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(p_role app_role, p_csrf_token_out text, p_expires_at bigint)",
+      "body_md5": "2cbc14faa20acab3948bcb89f1ff8ebb",
+      "identity": "p_session_hash text, p_csrf_token text, p_user_id uuid, p_provider_session_id uuid, p_credential_envelope text",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "name": "bff_session_finalize_refresh",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(p_role app_role, p_csrf_token text, p_expires_at bigint)",
+      "body_md5": "a3b59abde8a82a78fd345753da023b96",
+      "identity": "p_session_hash text, p_refresh_fence bigint, p_user_id uuid, p_provider_session_id uuid, p_next_credentials_version integer, p_credential_envelope text",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "name": "bff_session_read",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(p_user_id uuid, p_role app_role, p_csrf_token text, p_expires_at bigint)",
+      "body_md5": "35af19d829dc32b592377df9f3eabe0a",
+      "identity": "p_session_hash text",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "name": "bff_session_save_cleanup_rotation",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(p_saved_credentials_version integer)",
+      "body_md5": "411b24da1a6d67dc4f2d9d12cd276707",
+      "identity": "p_session_hash text, p_refresh_fence bigint, p_user_id uuid, p_provider_session_id uuid, p_credentials_version integer, p_next_credentials_version integer, p_credential_envelope text",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "name": "capacity_allows",
+      "owner": "postgres",
+      "config": [
+        "search_path=pg_catalog, public, pg_temp"
+      ],
+      "returns": "boolean",
+      "body_md5": "0c56f63e70ab97455e6d943d668b0b13",
+      "identity": "p_capacity integer, p_committed integer, p_requested integer",
+      "execute_anon": true,
+      "security_definer": false,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "name": "consume_rate_limit",
+      "owner": "postgres",
+      "config": [
+        "search_path=pg_catalog, public, pg_temp"
+      ],
+      "returns": "TABLE(allowed boolean, remaining integer, reset_at timestamp with time zone)",
+      "body_md5": "74198636c01a261b33724534929e5bd2",
+      "identity": "p_key text, p_limit integer, p_window_s integer",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "name": "current_role_name",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "app_role",
+      "body_md5": "a4831754eb6b712e47fb2eb66a1b5257",
+      "identity": "",
+      "execute_anon": true,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "name": "drop_remaining",
+      "owner": "postgres",
+      "config": [
+        "search_path=pg_catalog, public, pg_temp"
+      ],
+      "returns": "integer",
+      "body_md5": "edc83ca3ecb43a1c9cf72bf65340a310",
+      "identity": "p_drop_id uuid",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "name": "is_owner",
+      "owner": "postgres",
+      "config": [
+        "search_path=pg_catalog, public, pg_temp"
+      ],
+      "returns": "boolean",
+      "body_md5": "01e2d6ee9463de9885f60717bba2eef8",
+      "identity": "",
+      "execute_anon": true,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "name": "is_staff",
+      "owner": "postgres",
+      "config": [
+        "search_path=pg_catalog, public, pg_temp"
+      ],
+      "returns": "boolean",
+      "body_md5": "63df4f488f967b141a33afddb8e27f80",
+      "identity": "",
+      "execute_anon": true,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "name": "lookup_order",
+      "owner": "postgres",
+      "config": [
+        "search_path=pg_catalog, public, pg_temp"
+      ],
+      "returns": "TABLE(id text, customer_name text, state order_state, pay_state pay_state, total_cents bigint, pickup_at timestamp with time zone, placed_at timestamp with time zone)",
+      "body_md5": "a347cc7362764f5b8fc070eef09c8146",
+      "identity": "p_order_id text, p_phone text",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "name": "prune_personal_data",
+      "owner": "postgres",
+      "config": [
+        "search_path=pg_catalog, public, pg_temp"
+      ],
+      "returns": "integer",
+      "body_md5": "2972a1e191174178b4b85c62a75b7f2a",
+      "identity": "p_retain_days integer",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "name": "prune_rate_limits",
+      "owner": "postgres",
+      "config": [
+        "search_path=pg_catalog, public, pg_temp"
+      ],
+      "returns": "integer",
+      "body_md5": "2483cc9753379ff31e636f44bbdb6168",
+      "identity": "",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "name": "settings_effective",
+      "owner": "postgres",
+      "config": [
+        "search_path=pg_catalog, public, pg_temp"
+      ],
+      "returns": "TABLE(key text, int_value bigint, text_value text, cents_value bigint, is_default boolean)",
+      "body_md5": "6e390bb64aa51678ff8a5f4288ad84bd",
+      "identity": "",
+      "execute_anon": false,
+      "security_definer": false,
+      "execute_service_role": true,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "name": "settings_touch",
+      "owner": "postgres",
+      "config": [
+        "search_path=pg_catalog, public, pg_temp"
+      ],
+      "returns": "trigger",
+      "body_md5": "785317d052154950ac9c788f4e9f243e",
+      "identity": "",
+      "execute_anon": false,
+      "security_definer": false,
+      "execute_service_role": true,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "name": "state_is_recognised",
+      "owner": "postgres",
+      "config": [
+        "search_path=pg_catalog, public, pg_temp"
+      ],
+      "returns": "boolean",
+      "body_md5": "fd1b5d692ebd4ce592628c9a74d0f826",
+      "identity": "p_state order_state",
+      "execute_anon": true,
+      "security_definer": false,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "name": "state_reserves_capacity",
+      "owner": "postgres",
+      "config": [
+        "search_path=pg_catalog, public, pg_temp"
+      ],
+      "returns": "boolean",
+      "body_md5": "2ba04ba470bcfbb14ddec2ce89802159",
+      "identity": "p_state order_state",
+      "execute_anon": true,
+      "security_definer": false,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "name": "sync_event_sale",
+      "owner": "postgres",
+      "config": [
+        "search_path=pg_catalog, public, pg_temp"
+      ],
+      "returns": "TABLE(client_id text, sale_id uuid, duplicate boolean)",
+      "body_md5": "dd435d225e521c735a9598ad309d218e",
+      "identity": "p_sale jsonb",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "name": "touch_updated_at",
+      "owner": "postgres",
+      "config": [
+        "search_path=pg_catalog, public, pg_temp"
+      ],
+      "returns": "trigger",
+      "body_md5": "1c4318bee4240d4113d86fad7eb15623",
+      "identity": "",
+      "execute_anon": false,
+      "security_definer": false,
+      "execute_service_role": true,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "name": "update_order_state",
+      "owner": "postgres",
+      "config": [
+        "search_path=pg_catalog, public, pg_temp"
+      ],
+      "returns": "TABLE(id text, state text, pay_state text, updated_at timestamp with time zone)",
+      "body_md5": "a13883cbcf47523d5122eaa36b70aa5e",
+      "identity": "p_order_id text, p_seen_at timestamp with time zone, p_state text, p_pay_state text, p_pay_ref text",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": false
+    }
+  ]
+}

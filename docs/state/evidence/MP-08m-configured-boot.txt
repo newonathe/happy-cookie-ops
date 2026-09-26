@@ -1,0 +1,2 @@
+{"status":"PASS","scope":"synthetic configured Workerd boot; no provider call","checks":{"read":403,"login":403,"wrong_method":405,"sync":503}}
+EXIT_CODE=0

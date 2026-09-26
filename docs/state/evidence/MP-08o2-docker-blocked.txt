@@ -1,0 +1,7 @@
+MP-08o.2 local environment check, 2026-09-25
+Command: docker version --format '{{.Server.Version}}'
+Exit: 1
+Result: dockerDesktopLinuxEngine named pipe absent; Docker Linux daemon unavailable.
+Observation: Docker Desktop and com.docker.backend processes were running. The com.docker.service Windows service was stopped. A non-privileged Start-Service attempt failed with "Cannot open ... service"; no administrative operation was attempted.
+Effect: the new real-provider interruption fixture and final cleanup SQL fixture could not start. Both remain BLOCKED_ENVIRONMENT, not failed product tests or accepted gates.
+No Docker reset, prune, socket removal or global cleanup was attempted. Owned-resource absence could not be checked while the daemon was unavailable.

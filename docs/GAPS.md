@@ -1,5 +1,7 @@
 # Gaps
 
+> MP-06.b.1 authority update: `settings_effective()` now permits only service_role among API-facing roles. Its previous general-staff grant is revoked; the settings descriptions below preserve historical behavior, not authorization to restore that grant. Use the [current RPC plan](state/MP-06b-authority-plan.md) and owner/public projection boundaries. Direct table-policy hardening remains pending.
+
 > **Superseded audit baseline:** Use [MASTER-PLAN.md](../MASTER-PLAN.md) and [the new audit](master-plan/00-audit-evidence.md). The list below is historical and contains readiness assumptions corrected by the source/browser/build evidence.
 
 What this system lacks, beyond design. Written as an honest inventory, not a wishlist:

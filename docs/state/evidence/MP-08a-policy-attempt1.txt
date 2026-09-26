@@ -1,0 +1,110 @@
+
+ RUN  v3.2.7 C:/Users/ethan/dev/happy-cookie-ops-g0
+
+ ❯ tests/unit/session-request-policy.test.ts (57 tests | 2 failed) 31ms
+   ✓ session mutation origin boundary > accepts same-origin browser requests with or without fetch metadata 3ms
+   ✓ session mutation origin boundary > permits explicit local testing at http://localhost:8788 0ms
+   ✓ session mutation origin boundary > permits explicit local testing at http://127.0.0.1:8788 0ms
+   × session mutation origin boundary > permits explicit local testing at http://[::1]:8788 6ms
+     → expected [Function] to not throw an error but 'SessionRequestError: invalid_configur…' was thrown
+   ✓ session mutation origin boundary > denies hostile Origin  1ms
+   ✓ session mutation origin boundary > denies hostile Origin null 0ms
+   ✓ session mutation origin boundary > denies hostile Origin https://evil.test 0ms
+   ✓ session mutation origin boundary > denies hostile Origin https://ops.example.test.evil.test 0ms
+   ✓ session mutation origin boundary > denies hostile Origin https://ops.example.test/ 0ms
+   ✓ session mutation origin boundary > denies hostile Origin https://ops.example.test:444 0ms
+   ✓ session mutation origin boundary > rejects missing origin and custom header 0ms
+   ✓ session mutation origin boundary > denies fetch-site same-site even with a forged origin 0ms
+   ✓ session mutation origin boundary > denies fetch-site cross-site even with a forged origin 0ms
+   ✓ session mutation origin boundary > denies fetch-site none even with a forged origin 0ms
+   ✓ session mutation origin boundary > denies fetch-site garbage even with a forged origin 0ms
+   ✓ session mutation origin boundary > rejects hostile target URL and ignores forwarded host 0ms
+   ✓ session mutation origin boundary > rejects GET mutations 0ms
+   ✓ session mutation origin boundary > rejects PUT mutations 0ms
+   ✓ session mutation origin boundary > rejects DELETE mutations 0ms
+   ✓ session mutation origin boundary > rejects OPTIONS mutations 0ms
+   ✓ session mutation origin boundary > fails closed for invalid trusted config http://ops.example.test 0ms
+   ✓ session mutation origin boundary > fails closed for invalid trusted config https://ops.example.test/ 0ms
+   ✓ session mutation origin boundary > fails closed for invalid trusted config https://ops.example.test/path 0ms
+   ✓ session mutation origin boundary > fails closed for invalid trusted config https://ops.example.test?x=1 0ms
+   ✓ session mutation origin boundary > fails closed for invalid trusted config https://ops.example.test#fragment 0ms
+   ✓ session mutation origin boundary > fails closed for invalid trusted config https://user:pass@ops.example.test 0ms
+   ✓ session mutation origin boundary > fails closed for invalid trusted config not a URL 0ms
+   ✓ session mutation origin boundary > fails closed for invalid trusted config https://ops.example.test:443 0ms
+   ✓ bounded session JSON boundary > returns parsed strict-schema data, with accepted UTF-8 media parameter 5ms
+   ✓ bounded session JSON boundary > rejects media text/plain 1ms
+   ✓ bounded session JSON boundary > rejects media application/x-www-form-urlencoded 0ms
+   ✓ bounded session JSON boundary > rejects media multipart/form-data 0ms
+   ✓ bounded session JSON boundary > rejects media application/json; charset=latin1 0ms
+   ✓ bounded session JSON boundary > rejects media application/json; boundary=x 0ms
+   ✓ bounded session JSON boundary > rejects missing content type and compressed bodies 0ms
+   ✓ bounded session JSON boundary > rejects malformed length -1 0ms
+   ✓ bounded session JSON boundary > rejects malformed length 1e3 0ms
+   ✓ bounded session JSON boundary > rejects malformed length 1.5 0ms
+   ✓ bounded session JSON boundary > rejects malformed length wat 0ms
+   × bounded session JSON boundary > rejects malformed length 9007199254740992 3ms
+     → expected SessionRequestError: payload_too_large { …(2) } to deeply equal ObjectContaining{…}
+   ✓ bounded session JSON boundary > rejects declared oversize before reading the body 1ms
+   ✓ bounded session JSON boundary > uses UTF-8 bytes and accepts the exact limit 1ms
+   ✓ bounded session JSON boundary > cancels overflow without waiting for a stalled cancellation callback 1ms
+   ✓ bounded session JSON boundary > returns only a safe error for invalid payload 0 0ms
+   ✓ bounded session JSON boundary > returns only a safe error for invalid payload 1 0ms
+   ✓ bounded session JSON boundary > returns only a safe error for invalid payload 2 1ms
+   ✓ bounded session JSON boundary > returns only a safe error for invalid payload 3 0ms
+   ✓ bounded session JSON boundary > returns only a safe error for invalid payload 4 0ms
+   ✓ bounded session JSON boundary > rejects malformed UTF-8 and stream failures without exposing details 1ms
+   ✓ bounded session JSON boundary > rejects consumed and absent bodies 0ms
+   ✓ bounded session JSON boundary > rejects unbounded or invalid byte limit 0 0ms
+   ✓ bounded session JSON boundary > rejects unbounded or invalid byte limit -1 0ms
+   ✓ bounded session JSON boundary > rejects unbounded or invalid byte limit 1.5 0ms
+   ✓ bounded session JSON boundary > rejects unbounded or invalid byte limit NaN 0ms
+   ✓ bounded session JSON boundary > rejects unbounded or invalid byte limit Infinity 0ms
+   ✓ bounded session JSON boundary > rejects unbounded or invalid byte limit 65537 0ms
+   ✓ bounded session JSON boundary > uses a recognizable safe error class 0ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/session-request-policy.test.ts > session mutation origin boundary > permits explicit local testing at http://[::1]:8788
+AssertionError: expected [Function] to not throw an error but 'SessionRequestError: invalid_configur…' was thrown
+
+- Expected: 
+undefined
+
++ Received: 
+"SessionRequestError: invalid_configuration"
+
+ ❯ tests/unit/session-request-policy.test.ts:25:100
+     23|   });
+     24|   it.each(['http://localhost:8788', 'http://127.0.0.1:8788', 'http://[…
+     25|     expect(() => assertSameOriginMutation(mutation(local + '/api', { O…
+       |                                                                                                    ^
+     26|   });
+     27|   it.each(['', 'null', 'https://evil.test', origin + '.evil.test', ori…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  tests/unit/session-request-policy.test.ts > bounded session JSON boundary > rejects malformed length 9007199254740992
+AssertionError: expected SessionRequestError: payload_too_large { …(2) } to deeply equal ObjectContaining{…}
+
+- Expected
++ Received
+
+- ObjectContaining {
+-   "code": "bad_request",
+-   "message": "bad_request",
+-   "status": 400,
++ SessionRequestError {
++   "message": "payload_too_large",
++   "code": "payload_too_large",
++   "status": 413,
++   "name": "SessionRequestError",
+  }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 55 passed (57)
+   Start at  22:33:10
+   Duration  2.15s (transform 49ms, setup 278ms, collect 1.50s, tests 31ms, environment 0ms, prepare 148ms)
+

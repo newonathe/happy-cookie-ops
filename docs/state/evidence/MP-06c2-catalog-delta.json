@@ -1,0 +1,28 @@
+{
+  "status": "passed",
+  "changed_catalog_sections": [
+    "columns",
+    "functions"
+  ],
+  "new_column": {
+    "udt_name": "bool",
+    "data_type": "boolean",
+    "table_name": "profiles",
+    "column_name": "active",
+    "is_nullable": "NO",
+    "column_default": "false",
+    "ordinal_position": 5
+  },
+  "changed_function_metadata": {
+    "name": "current_role_name",
+    "old_config": [
+      "search_path=public"
+    ],
+    "new_config": [
+      "search_path=\"\""
+    ],
+    "other_metadata_equal": true
+  },
+  "generated_types_delta": "Exactly profiles.active Row boolean and optional Insert/Update boolean; removing those three lines reproduces prior artifact hash.",
+  "scope": "Does not hash SQL function bodies; actual migration and tested-input archive record definition."
+}

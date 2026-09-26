@@ -1,0 +1,17 @@
+{
+  "scope": "read-only Cloudflare account/profile preflight; no hosted project creation or deployment",
+  "date": "2026-09-26",
+  "wranglerVersion": "4.130.0",
+  "namedProfile": "happy-cookie-ops",
+  "reportedEmailMatched": true,
+  "accountCount": 1,
+  "accountIdSha256": "5c09155969ebcfc46b8c7b9d5b6483d21417ce7052c8dad4ec6b1eb2c302af87",
+  "pagesProjectCount": 0,
+  "pagesTargetNameAvailable": true,
+  "workersTargetNameAvailable": true,
+  "defaultProfilePreserved": true,
+  "freePlanOwnerReported": true,
+  "freePlanIndependentVerification": false,
+  "hostedDeploymentPerformed": false,
+  "limits": "Owner reports Workers & Pages dashboard shows Free; spend controls remain uninspected. Local adapter still lacks complete sync/private-file hosted acceptance."
+}

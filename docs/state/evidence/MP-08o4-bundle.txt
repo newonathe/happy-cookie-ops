@@ -1,0 +1,7 @@
+
+ ⛅️ wrangler 4.130.0 (update available 4.139.0)
+───────────────────────────────────────────────
+Total Upload: 780.82 KiB / gzip: 121.67 KiB
+No bindings found.
+--dry-run: exiting now.
+exit_code=0

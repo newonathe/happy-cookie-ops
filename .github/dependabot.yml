@@ -1,4 +1,7 @@
-# Security updates only.
+# Security updates only. Dependabot alerts and security updates were switched on in
+# Settings → Code security (verified 2026-09-24: automated-security-fixes enabled, alerts on).
+# `open-pull-requests-limit: 0` below disables routine *version* updates, which is GitHub's
+# documented switch; security update PRs are unaffected.
 #
 # A full dependency bot on a repository this size opens a PR a day, they get ignored, and
 # then the one that matters gets ignored too. M-03 in docs/prompts/09-maintenance.md is
@@ -10,7 +13,7 @@ updates:
     schedule:
       interval: weekly
       day: monday
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 0
     # Only vulnerabilities. Feature updates go through the monthly ritual, where somebody
     # reads the changelog.
     allow:
@@ -31,5 +34,6 @@ updates:
     directory: /
     schedule:
       interval: monthly
+    open-pull-requests-limit: 0
     commit-message:
       prefix: 'chore(ci)'

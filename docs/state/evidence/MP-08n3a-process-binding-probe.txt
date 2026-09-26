@@ -1,0 +1,1 @@
+{"result":"trusted_workerd_https_pass","node_trusted_control":true,"workerd_trusted":{"http":204,"https":204,"process_binding_visible":true},"workerd_untrusted":{"http":204,"https":0,"process_binding_visible":true},"target_counts":{"http":2,"https":2,"tls_errors":0}}

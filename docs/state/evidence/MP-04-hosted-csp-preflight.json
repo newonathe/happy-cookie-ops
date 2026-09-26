@@ -1,0 +1,12 @@
+{
+  "scope": "current local Pages artifact CSP feasibility only; candidate is not installed or browser-tested",
+  "manifest_sha256": "21538a9fb470590e01cf4bb21e326b2044f955c95b1b01174e35fcfbfd683bbe",
+  "html_files_scanned": 28,
+  "unique_inline_script_hashes": 28,
+  "inline_script_hashes_per_html_min": 2,
+  "inline_script_hashes_per_html_max": 2,
+  "candidate_csp_characters": 1685,
+  "cloudflare_header_limit": 2000,
+  "within_limit": true,
+  "enforced": false
+}

@@ -1,0 +1,21 @@
+{
+  "scope": "historical Docker outage before the later two provider fixture attempts",
+  "status": "NOT_VERIFIED_BLOCKED_ENVIRONMENT",
+  "reason": "Docker Desktop Linux engine API unavailable at desktop-linux npipe",
+  "fixture_files": [
+    "scripts/test-cleanup-worker-provider.py",
+    "scripts/test-cleanup-worker-provider.mjs"
+  ],
+  "static_checks": {
+    "python_py_compile_exit": 0,
+    "node_check_exit": 0
+  },
+  "docker_context": "desktop-linux",
+  "docker_info_exit": 1,
+  "normal_hidden_desktop_launch_attempted": true,
+  "engine_restored_at_this_check": false,
+  "later_recovered": true,
+  "provider_fixture_success_claimed": false,
+  "owned_resource_cleanup_verified": false,
+  "docker_reset_or_prune_attempted": false
+}

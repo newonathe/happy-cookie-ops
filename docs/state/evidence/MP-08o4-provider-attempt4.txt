@@ -1,0 +1,2 @@
+{"status": "FAIL", "reason": "child_gateway_bad_key_accepted"}
+exit_code=1

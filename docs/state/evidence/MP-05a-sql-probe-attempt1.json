@@ -1,0 +1,33 @@
+{
+  "scope": "SQL-only replay; no Supabase CLI reset or auth/RLS acceptance",
+  "runs": [
+    {
+      "container": "hcb-sql-probe-ea587acdd1f1",
+      "applied": [
+        {
+          "file": "20260101000000_init.sql",
+          "sha256": "2f123c8cc79d7586792eb8bb30425621a9e82b4ef257e384ccc56f326b11a9a2"
+        },
+        {
+          "file": "20260101000100_sync_sales.sql",
+          "sha256": "6d4b9d110413cb2dd79687e590e17dfa73a80f39a8892e404cb2532c7c027815"
+        },
+        {
+          "file": "20260101000200_catalogue_fidelity.sql",
+          "sha256": "2f0d7afc512e9d09ca98d3b54fc54c6861af9284bf4cc3f0bab9cc4c914dea04"
+        },
+        {
+          "file": "20260101000300_rate_limits.sql",
+          "sha256": "f178558c82f4181a53983aeae3c6b7ef1fe3faa4a5be5bd122f3d76a3be3882f"
+        },
+        {
+          "file": "20260101000400_capacity_parity.sql",
+          "sha256": "348f917f5c661cb6b9fd00aaa18b183820deb11ee1da0f4aeeb6d99b402fa65a"
+        }
+      ],
+      "cleanup": "passed"
+    }
+  ],
+  "status": "failed",
+  "error": "raw command output suppressed"
+}

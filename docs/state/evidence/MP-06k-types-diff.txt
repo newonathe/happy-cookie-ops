@@ -1,0 +1,199 @@
+--- MP06j generated
++++ MP06k generated
+@@ -90,10 +90,24 @@
+             referencedColumns: ["id"]
+           },
+           {
++            foreignKeyName: "bake_batches_drop_id_fkey"
++            columns: ["drop_id"]
++            isOneToOne: false
++            referencedRelation: "shop_drops"
++            referencedColumns: ["id"]
++          },
++          {
+             foreignKeyName: "bake_batches_product_id_fkey"
+             columns: ["product_id"]
+             isOneToOne: false
+             referencedRelation: "products"
++            referencedColumns: ["id"]
++          },
++          {
++            foreignKeyName: "bake_batches_product_id_fkey"
++            columns: ["product_id"]
++            isOneToOne: false
++            referencedRelation: "shop_products"
+             referencedColumns: ["id"]
+           },
+         ]
+@@ -106,6 +120,7 @@
+           id: string
+           opens_at: string
+           pickup_at: string
++          published: boolean
+           updated_at: string
+           week_label: string
+         }
+@@ -116,6 +131,7 @@
+           id?: string
+           opens_at: string
+           pickup_at: string
++          published?: boolean
+           updated_at?: string
+           week_label: string
+         }
+@@ -126,6 +142,7 @@
+           id?: string
+           opens_at?: string
+           pickup_at?: string
++          published?: boolean
+           updated_at?: string
+           week_label?: string
+         }
+@@ -189,6 +206,13 @@
+             columns: ["product_id"]
+             isOneToOne: false
+             referencedRelation: "products"
++            referencedColumns: ["id"]
++          },
++          {
++            foreignKeyName: "event_sale_items_product_id_fkey"
++            columns: ["product_id"]
++            isOneToOne: false
++            referencedRelation: "shop_products"
+             referencedColumns: ["id"]
+           },
+           {
+@@ -440,6 +464,13 @@
+             referencedRelation: "products"
+             referencedColumns: ["id"]
+           },
++          {
++            foreignKeyName: "order_items_product_id_fkey"
++            columns: ["product_id"]
++            isOneToOne: false
++            referencedRelation: "shop_products"
++            referencedColumns: ["id"]
++          },
+         ]
+       }
+       orders: {
+@@ -505,6 +536,13 @@
+             referencedRelation: "drops"
+             referencedColumns: ["id"]
+           },
++          {
++            foreignKeyName: "orders_drop_id_fkey"
++            columns: ["drop_id"]
++            isOneToOne: false
++            referencedRelation: "shop_drops"
++            referencedColumns: ["id"]
++          },
+         ]
+       }
+       products: {
+@@ -516,6 +554,7 @@
+           kind: string
+           name: string
+           price_cents: number
++          published: boolean
+           short_name: string
+           sort_order: number
+           tag: string
+@@ -528,6 +567,7 @@
+           kind: string
+           name: string
+           price_cents: number
++          published?: boolean
+           short_name: string
+           sort_order?: number
+           tag?: string
+@@ -540,6 +580,7 @@
+           kind?: string
+           name?: string
+           price_cents?: number
++          published?: boolean
+           short_name?: string
+           sort_order?: number
+           tag?: string
+@@ -639,6 +680,13 @@
+             columns: ["product_id"]
+             isOneToOne: true
+             referencedRelation: "products"
++            referencedColumns: ["id"]
++          },
++          {
++            foreignKeyName: "recipes_product_id_fkey"
++            columns: ["product_id"]
++            isOneToOne: true
++            referencedRelation: "shop_products"
+             referencedColumns: ["id"]
+           },
+         ]
+@@ -737,7 +785,66 @@
+       }
+     }
+     Views: {
+-      [_ in never]: never
++      shop_drops: {
++        Row: {
++          closes_at: string | null
++          id: string | null
++          opens_at: string | null
++          pickup_at: string | null
++          week_label: string | null
++        }
++        Insert: {
++          closes_at?: string | null
++          id?: string | null
++          opens_at?: string | null
++          pickup_at?: string | null
++          week_label?: string | null
++        }
++        Update: {
++          closes_at?: string | null
++          id?: string | null
++          opens_at?: string | null
++          pickup_at?: string | null
++          week_label?: string | null
++        }
++        Relationships: []
++      }
++      shop_products: {
++        Row: {
++          description: string | null
++          id: string | null
++          image_path: string | null
++          kind: string | null
++          name: string | null
++          price_cents: number | null
++          short_name: string | null
++          sort_order: number | null
++          tag: string | null
++        }
++        Insert: {
++          description?: string | null
++          id?: string | null
++          image_path?: string | null
++          kind?: string | null
++          name?: string | null
++          price_cents?: number | null
++          short_name?: string | null
++          sort_order?: number | null
++          tag?: string | null
++        }
++        Update: {
++          description?: string | null
++          id?: string | null
++          image_path?: string | null
++          kind?: string | null
++          name?: string | null
++          price_cents?: number | null
++          short_name?: string | null
++          sort_order?: number | null
++          tag?: string | null
++        }
++        Relationships: []
++      }
+     }
+     Functions: {
+       anonymise_customer: {

@@ -1,0 +1,14 @@
+{
+  "slice": "MP-08h",
+  "reviewer": "Codex Sol/high independent read-only worker",
+  "scope": [
+    "src/lib/auth/supabase-auth-transport.ts verifyBinding",
+    "tests/unit/supabase-auth-transport.test.ts binding cases",
+    "src/lib/auth/session-handler.ts stable refresh response",
+    "tests/unit/session-handler.test.ts refresh cases"
+  ],
+  "findings": [],
+  "disposition": "No actionable findings in the bounded code and test review. Provider /user identity is checked before parsing the same JWT's session_id; mismatched, malformed, denied and aborted results do not release a binding. Routine refresh preserves principal, cookie, CSRF and absolute expiry while permitting a fresh role.",
+  "limits": "Reviewer inspected code/tests only; it did not execute tests or use Docker/network. Pinned GoTrue HTTP behavior, active auth.sessions row, database grants/races, and live SessionAuthority remain unverified.",
+  "local_tests": "docs/state/evidence/MP-08h-verify-attempt1.txt"
+}

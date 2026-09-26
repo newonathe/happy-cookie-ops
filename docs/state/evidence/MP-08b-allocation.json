@@ -1,0 +1,11 @@
+{
+  "claude_coder": "Sonnet5 medium,4turns, no permissiondenials",
+  "codex_review": "Sol high, reused bounded worker",
+  "root": "tests, integration and reviewremediation",
+  "codex_allowance_at_check": {
+    "five_hour_remaining_percent": 72,
+    "weekly_remaining_percent": 33
+  },
+  "claude_remaining_quota": "unknown; successful first-party Pro run, no extrausage/API fallback",
+  "concurrency": "one codingworker thenoneindependentreviewer; nochildren"
+}

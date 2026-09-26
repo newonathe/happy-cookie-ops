@@ -1,0 +1,10 @@
+
+ RUN  v3.2.7 C:/Users/ethan/dev/happy-cookie-ops-g0
+
+ ✓ tests/unit/session-handler.test.ts (34 tests) 93ms
+
+ Test Files  1 passed (1)
+      Tests  34 passed (34)
+   Start at  03:39:47
+   Duration  831ms (transform 69ms, setup 258ms, collect 182ms, tests 93ms, environment 0ms, prepare 131ms)
+

@@ -1,0 +1,30 @@
+
+[WebServer] (node:25788) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:32048) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+
+Running 4 tests using 2 workers
+
+(node:29416) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+
+(node:30780) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+[1/4] [phone] › tests\e2e\stocktake-resume.spec.ts:4:5 › direct stocktake can pause and resume after reload
+[2/4] [phone] › tests\e2e\hydration-diagnostic.spec.ts:3:5 › Home hydrates when client clock is later than prerender
+
+(node:32100) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+[3/4] [webkit] › tests\e2e\hydration-diagnostic.spec.ts:3:5 › Home hydrates when client clock is later than prerender
+
+(node:36608) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+[4/4] [webkit] › tests\e2e\stocktake-resume.spec.ts:4:5 › direct stocktake can pause and resume after reload
+  4 passed (12.3s)

@@ -1,5 +1,7 @@
 # How we work
 
+> **Historical context (T-task era, before the 2026-09-08 master plan):** where this page conflicts with [MASTER-PLAN.md](../MASTER-PLAN.md), [docs/state/current.md](../docs/state/current.md) or the [decision register](../docs/state/decision-register.md), those win. Its protection rules still apply unless they say otherwise.
+
 Three participants: **you**, **Claude Code**, and **Codex**. This is the operating manual
 for the three of us. It exists because the failure mode of agentic development is not bad
 code — it is fast code nobody reviewed, built on a misunderstanding, on a branch that

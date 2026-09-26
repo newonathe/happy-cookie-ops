@@ -1,0 +1,14 @@
+{
+  "status": "accepted_bounded_review",
+  "blocking_findings": 0,
+  "model": "claude-sonnet-5",
+  "effort": "medium",
+  "observed_models": [
+    "claude-haiku-4-5-20251001",
+    "claude-sonnet-5"
+  ],
+  "turns": 14,
+  "permission_denials": [],
+  "root_evidence": "636SQL/52red/10sequence restorations/2upgrades;16configonly catalogchanges;17bodiesunchanged;types/19guards/115tests pass",
+  "remaining_scope": "No exhaustive erasure/digest branch acceptance or managed/global function-default guarantee;those remain open. Config serialization confirmed live."
+}

@@ -16,18 +16,18 @@ declare global {
 export async function initializeFixture(page: Page, mode: 'demo' | 'offline' = 'demo'): Promise<void> {
   await waitForHydration(page);
   await page.clock.setFixedTime(fixtureTime);
-  await page.evaluate(({ now, state, mode }) => {
+  await page.evaluate(({ now, state, mode }) => new Promise<void>((resolve) => {
     const engine = window.__hcOps;
     if (!engine) throw new Error('Engine not hydrated');
-    engine.setState(mode === 'offline' ? { now } : { ...state, now, screen: engine.state.screen });
-  }, { now: fixtureTime.getTime(), state: demoState, mode });
+    engine.setState(mode === 'offline' ? { now } : { ...state, now, screen: engine.state.screen }, resolve);
+  }), { now: fixtureTime.getTime(), state: demoState, mode });
 }
 export async function waitForHydration(page: Page): Promise<void> {
   await page.waitForFunction(() => Boolean(window.__hcOps));
   await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
 }
 export async function selectPrerequisites(page: Page, path: string): Promise<void> {
-  await page.evaluate((path) => {
+  await page.evaluate((path) => new Promise<void>((resolve) => {
     const engine = window.__hcOps;
     if (!engine) throw new Error('Engine not hydrated');
     const selected = engine.state.orders[0];
@@ -36,8 +36,8 @@ export async function selectPrerequisites(page: Page, path: string): Promise<voi
     if (path === '/order' || path === '/status') state.orderId = selected.id;
     if (path === '/batch') state.batch = { pid: 'dcf', target: 6, actual: 6, step: 1, note: '', adj: {}, rejects: 0 };
     if (path === '/stocktake') state.stocktake = { i: 0, counts: {}, items: ['Unsalted butter'] };
-    engine.setState(state);
-  }, path);
+    engine.setState(state, resolve);
+  }), path);
 }
 export async function selectVisualFixture(page: Page, path: string, device = 'mobile'): Promise<void> {
   await waitForHydration(page);

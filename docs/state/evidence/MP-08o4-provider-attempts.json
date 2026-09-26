@@ -1,0 +1,86 @@
+{
+  "scope": "MP-08o.4 local scheduled Workerd to disposable private provider",
+  "status": "PASS_LOCAL_TWO_CONSECUTIVE_FINAL_PAIRS",
+  "engine_recovered_after_initial_outage": true,
+  "attempts": [
+    {
+      "receipt": "MP-08o4-provider-attempt1.txt",
+      "exit_code": 1,
+      "reason": "initial_provider_sessions",
+      "disposition": "fixture assertion corrected to preserve the Auth session created by signup"
+    },
+    {
+      "receipt": "MP-08o4-provider-attempt2.txt",
+      "exit_code": 1,
+      "reason": "child_failed",
+      "disposition": "child failure detail was suppressed by the sanitizing parent; do not infer Worker or provider behavior"
+    },
+    {
+      "receipt": "MP-08o4-provider-attempt3.txt",
+      "exit_code": 1,
+      "reason": "child_no_stdout",
+      "disposition": "separate no-secret Node startup reproduced ERR_MODULE_NOT_FOUND for an extensionless TypeScript dependency import before fixture execution"
+    },
+    {
+      "receipt": "MP-08o4-provider-attempt4.txt",
+      "exit_code": 1,
+      "reason": "child_gateway_bad_key_accepted",
+      "disposition": "test-only negative-key helper used https.get with a POST body; corrected to https.request"
+    },
+    {
+      "receipt": "MP-08o4-provider-attempt5.txt",
+      "exit_code": 1,
+      "reason": "child_worker_scheduled_log_invalid",
+      "disposition": "scheduled endpoint returned success, but the fixture did not accept the aggregate log; no provider/SQL acceptance inferred. Next diagnostic distinguishes missing, duplicate and shape mismatch."
+    },
+    {
+      "receipt": "MP-08o4-provider-attempt6.txt",
+      "exit_code": 1,
+      "reason": "child_worker_scheduled_log_missing",
+      "disposition": "Wrangler --log-level error hid the expected console.info aggregate event; removed that fixture-only filter"
+    },
+    {
+      "receipt": "MP-08o4-provider-attempt7.txt",
+      "exit_code": 1,
+      "reason": "child_scheduled_scheduled_log_invalid",
+      "disposition": "fixture dispatched begin_revoke cleanup before the SQL 30-second retry floor; added an exact empty cooldown tick and a 31-second wait"
+    },
+    {
+      "receipt": "MP-08o4-provider-attempt8.txt",
+      "exit_code": 0,
+      "reason": "PASS",
+      "disposition": "first full fresh-pair positive result before independent TLS negative-control review"
+    },
+    {
+      "receipt": "MP-08o4-provider-attempt9.txt",
+      "exit_code": 0,
+      "reason": "PASS",
+      "disposition": "second full fresh-pair positive result before independent TLS negative-control review"
+    },
+    {
+      "receipt": "MP-08o4-provider-attempt10.txt",
+      "exit_code": 0,
+      "reason": "PASS",
+      "disposition": "first full fresh-pair pass after TLS negative control restricted to certificate-validation errors"
+    },
+    {
+      "receipt": "MP-08o4-provider-attempt11.txt",
+      "exit_code": 0,
+      "reason": "PASS",
+      "disposition": "second consecutive full fresh-pair pass after TLS negative control restricted to certificate-validation errors"
+    }
+  ],
+  "post_attempt_read_only_check": {
+    "matching_hcb_containers": 0,
+    "matching_hcb_networks": 0,
+    "matching_auth_fixture_workdirs": 0
+  },
+  "provider_cleanup_pass_claimed": true,
+  "next_action": "retain MP-08/G1 as open; prepare reviewed synthetic hosted platform and secret-binding checks before any approved deployment",
+  "post_final_read_only_check": {
+    "matching_hcb_containers": 0,
+    "matching_hcb_networks": 0,
+    "matching_auth_fixture_workdirs": 0
+  },
+  "acceptance_boundary": "local scheduled Workerd to disposable private provider only; synthetic sb_secret translated by test-only gateway; no hosted CPU, native hosted key, Cron or deployment proof"
+}

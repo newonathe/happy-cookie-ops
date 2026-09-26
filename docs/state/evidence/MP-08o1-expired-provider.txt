@@ -1,0 +1,2 @@
+{"expired_logout_code": "bad_jwt", "expired_logout_http": 403, "fresh_logout_http": 204, "post_logout_code": "session_not_found", "post_logout_user_http": 403, "private_network": true, "published_host_ports": 0, "refresh_http": 200, "rows_after_expired_logout": 1, "rows_after_fresh_logout": 0, "status": "PASS"}
+EXIT_CODE=0

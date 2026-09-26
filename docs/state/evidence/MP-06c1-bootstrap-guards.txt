@@ -1,0 +1,14 @@
+test_cleanup_missing_or_mismatched_creation_id_retains_resources (__main__.Guards.test_cleanup_missing_or_mismatched_creation_id_retains_resources) ... ok
+test_cleanup_refuses_unowned_and_retains_on_remove_error (__main__.Guards.test_cleanup_refuses_unowned_and_retains_on_remove_error) ... ok
+test_exact_loopback_and_identity (__main__.Guards.test_exact_loopback_and_identity) ... ok
+test_external_arguments_rejected_before_creation (__main__.Guards.test_external_arguments_rejected_before_creation) ... ok
+test_generated_secret_not_reported_on_command_failure (__main__.Guards.test_generated_secret_not_reported_on_command_failure) ... ok
+test_real_failure_cleanup_preserves_unrelated_container (__main__.Guards.test_real_failure_cleanup_preserves_unrelated_container) ... ok
+test_replaced_container_and_host_mount_rejected (__main__.Guards.test_replaced_container_and_host_mount_rejected) ... ok
+test_unsafe_bindings_rejected (__main__.Guards.test_unsafe_bindings_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 2.629s
+
+OK
+{"status": "failed", "error": "injected failure after owned container startup", "cleanup": "passed"}

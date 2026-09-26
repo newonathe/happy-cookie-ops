@@ -1,0 +1,7 @@
+{
+  "status": "failed",
+  "mode": "--check",
+  "scope": "public schema types and catalog only; no auth/RLS acceptance",
+  "error": "type generation fixture failed; see sanitized bootstrap evidence",
+  "artifact_unchanged": true
+}

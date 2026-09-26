@@ -1,0 +1,10 @@
+
+ ⛅️ wrangler 4.130.0 (update available 4.140.0)
+───────────────────────────────────────────────
+✨ Read 303 files from the assets directory C:\Users\ethan\dev\happy-cookie-ops-g0\build\pages-spike\public
+Total Upload: 794.06 KiB / gzip: 124.55 KiB
+Your Worker has access to the following bindings:
+Binding            Resource      
+env.ASSETS         Assets        
+
+--dry-run: exiting now.

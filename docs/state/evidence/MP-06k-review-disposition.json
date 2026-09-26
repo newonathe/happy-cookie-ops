@@ -1,0 +1,25 @@
+{
+  "status": "reviewed_no_blockers",
+  "review": "MP-06k-claude-result.json",
+  "requested_model": "Sonnet5/medium",
+  "actual_turns": 10,
+  "permission_denials": [],
+  "root_corrections": [
+    "Health is cookie/session-aware anon-key client, not service-role. Its query checks error only; RLS empty rows succeed, so no health rewrite required. Worker claim of503 was incorrect.",
+    "Raw helper/support restriction is intentional and in scope. Locked UI has no database catalog consumer yet.",
+    "View privilege and filter behavior still requires actual tests; static review alone is not acceptance."
+  ],
+  "deferred": [
+    "versioned publish command",
+    "allergens/soldout/current capacity",
+    "HTTP/JWT/embedding acceptance",
+    "full G1"
+  ],
+  "coding_worker": {
+    "model": "Sonnet5/medium",
+    "actual_turns": 14,
+    "permission_denials": [],
+    "file": "tests/integration/security/public-catalog.sql",
+    "root_verified_edits": "4/3 rawcounts;early redgrant;snapshotpreservation;41cases;SQLexecutionpending"
+  }
+}

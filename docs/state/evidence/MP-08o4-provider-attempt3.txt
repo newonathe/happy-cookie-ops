@@ -1,0 +1,2 @@
+{"status": "FAIL", "reason": "child_no_stdout"}
+exit_code=1

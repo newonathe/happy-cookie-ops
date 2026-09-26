@@ -1,0 +1,12 @@
+
+ RUN  v3.2.7 C:/Users/ethan/dev/happy-cookie-ops-g0
+
+ ✓ tests/unit/persistent-session-authority.test.ts (26 tests) 79ms
+ ✓ tests/unit/supabase-auth-transport.test.ts (54 tests) 158ms
+
+ Test Files  2 passed (2)
+      Tests  80 passed (80)
+   Start at  17:11:38
+   Duration  2.11s (transform 233ms, setup 1.26s, collect 737ms, tests 238ms, environment 1ms, prepare 707ms)
+
+EXIT_CODE=0

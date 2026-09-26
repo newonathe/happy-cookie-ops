@@ -1,0 +1,8 @@
+test_arguments_are_rejected_before_loading_fixture (test_provider_contract_runner.RunnerGuards.test_arguments_are_rejected_before_loading_fixture) ... ok
+test_pass_requires_two_equal_metadata_results_and_successful_fixture (test_provider_contract_runner.RunnerGuards.test_pass_requires_two_equal_metadata_results_and_successful_fixture) ... ok
+test_unavailable_engine_never_starts_fixture_or_sql_and_preserves_attempts (test_provider_contract_runner.RunnerGuards.test_unavailable_engine_never_starts_fixture_or_sql_and_preserves_attempts) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.078s
+
+OK

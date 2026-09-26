@@ -1,0 +1,33 @@
+{
+  "scope": "MP-06.b plan and rollback-only experiments; implementation pending",
+  "codex": {
+    "task": "rpc_callers",
+    "model": "gpt-5.6-luna",
+    "effort": "medium",
+    "deliverable": "14-function caller/dependency extraction, incorporated into authority plan",
+    "edits": false,
+    "children": 0
+  },
+  "claude": {
+    "model": "claude-sonnet-5",
+    "effort": "medium",
+    "observed_turns": 12,
+    "requested_turns": 6,
+    "permission_denials": [],
+    "children": 0,
+    "auth": "first-party Pro; see auth evidence",
+    "observed_models": [
+      "claude-haiku-4-5-20251001",
+      "claude-sonnet-5"
+    ]
+  },
+  "accepted": [
+    "Explicitly reconcile old authenticated settings grant and DATA/GAPS references in the next migration slice.",
+    "Record ACL text at baseline, after scoped revoke and after global revoke."
+  ],
+  "corrected": [
+    "Global probe step revokes only PUBLIC, not the identical scoped PUBLIC/anon/authenticated set.",
+    "Next tenth migration is three-read-RPC containment; default privilege migration is separately gated."
+  ],
+  "verification": "Root-owned live probe; no review report substitutes for execution."
+}

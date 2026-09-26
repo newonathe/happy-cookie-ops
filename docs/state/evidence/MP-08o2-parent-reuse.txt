@@ -1,0 +1,14 @@
+MP-08o.2 pinned-provider direct-parent refresh probe, 2026-09-24
+Script: scripts/test-refresh-parent-reuse.py
+Operator: root agent, independent run after worker's explicit-pair refactor; final rerun after independent security review
+Command: python scripts/test-refresh-parent-reuse.py
+Exit: 0
+Result: PASS
+Fresh fixture: one pinned private GoTrue/PostgreSQL pair, 24 reviewed migrations, synthetic example.test users only, no published host ports.
+First refresh: HTTP 200. Replay of its original parent refresh token after an explicit 11-second wait: HTTP 200 and the exact same child refresh token.
+Binding: original, rotated and replayed access tokens carried the same user/session IDs; current /user returned HTTP 200.
+Local logout with replayed access: HTTP 204; exact primary auth.sessions row count 0; a second session of the same user remained with row count 1 and /user HTTP 200; post-logout /user for the revoked session HTTP 403 session_not_found.
+Independent Codex Sol/high review found three P2 gaps; the final plan now checks Auth-row absence by session ID alone, requires independent per-row deadlines, and the revised fixture proves same-user local scope. Final rerun exit 0.
+Guarded cleanup: probe passed its exact owned-container, network and workdir checks before exiting.
+Scope: pinned local provider behavior only. No hosted Supabase contract, scheduled caller, production cleanup or G1 acceptance is claimed.
+No credentials, token values, user IDs, session IDs or fixture passwords are stored in this receipt.

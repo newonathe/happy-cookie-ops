@@ -1,0 +1,1 @@
+{"status": "FAIL", "error": "child exit 3: ERROR:  operator is not unique: text || \"char\""}

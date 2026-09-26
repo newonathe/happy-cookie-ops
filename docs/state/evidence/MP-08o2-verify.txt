@@ -1,0 +1,12 @@
+MP-08o.2 local verification, 2026-09-24
+Checkout: C:\Users\ethan\dev\happy-cookie-ops-g0
+Command: python -c "import ast,pathlib; ast.parse(pathlib.Path('scripts/test-refresh-parent-reuse.py').read_text(encoding='utf-8')); print('syntax PASS')"
+Result: syntax PASS; exit 0.
+Command: python scripts/test-refresh-parent-reuse.py
+Result: PASS; exit 0 on the final revised same-user-control fixture. Fresh pinned private provider pair, guarded cleanup, no host ports; detail in MP-08o2-parent-reuse.txt.
+Command: pnpm verify, pinned Node 24.20.0 and pnpm 9.12.3
+Result: exit 0. Port integrity 54 files; engine contract 49 exports/21 settings/20 tables; both TypeScript checks, lint, 26 test files and 389 tests passed.
+Command: G0_PYTHON_LIBS=C:\Users\ethan\dev\happy-cookie-tools\python-libs-314 CONTINUITY_REPORT_NAME=G1-continuity.json python scripts/validate-g0.py
+Result: exit 0; 1,184 continuity checks, zero failures. Changed-delivery-file list remains historical/evidentiary, not a failure.
+Scope: local test-only probe and plan documentation. No production cleanup implementation, browser/hosted acceptance, commit or deployment.
+Review: independent read-only Codex Sol/high review identified three P2 gaps; the plan and fixture were corrected before the final fixture rerun. Pinned full verify was rerun on the revised tree and passed 26 files/389 tests, exit 0. Continuity was rerun and passed 1,184 checks, zero failures.

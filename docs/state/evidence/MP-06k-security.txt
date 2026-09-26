@@ -1,0 +1,2 @@
+{"status": "failed", "error": "command exit 1: failed to connect to the docker API at npipe:////./pipe/docker_engine; check if the path is correct and if the daemon is running: open //./pipe/docker_engine: The system cannot find the file specified.", "cleanup": "failed; owned workdir retained"}
+{"status": "failed", "cases_per_reset": null, "resets": null}

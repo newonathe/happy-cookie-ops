@@ -1,0 +1,2 @@
+{"status": "FAIL", "reason": "child_worker_scheduled_log_missing"}
+exit_code=1

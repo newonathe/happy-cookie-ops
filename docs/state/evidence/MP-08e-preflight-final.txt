@@ -1,0 +1,3 @@
+Running explicit loopback CLI reset 1 and catalog assertions.
+{"status": "failed", "error": "command exit 3: ERROR:  provider session contract: managed auth tables missing", "cleanup": "passed"}
+{"status": "FAIL", "report": "MP-08e-provider-ddfdbce11ecd.json"}

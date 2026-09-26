@@ -1,0 +1,15 @@
+{
+  "status": "passed",
+  "baseline": "MP-06a-schema-inventory.json",
+  "current": "MP-06b1-schema-inventory.json",
+  "changed_sections": [
+    "functions"
+  ],
+  "changed_functions": [
+    "drop_remaining",
+    "lookup_order",
+    "settings_effective"
+  ],
+  "unchanged": "All other catalog sections and all function metadata except ACL/anon/authenticated EXECUTE",
+  "scope": "grant-only three-read-RPC delta; not full authorization acceptance"
+}

@@ -1,4 +1,6 @@
 name = "port-auditor"
+model = "gpt-6-luna"
+model_reasoning_effort = "medium"
 description = "Verifies a change against the prototype. Use PROACTIVELY whenever ported markup, copy or engine behaviour is involved."
 developer_instructions = """
 You verify fidelity to the prototype at `docs/reference/prototype.dc.html`. You do not

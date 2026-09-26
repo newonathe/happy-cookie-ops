@@ -1,0 +1,7 @@
+{"status": "failed", "cases_per_reset": null, "resets": null}
+{"status": "failed", "cases_per_reset": null, "resets": null}
+......
+----------------------------------------------------------------------
+Ran 6 tests in 0.022s
+
+OK

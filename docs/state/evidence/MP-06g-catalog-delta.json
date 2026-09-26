@@ -1,0 +1,23 @@
+{
+  "status": "passed",
+  "all_existing_object_fields_identical_to_MP06f": true,
+  "all_default_creator_schema_keys_preserved": true,
+  "changed_defaults": [
+    {
+      "creator": "postgres",
+      "schema": "public",
+      "kind": "S",
+      "before": "{postgres=rwU/postgres,anon=rwU/postgres,authenticated=rwU/postgres,service_role=rwU/postgres}",
+      "after": "{postgres=rwU/postgres,service_role=rwU/postgres}"
+    },
+    {
+      "creator": "postgres",
+      "schema": "public",
+      "kind": "r",
+      "before": "{postgres=arwdDxt/postgres,anon=arwdDxt/postgres,authenticated=arwdDxt/postgres,service_role=arwdDxt/postgres}",
+      "after": "{postgres=arwdDxt/postgres,service_role=arwdDxt/postgres}"
+    }
+  ],
+  "baseline_provenance": "MP06b complete default inventory; intervening00800-01700 migrations have no ALTER DEFAULT PRIVILEGES;01800 affects exactlythese2entries",
+  "managed_other_creator_and_function_defaults_unchanged": true
+}

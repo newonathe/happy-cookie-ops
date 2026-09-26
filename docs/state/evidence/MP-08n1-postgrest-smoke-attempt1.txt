@@ -1,0 +1,2 @@
+{"checks": {"anonymous_rows": 0, "anonymous_status": 401, "service_rows": 1, "service_status": 200}, "cleanup": {"owned_containers": 0, "owned_networks": 0, "owned_workdirs": 0}, "migration_count": 24, "postgrest_image": "sha256:bea1c76a856fa39d1e542d25911cf95d02fe2bf971992d033044ff209f1504b8", "published_host_ports": 0, "status": "PASS"}
+EXIT_CODE=0

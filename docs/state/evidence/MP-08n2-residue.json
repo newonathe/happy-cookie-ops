@@ -1,0 +1,7 @@
+{
+  "status": "PASS",
+  "docker_context": "desktop-linux",
+  "owned_containers": 0,
+  "owned_networks": 0,
+  "owned_workdirs": 0
+}

@@ -1,5 +1,7 @@
 # Phase 08 — Recovery
 
+> **Historical context (T-task era, before the 2026-09-08 master plan):** where this page conflicts with [MASTER-PLAN.md](../../MASTER-PLAN.md), [docs/state/current.md](../../docs/state/current.md) or the [decision register](../../docs/state/decision-register.md), those win. Its protection rules still apply unless they say otherwise.
+
 For when something is broken, stuck, or an agent has stopped being useful. These prompts
 are written to be pasted at the worst moment, so each one starts from no assumptions.
 

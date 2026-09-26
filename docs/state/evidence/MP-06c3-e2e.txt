@@ -1,0 +1,2392 @@
+
+> happy-cookie-ops@0.1.0 test:e2e C:\Users\ethan\dev\happy-cookie-ops-g0
+> playwright test --project=phone --project=desktop --project=webkit
+
+[WebServer] (node:32060) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:36208) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 108 tests using 2 workers
+
+  -    1 [phone] › tests\e2e\capacity-parity.spec.ts:31:9 › capacity rule parity: SQL vs TypeScript › an empty drop takes a normal order
+  -    2 [phone] › tests\e2e\capacity-parity.spec.ts:31:9 › capacity rule parity: SQL vs TypeScript › the last box can be taken
+  -    3 [phone] › tests\e2e\capacity-parity.spec.ts:31:9 › capacity rule parity: SQL vs TypeScript › one past the last box is refused
+  -    4 [phone] › tests\e2e\capacity-parity.spec.ts:31:9 › capacity rule parity: SQL vs TypeScript › a full drop refuses everything
+  -    5 [phone] › tests\e2e\capacity-parity.spec.ts:31:9 › capacity rule parity: SQL vs TypeScript › an oversold drop reports zero rather than a negative
+  -    6 [phone] › tests\e2e\capacity-parity.spec.ts:31:9 › capacity rule parity: SQL vs TypeScript › a request for the whole capacity fits exactly
+  -    7 [phone] › tests\e2e\capacity-parity.spec.ts:31:9 › capacity rule parity: SQL vs TypeScript › a zero-box request is a bug, not an order
+  -    8 [phone] › tests\e2e\capacity-parity.spec.ts:31:9 › capacity rule parity: SQL vs TypeScript › a negative request is refused
+  -    9 [phone] › tests\e2e\capacity-parity.spec.ts:31:9 › capacity rule parity: SQL vs TypeScript › a zero-capacity drop is closed
+  -   10 [phone] › tests\e2e\capacity-parity.spec.ts:31:9 › capacity rule parity: SQL vs TypeScript › fractional committed counts are floored, not rounded up
+(node:39304) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:37216) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   12 [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-home direct URL retains Home (11.7s)
+(node:41408) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   13 [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-sales direct URL retains Sales log (849ms)
+(node:12760) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   14 [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-orders direct URL retains Orders (1.2s)
+(node:30856) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   15 [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-order direct URL retains Order detail (738ms)
+(node:8440) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   11 [phone] › tests\e2e\bazaar-offline.spec.ts:6:5 › OFFLINE-01 one real sale survives reload and requires its acknowledgment (21.2s)
+(node:31948) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   16 [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-lookup direct URL retains Find my order (2.0s)
+(node:35132) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   17 [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-reconcile direct URL retains Payments (866ms)
+(node:38176) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   18 [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-bake direct URL retains Bake plan (788ms)
+(node:38952) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   19 [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-batch direct URL retains Production focus (796ms)
+(node:39916) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   20 [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-inventory direct URL retains Inventory (778ms)
+(node:37976) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   21 [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-stocktake direct URL retains Inventory (776ms)
+(node:36372) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   22 [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-more direct URL retains All tools (784ms)
+(node:38920) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   23 [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-grocery direct URL retains Grocery list (791ms)
+(node:24180) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   24 [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-bazaar direct URL retains Bazaar Mode (700ms)
+(node:36888) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   25 [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-pnl direct URL retains P and L (841ms)
+(node:31704) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   26 [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-formqueue direct URL retains Form queue (809ms)
+(node:41328) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   27 [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-health direct URL retains System health (767ms)
+(node:38008) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   28 [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-products direct URL retains Products (775ms)
+(node:38320) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   29 [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-notifications direct URL retains Notifications (835ms)
+(node:41388) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   30 [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-shop direct URL retains Customer shop (905ms)
+(node:7680) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   31 [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-checkout direct URL retains Customer checkout (829ms)
+(node:30768) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   32 [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-status direct URL retains Customer order status (784ms)
+(node:36884) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   33 [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-recipes direct URL retains Recipes (849ms)
+(node:31812) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   34 [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-drops direct URL retains Drops (851ms)
+(node:37184) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   35 [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-suppliers direct URL retains Suppliers (1.0s)
+(node:39912) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   36 [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-settings direct URL retains Settings (891ms)
+  -   38 [webkit] › tests\e2e\capacity-parity.spec.ts:31:9 › capacity rule parity: SQL vs TypeScript › an empty drop takes a normal order
+  -   39 [webkit] › tests\e2e\capacity-parity.spec.ts:31:9 › capacity rule parity: SQL vs TypeScript › the last box can be taken
+  -   40 [webkit] › tests\e2e\capacity-parity.spec.ts:31:9 › capacity rule parity: SQL vs TypeScript › one past the last box is refused
+  -   41 [webkit] › tests\e2e\capacity-parity.spec.ts:31:9 › capacity rule parity: SQL vs TypeScript › a full drop refuses everything
+  -   42 [webkit] › tests\e2e\capacity-parity.spec.ts:31:9 › capacity rule parity: SQL vs TypeScript › an oversold drop reports zero rather than a negative
+  -   43 [webkit] › tests\e2e\capacity-parity.spec.ts:31:9 › capacity rule parity: SQL vs TypeScript › a request for the whole capacity fits exactly
+  -   44 [webkit] › tests\e2e\capacity-parity.spec.ts:31:9 › capacity rule parity: SQL vs TypeScript › a zero-box request is a bug, not an order
+  -   45 [webkit] › tests\e2e\capacity-parity.spec.ts:31:9 › capacity rule parity: SQL vs TypeScript › a negative request is refused
+  -   46 [webkit] › tests\e2e\capacity-parity.spec.ts:31:9 › capacity rule parity: SQL vs TypeScript › a zero-capacity drop is closed
+  -   47 [webkit] › tests\e2e\capacity-parity.spec.ts:31:9 › capacity rule parity: SQL vs TypeScript › fractional committed counts are floored, not rounded up
+(node:36876) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   48 [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-home direct URL retains Home (21.2s)
+(node:26804) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   37 [webkit] › tests\e2e\bazaar-offline.spec.ts:6:5 › OFFLINE-01 one real sale survives reload and requires its acknowledgment (33.2s)
+  x   49 [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-sales direct URL retains Sales log (7.3s)
+(node:33052) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:35068) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   51 [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-order direct URL retains Order detail (1.4s)
+  x   50 [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-orders direct URL retains Orders (1.8s)
+(node:35464) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:37392) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   52 [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-lookup direct URL retains Find my order (1.3s)
+  x   53 [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-reconcile direct URL retains Payments (1.3s)
+(node:40768) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:34896) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   54 [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-bake direct URL retains Bake plan (1.4s)
+  x   55 [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-batch direct URL retains Production focus (1.2s)
+(node:36316) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:38360) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   57 [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-stocktake direct URL retains Inventory (1.3s)
+(node:41400) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   56 [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-inventory direct URL retains Inventory (4.1s)
+(node:34732) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   58 [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-more direct URL retains All tools (4.4s)
+(node:38252) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   59 [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-grocery direct URL retains Grocery list (1.3s)
+(node:26776) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   60 [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-bazaar direct URL retains Bazaar Mode (1.3s)
+(node:30404) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   61 [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-pnl direct URL retains P and L (1.5s)
+  x   62 [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-formqueue direct URL retains Form queue (1.3s)
+(node:40136) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:34864) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   63 [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-health direct URL retains System health (1.4s)
+  x   64 [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-products direct URL retains Products (2.0s)
+(node:34728) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:36892) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   65 [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-notifications direct URL retains Notifications (1.3s)
+(node:38520) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   66 [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-shop direct URL retains Customer shop (5.9s)
+  x   67 [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-checkout direct URL retains Customer checkout (3.1s)
+(node:25052) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:11020) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   68 [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-status direct URL retains Customer order status (4.1s)
+  x   69 [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-recipes direct URL retains Recipes (5.2s)
+(node:40020) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:39048) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   70 [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-drops direct URL retains Drops (1.5s)
+  x   71 [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-suppliers direct URL retains Suppliers (1.5s)
+(node:38908) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:36556) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   72 [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-settings direct URL retains Settings (1.2s)
+  -   74 [desktop] › tests\e2e\capacity-parity.spec.ts:31:9 › capacity rule parity: SQL vs TypeScript › an empty drop takes a normal order
+  -   75 [desktop] › tests\e2e\capacity-parity.spec.ts:31:9 › capacity rule parity: SQL vs TypeScript › the last box can be taken
+  -   76 [desktop] › tests\e2e\capacity-parity.spec.ts:31:9 › capacity rule parity: SQL vs TypeScript › one past the last box is refused
+  -   77 [desktop] › tests\e2e\capacity-parity.spec.ts:31:9 › capacity rule parity: SQL vs TypeScript › a full drop refuses everything
+  -   78 [desktop] › tests\e2e\capacity-parity.spec.ts:31:9 › capacity rule parity: SQL vs TypeScript › an oversold drop reports zero rather than a negative
+  -   79 [desktop] › tests\e2e\capacity-parity.spec.ts:31:9 › capacity rule parity: SQL vs TypeScript › a request for the whole capacity fits exactly
+  -   80 [desktop] › tests\e2e\capacity-parity.spec.ts:31:9 › capacity rule parity: SQL vs TypeScript › a zero-box request is a bug, not an order
+  -   81 [desktop] › tests\e2e\capacity-parity.spec.ts:31:9 › capacity rule parity: SQL vs TypeScript › a negative request is refused
+  -   82 [desktop] › tests\e2e\capacity-parity.spec.ts:31:9 › capacity rule parity: SQL vs TypeScript › a zero-capacity drop is closed
+  -   83 [desktop] › tests\e2e\capacity-parity.spec.ts:31:9 › capacity rule parity: SQL vs TypeScript › fractional committed counts are floored, not rounded up
+(node:34956) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   84 [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-home direct URL retains Home (12.6s)
+(node:30468) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   85 [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-sales direct URL retains Sales log (794ms)
+(node:41808) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   86 [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-orders direct URL retains Orders (852ms)
+(node:30400) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   87 [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-order direct URL retains Order detail (901ms)
+(node:36944) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   73 [desktop] › tests\e2e\bazaar-offline.spec.ts:6:5 › OFFLINE-01 one real sale survives reload and requires its acknowledgment (18.9s)
+(node:13800) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   88 [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-lookup direct URL retains Find my order (1.6s)
+  x   89 [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-reconcile direct URL retains Payments (1.2s)
+(node:28220) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:40508) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   90 [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-bake direct URL retains Bake plan (904ms)
+(node:40428) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   91 [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-batch direct URL retains Production focus (10.5s)
+(node:30688) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   92 [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-inventory direct URL retains Inventory (1.7s)
+(node:38016) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   93 [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-stocktake direct URL retains Inventory (1.3s)
+  x   94 [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-more direct URL retains All tools (963ms)
+(node:27068) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:32672) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   96 [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-grocery direct URL retains Grocery list (1.1s)
+  x   95 [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-bazaar direct URL retains Bazaar Mode (1.1s)
+(node:15588) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:40128) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   97 [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-formqueue direct URL retains Form queue (1.1s)
+  x   98 [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-pnl direct URL retains P and L (952ms)
+(node:35588) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:40508) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x   99 [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-health direct URL retains System health (822ms)
+  x  100 [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-products direct URL retains Products (803ms)
+(node:31220) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:41640) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  101 [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-notifications direct URL retains Notifications (977ms)
+  x  102 [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-shop direct URL retains Customer shop (1.0s)
+(node:36944) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:40756) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  103 [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-checkout direct URL retains Customer checkout (1.0s)
+  x  104 [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-status direct URL retains Customer order status (849ms)
+(node:22716) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:16768) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  105 [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-recipes direct URL retains Recipes (868ms)
+  x  106 [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-drops direct URL retains Drops (829ms)
+(node:8656) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:41328) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  107 [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-suppliers direct URL retains Suppliers (838ms)
+  x  108 [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-settings direct URL retains Settings (903ms)
+
+
+  1) [phone] › tests\e2e\bazaar-offline.spec.ts:6:5 › OFFLINE-01 one real sale survives reload and requires its acknowledgment 
+
+    Error: page.evaluate: Error: Sale queue absent; read must not create it
+        at open.onupgradeneeded (eval at evaluate (:311:30), <anonymous>:6:14)
+
+    Call Log:
+    - Timeout 5000ms exceeded while waiting on the predicate
+        at open.onupgradeneeded (eval at evaluate (:311:30), <anonymous>:6:14)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\bazaar-offline.spec.ts:39:71
+
+    Error Context: test-results\bazaar-offline-OFFLINE-01--757b6-requires-its-acknowledgment-phone\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\bazaar-offline-OFFLINE-01--757b6-requires-its-acknowledgment-phone\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\bazaar-offline-OFFLINE-01--757b6-requires-its-acknowledgment-phone\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-home direct URL retains Home ──────────────────
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 3
+
+    - Array []
+    + Array [
+    +   "Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.",
+    + ]
+
+      20 |     await requireScreen(page, label);
+      21 |     await expect(page.locator(`[data-screen-label="${label}"] button, [data-screen-label="${label}"] input`).first()).toBeVisible();
+    > 22 |     expect(errors).toEqual([]);
+         |                    ^
+      23 |   });
+      24 | }
+      25 |
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:22:20
+
+    Error Context: test-results\screens-ROUTE-home-direct-URL-retains-Home-phone\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-home-direct-URL-retains-Home-phone\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-home-direct-URL-retains-Home-phone\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3) [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-sales direct URL retains Sales log ────────────
+
+    Error: Route changed: /sales -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-sales-direct-URL-retains-Sales-log-phone\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-sales-direct-URL-retains-Sales-log-phone\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-sales-direct-URL-retains-Sales-log-phone\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  4) [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-orders direct URL retains Orders ──────────────
+
+    Error: Route changed: /orders -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-orders-direct-URL-retains-Orders-phone\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-orders-direct-URL-retains-Orders-phone\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-orders-direct-URL-retains-Orders-phone\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  5) [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-order direct URL retains Order detail ─────────
+
+    Error: Route changed: /order -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-order-direct-URL-retains-Order-detail-phone\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-order-direct-URL-retains-Order-detail-phone\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-order-direct-URL-retains-Order-detail-phone\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  6) [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-lookup direct URL retains Find my order ───────
+
+    Error: Route changed: /lookup -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-lookup-direct-URL-retains-Find-my-order-phone\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-lookup-direct-URL-retains-Find-my-order-phone\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-lookup-direct-URL-retains-Find-my-order-phone\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  7) [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-reconcile direct URL retains Payments ─────────
+
+    Error: Route changed: /reconcile -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-reconcile-direct-URL-retains-Payments-phone\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-reconcile-direct-URL-retains-Payments-phone\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-reconcile-direct-URL-retains-Payments-phone\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  8) [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-bake direct URL retains Bake plan ─────────────
+
+    Error: Route changed: /bake -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-bake-direct-URL-retains-Bake-plan-phone\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-bake-direct-URL-retains-Bake-plan-phone\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-bake-direct-URL-retains-Bake-plan-phone\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  9) [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-batch direct URL retains Production focus ─────
+
+    Error: Route changed: /batch -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-batch-direct-URL-retains-Production-focus-phone\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-batch-direct-URL-retains-Production-focus-phone\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-batch-direct-URL-retains-Production-focus-phone\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  10) [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-inventory direct URL retains Inventory ───────
+
+    Error: Route changed: /inventory -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-inventory-direct-URL-retains-Inventory-phone\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-inventory-direct-URL-retains-Inventory-phone\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-inventory-direct-URL-retains-Inventory-phone\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  11) [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-stocktake direct URL retains Inventory ───────
+
+    Error: Route changed: /stocktake -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-stocktake-direct-URL-retains-Inventory-phone\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-stocktake-direct-URL-retains-Inventory-phone\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-stocktake-direct-URL-retains-Inventory-phone\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  12) [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-more direct URL retains All tools ────────────
+
+    Error: Route changed: /more -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-more-direct-URL-retains-All-tools-phone\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-more-direct-URL-retains-All-tools-phone\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-more-direct-URL-retains-All-tools-phone\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  13) [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-grocery direct URL retains Grocery list ──────
+
+    Error: Route changed: /grocery -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-grocery-direct-URL-retains-Grocery-list-phone\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-grocery-direct-URL-retains-Grocery-list-phone\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-grocery-direct-URL-retains-Grocery-list-phone\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  14) [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-bazaar direct URL retains Bazaar Mode ────────
+
+    Error: Route changed: /bazaar -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-bazaar-direct-URL-retains-Bazaar-Mode-phone\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-bazaar-direct-URL-retains-Bazaar-Mode-phone\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-bazaar-direct-URL-retains-Bazaar-Mode-phone\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  15) [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-pnl direct URL retains P and L ───────────────
+
+    Error: Route changed: /pnl -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-pnl-direct-URL-retains-P-and-L-phone\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-pnl-direct-URL-retains-P-and-L-phone\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-pnl-direct-URL-retains-P-and-L-phone\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  16) [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-formqueue direct URL retains Form queue ──────
+
+    Error: Route changed: /formqueue -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-formqueue-direct-URL-retains-Form-queue-phone\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-formqueue-direct-URL-retains-Form-queue-phone\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-formqueue-direct-URL-retains-Form-queue-phone\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  17) [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-health direct URL retains System health ──────
+
+    Error: Route changed: /health -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-health-direct-URL-retains-System-health-phone\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-health-direct-URL-retains-System-health-phone\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-health-direct-URL-retains-System-health-phone\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  18) [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-products direct URL retains Products ─────────
+
+    Error: Route changed: /products -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-products-direct-URL-retains-Products-phone\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-products-direct-URL-retains-Products-phone\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-products-direct-URL-retains-Products-phone\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  19) [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-notifications direct URL retains Notifications 
+
+    Error: Route changed: /notifications -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-notifications-direct-URL-retains-Notifications-phone\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-notifications-direct-URL-retains-Notifications-phone\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-notifications-direct-URL-retains-Notifications-phone\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  20) [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-shop direct URL retains Customer shop ────────
+
+    Error: Route changed: /shop -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-shop-direct-URL-retains-Customer-shop-phone\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-shop-direct-URL-retains-Customer-shop-phone\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-shop-direct-URL-retains-Customer-shop-phone\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  21) [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-checkout direct URL retains Customer checkout 
+
+    Error: Route changed: /checkout -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-checkout-direct-URL-retains-Customer-checkout-phone\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-checkout-direct-URL-retains-Customer-checkout-phone\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-checkout-direct-URL-retains-Customer-checkout-phone\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  22) [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-status direct URL retains Customer order status 
+
+    Error: Route changed: /status -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-status-direc-82f43-tains-Customer-order-status-phone\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-status-direc-82f43-tains-Customer-order-status-phone\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-status-direc-82f43-tains-Customer-order-status-phone\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  23) [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-recipes direct URL retains Recipes ───────────
+
+    Error: Route changed: /recipes -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-recipes-direct-URL-retains-Recipes-phone\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-recipes-direct-URL-retains-Recipes-phone\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-recipes-direct-URL-retains-Recipes-phone\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  24) [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-drops direct URL retains Drops ───────────────
+
+    Error: Route changed: /drops -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-drops-direct-URL-retains-Drops-phone\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-drops-direct-URL-retains-Drops-phone\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-drops-direct-URL-retains-Drops-phone\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  25) [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-suppliers direct URL retains Suppliers ───────
+
+    Error: Route changed: /suppliers -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-suppliers-direct-URL-retains-Suppliers-phone\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-suppliers-direct-URL-retains-Suppliers-phone\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-suppliers-direct-URL-retains-Suppliers-phone\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  26) [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-settings direct URL retains Settings ─────────
+
+    Error: Route changed: /settings -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-settings-direct-URL-retains-Settings-phone\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-settings-direct-URL-retains-Settings-phone\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-settings-direct-URL-retains-Settings-phone\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  27) [webkit] › tests\e2e\bazaar-offline.spec.ts:6:5 › OFFLINE-01 one real sale survives reload and requires its acknowledgment 
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for getByRole('button', { name: /^Cash/ }).last()
+        - locator resolved to <button type="button">…</button>
+
+
+      31 |   await page.getByRole('button', { name: /Double Choco/ }).first().click();
+      32 |   await page.getByRole('button', { name: 'Charge', exact: true }).click();
+    > 33 |   await page.getByRole('button', { name: /^Cash/ }).last().click();
+         |                                                            ^
+      34 |   await expect.poll(() => page.evaluate(() => {
+      35 |     const sales = window.__hcOps?.state.sales;
+      36 |     return Array.isArray(sales) ? sales.length : 0;
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\bazaar-offline.spec.ts:33:60
+
+    Error Context: test-results\bazaar-offline-OFFLINE-01--757b6-requires-its-acknowledgment-webkit\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\bazaar-offline-OFFLINE-01--757b6-requires-its-acknowledgment-webkit\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\bazaar-offline-OFFLINE-01--757b6-requires-its-acknowledgment-webkit\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  28) [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-home direct URL retains Home ────────────────
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 3
+
+    - Array []
+    + Array [
+    +   "Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.",
+    + ]
+
+      20 |     await requireScreen(page, label);
+      21 |     await expect(page.locator(`[data-screen-label="${label}"] button, [data-screen-label="${label}"] input`).first()).toBeVisible();
+    > 22 |     expect(errors).toEqual([]);
+         |                    ^
+      23 |   });
+      24 | }
+      25 |
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:22:20
+
+    Error Context: test-results\screens-ROUTE-home-direct-URL-retains-Home-webkit\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-home-direct-URL-retains-Home-webkit\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-home-direct-URL-retains-Home-webkit\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  29) [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-sales direct URL retains Sales log ──────────
+
+    Error: Route changed: /sales -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-sales-direct-URL-retains-Sales-log-webkit\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-sales-direct-URL-retains-Sales-log-webkit\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-sales-direct-URL-retains-Sales-log-webkit\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  30) [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-orders direct URL retains Orders ────────────
+
+    Error: Route changed: /orders -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-orders-direct-URL-retains-Orders-webkit\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-orders-direct-URL-retains-Orders-webkit\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-orders-direct-URL-retains-Orders-webkit\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  31) [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-order direct URL retains Order detail ───────
+
+    Error: Route changed: /order -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-order-direct-URL-retains-Order-detail-webkit\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-order-direct-URL-retains-Order-detail-webkit\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-order-direct-URL-retains-Order-detail-webkit\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  32) [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-lookup direct URL retains Find my order ─────
+
+    Error: Route changed: /lookup -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-lookup-direct-URL-retains-Find-my-order-webkit\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-lookup-direct-URL-retains-Find-my-order-webkit\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-lookup-direct-URL-retains-Find-my-order-webkit\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  33) [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-reconcile direct URL retains Payments ───────
+
+    Error: Route changed: /reconcile -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-reconcile-direct-URL-retains-Payments-webkit\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-reconcile-direct-URL-retains-Payments-webkit\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-reconcile-direct-URL-retains-Payments-webkit\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  34) [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-bake direct URL retains Bake plan ───────────
+
+    Error: Route changed: /bake -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-bake-direct-URL-retains-Bake-plan-webkit\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-bake-direct-URL-retains-Bake-plan-webkit\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-bake-direct-URL-retains-Bake-plan-webkit\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  35) [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-batch direct URL retains Production focus ───
+
+    Error: Route changed: /batch -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-batch-direct-URL-retains-Production-focus-webkit\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-batch-direct-URL-retains-Production-focus-webkit\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-batch-direct-URL-retains-Production-focus-webkit\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  36) [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-inventory direct URL retains Inventory ──────
+
+    Error: Route changed: /inventory -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-inventory-direct-URL-retains-Inventory-webkit\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-inventory-direct-URL-retains-Inventory-webkit\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-inventory-direct-URL-retains-Inventory-webkit\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  37) [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-stocktake direct URL retains Inventory ──────
+
+    Error: Route changed: /stocktake -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-stocktake-direct-URL-retains-Inventory-webkit\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-stocktake-direct-URL-retains-Inventory-webkit\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-stocktake-direct-URL-retains-Inventory-webkit\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  38) [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-more direct URL retains All tools ───────────
+
+    Error: Route changed: /more -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-more-direct-URL-retains-All-tools-webkit\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-more-direct-URL-retains-All-tools-webkit\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-more-direct-URL-retains-All-tools-webkit\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  39) [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-grocery direct URL retains Grocery list ─────
+
+    Error: Route changed: /grocery -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-grocery-direct-URL-retains-Grocery-list-webkit\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-grocery-direct-URL-retains-Grocery-list-webkit\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-grocery-direct-URL-retains-Grocery-list-webkit\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  40) [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-bazaar direct URL retains Bazaar Mode ───────
+
+    Error: Route changed: /bazaar -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-bazaar-direct-URL-retains-Bazaar-Mode-webkit\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-bazaar-direct-URL-retains-Bazaar-Mode-webkit\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-bazaar-direct-URL-retains-Bazaar-Mode-webkit\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  41) [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-pnl direct URL retains P and L ──────────────
+
+    Error: Route changed: /pnl -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-pnl-direct-URL-retains-P-and-L-webkit\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-pnl-direct-URL-retains-P-and-L-webkit\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-pnl-direct-URL-retains-P-and-L-webkit\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  42) [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-formqueue direct URL retains Form queue ─────
+
+    Error: Route changed: /formqueue -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-formqueue-direct-URL-retains-Form-queue-webkit\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-formqueue-direct-URL-retains-Form-queue-webkit\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-formqueue-direct-URL-retains-Form-queue-webkit\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  43) [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-health direct URL retains System health ─────
+
+    Error: Route changed: /health -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-health-direct-URL-retains-System-health-webkit\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-health-direct-URL-retains-System-health-webkit\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-health-direct-URL-retains-System-health-webkit\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  44) [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-products direct URL retains Products ────────
+
+    Error: Route changed: /products -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-products-direct-URL-retains-Products-webkit\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-products-direct-URL-retains-Products-webkit\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-products-direct-URL-retains-Products-webkit\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  45) [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-notifications direct URL retains Notifications 
+
+    Error: Route changed: /notifications -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-notifications-direct-URL-retains-Notifications-webkit\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-notifications-direct-URL-retains-Notifications-webkit\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-notifications-direct-URL-retains-Notifications-webkit\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  46) [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-shop direct URL retains Customer shop ───────
+
+    Error: Route changed: /shop -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-shop-direct-URL-retains-Customer-shop-webkit\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-shop-direct-URL-retains-Customer-shop-webkit\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-shop-direct-URL-retains-Customer-shop-webkit\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  47) [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-checkout direct URL retains Customer checkout 
+
+    Error: Route changed: /checkout -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-checkout-direct-URL-retains-Customer-checkout-webkit\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-checkout-direct-URL-retains-Customer-checkout-webkit\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-checkout-direct-URL-retains-Customer-checkout-webkit\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  48) [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-status direct URL retains Customer order status 
+
+    Error: Route changed: /status -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-status-direc-82f43-tains-Customer-order-status-webkit\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-status-direc-82f43-tains-Customer-order-status-webkit\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-status-direc-82f43-tains-Customer-order-status-webkit\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  49) [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-recipes direct URL retains Recipes ──────────
+
+    Error: Route changed: /recipes -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-recipes-direct-URL-retains-Recipes-webkit\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-recipes-direct-URL-retains-Recipes-webkit\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-recipes-direct-URL-retains-Recipes-webkit\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  50) [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-drops direct URL retains Drops ──────────────
+
+    Error: Route changed: /drops -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-drops-direct-URL-retains-Drops-webkit\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-drops-direct-URL-retains-Drops-webkit\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-drops-direct-URL-retains-Drops-webkit\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  51) [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-suppliers direct URL retains Suppliers ──────
+
+    Error: Route changed: /suppliers -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-suppliers-direct-URL-retains-Suppliers-webkit\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-suppliers-direct-URL-retains-Suppliers-webkit\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-suppliers-direct-URL-retains-Suppliers-webkit\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  52) [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-settings direct URL retains Settings ────────
+
+    Error: Route changed: /settings -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-settings-direct-URL-retains-Settings-webkit\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-settings-direct-URL-retains-Settings-webkit\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-settings-direct-URL-retains-Settings-webkit\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  53) [desktop] › tests\e2e\bazaar-offline.spec.ts:6:5 › OFFLINE-01 one real sale survives reload and requires its acknowledgment 
+
+    Error: page.evaluate: Error: Sale queue absent; read must not create it
+        at open.onupgradeneeded (eval at evaluate (:311:30), <anonymous>:6:14)
+
+    Call Log:
+    - Timeout 5000ms exceeded while waiting on the predicate
+        at open.onupgradeneeded (eval at evaluate (:311:30), <anonymous>:6:14)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\bazaar-offline.spec.ts:39:71
+
+    Error Context: test-results\bazaar-offline-OFFLINE-01--757b6-requires-its-acknowledgment-desktop\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\bazaar-offline-OFFLINE-01--757b6-requires-its-acknowledgment-desktop\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\bazaar-offline-OFFLINE-01--757b6-requires-its-acknowledgment-desktop\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  54) [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-home direct URL retains Home ───────────────
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 3
+
+    - Array []
+    + Array [
+    +   "Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.",
+    + ]
+
+      20 |     await requireScreen(page, label);
+      21 |     await expect(page.locator(`[data-screen-label="${label}"] button, [data-screen-label="${label}"] input`).first()).toBeVisible();
+    > 22 |     expect(errors).toEqual([]);
+         |                    ^
+      23 |   });
+      24 | }
+      25 |
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:22:20
+
+    Error Context: test-results\screens-ROUTE-home-direct-URL-retains-Home-desktop\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-home-direct-URL-retains-Home-desktop\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-home-direct-URL-retains-Home-desktop\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  55) [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-sales direct URL retains Sales log ─────────
+
+    Error: Route changed: /sales -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-sales-direct-URL-retains-Sales-log-desktop\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-sales-direct-URL-retains-Sales-log-desktop\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-sales-direct-URL-retains-Sales-log-desktop\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  56) [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-orders direct URL retains Orders ───────────
+
+    Error: Route changed: /orders -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-orders-direct-URL-retains-Orders-desktop\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-orders-direct-URL-retains-Orders-desktop\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-orders-direct-URL-retains-Orders-desktop\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  57) [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-order direct URL retains Order detail ──────
+
+    Error: Route changed: /order -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-order-direct-URL-retains-Order-detail-desktop\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-order-direct-URL-retains-Order-detail-desktop\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-order-direct-URL-retains-Order-detail-desktop\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  58) [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-lookup direct URL retains Find my order ────
+
+    Error: Route changed: /lookup -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-lookup-direct-URL-retains-Find-my-order-desktop\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-lookup-direct-URL-retains-Find-my-order-desktop\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-lookup-direct-URL-retains-Find-my-order-desktop\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  59) [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-reconcile direct URL retains Payments ──────
+
+    Error: Route changed: /reconcile -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-reconcile-direct-URL-retains-Payments-desktop\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-reconcile-direct-URL-retains-Payments-desktop\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-reconcile-direct-URL-retains-Payments-desktop\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  60) [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-bake direct URL retains Bake plan ──────────
+
+    Error: Route changed: /bake -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-bake-direct-URL-retains-Bake-plan-desktop\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-bake-direct-URL-retains-Bake-plan-desktop\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-bake-direct-URL-retains-Bake-plan-desktop\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  61) [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-batch direct URL retains Production focus ──
+
+    Error: Route changed: /batch -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-batch-direct-URL-retains-Production-focus-desktop\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-batch-direct-URL-retains-Production-focus-desktop\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-batch-direct-URL-retains-Production-focus-desktop\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  62) [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-inventory direct URL retains Inventory ─────
+
+    Error: Route changed: /inventory -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-inventory-direct-URL-retains-Inventory-desktop\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-inventory-direct-URL-retains-Inventory-desktop\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-inventory-direct-URL-retains-Inventory-desktop\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  63) [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-stocktake direct URL retains Inventory ─────
+
+    Error: Route changed: /stocktake -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-stocktake-direct-URL-retains-Inventory-desktop\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-stocktake-direct-URL-retains-Inventory-desktop\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-stocktake-direct-URL-retains-Inventory-desktop\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  64) [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-more direct URL retains All tools ──────────
+
+    Error: Route changed: /more -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-more-direct-URL-retains-All-tools-desktop\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-more-direct-URL-retains-All-tools-desktop\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-more-direct-URL-retains-All-tools-desktop\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  65) [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-grocery direct URL retains Grocery list ────
+
+    Error: Route changed: /grocery -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-grocery-direct-URL-retains-Grocery-list-desktop\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-grocery-direct-URL-retains-Grocery-list-desktop\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-grocery-direct-URL-retains-Grocery-list-desktop\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  66) [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-bazaar direct URL retains Bazaar Mode ──────
+
+    Error: Route changed: /bazaar -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-bazaar-direct-URL-retains-Bazaar-Mode-desktop\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-bazaar-direct-URL-retains-Bazaar-Mode-desktop\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-bazaar-direct-URL-retains-Bazaar-Mode-desktop\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  67) [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-pnl direct URL retains P and L ─────────────
+
+    Error: Route changed: /pnl -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-pnl-direct-URL-retains-P-and-L-desktop\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-pnl-direct-URL-retains-P-and-L-desktop\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-pnl-direct-URL-retains-P-and-L-desktop\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  68) [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-formqueue direct URL retains Form queue ────
+
+    Error: Route changed: /formqueue -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-formqueue-direct-URL-retains-Form-queue-desktop\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-formqueue-direct-URL-retains-Form-queue-desktop\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-formqueue-direct-URL-retains-Form-queue-desktop\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  69) [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-health direct URL retains System health ────
+
+    Error: Route changed: /health -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-health-direct-URL-retains-System-health-desktop\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-health-direct-URL-retains-System-health-desktop\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-health-direct-URL-retains-System-health-desktop\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  70) [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-products direct URL retains Products ───────
+
+    Error: Route changed: /products -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-products-direct-URL-retains-Products-desktop\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-products-direct-URL-retains-Products-desktop\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-products-direct-URL-retains-Products-desktop\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  71) [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-notifications direct URL retains Notifications 
+
+    Error: Route changed: /notifications -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-notifications-direct-URL-retains-Notifications-desktop\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-notifications-direct-URL-retains-Notifications-desktop\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-notifications-direct-URL-retains-Notifications-desktop\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  72) [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-shop direct URL retains Customer shop ──────
+
+    Error: Route changed: /shop -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-shop-direct-URL-retains-Customer-shop-desktop\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-shop-direct-URL-retains-Customer-shop-desktop\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-shop-direct-URL-retains-Customer-shop-desktop\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  73) [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-checkout direct URL retains Customer checkout 
+
+    Error: Route changed: /checkout -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-checkout-direct-URL-retains-Customer-checkout-desktop\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-checkout-direct-URL-retains-Customer-checkout-desktop\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-checkout-direct-URL-retains-Customer-checkout-desktop\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  74) [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-status direct URL retains Customer order status 
+
+    Error: Route changed: /status -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-status-direc-82f43-tains-Customer-order-status-desktop\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-status-direc-82f43-tains-Customer-order-status-desktop\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-status-direc-82f43-tains-Customer-order-status-desktop\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  75) [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-recipes direct URL retains Recipes ─────────
+
+    Error: Route changed: /recipes -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-recipes-direct-URL-retains-Recipes-desktop\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-recipes-direct-URL-retains-Recipes-desktop\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-recipes-direct-URL-retains-Recipes-desktop\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  76) [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-drops direct URL retains Drops ─────────────
+
+    Error: Route changed: /drops -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-drops-direct-URL-retains-Drops-desktop\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-drops-direct-URL-retains-Drops-desktop\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-drops-direct-URL-retains-Drops-desktop\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  77) [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-suppliers direct URL retains Suppliers ─────
+
+    Error: Route changed: /suppliers -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-suppliers-direct-URL-retains-Suppliers-desktop\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-suppliers-direct-URL-retains-Suppliers-desktop\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-suppliers-direct-URL-retains-Suppliers-desktop\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  78) [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-settings direct URL retains Settings ───────
+
+    Error: Route changed: /settings -> /
+
+       at ..\fixtures\acceptance.ts:3
+
+      1 | export interface RouteObservation { requested: string; actual: string; labels: string[] }
+      2 | export function assertRoute(observation: RouteObservation, label: string): void {
+    > 3 |   if (observation.actual !== observation.requested) throw new Error(`Route changed: ${observation.requested} -> ${observation.actual}`);
+        |                                                           ^
+      4 |   if (!observation.labels.includes(label)) throw new Error(`Expected screen ${label}; saw ${observation.labels.join(', ')}`);
+      5 |   if (label !== 'Home' && observation.labels.includes('Home')) throw new Error('Unexpected Home screen');
+      6 | }
+        at assertRoute (C:\Users\ethan\dev\happy-cookie-ops-g0\tests\fixtures\acceptance.ts:3:59)
+        at C:\Users\ethan\dev\happy-cookie-ops-g0\tests\e2e\screens.spec.ts:19:16
+
+    Error Context: test-results\screens-ROUTE-settings-direct-URL-retains-Settings-desktop\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\screens-ROUTE-settings-direct-URL-retains-Settings-desktop\trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results\screens-ROUTE-settings-direct-URL-retains-Settings-desktop\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  78 failed
+    [phone] › tests\e2e\bazaar-offline.spec.ts:6:5 › OFFLINE-01 one real sale survives reload and requires its acknowledgment 
+    [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-home direct URL retains Home ───────────────────
+    [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-sales direct URL retains Sales log ─────────────
+    [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-orders direct URL retains Orders ───────────────
+    [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-order direct URL retains Order detail ──────────
+    [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-lookup direct URL retains Find my order ────────
+    [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-reconcile direct URL retains Payments ──────────
+    [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-bake direct URL retains Bake plan ──────────────
+    [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-batch direct URL retains Production focus ──────
+    [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-inventory direct URL retains Inventory ─────────
+    [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-stocktake direct URL retains Inventory ─────────
+    [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-more direct URL retains All tools ──────────────
+    [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-grocery direct URL retains Grocery list ────────
+    [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-bazaar direct URL retains Bazaar Mode ──────────
+    [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-pnl direct URL retains P and L ─────────────────
+    [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-formqueue direct URL retains Form queue ────────
+    [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-health direct URL retains System health ────────
+    [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-products direct URL retains Products ───────────
+    [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-notifications direct URL retains Notifications ─
+    [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-shop direct URL retains Customer shop ──────────
+    [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-checkout direct URL retains Customer checkout ──
+    [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-status direct URL retains Customer order status 
+    [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-recipes direct URL retains Recipes ─────────────
+    [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-drops direct URL retains Drops ─────────────────
+    [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-suppliers direct URL retains Suppliers ─────────
+    [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-settings direct URL retains Settings ───────────
+    [webkit] › tests\e2e\bazaar-offline.spec.ts:6:5 › OFFLINE-01 one real sale survives reload and requires its acknowledgment 
+    [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-home direct URL retains Home ──────────────────
+    [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-sales direct URL retains Sales log ────────────
+    [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-orders direct URL retains Orders ──────────────
+    [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-order direct URL retains Order detail ─────────
+    [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-lookup direct URL retains Find my order ───────
+    [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-reconcile direct URL retains Payments ─────────
+    [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-bake direct URL retains Bake plan ─────────────
+    [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-batch direct URL retains Production focus ─────
+    [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-inventory direct URL retains Inventory ────────
+    [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-stocktake direct URL retains Inventory ────────
+    [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-more direct URL retains All tools ─────────────
+    [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-grocery direct URL retains Grocery list ───────
+    [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-bazaar direct URL retains Bazaar Mode ─────────
+    [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-pnl direct URL retains P and L ────────────────
+    [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-formqueue direct URL retains Form queue ───────
+    [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-health direct URL retains System health ───────
+    [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-products direct URL retains Products ──────────
+    [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-notifications direct URL retains Notifications 
+    [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-shop direct URL retains Customer shop ─────────
+    [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-checkout direct URL retains Customer checkout ─
+    [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-status direct URL retains Customer order status 
+    [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-recipes direct URL retains Recipes ────────────
+    [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-drops direct URL retains Drops ────────────────
+    [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-suppliers direct URL retains Suppliers ────────
+    [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-settings direct URL retains Settings ──────────
+    [desktop] › tests\e2e\bazaar-offline.spec.ts:6:5 › OFFLINE-01 one real sale survives reload and requires its acknowledgment 
+    [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-home direct URL retains Home ─────────────────
+    [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-sales direct URL retains Sales log ───────────
+    [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-orders direct URL retains Orders ─────────────
+    [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-order direct URL retains Order detail ────────
+    [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-lookup direct URL retains Find my order ──────
+    [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-reconcile direct URL retains Payments ────────
+    [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-bake direct URL retains Bake plan ────────────
+    [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-batch direct URL retains Production focus ────
+    [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-inventory direct URL retains Inventory ───────
+    [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-stocktake direct URL retains Inventory ───────
+    [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-more direct URL retains All tools ────────────
+    [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-grocery direct URL retains Grocery list ──────
+    [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-bazaar direct URL retains Bazaar Mode ────────
+    [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-pnl direct URL retains P and L ───────────────
+    [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-formqueue direct URL retains Form queue ──────
+    [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-health direct URL retains System health ──────
+    [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-products direct URL retains Products ─────────
+    [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-notifications direct URL retains Notifications 
+    [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-shop direct URL retains Customer shop ────────
+    [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-checkout direct URL retains Customer checkout 
+    [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-status direct URL retains Customer order status 
+    [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-recipes direct URL retains Recipes ───────────
+    [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-drops direct URL retains Drops ───────────────
+    [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-suppliers direct URL retains Suppliers ───────
+    [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-settings direct URL retains Settings ─────────
+  30 skipped
+ ELIFECYCLE  Command failed with exit code 1.

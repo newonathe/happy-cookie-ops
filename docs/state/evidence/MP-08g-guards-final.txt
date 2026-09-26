@@ -1,0 +1,20 @@
+test_arguments_rejected_before_docker_or_workdir (tests.unit.test_auth_fixture.AuthFixtureGuards.test_arguments_rejected_before_docker_or_workdir) ... ok
+test_auth_schema_digest_is_schema_only_and_ignores_dump_restrict_nonce (tests.unit.test_auth_fixture.AuthFixtureGuards.test_auth_schema_digest_is_schema_only_and_ignores_dump_restrict_nonce) ... ok
+test_cleanup_refuses_when_captured_claim_set_differs (tests.unit.test_auth_fixture.AuthFixtureGuards.test_cleanup_refuses_when_captured_claim_set_differs) ... ok
+test_cleanup_retains_workdir_when_network_create_response_was_uncertain (tests.unit.test_auth_fixture.AuthFixtureGuards.test_cleanup_retains_workdir_when_network_create_response_was_uncertain) ... ok
+test_database_readiness_uses_tcp_not_initialization_socket (tests.unit.test_auth_fixture.AuthFixtureGuards.test_database_readiness_uses_tcp_not_initialization_socket) ... ok
+test_gotrue_literal_environment_uses_docker_equals_syntax (tests.unit.test_auth_fixture.AuthFixtureGuards.test_gotrue_literal_environment_uses_docker_equals_syntax) ... ok
+test_images_are_exact_cached_ids (tests.unit.test_auth_fixture.AuthFixtureGuards.test_images_are_exact_cached_ids) ... ok
+test_migration_inputs_are_pinned_before_execution (tests.unit.test_auth_fixture.AuthFixtureGuards.test_migration_inputs_are_pinned_before_execution) ... ok
+test_network_rejects_unexpected_endpoint (tests.unit.test_auth_fixture.AuthFixtureGuards.test_network_rejects_unexpected_endpoint) ... ok
+test_preflight_parser_requires_all_three_metadata_relations (tests.unit.test_auth_fixture.AuthFixtureGuards.test_preflight_parser_requires_all_three_metadata_relations) ... ok
+test_preflight_pin_rejects_changed_sql_before_docker (tests.unit.test_auth_fixture.AuthFixtureGuards.test_preflight_pin_rejects_changed_sql_before_docker) ... ok
+test_prestart_identity_requires_private_unpublished_owned_container (tests.unit.test_auth_fixture.AuthFixtureGuards.test_prestart_identity_requires_private_unpublished_owned_container) ... ok
+test_secret_is_redacted_from_child_failure (tests.unit.test_auth_fixture.AuthFixtureGuards.test_secret_is_redacted_from_child_failure) ... ok
+test_source_has_no_publish_or_supabase_start_or_config_read (tests.unit.test_auth_fixture.AuthFixtureGuards.test_source_has_no_publish_or_supabase_start_or_config_read) ... ok
+test_sql_password_is_passed_by_child_environment_only (tests.unit.test_auth_fixture.AuthFixtureGuards.test_sql_password_is_passed_by_child_environment_only) ... ok
+
+----------------------------------------------------------------------
+Ran 15 tests in 0.108s
+
+OK

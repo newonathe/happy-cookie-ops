@@ -1,0 +1,4 @@
+Running explicit loopback CLI reset 1 and catalog assertions.
+Running explicit loopback CLI reset 2 and catalog assertions.
+{"status": "passed", "error": null, "cleanup": "passed"}
+{"status": "passed", "cases_per_reset": 179, "resets": 2}

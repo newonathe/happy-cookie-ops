@@ -1,0 +1,33 @@
+{
+  "claude_coder": "claude-sonnet-5 medium; first-party Pro; one bounded exact-file assignment",
+  "actual_turns": 8,
+  "permission_denials": [],
+  "subagent_stats": {
+    "spawned": 0,
+    "requested": {
+      "background": 0,
+      "foreground": 0,
+      "unset": 0
+    },
+    "started_in_background": 0,
+    "max_depth": 0,
+    "spawned_by_subagents": 0,
+    "completed": 0,
+    "failed": 0,
+    "killed": {
+      "parent": 0,
+      "user": 0,
+      "system": 0
+    },
+    "refused": {
+      "depth_limit": 0,
+      "concurrency_limit": 0,
+      "budget": 0
+    },
+    "by_type": {}
+  },
+  "codex_review": "reused Sol/high session_policy_review",
+  "root": "independent tests, integration and remediation",
+  "claude_remaining_quota": "UNKNOWN; authentication is not quota evidence",
+  "limits": "maximum two workers, no paid/API fallback, no automatic runner; list-cost metadata not a billing claim"
+}

@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "C:\Users\ethan\dev\happy-cookie-ops-g0\scripts\validate-g0.py", line 37, in <module>
+    from jsonschema import Draft202012Validator
+ModuleNotFoundError: No module named 'jsonschema'
+EXIT_CODE=1

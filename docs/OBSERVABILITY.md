@@ -1,5 +1,7 @@
 # Observability
 
+> **Historical context (T-task era, before the 2026-09-08 master plan):** where this page conflicts with [MASTER-PLAN.md](../MASTER-PLAN.md), [docs/state/current.md](../docs/state/current.md) or the [decision register](../docs/state/decision-register.md), those win. Its protection rules still apply unless they say otherwise.
+
 How you find out something is broken, and what you are allowed to know about it.
 
 The constraint that shapes everything here: this app holds a small business's customer

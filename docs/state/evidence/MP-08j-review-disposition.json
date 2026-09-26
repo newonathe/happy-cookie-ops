@@ -1,0 +1,23 @@
+{
+  "reviewer": "Codex Luna high",
+  "scope": "final read-only MP-08j migration, runner, guards, live receipt, and external-layer evidence boundaries",
+  "verdict": "no P0 or P1 findings; one documented P2 evidence-precision limit",
+  "resolved": [
+    "owner/helper/support plus anon/service authority matrix",
+    "cross-user binding and deleted-profile denial",
+    "committed refresh response-loss recovery",
+    "cleanup candidate identity and immediate no-reclaim",
+    "child psql process cleanup",
+    "refresh races start from live leases"
+  ],
+  "p2": {
+    "finding": "the live read occurs immediately after the stored expiry timestamp rather than on a frozen equal timestamp",
+    "disposition": "accepted and disclosed; static migration guard proves <= equality semantics while the live run proves immediate post-boundary revocation",
+    "production_change": "none"
+  },
+  "external_evidence": {
+    "crypto": "MP-08d",
+    "provider_transport": "MP-08h",
+    "auth_http_lifecycle": "MP-08i"
+  }
+}

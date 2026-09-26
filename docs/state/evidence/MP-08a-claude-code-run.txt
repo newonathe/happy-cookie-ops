@@ -1,0 +1,1 @@
+{"exit_code": 124, "requested_model": "claude-sonnet-5", "effort": "medium"}

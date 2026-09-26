@@ -1,0 +1,20 @@
+{
+  "status": "passed",
+  "changed_catalog_sections": [
+    "policies"
+  ],
+  "removed_policy": {
+    "cmd": "SELECT",
+    "qual": "is_staff()",
+    "roles": [
+      "public"
+    ],
+    "tablename": "settings",
+    "permissive": "PERMISSIVE",
+    "policyname": "settings staff read",
+    "with_check": null
+  },
+  "other_catalog_sections_equal": true,
+  "types_unchanged": true,
+  "scope": "Policy metadata only; current TRUNCATE/REFERENCES/TRIGGER grants remain MP06 work."
+}

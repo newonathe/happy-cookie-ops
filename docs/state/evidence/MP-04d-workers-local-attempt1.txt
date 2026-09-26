@@ -1,0 +1,6 @@
+
+> happy-cookie-ops@0.1.0 test:workers:spike C:\Users\ethan\dev\happy-cookie-ops-g0
+> node scripts/test-workers-web-spike.mjs
+
+{"status":"PASS","checks":{"health":200,"method":405,"sync":503,"session":503,"shop":200,"unknown":404,"staticCsp":true,"deployed":false}}
+exit_code=0

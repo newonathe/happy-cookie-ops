@@ -1,0 +1,50 @@
+{
+  "status": "proposed_slice_refinement_not_completion",
+  "reason": "preserve original full parent acceptance while removing effective acceptance dependency cycle",
+  "baseline_commit": "dc8c8a5781402d910f4784b0890791a1c1d97817",
+  "dependencies": {
+    "MP-04.a": [
+      "MP-02",
+      "MP-03"
+    ],
+    "MP-04.b": [
+      "MP-04.a"
+    ],
+    "MP-05.a": [
+      "MP-02"
+    ],
+    "MP-05": [
+      "MP-05.a"
+    ],
+    "MP-06": [
+      "MP-05"
+    ],
+    "MP-08.a": [
+      "MP-04.b",
+      "MP-06"
+    ],
+    "MP-08": [
+      "MP-08.a"
+    ],
+    "MP-07": [
+      "MP-03",
+      "MP-08"
+    ],
+    "MP-04.c": [
+      "MP-04.b",
+      "MP-05",
+      "MP-06",
+      "MP-08.a"
+    ],
+    "MP-04": [
+      "MP-04.c",
+      "MP-07",
+      "MP-08"
+    ]
+  },
+  "verified_external_prerequisites": [
+    "MP-02",
+    "MP-03"
+  ],
+  "scope": "G1 only; historical catalog remains immutable; exact implementation slices require stated plans and relevant decisions"
+}

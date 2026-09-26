@@ -1,0 +1,109 @@
+
+[WebServer] (node:33184) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+[WebServer] (node:34800) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 75 tests using 2 workers
+
+(node:25412) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+(node:36104) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+[1/75] [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-home direct URL retains Home
+[2/75] [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-sales direct URL retains Sales log
+[3/75] [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-orders direct URL retains Orders
+[4/75] [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-order direct URL retains Order detail
+[5/75] [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-lookup direct URL retains Find my order
+[6/75] [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-reconcile direct URL retains Payments
+[7/75] [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-bake direct URL retains Bake plan
+[8/75] [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-batch direct URL retains Production focus
+[9/75] [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-inventory direct URL retains Inventory
+[10/75] [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-stocktake direct URL retains Inventory
+[11/75] [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-more direct URL retains All tools
+[12/75] [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-grocery direct URL retains Grocery list
+[13/75] [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-bazaar direct URL retains Bazaar Mode
+[14/75] [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-pnl direct URL retains P and L
+[15/75] [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-formqueue direct URL retains Form queue
+[16/75] [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-health direct URL retains System health
+[17/75] [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-products direct URL retains Products
+[18/75] [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-notifications direct URL retains Notifications
+[19/75] [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-shop direct URL retains Customer shop
+[20/75] [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-checkout direct URL retains Customer checkout
+[21/75] [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-status direct URL retains Customer order status
+[22/75] [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-recipes direct URL retains Recipes
+[23/75] [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-drops direct URL retains Drops
+[24/75] [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-suppliers direct URL retains Suppliers
+[25/75] [phone] › tests\e2e\screens.spec.ts:7:7 › ROUTE-settings direct URL retains Settings
+(node:36308) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+[26/75] [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-home direct URL retains Home
+(node:17352) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+[27/75] [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-sales direct URL retains Sales log
+[28/75] [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-orders direct URL retains Orders
+[29/75] [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-order direct URL retains Order detail
+[30/75] [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-lookup direct URL retains Find my order
+[31/75] [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-reconcile direct URL retains Payments
+[32/75] [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-bake direct URL retains Bake plan
+[33/75] [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-batch direct URL retains Production focus
+[34/75] [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-inventory direct URL retains Inventory
+[35/75] [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-stocktake direct URL retains Inventory
+[36/75] [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-more direct URL retains All tools
+[37/75] [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-grocery direct URL retains Grocery list
+[38/75] [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-bazaar direct URL retains Bazaar Mode
+[39/75] [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-pnl direct URL retains P and L
+[40/75] [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-formqueue direct URL retains Form queue
+[41/75] [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-health direct URL retains System health
+[42/75] [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-products direct URL retains Products
+[43/75] [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-notifications direct URL retains Notifications
+[44/75] [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-shop direct URL retains Customer shop
+[45/75] [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-checkout direct URL retains Customer checkout
+[46/75] [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-status direct URL retains Customer order status
+[47/75] [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-recipes direct URL retains Recipes
+[48/75] [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-drops direct URL retains Drops
+[49/75] [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-suppliers direct URL retains Suppliers
+[50/75] [webkit] › tests\e2e\screens.spec.ts:7:7 › ROUTE-settings direct URL retains Settings
+(node:28944) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[51/75] [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-home direct URL retains Home
+(node:36236) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+[52/75] [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-sales direct URL retains Sales log
+[53/75] [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-orders direct URL retains Orders
+[54/75] [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-order direct URL retains Order detail
+[55/75] [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-lookup direct URL retains Find my order
+[56/75] [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-reconcile direct URL retains Payments
+[57/75] [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-bake direct URL retains Bake plan
+[58/75] [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-batch direct URL retains Production focus
+[59/75] [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-inventory direct URL retains Inventory
+[60/75] [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-stocktake direct URL retains Inventory
+[61/75] [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-more direct URL retains All tools
+[62/75] [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-grocery direct URL retains Grocery list
+[63/75] [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-bazaar direct URL retains Bazaar Mode
+[64/75] [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-pnl direct URL retains P and L
+[65/75] [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-formqueue direct URL retains Form queue
+[66/75] [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-health direct URL retains System health
+[67/75] [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-products direct URL retains Products
+[68/75] [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-notifications direct URL retains Notifications
+[69/75] [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-shop direct URL retains Customer shop
+[70/75] [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-checkout direct URL retains Customer checkout
+[71/75] [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-status direct URL retains Customer order status
+[72/75] [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-recipes direct URL retains Recipes
+[73/75] [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-drops direct URL retains Drops
+[74/75] [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-suppliers direct URL retains Suppliers
+[75/75] [desktop] › tests\e2e\screens.spec.ts:7:7 › ROUTE-settings direct URL retains Settings
+  75 passed (54.8s)

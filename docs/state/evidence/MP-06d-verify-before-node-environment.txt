@@ -1,0 +1,104 @@
+
+> happy-cookie-ops@0.1.0 verify C:\Users\ethan\dev\happy-cookie-ops-g0
+> pnpm verify:port && pnpm verify:engine && pnpm typecheck && pnpm typecheck:e2e && pnpm lint && pnpm test
+
+
+> happy-cookie-ops@0.1.0 verify:port C:\Users\ethan\dev\happy-cookie-ops-g0
+> node scripts/check-port-integrity.mjs
+
+Port integrity OK — 54 files match the copy/style and AST baselines.
+
+> happy-cookie-ops@0.1.0 verify:engine C:\Users\ethan\dev\happy-cookie-ops-g0
+> node scripts/check-engine-contract.mjs
+
+Engine contract OK — 49 exports, 21 settings keys, 19 tables documented, provenance claims verified against the prototype.
+
+> happy-cookie-ops@0.1.0 typecheck C:\Users\ethan\dev\happy-cookie-ops-g0
+> tsc --noEmit
+
+
+> happy-cookie-ops@0.1.0 typecheck:e2e C:\Users\ethan\dev\happy-cookie-ops-g0
+> tsc --noEmit --project tsconfig.e2e.json
+
+
+> happy-cookie-ops@0.1.0 lint C:\Users\ethan\dev\happy-cookie-ops-g0
+> eslint . --max-warnings 0
+
+
+> happy-cookie-ops@0.1.0 test C:\Users\ethan\dev\happy-cookie-ops-g0
+> vitest run
+
+
+ RUN  v3.2.7 C:/Users/ethan/dev/happy-cookie-ops-g0
+
+ ✓ tests/unit/reporting-hooks.test.ts (3 tests) 111ms
+ ✓ tests/unit/sync-unavailable.test.ts (5 tests) 1327ms
+   ✓ the quarantined sync endpoint > returns a non-cacheable unavailable response to an ordinary request  1244ms
+ ✓ tests/unit/offline-queue.test.ts (4 tests) 14ms
+ ✓ tests/unit/money.test.ts (6 tests) 56ms
+ ✓ tests/unit/screen-boundary.test.tsx (2 tests) 65ms
+ ✓ tests/unit/pages-spike.test.ts (2 tests) 9ms
+ ✓ tests/unit/acceptance-gates.test.ts (26 tests) 7ms
+ ✓ tests/unit/scrub.test.ts (13 tests) 5ms
+ ✓ tests/unit/capacity-parity.test.ts (15 tests) 4ms
+ ✓ tests/unit/money-conversion.test.ts (11 tests) 4ms
+ ✓ tests/unit/screens.test.ts (4 tests) 3ms
+ ✓ tests/unit/order-rules.test.ts (7 tests) 3ms
+ ❯ tests/unit/sync-middleware.test.ts (5 tests | 5 failed) 24ms
+   × sync quarantine middleware boundary > does not contact auth for exact sync path (configured=false) 19ms
+     → request.headers must be an instance of Headers
+   × sync quarantine middleware boundary > does not contact auth for exact sync path (configured=true) 1ms
+     → request.headers must be an instance of Headers
+   × sync quarantine middleware boundary > keeps authentication on /api/sync-extra 1ms
+     → request.headers must be an instance of Headers
+   × sync quarantine middleware boundary > keeps authentication on /api/sync/nested 1ms
+     → request.headers must be an instance of Headers
+   × sync quarantine middleware boundary > keeps authentication on /orders 1ms
+     → request.headers must be an instance of Headers
+ ✓ tests/unit/idempotency.test.ts (7 tests) 3ms
+ ✓ tests/unit/css.test.ts (4 tests) 3ms
+ ✓ tests/unit/reporting-integration.test.ts (1 test) 64ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/sync-middleware.test.ts > sync quarantine middleware boundary > does not contact auth for exact sync path (configured=false)
+ FAIL  tests/unit/sync-middleware.test.ts > sync quarantine middleware boundary > does not contact auth for exact sync path (configured=true)
+Error: request.headers must be an instance of Headers
+ ❯ handleMiddlewareField node_modules/.pnpm/next@16.3.3_@babel+core@7.29.7_@opentelemetry+api@1.9.1_@playwright+test@1.63.0_@types+node@2_b4mrqz7ermssjv4om2kemnyt7e/node_modules/next/src/server/web/spec-extension/response.ts:18:13
+ ❯ NextResponse.next node_modules/.pnpm/next@16.3.3_@babel+core@7.29.7_@opentelemetry+api@1.9.1_@playwright+test@1.63.0_@types+node@2_b4mrqz7ermssjv4om2kemnyt7e/node_modules/next/src/server/web/spec-extension/response.ts:150:5
+ ❯ Module.middleware src/middleware.ts:15:31
+     13| 
+     14| export async function middleware(request: NextRequest) {
+     15|   let response = NextResponse.next({ request });
+       |                               ^
+     16| 
+     17|   // The quarantined endpoint returns only 503/no ACK and must never c…
+ ❯ tests/unit/sync-middleware.test.ts:15:28
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+ FAIL  tests/unit/sync-middleware.test.ts > sync quarantine middleware boundary > keeps authentication on /api/sync-extra
+ FAIL  tests/unit/sync-middleware.test.ts > sync quarantine middleware boundary > keeps authentication on /api/sync/nested
+ FAIL  tests/unit/sync-middleware.test.ts > sync quarantine middleware boundary > keeps authentication on /orders
+Error: request.headers must be an instance of Headers
+ ❯ handleMiddlewareField node_modules/.pnpm/next@16.3.3_@babel+core@7.29.7_@opentelemetry+api@1.9.1_@playwright+test@1.63.0_@types+node@2_b4mrqz7ermssjv4om2kemnyt7e/node_modules/next/src/server/web/spec-extension/response.ts:18:13
+ ❯ NextResponse.next node_modules/.pnpm/next@16.3.3_@babel+core@7.29.7_@opentelemetry+api@1.9.1_@playwright+test@1.63.0_@types+node@2_b4mrqz7ermssjv4om2kemnyt7e/node_modules/next/src/server/web/spec-extension/response.ts:150:5
+ ❯ Module.middleware src/middleware.ts:15:31
+     13| 
+     14| export async function middleware(request: NextRequest) {
+     15|   let response = NextResponse.next({ request });
+       |                               ^
+     16| 
+     17|   // The quarantined endpoint returns only 503/no ACK and must never c…
+ ❯ tests/unit/sync-middleware.test.ts:24:28
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+
+
+ Test Files  1 failed | 15 passed (16)
+      Tests  5 failed | 110 passed (115)
+   Start at  11:56:24
+   Duration  37.10s (transform 487ms, setup 10.55s, collect 14.44s, tests 1.70s, environment 27.92s, prepare 2.84s)
+
+ ELIFECYCLE  Test failed. See above for more details.
+ ELIFECYCLE  Command failed with exit code 1.

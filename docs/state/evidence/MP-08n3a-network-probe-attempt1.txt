@@ -1,0 +1,13 @@
+{"result":"trusted_workerd_https_pass","node_trusted_control":true,"workerd_trusted":{"http":204,"https":204},"workerd_untrusted":{"http":204,"https":0},"target_counts":{"http":2,"https":2,"tls_errors":0}}
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+[Error: EBUSY: resource busy or locked, rmdir 'C:\Users\ethan\dev\happy-cookie-ops-g0\build\pages-spike\.mp08n3-network-sxm347\state-dc9f70b4-5758-412e-85bf-824c427b74de\v3\r2\miniflare-R2BucketObject'] {
+  errno: -4082,
+  code: 'EBUSY',
+  syscall: 'rmdir',
+  path: 'C:\\Users\\ethan\\dev\\happy-cookie-ops-g0\\build\\pages-spike\\.mp08n3-network-sxm347\\state-dc9f70b4-5758-412e-85bf-824c427b74de\\v3\\r2\\miniflare-R2BucketObject'
+}
+
+Node.js v24.20.0

@@ -16,10 +16,85 @@
     "MP-02": {
       "status": "complete"
     },
+    "MP-04": {
+      "status": "in_progress",
+      "slices": {
+        "a": "complete: disposable export emits 26 application pages; protected source unchanged",
+        "b": "complete: isolated 26-page export, 55 protected-copy hashes, real local emulator, 105-test verify and default build pass; no hosted/auth acceptance",
+        "c": "local package prerequisite complete: indexed plus untracked nonignored inputs, linked-path containment, stale artifact invalidation, 26-page build and local emulator pass; no hosted deployment/CPU/auth acceptance",
+        "d": "local Pages/Workers comparator prerequisite complete: shared 26-page export, generated exact-HTML CSP, strict static cache guard, local Workerd and CLI browser oracles, 303-file no-upload dry run, 410-test pinned verify; hosted/auth/private-file/sync/CPU/quota acceptance open"
+      },
+      "evidence": "docs/state/MP-04c-plan.md; docs/state/MP-04d-plan.md; evidence/MP-04d-pages-build-postreview.txt; evidence/MP-04d-pages-local-postreview.txt; evidence/MP-04d-workers-local-postreview.txt; evidence/MP-04d-workers-dry-run-postreview.txt; evidence/MP-04d-verify-accepted.txt; hosted/auth/private-file/sync/CPU/quota acceptance pending"
+    },
+    "MP-05": {
+      "status": "complete",
+      "slices": {
+        "a": "complete: approved baseline repair; two real explicit-connection CLI resets on owned loopback PostgreSQL pass; exact eight migration versions, catalog/schema equality, empty transactions, sentinel removal and cleanup pass; managed --local transport limitation retained",
+        "b": "complete: actual generated types; two-generation drift check; typed clients; full column/entity/constraint/grants map; 14 Python guard tests, 105 application tests, negative type contracts and normal build pass"
+      },
+      "evidence": "docs/state/MP-05b-plan.md; docs/state/MP-05b-schema-map.md; evidence/MP-05b-types-check.json; evidence/MP-05b-bootstrap.json; authorization remains MP-06, not MP-05 acceptance"
+    },
     "MP-03": {
       "status": "complete",
       "evidence": "75 accepted Docker regression snapshots; independent serial comparison75pass; 70-row coverage ledger; gate mutation probes"
+    },
+    "MP-06": {
+      "status": "in_progress",
+      "slices": {
+        "a": "complete: three maintenance RPCs restricted; 36 SQL-role checks, 6 regression probes, rollback/cleanup, type drift, 16 Python tests and 105 application tests pass",
+        "b": "planning complete: 14-function caller/authority map, scoped default-ACL inventory and 18 rollback-only assertions; no new migration applied",
+        "b.1": "complete locally: 3 read RPCs restricted; 72 combined role checks, 12 regression probes, typedrift/catalog/cleanup and 105 application tests pass",
+        "c.1": "complete locally: orders/order_items direct INSERT denied to anon/authenticated including column grants; 96 combined SQL-role checks, 16 red probes, types/catalog/cleanup,16 Python tests and105 app tests pass",
+        "c.2": "complete locally: default-inactive profiles, authoritative active lookup,130 SQL/RLS scenarios,18 regressions,2 populated upgrades,16 Python guards,105 app tests; generated types updated",
+        "c.3": "complete locally: raw settings owner-only SELECT plus backend access;210 SQL/CRUD scenarios,20 regressions,2 profile upgrades;type/catalog/cleanup,16 Python guards and105 app tests pass",
+        "c.4": "complete locally: API-role TRUNCATE revoked on19 public tables;298 SQL scenarios,22 regression probes,2 profile upgrades;types/catalog/cleanup,16 Python guards,105 app tests pass",
+        "c.5": "complete locally: direct audit mutations denied;358 SQL scenarios/24regressions/2upgrades,16guards,105unit tests;exact catalog/types/cleanup;replacement Sol/high review no findings",
+        "d": "complete locally:2 legacy RPCs quarantined;fixed503/no-ACK API;386 SQL scenarios/28regressions/2upgrades;16guards/115tests;build/3HTTP probes;types/catalog/cleanup;Claude review no blockers",
+        "e": "complete locally:trigger attachments denied on19tables and2functions;486SQL/34red/2upgrades;36actualgrantremovals;unchangedtypes;16guards/115tests;Claude source review no blockers;historical report overwrite disclosed",
+        "f": "complete locally:REFERENCES/sequence containment;578SQL/42red/10sequence restorations/2upgrades;36grantremovals;types/catalog/16guards/115tests/cleanup;boundedClaude review",
+        "g": "complete locally:future postgres/public table+sequence defaults restricted;explicit existing grants preserve replay;626SQL/46red/10seq/2upgrades;19guards/115tests/types/catalog/cleanup;review reconciled",
+        "h": "complete locally:16trustedsearchpaths,current_role_name unchanged;636SQL/52red/10seq/2upgrades;17bodies/grants/owners unchanged;types/19guards/115tests/cleanup;Claude no blockers",
+        "i": "local creator/erasure audit+function drift guard complete:4liveboundaries/636SQL/52red/10seq/2upgrades;115tests/23guards. Globalfunctiondefaults and erasure42883 remain open",
+        "j": "MP-06j private-table restrictions pass locally: 16 policies on 11 tables; 842 SQL checks, 56 regression probes, 4 live function guards, 10 sequence restorations and 2 profile upgrades. Unchanged types and all other catalog sections; 115 application tests and 23 Python guards pass. Claude review has no blocking findings. G1 remains incomplete; assigned-event projections, controlled commands, function defaults, sessions, routing and hosted acceptance remain open.",
+        "k": "complete locally: public catalog projection and raw-table roles pass two clean 23-migration resets, 462 distinct role cases per reset, 60 red probes, 4 function guards, 10 sequence restorations, 2 profile upgrades, matching catalog/schema and guarded cleanup; stale older profile test assertion corrected. MP-06 parent and G1 remain incomplete.",
+        "l": "complete locally: forward 27th migration qualifies erasure digest and revokes PUBLIC/anon execute; two fresh DB resets, 474 SQL cases per reset, 62 red probes, unchanged generated types, two private Auth HTTP pairs, 60 Python guards and pinned 410-test verify pass; hosted/API/legal and parent MP-06/G1 remain open",
+        "m": "complete locally 2026-09-26 (Claude, Codex unavailable): rollback-only two-reset 27-migration probe shows a global-only postgres ALTER DEFAULT PRIVILEGES REVOKE EXECUTE FROM PUBLIC is insufficient - new public-schema functions still get anon/authenticated/service_role EXECUTE from the explicit public-schema default; catalog restored, identical resets, owned cleanup passed; a 28th-migration hardening plan with managed-upgrade rehearsal remains open; MP-06 parent open"
+      },
+      "evidence": "docs/state/MP-06l-plan.md; evidence/MP-06l-security.json; evidence/MP-06l-function-inventory.json; evidence/MP-06l-types-check-run.txt; evidence/MP-06l-auth-http-run.txt; evidence/MP-06l-verify-accepted.txt; other row operations, active capabilities, JWT/API, hosted checks and function defaults remain incomplete"
+    },
+    "MP-07": {
+      "status": "in_progress",
+      "slices": {
+        "a": "local demo route/hydration/history repair complete: 75 direct-route passes, mixed browser/app and no-tick bake navigation plus stocktake resume across three CLI browser profiles; pnpm verify 323 tests; full E2E 87 passed, 3 failed offline, 30 skipped SQL"
+      },
+      "evidence": "docs/state/MP-07a-plan.md; real role/data coordinator, selected IDs/drafts, public SSR, hosted and physical Apple acceptance incomplete"
+    },
+    "MP-08": {
+      "status": "in_progress",
+      "slices": {
+        "a": "MP-08a request-policy prerequisite complete locally:65 new real Request/stream security tests, full pnpmverify180tests, independent Sol/high review no findings. Origin/customheader, session CSRF comparison and boundedJSON validation implemented; no actual login/cookies/JWT/session binding or revocation yet. MP06k SQL behavior remains blocked by Docker startup; G1 incomplete.",
+        "b": "MP-08b HTTP session handler and independent verification packets complete with injected test authority:41handler+65requestpolicychecks, full pnpmverify221tests, final Sol/highreview no remainingfindings. Claude coded the handler; root integrated and fixed reviewfindings. Real persistent Auth/session authority, Pages/UI wiring, revocation/refresh concurrency and MP06kSQL remain incomplete. G1 active.",
+        "c": "MP-08c Auth transport complete locally: Claude Sonnet/medium implementation, independent root tests and Sol/high review; 43 transport tests and full pnpm verify264 tests pass. Includes real loopback HTTP gzip decoding evidence. Persistent SessionAuthority, real provider acceptance, Pages/UI integration and MP06k SQL remain incomplete. G1 active.",
+        "d": "MP-08d encrypted session-token envelope complete locally:21 crypto/interoperability tests and full pnpm verify285 tests pass; Sol/high review has no remaining findings. Claude timed out without writes; one Terra/medium fallback implemented the module and unit tests, root independently verified Node AES-GCM interoperability. Persistent session store/provider races/Pages and MP06k SQL remain incomplete. G1 active.",
+        "e": "repository requirement completed by MP-08j after MP-08g/i prerequisites; historical bare-Postgres preflight failure retained",
+        "f": "MP-08f safe sign-in return paths complete locally:38 focused cases and pnpm verify323 tests pass. Existing form only changes helper import/next computation; original form-tail hash restored after Claude formatter drift. Sol/high review no findings; Claude review unavailable due expired OAuth. Real BFF persistence, Docker SQL and G1 acceptance remain incomplete.",
+        "g": "complete locally: two fresh pinned GoTrue/PostgreSQL internal-network pairs; no published ports; exact 23 migration/preflight pins; three-relation metadata/PK contract and Auth schema-only preservation; zero demo transactions; exact guarded cleanup; 15 Python guards and pnpm verify 323 tests pass. Real HTTP/session authority remains open.",
+        "h": "complete locally: Auth /user-checked provider-session binding and stable routine refresh cookie/CSRF/absolute expiry; 97 focused tests, pnpm verify 336 tests and bounded Sol/high read-only review pass. Binding remains unwired; real provider HTTP, persistent authority and G1 remain open.",
+        "i": "complete locally: two fresh pinned private GoTrue/PostgreSQL HTTP lifecycles pass signup/login/user/refresh/logout; exact auth.sessions binding/removal and post-logout 403 session_not_found; transport aligned fail-closed; 21 Python guards and pnpm verify 336 tests pass; zero owned residue",
+        "j": "complete locally: private durable BFF session repository and seven service-only RPCs; two fresh pinned Auth/database pairs pass 11 lifecycle/concurrency groups with exact 24 migrations, zero demo transactions/residue; 26 guards, two 462-case security resets, generated types/manifest and full verify pass; no P0/P1 review issue, one disclosed exact-clock evidence limit",
+        "k": "complete locally: unwired persistent SessionAuthority adapter composes the seven service RPCs, Auth transport and encrypted token envelope with fail-closed validation, stable browser identity/expiry, refresh reconciliation and bounded durable recovery; 80 focused tests, full verify 363 tests and final independent review pass with no P0-P2 findings",
+        "l": "complete locally: duplicate local logout measured on two fresh private Auth/database pairs as exact numeric 403/session_not_found; transport accepts only that shape idempotently and rejects mismatches; 33 guards and zero owned residue",
+        "m": "local Pages session route composition complete: typed allowlisted service RPC, trusted caller and fail-closed configuration, four exact session routes; 26 test files/387 tests, 26-page build, unconfigured emulator and configured synthetic Workerd boot pass; independent review no actionable P0-P2; real composed provider lifecycle and hosted acceptance open",
+        "n": "n.1 private PostgREST smoke and n.2 injected-bridge lifecycle accepted locally. n.3 actual Workerd-to-provider functional lifecycle passed on three fresh fixtures, including two consecutive passes after fixing Workerd redirect mode and fetch receiver; 24 migrations, no published ports, final SQL and guarded fixture cleanup passed. One intervening generic fixture failure remains unexplained, and one earlier test-only network scratch directory remains after exact cleanup was rejected by command policy, so the total cleanup gate is open. MP-08o.1 expired provider token probe passes; o.2 implementation is tracked separately. Browser lifecycle, hosted acceptance and parent MP-08 remain open; see MP-08n3-plan.md and MP-08o-plan.md",
+        "o": "o.1 pinned provider expiry and direct-parent probes passed. o.2 accepted on local pinned fixtures: 25th migration, fenced rotation save, exact Auth-row absence RPC, generated types/manifest, three-row/25-second authority budget, final SQL role/binding/version/concurrent-lock/non-disclosure checks, and two consecutive fresh private-provider post-refresh/pre-save interruption and 11-second parent replay lifecycles pass with zero owned fixture residue and no published ports. o.3 accepted locally: 26th migration orders by first eligibility or last attempt, preserving retry floor/skip-locked/fences/grants; two fresh private pairs pass 12 scenarios including repeated waiting early revocations, final cleanup RPC and provider lifecycle pass, generated public types unchanged and function manifest one body-hash update. Pinned verify passes 403 tests; final Sol/high review no actionable P0-P2 in inspected o.3 changes. o.4 accepted locally: scheduled-only Worker, five focused tests, dry-run bundle and unconfigured Workerd dispatch; two consecutive fresh private-provider/database scheduled fixtures (attempts 10/11) pass empty, 30-second cooldown and revoked-session cleanup ticks with exact SQL/provider state, wrong-key and certificate-trust rejection, 26 migrations, no published provider ports and zero owned residue. Independent Sol/high review finding in test-only TLS control was fixed before the final pair. Synthetic sb_secret translation occurs only in the local gateway; hosted native key handling and CPU/free-tier fit remain unverified. Cloudflare account now exists through GitHub sign-in, but the local Wrangler OAuth session reports a different email; correct-account login and hosted configuration, Cron trigger, secrets or deployment are active. MP-08 and G1 remain open."
+      },
+      "evidence": "docs/state/MP-08m-plan.md; evidence/MP-08m-verify-final.txt; evidence/MP-08m-build-final.txt; evidence/MP-08m-emulator-final.txt; evidence/MP-08m-configured-boot.txt; evidence/MP-08m-review-disposition.json; real composed provider/browser lifecycle, provisioning/recovery/MFA and hosted acceptance incomplete"
     }
   },
-  "release_acceptance": "FAIL: MP-07 routing/hydration; MP-18-21 offline; unavailable SQL integration; inherited CI formatting findings"
+  "release_acceptance": "FAIL: latest full CLI E2E 87 passed/3 failed/30 skipped; MP-18-21 durable offline queue, MP-06 remaining authority, MP-07 real bootstrap/selected IDs/public SSR, MP-08 browser lifecycle/hosted scheduled cleanup/provisioning/recovery after local composed-provider pass, hosted Cloudflare/physical Apple acceptance and inherited CI formatting remain open",
+  "ops_notes": [
+    "2026-09-24 (Claude): Uptime workflow disabled on GitHub (was failing 85/85 with no PRODUCTION_URL); issue #4 closed; working-branch uptime.yml now guarded by vars.PRODUCTION_URL, env-indirected and on github-script@v9.",
+    "2026-09-24 (Claude): Dependabot PR #7 (157 updates) closed unmerged; PR #6 (Next 16.3.4, sharp 0.35.4) and #1 (github-script v9) left open with triage comments for small reviewed slices on the working branch.",
+    "2026-09-24 (Claude): Ethan enabled Dependabot alerts and security updates (verified via API); dependabot.yml on the working branch now sets open-pull-requests-limit 0 (security-only), effective once merged to main."
+  ]
 }

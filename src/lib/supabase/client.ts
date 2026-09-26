@@ -1,10 +1,11 @@
 'use client';
 
 import { createBrowserClient } from '@supabase/ssr';
+import type { Database } from '@/lib/types/database';
 
 /** Browser client. Carries the anon key only; every read is filtered by RLS. */
 export function createClient() {
-  return createBrowserClient(
+  return createBrowserClient<Database>(
     requireEnv('NEXT_PUBLIC_SUPABASE_URL'),
     requireEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY')
   );

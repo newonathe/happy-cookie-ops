@@ -1,0 +1,6 @@
+{"status": "failed", "error": "injected failure after owned container startup", "cleanup": "passed"}
+........
+----------------------------------------------------------------------
+Ran 8 tests in 2.889s
+
+OK

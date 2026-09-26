@@ -1,0 +1,2 @@
+{"reason": "runtime_failed_before_role_change", "status": "FAIL"}
+EXIT_CODE=1

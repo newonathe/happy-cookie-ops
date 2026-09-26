@@ -1,0 +1,18 @@
+{
+  "status": "accepted_bounded_review",
+  "blocking_findings": 0,
+  "requested_model": "claude-sonnet-5",
+  "effort": "medium",
+  "observed_models": [
+    "claude-haiku-4-5-20251001",
+    "claude-sonnet-5"
+  ],
+  "num_turns": 16,
+  "permission_denials": [],
+  "qualification": [
+    "Neighbor tests exercise real middleware with mocked authentication, not real session acceptance.",
+    "Provider metadata includes small Haiku auxiliary usage; Sonnet5 is the substantive reviewer. List cost is not billing evidence.",
+    "16 turns exceeded requested6; timeout remains only proven wall-clock cap.",
+    "No merge, hosted auth, physical durability or G1 closure claim."
+  ]
+}

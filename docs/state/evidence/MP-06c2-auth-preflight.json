@@ -1,0 +1,228 @@
+{
+  "status": "passed",
+  "runs": [
+    {
+      "auth_columns": [
+        {
+          "name": "instance_id",
+          "default": null,
+          "nullable": "YES"
+        },
+        {
+          "name": "id",
+          "default": null,
+          "nullable": "NO"
+        },
+        {
+          "name": "aud",
+          "default": null,
+          "nullable": "YES"
+        },
+        {
+          "name": "role",
+          "default": null,
+          "nullable": "YES"
+        },
+        {
+          "name": "email",
+          "default": null,
+          "nullable": "YES"
+        },
+        {
+          "name": "encrypted_password",
+          "default": null,
+          "nullable": "YES"
+        },
+        {
+          "name": "confirmed_at",
+          "default": null,
+          "nullable": "YES"
+        },
+        {
+          "name": "invited_at",
+          "default": null,
+          "nullable": "YES"
+        },
+        {
+          "name": "confirmation_token",
+          "default": null,
+          "nullable": "YES"
+        },
+        {
+          "name": "confirmation_sent_at",
+          "default": null,
+          "nullable": "YES"
+        },
+        {
+          "name": "recovery_token",
+          "default": null,
+          "nullable": "YES"
+        },
+        {
+          "name": "recovery_sent_at",
+          "default": null,
+          "nullable": "YES"
+        },
+        {
+          "name": "email_change_token",
+          "default": null,
+          "nullable": "YES"
+        },
+        {
+          "name": "email_change",
+          "default": null,
+          "nullable": "YES"
+        },
+        {
+          "name": "email_change_sent_at",
+          "default": null,
+          "nullable": "YES"
+        },
+        {
+          "name": "last_sign_in_at",
+          "default": null,
+          "nullable": "YES"
+        },
+        {
+          "name": "raw_app_meta_data",
+          "default": null,
+          "nullable": "YES"
+        },
+        {
+          "name": "raw_user_meta_data",
+          "default": null,
+          "nullable": "YES"
+        },
+        {
+          "name": "is_super_admin",
+          "default": null,
+          "nullable": "YES"
+        },
+        {
+          "name": "created_at",
+          "default": null,
+          "nullable": "YES"
+        },
+        {
+          "name": "updated_at",
+          "default": null,
+          "nullable": "YES"
+        }
+      ],
+      "uid_definition": "CREATE OR REPLACE FUNCTION auth.uid()\n RETURNS uuid\n LANGUAGE sql\n STABLE\nAS $function$\n  select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid;\n$function$\n",
+      "public_schema_acl": "{pg_database_owner=UC/pg_database_owner,=U/pg_database_owner,postgres=U/pg_database_owner,anon=U/pg_database_owner,authenticated=U/pg_database_owner,service_role=U/pg_database_owner}"
+    },
+    {
+      "auth_columns": [
+        {
+          "name": "instance_id",
+          "default": null,
+          "nullable": "YES"
+        },
+        {
+          "name": "id",
+          "default": null,
+          "nullable": "NO"
+        },
+        {
+          "name": "aud",
+          "default": null,
+          "nullable": "YES"
+        },
+        {
+          "name": "role",
+          "default": null,
+          "nullable": "YES"
+        },
+        {
+          "name": "email",
+          "default": null,
+          "nullable": "YES"
+        },
+        {
+          "name": "encrypted_password",
+          "default": null,
+          "nullable": "YES"
+        },
+        {
+          "name": "confirmed_at",
+          "default": null,
+          "nullable": "YES"
+        },
+        {
+          "name": "invited_at",
+          "default": null,
+          "nullable": "YES"
+        },
+        {
+          "name": "confirmation_token",
+          "default": null,
+          "nullable": "YES"
+        },
+        {
+          "name": "confirmation_sent_at",
+          "default": null,
+          "nullable": "YES"
+        },
+        {
+          "name": "recovery_token",
+          "default": null,
+          "nullable": "YES"
+        },
+        {
+          "name": "recovery_sent_at",
+          "default": null,
+          "nullable": "YES"
+        },
+        {
+          "name": "email_change_token",
+          "default": null,
+          "nullable": "YES"
+        },
+        {
+          "name": "email_change",
+          "default": null,
+          "nullable": "YES"
+        },
+        {
+          "name": "email_change_sent_at",
+          "default": null,
+          "nullable": "YES"
+        },
+        {
+          "name": "last_sign_in_at",
+          "default": null,
+          "nullable": "YES"
+        },
+        {
+          "name": "raw_app_meta_data",
+          "default": null,
+          "nullable": "YES"
+        },
+        {
+          "name": "raw_user_meta_data",
+          "default": null,
+          "nullable": "YES"
+        },
+        {
+          "name": "is_super_admin",
+          "default": null,
+          "nullable": "YES"
+        },
+        {
+          "name": "created_at",
+          "default": null,
+          "nullable": "YES"
+        },
+        {
+          "name": "updated_at",
+          "default": null,
+          "nullable": "YES"
+        }
+      ],
+      "uid_definition": "CREATE OR REPLACE FUNCTION auth.uid()\n RETURNS uuid\n LANGUAGE sql\n STABLE\nAS $function$\n  select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid;\n$function$\n",
+      "public_schema_acl": "{pg_database_owner=UC/pg_database_owner,=U/pg_database_owner,postgres=U/pg_database_owner,anon=U/pg_database_owner,authenticated=U/pg_database_owner,service_role=U/pg_database_owner}"
+    }
+  ],
+  "rollback_verified": true
+}

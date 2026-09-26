@@ -1,0 +1,77 @@
+
+ RUN  v3.2.7 C:/Users/ethan/dev/happy-cookie-ops-g0
+
+ ❯ tests/unit/supabase-auth-transport.test.ts (37 tests | 1 failed) 32ms
+   ✓ server Auth transport > projects credential exchange and sends only fixed target, headers and fields 11ms
+   ✓ server Auth transport > refreshes using the refresh grant only 1ms
+   ✓ server Auth transport > user lookup projects identity only; logout explicitly uses local scope 1ms
+   ✓ server Auth transport > rejects noncanonical origin http://project.example.test 0ms
+   ✓ server Auth transport > rejects noncanonical origin https://project.example.test/ 0ms
+   ✓ server Auth transport > rejects noncanonical origin https://project.example.test/path 0ms
+   ✓ server Auth transport > rejects noncanonical origin https://project.example.test?secret 0ms
+   ✓ server Auth transport > rejects noncanonical origin https://user:password@project.example.test 0ms
+   ✓ server Auth transport > rejects noncanonical origin not-url 0ms
+   ✓ server Auth transport > rejects unsupported key format 0ms
+   ✓ server Auth transport > rejects unsupported key format 0ms
+   ✓ server Auth transport > rejects unsupported key format 0ms
+   ✓ server Auth transport > rejects unsupported key format 0ms
+   ✓ server Auth transport > rejects bad input and already-aborted operation before any fetch 2ms
+   ✓ server Auth transport > recognizes only documented denial login 400 invalid_credentials 1ms
+   ✓ server Auth transport > recognizes only documented denial refresh 400 refresh_token_not_found 0ms
+   ✓ server Auth transport > recognizes only documented denial refresh 400 refresh_token_already_used 0ms
+   ✓ server Auth transport > recognizes only documented denial user 401 bad_jwt 0ms
+   ✓ server Auth transport > recognizes only documented denial user 401 session_not_found 0ms
+   ✓ server Auth transport > sanitizes other login error 401 invalid_credentials 0ms
+   ✓ server Auth transport > sanitizes other login error 400 bad_jwt 0ms
+   ✓ server Auth transport > sanitizes other login error 429 invalid_credentials 0ms
+   ✓ server Auth transport > sanitizes other login error 503 invalid_credentials 0ms
+   ✓ server Auth transport > sanitizes other login error 400 unknown 0ms
+   ✓ server Auth transport > rejects malformed token payload 1ms
+   ✓ server Auth transport > rejects malformed token payload 0ms
+   ✓ server Auth transport > rejects malformed token payload 0ms
+   ✓ server Auth transport > rejects malformed token payload 0ms
+   × server Auth transport > rejects malformed token payload 6ms
+     → promise resolved "{ accessToken: 'bad token', …(3) }" instead of rejecting
+   ✓ server Auth transport > rejects malformed, oversized or redirected response 0ms
+   ✓ server Auth transport > rejects malformed, oversized or redirected response 0ms
+   ✓ server Auth transport > rejects malformed, oversized or redirected response 0ms
+   ✓ server Auth transport > rejects malformed, oversized or redirected response 0ms
+   ✓ server Auth transport > bounds decoded bytes independently of compressed wire headers 1ms
+   ✓ server Auth transport > sanitizes network errors without retry or original cause 1ms
+   ✓ server Auth transport > does not acknowledge logout when upstream fails or returns unexpected success 1ms
+   ✓ server Auth transport > cancels stalled JSON reads on abort and never returns late credentials 1ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/supabase-auth-transport.test.ts > server Auth transport > rejects malformed token payload
+AssertionError: promise resolved "{ accessToken: 'bad token', …(3) }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ {
++   "accessToken": "bad token",
++   "expiresIn": 3600,
++   "refreshToken": "REFRESH_CANARY",
++   "userId": "00000000-0000-4000-8000-000000000001",
+  }
+
+ ❯ safeFailure tests/unit/supabase-auth-transport.test.ts:16:23
+     14| }
+     15| async function safeFailure(promise: Promise<unknown>) {
+     16|   await expect(promise).rejects.toMatchObject({ name: expect.any(Strin…
+       |                       ^
+     17| }
+     18| describe('server Auth transport', () => {
+ ❯ tests/unit/supabase-auth-transport.test.ts:68:11
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 36 passed (37)
+   Start at  03:53:50
+   Duration  820ms (transform 54ms, setup 278ms, collect 180ms, tests 32ms, environment 0ms, prepare 130ms)
+

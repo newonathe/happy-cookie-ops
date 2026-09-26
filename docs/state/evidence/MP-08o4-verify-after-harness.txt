@@ -1,0 +1,181 @@
+
+> happy-cookie-ops@0.1.0 verify C:\Users\ethan\dev\happy-cookie-ops-g0
+> pnpm verify:port && pnpm verify:engine && pnpm typecheck && pnpm typecheck:e2e && pnpm lint && pnpm test
+
+
+> happy-cookie-ops@0.1.0 verify:port C:\Users\ethan\dev\happy-cookie-ops-g0
+> node scripts/check-port-integrity.mjs
+
+Port integrity OK — 54 files match the copy/style and AST baselines.
+
+> happy-cookie-ops@0.1.0 verify:engine C:\Users\ethan\dev\happy-cookie-ops-g0
+> node scripts/check-engine-contract.mjs
+
+Engine contract OK — 49 exports, 21 settings keys, 20 tables documented, provenance claims verified against the prototype.
+
+> happy-cookie-ops@0.1.0 typecheck C:\Users\ethan\dev\happy-cookie-ops-g0
+> tsc --noEmit
+
+
+> happy-cookie-ops@0.1.0 typecheck:e2e C:\Users\ethan\dev\happy-cookie-ops-g0
+> tsc --noEmit --project tsconfig.e2e.json
+
+
+> happy-cookie-ops@0.1.0 lint C:\Users\ethan\dev\happy-cookie-ops-g0
+> eslint . --max-warnings 0
+
+
+C:\Users\ethan\dev\happy-cookie-ops-g0\spikes\cleanup-worker\build\cleanup-worker\index.js
+    661:19   warning  '_arg' is defined but never used                                       @typescript-eslint/no-unused-vars
+    664:22   warning  '_x' is defined but never used                                         @typescript-eslint/no-unused-vars
+    668:17   warning  '_' is defined but never used                                          @typescript-eslint/no-unused-vars
+    673:54   warning  '_' is defined but never used                                          @typescript-eslint/no-unused-vars
+    673:101  warning  '_' is defined but never used                                          @typescript-eslint/no-unused-vars
+    805:86   warning  '_args' is defined but never used                                      @typescript-eslint/no-unused-vars
+    822:12   warning  '_' is defined but never used                                          @typescript-eslint/no-unused-vars
+    950:7    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+    954:7    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+    958:7    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+    962:7    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+    965:13   warning  '_' is defined but never used                                          @typescript-eslint/no-unused-vars
+    966:7    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+    970:7    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+    974:7    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+   1212:5    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+   1225:5    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+   1234:7    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+   1240:17   warning  '_inst' is assigned a value but never used                             @typescript-eslint/no-unused-vars
+   1240:32   warning  '_schema' is assigned a value but never used                           @typescript-eslint/no-unused-vars
+   1240:51   warning  '_continue' is assigned a value but never used                         @typescript-eslint/no-unused-vars
+   1241:3    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+   1318:42   warning  '_' is defined but never used                                          @typescript-eslint/no-unused-vars
+   1370:18   warning  '_args' is defined but never used                                      @typescript-eslint/no-unused-vars
+   1607:1    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+   1619:3    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+   1762:13   warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+   1773:13   warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+   1774:13   warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+   2142:3    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+   2144:3    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+   2219:5    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+   2357:3    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+   2382:3    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+   2407:3    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+   2434:3    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+   2461:3    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+   2488:3    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+   2521:7    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+   2526:5    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+   2541:5    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+   2562:3    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+   2566:3    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+   2576:5    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+   2596:3    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+   2599:5    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+   2619:3    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+   2622:5    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+   2734:3    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+   2746:5    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+   2847:16   warning  '_' is defined but never used                                          @typescript-eslint/no-unused-vars
+   2859:31   warning  '_' is defined but never used                                          @typescript-eslint/no-unused-vars
+   2863:16   warning  '_2' is defined but never used                                         @typescript-eslint/no-unused-vars
+   2881:3    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+   2899:5    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+   2901:5    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+   2905:3    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+   2987:14   warning  '_' is defined but never used                                          @typescript-eslint/no-unused-vars
+   2999:3    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+   3005:3    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+   3009:3    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+   3013:3    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+   3017:3    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+   3021:3    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+   3025:3    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+   3029:3    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+   3039:3    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+   3043:3    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+   3047:3    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+   3051:3    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+   3068:3    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+   3084:3    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+   3089:3    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+   3108:3    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+   3138:3    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+   3162:3    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+   3178:3    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+   3201:3    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+   3267:31   warning  '_ctx' is defined but never used                                       @typescript-eslint/no-unused-vars
+   3271:16   warning  '_' is defined but never used                                          @typescript-eslint/no-unused-vars
+   3295:31   warning  '_ctx' is defined but never used                                       @typescript-eslint/no-unused-vars
+   3299:16   warning  '_' is defined but never used                                          @typescript-eslint/no-unused-vars
+   3316:31   warning  '_ctx' is defined but never used                                       @typescript-eslint/no-unused-vars
+   3320:16   warning  '_' is defined but never used                                          @typescript-eslint/no-unused-vars
+   3339:31   warning  '_ctx' is defined but never used                                       @typescript-eslint/no-unused-vars
+   3356:31   warning  '_ctx' is defined but never used                                       @typescript-eslint/no-unused-vars
+   3373:31   warning  '_ctx' is defined but never used                                       @typescript-eslint/no-unused-vars
+   3396:31   warning  '_ctx' is defined but never used                                       @typescript-eslint/no-unused-vars
+   3408:31   warning  '_ctx' is defined but never used                                       @typescript-eslint/no-unused-vars
+   3423:31   warning  '_ctx' is defined but never used                                       @typescript-eslint/no-unused-vars
+   3427:16   warning  '_err' is defined but never used                                       @typescript-eslint/no-unused-vars
+   3627:5    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+   3755:5    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+   4063:7    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+   4486:31   warning  '_ctx' is defined but never used                                       @typescript-eslint/no-unused-vars
+   4505:31   warning  '_ctx' is defined but never used                                       @typescript-eslint/no-unused-vars
+   4521:31   warning  '_ctx' is defined but never used                                       @typescript-eslint/no-unused-vars
+   4730:31   warning  '_ctx' is defined but never used                                       @typescript-eslint/no-unused-vars
+   4871:31   warning  '_ctx' is defined but never used                                       @typescript-eslint/no-unused-vars
+   4925:31   warning  '_ctx' is defined but never used                                       @typescript-eslint/no-unused-vars
+   4998:31   warning  '_' is defined but never used                                          @typescript-eslint/no-unused-vars
+   5139:7    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+   5188:5    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+   5206:5    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+   5243:13   warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  12789:1    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  15427:3    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  15458:9    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  15461:9    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  15462:9    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  15549:56   warning  '_payload' is defined but never used                                   @typescript-eslint/no-unused-vars
+  15681:5    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  16052:12   warning  '_err' is defined but never used                                       @typescript-eslint/no-unused-vars
+  16134:67   warning  '_params' is defined but never used                                    @typescript-eslint/no-unused-vars
+  16203:70   warning  '_params' is defined but never used                                    @typescript-eslint/no-unused-vars
+  16212:66   warning  '_params' is defined but never used                                    @typescript-eslint/no-unused-vars
+  16227:68   warning  '_params' is defined but never used                                    @typescript-eslint/no-unused-vars
+  16230:44   warning  '_schema' is defined but never used                                    @typescript-eslint/no-unused-vars
+  16230:53   warning  '_ctx' is defined but never used                                       @typescript-eslint/no-unused-vars
+  16230:59   warning  '_json' is defined but never used                                      @typescript-eslint/no-unused-vars
+  16230:66   warning  '_params' is defined but never used                                    @typescript-eslint/no-unused-vars
+  16232:48   warning  '_schema' is defined but never used                                    @typescript-eslint/no-unused-vars
+  16232:57   warning  '_ctx' is defined but never used                                       @typescript-eslint/no-unused-vars
+  16232:63   warning  '_json' is defined but never used                                      @typescript-eslint/no-unused-vars
+  16232:70   warning  '_params' is defined but never used                                    @typescript-eslint/no-unused-vars
+  16237:66   warning  '_params' is defined but never used                                    @typescript-eslint/no-unused-vars
+  16293:77   warning  '_params' is defined but never used                                    @typescript-eslint/no-unused-vars
+  16301:66   warning  '_params' is defined but never used                                    @typescript-eslint/no-unused-vars
+  16325:70   warning  '_params' is defined but never used                                    @typescript-eslint/no-unused-vars
+  16527:11   warning  'minimum' is assigned a value but never used                           @typescript-eslint/no-unused-vars
+  16527:20   warning  'maximum' is assigned a value but never used                           @typescript-eslint/no-unused-vars
+  16527:29   warning  'exclusiveMinimum' is assigned a value but never used                  @typescript-eslint/no-unused-vars
+  16527:47   warning  'exclusiveMaximum' is assigned a value but never used                  @typescript-eslint/no-unused-vars
+  16527:65   warning  'multipleOf' is assigned a value but never used                        @typescript-eslint/no-unused-vars
+  16527:77   warning  'format' is assigned a value but never used                            @typescript-eslint/no-unused-vars
+  16527:85   warning  'id' is assigned a value but never used                                @typescript-eslint/no-unused-vars
+  16758:14   warning  '_' is assigned a value but never used                                 @typescript-eslint/no-unused-vars
+  16864:26   warning  '_' is assigned a value but never used                                 @typescript-eslint/no-unused-vars
+  18317:9    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  18320:9    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  18676:27   warning  'ZodFirstPartyTypeKind2' is defined but never used                     @typescript-eslint/no-unused-vars
+  19378:17   warning  '_cachedInner' is assigned a value but never used                      @typescript-eslint/no-unused-vars
+  19405:9    warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+  20403:5    warning  'SessionRecordSchema' is assigned a value but never used               @typescript-eslint/no-unused-vars
+  20413:5    warning  'LoginBodySchema' is assigned a value but never used                   @typescript-eslint/no-unused-vars
+  20414:5    warning  'EmptyBodySchema' is assigned a value but never used                   @typescript-eslint/no-unused-vars
+
+✖ 146 problems (0 errors, 146 warnings)
+
+ESLint found too many warnings (maximum: 0).
+ ELIFECYCLE  Command failed with exit code 1.
+ ELIFECYCLE  Command failed with exit code 1.
+exit_code=1

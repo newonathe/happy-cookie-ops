@@ -1,0 +1,1 @@
+Ignoring 16 permissions.allow entries from .claude/settings.json: this workspace has not been trusted. Run Claude Code interactively here once and accept the trust dialog, or set projects["C:/Users/ethan/dev/happy-cookie-ops-g0"].hasTrustDialogAccepted: true in C:\Users\ethan\.claude.json.

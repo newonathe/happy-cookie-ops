@@ -1,5 +1,7 @@
 # Phase 09 — Maintenance
 
+> **Historical context (T-task era, before the 2026-09-08 master plan):** where this page conflicts with [MASTER-PLAN.md](../../MASTER-PLAN.md), [docs/state/current.md](../../docs/state/current.md) or the [decision register](../../docs/state/decision-register.md), those win. Its protection rules still apply unless they say otherwise.
+
 After launch. These are the prompts you will actually use most, over years, long after the
 build prompts are history.
 

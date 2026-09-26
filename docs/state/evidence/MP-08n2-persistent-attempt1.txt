@@ -1,0 +1,2 @@
+{"checks": {"integrated_test_files": 1, "private_network": true, "provider_components": ["GoTrue", "PostgREST", "PostgreSQL"], "vitest_exit": 0}, "cleanup": {"owned_containers": 0, "owned_networks": 0, "owned_workdirs": 0}, "migration_count": 24, "published_host_ports": 0, "status": "PASS"}
+EXIT_CODE=0

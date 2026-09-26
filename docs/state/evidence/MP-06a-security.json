@@ -1,0 +1,60 @@
+{
+  "status": "passed",
+  "scope": "three maintenance RPCs under SQL roles; not JWT/API/full MP-06 acceptance",
+  "runs": [
+    [
+      "SEC_RESULT|consume_rate_limit|anon|denied_42501",
+      "SEC_RESULT|consume_rate_limit|authenticated_forged_service_claim|denied_42501",
+      "SEC_RESULT|consume_rate_limit|authenticated_helper_claim|denied_42501",
+      "SEC_RESULT|consume_rate_limit|authenticated_owner_claim|denied_42501",
+      "SEC_RESULT|consume_rate_limit|authenticated_support_claim|denied_42501",
+      "SEC_RESULT|consume_rate_limit|service_role|allowed_then_exhausted",
+      "SEC_RESULT|prune_personal_data|anon|denied_42501",
+      "SEC_RESULT|prune_personal_data|authenticated_forged_service_claim|denied_42501",
+      "SEC_RESULT|prune_personal_data|authenticated_helper_claim|denied_42501",
+      "SEC_RESULT|prune_personal_data|authenticated_owner_claim|denied_42501",
+      "SEC_RESULT|prune_personal_data|authenticated_support_claim|denied_42501",
+      "SEC_RESULT|prune_personal_data|service_role|one_old_order",
+      "SEC_RESULT|prune_rate_limits|anon|denied_42501",
+      "SEC_RESULT|prune_rate_limits|authenticated_forged_service_claim|denied_42501",
+      "SEC_RESULT|prune_rate_limits|authenticated_helper_claim|denied_42501",
+      "SEC_RESULT|prune_rate_limits|authenticated_owner_claim|denied_42501",
+      "SEC_RESULT|prune_rate_limits|authenticated_support_claim|denied_42501",
+      "SEC_RESULT|prune_rate_limits|service_role|one_stale_counter"
+    ],
+    [
+      "SEC_RESULT|consume_rate_limit|anon|denied_42501",
+      "SEC_RESULT|consume_rate_limit|authenticated_forged_service_claim|denied_42501",
+      "SEC_RESULT|consume_rate_limit|authenticated_helper_claim|denied_42501",
+      "SEC_RESULT|consume_rate_limit|authenticated_owner_claim|denied_42501",
+      "SEC_RESULT|consume_rate_limit|authenticated_support_claim|denied_42501",
+      "SEC_RESULT|consume_rate_limit|service_role|allowed_then_exhausted",
+      "SEC_RESULT|prune_personal_data|anon|denied_42501",
+      "SEC_RESULT|prune_personal_data|authenticated_forged_service_claim|denied_42501",
+      "SEC_RESULT|prune_personal_data|authenticated_helper_claim|denied_42501",
+      "SEC_RESULT|prune_personal_data|authenticated_owner_claim|denied_42501",
+      "SEC_RESULT|prune_personal_data|authenticated_support_claim|denied_42501",
+      "SEC_RESULT|prune_personal_data|service_role|one_old_order",
+      "SEC_RESULT|prune_rate_limits|anon|denied_42501",
+      "SEC_RESULT|prune_rate_limits|authenticated_forged_service_claim|denied_42501",
+      "SEC_RESULT|prune_rate_limits|authenticated_helper_claim|denied_42501",
+      "SEC_RESULT|prune_rate_limits|authenticated_owner_claim|denied_42501",
+      "SEC_RESULT|prune_rate_limits|authenticated_support_claim|denied_42501",
+      "SEC_RESULT|prune_rate_limits|service_role|one_stale_counter"
+    ]
+  ],
+  "regressions_detected": [
+    "consume_rate_limit(text,integer,integer)",
+    "prune_rate_limits()",
+    "prune_personal_data(integer)",
+    "consume_rate_limit(text,integer,integer)",
+    "prune_rate_limits()",
+    "prune_personal_data(integer)"
+  ],
+  "cases_per_reset": 18,
+  "resets": 2,
+  "matrix_equal": true,
+  "rollback_verified": true,
+  "sql_sha256": "b7e17bed27152a2fbb8c0ffc7f58bc7ab536a107b943dbc000d15d43764164e3",
+  "harness_sha256": "0bbbe775902ef79adc0d2a170620b96854141a6c5bd5f516057cb320869e782b"
+}

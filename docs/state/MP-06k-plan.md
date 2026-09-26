@@ -1,0 +1,25 @@
+# MP-06k — public catalog projection authority
+
+Status: local SQL acceptance passed on 2026-09-20; G1 remains incomplete. Hosted/provider acceptance is separate.
+
+This slice adds explicit publication flags and fixed-field public catalog views while retaining raw catalog rows for owner/service operations. It proves, with rollback-only synthetic fixtures, eight role states, draft/inactive filtering, exact projection fields, read-only view grants, metadata options, red-policy/grant hooks, and withdrawal visibility. Root owns the migration, harness, generated types, and health-route decision; this fixture owns only its own synthetic data and rolls it back.
+
+Acceptance requires two clean local resets, the complete 49-row `SEC_RESULT` matrix per reset, both intentional red probes failing, unchanged fixture emptiness, catalog/type guards, and `pnpm verify`. No hosted verification, product versioning, checkout behavior, or release claim is included.
+
+## Progress and retained attempts
+
+Two23migration type-generation resets passed, producing the two view types and published columns; exact catalog comparison passed. Claude migration review found no blockers; root corrected its inaccurate description of the health client as service-role. Health checks errors rather than row existence, so RLS-empty reads do not create the alleged503. No health code change. First app run had114passes/1reporter timeout; unchanged115tests passed with two workers. A combined verification retry incorrectly forwarded flags to pnpm and was rejected; retained separately, corrected using Vitest MAX_FORKS/MIN_FORKS environment. SQL preflight attempt1 failed because Docker Desktop was stopped; ordinary hidden startup requested, no data reset. These failures are retained, not acceptance. Final SQL/combined verify/cleanup remain pending.
+
+## Current verification boundary
+
+Final `pnpm verify` passed115tests using VITEST_MAX_FORKS=2,VITEST_MIN_FORKS=1; no assertions/timeouts changed. Seventeen DB guard cases:16pass,1blocked by absent Docker; six security guards pass. SQL suite has41new cases per reset plus421previous, but no new SQL execution is claimed: preflight failed before firstreset. The separate earlier type-generation fixture passed two23migration resets and cleanup. Exact view/schema/ACL inventory is recorded; this is not behavioral acceptance.
+
+Docker Desktop startup failed at an inaccessible zero-byte reparse socket C:/Users/ethan/AppData/Local/Docker/run/dockerInference. Normal hidden startup failed; stopped only failed Docker application/backend processes, attempted same-directory socket move (failed). Fallback exact socket removal was rejected by automatic approval policy; no alternate deletion attempted, no images/volumes reset. Owner must resolve Docker startup through normal Docker/Windows support before SQL evidence can finish. One failed ownedfixture directory is retained (see attempt1 bootstrap); cleanup must use harness ownership verification after engine recovery, never broad deletion. Old docker info process may remain blocked; poll its exact handle or stop only the diagnostic before relaunch.
+
+## Final local SQL acceptance — 2026-09-20
+
+Docker returned without deleting a socket or resetting any user data. The retained attempt1 workdir was checked against its exact absolute parent, owned prefix and `owner.json`; it had no container ID or retain marker. The existing harness's guarded cleanup removed only that owned directory, with [receipt](evidence/MP-06k-retained-cleanup.txt). No containers were running before the new fixture.
+
+First live role-suite attempt reached the previous `profiles.sql` assertion and failed `profile product RLS differs: anonymous`. This was a stale test oracle from before MP-06k: it still expected anonymous raw product visibility. Migration `20260101002200_public_catalog_projection.sql` deliberately restricts raw products to active owners and exposes the public fixed-field view; the dedicated new catalog suite independently checks that view. The test expectation was changed to two raw rows for an active owner and zero for all other profile states, including deactivation. The failed receipt is retained as `MP-06k-security-attempt2.*` and `MP-06k-bootstrap-attempt2.json`; no migration or protected UI/engine changed.
+
+The rerun [security report](evidence/MP-06k-security.json) and [bootstrap report](evidence/MP-06k-bootstrap.json) pass: two clean 23-migration resets, **462 distinct role cases per reset** (924 total), 60 intentional red probes detected, four live function guards, ten audit-sequence restorations, two populated profile-upgrade checks, exact matching catalog/schema snapshots, empty rollback fixtures and guarded container/workdir cleanup. The [command log](evidence/MP-06k-security-final.txt) exits zero. Final [repository verification](evidence/G1-final-verify.txt) passes port/engine/type/lint and 323 unit tests. This completes **MP-06k local SQL acceptance** only. Real hosted/provider role enforcement, command authority, session lifecycle and G1 release remain open.

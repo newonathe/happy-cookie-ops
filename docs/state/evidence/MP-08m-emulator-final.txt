@@ -1,0 +1,7 @@
+[WARN] The "pnpm" field in package.json is no longer read by pnpm. The following keys were ignored: "pnpm.overrides", "pnpm.onlyBuiltDependencies". See https://pnpm.io/settings for the new home of each setting.
+
+> happy-cookie-ops@0.1.0 test:pages:spike C:\Users\ethan\dev\happy-cookie-ops-g0
+> node scripts/test-pages-spike.mjs
+
+{"status":"passed","port":50707,"checks":{"health":200,"head":200,"method":405,"sync":503,"session":503,"shop":200,"unknown":404}}
+EXIT_CODE=0

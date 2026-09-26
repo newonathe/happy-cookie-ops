@@ -1,0 +1,12 @@
+{
+  "provider": "Claude first-party Pro",
+  "requested_model": "claude-sonnet-5",
+  "effort": "medium",
+  "exit_code": 1,
+  "actual_turns": 12,
+  "result": "Session usage limit; no review returned",
+  "reset_reported": "9:50am Asia/Manila",
+  "permission_denials": [],
+  "fallback": "One Codex Sol/high security reviewer, no parallel duplicate review, paid API or reset",
+  "project_settings_notice": "CLI reported untrusted workspace settings allow entries ignored; explicit narrow CLI Read/Grep/Glob controls applied. No permission denial was returned."
+}

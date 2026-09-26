@@ -1,0 +1,12 @@
+{
+  "scope": "SQL-only replay; no Supabase CLI reset or auth/RLS acceptance",
+  "runs": [
+    {
+      "container": "hcb-sql-probe-d9e01ddf4872",
+      "applied": [],
+      "cleanup": "passed"
+    }
+  ],
+  "status": "failed",
+  "error": "isolated PostgreSQL did not become ready"
+}

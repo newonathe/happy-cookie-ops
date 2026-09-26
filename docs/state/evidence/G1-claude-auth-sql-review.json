@@ -1,0 +1,51 @@
+{
+  "date": "2026-09-26",
+  "reviewers": "Claude Sonnet (independent worker, read-only) then Claude Opus 5.5 sign-off",
+  "authored_by": "Codex (MP-08n.2/.3, MP-08o.1-.4, MP-06l, MP-04d)",
+  "scope_read": [
+    "supabase/migrations/20260101002400_bff_cleanup_recovery.sql",
+    "supabase/migrations/20260101002500_bff_cleanup_fair_claims.sql",
+    "supabase/migrations/20260101002600_erasure_digest_authority.sql",
+    "spikes/cleanup-worker/src/index.ts",
+    "spikes/pages/functions/lib/service-rpc.ts",
+    "spikes/workers-web/src/index.ts",
+    "scripts/pages-spike-headers.mjs",
+    "src/lib/auth/persistent-session-authority.ts",
+    "src/lib/auth/supabase-auth-transport.ts",
+    "tests/fixtures/function-authority.json",
+    "tests/integration/auth/private-provider-fetch.ts",
+    "tests/integration/security/future-function-defaults.sql",
+    "scripts/probe-future-function-defaults.py"
+  ],
+  "not_executed": "No SQL or provider fixture was re-run for this review except MP-06m. Findings come from reading the code and from Codex's existing receipts.",
+  "findings": [
+    {
+      "severity": "P3",
+      "file": "src/lib/auth/persistent-session-authority.ts",
+      "lines": "150-159, 178-190",
+      "worker_claim": "P1: a provider refresh followed by a failed or interrupted rotation save orphans a live provider session forever; interactive login/refresh recovery is best-effort only (3 s).",
+      "opus_adjudication": "UPDATE 2026-09-26: confirmed P3 by the provider's own documentation. https://supabase.com/docs/guides/auth/sessions states: 'If the parent of the currently active refresh token for the user's session is being used, the active token will be returned' (no time limit, separate from the 10 s reuse interval). The hosted re-probe stays as confirmation. Original note: downgraded to P3 as a JUDGMENT PENDING A PROBE, not a proven result. (1) Cleanup path: the stored envelope stays the direct parent of the unsaved child. evidence/MP-08o2-parent-reuse.txt proves pinned GoTrue returns the same active child when the parent is replayed after 11 s. A cleanup retry cannot happen sooner than the 30-second claim floor and may come minutes or hours later, so 'the next claim can refresh, save and log out that child' is inferred for those delays, not shown. If replay fails after a long delay, the worker's P1 stands. The residual window is already documented in MP-08o-plan.md L37 and needs a hosted re-probe (added to the DP-14 checklist). (2) Interactive refresh: the durable row keeps the parent envelope, so the same replay applies. (3) Interactive login where bff_session_create fails: the provider tokens exist only in the dead process's memory and are never stored or sent to the browser, so no party can use them. The remaining effect is an unreachable auth.sessions row until provider expiry.",
+      "action": "Confirm the downgrade: rerun the direct-parent replay probe locally with delays of at least 30 s and several minutes, and again on the hosted DP-14 spike. The queued Codex review should explicitly confirm or reject this P3 downgrade. Optionally sweep orphan auth.sessions rows later."
+    },
+    {
+      "severity": "P3",
+      "file": "scripts/pages-spike-headers.mjs",
+      "lines": "103",
+      "issue": "The generated CSP has no form-action. connect-src falls back to 'self', and the exported /sign-in still calls signInWithPassword against NEXT_PUBLIC_SUPABASE_URL (src/app/sign-in/sign-in-form.tsx L25).",
+      "action": "Add form-action 'self'. Route /sign-in through the BFF before hosted sign-in; do not widen connect-src."
+    }
+  ],
+  "found_sound": [
+    "New cleanup RPCs: search_path '', fence/version/binding predicates, owner postgres, EXECUTE revoked from public/anon/authenticated and granted to service_role only",
+    "Fair claims: FOR UPDATE SKIP LOCKED, 30-second retry floor, fence bump on claim, limit 1-50",
+    "Erasure: fail-closed pgcrypto location check, schema-qualified extensions.digest, PUBLIC/anon EXECUTE revoked, is_owner() gate",
+    "function-authority.json matches migration grants; no session function is reachable by anon/authenticated/PUBLIC",
+    "Service RPC bridge: fixed allowlist, HTTPS-only origin, redirect manual, 5 MB cap, fail-closed errors; legacy_jwt only with a loopback APP_ORIGIN",
+    "Auth transport: redirect manual, 64 KiB bounded JSON, content-type check, no token in errors or logs",
+    "Cleanup Worker: 40-subrequest cap under the free limit of 50, 24.5 s wall budget, aggregate-only logs",
+    "Test provider bridge is referenced only by test code (tests/integration/auth/pages-provider.test.ts, scripts/test-cleanup-worker-provider.mjs, scripts/test-pages-runtime-provider.mjs) and by nothing under src/ or spikes/; secrets travel over stdin, not argv"
+  ],
+  "verdict": "The worker reported one P1. Opus downgraded it to P3 pending a longer-delay replay probe; no other P0-P2 finding in the reviewed scope. A Codex read-only review, including confirmation of that downgrade, remains queued before any commit.",
+  "credentials_exposed_in_reviewed_files": false,
+  "files_changed_by_review": 0
+}

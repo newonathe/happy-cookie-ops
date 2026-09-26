@@ -15,3 +15,8 @@ next-env.d.ts
 .vercel
 supabase/.branches
 supabase/.temp
+.wrangler
+.dev.vars
+.dev.vars.*
+__pycache__/
+*.stackdump

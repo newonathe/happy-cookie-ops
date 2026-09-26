@@ -1,0 +1,181 @@
+{
+  "status": "passed",
+  "scope": "explicit-connection CLI reset on disposable loopback PostgreSQL; not managed --local or auth/RLS acceptance",
+  "project_id": "hcb-6aa30e20-b63237",
+  "workdir": "C:\\Users\\ethan\\dev\\.hcb-bootstrap-6aa30e20-b63237",
+  "cleanup": "passed",
+  "resets": 2,
+  "harness_sha256": "461c20cc92789382631dd15e6aa963620366a43927f72289433257cb50aafc8c",
+  "assertions_sha256": "60aba2b2ca557a721debd684ddb33fc222eab86dddb63c80ce6591b4d028e046",
+  "binding_checks": [
+    {
+      "running_required": false,
+      "bindings": {
+        "5432/tcp": [
+          {
+            "HostIp": "127.0.0.1",
+            "HostPort": "48716"
+          }
+        ]
+      }
+    },
+    {
+      "running_required": true,
+      "bindings": {
+        "5432/tcp": [
+          {
+            "HostIp": "127.0.0.1",
+            "HostPort": "48716"
+          }
+        ]
+      }
+    },
+    {
+      "running_required": true,
+      "bindings": {
+        "5432/tcp": [
+          {
+            "HostIp": "127.0.0.1",
+            "HostPort": "48716"
+          }
+        ]
+      }
+    },
+    {
+      "running_required": true,
+      "bindings": {
+        "5432/tcp": [
+          {
+            "HostIp": "127.0.0.1",
+            "HostPort": "48716"
+          }
+        ]
+      }
+    },
+    {
+      "running_required": true,
+      "bindings": {
+        "5432/tcp": [
+          {
+            "HostIp": "127.0.0.1",
+            "HostPort": "48716"
+          }
+        ]
+      }
+    },
+    {
+      "running_required": true,
+      "bindings": {
+        "5432/tcp": [
+          {
+            "HostIp": "127.0.0.1",
+            "HostPort": "48716"
+          }
+        ]
+      }
+    },
+    {
+      "running_required": true,
+      "bindings": {
+        "5432/tcp": [
+          {
+            "HostIp": "127.0.0.1",
+            "HostPort": "48716"
+          }
+        ]
+      }
+    },
+    {
+      "running_required": true,
+      "bindings": {
+        "5432/tcp": [
+          {
+            "HostIp": "127.0.0.1",
+            "HostPort": "48716"
+          }
+        ]
+      }
+    }
+  ],
+  "source_hashes": {
+    "20260101000000_init.sql": "2f123c8cc79d7586792eb8bb30425621a9e82b4ef257e384ccc56f326b11a9a2",
+    "20260101000100_sync_sales.sql": "6d4b9d110413cb2dd79687e590e17dfa73a80f39a8892e404cb2532c7c027815",
+    "20260101000200_catalogue_fidelity.sql": "2f0d7afc512e9d09ca98d3b54fc54c6861af9284bf4cc3f0bab9cc4c914dea04",
+    "20260101000300_rate_limits.sql": "f178558c82f4181a53983aeae3c6b7ef1fe3faa4a5be5bd122f3d76a3be3882f",
+    "20260101000400_capacity_parity.sql": "348f917f5c661cb6b9fd00aaa18b183820deb11ee1da0f4aeeb6d99b402fa65a",
+    "20260101000500_retention.sql": "9156de7b17a85fe21ea820c60c849fc62700e11fc6a7758fcc802118179571eb",
+    "20260101000600_concurrency.sql": "2275ba1be999abdfcca2c6beb45a8e09923b8abce3d137805a18e5cca2375090",
+    "20260101000700_settings.sql": "e54163cf7f7bd079d7960b87fa57d33bbaf2a019608f194b2488b685d0c5d29a",
+    "20260101000800_maintenance_authority.sql": "0e5eb2a40f4d8c3b965a3251a67df098e5e46c8e11e2904aa4730705d125d175"
+  },
+  "database_image": "sha256:af083ef64d0408c8f098ee6f5c364a59b26f36fbc0f3a334a62c5c1d57362e9b",
+  "postgres_version_num": "150008",
+  "cli_version": "2.116.0",
+  "loopback_port": 48716,
+  "container_id": "88ef1d6bceb68cb2f79c939e0c4ba155eaeb51f1ca8cc8e99b5be38b873f5993",
+  "expected_versions": [
+    "20260101000000",
+    "20260101000100",
+    "20260101000200",
+    "20260101000300",
+    "20260101000400",
+    "20260101000500",
+    "20260101000600",
+    "20260101000700",
+    "20260101000800"
+  ],
+  "catalog": [
+    "function\tanonymise_customer(p_phone text, p_note text)\tinteger",
+    "function\tcapacity_allows(p_capacity integer, p_committed integer, p_requested integer)\tboolean",
+    "function\tconsume_rate_limit(p_key text, p_limit integer, p_window_s integer)\tTABLE(allowed boolean, remaining integer, reset_at timestamp with time zone)",
+    "function\tcurrent_role_name()\tapp_role",
+    "function\tdrop_remaining(p_drop_id uuid)\tinteger",
+    "function\tis_owner()\tboolean",
+    "function\tis_staff()\tboolean",
+    "function\tlookup_order(p_order_id text, p_phone text)\tTABLE(id text, customer_name text, state order_state, pay_state pay_state, total_cents bigint, pickup_at timestamp with time zone, placed_at timestamp with time zone)",
+    "function\tprune_personal_data(p_retain_days integer)\tinteger",
+    "function\tprune_rate_limits()\tinteger",
+    "function\tsettings_effective()\tTABLE(key text, int_value bigint, text_value text, cents_value bigint, is_default boolean)",
+    "function\tsettings_touch()\ttrigger",
+    "function\tstate_is_recognised(p_state order_state)\tboolean",
+    "function\tstate_reserves_capacity(p_state order_state)\tboolean",
+    "function\tsync_event_sale(p_sale jsonb)\tTABLE(client_id text, sale_id uuid, duplicate boolean)",
+    "function\ttouch_updated_at()\ttrigger",
+    "function\tupdate_order_state(p_order_id text, p_seen_at timestamp with time zone, p_state text, p_pay_state text, p_pay_ref text)\tTABLE(id text, state text, pay_state text, updated_at timestamp with time zone)",
+    "migration\t20260101000000\tapplied",
+    "migration\t20260101000100\tapplied",
+    "migration\t20260101000200\tapplied",
+    "migration\t20260101000300\tapplied",
+    "migration\t20260101000400\tapplied",
+    "migration\t20260101000500\tapplied",
+    "migration\t20260101000600\tapplied",
+    "migration\t20260101000700\tapplied",
+    "migration\t20260101000800\tapplied",
+    "settings_defaults\tsettings_effective\t21",
+    "settings_overrides\tsettings\t0",
+    "table_rows\taudit_log\t0",
+    "table_rows\tbake_batches\t0",
+    "table_rows\tdrops\t0",
+    "table_rows\terasure_requests\t0",
+    "table_rows\tevent_sale_items\t0",
+    "table_rows\tevent_sales\t0",
+    "table_rows\tevents\t0",
+    "table_rows\tinventory_items\t0",
+    "table_rows\tledger_entries\t0",
+    "table_rows\torder_items\t0",
+    "table_rows\torders\t0",
+    "table_rows\tproducts\t0",
+    "table_rows\tprofiles\t0",
+    "table_rows\trate_limits\t0",
+    "table_rows\trecipe_ingredients\t0",
+    "table_rows\trecipes\t0",
+    "table_rows\tsettings\t0",
+    "table_rows\tsupplier_prices\t0",
+    "table_rows\tsuppliers\t0"
+  ],
+  "catalog_sha256": "2b8795b2280f34c018275d334bf6a346efa0684ccdfdfa89a82c3bca58c1a593",
+  "catalogs_equal": true,
+  "schema_sha256": "e35f755a0737e1f250aae153fd9563a317bc972cab3355c4665646a405676ff5",
+  "schemas_equal": true,
+  "sentinel_removed": true
+}

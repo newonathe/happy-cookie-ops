@@ -1,0 +1,208 @@
+{
+  "status": "passed",
+  "scope": "explicit-connection CLI reset on disposable loopback PostgreSQL; not managed --local or auth/RLS acceptance",
+  "project_id": "hcb-6aa56da5-c7a31f",
+  "workdir": "C:\\Users\\ethan\\dev\\.hcb-bootstrap-6aa56da5-c7a31f",
+  "cleanup": "passed",
+  "resets": 2,
+  "harness_sha256": "fc8423628f0ee43cc82f26c23dc69313806c19bed03759125ed43d54656c74e8",
+  "assertions_sha256": "60aba2b2ca557a721debd684ddb33fc222eab86dddb63c80ce6591b4d028e046",
+  "binding_checks": [
+    {
+      "running_required": false,
+      "bindings": {
+        "5432/tcp": [
+          {
+            "HostIp": "127.0.0.1",
+            "HostPort": "48716"
+          }
+        ]
+      }
+    },
+    {
+      "running_required": true,
+      "bindings": {
+        "5432/tcp": [
+          {
+            "HostIp": "127.0.0.1",
+            "HostPort": "48716"
+          }
+        ]
+      }
+    },
+    {
+      "running_required": true,
+      "bindings": {
+        "5432/tcp": [
+          {
+            "HostIp": "127.0.0.1",
+            "HostPort": "48716"
+          }
+        ]
+      }
+    },
+    {
+      "running_required": true,
+      "bindings": {
+        "5432/tcp": [
+          {
+            "HostIp": "127.0.0.1",
+            "HostPort": "48716"
+          }
+        ]
+      }
+    },
+    {
+      "running_required": true,
+      "bindings": {
+        "5432/tcp": [
+          {
+            "HostIp": "127.0.0.1",
+            "HostPort": "48716"
+          }
+        ]
+      }
+    },
+    {
+      "running_required": true,
+      "bindings": {
+        "5432/tcp": [
+          {
+            "HostIp": "127.0.0.1",
+            "HostPort": "48716"
+          }
+        ]
+      }
+    },
+    {
+      "running_required": true,
+      "bindings": {
+        "5432/tcp": [
+          {
+            "HostIp": "127.0.0.1",
+            "HostPort": "48716"
+          }
+        ]
+      }
+    },
+    {
+      "running_required": true,
+      "bindings": {
+        "5432/tcp": [
+          {
+            "HostIp": "127.0.0.1",
+            "HostPort": "48716"
+          }
+        ]
+      }
+    }
+  ],
+  "source_hashes": {
+    "20260101000000_init.sql": "2f123c8cc79d7586792eb8bb30425621a9e82b4ef257e384ccc56f326b11a9a2",
+    "20260101000100_sync_sales.sql": "6d4b9d110413cb2dd79687e590e17dfa73a80f39a8892e404cb2532c7c027815",
+    "20260101000200_catalogue_fidelity.sql": "2f0d7afc512e9d09ca98d3b54fc54c6861af9284bf4cc3f0bab9cc4c914dea04",
+    "20260101000300_rate_limits.sql": "f178558c82f4181a53983aeae3c6b7ef1fe3faa4a5be5bd122f3d76a3be3882f",
+    "20260101000400_capacity_parity.sql": "348f917f5c661cb6b9fd00aaa18b183820deb11ee1da0f4aeeb6d99b402fa65a",
+    "20260101000500_retention.sql": "9156de7b17a85fe21ea820c60c849fc62700e11fc6a7758fcc802118179571eb",
+    "20260101000600_concurrency.sql": "2275ba1be999abdfcca2c6beb45a8e09923b8abce3d137805a18e5cca2375090",
+    "20260101000700_settings.sql": "e54163cf7f7bd079d7960b87fa57d33bbaf2a019608f194b2488b685d0c5d29a",
+    "20260101000800_maintenance_authority.sql": "0e5eb2a40f4d8c3b965a3251a67df098e5e46c8e11e2904aa4730705d125d175",
+    "20260101000900_read_rpc_authority.sql": "4b2478201d48fc98976c83cb6edb17dcbf9d88da3754630aec123b4dce3cbcb9",
+    "20260101001000_order_insert_authority.sql": "68749050da6cecb07527937b0a5b008b207a60c0d56462014f07412206ca8531",
+    "20260101001100_active_profile_authority.sql": "bbb87256a99a74361ccbb6cceec66583cc027de5545cbf9310ed69f6e20ab7c1",
+    "20260101001200_settings_read_authority.sql": "a5afd997e89c9f144253773257b7dcf9a13207dd58880a72c0e61509647df6f4",
+    "20260101001300_table_truncate_authority.sql": "309b5c79ed4b3f7481c2679c9fe215db172dceb6d85b8d8149eaed99a6f55c7a",
+    "20260101001400_audit_write_authority.sql": "61822101ed8b6ca67d3361c34c8dac012e91a07089bff6da7e4619280fbd5557",
+    "20260101001500_legacy_mutation_authority.sql": "422a362f07571258f943313d632ecdc4f3e66f3a3f26ce3935a17820ec359489",
+    "20260101001600_trigger_authority.sql": "1d7e7310e7439c1d80099d4ba5eaa79236a3b85cbd19abe839c1c2b9ef79e213",
+    "20260101001700_auxiliary_authority.sql": "7b2c62de25ea1b5d6c3d233a2cc7e24188b4a175f0f908d3b5b64394e508425c"
+  },
+  "database_image": "sha256:af083ef64d0408c8f098ee6f5c364a59b26f36fbc0f3a334a62c5c1d57362e9b",
+  "postgres_version_num": "150008",
+  "cli_version": "2.116.0",
+  "loopback_port": 48716,
+  "container_id": "9f435990f6daf12c1dc2e7c32e57568798eb7ef9ba68d92187e58921d1a3d2df",
+  "expected_versions": [
+    "20260101000000",
+    "20260101000100",
+    "20260101000200",
+    "20260101000300",
+    "20260101000400",
+    "20260101000500",
+    "20260101000600",
+    "20260101000700",
+    "20260101000800",
+    "20260101000900",
+    "20260101001000",
+    "20260101001100",
+    "20260101001200",
+    "20260101001300",
+    "20260101001400",
+    "20260101001500",
+    "20260101001600",
+    "20260101001700"
+  ],
+  "catalog": [
+    "function\tanonymise_customer(p_phone text, p_note text)\tinteger",
+    "function\tcapacity_allows(p_capacity integer, p_committed integer, p_requested integer)\tboolean",
+    "function\tconsume_rate_limit(p_key text, p_limit integer, p_window_s integer)\tTABLE(allowed boolean, remaining integer, reset_at timestamp with time zone)",
+    "function\tcurrent_role_name()\tapp_role",
+    "function\tdrop_remaining(p_drop_id uuid)\tinteger",
+    "function\tis_owner()\tboolean",
+    "function\tis_staff()\tboolean",
+    "function\tlookup_order(p_order_id text, p_phone text)\tTABLE(id text, customer_name text, state order_state, pay_state pay_state, total_cents bigint, pickup_at timestamp with time zone, placed_at timestamp with time zone)",
+    "function\tprune_personal_data(p_retain_days integer)\tinteger",
+    "function\tprune_rate_limits()\tinteger",
+    "function\tsettings_effective()\tTABLE(key text, int_value bigint, text_value text, cents_value bigint, is_default boolean)",
+    "function\tsettings_touch()\ttrigger",
+    "function\tstate_is_recognised(p_state order_state)\tboolean",
+    "function\tstate_reserves_capacity(p_state order_state)\tboolean",
+    "function\tsync_event_sale(p_sale jsonb)\tTABLE(client_id text, sale_id uuid, duplicate boolean)",
+    "function\ttouch_updated_at()\ttrigger",
+    "function\tupdate_order_state(p_order_id text, p_seen_at timestamp with time zone, p_state text, p_pay_state text, p_pay_ref text)\tTABLE(id text, state text, pay_state text, updated_at timestamp with time zone)",
+    "migration\t20260101000000\tapplied",
+    "migration\t20260101000100\tapplied",
+    "migration\t20260101000200\tapplied",
+    "migration\t20260101000300\tapplied",
+    "migration\t20260101000400\tapplied",
+    "migration\t20260101000500\tapplied",
+    "migration\t20260101000600\tapplied",
+    "migration\t20260101000700\tapplied",
+    "migration\t20260101000800\tapplied",
+    "migration\t20260101000900\tapplied",
+    "migration\t20260101001000\tapplied",
+    "migration\t20260101001100\tapplied",
+    "migration\t20260101001200\tapplied",
+    "migration\t20260101001300\tapplied",
+    "migration\t20260101001400\tapplied",
+    "migration\t20260101001500\tapplied",
+    "migration\t20260101001600\tapplied",
+    "migration\t20260101001700\tapplied",
+    "settings_defaults\tsettings_effective\t21",
+    "settings_overrides\tsettings\t0",
+    "table_rows\taudit_log\t0",
+    "table_rows\tbake_batches\t0",
+    "table_rows\tdrops\t0",
+    "table_rows\terasure_requests\t0",
+    "table_rows\tevent_sale_items\t0",
+    "table_rows\tevent_sales\t0",
+    "table_rows\tevents\t0",
+    "table_rows\tinventory_items\t0",
+    "table_rows\tledger_entries\t0",
+    "table_rows\torder_items\t0",
+    "table_rows\torders\t0",
+    "table_rows\tproducts\t0",
+    "table_rows\tprofiles\t0",
+    "table_rows\trate_limits\t0",
+    "table_rows\trecipe_ingredients\t0",
+    "table_rows\trecipes\t0",
+    "table_rows\tsettings\t0",
+    "table_rows\tsupplier_prices\t0",
+    "table_rows\tsuppliers\t0"
+  ],
+  "catalog_sha256": "ef8967dbe7b9ded86be236a71ccfe5d0cc7c1eee3a9cc123499a9b874b7a5d12",
+  "catalogs_equal": true,
+  "schema_sha256": "5428637803f2dd205efd2d8bb78db4c6077ca3e1afc718f17498bd6958e57a01",
+  "schemas_equal": true,
+  "sentinel_removed": true
+}

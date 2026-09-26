@@ -1,0 +1,40 @@
+{
+  "status": "passed",
+  "baseline": "MP-06b1-schema-inventory.json",
+  "current": "MP-06c1-schema-inventory.json",
+  "changed_sections": [
+    "table_grants"
+  ],
+  "removed_grants": [
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "order_items",
+      "is_grantable": "NO",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "order_items",
+      "is_grantable": "NO",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "orders",
+      "is_grantable": "NO",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "orders",
+      "is_grantable": "NO",
+      "privilege_type": "INSERT"
+    }
+  ],
+  "added_grants": [],
+  "all_other_catalog_sections_equal": true
+}

@@ -1,0 +1,5 @@
+
+> happy-cookie-ops@0.1.0 test:pages:spike C:\Users\ethan\dev\happy-cookie-ops-g0
+> node scripts/test-pages-spike.mjs
+
+{"status":"passed","port":61703,"checks":{"health":200,"head":200,"method":405,"sync":503,"session":503,"shop":200,"asset":200,"defaultAsset":200,"unknown":404,"cspHashes":28,"playwright":{"page":"/shop","status":200,"hydratedCustomerShop":true,"scripts":8,"cspViolations":0,"javascriptErrors":0}}}

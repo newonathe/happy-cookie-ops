@@ -1,0 +1,2 @@
+{"reason": "failed concurrency: child diagnostic suppressed", "status": "FAIL"}
+EXIT_CODE=1

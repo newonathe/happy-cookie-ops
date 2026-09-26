@@ -33,6 +33,7 @@ Current implementation progress: [G0 current state](docs/state/current.md). The 
 | Every prioritized finding mapped to work and tests | [11 Traceability](docs/master-plan/11-traceability.md) |
 | Planning checks, source preservation and final failing application baseline | [12 Plan validation](docs/master-plan/12-plan-validation.md) |
 | Reusable starting files | [Template index](docs/master-plan/templates/README.md) |
+| Owner decisions, open owner questions and owner-supplied materials (amends DP-00…DP-10; 2026-09-24) | [Decision register](docs/state/decision-register.md), [owner decision packet](docs/state/owner-decision-packet.md), [owner inputs](docs/state/owner-inputs.md) |
 
 ## Current assessment
 

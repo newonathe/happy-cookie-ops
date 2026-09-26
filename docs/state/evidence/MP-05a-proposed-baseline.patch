@@ -1,0 +1,20 @@
+--- a/supabase/migrations/20260101000000_init.sql
++++ b/supabase/migrations/20260101000000_init.sql
+@@ -366,7 +366,7 @@
+ stable
+ security definer
+ set search_path = public
+-as $
++as $$
+   -- Only orders that reserve capacity count, per state_reserves_capacity() above, which
+   -- is the engine's RESERVING list. A cancelled or no-show order releases its boxes.
+   --
+@@ -384,7 +384,7 @@
+             and state_reserves_capacity(o.state)
+         ), 0)
+   );
+-$;
++$$;
+ 
+ create or replace function touch_updated_at() returns trigger
+ language plpgsql as $$
