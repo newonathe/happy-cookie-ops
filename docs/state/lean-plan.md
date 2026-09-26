@@ -71,6 +71,8 @@ Each assumption behind architecture A and the goals was re-checked against the f
 | Is CI a gate? | CI runs only on `main` and PRs. It adds `format:check`, the build, E2E, visual and performance checks; `format:check` and E2E are known red. | Must be green before any merge to `main` |
 | Does Codex load the project config? | Only for trusted projects. Only the parent `c:\users\ethan` is trusted; that it covers the repo is unconfirmed. Project MCP servers are unreliable ([#13025](https://github.com/openai/codex/issues/13025)), so the server stays global. | Run `/status` in the first Codex session |
 | Are the Python guards green? | 63/63 OK before Goal 1. | Baseline recorded in next-goal |
+| Are all tables and views safe to expose? | All 19 public tables enable RLS, and the API exposes only `public` (`supabase/config.toml`). The two definer views, `shop_products` and `shop_drops`, have exact column allowlists (`public-catalog.sql`). **Nothing guards future tables**, so a new table without RLS would be exposed. | Goal 1 adds a catalog-wide guard |
+| Could idle sign-out log the owner out elsewhere? | Yes: `signOut()` defaults to `'global'` ([Supabase](https://supabase.com/docs/reference/javascript/auth-signout)). Access tokens also stay valid until expiry. | Goal 2 uses `scope: 'local'`; runbook sets a 30-minute JWT expiry |
 
 ## Process rules after approval (both agents)
 

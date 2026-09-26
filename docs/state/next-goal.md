@@ -16,7 +16,8 @@ When a goal finishes, the agent deletes its block here, leaves the next one on t
 - **Baseline (2026-09-26, commit `c844ff2`):**
   - `pnpm verify` 28 files / 410 tests;
   - Python guards 63 OK, via `python -m unittest discover -s <dir> -p "test_*.py"` for each of `tests/unit`, `tests/integration/auth`, `tests/integration/db` and `tests/integration/security`, with `G0_PYTHON_LIBS=C:\Users\ethan\dev\happy-cookie-tools\python-libs-314`;
-  - `pnpm audit --prod` clean.
+  - `pnpm audit --prod` clean;
+  - `pnpm build` passes, and `pnpm test:e2e` re-run on 2026-09-26 gives 87 passed / 3 failed / 30 skipped. The 3 failures are the same known OFFLINE-01 durable-queue test on phone, WebKit and desktop (G3).
 - **Codex only:** run `/status` once in the repo root to confirm the project `.codex/config.toml` loaded. Accept the trust prompt if asked. The project sandbox has no network, so `git push` will ask for approval.
 
 ## Goal 1 of 3 — MP-06 default-privilege hardening (run first)
@@ -36,8 +37,12 @@ When a goal finishes, the agent deletes its block here, leaves the next one on t
 - The MP-06m fixture and runner are updated to the new expected state: a post-change public function is NOT
   executable by anon/authenticated/PUBLIC, and service_role behaviour is recorded. The probe passes on two fresh
   28-migration resets with cleanup passed.
-- The SQL role suite (python scripts/test-db-security.py; 474 cases, and any change to that count needs a stated
-  reason) passes on a fresh reset, all 4 Python guard folders pass, and pnpm verify exits 0.
+- A catalog-wide guard is added to the SQL role suite and passes: every public table (relkind r/p) has
+  relrowsecurity=true; the only public views are shop_products and shop_drops (their exact column allowlists
+  stay as tested in public-catalog.sql); no API role has any privilege in hco_private. A table added later without
+  RLS must fail this guard.
+- The SQL role suite (python scripts/test-db-security.py; 474 cases plus the new guard, and any change to the count
+  needs a stated reason) passes on a fresh reset, all 4 Python guard folders pass, and pnpm verify exits 0.
 - One independent review of the migration by a different model, with no P0-P2 open.
 - Committed and pushed; docs/state/current.md status line updated; this block removed from next-goal.md.
 No other package, no protected-path edits, no deploy. Stop and report if a check still fails after 2 fix attempts,
@@ -59,13 +64,16 @@ or after 30 turns.
   data is G2 work, not this goal.
 - /sign-in keeps its current markup and calls supabase-js signInWithPassword.
 - An expired, revoked or deactivated (profiles.active=false) session signs out and fails closed.
-- There is a client-side idle sign-out with per-role minutes in one constant, marked "pending DP-15". It never
-  clears queued offline sales (MASTER-PLAN invariant 2).
+- There is a client-side idle sign-out with per-role minutes in one constant, marked "pending DP-15". It and the
+  normal sign-out use supabase.auth.signOut({ scope: 'local' }), because the default 'global' would sign the user
+  out on every device. It never clears queued offline sales (MASTER-PLAN invariant 2).
 - Helper/support restrictions hold on refresh (SQL role suite).
 - docs/RUNBOOK-accounts.md covers:
   - owner-assisted provisioning of the 5 staff accounts, with signup disabled and profiles.role/active set;
   - password recovery through the Supabase dashboard (no email dependency);
-  - Supabase, Cloudflare and GitHub account MFA with offline recovery codes.
+  - Supabase, Cloudflare and GitHub account MFA with offline recovery codes;
+  - Auth JWT expiry set to 1800 s (access tokens stay valid until expiry; RLS's profiles.active check covers
+    deactivation).
   It is rehearsed once on the local Supabase stack.
 - pnpm verify exits 0; pnpm test:e2e shows no new failures beyond the known 3 offline-queue failures; the
   port-integrity baseline is unchanged.
@@ -88,7 +96,10 @@ fix attempts or 20 turns.
 
 ## After these goals
 
-1. **Ethan approves the hosted preview:** deploy the static export to Workers static assets (static requests are free and unlimited) with a synthetic Supabase project, then run the MP-04d oracle on the hosted URL. Also repeat the direct-parent refresh probe and the `auth.sessions` checks there.
+1. **Ethan approves the hosted preview:** deploy the static export to Workers static assets (static requests are free and unlimited) with a synthetic Supabase project, then run the MP-04d oracle on the hosted URL. On that hosted project, also repeat:
+   - the default-privilege probe and the catalog RLS guard (the MP-06m managed-creator rehearsal; this needs a hosted-capable variant, because the local harness refuses external URLs);
+   - the direct-parent refresh probe;
+   - the `auth.sessions` checks.
 2. **G2 (MP-09 → MP-17):** starts once Cine answers the ★ questions in the [owner packet](owner-decision-packet.md). Write one goal per package, with acceptance taken from `docs/master-plan/tasks.json`. Carry-overs:
    - Prove a trustworthy rate-limit caller key before anonymous checkout relies on `consume_rate_limit`.
    - Add the Supabase origin to `img-src` only when payment-proof images are displayed.
