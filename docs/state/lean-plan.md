@@ -51,6 +51,27 @@ Done the same day:
    - Setup: clone the source for reference, verify the checksum, and register by hand in the project `.mcp.json` and in Codex `[mcp_servers]` instead of letting `install.ps1` edit global configs.
    - Its 17 tool descriptions cost context too. It saves tokens only when used instead of reading files.
 
+## Second-pass hardening (2026-09-26, Socratic re-check)
+
+Each assumption behind architecture A and the goals was re-checked against the files or official docs:
+
+| Question | Answer and evidence | Action |
+|---|---|---|
+| Does revoking a staff member work without a server? | Yes. `current_role_name()` returns a role only when `profiles.active is true` (migration 0011), so RLS drops access immediately even while a login token is still valid. | None |
+| Is the browser → Supabase path already tested? | Yes. The 474-case role suite runs as `authenticated` with JWT claims. Domain RPCs are granted to `authenticated`, and `consume_rate_limit` is service_role-only (revoked in 0008). | None |
+| Will Goal 1's revoke work? | Only in combination. Supabase's own fix proposal ([PR #50865](https://github.com/supabase/supabase/pull/50865), draft) uses the global revoke alone, but MP-06m proved the public-schema default still grants anon/authenticated. | Goal 1 runs both statements |
+| Does adding migration 28 break anything? | Yes: 7 hardcoded "27" expectations across 5 scripts and 1 unit test, plus a 474-case count. | Listed in Goal 1 |
+| Which key name does Supabase use? | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` with `createBrowserClient` ([Supabase Next.js](https://supabase.com/docs/guides/getting-started/quickstarts/nextjs)). The legacy name is used in 5 files. | Rename everywhere (Goal 2) |
+| Does "no demo bootstrap" break tests? | Only if it is the default. | `NEXT_PUBLIC_APP_MODE` defaults to demo; the export build sets live |
+| Can idle sign-out lose sales? | It could clear the offline queue. | Goal 2 forbids that (invariant 2) |
+| Are static requests on Workers free? | "Free and unlimited" ([Cloudflare](https://developers.cloudflare.com/workers/static-assets/billing-and-limitations/)). | DP-14 confirmed |
+| Can Supabase Free go offline? | It pauses after about 7 days of low activity; keep-alive API calls are allowed; there are no automatic backups ([pausing](https://supabase.com/docs/guides/platform/free-project-pausing), [backups](https://supabase.com/docs/guides/platform/backups)). | G4: keep-alive and a weekly encrypted dump |
+| Can password reset rely on email? | No. Recovery is owner-assisted through the dashboard (master plan). | Runbook in Goal 2 |
+| Is it production-dependency clean? | `pnpm audit --prod` finds none on the branch. Dev tooling has 14 (6 high). | G4 dev-dependency pass |
+| Is CI a gate? | CI runs only on `main` and PRs. It adds `format:check`, the build, E2E, visual and performance checks; `format:check` and E2E are known red. | Must be green before any merge to `main` |
+| Does Codex load the project config? | Only for trusted projects. Only the parent `c:\users\ethan` is trusted; that it covers the repo is unconfirmed. Project MCP servers are unreliable ([#13025](https://github.com/openai/codex/issues/13025)), so the server stays global. | Run `/status` in the first Codex session |
+| Are the Python guards green? | 63/63 OK before Goal 1. | Baseline recorded in next-goal |
+
 ## Process rules after approval (both agents)
 
 1. **One `/goal` per package**, not per micro-slice. Each package gets one plan of at most one page. `current.md` gets a status line and `task-status.json` a status entry.
