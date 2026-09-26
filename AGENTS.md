@@ -63,11 +63,11 @@ If a task seems to require one of these, stop and say so before writing code.
 | Business rule | `src/store/engine/ops-engine.js` or a subclass, plus a test in `tests/unit` |
 | New screen | `src/components/screens/` + a route + a key in `src/lib/screens.ts` |
 | Shared control | `src/components/ui/` with a Storybook story |
-| Server behaviour | BFF: `spikes/pages/functions/**` + `src/lib/auth/*` (MP-08; hosting per DP-14), input validated with Zod. `src/app/api/*` serves only the Vercel demo |
+| Server behaviour | Architecture A (2026-09-26): a Postgres RPC in a **new** migration (`SECURITY DEFINER`, `search_path=''`, in-function role check, explicit grants), called from the browser with `supabase-js`. RLS is the security boundary. The Pages BFF (`spikes/pages`, `spikes/cleanup-worker`, `src/lib/auth/session-*`, `persistent-session-authority`, `session-crypto`, `supabase-auth-transport`) is archived: do not extend it. `src/app/api/*` serves only the Vercel demo |
 | Schema | a new file in `supabase/migrations/` |
 | Offline behaviour | `src/lib/offline/` — read `docs/OFFLINE.md` first |
 | Anything visual | Check `docs/SCREENS.md` first — the screenshot is the answer key |
-| Rate limit on a new route | `rateRules` in `spikes/pages/functions/lib/session-composition.ts` (fail-closed; caller from `CF-Connecting-IP` only). `src/lib/rate-limit.ts` and `src/lib/idempotency.ts` are legacy with no production callers: they fail open and trust `X-Forwarded-For`. Do not extend them |
+| Rate limit on a public RPC | Inside the RPC: call `consume_rate_limit` (service_role-only; reachable from a `SECURITY DEFINER` function owned by `postgres`). `src/lib/rate-limit.ts` and `src/lib/idempotency.ts` are legacy with no production callers: they fail open and trust `X-Forwarded-For`. Do not extend them |
 | A business rule the owner must decide | [docs/state/decision-register.md](docs/state/decision-register.md). The prototype and specs are evidence, not decisions |
 | Anything sent to a customer | `src/lib/messaging/` — read `docs/MESSAGING.md`; it costs her money |
 | Error reporting | Already wired. Widen `scrub.ts` if a report lacks something, with a test |
@@ -80,13 +80,16 @@ If a task seems to require one of these, stop and say so before writing code.
 - Never remove a queued sale that the server has not acknowledged by `clientId`.
 - New UI composes from the tokens in `src/app/globals.css` `@theme`. No new hex values.
 - Commits: `type(scope): summary` — `feat`, `fix`, `refactor`, `test`, `docs`, `chore`.
-  One logical change per commit.
+  One logical change per commit. Standing approval (Ethan, 2026-09-26): commit each accepted
+  slice and push the working branch after a secret scan. Never merge to `main`, deploy or create
+  hosted resources without asking.
 
 ## Working agreement
 
-1. **Read before writing.** Current work and status: `MASTER-PLAN.md`,
-   `docs/state/current.md`, `docs/state/task-status.json` and the relevant
-   `docs/state/MP-*-plan.md`. Planned scope: `docs/master-plan/tasks.json` and its generated
+1. **Read before writing.** How we work: `docs/state/lean-plan.md`. What to do next:
+   `docs/state/next-goal.md`. Status: `docs/state/current.md` and `docs/state/task-status.json`.
+   Find code with the codebase-memory-mcp tools (`search_graph`, `get_code_snippet`,
+   `trace_path`) before opening whole files; read SQL migrations directly (partial parse). Planned scope: `docs/master-plan/tasks.json` and its generated
    prompts. `docs/TASKS.md`, `docs/prompts/` and `docs/WORKFLOW.md` are the historical T-task
    era. Read the files the slice names and no others — unbounded exploration is the largest
    avoidable cost here. Who does what: `docs/state/agent-orchestration.md`.
@@ -124,6 +127,6 @@ On this Windows installation, use headless command-line Playwright only. Never i
 
 Shared worker policy: read [docs/state/agent-orchestration.md](docs/state/agent-orchestration.md) before delegation. It governs the combined Codex/Claude limit, explicit models, bounded prompts and review rules for this conversation.
 
-Current G1 authorization: the owner's latest request supersedes the G0 stopping boundary for local next-goal work. Read docs/state/G1-plan.md for exact slices, current results and unresolved setup/plan gates. Preserve all protected-source rules. The automatic runner and production deployment remain deferred.
+Current authorization (2026-09-26): finish the product under the approved [lean plan](docs/state/lean-plan.md) and architecture A, one `/goal` per package from [next-goal.md](docs/state/next-goal.md). G1-plan.md and the MP-*-plan files are history. Preserve all protected-source rules. The automatic runner, production deployment and any hosted resource still need Ethan's explicit approval.
 
 MP-05.a approval: the owner confirmed no database/SQL history and approved the two delimiter corrections in supabase/migrations/20260101000000_init.sql plus disposable local bootstrap checks. The continuity validator reverses only those exact delimiters before checking original delivery bytes. All other migration/source protection remains in force.

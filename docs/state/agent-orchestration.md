@@ -1,24 +1,31 @@
-# Shared Codex and Claude coordination policy — 2026-09-09
+# Shared Codex and Claude coordination policy
 
-The owner reauthorized Claude and asked for economical delegation across both subscriptions. This policy persists for this conversation through compaction and continuation. Read it before assigning work; later owner instructions override it. It supplements MASTER-PLAN.md without activating the future automatic runner.
+## Current rules — 2026-09-26 (these supersede everything below this section)
 
-## Current availability — Claude only, 2026-09-26
+Ethan approved the [lean plan](lean-plan.md) on 2026-09-26. The next goal is in [next-goal.md](next-goal.md).
 
-Ethan, 2026-09-26: "we dont have codex right now. treat it as you doing all of the work." Until Ethan changes this instruction, Claude owns every lane in the table below: implementation, migrations, tests, fixtures, evidence, `task-status.json`, the evidence index, and governance. The rest of this policy still applies:
-- one writer per file and at most two active workers;
-- explicit models;
-- no paid/API fallback;
-- no commit, push, merge, hosted change or deployment without Ethan's approval.
+1. **Whichever agent is available does the work.** When both are, split by package, not by file type, with one writer per file. There are no hand-off queues.
+2. **One `/goal` per package**, each in a fresh conversation started in the repo root.
+3. **Models:**
+   - Plan with Claude Opus or Codex `gpt-6-sol` high; use `codex --profile plan` (xhigh) only for architecture.
+   - Build with Claude Sonnet or Codex `gpt-6-luna` medium (`codex --profile build`).
+   - Search with Claude Haiku (`Explore`).
+   - Pin every subagent. Use at most two active workers.
+4. **Review:** diffs touching auth, RLS, SQL, money or offline get one independent review, from the other provider or a different model. When the other provider is out, a different-model review is enough, and nothing is queued. Other diffs get no review.
+5. **Commits:** standing approval to commit each accepted slice and push the working branch, after a secret scan. Never merge to `main`, deploy or create hosted resources without asking Ethan.
+6. **Context:** use codebase-memory-mcp before reading files. There is no paid/API fallback.
 
-Review rules while Codex is out:
-- **Codex-authored code** gets an independent Claude review: Sonnet high, then Opus sign-off.
-- **Claude-authored code** gets a separate Sonnet-high review before acceptance. The Codex Sol read-only review is queued for when Codex returns, and is required before any commit.
+Availability on 2026-09-26: Codex is unavailable, so Claude is doing all of the work (Ethan: "treat it as you doing all of the work").
+
+## History — policy as of 2026-09-09 to 2026-09-26 (superseded)
+
+The owner reauthorized Claude and asked for economical delegation across both subscriptions. This policy persisted through compaction and continuation, and supplemented MASTER-PLAN.md without activating the future automatic runner.
 
 ## Superseded availability — Codex only, 2026-09-24
 
 Ethan reported on 2026-09-24 that the Claude subscription was no longer available. Do not launch Claude, use an API/billed fallback, or leave a mandatory review indefinitely assigned to Claude. Until Ethan changes this instruction, Codex owns new G1 implementation and governance updates. Use at most two active Codex workers including root, one writer per file, GPT-6 Luna/medium for bounded routine edits and GPT-6 Sol/high for security-sensitive code or independent review. Root reviews and integrates worker results. A separate Codex Sol/high read-only review replaces the unavailable Claude cross-review; it does not make its own code automatically acceptable. Keep the historical Claude records below as history, not current operating instructions. The prior owner approval boundary for commits, hosted changes and deployment remains in force.
 
-## Current allocation — 2026-09-24 (supersedes the model names below)
+## Allocation — 2026-09-24 (superseded by the current rules above)
 
 Set by Ethan on 2026-09-24, with sources checked that day:
 - OpenAI now recommends **GPT-6 Sol** for complex coding and agentic workflows and **GPT-6 Luna** for focused, repeatable tasks. GPT-5.6 Sol/Terra/Luna remain only during the rollout, and `gpt-5.5` retires on 2026-10-14. ([Codex models](https://learn.chatgpt.com/docs/models))

@@ -2,6 +2,8 @@
 
 ## Current checkpoint — 2026-09-26
 
+> **Superseded for process and remaining scope** by the [lean plan](lean-plan.md), approved 2026-09-26 under architecture A. The rest of G1 is a single goal in [next-goal.md](next-goal.md). The text below is history.
+
 Claude executes all lanes while Codex is unavailable (Ethan, 2026-09-26; see [agent-orchestration](agent-orchestration.md)). MP-08n.2/.3, MP-08o.1–.4, MP-06l and MP-04d are accepted **locally**. The pinned `pnpm verify` passes 28 files / 410 tests (re-run by Claude on 2026-09-26). Exact receipts and limits are in [current state](current.md). Next, in order:
 1. [MP-06m](MP-06m-plan.md): the probe is done (2026-09-26); a global-only revoke is insufficient. Next is a reviewed 28th-migration hardening plan.
 2. MP-08 closure:

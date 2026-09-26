@@ -31,6 +31,11 @@ Owner sources live outside the repo in `C:\Users\ethan\dev\Happy Cookie Ops - Bu
 | Hosting is decided only after hosted spikes on both Pages and Workers | E | DP-14 |
 | Claude may do governance, safe config fixes and GitHub housekeeping; no commit/push without approval | E | [agent-orchestration.md](agent-orchestration.md) |
 | While Codex is unavailable, Claude does all of the work (2026-09-26); no commit/push/deploy without approval | E | [agent-orchestration.md](agent-orchestration.md) |
+| **Architecture A (2026-09-26):** static export plus direct `supabase-js` to Supabase, with RLS and `SECURITY DEFINER` RPCs as the security boundary. The Pages BFF (`spikes/pages`, `src/lib/auth/session-*`, `persistent-session-authority`, `session-crypto`, `supabase-auth-transport`, `spikes/cleanup-worker`) is **archived, not deleted**. Its migrations 23–26 stay (protected, service_role-only). | E | [lean plan](lean-plan.md) |
+| Standing approval: agents commit each accepted slice and push the working branch to the private repo, after a secret scan. Never merge to `main` or deploy without asking. | E | [lean plan](lean-plan.md) |
+| Codex global default effort is `high` (`xhigh` only through the project `plan` profile). Unused Codex plugins are disabled. codebase-memory-mcp is the shared code index for both agents. | E | [lean plan](lean-plan.md) |
+| **Amends master-plan MP-08 acceptance:** "no refresh token/service key in browser storage" becomes "**no service key** in browser code or storage". The `supabase-js` session is stored in the browser under architecture A. XSS risk is limited by the hash-only script CSP and by having no third-party scripts. | E (architecture A) | [lean plan](lean-plan.md) |
+| **Amends master-plan MP-04 acceptance:** "Cookies, CSRF … API p99 CPU ≤8 ms" no longer applies, because there is no server API. MP-04 now requires a hosted static preview on Cloudflare Workers static assets. That preview must pass the MP-04d route/CSP/cache oracle with `connect-src` limited to `'self'` plus the configured Supabase origin, and the free-plan spend controls must be checked. | E (architecture A) | [lean plan](lean-plan.md) |
 
 ## Amended decisions (open — block the listed work)
 **DP-02 · Payment timing** — blocks MP-10, MP-12.
@@ -73,10 +78,13 @@ Owner sources live outside the repo in `C:\Users\ethan\dev\Happy Cookie Ops - Bu
     - owner and support: 1 hour, because they see finances;
     - helpers: a longer but finite idle timeout that Ethan sets, e.g. one bazaar shift of 2–4 h, so a busy stall doesn't keep re-typing passwords. The accepted risk is exposure of customer names and phones on an unattended phone for up to that long. Record it as the V7.1.1 rationale.
   - **C.** No idle timeout for any role. This fails V7.3.1 as written.
-- Implementation, after the decision: a new migration adds a last-activity time to `hco_private.bff_sessions`, which `bff_session_read` checks. Refresh the stored time at most every few minutes rather than on every request, to limit writes on the free database tier.
+- Implementation under architecture A (2026-09-26): a client-side idle sign-out (`supabase.auth.signOut()` after N idle minutes per role), with the minutes in one constant. Supabase's server-side inactivity timeout is Pro-only.
+  - Pre-A plan, now archived: a last-activity column in `hco_private.bff_sessions`.
 - Needed: Ethan picks A, B or C and sets the minutes for each role.
 
-**DP-14 · Hosted spike checklist** — run the same checks on one Pages and one Workers deployment before choosing. Each check needs Ethan's approval, because it creates hosted resources.
+**DP-14 · Hosting — resolved 2026-09-26 by architecture A:** Cloudflare **Workers static assets**, the platform Cloudflare recommends for new projects. There are no Functions, so there is nothing to compare between Pages and Workers. The one hosted preview still needs Ethan's approval. The checklist below is kept for reference; under A only items 1, 5 and 6 apply, and item 2 becomes a direct-Supabase sign-in check.
+
+Reference checklist (pre-A): run the same checks on one Pages and one Workers deployment before choosing. Each needs Ethan's approval, because it creates hosted resources.
 1. The MP-04d oracle on the hosted URL: all 26 routes, the generated CSP and cache headers, and `/shop` hydration.
 2. BFF login → read → refresh → logout against a synthetic hosted Supabase project that uses `sb_publishable`/`sb_secret` keys only.
 3. CPU time per request and per cleanup tick, measured against the Workers Free limit of 10 ms.
@@ -92,7 +100,7 @@ Owner sources live outside the repo in `C:\Users\ethan\dev\Happy Cookie Ops - Bu
 | DP-11 | How Google Form orders are handled during the 1–2 week handover | guide L1761–1763 (Q31) | Owner | MP-24 form queue, launch plan |
 | DP-12 | How "new order" and "pickup reminder" alerts reach people with no paid SMS | guide L1733–1744 (Q29); no SMS in the zero-cost plan | Owner + Ethan | MP-24 |
 | DP-13 | Later scope: loyalty (wt id93 "Yes"), promotions "very near" (wt id100), wholesale/consignment (guide Q2) vs the crosswalk-05 exclusion | as cited | Owner | Post-launch roadmap only |
-| DP-14 | Hosting: Cloudflare Pages vs Workers (static assets) | See "Platform facts" below | Ethan | MP-04 hosted proof, session cleanup |
+| DP-14 | Hosting: Cloudflare Pages vs Workers (static assets). **Resolved 2026-09-26: Workers static assets (architecture A)** | See "Platform facts" below | Ethan | MP-04 hosted preview (approval) |
 | DP-15 | Session idle timeout (ASVS 5.0 V7.3.1 L2) and a documented rationale (V7.1.1) — options A/B/C above | BFF has only a fixed 8 h absolute limit and no last-activity field | Ethan | MP-08 closure |
 | DP-16 | Bake days and pickup times | Bake "every Sat and Sunday" (guide L917) vs "Friday and Saturday are my bake days" (wt id5). Pickup is "anytime before 5pm" and she wants to free up her time (wt id95). Spec: one Monday window | Owner | MP-10, MP-17 |
 | DP-17 | Order statuses | Owner ticked Awaiting payment, Paid/confirmed, Ready, Collected + "Replaced" (guide L1524–1535). Engine has 7 states incl. Cancelled/No-show. Refund is manual (wt id35) | Owner | MP-10, MP-12, MP-13 |
@@ -122,7 +130,9 @@ Owner sources live outside the repo in `C:\Users\ethan\dev\Happy Cookie Ops - Bu
     - immutable caching only for fingerprinted `/_next/static/*`.
   - Before a hosted preview (found in Claude's 2026-09-26 review):
     - Add `form-action 'self'`. It is not covered by `default-src`.
-    - `connect-src` falls back to `'self'`. The exported `/sign-in` still calls `signInWithPassword` directly against `NEXT_PUBLIC_SUPABASE_URL` (`src/app/sign-in/sign-in-form.tsx` L25), so hosted sign-in would be blocked. Route sign-in through the BFF (MP-08 closure) instead of widening `connect-src`.
+    - `connect-src` falls back to `'self'`. The exported `/sign-in` still calls `signInWithPassword` directly against `NEXT_PUBLIC_SUPABASE_URL` (`src/app/sign-in/sign-in-form.tsx` L25), so hosted sign-in would be blocked.
+      - Pre-A advice: route sign-in through the BFF instead of widening `connect-src`.
+      - **Under architecture A:** the generator sets `connect-src 'self' <Supabase origin from build env>`. Add `wss://` for that origin only if Realtime is used. Nothing broader.
   - Change the generator and its oracles together, then verify with `pnpm build:pages:spike`, `pnpm test:pages:spike` and `pnpm test:workers:spike`.
 
 Sources:

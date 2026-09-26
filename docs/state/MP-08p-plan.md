@@ -1,6 +1,6 @@
 # MP-08p — staff sign-in through the BFF
 
-Status: **proposed, awaiting Ethan's approval** (2026-09-26, Claude). Nothing below is implemented.
+Status: **superseded on 2026-09-26** by architecture A (see the [lean plan](lean-plan.md)). Sign-in stays on `supabase-js`, and the BFF is archived. Kept as history; nothing below was implemented.
 
 ## Why
 

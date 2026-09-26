@@ -12,8 +12,13 @@
   - `PreToolUse` blocks writes to ported markup, the engine and existing migrations.
   - `PostToolUse` runs `prettier --write` and `tsc` on every edited file. Afterwards, check `git diff --stat` yourself for formatting churn outside your change.
   - `Stop` re-checks port integrity.
+- **Start here:** open Claude Code in this folder, so the hooks, agents and `.mcp.json` load. Approve the `codebase-memory-mcp` server once.
+- **Work loop:** use one `/goal` per package, taken from `docs/state/next-goal.md`, in a fresh conversation with auto mode on.
+  - Use Opus to plan and sign off; do the building in a Sonnet session or with Sonnet subagents.
+  - Run `/clear` (or open a new conversation) between packages. Never carry one conversation across packages.
 - **Commands:** `/task`, `/review`, `/verify`, `/handoff` (`.claude/commands/`).
-- **Subagents:** `.claude/agents/` pin their models — workers on Sonnet or Haiku (the security reviewer is Sonnet high); the Opus session signs off. A subagent without a `model` inherits the parent's (most expensive) model. The allocation rules are in the shared policy below.
-- **Cross-review:** Codex reviews Claude's diffs read-only (`codex --profile review`), and Claude reviews Codex's auth/RLS/SQL/money/offline diffs. Same-model review agrees with its own reasoning and is worth much less.
+- **Subagents:** `.claude/agents/` pin their models. Workers run on Sonnet or Haiku, including the Sonnet-high security reviewer; the Opus session signs off. A subagent without a `model` inherits the parent's (most expensive) model.
+- **Review:** follow the lean-plan rule. Auth/RLS/SQL/money/offline diffs get one independent review by Codex (`codex --profile review`) or a different Claude model.
+- **Token hygiene:** turn off claude.ai connectors this repo doesn't use (Zapier, Apollo, ClickUp, Canva and so on) for coding sessions, and ask codebase-memory-mcp before reading whole files.
 
 Shared worker policy: read [docs/state/agent-orchestration.md](docs/state/agent-orchestration.md) before delegation. It governs the combined Codex/Claude limit, explicit models, bounded prompts and review rules for this conversation.

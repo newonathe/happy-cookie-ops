@@ -1,0 +1,8 @@
+# codebase-memory-mcp: keep the code graph lean (gitignore syntax; .gitignore is also honoured).
+# Receipts and audit artifacts are history, not code; read them directly when needed.
+docs/state/evidence/
+docs/master-plan/evidence/
+docs/reference/
+docs/prompts/
+tests/visual/__screenshots__/
+**/*.snap

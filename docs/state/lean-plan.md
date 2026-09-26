@@ -1,6 +1,6 @@
 # Lean plan — finish Happy Cookie Ops without the ceremony (2026-09-26, Claude)
 
-Status: **proposed; four decisions pending from Ethan** (see "Decisions"). Once approved, this file replaces the process rules in `agent-orchestration.md` and the per-slice ceremony described in `G1-plan.md`. It does not change the product scope, locked UI/UX, hard invariants or owner decisions in `MASTER-PLAN.md`.
+Status: **approved by Ethan on 2026-09-26.** All four decisions took the recommended option: A, commit + push, Codex config, codebase-memory-mcp. This file now **replaces** the process rules in `agent-orchestration.md` and the per-slice ceremony in `G1-plan.md`. It does not change the product scope, the locked UI/UX, the hard invariants or the owner decisions in `MASTER-PLAN.md`. The two master-plan acceptance lines that option A changes are amended in the [decision register](decision-register.md). The next goal to run is in [next-goal.md](next-goal.md).
 
 ## Why it is slow (measured 2026-09-26)
 
@@ -26,7 +26,12 @@ Status: **proposed; four decisions pending from Ethan** (see "Decisions"). Once 
   - Registration: NPC registration is likely **not** mandatory. That duty covers 250+ employees, sensitive personal information of 1,000+ people, or high-risk processing; names and phones are not sensitive. [NPC Circular 2022-04](https://privacy.gov.ph/wp-content/uploads/2023/05/Circular-2022-04-1.pdf)
   - Still needed: a privacy notice on the shop. That is a locked-UI change, so it needs Ethan's exception.
 
-## Decisions (Ethan)
+## Decisions (Ethan, 2026-09-26: all approved as recommended — A, commit + push, Codex config, codebase-memory-mcp)
+
+Done the same day:
+- Baseline commit `6f334c1` pushed to the private branch.
+- Codex default effort is `high`, with 11 of 70 plugins enabled. The backup is `~/.codex/config.toml.bak-20260926`.
+- codebase-memory-mcp v0.11.0: checksum verified, repo indexed (3,996 nodes), registered in `.mcp.json` and in Codex `[mcp_servers]`.
 
 1. **Architecture.**
    - **A. Direct Supabase + RLS (recommended).**

@@ -95,6 +95,7 @@
   "ops_notes": [
     "2026-09-24 (Claude): Uptime workflow disabled on GitHub (was failing 85/85 with no PRODUCTION_URL); issue #4 closed; working-branch uptime.yml now guarded by vars.PRODUCTION_URL, env-indirected and on github-script@v9.",
     "2026-09-24 (Claude): Dependabot PR #7 (157 updates) closed unmerged; PR #6 (Next 16.3.4, sharp 0.35.4) and #1 (github-script v9) left open with triage comments for small reviewed slices on the working branch.",
-    "2026-09-24 (Claude): Ethan enabled Dependabot alerts and security updates (verified via API); dependabot.yml on the working branch now sets open-pull-requests-limit 0 (security-only), effective once merged to main."
+    "2026-09-24 (Claude): Ethan enabled Dependabot alerts and security updates (verified via API); dependabot.yml on the working branch now sets open-pull-requests-limit 0 (security-only), effective once merged to main.",
+    "2026-09-26 (Claude): Ethan approved docs/state/lean-plan.md - architecture A (static export + direct supabase-js, RLS boundary; Pages BFF archived), one /goal per package (docs/state/next-goal.md), standing approval to commit and push the working branch, git as the evidence trail (G1-evidence-index.json frozen). Baseline commit 6f334c1 pushed."
   ]
 }

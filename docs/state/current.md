@@ -2,7 +2,11 @@
 
 ## Current checkpoint — 2026-09-26
 
-- **Who works:** Codex is unavailable. Ethan's instruction of 2026-09-26 makes Claude responsible for all lanes. See the [shared policy](agent-orchestration.md). A Codex read-only review of Claude-authored code stays queued and is required before any commit.
+- **How we work now:** the [lean plan](lean-plan.md), approved by Ethan on 2026-09-26.
+  - **Architecture A:** a static site plus direct Supabase, with RLS as the boundary. The BFF is archived.
+  - **Process:** one `/goal` per package, and git is the evidence trail.
+  - **Run next:** the [next goal](next-goal.md).
+  - **Agents:** whichever one is available does the work. Codex is unavailable, so Claude does it for now.
 - **Gates:** G0 (MP-00–03) complete. G1 (MP-04–08) **in progress**. Release acceptance **FAIL** — see [task-status.json](task-status.json).
 - **Accepted locally since 2026-09-24** (details and limits are in the history below):
   - [MP-08n](MP-08n-plan.md).2/.3: an actual Workerd → private GoTrue/PostgREST lifecycle.
@@ -17,17 +21,20 @@
   - The latest full CLI E2E is still 87 passed / 3 failed (durable offline queue) / 30 skipped, from [MP-07a](MP-07a-plan.md).
 - **Open G1 work, in order:**
   1. [MP-06m](MP-06m-plan.md) default-privilege probe: **complete locally 2026-09-26** (Claude ran it: two identical resets, clean rollback and cleanup). It proves a global-only default revoke is insufficient, because new `public` functions still get `anon`/`authenticated` EXECUTE. Next is a separately reviewed 28th-migration hardening plan with a managed-upgrade rehearsal.
-  2. MP-08 closure:
-     - route `/sign-in` through the BFF. The exported page still calls Supabase from the browser, which the generated CSP blocks once hosted. The proposal is in [MP-08p](MP-08p-plan.md), awaiting Ethan's approval.
-     - DP-15 idle timeout (Ethan's decision).
-     - provisioning after DP-05.
-  3. MP-04 hosted spikes on Pages *and* Workers, then DP-14. Hosted resources need Ethan's approval.
-  4. MP-07 real bootstrap.
+  2. The rest of G1 under architecture A is **one goal**: [next-goal.md](next-goal.md). It covers:
+     - the 28th-migration default-privilege hardening;
+     - `supabase-js` sign-in, role bootstrap and fail-closed sessions;
+     - a client-side idle sign-out with its minutes pending DP-15;
+     - a provisioning runbook;
+     - the CSP `connect-src`/`form-action` changes.
+  3. The hosted static preview on Workers static assets (DP-14 is resolved) needs Ethan's approval.
+  - MP-08p, the BFF sign-in, is superseded by architecture A.
 - **Open residue:**
   - the test-only `build/pages-spike/.mp08n3-network-sxm347` scratch directory;
   - the historical `evidence/MP-05a-failure-cleanup.json`, overwritten by a test and disclosed in [MP-06l-evidence-overwrite.json](evidence/MP-06l-evidence-overwrite.json). The original bytes are unrecoverable because the file was never committed.
 - **Owner decisions:** see the [decision register](decision-register.md), the [owner decision packet](owner-decision-packet.md) and [owner inputs](owner-inputs.md). **G2 (MP-09+) stays blocked** until they are answered.
-- **Uncommitted:** all G1 work since `dc8c8a5` is uncommitted, and the branch has no remote. Committing or pushing needs Ethan's approval after cross-review.
+- **Committed:** the G1 baseline is `6f334c1` (pre-commit `pnpm verify` 28/410 passed; secret scan of 1,049 files found no hits). It is pushed to the private branch `origin/agent/codex/MP-04-g1-feasibility`. Agents now commit and push each accepted slice under Ethan's standing approval. `main` has 15 Dependabot alerts (7 high); those belong to the G4 security pass.
+- **Frozen:** `G1-evidence-index.json` and the per-slice receipts are history. From now on, git commits are the evidence trail.
 
 ## Checkpoint history (newest first; kept verbatim except for a mojibake repair of `â€”`/`â€“` to —/–)
 

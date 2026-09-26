@@ -34,7 +34,17 @@ project_doc_max_bytes = 32768
 sandbox_mode = "read-only"
 approval_policy = "never"
 
-# Implementation profile for the mechanical tasks in docs/TASKS.md marked **X**.
+# Implementation profile for bounded, mechanical slices (docs/state/lean-plan.md token rules).
 [profiles.build]
+model = "gpt-6-luna"
+model_reasoning_effort = "medium"
 sandbox_mode = "workspace-write"
+approval_policy = "on-request"
+
+# Architecture or cross-package planning only: `codex --profile plan`. The global default
+# (gpt-6-sol, high) is the normal orchestrator; do not leave xhigh on for implementation.
+[profiles.plan]
+model = "gpt-6-sol"
+model_reasoning_effort = "xhigh"
+sandbox_mode = "read-only"
 approval_policy = "on-request"
