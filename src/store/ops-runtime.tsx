@@ -270,6 +270,19 @@ export class OpsRuntime extends OpsProvider {
     return [...whole, ...idle];
   }
 
+  /**
+   * The notifications screen's alert switches call `this.toggleChannel(k)`, which the
+   * protected engine (and the prototype it was ported from) never defines, so every tap
+   * threw. Flips that one channel; the switch's On/Off text is the feedback, as in the
+   * prototype. In live mode `channels` is memory-only until MP-09 b3 saves it.
+   */
+  toggleChannel = (key: string): void => {
+    this.setState((s) => {
+      const channels = s.channels as Record<string, boolean>;
+      return { channels: { ...channels, [key]: !channels[key] } };
+    });
+  };
+
   syncNow = (): void => {
     void this.runSync();
   };

@@ -31,9 +31,10 @@
     `int`/`cents`/`text` columns only). MP-09's "non-config preferences" acceptance therefore stays
     open, and in live mode these three stay in memory only;
   - half-percent tax and half-step multipliers need storage in tenths or a numeric column.
-  Drafted as the next goal (MP-09 b3).
-- **Found, not fixed:** the engine calls `this.toggleChannel` but never defines it, so the notification
-  toggles throw. Flagged as a separate task.
+    Drafted as the next goal (MP-09 b3).
+- **Fixed after b2 (2026-09-28):** the engine (and the prototype) called `this.toggleChannel` but never
+  defined it, so every notification switch threw. `OpsRuntime.toggleChannel` flips that one channel;
+  `tests/unit/notification-channels.test.tsx` failed with the TypeError before the fix, in demo and live mode.
 - **Independent review (Sonnet, a different model from this Opus implementation): SAFE TO MERGE, no
   P0/P1.** It confirmed no cost key reaches helper/support, one money conversion each way, an idle timer
   that cannot fail open, no trusted client role, and nothing new outside live mode. Two low notes, both

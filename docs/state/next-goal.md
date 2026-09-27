@@ -43,8 +43,8 @@ the two half-step keys (settings_effective(), get_settings() and the parity fixt
 Same RPC rules as b1: SECURITY DEFINER, search_path '', owner check first, expected_updated_at conflict
 check, explicit grants, SQL role-suite cases per actor. Helpers/support must not read the lists unless a
 screen they use needs them (check first). App: extend src/lib/data/settings.ts and SettingsSync; capture
-the engine's addCategory/renameCategory/toggleCategory and the channel toggle (the engine never defines
-toggleChannel: check whether the separate fix has landed first). renameCategory also rewrites ledger
+the engine's addCategory/renameCategory/toggleCategory and OpsRuntime.toggleChannel (added 2026-09-28;
+the engine never defined it). renameCategory also rewrites ledger
 categories, which stay local until MP-15: say so, do not save the ledger. Restore the 0.5 step on the live
 rules rows and remove that part of the b2 locked-UI exception record. Unit tests for each list round-trip
 and a half-step save. All exit 0 in this session: pnpm verify, the SQL role suite, the Python guards, the
