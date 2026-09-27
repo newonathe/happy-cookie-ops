@@ -161,3 +161,13 @@ insert into recipe_ingredients (product_id, item_name, qty, unit) values
   ('nch', 'Nutella', 360, 'g'),
   ('nch', 'Baking soda', 6, 'g'),
   ('nch', 'Vanilla extract', 10, 'ml');
+
+-- allergens (MP-09 c1)
+update products set allergens = v.allergens from (values
+  ('dcf', 'milk, eggs, wheat, soy'),
+  ('hc', 'milk, eggs, wheat, soy'),
+  ('wcb', 'milk, eggs, wheat, soy'),
+  ('pbm', 'milk, eggs, wheat, soy, peanuts'),
+  ('rvc', 'milk, eggs, wheat, soy'),
+  ('nch', 'milk, eggs, wheat, soy, tree nuts')
+) as v (id, allergens) where products.id = v.id;

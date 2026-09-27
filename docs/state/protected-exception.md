@@ -36,13 +36,42 @@ sideways scroll at 390/834/1280 px on the hosted preview); `pnpm test:e2e` uncha
 port audit: no copy, element or demo-mode change; its process findings (this record, the stale provenance string,
 an inaccurate code comment and the AGENTS.md trap text) are addressed in the same commit.
 
-# MP-09 c engine exception — APPROVED, not yet applied (2026-09-27)
+# MP-09 c engine exception — APPROVED 2026-09-27; flavours APPLIED in MP-09 c1 (2026-09-28)
 
 Ethan approved the smallest edit to the protected engine (`src/store/engine/ops-engine.js`) that lets the flavour
 list (`PRODUCTS`: name, description, photo, allergens, permanent/rotating) and the payment accounts
 (`PAY_ACCOUNTS`) come from state loaded from the database instead of module constants (configurability audit
 B1, B2). No visible change to any screen. The slice that applies it must keep the change minimal, record the
 exact edit here, register it as exact reversals in `scripts/validate-g0.py`, and pass an independent port audit.
+
+**Applied in MP-09 c1 (2026-09-28): `PRODUCTS`, `P`, `SEED_PRICES` and `ALLERGENS`** (Cine's 2026-09-28 answer made
+allergens per flavour, so the exception is extended to name `ALLERGENS`). `PAY_ACCOUNTS` is still to do (MP-09 c2).
+
+- **The one engine edit:** a block inserted right after `PRODUCTS.forEach(p => { SEED_PRICES[p.id] = p.price; });`,
+  exporting `replaceFlavours(list, allergens)`. It replaces the four module objects **in place** (the array is
+  spliced, the maps are emptied and refilled), so every existing engine read sees the new list. Stated plainly:
+  the engine still reads module constants; live mode overwrites them from rows it loaded, it does not read
+  `this.state`. Switching ~130 call sites to state would not be minimal. Nothing else in the file changed, and
+  the header's "four marked edits" line is left as ported (this record is the fifth).
+- **Caller:** only `OpsRuntime.loadFlavours()` (subclass), which returns early outside live mode, so demo, dev,
+  CI and the visual baselines never call it. It also writes `prices` and `dropActive` from the rows (the engine's
+  `priceOf` reads `state.prices` first) and gives a flavour with no recipe an empty one (`{ yield: 1, ing: [] }`)
+  until MP-09 d loads recipes, because the bake and recipe screens read `recipes[id].yield`.
+- **How the edit was made:** the `PreToolUse` hook (`.claude/hooks/guard-protected-paths.sh`) blocks every edit
+  to `ops-engine.js` pending a human decision. That decision is this approval, so the block was inserted by a
+  script and is recorded here and in the commit message rather than by switching the hook off.
+- **Seed:** `supabase/seed.sql` (generated, protected) gains one appended `update products set allergens …`
+  statement, emitted by `scripts/gen-seed.mjs` from the engine's `ALLERGENS`. The rest of the seed is not
+  regenerated: the generator's header comment already differed from the checked-in seed before this slice, so a
+  full regeneration would have rewritten reviewed bytes (pre-existing drift, not fixed here).
+- **Reversals:** `FLAVOUR_REVERSALS` in `scripts/validate-g0.py` removes the engine block and the seed block,
+  each exactly once, before the delivery-bytes check.
+- **Evidence:** `tests/unit/flavours.test.tsx` maps the seeded rows (parsed from `seed.sql`) back onto the ported
+  `PRODUCTS` and `ALLERGENS` with deep equality (one leading `/` on the seeded image path is dropped to match the
+  engine's `assets/…`), and renders every screen key with a seventh flavour that has no recipe.
+- **Independent port audit (Sonnet, 2026-09-28):** one inserted block, live-mode caller only, reversals and seed
+  block exact, port integrity OK. Its reset and empty-allergen findings were fixed in the same slice
+  ([current state](current.md)).
 
 # MP-09 b2 locked-UI exception: settings rules sheet in live mode (2026-09-28)
 

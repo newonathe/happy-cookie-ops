@@ -1,6 +1,43 @@
 # Current state — Happy Cookie Ops
 
-## Current checkpoint — 2026-09-28 (MP-09 b4: helper sale totals and helper money privacy; MP-09 b closed)
+## Current checkpoint — 2026-09-28 (MP-09 c1: flavours from the database, G2 slice 5 first part)
+
+- **MP-09 c1 is complete locally.** Split as the goal allowed: prices, publishing and a flavour editor are
+  **c1b** ([next goal](next-goal.md)); payment accounts stay in c2.
+- **Database** ([migration 20260101003000](../../supabase/migrations/20260101003000_flavours.sql)): `products`
+  gains `allergens`, `item_type` (cookie or set; `kind` already means Permanent/Rotating), `capacity_weight`
+  (1–48, default 1, decision D9) and `updated_at` with the touch trigger. Direct `products` DML is revoked
+  from anon and authenticated: the owner could previously write any value through PostgREST. New
+  `get_flavours()` (any active staff member; a flavour carries no cost) and `save_flavour()` (active owner
+  only; exact key set, types and bounds; `image_path` limited to path characters because the engine puts it
+  unquoted into a CSS `url(…)`; millisecond `updated_at` check, P0002 when stale; no delete, since the foreign
+  keys cascade to recipes). `shop_products` gains only `allergens`; the role suite asserts its exact key set.
+- **Engine exception applied** (approved 2026-09-27, extended to `ALLERGENS`): one inserted
+  `replaceFlavours()` replaces `PRODUCTS`/`P`/`SEED_PRICES`/`ALLERGENS` in place, plus an appended allergen
+  block in the generated seed. Both are exact reversals in `scripts/validate-g0.py`
+  ([record](protected-exception.md)). The `PreToolUse` hook blocks every engine edit, so the approved block
+  was inserted by a script; the record says so.
+- **App:** `OpsRuntime.loadFlavours()` runs on the first verified sign-in for every role (live mode only) and
+  also sets `prices`, `dropActive` and an empty recipe for a flavour with none. The engine's
+  `toggleDropProduct` saves the whole flavour through `save_flavour`. A conflict reloads with a toast; a
+  refusal, going offline or a list that never loaded puts the switch back. **Owner-editable at the database
+  only:** Cine cannot yet edit names, prices or add a flavour in the app (c1b). The live customer shop still
+  shows the ported list until c1b publishes a menu (every `published` flag is false).
+- **Found, not fixed:** `scripts/gen-seed.mjs` already produced a different header comment than the
+  checked-in `seed.sql`, so the seed was appended to, not regenerated.
+- **Evidence (this session):** `pnpm verify` 42 files / 647 tests, exit 0
+  (`tests/unit/flavours.test.tsx`: the seeded rows map back onto the ported constants exactly; every screen
+  renders with a seventh flavour that has no recipe; save, conflict, refusal, never-loaded and Settings-reset
+  paths; the public projection). SQL role suite 556 cases/reset over 2 resets (new `flavours.sql`, 38 rows; 66
+  deliberate regressions detected). Python guards 63 OK. G0 validator 1198 checks, 0 failures. All re-run after the audit fixes; the
+  security review saw the migration before the allergen minimum was added. Evidence churn reverted.
+- **Independent reviews:** security (Sonnet, a different model from this Opus implementation): SAFE TO MERGE,
+  no critical/high/medium. Of its two lows, the silent no-op for a flavour with no loaded row now reverts
+  with a toast (tested); a toggle made in the moment before the first load finishes is not saved, recorded
+  here and not fixed. **Port audit (Sonnet, independent):** one inserted engine block and nothing else, called only from live mode; the validator reversals and the seed block are exact; port integrity OK (54 files). Its two real findings were fixed and tested: the live Settings reset rebuilt state from the six ported flavours (a loaded seventh would lose its placeholder recipe), and an empty allergen value would print a dangling "Contains " on the shop (`save_flavour` now requires 1–200 characters). Recorded, not changed: `replaceFlavours` also refreshes `P` and `SEED_PRICES`, which are derived from `PRODUCTS`; if the flavour read fails after a reload, the engine shows the ported list. The auditor ran `pip install jsonschema` into the global Python (outside the pinned `python-libs-314`).
+- No hosted preview update, no deploy.
+
+## Prior checkpoint — 2026-09-28 (MP-09 b4: helper sale totals and helper money privacy; MP-09 b closed)
 
 - **MP-09 b4 is complete locally, which closes MP-09 b** (settings on the database: b1–b4). Run in
   the same conversation at Ethan's request.

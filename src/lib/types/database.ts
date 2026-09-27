@@ -548,9 +548,12 @@ export type Database = {
       products: {
         Row: {
           active: boolean
+          allergens: string
+          capacity_weight: number
           description: string
           id: string
           image_path: string
+          item_type: string
           kind: string
           name: string
           price_cents: number
@@ -558,12 +561,16 @@ export type Database = {
           short_name: string
           sort_order: number
           tag: string
+          updated_at: string
         }
         Insert: {
           active?: boolean
+          allergens?: string
+          capacity_weight?: number
           description?: string
           id: string
           image_path?: string
+          item_type?: string
           kind: string
           name: string
           price_cents: number
@@ -571,12 +578,16 @@ export type Database = {
           short_name: string
           sort_order?: number
           tag?: string
+          updated_at?: string
         }
         Update: {
           active?: boolean
+          allergens?: string
+          capacity_weight?: number
           description?: string
           id?: string
           image_path?: string
+          item_type?: string
           kind?: string
           name?: string
           price_cents?: number
@@ -584,6 +595,7 @@ export type Database = {
           short_name?: string
           sort_order?: number
           tag?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -814,6 +826,7 @@ export type Database = {
       }
       shop_products: {
         Row: {
+          allergens: string | null
           description: string | null
           id: string | null
           image_path: string | null
@@ -825,6 +838,7 @@ export type Database = {
           tag: string | null
         }
         Insert: {
+          allergens?: string | null
           description?: string | null
           id?: string | null
           image_path?: string | null
@@ -836,6 +850,7 @@ export type Database = {
           tag?: string | null
         }
         Update: {
+          allergens?: string | null
           description?: string | null
           id?: string | null
           image_path?: string | null
@@ -973,6 +988,26 @@ export type Database = {
         Returns: Database["public"]["Enums"]["app_role"]
       }
       drop_remaining: { Args: { p_drop_id: string }; Returns: number }
+      get_flavours: {
+        Args: never
+        Returns: {
+          active: boolean
+          allergens: string
+          capacity_weight: number
+          description: string
+          id: string
+          image_path: string
+          item_type: string
+          kind: string
+          name: string
+          price_cents: number
+          published: boolean
+          short_name: string
+          sort_order: number
+          tag: string
+          updated_at: string
+        }[]
+      }
       get_operating_settings: {
         Args: never
         Returns: {
@@ -1013,6 +1048,13 @@ export type Database = {
       }
       prune_personal_data: { Args: { p_retain_days?: number }; Returns: number }
       prune_rate_limits: { Args: never; Returns: number }
+      save_flavour: {
+        Args: { p_expected_updated_at: string; p_flavour: Json; p_id: string }
+        Returns: {
+          id: string
+          updated_at: string
+        }[]
+      }
       save_setting: {
         Args: { p_expected_updated_at: string; p_key: string; p_value: Json }
         Returns: {

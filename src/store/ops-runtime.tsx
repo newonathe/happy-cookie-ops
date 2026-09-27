@@ -1,6 +1,6 @@
 'use client';
 
-import { BASE_STATE, DEFAULT_CFG, OpsProvider } from '@/store/engine/ops-engine';
+import { BASE_STATE, DEFAULT_CFG, OpsProvider, replaceFlavours } from '@/store/engine/ops-engine';
 import type { EventSale, OpsEngineProps, Role } from '@/store/engine/ops-engine';
 import { flushQueue, requestBackgroundSync } from '@/lib/offline/sync';
 import { pendingSales } from '@/lib/offline/queue';
@@ -10,6 +10,12 @@ import { isLiveMode } from '@/lib/config/app-mode';
 import { clearStoredBooks, liveBaseState } from '@/lib/data/live-state';
 import { STATE_LEVEL_KEYS, type SettingsClient } from '@/lib/data/settings';
 import { SettingsSync } from '@/lib/data/settings-sync';
+import {
+  FlavourSync,
+  engineCatalogue,
+  flavourStatePatch,
+  type FlavoursClient
+} from '@/lib/data/flavours';
 import { helperMoneyView } from '@/lib/auth/helper-money';
 import {
   IDLE_MINUTES_MAX,
@@ -58,6 +64,7 @@ const IDLE_ROWS: Array<{ role: Role; label: string }> = [
 export class OpsRuntime extends OpsProvider {
   private stopViewportTracking?: () => void;
   private settingsSync?: SettingsSync;
+  private flavourSync?: FlavourSync;
 
   /**
    * Live mode never shows or stores the demo books (docs/state/G2-plan.md "Slice audit",
@@ -79,6 +86,9 @@ export class OpsRuntime extends OpsProvider {
       fresh.device = this.state.device;
       fresh.role = this.state.role;
       fresh.screen = 'today';
+      // BASE_STATE() names only the six ported flavours; keep the loaded list's own state.
+      const flavours = this.flavourSync?.current() ?? [];
+      if (flavours.length) Object.assign(fresh, flavourStatePatch(flavours, fresh));
       this.setState(fresh);
       setTimeout(
         // Unlike the demo reset, this must not claim "gone": a sale already queued to
@@ -89,6 +99,12 @@ export class OpsRuntime extends OpsProvider {
       void this.settingsSync?.reload();
     };
     this.captureSettingsActions();
+    const { toggleDropProduct } = this;
+    this.toggleDropProduct = (pid) => {
+      const on = (this.state.dropActive as Record<string, boolean>)[pid] === false;
+      toggleDropProduct(pid);
+      void this.flavourSync?.saveOnMenu(pid, on);
+    };
   }
 
   /**
@@ -178,6 +194,31 @@ export class OpsRuntime extends OpsProvider {
       categories: base.categories,
       inactiveCats: base.inactiveCats
     });
+  }
+
+  /**
+   * MP-09 c1: every role reads the flavour list on the first verified sign-in, and the
+   * engine's PRODUCTS/ALLERGENS are replaced in place with it (the approved engine
+   * exception, docs/state/protected-exception.md). Prices and the on-menu switch follow
+   * the rows. An empty or failed read keeps the ported list.
+   */
+  loadFlavours(client: FlavoursClient): Promise<boolean> {
+    if (!isLiveMode()) return Promise.resolve(false);
+    this.flavourSync = new FlavourSync(client, {
+      apply: (rows) => {
+        const { list, allergens } = engineCatalogue(rows);
+        replaceFlavours(list, allergens);
+        this.setState((s) => flavourStatePatch(rows, s));
+      },
+      onMenu: (id) => (this.state.dropActive as Record<string, boolean>)[id] !== false,
+      setOnMenu: (id, on) =>
+        this.setState((s) => ({
+          dropActive: { ...(s.dropActive as Record<string, boolean>), [id]: on }
+        })),
+      online: () => this.state.online && (typeof navigator === 'undefined' || navigator.onLine),
+      toast: (message, tone) => this.toast(message, tone)
+    });
+    return this.flavourSync.load();
   }
 
   /**

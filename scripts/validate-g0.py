@@ -82,6 +82,18 @@ LIVE_FRAME_REVERSALS = {
         (b'"copyCount": 15,\n      "styles": 144,', b'"copyCount": 15,\n      "styles": 146,'),
     ],
 }
+# MP-09 c engine exception (approved 2026-09-27, applied in MP-09 c1; docs/state/protected-exception.md):
+# the flavour-list swap inserted into the engine, and the allergen block appended to the generated seed.
+FLAVOUR_REVERSALS = {
+    'src/store/engine/ops-engine.js': [
+        (b"PRODUCTS.forEach(p => { SEED_PRICES[p.id] = p.price; });\n// MP-09 c engine exception (docs/state/protected-exception.md): live mode swaps in the\n// flavour list loaded from the database. The same objects, replaced in place.\nexport const replaceFlavours = (list, allergens) => {\n  PRODUCTS.splice(0, PRODUCTS.length, ...list);\n  [P, SEED_PRICES, ALLERGENS].forEach(o => Object.keys(o).forEach(k => { delete o[k]; }));\n  PRODUCTS.forEach(p => { P[p.id] = p; SEED_PRICES[p.id] = p.price; ALLERGENS[p.id] = allergens[p.id] || ''; });\n};\n",
+         b'PRODUCTS.forEach(p => { SEED_PRICES[p.id] = p.price; });\n'),
+    ],
+    'supabase/seed.sql': [
+        (b"('nch', 'Vanilla extract', 10, 'ml');\n\n-- allergens (MP-09 c1)\nupdate products set allergens = v.allergens from (values\n  ('dcf', 'milk, eggs, wheat, soy'),\n  ('hc', 'milk, eggs, wheat, soy'),\n  ('wcb', 'milk, eggs, wheat, soy'),\n  ('pbm', 'milk, eggs, wheat, soy, peanuts'),\n  ('rvc', 'milk, eggs, wheat, soy'),\n  ('nch', 'milk, eggs, wheat, soy, tree nuts')\n) as v (id, allergens) where products.id = v.id;\n",
+         b"('nch', 'Vanilla extract', 10, 'ml');\n"),
+    ],
+}
 changes = []
 for entry in load(EVIDENCE / 'delivery-manifest.json'):
     rel = entry['path']
@@ -111,6 +123,9 @@ for entry in load(EVIDENCE / 'delivery-manifest.json'):
             data = re.sub(re.escape(guard) + rb'\r?\n', b'', data, count=1)
         for index, (edited, original) in enumerate(LIVE_FRAME_REVERSALS.get(rel, [])):
             check(f'approved_live_frame_once:{rel}:{index}', data.count(edited) == 1)
+            data = data.replace(edited, original, 1)
+        for index, (edited, original) in enumerate(FLAVOUR_REVERSALS.get(rel, [])):
+            check(f'approved_flavour_exception_once:{rel}:{index}', data.count(edited) == 1)
             data = data.replace(edited, original, 1)
         check('protected_delivery_bytes:' + rel, hashlib.sha256(data).hexdigest() == entry['sha256'])
 notices = [[line for line in (ROOT / name).read_text().splitlines() if line.startswith('> **Current planning authority')] for name in ['AGENTS.md', 'CLAUDE.md']]

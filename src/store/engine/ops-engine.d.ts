@@ -80,6 +80,8 @@ export declare class OpsEngine extends React.Component<OpsEngineProps, OpsEngine
   addCategory: (name: string) => void;
   renameCategory: (old: string, next: string) => void;
   toggleCategory: (name: string) => void;
+  /** Takes a flavour off the order form or puts it back (`state.dropActive`). An instance field. */
+  toggleDropProduct: (pid: string) => void;
 }
 
 export declare class OpsProvider extends OpsEngine {}
@@ -100,6 +102,14 @@ export const PRODUCTS: Array<{
   tag: string;
   desc: string;
 }>;
+export type EngineFlavour = (typeof PRODUCTS)[number];
+/** Flavour id → "milk, eggs, …", shown as "Contains …" on the shop. */
+export const ALLERGENS: Record<string, string>;
+/**
+ * MP-09 c engine exception: replaces PRODUCTS, P, SEED_PRICES and ALLERGENS in place with
+ * the flavour list loaded from the database (docs/state/protected-exception.md).
+ */
+export function replaceFlavours(list: EngineFlavour[], allergens: Record<string, string>): void;
 export const DEFAULT_CFG: Record<string, unknown>;
 export const RECIPES: Record<
   string,

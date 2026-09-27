@@ -14,39 +14,36 @@ When a goal finishes, the agent deletes its block here, leaves the next one on t
 - If files changed since the last index, re-index first: `index_repository`, repo path `C:/Users/ethan/dev/happy-cookie-ops-g0`.
 - Pinned toolchain: prefix PATH with `C:\Users\ethan\dev\happy-cookie-tools\bin;C:\Users\ethan\dev\happy-cookie-tools\node-v24.20.0-win-x64`.
 - Docker Desktop must be running for SQL work.
-- **Baseline (2026-09-28; `pnpm verify`, the SQL role suite and the Python guards re-run at MP-09 b3 close, `pnpm verify` again at b4 close; the rest unchanged since the static-header goal):**
-  - `pnpm verify` 41 files / 637 tests;
-  - Python guards 63 OK, via `python -m unittest discover -s <dir> -p "test_*.py"` for each of `tests/unit`, `tests/integration/auth`, `tests/integration/db` and `tests/integration/security`, with `G0_PYTHON_LIBS=C:\Users\ethan\dev\happy-cookie-tools\python-libs-314`; SQL role suite 518 cases/reset, 2 resets;
+- **Baseline (2026-09-28; `pnpm verify`, the SQL role suite and the Python guards re-run at MP-09 c1 close; the rest unchanged since the static-header goal):**
+  - `pnpm verify` 42 files / 647 tests;
+  - Python guards 63 OK, via `python -m unittest discover -s <dir> -p "test_*.py"` for each of `tests/unit`, `tests/integration/auth`, `tests/integration/db` and `tests/integration/security`, with `G0_PYTHON_LIBS=C:\Users\ethan\dev\happy-cookie-tools\python-libs-314`; SQL role suite 556 cases/reset, 2 resets;
   - `pnpm build:pages:spike`/`test:pages:spike`/`test:workers:spike` pass with or without `NEXT_PUBLIC_SUPABASE_URL`/`…PUBLISHABLE_KEY` (local stack values: `supabase status -o env`);
   - `pnpm build` passes, and `pnpm test:e2e` gives 87 passed / 3 failed / 30 skipped. The 3 failures are the same known OFFLINE-01 durable-queue test on phone, WebKit and desktop (G3).
 - **Codex only:** run `/status` once in the repo root to confirm the project `.codex/config.toml` loaded. Accept the trust prompt if asked. The project sandbox has no network, so `git push` will ask for approval.
 
-## Next goal — MP-09 c1: flavours from the database (G2 slice 5, first part)
+## Next goal — MP-09 c1b: flavour prices, publishing and the flavour editor (G2 slice 5, second part)
 
-Drafted 2026-09-28 by the session that closed MP-09 b, from [order-form-audit.md](order-form-audit.md)
-("Proposed slice order" item 2) and [G2-plan.md](G2-plan.md) principle 6. **Not re-audited against the code:**
-read the approved engine exception in [protected-exception.md](protected-exception.md) ("MP-09 c engine
-exception"), `PRODUCTS`/`P`/`ALLERGENS` in the protected engine, the `products` table
-(`supabase/migrations/20260101000000_init.sql`) and the `shop_products` view (`20260101002200`) first, and
-correct anything below the code contradicts.
+Drafted 2026-09-28 by the session that closed MP-09 c1 (see [current state](current.md)). c1 put the flavour
+list on the database (`products` + `get_flavours`/`save_flavour`, migration 20260101003000) and applied the
+engine exception for `PRODUCTS`/`ALLERGENS`; only the on-menu switch saves so far. **Not re-audited against the
+code:** read `src/lib/data/flavours.ts`, `OpsRuntime.loadFlavours`, the engine's `setPrice`, the products screen
+and the edit-price sheet first, and correct anything below the code contradicts.
 
 ```text
-/goal MP-09 c1 (docs/state/order-form-audit.md, slice order item 2): the flavour list comes from the
-database, owner-editable, instead of the protected engine's PRODUCTS/ALLERGENS constants. Apply the approved
-MP-09 c engine exception as the smallest edit that reads the flavour list (name, short name, description,
-photo, price, allergens, badge, permanent/rotating, on menu, sort order) from state, extended to name
-ALLERGENS explicitly; record the exact edit in protected-exception.md and register it as exact reversals in
-scripts/validate-g0.py, with an independent port audit. Add what the order-form audit needs for flavours:
-kind (cookie or set) and a capacity weight (default 1, decision D9). Owner RPCs in a new migration (SECURITY
-DEFINER, search_path '', owner check first, validation, updated_at conflict check, explicit grants, SQL
-role-suite cases per actor); the public shop keeps reading only shop_products (update the view if it needs
-the new fields, and prove anon sees no cost). Load into OpsRuntime on sign-in like settings; saves through
-captured engine actions. Seed from the engine's current six flavours, not from Cine's workbook (she edits
-her real menu in the app). Unit tests for load, save, conflict and the public projection. All exit 0 in this
-session: pnpm verify, the SQL role suite, the Python guards, the G0 validator (revert evidence/*.json churn).
-Independent different-model review (SQL, public data). Committed and pushed; status updated; block removed.
-No deploy. If it grows past ~400 lines, split prices/publishing into c1b. Stop after 2 failed fix attempts or
-20 turns.
+/goal MP-09 c1b (docs/state/order-form-audit.md, slice order item 2, rest): prices, publishing and a flavour
+editor on the database. Price: capture the engine's setPrice and save the whole flavour through save_flavour
+(pesos to centavos in src/lib/money.ts only; orders already placed keep their price, as the engine says);
+conflict reloads with a toast, refusal or offline reverts. Publishing: an owner-only publish_flavours RPC in a
+new migration (SECURITY DEFINER, search_path '', owner check first, explicit grants, role-suite cases) that
+sets products.published, so the public shop's shop_products view shows the owner's menu; wire the live
+customer shop to read shop_products through fetchShopFlavours (anon never reads products). Flavour editor:
+name, short name, description, photo path, allergens, badge, permanent/rotating, cookie/set, capacity weight,
+sort order, and adding a flavour, as a new owner form under the approved settings-edit-forms locked-UI
+exception (record it in protected-exception.md; no new colours or type). Unit tests for each save path and
+the shop projection. All exit 0 in this session: pnpm verify, the SQL role suite, the Python guards, the G0
+validator (revert evidence/*.json churn). Independent different-model review (SQL, public data). Committed and
+pushed; status updated; block removed. No deploy. If it grows past ~400 lines, split the editor into c1c. Stop
+after 2 failed fix attempts or 20 turns.
 ```
 
 ## After these goals

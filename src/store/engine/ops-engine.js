@@ -157,6 +157,13 @@ const P = {};
 PRODUCTS.forEach(p => { P[p.id] = p; });
 const SEED_PRICES = {};
 PRODUCTS.forEach(p => { SEED_PRICES[p.id] = p.price; });
+// MP-09 c engine exception (docs/state/protected-exception.md): live mode swaps in the
+// flavour list loaded from the database. The same objects, replaced in place.
+export const replaceFlavours = (list, allergens) => {
+  PRODUCTS.splice(0, PRODUCTS.length, ...list);
+  [P, SEED_PRICES, ALLERGENS].forEach(o => Object.keys(o).forEach(k => { delete o[k]; }));
+  PRODUCTS.forEach(p => { P[p.id] = p; SEED_PRICES[p.id] = p.price; ALLERGENS[p.id] = allergens[p.id] || ''; });
+};
 
 const SCREENS = ['today', 'sales', 'orders', 'order', 'lookup', 'reconcile', 'bake', 'batch', 'inventory', 'stocktake', 'more', 'grocery', 'bazaar', 'pnl', 'formqueue', 'health', 'products', 'notifications', 'shop', 'checkout', 'status', 'recipes', 'drops', 'suppliers', 'settings'];
 const CUSTOMER_SCREENS = ['shop', 'checkout', 'status', 'lookup'];

@@ -118,6 +118,9 @@ Method: each question was answered from the code or a throwaway render probe, no
 - **b3 done 2026-09-28:** preferences, half steps and the stored helper switch. The switch's behaviour and
   the helper money-privacy fix are b4, the last part of MP-09 b.
 - **b4 done 2026-09-28; MP-09 b closed.** Next: MP-09 c, split as in [order-form-audit.md](order-form-audit.md).
+- **MP-09 c1 done 2026-09-28:** flavours on the database and the engine exception for `PRODUCTS`/`ALLERGENS`
+  (recorded in [protected-exception.md](protected-exception.md)); only the on-menu switch saves. Prices, publishing
+  and the flavour editor are c1b ([next goal](next-goal.md)); payment accounts (`PAY_ACCOUNTS`) are c2.
 - Hosted preview: not updated until Ethan runs `supabase login` (see below).
 
 ## Hosted preview during G2

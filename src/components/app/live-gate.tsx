@@ -116,7 +116,10 @@ export function LiveGate({
         // First verified check only: re-checks (token refresh, tab visible again) must not
         // reload settings over an edit that is still waiting to save (MP-09 b2).
         const role = result.role;
-        if (engine instanceof OpsRuntime) void engine.loadSettings(supabase, role);
+        if (engine instanceof OpsRuntime) {
+          void engine.loadSettings(supabase, role);
+          void engine.loadFlavours(supabase);
+        }
         stopIdle = startIdleSignOut(role, lockOut, () =>
           idleMinutesFor(role, engine.state.cfg as Record<string, unknown> | undefined)
         );

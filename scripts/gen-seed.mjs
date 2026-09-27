@@ -33,6 +33,7 @@ const SUPPLIERS = literal('SUPPLIERS');
 const PACK_SIZE = literal('PACK_SIZE');
 const RECIPES = literal('RECIPES');
 const USE_BY_DAYS = literal('USE_BY_DAYS');
+const ALLERGENS = literal('ALLERGENS');
 
 const q = (s) => "'" + String(s).replace(/'/g, "''") + "'";
 /**
@@ -143,6 +144,17 @@ for (const [pid, recipe] of Object.entries(RECIPES)) {
 out.push('insert into recipe_ingredients (product_id, item_name, qty, unit) values');
 out.push(ingredients.join(',\n') + ';');
 out.push('');
+
+// MP-09 c1: allergens joined the flavour record (migration 20260101003000). Appended as
+// one statement at the end, so the rows above keep their reviewed bytes; the block is a
+// registered reversal in scripts/validate-g0.py.
+out.push(
+  '-- allergens (MP-09 c1)',
+  'update products set allergens = v.allergens from (values',
+  Object.entries(ALLERGENS).map(([pid, text]) => `  (${q(pid)}, ${q(text)})`).join(',\n'),
+  ') as v (id, allergens) where products.id = v.id;',
+  ''
+);
 
 writeFileSync(join(ROOT, 'supabase/seed.sql'), out.join('\n'));
 console.log(

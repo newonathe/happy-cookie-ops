@@ -46,7 +46,7 @@ These paths are enforced by `scripts/check-port-integrity.mjs`, which runs insid
 | `src/components/screens/**` | No restyling, no copy edits, no class names. Inline style objects are the spec. |
 | `src/components/sheets/**` | Same. |
 | `src/components/shell/**` | Same. |
-| `src/store/engine/ops-engine.js` | Verbatim port. Four marked edits only. Extend by subclassing (`src/store/ops-runtime.tsx`). |
+| `src/store/engine/ops-engine.js` | Verbatim port. Four marked edits, plus the approved MP-09 c flavour exception (`docs/state/protected-exception.md`). Extend by subclassing (`src/store/ops-runtime.tsx`). |
 | `supabase/migrations/*.sql` (applied) | Never edit. Add a new migration. |
 | `scripts/port-baseline.json` | Only via `node scripts/check-port-integrity.mjs --update`, in the same commit as the change it approves. |
 | `supabase/seed.sql` | Generated. Change the engine's constants and run `pnpm db:seed:gen`; a hand-edited seed drifts from the design silently. |
