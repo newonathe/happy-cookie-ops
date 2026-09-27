@@ -18,8 +18,10 @@
   every public table there (not usable over PostgREST, invisible to the local SQL role suite). Follow-up: move the
   local stack to PG17 and add a reviewed migration revoking MAINTAIN from API roles.
 - Self-signup is off (Ethan, 2026-09-27; verified `disable_signup: true` via `/auth/v1/settings`).
-- **Open for Ethan:** set the access-token expiry to 1800 s (the dashboard moved it off the Legacy JWT Secret tab after
-  the signing-key migration; default 3600 s is acceptable for the synthetic preview, required before launch); the
+- Access-token expiry set to 1800 s by Ethan (2026-09-27) under Authentication → Sessions (it moved there from the
+  Legacy JWT Secret tab after the signing-key migration). Not verifiable anonymously: `/auth/v1/settings` does not
+  expose it; confirm from a signed-in token's `exp` during the signed-in checks.
+- **Open for Ethan:** the
   signed-in checks (refresh probe, `auth.sessions`, role bootstrap, idle sign-out) need a test account Ethan creates
   and signs in with himself. Free projects pause after about a week without activity.
 

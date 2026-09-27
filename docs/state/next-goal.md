@@ -24,7 +24,6 @@ When a goal finishes, the agent deletes its block here, leaves the next one on t
 ## After these goals
 
 1. **Hosted preview: live (2026-09-27, see [current state](current.md)).** The route/CSP/cache oracle, anonymous RLS/RPC probes, `connect-src` proof, default-privilege probe and catalog RLS guard pass on the hosted project. Still open:
-   - Ethan: set the access-token expiry to 1800 s in the Supabase dashboard (self-signup is already off);
    - the direct-parent refresh probe and the `auth.sessions` checks, with a test account Ethan creates and signs in with himself;
    - move the local stack to Postgres 17 and revoke the PG17 MAINTAIN privilege from API roles in a reviewed migration.
 2. **G2 (MP-09 → MP-17):** starts once Cine answers the ★ questions in the [owner packet](owner-decision-packet.md). Write one goal per package, with acceptance taken from `docs/master-plan/tasks.json`. Carry-overs:

@@ -107,7 +107,7 @@ one directly, the same way as step 1. Hand it over the same trusted channel as b
 
 ## 6. Session lifetime
 
-Dashboard → **Authentication → Settings → Sessions**: set **Access token (JWT) expiry** to
+Dashboard → **Authentication → Sessions** (not the JWT Keys page): set **Access token (JWT) expiry** to
 **1800 seconds**, matching `supabase/config.toml`'s local `jwt_expiry = 1800`. Access tokens
 are valid for the full 30 minutes regardless of what happens to the profile row in that
 window — step 4's `active = false` is what actually revokes access, not the JWT expiry. The
