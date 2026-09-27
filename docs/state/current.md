@@ -12,9 +12,14 @@
   these six had never had an explicit GRANT, so their ACL was purely
   default-derived and would have silently lost `anon`/`authenticated` EXECUTE
   on a second `supabase db reset` against the same database once the two
-  revokes above exist (found and fixed after an initial security-reviewer
-  pass caught it; a second pass confirmed the fix and a related catalog-guard
-  gap, verdict SAFE TO MERGE, no P0–P2 open).
+  revokes above exist (found and fixed after an initial same-model
+  security-reviewer pass caught it; a second same-model pass confirmed the fix
+  and a related catalog-guard PUBLIC-grantee gap, which was also fixed). A
+  third pass, explicitly run on Opus — a different model from the Sonnet
+  session that implemented and reviewed this — is the required different-model
+  gate: verdict SAFE TO MERGE, nothing at P0/P1, four low/P2 notes (none
+  requiring a code change; one was a documentation-accuracy note about this
+  line, now corrected).
   - [tests/integration/security/future-function-defaults.sql](../../tests/integration/security/future-function-defaults.sql)
     - `scripts/probe-future-function-defaults.py` prove the new state on two
       identical 28-migration resets: a brand-new function is not executable by
