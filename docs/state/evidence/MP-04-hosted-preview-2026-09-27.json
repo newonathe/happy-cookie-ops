@@ -1,0 +1,77 @@
+{
+  "status": "PASS",
+  "base": "https://happy-cookie-preview.admin-kethai.workers.dev",
+  "routes": 26,
+  "anonRows": {
+    "audit_log": 0,
+    "bake_batches": 0,
+    "drops": 0,
+    "erasure_requests": 0,
+    "event_sale_items": 0,
+    "event_sales": 0,
+    "events": 0,
+    "inventory_items": 0,
+    "ledger_entries": 0,
+    "order_items": 0,
+    "orders": 0,
+    "products": 0,
+    "profiles": 0,
+    "rate_limits": "denied 401",
+    "recipe_ingredients": 0,
+    "recipes": 0,
+    "settings": 0,
+    "supplier_prices": 0,
+    "suppliers": 0
+  },
+  "rpcStatus": {
+    "lookup_order": 401,
+    "consume_rate_limit": 401,
+    "settings_effective": 401,
+    "bff_session_read": 401,
+    "prune_personal_data": 401
+  },
+  "browser": {
+    "hydrated": true,
+    "cspViolationsOnLoad": [],
+    "jsErrors": [],
+    "allowed": 200,
+    "blocked": "blocked",
+    "violations": [
+      "connect-src https://example.com/"
+    ]
+  },
+  "auth": {
+    "disable_signup": false,
+    "mailer_autoconfirm": false
+  },
+  "failures": [],
+  "recorded": "2026-09-27",
+  "supabase": {
+    "project": "happy-cookie-preview (synthetic, fake catalogue data only), org Happy Cookie, ap-southeast-1, Free plan, $0/month",
+    "postgres": "17 (local stack is 15)",
+    "migrations": "28 repo files applied via apply_migration (0800-1800 and 1900-2200 batched in file order; begin/commit lines of 2300-2500 omitted, each migration is one transaction)",
+    "schema_equivalence_vs_local": {
+      "columns": "175 identical",
+      "policies": "36 identical",
+      "functions": "26 identical (body, config, security definer, ACL)",
+      "schema_acl": "identical",
+      "table_acl_default_acl_views": "differ only by PG17: MAINTAIN (m) privilege on public tables for anon/authenticated/service_role, and view definition formatting"
+    },
+    "seed": "identical counts and product price hash vs local (10 suppliers, 6 products, 30 inventory, 30 prices, 6 recipes, 51 ingredients)",
+    "sql_probes": {
+      "new_function_anon_execute": false,
+      "new_function_authenticated_execute": false,
+      "new_function_public_execute": false,
+      "new_function_service_role_execute": true,
+      "tables_without_rls": 0,
+      "public_views": "shop_drops,shop_products",
+      "hco_private_api_grants": 0,
+      "probe_left_behind": 0
+    },
+    "advisors_security": "rls_enabled_no_policy (bff_sessions, rate_limits: intended deny-all); security_definer_view (shop_products, shop_drops: intended fixed-field projection); anon/authenticated can execute is_owner/is_staff/current_role_name (required by RLS policies) and authenticated anonymise_customer (checks is_owner inside)"
+  },
+  "not_checked": [
+    "signed-in checks (refresh probe, auth.sessions, role bootstrap, idle sign-out): need a test account, which Claude may not create on a hosted project",
+    "self-signup is ON (disable_signup false) and JWT expiry not verified: dashboard settings for Ethan"
+  ]
+}

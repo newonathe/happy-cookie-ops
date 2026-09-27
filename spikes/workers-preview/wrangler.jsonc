@@ -1,0 +1,15 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  // Hosted MP-04 preview under architecture A: static assets only, no Worker script,
+  // no bindings, no secrets. The browser talks to Supabase directly; RLS is the boundary.
+  // Deployed only with Ethan's approval (2026-09-27), against the synthetic
+  // `happy-cookie-preview` Supabase project holding fake catalogue data only.
+  "name": "happy-cookie-preview",
+  "compatibility_date": "2026-09-08",
+  "workers_dev": true,
+  "preview_urls": false,
+  "assets": {
+    "directory": "../../build/pages-spike/public",
+    "not_found_handling": "none"
+  }
+}

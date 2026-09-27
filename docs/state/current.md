@@ -1,6 +1,27 @@
 # Current state — Happy Cookie Ops
 
-## Current checkpoint — 2026-09-27 (static CSP headers)
+## Current checkpoint — 2026-09-27 (hosted preview, MP-04)
+
+- **The hosted static preview is live (Ethan approved, $0):** https://happy-cookie-preview.admin-kethai.workers.dev,
+  Workers static assets with no Worker script ([spikes/workers-preview](../../spikes/workers-preview/README.md)),
+  against the synthetic Supabase project `happy-cookie-preview` (org "Happy Cookie", ap-southeast-1, Free) holding
+  fake catalogue data only. The connected Supabase account's other org belongs to another client and was not used.
+- All 28 migrations applied; schema equivalence vs the local stack proven by catalog fingerprints (columns,
+  policies, functions incl. ACLs identical). Evidence: [MP-04-hosted-preview-2026-09-27.json](evidence/MP-04-hosted-preview-2026-09-27.json).
+- `scripts/test-hosted-preview.mjs` PASS: 26 routes with the exact manifest CSP, security headers and cache policy;
+  immutable fingerprinted assets; real 404; payment QR images are "test preview, do not pay" placeholders
+  (`scripts/preview-placeholder-qr.mjs`, build output only); anon sees 0 rows in all 19 tables (including the
+  seeded ones) and 401 on service-only RPCs; `/shop` hydrates with 0 CSP violations/JS errors; in-page proof that
+  `connect-src` allows the Supabase origin and blocks an unrelated one. SQL probes: a new function is not
+  executable by anon/authenticated/PUBLIC, no table without RLS, only the two shop views, no API grant in `hco_private`.
+- **Found:** hosted Postgres is 17, local is 15. PG17 adds the MAINTAIN privilege, which anon/authenticated hold on
+  every public table there (not usable over PostgREST, invisible to the local SQL role suite). Follow-up: move the
+  local stack to PG17 and add a reviewed migration revoking MAINTAIN from API roles.
+- **Open for Ethan:** switch off self-signup and set the access-token expiry to 1800 s in the Supabase dashboard; the
+  signed-in checks (refresh probe, `auth.sessions`, role bootstrap, idle sign-out) need a test account Ethan creates
+  and signs in with himself. Free projects pause after about a week without activity.
+
+## Prior checkpoint — 2026-09-27 (static CSP headers)
 
 - **next-goal.md Goal 2 — static headers for direct Supabase (MP-04 prerequisite) — is done
   locally. No deploy.** [scripts/pages-spike-headers.mjs](../../scripts/pages-spike-headers.mjs)

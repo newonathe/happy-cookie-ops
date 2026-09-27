@@ -23,10 +23,10 @@ When a goal finishes, the agent deletes its block here, leaves the next one on t
 
 ## After these goals
 
-1. **Ethan approves the hosted preview:** deploy the static export to Workers static assets (static requests are free and unlimited) with a synthetic Supabase project, then run the MP-04d oracle on the hosted URL. On that hosted project, also repeat:
-   - the default-privilege probe and the catalog RLS guard (the MP-06m managed-creator rehearsal; this needs a hosted-capable variant, because the local harness refuses external URLs);
-   - the direct-parent refresh probe;
-   - the `auth.sessions` checks.
+1. **Hosted preview: live (2026-09-27, see [current state](current.md)).** The route/CSP/cache oracle, anonymous RLS/RPC probes, `connect-src` proof, default-privilege probe and catalog RLS guard pass on the hosted project. Still open:
+   - Ethan: switch off self-signup and set the access-token expiry to 1800 s in the Supabase dashboard;
+   - the direct-parent refresh probe and the `auth.sessions` checks, with a test account Ethan creates and signs in with himself;
+   - move the local stack to Postgres 17 and revoke the PG17 MAINTAIN privilege from API roles in a reviewed migration.
 2. **G2 (MP-09 → MP-17):** starts once Cine answers the ★ questions in the [owner packet](owner-decision-packet.md). Write one goal per package, with acceptance taken from `docs/master-plan/tasks.json`. Carry-overs:
    - Prove a trustworthy rate-limit caller key before anonymous checkout relies on `consume_rate_limit`.
    - Add the Supabase origin to `img-src` only when payment-proof images are displayed.

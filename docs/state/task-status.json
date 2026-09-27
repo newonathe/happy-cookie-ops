@@ -23,7 +23,8 @@
         "b": "complete: isolated 26-page export, 55 protected-copy hashes, real local emulator, 105-test verify and default build pass; no hosted/auth acceptance",
         "c": "local package prerequisite complete: indexed plus untracked nonignored inputs, linked-path containment, stale artifact invalidation, 26-page build and local emulator pass; no hosted deployment/CPU/auth acceptance",
         "d": "local Pages/Workers comparator prerequisite complete: shared 26-page export, generated exact-HTML CSP, strict static cache guard, local Workerd and CLI browser oracles, 303-file no-upload dry run, 410-test pinned verify; hosted/auth/private-file/sync/CPU/quota acceptance open",
-        "e": "local prerequisite complete (architecture A): generated CSP adds form-action 'self' and connect-src 'self' plus exactly the NEXT_PUBLIC_SUPABASE_URL origin (no ws/wss; Realtime unused); exact-directive unit and spike assertions; 438-test verify; hosted preview pending Ethan's approval"
+        "e": "local prerequisite complete (architecture A): generated CSP adds form-action 'self' and connect-src 'self' plus exactly the NEXT_PUBLIC_SUPABASE_URL origin (no ws/wss; Realtime unused); exact-directive unit and spike assertions; 438-test verify; hosted preview pending Ethan's approval",
+        "f": "hosted preview live on Workers static assets against a synthetic Supabase project (2026-09-27): 26-route CSP/cache oracle, anon RLS/RPC probes, connect-src proof and SQL catalog/default-privilege probes pass; signed-in checks, self-signup off and JWT expiry open for Ethan; PG17 MAINTAIN follow-up"
       },
       "evidence": "docs/state/MP-04c-plan.md; docs/state/MP-04d-plan.md; evidence/MP-04d-pages-build-postreview.txt; evidence/MP-04d-pages-local-postreview.txt; evidence/MP-04d-workers-local-postreview.txt; evidence/MP-04d-workers-dry-run-postreview.txt; evidence/MP-04d-verify-accepted.txt; hosted/auth/private-file/sync/CPU/quota acceptance pending"
     },
