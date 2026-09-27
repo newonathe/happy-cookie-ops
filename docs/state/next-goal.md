@@ -5,7 +5,7 @@ Paste **one** goal block into a **new conversation started in the repo root**.
 - **Claude Code:** Opus or Sonnet, auto mode on, `/goal …`.
 - **Codex:** the default profile (`gpt-6-sol` high), `/goal …`.
 
-When a goal finishes, the agent deletes its block here, leaves the next one on top, and commits. Rules: [lean plan](lean-plan.md). Architecture A: direct `supabase-js`, with RLS as the boundary. MP-06 default-privilege hardening is done, and Goal 1 (sign-in/role bootstrap/idle sign-out/accounts) is done (see [current state](current.md)); both goal blocks are removed. The remaining goal is independent.
+When a goal finishes, the agent deletes its block here, leaves the next one on top, and commits. Rules: [lean plan](lean-plan.md). Architecture A: direct `supabase-js`, with RLS as the boundary. MP-06 default-privilege hardening, Goal 1 (sign-in/role bootstrap/idle sign-out/accounts) and the static CSP header goal (`form-action`/`connect-src` for direct Supabase) are done (see [current state](current.md)); their goal blocks are removed. No goal is queued: the next step, the hosted preview below, needs Ethan's approval.
 
 ## Before starting (once per conversation)
 
@@ -14,22 +14,12 @@ When a goal finishes, the agent deletes its block here, leaves the next one on t
 - If files changed since the last index, re-index first: `index_repository`, repo path `C:/Users/ethan/dev/happy-cookie-ops-g0`.
 - Pinned toolchain: prefix PATH with `C:\Users\ethan\dev\happy-cookie-tools\bin;C:\Users\ethan\dev\happy-cookie-tools\node-v24.20.0-win-x64`.
 - Docker Desktop must be running for SQL work.
-- **Baseline (2026-09-27, sign-in goal accepted):**
-  - `pnpm verify` 32 files / 434 tests;
+- **Baseline (2026-09-27, static-header goal accepted):**
+  - `pnpm verify` 32 files / 438 tests;
   - Python guards 63 OK, via `python -m unittest discover -s <dir> -p "test_*.py"` for each of `tests/unit`, `tests/integration/auth`, `tests/integration/db` and `tests/integration/security`, with `G0_PYTHON_LIBS=C:\Users\ethan\dev\happy-cookie-tools\python-libs-314`; SQL role suite 474 cases/reset, 2 resets;
+  - `pnpm build:pages:spike`/`test:pages:spike`/`test:workers:spike` pass only with `NEXT_PUBLIC_SUPABASE_URL` and a matching `sb_publishable_…` key set (local stack: `supabase status -o env`); with them unset, `/shop` does not hydrate in the live export (pre-existing since Goal 1, reproduced on `f2d14d5`);
   - `pnpm build` passes, and `pnpm test:e2e` gives 87 passed / 3 failed / 30 skipped. The 3 failures are the same known OFFLINE-01 durable-queue test on phone, WebKit and desktop (G3).
 - **Codex only:** run `/status` once in the repo root to confirm the project `.codex/config.toml` loaded. Accept the trust prompt if asked. The project sandbox has no network, so `git push` will ask for approval.
-
-## Next goal — static headers for direct Supabase (MP-04 prerequisite)
-
-```text
-/goal The static-header generator (scripts/pages-spike-headers.mjs) emits form-action 'self' and a connect-src of
-'self' plus the Supabase origin from NEXT_PUBLIC_SUPABASE_URL at build time ('self' only when unset; wss only if
-Realtime is used; nothing broader). Tests assert both, and the generated CSP line stays within the checked
-2000-character limit. pnpm build:pages:spike, pnpm test:pages:spike, pnpm test:workers:spike and pnpm verify all
-exit 0 in this session. Committed and pushed; status line updated; block removed. No deploy. Stop after 2 failed
-fix attempts or 20 turns.
-```
 
 ## After these goals
 

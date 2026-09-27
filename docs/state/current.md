@@ -1,6 +1,38 @@
 # Current state — Happy Cookie Ops
 
-## Current checkpoint — 2026-09-27 (later)
+## Current checkpoint — 2026-09-27 (static CSP headers)
+
+- **next-goal.md Goal 2 — static headers for direct Supabase (MP-04 prerequisite) — is done
+  locally. No deploy.** [scripts/pages-spike-headers.mjs](../../scripts/pages-spike-headers.mjs)
+  now emits `form-action 'self'` and `connect-src 'self'` plus exactly the origin of
+  `NEXT_PUBLIC_SUPABASE_URL` (`'self'` alone when unset). `supabaseConnectOrigin()` emits
+  only the parsed `URL.origin`, so a path, `;` or newline cannot widen or inject into the
+  policy; it accepts `https:` (and `http:` only for a loopback host) and rejects userinfo,
+  query or fragment. No `ws:`/`wss:` source: a grep of `src/` finds no Realtime use
+  (`.channel(` / `realtime`). [scripts/build-pages-spike.mjs](../../scripts/build-pages-spike.mjs)
+  reads the variable once, validates it before building, and passes the same value to the
+  bundle env and the header generator (recorded as `staticHeaders.supabaseOrigin` in the
+  manifest), so header and bundle cannot diverge.
+  - Tests: 4 new unit tests in `tests/unit/pages-spike.test.ts` assert exact directive values
+    (parsed, not substrings), rejection of broader/unsafe URLs, and the 2000-character line
+    check (3 fail against the previous generator; the overflow check already existed).
+    `test-pages-spike.mjs` and `test-workers-web-spike.mjs` assert the served/manifest CSP's
+    exact `form-action` and `connect-src`.
+  - Evidence (this session): `pnpm verify` 32 files/438 tests exit 0. With the local
+    Supabase stack's URL and publishable key set, `build:pages:spike`, `test:pages:spike`
+    (`/shop` hydrated, 0 CSP violations, 0 JS errors) and `test:workers:spike` (26 routes)
+    all exit 0; the emitted `_headers` carries `connect-src 'self' http://127.0.0.1:54321`,
+    the bundle inlines the same origin, longest line 1733/2000. With the variables unset the
+    build exits 0 and emits `connect-src 'self'`.
+  - **Pre-existing, not fixed here:** with `NEXT_PUBLIC_SUPABASE_URL`/`…PUBLISHABLE_KEY`
+    unset, both spike tests time out waiting for `/shop` to hydrate. Reproduced identically
+    on `f2d14d5` with this change stashed, so it comes from Goal 1's live mode, not the CSP.
+    The spike tests therefore need a configured Supabase env.
+  - CSP headroom: 267 characters under the 2000 limit; it shrinks by ~54 per new distinct
+    inline script hash, and a hosted `https://<ref>.supabase.co` origin is ~18 characters
+    longer than the loopback one.
+
+## Prior checkpoint — 2026-09-27 (later)
 
 - **next-goal.md Goal 1 — staff sign-in under architecture A — is done locally.** The
   static export ships with no `src/middleware.ts` (`scripts/build-pages-spike.mjs`
@@ -71,7 +103,7 @@
   - **Not done:** the hosted Workers static-assets preview (needs Ethan's approval, see
     next-goal.md "After these goals"); DP-15's exact idle minutes are still Ethan's
     decision, not this session's (the code marks them "pending DP-15" everywhere they
-    appear); Goal 2 (static CSP headers for direct Supabase) is unstarted.
+    appear); Goal 2 (static CSP headers for direct Supabase) is done — see the checkpoint above.
   - **Unrelated, noticed mid-session, left alone:** `.codex/config.toml` was reformatted
     (comments stripped) and gained a `[mcp_servers.codebase-memory-mcp]` entry, and a new
     `.codex/agents/Explore.toml` appeared — neither was an intentional edit in this

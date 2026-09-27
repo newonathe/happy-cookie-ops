@@ -14,11 +14,15 @@ import {
 import { spawn, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
-import { generatePagesHeaders } from './pages-spike-headers.mjs';
+import { generatePagesHeaders, supabaseConnectOrigin } from './pages-spike-headers.mjs';
 
 const root = await realpath(path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'));
 const artifactRoot = path.join(root, 'build', 'pages-spike');
 const publicOutput = path.join(artifactRoot, 'public');
+// Read once: the bundle inlines this value and the CSP connect-src is derived from it, so the
+// two cannot diverge. Validated before the build so a bad URL fails fast.
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+supabaseConnectOrigin(supabaseUrl);
 const stage = await mkdtemp(path.join(path.dirname(root), 'happy-cookie-pages-stage-'));
 const input = path.join(stage, 'input');
 const nextOut = path.join(input, 'out');
@@ -96,9 +100,7 @@ function buildEnvironment(sterileRoot) {
     // export is told it is the live build. NEXT_PUBLIC_HARNESS is deliberately absent —
     // OpsRuntime.renderVals() reads live mode itself and starves the role-switcher chrome.
     NEXT_PUBLIC_APP_MODE: 'live',
-    ...(process.env.NEXT_PUBLIC_SUPABASE_URL === undefined
-      ? {}
-      : { NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL }),
+    ...(supabaseUrl === undefined ? {} : { NEXT_PUBLIC_SUPABASE_URL: supabaseUrl }),
     ...(process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY === undefined
       ? {}
       : {
@@ -268,7 +270,9 @@ try {
     );
 
   await cp(nextOut, publicOutput, { recursive: true });
-  const staticHeaders = await generatePagesHeaders(publicOutput, path.join(pagesRoot, '_headers'));
+  const staticHeaders = await generatePagesHeaders(publicOutput, path.join(pagesRoot, '_headers'), {
+    supabaseUrl
+  });
   await writeFile(path.join(publicOutput, '_headers'), staticHeaders.content);
   await cp(path.join(pagesRoot, '_routes.json'), path.join(publicOutput, '_routes.json'));
 
@@ -285,6 +289,7 @@ try {
     missingPages: missing.map((page) => page.source),
     staticHeaders: {
       contentSecurityPolicy: staticHeaders.csp,
+      supabaseOrigin: staticHeaders.supabaseOrigin,
       scriptHashes: staticHeaders.hashes,
       htmlFiles: staticHeaders.htmlFiles,
       inlineScripts: staticHeaders.inlineScripts,

@@ -108,6 +108,11 @@ try {
   const csp = shop.headers['content-security-policy'];
   assert(csp && csp === manifest.staticHeaders.contentSecurityPolicy && csp.includes("style-src 'self' 'unsafe-inline'") &&
     !csp.includes("script-src 'self' 'unsafe-inline'") && csp.length + 'Content-Security-Policy: '.length <= 2000, 'Served CSP is missing, stale, oversized or permits inline scripts.');
+  // Exact directive values, not substrings: includes("connect-src 'self'") would also pass 'self' *.
+  const directives = new Map(csp.split(';').map((part) => part.trim().split(/\s+/)).map(([name, ...values]) => [name, values.join(' ')]));
+  const supabaseOrigin = manifest.staticHeaders.supabaseOrigin;
+  assert((supabaseOrigin === null || /^https?:\/\/[^/\s;*]+$/.test(supabaseOrigin)) && directives.get('form-action') === "'self'" &&
+    directives.get('connect-src') === (supabaseOrigin ? `'self' ${supabaseOrigin}` : "'self'"), 'Served CSP form-action/connect-src is not exactly self plus the configured Supabase origin.');
   const servedHashes = new Set([...csp.matchAll(/'sha256-([^']+)'/g)].map((match) => match[1]));
   let actualInlineScripts = 0;
   async function htmlFiles(directory, prefix = '') {

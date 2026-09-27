@@ -43,7 +43,30 @@ export function analyzeHtml(html, source = '<html>') {
   return scripts;
 }
 
-export async function generatePagesHeaders(publicOutput, templatePath) {
+// Architecture A: the browser talks to Supabase directly, so connect-src is 'self' plus
+// exactly the configured Supabase origin (from the same NEXT_PUBLIC_SUPABASE_URL the bundle
+// inlines). No ws:/wss: source: Realtime is not used. Only the parsed origin is emitted, so a
+// path, ';' or newline in the variable can never widen or inject into the policy.
+export function supabaseConnectOrigin(supabaseUrl) {
+  if (supabaseUrl === undefined || supabaseUrl === '') return null;
+  let url;
+  try {
+    url = new URL(supabaseUrl);
+  } catch {
+    throw new Error('NEXT_PUBLIC_SUPABASE_URL is not a valid URL; refusing to emit connect-src.');
+  }
+  const loopback = ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname);
+  if (!(url.protocol === 'https:' || (url.protocol === 'http:' && loopback)) || url.origin === 'null') {
+    throw new Error('NEXT_PUBLIC_SUPABASE_URL must be https:// (http:// only for a loopback host).');
+  }
+  if (url.username || url.password || url.search || url.hash) {
+    throw new Error('NEXT_PUBLIC_SUPABASE_URL must not carry credentials, a query or a fragment.');
+  }
+  return url.origin;
+}
+
+export async function generatePagesHeaders(publicOutput, templatePath, { supabaseUrl } = {}) {
+  const supabaseOrigin = supabaseConnectOrigin(supabaseUrl);
   const htmlFiles = [];
   async function visit(directory, prefix = '') {
     for (const entry of await readdir(directory, { withFileTypes: true })) {
@@ -100,7 +123,8 @@ export async function generatePagesHeaders(publicOutput, templatePath) {
   }
   if (!inlineScripts) throw new Error('Pages output contains no inline scripts; refusing to emit a potentially stale CSP.');
 
-  const csp = `default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; script-src 'self' ${[...hashes].sort().join(' ')}; style-src 'self' 'unsafe-inline'`;
+  const connectSrc = supabaseOrigin ? `'self' ${supabaseOrigin}` : "'self'";
+  const csp = `default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; connect-src ${connectSrc}; script-src 'self' ${[...hashes].sort().join(' ')}; style-src 'self' 'unsafe-inline'`;
   const template = (await readFile(templatePath, 'utf8')).trimEnd();
   const headerLines = ['Content-Security-Policy: ' + csp];
   for (const line of headerLines) {
@@ -119,5 +143,5 @@ export async function generatePagesHeaders(publicOutput, templatePath) {
   if (generated.split(/\r?\n/).some((line) => line.length > MAX_HEADER_LINE)) throw new Error('Generated _headers contains a line over Cloudflare Pages 2000-character limit.');
   const ruleCount = generated.split(/\r?\n/).filter((line) => line && !/^\s/.test(line) && !line.startsWith('#')).length;
   if (ruleCount > 100) throw new Error(`Generated _headers exceeds Cloudflare Pages 100-rule limit (${ruleCount}).`);
-  return { content: generated, csp, hashes: [...hashes].sort(), htmlFiles: htmlFiles.length, inlineScripts, staticFiles };
+  return { content: generated, csp, supabaseOrigin, hashes: [...hashes].sort(), htmlFiles: htmlFiles.length, inlineScripts, staticFiles };
 }
