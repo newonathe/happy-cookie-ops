@@ -1028,6 +1028,8 @@
   ],
   "sequence_restorations": 10,
   "function_guard_runs": 4,
+  "catalog_guard_runs": 4,
+  "catalog_guard_red_runs": 4,
   "cases_per_reset": 474,
   "resets": 2,
   "matrix_equal": true,
@@ -1037,17 +1039,17 @@
     "private-role-authority.sql": "a10be04bac530fd738ae43f6704e3389db8b3a149afd082f03c246f9e5efca17",
     "search-paths.sql": "1389c110b3d61d7926b5d58912b67268324fc3d0648f5f3e758ce2619ba51d3b",
     "future-object-authority.sql": "f6cd8c2a858489cd782c559129b42dfed2742f522b44da831ad39639f873c9ce",
-    "auxiliary-authority.sql": "996e1e661b90e5d13c2bd64daeebbaec6b55141f2c3aea82de0d6f3764b432c0",
-    "trigger-authority.sql": "c55914e8097350f4858d35f0cb5e4c3e1f07685d7f1a13ad151aa159ba85dbb3",
+    "auxiliary-authority.sql": "f5f2d444ff1ecf961669dd72158cc07418bc308bbffedc0902796853d49da28e",
+    "trigger-authority.sql": "94a8e9caf427a51dd227ff8bf6e24396ca63d128fac095e69565fef802cabcd8",
     "maintenance.sql": "b7e17bed27152a2fbb8c0ffc7f58bc7ab536a107b943dbc000d15d43764164e3",
     "read-rpcs.sql": "9281fd5a8a3dc226b76e1fd2b64a83b248efe932350e36d0f6940e83cce92c2c",
     "order-inserts.sql": "a6b60a95261ffe2612d05a0ecfacbe2032dfd31ce9ad1af0c8d3595f54576e44",
     "legacy-mutations.sql": "bb429d1e431ca2189356befe8a8a2cd70a0b92b08cf5c71b2ccbedd9d48c36cb",
     "audit-writes.sql": "4965a23ca700a10825bb20eebfabdd7bf2d9e72db92d6551d97d466bbb78d75a",
     "table-truncate.sql": "7f48b4dc2e8ffc6c1b642bfc7de300d4545cf360188ed13dcc4e5533ffca4165",
-    "settings.sql": "69af2b6e679aa65391451acc3fbfa85c214d0745da2884b954610bc327a2f1b8",
+    "settings.sql": "5ce40ba3a1cb9d6553dc60c89ebe5ee7111f4db46781cce2acb113b396f5b4fd",
     "profiles.sql": "126b6e5befec3a0b26e7a86ee95556f0e25cca7658da856360f60b9be9e385dd",
     "erasure-authority.sql": "6ab999152f10d33d19368bb259af29e72745c6bbd9955a3e402a3f65b67f88b9"
   },
-  "harness_sha256": "564d11d6a6036cce902f318f65e3a2e847ae5ca8585437063359488540f8f7a6"
+  "harness_sha256": "0aaf509d0603b399f76a6ecaea031ae9964af57b784196cd6474430022a5bf4b"
 }

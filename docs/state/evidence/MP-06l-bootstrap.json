@@ -1,11 +1,11 @@
 {
   "status": "passed",
   "scope": "explicit-connection CLI reset on disposable loopback PostgreSQL; not managed --local or auth/RLS acceptance",
-  "project_id": "hcb-6ab650bc-5333c7",
-  "workdir": "C:\\Users\\ethan\\dev\\.hcb-bootstrap-6ab650bc-5333c7",
+  "project_id": "hcb-6ab87d6c-044429",
+  "workdir": "C:\\Users\\ethan\\dev\\.hcb-bootstrap-6ab87d6c-044429",
   "cleanup": "passed",
   "resets": 2,
-  "harness_sha256": "19dca2456c31c93f418c87c581d2b63dca3f7ad64b7ca467357c90d99840cca7",
+  "harness_sha256": "a47a91d38c71ffbf52a14e597836fdfdbd1d22a3408f5c151f2b35b25459c963",
   "assertions_sha256": "60aba2b2ca557a721debd684ddb33fc222eab86dddb63c80ce6591b4d028e046",
   "binding_checks": [
     {
@@ -124,13 +124,14 @@
     "20260101002300_private_bff_sessions.sql": "e7082c0f0480ecac66424e8f3986d1cc7ab78bea696173cf4ec127d1e7cc135c",
     "20260101002400_bff_cleanup_recovery.sql": "22b5e0ce709df7f619d69fcd0905564c8c11d1ec433ffdd67397fa10085166a9",
     "20260101002500_bff_cleanup_fair_claims.sql": "0ad8ec77d1963e5a2a70bcf1680a8044b260a393af5a06bacba5d5a198bd327b",
-    "20260101002600_erasure_digest_authority.sql": "74fa5d9bc48e9c9acc4092bd308ba4bcb2fd6f9811a328728c53248f3a06f8f1"
+    "20260101002600_erasure_digest_authority.sql": "74fa5d9bc48e9c9acc4092bd308ba4bcb2fd6f9811a328728c53248f3a06f8f1",
+    "20260101002700_function_default_privileges.sql": "a6283dfe6b8ef152f57cdd23f1c95c57a611afad5e895f2e416f8ef048f1c396"
   },
   "database_image": "sha256:af083ef64d0408c8f098ee6f5c364a59b26f36fbc0f3a334a62c5c1d57362e9b",
   "postgres_version_num": "150008",
   "cli_version": "2.116.0",
   "loopback_port": 48716,
-  "container_id": "3f4a459e988c10d163eb068b464020953e8766fd9e86265835c93c275a3c8f27",
+  "container_id": "c9fede5fc9d8c280753bcd245944a3a18af56f18483acdf5071df61b3f5e8ee3",
   "expected_versions": [
     "20260101000000",
     "20260101000100",
@@ -158,7 +159,8 @@
     "20260101002300",
     "20260101002400",
     "20260101002500",
-    "20260101002600"
+    "20260101002600",
+    "20260101002700"
   ],
   "catalog": [
     "function\tanonymise_customer(p_phone text, p_note text)\tinteger",
@@ -214,6 +216,7 @@
     "migration\t20260101002400\tapplied",
     "migration\t20260101002500\tapplied",
     "migration\t20260101002600\tapplied",
+    "migration\t20260101002700\tapplied",
     "settings_defaults\tsettings_effective\t21",
     "settings_overrides\tsettings\t0",
     "table_rows\taudit_log\t0",
@@ -236,9 +239,9 @@
     "table_rows\tsupplier_prices\t0",
     "table_rows\tsuppliers\t0"
   ],
-  "catalog_sha256": "e3db600c45373eb09823305a4bef18990047d696ae58f818da2c72af6fa00721",
+  "catalog_sha256": "c403c81b0c81fabfebef8f9f2bd200972c7926cb5252e26751b49b55ebca41fa",
   "catalogs_equal": true,
-  "schema_sha256": "12da471563146fff30cdcd775ba537b5f80a41741a7e37442d2c60205ac479e6",
+  "schema_sha256": "f220b7ffe7c8658ff22d948f2d5c1d2ff85fa22c9eb4e087858c2b5475e79871",
   "schemas_equal": true,
   "sentinel_removed": true
 }

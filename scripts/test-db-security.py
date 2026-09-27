@@ -28,6 +28,25 @@ SUITES = (
     ('profiles.sql', ('current_role_name_missing_active_filter',), 'profile authority differs: inactive_owner_forged_service', 17),
     ('erasure-authority.sql', ('anonymise_customer(text,text)',), 'erasure ACL boundary missing: anon', 12),
 )
+CATALOG_GUARD_SQL = """
+select json_build_object(
+  'no_rls', coalesce((select json_agg(c.relname order by c.relname) from pg_class c
+    join pg_namespace n on n.oid = c.relnamespace
+    where n.nspname = 'public' and c.relkind in ('r','p') and not c.relrowsecurity), '[]'::json),
+  'views', coalesce((select json_agg(c.relname order by c.relname) from pg_class c
+    join pg_namespace n on n.oid = c.relnamespace
+    where n.nspname = 'public' and c.relkind = 'v'), '[]'::json),
+  'schema_grants', coalesce((select json_agg(role_name order by role_name) from unnest(array['anon','authenticated','service_role']) as role_name
+    where has_schema_privilege(role_name, 'hco_private', 'USAGE,CREATE')), '[]'::json),
+  'table_grants', coalesce((select json_agg(x order by x) from (
+    select concat(role_name,'/',t.relname,'/',priv) as x from pg_class t
+      join pg_namespace n on n.oid = t.relnamespace
+      cross join unnest(array['anon','authenticated','service_role']) as role_name
+      cross join unnest(array['SELECT','INSERT','UPDATE','DELETE','TRUNCATE','REFERENCES','TRIGGER']) as priv
+      where n.nspname = 'hco_private' and t.relkind in ('r','p','v')
+        and has_table_privilege(role_name, t.oid, priv)) q), '[]'::json)
+)::text;
+"""
 REPORT = ROOT / "docs/state/evidence/MP-06l-security.json"
 EMPTY_FIXTURES = 'select ' + ' and '.join(
     'not exists(select 1 from public.' + table + ')'
@@ -37,14 +56,42 @@ EMPTY_FIXTURES = 'select ' + ' and '.join(
 def main():
     if len(sys.argv) != 1:
         h.fail("security fixture accepts no URLs, project refs or arguments")
-    report = {"status": "failed", "scope": "Local SQL-role containment and erasure authority/effects; not JWT/API, hosted erasure or full MP-06 acceptance", "runs": [], "regressions_detected": [], "upgrade_runs": 0, "legacy_regression_diagnostics": [], "sequence_restorations": 0, "function_guard_runs": 0}
+    report = {"status": "failed", "scope": "Local SQL-role containment and erasure authority/effects; not JWT/API, hosted erasure or full MP-06 acceptance", "runs": [], "regressions_detected": [], "upgrade_runs": 0, "legacy_regression_diagnostics": [], "sequence_restorations": 0, "function_guard_runs": 0, "catalog_guard_runs": 0, "catalog_guard_red_runs": 0}
 
     def check(db_id, workdir, password, fixture_report):
         def assert_functions():
             query = (ROOT / 'tests/integration/db/schema-inventory.sql').read_text(encoding='utf-8')
             verify_functions(json.loads(h.psql(db_id, workdir, query))['functions'])
             report['function_guard_runs'] += 1
+        def assert_catalog_wide():
+            result = json.loads(h.psql(db_id, workdir, CATALOG_GUARD_SQL))
+            if result['no_rls']:
+                h.fail('catalog guard: public relation(s) without row-level security: ' + ','.join(result['no_rls']))
+            if result['views'] != ['shop_drops', 'shop_products']:
+                h.fail('catalog guard: unexpected public view set: ' + ','.join(result['views']))
+            if result['schema_grants'] or result['table_grants']:
+                h.fail('catalog guard: an API role has a privilege in hco_private')
+            report['catalog_guard_runs'] += 1
+        def assert_catalog_wide_red():
+            # Deliberately create a public table with RLS left off; the guard must flag it, then roll back.
+            probe = 'begin; create table public.mp06p_catalog_guard_probe(id integer);\n' + CATALOG_GUARD_SQL + '\nrollback;'
+            result = json.loads(h.psql(db_id, workdir, probe).strip())
+            if 'mp06p_catalog_guard_probe' not in result['no_rls']:
+                h.fail('catalog guard failed to detect a public table without row-level security')
+            report['catalog_guard_red_runs'] += 1
+            # Deliberately widen hco_private to PUBLIC (not a named API role); the
+            # guard must still flag it via has_schema_privilege/has_table_privilege,
+            # which fold PUBLIC in, then roll back.
+            probe = ('begin; grant usage on schema hco_private to public;'
+                      ' grant select on hco_private.bff_sessions to public;\n'
+                      + CATALOG_GUARD_SQL + '\nrollback;')
+            result = json.loads(h.psql(db_id, workdir, probe).strip())
+            if not result['schema_grants'] or not any('bff_sessions' in item for item in result['table_grants']):
+                h.fail('catalog guard failed to detect a PUBLIC grant into hco_private')
+            report['catalog_guard_red_runs'] += 1
         assert_functions()
+        assert_catalog_wide_red()
+        assert_catalog_wide()
         def assert_empty():
             # Every call opens a fresh connection, independent of the test transaction.
             if h.psql(db_id, workdir, EMPTY_FIXTURES).strip() != 't':
@@ -169,6 +216,7 @@ def main():
         if len(set(results)) != 474:
             h.fail('combined role matrix has missing or duplicate cases')
         assert_functions()
+        assert_catalog_wide()
         h.catalog(db_id, workdir, h.sql_for(h.expected_versions()))
         report["runs"].append(sorted(results))
 
@@ -177,7 +225,10 @@ def main():
     REPORT.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     try:
         code = h.main(after_reset=check)
-        if code == 0 and len(report["runs"]) == 2 and report["runs"][0] == report["runs"][1] and len(report['regressions_detected']) == 62 and report['sequence_restorations'] == 10 and report['upgrade_runs'] == 2 and report['function_guard_runs'] == 4:
+        if (code == 0 and len(report["runs"]) == 2 and report["runs"][0] == report["runs"][1]
+                and len(report['regressions_detected']) == 62 and report['sequence_restorations'] == 10
+                and report['upgrade_runs'] == 2 and report['function_guard_runs'] == 4
+                and report['catalog_guard_runs'] == 4 and report['catalog_guard_red_runs'] == 4):
             report.update(status="passed", cases_per_reset=474, resets=2, matrix_equal=True, rollback_verified=True,
                           sql_sha256={name: hashlib.sha256((ROOT / 'tests/integration/security' / name).read_bytes()).hexdigest() for name, _, _, _ in SUITES},
                           harness_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
