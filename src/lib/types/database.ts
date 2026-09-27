@@ -695,6 +695,7 @@ export type Database = {
         Row: {
           cents_value: number | null
           int_value: number | null
+          json_value: Json | null
           key: string
           text_value: string | null
           updated_at: string
@@ -703,6 +704,7 @@ export type Database = {
         Insert: {
           cents_value?: number | null
           int_value?: number | null
+          json_value?: Json | null
           key: string
           text_value?: string | null
           updated_at?: string
@@ -711,6 +713,7 @@ export type Database = {
         Update: {
           cents_value?: number | null
           int_value?: number | null
+          json_value?: Json | null
           key?: string
           text_value?: string | null
           updated_at?: string
@@ -976,6 +979,7 @@ export type Database = {
           cents_value: number
           int_value: number
           is_default: boolean
+          json_value: Json
           key: string
           text_value: string
           updated_at: string
@@ -987,6 +991,7 @@ export type Database = {
           cents_value: number
           int_value: number
           is_default: boolean
+          json_value: Json
           key: string
           text_value: string
           updated_at: string
@@ -1021,6 +1026,7 @@ export type Database = {
           cents_value: number
           int_value: number
           is_default: boolean
+          json_value: Json
           key: string
           text_value: string
         }[]

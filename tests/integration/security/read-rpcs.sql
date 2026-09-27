@@ -12,7 +12,9 @@ values ('MP06B-READ-ORDER', 'a6b10000-0000-4000-8000-000000000001',
         'MP06b read customer', '0917-000-0001', 'Confirmed', 300);
 insert into public.order_items (id, order_id, product_id, qty, unit_price_cents)
 values ('a6b10000-0000-4000-8000-000000000002', 'MP06B-READ-ORDER', 'mp06b-read-product', 3, 100);
-insert into public.settings (key, int_value) values ('capacity', 17), ('cogsMultiple', 9), ('mp06b_read_marker', 1);
+-- cogsMultiple lives in json_value since MP-09 b3 (20260101002900).
+insert into public.settings (key, int_value, json_value) values
+  ('capacity', 17, null), ('cogsMultiple', null, '9'::jsonb), ('mp06b_read_marker', 1, null);
 
 create function pg_temp.read_fixture_state() returns jsonb language sql security invoker as $$
   select jsonb_build_object(
@@ -85,7 +87,7 @@ begin
   insert into pg_temp.authority_results values ('drop_remaining', 'service_role', 'confirmed_qty_three_of_ten');
   select int_value into capacity_value from public.settings_effective() where key = 'capacity';
   if capacity_value is distinct from 17
-     or not exists (select 1 from public.settings_effective() where key = 'cogsMultiple' and int_value = 9 and not is_default)
+     or not exists (select 1 from public.settings_effective() where key = 'cogsMultiple' and json_value = '9'::jsonb and not is_default)
      or not exists (select 1 from public.settings_effective() where key = 'packagingFee' and cents_value = 3844 and is_default) then
     raise exception 'service effective settings differ';
   end if;

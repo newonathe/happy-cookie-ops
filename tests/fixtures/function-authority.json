@@ -1,5 +1,5 @@
 {
-  "scope": "Reviewed local function-authority drift baseline through MP-09 b1; settings_effective gained three idle-minute defaults, get_settings/save_setting/get_operating_settings added; full capability/domain and hosted acceptance remain open",
+  "scope": "Reviewed local function-authority drift baseline through MP-09 b3; settings_effective gained three idle-minute defaults, get_settings/save_setting/get_operating_settings added; MP-09 b3 recreated settings_effective/get_settings/get_operating_settings with json_value and replaced save_setting; full capability/domain and hosted acceptance remain open",
   "functions": [
     {
       "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
@@ -293,8 +293,8 @@
       "config": [
         "search_path=pg_catalog, public, pg_temp"
       ],
-      "returns": "TABLE(key text, int_value bigint, text_value text, cents_value bigint, is_default boolean)",
-      "body_md5": "6841028d8f7e6ac3ef7a81405300c7b3",
+      "returns": "TABLE(key text, int_value bigint, text_value text, cents_value bigint, json_value jsonb, is_default boolean)",
+      "body_md5": "24d653b680d5f0a50fc621e6ebc1da11",
       "identity": "",
       "execute_anon": false,
       "security_definer": false,
@@ -398,8 +398,8 @@
       "config": [
         "search_path=\"\""
       ],
-      "returns": "TABLE(key text, int_value bigint, text_value text, cents_value bigint, is_default boolean, updated_at timestamp with time zone)",
-      "body_md5": "ebd313accefd99148922ee6b1c7d036c",
+      "returns": "TABLE(key text, int_value bigint, text_value text, cents_value bigint, json_value jsonb, is_default boolean, updated_at timestamp with time zone)",
+      "body_md5": "4d2d36ecf707ed776f5da5d9441fdffb",
       "identity": "",
       "execute_anon": false,
       "security_definer": true,
@@ -414,7 +414,7 @@
         "search_path=\"\""
       ],
       "returns": "TABLE(key text, updated_at timestamp with time zone)",
-      "body_md5": "cdd108084126aa4fdfce24ec9576f742",
+      "body_md5": "0083e32608ec177c7faf69dc2a355254",
       "identity": "p_key text, p_value jsonb, p_expected_updated_at timestamp with time zone",
       "execute_anon": false,
       "security_definer": true,
@@ -428,8 +428,8 @@
       "config": [
         "search_path=\"\""
       ],
-      "returns": "TABLE(key text, int_value bigint, text_value text, cents_value bigint, is_default boolean, updated_at timestamp with time zone)",
-      "body_md5": "37a8013a5f9f232a352b3bbd5343ae22",
+      "returns": "TABLE(key text, int_value bigint, text_value text, cents_value bigint, json_value jsonb, is_default boolean, updated_at timestamp with time zone)",
+      "body_md5": "799d3d984d8132792c9c8f424810669d",
       "identity": "",
       "execute_anon": false,
       "security_definer": true,

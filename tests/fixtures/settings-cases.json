@@ -1,5 +1,5 @@
 {
-  "note": "Every settings key save_setting() validates, from supabase/migrations/20260101002800_settings_authority.sql. Read by tests/unit/settings-parity.test.ts, which checks each row two ways: against the running engine (source 'engine') for keys the engine itself bounds, and against the migration's own VALUES text for every key. A key with source 'sql-only' has no engine-side bound; its bounds are this migration's own documented choice (see the migration's comment).",
+  "note": "Every settings key save_setting() validates, from the newest migration that defines save_setting() (20260101002900_settings_preferences.sql since MP-09 b3). Read by tests/unit/settings-parity.test.ts, which checks each row two ways: against the running engine (source 'engine') for keys the engine itself bounds, and against the migration's own VALUES text for every key. A key with source 'sql-only' has no engine-side bound; its bounds are this migration's own documented choice (see the migration's comment).",
   "keys": [
     {
       "key": "capacity",
@@ -11,11 +11,11 @@
     },
     {
       "key": "taxRate",
-      "column": "int",
+      "column": "half",
       "min": 0,
       "max": 25,
       "enum": null,
-      "source": "engine: rules taxRate (0.5 step; save_setting rejects a fraction, disclosed)"
+      "source": "engine: rules taxRate (0.5 step; stored in json_value since MP-09 b3)"
     },
     {
       "key": "drawerFloat",
@@ -83,11 +83,11 @@
     },
     {
       "key": "cogsMultiple",
-      "column": "int",
+      "column": "half",
       "min": 1,
       "max": 10,
       "enum": null,
-      "source": "engine: rules cogsMultiple (0.5 step; save_setting rejects a fraction, disclosed)"
+      "source": "engine: rules cogsMultiple (0.5 step; stored in json_value since MP-09 b3)"
     },
     {
       "key": "priceMode",
@@ -197,6 +197,47 @@
       "max": 480,
       "enum": null,
       "source": "sql-only: DP-15, decision register 2026-09-27"
+    },
+    {
+      "key": "channels",
+      "column": "channels",
+      "min": null,
+      "max": null,
+      "enum": [
+        "New order",
+        "Low stock",
+        "Grocery shortage",
+        "Pickup reminder",
+        "Backup failure",
+        "System error",
+        "Payment proof received",
+        "Dough nearing expiry"
+      ],
+      "source": "engine: BASE_STATE channels keys (MP-09 b3)"
+    },
+    {
+      "key": "categories",
+      "column": "list",
+      "min": 1,
+      "max": 40,
+      "enum": null,
+      "source": "sql-only: list length 1-40, items trimmed 1-40 chars, unique (MP-09 b3)"
+    },
+    {
+      "key": "inactiveCats",
+      "column": "list",
+      "min": 0,
+      "max": 40,
+      "enum": null,
+      "source": "sql-only: list length 0-40, items trimmed 1-40 chars, unique (MP-09 b3)"
+    },
+    {
+      "key": "helperSeesSales",
+      "column": "int",
+      "min": 0,
+      "max": 1,
+      "enum": null,
+      "source": "sql-only: owner switch, 0 off / 1 on, Cine 2026-09-28 (MP-09 b3)"
     }
   ]
 }

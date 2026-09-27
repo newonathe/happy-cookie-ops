@@ -115,6 +115,8 @@ Method: each question was answered from the code or a throwaway render probe, no
   - the preferences above.
 - **b2 done 2026-09-28** except the preferences and the 0.5 steps, which need a migration: split out as
   b3 ([next goal](next-goal.md)). MP-09 b cannot close before b3.
+- **b3 done 2026-09-28:** preferences, half steps and the stored helper switch. The switch's behaviour and
+  the helper money-privacy fix are b4, the last part of MP-09 b.
 - Hosted preview: not updated until Ethan runs `supabase login` (see below).
 
 ## Hosted preview during G2

@@ -9,11 +9,15 @@ import {
   type SettingsRow
 } from '@/lib/data/settings';
 
-/** What the sync needs from the engine. `OpsRuntime` implements it; tests fake it. */
+/**
+ * What the sync needs from the engine. `OpsRuntime` implements it; tests fake it. `read`
+ * and `apply` take setting keys: the host knows which live in `cfg` and which at the top of
+ * the engine's state (`STATE_LEVEL_KEYS`).
+ */
 export interface SettingsHost {
   role(): Role;
-  cfg(): Record<string, unknown>;
-  applyCfg(patch: Record<string, unknown>): void;
+  read(key: string): unknown;
+  apply(patch: Record<string, unknown>): void;
   online(): boolean;
   toast(message: string, tone?: 'ok' | 'warn'): void;
 }
@@ -29,6 +33,13 @@ export const SETTINGS_TOASTS = {
 } as const;
 
 type Saved = { value: unknown; updatedAt: string | null };
+
+/** Same value by content: a toggled-back channel or list is a new object with old contents. */
+function same(a: unknown, b: unknown): boolean {
+  if (Object.is(a, b)) return true;
+  if (typeof a !== 'object' || typeof b !== 'object' || a === null || b === null) return false;
+  return JSON.stringify(a) === JSON.stringify(b);
+}
 
 /**
  * Keeps `cfg` and the `settings` table in step (MP-09 b2). The engine's own settings
@@ -49,7 +60,8 @@ export class SettingsSync {
   ) {}
 
   /**
-   * First load after a verified sign-in. `defaults` is the engine's `DEFAULT_CFG`: every key
+   * First load after a verified sign-in. `defaults` holds the engine's own defaults for every
+   * setting key (`DEFAULT_CFG` plus `BASE_STATE()`'s lists): every key
    * the role's projection does not return (a helper never gets a cost key) stays at its
    * default, never at whatever the device showed before. False if the read failed; `cfg`
    * then stays at its defaults.
@@ -62,14 +74,14 @@ export class SettingsSync {
     } catch {
       return false;
     }
-    const cfg: Record<string, unknown> = { ...defaults };
+    const values: Record<string, unknown> = { ...defaults };
     for (const row of rows) {
       const value = cfgValueFromRow(row);
       if (value === undefined) continue;
-      cfg[row.key] = value;
+      values[row.key] = value;
       this.saved.set(row.key, { value, updatedAt: row.updated_at ?? null });
     }
-    this.host.applyCfg(cfg);
+    this.host.apply(values);
     return true;
   }
 
@@ -92,11 +104,11 @@ export class SettingsSync {
       patch[row.key] = value;
       this.saved.set(row.key, { value, updatedAt: row.updated_at ?? null });
     }
-    this.host.applyCfg(patch);
+    this.host.apply(patch);
     return true;
   }
 
-  /** Called after any engine action that may have changed `cfg[key]`. */
+  /** Called after any engine action that may have changed the setting `key`. */
   queue(key: string): void {
     if (!(key in SETTING_COLUMNS)) return;
     clearTimeout(this.timers.get(key));
@@ -121,9 +133,9 @@ export class SettingsSync {
       this.queue(key);
       return;
     }
-    const value = this.host.cfg()[key];
+    const value = this.host.read(key);
     const last = this.saved.get(key);
-    if (Object.is(last ? last.value : this.defaults[key], value)) return;
+    if (same(last ? last.value : this.defaults[key], value)) return;
 
     const db = dbValueFor(key, value);
     if (!db.ok) return this.fail(key, db.reason === 'fraction' ? 'fraction' : 'rejected');
@@ -147,7 +159,7 @@ export class SettingsSync {
   private fail(key: string, why: 'offline' | 'rejected' | 'fraction'): void {
     if (!this.timers.has(key)) {
       const last = this.saved.get(key);
-      this.host.applyCfg({ [key]: last ? last.value : this.defaults[key] });
+      this.host.apply({ [key]: last ? last.value : this.defaults[key] });
     }
     this.host.toast(SETTINGS_TOASTS[why], 'warn');
   }

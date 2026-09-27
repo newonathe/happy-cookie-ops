@@ -30,6 +30,7 @@ function row(key: string, values: Partial<SettingsRow>): SettingsRow {
     int_value: null as unknown as number,
     text_value: null as unknown as string,
     cents_value: null as unknown as number,
+    json_value: null,
     is_default: false,
     updated_at: '2026-09-27T01:00:00.000Z',
     ...values
@@ -55,8 +56,8 @@ function fakeHost(role: Role, start: Record<string, unknown> = { ...DEFAULT_CFG 
     isOnline: true,
     toasts: [] as string[],
     role: () => role,
-    cfg: () => host.cfgState,
-    applyCfg: (patch: Record<string, unknown>) => {
+    read: (key: string) => host.cfgState[key],
+    apply: (patch: Record<string, unknown>) => {
       host.cfgState = { ...host.cfgState, ...patch };
     },
     online: () => host.isOnline,
@@ -69,7 +70,9 @@ function fakeHost(role: Role, start: Record<string, unknown> = { ...DEFAULT_CFG 
 
 const OWNER_ROWS = [
   row('capacity', { int_value: 320 }),
-  row('taxRate', { int_value: 5 }),
+  row('taxRate', { json_value: 5 }),
+  row('channels', { json_value: { 'New order': false, 'Low stock': true } }),
+  row('categories', { json_value: ['Ingredients', 'Packaging', 'Delivery'] }),
   // bigint columns can arrive as strings through the client; centavosFromDb handles both.
   row('packagingFee', { cents_value: '4250' as unknown as number }),
   row('drawerFloat', { cents_value: 150000 }),
@@ -137,7 +140,14 @@ describe('SettingsSync saves', () => {
     });
     const host = fakeHost('owner');
     const sync = new SettingsSync(faked.client, host);
-    await sync.load(DEFAULT_CFG);
+    // The engine's defaults for every setting key, lists included (OpsRuntime passes
+    // DEFAULT_CFG plus BASE_STATE()'s channels/categories/inactiveCats the same way).
+    await sync.load({
+      ...DEFAULT_CFG,
+      channels: {},
+      categories: ['Ingredients'],
+      inactiveCats: []
+    });
     faked.rpc.mockClear();
     return { ...faked, host, sync };
   }
@@ -153,7 +163,7 @@ describe('SettingsSync saves', () => {
       })
     });
     for (const capacity of [330, 340, 350, 360]) {
-      host.applyCfg({ capacity });
+      host.apply({ capacity });
       sync.queue('capacity');
       await vi.advanceTimersByTimeAsync(SAVE_DEBOUNCE_MS - 100);
     }
@@ -176,7 +186,7 @@ describe('SettingsSync saves', () => {
         error: null
       })
     });
-    host.applyCfg({ groceryBudget: 6500 });
+    host.apply({ groceryBudget: 6500 });
     sync.queue('groceryBudget');
     await vi.advanceTimersByTimeAsync(SAVE_DEBOUNCE_MS);
     expect(saves(rpc)[0]?.[1]).toEqual({
@@ -213,10 +223,10 @@ describe('SettingsSync saves', () => {
           };
     });
 
-    host.applyCfg({ capacity: 330 });
+    host.apply({ capacity: 330 });
     sync.queue('capacity');
     await vi.advanceTimersByTimeAsync(SAVE_DEBOUNCE_MS - 200);
-    host.applyCfg({ maxPerOrder: 18 });
+    host.apply({ maxPerOrder: 18 });
     sync.queue('maxPerOrder');
     await vi.advanceTimersByTimeAsync(200);
 
@@ -238,7 +248,7 @@ describe('SettingsSync saves', () => {
   it('offline: reverts the optimistic change and toasts, without calling the database', async () => {
     const { rpc, host, sync } = await loadedOwner({});
     host.isOnline = false;
-    host.applyCfg({ capacity: 500 });
+    host.apply({ capacity: 500 });
     sync.queue('capacity');
     await vi.advanceTimersByTimeAsync(SAVE_DEBOUNCE_MS);
 
@@ -253,7 +263,7 @@ describe('SettingsSync saves', () => {
         throw new TypeError('Failed to fetch');
       }
     });
-    host.applyCfg({ retention: '6 months' });
+    host.apply({ retention: '6 months' });
     sync.queue('retention');
     await vi.advanceTimersByTimeAsync(SAVE_DEBOUNCE_MS);
     expect(host.cfgState.retention).toBe('2 years');
@@ -267,28 +277,94 @@ describe('SettingsSync saves', () => {
         error: { code: '22023', message: 'settings value out of range' }
       })
     });
-    host.applyCfg({ capacity: 590 });
+    host.apply({ capacity: 590 });
     sync.queue('capacity');
     await vi.advanceTimersByTimeAsync(SAVE_DEBOUNCE_MS);
     expect(host.cfgState.capacity).toBe(320);
     expect(host.toasts).toEqual([SETTINGS_TOASTS.rejected]);
   });
 
-  it('a half step on a whole-number key is reverted on the device, never sent', async () => {
+  it('a fraction on a whole-number key is reverted on the device, never sent', async () => {
     const { rpc, host, sync } = await loadedOwner({});
-    host.applyCfg({ taxRate: 5.5 });
-    sync.queue('taxRate');
+    host.apply({ capacity: 330.5 });
+    sync.queue('capacity');
     await vi.advanceTimersByTimeAsync(SAVE_DEBOUNCE_MS);
     expect(rpc).not.toHaveBeenCalled();
-    expect(host.cfgState.taxRate).toBe(5);
+    expect(host.cfgState.capacity).toBe(320);
     expect(host.toasts).toEqual([SETTINGS_TOASTS.fraction]);
+  });
+
+  it('saves a 0.5 step for the tax set-aside (MP-09 b3), and refuses a quarter step', async () => {
+    const { rpc, host, sync } = await loadedOwner({
+      save_setting: ({ p_key } = {}) => ({
+        data: [{ key: String(p_key), updated_at: '2026-09-27T02:00:00.000Z' }],
+        error: null
+      })
+    });
+    host.apply({ taxRate: 5.5 });
+    sync.queue('taxRate');
+    await vi.advanceTimersByTimeAsync(SAVE_DEBOUNCE_MS);
+    expect(saves(rpc)).toEqual([
+      [
+        'save_setting',
+        { p_key: 'taxRate', p_value: 5.5, p_expected_updated_at: '2026-09-27T01:00:00.000Z' }
+      ]
+    ]);
+
+    host.apply({ taxRate: 5.25 });
+    sync.queue('taxRate');
+    await vi.advanceTimersByTimeAsync(SAVE_DEBOUNCE_MS);
+    expect(saves(rpc)).toHaveLength(1);
+    expect(host.cfgState.taxRate).toBe(5.5);
+    expect(host.toasts).toEqual([SETTINGS_TOASTS.fraction]);
+  });
+
+  it('saves the whole channels object when one alert changes, and skips a toggle-back', async () => {
+    const { rpc, host, sync } = await loadedOwner({
+      save_setting: ({ p_key } = {}) => ({
+        data: [{ key: String(p_key), updated_at: '2026-09-27T02:00:00.000Z' }],
+        error: null
+      })
+    });
+    expect(host.cfgState.channels).toEqual({ 'New order': false, 'Low stock': true });
+
+    host.apply({ channels: { 'New order': true, 'Low stock': true } });
+    sync.queue('channels');
+    host.apply({ channels: { 'New order': false, 'Low stock': true } });
+    sync.queue('channels');
+    await vi.advanceTimersByTimeAsync(SAVE_DEBOUNCE_MS);
+    expect(saves(rpc)).toHaveLength(0);
+
+    host.apply({ channels: { 'New order': true, 'Low stock': true } });
+    sync.queue('channels');
+    await vi.advanceTimersByTimeAsync(SAVE_DEBOUNCE_MS);
+    expect(saves(rpc)[0]?.[1]).toEqual({
+      p_key: 'channels',
+      p_value: { 'New order': true, 'Low stock': true },
+      p_expected_updated_at: '2026-09-27T01:00:00.000Z'
+    });
+  });
+
+  it('offline: a changed list reverts to the previous list, never to nothing', async () => {
+    const { rpc, host, sync } = await loadedOwner({});
+    host.isOnline = false;
+    host.apply({ categories: ['Ingredients', 'Packaging', 'Delivery', 'Stickers'] });
+    sync.queue('categories');
+    host.apply({ inactiveCats: ['Packaging'] });
+    sync.queue('inactiveCats');
+    await vi.advanceTimersByTimeAsync(SAVE_DEBOUNCE_MS);
+
+    expect(rpc).not.toHaveBeenCalled();
+    expect(host.cfgState.categories).toEqual(['Ingredients', 'Packaging', 'Delivery']);
+    // inactiveCats was never saved: it goes back to the engine default passed to load().
+    expect(host.cfgState.inactiveCats).toEqual([]);
   });
 
   it('does nothing when the value is back to what was saved', async () => {
     const { rpc, host, sync } = await loadedOwner({});
-    host.applyCfg({ capacity: 330 });
+    host.apply({ capacity: 330 });
     sync.queue('capacity');
-    host.applyCfg({ capacity: 320 });
+    host.apply({ capacity: 320 });
     sync.queue('capacity');
     await vi.advanceTimersByTimeAsync(SAVE_DEBOUNCE_MS);
     expect(rpc).not.toHaveBeenCalled();
@@ -305,8 +381,19 @@ describe('dbValueFor', () => {
   });
 
   it('refuses unknown keys, fractions and wrong types before any request', () => {
-    expect(dbValueFor('channels', {})).toEqual({ ok: false, reason: 'unknown' });
-    expect(dbValueFor('cogsMultiple', 4.5)).toEqual({ ok: false, reason: 'fraction' });
+    expect(dbValueFor('orders', [])).toEqual({ ok: false, reason: 'unknown' });
+    expect(dbValueFor('cogsMultiple', 4.25)).toEqual({ ok: false, reason: 'fraction' });
     expect(dbValueFor('retention', 365)).toEqual({ ok: false, reason: 'type' });
+    expect(dbValueFor('channels', { 'New order': 'yes' })).toEqual({ ok: false, reason: 'type' });
+    expect(dbValueFor('categories', ['Ingredients', 3])).toEqual({ ok: false, reason: 'type' });
+  });
+
+  it('accepts half steps and the b3 shapes as they are', () => {
+    expect(dbValueFor('cogsMultiple', 4.5)).toEqual({ ok: true, value: 4.5 });
+    expect(dbValueFor('channels', { 'New order': true })).toEqual({
+      ok: true,
+      value: { 'New order': true }
+    });
+    expect(dbValueFor('inactiveCats', [])).toEqual({ ok: true, value: [] });
   });
 });

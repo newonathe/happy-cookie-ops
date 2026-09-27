@@ -1,6 +1,57 @@
 # Current state — Happy Cookie Ops
 
-## Current checkpoint — 2026-09-28 (MP-09 b2: settings on the database, app half, G2 slice 4)
+## Current checkpoint — 2026-09-28 (MP-09 b3: preferences and half steps on the database, G2 slice 4)
+
+- **MP-09 b3 is complete locally** (run in the same conversation as b2 at Ethan's request).
+  [Migration 20260101002900](../../supabase/migrations/20260101002900_settings_preferences.sql)
+  adds one `json_value jsonb` column to `settings` and moves five keys into it: `taxRate` and
+  `cogsMultiple` (0.5 steps again), `channels`, `categories` and `inactiveCats`. It also adds
+  `helperSeesSales` (0/1, default off) for b4. `save_setting()` is replaced with three new
+  kinds, each validated: `half` (a JSON number on a 0.5 step inside the engine's bounds),
+  `channels` (known alert names only, booleans only) and `list` (unique, trimmed, 1–40
+  characters; categories 1–40 items, inactive categories 0–40). The table's original "no
+  jsonb blob" concern is answered in the migration: `save_setting()` is the only writer and
+  checks each key's kind.
+- `settings_effective()`, `get_settings()` and `get_operating_settings()` gain the column,
+  so they are dropped and recreated. The observed catalog shows only their body hashes and
+  return types changed: permissions, security definer and `search_path` are identical. The
+  staff projection gains the two lists, `channels` and `helperSeesSales` (helpers pick an
+  expense category at the bazaar; support reaches the notifications screen). None is a cost.
+- **Upgrade proof** (local, by hand): reset to 20260101002800, saved whole-number
+  `taxRate` 5 and `cogsMultiple` 6 with September timestamps, applied 20260101002900. Both
+  read back as 5 and 6 from `json_value`, not defaults, with their original `updated_at`
+  (the touch trigger is paused around the move).
+- **App:** `SettingsSync` now reads and applies any setting key through the host, which
+  routes the three lists to the top of the engine's state (`STATE_LEVEL_KEYS`) and the rest to
+  `cfg`. List defaults come from `BASE_STATE()`, so an offline revert never leaves a list
+  undefined. Lists compare by content, so toggling back does not send a save. `OpsRuntime`
+  captures `addCategory`/`renameCategory`/`toggleCategory` and its own `toggleChannel`.
+  Renaming a category also rewrites the ledger's categories, which stay on the device until
+  MP-15. The live rules sheet uses the prototype's 0.5 step again; that part of the b2
+  locked-UI exception is withdrawn.
+- **The parity test now follows the newest `save_setting()` definition**, not the b1 file, and
+  checks the channel names and default categories against the engine's `BASE_STATE()`.
+- **Found, for b4 (not fixed here):** the helper-totals switch cannot just flip the engine's
+  `showEventMoney` flag. In the close-out sheet that flag also shows cookie cost, event
+  expenses and profit, which helpers must never see. And the ported bazaar screen already
+  shows helpers the running "N sales · ₱total" line, and after a close-out shows profit and
+  cookie cost with no role check (read from the markup; b4 confirms it with a render test).
+  Live books are empty today, so nothing real is exposed yet; b4 must land before MP-07
+  finish makes bazaar sales real.
+- **Independent review (Sonnet, a different model from this Opus implementation): SAFE TO
+  MERGE, no P0/P1.** It confirmed identical permissions on the recreated functions, the owner
+  check before any read of the value, exact numeric parsing for half steps, and no cost key in
+  the staff projection. One low note, kept as is: comparing lists by JSON text can see the same
+  object with reordered keys as changed, which only sends a redundant save.
+- **Evidence (this session):** `pnpm verify` 40 files/615 tests exit 0 (14 new; two
+  mutations each caught: dropping the category save, and treating a half step as whole).
+  SQL role suite 518 cases/reset × 2 (10 new owner cases: half step saved, quarter step
+  refused, channels saved, unknown alert and non-boolean refused, lists saved, duplicate,
+  untrimmed and empty-categories refused, helper switch out of range refused). Python guards
+  37 unit + 3 auth + 17 db + 6 security OK. G0 validator 1196 checks/0 failures. Evidence
+  files the runs rewrote were reverted. No hosted preview update, no deploy.
+
+## Prior checkpoint — 2026-09-28 (MP-09 b2: settings on the database, app half, G2 slice 4)
 
 - **MP-09 b2 is complete locally, except the preferences, which need a migration.** In live mode the
   Settings values now come from and go to the database. On the first verified sign-in the live gate

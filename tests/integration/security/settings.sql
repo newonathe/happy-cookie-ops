@@ -121,7 +121,7 @@ declare cap_value bigint; row_count integer;
 begin
   select int_value into cap_value from public.get_settings() where key = 'capacity';
   select count(*) into row_count from public.get_settings();
-  if cap_value is distinct from 200 or row_count <> 24 then
+  if cap_value is distinct from 200 or row_count <> 28 then
     raise exception 'get_settings owner projection differs: %', actor;
   end if;
   insert into pg_temp.authority_results values ('get_settings', actor, 'full_projection');
@@ -147,9 +147,12 @@ language plpgsql security invoker as $$
 declare keys text[]; costly integer; priced integer; cap_value bigint;
 begin
   select array_agg(key order by key) into keys from public.get_operating_settings();
+  -- MP-09 b3 adds the lists helper/support screens use and the helper-totals switch;
+  -- none is a cost or a price.
   if keys is distinct from array[
-    'capacity', 'closeDow', 'closeH', 'closeM', 'extendH', 'idleMinutesHelper',
-    'idleMinutesOwner', 'idleMinutesSupport', 'maxPerOrder', 'openDow', 'openH', 'openM'
+    'capacity', 'categories', 'channels', 'closeDow', 'closeH', 'closeM', 'extendH',
+    'helperSeesSales', 'idleMinutesHelper', 'idleMinutesOwner', 'idleMinutesSupport',
+    'inactiveCats', 'maxPerOrder', 'openDow', 'openH', 'openM'
   ] then
     raise exception 'operating settings key set differs: %', actor;
   end if;
@@ -228,7 +231,8 @@ begin
   end;
 
   begin
-    perform * from public.save_setting('taxRate', to_jsonb(3.5), null);
+    -- taxRate took 0.5 steps from MP-09 b3, so the whole-number rule is proven on capacity.
+    perform * from public.save_setting('capacity', to_jsonb(250.5), updated_at2);
     raise exception 'save_setting accepted a non-integer value for an int_value key: %', actor;
   exception when invalid_parameter_value then
     insert into pg_temp.authority_results values ('save_setting', actor, 'non_integer_denied');
@@ -253,6 +257,91 @@ begin
       raise exception 'save_setting priceMode round-trip differs: %', actor;
     end if;
     insert into pg_temp.authority_results values ('save_setting', actor, 'enum_round_trip');
+  end;
+
+  -- MP-09 b3: half steps, the alert channels, the category lists and the helper switch.
+  declare half_at timestamptz;
+  begin
+    select updated_at into half_at from public.save_setting('taxRate', to_jsonb(3.5), null);
+    if half_at is null
+        or (select json_value from public.get_settings() where key = 'taxRate') <> '3.5'::jsonb
+        or (select int_value from public.get_settings() where key = 'taxRate') is not null then
+      raise exception 'save_setting half step did not take: %', actor;
+    end if;
+    insert into pg_temp.authority_results values ('save_setting', actor, 'half_step_save');
+  end;
+
+  begin
+    perform * from public.save_setting('cogsMultiple', to_jsonb(4.25), null);
+    raise exception 'save_setting accepted a quarter step: %', actor;
+  exception when invalid_parameter_value then
+    insert into pg_temp.authority_results values ('save_setting', actor, 'quarter_step_denied');
+  end;
+
+  declare channels_at timestamptz;
+  begin
+    select updated_at into channels_at
+      from public.save_setting('channels', '{"New order": false, "Low stock": true}'::jsonb, null);
+    if channels_at is null or (select json_value from public.get_settings() where key = 'channels')
+        <> '{"New order": false, "Low stock": true}'::jsonb then
+      raise exception 'save_setting channels round-trip differs: %', actor;
+    end if;
+    insert into pg_temp.authority_results values ('save_setting', actor, 'channels_save');
+  end;
+
+  begin
+    perform * from public.save_setting('channels', '{"Bogus alert": true}'::jsonb, null);
+    raise exception 'save_setting accepted an unknown alert name: %', actor;
+  exception when invalid_parameter_value then
+    insert into pg_temp.authority_results values ('save_setting', actor, 'channels_unknown_denied');
+  end;
+
+  begin
+    perform * from public.save_setting('channels', '{"New order": "yes"}'::jsonb, null);
+    raise exception 'save_setting accepted a non-boolean alert value: %', actor;
+  exception when invalid_parameter_value then
+    insert into pg_temp.authority_results values ('save_setting', actor, 'channels_non_boolean_denied');
+  end;
+
+  declare list_at timestamptz;
+  begin
+    select updated_at into list_at
+      from public.save_setting('categories', '["Ingredients", "Packaging", "Delivery"]'::jsonb, null);
+    perform * from public.save_setting('inactiveCats', '[]'::jsonb, null);
+    if list_at is null or (select json_value from public.get_settings() where key = 'categories')
+        <> '["Ingredients", "Packaging", "Delivery"]'::jsonb
+        or (select json_value from public.get_settings() where key = 'inactiveCats') <> '[]'::jsonb then
+      raise exception 'save_setting list round-trip differs: %', actor;
+    end if;
+    insert into pg_temp.authority_results values ('save_setting', actor, 'list_save');
+
+    begin
+      perform * from public.save_setting('categories', '[]'::jsonb, list_at);
+      raise exception 'save_setting accepted an empty category list: %', actor;
+    exception when invalid_parameter_value then
+      insert into pg_temp.authority_results values ('save_setting', actor, 'list_empty_categories_denied');
+    end;
+  end;
+
+  begin
+    perform * from public.save_setting('categories', '["Packaging", "Packaging"]'::jsonb, null);
+    raise exception 'save_setting accepted a duplicate list item: %', actor;
+  exception when invalid_parameter_value then
+    insert into pg_temp.authority_results values ('save_setting', actor, 'list_duplicate_denied');
+  end;
+
+  begin
+    perform * from public.save_setting('categories', '[" Packaging"]'::jsonb, null);
+    raise exception 'save_setting accepted an untrimmed list item: %', actor;
+  exception when invalid_parameter_value then
+    insert into pg_temp.authority_results values ('save_setting', actor, 'list_untrimmed_denied');
+  end;
+
+  begin
+    perform * from public.save_setting('helperSeesSales', to_jsonb(2), null);
+    raise exception 'save_setting accepted a helper switch value other than 0 or 1: %', actor;
+  exception when invalid_parameter_value then
+    insert into pg_temp.authority_results values ('save_setting', actor, 'helper_switch_range_denied');
   end;
 end $$;
 
@@ -323,7 +412,7 @@ do $$ begin
   -- save_setting() calls above are expected to have added real rows (capacity,
   -- priceMode) that were never here before, which is the RPC working, not a leak.
   if not pg_temp.private_seed_intact()
-     or (select count(*) from pg_temp.authority_results) <> 74 then
+     or (select count(*) from pg_temp.authority_results) <> 84 then
     raise exception 'settings preservation or result count differs';
   end if;
 end $$;

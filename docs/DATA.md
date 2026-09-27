@@ -18,7 +18,7 @@ at the API boundary, not in the engine.
 | `products`                                  | the catalogue                 | ids are the prototype's (`dcf`, `hc`, `wcb`, `pbm`, `rvc`, `nch`); `rotation` is Permanent or Rotating                                                               |
 | `recipes`, `recipe_ingredients`             | what a batch needs            | drives the grocery list                                                                                                                                              |
 | `suppliers`, `inventory_items`              | stock                         | `par_level` triggers a grocery line; `category` is Ingredients or Packaging                                                                                          |
-| `settings`                                  | her 24 editable values        | read via `settings_effective()`/`get_settings()`/`get_operating_settings()`, which fill defaults from the engine; written only via `save_setting()`                  |
+| `settings`                                  | her 28 editable values        | read via `settings_effective()`/`get_settings()`/`get_operating_settings()`, which fill defaults from the engine; written only via `save_setting()`                  |
 | `rate_limits`                               | abuse counters                | no direct access; `consume_rate_limit()` is the only door                                                                                                            |
 | `erasure_requests`                          | RA 10173 requests             | owner only. Records what was blocked and why                                                                                                                         |
 | `supplier_prices`                           | the price book                | one row per supplier per item: pack, current price, previous prices, whether it is preferred. This is what "best buy" compares.                                      |
@@ -69,9 +69,18 @@ published-safe projection — capacity, the ordering window, `maxPerOrder`, the 
 minutes — with no cost key). The owner keeps raw `SELECT` on `settings` via the
 pre-existing RLS policy; only writes moved behind the RPC.
 
+**MP-09 b3 (migration 20260101002900) adds `json_value jsonb`** for five keys: `taxRate`
+and `cogsMultiple` (a number on a 0.5 step; existing whole-number rows moved unchanged,
+keeping their `updated_at`), `channels` (alert name → on/off, known names only),
+`categories` and `inactiveCats` (lists of unique, trimmed, 1–40-character items; 1–40 and
+0–40 items). A new `helperSeesSales` switch (0/1, default 0) sits in `int_value`.
+`save_setting()` checks each key's kind, so the jsonb column cannot hold a value of the
+wrong shape. The staff projection gains the two lists, `channels` and `helperSeesSales`
+(helpers pick an expense category at the bazaar; support reaches the notifications screen).
+
 Money keys (`packagingFee`, `flatBoxPrice`, `drawerFloat`, `groceryBudget`) go in
-`cents_value`, counts in `int_value`, strings in `text_value`, and a check constraint
-allows only one — so a peso value can never be read back as a count.
+`cents_value`, counts in `int_value`, strings in `text_value`, half steps and lists in
+`json_value`, and a check constraint allows only one — so a peso value can never be read back as a count.
 
 Not granted to `anon`. The shop needs `capacity` and the order window; `cogsMultiple` and
 `groceryBudget` are her margins. T-11 should expose the first two through a narrow view.

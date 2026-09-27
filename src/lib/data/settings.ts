@@ -1,23 +1,24 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { Database } from '@/lib/types/database';
+import type { Database, Json } from '@/lib/types/database';
 import type { Role } from '@/store/engine/ops-engine';
 import { centavosFromDb, centavosToPesos, pesosToCentavos } from '@/lib/money';
 
 /**
- * Settings rows ↔ the engine's `cfg`, for MP-09 b2 (docs/state/G2-plan.md "Slice audit").
+ * Settings rows ↔ the engine's state, for MP-09 b2/b3 (docs/state/G2-plan.md "Slice audit").
  *
- * The database stores each key in one typed column (migration 20260101002800,
- * `save_setting`); the engine keeps one flat `cfg` object in pesos. This is the one place
- * that knows which key lives in which column. Only the four `cents` keys are money in
- * centavos — `discountA`/`discountB` are whole pesos in `int_value`, inherited from
- * migration 00700. `tests/unit/settings-parity.test.ts` checks this map against
- * `tests/fixtures/settings-cases.json`, so the column rule lives in one place.
+ * The database stores each key in one column (`save_setting`, newest in migration
+ * 20260101002900); the engine keeps most of them in one flat `cfg` object in pesos. This is
+ * the one place that knows which key lives in which column. Only the four `cents` keys are
+ * money in centavos — `discountA`/`discountB` are whole pesos in `int_value`, inherited from
+ * migration 00700. The b3 kinds live in `json_value`: `half` (a number on a 0.5 step),
+ * `channels` (alert name → on/off) and `list` (text items). `tests/unit/settings-parity.test.ts`
+ * checks this map against `tests/fixtures/settings-cases.json`, so the rule lives in one place.
  */
-export type SettingColumn = 'int' | 'cents' | 'text';
+export type SettingColumn = 'int' | 'cents' | 'text' | 'half' | 'channels' | 'list';
 
 export const SETTING_COLUMNS: Readonly<Record<string, SettingColumn>> = {
   capacity: 'int',
-  taxRate: 'int',
+  taxRate: 'half',
   drawerFloat: 'cents',
   discountA: 'int',
   discountB: 'int',
@@ -26,7 +27,7 @@ export const SETTING_COLUMNS: Readonly<Record<string, SettingColumn>> = {
   groceryBudget: 'cents',
   packagingFee: 'cents',
   flatBoxPrice: 'cents',
-  cogsMultiple: 'int',
+  cogsMultiple: 'half',
   priceMode: 'text',
   openDow: 'int',
   openH: 'int',
@@ -39,31 +40,55 @@ export const SETTING_COLUMNS: Readonly<Record<string, SettingColumn>> = {
   maxPerOrder: 'int',
   idleMinutesOwner: 'int',
   idleMinutesSupport: 'int',
-  idleMinutesHelper: 'int'
+  idleMinutesHelper: 'int',
+  channels: 'channels',
+  categories: 'list',
+  inactiveCats: 'list',
+  helperSeesSales: 'int'
 };
+
+/** Keys the engine keeps at the top of its state, not inside `cfg`. */
+export const STATE_LEVEL_KEYS: ReadonlySet<string> = new Set([
+  'channels',
+  'categories',
+  'inactiveCats'
+]);
 
 export type SettingsRow = Database['public']['Functions']['get_settings']['Returns'][number];
 export type SettingsClient = Pick<SupabaseClient<Database>, 'rpc'>;
-export type CfgValue = number | string | null;
 
-/** A key's value as the engine holds it, from its row. Unknown keys are skipped. */
-export function cfgValueFromRow(row: SettingsRow): CfgValue | undefined {
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+const isTextList = (value: unknown): value is string[] =>
+  Array.isArray(value) && value.every((item) => typeof item === 'string');
+const isChannels = (value: unknown): value is Record<string, boolean> =>
+  isRecord(value) && Object.values(value).every((on) => typeof on === 'boolean');
+
+/**
+ * A key's value as the engine holds it, from its row. `undefined` (skip the key, keep the
+ * engine's default) for an unknown key or a stored value of the wrong shape.
+ */
+export function cfgValueFromRow(row: SettingsRow): unknown {
   const column = SETTING_COLUMNS[row.key];
   if (column === 'cents') {
     return row.cents_value == null ? null : centavosToPesos(centavosFromDb(row.cents_value));
   }
   if (column === 'int') return row.int_value == null ? null : Number(row.int_value);
   if (column === 'text') return row.text_value ?? null;
+  const json: unknown = row.json_value;
+  if (column === 'half') return typeof json === 'number' ? json : undefined;
+  if (column === 'channels') return isChannels(json) ? json : undefined;
+  if (column === 'list') return isTextList(json) ? json : undefined;
   return undefined;
 }
 
 export type DbValue =
-  { ok: true; value: number | string } | { ok: false; reason: 'unknown' | 'fraction' | 'type' };
+  { ok: true; value: Json } | { ok: false; reason: 'unknown' | 'fraction' | 'type' };
 
 /**
  * The engine's value as `save_setting` expects it. Rejects on the client what the server
- * would reject anyway: a fraction for a whole-number column (the engine's typed inputs
- * accept decimals), or the wrong type.
+ * would reject anyway: a fraction off the key's step (the engine's typed inputs accept any
+ * decimal), or the wrong shape. The server still checks everything, including list bounds.
  */
 export function dbValueFor(key: string, value: unknown): DbValue {
   const column = SETTING_COLUMNS[key];
@@ -71,9 +96,16 @@ export function dbValueFor(key: string, value: unknown): DbValue {
   if (column === 'text') {
     return typeof value === 'string' ? { ok: true, value } : { ok: false, reason: 'type' };
   }
+  if (column === 'channels') {
+    return isChannels(value) ? { ok: true, value } : { ok: false, reason: 'type' };
+  }
+  if (column === 'list') {
+    return isTextList(value) ? { ok: true, value } : { ok: false, reason: 'type' };
+  }
   if (typeof value !== 'number' || !Number.isFinite(value)) return { ok: false, reason: 'type' };
   if (column === 'cents') return { ok: true, value: pesosToCentavos(value) };
-  return Number.isInteger(value) ? { ok: true, value } : { ok: false, reason: 'fraction' };
+  const step = column === 'half' ? value * 2 : value;
+  return Number.isInteger(step) ? { ok: true, value } : { ok: false, reason: 'fraction' };
 }
 
 /** The owner reads every key; helper and support read the staff-safe projection only. */
@@ -100,7 +132,7 @@ export type SaveResult =
 export async function saveSetting(
   client: SettingsClient,
   key: string,
-  value: number | string,
+  value: Json,
   expectedUpdatedAt: string | null
 ): Promise<SaveResult> {
   try {

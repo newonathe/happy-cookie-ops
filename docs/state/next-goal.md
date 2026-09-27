@@ -14,42 +14,37 @@ When a goal finishes, the agent deletes its block here, leaves the next one on t
 - If files changed since the last index, re-index first: `index_repository`, repo path `C:/Users/ethan/dev/happy-cookie-ops-g0`.
 - Pinned toolchain: prefix PATH with `C:\Users\ethan\dev\happy-cookie-tools\bin;C:\Users\ethan\dev\happy-cookie-tools\node-v24.20.0-win-x64`.
 - Docker Desktop must be running for SQL work.
-- **Baseline (2026-09-28; `pnpm verify`, the SQL role suite and the Python guards re-run at MP-09 b2 close, the rest unchanged since the static-header goal):**
-  - `pnpm verify` 39 files / 599 tests;
-  - Python guards 63 OK, via `python -m unittest discover -s <dir> -p "test_*.py"` for each of `tests/unit`, `tests/integration/auth`, `tests/integration/db` and `tests/integration/security`, with `G0_PYTHON_LIBS=C:\Users\ethan\dev\happy-cookie-tools\python-libs-314`; SQL role suite 506 cases/reset, 2 resets;
+- **Baseline (2026-09-28; `pnpm verify`, the SQL role suite and the Python guards re-run at MP-09 b3 close, the rest unchanged since the static-header goal):**
+  - `pnpm verify` 40 files / 615 tests;
+  - Python guards 63 OK, via `python -m unittest discover -s <dir> -p "test_*.py"` for each of `tests/unit`, `tests/integration/auth`, `tests/integration/db` and `tests/integration/security`, with `G0_PYTHON_LIBS=C:\Users\ethan\dev\happy-cookie-tools\python-libs-314`; SQL role suite 518 cases/reset, 2 resets;
   - `pnpm build:pages:spike`/`test:pages:spike`/`test:workers:spike` pass with or without `NEXT_PUBLIC_SUPABASE_URL`/`…PUBLISHABLE_KEY` (local stack values: `supabase status -o env`);
   - `pnpm build` passes, and `pnpm test:e2e` gives 87 passed / 3 failed / 30 skipped. The 3 failures are the same known OFFLINE-01 durable-queue test on phone, WebKit and desktop (G3).
 - **Codex only:** run `/status` once in the repo root to confirm the project `.codex/config.toml` loaded. Accept the trust prompt if asked. The project sandbox has no network, so `git push` will ask for approval.
 
-## Next goal — MP-09 b3: preferences and half steps on the database (G2 slice 4, remainder)
+## Next goal — MP-09 b4: helper sale totals switch and helper money privacy (G2 slice 4, last part)
 
-Drafted 2026-09-28 by the session that closed b2. What b2 could not do without a migration (see
-[current state](current.md)): `save_setting` has a fixed 24-key table and only `int`/`cents`/`text`
-columns, so `channels` (an object of booleans), `categories` and `inactiveCats` (text arrays) cannot be
-saved, and `taxRate`/`cogsMultiple` lost their 0.5 step. Cine's 2026-09-28 answers add one more owner setting here:
-a switch that lets helpers see bazaar sale totals (default off; the engine's `showEventMoney` view-model flag,
-set in `OpsRuntime`, with its own locked-UI exception). Read the b2 code first
-(`src/lib/data/settings.ts`, `src/lib/data/settings-sync.ts`, `OpsRuntime.captureSettingsActions`) and
-reuse it; do not build a second sync.
+Drafted 2026-09-28 by the session that closed b3 (see [current state](current.md), "Found, for b4").
+Cine's rule: helpers never see costs or profit; they may see sale totals when the owner switches it on
+(default off). b3 already stores `helperSeesSales` and loads it for helpers through
+`get_operating_settings()`. The engine's `showEventMoney` flag cannot be reused: it also shows cookie cost,
+event expenses and profit.
 
 ```text
-/goal MP-09 b3 (docs/state/current.md, MP-09 b2 "Not done"): a new migration, never an edit to
-20260101002800, that lets the owner save (1) notification channels, expense categories and inactive
-categories, and (2) taxRate and cogsMultiple in 0.5 steps, and (3) an owner switch letting helpers see bazaar sale totals
-(default off). Decide the storage in the plan and say why:
-e.g. a jsonb column or a separate owner-only table for the three lists (validated: known channel names
-only, bounded list length and text length, no duplicates), and tenths in int_value or a numeric column for
-the two half-step keys (settings_effective(), get_settings() and the parity fixture updated together).
-Same RPC rules as b1: SECURITY DEFINER, search_path '', owner check first, expected_updated_at conflict
-check, explicit grants, SQL role-suite cases per actor. Helpers/support must not read the lists unless a
-screen they use needs them (check first). App: extend src/lib/data/settings.ts and SettingsSync; capture
-the engine's addCategory/renameCategory/toggleCategory and OpsRuntime.toggleChannel (added 2026-09-28;
-the engine never defined it). renameCategory also rewrites ledger
-categories, which stay local until MP-15: say so, do not save the ledger. Restore the 0.5 step on the live
-rules rows and remove that part of the b2 locked-UI exception record. Unit tests for each list round-trip
-and a half-step save. All exit 0 in this session: pnpm verify, the SQL role suite, the Python guards, the
-G0 validator (revert evidence/*.json churn). Independent different-model review (SQL + money). Committed
-and pushed; status updated; block removed. No deploy. Stop after 2 failed fix attempts or 20 turns.
+/goal MP-09 b4 (docs/state/current.md, MP-09 b3 "Found, for b4"): in live mode, helpers never see cost or
+profit anywhere they can go, and see the bazaar's running sales total only when the owner's
+helperSeesSales switch is on. First, prove the exposure with a render test as a helper on today, sales and
+bazaar (selling, and after a close-out): record exactly which money values render (running total, cookie
+cost, event expenses, profit, per-sale and cart totals). Then, in OpsRuntime.renderVals() only (never the
+protected engine or markup unless a locked-UI exception is recorded first): cost, expenses and profit are
+blanked or hidden for helpers whatever the switch says; the running total follows the switch; per-sale
+and cart totals stay (helpers need them to charge and void). Owner control: one row on the live rules
+sheet ("Helpers see sale totals", 0/1, On/Off text), saved through save_setting like the idle rows, recorded
+in protected-exception.md under the 2026-09-27 settings-edit-forms approval. Demo mode unchanged. Unit
+tests: each helper screen renders no cost or profit with the switch on and off; the running total shows
+only when on; the owner row saves helperSeesSales. All exit 0 in this session: pnpm verify, the G0 validator
+(revert evidence/*.json churn). Independent different-model review (privacy). Committed and pushed; status
+updated; block removed. No deploy. Must land before MP-07 finish. Stop after 2 failed fix attempts or 20
+turns.
 ```
 
 ## After these goals

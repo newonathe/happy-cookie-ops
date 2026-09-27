@@ -59,10 +59,10 @@ so there is no exact reversal to register there, unlike the live-frame exception
   helpers out after". Each uses the ported row markup unchanged (−/+ in 15-minute steps, a typed value,
   "Now: N minutes idle"), clamped 15–480, saved as `idleMinutesOwner`/`Support`/`Helper` through
   `save_setting`. Note copy: "With no taps for this long, the device signs out. 15 minutes to 8 hours."
-- **Whole steps for two existing rows.** "Tax set-aside" and "Cost multiplier" step by 1 instead of the
-  prototype's 0.5, because `save_setting` stores whole numbers (`int_value` is `bigint`, migration
-  20260101002800). A typed fraction is reverted on the device with a toast and never sent. Restoring the
-  half-steps needs a new migration (for example storing tenths); it is recorded as open in `current.md`.
+- **Whole steps for two existing rows: withdrawn in MP-09 b3 (2026-09-28).** "Tax set-aside" and "Cost
+  multiplier" stepped by 1 in b2 because `save_setting` stored whole numbers. Migration 20260101002900
+  stores them as 0.5 steps, so the live rows use the prototype's own 0.5 step again and this part of the
+  exception no longer applies.
 
 Evidence: `tests/unit/ops-runtime-settings.test.tsx` (owner rows present, helper rows absent, whole steps,
 idle ±15), `tests/unit/settings-sync.test.ts` (fraction reverted, never sent).

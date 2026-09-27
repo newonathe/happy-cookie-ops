@@ -74,6 +74,10 @@ export declare class OpsEngine extends React.Component<OpsEngineProps, OpsEngine
   publishPriceMode: () => void;
   extendDrop: () => void;
   closeDrop: () => void;
+  /** Expense-category actions (instance fields). They write `state.categories`/`inactiveCats`. */
+  addCategory: (name: string) => void;
+  renameCategory: (old: string, next: string) => void;
+  toggleCategory: (name: string) => void;
 }
 
 export declare class OpsProvider extends OpsEngine {}

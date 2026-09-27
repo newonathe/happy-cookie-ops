@@ -1,6 +1,6 @@
 'use client';
 
-import { DEFAULT_CFG, OpsProvider } from '@/store/engine/ops-engine';
+import { BASE_STATE, DEFAULT_CFG, OpsProvider } from '@/store/engine/ops-engine';
 import type { EventSale, OpsEngineProps, Role } from '@/store/engine/ops-engine';
 import { flushQueue, requestBackgroundSync } from '@/lib/offline/sync';
 import { pendingSales } from '@/lib/offline/queue';
@@ -8,7 +8,7 @@ import { plural } from '@/store/engine/ops-engine';
 import type { OpsVals } from '@/view-models/vals';
 import { isLiveMode } from '@/lib/config/app-mode';
 import { clearStoredBooks, liveBaseState } from '@/lib/data/live-state';
-import type { SettingsClient } from '@/lib/data/settings';
+import { STATE_LEVEL_KEYS, type SettingsClient } from '@/lib/data/settings';
 import { SettingsSync } from '@/lib/data/settings-sync';
 import {
   IDLE_MINUTES_MAX,
@@ -53,9 +53,6 @@ const IDLE_ROWS: Array<{ role: Role; label: string }> = [
   { role: 'support', label: 'Sign support out after' },
   { role: 'helper', label: 'Sign helpers out after' }
 ];
-
-/** `taxRate`/`cogsMultiple` step 0.5 in the prototype; `save_setting` stores whole numbers. */
-const WHOLE_STEP_KEYS = new Set(['taxRate', 'cogsMultiple']);
 
 export class OpsRuntime extends OpsProvider {
   private stopViewportTracking?: () => void;
@@ -128,11 +125,27 @@ export class OpsRuntime extends OpsProvider {
       closeDrop();
       queue('extendH');
     };
+    // MP-09 b3: the expense-category actions write the top-level lists, not cfg. Renaming
+    // also rewrites the ledger's categories, which stays on the device until MP-15.
+    const { addCategory, renameCategory, toggleCategory } = this;
+    this.addCategory = (name) => {
+      addCategory(name);
+      queue('categories');
+    };
+    this.renameCategory = (old, next) => {
+      renameCategory(old, next);
+      queue('categories');
+    };
+    this.toggleCategory = (name) => {
+      toggleCategory(name);
+      queue('inactiveCats');
+    };
   }
 
   /**
    * Called by the live gate once, on the first verified sign-in: the owner reads every
-   * setting, helper and support the staff-safe projection, into `cfg`. `role` is the
+   * setting, helper and support the staff-safe projection, into `cfg` (and, for the three
+   * lists in `STATE_LEVEL_KEYS`, the top of state). `role` is the
    * verified profile role, passed in because `setRole` has not landed in `state` yet.
    */
   loadSettings(client: SettingsClient, role: Role): Promise<boolean> {
@@ -140,13 +153,30 @@ export class OpsRuntime extends OpsProvider {
     this.settingsSync?.dispose();
     this.settingsSync = new SettingsSync(client, {
       role: () => role,
-      cfg: () => (this.state.cfg ?? {}) as Record<string, unknown>,
-      applyCfg: (patch) =>
-        this.setState((s) => ({ cfg: { ...(s.cfg as Record<string, unknown>), ...patch } })),
+      read: (key) =>
+        STATE_LEVEL_KEYS.has(key)
+          ? this.state[key]
+          : (this.state.cfg as Record<string, unknown> | undefined)?.[key],
+      apply: (patch) =>
+        this.setState((s) => {
+          const cfg = { ...(s.cfg as Record<string, unknown>) };
+          const top: Record<string, unknown> = {};
+          for (const [key, value] of Object.entries(patch)) {
+            if (STATE_LEVEL_KEYS.has(key)) top[key] = value;
+            else cfg[key] = value;
+          }
+          return { ...top, cfg };
+        }),
       online: () => this.state.online && (typeof navigator === 'undefined' || navigator.onLine),
       toast: (message, tone) => this.toast(message, tone)
     });
-    return this.settingsSync.load(DEFAULT_CFG);
+    const base = BASE_STATE();
+    return this.settingsSync.load({
+      ...DEFAULT_CFG,
+      channels: base.channels,
+      categories: base.categories,
+      inactiveCats: base.inactiveCats
+    });
   }
 
   /**
@@ -234,18 +264,9 @@ export class OpsRuntime extends OpsProvider {
     };
   }
 
-  /** The rules sheet in live mode: whole steps where the database needs them, plus idle minutes. */
+  /** The rules sheet in live mode: the ported rows, plus DP-15's idle minutes. */
   private liveRules(rules: OpsVals['rules']): OpsVals['rules'] {
     const cfg = (this.state.cfg ?? {}) as Record<string, unknown>;
-    const whole = rules.map((row) => {
-      const { k, min, max } = row as { k?: string; min?: number; max?: number };
-      if (!k || !WHOLE_STEP_KEYS.has(k) || min == null || max == null) return row;
-      return {
-        ...row,
-        down: () => this.bumpCfg(k, -1, min, max),
-        up: () => this.bumpCfg(k, 1, min, max)
-      };
-    });
     const clamp = (n: number) => Math.min(IDLE_MINUTES_MAX, Math.max(IDLE_MINUTES_MIN, n));
     const idle = IDLE_ROWS.map(({ role, label }) => {
       const k = IDLE_SETTING_KEYS[role];
@@ -267,20 +288,21 @@ export class OpsRuntime extends OpsProvider {
           )
       };
     });
-    return [...whole, ...idle];
+    return [...rules, ...idle];
   }
 
   /**
    * The notifications screen's alert switches call `this.toggleChannel(k)`, which the
    * protected engine (and the prototype it was ported from) never defines, so every tap
    * threw. Flips that one channel; the switch's On/Off text is the feedback, as in the
-   * prototype. In live mode `channels` is memory-only until MP-09 b3 saves it.
+   * prototype. In live mode the owner's change saves through `save_setting` (MP-09 b3).
    */
   toggleChannel = (key: string): void => {
     this.setState((s) => {
       const channels = s.channels as Record<string, boolean>;
       return { channels: { ...channels, [key]: !channels[key] } };
     });
+    this.settingsSync?.queue('channels');
   };
 
   syncNow = (): void => {
