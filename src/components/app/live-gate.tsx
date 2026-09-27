@@ -1,0 +1,141 @@
+'use client';
+
+import { useEffect, useRef, useState } from 'react';
+import { createClient } from '@/lib/supabase/client';
+import { isLiveMode } from '@/lib/config/app-mode';
+import { useOpsEngine, useOpsVals } from '@/store/use-ops';
+import { CUSTOMER_SCREENS, type ScreenKey } from '@/lib/screens';
+import { checkStaffProfile, signOutAndRedirect } from '@/lib/auth/live-gate';
+import { startIdleSignOut } from '@/lib/auth/idle-signout';
+
+/**
+ * The live-mode session gate.
+ *
+ * In demo mode (every environment except the static export — local dev, Vercel, Docker,
+ * CI) `isLiveMode()` is false and this renders `children` immediately: nothing here
+ * changes for the existing E2E/visual/unit fixtures.
+ *
+ * The static export ships with no `src/middleware.ts` (`scripts/build-pages-spike.mjs`
+ * excludes it — there is no server to run it on), so this client-side check is the only
+ * gate a Workers static-asset deploy has.
+ *
+ * `needsGate` follows the CURRENT screen, not just the `initialScreen` prop the page
+ * loaded on. That is deliberate, not incidental: the ported `shop`/`order-status` screens
+ * have a "Back to ops" control (`goBackOwner: () => this.go('today')`, protected
+ * `src/store/engine/ops-engine.js`) that moves the engine to a staff screen with no page
+ * load and no auth check of its own. Gating on the initial screen alone let an anonymous
+ * customer, or a signed-in helper, reach staff Home and whatever the device's local books
+ * held, by tapping that button — a real bypass, not a theoretical one. Tracking the current
+ * screen closes it: the moment the engine's screen becomes a staff screen, this renders
+ * nothing until a fresh check passes.
+ *
+ * The screen tracker is seeded from `initialScreen`, not read from `engine.state.screen`
+ * directly, and only kept in sync with it via an effect. The engine's own protected
+ * `BASE_STATE.screen` is always `'today'` on construction regardless of route — `RouteSync`
+ * exists specifically to correct that on mount (its own comment: "The engine starts on Home
+ * while a direct URL is being adopted"). Reading `engine.state.screen` directly here would
+ * make every live-mode customer page (e.g. `/shop`) gate on that transient `'today'` on its
+ * very first render — and since `RouteSync` is one of this component's own gated children,
+ * it would never mount to correct it: a permanent deadlock, not just a flash.
+ */
+export function LiveGate({
+  initialScreen,
+  children
+}: {
+  initialScreen: ScreenKey;
+  children: React.ReactNode;
+}) {
+  useOpsVals();
+  const engine = useOpsEngine();
+  const engineScreen = engine.state.screen as ScreenKey;
+  // React's documented pattern for state derived from a changing value ("adjusting state
+  // when a prop changes"): setState during render, not inside an effect — an effect would
+  // apply the sync one render late, which is exactly the extra render this must not have.
+  const [screen, setScreen] = useState<ScreenKey>(initialScreen);
+  const [lastEngineScreen, setLastEngineScreen] = useState<ScreenKey>(engineScreen);
+  if (engineScreen !== lastEngineScreen) {
+    setLastEngineScreen(engineScreen);
+    setScreen(engineScreen);
+  }
+
+  const live = isLiveMode();
+  const needsGate = live && !CUSTOMER_SCREENS.includes(screen);
+
+  const [verified, setVerified] = useState(false);
+  const verifiedRef = useRef(false);
+  const runFirstCheck = useRef<() => void>(() => undefined);
+
+  useEffect(() => {
+    if (!live) return;
+    let cancelled = false;
+    let idleStarted = false;
+    let stopIdle = () => undefined as void;
+    const supabase = createClient();
+
+    function lockOut() {
+      if (cancelled) return;
+      cancelled = true;
+      verifiedRef.current = false;
+      setVerified(false);
+      stopIdle();
+      void signOutAndRedirect(supabase, window.location.pathname);
+    }
+
+    async function verify(isFirstCheck: boolean) {
+      if (cancelled) return;
+      const result = await checkStaffProfile(supabase);
+      if (cancelled) return;
+      if (result.status === 'unknown') {
+        // Only fail closed when nothing has been verified yet in this session — a
+        // transient/offline failure on a later re-check must not sign out a till that
+        // was already legitimately signed in (see checkStaffProfile's doc comment).
+        if (isFirstCheck && !verifiedRef.current) lockOut();
+        return;
+      }
+      if (result.status === 'denied') {
+        lockOut();
+        return;
+      }
+      engine.setRole(result.role);
+      verifiedRef.current = true;
+      setVerified(true);
+      if (!idleStarted) {
+        idleStarted = true;
+        stopIdle = startIdleSignOut(result.role, lockOut);
+      }
+    }
+
+    runFirstCheck.current = () => void verify(true);
+
+    const {
+      data: { subscription }
+    } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_OUT') lockOut();
+      else if (event === 'TOKEN_REFRESHED') void verify(false);
+    });
+
+    function onVisible() {
+      if (document.visibilityState === 'visible') void verify(false);
+    }
+    document.addEventListener('visibilitychange', onVisible);
+
+    return () => {
+      cancelled = true;
+      subscription.unsubscribe();
+      document.removeEventListener('visibilitychange', onVisible);
+      stopIdle();
+    };
+  }, [live, engine]);
+
+  // `verified` (state), not `verifiedRef.current`: reading a ref during render is not
+  // safe, and the two are always set together (see `lockOut`/`verify` above), so this is
+  // the same value without the render-time ref read.
+  const needsFirstCheck = needsGate && !verified;
+  useEffect(() => {
+    if (needsFirstCheck) runFirstCheck.current();
+  }, [needsFirstCheck]);
+
+  if (!needsGate) return <>{children}</>;
+  if (!verified) return null;
+  return <>{children}</>;
+}

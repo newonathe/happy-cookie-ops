@@ -11,10 +11,12 @@ interface Case {
   ok: boolean;
 }
 
-const { cases } = JSON.parse(readFileSync('tests/fixtures/capacity-cases.json', 'utf8')) as { cases: Case[] };
+const { cases } = JSON.parse(readFileSync('tests/fixtures/capacity-cases.json', 'utf8')) as {
+  cases: Case[];
+};
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
 /**
  * The other half of the parity contract. Runs the SAME fixture against the SQL function

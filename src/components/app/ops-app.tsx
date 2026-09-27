@@ -7,6 +7,7 @@ import { useOpsVals, useOpsEngine } from '@/store/use-ops';
 import { RouteSync } from './route-sync';
 import { OfflineBridge } from './offline-bridge';
 import { ScreenBoundary } from './screen-boundary';
+import { LiveGate } from './live-gate';
 import type { ScreenKey } from '@/lib/screens';
 
 const noSubscription = () => () => undefined;
@@ -24,7 +25,11 @@ function Frame() {
 }
 
 export function OpsApp({ initialScreen }: { initialScreen: ScreenKey }) {
-  const mounted = useSyncExternalStore(noSubscription, () => true, () => false);
+  const mounted = useSyncExternalStore(
+    noSubscription,
+    () => true,
+    () => false
+  );
 
   // The demo engine seeds visible dates from Date.now() at module evaluation.
   // Its static HTML cannot hydrate after the browser clock has moved on.
@@ -32,9 +37,11 @@ export function OpsApp({ initialScreen }: { initialScreen: ScreenKey }) {
 
   return (
     <OpsRuntime>
-      <RouteSync initialScreen={initialScreen} />
-      <OfflineBridge />
-      <Frame />
+      <LiveGate initialScreen={initialScreen}>
+        <RouteSync initialScreen={initialScreen} />
+        <OfflineBridge />
+        <Frame />
+      </LiveGate>
     </OpsRuntime>
   );
 }

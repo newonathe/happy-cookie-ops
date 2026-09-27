@@ -32,13 +32,13 @@ select tablename, rowsecurity from pg_tables
 **3. Vercel preview environment.** Set these on the **Preview** scope only, so a preview
 deploy can never reach the production database:
 
-| Variable | Value |
-| --- | --- |
-| `NEXT_PUBLIC_SUPABASE_URL` | the staging project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | the staging anon key |
-| `SUPABASE_SERVICE_ROLE_KEY` | the staging service-role key |
-| `NEXT_PUBLIC_ENVIRONMENT` | `staging` |
-| `NEXT_PUBLIC_HARNESS` | `1` — the review harness is useful here |
+| Variable                               | Value                                        |
+| -------------------------------------- | -------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`             | the staging project URL                      |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | the staging project's `sb_publishable_…` key |
+| `SUPABASE_SERVICE_ROLE_KEY`            | the staging service-role key                 |
+| `NEXT_PUBLIC_ENVIRONMENT`              | `staging`                                    |
+| `NEXT_PUBLIC_HARNESS`                  | `1` — the review harness is useful here      |
 
 **4. Supabase auth redirect URLs.** Add `https://*-<your-team>.vercel.app/**` to the
 staging project's redirect allowlist, or every preview deploy produces a sign-in loop that
@@ -46,17 +46,17 @@ looks like a code bug.
 
 ## What staging is for
 
-| Use it for | Why |
-| --- | --- |
-| Every migration, before production | The whole reason it exists |
-| The T-14 dry run | Against a copy of her real export, before touching her device |
-| Load tests | `pnpm test:load` places real orders — never at production |
-| A helper's first sign-in | Get the role gate wrong somewhere harmless |
-| Anything involving the service-role key | A leaked staging key costs nothing |
+| Use it for                              | Why                                                           |
+| --------------------------------------- | ------------------------------------------------------------- |
+| Every migration, before production      | The whole reason it exists                                    |
+| The T-14 dry run                        | Against a copy of her real export, before touching her device |
+| Load tests                              | `pnpm test:load` places real orders — never at production     |
+| A helper's first sign-in                | Get the role gate wrong somewhere harmless                    |
+| Anything involving the service-role key | A leaked staging key costs nothing                            |
 
 ## What it is not for
 
-**Not a rehearsal for the real migration.** Staging tells you the migration *runs*. It
+**Not a rehearsal for the real migration.** Staging tells you the migration _runs_. It
 cannot tell you her books came across correctly, because staging does not have her books.
 That is what the T-14 dry run against her actual exported payload is for, and it is
 reviewed by a human.

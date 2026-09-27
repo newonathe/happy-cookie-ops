@@ -9,7 +9,9 @@
  * you nothing about which variable is missing or where to put it.
  */
 export function hasSupabaseConfig(): boolean {
-  return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+  return Boolean(
+    process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+  );
 }
 
 /** Reads a required variable, or fails with a message that says what to do about it. */

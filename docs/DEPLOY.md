@@ -25,9 +25,9 @@ npx vercel --prod
 
 Set exactly one environment variable in the Vercel dashboard:
 
-| Variable | Value | Why |
-| --- | --- | --- |
-| `NEXT_PUBLIC_HARNESS` | `1` | Keeps the device and role pickers, so you can review all three layouts and all three roles from your phone. Set `0` before she uses it. |
+| Variable              | Value | Why                                                                                                                                     |
+| --------------------- | ----- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_HARNESS` | `1`   | Keeps the device and role pickers, so you can review all three layouts and all three roles from your phone. Set `0` before she uses it. |
 
 **What works immediately:** all 25 screens, the full bake-plan and grocery derivations,
 Bazaar Mode including offline sales queuing to IndexedDB, the P&L, and the installable
@@ -69,12 +69,12 @@ the real-time view.
 
 1. Import the repository. Framework preset: Next.js. Build: `pnpm build`.
 2. Environment variables:
-   | Name | Scope | Value |
-   | --- | --- | --- |
-   | `NEXT_PUBLIC_SUPABASE_URL` | all | from Supabase → Settings → API |
-   | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | all | same page |
-   | `SUPABASE_SERVICE_ROLE_KEY` | production, server only | same page — never in a `NEXT_PUBLIC_` name |
-   | `NEXT_PUBLIC_HARNESS` | production | `0` to hide the device/role harness |
+   | Name                                   | Scope                   | Value                                                           |
+   | -------------------------------------- | ----------------------- | --------------------------------------------------------------- |
+   | `NEXT_PUBLIC_SUPABASE_URL`             | all                     | from Supabase → Settings → API                                  |
+   | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | all                     | same page (the `sb_publishable_…` key, not the legacy anon JWT) |
+   | `SUPABASE_SERVICE_ROLE_KEY`            | production, server only | same page — never in a `NEXT_PUBLIC_` name                      |
+   | `NEXT_PUBLIC_HARNESS`                  | production              | `0` to hide the device/role harness                             |
 3. In Supabase → Authentication → URL configuration, set the site URL to the deployment
    and add it to the redirect list.
 4. Push `main`. CI must be green: `pnpm verify` and `pnpm test:e2e`.
@@ -84,7 +84,7 @@ the real-time view.
 ```bash
 docker build \
   --build-arg NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co \
-  --build-arg NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ… \
+  --build-arg NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_… \
   -t happy-cookie-ops .
 docker run -p 3000:3000 -e SUPABASE_SERVICE_ROLE_KEY=… happy-cookie-ops
 ```
@@ -94,8 +94,8 @@ not runtime environment. The image runs as a non-root user and contains no toolc
 
 ## Getting it onto the phone
 
-Android/Chrome: open the site, menu → *Install app*.
-iOS/Safari: Share → *Add to Home Screen*.
+Android/Chrome: open the site, menu → _Install app_.
+iOS/Safari: Share → _Add to Home Screen_.
 
 Installed, it runs standalone with no browser chrome, the manifest's shortcuts put
 Bake plan, Orders and Bazaar Mode on long-press, and the service worker keeps it

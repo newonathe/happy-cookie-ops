@@ -20,9 +20,14 @@ port = 54323
 enabled = true
 site_url = "http://localhost:3000"
 additional_redirect_urls = ["http://localhost:3000"]
-jwt_expiry = 3600
+jwt_expiry = 1800               # docs/RUNBOOK-accounts.md; set the same value on the hosted project's dashboard
 enable_signup = false          # staff accounts are created by the owner, not self-served
 
 [auth.email]
-enable_signup = false
+# This is the email/password PROVIDER switch, not "allow self-serve signup" — that is the
+# top-level auth.enable_signup above (GOTRUE_DISABLE_SIGNUP), which stays false. Setting
+# this to false as well turns off email/password sign-IN entirely (422 email_provider_disabled),
+# which is not what "signup disabled" means for a staff app where the owner still creates
+# accounts and everyone signs in with a password.
+enable_signup = true
 enable_confirmations = false

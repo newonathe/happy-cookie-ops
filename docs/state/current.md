@@ -1,6 +1,85 @@
 # Current state — Happy Cookie Ops
 
-## Current checkpoint — 2026-09-27
+## Current checkpoint — 2026-09-27 (later)
+
+- **next-goal.md Goal 1 — staff sign-in under architecture A — is done locally.** The
+  static export ships with no `src/middleware.ts` (`scripts/build-pages-spike.mjs`
+  deliberately excludes it), so the actual gate for a Workers static-asset deploy is
+  client-side: [src/components/app/live-gate.tsx](../../src/components/app/live-gate.tsx)
+  plus [src/lib/auth/live-gate.ts](../../src/lib/auth/live-gate.ts) and
+  [src/lib/auth/idle-signout.ts](../../src/lib/auth/idle-signout.ts).
+  - Key rename: `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (`sb_publishable_…`) replaces
+    `NEXT_PUBLIC_SUPABASE_ANON_KEY` everywhere (client/server/config/middleware,
+    `.env.example`, CI, Dockerfile, docs). The browser client's own `requireEnv` now reads
+    `process.env.NEXT_PUBLIC_SUPABASE_URL`/`…PUBLISHABLE_KEY` as literal member
+    expressions, not a computed lookup — the computed form silently returns `undefined` in
+    Next's client bundle; verified by grepping a built static export for the literal value.
+  - `NEXT_PUBLIC_APP_MODE` (default `demo`) is set to `live` only by
+    `scripts/build-pages-spike.mjs`. Live mode: no demo/harness bootstrap
+    (`OpsRuntime.renderVals()` starves the role switcher regardless of
+    `NEXT_PUBLIC_HARNESS`, which the static build never sets); staff routes need a real
+    Supabase session; role and routing come from the signed-in profile via RLS
+    (`engine.setRole()`); sign-out uses `{ scope: 'local' }` and never touches the offline
+    sale queue (invariant 2).
+  - **Independent review (Opus, different model from the Sonnet implementation) found two
+    P1s, both fixed and re-verified before commit:**
+    1. The gate was decided once from the page's initial screen. The ported
+       `shop`/`order-status` screens have a "Back to ops" control
+       (`goBackOwner: () => this.go('today')`, protected `ops-engine.js`) that moves the
+       engine straight to a staff screen with no page load and no auth check — an
+       anonymous customer, or a signed-in helper, could reach staff Home this way. Fixed by
+       deriving the gate from the engine's _current_ screen on every render (seeded from
+       the initial screen to avoid gating on the engine's own transient default screen
+       before `RouteSync` corrects it — that default is `'today'` for every route,
+       protected `BASE_STATE`). Covered by a new regression test,
+       `tests/unit/live-gate-component.test.tsx`, that reproduces the exact bypass.
+    2. `supabase.auth.signOut({ scope: 'local' })` does not always remove the local
+       session: reviewed and reproduced against the installed `@supabase/auth-js@2.115.0`
+       — if the access token is expired (the normal case for an idle sign-out with no
+       signal), `_signOut` tries a token refresh first, and an offline refresh failure
+       makes it return before removing the stored session. Fixed by checking `signOut`'s
+       own result and force-clearing the session cookies directly on any error
+       (`src/lib/auth/live-gate.ts`).
+    - Also fixed: a profile re-check that merely can't reach the network (offline, a
+      timeout) is now treated as inconclusive rather than a denial once a session has
+      already been verified once this page load — otherwise Bazaar Mode's own
+      connectivity re-checks would sign the till out for no security reason. A removed
+      false claim of an "8 h absolute session lifetime" (`idle-signout.ts`,
+      `decision-register.md` DP-15) — that was a property of the archived BFF; there is no
+      absolute lifetime under architecture A, which is exactly why the idle timer matters.
+  - Local rehearsal on the actual Supabase stack (Docker, all 28 migrations): provisioned
+    a helper account, confirmed the finance-only `ledger_entries` table is invisible
+    before _and_ after `refreshSession()`, deactivated the account, confirmed it can still
+    read its own (now-inactive) profile row — exactly what `live-gate.ts` depends on — and
+    is fully locked out. This also found and fixed a real local
+    `supabase/config.toml` bug: `[auth.email].enable_signup` is the email/password
+    provider's own on/off switch (`GOTRUE_EXTERNAL_EMAIL_ENABLED`), not "allow self-serve
+    signup" (that's the top-level `[auth].enable_signup`, `GOTRUE_DISABLE_SIGNUP`) — the
+    file had it set off, which silently disabled password sign-in entirely, not just
+    signup.
+  - [docs/RUNBOOK-accounts.md](../RUNBOOK-accounts.md): owner-assisted provisioning,
+    revocation, password recovery with no SMTP, JWT expiry (1800 s, matching
+    `supabase/config.toml`), and Supabase/Cloudflare/GitHub account MFA with offline
+    recovery codes.
+  - `pnpm verify` 32 files/434 tests exit 0; `pnpm test:e2e` 87 passed/3 failed (the same
+    known OFFLINE-01 durable-queue failures)/30 skipped, unchanged from baseline;
+    `pnpm build:pages:spike`/`test:pages:spike`/`test:workers:spike` all pass, `/shop`
+    still hydrates with zero CSP violations and zero JS errors; the built export was
+    grepped for `SERVICE_ROLE`/`sb_secret_<value>` (clean) and for the literal configured
+    Supabase URL/key (found — confirms the env-inlining fix); the SQL role suite passes
+    474 cases/reset across 2 resets.
+  - **Not done:** the hosted Workers static-assets preview (needs Ethan's approval, see
+    next-goal.md "After these goals"); DP-15's exact idle minutes are still Ethan's
+    decision, not this session's (the code marks them "pending DP-15" everywhere they
+    appear); Goal 2 (static CSP headers for direct Supabase) is unstarted.
+  - **Unrelated, noticed mid-session, left alone:** `.codex/config.toml` was reformatted
+    (comments stripped) and gained a `[mcp_servers.codebase-memory-mcp]` entry, and a new
+    `.codex/agents/Explore.toml` appeared — neither was an intentional edit in this
+    session; both look like an automatic side effect of using the codebase-memory-mcp
+    tools rather than anything this session wrote by hand. Left uncommitted for Ethan to
+    review and decide on separately; not part of this commit.
+
+## Prior checkpoint — 2026-09-27 (MP-06n)
 
 - **MP-06 default-privilege hardening is done locally.** The 28th migration
   ([20260101002700_function_default_privileges.sql](../../supabase/migrations/20260101002700_function_default_privileges.sql))

@@ -5,7 +5,7 @@ Paste **one** goal block into a **new conversation started in the repo root**.
 - **Claude Code:** Opus or Sonnet, auto mode on, `/goal …`.
 - **Codex:** the default profile (`gpt-6-sol` high), `/goal …`.
 
-When a goal finishes, the agent deletes its block here, leaves the next one on top, and commits. Rules: [lean plan](lean-plan.md). Architecture A: direct `supabase-js`, with RLS as the boundary. MP-06 default-privilege hardening is done (see [current state](current.md)) and its goal block is removed. The two goals below are independent of each other.
+When a goal finishes, the agent deletes its block here, leaves the next one on top, and commits. Rules: [lean plan](lean-plan.md). Architecture A: direct `supabase-js`, with RLS as the boundary. MP-06 default-privilege hardening is done, and Goal 1 (sign-in/role bootstrap/idle sign-out/accounts) is done (see [current state](current.md)); both goal blocks are removed. The remaining goal is independent.
 
 ## Before starting (once per conversation)
 
@@ -14,48 +14,13 @@ When a goal finishes, the agent deletes its block here, leaves the next one on t
 - If files changed since the last index, re-index first: `index_repository`, repo path `C:/Users/ethan/dev/happy-cookie-ops-g0`.
 - Pinned toolchain: prefix PATH with `C:\Users\ethan\dev\happy-cookie-tools\bin;C:\Users\ethan\dev\happy-cookie-tools\node-v24.20.0-win-x64`.
 - Docker Desktop must be running for SQL work.
-- **Baseline (2026-09-26, commit `c844ff2`):**
-  - `pnpm verify` 28 files / 410 tests;
-  - Python guards 63 OK, via `python -m unittest discover -s <dir> -p "test_*.py"` for each of `tests/unit`, `tests/integration/auth`, `tests/integration/db` and `tests/integration/security`, with `G0_PYTHON_LIBS=C:\Users\ethan\dev\happy-cookie-tools\python-libs-314`;
-  - `pnpm audit --prod` clean;
-  - `pnpm build` passes, and `pnpm test:e2e` re-run on 2026-09-26 gives 87 passed / 3 failed / 30 skipped. The 3 failures are the same known OFFLINE-01 durable-queue test on phone, WebKit and desktop (G3).
+- **Baseline (2026-09-27, sign-in goal accepted):**
+  - `pnpm verify` 32 files / 434 tests;
+  - Python guards 63 OK, via `python -m unittest discover -s <dir> -p "test_*.py"` for each of `tests/unit`, `tests/integration/auth`, `tests/integration/db` and `tests/integration/security`, with `G0_PYTHON_LIBS=C:\Users\ethan\dev\happy-cookie-tools\python-libs-314`; SQL role suite 474 cases/reset, 2 resets;
+  - `pnpm build` passes, and `pnpm test:e2e` gives 87 passed / 3 failed / 30 skipped. The 3 failures are the same known OFFLINE-01 durable-queue test on phone, WebKit and desktop (G3).
 - **Codex only:** run `/status` once in the repo root to confirm the project `.codex/config.toml` loaded. Accept the trust prompt if asked. The project sandbox has no network, so `git push` will ask for approval.
 
-## Goal 1 of 2 — sign-in, role bootstrap, idle sign-out, accounts (MP-07/MP-08)
-
-```text
-/goal Staff sign-in works end to end under architecture A. Proven by command output in this session:
-- One key name everywhere: NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY (sb_publishable_…) replaces
-  NEXT_PUBLIC_SUPABASE_ANON_KEY in src/lib/supabase/{client,server,config}.ts, src/middleware.ts and .env.example.
-  No secret or service key is in any client module or the static export. If the Vercel demo sets the old name,
-  note it for Ethan.
-- A build flag NEXT_PUBLIC_APP_MODE (default "demo", so existing E2E/visual/unit tests keep their fixtures) is set
-  to "live" only by the static-export build.
-  In live mode: no owner/demo bootstrap; staff routes need a Supabase session (otherwise redirect to /sign-in);
-  after sign-in the profile and role load from Supabase through RLS and routing follows the role. Live business
-  data is G2 work, not this goal.
-- /sign-in keeps its current markup and calls supabase-js signInWithPassword.
-- An expired, revoked or deactivated (profiles.active=false) session signs out and fails closed.
-- There is a client-side idle sign-out with per-role minutes in one constant, marked "pending DP-15". It and the
-  normal sign-out use supabase.auth.signOut({ scope: 'local' }), because the default 'global' would sign the user
-  out on every device. It never clears queued offline sales (MASTER-PLAN invariant 2).
-- Helper/support restrictions hold on refresh (SQL role suite).
-- docs/RUNBOOK-accounts.md covers:
-  - owner-assisted provisioning of the 5 staff accounts, with signup disabled and profiles.role/active set;
-  - password recovery through the Supabase dashboard (no email dependency);
-  - Supabase, Cloudflare and GitHub account MFA with offline recovery codes;
-  - Auth JWT expiry set to 1800 s (access tokens stay valid until expiry; RLS's profiles.active check covers
-    deactivation).
-  It is rehearsed once on the local Supabase stack.
-- pnpm verify exits 0; pnpm test:e2e shows no new failures beyond the known 3 offline-queue failures; the
-  port-integrity baseline is unchanged.
-- One independent review (different model) of the auth diff, with no P0-P2 open. Each accepted slice is committed
-  and pushed; status line updated; block removed.
-The archived BFF is not extended. Business-rule questions go to docs/state/decision-register.md, not guesses.
-Stop and report if blocked by an owner decision, if a check still fails after 2 fix attempts, or after 40 turns.
-```
-
-## Goal 2 of 2 — static headers for direct Supabase (MP-04 prerequisite)
+## Next goal — static headers for direct Supabase (MP-04 prerequisite)
 
 ```text
 /goal The static-header generator (scripts/pages-spike-headers.mjs) emits form-action 'self' and a connect-src of

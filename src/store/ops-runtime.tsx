@@ -6,6 +6,7 @@ import { flushQueue, requestBackgroundSync } from '@/lib/offline/sync';
 import { pendingSales } from '@/lib/offline/queue';
 import { plural } from '@/store/engine/ops-engine';
 import type { OpsVals } from '@/view-models/vals';
+import { isLiveMode } from '@/lib/config/app-mode';
 
 /**
  * The engine, with the one simulated behaviour replaced by the real one.
@@ -28,11 +29,16 @@ export class OpsRuntime extends OpsProvider {
    * engine stops producing those lists, and the ported `{(devices ?? []).map(…)}` and
    * `{showPhoneWidths ? … : null}` branches render nothing. Same markup, no chrome.
    *
+   * Live mode starves it unconditionally, regardless of NEXT_PUBLIC_HARNESS: the static
+   * export build never sets that variable, so HARNESS defaults true there, and a signed-in
+   * helper must not be able to flip the role switcher to the owner view. Routing follows
+   * the role loaded from the profile (`src/components/app/live-gate.tsx`), not a picker.
+   *
    * This is not a security boundary. Row-level security is (docs/DATA.md).
    */
   renderVals(): OpsVals {
     const vals = super.renderVals();
-    if (HARNESS) return vals;
+    if (HARNESS && !isLiveMode()) return vals;
     return { ...vals, devices: [], roles: [], showPhoneWidths: false } as OpsVals;
   }
 
@@ -64,7 +70,9 @@ export class OpsRuntime extends OpsProvider {
         syncTried: true,
         unsynced: failed,
         sales: s.sales.map((sale: EventSale) =>
-          sentIds.has(sale.id) ? { ...sale, synced: true, failed: false } : { ...sale, failed: !sale.synced }
+          sentIds.has(sale.id)
+            ? { ...sale, synced: true, failed: false }
+            : { ...sale, failed: !sale.synced }
         )
       }));
       this.toast(

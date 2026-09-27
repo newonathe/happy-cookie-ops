@@ -13,7 +13,7 @@ export async function createClient() {
   const store = await cookies();
   return createServerClient<Database>(
     requireEnv('NEXT_PUBLIC_SUPABASE_URL'),
-    requireEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY'),
+    requireEnv('NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY'),
     {
       cookies: {
         getAll: () => store.getAll(),

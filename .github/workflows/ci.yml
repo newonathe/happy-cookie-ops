@@ -55,7 +55,7 @@ jobs:
       - run: pnpm build
         env:
           NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: build-only-anon-key
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: build-only-publishable-key
 
   e2e:
     name: Browser flows
@@ -76,7 +76,7 @@ jobs:
       - run: pnpm test:e2e
         env:
           NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: local-anon-key-for-build-only
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: local-publishable-key-for-build-only
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
@@ -123,7 +123,7 @@ jobs:
       - run: pnpm test:visual
         env:
           NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-anon-key
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ci-publishable-key
           NEXT_PUBLIC_HARNESS: '0'
       - uses: actions/upload-artifact@v4
         if: failure()
@@ -152,5 +152,5 @@ jobs:
       - run: pnpm build
         env:
           NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-anon-key
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ci-publishable-key
       - run: pnpm lighthouse
