@@ -76,3 +76,20 @@ Each needs a new edit form. **Locked-UI exception approved by Ethan, 2026-09-27*
 **Packing default (DP-03), recommended:** the app assumes the box size (B5) and suggests the number of boxes.
 Cine can change that number when she packs. This keeps box and packaging stock accurate without a
 per-flavour "box footprint" setting.
+
+## E. Provisional answers for Cine's confirmation message (Ethan, 2026-09-27)
+
+Ethan: "assume yes on all the confirmation message; change it later." The build proceeds on these; Cine can
+change any of them in the app or by telling Ethan. Where a question offered options, the simplest starting
+choice is used:
+
+| #   | Topic       | Provisional answer                                                                                                                                   |
+| --- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Payment     | Customers pay first; unpaid orders never reach the bake list                                                                                         |
+| 2   | Cost        | Counted when used in a bake                                                                                                                          |
+| 3   | Pricing     | Starts on "sum of each cookie's menu price" (the engine default; her formula and the flat box price stay selectable). Customers may buy fewer than 6 |
+| 4   | Helpers     | One shared helper login; Cervo and Misty removed; helpers do **not** see sale totals (switch defaults off)                                           |
+| 5   | Bazaar      | One selling phone                                                                                                                                    |
+| 6   | Google Form | Connect it, after the form is redone with fixed fields                                                                                               |
+| 7   | Backups     | Download button anytime plus a weekly backup; no nightly Sheets copy                                                                                 |
+| 8   | Alerts      | Email via Resend is approved in principle but needs a domain Ethan buys; until then in-app alerts and copy-paste reminders                           |

@@ -43,7 +43,7 @@ Owner sources live outside the repo in `C:\Users\ethan\dev\Happy Cookie Ops - Bu
 
 ## Ethan's answers and the configurability principle (2026-09-27)
 
-Ethan answered the owner packet on 2026-09-27 and set a principle: business values Cine sets are editable in the app, not fixed in code. Follow-up the same day: ingredient cost counts **when used** (DP-04), **one** selling phone at the bazaar (DP-18), the locked-UI exception for the new edit forms is approved, and the Google Form should feed the app (DP-11). The full mapping and what stays fixed are in [configurability-audit.md](configurability-audit.md).
+Ethan answered the owner packet on 2026-09-27 and set a principle: business values Cine sets are editable in the app, not fixed in code. Follow-up the same day: ingredient cost counts **when used** (DP-04), **one** selling phone at the bazaar (DP-18), the locked-UI exception for the new edit forms is approved, and the Google Form should feed the app (DP-11). The full mapping and what stays fixed are in [configurability-audit.md](configurability-audit.md). Ethan then told the build to assume "yes" to the whole owner confirmation message until Cine says otherwise; the provisional choices are in section E of that file.
 
 ## Amended decisions (open — block the listed work)
 
