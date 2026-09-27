@@ -60,7 +60,9 @@ export class OpsRuntime extends OpsProvider {
       fresh.screen = 'today';
       this.setState(fresh);
       setTimeout(
-        () => this.toast('Back to empty. Anything you had entered on this device is gone.', 'warn'),
+        // Unlike the demo reset, this must not claim "gone": a sale already queued to
+        // sync lives in IndexedDB (invariant 2), not in this cleared state.
+        () => this.toast('Back to empty. Local records on this device were cleared.', 'warn'),
         80
       );
     };
@@ -133,7 +135,9 @@ export class OpsRuntime extends OpsProvider {
     // trivially this row's own profit (or the reduce's floor of 1 when profit <= 0).
     const trend = Array.isArray(starved.plTrend) ? starved.plTrend : [];
     const profit = this.pnlTotals(this.state).profit;
-    const barHeight = Math.max(6, Math.round((profit / Math.max(1, profit)) * 100));
+    const barHeight = Number.isFinite(profit)
+      ? Math.max(6, Math.round((profit / Math.max(1, profit)) * 100))
+      : 6;
     return {
       ...starved,
       bareFrame: true,

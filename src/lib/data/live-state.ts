@@ -114,12 +114,18 @@ export function liveBaseState(): OpsEngineState {
 /**
  * Removes the saved books from both storages. Never `.clear()` — that would also wipe
  * `hc-device-id`. Shared by live mount, the live Settings reset and sign-out.
+ *
+ * Each storage is accessed inside its own try: in some browsers (site data blocked, a
+ * sandboxed iframe) merely reading `window.localStorage`/`window.sessionStorage` throws a
+ * SecurityError, the same failure mode the protected engine's own `STORES` guards against
+ * (ops-engine.js) — this must not throw and skip the caller's own work (a live mount, or
+ * the redirect in signOutAndRedirect).
  */
 export function clearStoredBooks(): void {
   if (typeof window === 'undefined') return;
-  for (const store of [window.localStorage, window.sessionStorage]) {
+  for (const name of ['localStorage', 'sessionStorage'] as const) {
     try {
-      store.removeItem(STORE_KEY);
+      window[name].removeItem(STORE_KEY);
     } catch {
       // storage may be unavailable: private mode, quota, or a denied permission
     }

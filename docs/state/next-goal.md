@@ -15,7 +15,7 @@ When a goal finishes, the agent deletes its block here, leaves the next one on t
 - Pinned toolchain: prefix PATH with `C:\Users\ethan\dev\happy-cookie-tools\bin;C:\Users\ethan\dev\happy-cookie-tools\node-v24.20.0-win-x64`.
 - Docker Desktop must be running for SQL work.
 - **Baseline (2026-09-27; `pnpm verify` re-run at MP-09 a close, the rest unchanged since the static-header goal):**
-  - `pnpm verify` 36 files / 525 tests;
+  - `pnpm verify` 36 files / 528 tests;
   - Python guards 63 OK, via `python -m unittest discover -s <dir> -p "test_*.py"` for each of `tests/unit`, `tests/integration/auth`, `tests/integration/db` and `tests/integration/security`, with `G0_PYTHON_LIBS=C:\Users\ethan\dev\happy-cookie-tools\python-libs-314`; SQL role suite 474 cases/reset, 2 resets;
   - `pnpm build:pages:spike`/`test:pages:spike`/`test:workers:spike` pass with or without `NEXT_PUBLIC_SUPABASE_URL`/`…PUBLISHABLE_KEY` (local stack values: `supabase status -o env`);
   - `pnpm build` passes, and `pnpm test:e2e` gives 87 passed / 3 failed / 30 skipped. The 3 failures are the same known OFFLINE-01 durable-queue test on phone, WebKit and desktop (G3).

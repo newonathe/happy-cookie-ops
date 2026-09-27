@@ -25,17 +25,66 @@
   declarations, so the override is fully typed (no `any`). The `.d.ts` is not itself protected —
   only `ops-engine.js` is (`scripts/check-port-integrity.mjs` and the pre-tool-use hook both name
   only the `.js` file).
-- Evidence: 80 new unit tests (525 total) — every staff screen renders on all three devices from
-  the live state with no throw, NaN, `undefined` or `Infinity` text and none of three seeded demo
-  names; live mount never reads a stale save and strips it from both storages while keeping
-  `hc-device-id`; live mode never autosaves, even past the debounce window and a `pagehide` flush;
-  demo mode still restores and writes `hc-ops-state-v1` unchanged; the live reset preserves
-  device/role and clears storage; a mocked offline sale queue is untouched by sign-out (jsdom has
-  no IndexedDB, so this is stub-level evidence, not a real-IndexedDB proof). `pnpm verify` 36
-  files/525 tests exit 0; `pnpm build:pages:spike`/`test:pages:spike`/`test:workers:spike` pass
-  with `NEXT_PUBLIC_SUPABASE_URL`/`…PUBLISHABLE_KEY` unset (`connect-src 'self'` only, confirmed
-  from the emitted `_headers`); G0 validator 1196 checks, 0 failures. No protected file edited; no
-  deploy.
+- Evidence: 80 new unit tests (528 total, after the review below) — every staff screen renders on
+  all three devices from the live state with no throw, no `console.error`, no NaN/`undefined`/
+  `Infinity` text, and a `[data-screen-label]` where one is reachable without a prior selection
+  (order/batch/stocktake need one first, in demo mode too — not a live-state regression); none of
+  three seeded demo names appear, with a demo-mode positive control proving each one _does_ render
+  somewhere first; live mount never reads a stale save and strips it from both storages while
+  keeping `hc-device-id`; live mode never autosaves, even past the debounce window and a `pagehide`
+  flush; demo mode still restores an existing save (a real field, not just the write) and keeps
+  writing `hc-ops-state-v1`; the live reset preserves device/role, clears storage and is the exact
+  function `v.confirmReset` calls; the trend recompute is checked against a real nonzero profit
+  (100%), not just the zero-profit case where the clamp floor would hide a missing recompute; a
+  mocked offline sale queue is untouched by sign-out, plus a stubbed `indexedDB.open`/
+  `deleteDatabase` global proving neither is even reached (jsdom has no IndexedDB, so this remains
+  stub-level evidence, not a real-IndexedDB proof — a headless Playwright check is next, once
+  MP-07 finish lands). `pnpm verify` 36 files/528 tests exit 0; `pnpm build:pages:spike`/
+  `test:pages:spike`/`test:workers:spike` pass with `NEXT_PUBLIC_SUPABASE_URL`/`…PUBLISHABLE_KEY`
+  unset (`connect-src 'self'` only, confirmed from the emitted `_headers`); G0 validator 1196
+  checks, 0 failures. No protected file edited; no deploy.
+- **Independent review (Opus, different model from this Sonnet implementation): SAFE TO MERGE, no
+  P0/P1.** Four P2s, three fixed here:
+  1. `clearStoredBooks()` read `window.localStorage`/`window.sessionStorage` _outside_ its own
+     try — in a browser that blocks site data, or a sandboxed iframe, that getter itself can throw
+     a `SecurityError`, crashing the live mount (public shop included) or aborting
+     `signOutAndRedirect` before the redirect. Fixed to read `window[name]` inside the try, the
+     same pattern the protected engine's own `STORES` already uses. New regression test.
+  2. The new live-reset toast claimed "Anything you had entered on this device is gone" — false
+     for a sale already queued to IndexedDB (invariant 2). Reworded to "Local records on this
+     device were cleared," with no claim about the queue.
+  3. (Low) `barHeight` now guards `Number.isFinite(profit)` before the trend formula, matching the
+     protected engine's own behaviour on non-finite input; not a behaviour change today.
+  4. Not fixed, disclosed instead: the sign-out queue-survival test is jsdom-mock-only. The
+     review's own import-chain reading (`live-gate.ts` never imports `@/lib/offline/queue` or
+     touches `indexedDB`) is stronger evidence than the mock; a real check needs headless
+     Playwright once MP-07 finish (offline queue) lands.
+  - Also confirmed by the review: no SSR/hydration risk (`OpsApp` renders `null` until mounted, so
+    `OpsRuntime` never renders server-side); editing `ops-engine.d.ts` is in scope (only
+    `ops-engine.js` is protected, per both the pre-tool-use hook and `scripts/validate-g0.py`); the
+    known MP-07 limitation (a reload drops the on-screen bazaar tally even though IndexedDB rows
+    survive) is already disclosed in [G2-plan.md](G2-plan.md) and not new to this slice.
+- **Caught and reverted, not committed:** running `scripts/validate-g0.py` for evidence overwrote
+  `docs/state/evidence/g0-validation.json` as a side effect (it writes that file regardless of
+  stdout redirection). That file is hash-pinned as frozen G0 evidence in `evidence-index.json`
+  (`sha256 5ca9431…`); the overwrite was reverted with `git checkout 3e4e146 -- …` both times before
+  committing, and the restored file's hash matches the pin. Unlike
+  [MP-06l-evidence-overwrite.json](evidence/MP-06l-evidence-overwrite.json)'s incident, git history
+  made this fully recoverable, so no separate disclosure file was needed — this paragraph is the
+  disclosure. `docs/state/task-status.json`'s `manual_status_values` check also caught a genuine
+  typo in this session (`"in progress"` instead of the enum's `"in_progress"`), fixed before commit.
+- **Known, not fixed — copy that reads as false in live mode, both in protected files:**
+  `src/components/sheets/reset.tsx`'s ported copy ("Everything on this device goes back to the
+  sample books") and the protected engine's `savedText` ("saved on this device as you work," now
+  true only until the next reload). Both need a locked-UI exception decision, like the live-frame
+  one, before they can be corrected — recorded here for that future slice, not decided now.
+- **Disclosed: this slice is over the lean plan's ~400-changed-line guideline.** About 620 authored
+  lines (577 excluding the auto-generated evidence JSON that was reverted anyway), of which
+  roughly 470 are test code across four new/changed test files; ~150 are the actual behaviour
+  change (`live-state.ts`, `ops-runtime.tsx`, `live-gate.ts`, `ops-engine.d.ts`). Continued rather
+  than split mid-flight because the goal's own acceptance criteria (the full screen matrix, the
+  storage-boundary proofs) only hold together as one slice; noted here rather than force-pushed
+  history, since force-push is denied by this repo's tooling.
 
 ## Prior checkpoint — 2026-09-27 (MP-08 closed: idle sign-out defaults, G2 slice 1)
 

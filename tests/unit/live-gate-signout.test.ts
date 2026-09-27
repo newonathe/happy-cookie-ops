@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@/lib/types/database';
 import { STORE_KEY } from '@/store/engine/ops-engine';
@@ -15,15 +15,28 @@ describe('signOutAndRedirect: the offline sale queue survives sign-out', () => {
   const realLocation = window.location;
   const replace = vi.fn();
 
+  const indexedDBOpen = vi.fn();
+  const indexedDBDelete = vi.fn();
+
   beforeEach(() => {
     vi.resetModules();
     replace.mockClear();
+    indexedDBOpen.mockClear();
+    indexedDBDelete.mockClear();
     window.localStorage.clear();
     window.sessionStorage.clear();
     Object.defineProperty(window, 'location', {
       configurable: true,
       value: { ...realLocation, replace }
     });
+    // jsdom has no IndexedDB (tests/setup.ts); this stub exists only so the assertion
+    // below can prove signOutAndRedirect never calls indexedDB.open/deleteDatabase, on
+    // top of the queue-module-mock proof that it never even imports src/lib/offline/queue.
+    vi.stubGlobal('indexedDB', { open: indexedDBOpen, deleteDatabase: indexedDBDelete });
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
   });
 
   it('clears the live books but never touches the IndexedDB sale queue', async () => {
@@ -52,6 +65,8 @@ describe('signOutAndRedirect: the offline sale queue survives sign-out', () => {
     expect(await pendingSales()).toEqual(rows);
     expect(sent).toEqual([]);
     expect(failed).toEqual([]);
+    expect(indexedDBOpen).not.toHaveBeenCalled();
+    expect(indexedDBDelete).not.toHaveBeenCalled();
     expect(window.localStorage.getItem(STORE_KEY)).toBeNull();
     expect(window.sessionStorage.getItem(STORE_KEY)).toBeNull();
     expect(replace).toHaveBeenCalledWith(expect.stringContaining('/sign-in'));

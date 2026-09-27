@@ -107,4 +107,20 @@ describe('clearStoredBooks', () => {
     expect(window.sessionStorage.getItem(STORE_KEY)).toBeNull();
     expect(window.localStorage.getItem('hc-device-id')).toBe('device-abc');
   });
+
+  it('never throws when merely reading a storage getter throws (blocked site data, a sandboxed iframe)', () => {
+    const original = Object.getOwnPropertyDescriptor(window, 'sessionStorage');
+    Object.defineProperty(window, 'sessionStorage', {
+      configurable: true,
+      get(): Storage {
+        throw new DOMException('blocked', 'SecurityError');
+      }
+    });
+
+    try {
+      expect(() => clearStoredBooks()).not.toThrow();
+    } finally {
+      if (original) Object.defineProperty(window, 'sessionStorage', original);
+    }
+  });
 });

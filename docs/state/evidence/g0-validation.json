@@ -352,16 +352,6 @@
       "detail": null
     },
     {
-      "check": "approved_live_frame_once:scripts/port-baseline.json:0",
-      "passed": true,
-      "detail": null
-    },
-    {
-      "check": "approved_live_frame_once:scripts/port-baseline.json:1",
-      "passed": true,
-      "detail": null
-    },
-    {
       "check": "protected_delivery_bytes:scripts/port-baseline.json",
       "passed": true,
       "detail": null
@@ -478,21 +468,6 @@
     },
     {
       "check": "delivery_file_present:supabase/migrations/20260101000000_init.sql",
-      "passed": true,
-      "detail": null
-    },
-    {
-      "check": "approved_bootstrap_function_present",
-      "passed": true,
-      "detail": null
-    },
-    {
-      "check": "approved_bootstrap_open_quote",
-      "passed": true,
-      "detail": null
-    },
-    {
-      "check": "approved_bootstrap_close_quote",
       "passed": true,
       "detail": null
     },
@@ -872,21 +847,6 @@
       "detail": null
     },
     {
-      "check": "approved_live_frame_once:src/components/screens/order-status.tsx:0",
-      "passed": true,
-      "detail": null
-    },
-    {
-      "check": "approved_live_frame_once:src/components/screens/order-status.tsx:1",
-      "passed": true,
-      "detail": null
-    },
-    {
-      "check": "approved_live_frame_once:src/components/screens/order-status.tsx:2",
-      "passed": true,
-      "detail": null
-    },
-    {
       "check": "protected_delivery_bytes:src/components/screens/order-status.tsx",
       "passed": true,
       "detail": null
@@ -973,21 +933,6 @@
     },
     {
       "check": "delivery_file_present:src/components/screens/shop.tsx",
-      "passed": true,
-      "detail": null
-    },
-    {
-      "check": "approved_live_frame_once:src/components/screens/shop.tsx:0",
-      "passed": true,
-      "detail": null
-    },
-    {
-      "check": "approved_live_frame_once:src/components/screens/shop.tsx:1",
-      "passed": true,
-      "detail": null
-    },
-    {
-      "check": "approved_live_frame_once:src/components/screens/shop.tsx:2",
       "passed": true,
       "detail": null
     },
@@ -1333,26 +1278,6 @@
     },
     {
       "check": "delivery_file_present:src/components/shell/app-frame.tsx",
-      "passed": true,
-      "detail": null
-    },
-    {
-      "check": "approved_live_frame_once:src/components/shell/app-frame.tsx:0",
-      "passed": true,
-      "detail": null
-    },
-    {
-      "check": "approved_live_frame_once:src/components/shell/app-frame.tsx:1",
-      "passed": true,
-      "detail": null
-    },
-    {
-      "check": "approved_live_frame_once:src/components/shell/app-frame.tsx:2",
-      "passed": true,
-      "detail": null
-    },
-    {
-      "check": "approved_live_frame_once:src/components/shell/app-frame.tsx:3",
       "passed": true,
       "detail": null
     },
@@ -5965,7 +5890,7 @@
       "check": "current_and_master_local_document_links",
       "passed": true,
       "detail": {
-        "checked": 811,
+        "checked": 287,
         "broken": []
       }
     },
@@ -5986,8 +5911,6 @@
     }
   ],
   "changed_delivery_files": [
-    ".env.example",
-    ".gitignore",
     ".nvmrc",
     "AGENTS.md",
     "CLAUDE.md",
@@ -6002,83 +5925,26 @@
     "sentry.edge.config.ts",
     "sentry.server.config.ts",
     "tsconfig.json",
-    ".codex/config.toml",
-    ".github/dependabot.yml",
-    ".github/pull_request_template.md",
     ".husky/pre-commit",
-    "docs/ARCHITECTURE.md",
-    "docs/BUILD-LOG.md",
-    "docs/CODEX.md",
-    "docs/DATA.md",
-    "docs/DEPLOY.md",
-    "docs/ENVIRONMENTS.md",
-    "docs/GAPS.md",
-    "docs/MESSAGING.md",
-    "docs/OBSERVABILITY.md",
-    "docs/OFFLINE.md",
-    "docs/PORTING.md",
-    "docs/RUNBOOK.md",
-    "docs/SCREENS.md",
     "docs/SESSIONS.md",
-    "docs/STAGING.md",
-    "docs/TECH-DEBT.md",
     "docs/TESTING.md",
-    "docs/WORKFLOW.md",
     "scripts/check-port-integrity.mjs",
-    "scripts/port-baseline.json",
-    "src/middleware.ts",
-    "supabase/config.toml",
     "tests/e2e/bazaar-offline.spec.ts",
-    "tests/e2e/capacity-parity.spec.ts",
     "tests/e2e/screens.spec.ts",
     "tests/e2e/visual.spec.ts",
     "tests/load/drop-open.js",
     "tests/unit/scrub.test.ts",
-    "supabase/migrations/20260101000000_init.sql",
-    "src/lib/rate-limit.ts",
-    "src/store/ops-runtime.tsx",
     "src/view-models/vals.ts",
-    "src/store/engine/ops-engine.d.ts",
     "src/lib/observability/scrub.ts",
     "src/lib/offline/queue.ts",
-    "src/lib/supabase/client.ts",
-    "src/lib/supabase/config.ts",
-    "src/lib/supabase/server.ts",
     "src/lib/types/database.ts",
-    "src/components/app/ops-app.tsx",
-    "src/components/app/route-sync.tsx",
-    "src/components/screens/order-status.tsx",
-    "src/components/screens/shop.tsx",
     "src/components/sheets/add-inv.tsx",
     "src/components/sheets/edit-price.tsx",
     "src/components/sheets/inv-edit.tsx",
     "src/components/sheets/proof.tsx",
     "src/components/sheets/why.tsx",
-    "src/components/shell/app-frame.tsx",
-    "src/app/sign-in/sign-in-form.tsx",
-    "src/app/api/sync/route.ts",
-    "docs/prompts/00-session-protocol.md",
-    "docs/prompts/01-foundation.md",
-    "docs/prompts/02-identity.md",
-    "docs/prompts/03-test-net.md",
-    "docs/prompts/04-postgres.md",
-    "docs/prompts/05-quality.md",
-    "docs/prompts/06-production.md",
-    "docs/prompts/07-review-library.md",
-    "docs/prompts/08-recovery.md",
-    "docs/prompts/09-maintenance.md",
-    ".github/workflows/ci.yml",
-    ".github/workflows/uptime.yml",
-    ".codex/agents/port-auditor.toml",
-    ".codex/agents/security-reviewer.toml",
-    ".codex/agents/test-author.toml",
-    ".claude/agents/port-auditor.md",
-    ".claude/agents/security-reviewer.md",
-    ".claude/agents/test-author.md",
-    ".claude/commands/handoff.md",
-    ".claude/commands/task.md",
-    ".agents/skills/source-command-handoff/SKILL.md"
+    ".github/workflows/ci.yml"
   ],
-  "generator_scratch": "C:\\Users\\ethan\\AppData\\Local\\Temp\\happy-cookie-catalog-k99d08bh",
+  "generator_scratch": "C:\\Users\\ethan\\AppData\\Local\\Temp\\happy-cookie-catalog-3tt5zlyf",
   "failures": []
 }
