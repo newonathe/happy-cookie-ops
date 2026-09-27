@@ -93,3 +93,8 @@ choice is used:
 | 6   | Google Form | Connect it, after the form is redone with fixed fields                                                                                               |
 | 7   | Backups     | Download button anytime plus a weekly backup; no nightly Sheets copy                                                                                 |
 | 8   | Alerts      | Email via Resend is approved in principle but needs a domain Ethan buys; until then in-app alerts and copy-paste reminders                           |
+
+**Superseded 2026-09-28:** Cine answered. #2, #3 (with box sizes 6/8/12), #5 and #8 are confirmed; #1 is
+**changed** (unpaid orders stay on the bake list, with a paid checkbox); #4 changes the helper default
+(totals allowed behind a switch); #6 is unresolved; #7 needed an explanation. See the
+[decision register](decision-register.md) "Cine's answers to the confirmation message".

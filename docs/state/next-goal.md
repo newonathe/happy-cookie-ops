@@ -26,14 +26,17 @@ When a goal finishes, the agent deletes its block here, leaves the next one on t
 Drafted 2026-09-28 by the session that closed b2. What b2 could not do without a migration (see
 [current state](current.md)): `save_setting` has a fixed 24-key table and only `int`/`cents`/`text`
 columns, so `channels` (an object of booleans), `categories` and `inactiveCats` (text arrays) cannot be
-saved, and `taxRate`/`cogsMultiple` lost their 0.5 step. Read the b2 code first
+saved, and `taxRate`/`cogsMultiple` lost their 0.5 step. Cine's 2026-09-28 answers add one more owner setting here:
+a switch that lets helpers see bazaar sale totals (default off; the engine's `showEventMoney` view-model flag,
+set in `OpsRuntime`, with its own locked-UI exception). Read the b2 code first
 (`src/lib/data/settings.ts`, `src/lib/data/settings-sync.ts`, `OpsRuntime.captureSettingsActions`) and
 reuse it; do not build a second sync.
 
 ```text
 /goal MP-09 b3 (docs/state/current.md, MP-09 b2 "Not done"): a new migration, never an edit to
 20260101002800, that lets the owner save (1) notification channels, expense categories and inactive
-categories, and (2) taxRate and cogsMultiple in 0.5 steps. Decide the storage in the plan and say why:
+categories, and (2) taxRate and cogsMultiple in 0.5 steps, and (3) an owner switch letting helpers see bazaar sale totals
+(default off). Decide the storage in the plan and say why:
 e.g. a jsonb column or a separate owner-only table for the three lists (validated: known channel names
 only, bounded list length and text length, no duplicates), and tenths in int_value or a numeric column for
 the two half-step keys (settings_effective(), get_settings() and the parity fixture updated together).

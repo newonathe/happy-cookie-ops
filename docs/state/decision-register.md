@@ -45,6 +45,46 @@ Owner sources live outside the repo in `C:\Users\ethan\dev\Happy Cookie Ops - Bu
 
 Ethan answered the owner packet on 2026-09-27 and set a principle: business values Cine sets are editable in the app, not fixed in code. Follow-up the same day: ingredient cost counts **when used** (DP-04), **one** selling phone at the bazaar (DP-18), the locked-UI exception for the new edit forms is approved, and the Google Form should feed the app (DP-11). The full mapping and what stays fixed are in [configurability-audit.md](configurability-audit.md). Ethan then told the build to assume "yes" to the whole owner confirmation message until Cine says otherwise; the provisional choices are in section E of that file.
 
+## Cine's answers to the confirmation message (2026-09-28, relayed by Ethan)
+
+These replace the provisional answers in [configurability-audit.md](configurability-audit.md) section E.
+Source material she sent at the same time is listed after the table. Payment numbers, recipes, costs and all
+names stay out of the repo: they go into the database through the owner's own edit screens (MP-09 c/d).
+
+| #   | Question                       | Cine's answer                                                                                                               | Effect / still open                                                                                                                                                                                                  |
+| --- | ------------------------------ | --------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Pay first (DP-02)              | **Changed.** Unpaid orders still show on her bake list; she follows up in DMs herself and wants a checkbox to mark one paid | Reverses pay-first for MP-10, MP-12, MP-13 and MP-17. The checkbox is new UI (locked-UI exception needed). **Open:** does an unpaid order hold a slot in the weekly cap (`capacity.ts`)? Asked, not decided          |
+| 2   | Cost counted when used (DP-04) | Confirmed. There is no bookkeeper                                                                                           | No change. Drop the "tell your bookkeeper" note                                                                                                                                                                      |
+| 3   | Pricing                        | Sum of each cookie's own price. Fewer than 6 allowed, not boxed. Only 6, 8 and 12 are boxed; 8 and 12 box prices to follow  | The price mode is already the engine default. **New:** box sizes 8 and 12 (the engine only knows a box of 6: `PACK_SIZE`, `packCostPerCookie`); prices pending from Cine                                             |
+| 4   | Helpers                        | Confirmed: shared helper login, Cervo and Misty removed. Helpers **may** see sale totals, behind an on/off switch           | Cervo/Misty are only in the `users` view-model list: filter them in `OpsRuntime`, no protected edit. The switch is a new setting (MP-09 b3); the engine's `showEventMoney` is a view-model flag the subclass can set |
+| 5   | One selling phone              | She asked whether other devices, like a laptop, can be used                                                                 | Answer (MASTER-PLAN launch rule): yes, any phone, tablet or laptop browser for everything online; offline bazaar selling runs on **one** chosen device at a time                                                     |
+| 6   | Google Form                    | "yes"                                                                                                                       | **Unresolved:** the question offered "connect a redone form" or "close it". Asked again                                                                                                                              |
+| 7   | Backups (DP-10)                | Asked for a reminder of what the nightly Google Sheets copy was                                                             | It was KETH AI's 2 Aug promise of an automatic nightly export of her data into a Google Sheet. The free setup cannot run it; the download button plus a weekly backup stands unless she objects                      |
+| 8   | Customer alerts (DP-12)        | In-app alerts and copy-paste messages                                                                                       | No email domain for now (MP-14). Resend stays possible later                                                                                                                                                         |
+
+**Order-form rules the prototype does not have** (from the September form Cine sent). Each needs a scope
+decision by Ethan and, where it adds UI, a locked-UI exception. None is decided:
+
+- pickups on Monday **and** Thursday, 5 pm cut-off (the engine's `windowsFor` returns Monday only);
+- a campus pickup slot, 2–3:30 pm on those days;
+- same-day pickup for 40% more;
+- delivery choice: Lalamove, Grab or personal pickup;
+- add-ons: note card with a message, ribbon, single stickers, sticker pack;
+- a fixed-price sampler box of every flavour;
+- 5 cookies or fewer packed in bags;
+- payment is currently confirmed by DM after the form, not at checkout.
+
+**Source material received (kept outside the repo):**
+
+- The masterfile workbook (`C:\Users\ethan\dev\The Happy Cookie 2026 masterfile.xlsx`): ingredient unit
+  costs (74), recipe lines (338), per-flavour costing (27 products), suppliers (26), stock in/out logs, a
+  monthly P&L with its own expense categories, and September box costing. Data source for MP-09 c/d and
+  MP-16. Its manual stock count is **not** the opening stock: Cine is recounting.
+- The October menu (7 flavours with prices) and recipes, sent in chat; the packaging list with unit costs;
+  the payment QR codes and account name (GCash, Maya, GoTyme, bank transfer, cash).
+- The September order form (PDF). The live sheet, its Apps Script and the live form are Google links Claude
+  cannot open here (no browser tools; no signing in to the KETH AI account).
+
 ## Amended decisions (open — block the listed work)
 
 **DP-02 · Payment timing** — blocks MP-10, MP-12.

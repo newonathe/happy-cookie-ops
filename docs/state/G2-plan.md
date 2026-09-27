@@ -1,7 +1,7 @@
 # G2 plan — orders, money and stock on the database (2026-09-27)
 
 Approved direction (Ethan, 2026-09-27): "start connecting orders, money and stock to the database". Owner
-answers are provisional "yes" ([configurability audit](configurability-audit.md) section E). Acceptance for every
+answers were provisional "yes" ([configurability audit](configurability-audit.md) section E); **Cine answered on 2026-09-28 and changed pay-first (unpaid orders stay on the bake list)**, see the [decision register](decision-register.md). Re-audit each slice against those answers when its goal is written. Acceptance for every
 package is taken verbatim from `docs/master-plan/tasks.json`. Work loop: one `/goal` per slice from
 [next-goal.md](next-goal.md), in a fresh conversation, each slice under ~400 changed lines.
 
