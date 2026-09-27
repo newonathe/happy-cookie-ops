@@ -1,6 +1,46 @@
 # Current state — Happy Cookie Ops
 
-## Current checkpoint — 2026-09-26
+## Current checkpoint — 2026-09-27
+
+- **MP-06 default-privilege hardening is done locally.** The 28th migration
+  ([20260101002700_function_default_privileges.sql](../../supabase/migrations/20260101002700_function_default_privileges.sql))
+  revokes function EXECUTE from PUBLIC both globally (`FOR ROLE postgres`) and
+  for the `public` schema's `anon`/`authenticated` default (`IN SCHEMA public`),
+  closing the gap [MP-06m](MP-06m-plan.md) proved. It also makes explicit the
+  EXECUTE grants on `current_role_name`, `is_owner`, `is_staff`,
+  `state_is_recognised`, `state_reserves_capacity` and `capacity_allows` —
+  these six had never had an explicit GRANT, so their ACL was purely
+  default-derived and would have silently lost `anon`/`authenticated` EXECUTE
+  on a second `supabase db reset` against the same database once the two
+  revokes above exist (found and fixed after an initial security-reviewer
+  pass caught it; a second pass confirmed the fix and a related catalog-guard
+  gap, verdict SAFE TO MERGE, no P0–P2 open).
+  - [tests/integration/security/future-function-defaults.sql](../../tests/integration/security/future-function-defaults.sql)
+    - `scripts/probe-future-function-defaults.py` prove the new state on two
+      identical 28-migration resets: a brand-new function is not executable by
+      anon/authenticated/PUBLIC, `service_role` keeps its reviewed grant, and no
+      existing function ACL changed.
+  - `scripts/test-db-security.py` adds a catalog-wide guard: every `public`
+    table/partitioned table has RLS enabled, the only `public` views are
+    `shop_products`/`shop_drops`, and no API role (nor PUBLIC) has any
+    privilege in `hco_private`. Two red probes (a table without RLS, a PUBLIC
+    grant into `hco_private`) prove the guard actually fails closed.
+  - `tests/fixtures/mp08g-source-pins.json` now pins 28 migrations; the
+    hardcoded "27 migrations" checks in `scripts/test-auth-fixture.py`,
+    `scripts/test-db-bootstrap.py`, `scripts/test-cleanup-recovery-rpcs.py`,
+    `scripts/test-pages-provider-fixture.py`, `scripts/test-session-repository.py`
+    and `tests/unit/test_auth_fixture.py` all derive the count from that pin
+    file instead.
+  - `pnpm verify` 28/410 exit 0; `python scripts/test-db-security.py` passes
+    474 cases/reset across 2 identical resets plus the new guard; all 63
+    Python unit/integration guards pass; `scripts/test-session-repository.py`,
+    `scripts/test-cleanup-recovery-rpcs.py` and `scripts/test-pages-provider-fixture.py`
+    all report PASS with `migration_count: 28`.
+  - Not done: the managed-Supabase creator/upgrade rehearsal MP-06m flagged as
+    the next step is still open, and hosted acceptance is unstarted. G1 remains
+    incomplete.
+
+## Prior checkpoint — 2026-09-26
 
 - **How we work now:** the [lean plan](lean-plan.md), approved by Ethan on 2026-09-26.
   - **Architecture A:** a static site plus direct Supabase, with RLS as the boundary. The BFF is archived.
@@ -52,7 +92,7 @@
 - **Codex follow-up, later on 2026-09-24:** the earlier n.2 interim assessment above is superseded for the **local injected-bridge criterion** by two consecutive timed fresh-fixture passes, with 24 migrations, no published ports and zero owned residue ([attempt 1](evidence/MP-08n2-timing-attempt1.txt), [attempt 2](evidence/MP-08n2-timing-attempt2.txt)). The previous 503 root cause remains unknown. Actual Workerd-to-provider networking (n.3), integrated browser acceptance and G1 remain open.
 - **Verified today:** full `pnpm verify` on the current tree with the pinned Node 24.20.0 / pnpm 9.12.3 passed 26 files / 387 tests, exit 0 ([receipt](evidence/MP-08n-verify-claude.txt)). The latest full CLI E2E remains 87 passed / 3 failed (durable offline queue) / 30 skipped (SQL fixture) from [MP-07a](MP-07a-plan.md).
 - **Owner decisions:** owner-authored sources (the filled client guide, walkthrough margin comments, the Meeting 1 transcript) conflict with parts of the plan and prototype. They are recorded in the [decision register](decision-register.md). The open questions for the owner are in the [owner decision packet](owner-decision-packet.md), and the materials she offered are tracked in [owner inputs](owner-inputs.md). **G2 (MP-09+) stays blocked** until those are answered.
-- **Open G1 work, in order:** finish MP-08n → MP-06 remaining authority → MP-04 hosted spikes on Pages *and* Workers (DP-14) → MP-08 closure (UI wiring, session cleanup, idle timeout, provisioning) → MP-07 real bootstrap.
+- **Open G1 work, in order:** finish MP-08n → MP-06 remaining authority → MP-04 hosted spikes on Pages _and_ Workers (DP-14) → MP-08 closure (UI wiring, session cleanup, idle timeout, provisioning) → MP-07 real bootstrap.
 - **Who does what:** see the [shared Codex/Claude policy](agent-orchestration.md). Codex owns application code, migrations, tests and fixtures. Claude owns governance/docs and cross-reviews.
 - **Availability update, later on 2026-09-24:** Ethan no longer has a Claude subscription. The [current Codex-only override](agent-orchestration.md) supersedes the prior allocation; independent Codex review replaces queued Claude review. No paid/API fallback is authorized.
 - **MP-08n.3 update, later on 2026-09-24:** the 26-page build and unconfigured emulator pass, but three fresh actual Workerd/provider fixtures fail at login HTTP 503. The latest sanitized diagnostic records zero gateway/provider requests, so the [local runtime boundary](MP-08n3-plan.md) remains unaccepted. A Codex security review also found that expired/failed session cleanup has no scheduled caller. MP-08 and G1 remain open.
@@ -125,12 +165,12 @@ MP-00 through MP-03 foundation acceptance is complete. Product release acceptanc
 
 ## Foundation evidence
 
-| Package | Verified outcome |
-| --- | --- |
-| MP-00 | 675 delivered files preserved; original 347-file audit manifest unchanged. Private source checkpoint established. Current validator: 1,181 checks, zero failures, including schema/DAG/generator reproduction, protected hashes, policy/document links, 70 coverage rows and 75 baseline hashes. |
-| MP-01 | Node 24.20.0 locally/CI/Docker; pnpm 9.12.3 and frozen lock. Verified clean pinned install and reviewed lifecycle setup. Hosted Node 24.19.0 is within the documented supported range and cloud build passes with pinned pnpm through Corepack. |
-| MP-02 | Initial 108 TypeScript diagnostics repaired; flat lint and reporting privacy tests pass. `pnpm verify`: 13 test files, 103 tests, exit 0. Local standalone, Docker and Vercel production builds pass. Five exact owner-approved null guards; other protected render bodies unchanged. |
-| MP-03 | Copy/style/handler/structure/relationship/declaration mutation probes detect changes. Route/offline false positives are rejected. Deterministic fixtures, five valid-sheet captures and 70-row state ledger. All 75 Docker regression snapshots accepted after source/visual review and independent readonly comparison, exit 0. |
+| Package | Verified outcome                                                                                                                                                                                                                                                                                                                 |
+| ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| MP-00   | 675 delivered files preserved; original 347-file audit manifest unchanged. Private source checkpoint established. Current validator: 1,181 checks, zero failures, including schema/DAG/generator reproduction, protected hashes, policy/document links, 70 coverage rows and 75 baseline hashes.                                 |
+| MP-01   | Node 24.20.0 locally/CI/Docker; pnpm 9.12.3 and frozen lock. Verified clean pinned install and reviewed lifecycle setup. Hosted Node 24.19.0 is within the documented supported range and cloud build passes with pinned pnpm through Corepack.                                                                                  |
+| MP-02   | Initial 108 TypeScript diagnostics repaired; flat lint and reporting privacy tests pass. `pnpm verify`: 13 test files, 103 tests, exit 0. Local standalone, Docker and Vercel production builds pass. Five exact owner-approved null guards; other protected render bodies unchanged.                                            |
+| MP-03   | Copy/style/handler/structure/relationship/declaration mutation probes detect changes. Route/offline false positives are rejected. Deterministic fixtures, five valid-sheet captures and 70-row state ledger. All 75 Docker regression snapshots accepted after source/visual review and independent readonly comparison, exit 0. |
 
 See [toolchain](toolchain.md), [protected exception](protected-exception.md), [visual acceptance](visual-review.md), [state coverage](state-coverage.md), and [evidence index](evidence-index.json). The original prototype remains the design answer key. Regression images have visible review controls, frozen fixture/prerequisite differences and inherited clipping; they do not certify prototype pixel identity or all conditional states.
 
