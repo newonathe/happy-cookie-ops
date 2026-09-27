@@ -7,7 +7,8 @@ import { isLiveMode } from '@/lib/config/app-mode';
 import { useOpsEngine, useOpsVals } from '@/store/use-ops';
 import { CUSTOMER_SCREENS, type ScreenKey } from '@/lib/screens';
 import { checkStaffProfile, signOutAndRedirect } from '@/lib/auth/live-gate';
-import { startIdleSignOut } from '@/lib/auth/idle-signout';
+import { idleMinutesFor, startIdleSignOut } from '@/lib/auth/idle-signout';
+import { OpsRuntime } from '@/store/ops-runtime';
 
 /**
  * The live-mode session gate.
@@ -112,7 +113,13 @@ export function LiveGate({
       setVerified(true);
       if (!idleStarted) {
         idleStarted = true;
-        stopIdle = startIdleSignOut(result.role, lockOut);
+        // First verified check only: re-checks (token refresh, tab visible again) must not
+        // reload settings over an edit that is still waiting to save (MP-09 b2).
+        const role = result.role;
+        if (engine instanceof OpsRuntime) void engine.loadSettings(supabase, role);
+        stopIdle = startIdleSignOut(role, lockOut, () =>
+          idleMinutesFor(role, engine.state.cfg as Record<string, unknown> | undefined)
+        );
       }
     }
 

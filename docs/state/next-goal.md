@@ -14,49 +14,39 @@ When a goal finishes, the agent deletes its block here, leaves the next one on t
 - If files changed since the last index, re-index first: `index_repository`, repo path `C:/Users/ethan/dev/happy-cookie-ops-g0`.
 - Pinned toolchain: prefix PATH with `C:\Users\ethan\dev\happy-cookie-tools\bin;C:\Users\ethan\dev\happy-cookie-tools\node-v24.20.0-win-x64`.
 - Docker Desktop must be running for SQL work.
-- **Baseline (2026-09-27; `pnpm verify` re-run at MP-09 b1 close, the rest unchanged since the static-header goal):**
-  - `pnpm verify` 37 files / 573 tests;
+- **Baseline (2026-09-28; `pnpm verify`, the SQL role suite and the Python guards re-run at MP-09 b2 close, the rest unchanged since the static-header goal):**
+  - `pnpm verify` 39 files / 599 tests;
   - Python guards 63 OK, via `python -m unittest discover -s <dir> -p "test_*.py"` for each of `tests/unit`, `tests/integration/auth`, `tests/integration/db` and `tests/integration/security`, with `G0_PYTHON_LIBS=C:\Users\ethan\dev\happy-cookie-tools\python-libs-314`; SQL role suite 506 cases/reset, 2 resets;
   - `pnpm build:pages:spike`/`test:pages:spike`/`test:workers:spike` pass with or without `NEXT_PUBLIC_SUPABASE_URL`/`…PUBLISHABLE_KEY` (local stack values: `supabase status -o env`);
   - `pnpm build` passes, and `pnpm test:e2e` gives 87 passed / 3 failed / 30 skipped. The 3 failures are the same known OFFLINE-01 durable-queue test on phone, WebKit and desktop (G3).
 - **Codex only:** run `/status` once in the repo root to confirm the project `.codex/config.toml` loaded. Accept the trust prompt if asked. The project sandbox has no network, so `git push` will ask for approval.
 
-## Next goal — MP-09 b2: settings on the database, app half (G2 slice 4)
+## Next goal — MP-09 b3: preferences and half steps on the database (G2 slice 4, remainder)
 
-Drafted 2026-09-27 by the session that closed b1, from [G2-plan.md](G2-plan.md) "Slice audit" MP-09 b's b2
-bullets — not re-audited against the code the way MP-09 a's and b1's blocks were, so read the engine's
-Settings-screen action handlers and `src/store/ops-runtime.tsx` before starting and correct anything below
-that the code contradicts. Runs on Sonnet; DP-15's locked-UI exception is already approved (decision
-register, 2026-09-27) for the idle-minutes control specifically — any other new control needs its own
-exception recorded in `protected-exception.md` first, not assumed.
+Drafted 2026-09-28 by the session that closed b2. What b2 could not do without a migration (see
+[current state](current.md)): `save_setting` has a fixed 24-key table and only `int`/`cents`/`text`
+columns, so `channels` (an object of booleans), `categories` and `inactiveCats` (text arrays) cannot be
+saved, and `taxRate`/`cogsMultiple` lost their 0.5 step. Read the b2 code first
+(`src/lib/data/settings.ts`, `src/lib/data/settings-sync.ts`, `OpsRuntime.captureSettingsActions`) and
+reuse it; do not build a second sync.
 
 ```text
-/goal MP-09 b2 (docs/state/G2-plan.md "Slice audit", MP-09 b b2): the Settings screen reads and writes the
-database now, not just cfg in memory. On verified sign-in, OpsRuntime (subclass, never the protected
-engine) loads get_settings() for the owner or get_operating_settings() for helper/support into state.cfg,
-converting cents keys through src/lib/money.ts (centavosFromDb/centavosToPesos at the boundary); every
-staff-safe key get_operating_settings() does not return (a helper/support session) keeps the engine's
-DEFAULT_CFG default rather than showing stale or missing data. Saves: capture the existing settings
-actions' base call (setCfg/bumpCfg/numCfg/setRetention/pickPriceMode+publishPriceMode; do not edit the
-protected engine to add new ones) and call save_setting with the key's current updated_at as
-expected_updated_at, debounced per key so a fast bumpCfg doesn't fire one request per tick; on a 'settings
-save conflict' (P0002) reload from get_settings()/get_operating_settings() and toast that someone else
-changed it; offline, revert the optimistic local change and toast that it did not save. Idle minutes:
-src/lib/auth/idle-signout.ts reads idleMinutesOwner/Support/Helper from get_operating_settings() when
-present, clamped 15-480, falling back to IDLE_MINUTES when absent (not yet saved, or offline). New
-locked-UI-exception edit forms for the numeric/enum settings save_setting() already validates, and for
-idle minutes specifically; record the exception in protected-exception.md and register it in
-scripts/validate-g0.py like the live-frame one, in the same commit. channels/categories/inactiveCats
-(currently local-only cfg) get their own save/load through save_setting the same way, closing the
-"non-config preferences" gap MP-09's acceptance list names. Unit tests: a verified owner sign-in loads
-real database values into cfg, converting money correctly; a helper/support sign-in loads the staff
-projection and never shows a cost key; a debounced save coalesces rapid edits into one call; a conflict
-reloads and toasts without losing unrelated in-flight edits; offline reverts and toasts; idle minutes
-respect the database value when present and IDLE_MINUTES when absent, clamped 15-480 either way. All exit
-0 in this session: pnpm verify; the SQL role suite unaffected (b1's fixture, no migration change expected
-unless the code review finds save_setting itself needs one — say so and stop rather than improvising a new
-migration under this goal). Hosted preview not updated. Committed and pushed; status updated; block
-removed. No deploy. Stop after 2 failed fix attempts or 20 turns.
+/goal MP-09 b3 (docs/state/current.md, MP-09 b2 "Not done"): a new migration, never an edit to
+20260101002800, that lets the owner save (1) notification channels, expense categories and inactive
+categories, and (2) taxRate and cogsMultiple in 0.5 steps. Decide the storage in the plan and say why:
+e.g. a jsonb column or a separate owner-only table for the three lists (validated: known channel names
+only, bounded list length and text length, no duplicates), and tenths in int_value or a numeric column for
+the two half-step keys (settings_effective(), get_settings() and the parity fixture updated together).
+Same RPC rules as b1: SECURITY DEFINER, search_path '', owner check first, expected_updated_at conflict
+check, explicit grants, SQL role-suite cases per actor. Helpers/support must not read the lists unless a
+screen they use needs them (check first). App: extend src/lib/data/settings.ts and SettingsSync; capture
+the engine's addCategory/renameCategory/toggleCategory and the channel toggle (the engine never defines
+toggleChannel: check whether the separate fix has landed first). renameCategory also rewrites ledger
+categories, which stay local until MP-15: say so, do not save the ledger. Restore the 0.5 step on the live
+rules rows and remove that part of the b2 locked-UI exception record. Unit tests for each list round-trip
+and a half-step save. All exit 0 in this session: pnpm verify, the SQL role suite, the Python guards, the
+G0 validator (revert evidence/*.json churn). Independent different-model review (SQL + money). Committed
+and pushed; status updated; block removed. No deploy. Stop after 2 failed fix attempts or 20 turns.
 ```
 
 ## After these goals

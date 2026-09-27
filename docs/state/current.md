@@ -1,6 +1,51 @@
 # Current state — Happy Cookie Ops
 
-## Current checkpoint — 2026-09-27 (MP-09 b1: settings on the database, database half, G2 slice 3)
+## Current checkpoint — 2026-09-28 (MP-09 b2: settings on the database, app half, G2 slice 4)
+
+- **MP-09 b2 is complete locally, except the preferences, which need a migration.** In live mode the
+  Settings values now come from and go to the database. On the first verified sign-in the live gate
+  calls `OpsRuntime.loadSettings(client, role)`: the owner reads `get_settings()`, helper and support
+  read `get_operating_settings()`, into `state.cfg` on top of `DEFAULT_CFG`. A key the staff projection
+  does not return keeps its default, so a helper never sees a cost key, even one left on the device.
+- [src/lib/data/settings.ts](../../src/lib/data/settings.ts) holds the one key→column map (`int`/
+  `cents`/`text`, parity-tested against `tests/fixtures/settings-cases.json`). The four `cents` keys are
+  converted through `src/lib/money.ts` both ways; `discountA`/`discountB` stay whole pesos.
+  [src/lib/data/settings-sync.ts](../../src/lib/data/settings-sync.ts) sends one `save_setting` per
+  key 600 ms after the last edit, with the `updated_at` it last read:
+  - a conflict (`P0002`) reloads and toasts. Keys with an edit still waiting or in flight keep their
+    local value and their old `updated_at`, so they are not lost and cannot overwrite the other change
+    unchecked;
+  - offline, a refusal (`22023`/`42501`) or a typed fraction reverts to the last saved value and toasts.
+- `OpsRuntime` wraps the engine's `setCfg`/`bumpCfg`/`numCfg`/`publishPriceMode`/`extendDrop`/
+  `closeDrop` in live mode (`closeDrop` resets `extendH`; unsaved, later drops would close late). The
+  protected engine is untouched; `componentDidUpdate`'s prop-driven cfg writes are the harness tweak
+  panel, which live mode never shows.
+- **Idle sign-out** reads `idleMinutesOwner`/`Support`/`Helper` from `cfg` on every activity, clamped
+  15–480, falling back to `IDLE_MINUTES` when absent (not saved yet, the read failed, or offline).
+- **Locked-UI exception** ([protected-exception.md](protected-exception.md), no protected file changed:
+  the ported rules sheet maps over `v.rules`): three idle-minute rows on the live owner's rules sheet;
+  "Tax set-aside" and "Cost multiplier" step by 1, not 0.5, because `save_setting` stores whole numbers
+  (Ethan left this to Claude on 2026-09-28).
+- **Not done: needs a new migration.** The goal said to stop rather than improvise one:
+  - `channels`/`categories`/`inactiveCats` cannot go through `save_setting` (a fixed 24-key table,
+    `int`/`cents`/`text` columns only). MP-09's "non-config preferences" acceptance therefore stays
+    open, and in live mode these three stay in memory only;
+  - half-percent tax and half-step multipliers need storage in tenths or a numeric column.
+  Drafted as the next goal (MP-09 b3).
+- **Found, not fixed:** the engine calls `this.toggleChannel` but never defines it, so the notification
+  toggles throw. Flagged as a separate task.
+- **Independent review (Sonnet, a different model from this Opus implementation): SAFE TO MERGE, no
+  P0/P1.** It confirmed no cost key reaches helper/support, one money conversion each way, an idle timer
+  that cannot fail open, no trusted client role, and nothing new outside live mode. Two low notes, both
+  already covered: the `null` `updated_at` cast carries a comment, and `reload()`'s docstring explains
+  the busy-key skip. A second conflict on an edit made mid-flight resolves one round trip later.
+- **Evidence (this session):** `pnpm verify` 39 files/599 tests exit 0 (26 new tests; two deliberate
+  mutations — dropping the `closeDrop` save and the busy-key skip on reload — were each caught). SQL role
+  suite 508 cases/reset × 2 (no migration change). Python guards 37 unit + 3 auth + db + security OK.
+  G0 validator 1196 checks/0 failures. The evidence files the runs rewrote were reverted again. No
+  hosted preview update, no deploy.
+
+## Prior checkpoint — 2026-09-27 (MP-09 b1: settings on the database, database half, G2 slice 3)
 
 - **MP-09 b1 is complete locally.** Direct writes to `public.settings` are gone: `insert`/
   `update`/`delete` are revoked from `anon`/`authenticated` (the owner keeps raw `SELECT`

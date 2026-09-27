@@ -44,3 +44,26 @@ list (`PRODUCTS`: name, description, photo, allergens, permanent/rotating) and t
 B1, B2). No visible change to any screen. The slice that applies it must keep the change minimal, record the
 exact edit here, register it as exact reversals in `scripts/validate-g0.py`, and pass an independent port audit.
 
+
+# MP-09 b2 locked-UI exception: settings rules sheet in live mode (2026-09-28)
+
+Status: APPLIED under Ethan's 2026-09-27 approval of the DP-15 idle-minutes control (decision register), plus
+his 2026-09-28 answer leaving the half-step question to Claude ("up to u"). Live owner only
+(`NEXT_PUBLIC_APP_MODE=live` and role `owner`); demo, dev, CI and the visual baselines render exactly as before.
+
+**No protected file changed.** The ported rules sheet (`src/components/sheets/rules.tsx`) maps over `v.rules`,
+so both changes are made in `OpsRuntime.renderVals()` (`src/store/ops-runtime.tsx`, subclass). The delivery-
+manifest hash in `scripts/validate-g0.py` already proves `rules.tsx` and `ops-engine.js` are byte-identical,
+so there is no exact reversal to register there, unlike the live-frame exception.
+
+- **Three new rows** at the end of the rules list: "Sign Cine out after", "Sign support out after", "Sign
+  helpers out after". Each uses the ported row markup unchanged (−/+ in 15-minute steps, a typed value,
+  "Now: N minutes idle"), clamped 15–480, saved as `idleMinutesOwner`/`Support`/`Helper` through
+  `save_setting`. Note copy: "With no taps for this long, the device signs out. 15 minutes to 8 hours."
+- **Whole steps for two existing rows.** "Tax set-aside" and "Cost multiplier" step by 1 instead of the
+  prototype's 0.5, because `save_setting` stores whole numbers (`int_value` is `bigint`, migration
+  20260101002800). A typed fraction is reverted on the device with a toast and never sent. Restoring the
+  half-steps needs a new migration (for example storing tenths); it is recorded as open in `current.md`.
+
+Evidence: `tests/unit/ops-runtime-settings.test.tsx` (owner rows present, helper rows absent, whole steps,
+idle ±15), `tests/unit/settings-sync.test.ts` (fraction reverted, never sent).

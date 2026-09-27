@@ -67,6 +67,13 @@ export declare class OpsEngine extends React.Component<OpsEngineProps, OpsEngine
   /** Clears storage and returns to BASE_STATE(). An instance field, not a prototype method. */
   resetData: () => void;
   pnlTotals(state: OpsEngineState): { profit: number };
+  /** The engine's settings actions, all instance fields. Each writes `state.cfg`. */
+  setCfg: (key: string, value: unknown) => void;
+  bumpCfg: (key: string, delta: number, min: number, max: number) => void;
+  numCfg: (key: string, value: unknown, min: number, max: number) => void;
+  publishPriceMode: () => void;
+  extendDrop: () => void;
+  closeDrop: () => void;
 }
 
 export declare class OpsProvider extends OpsEngine {}

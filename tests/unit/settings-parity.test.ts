@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { pesosToCentavos } from '@/lib/money';
+import { SETTING_COLUMNS } from '@/lib/data/settings';
 import settingsCases from '../fixtures/settings-cases.json';
 
 /**
@@ -125,5 +126,11 @@ describe('settings-cases.json against the migration', () => {
       ...migrationSource.matchAll(/\n\s*\('([a-zA-Z]+)',\s*'(?:int|cents|text)',/g)
     ].map((m) => m[1]);
     expect(new Set(inMigration)).toEqual(new Set(cases.map((c) => c.key)));
+  });
+});
+
+describe('settings-cases.json against the app adapter (MP-09 b2)', () => {
+  it('src/lib/data/settings.ts puts every key in the same column as the fixture', () => {
+    expect(SETTING_COLUMNS).toEqual(Object.fromEntries(cases.map((c) => [c.key, c.column])));
   });
 });

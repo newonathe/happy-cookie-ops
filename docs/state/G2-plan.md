@@ -113,6 +113,8 @@ Method: each question was answered from the code or a throwaway render probe, no
   - idle minutes read from the projection;
   - the new Settings controls;
   - the preferences above.
+- **b2 done 2026-09-28** except the preferences and the 0.5 steps, which need a migration: split out as
+  b3 ([next goal](next-goal.md)). MP-09 b cannot close before b3.
 - Hosted preview: not updated until Ethan runs `supabase login` (see below).
 
 ## Hosted preview during G2

@@ -1,13 +1,21 @@
 'use client';
 
-import { OpsProvider } from '@/store/engine/ops-engine';
-import type { EventSale, OpsEngineProps } from '@/store/engine/ops-engine';
+import { DEFAULT_CFG, OpsProvider } from '@/store/engine/ops-engine';
+import type { EventSale, OpsEngineProps, Role } from '@/store/engine/ops-engine';
 import { flushQueue, requestBackgroundSync } from '@/lib/offline/sync';
 import { pendingSales } from '@/lib/offline/queue';
 import { plural } from '@/store/engine/ops-engine';
 import type { OpsVals } from '@/view-models/vals';
 import { isLiveMode } from '@/lib/config/app-mode';
 import { clearStoredBooks, liveBaseState } from '@/lib/data/live-state';
+import type { SettingsClient } from '@/lib/data/settings';
+import { SettingsSync } from '@/lib/data/settings-sync';
+import {
+  IDLE_MINUTES_MAX,
+  IDLE_MINUTES_MIN,
+  IDLE_SETTING_KEYS,
+  idleMinutesFor
+} from '@/lib/auth/idle-signout';
 
 /**
  * The engine, with the one simulated behaviour replaced by the real one.
@@ -35,8 +43,23 @@ export function deviceForWidth(width: number): Device {
   return 'desktop';
 }
 
+/**
+ * DP-15's owner-editable idle minutes (MP-09 b2): three extra rows for the ported rules
+ * sheet, which maps over `v.rules`, so no protected markup changes. Live owner only; the
+ * locked-UI exception is recorded in docs/state/protected-exception.md.
+ */
+const IDLE_ROWS: Array<{ role: Role; label: string }> = [
+  { role: 'owner', label: 'Sign Cine out after' },
+  { role: 'support', label: 'Sign support out after' },
+  { role: 'helper', label: 'Sign helpers out after' }
+];
+
+/** `taxRate`/`cogsMultiple` step 0.5 in the prototype; `save_setting` stores whole numbers. */
+const WHOLE_STEP_KEYS = new Set(['taxRate', 'cogsMultiple']);
+
 export class OpsRuntime extends OpsProvider {
   private stopViewportTracking?: () => void;
+  private settingsSync?: SettingsSync;
 
   /**
    * Live mode never shows or stores the demo books (docs/state/G2-plan.md "Slice audit",
@@ -65,7 +88,65 @@ export class OpsRuntime extends OpsProvider {
         () => this.toast('Back to empty. Local records on this device were cleared.', 'warn'),
         80
       );
+      void this.settingsSync?.reload();
     };
+    this.captureSettingsActions();
+  }
+
+  /**
+   * MP-09 b2: every engine action that writes `cfg` keeps its own optimistic change and
+   * copy, then queues the touched key for `save_setting`. `setRetention` and `setCapacity`
+   * go through `setCfg`/`numCfg`, and the rules/schedule rows call `this.bumpCfg` at tap
+   * time, so they are covered by the first three. `componentDidUpdate`'s prop-driven cfg
+   * writes are the review harness's tweak panel, which live mode never renders.
+   */
+  private captureSettingsActions(): void {
+    const queue = (key: string) => this.settingsSync?.queue(key);
+    const { setCfg, bumpCfg, numCfg, publishPriceMode, extendDrop, closeDrop } = this;
+    this.setCfg = (key, value) => {
+      setCfg(key, value);
+      queue(key);
+    };
+    this.bumpCfg = (key, delta, min, max) => {
+      bumpCfg(key, delta, min, max);
+      queue(key);
+    };
+    this.numCfg = (key, value, min, max) => {
+      numCfg(key, value, min, max);
+      queue(key);
+    };
+    this.publishPriceMode = () => {
+      publishPriceMode();
+      queue('priceMode');
+    };
+    this.extendDrop = () => {
+      extendDrop();
+      queue('extendH');
+    };
+    // Closing a drop resets extendH to 0; unsaved, every later drop would close late.
+    this.closeDrop = () => {
+      closeDrop();
+      queue('extendH');
+    };
+  }
+
+  /**
+   * Called by the live gate once, on the first verified sign-in: the owner reads every
+   * setting, helper and support the staff-safe projection, into `cfg`. `role` is the
+   * verified profile role, passed in because `setRole` has not landed in `state` yet.
+   */
+  loadSettings(client: SettingsClient, role: Role): Promise<boolean> {
+    if (!isLiveMode()) return Promise.resolve(false);
+    this.settingsSync?.dispose();
+    this.settingsSync = new SettingsSync(client, {
+      role: () => role,
+      cfg: () => (this.state.cfg ?? {}) as Record<string, unknown>,
+      applyCfg: (patch) =>
+        this.setState((s) => ({ cfg: { ...(s.cfg as Record<string, unknown>), ...patch } })),
+      online: () => this.state.online && (typeof navigator === 'undefined' || navigator.onLine),
+      toast: (message, tone) => this.toast(message, tone)
+    });
+    return this.settingsSync.load(DEFAULT_CFG);
   }
 
   /**
@@ -103,6 +184,7 @@ export class OpsRuntime extends OpsProvider {
   componentWillUnmount(): void {
     super.componentWillUnmount?.();
     this.stopViewportTracking?.();
+    this.settingsSync?.dispose();
   }
 
   /**
@@ -147,8 +229,45 @@ export class OpsRuntime extends OpsProvider {
       frameStyle:
         'width: 100%; height: 100%; transform: scale(1); transform-origin: top left; display: flex; overflow: hidden; background: ' +
         (this.state.device === 'desktop' ? '#F6F4F2' : '#FFFFFF'),
-      plTrend: trend.filter((row) => row.now).map((row) => ({ ...row, v: barHeight }))
+      plTrend: trend.filter((row) => row.now).map((row) => ({ ...row, v: barHeight })),
+      rules: this.state.role === 'owner' ? this.liveRules(starved.rules ?? []) : starved.rules
     };
+  }
+
+  /** The rules sheet in live mode: whole steps where the database needs them, plus idle minutes. */
+  private liveRules(rules: OpsVals['rules']): OpsVals['rules'] {
+    const cfg = (this.state.cfg ?? {}) as Record<string, unknown>;
+    const whole = rules.map((row) => {
+      const { k, min, max } = row as { k?: string; min?: number; max?: number };
+      if (!k || !WHOLE_STEP_KEYS.has(k) || min == null || max == null) return row;
+      return {
+        ...row,
+        down: () => this.bumpCfg(k, -1, min, max),
+        up: () => this.bumpCfg(k, 1, min, max)
+      };
+    });
+    const clamp = (n: number) => Math.min(IDLE_MINUTES_MAX, Math.max(IDLE_MINUTES_MIN, n));
+    const idle = IDLE_ROWS.map(({ role, label }) => {
+      const k = IDLE_SETTING_KEYS[role];
+      const minutes = idleMinutesFor(role, cfg);
+      return {
+        k,
+        label,
+        value: minutes,
+        valueText: plural(minutes, 'minute', 'minutes') + ' idle',
+        note: 'With no taps for this long, the device signs out. 15 minutes to 8 hours.',
+        down: () => this.setCfg(k, clamp(minutes - 15)),
+        up: () => this.setCfg(k, clamp(minutes + 15)),
+        set: (e?: unknown) =>
+          this.numCfg(
+            k,
+            (e as { target?: { value?: unknown } } | undefined)?.target?.value,
+            IDLE_MINUTES_MIN,
+            IDLE_MINUTES_MAX
+          )
+      };
+    });
+    return [...whole, ...idle];
   }
 
   syncNow = (): void => {
