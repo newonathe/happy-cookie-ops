@@ -100,11 +100,12 @@ def source_pins() -> dict:
 def migration_inputs(pins: dict | None = None) -> list[tuple[str, bytes, str]]:
     pins = pins or source_pins()
     paths = sorted(MIGRATIONS.glob("[0-9]*_*.sql"))
-    expected = [f"{20260101000000 + 100 * index:014d}" for index in range(27)]
+    expected_count = len(pins["migrations"])
+    expected = [f"{20260101000000 + 100 * index:014d}" for index in range(expected_count)]
     if ([path.name[:14] for path in paths] != expected
             or set(pins["migrations"]) != {path.name for path in paths}
             or any(not re.fullmatch(r"[a-f0-9]{64}", value) for value in pins["migrations"].values())):
-        fail("expected exactly 27 reviewed application migration files")
+        fail(f"expected exactly {expected_count} reviewed application migration files")
     ddl = re.compile(r"(?im)^\s*(?:create\s+(?:or\s+replace\s+)?(?:table|function|schema|view|sequence)|alter\s+(?:table|function)|drop\s+(?:table|function|schema)|grant\b.*\bon|revoke\b.*\bon)\b[^;\n]*\bauth\s*\.")
     inputs = [(path.name, path.read_bytes(), "") for path in paths]
     if any(ddl.search(content.decode("utf-8")) for _name, content, _hash in inputs):

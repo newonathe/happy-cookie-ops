@@ -688,8 +688,8 @@ def main() -> int:
         fail("reviewed repository source or owned fixture helper is missing")
     pins = h.source_pins()
     inputs = h.migration_inputs(pins)
-    if len(inputs) != 27 or MIGRATION.name not in {name for name, _content, _digest in inputs}:
-        fail("expected exactly 27 pinned migrations including the session repository")
+    if len(inputs) != len(pins["migrations"]) or MIGRATION.name not in {name for name, _content, _digest in inputs}:
+        fail("expected exactly the pinned migrations including the session repository")
     h.require_local_docker(ROOT)
     reports = [run_pair(index, inputs) for index in (1, 2)]
     if reports[0] != reports[1] or reports[0]["scenarios"] != sorted(SCENARIOS):

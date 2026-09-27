@@ -1,0 +1,8 @@
+{
+  "status": "passed",
+  "resets": 2,
+  "cleanup": "passed",
+  "catalogs_equal": true,
+  "schemas_equal": true,
+  "expected_migration_count": 28
+}

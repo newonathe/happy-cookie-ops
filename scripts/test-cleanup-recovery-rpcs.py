@@ -26,7 +26,7 @@ r = load("session_repository_fixture", ROOT / "scripts/test-session-repository.p
 h = r.h
 RECOVERY_MIGRATION = ROOT / "supabase/migrations/20260101002400_bff_cleanup_recovery.sql"
 FINAL_MIGRATION = ROOT / "supabase/migrations/20260101002500_bff_cleanup_fair_claims.sql"
-LATEST_MIGRATION = ROOT / "supabase/migrations/20260101002600_erasure_digest_authority.sql"
+LATEST_MIGRATION = ROOT / "supabase/migrations/20260101002700_function_default_privileges.sql"
 RPCS = ("bff_session_save_cleanup_rotation", "bff_session_complete_if_provider_absent")
 
 
@@ -128,7 +128,7 @@ def assert_roles(pair: dict, session_hash: str, fence: str, user: str,
 def live_probe() -> dict:
     pins = h.source_pins()
     inputs = h.migration_inputs(pins)
-    if (len(inputs) != 27 or inputs[-1][0] != LATEST_MIGRATION.name or
+    if (len(inputs) != len(pins["migrations"]) or inputs[-1][0] != LATEST_MIGRATION.name or
             not {RECOVERY_MIGRATION.name, FINAL_MIGRATION.name}.issubset({name for name, _content, _digest in inputs})):
         fail("migration_pin_count")
     pair = h.empty_pair(1)
@@ -208,7 +208,7 @@ def live_probe() -> dict:
         if state != ["revoked", "complete", "t", "1"]:
             fail("completion_state_or_envelope_wrong")
         require_empty(absent(pair, session_hash, fence, user, provider), "completed_row_replayed")
-        return {"status": "PASS", "migration_count": 27, "role_denials": 4,
+        return {"status": "PASS", "migration_count": len(pins["migrations"]), "role_denials": 4,
                 "rotation_cas": True, "concurrent_rotation_cas": True,
                 "opaque_envelope_not_returned": True,
                 "present_and_wrong_user_auth_rows_retained": True,

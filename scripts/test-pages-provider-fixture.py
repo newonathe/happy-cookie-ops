@@ -183,9 +183,10 @@ def run_fixture(callback: Callable[[dict], dict]) -> dict:
     if not callable(callback):
         fail("fixture callback must be callable")
     h.require_local_docker(ROOT)
-    inputs = h.migration_inputs(h.source_pins())
-    if len(inputs) != 27:
-        fail("expected exactly 27 pinned migrations")
+    pins = h.source_pins()
+    inputs = h.migration_inputs(pins)
+    if len(inputs) != len(pins["migrations"]):
+        fail("expected exactly the pinned migration count")
     pair = h.empty_pair(1)
     try:
         h.create_pair(pair, synthetic_signup=True)
@@ -213,7 +214,7 @@ def main() -> int:
     if len(sys.argv) != 1:
         fail("provider fixture accepts no URLs, credentials, ports, or arguments")
     receipt = run_fixture(smoke)
-    print(json.dumps({"status": "PASS", "checks": receipt, "migration_count": 27,
+    print(json.dumps({"status": "PASS", "checks": receipt, "migration_count": len(h.source_pins()["migrations"]),
                       "postgrest_image": POSTGREST_ID, "published_host_ports": 0,
                       "cleanup": {"owned_containers": 0, "owned_networks": 0, "owned_workdirs": 0}}, sort_keys=True))
     return 0

@@ -18,6 +18,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SUPABASE = ROOT / "node_modules/.pnpm/@supabase+cli-windows-x64@2.116.0/node_modules/@supabase/cli-windows-x64/bin/supabase.exe"
 MIGRATIONS = ROOT / "supabase/migrations"
 ASSERTIONS = ROOT / "tests/integration/db/bootstrap.sql"
+PINS = ROOT / "tests/fixtures/mp08g-source-pins.json"
 PREFIX = ".hcb-bootstrap-"
 DOCKER = ["docker", "--context", "default"]
 LOCAL_ENV = {key: value for key, value in __import__("os").environ.items() if key.upper() in {"PATH", "SYSTEMROOT", "WINDIR", "TEMP", "TMP", "USERPROFILE", "LOCALAPPDATA", "APPDATA", "COMSPEC", "PATHEXT"}}
@@ -94,9 +95,10 @@ def expected_versions() -> list[str]:
         match = re.match(r"(\d+)_", path.name)
         if match:
             versions.append(match.group(1))
-    expected = [str(20260101000000 + 100 * index) for index in range(27)]
+    pinned_count = len(json.loads(PINS.read_text(encoding="utf-8"))["migrations"])
+    expected = [str(20260101000000 + 100 * index) for index in range(pinned_count)]
     if versions != expected:
-        fail("source migrations differ from the 27 reviewed contiguous versions")
+        fail(f"source migrations differ from the {pinned_count} reviewed contiguous versions")
     return versions
 
 def copy_project(workdir: Path, project_id: str, ports: tuple[int, int, int]) -> None:
@@ -167,11 +169,19 @@ def psql(container_id: str, workdir: Path, sql: str) -> str:
 
 
 def normalize_schema_dump(schema: str) -> str:
-    """Canonicalize only adjacent plain table grants for one identical object."""
+    """Canonicalize only adjacent plain GRANT lines for one identical object.
+
+    pg_dump does not guarantee a stable statement order when an object has
+    multiple GRANT-only grantees -- confirmed for both table grants and,
+    once a function has more than one explicit grantee, function grants too.
+    A REVOKE line never joins the sortable block: unlike reordering GRANTs
+    among themselves, reordering a GRANT relative to a REVOKE can change the
+    final privilege state, so that must stay exactly as dumped.
+    """
     schema = re.sub(r"(?m)^\\(?:un)?restrict .*\n?", "", schema)
     lines = schema.splitlines(keepends=True)
     output, block, target = [], [], None
-    pattern = re.compile(r'^GRANT [A-Z, ]+ ON TABLE (public\.[a-z_]+) TO [a-z_]+;\n?$')
+    pattern = re.compile(r'^GRANT [A-Z, ]+ ON (?:TABLE|FUNCTION) (public\.[a-z_]+(?:\([^)]*\))?) TO [a-z_]+;\n?$')
     for line in lines:
         match = pattern.fullmatch(line)
         current = match.group(1) if match else None

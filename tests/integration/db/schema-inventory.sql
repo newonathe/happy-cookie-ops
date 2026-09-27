@@ -42,7 +42,8 @@ select jsonb_build_object(
       'execute_anon', has_function_privilege('anon',p.oid,'EXECUTE'),
       'execute_authenticated', has_function_privilege('authenticated',p.oid,'EXECUTE'),
       'execute_service_role', has_function_privilege('service_role',p.oid,'EXECUTE'),
-      'acl', coalesce(p.proacl,acldefault('f',p.proowner))::text)
+      'acl', (select '{' || string_agg(item, ',' order by item collate "C") || '}'
+        from unnest(string_to_array(trim(both '{}' from coalesce(p.proacl,acldefault('f',p.proowner))::text), ',')) as item))
       order by p.proname, pg_get_function_identity_arguments(p.oid))
     from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public'),
   'enums', (select jsonb_agg(jsonb_build_object('name', t.typname, 'label', e.enumlabel,

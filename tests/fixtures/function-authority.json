@@ -2,7 +2,7 @@
   "scope": "Reviewed local function-authority drift baseline through MP-06l; erasure digest/ACL repaired, full capability/domain and hosted acceptance remain open",
   "functions": [
     {
-      "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
       "name": "anonymise_customer",
       "owner": "postgres",
       "config": [
@@ -152,7 +152,7 @@
       "execute_authenticated": false
     },
     {
-      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "acl": "{=X/postgres,anon=X/postgres,authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
       "name": "capacity_allows",
       "owner": "postgres",
       "config": [
@@ -182,7 +182,7 @@
       "execute_authenticated": false
     },
     {
-      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "acl": "{=X/postgres,anon=X/postgres,authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
       "name": "current_role_name",
       "owner": "postgres",
       "config": [
@@ -212,7 +212,7 @@
       "execute_authenticated": false
     },
     {
-      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "acl": "{=X/postgres,anon=X/postgres,authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
       "name": "is_owner",
       "owner": "postgres",
       "config": [
@@ -227,7 +227,7 @@
       "execute_authenticated": true
     },
     {
-      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "acl": "{=X/postgres,anon=X/postgres,authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
       "name": "is_staff",
       "owner": "postgres",
       "config": [
@@ -317,7 +317,7 @@
       "execute_authenticated": false
     },
     {
-      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "acl": "{=X/postgres,anon=X/postgres,authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
       "name": "state_is_recognised",
       "owner": "postgres",
       "config": [
@@ -332,7 +332,7 @@
       "execute_authenticated": true
     },
     {
-      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "acl": "{=X/postgres,anon=X/postgres,authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
       "name": "state_reserves_capacity",
       "owner": "postgres",
       "config": [

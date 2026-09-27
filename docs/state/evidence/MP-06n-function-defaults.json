@@ -1,0 +1,33 @@
+{
+  "status": "passed",
+  "scope": "rollback-only PostgreSQL 15 local diagnostic; not a hosted or managed-upgrade acceptance",
+  "resets": 2,
+  "runs": [
+    {
+      "result_rows": [
+        "SEC_RESULT|mp06n|global_and_public_defaults|both_revokes_present",
+        "SEC_RESULT|mp06n|managed_and_existing_acls|unchanged",
+        "SEC_RESULT|mp06n|new_public_function|anon_authenticated_public_denied",
+        "SEC_RESULT|mp06n|new_public_function|service_role_retained",
+        "SEC_RESULT|mp06n|new_scratch_function|all_application_roles_denied"
+      ],
+      "catalog_restored": true,
+      "probe_objects_absent": true
+    },
+    {
+      "result_rows": [
+        "SEC_RESULT|mp06n|global_and_public_defaults|both_revokes_present",
+        "SEC_RESULT|mp06n|managed_and_existing_acls|unchanged",
+        "SEC_RESULT|mp06n|new_public_function|anon_authenticated_public_denied",
+        "SEC_RESULT|mp06n|new_public_function|service_role_retained",
+        "SEC_RESULT|mp06n|new_scratch_function|all_application_roles_denied"
+      ],
+      "catalog_restored": true,
+      "probe_objects_absent": true
+    }
+  ],
+  "cleanup": "passed",
+  "identical_resets": true,
+  "expected_migrations": 28,
+  "fixture_sha256": "681722d47462ffb1fda608f2d4faebebae45418ab34d1df0204cf31a7f10ea93"
+}

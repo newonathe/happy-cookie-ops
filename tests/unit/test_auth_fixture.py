@@ -58,12 +58,13 @@ class AuthFixtureGuards(unittest.TestCase):
                 h.resolve_image(h.POSTGRES_IMAGE, h.POSTGRES_ID, ROOT)
 
     def test_migration_inputs_are_pinned_before_execution(self):
-        inputs = h.migration_inputs()
-        self.assertEqual(len(inputs), 27)
-        self.assertEqual([name[:14] for name, _content, _digest in inputs],
-                         [f"{20260101000000 + 100 * index:014d}" for index in range(27)])
-        self.assertTrue(all(len(digest) == 64 for _name, _content, digest in inputs))
         pins = h.source_pins()
+        expected_count = len(pins["migrations"])
+        inputs = h.migration_inputs()
+        self.assertEqual(len(inputs), expected_count)
+        self.assertEqual([name[:14] for name, _content, _digest in inputs],
+                         [f"{20260101000000 + 100 * index:014d}" for index in range(expected_count)])
+        self.assertTrue(all(len(digest) == 64 for _name, _content, digest in inputs))
         pins["migrations"][inputs[0][0]] = "0" * 64
         with self.assertRaisesRegex(RuntimeError, "differ from reviewed"):
             h.migration_inputs(pins)

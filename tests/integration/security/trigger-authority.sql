@@ -26,6 +26,7 @@ begin
   end;
  end loop;
 end $$;
+grant execute on function pg_temp.assert_trigger_denied(text) to anon, authenticated;
 set local role anon;
 select pg_temp.assert_trigger_denied('anon');
 reset role;

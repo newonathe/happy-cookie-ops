@@ -79,7 +79,7 @@ begin
   insert into pg_temp.authority_results values ('settings_delete', actor, 'one_row');
 end $$;
 grant execute on function pg_temp.set_subject(integer, text), pg_temp.assert_settings_denied(text),
-  pg_temp.assert_settings_write(text) to anon, authenticated, service_role;
+  pg_temp.assert_settings_write(text), pg_temp.settings_fixture() to anon, authenticated, service_role;
 
 set local role anon;
 select pg_temp.set_subject(null, 'anon');
