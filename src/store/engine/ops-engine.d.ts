@@ -62,6 +62,11 @@ export declare class OpsEngine extends React.Component<OpsEngineProps, OpsEngine
   syncNow: () => void;
   retrySale: (id: string) => void;
   toggleOnline: () => void;
+  /** Debounced write of `this.state` (minus EPHEMERAL) to storage. An instance field, not a prototype method. */
+  persist: (flushNow?: boolean) => void;
+  /** Clears storage and returns to BASE_STATE(). An instance field, not a prototype method. */
+  resetData: () => void;
+  pnlTotals(state: OpsEngineState): { profit: number };
 }
 
 export declare class OpsProvider extends OpsEngine {}
@@ -72,9 +77,21 @@ export const OpsEngineContext: React.Context<OpsEngine | null>;
 export const SCREENS: ScreenKey[];
 export const CUSTOMER_SCREENS: ScreenKey[];
 export const SCREEN_NAMES: Record<string, string>;
-export const PRODUCTS: Array<{ id: string; name: string; short: string; price: number; img: string; kind: string; tag: string; desc: string }>;
+export const PRODUCTS: Array<{
+  id: string;
+  name: string;
+  short: string;
+  price: number;
+  img: string;
+  kind: string;
+  tag: string;
+  desc: string;
+}>;
 export const DEFAULT_CFG: Record<string, unknown>;
-export const RECIPES: Record<string, { yield: number; ingredients: Array<{ name: string; qty: number; unit: string }> }>;
+export const RECIPES: Record<
+  string,
+  { yield: number; ingredients: Array<{ name: string; qty: number; unit: string }> }
+>;
 export const INVENTORY: Array<Record<string, unknown>>;
 export const SUPPLIERS: Array<Record<string, unknown>>;
 export const PACK_SIZE: Record<string, number>;
@@ -103,6 +120,8 @@ export const PAY_ACCOUNTS: Array<{ id: string; num: string; name: string; qr: st
 export const RAW_ORDERS: Array<Record<string, unknown>>;
 export const SEED_LEDGER: Array<Record<string, unknown>>;
 export const STORE_KEY: string;
+/** State keys that are prototype chrome, not her books — never restored from an old save. */
+export const EPHEMERAL: string[];
 
 export function PESO(n: number): string;
 export function PESO2(n: number): string;

@@ -14,35 +14,14 @@ When a goal finishes, the agent deletes its block here, leaves the next one on t
 - If files changed since the last index, re-index first: `index_repository`, repo path `C:/Users/ethan/dev/happy-cookie-ops-g0`.
 - Pinned toolchain: prefix PATH with `C:\Users\ethan\dev\happy-cookie-tools\bin;C:\Users\ethan\dev\happy-cookie-tools\node-v24.20.0-win-x64`.
 - Docker Desktop must be running for SQL work.
-- **Baseline (2026-09-27; `pnpm verify` re-run at MP-08 close, the rest unchanged since the static-header goal):**
-  - `pnpm verify` 33 files / 445 tests;
+- **Baseline (2026-09-27; `pnpm verify` re-run at MP-09 a close, the rest unchanged since the static-header goal):**
+  - `pnpm verify` 36 files / 525 tests;
   - Python guards 63 OK, via `python -m unittest discover -s <dir> -p "test_*.py"` for each of `tests/unit`, `tests/integration/auth`, `tests/integration/db` and `tests/integration/security`, with `G0_PYTHON_LIBS=C:\Users\ethan\dev\happy-cookie-tools\python-libs-314`; SQL role suite 474 cases/reset, 2 resets;
   - `pnpm build:pages:spike`/`test:pages:spike`/`test:workers:spike` pass with or without `NEXT_PUBLIC_SUPABASE_URL`/`…PUBLISHABLE_KEY` (local stack values: `supabase status -o env`);
   - `pnpm build` passes, and `pnpm test:e2e` gives 87 passed / 3 failed / 30 skipped. The 3 failures are the same known OFFLINE-01 durable-queue test on phone, WebKit and desktop (G3).
 - **Codex only:** run `/status` once in the repo root to confirm the project `.codex/config.toml` loaded. Accept the trust prompt if asked. The project sandbox has no network, so `git push` will ask for approval.
 
-## Next goal — MP-09 a: live data boundary (G2 slice 2)
-
-Audited against the code on 2026-09-27: see [G2-plan.md](G2-plan.md) "Slice audit". Runs on Sonnet; no protected edit.
-
-```text
-/goal MP-09 a (docs/state/G2-plan.md "Slice audit", MP-09 a): live mode (NEXT_PUBLIC_APP_MODE=live) never
-shows or stores the demo books. One exported classification in src/lib/data/live-state.ts marks every
-non-ephemeral BASE_STATE() key as emptied or kept (kept keys name their owning slice, as in the audit); a unit
-test fails on any unclassified key. In live mode only, OpsRuntime (never the protected engine): starts from
-BASE_STATE() with the emptied keys empty; never reads or writes hc-ops-state-v1; removes that key from
-localStorage and sessionStorage on mount, and signOutAndRedirect removes it too; makes the Settings reset
-load the empty live state, not the sample books; drops the fabricated PRIOR_MONTHS from the P&L trend and
-recomputes the remaining bar. Unit tests: every staff screen on mobile, tablet and desktop renders from the
-live state with no throw, no NaN/undefined/Infinity text and none of three seeded customer names (one each
-from RAW_ORDERS, the form queue and the waitlist); a seeded IndexedDB sale survives sign-out; demo mode still
-restores and writes hc-ops-state-v1. All exit 0 in this session: pnpm verify; pnpm build:pages:spike,
-pnpm test:pages:spike and pnpm test:workers:spike with NEXT_PUBLIC_SUPABASE_URL and
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY unset. No protected file edited. Committed and pushed; status updated;
-block removed. No deploy. Stop after 2 failed fix attempts or 20 turns.
-```
-
-## Then — MP-09 b1: settings on the database, database half (G2 slice 3)
+## Next goal — MP-09 b1: settings on the database, database half (G2 slice 3)
 
 SQL and auth: plan on Opus, build on Sonnet, one independent review by a different model. Needs Docker Desktop running.
 

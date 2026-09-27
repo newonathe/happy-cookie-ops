@@ -1,6 +1,7 @@
 import { isAuthRetryableFetchError, type SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@/lib/types/database';
 import type { Role } from '@/store/engine/ops-engine';
+import { clearStoredBooks } from '@/lib/data/live-state';
 
 const ROLES: readonly Role[] = ['owner', 'helper', 'support'];
 
@@ -107,11 +108,15 @@ function clearSessionCookies(): void {
  *
  * A full navigation (`location.replace`), not the router: it deliberately drops all
  * in-memory engine state along with the session.
+ *
+ * `clearStoredBooks()` runs first, and independently of the sign-out call's outcome, so a
+ * shared device loses the live `hc-ops-state-v1` residue even if `signOut` hangs or fails.
  */
 export async function signOutAndRedirect(
   supabase: SupabaseClient<Database>,
   nextPath: string
 ): Promise<void> {
+  clearStoredBooks();
   const { error } = await supabase.auth.signOut({ scope: 'local' });
   if (error) clearSessionCookies();
   window.location.replace('/sign-in?next=' + encodeURIComponent(nextPath));

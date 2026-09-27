@@ -1,6 +1,43 @@
 # Current state — Happy Cookie Ops
 
-## Current checkpoint — 2026-09-27 (MP-08 closed: idle sign-out defaults, G2 slice 1)
+## Current checkpoint — 2026-09-27 (MP-09 a: live data boundary, G2 slice 2)
+
+- **MP-09 a is complete locally.** Live mode (`NEXT_PUBLIC_APP_MODE=live`) never shows or stores
+  the demo books. [src/lib/data/live-state.ts](../../src/lib/data/live-state.ts) classifies every
+  non-ephemeral `BASE_STATE()` key as **emptied** (34 keys: the demo orders, ledger, inventory,
+  batches, sales, queue, waitlist and the rest of the audit's list) or **kept** (`cfg` for MP-09 b;
+  `prices`/`recipes`/`soldOut`/`dropActive`/`shopOverride` for MP-09 c/d; `dropNo`/`orderSeq`/
+  `invoiceSeq` for MP-10; `backup`/`backupAt` for G4 DP-10; `channels`/`categories`/`inactiveCats`
+  for MP-09 b2; the rest UI state) — with a unit test that fails on any unclassified key.
+- `OpsRuntime` ([src/store/ops-runtime.tsx](../../src/store/ops-runtime.tsx)), never the protected
+  engine: its constructor starts live-mode state from `BASE_STATE()` with the emptied keys wiped,
+  instead of the protected `loadState()`; `persist`/`resetData` are instance fields on the engine,
+  not prototype methods (`super.persist` does not exist), so they are replaced wholesale after
+  construction rather than called; `componentDidMount` skips the protected storage-restoring path
+  entirely in live mode. `clearStoredBooks()` removes `hc-ops-state-v1` from both `localStorage`
+  and `sessionStorage` (never `.clear()`, which would also drop `hc-device-id`) on live mount, the
+  live Settings reset, and now `signOutAndRedirect` too
+  ([src/lib/auth/live-gate.ts](../../src/lib/auth/live-gate.ts), before the `signOut` call so it
+  runs even if `signOut` hangs). `renderVals()` drops the protected engine's fabricated
+  `PRIOR_MONTHS` P&L trend to just the current month and recomputes its bar from
+  `this.pnlTotals(state).profit`, with the same clamp the engine's own formula uses.
+- `src/store/engine/ops-engine.d.ts` gained `EPHEMERAL`/`persist`/`resetData`/`pnlTotals`
+  declarations, so the override is fully typed (no `any`). The `.d.ts` is not itself protected —
+  only `ops-engine.js` is (`scripts/check-port-integrity.mjs` and the pre-tool-use hook both name
+  only the `.js` file).
+- Evidence: 80 new unit tests (525 total) — every staff screen renders on all three devices from
+  the live state with no throw, NaN, `undefined` or `Infinity` text and none of three seeded demo
+  names; live mount never reads a stale save and strips it from both storages while keeping
+  `hc-device-id`; live mode never autosaves, even past the debounce window and a `pagehide` flush;
+  demo mode still restores and writes `hc-ops-state-v1` unchanged; the live reset preserves
+  device/role and clears storage; a mocked offline sale queue is untouched by sign-out (jsdom has
+  no IndexedDB, so this is stub-level evidence, not a real-IndexedDB proof). `pnpm verify` 36
+  files/525 tests exit 0; `pnpm build:pages:spike`/`test:pages:spike`/`test:workers:spike` pass
+  with `NEXT_PUBLIC_SUPABASE_URL`/`…PUBLISHABLE_KEY` unset (`connect-src 'self'` only, confirmed
+  from the emitted `_headers`); G0 validator 1196 checks, 0 failures. No protected file edited; no
+  deploy.
+
+## Prior checkpoint — 2026-09-27 (MP-08 closed: idle sign-out defaults, G2 slice 1)
 
 - **DP-15 decided (Ethan, 2026-09-27):** option B with the audit B10 defaults. `src/lib/auth/idle-signout.ts`
   signs owner and support out after 60 idle minutes and helpers after 240 (was 180, a placeholder). The owner will
