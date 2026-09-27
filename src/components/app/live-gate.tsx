@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import { hasSupabaseConfig } from '@/lib/supabase/config';
 import { isLiveMode } from '@/lib/config/app-mode';
 import { useOpsEngine, useOpsVals } from '@/store/use-ops';
 import { CUSTOMER_SCREENS, type ScreenKey } from '@/lib/screens';
@@ -59,6 +60,7 @@ export function LiveGate({
   }
 
   const live = isLiveMode();
+  const configured = hasSupabaseConfig();
   const needsGate = live && !CUSTOMER_SCREENS.includes(screen);
 
   const [verified, setVerified] = useState(false);
@@ -67,6 +69,15 @@ export function LiveGate({
 
   useEffect(() => {
     if (!live) return;
+    if (!configured) {
+      // A live build with no Supabase URL/key: there is nothing to verify against, and
+      // `createClient()` would throw — which used to take the public shop down with it.
+      // Customer screens need no check, so they render. A staff screen can never be
+      // verified, so it stays closed and goes to sign-in, like a failed first check.
+      runFirstCheck.current = () =>
+        window.location.replace('/sign-in?next=' + encodeURIComponent(window.location.pathname));
+      return;
+    }
     let cancelled = false;
     let idleStarted = false;
     let stopIdle = () => undefined as void;
@@ -125,7 +136,7 @@ export function LiveGate({
       document.removeEventListener('visibilitychange', onVisible);
       stopIdle();
     };
-  }, [live, engine]);
+  }, [live, configured, engine]);
 
   // `verified` (state), not `verifiedRef.current`: reading a ref during render is not
   // safe, and the two are always set together (see `lockOut`/`verify` above), so this is

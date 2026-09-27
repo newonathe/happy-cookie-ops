@@ -24,7 +24,13 @@
     all exit 0; the emitted `_headers` carries `connect-src 'self' http://127.0.0.1:54321`,
     the bundle inlines the same origin, longest line 1733/2000. With the variables unset the
     build exits 0 and emits `connect-src 'self'`.
-  - **Pre-existing, not fixed here:** with `NEXT_PUBLIC_SUPABASE_URL`/`…PUBLISHABLE_KEY`
+  - **Fixed the same day (follow-up commit):** the live gate no longer creates a Supabase client when the build has
+    no URL/key (`hasSupabaseConfig()`); customer screens render and staff screens stay closed and go to sign-in.
+    With the variables unset, `build:pages:spike`/`test:pages:spike`/`test:workers:spike` now all exit 0 (`/shop`
+    hydrated, 0 CSP violations); configured runs still pass; `pnpm verify` 32 files/440 tests. Independent review
+    (Sonnet security-reviewer, different model from this Opus session): SAFE TO MERGE, no P0/P1; its test-coverage
+    P2 was added. Its other P2 (a set-but-malformed URL) is already refused at build time by `supabaseConnectOrigin()`.
+  - **Previously pre-existing (now fixed, see above):** with `NEXT_PUBLIC_SUPABASE_URL`/`…PUBLISHABLE_KEY`
     unset, both spike tests time out waiting for `/shop` to hydrate. Reproduced identically
     on `f2d14d5` with this change stashed, so it comes from Goal 1's live mode, not the CSP.
     The spike tests therefore need a configured Supabase env.

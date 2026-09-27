@@ -15,9 +15,9 @@ When a goal finishes, the agent deletes its block here, leaves the next one on t
 - Pinned toolchain: prefix PATH with `C:\Users\ethan\dev\happy-cookie-tools\bin;C:\Users\ethan\dev\happy-cookie-tools\node-v24.20.0-win-x64`.
 - Docker Desktop must be running for SQL work.
 - **Baseline (2026-09-27, static-header goal accepted):**
-  - `pnpm verify` 32 files / 438 tests;
+  - `pnpm verify` 32 files / 440 tests;
   - Python guards 63 OK, via `python -m unittest discover -s <dir> -p "test_*.py"` for each of `tests/unit`, `tests/integration/auth`, `tests/integration/db` and `tests/integration/security`, with `G0_PYTHON_LIBS=C:\Users\ethan\dev\happy-cookie-tools\python-libs-314`; SQL role suite 474 cases/reset, 2 resets;
-  - `pnpm build:pages:spike`/`test:pages:spike`/`test:workers:spike` pass only with `NEXT_PUBLIC_SUPABASE_URL` and a matching `sb_publishable_…` key set (local stack: `supabase status -o env`); with them unset, `/shop` does not hydrate in the live export (pre-existing since Goal 1, reproduced on `f2d14d5`);
+  - `pnpm build:pages:spike`/`test:pages:spike`/`test:workers:spike` pass with or without `NEXT_PUBLIC_SUPABASE_URL`/`…PUBLISHABLE_KEY` (local stack values: `supabase status -o env`);
   - `pnpm build` passes, and `pnpm test:e2e` gives 87 passed / 3 failed / 30 skipped. The 3 failures are the same known OFFLINE-01 durable-queue test on phone, WebKit and desktop (G3).
 - **Codex only:** run `/status` once in the repo root to confirm the project `.codex/config.toml` loaded. Accept the trust prompt if asked. The project sandbox has no network, so `git push` will ask for approval.
 

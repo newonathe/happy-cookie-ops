@@ -16,11 +16,14 @@ vi.mock('@/store/use-ops', () => ({
   useOpsVals: () => ({})
 }));
 vi.mock('@/lib/config/app-mode', () => ({ isLiveMode: () => true }));
+let supabaseConfigured = true;
+vi.mock('@/lib/supabase/config', () => ({ hasSupabaseConfig: () => supabaseConfigured }));
 
+const createClient = vi.fn();
 const getUser = vi.fn(async () => ({ data: { user: null }, error: null }));
 const authSignOut = vi.fn(async () => ({ error: null }));
 vi.mock('@/lib/supabase/client', () => ({
-  createClient: () => ({
+  createClient: () => (createClient(), {
     auth: {
       getUser,
       signOut: authSignOut,
@@ -38,6 +41,8 @@ describe('LiveGate — "Back to ops" with no session', () => {
 
   beforeEach(() => {
     engine.state.screen = 'shop';
+    supabaseConfigured = true;
+    createClient.mockClear();
     engine.setRole.mockClear();
     getUser.mockClear();
     authSignOut.mockClear();
@@ -71,5 +76,44 @@ describe('LiveGate — "Back to ops" with no session', () => {
     await waitFor(() => expect(replace).toHaveBeenCalledWith(expect.stringContaining('/sign-in')));
     expect(screen.queryByText('staff frame')).toBeNull();
     expect(authSignOut).toHaveBeenCalledExactlyOnceWith({ scope: 'local' });
+  });
+
+  it('with no Supabase configured, still renders the public shop and keeps staff screens closed', async () => {
+    supabaseConfigured = false;
+    const { rerender } = render(
+      <LiveGate initialScreen="shop">
+        <div>staff frame</div>
+      </LiveGate>
+    );
+    expect(screen.getByText('staff frame')).toBeInTheDocument();
+    expect(createClient).not.toHaveBeenCalled();
+
+    engine.state.screen = 'today';
+    rerender(
+      <LiveGate initialScreen="shop">
+        <div>staff frame</div>
+      </LiveGate>
+    );
+
+    await waitFor(() => expect(replace).toHaveBeenCalledTimes(1));
+    expect(replace).toHaveBeenCalledWith(expect.stringMatching(/^\/sign-in\?next=/));
+    expect(screen.queryByText('staff frame')).toBeNull();
+    expect(createClient).not.toHaveBeenCalled();
+    expect(engine.setRole).not.toHaveBeenCalled();
+  });
+
+  it('with no Supabase configured, a staff page opened directly never shows and goes to sign-in', async () => {
+    supabaseConfigured = false;
+    engine.state.screen = 'today';
+    render(
+      <LiveGate initialScreen="today">
+        <div>staff frame</div>
+      </LiveGate>
+    );
+    expect(screen.queryByText('staff frame')).toBeNull();
+    await waitFor(() => expect(replace).toHaveBeenCalledTimes(1));
+    expect(replace).toHaveBeenCalledWith(expect.stringMatching(/^\/sign-in\?next=/));
+    expect(screen.queryByText('staff frame')).toBeNull();
+    expect(createClient).not.toHaveBeenCalled();
   });
 });
