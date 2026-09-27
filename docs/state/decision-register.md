@@ -62,6 +62,14 @@ names stay out of the repo: they go into the database through the owner's own ed
 | 7   | Backups (DP-10)                | Asked for a reminder of what the nightly Google Sheets copy was                                                             | It was KETH AI's 2 Aug promise of an automatic nightly export of her data into a Google Sheet. The free setup cannot run it; the download button plus a weekly backup stands unless she objects                      |
 | 8   | Customer alerts (DP-12)        | In-app alerts and copy-paste messages                                                                                       | No email domain for now (MP-14). Resend stays possible later                                                                                                                                                         |
 
+**Second round (2026-09-28, relayed by Ethan):** laptops and the backup plan confirmed ("sure"); the
+Google Form(s) are **redone and connected** (Q6 resolved; the waitlist form counts too); **unpaid orders count
+toward the weekly cap**; 8- and 12-box prices, allergens per flavour and the opening stock count are all
+owner-configurable; **every form feature is needed at launch, with applicable fields configurable**. The
+element-by-element analysis, configuration model, decisions D1–D11 (D1: unpaid orders can now fill a week, a
+recommended expiry plus per-phone limit) and the proposed slice split are in
+[order-form-audit.md](order-form-audit.md).
+
 **Order-form rules the prototype does not have** (from the September form Cine sent). Each needs a scope
 decision by Ethan and, where it adds UI, a locked-UI exception. None is decided:
 
