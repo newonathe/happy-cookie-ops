@@ -15,6 +15,11 @@
   rehearsal on Ethan's Supabase, Cloudflare and GitHub accounts (documented in
   [RUNBOOK-accounts.md](../RUNBOOK-accounts.md) §7, not yet recorded as performed).
 
+- Next goals re-audited against the code (G2-plan.md "Slice audit"): MP-09 a gained the full private-key
+  classification, sessionStorage and stale-copy cleanup, the live Settings reset and the fake P&L trend; MP-09 b is
+  split into b1 (database) and b2 (app). A render probe showed every screen survives empty books, so no protected edit
+  is needed for MP-09 a.
+
 ## Prior checkpoint — 2026-09-27 (G2 planned)
 
 - Ethan: "start connecting orders, money and stock to the database". [G2-plan.md](G2-plan.md) sets the

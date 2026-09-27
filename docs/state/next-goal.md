@@ -23,16 +23,46 @@ When a goal finishes, the agent deletes its block here, leaves the next one on t
 
 ## Next goal — MP-09 a: live data boundary (G2 slice 2)
 
+Audited against the code on 2026-09-27: see [G2-plan.md](G2-plan.md) "Slice audit". Runs on Sonnet; no protected edit.
+
 ```text
-/goal MP-09 a (docs/state/G2-plan.md principle 3): in live mode (NEXT_PUBLIC_APP_MODE=live) the engine
-starts with empty private domains (orders, ledger, inventory, batches, sales, payments, queue archive,
-variances, spoilage, count log) instead of the demo books; those domains are neither restored from nor
-written to localStorage; signing out clears any private state left on the device; the IndexedDB offline
-sale queue is untouched. Demo mode is unchanged. Unit tests cover all four points. All of these exit 0 in
-this session: pnpm verify; pnpm build:pages:spike, pnpm test:pages:spike and pnpm test:workers:spike with
-NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY unset. pnpm test:e2e passes except the
-three known OFFLINE-01 tests. No protected file edited. Committed and pushed; status updated; block
-removed. No deploy. Stop after 2 failed fix attempts or 20 turns.
+/goal MP-09 a (docs/state/G2-plan.md "Slice audit", MP-09 a): live mode (NEXT_PUBLIC_APP_MODE=live) never
+shows or stores the demo books. One exported classification in src/lib/data/live-state.ts marks every
+non-ephemeral BASE_STATE() key as emptied or kept (kept keys name their owning slice, as in the audit); a unit
+test fails on any unclassified key. In live mode only, OpsRuntime (never the protected engine): starts from
+BASE_STATE() with the emptied keys empty; never reads or writes hc-ops-state-v1; removes that key from
+localStorage and sessionStorage on mount, and signOutAndRedirect removes it too; makes the Settings reset
+load the empty live state, not the sample books; drops the fabricated PRIOR_MONTHS from the P&L trend and
+recomputes the remaining bar. Unit tests: every staff screen on mobile, tablet and desktop renders from the
+live state with no throw, no NaN/undefined/Infinity text and none of three seeded customer names (one each
+from RAW_ORDERS, the form queue and the waitlist); a seeded IndexedDB sale survives sign-out; demo mode still
+restores and writes hc-ops-state-v1. All exit 0 in this session: pnpm verify; pnpm build:pages:spike,
+pnpm test:pages:spike and pnpm test:workers:spike with NEXT_PUBLIC_SUPABASE_URL and
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY unset. No protected file edited. Committed and pushed; status updated;
+block removed. No deploy. Stop after 2 failed fix attempts or 20 turns.
+```
+
+## Then — MP-09 b1: settings on the database, database half (G2 slice 3)
+
+SQL and auth: plan on Opus, build on Sonnet, one independent review by a different model. Needs Docker Desktop running.
+
+```text
+/goal MP-09 b1 (docs/state/G2-plan.md "Slice audit", MP-09 b): one new migration adds owner-only
+get_settings() and save_setting(key, value, expected_updated_at), plus get_operating_settings() for any
+active staff returning only capacity, the ordering-window fields, maxPerOrder and idle minutes; all
+SECURITY DEFINER, search_path = '', active-role check inside, explicit grants. It adds idleMinutesOwner,
+idleMinutesSupport and idleMinutesHelper (60/60/240, range 15-480) to settings_effective(); validates every
+key (numeric ranges, the priceMode and retention enums, day/hour/minute bounds) with bounds taken from the
+engine's bumpCfg/numCfg calls and DEFAULT_CFG, recorded once in a fixture that a unit parity test checks
+against the engine; rejects unknown keys and a stale expected_updated_at; revokes direct insert, update and
+delete on public.settings from anon and authenticated. Money in centavos via src/lib/money.ts. The SQL role
+suite proves: anon, helper, support and an inactive owner are denied get_settings/save_setting; the staff
+projection holds no cost key; unknown-key, out-of-range and stale-version saves fail; direct table writes
+fail. tests/integration/security/settings.sql and tests/fixtures/function-authority.json updated in the same
+commit; pnpm db:types regenerated. All exit 0 in this session: pnpm verify; the SQL role suite on 2 resets;
+the Python guards. One independent different-model review of the migration, findings fixed. Hosted preview
+not updated. Committed and pushed; status updated; block removed. No deploy. Stop after 2 failed fix
+attempts or 20 turns.
 ```
 
 ## After these goals

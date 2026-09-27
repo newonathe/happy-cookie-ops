@@ -48,6 +48,73 @@ failures). So:
 | 13  | MP-14: order status links and messages                                                                    | Customer status page                      |
 | 14  | MP-15: ledger and reports (cost counted when used)                                                        | Real P&L                                  |
 
+## Slice audit — MP-09 a and b (2026-09-27, Claude, against the code)
+
+Method: each question was answered from the code or a throwaway render probe, not from the plan text.
+
+**MP-09 a — live data boundary**
+
+- _Do the locked screens survive empty books, or does this need a protected edit?_ They survive. A probe rendered all 25
+  screen keys on mobile and desktop from the live state with the private keys emptied: no throw, no console error, no
+  NaN/undefined text, and the prototype's own empty copy ("Queue is clear", "No sales recorded yet"). No protected edit is
+  needed; everything goes in `OpsRuntime` (subclass) plus one module in `src/lib/data/`.
+- _Is the goal's list of ten domains complete?_ No. `BASE_STATE()` also seeds customer PII outside it (`queue`: Google
+  Form orders with names and phones; `waitlist`: names), money (`eventExpenses`, `drawer`), production (`dough`,
+  `baked`, `doughAt`) and purchases (`bought`, `received`). **Decision:** one exported classification of every
+  non-ephemeral key, **emptied** or **kept (with the owning slice)**, plus a test that fails on an unclassified key.
+  - Emptied (the probe-validated set): orders, ledger, inv, batches, sales, paid, partial, subs, matched, queue,
+    queueArchive, waitlist, variances, spoilage, countLog, bought, received, plannedBuy, shortfalls, dough, baked,
+    doughAt, doughPrep, moved, drawer, event, eventStock, eventLoaded, eventPrices, eventExpenses, recipeHistory,
+    notifRead, stocktake, batch.
+  - Kept, with owner: cfg (MP-09 b); prices, recipes, recipeBase, recipeVer, recipeDirty, soldOut, dropActive,
+    shopOverride (MP-09 c/d); dropNo, orderSeq, invoiceSeq (MP-10); backup, backupAt (G4 backups, DP-10); channels,
+    categories, inactiveCats (MP-09 b2); everything else is UI state.
+- _Is "not written to localStorage" enough?_ No. The engine writes the same key to **sessionStorage** too, and live
+  builds before this slice already wrote the demo books on every device that opened the hosted preview, `/shop` included:
+  the engine mounts above the gate. **Decision:** in live mode never read or write `hc-ops-state-v1`, and remove it
+  from both stores on mount and on sign-out. Limitation: devices only lose the stale copy after the next deploy.
+- _What else still shows demo data in live mode?_ Two render-time constants in the protected engine:
+  - `PRIOR_MONTHS` (a fake P&L trend of ₱9k/₱12k/₱13k). **Decision:** trim it in `renderVals()` and recompute the
+    remaining bar.
+  - The bazaar event list (Katipunan, UP Town Center). **Decision:** leave it. It is placeholder schedule, not
+    books; real events belong to MP-18 (G3).
+  - The Settings "reset" also rebuilds the sample books. **Decision:** in live mode it resets to the empty state.
+- _What does "signing out clears private state" leave on the device?_ After this slice: nothing private except the
+  IndexedDB sale queue, which is kept (invariant 2). Navigation-only SW cache (no data), the non-private `hc-device-id`,
+  and the session cookies (already cleared) remain. `location.replace` drops memory.
+- _Does live bazaar selling get worse?_ Yes, until MP-07 finish (slice 7). A reload keeps queued sales in IndexedDB,
+  but the on-screen tally is lost. This is acceptable because live mode holds no real sales before then.
+- _Full E2E?_ Dropped for this slice (lean plan rule 3: E2E when closing a gate). Demo mode is pinned by a unit test
+  that it still restores and writes the key. The live build is exercised by the pages/workers spike runs.
+
+**MP-09 b — settings on the database: split into b1 (database) and b2 (app), each under ~400 lines**
+
+- _What exists?_ `public.settings` (typed value columns), `settings_effective()` (service_role only), owner RLS
+  `FOR ALL`, and table DML granted to `anon`/`authenticated` (migration 19). `is_owner()` checks `active` through
+  `current_role_name()`.
+- _Gap:_ the owner can write any key or value directly through PostgREST, which skips validation. **Decision (b1):**
+  writes only through an owner RPC with known-key, range and enum validation and an `expected_updated_at` conflict check.
+  Revoke direct DML. Update `tests/integration/security/settings.sql` and `tests/fixtures/function-authority.json` in the
+  same commit.
+- _Where do the ranges come from?_ From the engine's own `bumpCfg`/`numCfg` call bounds and `DEFAULT_CFG`. They are
+  recorded once in a fixture that a parity test checks against the engine. This is the same pattern as
+  `capacity-cases.json`.
+- _Can helpers read settings?_ Only a staff-safe projection: capacity, ordering window, `maxPerOrder` and idle
+  minutes. No costs.
+- _Is the owner-editable idle timeout (DP-15) allowed by the locked UI?_ Yes. Ethan approved the locked-UI exception for
+  the new edit forms (decision register, 2026-09-27). The control lands in b2, recorded in `protected-exception.md`. The
+  client clamps database minutes to 15–480 and falls back to `IDLE_MINUTES`.
+- _MP-09's acceptance says "plus non-config preferences"._ `channels`, `categories` and `inactiveCats` are assigned to
+  b2, so MP-09 cannot close without them.
+- b2 (goal written when b1 lands):
+  - load on verified sign-in into `cfg` through `src/lib/money.ts`;
+  - save through captured base actions, debounced per key; on a conflict, reload and show a toast; offline, revert
+    and show a toast;
+  - idle minutes read from the projection;
+  - the new Settings controls;
+  - the preferences above.
+- Hosted preview: not updated until Ethan runs `supabase login` (see below).
+
 ## Hosted preview during G2
 
 Copying migrations by hand does not scale. When a slice first needs the hosted preview updated, Ethan runs
