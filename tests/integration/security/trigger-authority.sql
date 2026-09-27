@@ -61,18 +61,22 @@ do $$ declare t text; n integer; begin
   insert into authority_results values('firing_'||t,'active_owner','passed');
  end loop;
 end $$;
+reset role;
+-- MP-09 b1 revokes direct insert/update on settings from authenticated (writes go only
+-- through save_setting() now), so the trigger-firing proof below runs as service_role,
+-- which keeps direct table access. request.jwt.claim.sub (line 52) is a transaction-local
+-- setting, unaffected by the role switch, so auth.uid() is still the same owner uuid here.
+set local role service_role;
 insert into public.settings(key,int_value,updated_at,updated_by) values('MP06E-S',1,'2020-01-01','a6e00000-0000-4000-8000-000000000002');
 do $$ begin
  if not exists(select 1 from public.settings where key='MP06E-S' and updated_at=transaction_timestamp() and updated_by=auth.uid()) then raise exception 'settings insert trigger failed'; end if;
 end $$;
-insert into authority_results values('settings_insert','active_owner','passed');
+insert into authority_results values('settings_insert','service_role','passed');
 update public.settings set int_value=2,updated_at='2020-01-01',updated_by='a6e00000-0000-4000-8000-000000000002' where key='MP06E-S';
 do $$ begin
  if not exists(select 1 from public.settings where key='MP06E-S' and int_value=2 and updated_at=transaction_timestamp() and updated_by=auth.uid()) then raise exception 'settings update trigger failed'; end if;
 end $$;
-insert into authority_results values('settings_update','active_owner','passed');
-reset role;
-set local role service_role;
+insert into authority_results values('settings_update','service_role','passed');
 update public.settings set int_value=3,updated_at='2020-01-01' where key='MP06E-S';
 do $$ begin
  if not exists(select 1 from public.settings where key='MP06E-S' and int_value=3 and updated_at=transaction_timestamp() and updated_by=auth.uid()) then raise exception 'service settings trigger failed'; end if;

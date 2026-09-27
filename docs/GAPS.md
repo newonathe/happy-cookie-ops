@@ -1,13 +1,13 @@
 # Gaps
 
-> MP-06.b.1 authority update: `settings_effective()` now permits only service_role among API-facing roles. Its previous general-staff grant is revoked; the settings descriptions below preserve historical behavior, not authorization to restore that grant. Use the [current RPC plan](state/MP-06b-authority-plan.md) and owner/public projection boundaries. Direct table-policy hardening remains pending.
+> MP-06.b.1 authority update: `settings_effective()` now permits only service_role among API-facing roles. Its previous general-staff grant is revoked; the settings descriptions below preserve historical behavior, not authorization to restore that grant. Use the [current RPC plan](state/MP-06b-authority-plan.md) and owner/public projection boundaries. Direct table-policy hardening for `settings` is done (MP-09 b1: `insert`/`update`/`delete` revoked from `anon`/`authenticated`; writes go through `save_setting()`, reads through `get_settings()`/`get_operating_settings()` — see [DATA.md](DATA.md) "Settings").
 
 > **Superseded audit baseline:** Use [MASTER-PLAN.md](../MASTER-PLAN.md) and [the new audit](master-plan/00-audit-evidence.md). The list below is historical and contains readiness assumptions corrected by the source/browser/build evidence.
 
 What this system lacks, beyond design. Written as an honest inventory, not a wishlist:
 each item says what is missing, what it costs to leave it, and whether it is actually
 worth building for a one-person bakery. A gap register that treats every absence as a
-defect is useless — half the value here is the list of things you should *not* build.
+defect is useless — half the value here is the list of things you should _not_ build.
 
 Read alongside `docs/TECH-DEBT.md`, which covers compromises made deliberately during the
 port. This file covers what was never there at all.
@@ -37,7 +37,7 @@ report, audit, or recover data you do not store.
 ### 1.2 No authorisation on the write paths that exist
 
 RLS is in place and default-deny. But the app's role still comes from engine state, so
-"helper cannot see money" is currently a *rendering* decision. A helper who opens dev
+"helper cannot see money" is currently a _rendering_ decision. A helper who opens dev
 tools and flips a role sees the P&L.
 
 **Cost.** Not catastrophic today — the books are on her own device, and a helper holding
@@ -120,7 +120,7 @@ webhook, no reference matching, no reconciliation against the bank.
 `/reconcile` screen exists to make it bearable, not to automate it.
 
 **Worth it?** Only partly. GCash's business API needs a registered merchant account and
-approval that a home baker may not clear. What *is* worth building: matching a pasted
+approval that a home baker may not clear. What _is_ worth building: matching a pasted
 reference number against expected amounts, which turns reading into confirming. Full
 webhook integration is a later-stage decision, not a gap in this build.
 
@@ -186,7 +186,7 @@ The design point is that erasure here is **blocking, not deletion**. RA 10173 gi
 customer the right to erasure or blocking; BIR record-keeping means a paid order cannot
 simply be deleted, because the financial record must survive an audit. So the correct
 response to an erasure request on a paid order is to strip the name, phone and notes and
-keep the money. Live unpaid orders *are* deleted — there is no tax record to preserve for
+keep the money. Live unpaid orders _are_ deleted — there is no tax record to preserve for
 a box nobody bought, and an anonymous pending order is just a box nobody can collect.
 
 `prune_personal_data()` finally enforces the engine's `RETENTION_DAYS`, which existed and
@@ -206,7 +206,7 @@ project, Vercel Preview-scoped variables so a preview can never reach production
 verification query to run against the remote project specifically, and the five-minute
 smoke test.
 
-It also names what staging is *not* for: it tells you a migration runs, not that her books
+It also names what staging is _not_ for: it tells you a migration runs, not that her books
 came across correctly — staging does not have her books. That is the T-14 dry run.
 
 **What is left.** Creating the project. Ten minutes, and it must happen before T-14.
@@ -280,7 +280,7 @@ already does, which is why T-11 duplicates it in `drop_remaining()`. That duplic
 the first crack.
 
 **What not to do.** Do not refactor it into hooks. It would risk every rule at once and
-end diffability against the prototype. Extract *rules* to shared modules as the server
+end diffability against the prototype. Extract _rules_ to shared modules as the server
 needs them, leaving the class as the client's state machine.
 
 ### 4.2 Business rules will exist in two places
@@ -337,31 +337,31 @@ decision.
 Each of these has UI in the prototype and no working path behind it. Worth knowing before
 someone reports them as bugs.
 
-| Feature | State |
-| --- | --- |
-| Form queue (`/formqueue`) | Screen exists; nothing submits anywhere. It was designed as an intake for orders taken by hand. |
-| Notifications (`/notifications`) | In-app list only, generated locally. Nothing pushes. |
-| System health (`/health`) | Reads local state. Not connected to `/api/health`. |
-| Recipes (`/recipes`) | Read-only. No editing, no scaling, no versioning. |
-| Suppliers (`/suppliers`) | Read-only price book. No purchase orders, no receiving. |
-| Drops (`/drops`) | Configuration is read from `DEFAULT_CFG`; the editing UI does not persist. |
-| Multi-user presence | No indication of who else is in the app. |
-| Customer accounts | Deliberate: order lookup is by number and phone, no login. Correct decision — keep it. |
+| Feature                          | State                                                                                           |
+| -------------------------------- | ----------------------------------------------------------------------------------------------- |
+| Form queue (`/formqueue`)        | Screen exists; nothing submits anywhere. It was designed as an intake for orders taken by hand. |
+| Notifications (`/notifications`) | In-app list only, generated locally. Nothing pushes.                                            |
+| System health (`/health`)        | Reads local state. Not connected to `/api/health`.                                              |
+| Recipes (`/recipes`)             | Read-only. No editing, no scaling, no versioning.                                               |
+| Suppliers (`/suppliers`)         | Read-only price book. No purchase orders, no receiving.                                         |
+| Drops (`/drops`)                 | Configuration is read from `DEFAULT_CFG`; the editing UI does not persist.                      |
+| Multi-user presence              | No indication of who else is in the app.                                                        |
+| Customer accounts                | Deliberate: order lookup is by number and phone, no login. Correct decision — keep it.          |
 
 ## 6. What not to build
 
 Named explicitly, because each will look like a good idea to someone.
 
-| Idea | Why not |
-| --- | --- |
-| A mobile app in React Native | The PWA installs, works offline and takes payments. A native app buys nothing here and doubles the surface. |
-| A design system or component library | The components are the prototype's, signed off. `docs/TASKS.md` explains what rebuilding them destroys. |
-| Microservices, a queue, a worker tier | One baker, 40 orders a week, 200-box capacity. A single Next.js app on Vercel is over-provisioned already. |
-| GraphQL | Adds a schema layer between two things that already agree. |
-| Redux, Zustand, a state library | The engine *is* the state management, and it is signed off. |
-| An analytics dashboard | The P&L screen is the dashboard. She reads one number and decides what to bake. |
-| Internationalisation | One baker, one city, English and Tagalog code-switching that a translation layer would flatten. |
-| A CMS for the shop copy | Six products. She texts you. |
+| Idea                                  | Why not                                                                                                     |
+| ------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| A mobile app in React Native          | The PWA installs, works offline and takes payments. A native app buys nothing here and doubles the surface. |
+| A design system or component library  | The components are the prototype's, signed off. `docs/TASKS.md` explains what rebuilding them destroys.     |
+| Microservices, a queue, a worker tier | One baker, 40 orders a week, 200-box capacity. A single Next.js app on Vercel is over-provisioned already.  |
+| GraphQL                               | Adds a schema layer between two things that already agree.                                                  |
+| Redux, Zustand, a state library       | The engine _is_ the state management, and it is signed off.                                                 |
+| An analytics dashboard                | The P&L screen is the dashboard. She reads one number and decides what to bake.                             |
+| Internationalisation                  | One baker, one city, English and Tagalog code-switching that a translation layer would flatten.             |
+| A CMS for the shop copy               | Six products. She texts you.                                                                                |
 
 ---
 
@@ -375,7 +375,7 @@ account, or her decision — none of which can be written into a file.
 0. **Supabase free projects pause after 7 days idle**, and her business is weekly. The
    hourly health check keeps it warm — which is a reason not to replace that workflow with
    an external monitor. Do not rush T-14 while the app still works from `localStorage`.
-0. **Vercel Hobby prohibits commercial use.** This app takes money. Deploy on Hobby now to
+1. **Vercel Hobby prohibits commercial use.** This app takes money. Deploy on Hobby now to
    watch it work; make the call before it is her only till. The `Dockerfile` is the exit.
 
 **You, and none of it takes long**

@@ -29,6 +29,7 @@
     "20260101002400_bff_cleanup_recovery.sql": "22b5e0ce709df7f619d69fcd0905564c8c11d1ec433ffdd67397fa10085166a9",
     "20260101002500_bff_cleanup_fair_claims.sql": "0ad8ec77d1963e5a2a70bcf1680a8044b260a393af5a06bacba5d5a198bd327b",
     "20260101002600_erasure_digest_authority.sql": "74fa5d9bc48e9c9acc4092bd308ba4bcb2fd6f9811a328728c53248f3a06f8f1",
-    "20260101002700_function_default_privileges.sql": "a6283dfe6b8ef152f57cdd23f1c95c57a611afad5e895f2e416f8ef048f1c396"
+    "20260101002700_function_default_privileges.sql": "a6283dfe6b8ef152f57cdd23f1c95c57a611afad5e895f2e416f8ef048f1c396",
+    "20260101002800_settings_authority.sql": "7c9dea1394da88105b4beb86ee9cb6f8243af91f8efd6c671d6b37b90e7a6959"
   }
 }

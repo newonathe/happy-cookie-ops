@@ -1,6 +1,6 @@
 # Data
 
-> MP-06.b.1 authority update: `settings_effective()` now permits only service_role among API-facing roles. Its previous general-staff grant is revoked; the settings descriptions below preserve historical behavior, not authorization to restore that grant. Use the [current RPC plan](state/MP-06b-authority-plan.md) and owner/public projection boundaries. Direct table-policy hardening remains pending.
+> MP-06.b.1 authority update: `settings_effective()` now permits only service_role among API-facing roles. Its previous general-staff grant is revoked; the settings descriptions below preserve historical behavior, not authorization to restore that grant. Use the [current RPC plan](state/MP-06b-authority-plan.md) and owner/public projection boundaries. Direct table-policy hardening for `settings` is done (MP-09 b1: `insert`/`update`/`delete` revoked from `anon`/`authenticated`; see "Settings" below).
 
 > MP-06.c.1 authority update: direct INSERT into `orders` and `order_items` is denied to anon/authenticated. The historical role table below does not authorize customer row insertion; future checkout must use a validated server command. Other table-policy gaps remain open. See [the insertion plan](state/MP-06c-plan.md).
 
@@ -12,49 +12,62 @@ at the API boundary, not in the engine.
 
 ## Tables
 
-| Table | Holds | Notes |
-| --- | --- | --- |
-| `profiles` | staff accounts | one row per `auth.users`; carries the role |
-| `products` | the catalogue | ids are the prototype's (`dcf`, `hc`, `wcb`, `pbm`, `rvc`, `nch`); `rotation` is Permanent or Rotating |
-| `recipes`, `recipe_ingredients` | what a batch needs | drives the grocery list |
-| `suppliers`, `inventory_items` | stock | `par_level` triggers a grocery line; `category` is Ingredients or Packaging |
-| `settings` | her 21 editable values | read via `settings_effective()`, which fills defaults from the engine |
-| `rate_limits` | abuse counters | no direct access; `consume_rate_limit()` is the only door |
-| `erasure_requests` | RA 10173 requests | owner only. Records what was blocked and why |
-| `supplier_prices` | the price book | one row per supplier per item: pack, current price, previous prices, whether it is preferred. This is what "best buy" compares. |
-| `drops` | the weekly order window | opens, closes, pickup, capacity |
-| `orders`, `order_items` | customer orders | id is the customer-facing `HC-1042` |
-| `bake_batches` | production | planned vs baked per product per drop |
-| `ledger_entries` | the books | signed centavos; costs negative; append-only |
-| `events`, `event_sales`, `event_sale_items` | bazaars | `client_id` is the queue's idempotency key |
-| `audit_log` | who changed money or stock | append-only, owner-readable |
-| `hco_private.bff_sessions` | durable BFF session authority | private schema; SHA-256 cookie hash, independent CSRF token, encrypted credential envelope, fixed 8-hour lifetime, refresh/cleanup fences; no direct API-role access |
+| Table                                       | Holds                         | Notes                                                                                                                                                                |
+| ------------------------------------------- | ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `profiles`                                  | staff accounts                | one row per `auth.users`; carries the role                                                                                                                           |
+| `products`                                  | the catalogue                 | ids are the prototype's (`dcf`, `hc`, `wcb`, `pbm`, `rvc`, `nch`); `rotation` is Permanent or Rotating                                                               |
+| `recipes`, `recipe_ingredients`             | what a batch needs            | drives the grocery list                                                                                                                                              |
+| `suppliers`, `inventory_items`              | stock                         | `par_level` triggers a grocery line; `category` is Ingredients or Packaging                                                                                          |
+| `settings`                                  | her 24 editable values        | read via `settings_effective()`/`get_settings()`/`get_operating_settings()`, which fill defaults from the engine; written only via `save_setting()`                  |
+| `rate_limits`                               | abuse counters                | no direct access; `consume_rate_limit()` is the only door                                                                                                            |
+| `erasure_requests`                          | RA 10173 requests             | owner only. Records what was blocked and why                                                                                                                         |
+| `supplier_prices`                           | the price book                | one row per supplier per item: pack, current price, previous prices, whether it is preferred. This is what "best buy" compares.                                      |
+| `drops`                                     | the weekly order window       | opens, closes, pickup, capacity                                                                                                                                      |
+| `orders`, `order_items`                     | customer orders               | id is the customer-facing `HC-1042`                                                                                                                                  |
+| `bake_batches`                              | production                    | planned vs baked per product per drop                                                                                                                                |
+| `ledger_entries`                            | the books                     | signed centavos; costs negative; append-only                                                                                                                         |
+| `events`, `event_sales`, `event_sale_items` | bazaars                       | `client_id` is the queue's idempotency key                                                                                                                           |
+| `audit_log`                                 | who changed money or stock    | append-only, owner-readable                                                                                                                                          |
+| `hco_private.bff_sessions`                  | durable BFF session authority | private schema; SHA-256 cookie hash, independent CSRF token, encrypted credential envelope, fixed 8-hour lifetime, refresh/cleanup fences; no direct API-role access |
 
 ## Roles
 
 The prototype's three roles map straight to Postgres:
 
-| Role | Sees | Cannot |
-| --- | --- | --- |
-| `owner` | everything | delete a ledger entry — corrections are new rows |
-| `helper` | production, stock, orders, and can record a bazaar sale | see the ledger, see P&L, change prices |
-| `support` | orders and their statuses | see money, change stock |
-| `anon` | the catalogue, the open drop, and can place an order | read any order without its phone number |
+| Role      | Sees                                                    | Cannot                                           |
+| --------- | ------------------------------------------------------- | ------------------------------------------------ |
+| `owner`   | everything                                              | delete a ledger entry — corrections are new rows |
+| `helper`  | production, stock, orders, and can record a bazaar sale | see the ledger, see P&L, change prices           |
+| `support` | orders and their statuses                               | see money, change stock                          |
+| `anon`    | the catalogue, the open drop, and can place an order    | read any order without its phone number          |
 
 Enforced by row-level security, not by the UI. The role in engine state changes what is
-*shown*; the policies decide what can be *read*. Both exist on purpose — the UI gate
+_shown_; the policies decide what can be _read_. Both exist on purpose — the UI gate
 keeps a helper from being confused, the policies keep them from being able.
 
 ## Settings
 
 The engine's `DEFAULT_CFG` holds 21 owner-editable values and the Settings screen edits
-them. `settings` stores the ones she has changed; `settings_effective()` returns her
-overrides with the engine's defaults filled in for the rest.
+them. `settings` stores the ones she has changed; `settings_effective()` (service_role
+only) returns her overrides with the engine's defaults filled in for the rest, plus three
+idle-sign-out keys (`idleMinutesOwner`/`Support`/`Helper`, DP-15) that have no engine-side
+default because they only exist on the database.
 
-Read through the function, never the table. And note what the shape buys: because a row
-exists only when she has changed something, `is_default` distinguishes a deliberate choice
-of 200 from a default of 200 — which matters the day a default changes and every business
-silently keeps the old one.
+Note what the shape buys: because a row exists only when she has changed something,
+`is_default` distinguishes a deliberate choice of 200 from a default of 200 — which
+matters the day a default changes and every business silently keeps the old one.
+
+**MP-09 b1: writes only through `save_setting(key, value, expected_updated_at)`,** owner
+only, `SECURITY DEFINER`. It knows every key's column (`int_value`/`text_value`/
+`cents_value`), bounds and enum, taken from the engine's own `bumpCfg`/`numCfg` calls and
+recorded in `tests/fixtures/settings-cases.json`; unknown keys, wrong types, out-of-range
+values and a stale `expected_updated_at` are all rejected. `insert`/`update`/`delete` on
+`settings` are revoked from `anon`/`authenticated` — even the owner can no longer write the
+table directly, validated or not. Reads: `get_settings()` (owner, every key, with each
+key's `updated_at` for the next save) or `get_operating_settings()` (any active staff, a
+published-safe projection — capacity, the ordering window, `maxPerOrder`, the idle
+minutes — with no cost key). The owner keeps raw `SELECT` on `settings` via the
+pre-existing RLS policy; only writes moved behind the RPC.
 
 Money keys (`packagingFee`, `flatBoxPrice`, `drawerFloat`, `groceryBudget`) go in
 `cents_value`, counts in `int_value`, strings in `text_value`, and a check constraint
@@ -73,15 +86,15 @@ whether that is percentage tax on gross or on margin is a question for her bookk
 included. The alternative — snake_case plus a mapping layer — puts one truth in two
 places, which is the bug `src/lib/rules/capacity.ts` exists to prevent.
 
-| State | Meaning | Recognised revenue | Reserves capacity |
-| --- | --- | --- | --- |
-| `Payment review` | Placed, awaiting proof of payment. Where every order starts. | no | no |
-| `Confirmed` | Payment verified. | yes | yes |
-| `Preparing` | In the bake plan. | yes | yes |
-| `Ready` | Packed and waiting for collection. | yes | no |
-| `Completed` | Handed over. | yes | no |
-| `Cancelled` | Rejected proof, or refunded. Can be reopened. | no | no |
-| `No-show` | Nobody came. **They stay paid** and the cookies go back into stock. | **yes** | no |
+| State            | Meaning                                                             | Recognised revenue | Reserves capacity |
+| ---------------- | ------------------------------------------------------------------- | ------------------ | ----------------- |
+| `Payment review` | Placed, awaiting proof of payment. Where every order starts.        | no                 | no                |
+| `Confirmed`      | Payment verified.                                                   | yes                | yes               |
+| `Preparing`      | In the bake plan.                                                   | yes                | yes               |
+| `Ready`          | Packed and waiting for collection.                                  | yes                | no                |
+| `Completed`      | Handed over.                                                        | yes                | no                |
+| `Cancelled`      | Rejected proof, or refunded. Can be reopened.                       | no                 | no                |
+| `No-show`        | Nobody came. **They stay paid** and the cookies go back into stock. | **yes**            | no                |
 
 The last row is the one to know. A no-show is recognised revenue — she keeps the money —
 and the boxes return to stock, so the capacity is released. Both halves matter, and a

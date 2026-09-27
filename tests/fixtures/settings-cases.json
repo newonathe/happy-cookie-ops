@@ -1,0 +1,202 @@
+{
+  "note": "Every settings key save_setting() validates, from supabase/migrations/20260101002800_settings_authority.sql. Read by tests/unit/settings-parity.test.ts, which checks each row two ways: against the running engine (source 'engine') for keys the engine itself bounds, and against the migration's own VALUES text for every key. A key with source 'sql-only' has no engine-side bound; its bounds are this migration's own documented choice (see the migration's comment).",
+  "keys": [
+    {
+      "key": "capacity",
+      "column": "int",
+      "min": 50,
+      "max": 600,
+      "enum": null,
+      "source": "engine: setCapacity numCfg"
+    },
+    {
+      "key": "taxRate",
+      "column": "int",
+      "min": 0,
+      "max": 25,
+      "enum": null,
+      "source": "engine: rules taxRate (0.5 step; save_setting rejects a fraction, disclosed)"
+    },
+    {
+      "key": "drawerFloat",
+      "column": "cents",
+      "min": 0,
+      "max": 1000000,
+      "enum": null,
+      "source": "engine: rules drawerFloat, pesos*100"
+    },
+    {
+      "key": "discountA",
+      "column": "int",
+      "min": 0,
+      "max": 500,
+      "enum": null,
+      "source": "engine: rules discountA (whole pesos in int_value, not centavos)"
+    },
+    {
+      "key": "discountB",
+      "column": "int",
+      "min": 0,
+      "max": 500,
+      "enum": null,
+      "source": "engine: rules discountB (whole pesos in int_value, not centavos)"
+    },
+    {
+      "key": "restHours",
+      "column": "int",
+      "min": 0,
+      "max": 96,
+      "enum": null,
+      "source": "engine: rules restHours"
+    },
+    {
+      "key": "doughWarnDays",
+      "column": "int",
+      "min": 1,
+      "max": 60,
+      "enum": null,
+      "source": "engine: rules doughWarnDays"
+    },
+    {
+      "key": "groceryBudget",
+      "column": "cents",
+      "min": 0,
+      "max": 4000000,
+      "enum": null,
+      "source": "engine: rules groceryBudget, pesos*100"
+    },
+    {
+      "key": "packagingFee",
+      "column": "cents",
+      "min": 0,
+      "max": 50000,
+      "enum": null,
+      "source": "engine: rules packagingFee, pesos*100"
+    },
+    {
+      "key": "flatBoxPrice",
+      "column": "cents",
+      "min": 0,
+      "max": 500000,
+      "enum": null,
+      "source": "engine: rules flatBoxPrice, pesos*100"
+    },
+    {
+      "key": "cogsMultiple",
+      "column": "int",
+      "min": 1,
+      "max": 10,
+      "enum": null,
+      "source": "engine: rules cogsMultiple (0.5 step; save_setting rejects a fraction, disclosed)"
+    },
+    {
+      "key": "priceMode",
+      "column": "text",
+      "min": null,
+      "max": null,
+      "enum": [
+        "Sum of menu prices",
+        "Menu prices + packaging fee",
+        "Flat price per box",
+        "Cookie cost × multiplier + packaging"
+      ],
+      "source": "engine: priceModes labels"
+    },
+    {
+      "key": "openDow",
+      "column": "int",
+      "min": 0,
+      "max": 6,
+      "enum": null,
+      "source": "sql-only: day-of-week index"
+    },
+    {
+      "key": "openH",
+      "column": "int",
+      "min": 0,
+      "max": 23,
+      "enum": null,
+      "source": "engine: schedHours openH bumpCfg"
+    },
+    {
+      "key": "openM",
+      "column": "int",
+      "min": 0,
+      "max": 59,
+      "enum": null,
+      "source": "sql-only: clock minute (engine never sets it away from 0)"
+    },
+    {
+      "key": "closeDow",
+      "column": "int",
+      "min": 0,
+      "max": 6,
+      "enum": null,
+      "source": "sql-only: day-of-week index"
+    },
+    {
+      "key": "closeH",
+      "column": "int",
+      "min": 0,
+      "max": 23,
+      "enum": null,
+      "source": "engine: schedHours closeH bumpCfg"
+    },
+    {
+      "key": "closeM",
+      "column": "int",
+      "min": 0,
+      "max": 59,
+      "enum": null,
+      "source": "sql-only: clock minute (engine never sets it away from 0)"
+    },
+    {
+      "key": "extendH",
+      "column": "int",
+      "min": 0,
+      "max": 168,
+      "enum": null,
+      "source": "sql-only: the engine only ever sets +24 or resets to 0 and never caps it; this cap (one week) is this migration's own choice"
+    },
+    {
+      "key": "retention",
+      "column": "text",
+      "min": null,
+      "max": null,
+      "enum": ["6 months", "1 year", "2 years", "Keep until I delete them"],
+      "source": "engine: RETENTION_DAYS keys"
+    },
+    {
+      "key": "maxPerOrder",
+      "column": "int",
+      "min": 1,
+      "max": 120,
+      "enum": null,
+      "source": "engine: rules maxPerOrder"
+    },
+    {
+      "key": "idleMinutesOwner",
+      "column": "int",
+      "min": 15,
+      "max": 480,
+      "enum": null,
+      "source": "sql-only: DP-15, decision register 2026-09-27"
+    },
+    {
+      "key": "idleMinutesSupport",
+      "column": "int",
+      "min": 15,
+      "max": 480,
+      "enum": null,
+      "source": "sql-only: DP-15, decision register 2026-09-27"
+    },
+    {
+      "key": "idleMinutesHelper",
+      "column": "int",
+      "min": 15,
+      "max": 480,
+      "enum": null,
+      "source": "sql-only: DP-15, decision register 2026-09-27"
+    }
+  ]
+}

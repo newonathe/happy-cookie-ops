@@ -970,6 +970,28 @@ export type Database = {
         Returns: Database["public"]["Enums"]["app_role"]
       }
       drop_remaining: { Args: { p_drop_id: string }; Returns: number }
+      get_operating_settings: {
+        Args: never
+        Returns: {
+          cents_value: number
+          int_value: number
+          is_default: boolean
+          key: string
+          text_value: string
+          updated_at: string
+        }[]
+      }
+      get_settings: {
+        Args: never
+        Returns: {
+          cents_value: number
+          int_value: number
+          is_default: boolean
+          key: string
+          text_value: string
+          updated_at: string
+        }[]
+      }
       is_owner: { Args: never; Returns: boolean }
       is_staff: { Args: never; Returns: boolean }
       lookup_order: {
@@ -986,6 +1008,13 @@ export type Database = {
       }
       prune_personal_data: { Args: { p_retain_days?: number }; Returns: number }
       prune_rate_limits: { Args: never; Returns: number }
+      save_setting: {
+        Args: { p_expected_updated_at: string; p_key: string; p_value: Json }
+        Returns: {
+          key: string
+          updated_at: string
+        }[]
+      }
       settings_effective: {
         Args: never
         Returns: {

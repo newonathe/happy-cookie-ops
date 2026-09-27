@@ -1,6 +1,82 @@
 # Current state — Happy Cookie Ops
 
-## Current checkpoint — 2026-09-27 (MP-09 a: live data boundary, G2 slice 2)
+## Current checkpoint — 2026-09-27 (MP-09 b1: settings on the database, database half, G2 slice 3)
+
+- **MP-09 b1 is complete locally.** Direct writes to `public.settings` are gone: `insert`/
+  `update`/`delete` are revoked from `anon`/`authenticated` (the owner keeps raw `SELECT`
+  via the pre-existing RLS policy — only writes moved). Every write now goes through
+  [save_setting(key, value, expected_updated_at)](../../supabase/migrations/20260101002800_settings_authority.sql),
+  a new owner-only `SECURITY DEFINER` RPC that validates against an embedded 24-key rules
+  table (column kind, numeric bounds or an enum) built from the engine's own `bumpCfg`/
+  `numCfg` bounds and `DEFAULT_CFG` — unknown keys, wrong JSON types, non-integer values
+  for `int`/`cents` columns, out-of-range values and a stale `expected_updated_at` are all
+  rejected (SQLSTATE `22023` for validation, `P0002` for staleness, `42501` for the
+  owner-only gate). `get_settings()` (owner, every key plus `updated_at`) and
+  `get_operating_settings()` (any active staff, a 12-key published-safe projection with
+  no cost key) round out the read side. `settings_effective()`'s defaults CTE gains
+  `idleMinutesOwner`/`Support`/`Helper` (60/60/240, range 15–480, DP-15); its signature and
+  config are otherwise restated unchanged.
+- **Bounds parity:** [tests/fixtures/settings-cases.json](../../tests/fixtures/settings-cases.json)
+  records every key's bounds once; [tests/unit/settings-parity.test.ts](../../tests/unit/settings-parity.test.ts)
+  checks it two ways — against the protected engine's own source text, and against the
+  migration's VALUES text — 45 tests, mutation-tested (a deliberately wrong bound in the
+  fixture was confirmed to fail 2 of them before being reverted).
+- **`tests/integration/security/settings.sql` was extended, not rewritten:** the existing
+  anon/no_subject/missing_profile/inactive-* denial paths and the service_role
+  direct-write path are unchanged; new coverage adds `get_settings`/`save_setting`/
+  `get_operating_settings` denial and success paths per actor, plus owner sub-cases for a
+  valid save, an update-path save, unknown-key/out-of-range/non-integer/stale (both the
+  insert-races-an-existing-row case and a wrong-timestamp update case) rejections, an
+  `updated_by` stamping check, a `priceMode` round-trip through a value containing the
+  literal "×" (U+00D7) character, and a value check (not just a key-set check) that a
+  helper sees the owner's saved capacity through `get_operating_settings`. Result count
+  40 → 74; the suite's combined total in `scripts/test-db-security.py` moved 474 → 508.
+- **Independent review (Opus, different model from this Sonnet implementation): SAFE TO
+  MERGE, no P0/P1.** One medium (P2), fixed: the optimistic-concurrency check compared
+  `expected_updated_at` to the microsecond, which a JS `Date` (b2's future client) cannot
+  round-trip — every save after the first would have failed forever. Fixed by truncating
+  both sides of the comparison to milliseconds. Three low findings fixed: `get_settings`'
+  row-count check tightened from `< 21` to `= 24`; the `UPDATE` branch now nulls the two
+  non-matching value columns explicitly, rather than leaving a stale one from an
+  inconsistent row (theoretical with real data, cheap to close); `docs/DATA.md`'s stale
+  "21 editable values" table row corrected to 24. One nit taken: `jsonb_typeof(p_value)`
+  moved from the `DECLARE` section to immediately after the owner check — the review's own
+  analysis found no actual leak either way (a malformed `jsonb` parameter never reaches the
+  function body, for every caller alike), but keeping every read of caller input strictly
+  after the auth gate is worth stating as a rule, not just true by construction here. One
+  nit not taken: an unqualified `settings` reference inside `settings_effective()`'s
+  untouched body predates this migration and is confirmed safe (that function's
+  `search_path` is `pg_catalog, public, pg_temp`, not empty); left as-is to keep the body
+  byte-identical to the original except for the added defaults, matching the "keep the
+  body's shape" instruction from MP-09 a's own review.
+- **Evidence:** `pnpm verify` 37 files/573 tests exit 0; the SQL role suite 508 cases/reset
+  across 2 fresh resets; all Python guards pass (37 unit + 3 auth + 17 db + 6 security
+  integration); G0 validator 1196 checks, 0 failures. `pnpm db:types` regenerated (byte-
+  identical output — only the function body changed, not its signature). No hosted preview
+  update; no protected file edited; no deploy.
+- **Ripple fix, disclosed:** `tests/integration/security/trigger-authority.sql`'s
+  `settings_touch` trigger-firing proof used to rely on the owner writing directly via
+  RLS; since that path is now revoked, it runs as `service_role` instead (the same
+  `auth.uid()`, since `request.jwt.claim.sub` is transaction-local and survives the role
+  switch) and is relabeled `service_role` rather than `active_owner` in its result row —
+  not removed, just honestly re-attributed to the role that actually performs it now.
+- **Caught and reverted before commit, same pattern as MP-09 a:** `validate-g0.py` and
+  `pnpm db:types`/`scripts/test-db-security.py` all silently overwrite hash-pinned or
+  unrelated historical `evidence/*.json` files as a side effect of running, regardless of
+  which slice is current. This session's run touched
+  `MP-05b-schema-inventory.json`/`MP-05b-types-write.json`/`MP-06l-bootstrap.json`/
+  `MP-06l-security.json` (reverted with `git checkout HEAD --`) and created a stray
+  `MP-05b-types-bootstrap.json` (removed). **Worth fixing at the source in a future
+  slice** — this is now a repeated failure mode, not a one-off.
+- **Disclosed, not fixed:** `taxRate`/`cogsMultiple`'s engine-side 0.5 step can't be saved
+  (`int_value` is `bigint`) — blocks b2's ±0.5 buttons for those two keys specifically,
+  an open decision for that slice, not this one. `discountA`/`discountB` stay whole pesos
+  in `int_value`, not centavos (inherited from migration 00700 unchanged).
+  `openDow`/`closeDow`/`openM`/`closeM`/`extendH` bounds are this migration's own choice,
+  since the engine never validates them (documented in the migration's comment and the
+  fixture).
+
+## Prior checkpoint — 2026-09-27 (MP-09 a: live data boundary, G2 slice 2)
 
 - **MP-09 a is complete locally.** Live mode (`NEXT_PUBLIC_APP_MODE=live`) never shows or stores
   the demo books. [src/lib/data/live-state.ts](../../src/lib/data/live-state.ts) classifies every

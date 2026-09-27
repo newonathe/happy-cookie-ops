@@ -1,5 +1,5 @@
 {
-  "scope": "Reviewed local function-authority drift baseline through MP-06l; erasure digest/ACL repaired, full capability/domain and hosted acceptance remain open",
+  "scope": "Reviewed local function-authority drift baseline through MP-09 b1; settings_effective gained three idle-minute defaults, get_settings/save_setting/get_operating_settings added; full capability/domain and hosted acceptance remain open",
   "functions": [
     {
       "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
@@ -294,7 +294,7 @@
         "search_path=pg_catalog, public, pg_temp"
       ],
       "returns": "TABLE(key text, int_value bigint, text_value text, cents_value bigint, is_default boolean)",
-      "body_md5": "6e390bb64aa51678ff8a5f4288ad84bd",
+      "body_md5": "6841028d8f7e6ac3ef7a81405300c7b3",
       "identity": "",
       "execute_anon": false,
       "security_definer": false,
@@ -390,6 +390,51 @@
       "security_definer": true,
       "execute_service_role": true,
       "execute_authenticated": false
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "get_settings",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(key text, int_value bigint, text_value text, cents_value bigint, is_default boolean, updated_at timestamp with time zone)",
+      "body_md5": "ebd313accefd99148922ee6b1c7d036c",
+      "identity": "",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "save_setting",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(key text, updated_at timestamp with time zone)",
+      "body_md5": "cdd108084126aa4fdfce24ec9576f742",
+      "identity": "p_key text, p_value jsonb, p_expected_updated_at timestamp with time zone",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "get_operating_settings",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(key text, int_value bigint, text_value text, cents_value bigint, is_default boolean, updated_at timestamp with time zone)",
+      "body_md5": "37a8013a5f9f232a352b3bbd5343ae22",
+      "identity": "",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
     }
   ]
 }
