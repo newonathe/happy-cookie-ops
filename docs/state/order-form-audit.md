@@ -114,7 +114,7 @@ Owner-editable, stored in the database, validated by owner RPCs like `save_setti
 
 Each has a recommended default so the build can proceed if he agrees.
 
-- **D1 · Unpaid orders now hold capacity, and anyone can place them.** Before, proof of payment was the
+- **D1 · Unpaid orders now hold capacity, and anyone can place them.** **Decided by Ethan, 2026-09-28:** as recommended, (a) plus (b). Before, proof of payment was the
   barrier to filling a week. Now an unpaid order holds slots, and the anonymous checkout still has no
   trusted rate-limit caller key (open in the decision register). Someone could fill a week with fake
   orders. Options: (a) an unpaid order releases its slots after N hours (setting, default 24) unless Cine
@@ -122,7 +122,7 @@ Each has a recommended default so the build can proceed if he agrees.
   unpaid order before it counts. **Recommended: (a) plus (b)**, both owner-configurable. The capacity rule
   changes in `src/lib/rules/capacity.ts`, `capacity_allows()` and `tests/fixtures/capacity-cases.json`
   together.
-- **D2 · Weekly drops or continuous ordering.** The prototype sells in weekly drops with one Monday
+- **D2 · Weekly drops or continuous ordering.** **Decided by Ethan, 2026-09-28:** as recommended. The prototype sells in weekly drops with one Monday
   window. The business takes orders continuously and the customer picks a pickup date. `cycle` and
   `windows` are instance fields, so `OpsRuntime` can replace them; the drop screens (open, closing soon,
   extend, close drop) would then describe the week of the chosen date. **Recommended:** keep the weekly
@@ -133,7 +133,7 @@ Each has a recommended default so the build can proceed if he agrees.
   choices from the app's public menu and sends each response to one ingest RPC (secret checked in the
   function, rate-limited). Unclear responses land in the existing form queue. Designed only after the
   live form and its script are in hand.
-- **D4 · Locked UI.** Every new checkout field and every configurable text changes protected markup, and
+- **D4 · Locked UI.** **Decided by Ethan, 2026-09-28:** approved; recorded in `protected-exception.md`. Every new checkout field and every configurable text changes protected markup, and
   the port gate hashes copy. The approved exception covers settings edit forms only. **Proposed:** in live
   mode the checkout text and field list come from the view model (as `bareFrame` does), and demo mode keeps
   the ported copy, so the visual baselines stay valid; the new checkout parts (add-ons, bundles, pickup
@@ -176,4 +176,5 @@ Each has a recommended default so the build can proceed if he agrees.
 9. **MP-10 c:** the redone order and waitlist forms connected (D3).
 10. MP-11 onward as in [G2-plan.md](G2-plan.md).
 
-D1, D2 and D4 block MP-10 a; D3 blocks MP-10 c; the rest have safe defaults.
+D1, D2 and D4 were decided on 2026-09-28, so MP-10 a is unblocked once its turn comes. D3 still blocks MP-10 c
+(it needs the live form and its script); the rest have safe defaults.

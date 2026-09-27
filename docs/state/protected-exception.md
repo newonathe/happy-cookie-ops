@@ -44,7 +44,6 @@ list (`PRODUCTS`: name, description, photo, allergens, permanent/rotating) and t
 B1, B2). No visible change to any screen. The slice that applies it must keep the change minimal, record the
 exact edit here, register it as exact reversals in `scripts/validate-g0.py`, and pass an independent port audit.
 
-
 # MP-09 b2 locked-UI exception: settings rules sheet in live mode (2026-09-28)
 
 Status: APPLIED under Ethan's 2026-09-27 approval of the DP-15 idle-minutes control (decision register), plus
@@ -67,3 +66,22 @@ so there is no exact reversal to register there, unlike the live-frame exception
 
 Evidence: `tests/unit/ops-runtime-settings.test.tsx` (owner rows present, helper rows absent, whole steps,
 idle ±15), `tests/unit/settings-sync.test.ts` (fraction reverted, never sent).
+
+# MP-10 checkout and shop-text locked-UI exception — APPROVED, not yet applied (2026-09-28)
+
+Status: APPROVED by Ethan on 2026-09-28 (decision D4 in [order-form-audit.md](order-form-audit.md)), so the app can
+replace Cine's order form at launch with every applicable field and text owner-configurable. Scope:
+
+- **Live mode only.** The customer checkout's field list (on/off, required, label, help text) and the shop texts
+  (title, intro, pickup notice, substitution notice, confirmation text, social links) come from the view model,
+  filled from the owner's settings. Demo, dev, CI and the visual baselines keep the ported copy byte for byte,
+  the same pattern as the live-frame exception's `bareFrame` guards.
+- **New checkout parts** (fulfilment method, delivery address, pickup date and time slots, pay now or later,
+  add-ons with variants and a note text, bundles, same-day fee, flavour suggestions) are new components built
+  only from the existing tokens and the ported styles; no new colours or type.
+- **Protected markup edits are limited to the smallest guarded insertion points** those parts need. Each slice
+  that applies part of this exception records its exact edits here, registers them as exact reversals in
+  `scripts/validate-g0.py` (like `LIVE_FRAME_REVERSALS`), updates `scripts/port-baseline.json` only through
+  `--update` in the same commit, and passes an independent port audit.
+- Not covered: any change to demo-mode rendering, the protected engine (`ops-engine.js`; the MP-09 c
+  exception covers `PRODUCTS`/`PAY_ACCOUNTS`, to be extended to `ALLERGENS` when applied), or staff screens.

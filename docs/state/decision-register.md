@@ -70,6 +70,17 @@ element-by-element analysis, configuration model, decisions D1–D11 (D1: unpaid
 recommended expiry plus per-phone limit) and the proposed slice split are in
 [order-form-audit.md](order-form-audit.md).
 
+**Ethan's decisions on the order-form audit (2026-09-28):**
+
+- **D1, as recommended:** an unpaid order releases its slots after N hours (owner setting, default 24)
+  unless Cine marks it paid, and at most N open unpaid orders per phone number (owner setting, default 2).
+  The capacity rule changes in `src/lib/rules/capacity.ts`, `capacity_allows()` and
+  `tests/fixtures/capacity-cases.json` in the same commit.
+- **D2, as recommended:** the weekly capacity and the drop screens stay as the owner's week view; customers
+  pick any allowed pickup date inside the owner's lead time. `OpsRuntime` replaces `cycle`/`windows`
+  (instance fields); the protected engine is not edited for this.
+- **D4, approved:** the checkout locked-UI exception (see `protected-exception.md`).
+
 **Order-form rules the prototype does not have** (from the September form Cine sent). Each needs a scope
 decision by Ethan and, where it adds UI, a locked-UI exception. None is decided:
 
