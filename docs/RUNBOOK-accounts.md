@@ -116,9 +116,9 @@ how quickly a deactivation is guaranteed to be checked even if nothing else re-c
 sooner (`src/components/app/live-gate.tsx` re-checks on `TOKEN_REFRESHED` and on the tab
 regaining focus, which is normally much sooner than 30 minutes).
 
-The client-side idle sign-out (`src/lib/auth/idle-signout.ts`) is separate and shorter for
-owner/support than for helper — see the file's own comment and
-`docs/state/decision-register.md` DP-15, which is still open. There is no absolute session
+The client-side idle sign-out (`src/lib/auth/idle-signout.ts`) is separate: owner and support
+are signed out after 60 idle minutes, helpers after 240 (`docs/state/decision-register.md`
+DP-15, decided 2026-09-27; owner-editable once settings move to the database, MP-09 b). There is no absolute session
 lifetime under this architecture to fall back on if it fails (that was a property of the
 archived BFF), so it signs out carefully: `{ scope: 'local' }` only, so it never signs out
 the owner's other devices; it force-clears the session's storage directly if the network

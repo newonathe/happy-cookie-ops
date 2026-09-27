@@ -1,10 +1,11 @@
 import type { Role } from '@/store/engine/ops-engine';
 
 /**
- * Client-side idle sign-out minutes, per role — pending DP-15
- * (docs/state/decision-register.md). Not yet Ethan's decision: shaped like DP-15's
- * option B so a bazaar shift doesn't force a helper to keep re-typing a password, while
- * owner and support — who see financial and customer data — get the shorter timeout.
+ * Client-side idle sign-out minutes, per role — DP-15, decided by Ethan on 2026-09-27
+ * (docs/state/decision-register.md): option B with the configurability audit's B10
+ * defaults. Owner and support, who see financial and customer data, get 1 h; helpers get
+ * 4 h, one bazaar shift, so a busy stall doesn't keep re-typing a password. The owner will
+ * be able to change these within 15 min – 8 h once settings move to the database (MP-09 b).
  *
  * There is no absolute session lifetime underneath this to fall back on: that was a
  * property of the archived BFF (docs/state/decision-register.md), not of architecture A.
@@ -17,7 +18,7 @@ import type { Role } from '@/store/engine/ops-engine';
 export const IDLE_MINUTES: Record<Role, number> = {
   owner: 60,
   support: 60,
-  helper: 180
+  helper: 240
 };
 
 const ACTIVITY_EVENTS = ['pointerdown', 'keydown', 'wheel', 'touchstart'] as const;

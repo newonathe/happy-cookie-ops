@@ -1,6 +1,18 @@
 # Current state — Happy Cookie Ops
 
-## Current checkpoint — 2026-09-27 (G2 planned)
+## Current checkpoint — 2026-09-27 (MP-08 closed: idle sign-out defaults, G2 slice 1)
+
+- **DP-15 decided (Ethan, 2026-09-27):** option B with the audit B10 defaults. `src/lib/auth/idle-signout.ts`
+  signs owner and support out after 60 idle minutes and helpers after 240 (was 180, a placeholder). The owner will
+  be able to change these within 15 min – 8 h in MP-09 b. The V7.1.1 rationale and accepted risk are recorded in
+  the [decision register](decision-register.md); the runbook and configurability audit B10 now give the decided
+  minutes. Unit tests assert each role's minutes and a four-hour helper timer.
+- Evidence: `pnpm verify` 33 files/445 tests, exit 0. No deploy; no protected file edited.
+- MP-08 is **complete locally** in `task-status.json`. Carried over, not done: the signed-in checks on the hosted
+  preview (refresh probe, `auth.sessions`, role bootstrap, idle sign-out), which need a test account Ethan creates
+  and signs in with himself (next-goal.md "After these goals" 1).
+
+## Prior checkpoint — 2026-09-27 (G2 planned)
 
 - Ethan: "start connecting orders, money and stock to the database". [G2-plan.md](G2-plan.md) sets the
   principles (database is the source of truth; every write is a server command wrapped in `OpsRuntime`; live mode
@@ -158,8 +170,8 @@
     Supabase URL/key (found — confirms the env-inlining fix); the SQL role suite passes
     474 cases/reset across 2 resets.
   - **Not done:** the hosted Workers static-assets preview (needs Ethan's approval, see
-    next-goal.md "After these goals"); DP-15's exact idle minutes are still Ethan's
-    decision, not this session's (the code marks them "pending DP-15" everywhere they
+    next-goal.md "After these goals"); DP-15's exact idle minutes were then still Ethan's
+    decision, not this session's (decided 2026-09-27: 60/60/240; the code then marked them as awaiting DP-15 everywhere they
     appear); Goal 2 (static CSP headers for direct Supabase) is done — see the checkpoint above.
   - **Unrelated, noticed mid-session, left alone:** `.codex/config.toml` was reformatted
     (comments stripped) and gained a `[mcp_servers.codebase-memory-mcp]` entry, and a new
@@ -237,7 +249,7 @@
   2. The rest of G1 under architecture A is **one goal**: [next-goal.md](next-goal.md). It covers:
      - the 28th-migration default-privilege hardening;
      - `supabase-js` sign-in, role bootstrap and fail-closed sessions;
-     - a client-side idle sign-out with its minutes pending DP-15;
+     - a client-side idle sign-out with its minutes then awaiting DP-15 (decided 2026-09-27);
      - a provisioning runbook;
      - the CSP `connect-src`/`form-action` changes.
   3. The hosted static preview on Workers static assets (DP-14 is resolved) needs Ethan's approval.

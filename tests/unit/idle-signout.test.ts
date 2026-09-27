@@ -2,9 +2,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { IDLE_MINUTES, startIdleSignOut } from '@/lib/auth/idle-signout';
 
 describe('IDLE_MINUTES', () => {
-  it('gives owner and support the shorter timeout, helper the longer one — pending DP-15', () => {
-    expect(IDLE_MINUTES.owner).toBe(IDLE_MINUTES.support);
-    expect(IDLE_MINUTES.helper).toBeGreaterThan(IDLE_MINUTES.owner);
+  it('signs owner and support out after 60 idle minutes and helper after 240 (DP-15)', () => {
+    expect(IDLE_MINUTES).toEqual({ owner: 60, support: 60, helper: 240 });
   });
 });
 
@@ -35,6 +34,17 @@ describe('startIdleSignOut', () => {
     expect(onIdle).not.toHaveBeenCalled();
 
     vi.advanceTimersByTime(IDLE_MINUTES.helper * 60_000);
+    expect(onIdle).toHaveBeenCalledOnce();
+  });
+
+  it('keeps a helper signed in for four idle hours, then signs out', () => {
+    const onIdle = vi.fn();
+    startIdleSignOut('helper', onIdle);
+
+    vi.advanceTimersByTime(240 * 60_000 - 1);
+    expect(onIdle).not.toHaveBeenCalled();
+
+    vi.advanceTimersByTime(1);
     expect(onIdle).toHaveBeenCalledOnce();
   });
 

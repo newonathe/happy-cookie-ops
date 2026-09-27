@@ -42,7 +42,7 @@ Each needs a new edit form. **Locked-UI exception approved by Ethan, 2026-09-27*
 | B7  | **Shelf life per ingredient**                                                                        | fixed (`USE_BY_DAYS`)                                                       | a field on each inventory item                                                               |
 | B8  | **Suppliers and pack sizes**                                                                         | fixed (`SUPPLIERS`, `PACK_SIZE`); prices update when she records a purchase | add and edit suppliers and pack sizes                                                        |
 | B9  | **Helpers see sale totals?** (DP-05)                                                                 | fixed: helpers see sales, never costs/profit                                | one on/off switch, default off                                                               |
-| B10 | **Auto sign-out after inactivity** (DP-15)                                                           | 1 constant, "pending DP-15"                                                 | one setting per role within a safe range (15 min – 8 h). Defaults: owner 1 h, helpers 4 h    |
+| B10 | **Auto sign-out after inactivity** (DP-15)                                                           | 1 constant: owner/support 60 min, helpers 240 min (DP-15 decided 09-27)     | one setting per role within a safe range (15 min – 8 h). Defaults: owner 1 h, helpers 4 h    |
 
 ## C. Stays fixed (not a setting), and why
 
