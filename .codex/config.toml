@@ -48,3 +48,9 @@ model = "gpt-6-sol"
 model_reasoning_effort = "xhigh"
 sandbox_mode = "read-only"
 approval_policy = "on-request"
+
+# Code search (codebase-memory-mcp): locate symbols instead of reading whole files
+# (AGENTS.md working agreement). The binary lives in the pinned tools folder on this
+# machine, so this entry only works here — fine for a private, single-developer repo.
+[mcp_servers.codebase-memory-mcp]
+command = "C:/Users/ethan/dev/happy-cookie-tools/codebase-memory-mcp/bin/codebase-memory-mcp.exe"
