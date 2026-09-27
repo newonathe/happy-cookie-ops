@@ -177,6 +177,25 @@ describe('OpsRuntime settings (MP-09 b2, live mode)', () => {
     expect(runtime.state.cfg).toMatchObject({ idleMinutesHelper: 255 });
   });
 
+  it('the owner’s rules sheet has the helper-totals switch, off by default, and it saves (MP-09 b4)', async () => {
+    const { runtime, rpc } = await mountedRuntime('owner');
+    const row = (runtime.renderVals().rules as Array<Record<string, unknown>>).find(
+      (r) => r.k === 'helperSeesSales'
+    )!;
+    expect(row).toMatchObject({ label: 'Helpers see sale totals', value: 0, valueText: 'Off' });
+    act(() => (row.up as () => void)());
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(SAVE_DEBOUNCE_MS);
+    });
+    expect(saveCalls(rpc)).toEqual([
+      { p_key: 'helperSeesSales', p_value: 1, p_expected_updated_at: null }
+    ]);
+    const after = (runtime.renderVals().rules as Array<Record<string, unknown>>).find(
+      (r) => r.k === 'helperSeesSales'
+    )!;
+    expect(after).toMatchObject({ value: 1, valueText: 'On' });
+  });
+
   it('helper and support rules carry no idle rows', async () => {
     const { runtime } = await mountedRuntime('helper');
     const rules = runtime.renderVals().rules as Array<{ k?: string }>;

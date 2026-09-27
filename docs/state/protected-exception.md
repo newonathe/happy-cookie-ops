@@ -85,3 +85,25 @@ replace Cine's order form at launch with every applicable field and text owner-c
   `--update` in the same commit, and passes an independent port audit.
 - Not covered: any change to demo-mode rendering, the protected engine (`ops-engine.js`; the MP-09 c
   exception covers `PRODUCTS`/`PAY_ACCOUNTS`, to be extended to `ALLERGENS` when applied), or staff screens.
+
+# MP-09 b4 locked-UI exception: helper money in live mode (2026-09-28)
+
+Status: APPLIED. The owner control falls under Ethan's 2026-09-27 approval of the settings edit forms; hiding
+cost and profit from helpers carries out Cine's 2026-09-28 rule (decision register). Live mode only; demo, dev,
+CI and the visual baselines render exactly as before (`tests/unit/helper-money.test.tsx` pins demo mode).
+
+**No protected file changed.** Both parts are view-model values set in `OpsRuntime.renderVals()` through
+`src/lib/auth/helper-money.ts`; the ported markup renders them unchanged.
+
+- **For every non-owner role, whatever the switch says:** the bazaar close-out summary's cookie cost, event
+  expenses and profit show "—" (`bzCloseout`; the big profit figure is hidden through `profitOk`), and each event
+  expense row's amount shows "—". The close-out sheet's own grid was already hidden (`showEventMoney` is false
+  for helpers).
+- **Sale totals follow the owner's `helperSeesSales` switch (off by default):** the running "N sales · ₱total"
+  line, the close-out revenue, past drop totals in the sales log (the log keeps this event's own sales), and the
+  close-out sheet's per-app totals (GCash, Maya, GoTyme), which add up to revenue together with the cash sales.
+- **Kept for helpers:** menu prices, the cart total, each sale's own amount (needed to charge and void) and the
+  cash-box line at close-out (helpers may cash up, and count that cash by hand anyway). This is a display rule,
+  not a security boundary: adding up every visible sale line by hand still gives the total.
+- **New owner row** at the end of the live rules sheet: "Helpers see sale totals", 0/1 with On/Off text, saved
+  as `helperSeesSales` through `save_setting`.

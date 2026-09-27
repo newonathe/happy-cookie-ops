@@ -10,6 +10,7 @@ import { isLiveMode } from '@/lib/config/app-mode';
 import { clearStoredBooks, liveBaseState } from '@/lib/data/live-state';
 import { STATE_LEVEL_KEYS, type SettingsClient } from '@/lib/data/settings';
 import { SettingsSync } from '@/lib/data/settings-sync';
+import { helperMoneyView } from '@/lib/auth/helper-money';
 import {
   IDLE_MINUTES_MAX,
   IDLE_MINUTES_MIN,
@@ -260,11 +261,20 @@ export class OpsRuntime extends OpsProvider {
         'width: 100%; height: 100%; transform: scale(1); transform-origin: top left; display: flex; overflow: hidden; background: ' +
         (this.state.device === 'desktop' ? '#F6F4F2' : '#FFFFFF'),
       plTrend: trend.filter((row) => row.now).map((row) => ({ ...row, v: barHeight })),
-      rules: this.state.role === 'owner' ? this.liveRules(starved.rules ?? []) : starved.rules
+      rules: this.state.role === 'owner' ? this.liveRules(starved.rules ?? []) : starved.rules,
+      // MP-09 b4: helpers (and any other non-owner) never see cost, expenses or profit, and
+      // see sale totals only when the owner's helperSeesSales switch is on.
+      ...(this.state.role === 'owner'
+        ? {}
+        : helperMoneyView(starved, {
+            seesTotals: (this.state.cfg as Record<string, unknown> | undefined)?.helperSeesSales === 1,
+            liveSales: (this.state.sales ?? []).length,
+            count: (n) => this.num(n)
+          }))
     };
   }
 
-  /** The rules sheet in live mode: the ported rows, plus DP-15's idle minutes. */
+  /** The rules sheet in live mode: the ported rows, DP-15's idle minutes and the helper-totals switch. */
   private liveRules(rules: OpsVals['rules']): OpsVals['rules'] {
     const cfg = (this.state.cfg ?? {}) as Record<string, unknown>;
     const clamp = (n: number) => Math.min(IDLE_MINUTES_MAX, Math.max(IDLE_MINUTES_MIN, n));
@@ -288,7 +298,24 @@ export class OpsRuntime extends OpsProvider {
           )
       };
     });
-    return [...rules, ...idle];
+    const seesTotals = cfg.helperSeesSales === 1;
+    const helperTotals = {
+      k: 'helperSeesSales',
+      label: 'Helpers see sale totals',
+      value: seesTotals ? 1 : 0,
+      valueText: seesTotals ? 'On' : 'Off',
+      note: 'The running bazaar total and past drop totals. Costs, expenses and profit stay hidden either way.',
+      down: () => this.setCfg('helperSeesSales', 0),
+      up: () => this.setCfg('helperSeesSales', 1),
+      set: (e?: unknown) =>
+        this.numCfg(
+          'helperSeesSales',
+          (e as { target?: { value?: unknown } } | undefined)?.target?.value,
+          0,
+          1
+        )
+    };
+    return [...rules, ...idle, helperTotals];
   }
 
   /**

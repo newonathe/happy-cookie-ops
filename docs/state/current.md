@@ -1,6 +1,41 @@
 # Current state — Happy Cookie Ops
 
-## Current checkpoint — 2026-09-28 (MP-09 b3: preferences and half steps on the database, G2 slice 4)
+## Current checkpoint — 2026-09-28 (MP-09 b4: helper sale totals and helper money privacy; MP-09 b closed)
+
+- **MP-09 b4 is complete locally, which closes MP-09 b** (settings on the database: b1–b4). Run in
+  the same conversation at Ethan's request.
+- **Exposure proven first** with a render probe of a live helper on today, sales and bazaar
+  (selling, the close-out sheet, and after a close-out). Before the fix a helper saw the running
+  "1 sale · ₱260" total, the ₱1,500 event expense, past drop totals (₱5,200) in the sales log,
+  and after a close-out the revenue, cookie cost (₱53) and expenses; the big profit figure showed
+  whenever the event made money. Today showed no amounts. Helpers cannot reach other screens:
+  the engine's `canSee` renders "Only Cine can open this" for anything outside today, sales and
+  bazaar.
+- **Fix, in view-model values only** ([helper-money.ts](../../src/lib/auth/helper-money.ts),
+  applied by `OpsRuntime.renderVals()` for every non-owner role in live mode): cost, expenses and
+  profit show "—" whatever the switch says; sale totals (running total, close-out revenue, past
+  drop totals) follow `helperSeesSales`, off by default; menu prices, the cart, each sale's own
+  amount and the cash-drawer count stay (needed to charge, void and cash up). Cine's control is a
+  new "Helpers see sale totals" row on the live rules sheet, saved through `save_setting`. No
+  protected file changed ([protected-exception.md](protected-exception.md)).
+- **Evidence (this session):** `tests/unit/helper-money.test.tsx` (18 tests: switch never set,
+  off and on, each screen and state, a profitable close-out, the close-out sheet, today, demo
+  unchanged, and the owner reference); with the fix disabled, 11 of them fail. Owner row test in
+  `ops-runtime-settings.test.tsx`.
+- **Independent review (Sonnet, a different model from this Opus implementation): first NOT
+  SAFE, one P1, fixed; re-check SAFE TO MERGE.** The close-out sheet's per-app totals (GCash, Maya, GoTyme) plus the cash
+  sales added up to the exact revenue the switch hides, on every close-out. They now follow the
+  switch; the cash-box line stays (the helper counts that cash by hand). Three more tests (21 in
+  the file); removing the fix fails the two switch-off cases. The review's P3: the switch is a
+  display rule, not a security boundary (a helper summing every sale line by hand still gets the
+  total); recorded, no change. It confirmed cost, expenses and profit are hidden everywhere a
+  helper can reach, `canSee` blocks every other screen, the sales-log split is exact, and demo
+  mode is untouched.
+- **Evidence (this session):** `pnpm verify` 41 files/637 tests exit 0; G0 validator 1196
+  checks/0 failures; evidence churn reverted. No SQL change (the SQL role suite is unaffected).
+  No hosted preview update, no deploy.
+
+## Prior checkpoint — 2026-09-28 (MP-09 b3: preferences and half steps on the database, G2 slice 4)
 
 - **MP-09 b3 is complete locally** (run in the same conversation as b2 at Ethan's request).
   [Migration 20260101002900](../../supabase/migrations/20260101002900_settings_preferences.sql)
