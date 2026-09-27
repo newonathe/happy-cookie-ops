@@ -1,6 +1,15 @@
 # Current state — Happy Cookie Ops
 
-## Current checkpoint — 2026-09-27 (live frame: no review harness, automatic screen size)
+## Current checkpoint — 2026-09-27 (G2 planned)
+
+- Ethan: "start connecting orders, money and stock to the database". [G2-plan.md](G2-plan.md) sets the
+  principles (database is the source of truth; every write is a server command wrapped in `OpsRuntime`; live mode
+  never starts from the demo books; one protected-engine exception for `PRODUCTS`/`PAY_ACCOUNTS` before MP-09 c)
+  and the order: MP-08 close → MP-09 a–d → MP-16 → MP-07 finish → MP-10 → MP-11 → MP-12 → MP-17 → MP-13 → MP-14 →
+  MP-15. MP-07 is unfinished (durable offline queue, OFFLINE-01), so customer ordering waits for it.
+- The first two goal blocks (MP-08 close, MP-09 a) are in [next-goal.md](next-goal.md). No G2 code yet.
+
+## Prior checkpoint — 2026-09-27 (live frame: no review harness, automatic screen size)
 
 - **Owner-directed (Ethan):** the live build keeps every screen, animation and layout but drops the prototype's
   review aids: header row ("Interactive prototype · … · mock data", device/role/width pickers, simulated
