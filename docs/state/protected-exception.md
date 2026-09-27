@@ -36,3 +36,11 @@ sideways scroll at 390/834/1280 px on the hosted preview); `pnpm test:e2e` uncha
 port audit: no copy, element or demo-mode change; its process findings (this record, the stale provenance string,
 an inaccurate code comment and the AGENTS.md trap text) are addressed in the same commit.
 
+# MP-09 c engine exception — APPROVED, not yet applied (2026-09-27)
+
+Ethan approved the smallest edit to the protected engine (`src/store/engine/ops-engine.js`) that lets the flavour
+list (`PRODUCTS`: name, description, photo, allergens, permanent/rotating) and the payment accounts
+(`PAY_ACCOUNTS`) come from state loaded from the database instead of module constants (configurability audit
+B1, B2). No visible change to any screen. The slice that applies it must keep the change minimal, record the
+exact edit here, register it as exact reversals in `scripts/validate-g0.py`, and pass an independent port audit.
+

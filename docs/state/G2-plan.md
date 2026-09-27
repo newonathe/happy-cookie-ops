@@ -24,8 +24,7 @@ package is taken verbatim from `docs/master-plan/tasks.json`. Work loop: one `/g
 5. **The public shop reads only `shop_products` / `shop_drops`.** Publishing is an owner command (MP-09 c).
 6. **Protected-engine exception needed once:** `PRODUCTS` (flavour list: name, description, photo, allergens) and
    `PAY_ACCOUNTS` are module constants in the protected engine. Making them editable (audit B1, B2) needs the
-   smallest engine edit that reads them from state, recorded like the live-frame exception. Needs Ethan's yes
-   before slice MP-09 c.
+   smallest engine edit that reads them from state, recorded like the live-frame exception. Approved by Ethan on 2026-09-27; applied in slice MP-09 c, recorded in `protected-exception.md` and `scripts/validate-g0.py` like the live-frame exception.
 
 ## Order (dependencies from tasks.json)
 
