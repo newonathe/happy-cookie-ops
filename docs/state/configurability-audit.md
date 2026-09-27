@@ -1,0 +1,78 @@
+# Configurability audit — what Cine can change herself (2026-09-27)
+
+**Principle (Ethan, 2026-09-27):** business values change over time, so Cine edits them in the app instead of
+them being written into the code. Specific numbers are not decided up front: the app ships with sensible
+defaults and she changes them. Security and record-keeping rules stay fixed. Keep it simple: one setting per
+real business choice, no per-customer or per-day special cases.
+
+Evidence: `src/store/engine/ops-engine.js` (`DEFAULT_CFG`, `settingsGroups`, the constants at L141–315),
+`supabase/migrations/20260101000700_settings.sql` (`settings_effective()`, 21 keys), and the table list in
+`supabase/migrations/`. The owner already asked to edit all settings (guide Q28).
+
+## A. Already editable in the prototype (G2 only has to save them to the database)
+
+| What Cine changes                                                                           | Where in the app                 | Saved in the database today?                                      |
+| ------------------------------------------------------------------------------------------- | -------------------------------- | ----------------------------------------------------------------- |
+| Cookie prices                                                                               | Products                         | `products` table exists                                           |
+| Which flavours are in this week's drop, sold out                                            | Products / Drops                 | `drops` table exists                                              |
+| Pricing rule (sum of prices, flat box price, cost × multiplier + packaging) and its numbers | Settings → Pricing rule          | yes (`priceMode`, `flatBoxPrice`, `cogsMultiple`, `packagingFee`) |
+| Ordering window (open/close day and time), extend or close early                            | Settings → Drop schedule / Drops | yes (`openDow`…`extendH`)                                         |
+| Weekly capacity (cookies per drop)                                                          | Drops                            | yes (`capacity`)                                                  |
+| Recipes: ingredients, amounts, yield (versioned)                                            | Recipes                          | `recipes`, `recipe_ingredients` exist                             |
+| Inventory items, low-stock levels, counts                                                   | Inventory                        | `inventory_items` exists                                          |
+| Expense categories (add, rename, hide)                                                      | Profit & loss                    | no table yet                                                      |
+| Tax set-aside %, bazaar cash float, two quick discounts                                     | Settings → Money rules           | yes                                                               |
+| Dough rest hours, "old dough" warning days, weekly grocery budget                           | Settings → Kitchen rules         | yes                                                               |
+| Which alerts are on                                                                         | Notifications                    | no table yet                                                      |
+| How long customer contact details are kept                                                  | Settings                         | yes (`retention`)                                                 |
+| Bazaar prices per event (defaults to online price, DP-20)                                   | Bazaar mode                      | `events` exists                                                   |
+
+## B. Hard-coded today, should become editable (new work)
+
+Each needs a new edit form. The UI is locked, so these need Ethan's locked-UI exception (below). They should reuse the existing sheet and row styles, not a new design.
+
+| #   | What                                                                                                 | Today                                                                       | Make it                                                                                      |
+| --- | ---------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| B1  | **Add / remove flavours**, including name, description, photo, allergens, "permanent / rotating" tag | fixed list of 6 (`PRODUCTS`, `ALLERGENS`)                                   | add, edit and archive products (DP-19). Archive, don't delete: old orders keep their flavour |
+| B2  | **Payment accounts**: GCash/Maya/GoTyme numbers, account names, QR images                            | fixed (`PAY_ACCOUNTS`)                                                      | edit, add, switch off an account                                                             |
+| B3  | **Pickup / collection**: days, time window(s), collection options                                    | fixed "first Monday, 9 AM – 5 PM" (`dropCycle`, `windowsFor`)               | editable pickup day(s) and time window(s) (DP-16)                                            |
+| B4  | **Bake days**                                                                                        | not modelled separately                                                     | editable bake day(s), used by the bake plan (DP-16)                                          |
+| B5  | **Box size and order limits**                                                                        | box of 6 fixed; `maxPerOrder` 24 exists but has no screen                   | editable box size and max per order                                                          |
+| B6  | **Margin warning**                                                                                   | the owner's 65% floor is not in the app                                     | editable warning %, a warning only, never a block                                            |
+| B7  | **Shelf life per ingredient**                                                                        | fixed (`USE_BY_DAYS`)                                                       | a field on each inventory item                                                               |
+| B8  | **Suppliers and pack sizes**                                                                         | fixed (`SUPPLIERS`, `PACK_SIZE`); prices update when she records a purchase | add and edit suppliers and pack sizes                                                        |
+| B9  | **Helpers see sale totals?** (DP-05)                                                                 | fixed: helpers see sales, never costs/profit                                | one on/off switch, default off                                                               |
+| B10 | **Auto sign-out after inactivity** (DP-15)                                                           | 1 constant, "pending DP-15"                                                 | one setting per role within a safe range (15 min – 8 h). Defaults: owner 1 h, helpers 4 h    |
+
+## C. Stays fixed (not a setting), and why
+
+| What                                                                                                           | Why it is not editable                                                                                                          |
+| -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| What each login can see (helpers never see costs, expenses or profit; support sees system health only)         | This is the security boundary, enforced by database rules (RLS). A switch here could leak finances                              |
+| Customers pay first: an order only counts once payment proof is in (Ethan, 2026-09-27)                         | Capacity, the bake list and stock all depend on it. Making it optional brings back the "unpaid order on the bake list" problem  |
+| Order status steps (Awaiting payment → Paid → Baking → Ready → Collected, plus Cancelled / No-show / Replaced) | The app's logic moves orders through these steps. Renaming them is harmless and can come later; adding or removing steps is not |
+| Sales, payments, refunds and stock changes are never deleted, only reversed                                    | Keeps the books trustworthy. A mistake is fixed with a correcting entry                                                         |
+| Refunds are only recorded; Cine sends the money herself                                                        | The app never moves money                                                                                                       |
+| Money arithmetic (centavos, rounding)                                                                          | One rule in one place                                                                                                           |
+| Backup routine and security settings of the hosting accounts                                                   | Ethan's responsibility, not a business choice                                                                                   |
+
+## D. Ethan's answers of 2026-09-27 to the owner packet
+
+| Packet question                            | Answer                                                                                                                       | Effect                                                                                                                                                                |
+| ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 · When an order counts (DP-02)           | Customers pay first                                                                                                          | Unpaid orders never reach the bake list. Matches the owner's Q5–Q7                                                                                                    |
+| 2 · When ingredient cost counts (DP-04)    | When she buys it                                                                                                             | **Conflict:** this is what the prototype P&L already does, and it is the owner's #1 complaint ("950 g still in the jar counts as spent"). Confirm with Cine before G2 |
+| 3 · Box price (DP-04)                      | Every cookie and box price editable                                                                                          | A1 plus B5. The pricing-rule switch already exists                                                                                                                    |
+| 4 · Packing big cookies (DP-03)            | Asked why it is needed                                                                                                       | Explained; recommended default below                                                                                                                                  |
+| 5 · Bake days and pickup (DP-16)           | Configurable                                                                                                                 | B3, B4                                                                                                                                                                |
+| 6 · Cancellations and refunds (DP-17)      | The app only records refunds; Cine sends them                                                                                | Matches the engine (`refundOrder`)                                                                                                                                    |
+| 7 · Helpers (DP-05)                        | Remove Cervo and Misty by hand now. No named helpers: one helper page that every helper opens on any phone, tablet or laptop | One shared helper login. Changing its password removes everyone's access at once                                                                                      |
+| 8 · Phones at MoreSem (DP-18)              | Follows from 7: any number of devices                                                                                        | **Risk:** two devices selling offline at the same time can both sell the last cookie. Confirm before G3                                                               |
+| 9 · Backups (DP-10)                        | Asked for a manual download anytime, or a live Google Sheet                                                                  | Recommended: a download button now, and a one-way Sheet copy every few minutes later                                                                                  |
+| 10 · Alerts (DP-12)                        | Email via Resend                                                                                                             | Needs a domain name to send to customers. Not decided                                                                                                                 |
+| 11 · Google Form handover (DP-11)          | Paid form orders already count                                                                                               | Open: how those orders get into the app's bake list and capacity                                                                                                      |
+| 12 · Menu and bazaar prices (DP-19, DP-20) | "Yes for both" (read as: add/remove flavours anytime; bazaar prices = online)                                                | B1. The per-event price override stays but defaults to the online price                                                                                               |
+
+**Packing default (DP-03), recommended:** the app assumes the box size (B5) and suggests the number of boxes.
+Cine can change that number when she packs. This keeps box and packaging stock accurate without a
+per-flavour "box footprint" setting.

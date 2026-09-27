@@ -41,6 +41,10 @@ Owner sources live outside the repo in `C:\Users\ethan\dev\Happy Cookie Ops - Bu
 | **Open under architecture A (G2 prerequisite):** an anonymous checkout RPC has no proven trustworthy caller key for `consume_rate_limit` under direct PostgREST. The BFF used `CF-Connecting-IP`. Under direct PostgREST, the request headers visible to SQL (`request.headers`) have not been verified: which forwarded-IP header Supabase's gateway sets, and whether a client can spoof it, is unknown. Before G2 relies on per-caller limits, prove it on the hosted project, or use per-capability, per-phone or global limits plus capacity checks. | Claude, 2026-09-26                      | G2 checkout                                                                                                      |
 | **Amends master-plan MP-04 acceptance:** "Cookies, CSRF … API p99 CPU ≤8 ms" no longer applies, because there is no server API. MP-04 now requires a hosted static preview on Cloudflare Workers static assets. That preview must pass the MP-04d route/CSP/cache oracle with `connect-src` limited to `'self'` plus the configured Supabase origin, and the free-plan spend controls must be checked.                                                                                                                                                    | E (architecture A)                      | [lean plan](lean-plan.md)                                                                                        |
 
+## Ethan's answers and the configurability principle (2026-09-27)
+
+Ethan answered the owner packet on 2026-09-27 and set a principle: business values Cine sets are editable in the app, not fixed in code. The full mapping, what stays fixed, and two conflicts that need Cine's confirmation (cost counted when **bought**, and several devices selling offline at once) are in [configurability-audit.md](configurability-audit.md). The entries below stay open until those conflicts are closed.
+
 ## Amended decisions (open — block the listed work)
 
 **DP-02 · Payment timing** — blocks MP-10, MP-12.
