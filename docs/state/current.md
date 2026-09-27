@@ -7,10 +7,13 @@
   be able to change these within 15 min – 8 h in MP-09 b. The V7.1.1 rationale and accepted risk are recorded in
   the [decision register](decision-register.md); the runbook and configurability audit B10 now give the decided
   minutes. Unit tests assert each role's minutes and a four-hour helper timer.
-- Evidence: `pnpm verify` 33 files/445 tests, exit 0. No deploy; no protected file edited.
+- Evidence: `pnpm verify` 33 files/445 tests, exit 0; G0 validator 1196 checks, 0 failures. Independent review of
+  `061ed64` by the Sonnet security-reviewer: no findings. No deploy; no protected file edited.
 - MP-08 is **complete locally** in `task-status.json`. Carried over, not done: the signed-in checks on the hosted
   preview (refresh probe, `auth.sessions`, role bootstrap, idle sign-out), which need a test account Ethan creates
-  and signs in with himself (next-goal.md "After these goals" 1).
+  and signs in with himself (next-goal.md "After these goals" 1); and the provider-account MFA and recovery-code
+  rehearsal on Ethan's Supabase, Cloudflare and GitHub accounts (documented in
+  [RUNBOOK-accounts.md](../RUNBOOK-accounts.md) §7, not yet recorded as performed).
 
 ## Prior checkpoint — 2026-09-27 (G2 planned)
 
