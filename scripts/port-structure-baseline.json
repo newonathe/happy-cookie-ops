@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "provenance": "Original delivery plus owner-approved MP-02 five null guards; see docs/state/protected-exception.md",
+  "provenance": "Original delivery plus owner-approved MP-02 five null guards and the MP-04 live-frame guards; see docs/state/protected-exception.md",
   "files": {
     "src/components/screens/all-tools.tsx": "30f0aea3847cb5cb88cfe6043fac3aec7fd2c3c1148209bb540eb84c35c3448a",
     "src/components/screens/bake-plan.tsx": "b078603290b8e192ca74294459c5e593dbb5b54484eb276c33f2e523a9b26876",
@@ -14,7 +14,7 @@
     "src/components/screens/inventory.tsx": "9b591a85c9e4c32b880685d8038aab1f5b4064a4e6df1635a7e492ab5a181817",
     "src/components/screens/notifications.tsx": "a4007a24efdf77dba77fd4aebdb647c7654fad82fc424027f0bbe0cbdf003d95",
     "src/components/screens/order-detail.tsx": "59c4afae92063404b154b8c4549b5ad7fe6c4eec5433e69488a4dcd2ac25ce9b",
-    "src/components/screens/order-status.tsx": "6379489e95721bfd4d2d086320cb0bce10475849c7fd7b7cc6420b0b89acdd06",
+    "src/components/screens/order-status.tsx": "b44b0c838fb522b7dd195c12022a36514fa7c4d1bbcc662c8b269c80ddcb63f8",
     "src/components/screens/orders.tsx": "9aa3e305d839331aaf9c714c664f8a0583f971e56ee7ec1291d31690f6de61e6",
     "src/components/screens/payments.tsx": "ff031c9c222b684032d75f7af5e3b2a4311dee062a62641d08715fb61cbeb320",
     "src/components/screens/production-focus.tsx": "8fba43baa86ca74a5d24ae4c9c4a04efc9b6936ab458e1b3dbd89a7afe014ee3",
@@ -23,7 +23,7 @@
     "src/components/screens/recipes.tsx": "f2fc87d17a90d58a2c3aa5864708208618841be4e52bd78462d77ad97dbb5bf1",
     "src/components/screens/sales-log.tsx": "335a69612e0f5223d7c985bd859b5393fc4cd6c3e4d12a1a9549a2488c228592",
     "src/components/screens/settings.tsx": "a9c21537c601274107ab360460c77e67a35df0d7de1f77b1f0f2b9493bf014f0",
-    "src/components/screens/shop.tsx": "a7b25065c23239544ad714eb5cb7f52458d792f553c1df1621c72058d431b32d",
+    "src/components/screens/shop.tsx": "d9e7240ce6fb440d396eb5d343396a2d3f63845288ced733e452d2c382ed8d85",
     "src/components/screens/suppliers.tsx": "bff0d493b824652628b0805a5456787989aca75fdfa35dbbaba26ffbaf2e8528",
     "src/components/screens/system-health.tsx": "e921d35fef503a2a615db1d59316b17c3f86fd3ff2ea06e4de1debeb0ff2eb9d",
     "src/components/sheets/add-inv.tsx": "05c8adf46f38d99162ceb5443b87eba9cdd0ce8f7c9d6a0b0ff6f2ddd2c97340",
@@ -55,6 +55,6 @@
     "src/components/sheets/swap.tsx": "a4c44926d78975e607603035c27076698113eedda6f670b35b282565bd7692bd",
     "src/components/sheets/users.tsx": "284dcb941a7ae4cde6904c239bbe053a5b85ebb9aa10a43b947ccfc91cc651ac",
     "src/components/sheets/why.tsx": "1ca5bb132b4f36484e2b6559297bf1ae44b0b90c188d9c9d4fa5f775f31d3846",
-    "src/components/shell/app-frame.tsx": "d339790eaa83021c2bf5b64ff653f466c46315d02718eacd7bebbabf4f71d850"
+    "src/components/shell/app-frame.tsx": "0d5e55ecf3336c742e4961a5881975dc19dce89f4a36e957cb2e0a7101417e16"
   }
 }

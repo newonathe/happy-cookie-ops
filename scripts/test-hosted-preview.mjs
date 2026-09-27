@@ -89,6 +89,10 @@ check(
 for (const name of ['qr-gcash.png', 'qr-maya.png', 'qr-gotyme.png']) {
   const served = Buffer.from(await (await fetch(`${base}/assets/${name}`)).arrayBuffer());
   const local = await readFile(path.join(output, 'assets', name));
+  // A rebuild copies the real QR back into the build output, so matching the build alone
+  // proves nothing: the served image must also differ from the real one in public/.
+  const real = await readFile(path.join(root, 'public', 'assets', name));
+  check(sha(served) !== sha(real), `${name}: the REAL payment QR is being served`);
   check(
     sha(served) === sha(local),
     `${name}: served image differs from the placeholder in the build`
@@ -200,6 +204,24 @@ try {
     probe.blocked === 'blocked' && probe.violations.some((v) => v.startsWith('connect-src')),
     'connect-src did not block an unrelated origin'
   );
+
+  // No review harness, and the app fills the screen at phone, tablet and desktop widths.
+  browserState.viewports = {};
+  for (const width of [390, 834, 1280]) {
+    const sized = await browser.newPage({ viewport: { width, height: 800 } });
+    await sized.goto(`${base}/shop`, { waitUntil: 'networkidle' });
+    await sized.waitForSelector('[data-screen-label="Customer shop"]', { timeout: 15000 });
+    await sized.waitForTimeout(300);
+    const layout = await sized.evaluate(() => ({
+      harnessText: /Interactive prototype|Free roam|mock data|Back to ops|Preview · customer view/.test(document.body.innerText),
+      scrollWidth: document.documentElement.scrollWidth,
+      innerWidth: window.innerWidth
+    }));
+    browserState.viewports[width] = layout;
+    check(!layout.harnessText, `${width}px: review-harness text is visible`);
+    check(layout.scrollWidth <= layout.innerWidth, `${width}px: page scrolls sideways`);
+    await sized.close();
+  }
 } finally {
   await browser.close();
 }

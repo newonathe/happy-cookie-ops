@@ -1,6 +1,23 @@
 # Current state — Happy Cookie Ops
 
-## Current checkpoint — 2026-09-27 (hosted preview, MP-04)
+## Current checkpoint — 2026-09-27 (live frame: no review harness, automatic screen size)
+
+- **Owner-directed (Ethan):** the live build keeps every screen, animation and layout but drops the prototype's
+  review aids: header row ("Interactive prototype · … · mock data", device/role/width pickers, simulated
+  Online toggle), flow strip and flow bar, and the owner-preview row on the customer shop/order-status screens
+  ("Back to ops", "Preview · customer view", drop-state toggles). The frame fills the screen and uses the
+  prototype's own phone/tablet/desktop layout by viewport width (<768/<1200/else). Demo mode is unchanged.
+  Protected-markup exception recorded in [protected-exception.md](protected-exception.md) and registered in
+  `scripts/validate-g0.py` as exact reversals (1196 checks, 0 failures).
+- Evidence: `pnpm verify` 33 files/444 tests; `pnpm test:e2e` 87 passed/3 failed (known OFFLINE-01)/30 skipped,
+  unchanged; local `build:pages:spike`/`test:pages:spike`/`test:workers:spike` pass; Python guards pass;
+  redeployed with `scripts/deploy-preview.mjs` (build → QR placeholders → real-QR refusal → deploy) and
+  `scripts/test-hosted-preview.mjs` PASS incl. no harness text and no sideways scroll at 390/834/1280 px.
+  Independent port audit: no copy/element/demo change; its process findings are addressed.
+- **Still true and easy to misread:** every staff-screen number ("78 of 200", orders, "Good evening, Cine")
+  is the prototype's demo data held in the browser. Nothing reads from or writes to Supabase yet; that is G2.
+
+## Prior checkpoint — 2026-09-27 (hosted preview, MP-04)
 
 - **The hosted static preview is live (Ethan approved, $0):** https://happy-cookie-preview.admin-kethai.workers.dev,
   Workers static assets with no Worker script ([spikes/workers-preview](../../spikes/workers-preview/README.md)),

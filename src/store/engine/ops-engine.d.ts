@@ -54,6 +54,8 @@ export interface OpsEngineState {
 
 export declare class OpsEngine extends React.Component<OpsEngineProps, OpsEngineState> {
   renderVals(): OpsVals;
+  /** Runs once the saved books are restored after mount; subclasses call super. */
+  afterRestore(): void;
   toast(message: string, tone?: 'ok' | 'warn', undo?: unknown): void;
   go(screen: ScreenKey, opts?: { orderId?: string; replace?: boolean }): void;
   setRole(role: Role): void;

@@ -3,7 +3,7 @@ import type { OpsVals } from '@/view-models/vals';
 import { Pressable } from '@/components/ui/pressable';
 
 export function OrderStatusScreen({ v }: { v: OpsVals }) {
-  const { backToShop, cust, goBackOwner, ic } = v;
+  const { backToShop, bareFrame, cust, goBackOwner, ic } = v;
   return (
     <>
       <div data-screen-label="Customer order status" style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '16px 14px 32px', background: '#FFF5E5', minHeight: '100%' }}>
@@ -13,10 +13,14 @@ export function OrderStatusScreen({ v }: { v: OpsVals }) {
               <path d={ic.back} />
             </svg>
           </Pressable>
+          {bareFrame ? null : (
+          <>
           <span style={{ marginRight: 'auto', fontSize: '11px', color: '#66524A' }}>Preview · customer view</span>
           <Pressable as="button" onClick={goBackOwner} style={{ flexShrink: '0', minHeight: '42px', padding: '0 11px', border: '1px solid #EADCC4', background: '#FFFFFF', borderRadius: '10px', fontSize: '12px', fontWeight: '600', color: '#6E574B', whiteSpace: 'nowrap', transition: 'background-color .18s ease' }} hoverStyle={{ background: '#FFF8ED' }}>
             Back to ops
           </Pressable>
+          </>
+          )}
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px', textAlign: 'center', animation: 'hcRise .3s ease-out' }}>
           <img src="/assets/mark-solid.png" alt="" style={{ height: '78px', width: 'auto' }} />

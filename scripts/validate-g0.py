@@ -55,6 +55,33 @@ guards = {
     'why': b"  if (!sheet) throw new Error('why sheet requires active sheet data.');",
     'proof': b"  if (!od) throw new Error('proof sheet requires active order data.');"
 }
+# MP-04 live-frame exception (owner-directed 2026-09-27, docs/state/protected-exception.md):
+# the exact guarded edits, reversed before the delivery-bytes check. Each must appear once.
+LIVE_FRAME_REVERSALS = {
+    'src/components/shell/app-frame.tsx': [
+        (b"appSub, bakeFlavours, bareFrame, bakedSheet,", b"appSub, bakeFlavours, bakedSheet,"),
+        (b"    <div style={bareFrame ? { minHeight: '100dvh', display: 'flex', flexDirection: 'column' } : { minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '20px 16px 44px', gap: '12px' }}>\n      {bareFrame ? null : (\n",
+         b"    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '20px 16px 44px', gap: '12px' }}>\n"),
+        (b"      </div>\n      )}\n      {showFlowStrip ? (", b"      </div>\n      {showFlowStrip ? ("),
+        (b"<div style={bareFrame ? { width: '100%', display: 'flex' } : { width: '100%', overflow: 'auto', display: 'flex', justifyContent: 'center', padding: '4px 0 8px' }}>",
+         b"<div style={{ width: '100%', overflow: 'auto', display: 'flex', justifyContent: 'center', padding: '4px 0 8px' }}>"),
+    ],
+    'src/components/screens/shop.tsx': [
+        (b"bareFrame, dropStates, goBackOwner,", b"dropStates, goBackOwner,"),
+        (b"        {bareFrame ? null : (\n", b""),
+        (b"        </div>\n        )}\n        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', paddingTop: '2px' }}>",
+         b"        </div>\n        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', paddingTop: '2px' }}>"),
+    ],
+    'src/components/screens/order-status.tsx': [
+        (b"backToShop, bareFrame, cust,", b"backToShop, cust,"),
+        (b"          {bareFrame ? null : (\n          <>\n", b""),
+        (b"          </>\n          )}\n", b""),
+    ],
+    'scripts/port-baseline.json': [
+        (b'"generated": "2026-09-27",', b'"generated": "2026-09-04",'),
+        (b'"copyCount": 15,\n      "styles": 144,', b'"copyCount": 15,\n      "styles": 146,'),
+    ],
+}
 changes = []
 for entry in load(EVIDENCE / 'delivery-manifest.json'):
     rel = entry['path']
@@ -82,6 +109,9 @@ for entry in load(EVIDENCE / 'delivery-manifest.json'):
             guard = guards[file.stem]
             check('approved_guard_once:' + rel, data.count(guard) == 1)
             data = re.sub(re.escape(guard) + rb'\r?\n', b'', data, count=1)
+        for index, (edited, original) in enumerate(LIVE_FRAME_REVERSALS.get(rel, [])):
+            check(f'approved_live_frame_once:{rel}:{index}', data.count(edited) == 1)
+            data = data.replace(edited, original, 1)
         check('protected_delivery_bytes:' + rel, hashlib.sha256(data).hexdigest() == entry['sha256'])
 notices = [[line for line in (ROOT / name).read_text().splitlines() if line.startswith('> **Current planning authority')] for name in ['AGENTS.md', 'CLAUDE.md']]
 check('agent_authority_notices_aligned', len(notices[0]) == 1 and notices[0] == notices[1])

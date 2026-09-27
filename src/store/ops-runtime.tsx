@@ -21,7 +21,43 @@ import { isLiveMode } from '@/lib/config/app-mode';
  */
 const HARNESS = process.env.NEXT_PUBLIC_HARNESS !== '0';
 
+export type Device = 'mobile' | 'tablet' | 'desktop';
+
+/**
+ * The live app picks the prototype's own layout for the screen it is on: the phone design
+ * (375–430 px) below 768 px, the tablet design (834 px, side rail) below 1200 px, and the
+ * desktop design (1280 px, rail plus split columns) above. Width only — never the user agent.
+ */
+export function deviceForWidth(width: number): Device {
+  if (width < 768) return 'mobile';
+  if (width < 1200) return 'tablet';
+  return 'desktop';
+}
+
 export class OpsRuntime extends OpsProvider {
+  private stopViewportTracking?: () => void;
+
+  /**
+   * Live mode only: follow the real viewport instead of the harness's device picker. Runs
+   * after the engine restores the saved books, because that restore resets `device`.
+   */
+  afterRestore(): void {
+    super.afterRestore();
+    if (!isLiveMode()) return;
+    const apply = () => {
+      const device = deviceForWidth(window.innerWidth);
+      if (this.state.device !== device) this.setState({ device });
+    };
+    apply();
+    window.addEventListener('resize', apply);
+    this.stopViewportTracking = () => window.removeEventListener('resize', apply);
+  }
+
+  componentWillUnmount(): void {
+    super.componentWillUnmount?.();
+    this.stopViewportTracking?.();
+  }
+
   /**
    * The prototype's review harness — the phone/tablet frame picker, the role switcher
    * and the width toggles — is part of the ported frame markup, which may not be edited.
@@ -39,7 +75,23 @@ export class OpsRuntime extends OpsProvider {
   renderVals(): OpsVals {
     const vals = super.renderVals();
     if (HARNESS && !isLiveMode()) return vals;
-    return { ...vals, devices: [], roles: [], showPhoneWidths: false } as OpsVals;
+    const starved = { ...vals, devices: [], roles: [], showPhoneWidths: false } as OpsVals;
+    if (!isLiveMode()) return starved;
+    // Live: the real app, not the review harness. No header row, flow strip or flow bar,
+    // and the device frame fills the screen instead of drawing a phone/tablet mock-up (so the
+    // mock-up bezel — radius, border, shadow — goes too; background colours are unchanged).
+    // `transform: scale(1)` is kept only to match the prototype's frame; the sheets, toast,
+    // dock and quick-action layer are positioned by the frame's inner `position: relative` box.
+    return {
+      ...starved,
+      bareFrame: true,
+      showFlowStrip: false,
+      flow: null,
+      frameOuterStyle: 'width: 100%; height: 100dvh; flex-shrink: 0',
+      frameStyle:
+        'width: 100%; height: 100%; transform: scale(1); transform-origin: top left; display: flex; overflow: hidden; background: ' +
+        (this.state.device === 'desktop' ? '#F6F4F2' : '#FFFFFF')
+    };
   }
 
   syncNow = (): void => {

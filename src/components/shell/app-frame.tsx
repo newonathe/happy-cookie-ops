@@ -66,7 +66,7 @@ import { EditPriceSheet } from '@/components/sheets/edit-price';
  */
 export function AppFrame({ v }: { v: OpsVals }) {
   const {
-      appSub, bakeFlavours, bakedSheet, clearFlow, closeQuick, closeSheet, denied, deniedHome,
+      appSub, bakeFlavours, bareFrame, bakedSheet, clearFlow, closeQuick, closeSheet, denied, deniedHome,
       deniedText, deniedTitle, devices, dockNav, dockPillStyle, doughSheet, drill, flow, flowChips,
       frameOuterStyle, frameStyle, goBack, hasAlerts, ic, mix, offline, online, onlineLabel,
       openNotifications, openQuick, pageMax, pagePad, pageSub, pageTitle, phoneWidths, quickActions,
@@ -76,7 +76,8 @@ export function AppFrame({ v }: { v: OpsVals }) {
   } = v;
   return (
     <>
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '20px 16px 44px', gap: '12px' }}>
+    <div style={bareFrame ? { minHeight: '100dvh', display: 'flex', flexDirection: 'column' } : { minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '20px 16px 44px', gap: '12px' }}>
+      {bareFrame ? null : (
       <div style={{ width: '100%', maxWidth: '1180px', display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
         <img src="/assets/mark-solid.png" alt="The Happy Cookie" style={{ height: '34px', width: 'auto' }} />
         <div style={{ display: 'flex', flexDirection: 'column', marginRight: 'auto' }}>
@@ -144,6 +145,7 @@ export function AppFrame({ v }: { v: OpsVals }) {
           {' '}
         </Pressable>
       </div>
+      )}
       {showFlowStrip ? (
         <>
           <div style={{ width: '100%', maxWidth: '1180px', display: 'flex', gap: '4px', flexWrap: 'wrap', alignItems: 'center' }}>
@@ -186,7 +188,7 @@ export function AppFrame({ v }: { v: OpsVals }) {
           </div>
         </>
       ) : null}
-      <div style={{ width: '100%', overflow: 'auto', display: 'flex', justifyContent: 'center', padding: '4px 0 8px' }}>
+      <div style={bareFrame ? { width: '100%', display: 'flex' } : { width: '100%', overflow: 'auto', display: 'flex', justifyContent: 'center', padding: '4px 0 8px' }}>
         <div style={s(frameOuterStyle)}>
           <div style={s(frameStyle)}>
             {showRail ? (

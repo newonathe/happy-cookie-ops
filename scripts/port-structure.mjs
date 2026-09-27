@@ -56,7 +56,7 @@ export function checkStructure(root) {
 if (process.argv[1] === fileURLToPath(import.meta.url) && process.argv.includes('--write-baseline')) {
   const root = fileURLToPath(new URL('..', import.meta.url));
   writeFileSync(join(root, 'scripts/port-structure-baseline.json'), JSON.stringify({
-    schema: 1, provenance: 'Original delivery plus owner-approved MP-02 five null guards; see docs/state/protected-exception.md',
+    schema: 1, provenance: 'Original delivery plus owner-approved MP-02 five null guards and the MP-04 live-frame guards; see docs/state/protected-exception.md',
     files: structuralFiles(root)
   }, null, 2) + '\n');
 }

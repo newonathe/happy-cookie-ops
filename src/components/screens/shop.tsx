@@ -7,11 +7,12 @@ export function ShopScreen({ v }: { v: OpsVals }) {
   const {
       boxCount, boxCountText, boxCta, boxProgressText, boxReady, boxTitle, boxTotalText, cols2,
       custToCheckout, dropBannerBg, dropBannerBr, dropBannerFg, dropBannerSub, dropBannerTitle,
-      dropStates, goBackOwner, ic, openLookup, pickedItems, priceNote, shopFlavours
+      bareFrame, dropStates, goBackOwner, ic, openLookup, pickedItems, priceNote, shopFlavours
   } = v;
   return (
     <>
       <div data-screen-label="Customer shop" style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '16px 14px 32px', background: '#FFF5E5', minHeight: '100%' }}>
+        {bareFrame ? null : (
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
           <Pressable as="button" onClick={goBackOwner} style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', minHeight: '42px', padding: '0 11px', border: '1px solid #EADCC4', background: '#FFFFFF', borderRadius: '10px', fontSize: '12px', fontWeight: '600', transition: 'background-color .18s ease' }} hoverStyle={{ background: '#FFF8ED' }}>
             <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="#6E574B" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -36,6 +37,7 @@ export function ShopScreen({ v }: { v: OpsVals }) {
             ))}
           </div>
         </div>
+        )}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', paddingTop: '2px' }}>
           <img src="/assets/logo-full.png" alt="The Happy Cookie" style={{ height: '56px', width: 'auto', alignSelf: 'flex-start', margin: '-4px 0 -2px -6px' }} />
           <h1 style={{ margin: '0', fontSize: '28px', fontWeight: '700', letterSpacing: '-.8px', lineHeight: '1.1' }}>

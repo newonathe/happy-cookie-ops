@@ -116,7 +116,9 @@ If a task seems to require one of these, stop and say so before writing code.
 - `stocktake` is a screen key with no screen file; it renders inside inventory.
 - `useSearchParams()` needs a Suspense boundary or the build fails.
 - The review harness is switched off by starving `renderVals()` (`NEXT_PUBLIC_HARNESS=0`
-  makes `OpsRuntime.renderVals()` return empty `devices`/`roles`), not by editing markup.
+  makes `OpsRuntime.renderVals()` return empty `devices`/`roles`). Live mode additionally sets
+  `bareFrame`, which the frame, shop and order-status markup read to drop the header row and
+  owner-preview controls (owner-directed exception, `docs/state/protected-exception.md`).
 - `src/view-models/vals.ts` is generated-shaped: it mirrors what `renderVals()` returns.
   Widen a type only alongside the engine change that produces it.
 

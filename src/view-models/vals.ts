@@ -8,6 +8,11 @@ import type * as React from 'react';
 
 export interface OpsVals {
   appSub: React.ReactNode;
+  /**
+   * Set only by OpsRuntime in live mode (not by the ported engine): the frame renders
+   * full-screen with no review harness. Undefined everywhere else, so demo is unchanged.
+   */
+  bareFrame?: boolean;
   askClose: (event?: unknown) => void;
   askReset: (event?: unknown) => void;
   attachReceipt: (event?: unknown) => void;
