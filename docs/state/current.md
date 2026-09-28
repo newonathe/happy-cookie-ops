@@ -36,7 +36,7 @@ Short status, read at the start of every session. Keep it to one screen.
 
 ## Waiting on
 
-- **Ethan:** decisions F1–F9 and Cine's questions C1–C12 ([finish-plan.md](finish-plan.md) section 11).
+- **Ethan:** decisions F1–F10 and Cine's questions C1–C12 ([finish-plan.md](finish-plan.md) section 11).
 - **Hosted updates:** Ethan runs `supabase login` before the next hosted update.
 
 ## Latest checkpoint (replace each slice; move the old one to current-history.md)
@@ -46,4 +46,6 @@ Short status, read at the start of every session. Keep it to one screen.
     walkthrough comments.
   - Wrote [finish-plan.md](finish-plan.md): 16 slices to launch, the cut list, how we build, and the decisions.
   - Moved the old status history to [current-history.md](current-history.md).
+  - Found: the live shop footer (protected copy) shows "REGISTERED", a placeholder TIN and "An invoice is issued…".
+    It must not reach customers; fixed in A2, and F10 decides the wording.
   - No code change. Next goal: A1 (the flavour editor and publish button), pending F1/F3.

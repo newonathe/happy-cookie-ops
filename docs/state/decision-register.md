@@ -87,7 +87,7 @@ recommended expiry plus per-phone limit) and the proposed slice split are in
 **Facts and corrections from Cine's own materials (2026-09-28, Claude audit).** The newest dated owner statement
 wins; the older one stays here as history. Sources are listed in [finish-plan.md](finish-plan.md) section 12.
 
-- **Her Q6 answer, verbatim meaning:** payment preferences are always GCash, Maya, GoTyme, or cash (campus pickup
+- **Her Q6 answer (paraphrased; exact text in the 2026-09-28 chat record):** payment preferences are always GCash, Maya, GoTyme, or cash (campus pickup
   only), and pickup dates are every Monday and Thursday. So "redo the forms" means fixed fields with exactly these
   options. This supersedes the "yes / ambiguous" reading above.
 - **Campus (ADMU) pickup is offered again**, and cash is allowed only for it. It was "not anymore" in the 22 Jul
@@ -109,7 +109,7 @@ wins; the older one stays here as history. Sources are listed in [finish-plan.md
   ones in the app (C5).
 - **Bookings:** two bazaars are accepted, 24–25 Oct and 12–13 Dec (her Bazaars tab). This drives F4.
 
-Open decisions from the audit: F1–F9 for Ethan and C1–C12 for Cine, each with a default, in
+Open decisions from the audit: F1–F10 for Ethan and C1–C12 for Cine, each with a default, in
 [finish-plan.md](finish-plan.md) section 11.
 
 **Order-form rules the prototype does not have** (from the September form Cine sent). Each needs a scope

@@ -7,7 +7,7 @@ Paste **one** goal block into a **new conversation started in the repo root**.
   Why: [finish-plan.md](finish-plan.md) section 8.2.
 - **Codex:** the default profile (`gpt-6-sol` high), `/goal …`.
 
-When a goal finishes, the agent deletes its block here, leaves the next one on top, and commits. Rules: [lean plan](lean-plan.md). Architecture A: direct `supabase-js`, with RLS as the boundary. G1 goals and the hosted preview are done (see [current state](current.md)). **The forward plan is [finish-plan.md](finish-plan.md)** (proposed 2026-09-28; decisions F1–F9 in its section 11). It replaces the order in G2-plan.md; take the top goal below.
+When a goal finishes, the agent deletes its block here, leaves the next one on top, and commits. Rules: [lean plan](lean-plan.md). Architecture A: direct `supabase-js`, with RLS as the boundary. G1 goals and the hosted preview are done (see [current state](current.md)). **The forward plan is [finish-plan.md](finish-plan.md)** (proposed 2026-09-28; decisions F1–F10 in its section 11). It replaces the order in G2-plan.md; take the top goal below.
 
 ## Before starting (once per conversation)
 
@@ -60,7 +60,8 @@ port-baseline.json only via --update in the same commit; existing tokens only (n
 tests for each save path, the publish refresh and the live-only rendering, each with one mutation check. All
 exit 0 in this session: the pre-commit pnpm verify, the Python guards, the G0 validator (revert
 evidence/*.json churn); the SQL role suite only if SQL changes. Independent port audit and a different-model
-review. Committed and pushed; current.md checkpoint and task-status updated; this block replaced by the next
+review (if this session is Sonnet, invoke the reviewers with model opus). Committed and pushed; current.md
+checkpoint and task-status updated; this block replaced by the next
 slice from finish-plan section 6. No deploy. Stop after 2 failed fix attempts or 25 turns.
 ```
 

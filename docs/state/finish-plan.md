@@ -1,7 +1,7 @@
 # Finish plan — from here to Cine running her business in the app (2026-09-28)
 
 Status: **PROPOSED** by Claude (Opus 5.5, 2026-09-28) for Ethan's approval. The decisions it needs are in section 11
-(F1–F9 for Ethan, C1–C12 for Cine), each with a default so the build never waits.
+(F1–F10 for Ethan, C1–C12 for Cine), each with a default so the build never waits.
 
 Once F1 is approved, this is the **single forward plan**. It replaces:
 - the forward-looking order in [G2-plan.md](G2-plan.md);
@@ -56,7 +56,30 @@ from her own answers:
 - labour-cost and cash-position views;
 - the automatic runner (AR-00–06).
 
-## 2. What Cine uses today (audited line by line, 2026-09-28)
+## 2. What Cine uses today (2026-09-28 audit)
+
+How each source was read (so nothing is claimed that was not done):
+- **Read in full:**
+  - the September form, page by page as images;
+  - the workbook's configuration tabs, cell by cell with formulas (Ingredient Master, Recipes, Costing Dashboard,
+    Box costing, Suppliers, Inventory System, Inventory Manual Check, Data, P&L Dashboard);
+  - all six Apps Script files;
+  - the 4 Aug client guide (44 pages);
+  - all 115 walkthrough comments with the text each is anchored to;
+  - 16 of the operating manual's 17 pages, as contact sheets;
+  - the first mock-demo sheet.
+- **Aggregated by script, deliberately, so no personal data was read:** Sales, Inventory-In/-Out, Sales (GForm),
+  Waitlist, Bazaars, Cafe Partner, Loyal Customers. Only counts, distributions and non-personal columns.
+- **Not re-read this session** (relied on dated memory notes from 2026-09-24):
+  - the Meeting 1 analysis and transcript;
+  - the walkthrough's body text;
+  - the dummy workbook;
+  - the rest of the mock demo;
+  - brand files;
+  - the stale 2026-09-08 code snapshot.
+  They predate the 4 Aug guide and the 28 Sep answers, which supersede them.
+- Walkthrough comment numbers are the zero-based ids in the `.docx`; Word shows each one higher.
+
 
 | Part | What it actually does | Where it goes |
 | --- | --- | --- |
@@ -137,6 +160,16 @@ Patterns that shape the design:
     needs a new idempotent RPC.
 15. **Two bazaar dates are booked:** 24–25 Oct and 12–13 Dec. Either the app is proven for Bazaar Mode by then, or
     Cine sells the way she does now (F4).
+16. **The live shop footer makes claims that are not true for her** (protected copy, `shop.tsx:160–165`, rendered in
+    live mode):
+    - a "REGISTERED" badge;
+    - a placeholder `TIN 123-456-789-000`;
+    - "An invoice is issued for every confirmed order";
+    - one fixed allergen sentence.
+    The order status page and order detail also label a confirmation number as an "Invoice INV-…" (engine
+    `nextInvoice`). She is "registered but not with BIR" (comment 113). Before the shop opens, live mode must show
+    owner-set text or nothing here, under the D4 shop-text exception (slice A2). The invoice wording is a decision
+    (F10), taken with her accountant (the confirmation message already asked her to check BIR and receipts).
 
 ## 5. The integration map (Cine's system → app, one line each)
 
@@ -163,7 +196,7 @@ settings and payment methods, not the offline queue.
 | # | Slice | Cine sees | Main work | Model · effort | Checks beyond `pnpm verify` | Needs |
 | --- | --- | --- | --- | --- | --- | --- |
 | A1 | Flavour editor + Publish (MP-09 c1c) | Edits and adds flavours, publishes the menu | One live form host in the protected shell (F3); editor form; `FlavourSync.publish()` button; entry via All tools and "Edit price" | Sonnet 5 · high | Port audit; different-model review | — |
-| A2 | Payment methods + shop texts (MP-09 c2) | Her real accounts, QR and wording on the shop | Engine `PAY_ACCOUNTS` exception (approved); `payment_methods` table + owner RPCs; public image bucket with owner-only writes (QR, new flavour photos); shop texts in settings | Sonnet 5 · high | SQL role suite; review | A1 |
+| A2 | Payment methods + shop texts (MP-09 c2) | Her real accounts, QR and wording on the shop; no false registration claims | Engine `PAY_ACCOUNTS` exception (approved); `payment_methods` table + owner RPCs; public image bucket with owner-only writes (QR, new flavour photos) storing **bucket-relative paths** (`save_flavour` accepts path characters only, no `:`; widen it only in a reviewed migration); CSP `img-src` gains the Supabase origin in the same slice; shop texts in settings, including the footer's registration, TIN, invoice and allergen lines (finding 16, D4 guarded edit) | Sonnet 5 · high | SQL role suite; port audit; review | A1 |
 | B1 | Order command (MP-10 a, database) | — | `place_order` (anon, server-priced, capacity D1 in `capacity.ts` + `capacity_allows()` + fixture together, pickup rules, per-phone unpaid limit, status token); `order_status(token)`; `join_waitlist`; no IP limits (spoofable) | Sonnet 5 · high | SQL role suite; capacity parity; Opus review | A1 |
 | B2 | Live checkout (MP-10 a, app) | Orders like the form, pay now or later | One guarded slot in `checkout.tsx` (D4); fields per her form; `custSubmit` override → `place_order`; status page and lookup by order no. + phone; waitlist | Sonnet 5 · high | Port audit; E2E happy path; review | A2, B1 |
 | B3 | Orders on the owner side (MP-12/13/14 lean) | Paid tick, statuses, swap, pack/collect, messages | Staff read/transition RPCs (idempotent, `updated_at` checks); orders and payments screens read the database; bake list counts unpaid (28 Sep) | Sonnet 5 · high | SQL role suite; Opus review | B1 |
@@ -177,7 +210,7 @@ settings and payment methods, not the offline queue.
 | E1 | Ledger and P&L (MP-15) | Real P&L, CSV download | Revenue (paid orders + event sales), cost when used, expenses by her categories incl. wages, drill-down, export | Sonnet 5 · high | SQL role suite; Opus review | B3, C2, D1 |
 | F1 | Operate (MP-22/23/24 lean) | Backups, honest health, alerts | Weekly dump + restore drill, keep-alive, retention prune, shop privacy notice, System health from real data, in-app alerts | Sonnet 5 · medium | Restore drill evidence | E1 |
 | F2 | Owner trial (MP-26) | One real week, in the app | Checklist, fix list | Opus 5.5 · medium (sign-off) | Full E2E; her checklist | All |
-| F3 | Cutover (MP-27) | Goes live | Production project + deploy (approval); seed incl. ported ids; accounts (owner, shared helper, support); import (section 9); opening count; publish; old form 1–2 weeks with link; scheduler off | Opus 5.5 · medium + Ethan | Cutover checklist | F2 |
+| F3 | Cutover (MP-27) | Goes live | Production project + deploy (approval); seed incl. ported ids; accounts (owner, shared helper, support); import (section 9); opening count; publish; old form 1–2 weeks with link; scheduler off. **Recorded before opening:** legal/accounting applicability (BIR status, receipts vs the app's order numbers, the privacy notice) and a **rollback plan** (close the shop, reopen the Google Form and sheet workflow, keep the data export) | Opus 5.5 · medium + Ethan | Cutover checklist incl. rollback rehearsal | F2 |
 | F4 | Hypercare (MP-28) | Fixes for 2 weeks | Small fixes | Sonnet 5 · medium | Per fix | F3 |
 
 - **Critical path to launch:** A1 → A2 → B1 → B2 → B3 → B4 → A3 → A4 → C1 → C2 → D1 → D2 → E1 → F1 → F2 → F3.
@@ -224,6 +257,9 @@ settings and payment methods, not the offline queue.
    - the G0 validator once, then `git checkout -- docs/state/evidence/`.
 6. **Review in the background:** a different model reviews SQL, money and offline diffs (Opus reviews Sonnet-built
    slices); the port auditor checks protected edits. Fix P0–P2; record P3.
+   - The repo's `security-reviewer` and `port-auditor` agents are pinned to Sonnet. When the builder is Sonnet, pass
+     `model: opus` on the invocation: the per-invocation model wins over the agent file
+     ([subagents](https://code.claude.com/docs/en/sub-agents.md)).
 7. **Docs, three touches only:**
    - a 5-line status in `current.md`;
    - one `task-status.json` entry;
@@ -281,9 +317,11 @@ settings and payment methods, not the offline queue.
   under this plan (F7).
 - **Background reviewers** (security, port) run while the author writes docs. Research agents run only for external
   facts, with citations.
-- **Not used:** agent teams (experimental; cost grows with each teammate); multi-agent workflows for a single slice.
+- **Not used:** agent teams: experimental, token use scales with each teammate, and worse than one session or
+  subagents for sequential or same-file work ([agent teams](https://code.claude.com/docs/en/agent-teams.md)). Nor
+  multi-agent workflows for a single slice.
 
-### 8.6 Practices this follows
+### 8.6 Practices this follows (standard references, not re-fetched this session)
 
 - Vertical slices and YAGNI: build only what a slice needs
   ([Fowler](https://martinfowler.com/bliki/Yagni.html)).
@@ -326,6 +364,8 @@ settings and payment methods, not the offline queue.
 | Supabase Free pauses or loses data | Daily use keeps it active; weekly dump + restore drill; keep-alive only if idle |
 | Import quality (units, names, versions) | Preview + her confirmation; she corrects in the app afterwards |
 | Scope creep from "near future" asks | Section 7; post-launch backlog |
+| False registration or invoice claims on the live shop (finding 16) | A2 replaces the footer text in live mode; F10 settles the invoice wording before opening |
+| No way back if launch week goes wrong | F3 rollback plan: close the shop, reopen the Google Form and sheet, keep the export |
 | Waiting on answers | Defaults for every question (section 11); one batched message with a recap of the last conversation |
 | Context loss between sessions | Short status file, dated decision register, memory index, git history |
 
@@ -344,6 +384,7 @@ settings and payment methods, not the offline queue.
 | F7 | Headless `/goal` runs after two attended slices succeed | **Not yet** |
 | F8 | No owner-entered orders at launch (she uses the shop) | **Yes** |
 | F9 | No Google Form bridge; old form 1–2 weeks with a link | **Yes** |
+| F10 | What the app calls its confirmation numbers while she is not BIR-registered ("Invoice INV-…" in protected copy) | **"Order no." in live mode** (D4-style guarded label), pending her accountant |
 
 **For Cine**, sent through Ethan in one message that opens with a recap of the last conversation (default in bold):
 
