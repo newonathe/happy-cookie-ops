@@ -36,7 +36,9 @@ Short status, read at the start of every session. Keep it to one screen.
 
 ## Waiting on
 
-- **Ethan:** decisions F1–F10 and Cine's questions C1–C12 ([finish-plan.md](finish-plan.md) section 11).
+- **Cine:** her answers to C1–C12 ([finish-plan.md](finish-plan.md) section 11). The build uses each default until
+  she answers. Ethan approved F1–F10 on 2026-09-28.
+- **Pilot gate:** Bazaar Mode for 24–25 Oct only if OFFLINE-01 and the offline test on her phone pass by 20 Oct.
 - **Hosted updates:** Ethan runs `supabase login` before the next hosted update.
 
 ## Latest checkpoint (replace each slice; move the old one to current-history.md)
@@ -48,4 +50,5 @@ Short status, read at the start of every session. Keep it to one screen.
   - Moved the old status history to [current-history.md](current-history.md).
   - Found: the live shop footer (protected copy) shows "REGISTERED", a placeholder TIN and "An invoice is issued…".
     It must not reach customers; fixed in A2, and F10 decides the wording.
-  - No code change. Next goal: A1 (the flavour editor and publish button), pending F1/F3.
+  - Ethan approved every default (F1–F10). F6 applied: the typecheck runs once per turn in the `Stop` hook.
+  - Next goal: A1 (the flavour editor and publish button), then the bazaar slices D1–D2.

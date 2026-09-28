@@ -109,8 +109,20 @@ wins; the older one stays here as history. Sources are listed in [finish-plan.md
   ones in the app (C5).
 - **Bookings:** two bazaars are accepted, 24–25 Oct and 12–13 Dec (her Bazaars tab). This drives F4.
 
-Open decisions from the audit: F1–F10 for Ethan and C1–C12 for Cine, each with a default, in
-[finish-plan.md](finish-plan.md) section 11.
+Decisions from the audit ([finish-plan.md](finish-plan.md) section 11):
+
+- **Ethan approved every default on 2026-09-28** (F1–F10):
+  - the finish plan is the single forward plan;
+  - the cut list;
+  - one live form host in the protected shell;
+  - the bazaar pilot for 24–25 Oct, gated on OFFLINE-01 and her phone by 20 Oct, with D1–D2 right after A1;
+  - proof upload deferred;
+  - the per-turn typecheck hook (applied);
+  - no headless runs yet;
+  - no owner-entered orders;
+  - no Google Form bridge;
+  - "Order no." instead of "Invoice" in live mode, pending her accountant.
+- **Cine's C1–C12** run on their defaults until she answers. The message to her was drafted the same day.
 
 **Order-form rules the prototype does not have** (from the September form Cine sent). Each needs a scope
 decision by Ethan and, where it adds UI, a locked-UI exception. None is decided:

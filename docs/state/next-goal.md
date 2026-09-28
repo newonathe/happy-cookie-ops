@@ -7,7 +7,7 @@ Paste **one** goal block into a **new conversation started in the repo root**.
   Why: [finish-plan.md](finish-plan.md) section 8.2.
 - **Codex:** the default profile (`gpt-6-sol` high), `/goal …`.
 
-When a goal finishes, the agent deletes its block here, leaves the next one on top, and commits. Rules: [lean plan](lean-plan.md). Architecture A: direct `supabase-js`, with RLS as the boundary. G1 goals and the hosted preview are done (see [current state](current.md)). **The forward plan is [finish-plan.md](finish-plan.md)** (proposed 2026-09-28; decisions F1–F10 in its section 11). It replaces the order in G2-plan.md; take the top goal below.
+When a goal finishes, the agent deletes its block here, leaves the next one on top, and commits. Rules: [lean plan](lean-plan.md). Architecture A: direct `supabase-js`, with RLS as the boundary. G1 goals and the hosted preview are done (see [current state](current.md)). **The forward plan is [finish-plan.md](finish-plan.md)** (approved 2026-09-28 with every default; decisions F1–F10 in its section 11). It replaces the order in G2-plan.md; take the top goal below.
 
 ## Before starting (once per conversation)
 
@@ -39,9 +39,9 @@ Drafted 2026-09-28; re-planned the same day in [finish-plan.md](finish-plan.md) 
 - New October flavours need photos. Until owner uploads arrive (A2), their images are static files Ethan adds
   under the existing assets folder.
 
-**Decision F3 is pending** (one reviewed, live-only form host in `app-frame.tsx` that later owner forms plug into).
-- If Ethan approved F3, build the host.
-- If not, make the smallest guarded insertion for this one form.
+**Decision F3 is approved (2026-09-28):** build one reviewed, live-only form host in `app-frame.tsx` that later
+owner forms plug into. Its record in protected-exception.md must say it covers the later owner forms, each still
+listed there as it lands.
 
 **Not re-audited against the code.** Read these first: `FlavourSync`, `OpsRuntime.loadShopMenu` and `renderVals`,
 `products.tsx`, the sheet list in `app-frame.tsx`, and the `LIVE_FRAME_REVERSALS` pattern.
@@ -53,8 +53,7 @@ weight, sort order and price, plus adding a flavour (new flavours are drafts: un
 publish), saved whole through FlavourSync/save_flavour with the same conflict/refusal/offline paths. Publish:
 a button that calls FlavourSync.publish() (every flavour) and says what customers will now see. Entry points:
 a "Menu & flavours" item added to toolGroups in OpsRuntime.renderVals (no markup edit), and the products
-screen's "Edit price" opening the editor in live mode. Form container: the live form host if Ethan approved F3,
-otherwise the smallest guarded insertion; either way live owner only, with demo, dev, CI and the visual
+screen's "Edit price" opening the editor in live mode. Form container: the approved live form host (F3), live owner only, with demo, dev, CI and the visual
 baselines byte-identical; recorded exactly in protected-exception.md; exact reversals in scripts/validate-g0.py;
 port-baseline.json only via --update in the same commit; existing tokens only (no new colours or type). Unit
 tests for each save path, the publish refresh and the live-only rendering, each with one mutation check. All
@@ -70,7 +69,8 @@ slice from finish-plan section 6. No deploy. Stop after 2 failed fix attempts or
 1. **Hosted preview: live (2026-09-27, see [current state](current.md)).** The route/CSP/cache oracle, anonymous RLS/RPC probes, `connect-src` proof, default-privilege probe and catalog RLS guard pass on the hosted project. Still open:
    - the direct-parent refresh probe and the `auth.sessions` checks, with a test account Ethan creates and signs in with himself;
    - move the local stack to Postgres 17 and revoke the PG17 MAINTAIN privilege from API roles in a reviewed migration.
-2. **Remaining slices: [finish-plan.md](finish-plan.md) section 6** (A2 → B1–B4 → A3–A4 → C1–C2 → D1–D2 → E1 → F1–F4). Each next block is written from there when the previous one lands. Carry-overs:
+2. **Remaining slices: [finish-plan.md](finish-plan.md) section 6.** The approved order after A1 is D1 → D2 → [D3 if
+   the pilot gate passes by 20 Oct] → A2 → B1–B4 → A3–A4 → C1–C2 → E1 → F1–F4. Each next block is written from there when the previous one lands. Carry-overs:
    - Rate limiting for anonymous checkout: key on phone number plus the weekly cap, never the client IP (the gateway's forwarded-IP header is caller-controlled; finish-plan section 10).
    - Add the Supabase origin to `img-src` when owner-uploaded images (A2: QR codes, flavour photos) are first displayed.
 3. **G4 (operations):**

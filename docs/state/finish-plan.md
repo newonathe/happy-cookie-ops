@@ -1,9 +1,9 @@
 # Finish plan — from here to Cine running her business in the app (2026-09-28)
 
-Status: **PROPOSED** by Claude (Opus 5.5, 2026-09-28) for Ethan's approval. The decisions it needs are in section 11
-(F1–F10 for Ethan, C1–C12 for Cine), each with a default so the build never waits.
+Status: **APPROVED** by Ethan on 2026-09-28. He took every default: F1–F10 as listed in section 11. Cine's C1–C12
+runs on its defaults until she answers; her answer replaces the default when it arrives. Drafted by Claude (Opus 5.5).
 
-Once F1 is approved, this is the **single forward plan**. It replaces:
+This is the **single forward plan**. It replaces:
 - the forward-looking order in [G2-plan.md](G2-plan.md);
 - the slice list in [order-form-audit.md](order-form-audit.md);
 - "Path to fully functional" in [lean-plan.md](lean-plan.md).
@@ -213,12 +213,18 @@ settings and payment methods, not the offline queue.
 | F3 | Cutover (MP-27) | Goes live | Production project + deploy (approval); seed incl. ported ids; accounts (owner, shared helper, support); import (section 9); opening count; publish; old form 1–2 weeks with link; scheduler off. **Recorded before opening:** legal/accounting applicability (BIR status, receipts vs the app's order numbers, the privacy notice) and a **rollback plan** (close the shop, reopen the Google Form and sheet workflow, keep the data export) | Opus 5.5 · medium + Ethan | Cutover checklist incl. rollback rehearsal | F2 |
 | F4 | Hypercare (MP-28) | Fixes for 2 weeks | Small fixes | Sonnet 5 · medium | Per fix | F3 |
 
-- **Critical path to launch:** A1 → A2 → B1 → B2 → B3 → B4 → A3 → A4 → C1 → C2 → D1 → D2 → E1 → F1 → F2 → F3.
-  That is 16 slices plus hypercare.
+- **Approved order (F4, 2026-09-28):** A1 → D1 → D2 → [D3 if the pilot gate passes] → A2 → B1 → B2 → B3 → B4 → A3 →
+  A4 → C1 → C2 → E1 → F1 → F2 → F3 → F4.
+  - The bazaar slices come right after A1, so 24–25 Oct stays reachable.
+  - Bazaar Mode does not read the payment accounts, so it does not wait for A2. For the pilot, event stock is typed
+    counts until C2 links it to baked stock.
+  - It is still 16 slices plus hypercare; D3 is only a setup step.
 - **Pace so far:** 1–2 slices per attended day. That puts a realistic launch about 3–4 weeks after approval.
-- **Bazaar date gate (F4):** to use the app on 24–25 Oct, D1–D2 move directly after A1. The app then needs an early
-  production project with the shop closed. Ship it only if OFFLINE-01 passes and a real offline test on her phone
-  passes by 20 Oct. Otherwise she sells as today, and 12–13 Dec becomes the bazaar pilot.
+- **Bazaar date gate (F4, approved):** use the app on 24–25 Oct only if both pass by 20 Oct: OFFLINE-01, and a real
+  offline test on her phone.
+  - **D3, only if the gate passes:** an early production project with the shop closed, holding staff accounts,
+    flavours and events only. It is a hosted resource, so Ethan confirms the moment it is created and deployed.
+  - **If the gate fails:** she sells as today, and 12–13 Dec becomes the bazaar pilot.
 
 ## 7. Cut and defer list (proposed, F2)
 
@@ -286,9 +292,11 @@ settings and payment methods, not the offline queue.
    the questions, and a word cap.
 4. Large inputs go to scratch files and are summarized by script (as the workbook was). Raw data is never pasted into
    the conversation or the repo.
-5. **Proposal F6:** the `PostToolUse` hook runs a full `tsc` after every edit (seconds each, dozens of times per
-   slice). Scope it to changed TypeScript files, or move the full check to the `Stop` hook. Needs approval: hooks
-   are shared config.
+5. **F6 (approved and applied 2026-09-28):** the typecheck now runs once per turn, in the `Stop` hook.
+   - Before: the `PostToolUse` hook ran a full `tsc --noEmit` after every `.ts`/`.tsx` edit (measured 7.6–8.7 s,
+     plus about 3 s of prettier), and repeated mid-change errors from files not yet updated.
+   - Now: `PostToolUse` only formats. `Stop` typechecks when TypeScript changed and blocks once per distinct error
+     set, so a deliberate stop with a half-finished change still goes through.
 6. No parallel SQL slices: every migration touches the same count fixtures and migration numbering. A docs or test
    slice may run in a git worktree alongside.
 7. Stop rules: 2 failed fix attempts or 25 turns → stop and report. No guess loops.
@@ -371,7 +379,7 @@ settings and payment methods, not the offline queue.
 
 ## 11. Decisions needed
 
-**For Ethan** (default in bold):
+**For Ethan** (default in bold; **all approved 2026-09-28**):
 
 | # | Decision | Default |
 | --- | --- | --- |
@@ -386,7 +394,8 @@ settings and payment methods, not the offline queue.
 | F9 | No Google Form bridge; old form 1–2 weeks with a link | **Yes** |
 | F10 | What the app calls its confirmation numbers while she is not BIR-registered ("Invoice INV-…" in protected copy) | **"Order no." in live mode** (D4-style guarded label), pending her accountant |
 
-**For Cine**, sent through Ethan in one message that opens with a recap of the last conversation (default in bold):
+**For Cine**, sent through Ethan in one message that opens with a recap of the last conversation (default in bold;
+the build uses each default until she answers):
 
 | # | Question | Default |
 | --- | --- | --- |

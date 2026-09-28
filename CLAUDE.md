@@ -10,8 +10,8 @@
 
 - **Hooks** (`.claude/settings.json`) fire only when Claude Code is started in this repository root:
   - `PreToolUse` blocks writes to ported markup, the engine and existing migrations.
-  - `PostToolUse` runs `prettier --write` and `tsc` on every edited file. Afterwards, check `git diff --stat` yourself for formatting churn outside your change.
-  - `Stop` re-checks port integrity.
+  - `PostToolUse` runs `prettier --write` on every edited file. Afterwards, check `git diff --stat` yourself for formatting churn outside your change.
+  - `Stop` re-checks port integrity. When TypeScript changed, it also runs `tsc --noEmit` once per turn, blocking once per distinct error set (F6, `docs/state/finish-plan.md`).
 - **Start here:** open Claude Code in this folder, so the hooks, agents and `.mcp.json` load. Approve the `codebase-memory-mcp` server once.
 - **Work loop:** use one `/goal` per package, taken from `docs/state/next-goal.md`, in a fresh conversation with auto mode on.
   - Use Opus to plan and sign off; do the building in a Sonnet session or with Sonnet subagents.
