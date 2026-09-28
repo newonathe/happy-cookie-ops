@@ -104,8 +104,10 @@ decision by Ethan and, where it adds UI, a locked-UI exception. None is decided:
   MP-16. Its manual stock count is **not** the opening stock: Cine is recounting.
 - The October menu (7 flavours with prices) and recipes, sent in chat; the packaging list with unit costs;
   the payment QR codes and account name (GCash, Maya, GoTyme, bank transfer, cash).
-- The September order form (PDF). The live sheet, its Apps Script and the live form are Google links Claude
-  cannot open here (no browser tools; no signing in to the KETH AI account).
+- The September order form (PDF). The live sheet and the live form are Google links Claude cannot open here
+  (no browser tools; no signing in to the KETH AI account).
+- The Apps Script (six files, sent by Ethan 2026-09-28, kept out of git): analysed in
+  [apps-script-audit.md](apps-script-audit.md), with decisions E1–E4 for Ethan.
 
 ## Amended decisions (open — block the listed work)
 

@@ -13,9 +13,11 @@ plan, not an approval: nothing here changes a protected file or the lean plan by
   several form versions; only counts and option labels are used here); the workbook's costing, box costing,
   P&L and waitlist sheet headers; the protected engine's checkout (`cust` state, `custSet`, `PAY_ACCOUNTS`,
   `PRODUCTS`, `ALLERGENS`, `windowsFor`, `dropCycle`).
-- **Not seen:** the live October form, the Apps Script, and the waitlist form itself (only its response
-  headers: name, Instagram handle, date of order, phone). Ethan to send an export of the live form and the
-  script text as files. The form bridge is **not** designed around a script nobody has read.
+- **Not seen:** the live October form and the waitlist form itself (only its response headers: name,
+  Instagram handle, date of order, phone). Ethan to send an export of the live form as a file.
+- **Apps Script: received 2026-09-28** and analysed in [apps-script-audit.md](apps-script-audit.md). It handles
+  no orders (responses reach the sheet through Google's own link). It runs the inventory sidebars and the
+  weekly form open (Monday about 9:00) and close (Sunday about 9:15) with emails.
 - Customer names, phones, addresses and order text from the workbook are not reproduced anywhere.
 
 ## Cine's second-round answers (2026-09-28)
@@ -131,8 +133,9 @@ Each has a recommended default so the build can proceed if he agrees.
 - **D3 · How the redone form connects.** Two order channels means two copies of the menu and options.
   **Recommended:** the app is the only source of configuration; a small Apps Script rebuilds the form's
   choices from the app's public menu and sends each response to one ingest RPC (secret checked in the
-  function, rate-limited). Unclear responses land in the existing form queue. Designed only after the
-  live form and its script are in hand.
+  function, rate-limited). Unclear responses land in the existing form queue. **2026-09-28:** the script is in
+  hand and has no order logic to keep compatible ([apps-script-audit.md](apps-script-audit.md)). Still needed:
+  the live form's field export, and whether Cine keeps a form at all once the app takes orders.
 - **D4 · Locked UI.** **Decided by Ethan, 2026-09-28:** approved; recorded in `protected-exception.md`. Every new checkout field and every configurable text changes protected markup, and
   the port gate hashes copy. The approved exception covers settings edit forms only. **Proposed:** in live
   mode the checkout text and field list come from the view model (as `bareFrame` does), and demo mode keeps
@@ -177,4 +180,5 @@ Each has a recommended default so the build can proceed if he agrees.
 10. MP-11 onward as in [G2-plan.md](G2-plan.md).
 
 D1, D2 and D4 were decided on 2026-09-28, so MP-10 a is unblocked once its turn comes. D3 still blocks MP-10 c
-(it needs the live form and its script); the rest have safe defaults.
+(it needs the live form's field export; the script arrived 2026-09-28 and holds no order logic); the rest have
+safe defaults.
