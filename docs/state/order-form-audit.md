@@ -1,5 +1,9 @@
 # Order form audit — what the app must take over from the Google Form (2026-09-28)
 
+> **2026-09-28 (later): corrections and the new slice order** are in [finish-plan.md](finish-plan.md) sections 4 and 6.
+> No delivery-address field (customers book the courier to her house), email optional, proof stays in DMs at
+> launch (F5), no Google Form bridge by default (F9). The element inventory below remains the checklist for B2–B4.
+
 Cine's answers of 2026-09-28 (second round, relayed by Ethan) make the app the full replacement for her
 order form: **every form feature is needed at launch, and every applicable field is owner-configurable**.
 This document lists everything the form does, what the app already has, the gap, and how each piece

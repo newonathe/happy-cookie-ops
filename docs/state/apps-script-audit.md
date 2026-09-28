@@ -76,14 +76,24 @@ logic to preserve, which settles the open part of D3 (below).
 - **One-time import** (MP-09 d, MP-16): from the workbook, not from the scripts. Ingredient Master (unit, bulk
   price, supplier), Recipes, and Suppliers. The logs are history, not opening stock, because Cine is recounting.
 
-## Decisions for Ethan (each with a recommended default)
+## Decisions (status 2026-09-28)
 
-- **E1 · The raw script files.** **Recommended:** keep them out of git (add `Appscript/` to `.gitignore`), because
-  they hold the live form ID and the business email. This audit is the committed record.
-- **E2 · Import route.** **Recommended:** a one-time, owner-run import of Ingredient Master, Recipes and Suppliers
-  in MP-09 d, previewed as a diff before anything is written.
-- **E3 · Order window.** **Recommended:** Cine sets Monday 9:00 to Sunday 9:00 in Settings when the app takes
-  orders (the controls exist). No default change is needed: `DEFAULT_CFG` is in the protected engine, and her saved
-  settings override it. Confirm the schedule with her; note that the engine counts pickup as the first Monday after
-  ordering closes.
-- **E4 · Recipe box scripts.** **Recommended:** ignore them. Ask Cine only if she says she uses a recipe box.
+- **E1 · The raw script files: DONE (Ethan, 2026-09-28).** `Appscript/` is in `.gitignore`. This audit is the
+  committed record.
+- **E2 · Import route: re-checked against the workbook, the October chat list and the 115 walkthrough comments.**
+  The recommendation stands, with these changes:
+  - **Recipes need her confirmation per flavour.** Three versions exist (Recipes tab, Box costing tab, the October
+    list). The newest is in cups, teaspoons and pieces. Menu names differ from sheet names.
+  - **Eggs and oats are left out of stock.** They are free (comment 39).
+  - **Units and duplicate names need normalizing.**
+  - **Yields come from Costing Dashboard.**
+  - **Nothing historical is imported** ("Let's start clean").
+  - **The import runs once, at cutover.** A local script reads the workbook from outside the repo and shows a
+    preview Cine confirms. Plan: [finish-plan.md](finish-plan.md) section 9, slices A3–A4.
+- **E3 · Order window: re-checked.** Her real week is the form open Monday about 9:00 to Sunday about 9:15, with
+  pickups Monday and Thursday before 5 pm and a campus slot 2:00–3:30 pm. Two problems:
+  - **The August answer ("Mon 9 AM – Thu 9 PM") is out of date.**
+  - **The engine's pickup rule doesn't fit.** It only knows "first Monday after close", which cannot express Thursday
+    pickups. D2's pickup-date choice replaces it in B1–B2.
+  - **Open:** which week a Thursday pickup counts toward for the 200 cap. Asked as C1, with default "per pickup week".
+- **E4 · Recipe box scripts.** Ignore them: there is no `RecipeBox` tab in the workbook.

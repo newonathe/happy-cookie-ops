@@ -87,7 +87,7 @@ If a task seems to require one of these, stop and say so before writing code.
 ## Working agreement
 
 1. **Read before writing.** How we work: `docs/state/lean-plan.md`. What to do next:
-   `docs/state/next-goal.md`. Status: `docs/state/current.md` and `docs/state/task-status.json`.
+   `docs/state/next-goal.md` (drawn from `docs/state/finish-plan.md`). Status: `docs/state/current.md` (short) and `docs/state/task-status.json`.
    Find code with the codebase-memory-mcp tools (`search_graph`, `get_code_snippet`,
    `trace_path`) before opening whole files; read SQL migrations directly (partial parse). Planned scope: `docs/master-plan/tasks.json` and its generated
    prompts. `docs/TASKS.md`, `docs/prompts/` and `docs/WORKFLOW.md` are the historical T-task

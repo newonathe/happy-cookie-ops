@@ -84,6 +84,34 @@ recommended expiry plus per-phone limit) and the proposed slice split are in
   add flavours) falls under the 2026-09-27 approval of the locked-UI exception for new edit forms. No
   separate approval is needed; the slice still records its exact UI in `protected-exception.md`.
 
+**Facts and corrections from Cine's own materials (2026-09-28, Claude audit).** The newest dated owner statement
+wins; the older one stays here as history. Sources are listed in [finish-plan.md](finish-plan.md) section 12.
+
+- **Her Q6 answer, verbatim meaning:** payment preferences are always GCash, Maya, GoTyme, or cash (campus pickup
+  only), and pickup dates are every Monday and Thursday. So "redo the forms" means fixed fields with exactly these
+  options. This supersedes the "yes / ambiguous" reading above.
+- **Campus (ADMU) pickup is offered again**, and cash is allowed only for it. It was "not anymore" in the 22 Jul
+  comments; the September form and the 28 Sep answer bring it back.
+- **Bank transfer** appears on her payment image but not in her 28 Sep answer. Asked as C4.
+- **Email is not collected** by her form (only 12 of 56 responses have one, from an earlier version). It stays
+  optional in the app.
+- **No delivery address.** Customers book Lalamove or Grab to her house, and she sends her address on pickup day
+  (guide item 16). This supersedes the order-form audit's address row and the address part of D11.
+- **Eggs and oats cost her nothing** (her chickens, her family: walkthrough comment 39). The recipes omit them on
+  purpose; they are not bought stock (C7).
+- **Recipes exist in three versions** (Recipes tab, Box costing tab, October chat list). She confirms the current one
+  per flavour at import (C6).
+- **Nutella cookie fries are a set of 4**, costed per piece. Modelled by `item_type = set` and `capacity_weight`.
+- **Her schedule now:** the form opens Monday about 9:00 and closes Sunday about 9:15 (`Formscheduler.gs`), with
+  pickups Monday and Thursday before 5 pm. This supersedes the 4 Aug "Mon 9 AM – Thu 9 PM" for planning; confirm
+  as C1–C3.
+- **Packaging costs conflict across sources** (box of 6: two values; stickers: three values). She enters the right
+  ones in the app (C5).
+- **Bookings:** two bazaars are accepted, 24–25 Oct and 12–13 Dec (her Bazaars tab). This drives F4.
+
+Open decisions from the audit: F1–F9 for Ethan and C1–C12 for Cine, each with a default, in
+[finish-plan.md](finish-plan.md) section 11.
+
 **Order-form rules the prototype does not have** (from the September form Cine sent). Each needs a scope
 decision by Ethan and, where it adds UI, a locked-UI exception. None is decided:
 

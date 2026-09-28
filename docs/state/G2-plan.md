@@ -1,5 +1,9 @@
 # G2 plan — orders, money and stock on the database (2026-09-27)
 
+> **2026-09-28: forward order superseded** by [finish-plan.md](finish-plan.md) (proposed; F1). The principles below
+> (database as source of truth, `OpsRuntime` wraps engine actions, live mode never starts from demo books, every RPC
+> hardened and in the role suite) still apply. The order table and slice audits are history.
+
 Approved direction (Ethan, 2026-09-27): "start connecting orders, money and stock to the database". Owner
 answers were provisional "yes" ([configurability audit](configurability-audit.md) section E); **Cine answered on 2026-09-28 and changed pay-first (unpaid orders stay on the bake list)**, see the [decision register](decision-register.md). Re-audit each slice against those answers when its goal is written. Her second round makes the app replace the whole order form at launch; the proposed split of MP-09 c and MP-10 (and decisions D1, D2 and D4 that block MP-10 a) are in [order-form-audit.md](order-form-audit.md). Acceptance for every
 package is taken verbatim from `docs/master-plan/tasks.json`. Work loop: one `/goal` per slice from

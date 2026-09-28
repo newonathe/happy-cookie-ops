@@ -1,5 +1,9 @@
 # Lean plan — finish Happy Cookie Ops without the ceremony (2026-09-26, Claude)
 
+> **2026-09-28:** the process rules below still apply. Model/effort choices, token rules, anti-hallucination
+> rules and the remaining roadmap are refreshed in [finish-plan.md](finish-plan.md) sections 6–8; its roadmap
+> replaces "Path to fully functional" below once F1 is approved.
+
 Status: **approved by Ethan on 2026-09-26.** All four decisions took the recommended option: A, commit + push, Codex config, codebase-memory-mcp. This file now **replaces** the process rules in `agent-orchestration.md` and the per-slice ceremony in `G1-plan.md`. It does not change the product scope, the locked UI/UX, the hard invariants or the owner decisions in `MASTER-PLAN.md`. The two master-plan acceptance lines that option A changes are amended in the [decision register](decision-register.md). The next goal to run is in [next-goal.md](next-goal.md).
 
 ## Why it is slow (measured 2026-09-26)
