@@ -202,6 +202,68 @@ export const FLAVOUR_TOASTS = {
   rejected: 'That change could not be saved, so it is back to what it was.'
 } as const;
 
+/** Every key the flavour editor may set, exactly what `save_flavour` accepts. */
+export type FlavourFields = Omit<FlavourRow, 'id' | 'published' | 'updated_at'>;
+
+/**
+ * The same bounds `save_flavour` enforces (migration 20260101003000), checked here so a
+ * sure refusal from the editor is never sent — the same reasoning as `priceCents`. Returns
+ * the first problem found, or null if the RPC would accept `fields`.
+ */
+export function flavourFieldError(fields: FlavourFields): string | null {
+  const name = fields.name.trim();
+  const shortName = fields.short_name.trim();
+  const allergens = fields.allergens.trim();
+  if (name.length < 1 || name.length > 60) return 'Name must be 1-60 characters.';
+  if (shortName.length < 1 || shortName.length > 40) return 'Short name must be 1-40 characters.';
+  if (fields.tag.length > 30) return 'Badge must be 30 characters or fewer.';
+  if (fields.description.length > 300) return 'Description must be 300 characters or fewer.';
+  if (allergens.length < 1 || allergens.length > 200) return 'Allergens must be 1-200 characters.';
+  if (fields.image_path.length > 200 || !/^[A-Za-z0-9/_.-]*$/.test(fields.image_path)) {
+    return 'Photo path may only use letters, numbers, /, _, . and -.';
+  }
+  if (fields.kind !== 'Permanent' && fields.kind !== 'Rotating')
+    return 'Pick Permanent or Rotating.';
+  if (fields.item_type !== 'cookie' && fields.item_type !== 'set') return 'Pick cookie or set.';
+  if (
+    !Number.isInteger(fields.capacity_weight) ||
+    fields.capacity_weight < 1 ||
+    fields.capacity_weight > 48
+  ) {
+    return 'Capacity weight must be a whole number from 1 to 48.';
+  }
+  if (!Number.isInteger(fields.sort_order) || fields.sort_order < 0 || fields.sort_order > 999) {
+    return 'Sort order must be a whole number from 0 to 999.';
+  }
+  if (
+    !Number.isInteger(fields.price_cents) ||
+    fields.price_cents < 0 ||
+    fields.price_cents > MAX_PRICE_CENTS
+  ) {
+    return 'Price is out of range.';
+  }
+  return null;
+}
+
+/** A `save_flavour`-legal id derived from a name, unique against every id already loaded. */
+export function slugifyFlavourId(name: string, existing: ReadonlySet<string>): string {
+  const base =
+    name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 32) || 'flavour';
+  const legal = /^[a-z0-9][a-z0-9-]{0,31}$/;
+  let id = base;
+  let n = 2;
+  while (existing.has(id) || !legal.test(id)) {
+    const suffix = '-' + n;
+    id = base.slice(0, 32 - suffix.length) + suffix;
+    n += 1;
+  }
+  return id;
+}
+
 /** What the engine's own actions change on a flavour: the on-menu switch and the price. */
 export type FlavourEdit = { onMenu: boolean; price: Pesos };
 
@@ -232,6 +294,8 @@ export class FlavourSync {
   private readonly rows = new Map<string, FlavourRow>();
   private readonly inFlight = new Set<string>();
   private readonly again = new Set<string>();
+  /** True only once `load()` has actually populated `rows` from the server. */
+  private loaded = false;
 
   constructor(
     private readonly client: FlavoursClient,
@@ -254,6 +318,7 @@ export class FlavourSync {
     if (!rows.length) return false;
     this.rows.clear();
     for (const row of rows) this.rows.set(row.id, row);
+    this.loaded = true;
     this.host.apply(rows);
     return true;
   }
@@ -311,13 +376,75 @@ export class FlavourSync {
   }
 
   /**
+   * The flavour editor's save (MP-09 c1c): every field at once, through the same
+   * `save_flavour` refusal/conflict/offline classification `save` uses. `expectedUpdatedAt`
+   * null creates a new flavour, a draft (`published` stays false) until the next publish.
+   *
+   * Refuses (silently; the caller already validated) rather than races a quick edit for the
+   * same id that is still in flight. On success, every loaded flavour is re-applied to the
+   * engine from this cache — so a flavour whose optimistic toggle/price edit is still in
+   * flight is snapshotted first and restored after, rather than visibly reverting it.
+   *
+   * Refuses to create a new flavour (`expectedUpdatedAt` null) unless `load()` has actually
+   * populated the cache: the success path re-applies every row `current()` holds, and a new
+   * flavour saved onto an empty (never-loaded) cache would shrink the engine's whole list to
+   * that one row.
+   */
+  async saveWhole(
+    id: string,
+    fields: FlavourFields,
+    expectedUpdatedAt: string | null
+  ): Promise<FlavourSaveResult['status']> {
+    if (flavourFieldError(fields) || this.inFlight.has(id)) return 'rejected';
+    if (expectedUpdatedAt === null && !this.loaded) return 'rejected';
+    if (!this.host.online()) {
+      this.host.toast(FLAVOUR_TOASTS.offline, 'warn');
+      return 'offline';
+    }
+    this.inFlight.add(id);
+    const prior = this.rows.get(id);
+    const row: FlavourRow = {
+      id,
+      ...fields,
+      name: fields.name.trim(),
+      short_name: fields.short_name.trim(),
+      allergens: fields.allergens.trim(),
+      published: prior?.published ?? false,
+      updated_at: expectedUpdatedAt ?? ''
+    };
+    const result = await saveFlavour(this.client, row, expectedUpdatedAt);
+    this.inFlight.delete(id);
+
+    if (result.status === 'saved') {
+      const pending = new Map([...this.inFlight].map((pid) => [pid, this.host.edit(pid)]));
+      this.rows.set(id, { ...row, updated_at: result.updatedAt });
+      this.host.apply(this.current());
+      for (const [pid, edit] of pending) this.host.restore(pid, edit);
+      return 'saved';
+    }
+    if (result.status === 'conflict') {
+      if (await this.load()) this.host.toast(FLAVOUR_TOASTS.conflict, 'warn');
+      else this.host.toast(FLAVOUR_TOASTS.offline, 'warn');
+      return 'conflict';
+    }
+    this.host.toast(FLAVOUR_TOASTS[result.status], 'warn');
+    return result.status;
+  }
+
+  /**
    * Publishes exactly `ids` (default: every loaded flavour), then takes the new `published`
    * flag and `updated_at` of each row the database changed, so the next save is not refused
    * as stale. The app's "Publish menu" button arrives with the flavour editor (MP-09 c1c).
+   *
+   * With no explicit `ids`, refuses to publish an empty default from a cache that was never
+   * successfully loaded — `publish_flavours([])` unpublishes every flavour, which would
+   * empty the live shop rather than leave it as it was. One reload is tried first, since the
+   * owner may have opened the editor before the initial load finished or after it failed.
    */
-  async publish(ids: string[] = [...this.rows.keys()]): Promise<PublishResult['status']> {
+  async publish(ids?: string[]): Promise<PublishResult['status']> {
+    if (!ids && !this.loaded && !(await this.load())) return 'offline';
     if (!this.host.online()) return 'offline';
-    const result = await publishFlavours(this.client, ids);
+    const result = await publishFlavours(this.client, ids ?? [...this.rows.keys()]);
     if (result.status !== 'published') return result.status;
     for (const changed of result.rows) {
       const last = this.rows.get(changed.id);

@@ -19,6 +19,7 @@ import {
   fetchShopFlavours,
   shopCatalogue,
   type FlavourEdit,
+  type FlavourFields,
   type FlavourRow,
   type FlavoursClient,
   type ShopClient,
@@ -695,5 +696,222 @@ describe('MP-09 c1b: prices, publishing and the shop menu', () => {
     );
     expect(list.map((f) => f.id)).toEqual(PORTED.list.map((p) => p.id));
     expect(Object.values(on).every((v) => v === false)).toBe(true);
+  });
+
+  function editorFields(overrides: Partial<FlavourFields> = {}): FlavourFields {
+    return {
+      name: 'Test Cookie',
+      short_name: 'Test',
+      price_cents: 15000,
+      kind: 'Permanent',
+      item_type: 'cookie',
+      capacity_weight: 1,
+      tag: '',
+      description: 'a test cookie',
+      image_path: 'assets/test.png',
+      allergens: 'milk, eggs, wheat',
+      active: true,
+      sort_order: 8,
+      ...overrides
+    };
+  }
+
+  function customSync(
+    handlers: {
+      save?: (args: Record<string, unknown>) => unknown;
+      publish?: (args: Record<string, unknown>) => unknown;
+    } = {},
+    online = true
+  ) {
+    const restored: Array<[string, FlavourEdit]> = [];
+    const editValues = new Map<string, FlavourEdit>();
+    const rpc: Rpc = vi.fn(async (name: string, args?: Record<string, unknown>) => {
+      if (name === 'get_flavours') return { data: liveRows(), error: null };
+      if (name === 'publish_flavours')
+        return handlers.publish ? handlers.publish(args ?? {}) : { data: [], error: null };
+      return handlers.save ? handlers.save(args ?? {}) : saved(args ?? {});
+    });
+    const host = {
+      apply: vi.fn(),
+      edit: (id: string) => editValues.get(id) ?? { onMenu: true, price: 0 },
+      restore: (id: string, edit: FlavourEdit) => void restored.push([id, edit]),
+      online: () => online,
+      toast: vi.fn()
+    };
+    return {
+      sync: new FlavourSync({ rpc } as unknown as FlavoursClient, host),
+      rpc,
+      restored,
+      editValues
+    };
+  }
+
+  describe('MP-09 c1c: the flavour editor saves whole through save_flavour', () => {
+    it('creates a new flavour as an unpublished draft', async () => {
+      const { sync: s, rpc } = customSync();
+      await s.load();
+      rpc.mockClear();
+      const fields = editorFields();
+      expect(await s.saveWhole('test-cookie', fields, null)).toBe('saved');
+      expect(rpc).toHaveBeenCalledWith('save_flavour', {
+        p_id: 'test-cookie',
+        p_flavour: fields,
+        p_expected_updated_at: null
+      });
+      // Mutation check: without adding the row to the cache, current() would not find it.
+      expect(s.current().find((r) => r.id === 'test-cookie')).toMatchObject({
+        published: false,
+        name: 'Test Cookie'
+      });
+    });
+
+    it('replaces every field of an existing flavour, not a partial change', async () => {
+      const { sync: s, rpc } = customSync();
+      await s.load();
+      const before = s.current().find((r) => r.id === 'wcb')!;
+      rpc.mockClear();
+      const fields = editorFields({ name: 'Renamed', price_cents: 20000 });
+      expect(await s.saveWhole('wcb', fields, before.updated_at)).toBe('saved');
+      expect(rpc).toHaveBeenCalledWith('save_flavour', {
+        p_id: 'wcb',
+        p_flavour: fields,
+        p_expected_updated_at: before.updated_at
+      });
+      // Mutation check: a partial-payload bug would leave the old name in the cache.
+      expect(s.current().find((r) => r.id === 'wcb')).toMatchObject({
+        name: 'Renamed',
+        price_cents: 20000
+      });
+    });
+
+    it('reloads and says so on a conflict, without applying the rejected change', async () => {
+      const {
+        sync: s,
+        rpc,
+        restored
+      } = customSync({
+        save: () => ({ data: null, error: { code: 'P0002', message: 'stale' } })
+      });
+      await s.load();
+      expect(await s.saveWhole('wcb', editorFields(), '2000-01-01T00:00:00.000Z')).toBe('conflict');
+      expect(rpc.mock.calls.map((c) => c[0])).toEqual([
+        'get_flavours',
+        'save_flavour',
+        'get_flavours'
+      ]);
+      // Mutation check: skipping the reload would leave the pre-conflict name in the cache.
+      expect(s.current().find((r) => r.id === 'wcb')?.name).not.toBe('Test Cookie');
+      expect(restored).toHaveLength(0);
+    });
+
+    it('reports offline without sending, and refuses invalid fields without a network call', async () => {
+      const offline = customSync({}, false);
+      await offline.sync.load();
+      offline.rpc.mockClear();
+      expect(await offline.sync.saveWhole('wcb', editorFields(), '2026-09-28T01:00:00.000Z')).toBe(
+        'offline'
+      );
+      expect(offline.rpc).not.toHaveBeenCalled();
+
+      const invalid = customSync();
+      await invalid.sync.load();
+      invalid.rpc.mockClear();
+      // Mutation check: without the client-side bound, an empty allergens string would be sent.
+      expect(
+        await invalid.sync.saveWhole(
+          'wcb',
+          editorFields({ allergens: '' }),
+          '2026-09-28T01:00:00.000Z'
+        )
+      ).toBe('rejected');
+      expect(invalid.rpc).not.toHaveBeenCalled();
+    });
+
+    it('refuses while a quick edit for the same id is in flight, rather than racing it', async () => {
+      let release = () => {};
+      const gate = new Promise<void>((r) => (release = r));
+      let first = true;
+      const { sync: s, rpc } = customSync({
+        save: async (args) => {
+          if (first) {
+            first = false;
+            await gate;
+          }
+          return saved(args);
+        }
+      });
+      await s.load();
+      rpc.mockClear();
+      const inFlight = s.save('wcb', { onMenu: false, price: 170 }, { onMenu: true, price: 155 });
+      expect(await s.saveWhole('wcb', editorFields(), '2026-09-28T01:00:00.000Z')).toBe('rejected');
+      // Mutation check: without the inFlight guard, this would be a second save_flavour call.
+      expect(rpc).toHaveBeenCalledTimes(1);
+      release();
+      await inFlight;
+    });
+
+    it("does not revert another flavour's in-flight optimistic edit when saveWhole applies", async () => {
+      let release = () => {};
+      const gate = new Promise<void>((r) => (release = r));
+      let first = true;
+      const {
+        sync: s,
+        restored,
+        editValues
+      } = customSync({
+        save: async (args) => {
+          if (first) {
+            first = false;
+            await gate;
+          }
+          return saved(args);
+        }
+      });
+      await s.load();
+      // wcb's own save is in flight; the engine already shows its optimistic value.
+      editValues.set('wcb', { onMenu: false, price: 170 });
+      const inFlight = s.save('wcb', { onMenu: false, price: 170 }, { onMenu: true, price: 155 });
+      expect(
+        await s.saveWhole('cookie-fries', editorFields({ name: 'Renamed' }), OCTOBER.updated_at)
+      ).toBe('saved');
+      // Mutation check: without snapshotting and restoring, host.apply's full rebuild would
+      // revert wcb to its stale cached (onMenu: true, price: 155) values here.
+      expect(restored.at(-1)).toEqual(['wcb', { onMenu: false, price: 170 }]);
+      release();
+      await inFlight;
+    });
+
+    it('refuses to create a flavour or publish from a cache that was never loaded', async () => {
+      const restored: Array<[string, FlavourEdit]> = [];
+      const rpc: Rpc = vi.fn(async (name: string) =>
+        name === 'get_flavours' ? { data: null, error: { code: '', message: 'down' } } : saved({})
+      );
+      const host = {
+        apply: vi.fn(),
+        edit: vi.fn(),
+        restore: (id: string, edit: FlavourEdit) => void restored.push([id, edit]),
+        online: () => true,
+        toast: vi.fn()
+      };
+      const s = new FlavourSync({ rpc } as unknown as FlavoursClient, host);
+      // Mutation check: without the loaded guard, saveWhole would insert this as the only
+      // row apply() ever sees, shrinking the engine's whole flavour list to it; publish
+      // would call publish_flavours([]) and unpublish every real flavour.
+      expect(await s.saveWhole('new-one', editorFields(), null)).toBe('rejected');
+      expect(await s.publish()).toBe('offline');
+      expect(
+        rpc.mock.calls.some((c) => c[0] === 'save_flavour' || c[0] === 'publish_flavours')
+      ).toBe(false);
+      expect(host.apply).not.toHaveBeenCalled();
+    });
+
+    it('publish reloads first when the cache was never loaded, then publishes the fresh list', async () => {
+      const { sync: s, rpc } = customSync({ publish: () => ({ data: [], error: null }) });
+      expect(await s.publish()).toBe('published');
+      expect(rpc.mock.calls.map((c) => c[0])).toEqual(['get_flavours', 'publish_flavours']);
+      expect(rpc).toHaveBeenLastCalledWith('publish_flavours', {
+        p_ids: liveRows().map((r) => r.id)
+      });
+    });
   });
 });

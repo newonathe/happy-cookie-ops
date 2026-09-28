@@ -77,8 +77,10 @@ LIVE_FRAME_REVERSALS = {
         (b"          {bareFrame ? null : (\n          <>\n", b""),
         (b"          </>\n          )}\n", b""),
     ],
+    # "generated" is one shared field: each later approved edit that reruns --update moves
+    # this tuple's left side to that day's date, still reversing to the true original.
     'scripts/port-baseline.json': [
-        (b'"generated": "2026-09-27",', b'"generated": "2026-09-04",'),
+        (b'"generated": "2026-09-28",', b'"generated": "2026-09-04",'),
         (b'"copyCount": 15,\n      "styles": 144,', b'"copyCount": 15,\n      "styles": 146,'),
     ],
 }
@@ -92,6 +94,19 @@ FLAVOUR_REVERSALS = {
     'supabase/seed.sql': [
         (b"('nch', 'Vanilla extract', 10, 'ml');\n\n-- allergens (MP-09 c1)\nupdate products set allergens = v.allergens from (values\n  ('dcf', 'milk, eggs, wheat, soy'),\n  ('hc', 'milk, eggs, wheat, soy'),\n  ('wcb', 'milk, eggs, wheat, soy'),\n  ('pbm', 'milk, eggs, wheat, soy, peanuts'),\n  ('rvc', 'milk, eggs, wheat, soy'),\n  ('nch', 'milk, eggs, wheat, soy, tree nuts')\n) as v (id, allergens) where products.id = v.id;\n",
          b"('nch', 'Vanilla extract', 10, 'ml');\n"),
+    ],
+    # MP-09 c1c form-host exception (F3, approved 2026-09-28; docs/state/protected-exception.md):
+    # one import and one guarded render branch, the live-only form host later owner forms plug into.
+    'src/components/shell/app-frame.tsx': [
+        (b"import { EditPriceSheet } from '@/components/sheets/edit-price';\nimport { LiveFormHost } from '@/components/live/live-form-host';\n",
+         b"import { EditPriceSheet } from '@/components/sheets/edit-price';\n"),
+        (b"                        {sheet.isEditPrice ? <EditPriceSheet v={v} /> : null}\n                        {bareFrame && sheet.liveForm ? <LiveFormHost v={v} /> : null}\n",
+         b"                        {sheet.isEditPrice ? <EditPriceSheet v={v} /> : null}\n"),
+    ],
+    # Applied after LIVE_FRAME_REVERSALS already turned this block's "styles" back to 146.
+    'scripts/port-baseline.json': [
+        (b'"src/components/shell/app-frame.tsx": {\n      "copy": "8f7ed5b6",\n      "copyCount": 15,\n      "styles": 146,\n      "dynamicStyles": 10,\n      "elements": 244',
+         b'"src/components/shell/app-frame.tsx": {\n      "copy": "8f7ed5b6",\n      "copyCount": 15,\n      "styles": 146,\n      "dynamicStyles": 10,\n      "elements": 243'),
     ],
 }
 changes = []

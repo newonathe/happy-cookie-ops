@@ -5,6 +5,7 @@ import {
   BASE_STATE,
   DEFAULT_CFG,
   OpsProvider,
+  PESO,
   PRODUCTS,
   replaceFlavours
 } from '@/store/engine/ops-engine';
@@ -12,20 +13,25 @@ import type { EventSale, OpsEngineProps, Role } from '@/store/engine/ops-engine'
 import { flushQueue, requestBackgroundSync } from '@/lib/offline/sync';
 import { pendingSales } from '@/lib/offline/queue';
 import { plural } from '@/store/engine/ops-engine';
-import type { OpsVals } from '@/view-models/vals';
+import type { LiveFlavourFormFields, OpsVals } from '@/view-models/vals';
 import { isLiveMode } from '@/lib/config/app-mode';
 import { clearStoredBooks, liveBaseState } from '@/lib/data/live-state';
 import { STATE_LEVEL_KEYS, type SettingsClient } from '@/lib/data/settings';
 import { SettingsSync } from '@/lib/data/settings-sync';
+import { centavosFromDb, centavosToPesos } from '@/lib/money';
 import {
   FLAVOUR_TOASTS,
   FlavourSync,
   catalogueStatePatch,
   engineCatalogue,
   fetchShopFlavours,
+  flavourFieldError,
   flavourStatePatch,
+  priceCents,
   shopCatalogue,
+  slugifyFlavourId,
   type FlavourEdit,
+  type FlavourFields,
   type FlavoursClient,
   type ShopClient,
   type ShopFlavourRow
@@ -70,6 +76,14 @@ export function deviceForWidth(width: number): Device {
  * sheet, which maps over `v.rules`, so no protected markup changes. Live owner only; the
  * locked-UI exception is recorded in docs/state/protected-exception.md.
  */
+/** `state.sheet` while the flavour editor (MP-09 c1c) is open; every other key is untyped. */
+type FlavourSheetState = {
+  kind?: string;
+  pid?: string;
+  isNew?: boolean;
+  updatedAt?: string | null;
+};
+
 const IDLE_ROWS: Array<{ role: Role; label: string }> = [
   { role: 'owner', label: 'Sign Cine out after' },
   { role: 'support', label: 'Sign support out after' },
@@ -302,6 +316,97 @@ export class OpsRuntime extends OpsProvider {
   }
 
   /**
+   * The flavour editor's entry points (MP-09 c1c): "Menu & flavours" in toolGroups and the
+   * products screen's "Edit price" button, live owner only. `state.sheet` carries an
+   * otherwise-unrecognised `kind` ('flavours'), which the ported engine stores and renders
+   * with an empty body (`titleOf['flavours']` is `''`, every `isX` false) — the live-only
+   * form host (F3) is the one new render branch that fills it in.
+   */
+  private openFlavourList(): void {
+    this.sheet('flavours', {});
+  }
+
+  /**
+   * The `updated_at` this flavour was showing the moment the editor opened is frozen into
+   * the sheet, not re-read fresh on every render: the form's own fields are uncontrolled
+   * (`defaultValue`, set once at mount), so a quick edit that lands while the form is open
+   * would otherwise let `saveFlavourForm` send a *fresh* `updated_at` alongside the form's
+   * *stale* field values — passing `save_flavour`'s conflict check and silently overwriting
+   * the quick edit instead of reporting a conflict.
+   */
+  private openFlavourEditor(pid: string): void {
+    const updatedAt = this.flavourSync?.current().find((r) => r.id === pid)?.updated_at ?? null;
+    this.sheet('flavours', { pid, updatedAt });
+  }
+
+  private openNewFlavour(): void {
+    this.sheet('flavours', { isNew: true });
+  }
+
+  private publishMenu = async (): Promise<void> => {
+    if (!this.flavourSync) return;
+    const status = await this.flavourSync.publish();
+    if (status === 'published') {
+      const shown = this.flavourSync.current().filter((r) => r.active).length;
+      this.toast(
+        shown
+          ? 'Published. Customers now see ' + plural(shown, 'flavour', 'flavours') + '.'
+          : 'Published. The shop shows no flavours — none are on the order form.'
+      );
+      return;
+    }
+    this.toast(
+      status === 'offline' ? FLAVOUR_TOASTS.offline : 'The menu could not be published. Try again.',
+      'warn'
+    );
+  };
+
+  /**
+   * Converts the form's pesos back to centavos and the same bounds `save_flavour` checks
+   * (`flavourFieldError`), so a sure refusal never reaches the network. A brand-new flavour
+   * (`id` null) gets a slug derived from its name, unique against every id already loaded —
+   * nothing is ever deleted, so that set is every flavour that has ever existed.
+   */
+  private async saveFlavourForm(
+    id: string | null,
+    fields: LiveFlavourFormFields,
+    expectedUpdatedAt: string | null
+  ): Promise<void> {
+    if (!this.flavourSync) return;
+    const priceInCents = priceCents(fields.price);
+    if (priceInCents === null) {
+      this.toast('Price is out of range.', 'warn');
+      return;
+    }
+    const dbFields: FlavourFields = {
+      name: fields.name,
+      short_name: fields.shortName,
+      price_cents: priceInCents,
+      kind: fields.kind,
+      item_type: fields.itemType,
+      capacity_weight: fields.capacityWeight,
+      tag: fields.badge,
+      description: fields.description,
+      image_path: fields.imagePath,
+      allergens: fields.allergens,
+      active: fields.active,
+      sort_order: fields.sortOrder
+    };
+    const problem = flavourFieldError(dbFields);
+    if (problem) {
+      this.toast(problem, 'warn');
+      return;
+    }
+    const existing = new Set(this.flavourSync.current().map((r) => r.id));
+    const flavourId = id ?? slugifyFlavourId(fields.name, existing);
+    const status = await this.flavourSync.saveWhole(flavourId, dbFields, expectedUpdatedAt);
+    if (status === 'saved') {
+      this.toast('Flavour saved.');
+      this.openFlavourList();
+    }
+  }
+
+  /**
    * The prototype read localStorage in a field initialiser and restores the saved books
    * one commit after mount (see `OpsEngine.componentDidMount`, protected). Live mode never
    * reads or writes `hc-ops-state-v1`: `state` already starts from the emptied live state
@@ -383,6 +488,17 @@ export class OpsRuntime extends OpsProvider {
         (this.state.device === 'desktop' ? '#F6F4F2' : '#FFFFFF'),
       plTrend: trend.filter((row) => row.now).map((row) => ({ ...row, v: barHeight })),
       rules: this.state.role === 'owner' ? this.liveRules(starved.rules ?? []) : starved.rules,
+      // MP-09 c1c: the flavour editor's entry points and form host, live owner only.
+      toolGroups:
+        this.state.role === 'owner'
+          ? this.liveToolGroups(starved.toolGroups ?? [])
+          : starved.toolGroups,
+      productRows:
+        this.state.role === 'owner'
+          ? this.liveProductRows(starved.productRows ?? [])
+          : starved.productRows,
+      sheet: this.liveSheet(starved.sheet),
+      liveForm: this.liveFormVals(),
       // MP-09 c1b: until the published menu is read, a customer page shows no flavours
       // (the engine still holds the ported list, which is not the owner's menu).
       ...(CUSTOMER_SCREENS.includes(this.state.screen as ScreenKey) &&
@@ -445,6 +561,108 @@ export class OpsRuntime extends OpsProvider {
         )
     };
     return [...rules, ...idle, helperTotals];
+  }
+
+  /** "Menu & flavours" in the Business group. No markup edit: All tools already maps `toolGroups`. */
+  private liveToolGroups(groups: OpsVals['toolGroups']): OpsVals['toolGroups'] {
+    return groups.map((g) =>
+      g.title === 'Business'
+        ? {
+            ...g,
+            items: [
+              ...g.items,
+              {
+                icon: this.IC.cookie,
+                label: 'Menu & flavours',
+                sub:
+                  plural(this.flavourSync?.current().length ?? 0, 'flavour', 'flavours') +
+                  ' · edit, add, publish',
+                badge: null,
+                go: () => this.openFlavourList()
+              }
+            ]
+          }
+        : g
+    );
+  }
+
+  /** The products screen's "Edit price" opens the live flavour editor instead of the ported sheet. */
+  private liveProductRows(rows: OpsVals['productRows']): OpsVals['productRows'] {
+    return rows.map((row, i) => {
+      const pid = PRODUCTS[i]?.id;
+      return pid ? { ...row, edit: () => this.openFlavourEditor(pid) } : row;
+    });
+  }
+
+  /**
+   * Only the sheet chrome (backdrop, header, close button) is ported; `liveForm` gates the
+   * one new render branch (F3, docs/state/protected-exception.md).
+   */
+  private liveSheet(sheet: OpsVals['sheet']): OpsVals['sheet'] {
+    if (!sheet) return sheet;
+    const sh = this.state.sheet as FlavourSheetState | null;
+    if (this.state.role !== 'owner' || sh?.kind !== 'flavours')
+      return { ...sheet, liveForm: false };
+    const row = sh.pid ? this.flavourSync?.current().find((r) => r.id === sh.pid) : undefined;
+    return {
+      ...sheet,
+      liveForm: true,
+      title: sh.isNew ? 'Add a flavour' : row ? 'Edit ' + row.name : 'Menu & flavours'
+    };
+  }
+
+  /** The live-only form host's content (MP-09 c1c, F3): list, add or edit one flavour. */
+  private liveFormVals(): OpsVals['liveForm'] {
+    const sh = this.state.sheet as FlavourSheetState | null;
+    if (this.state.role !== 'owner' || sh?.kind !== 'flavours') return null;
+    const rows = [...(this.flavourSync?.current() ?? [])].sort(
+      (a, b) => a.sort_order - b.sort_order || a.id.localeCompare(b.id)
+    );
+    const online = this.state.online && (typeof navigator === 'undefined' || navigator.onLine);
+    const target = sh.pid ? rows.find((r) => r.id === sh.pid) : undefined;
+    // Frozen at open time (openFlavourEditor), not re-read here: see that method's comment.
+    const expectedUpdatedAt = sh.isNew ? null : (sh.updatedAt ?? target?.updated_at ?? null);
+    const editing =
+      sh.isNew || target
+        ? {
+            id: target?.id ?? null,
+            name: target?.name ?? '',
+            shortName: target?.short_name ?? '',
+            description: target?.description ?? '',
+            imagePath: target?.image_path ?? '',
+            allergens: target?.allergens ?? '',
+            badge: target?.tag ?? '',
+            kind: (target?.kind === 'Rotating' ? 'Rotating' : 'Permanent') as
+              'Permanent' | 'Rotating',
+            itemType: (target?.item_type === 'set' ? 'set' : 'cookie') as 'cookie' | 'set',
+            capacityWeight: target?.capacity_weight ?? 1,
+            sortOrder:
+              target?.sort_order ??
+              (rows.length ? Math.max(...rows.map((r) => r.sort_order)) + 1 : 0),
+            price: target ? centavosToPesos(centavosFromDb(target.price_cents)) : 0,
+            active: target?.active ?? true,
+            save: (fields: LiveFlavourFormFields) =>
+              void this.saveFlavourForm(target?.id ?? null, fields, expectedUpdatedAt),
+            cancel: () => this.openFlavourList()
+          }
+        : null;
+    return {
+      kind: 'flavours',
+      online,
+      rows: rows.map((r) => ({
+        id: r.id,
+        name: r.name,
+        shortName: r.short_name,
+        priceText: PESO(centavosToPesos(centavosFromDb(r.price_cents))),
+        published: r.published,
+        active: r.active,
+        edit: () => this.openFlavourEditor(r.id)
+      })),
+      addNew: () => this.openNewFlavour(),
+      publish: () => void this.publishMenu(),
+      close: () => this.closeSheet(),
+      editing
+    };
   }
 
   /**

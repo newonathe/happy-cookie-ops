@@ -121,6 +121,124 @@ replace Cine's order form at launch with every applicable field and text owner-c
 - Not covered: any change to demo-mode rendering, the protected engine (`ops-engine.js`; the MP-09 c
   exception covers `PRODUCTS`/`PAY_ACCOUNTS`, to be extended to `ALLERGENS` when applied), or staff screens.
 
+# MP-09 c1c: the flavour editor's live form host — APPLIED (2026-09-28, F3)
+
+Status: APPLIED under the F3 decision (finish-plan.md section 11, approved 2026-09-28): one
+guarded, live-only form host in `app-frame.tsx` that later owner forms plug into, so each of
+those needs no further protected-markup edit — only this record grows. Live owner only
+(`NEXT_PUBLIC_APP_MODE=live`, role `owner`); demo, dev, CI and the visual baselines render
+exactly as before.
+
+**Protected markup touched, `src/components/shell/app-frame.tsx`:** one import and one
+`bareFrame`-guarded render branch, next to the ported `isEditPrice` line the sheet body
+already had:
+
+```
+import { LiveFormHost } from '@/components/live/live-form-host';
+…
+{sheet.isEditPrice ? <EditPriceSheet v={v} /> : null}
+{bareFrame && sheet.liveForm ? <LiveFormHost v={v} /> : null}
+```
+
+`LiveFormHost` (new, unprotected, `src/components/live/live-form-host.tsx`) is reached
+through the ported sheet mechanism, not a new one: `OpsRuntime` calls the engine's own
+`this.sheet('flavours', { pid })`/`this.sheet('flavours', {})`/`this.sheet('flavours',
+{ isNew: true })` (also unprotected — `sheet`/`closeSheet` were already instance fields on
+the protected engine, just undeclared in `ops-engine.d.ts` until this slice added them). An
+unrecognised `kind` was already stored and rendered harmlessly by the ported engine before
+this slice (`titleOf['flavours']` is `''`, every ported `isX` flag false) — confirmed, not
+assumed, before the insertion. `OpsRuntime.renderVals()` (subclass) is what turns that empty
+sheet into the form host: `liveSheet()` adds `sheet.liveForm`/a title, `liveFormVals()` builds
+`v.liveForm` (the list, the one being added or edited, `save`, `publish`, `close`), owner and
+live-mode gated. Same technique as the MP-09 b2 rules-sheet exception, one level up: there the
+ported markup already existed and only `v.rules` grew; here the sheet body was empty and the
+whole content is new, so the host needed one guarded insertion point instead of zero.
+
+**Also not protected-file edits, but part of the same slice:**
+
+- `src/store/ops-runtime.tsx`: `openFlavourList`/`openFlavourEditor`/`openNewFlavour`,
+  `saveFlavourForm` (validates client-side with `flavourFieldError`, converts pesos to
+  centavos, slugs a new id with `slugifyFlavourId`, then calls `FlavourSync.saveWhole`),
+  `publishMenu` (calls `FlavourSync.publish()` with every loaded flavour, then names how many
+  are still on the order form — what customers will now see). `liveToolGroups` appends "Menu
+  & flavours" to the Business group (`toolGroups` is view-model data; `all-tools.tsx` already
+  maps it with no markup edit, per the c1b note this exception extends). `liveProductRows`
+  replaces each row's `edit` handler with `openFlavourEditor(pid)`, owner and live only; every
+  other role's "Edit price" still opens the ported `editPrice` sheet unchanged.
+- `src/lib/data/flavours.ts`: `FlavourSync.saveWhole` — the whole-flavour save, through
+  `save_flavour` with the same conflict ('P0002' → reload)/refusal/offline classification
+  `save` uses, refusing rather than racing a quick edit for the same id still in `inFlight`.
+  On success it re-applies every loaded flavour to the engine, snapshotting and restoring any
+  _other_ id's in-flight optimistic edit first, so a whole-form save cannot visibly revert a
+  concurrent quick toggle or price edit. `flavourFieldError` mirrors every `save_flavour`
+  bound client-side (the same reasoning as `priceCents`); `slugifyFlavourId` derives a legal,
+  unique id from a name for a new flavour. No SQL migration: `save_flavour` (20260101003000)
+  already accepts every field the editor needs.
+- `src/view-models/vals.ts` / `src/store/engine/ops-engine.d.ts`: `OpsVals.liveForm`,
+  `OpsVals['sheet'].liveForm` and `LiveFlavourFormFields` are new types, additive only;
+  `sheet`/`closeSheet`/`IC` are declarations for instance fields the engine already had.
+
+**Reversals:** `FLAVOUR_REVERSALS` in `scripts/validate-g0.py` removes the import and the
+render line from `app-frame.tsx`, and reverses `scripts/port-baseline.json`'s `elements`
+count (244 → 243) for that file, each exactly once, before the delivery-bytes check.
+`port-baseline.json` updated only via `--update`; `port-structure-baseline.json` (the AST
+fingerprint `check-port-integrity.mjs` also checks) regenerated via
+`node scripts/port-structure.mjs --write-baseline` in the same commit — it is not part of the
+delivery manifest, so it needs no reversal entry.
+
+**Evidence:** `tests/unit/ops-runtime-flavour-editor.test.tsx` (entry points owner-only,
+demo mode untouched byte-for-byte, add-flavour end to end with the slugged id, publish
+wording, a render pass over the list and the edit form with no undefined/NaN/console error);
+`tests/unit/flavours.test.tsx` (`saveWhole`: create, full-field replace, conflict, offline,
+client-side refusal, the in-flight guard and the clobber-prevention mutation check, one
+mutation check each).
+
+**Independent port audit (Opus, 2026-09-28):** PASS on every point checked (the `app-frame.tsx`
+diff is exactly the two lines above; no ported copy, style or element beyond the recorded
+`+1`; `titleOf`/every `isX` confirmed empty for an unrecognised kind by reading the protected
+engine, not assumed; `pnpm typecheck` and the new tests clean). Found, fixed before commit: a
+formatter had rewritten `vals.ts` from CRLF to LF (whole-file churn with no content change,
+reverted); the validator's own run had left `docs/state/evidence/g0-validation.json` dirty
+(reverted, as it is every session).
+
+**Independent review (Opus, 2026-09-28): first BLOCKED, then SAFE TO MERGE after three fixes.**
+
+- **P0, fixed:** `loadFlavours()` constructs `FlavourSync` before `load()` runs. If the
+  initial read failed or was empty, `flavourSync` was truthy with an empty cache, but nothing
+  stopped the owner from tapping "Publish menu" anyway — `publish()`'s default
+  `ids = [...this.rows.keys()]` would be `[]`, and `publish_flavours([])` unpublishes every
+  flavour, emptying the live shop. Worse, saving a _new_ flavour onto that same empty cache
+  would `apply()` an engine flavour list of exactly one row, since `replaceFlavours` splices
+  the whole array. Fixed: `FlavourSync` tracks whether `load()` has actually populated the
+  cache; `saveWhole` refuses to create a flavour, and `publish()` tries one reload before
+  refusing, until it has.
+- **P1, fixed:** the editor's `save` closure read the flavour's `updated_at` fresh from the
+  cache on every render, but its own fields are uncontrolled (`defaultValue`, set once at
+  mount). If a quick edit landed while the form stayed open, the next render's closure would
+  carry the _new_ `updated_at` alongside the form's _stale_ field values — passing
+  `save_flavour`'s conflict check and silently reverting the quick edit. Fixed:
+  `openFlavourEditor` freezes `updated_at` into the sheet at the moment it opens, so a form
+  left open across a concurrent change now gets a real P0002 conflict and a reload instead.
+- **P1, fixed:** a cleared price field became `₱0` (`Number('') || 0`), which the next
+  "Publish menu" would send live. Fixed: a blank or non-numeric field now becomes `NaN`,
+  which `priceCents`/`flavourFieldError` correctly refuse; the price input also gained
+  `required` and `min`.
+- **P2, accepted, not fixed:** a quick toggle/price edit for the same flavour a whole-form
+  save is in flight for is queued (`again`) but never resent afterwards, unlike the quick-edit
+  path's own success branch — the queued edit is silently dropped and the engine reflects the
+  form's value instead. Narrow (both writes to the same flavour within the same
+  sub-second window) and no worse than the pre-c1c behaviour for that overlap; left for a
+  later slice if it proves to matter in practice.
+- **P3, noted only:** publishing can make an in-flight quick save for a different device's
+  edit hit a conflict against its own change — pre-existing since c1b, not new here.
+
+Regression tests for the P0 and both P1s: `tests/unit/flavours.test.tsx` ("refuses to create a
+flavour or publish from a cache that was never loaded", "publish reloads first…"),
+`tests/unit/ops-runtime-flavour-editor.test.tsx` ("a stale-open editor gets a conflict instead
+of silently reverting…", "rejects a blank price…"), each with a mutation-check comment stating
+what the pre-fix code would have done instead. Full suite after the fixes: `pnpm typecheck`
+clean; 688 tests / 44 files.
+
 # MP-09 b4 locked-UI exception: helper money in live mode (2026-09-28)
 
 Status: APPLIED. The owner control falls under Ethan's 2026-09-27 approval of the settings edit forms; hiding

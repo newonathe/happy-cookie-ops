@@ -16,52 +16,59 @@ When a goal finishes, the agent deletes its block here, leaves the next one on t
 - If files changed since the last index, re-index first: `index_repository`, repo path `C:/Users/ethan/dev/happy-cookie-ops-g0`.
 - Pinned toolchain: prefix PATH with `C:\Users\ethan\dev\happy-cookie-tools\bin;C:\Users\ethan\dev\happy-cookie-tools\node-v24.20.0-win-x64`. In Git Bash call `pnpm.cmd`: a bare `pnpm` resolves to the global npm shim first (it warns that the `pnpm` field is ignored).
 - Docker Desktop must be running for SQL work, and for one Python guard (`tests/integration/db`).
-- **Baseline (2026-09-28; `pnpm verify`, the SQL role suite, the Python guards and the G0 validator re-run at MP-09 c1b close; the rest unchanged since the static-header goal):**
-  - `pnpm verify` 43 files / 671 tests;
-  - Python guards 63 OK, via `python -m unittest discover -s <dir> -p "test_*.py"` for each of `tests/unit`, `tests/integration/auth`, `tests/integration/db` and `tests/integration/security`, with `G0_PYTHON_LIBS=C:\Users\ethan\dev\happy-cookie-tools\python-libs-314`; SQL role suite 570 cases/reset, 2 resets; G0 validator 1198 checks, 0 failures;
+- **Baseline (2026-09-28; `pnpm typecheck`/`vitest`/port integrity/G0 validator re-run at MP-09 c1c (A1) close; the SQL role suite and Python guards unchanged since c1b — no migration in A1; the rest unchanged since the static-header goal):**
+  - `pnpm typecheck` clean; `pnpm exec vitest run` 44 files / 688 tests; port integrity OK, 54 files; G0 validator 1201 checks, 0 failures;
+  - Python guards 63 OK, via `python -m unittest discover -s <dir> -p "test_*.py"` for each of `tests/unit`, `tests/integration/auth`, `tests/integration/db` and `tests/integration/security`, with `G0_PYTHON_LIBS=C:\Users\ethan\dev\happy-cookie-tools\python-libs-314`; SQL role suite 570 cases/reset, 2 resets;
   - `pnpm build:pages:spike`/`test:pages:spike`/`test:workers:spike` pass with or without `NEXT_PUBLIC_SUPABASE_URL`/`…PUBLISHABLE_KEY` (local stack values: `supabase status -o env`);
   - `pnpm build` passes, and `pnpm test:e2e` gives 87 passed / 3 failed / 30 skipped. The 3 failures are the same known OFFLINE-01 durable-queue test on phone, WebKit and desktop (G3).
 - **Codex only:** run `/status` once in the repo root to confirm the project `.codex/config.toml` loaded. Accept the trust prompt if asked. The project sandbox has no network, so `git push` will ask for approval.
 
-## Next goal — A1 (MP-09 c1c): the flavour editor and the "Publish menu" button
+## Next goal — D1 (MP-07 finish + MP-18/19 lean): bazaar sales, offline on one phone
 
-Drafted 2026-09-28; re-planned the same day in [finish-plan.md](finish-plan.md) (slice A1, sections 4 and 6).
-**Current state:**
-- c1b made prices save through `save_flavour` and added `publish_flavours` (migration 20260101003100).
-- The live customer shop shows only the published menu.
-- **Nothing in the app calls `publish_flavours` yet**, so the live shop is empty until this slice ships the button.
+Drafted 2026-09-28 after A1 closed (flavour editor + Publish menu, `docs/state/protected-exception.md`
+"MP-09 c1c"). Finish-plan.md slice D1, sections 4 and 6; approved order puts D1 right after A1 so 24–25 Oct
+stays reachable (section 6, F4).
 
-**Facts found in c1b and in the 2026-09-28 audit:**
-- The products screen has no "edit flavour" or "add flavour" control.
-- Every sheet body is registered in the protected `src/components/shell/app-frame.tsx`.
-- "All tools" is built from view-model data (`toolGroups`), so new entry points need no markup edit.
-- The engine's render paths name the ported ids (`wcb`, `rvc`, `pbm`). Products are never deleted, so keep that.
-- New October flavours need photos. Until owner uploads arrive (A2), their images are static files Ethan adds
-  under the existing assets folder.
+**Current state (finding 14, finish-plan.md section 4):** the IndexedDB offline sale queue
+(`src/lib/offline/queue.ts`) exists and `src/lib/offline/sync.ts` flushes it, but it posts to the archived BFF
+route `/api/sync` (`src/app/api/sync/route.ts`), which architecture A no longer uses. `tests/e2e/bazaar-offline.spec.ts`
+(OFFLINE-01) is the known-red test this slice must turn green — 3 failures across phone/WebKit/desktop per
+[current state](current.md).
 
-**Decision F3 is approved (2026-09-28):** build one reviewed, live-only form host in `app-frame.tsx` that later
-owner forms plug into. Its record in protected-exception.md must say it covers the later owner forms, each still
-listed there as it lands.
+**Facts already decided:**
 
-**Not re-audited against the code.** Read these first: `FlavourSync`, `OpsRuntime.loadShopMenu` and `renderVals`,
-`products.tsx`, the sheet list in `app-frame.tsx`, and the `LIVE_FRAME_REVERSALS` pattern.
+- One selling device at a time, any phone/tablet/laptop (decision register, decision 5); other devices stay
+  online-only.
+- Bazaar prices equal online prices (decision register DP-20) — an event price snapshot, not a live read, so a
+  mid-event online price change never changes what a running bazaar charges.
+- The bazaar date gate (finish-plan.md section 6, F4, approved): 24–25 Oct only if OFFLINE-01 and a real offline
+  test on Cine's phone both pass by 20 Oct; otherwise she sells as today and 12–13 Dec is the pilot. This slice
+  is what OFFLINE-01 gates on — it does not itself run the phone test or decide the gate.
+- Needs A1: bazaar selling reads the flavour list A1's editor writes; it does not read payment accounts (A2).
+
+**Not re-audited against the code.** Read these first: `src/lib/offline/queue.ts`, `src/lib/offline/sync.ts`,
+`src/app/api/sync/route.ts` (what it is replacing), the bazaar screens and the `EventSale` type
+(`src/store/engine/ops-engine.d.ts`), `OpsRuntime.runSync`/`syncNow` (`src/store/ops-runtime.tsx`), and
+`tests/e2e/bazaar-offline.spec.ts` for what OFFLINE-01 actually asserts.
 
 ```text
-/goal A1 (docs/state/finish-plan.md slice A1): the owner's flavour editor and "Publish menu" in live mode.
-Editor: name, short name, description, photo path, allergens, badge, permanent/rotating, cookie/set, capacity
-weight, sort order and price, plus adding a flavour (new flavours are drafts: unpublished until the next
-publish), saved whole through FlavourSync/save_flavour with the same conflict/refusal/offline paths. Publish:
-a button that calls FlavourSync.publish() (every flavour) and says what customers will now see. Entry points:
-a "Menu & flavours" item added to toolGroups in OpsRuntime.renderVals (no markup edit), and the products
-screen's "Edit price" opening the editor in live mode. Form container: the approved live form host (F3), live owner only, with demo, dev, CI and the visual
-baselines byte-identical; recorded exactly in protected-exception.md; exact reversals in scripts/validate-g0.py;
-port-baseline.json only via --update in the same commit; existing tokens only (no new colours or type). Unit
-tests for each save path, the publish refresh and the live-only rendering, each with one mutation check. All
-exit 0 in this session: the pre-commit pnpm verify, the Python guards, the G0 validator (revert
-evidence/*.json churn); the SQL role suite only if SQL changes. Independent port audit and a different-model
-review (if this session is Sonnet, invoke the reviewers with model opus). Committed and pushed; current.md
-checkpoint and task-status updated; this block replaced by the next
-slice from finish-plan section 6. No deploy. Stop after 2 failed fix attempts or 25 turns.
+/goal D1 (docs/state/finish-plan.md slice D1): bazaar sales, offline on one phone.
+Events on the database (a new migration): one designated selling device per event (decision register, decision
+5), an event price snapshot taken at event start so a later online price change never reaches a running event
+(DP-20). Replace the archived /api/sync route with an idempotent record_event_sale RPC keyed on the sale's
+client-generated id, callable while offline-queued and safely retried; wire OpsRuntime's existing IndexedDB
+queue (src/lib/offline/queue.ts) and sync (src/lib/offline/sync.ts) to it instead of /api/sync. Void and
+freebie sales, same idempotency. Never drop a queued sale the server has not acknowledged by clientId (AGENTS.md).
+No protected-file edit expected; if one seems required, stop and say so first. Existing tokens only if any new
+UI is needed. Unit tests for record_event_sale's idempotency (repeat delivery, out-of-order retry, void,
+freebie) and the queue/sync rewiring, each with one mutation check. Must turn tests/e2e/bazaar-offline.spec.ts
+(OFFLINE-01) green on at least the desktop project; report phone/WebKit results honestly, since the real
+20-Oct gate also needs a physical-phone test this slice does not run. All exit 0 in this session: the
+pre-commit pnpm verify, the Python guards, the G0 validator (revert evidence/*.json churn), the SQL role suite
+(this slice adds a migration). Opus review (if this session is Sonnet, invoke it with model opus) for the new
+RPC and the offline/idempotency logic. Committed and pushed; current.md checkpoint and task-status updated;
+this block replaced by the next slice from finish-plan section 6 (D2, unless the OFFLINE-01 gate reopens D1).
+No deploy. Stop after 2 failed fix attempts or 25 turns.
 ```
 
 ## After these goals

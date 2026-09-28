@@ -4,7 +4,19 @@ Every checkpoint up to 2026-09-28, verbatim and newest first. Moved here from `c
 session reads only the short status in [current.md](current.md). Add nothing here by hand; move a checkpoint here
 when it leaves `current.md`.
 
-## Current checkpoint — 2026-09-28 (MP-09 c1b: prices, publishing, the live shop menu; G2 slice 5 second part)
+## Current checkpoint — 2026-09-28 (audit of Cine's current system; finish-plan.md written)
+
+- Audited Cine's whole current system against the app.
+  - Sources: the workbook (17 tabs), the form, the payment image, the Apps Script, the client guide, and 115
+    walkthrough comments.
+  - Wrote [finish-plan.md](finish-plan.md): 16 slices to launch, the cut list, how we build, and the decisions.
+  - Moved the old status history to [current-history.md](current-history.md).
+  - Found: the live shop footer (protected copy) shows "REGISTERED", a placeholder TIN and "An invoice is
+    issued…". It must not reach customers; fixed in A2, and F10 decides the wording.
+  - Ethan approved every default (F1–F10). F6 applied: the typecheck runs once per turn in the `Stop` hook.
+  - Next goal (as recorded then): A1 (the flavour editor and publish button), then the bazaar slices D1–D2.
+
+## Prior checkpoint — 2026-09-28 (MP-09 c1b: prices, publishing, the live shop menu; G2 slice 5 second part)
 
 - **MP-09 c1b is complete locally.** Split as the goal allowed: the flavour editor and its "Publish menu"
   button are **c1c** ([next goal](next-goal.md)). The products screen has no edit-flavour or add-flavour

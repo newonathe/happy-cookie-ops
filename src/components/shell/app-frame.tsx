@@ -57,6 +57,7 @@ import { DrawSheet } from '@/components/sheets/draw';
 import { DropStateSheet } from '@/components/sheets/drop-state';
 import { PricingSheet } from '@/components/sheets/pricing';
 import { EditPriceSheet } from '@/components/sheets/edit-price';
+import { LiveFormHost } from '@/components/live/live-form-host';
 
 /**
  * The application frame, ported 1:1 from the prototype template.
@@ -549,6 +550,7 @@ export function AppFrame({ v }: { v: OpsVals }) {
                         ) : null}
                         {sheet.isPricing ? <PricingSheet v={v} /> : null}
                         {sheet.isEditPrice ? <EditPriceSheet v={v} /> : null}
+                        {bareFrame && sheet.liveForm ? <LiveFormHost v={v} /> : null}
                       </div>
                     </div>
                   </div>

@@ -6,6 +6,22 @@
  */
 import type * as React from 'react';
 
+/** Every field the live flavour editor's form submits (MP-09 c1c), pesos not centavos. */
+export interface LiveFlavourFormFields {
+  name: string;
+  shortName: string;
+  description: string;
+  imagePath: string;
+  allergens: string;
+  badge: string;
+  kind: 'Permanent' | 'Rotating';
+  itemType: 'cookie' | 'set';
+  capacityWeight: number;
+  sortOrder: number;
+  price: number;
+  active: boolean;
+}
+
 export interface OpsVals {
   appSub: React.ReactNode;
   /**
@@ -13,6 +29,34 @@ export interface OpsVals {
    * full-screen with no review harness. Undefined everywhere else, so demo is unchanged.
    */
   bareFrame?: boolean;
+  /**
+   * Set only by OpsRuntime in live mode, owner only: content for the live-only form host
+   * that later owner forms plug into (F3, docs/state/protected-exception.md). Shown when
+   * `sheet.liveForm` is true. Undefined everywhere else, so demo is unchanged.
+   */
+  liveForm?: {
+    kind: 'flavours';
+    online: boolean;
+    rows: Array<{
+      id: string;
+      name: React.ReactNode;
+      shortName: React.ReactNode;
+      priceText: React.ReactNode;
+      published: boolean;
+      active: boolean;
+      edit: (event?: unknown) => void;
+    }>;
+    addNew: (event?: unknown) => void;
+    publish: (event?: unknown) => void;
+    close: (event?: unknown) => void;
+    editing:
+      | (LiveFlavourFormFields & {
+          id: string | null;
+          save: (fields: LiveFlavourFormFields) => void;
+          cancel: (event?: unknown) => void;
+        })
+      | null;
+  } | null;
   askClose: (event?: unknown) => void;
   askReset: (event?: unknown) => void;
   attachReceipt: (event?: unknown) => void;
@@ -1134,6 +1178,8 @@ export interface OpsVals {
     isSwap: unknown;
     isUsers: unknown;
     isWhy: unknown;
+    /** Set only by OpsRuntime in live mode, owner only: `v.liveForm` should render here. */
+    liveForm?: boolean;
     name: string | number;
     qty: string | number;
     title: React.ReactNode;

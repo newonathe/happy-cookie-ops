@@ -86,6 +86,12 @@ export declare class OpsEngine extends React.Component<OpsEngineProps, OpsEngine
   priceOf: (pid: string, priced?: Record<string, number>) => number;
   /** Sets a flavour's price for new orders (`state.prices`) and closes the sheet. An instance field. */
   setPrice: (pid: string, value: unknown) => void;
+  /** Opens the bottom sheet (`state.sheet`); an unrecognised `kind` renders no ported body. An instance field. */
+  sheet: (kind: string, data?: Record<string, unknown>) => void;
+  /** Closes the bottom sheet (`state.sheet = null`). An instance field. */
+  closeSheet: () => void;
+  /** SVG path data keyed by icon name. An instance field. */
+  IC: Record<string, string>;
 }
 
 export declare class OpsProvider extends OpsEngine {}
