@@ -39,7 +39,8 @@ sets products.published, so the public shop's shop_products view shows the owner
 customer shop to read shop_products through fetchShopFlavours (anon never reads products). Flavour editor:
 name, short name, description, photo path, allergens, badge, permanent/rotating, cookie/set, capacity weight,
 sort order, and adding a flavour, as a new owner form under the approved settings-edit-forms locked-UI
-exception (record it in protected-exception.md; no new colours or type). Unit tests for each save path and
+exception (Ethan confirmed 2026-09-28 that the editor falls under it; decision register. Record the exact UI
+in protected-exception.md; no new colours or type). Unit tests for each save path and
 the shop projection. All exit 0 in this session: pnpm verify, the SQL role suite, the Python guards, the G0
 validator (revert evidence/*.json churn). Independent different-model review (SQL, public data). Committed and
 pushed; status updated; block removed. No deploy. If it grows past ~400 lines, split the editor into c1c. Stop

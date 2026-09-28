@@ -80,6 +80,9 @@ recommended expiry plus per-phone limit) and the proposed slice split are in
   pick any allowed pickup date inside the owner's lead time. `OpsRuntime` replaces `cycle`/`windows`
   (instance fields); the protected engine is not edited for this.
 - **D4, approved:** the checkout locked-UI exception (see `protected-exception.md`).
+- **Flavour editor (MP-09 c1b), confirmed by Ethan on 2026-09-28:** the owner's flavour editor (edit and
+  add flavours) falls under the 2026-09-27 approval of the locked-UI exception for new edit forms. No
+  separate approval is needed; the slice still records its exact UI in `protected-exception.md`.
 
 **Order-form rules the prototype does not have** (from the September form Cine sent). Each needs a scope
 decision by Ethan and, where it adds UI, a locked-UI exception. None is decided:
