@@ -82,6 +82,10 @@ export declare class OpsEngine extends React.Component<OpsEngineProps, OpsEngine
   toggleCategory: (name: string) => void;
   /** Takes a flavour off the order form or puts it back (`state.dropActive`). An instance field. */
   toggleDropProduct: (pid: string) => void;
+  /** A flavour's price now: an order's own `priced`, then `state.prices`, then the flavour's. An instance field. */
+  priceOf: (pid: string, priced?: Record<string, number>) => number;
+  /** Sets a flavour's price for new orders (`state.prices`) and closes the sheet. An instance field. */
+  setPrice: (pid: string, value: unknown) => void;
 }
 
 export declare class OpsProvider extends OpsEngine {}

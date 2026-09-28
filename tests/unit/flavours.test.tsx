@@ -13,12 +13,16 @@ import { ALLERGENS, PRODUCTS, replaceFlavours } from '@/store/engine/ops-engine'
 import { SCREEN_KEYS } from '@/lib/screens';
 import {
   FLAVOUR_TOASTS,
+  FlavourSync,
   SHOP_COLUMNS,
   engineCatalogue,
   fetchShopFlavours,
+  shopCatalogue,
+  type FlavourEdit,
   type FlavourRow,
   type FlavoursClient,
-  type ShopClient
+  type ShopClient,
+  type ShopFlavourRow
 } from '@/lib/data/flavours';
 
 /**
@@ -196,9 +200,10 @@ describe('MP-09 c1: flavours from the database', () => {
         expect(container.innerHTML, screen).not.toMatch(/undefined|\bNaN\b|\bInfinity\b/);
         unmount();
       }
-      const shop = new OpsRuntime({});
-      shop.state = { ...runtime.state, screen: 'shop', device: 'mobile' };
-      const text = render(<AppFrame v={shop.renderVals()} />).container.textContent ?? '';
+      // The runtime that loaded the list, not a fresh probe: a customer page that has read
+      // no menu yet shows no flavours (MP-09 c1b).
+      act(() => runtime.setState({ screen: 'shop', device: 'mobile' }));
+      const text = render(<AppFrame v={runtime.renderVals()} />).container.textContent ?? '';
       expect(text).toContain('Nutella Cookie Fries');
       expect(text).toContain('Contains milk, eggs, wheat, soy, tree nuts');
       expect(errorSpy).not.toHaveBeenCalled();
@@ -332,5 +337,363 @@ describe('MP-09 c1: flavours from the database', () => {
     expect(migration).toContain(
       'select id, name, short_name, price_cents, kind, tag, description, image_path, sort_order, allergens\nfrom public.products where published and active;'
     );
+  });
+});
+/** MP-09 c1b: prices through `save_flavour`, `publish_flavours`, and the live shop's menu. */
+describe('MP-09 c1b: prices, publishing and the shop menu', () => {
+  beforeEach(() => {
+    live = true;
+  });
+  afterEach(() => {
+    cleanup();
+    replaceFlavours(
+      PORTED.list.map((p) => ({ ...p })),
+      PORTED.allergens
+    );
+  });
+
+  const settle = () => new Promise((r) => setTimeout(r, 0));
+  const saves = (rpc: Rpc) =>
+    rpc.mock.calls
+      .filter((c) => c[0] === 'save_flavour')
+      .map((c) => c[1] as Record<string, unknown>);
+
+  async function setPrice(runtime: OpsRuntime, id: string, value: string) {
+    await act(async () => {
+      runtime.setPrice(id, value);
+      await settle();
+    });
+  }
+
+  it('saves a new price as centavos, whole flavour, while placed orders keep theirs', async () => {
+    const { runtime, rpc } = await mounted();
+    rpc.mockClear();
+    await setPrice(runtime, 'wcb', '170');
+    expect(runtime.priceOf('wcb')).toBe(170);
+    expect(runtime.priceOf('wcb', { wcb: 155 })).toBe(155);
+    expect(saves(rpc)).toEqual([
+      {
+        p_id: 'wcb',
+        p_flavour: expect.objectContaining({
+          price_cents: 17000,
+          active: true
+        }),
+        p_expected_updated_at: '2026-09-28T01:00:00.000Z'
+      }
+    ]);
+  });
+
+  it('shows the price the database stored when the typed one has fractions of a centavo', async () => {
+    const { runtime, rpc } = await mounted();
+    rpc.mockClear();
+    await setPrice(runtime, 'wcb', '12.346');
+    expect(saves(rpc)[0]!.p_flavour).toMatchObject({ price_cents: 1235 });
+    expect(runtime.priceOf('wcb')).toBe(12.35);
+  });
+
+  it.each([
+    ['too large to be a number', '1e400'],
+    ['over ₱10,000', '10000.01']
+  ])('puts back a price the database would refuse (%s) without sending it', async (_, value) => {
+    const { runtime, rpc } = await mounted();
+    rpc.mockClear();
+    await setPrice(runtime, 'wcb', value);
+    expect(saves(rpc)).toEqual([]);
+    expect(runtime.priceOf('wcb')).toBe(155);
+    expect(toastText(runtime)).toContain(FLAVOUR_TOASTS.rejected);
+  });
+
+  it('sends ₱10,000 exactly, the bound', async () => {
+    const { runtime, rpc } = await mounted();
+    rpc.mockClear();
+    await setPrice(runtime, 'wcb', '10000');
+    expect(saves(rpc)[0]!.p_flavour).toMatchObject({ price_cents: 1_000_000 });
+  });
+
+  it('puts the price back when the database refuses it', async () => {
+    const { runtime } = await mounted(() => ({
+      data: null,
+      error: { code: '22023', message: 'bad' }
+    }));
+    await setPrice(runtime, 'wcb', '170');
+    expect(runtime.priceOf('wcb')).toBe(155);
+    expect(toastText(runtime)).toContain(FLAVOUR_TOASTS.rejected);
+  });
+
+  it('puts the price back offline, without sending it', async () => {
+    const { runtime, rpc } = await mounted();
+    act(() => runtime.setState({ online: false }));
+    rpc.mockClear();
+    await setPrice(runtime, 'wcb', '170');
+    expect(saves(rpc)).toEqual([]);
+    expect(runtime.priceOf('wcb')).toBe(155);
+    expect(toastText(runtime)).toContain(FLAVOUR_TOASTS.offline);
+  });
+
+  it('reloads and says so when someone else changed the flavour before the price saved', async () => {
+    const { runtime, rpc } = await mounted(() => ({
+      data: null,
+      error: { code: 'P0002', message: 'stale' }
+    }));
+    rpc.mockClear();
+    await setPrice(runtime, 'wcb', '170');
+    expect(rpc.mock.calls.map((c) => c[0])).toEqual(['save_flavour', 'get_flavours']);
+    expect(runtime.priceOf('wcb')).toBe(155);
+    expect(toastText(runtime)).toContain(FLAVOUR_TOASTS.conflict);
+  });
+
+  it('puts the price back when the list never loaded', async () => {
+    const ref: { current: OpsRuntime | null } = { current: null };
+    render(<OpsRuntime ref={(r) => void (ref.current = r)} />);
+    const runtime = ref.current!;
+    const rpc = vi.fn(async () => ({
+      data: null,
+      error: { code: '', message: 'network' }
+    }));
+    await act(async () => {
+      await runtime.loadFlavours({ rpc } as unknown as FlavoursClient);
+    });
+    const ported = runtime.priceOf('wcb');
+    await setPrice(runtime, 'wcb', '170');
+    expect(runtime.priceOf('wcb')).toBe(ported);
+    expect(toastText(runtime)).toContain(FLAVOUR_TOASTS.offline);
+    expect(rpc).toHaveBeenCalledTimes(1);
+  });
+
+  it('sends a price changed while the switch was saving after it, switch and price together', async () => {
+    let release = () => {};
+    const gate = new Promise<void>((r) => (release = r));
+    let first = true;
+    const { runtime, rpc } = await mounted(async (args) => {
+      if (first) {
+        first = false;
+        await gate;
+      }
+      return saved(args);
+    });
+    rpc.mockClear();
+    await act(async () => {
+      runtime.toggleDropProduct('wcb');
+      await Promise.resolve();
+    });
+    await setPrice(runtime, 'wcb', '170');
+    expect(saves(rpc)).toHaveLength(1);
+    await act(async () => {
+      release();
+      await settle();
+    });
+    const sent = saves(rpc);
+    expect(sent).toHaveLength(2);
+    expect(sent[1]!.p_flavour).toMatchObject({
+      active: false,
+      price_cents: 17000
+    });
+    expect(sent[1]!.p_expected_updated_at).toBe('2026-09-28T02:00:00.000Z');
+    expect(runtime.priceOf('wcb')).toBe(170);
+    expect(onMenu(runtime).wcb).toBe(false);
+  });
+
+  function sync(
+    publish: () => unknown,
+    online = true
+  ): { sync: FlavourSync; rpc: Rpc; restored: Array<[string, FlavourEdit]> } {
+    const restored: Array<[string, FlavourEdit]> = [];
+    const rpc: Rpc = vi.fn(async (name: string, args?: Record<string, unknown>) => {
+      if (name === 'get_flavours') return { data: liveRows(), error: null };
+      if (name === 'publish_flavours') return publish();
+      return saved(args ?? {});
+    });
+    const host = {
+      apply: vi.fn(),
+      edit: vi.fn(),
+      restore: (id: string, edit: FlavourEdit) => void restored.push([id, edit]),
+      online: () => online,
+      toast: vi.fn()
+    };
+    return {
+      sync: new FlavourSync({ rpc } as unknown as FlavoursClient, host),
+      rpc,
+      restored
+    };
+  }
+
+  it('publishes every loaded flavour and saves the next change against the new updated_at', async () => {
+    const { sync: s, rpc } = sync(() => ({
+      data: [{ id: 'wcb', published: true, updated_at: '2026-09-28T03:00:00.000Z' }],
+      error: null
+    }));
+    await s.load();
+    expect(await s.publish()).toBe('published');
+    expect(rpc).toHaveBeenCalledWith('publish_flavours', {
+      p_ids: liveRows().map((r) => r.id)
+    });
+    expect(s.current().find((r) => r.id === 'wcb')).toMatchObject({
+      published: true
+    });
+    await s.save('wcb', { onMenu: false }, { onMenu: true, price: 155 });
+    expect(rpc).toHaveBeenLastCalledWith(
+      'save_flavour',
+      expect.objectContaining({
+        p_expected_updated_at: '2026-09-28T03:00:00.000Z'
+      })
+    );
+  });
+
+  it('reports a refused or unsent publish and changes nothing it holds', async () => {
+    const refused = sync(() => ({
+      data: null,
+      error: { code: '42501', message: 'owner only' }
+    }));
+    await refused.sync.load();
+    expect(await refused.sync.publish(['wcb'])).toBe('rejected');
+    const network = sync(() => ({
+      data: null,
+      error: { code: '', message: 'network' }
+    }));
+    await network.sync.load();
+    expect(await network.sync.publish(['wcb'])).toBe('offline');
+    const offline = sync(() => ({ data: [], error: null }), false);
+    await offline.sync.load();
+    expect(await offline.sync.publish(['wcb'])).toBe('offline');
+    expect(offline.rpc.mock.calls.map((c) => c[0])).toEqual(['get_flavours']);
+    for (const s of [refused.sync, network.sync, offline.sync])
+      expect(s.current().every((r) => !r.published)).toBe(true);
+  });
+
+  const shopRow = (row: FlavourRow): ShopFlavourRow => ({
+    id: row.id,
+    name: row.name,
+    short_name: row.short_name,
+    price_cents: row.price_cents,
+    kind: row.kind,
+    tag: row.tag,
+    description: row.description,
+    image_path: row.image_path,
+    sort_order: row.sort_order,
+    allergens: row.allergens
+  });
+  const shopClient = (rows: ShopFlavourRow[] | null) => {
+    const from = vi.fn(() => ({
+      select: vi.fn(async () =>
+        rows ? { data: rows, error: null } : { data: null, error: { code: '503', message: 'down' } }
+      )
+    }));
+    return { client: { from } as unknown as ShopClient, from };
+  };
+  function customer(): OpsRuntime {
+    const ref: { current: OpsRuntime | null } = { current: null };
+    render(<OpsRuntime ref={(r) => void (ref.current = r)} />);
+    act(() => ref.current!.setState({ screen: 'shop', device: 'mobile' }));
+    return ref.current!;
+  }
+  const shopText = (runtime: OpsRuntime) =>
+    render(<AppFrame v={runtime.renderVals()} />).container.textContent ?? '';
+  const portedNames = PRODUCTS.map((p) => p.short);
+
+  it('shows customers only the published menu, at the published prices', async () => {
+    const runtime = customer();
+    const wcb = liveRows().find((r) => r.id === 'wcb')!;
+    const { client, from } = shopClient([shopRow(OCTOBER), shopRow(wcb)]);
+    await act(async () => {
+      expect(await runtime.loadShopMenu(client)).toBe(true);
+    });
+    expect(from).toHaveBeenCalledWith('shop_products');
+    const text = shopText(runtime);
+    expect(text).toContain('Nutella Cookie Fries');
+    expect(text).toContain('White Chocolate Biscoff');
+    expect(text).toContain('₱155');
+    expect(text).toContain('Contains milk, eggs, wheat, soy, tree nuts');
+    for (const name of portedNames.filter((n) => n !== 'White Chocolate Biscoff'))
+      expect(text).not.toContain(name);
+  });
+
+  it.each([
+    ['nothing is published', [] as ShopFlavourRow[]],
+    ['the read fails', null]
+  ])('shows no flavours, not the demo menu, when %s', async (_, rows) => {
+    const runtime = customer();
+    await act(async () => {
+      expect(await runtime.loadShopMenu(shopClient(rows).client)).toBe(false);
+    });
+    const text = shopText(runtime);
+    for (const name of portedNames) expect(text).not.toContain(name);
+  });
+
+  it('shows no flavours before the menu is read, or with no Supabase configured', async () => {
+    const runtime = customer();
+    for (const name of portedNames) expect(shopText(runtime)).not.toContain(name);
+    cleanup();
+    const unconfigured = customer();
+    await act(async () => {
+      expect(await unconfigured.loadShopMenu(null)).toBe(false);
+    });
+    for (const name of portedNames) expect(shopText(unconfigured)).not.toContain(name);
+  });
+
+  it('renders every screen with a one-flavour published menu, and with none', async () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      for (const rows of [[shopRow(OCTOBER)], []]) {
+        const runtime = customer();
+        await act(async () => {
+          await runtime.loadShopMenu(shopClient(rows).client);
+        });
+        for (const screen of SCREEN_KEYS) {
+          act(() => runtime.setState({ screen, device: 'desktop' }));
+          const { container, unmount } = render(<AppFrame v={runtime.renderVals()} />);
+          expect(container.innerHTML, screen).not.toMatch(/undefined|\bNaN\b|\bInfinity\b/);
+          unmount();
+        }
+        cleanup();
+      }
+      expect(errorSpy).not.toHaveBeenCalled();
+    } finally {
+      errorSpy.mockRestore();
+    }
+  });
+
+  it('keeps the staff list when the shop read lands after it', async () => {
+    const { runtime } = await mounted();
+    const { client } = shopClient([shopRow(OCTOBER)]);
+    await act(async () => {
+      expect(await runtime.loadShopMenu(client)).toBe(false);
+    });
+    expect(PRODUCTS).toHaveLength(7);
+    expect(onMenu(runtime).wcb).toBe(true);
+  });
+
+  it('puts back an edit made where only the shop menu was read, since nothing can save it', async () => {
+    const runtime = customer();
+    const wcb = liveRows().find((r) => r.id === 'wcb')!;
+    await act(async () => {
+      await runtime.loadShopMenu(shopClient([shopRow(wcb)]).client);
+    });
+    await setPrice(runtime, 'wcb', '170');
+    expect(runtime.priceOf('wcb')).toBe(155);
+    await act(async () => {
+      runtime.toggleDropProduct('wcb');
+      await settle();
+    });
+    expect(onMenu(runtime).wcb).toBe(true);
+    expect(toastText(runtime)).toContain(FLAVOUR_TOASTS.offline);
+  });
+
+  it('does not read the shop menu outside live mode', async () => {
+    live = false;
+    const runtime = customer();
+    const { client, from } = shopClient([shopRow(OCTOBER)]);
+    expect(await runtime.loadShopMenu(client)).toBe(false);
+    expect(from).not.toHaveBeenCalled();
+    expect(shopText(runtime)).toContain('White Chocolate Biscoff');
+  });
+
+  it('keeps a shop row with a missing required value off the list', () => {
+    const { list, onMenu: on } = shopCatalogue(
+      [{ ...shopRow(OCTOBER), name: null }],
+      PORTED.list,
+      PORTED.allergens
+    );
+    expect(list.map((f) => f.id)).toEqual(PORTED.list.map((p) => p.id));
+    expect(Object.values(on).every((v) => v === false)).toBe(true);
   });
 });

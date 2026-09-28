@@ -72,6 +72,12 @@ allergens per flavour, so the exception is extended to name `ALLERGENS`). `PAY_A
 - **Independent port audit (Sonnet, 2026-09-28):** one inserted block, live-mode caller only, reversals and seed
   block exact, port integrity OK. Its reset and empty-allergen findings were fixed in the same slice
   ([current state](current.md)).
+- **MP-09 c1b (2026-09-28): no protected file changed.** A second caller, `OpsRuntime.loadShopMenu()` (live
+  customer pages only), passes `replaceFlavours` the published rows followed by the ported entries the shop did
+  not return, with those entries off the order form (`dropActive` false). They stay only because engine render
+  paths name `wcb`, `rvc` and `pbm`; the ported `shopFlavours` filter hides them. Until the menu is read,
+  `renderVals()` gives customer pages an empty `shopFlavours`. The flavour editor (c1c) is where this exception
+  first needs protected markup.
 
 # MP-09 b2 locked-UI exception: settings rules sheet in live mode (2026-09-28)
 

@@ -1,6 +1,13 @@
 'use client';
 
-import { BASE_STATE, DEFAULT_CFG, OpsProvider, replaceFlavours } from '@/store/engine/ops-engine';
+import {
+  ALLERGENS,
+  BASE_STATE,
+  DEFAULT_CFG,
+  OpsProvider,
+  PRODUCTS,
+  replaceFlavours
+} from '@/store/engine/ops-engine';
 import type { EventSale, OpsEngineProps, Role } from '@/store/engine/ops-engine';
 import { flushQueue, requestBackgroundSync } from '@/lib/offline/sync';
 import { pendingSales } from '@/lib/offline/queue';
@@ -11,11 +18,19 @@ import { clearStoredBooks, liveBaseState } from '@/lib/data/live-state';
 import { STATE_LEVEL_KEYS, type SettingsClient } from '@/lib/data/settings';
 import { SettingsSync } from '@/lib/data/settings-sync';
 import {
+  FLAVOUR_TOASTS,
   FlavourSync,
+  catalogueStatePatch,
   engineCatalogue,
+  fetchShopFlavours,
   flavourStatePatch,
-  type FlavoursClient
+  shopCatalogue,
+  type FlavourEdit,
+  type FlavoursClient,
+  type ShopClient,
+  type ShopFlavourRow
 } from '@/lib/data/flavours';
+import { CUSTOMER_SCREENS, type ScreenKey } from '@/lib/screens';
 import { helperMoneyView } from '@/lib/auth/helper-money';
 import {
   IDLE_MINUTES_MAX,
@@ -99,11 +114,47 @@ export class OpsRuntime extends OpsProvider {
       void this.settingsSync?.reload();
     };
     this.captureSettingsActions();
-    const { toggleDropProduct } = this;
+    const { toggleDropProduct, setPrice } = this;
     this.toggleDropProduct = (pid) => {
-      const on = (this.state.dropActive as Record<string, boolean>)[pid] === false;
+      const before = this.flavourEdit(pid);
       toggleDropProduct(pid);
-      void this.flavourSync?.saveOnMenu(pid, on);
+      this.saveFlavourEdit(pid, { onMenu: !before.onMenu }, before);
+    };
+    // MP-09 c1b: the edit-price sheet. The engine's own clamp is repeated because its
+    // setState has not landed yet. Orders already placed keep their own `priced` map (engine)
+    // and `order_items.unit_price_cents` (database), so only new orders see the change.
+    this.setPrice = (pid, value) => {
+      const before = this.flavourEdit(pid);
+      setPrice(pid, value);
+      this.saveFlavourEdit(pid, { price: Math.max(0, Number(value) || 0) }, before);
+    };
+  }
+
+  /**
+   * Live only. With no staff list loaded (a page that started on the customer shop), there is
+   * nothing to save against: the change goes back rather than showing an edit never sent.
+   */
+  private saveFlavourEdit(pid: string, change: Partial<FlavourEdit>, before: FlavourEdit): void {
+    if (this.flavourSync) {
+      void this.flavourSync.save(pid, change, before);
+      return;
+    }
+    this.restoreFlavour(pid, before);
+    this.toast(FLAVOUR_TOASTS.offline, 'warn');
+  }
+
+  private restoreFlavour(pid: string, edit: FlavourEdit): void {
+    this.setState((s) => ({
+      dropActive: { ...(s.dropActive as Record<string, boolean>), [pid]: edit.onMenu },
+      prices: { ...(s.prices as Record<string, number>), [pid]: edit.price }
+    }));
+  }
+
+  /** A flavour's on-menu switch and price as the engine shows them now. */
+  private flavourEdit(pid: string): FlavourEdit {
+    return {
+      onMenu: (this.state.dropActive as Record<string, boolean>)[pid] !== false,
+      price: this.priceOf(pid)
     };
   }
 
@@ -210,15 +261,44 @@ export class OpsRuntime extends OpsProvider {
         replaceFlavours(list, allergens);
         this.setState((s) => flavourStatePatch(rows, s));
       },
-      onMenu: (id) => (this.state.dropActive as Record<string, boolean>)[id] !== false,
-      setOnMenu: (id, on) =>
-        this.setState((s) => ({
-          dropActive: { ...(s.dropActive as Record<string, boolean>), [id]: on }
-        })),
+      edit: (id) => this.flavourEdit(id),
+      restore: (id, edit) => this.restoreFlavour(id, edit),
       online: () => this.state.online && (typeof navigator === 'undefined' || navigator.onLine),
       toast: (message, tone) => this.toast(message, tone)
     });
     return this.flavourSync.load();
+  }
+
+  /** False until the customer shop's menu has been read (or failed to be read). */
+  private shopMenuRead = false;
+
+  /**
+   * MP-09 c1b: the customer pages in live mode (anonymous or not) read the owner's published
+   * menu from `shop_products`, never `products`. Only published flavours that are on the
+   * order form show; with nothing published, or a failed read, the shop shows no flavours
+   * rather than the ported demo menu and prices. Called by the live gate on customer pages;
+   * a staff list already loaded (or loading) wins, because it is the fuller authorised view.
+   */
+  async loadShopMenu(client: ShopClient | null): Promise<boolean> {
+    if (!isLiveMode()) return false;
+    let rows: ShopFlavourRow[] = [];
+    if (client) {
+      try {
+        rows = await fetchShopFlavours(client);
+      } catch {
+        rows = [];
+      }
+    }
+    if (this.flavourSync) return false;
+    const { list, allergens, onMenu } = shopCatalogue(
+      rows,
+      PRODUCTS.map((p) => ({ ...p })),
+      { ...ALLERGENS }
+    );
+    replaceFlavours(list, allergens);
+    this.shopMenuRead = true;
+    this.setState((s) => catalogueStatePatch(list, onMenu, s));
+    return rows.length > 0;
   }
 
   /**
@@ -303,12 +383,20 @@ export class OpsRuntime extends OpsProvider {
         (this.state.device === 'desktop' ? '#F6F4F2' : '#FFFFFF'),
       plTrend: trend.filter((row) => row.now).map((row) => ({ ...row, v: barHeight })),
       rules: this.state.role === 'owner' ? this.liveRules(starved.rules ?? []) : starved.rules,
+      // MP-09 c1b: until the published menu is read, a customer page shows no flavours
+      // (the engine still holds the ported list, which is not the owner's menu).
+      ...(CUSTOMER_SCREENS.includes(this.state.screen as ScreenKey) &&
+      !this.flavourSync &&
+      !this.shopMenuRead
+        ? { shopFlavours: [] }
+        : {}),
       // MP-09 b4: helpers (and any other non-owner) never see cost, expenses or profit, and
       // see sale totals only when the owner's helperSeesSales switch is on.
       ...(this.state.role === 'owner'
         ? {}
         : helperMoneyView(starved, {
-            seesTotals: (this.state.cfg as Record<string, unknown> | undefined)?.helperSeesSales === 1,
+            seesTotals:
+              (this.state.cfg as Record<string, unknown> | undefined)?.helperSeesSales === 1,
             liveSales: (this.state.sales ?? []).length,
             count: (n) => this.num(n)
           }))

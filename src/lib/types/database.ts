@@ -1048,6 +1048,14 @@ export type Database = {
       }
       prune_personal_data: { Args: { p_retain_days?: number }; Returns: number }
       prune_rate_limits: { Args: never; Returns: number }
+      publish_flavours: {
+        Args: { p_ids: string[] }
+        Returns: {
+          id: string
+          published: boolean
+          updated_at: string
+        }[]
+      }
       save_flavour: {
         Args: { p_expected_updated_at: string; p_flavour: Json; p_id: string }
         Returns: {

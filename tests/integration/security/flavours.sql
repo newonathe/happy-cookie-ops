@@ -1,7 +1,8 @@
--- MP-09 c1 flavour authority with real SQL roles; all data rolls back.
+-- MP-09 c1/c1b flavour authority with real SQL roles; all data rolls back.
 --
 -- get_flavours(): any active staff member. save_flavour(): the active owner only, every
--- field validated, stale updated_at refused. Direct writes to `products` are denied to
+-- field validated, stale updated_at refused. publish_flavours() (c1b): the active owner
+-- only; it sets exactly the listed published set and writes only rows that change. Direct writes to `products` are denied to
 -- everyone but service_role, the owner included. anon must not even hold EXECUTE.
 begin;
 create temporary table authority_results (operation text, actor text, outcome text);
@@ -17,6 +18,12 @@ insert into public.profiles(id, role, display_name, active) values
 insert into public.products(id, name, short_name, price_cents, kind, tag, description, image_path,
   active, published, sort_order, allergens)
 values ('mp09c-a', 'Fixture A', 'A', 13000, 'Permanent', '', '', '/a.png', true, true, 1, 'milk');
+-- A draft on the form with an old stamp: now() is fixed inside this transaction, so only an
+-- explicit earlier updated_at shows a publish moving it.
+insert into public.products(id, name, short_name, price_cents, kind, tag, description, image_path,
+  active, published, sort_order, allergens, updated_at)
+values ('mp09c-b', 'Fixture B', 'B', 13000, 'Rotating', '', '', '/b.png', true, false, 2, 'milk',
+  '2026-01-01 00:00+00');
 
 create function pg_temp.set_subject(n integer, claim_role text default 'authenticated') returns void
 language plpgsql security invoker as $$
@@ -62,6 +69,9 @@ begin
   if has_function_privilege('anon', 'public.save_flavour(text,jsonb,timestamptz)', 'EXECUTE') then
     raise exception 'forbidden flavour call succeeded: anon / save_flavour';
   end if;
+  if has_function_privilege('anon', 'public.publish_flavours(text[])', 'EXECUTE') then
+    raise exception 'forbidden flavour call succeeded: anon / publish_flavours';
+  end if;
   insert into pg_temp.authority_results values ('acl', 'anon', 'no_execute');
 end $$;
 
@@ -71,6 +81,8 @@ begin
   perform pg_temp.expect(actor, 'get_flavours', 'select * from public.get_flavours()', read_state);
   perform pg_temp.expect(actor, 'save_flavour',
     'select public.save_flavour(''mp09c-a'', pg_temp.valid(), null)', '42501');
+  perform pg_temp.expect(actor, 'publish_flavours',
+    'select public.publish_flavours(array[''mp09c-a''])', '42501');
   perform pg_temp.expect(actor, 'products_update',
     'update public.products set price_cents = 1 where id = ''mp09c-a''', '42501');
 end $$;
@@ -80,8 +92,9 @@ declare
   a text := 'active_owner';
   save text := 'select public.save_flavour(%L, %s, %s)';
   stamp text := '(select updated_at from public.products where id = ''mp09c-a'')';
+  changed integer;
 begin
-  if (select count(*) from public.get_flavours() f where f.id like 'mp09c-%') <> 1 then
+  if (select count(*) from public.get_flavours() f where f.id like 'mp09c-%') <> 2 then
     raise exception 'owner flavour read differs';
   end if;
   perform pg_temp.expect(a, 'get_flavours', 'select * from public.get_flavours()', '00000');
@@ -120,6 +133,34 @@ begin
   perform pg_temp.expect(a, 'save_create_duplicate', format(save, 'mp09c-a', 'pg_temp.valid()', 'null'), 'P0002');
   perform pg_temp.expect(a, 'save_create', format(save, 'mp09c-new', 'pg_temp.valid()', 'null'), '00000');
   perform pg_temp.expect(a, 'save_update', format(save, 'mp09c-a', 'pg_temp.valid()', stamp), '00000');
+
+  -- Publishing (c1b). Here mp09c-a is published but off the form; mp09c-b and mp09c-new are drafts.
+  perform pg_temp.expect(a, 'publish_null', 'select public.publish_flavours(null)', '22023');
+  perform pg_temp.expect(a, 'publish_null_id', 'select public.publish_flavours(array[null::text])', '22023');
+  perform pg_temp.expect(a, 'publish_bad_id', 'select public.publish_flavours(array[''Bad Id''])', '22023');
+  perform pg_temp.expect(a, 'publish_unknown', 'select public.publish_flavours(array[''mp09c-none''])', '22023');
+  perform pg_temp.expect(a, 'publish_too_many',
+    'select public.publish_flavours(array_fill(''mp09c-a''::text, array[201]))', '22023');
+  select count(*) into changed from public.publish_flavours(array['mp09c-b']);
+  if changed <> 2 or not exists (select 1 from public.products where id = 'mp09c-b' and published)
+     or exists (select 1 from public.products where id in ('mp09c-a', 'mp09c-new') and published)
+     or (select updated_at from public.products where id = 'mp09c-b') = '2026-01-01 00:00+00' then
+    raise exception 'flavour publish differs: % rows changed', changed;
+  end if;
+  insert into pg_temp.authority_results values ('publish_set', a, 'exact_set_2_changed');
+  -- The same set again writes no row (RETURNING lists only rows it updated), so no
+  -- updated_at the owner holds goes stale.
+  select count(*) into changed from public.publish_flavours(array['mp09c-b']);
+  if changed <> 0 then
+    raise exception 'flavour republish differs: % rows changed', changed;
+  end if;
+  insert into pg_temp.authority_results values ('publish_again', a, 'nothing_changed');
+  -- A publish that changed the row moved its updated_at: the pre-publish stamp is stale.
+  perform pg_temp.expect(a, 'save_stale_after_publish',
+    format(save, 'mp09c-b', 'pg_temp.valid() || ''{"active": true}''', '''2026-01-01 00:00+00''::timestamptz'), 'P0002');
+  perform pg_temp.expect(a, 'save_after_publish',
+    format(save, 'mp09c-b', 'pg_temp.valid() || ''{"active": true}''',
+      '(select updated_at from public.products where id = ''mp09c-b'')'), '00000');
 end $$;
 
 grant execute on function pg_temp.set_subject(integer, text), pg_temp.valid(),
@@ -147,17 +188,22 @@ select pg_temp.set_subject(9, 'service_role');
 select pg_temp.expect('service_role', 'get_flavours', 'select * from public.get_flavours()', '42501');
 select pg_temp.expect('service_role', 'save_flavour',
   'select public.save_flavour(''mp09c-a'', pg_temp.valid(), null)', '42501');
+select pg_temp.expect('service_role', 'publish_flavours',
+  'select public.publish_flavours(array[''mp09c-a''])', '42501');
 reset role;
 
 do $$ begin
-  -- The owner's valid saves changed exactly what they sent; publishing is not theirs to set
-  -- here, and nothing the denied callers sent landed.
+  -- The owner's valid saves changed exactly what they sent (save_flavour never touches
+  -- `published`), the publish set exactly the listed flavour, and nothing the denied callers
+  -- sent landed. The shop shows only what is both published and on the form.
   if not exists (select 1 from public.products where id = 'mp09c-a' and price_cents = 14000
        and item_type = 'set' and capacity_weight = 4 and allergens = 'milk, eggs'
-       and not active and published)
+       and not active and not published)
      or not exists (select 1 from public.products where id = 'mp09c-new' and not published and price_cents = 14000)
+     or not exists (select 1 from public.products where id = 'mp09c-b' and published and active and price_cents = 14000)
      or exists (select 1 from public.products where id = 'mp09c-raw' or price_cents = 1)
-     or (select count(*) from pg_temp.authority_results) <> 37 then
+     or (select array_agg(id order by id) from public.shop_products where id like 'mp09c-%') is distinct from array['mp09c-b']
+     or (select count(*) from pg_temp.authority_results) <> 51 then
     raise exception 'flavour fixture or result count differs';
   end if;
   insert into pg_temp.authority_results values ('flavour_fixture', 'preserved', 'owner_saves_only');

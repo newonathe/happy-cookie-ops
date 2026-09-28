@@ -77,12 +77,20 @@ export function LiveGate({
       // verified, so it stays closed and goes to sign-in, like a failed first check.
       runFirstCheck.current = () =>
         window.location.replace('/sign-in?next=' + encodeURIComponent(window.location.pathname));
+      // Nothing to read the published menu from: the shop shows no flavours (MP-09 c1b).
+      if (CUSTOMER_SCREENS.includes(initialScreen) && engine instanceof OpsRuntime)
+        void engine.loadShopMenu(null);
       return;
     }
     let cancelled = false;
     let idleStarted = false;
+    let flavoursStarted = false;
     let stopIdle = () => undefined as void;
     const supabase = createClient();
+    // MP-09 c1b: customer pages show the owner's published menu (`shop_products`), signed
+    // in or not. Staff pages load the full list instead (below).
+    if (CUSTOMER_SCREENS.includes(initialScreen) && engine instanceof OpsRuntime)
+      void engine.loadShopMenu(supabase);
 
     function lockOut() {
       if (cancelled) return;
@@ -116,13 +124,20 @@ export function LiveGate({
         // First verified check only: re-checks (token refresh, tab visible again) must not
         // reload settings over an edit that is still waiting to save (MP-09 b2).
         const role = result.role;
-        if (engine instanceof OpsRuntime) {
-          void engine.loadSettings(supabase, role);
-          void engine.loadFlavours(supabase);
-        }
+        if (engine instanceof OpsRuntime) void engine.loadSettings(supabase, role);
         stopIdle = startIdleSignOut(role, lockOut, () =>
           idleMinutesFor(role, engine.state.cfg as Record<string, unknown> | undefined)
         );
+      }
+      // The full flavour list only on a staff screen: a signed-in owner on /shop sees what
+      // customers see (the published menu), not flavours that are on the form but unpublished.
+      if (
+        !flavoursStarted &&
+        engine instanceof OpsRuntime &&
+        !CUSTOMER_SCREENS.includes(engine.state.screen as ScreenKey)
+      ) {
+        flavoursStarted = true;
+        void engine.loadFlavours(supabase);
       }
     }
 
@@ -146,7 +161,7 @@ export function LiveGate({
       document.removeEventListener('visibilitychange', onVisible);
       stopIdle();
     };
-  }, [live, configured, engine]);
+  }, [live, configured, engine, initialScreen]);
 
   // `verified` (state), not `verifiedRef.current`: reading a ref during render is not
   // safe, and the two are always set together (see `lockOut`/`verify` above), so this is

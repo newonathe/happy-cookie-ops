@@ -121,6 +121,9 @@ Method: each question was answered from the code or a throwaway render probe, no
 - **MP-09 c1 done 2026-09-28:** flavours on the database and the engine exception for `PRODUCTS`/`ALLERGENS`
   (recorded in [protected-exception.md](protected-exception.md)); only the on-menu switch saves. Prices, publishing
   and the flavour editor are c1b ([next goal](next-goal.md)); payment accounts (`PAY_ACCOUNTS`) are c2.
+- **MP-09 c1b done 2026-09-28:** prices save, `publish_flavours`, and the live shop shows only the published
+  menu. The flavour editor and its "Publish menu" button are split into **c1c** ([next goal](next-goal.md)): they
+  need guarded edits to the protected shell, and until c1c nothing in the app publishes, so the live shop is empty.
 - Hosted preview: not updated until Ethan runs `supabase login` (see below).
 
 ## Hosted preview during G2

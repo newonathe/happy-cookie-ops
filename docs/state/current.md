@@ -1,6 +1,55 @@
 # Current state — Happy Cookie Ops
 
-## Current checkpoint — 2026-09-28 (MP-09 c1: flavours from the database, G2 slice 5 first part)
+## Current checkpoint — 2026-09-28 (MP-09 c1b: prices, publishing, the live shop menu; G2 slice 5 second part)
+
+- **MP-09 c1b is complete locally.** Split as the goal allowed: the flavour editor and its "Publish menu"
+  button are **c1c** ([next goal](next-goal.md)). The products screen has no edit-flavour or add-flavour
+  control, and every sheet is registered in the protected shell (`app-frame.tsx`), so the editor needs guarded
+  protected-markup edits and its own port audit.
+- **Database** ([migration 20260101003100](../../supabase/migrations/20260101003100_publish_flavours.sql)):
+  `publish_flavours(p_ids)`, active owner only (checked first), `search_path ''`, EXECUTE for `authenticated`
+  only. It makes exactly the listed flavours published and every other flavour unpublished, and writes only
+  rows whose flag changes: the touch trigger moves `updated_at`, which the owner's device holds for
+  `save_flavour`'s conflict check, so changed rows come back with their new `updated_at`. Refuses a null list,
+  a null or malformed id, an unknown id and more than 200 ids. `active` stays the day-to-day switch: a
+  published flavour taken off the form leaves the shop at once and returns without republishing.
+- **Prices:** `OpsRuntime` wraps the engine's `setPrice` (the edit-price sheet). `FlavourSync.save` now covers
+  the on-menu switch and the price together: a change made while another save for that flavour is still
+  sending is sent right after it, from what the engine shows by then (before, a price changed during an
+  on-menu save would have been lost). Pesos become centavos only through `src/lib/money.ts`. Infinity,
+  negatives and anything over ₱10,000 (`save_flavour`'s bound) are put back without a round trip; ₱12.346 is
+  stored as 1235 centavos and shown as ₱12.35. Conflict reloads with a toast; refusal, offline and a list that
+  never loaded put the price back. Placed orders keep their price (the engine's `priced` map;
+  `order_items.unit_price_cents` in the database).
+- **Live customer shop:** customer pages (signed in or not) read `shop_products` through `fetchShopFlavours`
+  and show only published flavours that are on the form, at the published prices. **Found:** the engine's render
+  paths name the ported ids (`wcb`, `rvc`, `pbm`), so replacing the list with only the published rows crashed
+  every screen (render probe). The ported entries are therefore kept in `P` but off the form, so the shop never
+  shows them. Nothing published, a failed read, no Supabase configured, or the moment before the read lands:
+  no flavours, never the demo menu. A signed-in owner on `/shop` sees what customers see: the live gate loads
+  the full staff list only on a staff screen. Known limit: a page that starts on `/shop`, verifies there
+  and then moves to a staff screen without a page load keeps the shop's list (live mode has no such in-app
+  link: `bareFrame` removes "Back to ops").
+- **Not yet in the app:** publishing (the RPC and `FlavourSync.publish()` are tested; the button is c1c). Until
+  then the live shop shows no flavours, which replaces c1's ported demo menu.
+- **Evidence (this session):** `pnpm verify` 43 files / 671 tests, exit 0 (24 new: `tests/unit/flavours.test.tsx`
+  c1b block, `tests/unit/live-gate-menu.test.tsx`; seven mutations each caught: no pending-shop guard, replay
+  sending only the switch, no local price bound, publish not refreshing the cache, ported flavours left on the
+  shop's form, staff list loaded on a customer page, an edit with no staff list left unreverted). SQL role suite 570 cases/reset over 2 resets (14 new
+  `flavours.sql` rows; the anon EXECUTE regression for `publish_flavours` is detected; 68 deliberate
+  regressions). Python guards 63 OK. G0 validator 1198 checks, 0 failures. Evidence churn reverted.
+- **Independent review (security reviewer, Sonnet, a different model from this Opus implementation): SAFE TO
+  MERGE, no P0/P1.** It confirmed the owner check runs first and needs an active profile (the inactive-owner case
+  proves it), `search_path ''` with every reference qualified, EXECUTE for `authenticated` only, complete input
+  checks before any write, `shop_products` still exposing only its nine named columns, money only through
+  `money.ts`, and no secret or personal data in the diff. Its three P3s: (1) a save landing just after a publish
+  can make the next edit show a conflict toast and reload (self-correcting; recorded, not changed); (2) an edit
+  made where only the shop menu was read was silently unsent: unreachable in live mode, but now put back with a
+  toast (tested); (3) the engine's owner preview cart names `wcb`/`rvc`/`pbm`: safe while products are never
+  deleted, since staff always have those ids (recorded; the engine is protected).
+- No hosted preview update, no deploy.
+
+## Prior checkpoint — 2026-09-28 (MP-09 c1: flavours from the database, G2 slice 5 first part)
 
 - **MP-09 c1 is complete locally.** Split as the goal allowed: prices, publishing and a flavour editor are
   **c1b** ([next goal](next-goal.md)); payment accounts stay in c2.

@@ -1,5 +1,5 @@
 {
-  "scope": "Reviewed local function-authority drift baseline through MP-09 c1; get_flavours/save_flavour added (MP-09 c1); settings_effective gained three idle-minute defaults, get_settings/save_setting/get_operating_settings added; MP-09 b3 recreated settings_effective/get_settings/get_operating_settings with json_value and replaced save_setting; full capability/domain and hosted acceptance remain open",
+  "scope": "Reviewed local function-authority drift baseline through MP-09 c1b; publish_flavours added (MP-09 c1b); get_flavours/save_flavour added (MP-09 c1); settings_effective gained three idle-minute defaults, get_settings/save_setting/get_operating_settings added; MP-09 b3 recreated settings_effective/get_settings/get_operating_settings with json_value and replaced save_setting; full capability/domain and hosted acceptance remain open",
   "functions": [
     {
       "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
@@ -461,6 +461,21 @@
       "returns": "TABLE(id text, updated_at timestamp with time zone)",
       "body_md5": "e2f5e95aff7d178fd7d565aed8417ac9",
       "identity": "p_id text, p_flavour jsonb, p_expected_updated_at timestamp with time zone",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "publish_flavours",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(id text, published boolean, updated_at timestamp with time zone)",
+      "body_md5": "49c9ae83f04fa8e28167338c541e6617",
+      "identity": "p_ids text[]",
       "execute_anon": false,
       "security_definer": true,
       "execute_service_role": true,

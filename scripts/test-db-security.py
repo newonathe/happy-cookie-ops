@@ -27,7 +27,7 @@ SUITES = (
     ('settings.sql', ('settings_staff_read',), 'settings visibility differs: active_helper', 84),
     ('profiles.sql', ('current_role_name_missing_active_filter',), 'profile authority differs: inactive_owner_forged_service', 17),
     ('erasure-authority.sql', ('anonymise_customer(text,text)',), 'erasure ACL boundary missing: anon', 12),
-    ('flavours.sql', ('get_flavours()', 'save_flavour(text,jsonb,timestamptz)'), 'forbidden flavour call succeeded', 38),
+    ('flavours.sql', ('get_flavours()', 'save_flavour(text,jsonb,timestamptz)', 'publish_flavours(text[])'), 'forbidden flavour call succeeded', 52),
 )
 CATALOG_GUARD_SQL = """
 select json_build_object(
@@ -214,7 +214,7 @@ def main():
                 h.fail(filename + ' did not return its complete role matrix')
             results.extend(rows)
             assert_empty()
-        if len(set(results)) != 556:
+        if len(set(results)) != 570:
             h.fail('combined role matrix has missing or duplicate cases')
         assert_functions()
         assert_catalog_wide()
@@ -227,10 +227,10 @@ def main():
     try:
         code = h.main(after_reset=check)
         if (code == 0 and len(report["runs"]) == 2 and report["runs"][0] == report["runs"][1]
-                and len(report['regressions_detected']) == 66 and report['sequence_restorations'] == 10
+                and len(report['regressions_detected']) == 68 and report['sequence_restorations'] == 10
                 and report['upgrade_runs'] == 2 and report['function_guard_runs'] == 4
                 and report['catalog_guard_runs'] == 4 and report['catalog_guard_red_runs'] == 4):
-            report.update(status="passed", cases_per_reset=556, resets=2, matrix_equal=True, rollback_verified=True,
+            report.update(status="passed", cases_per_reset=570, resets=2, matrix_equal=True, rollback_verified=True,
                           sql_sha256={name: hashlib.sha256((ROOT / 'tests/integration/security' / name).read_bytes()).hexdigest() for name, _, _, _ in SUITES},
                           harness_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
     except (RuntimeError, OSError, ValueError) as error:
