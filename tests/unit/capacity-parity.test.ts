@@ -16,6 +16,7 @@ interface Case {
   requested: number;
   ok: boolean;
   remaining: number;
+  sql?: boolean;
 }
 
 interface HoldCase {

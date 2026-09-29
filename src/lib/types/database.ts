@@ -1304,6 +1304,10 @@ export type Database = {
           voided_count: number
         }[]
       }
+      find_order: {
+        Args: { p_order_no: string; p_phone: string }
+        Returns: string
+      }
       get_flavours: {
         Args: never
         Returns: {
@@ -1376,6 +1380,7 @@ export type Database = {
           updated_at: string
         }[]
       }
+      get_shop_order_rules: { Args: never; Returns: Json }
       get_shop_payment_info: { Args: never; Returns: Json }
       is_owner: { Args: never; Returns: boolean }
       is_staff: { Args: never; Returns: boolean }

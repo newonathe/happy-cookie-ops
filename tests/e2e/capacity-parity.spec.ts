@@ -14,6 +14,8 @@ interface Case {
   committed: number;
   requested: number;
   ok: boolean;
+  /** false: not expressible through the SQL function's integer parameters (see the fixture's sql_note). */
+  sql?: boolean;
 }
 
 interface HoldCase {
@@ -45,7 +47,7 @@ const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 test.describe('capacity rule parity: SQL vs TypeScript', () => {
   test.skip(!url || !key, 'needs a local Supabase (pnpm db:start)');
 
-  for (const testCase of cases) {
+  for (const testCase of cases.filter((c) => c.sql !== false)) {
     test(testCase.name, async () => {
       const supabase = createClient(url!, key!);
       const { data, error } = await supabase.rpc('capacity_allows', {

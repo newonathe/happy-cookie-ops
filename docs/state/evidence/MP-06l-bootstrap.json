@@ -1,8 +1,8 @@
 {
   "status": "passed",
   "scope": "explicit-connection CLI reset on disposable loopback PostgreSQL; not managed --local or auth/RLS acceptance",
-  "project_id": "hcb-6abb4edc-0aeb5d",
-  "workdir": "C:\\Users\\ethan\\dev\\.hcb-bootstrap-6abb4edc-0aeb5d",
+  "project_id": "hcb-6abb5c02-e8c425",
+  "workdir": "C:\\Users\\ethan\\dev\\.hcb-bootstrap-6abb5c02-e8c425",
   "cleanup": "passed",
   "resets": 2,
   "harness_sha256": "a47a91d38c71ffbf52a14e597836fdfdbd1d22a3408f5c151f2b35b25459c963",
@@ -133,13 +133,14 @@
     "20260101003200_bazaar_events.sql": "3a54d33a2b1eb98b349736adad30d647c12310afff0423a3204f2d294218a5b4",
     "20260101003300_bazaar_closeout.sql": "0b82997dda4b529e5cf1b8e7fd4aecaed27a996b49097e97194152a23ae93efe",
     "20260101003400_payment_methods_shop_texts.sql": "744606b2769e55fa29a7857bc7ac5912f1e8b484d6e2f2b7f573d49a8502ab24",
-    "20260101003500_place_order.sql": "b9d01d566a3bb7cc4d366b612955135803fd603dc64942402bf136eaf0923c48"
+    "20260101003500_place_order.sql": "b9d01d566a3bb7cc4d366b612955135803fd603dc64942402bf136eaf0923c48",
+    "20260101003600_order_lookup.sql": "d6896585f9957a927233e0108cf23b41e26a406eae8940c0f3c91093a4b9f04b"
   },
   "database_image": "sha256:af083ef64d0408c8f098ee6f5c364a59b26f36fbc0f3a334a62c5c1d57362e9b",
   "postgres_version_num": "150008",
   "cli_version": "2.116.0",
   "loopback_port": 48716,
-  "container_id": "66683a07283df6e23f13d406ba7ea01fd9b3f3a2e6b39a0d3d0348c8ef94a143",
+  "container_id": "602a024ccac331f0eda036f547d6e58a370c6fbbfcd8be22d88ffd69fdbfb202",
   "expected_versions": [
     "20260101000000",
     "20260101000100",
@@ -176,7 +177,8 @@
     "20260101003200",
     "20260101003300",
     "20260101003400",
-    "20260101003500"
+    "20260101003500",
+    "20260101003600"
   ],
   "catalog": [
     "function\tadd_event_expense(p_expense jsonb)\tTABLE(client_id text, duplicate boolean)",
@@ -196,11 +198,13 @@
     "function\tcurrent_role_name()\tapp_role",
     "function\tdrop_remaining(p_drop_id uuid)\tinteger",
     "function\tevent_summary(p_event uuid)\tTABLE(event_id uuid, name text, closed boolean, sales_count integer, voided_count integer, freebie_count integer, cookies_sold integer, revenue_cents bigint, expenses_cents bigint, variance_cents bigint, profit_cents bigint, float_cents bigint, cash_expected_cents bigint, counted_cents bigint, loaded jsonb, returned jsonb)",
+    "function\tfind_order(p_order_no text, p_phone text)\ttext",
     "function\tget_flavours()\tTABLE(id text, name text, short_name text, price_cents bigint, kind text, item_type text, capacity_weight integer, tag text, description text, image_path text, allergens text, active boolean, published boolean, sort_order integer, updated_at timestamp with time zone)",
     "function\tget_operating_settings()\tTABLE(key text, int_value bigint, text_value text, cents_value bigint, json_value jsonb, is_default boolean, updated_at timestamp with time zone)",
     "function\tget_order_rules()\tTABLE(unpaid_hold_hours integer, max_unpaid_per_phone integer, pickup_days integer[], lead_min_days integer, lead_max_days integer, pickup_from_hour integer, pickup_cutoff_hour integer, campus_from text, campus_to text, updated_at timestamp with time zone)",
     "function\tget_payment_methods()\tTABLE(id text, label text, account_number text, account_name text, qr_path text, active boolean, sort_order integer, updated_at timestamp with time zone)",
     "function\tget_settings()\tTABLE(key text, int_value bigint, text_value text, cents_value bigint, json_value jsonb, is_default boolean, updated_at timestamp with time zone)",
+    "function\tget_shop_order_rules()\tjsonb",
     "function\tget_shop_payment_info()\tjsonb",
     "function\tis_owner()\tboolean",
     "function\tis_staff()\tboolean",
@@ -265,6 +269,7 @@
     "migration\t20260101003300\tapplied",
     "migration\t20260101003400\tapplied",
     "migration\t20260101003500\tapplied",
+    "migration\t20260101003600\tapplied",
     "settings_defaults\tsettings_effective\t28",
     "settings_overrides\tsettings\t0",
     "table_rows\taudit_log\t0",
@@ -293,9 +298,9 @@
     "table_rows\tsuppliers\t0",
     "table_rows\twaitlist_entries\t0"
   ],
-  "catalog_sha256": "232faf861b57f177cc67a1a01f2bf82762fb28230f49a5970d235de55efbe012",
+  "catalog_sha256": "1a86e929015c110315b9b2a200ef3f1e61422c72ac60d2c78f05fdddff2f636d",
   "catalogs_equal": true,
-  "schema_sha256": "4e6c45e8868518ad1600a527d280de8d930f52f8586ebb6c6439f8ed9eb4a523",
+  "schema_sha256": "b3ca45d8e577a41b2b134008a8cfb2d68d53ae165dab3fd919bb08345c097bb0",
   "schemas_equal": true,
   "sentinel_removed": true
 }

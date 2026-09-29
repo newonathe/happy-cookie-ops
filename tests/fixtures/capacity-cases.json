@@ -79,7 +79,9 @@
       "committed": 2.9,
       "requested": 8,
       "ok": true,
-      "remaining": 8
+      "remaining": 8,
+      "sql": false,
+      "sql_note": "TypeScript only: capacity_allows() takes integers and PostgREST cannot pass 2.9 to one; the server's committed is always an integer sum."
     }
   ],
   "holds_note": "Cases for which orders still hold slots (decision D1). Read by tests/unit/capacity-parity.test.ts against holdsCapacity() and by tests/e2e/capacity-parity.spec.ts against order_holds_capacity(). Add a case here and both sides must satisfy it.",

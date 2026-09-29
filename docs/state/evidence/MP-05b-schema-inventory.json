@@ -3055,6 +3055,21 @@
       "execute_authenticated": true
     },
     {
+      "acl": "{anon=X/postgres,authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "find_order",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "text",
+      "body_md5": "e4615129a9c74324f37b77ae05c87f2e",
+      "identity": "p_order_no text, p_phone text",
+      "execute_anon": true,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
       "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
       "name": "get_flavours",
       "owner": "postgres",
@@ -3125,6 +3140,21 @@
       "body_md5": "4d2d36ecf707ed776f5da5d9441fdffb",
       "identity": "",
       "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{anon=X/postgres,authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "get_shop_order_rules",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "c6f4b749ad37a0c1de5c057faf0bf0b4",
+      "identity": "",
+      "execute_anon": true,
       "security_definer": true,
       "execute_service_role": true,
       "execute_authenticated": true

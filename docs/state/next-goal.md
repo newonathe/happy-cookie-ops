@@ -23,10 +23,10 @@ When a goal finishes, the agent deletes its block here, leaves the next one on t
   - `pnpm build` passes, and `pnpm test:e2e` gives 89 passed / 1 failed / 30 skipped. The one failure is OFFLINE-01 on WebKit (Playwright's WebKit cannot reload offline with a service worker); desktop and phone pass.
 - **Codex only:** run `/status` once in the repo root to confirm the project `.codex/config.toml` loaded. Accept the trust prompt if asked. The project sandbox has no network, so `git push` will ask for approval.
 
-## Next goal — B2 (MP-10 a, app): the live checkout
+## Next goal — B2 (MP-10 a), app half: the live checkout
 
-Drafted 2026-09-29 after B1 closed. Finish-plan.md slice B2 (section 6): orders like her form, pay now or later.
-B1 built the database half; B2 is the app half and needs one small migration of its own (carry-over 2).
+Drafted 2026-09-29 after B1 closed; the B2 database half landed the same day (`20260101003600_order_lookup.sql`:
+`get_shop_order_rules()` and `find_order(order_no, phone)`, see [current.md](current.md)). What is left is the app half.
 
 **Read first:** the finish-plan.md B2 row and section 4; `docs/state/order-form-audit.md` (element inventory);
 `docs/state/protected-exception.md` (D4: the checkout exception, and how A2 recorded its guarded edits);
@@ -40,13 +40,16 @@ under `src/components/screens/`.
    ZC003 too many unpaid orders on the number, ZC004 pickup date or time, ZC005 method not offered, ZC006 waitlist
    limit, 22023 malformed, 23505 id reused. Only the closed-drop sentence is signed off (`DROP_CLOSED_MESSAGE`);
    the others need Cine's words, so show the honest placeholder pattern of `capacityRefusal()` and list them for her.
-2. **Find my order by number and phone.** `lookup_order` is service_role-only; B1 issues the status link by token
-   only. Add the small anonymous RPC B2 needs (order number + phone in, status out, no enumeration, no personal
-   text back) in a new migration with its suite cases, or decide with Ethan that the link alone is enough.
+2. **Find my order by number and phone: the database side is done.** `find_order` returns the status token or null,
+   throttled per order number; the lookup screen (protected copy promises email lookup, false in live mode) needs a
+   live body, by a second guarded slot in `find-my-order.tsx` or by the live sheet host if a customer page can open it.
+   Read the pickup rules with `get_shop_order_rules()` (the date picker must not hard-code Mon/Thu or 1 to 14 days).
 3. **Phone form.** The database accepts `09XXXXXXXXX`, `+63…`, `63…` and `9XXXXXXXXX` (all normalised to `09…`).
    The checkout may send what the customer typed.
-4. **One client id per attempt.** Generate a lowercase uuid when the checkout opens and reuse it on every retry:
-   the server answers a repeat with the same order and token, and refuses the same id with a different body.
+4. **One client id per attempt.** Mint a lowercase uuid per attempt. After a network error (outcome unknown) resend the
+   identical frozen body with the same id; after a definite refusal or a success mint a new one (restart and reorder
+   too). 23505 means the same id met a different body: say "check your order". Trim values before sending.
+   Put the status token in the URL fragment (`#t=`), not the query string.
 5. **Close-drop early is not on the server.** The engine's `shopOverride` is not saved to the database, so
    `place_order` cannot see it; persist it (a setting) before the live checkout ships, or the owner's "close now"
    button will not stop orders.

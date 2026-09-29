@@ -15,9 +15,11 @@ verify_functions = runpy.run_path(str(ROOT / 'scripts/verify-function-authority.
 # B1: each customer rule is one tagged line (`if ... then -- rule:name`) in the migration; the suite
 # neutralises exactly that line, or applies one text substitution, inside the one function it names, and
 # the refusal case must then fail. Expected text is the failing operation of the suite, in suite order.
-ORDER_MIGRATION = ROOT / 'supabase/migrations/20260101003500_place_order.sql'
+ORDER_MIGRATIONS = [ROOT / 'supabase/migrations/20260101003500_place_order.sql',
+                    ROOT / 'supabase/migrations/20260101003600_order_lookup.sql']
 _OUT = 'order outcome differs: anon / '
 _CHK = 'order check differs: anon / '
+_LOOK = 'lookup check differs: anon / '
 ORDER_MUTATIONS = {
     'rule_keys_required': ('place_order', 'rule', 'keys-required', _OUT + 'place_missing_field / '),
     'rule_keys_unknown': ('place_order', 'rule', 'keys-unknown', _OUT + 'place_unknown_price / '),
@@ -72,6 +74,19 @@ ORDER_MUTATIONS = {
                                   ('delete from waitlist_entries where created_at < now() - make_interval(days => p_retain_days);', 'null;'),
                                   'prune kept personal data'),
 }
+LOOKUP_MUTATIONS = {
+    'rule_find_throttle': ('find_order', 'rule', 'find-throttle', _LOOK + 'find_locked_after_ten'),
+    'rule_find_phone': ('find_order', 'rule', 'find-phone', _LOOK + 'find_wrong_phone'),
+    'text_find_plus63': ('find_order', 'text',
+                         ("  if left(v_phone, 2) = '63' then v_phone := '0' || substr(v_phone, 3); end if;\n", ''),
+                         _LOOK + 'find_plus63'),
+    'text_find_ten_digit': ('find_order', 'text',
+                            ("  if v_phone ~ '^9[0-9]{9}$' then v_phone := '0' || v_phone; end if;\n", ''),
+                            _LOOK + 'find_ten_digit'),
+    'text_rules_leak_limits': ('get_shop_order_rules', 'text',
+                               ("'unpaid_hold_hours', r.unpaid_hold_hours)", "'unpaid_hold_hours', r.unpaid_hold_hours, 'max_unpaid_per_phone', r.max_unpaid_per_phone)"),
+                               _LOOK + 'rules_keys_are_the_customer_ones'),
+}
 ORDER_TABLE_MUTATIONS = {
     'orders_rows_leak': ('alter policy "orders staff read" on public.orders using (true);', _CHK + 'orders_rows_hidden'),
     'waitlist_table_select': ('grant select on public.waitlist_entries to anon;', _OUT + 'waitlist_table_select / '),
@@ -81,8 +96,9 @@ ORDER_TABLE_MUTATIONS = {
 
 def order_mutant(name):
     """The migration's one function, changed in exactly one place, as SQL to run inside the suite."""
-    function, kind, argument, _ = ORDER_MUTATIONS[name]
-    text = ORDER_MIGRATION.read_text(encoding='utf-8')
+    function, kind, argument, _ = (ORDER_MUTATIONS | LOOKUP_MUTATIONS)[name]
+    marker = 'create or replace function public.' + function + '('
+    text = next(m.read_text(encoding='utf-8') for m in ORDER_MIGRATIONS if marker in m.read_text(encoding='utf-8'))
     start = text.index('create or replace function public.' + function + '(')
     block = text[start:text.index('\n$$;', start) + len('\n$$;')]
     if kind == 'rule':
@@ -121,6 +137,7 @@ SUITES = (
     ('order-placement.sql', ('get_order_rules()', 'save_order_rules(jsonb,timestamptz)',
                              'orders_rows_leak', 'waitlist_table_select', 'rules_table_select')
                             + tuple(ORDER_MUTATIONS), 'forbidden order call succeeded', 175),
+    ('order-lookup.sql', tuple(LOOKUP_MUTATIONS), 'forbidden lookup call succeeded', 24),
     ('bazaar-closeout.sql', ('event_summary(uuid)', 'load_event_stock(uuid,jsonb,bigint)', 'add_event_expense(jsonb)', 'close_event(jsonb)'), 'forbidden closeout call succeeded', 80),
 )
 CATALOG_GUARD_SQL = """
@@ -244,6 +261,9 @@ def main():
                     elif signature in ORDER_TABLE_MUTATIONS:
                         unsafe, expected_error = ORDER_TABLE_MUTATIONS[signature]
                         broken = sql.replace('begin;', 'begin;\n' + unsafe, 1)
+                if filename == 'order-lookup.sql':
+                    broken = sql.replace('begin;', 'begin;\n' + order_mutant(signature), 1)
+                    expected_error = LOOKUP_MUTATIONS[signature][3]
                 if filename == 'payment-methods.sql' and signature in PAYMENT_MUTATIONS:
                     unsafe, expected_error = PAYMENT_MUTATIONS[signature]
                     broken = sql.replace('begin;', 'begin;' + chr(10) + unsafe, 1)
@@ -331,7 +351,7 @@ def main():
                 h.fail(filename + ' did not return its complete role matrix')
             results.extend(rows)
             assert_empty()
-        if len(set(results)) != 1000:
+        if len(set(results)) != 1024:
             h.fail('combined role matrix has missing or duplicate cases: %d rows, %d unique' % (len(results), len(set(results))))
         assert_functions()
         assert_catalog_wide()
@@ -344,10 +364,10 @@ def main():
     try:
         code = h.main(after_reset=check)
         if (code == 0 and len(report["runs"]) == 2 and report["runs"][0] == report["runs"][1]
-                and len(report['regressions_detected']) == 172 and report['sequence_restorations'] == 10
+                and len(report['regressions_detected']) == 182 and report['sequence_restorations'] == 10
                 and report['upgrade_runs'] == 2 and report['function_guard_runs'] == 4
                 and report['catalog_guard_runs'] == 4 and report['catalog_guard_red_runs'] == 4):
-            report.update(status="passed", cases_per_reset=1000, resets=2, matrix_equal=True, rollback_verified=True,
+            report.update(status="passed", cases_per_reset=1024, resets=2, matrix_equal=True, rollback_verified=True,
                           sql_sha256={name: hashlib.sha256((ROOT / 'tests/integration/security' / name).read_bytes()).hexdigest() for name, _, _, _ in SUITES},
                           harness_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
     except (RuntimeError, OSError, ValueError) as error:
