@@ -12,9 +12,11 @@
 --                                     note card (with a message), ribbon, stickers 1-4, sticker pack
 --   get_order_extras() / save_order_extras()   owner only, exact keys, whole numbers in range, stale stamp (P0002)
 --   get_shop_extras()     the public read the checkout builds its pickers from: active items only
+--   Same-day pickup is OFF until the owner switches it on (Cine's form offers it, but a surcharge that starts by itself
+--   on deploy is not a default to ship).
 --   place_order()         redefined: two more optional keys, `add_ons` and `boxes`, and these rules
 --                           same-day-off      pickup today while same-day is off
---                           same-day-time     the chosen time (or the campus slot's end) is already past
+--                           same-day-time     the chosen time (or the campus slot's start) is already past
 --                           sampler-cap       more sampler boxes than the owner's limit
 --                           box-size          a box size that is not offered (ZC007: the page is out of date)
 --                           box-fit           more cookies boxed than the order holds (sets and the sampler are not boxable)
@@ -22,7 +24,7 @@
 --                           addon-variant     a variant the add-on does not have, or none where it needs one
 --                           addon-text        a message where there is no text field, none or too long where there is,
 --                                             or more than one card on a message line
---                           addon-qty         more of one add-on than the owner's limit
+--                           addon-qty         more of one add-on than the owner's limit, all its lines together
 --                           addon-dup         the same add-on, variant and text listed twice
 --                         The total is items + add-ons + box charges + the same-day surcharge, stored in
 --                         orders.total_cents. `pickup-lead` now judges every date except today. The rest is
@@ -39,7 +41,7 @@
 
 create table public.order_extras (
   id boolean primary key default true check (id),
-  same_day_enabled boolean not null default true,
+  same_day_enabled boolean not null default false,
   same_day_percent integer not null default 40 check (same_day_percent between 0 and 100),
   same_day_on_extras boolean not null default false,
   sampler_product_id text references public.products (id) on delete set null,
@@ -198,10 +200,10 @@ begin
        or (v_el ->> 'charge_cents')::numeric not between 0 and 100000 then
       raise exception 'a box size is 2 to 48 cookies and a whole-centavo charge up to 1000 pesos' using errcode = '22023';
     end if;
-    if (v_el ->> 'size') = any (v_seen) then
+    if ((v_el ->> 'size')::numeric::integer)::text = any (v_seen) then
       raise exception 'a box size is listed twice' using errcode = '22023';
     end if;
-    v_seen := v_seen || (v_el ->> 'size');
+    v_seen := v_seen || ((v_el ->> 'size')::numeric::integer)::text;
     v_boxes := v_boxes || jsonb_build_object('size', (v_el ->> 'size')::numeric::integer,
                                              'charge_cents', (v_el ->> 'charge_cents')::numeric::bigint,
                                              'active', (v_el ->> 'active')::boolean);
@@ -393,6 +395,7 @@ declare
   v_now_min integer;
   v_slot_end integer;
   v_ao_distinct integer;
+  v_ao_total integer;
 begin
   -- ---- shape: exactly the customer's own fields, nothing the server decides
   if p_order is null or jsonb_typeof(p_order) <> 'object' then
@@ -622,7 +625,7 @@ begin
   end if;
   v_now_min := extract(hour from v_local)::integer * 60 + extract(minute from v_local)::integer;
   v_slot_end := case when v_window = 'campus'
-                     then substr(v_rules.campus_to, 1, 2)::integer * 60 + substr(v_rules.campus_to, 4, 2)::integer
+                     then substr(v_rules.campus_from, 1, 2)::integer * 60 + substr(v_rules.campus_from, 4, 2)::integer
                      else v_minute end;
   if v_same_day and v_slot_end <= v_now_min then -- rule:same-day-time
     raise exception 'that pickup time has already passed today' using errcode = 'ZC004';
@@ -681,10 +684,11 @@ begin
     if (jsonb_array_length(v_cfg -> 'variants') > 0) is distinct from (v_ao_variants[v_i] is not null) or (v_ao_variants[v_i] is not null and not ((v_cfg -> 'variants') ? v_ao_variants[v_i])) then -- rule:addon-variant
       raise exception 'that add-on needs one of its variants' using errcode = '22023';
     end if;
-    if ((v_cfg ->> 'text_label') is null and v_ao_texts[v_i] is not null) or ((v_cfg ->> 'text_label') is not null and (v_ao_texts[v_i] is null or length(v_ao_texts[v_i]) > (v_cfg ->> 'text_max')::integer or v_ao_qtys[v_i] <> 1)) then -- rule:addon-text
+    if ((v_cfg ->> 'text_label') is null and v_ao_texts[v_i] is not null) or ((v_cfg ->> 'text_label') is not null and (v_ao_texts[v_i] is null or length(v_ao_texts[v_i]) > coalesce((v_cfg ->> 'text_max')::integer, 0) or v_ao_qtys[v_i] <> 1)) then -- rule:addon-text
       raise exception 'that add-on takes a message of its own, one card at a time' using errcode = '22023';
     end if;
-    if v_ao_qtys[v_i] > (v_cfg ->> 'max_qty')::integer then -- rule:addon-qty
+    select coalesce(sum(t.q), 0) into v_ao_total from unnest(v_ao_ids, v_ao_qtys) as t(id, q) where t.id = v_ao_ids[v_i];
+    if v_ao_total > coalesce((v_cfg ->> 'max_qty')::integer, 0) then -- rule:addon-qty
       raise exception 'too many of that add-on' using errcode = '22023';
     end if;
     v_ao_names := array_append(v_ao_names, v_cfg ->> 'name');

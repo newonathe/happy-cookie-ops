@@ -384,7 +384,7 @@
         "search_path=\"\""
       ],
       "returns": "TABLE(order_no text, status_token text, total_cents bigint, pickup_date date, pickup_window text, replayed boolean)",
-      "body_md5": "28def52f8e751d18d6f16b94218e0ad3",
+      "body_md5": "7b851d16514fa8e1a06aa3ab1916d82d",
       "identity": "p_order jsonb",
       "execute_anon": true,
       "security_definer": true,
@@ -984,7 +984,7 @@
         "search_path=\"\""
       ],
       "returns": "TABLE(updated_at timestamp with time zone)",
-      "body_md5": "809dceaa4d8581307f56141104d9098d",
+      "body_md5": "27146ae1afe1cdd9a8a6cfdd548c0732",
       "identity": "p_extras jsonb, p_expected_updated_at timestamp with time zone",
       "execute_anon": false,
       "security_definer": true,

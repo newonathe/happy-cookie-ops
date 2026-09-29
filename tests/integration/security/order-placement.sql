@@ -586,12 +586,11 @@ select pg_temp.set_window(true);
 -- Every weekday is a pickup day, and same-day pickup is off (B4): only the lead time and the same-day
 -- rule refuse today and yesterday. The same-day rules themselves are proved in order-extras.sql.
 update public.order_rules set pickup_days = '{1,2,3,4,5,6,7}';
-update public.order_extras set same_day_enabled = false;
+update public.order_extras set same_day_enabled = false; -- also the default; stated so the case does not depend on it
 set local role anon;
 select pg_temp.set_subject(null, 'anon');
 select pg_temp.phase_lead('anon');
 reset role;
-update public.order_extras set same_day_enabled = true;
 update public.order_rules set pickup_days = '{1,4}';
 
 set local role anon;

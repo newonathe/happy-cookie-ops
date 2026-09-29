@@ -16,56 +16,79 @@ When a goal finishes, the agent deletes its block here, leaves the next one on t
 - If files changed since the last index, re-index first: `index_repository`, repo path `C:/Users/ethan/dev/happy-cookie-ops-g0`.
 - Pinned toolchain: prefix PATH with `C:\Users\ethan\dev\happy-cookie-tools\bin;C:\Users\ethan\dev\happy-cookie-tools\node-v24.20.0-win-x64`. In Git Bash call `pnpm.cmd`: a bare `pnpm` resolves to the global npm shim first (it warns that the `pnpm` field is ignored).
 - Docker Desktop must be running for SQL work, and for one Python guard (`tests/integration/db`).
-- **Baseline (2026-09-29, at B3 close):**
-  - `pnpm typecheck` clean; `pnpm verify` green (see current.md); port integrity OK, 54 files; G0 validator 1217 checks, 0 failures;
-  - Python guards 63 OK, via `python -m unittest discover -s <dir> -p "test_*.py"` for each of `tests/unit`, `tests/integration/auth`, `tests/integration/db` and `tests/integration/security`, with `G0_PYTHON_LIBS=C:\Users\ethan\dev\happy-cookie-tools\python-libs-314`; SQL role suite 1175 cases/reset, 2 resets (`python scripts/test-db-security.py`, about 3 minutes);
+- **Baseline (2026-09-29, at B4a close):**
+  - `pnpm typecheck` clean; `pnpm verify` green, 57 files / 1052 tests (see current.md); port integrity OK, 54 files; G0 validator 1217 checks, 0 failures;
+  - Python guards 63 OK, via `python -m unittest discover -s <dir> -p "test_*.py"` for each of `tests/unit`, `tests/integration/auth`, `tests/integration/db` and `tests/integration/security`, with `G0_PYTHON_LIBS=C:\Users\ethan\dev\happy-cookie-tools\python-libs-314`; SQL role suite 1318 cases/reset, 2 resets (`python scripts/test-db-security.py`, about 3 minutes);
   - `pnpm build:pages:spike`/`test:pages:spike`/`test:workers:spike` pass with or without `NEXT_PUBLIC_SUPABASE_URL`/`…PUBLISHABLE_KEY` (local stack values: `pnpm exec supabase status -o env`; the bare `supabase` binary is not on PATH);
   - `pnpm build` passes, and `pnpm test:e2e` gives 89 passed / 1 failed / 75 skipped with no Supabase variables set. The one failure is OFFLINE-01 on WebKit (Playwright's WebKit cannot reload offline with a service worker); desktop and phone pass;
   - `pnpm test:live:checkout`: 10 steps (needs `pnpm db:reset` first and the three local keys in the environment).
   - **Adding a migration touches more than SQL:** `tests/fixtures/mp08g-source-pins.json` (sha256, CRLF file), `tests/fixtures/function-authority.json` (a manifest entry per function and its body hash, regenerated from a reset local database), the function count in `tests/integration/security/test_function_authority.py`, `scripts/test-db-security.py` (suites, mutation maps, the asserted totals), `pnpm db:types`. A redefined function is mutated from its latest definition. The pre-commit hook runs `pnpm verify` and needs the pinned toolchain on PATH.
 - **Codex only:** run `/status` once in the repo root to confirm the project `.codex/config.toml` loaded. Accept the trust prompt if asked. The project sandbox has no network, so `git push` will ask for approval.
 
-## Next goal — B4 (MP-10 b): every September form feature
+## Next goal — B4b (MP-10 b): boxes, add-ons, the sampler and same-day on the live checkout and the owner's order screens
 
-Drafted 2026-09-29 after B3 closed. The live checkout takes a name, Instagram, mobile, pickup date and time, a payment
-method and flavours by the piece; `place_order` prices them from the menu. Cine's September form also has boxes, add-ons,
-a sampler box and a same-day surcharge. This slice puts them on the server-priced order and on the live checkout, all
-owner-configurable ("every form feature… configurable", 28 Sep).
+Drafted 2026-09-29 after B4a closed. B4a put the September form's extras on the database: `place_order` prices boxes,
+add-ons, the sampler cap and the same-day surcharge from the owner's configuration (`order_extras`, migration
+`20260101004000_order_extras.sql`), `order_status` and `get_staff_orders` return the add-ons, boxes and surcharge, and the
+owner edits it all in "Boxes & add-ons" (All tools). Customers cannot use any of it yet: the live checkout sends no `add_ons`
+or `boxes`, offers no same-day date, and the owner's order screens show only the items. This slice closes that.
 
-**Read first:** the finish-plan.md B4 row, section 2 (the September form, page by page) and section 4 (findings 7 and 8:
-conflicting packaging costs, the Nutella fries set of 4); `docs/state/protected-exception.md` (B2 checkout slot and B3
-lookup slot: what is guarded, what is false and recorded); `supabase/migrations/20260101003800_shop_status.sql` (the
-latest `place_order`, which this slice redefines: keep every rule tag, add new ones); `src/lib/data/orders.ts`,
-`src/lib/data/order-flow.ts` and `src/components/live/live-checkout.tsx` (the live form is a live-only component; the
-guarded slot in `checkout.tsx` already mounts it, so this slice should need no protected-markup edit); how B3 added
-`staff_swap_item` (a swap keeps any part of the total that is not an item price: a surcharge must survive it).
+**Read first:** the B4a checkpoint in `docs/state/current.md`; the header comment and the `place_order` body of
+`supabase/migrations/20260101004000_order_extras.sql` (the payload shape and every refusal: `ZC007` = a box size or add-on
+that is no longer offered, `ZC004` also covers same-day off and a time already past, `22023` the rest); `src/lib/data/order-extras.ts`
+(the owner side; the customer read `get_shop_extras()` has no parser yet: write `parseShopExtras` beside it, like
+`parseShopOrderRules` in `src/lib/orders/pickup.ts`); `src/components/live/live-checkout.tsx`, `src/lib/data/orders.ts`,
+`src/lib/data/order-flow.ts`, `src/lib/orders/pickup.ts`, `src/lib/orders/copy.ts`; `src/lib/data/staff-orders.ts`
+(`toEngineOrder`), `src/lib/orders/messages.ts`, `src/components/live/order-messages.tsx`; `docs/state/protected-exception.md`.
 
-**The slice:** (1) box sizes 6/8/12 with the fewer-than-6 bag rule and per-size prices, entered by the owner (finding 7:
-nothing hard-coded); (2) add-ons: note card with a message, ribbon, stickers 1–4, sticker pack, each with an owner-set
-price and an optional text (sticker number, note text, length-limited); (3) the sampler box as a bundle (quantity 1–3);
-(4) same-day pickup at a percentage set by the owner (form: +40%), applied by the server; (5) all of it in server pricing
-and in the capacity weights (a box takes its cookies' slots; the fries set of 4 already models `item_type = set`); (6) the
-owner's screens show add-ons and the surcharge on an order (the mapper in `src/lib/data/staff-orders.ts` and the
-message texts). Unresolved wording and prices are Cine's: use each default in finish-plan section 11, record placeholders.
+**Decisions already taken (finish-plan B4 plan; each is a default Cine can change):**
 
-**Carry-overs from B3:** helper access to pack and collect is an open decision (owner-only shipped); lapsed unpaid orders
-still count on the bake list until cancelled (ask Cine); the overage sheet's "over by" mixes cookies and weighted slots;
-no pickup code on the live status page; wording for every sentence `staff-copy.ts` and `copy.ts` mark PLACEHOLDER.
+1. **No protected-markup edit.** Owner totals: `toEngineOrder` puts the non-item part of the total (add-ons + boxes + surcharge,
+   pesos) in a reserved key of `priced` (`__extras`; grep every reader of `o.priced` keys first). `boxTotal` is a class-field
+   arrow in the engine: override it as an **instance field in the `OpsRuntime` constructor** (as for `custSubmit`), and in live
+   mode do **not** call the base (it applies `priceMode`, `packagingFee`, `flatBox`, which the server never uses): live formula
+   = Σ `priceOf(k, priced) × qty` + `priced.__extras`. Demo mode and the customer cart call (`boxTotal(c.box, s.prices)`) keep the base.
+2. **Order detail and orders list**: append `lines` rows in the B3 post-process (`liveOrderDetail`, and the list): one per add-on
+   ("Sticker no. 2"), per box ("Box of 6") and "Same-day pickup (+40%)", with a neutral swatch `imgStyle`, `inStock: true`,
+   `out: false`, `flagLabel: 'Extra'` and a no-op `flag`. `orders.tsx` shows name, qty, line only; `order-detail.tsx` also renders the
+   flag button. Neither markup file changes. Port audit first; if a row shape cannot render, stop and ask Ethan for a
+   protected-exception record.
+3. The note text, sticker numbers and boxes also show in the live-only "Customer messages" sheet and the customer message text.
+4. **The ported "Your order" card shows an items-only total.** No client price estimate (it would need a TS/SQL pricing parity
+   fixture). The live checkout shows each add-on's and box's price and the same-day percent as labels, and a PLACEHOLDER line
+   under the ported card: add-ons, box charges and the same-day amount are added by the shop. The placed card shows the
+   server total and the add-ons chosen.
+5. Customer wording is PLACEHOLDER (`src/lib/orders/copy.ts`): `ZC007` ("that add-on is not offered any more, reload"), same-day off,
+   time passed, box and add-on limits.
+6. **Same-day is off by default** (the owner switches it on in Boxes & add-ons): the checkout offers today only when `get_shop_extras` says it is on.
+7. **Add-on limits count all lines of one add-on together** (the server refuses otherwise): mirror that in the form.
+8. **Same-day tests must not depend on the wall clock**: seed the rules (all seven pickup days, hours 0-24) and use `23:59`
+   to accept, `00:00` for "already past".
+
+**The slice:** `parseShopExtras` + a customer read of `get_shop_extras` in `OrderFlow`; the checkout's Boxes card (shown once the
+cookie count reaches the smallest box), Add-ons card (variant select, note field with its length), the same-day date (today,
+labelled with the percent, only when same-day is on and today is a pickup day: `pickupDates` gains an extras argument) and
+notice, sent as `add_ons` and `boxes` in `place_order`, with the same checks the server makes; refusal wording; owner side per
+decisions 1-3; `scripts/test-live-checkout.mjs` extended for one add-on (a sticker with a number) and a same-day order, asserting
+the row's total, its `order_add_ons` row and its surcharge.
+
+**Carry-overs:** the sampler is an ordinary flavour of kind `set` (the owner makes it under Menu & flavours and names it in
+Boxes & add-ons), so the bake list shows "Sampler box x N" without expanding it to flavours (D10 contents are open); helper access
+to pack and collect (owner-only shipped); lapsed unpaid orders still count on the bake list until cancelled (ask Cine); the overage
+sheet's "over by" mixes cookies and weighted slots; no pickup code on the live status page; wording for every sentence
+`staff-copy.ts` and `copy.ts` mark PLACEHOLDER; Cine's real box charges and add-on prices (C5) are entered in the app, not code.
 
 ```text
-/goal B4 (docs/state/finish-plan.md slice B4): every September form feature on the server-priced order. Box sizes 6/8/12
-and bags, add-ons with sticker number and note text, the sampler bundle and the same-day percentage, all owner-configurable
-(a new migration: tables or settings plus owner get/save RPCs with stale-stamp checks, SECURITY DEFINER, search_path '',
-in-function role check, explicit grants), priced by the server in a redefined place_order (keep every rule tag; new rules
-tagged; the harness picks the latest definition), capacity weights right, and the live checkout (live-only components; a
-protected-markup edit needs its own record, exact reversals, port audit first) and the owner's order screens and messages
-showing them; a swap or a surcharge never changes what a customer owes except the item difference. SQL role suite with a
-deliberate regression per new rule, unit tests with a mutation per new branch, and one different-model review (Opus). All
-exit 0 in this session: pnpm verify, Python guards, the G0 validator (revert evidence/*.json churn), port integrity, pnpm
-build, test:pages:spike, test:workers:spike, test:e2e (baseline in current.md), test:live:checkout (extend it for one
-add-on and the same-day surcharge), python scripts/test-db-security.py. Committed and pushed; current.md checkpoint and
-task-status updated; this block replaced by the next goal from finish-plan section 6 (A3). No deploy. Stop after 2 failed
-fix attempts or 25 turns.
+/goal B4b (docs/state/finish-plan.md slice B4, second half): the September form's boxes, add-ons, sampler and same-day extra on the
+live checkout and the owner's order screens and messages, per the decisions above (no protected-markup edit unless the port audit
+forces one, with its own record and exact reversals). Customers pick boxes (only sizes the owner offers), add-ons with a sticker
+number or a note message, the sampler (its cap) and same-day pickup (surcharge shown as a percent; the server prices it); a
+swap or a surcharge never changes what a customer owes except the item difference. Unit tests with a mutation per new branch, a
+port audit (Sonnet) before any edit near protected markup, and one different-model review (Opus) of the app half. All exit 0 in
+this session: pnpm verify, Python guards, the G0 validator (revert evidence/*.json churn), port integrity, pnpm build,
+test:pages:spike, test:workers:spike, test:e2e (baseline in current.md), test:live:checkout (extended for one add-on and a
+same-day order), python scripts/test-db-security.py. Committed and pushed; current.md checkpoint and task-status updated; this
+block replaced by the next goal from finish-plan section 6 (A3). No deploy. Stop after 2 failed fix attempts or 25 turns.
 ```
 
 ## After these goals

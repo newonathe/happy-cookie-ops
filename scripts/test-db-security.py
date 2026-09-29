@@ -188,6 +188,12 @@ EXTRAS_MUTATIONS = {
     'text_surcharge_rounding': ('place_order', 'text',
                                 ('(v_base * v_extras.same_day_percent + 50) / 100', '(v_base * v_extras.same_day_percent) / 100'),
                                 _EXC + 'same_day_rounding'),
+    'text_addon_qty_per_line': ('place_order', 'text',
+                                ("select coalesce(sum(t.q), 0) into v_ao_total from unnest(v_ao_ids, v_ao_qtys) as t(id, q) where t.id = v_ao_ids[v_i];",
+                                 "v_ao_total := v_ao_qtys[v_i];"), _EXO + 'place_addon_qty_across_lines / '),
+    'text_same_day_campus_start': ('place_order', 'text',
+                                   ("then substr(v_rules.campus_from, 1, 2)::integer * 60 + substr(v_rules.campus_from, 4, 2)::integer",
+                                    'then 1440'), _EXO + 'place_same_day_campus_past / '),
     'text_status_leaks_note': ('order_status', 'text', ("'variant', a.variant)", "'variant', a.variant, 'note', a.note)"),
                                _EXC + 'status_hides_note'),
     'text_erase_keeps_note': ('anonymise_customer', 'text',
@@ -251,7 +257,7 @@ SUITES = (
     ('staff-orders.sql', STAFF_ACL + tuple(STAFF_MUTATIONS) + tuple(STAFF_TABLE_MUTATIONS), 'forbidden staff order call succeeded', 122),
     ('shop-state.sql', ('set_shop_override(text)',) + tuple(SHOP_MUTATIONS), 'forbidden shop state call succeeded', 29),
     ('order-extras.sql', ('get_order_extras()', 'save_order_extras(jsonb,timestamptz)')
-                         + tuple(EXTRAS_MUTATIONS) + tuple(EXTRAS_TABLE_MUTATIONS), 'forbidden extras call succeeded', 138),
+                         + tuple(EXTRAS_MUTATIONS) + tuple(EXTRAS_TABLE_MUTATIONS), 'forbidden extras call succeeded', 143),
     ('bazaar-closeout.sql', ('event_summary(uuid)', 'load_event_stock(uuid,jsonb,bigint)', 'add_event_expense(jsonb)', 'close_event(jsonb)'), 'forbidden closeout call succeeded', 80),
 )
 CATALOG_GUARD_SQL = """
@@ -482,7 +488,7 @@ def main():
                 h.fail(filename + ' did not return its complete role matrix')
             results.extend(rows)
             assert_empty()
-        if len(set(results)) != 1313:
+        if len(set(results)) != 1318:
             h.fail('combined role matrix has missing or duplicate cases: %d rows, %d unique (duplicates: %s)' % (len(results), len(set(results)), sorted({r for r in results if results.count(r) > 1})[:5]))
         assert_functions()
         assert_catalog_wide()
@@ -495,10 +501,10 @@ def main():
     try:
         code = h.main(after_reset=check)
         if (code == 0 and len(report["runs"]) == 2 and report["runs"][0] == report["runs"][1]
-                and len(report['regressions_detected']) == 330 and report['sequence_restorations'] == 10
+                and len(report['regressions_detected']) == 334 and report['sequence_restorations'] == 10
                 and report['upgrade_runs'] == 2 and report['function_guard_runs'] == 4
                 and report['catalog_guard_runs'] == 4 and report['catalog_guard_red_runs'] == 4):
-            report.update(status="passed", cases_per_reset=1313, resets=2, matrix_equal=True, rollback_verified=True,
+            report.update(status="passed", cases_per_reset=1318, resets=2, matrix_equal=True, rollback_verified=True,
                           sql_sha256={name: hashlib.sha256((ROOT / 'tests/integration/security' / name).read_bytes()).hexdigest() for name, _, _, _ in SUITES},
                           harness_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
     except (RuntimeError, OSError, ValueError) as error:

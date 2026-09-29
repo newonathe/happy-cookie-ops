@@ -4,6 +4,64 @@ Every checkpoint up to 2026-09-28, verbatim and newest first. Moved here from `c
 session reads only the short status in [current.md](current.md). Add nothing here by hand; move a checkpoint here
 when it leaves `current.md`.
 
+## Checkpoint — 2026-09-29 (B3)
+
+- **2026-09-29 (B3, finish-plan slice B3):** the owner's side of an order, four commits plus review fixes.
+  - **Database** (migrations `20260101003700`, `…3800`, `…3900`): owner-only, idempotent `staff_*` RPCs with the
+    `updated_at` stamp (idempotency is checked before the stamp, so a retry after a lost reply never fails): `get_staff_orders`,
+    the paid tick `staff_confirm_payment` (re-checks the week when the unpaid hold lapsed; `force` = "confirm anyway"),
+    reject, reopen, `staff_set_status` (baking, packed, collected, undo, no-show; packing is blocked while a flavour is
+    flagged), flag and swap a flavour (re-priced from today's menu, idempotent on a client id), refund, settle a balance.
+    `UPDATE` on `orders`/`order_items` is revoked from the API roles. `get_shop_status()` (public: the ordering window and
+    the switch, nothing else) and `set_shop_override()`; `place_order` honours the switch (closed, sold out, held open).
+  - **Screens (live mode, no protected-markup edit except the lookup slot):** the ported orders, order, bake and pack
+    screens are fed from the database (status = the database state) and their actions call the RPCs server first; the
+    engine's local side effects are not repeated (no packaging-stock check on packing, no local ledger, no invoice).
+    **The bake list counts unpaid orders** (28 Sep), for the current pickup week. "Customer messages" in All tools: a status
+    link and a text to copy per open order. "Order rules" in All tools (`get_order_rules`/`save_order_rules`).
+    Every live page reads the shop status, so the banner and the add buttons say what `place_order` will do; the owner's
+    close-now, sold-out, closing-soon, open, extend and follow-my-schedule reach the server first.
+  - **Guarded slot in `find-my-order.tsx`** (Ethan approved 2026-09-29): `/lookup` shows the live form. Exact reversals
+    `LOOKUP_REVERSALS`, baselines regenerated, record in [protected-exception.md](protected-exception.md), port audit PASS;
+    the visual PNGs are unchanged.
+  - **Decisions and deviations:** the staff RPCs are **owner only** (helper pack/collect stays an open decision; a helper is
+    refused in the role suite). The switch is a `shop_state` table, not a setting (a fourth allowed key would have meant
+    redefining three settings functions). The 20260101003900 migration is a review fix, added rather than editing 3700.
+  - **Evidence:** `pnpm verify` 55 files / 1002 tests; G0 validator 1217 checks, 0 failures; port integrity OK; Python guards
+    63 OK; SQL role suite 1175 cases per reset, 2 resets, 143 regressions per reset, each detected; `pnpm build`,
+    `test:pages:spike`, `test:workers:spike` pass; `pnpm test:e2e` 89 / 1 (OFFLINE-01 WebKit) / 75; `test:live:checkout` 10
+    steps (the shop opens from the server window with no local override, close-now closes the banner, `/lookup` finds an
+    order). Unit tests carry a mutation per new branch (about 60 deliberate mutations, each caught). Port audit (Sonnet)
+    PASS. **Opus review:** no authorization bypass; one High (reopen could overbook a week), five Medium and six Low; fixed:
+    the High, the "this drop" sums (now the current pickup week, anchored on today's Manila date so an order nobody closed in a
+    past week cannot become "this week"), the extend-closing and close-drop switches (every other write of the engine's
+    `shopOverride` was checked: set-drop-state, close-early and reopen are wrapped; the preview toggles are hidden in live
+    mode), a swap refusal with no message, the swap total, lost replies, the refund amount, reopen of a refunded order, the
+    list limit. A second review pass by the advisor found the past-week bug and the close-drop gap in those fixes; both are
+    fixed and tested. Review finding 4 (demo orders on screen) is not a defect: `orders` is in `EMPTIED_KEYS`, so the live
+    base state never holds them (pinned by `live-state.test.ts`).
+  - **The order detail's link row** now shows the customer's real status link and really copies it (the ported values are a
+    made-up `happycookie.ph/o/…` address and a toast that copied nothing); an order with no token says so. No markup edit:
+    the values are view-model fields.
+  - **"Payments" screen:** the payments-review screen (`reconcile`) reads `state.orders`, so it lists the database's orders
+    and the paid tick is the confirm action. Its "matched to my statement" ticks (`state.matched`) are local only and do not
+    survive a reload: **not live yet**, a later slice (E1) if Cine wants them kept.
+  - **Left open from the review (not fixed, recorded):** the overage sheet's "over by" mixes cookies and weighted slots (only
+    wrong when a flavour's weight is not 1); an owed-back amount after a cheaper swap on a paid order is not shown (the ported
+    balance line has no negative form); **lapsed unpaid orders still count on the bake list** until the owner cancels them, which is a
+    question for Cine (she said unpaid orders show on her bake list, not whether an order past its 24-hour hold does).
+  - **Wording is placeholder** (`src/lib/orders/staff-copy.ts`, `STAFF_COPY`, `MESSAGE_SHEET`, `RULES_COPY`, and the customer
+    texts in `src/lib/orders/messages.ts`; the customer sentences in `copy.ts` are still open too): the paid, rejected,
+    reopened, packed, collected, no-show, refund, balance, flag and swap toasts; "tick paid before packing"; "a refunded order
+    cannot be reopened"; the offline, conflict and unsure lines; the four customer messages (payment reminder, payment
+    received, ready for pickup, flavour swap); the order-rules labels and the switch and rules save/refusal lines.
+  - **Still open from B2:** the status page has no pickup code in live mode (`showCode` false); the ported status line about
+    booking a Grab or Lalamove is false for the campus slot; the ported screens still say Saturday and Sunday for Monday and
+    Thursday pickup days (mapped by rank); the invoice wording (F10). **Ported lines false in live mode on the owner screens**
+    (kept, not edited): "Emailed when they submitted", the payment-proof sheet and the "Order submitted with proof" timeline line.
+  - **Still not run:** the physical-phone test for the 20-Oct gate, WebKit OFFLINE-01, a real signed-in owner session against
+    the hosted project (the owner screens are proven against the local stack and unit tests, not a browser sign-in).
+
 ## Checkpoint — 2026-09-29 (B2 app half)
 
 - **2026-09-29 (B2 app half, finish-plan slice B2):** the live checkout on the customer pages, live mode only.

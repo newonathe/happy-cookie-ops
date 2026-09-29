@@ -45,6 +45,7 @@ insert into public.settings(key, int_value) values ('capacity', 500);
 select pg_temp.set_window(true);
 -- Every weekday, any hour: the wall clock decides nothing below.
 update public.order_rules set pickup_days = '{1,2,3,4,5,6,7}', pickup_from_hour = 0, pickup_cutoff_hour = 24;
+-- Same-day pickup is off by default; switched on after the public read has shown that.
 
 -- Fixture edits of the owner's configuration (run as the fixture owner of the transaction, never through an API role).
 create function pg_temp.set_addon_active(p_id text, p_on boolean) returns void language sql as $$
@@ -166,7 +167,7 @@ begin
   perform pg_temp.assert_ok(a, 'shop_extras_keys',
     (select array_agg(k order by k) from jsonb_object_keys(s) k) = array['add_ons', 'boxes', 'same_day', 'sampler']);
   perform pg_temp.assert_ok(a, 'shop_extras_defaults',
-    (s -> 'same_day' ->> 'enabled')::boolean and (s -> 'same_day' ->> 'percent')::integer = 40
+    not (s -> 'same_day' ->> 'enabled')::boolean and (s -> 'same_day' ->> 'percent')::integer = 40
     and jsonb_array_length(s -> 'boxes') = 3 and jsonb_array_length(s -> 'add_ons') = 4
     and (select array_agg((b ->> 'size')::integer order by (b ->> 'size')::integer) from jsonb_array_elements(s -> 'boxes') b) = array[6, 8, 12]
     and (select (x ->> 'price_cents')::integer from jsonb_array_elements(s -> 'add_ons') x where x ->> 'id' = 'sticker') = 1500);
@@ -202,7 +203,7 @@ begin
   perform pg_temp.place(a, 'place_box_fit', 6,
     '{"items": [{"product_id": "b4-cookie", "qty": 5}], "boxes": [{"size": 6, "qty": 1}]}', '{}', '22023');
   perform pg_temp.place(a, 'place_box_sets_not_boxable', 7,
-    '{"items": [{"product_id": "b4-cookie", "qty": 2}, {"product_id": "b4-fries", "qty": 1}], "boxes": [{"size": 6, "qty": 1}]}', '{}', '22023');
+    '{"items": [{"product_id": "b4-cookie", "qty": 5}, {"product_id": "b4-fries", "qty": 1}], "boxes": [{"size": 6, "qty": 1}]}', '{}', '22023');
   perform pg_temp.place(a, 'place_box_dup_size', 8,
     '{"items": [{"product_id": "b4-cookie", "qty": 12}], "boxes": [{"size": 6, "qty": 1}, {"size": 6, "qty": 1}]}', '{}', '22023');
   perform pg_temp.place(a, 'place_box_extra_key', 9,
@@ -231,6 +232,9 @@ begin
     '{"add_ons": [{"id": "sticker-pack", "qty": 1, "text": "hello"}]}', '{}', '22023');
   perform pg_temp.place(a, 'place_addon_text_two_cards', 29, '{"add_ons": [{"id": "note-card", "qty": 2, "text": "hi"}]}', '{}', '22023');
   perform pg_temp.place(a, 'place_addon_qty', 30, '{"add_ons": [{"id": "sticker-pack", "qty": 11}]}', '{}', '22023');
+  -- the limit is per add-on, not per line: two designs of six stickers each is twelve, over the limit of ten
+  perform pg_temp.place(a, 'place_addon_qty_across_lines', 37,
+    '{"add_ons": [{"id": "sticker", "variant": "1", "qty": 6}, {"id": "sticker", "variant": "2", "qty": 6}]}', '{}', '22023');
   perform pg_temp.place(a, 'place_addon_dup', 31,
     '{"add_ons": [{"id": "sticker", "variant": "1", "qty": 1}, {"id": "sticker", "variant": "1", "qty": 1}]}', '{}', '22023');
   perform pg_temp.place(a, 'place_addon_two_designs', 32,
@@ -258,6 +262,19 @@ begin
   perform pg_temp.assert_ok(a, 'same_day_addon_total', pg_temp.total('place_same_day_addon') = 12000 + 1500 + 4800);
   perform pg_temp.place(a, 'place_same_day_past_time', 43,
     jsonb_build_object('pickup_date', pg_temp.today_str(), 'pickup_window', '00:00'), '{}', 'ZC004');
+end $$;
+create function pg_temp.phase_same_day_campus_past(a text) returns void language plpgsql security invoker as $$
+begin
+  -- the campus slot starts at midnight, so it has begun
+  perform pg_temp.place(a, 'place_same_day_campus_past', 48,
+    jsonb_build_object('pickup_date', pg_temp.today_str(), 'pickup_window', 'campus'), '{}', 'ZC004');
+end $$;
+create function pg_temp.phase_same_day_campus(a text) returns void language plpgsql security invoker as $$
+begin
+  -- the campus slot starts at 23:58, so it is still ahead
+  perform pg_temp.place(a, 'place_same_day_campus', 49,
+    jsonb_build_object('pickup_date', pg_temp.today_str(), 'pickup_window', 'campus'), '{}', '00000');
+  perform pg_temp.assert_ok(a, 'same_day_campus_total', pg_temp.total('place_same_day_campus') = 12000 + 4800);
 end $$;
 create function pg_temp.phase_same_day_extras(a text) returns void language plpgsql security invoker as $$
 declare today jsonb := jsonb_build_object('pickup_date', pg_temp.today_str(), 'pickup_window', '23:59');
@@ -369,6 +386,8 @@ begin
   perform pg_temp.save(a, 'save_extras_box_small', base || '{"box_sizes": [{"size": 1, "charge_cents": 0, "active": true}]}', stamp, '22023');
   perform pg_temp.save(a, 'save_extras_box_dup',
     base || '{"box_sizes": [{"size": 6, "charge_cents": 0, "active": true}, {"size": 6, "charge_cents": 0, "active": false}]}', stamp, '22023');
+  perform pg_temp.save(a, 'save_extras_box_dup_decimal',
+    base || '{"box_sizes": [{"size": 6, "charge_cents": 0, "active": true}, {"size": 6.0, "charge_cents": 0, "active": true}]}', stamp, '22023');
   perform pg_temp.save(a, 'save_extras_box_negative', base || '{"box_sizes": [{"size": 6, "charge_cents": -1, "active": true}]}', stamp, '22023');
   perform pg_temp.save(a, 'save_extras_box_keys', base || '{"box_sizes": [{"size": 6, "active": true}]}', stamp, '22023');
   perform pg_temp.save(a, 'save_extras_addon_id',
@@ -442,7 +461,7 @@ grant execute on function
   pg_temp.total(text), pg_temp.tok(text), pg_temp.no(text), pg_temp.assert_acl(), pg_temp.assert_tables(text),
   pg_temp.assert_owner_rpcs_refused(text), pg_temp.phase_public_read(text), pg_temp.phase_public_read_hidden(text),
   pg_temp.phase_boxes(text), pg_temp.phase_addons(text), pg_temp.phase_same_day(text),
-  pg_temp.phase_same_day_extras(text), pg_temp.phase_same_day_rounding(text), pg_temp.phase_same_day_off(text),
+  pg_temp.phase_same_day_campus_past(text), pg_temp.phase_same_day_campus(text), pg_temp.phase_same_day_extras(text), pg_temp.phase_same_day_rounding(text), pg_temp.phase_same_day_off(text),
   pg_temp.phase_sampler(text), pg_temp.phase_sampler_weight(text), pg_temp.phase_replay(text),
   pg_temp.ex_stamp(), pg_temp.ex_json(), pg_temp.save(text, text, jsonb, timestamptz, text), pg_temp.phase_owner(text),
   pg_temp.phase_staff_reads(text), pg_temp.phase_erasure(), pg_temp.phase_prune()
@@ -457,6 +476,7 @@ select pg_temp.assert_tables('anon');
 select pg_temp.assert_owner_rpcs_refused('anon');
 select pg_temp.phase_public_read('anon');
 reset role;
+update public.order_extras set same_day_enabled = true;
 
 -- Boxes: size 6 costs 2500 a box, size 8 is free, size 12 is switched off.
 select pg_temp.set_box(6, 2500, true);
@@ -470,6 +490,19 @@ select pg_temp.phase_boxes('anon');
 select pg_temp.phase_addons('anon');
 select pg_temp.phase_same_day('anon');
 reset role;
+
+-- The campus slot on the same day: one that starts at midnight has begun, one that starts at 23:58 has not.
+update public.order_rules set campus_from = '00:00', campus_to = '00:01';
+set local role anon;
+select pg_temp.set_subject(null, 'anon');
+select pg_temp.phase_same_day_campus_past('anon');
+reset role;
+update public.order_rules set campus_from = '23:58', campus_to = '23:59';
+set local role anon;
+select pg_temp.set_subject(null, 'anon');
+select pg_temp.phase_same_day_campus('anon');
+reset role;
+update public.order_rules set campus_from = '14:00', campus_to = '15:30';
 
 -- Same-day also covers add-ons and box charges.
 update public.order_extras set same_day_on_extras = true;

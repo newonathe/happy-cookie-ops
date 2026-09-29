@@ -20,6 +20,9 @@ Short status, read at the start of every session. Keep it to one screen.
   - MP-09 c1: flavours on the database.
   - MP-09 c1b: prices save, `publish_flavours`, and the live shop shows only the published menu.
   - MP-09 c1c (F3, slice A1): the owner's flavour editor and "Publish menu" button, live mode only.
+- **B4a is done locally (2026-09-29):** boxes, add-ons, the sampler cap and the same-day surcharge on the server-priced order
+  (database) and the owner's "Boxes & add-ons" form (live mode). Customers cannot use them yet: B4b puts them on the live checkout
+  and the owner's order screens.
 - **A2 is done locally (2026-09-29):** payment methods, QR and photo upload, and the shop footer texts, on the database and on screen (live mode).
 - **B3 is done locally (2026-09-29):** the owner's side of an order on the database and on screen (live mode): the paid
   tick, statuses, flavour swap, pack and collect, refund and balance, customer messages; the shop's open state and
@@ -36,9 +39,9 @@ Short status, read at the start of every session. Keep it to one screen.
 - **Cine's inputs arrived 2026-09-28** and were analysed in [finish-plan.md](finish-plan.md) sections 2 and 4 and
   [apps-script-audit.md](apps-script-audit.md): the workbook, the September form, the payment image, the October
   menu, recipes and packaging, and the Apps Script. The files stay outside the repo; `Appscript/` is git-ignored.
-- **Baseline (2026-09-29, at B3 close):**
-  - `pnpm typecheck` clean; `pnpm verify` 55 files / 1002 tests; port integrity OK, 54 files; G0 validator 1217 checks, 0 failures;
-  - SQL role suite: 1175 cases per reset, 2 resets, 143 deliberate regressions per reset each detected; Python guards: 63 OK; migrations: 40;
+- **Baseline (2026-09-29, at B4a close):**
+  - `pnpm typecheck` clean; `pnpm verify` 57 files / 1052 tests; port integrity OK, 54 files; G0 validator 1217 checks, 0 failures;
+  - SQL role suite: 1318 cases per reset, 2 resets, 167 deliberate regressions per reset each detected; Python guards: 63 OK; migrations: 41;
   - `pnpm test:e2e`: 89 passed / 1 failed (WebKit OFFLINE-01) / 75 skipped, run with no Supabase variables (unchanged). Passing the local-stack variables at run time to `next start` makes its middleware send staff routes to sign-in, so do not.
   - `pnpm test:live:checkout`: 10 steps pass (needs `pnpm db:reset`; keys from `pnpm exec supabase status -o env`, the bare `supabase` binary is not on PATH).
 - **Known red:** OFFLINE-01 on WebKit only; `format:check` and E2E on CI `main`. No merge to `main` until they are green.
@@ -52,58 +55,45 @@ Short status, read at the start of every session. Keep it to one screen.
 
 ## Latest checkpoint (replace each slice; move the old one to current-history.md)
 
-- **2026-09-29 (B3, finish-plan slice B3):** the owner's side of an order, four commits plus review fixes.
-  - **Database** (migrations `20260101003700`, `…3800`, `…3900`): owner-only, idempotent `staff_*` RPCs with the
-    `updated_at` stamp (idempotency is checked before the stamp, so a retry after a lost reply never fails): `get_staff_orders`,
-    the paid tick `staff_confirm_payment` (re-checks the week when the unpaid hold lapsed; `force` = "confirm anyway"),
-    reject, reopen, `staff_set_status` (baking, packed, collected, undo, no-show; packing is blocked while a flavour is
-    flagged), flag and swap a flavour (re-priced from today's menu, idempotent on a client id), refund, settle a balance.
-    `UPDATE` on `orders`/`order_items` is revoked from the API roles. `get_shop_status()` (public: the ordering window and
-    the switch, nothing else) and `set_shop_override()`; `place_order` honours the switch (closed, sold out, held open).
-  - **Screens (live mode, no protected-markup edit except the lookup slot):** the ported orders, order, bake and pack
-    screens are fed from the database (status = the database state) and their actions call the RPCs server first; the
-    engine's local side effects are not repeated (no packaging-stock check on packing, no local ledger, no invoice).
-    **The bake list counts unpaid orders** (28 Sep), for the current pickup week. "Customer messages" in All tools: a status
-    link and a text to copy per open order. "Order rules" in All tools (`get_order_rules`/`save_order_rules`).
-    Every live page reads the shop status, so the banner and the add buttons say what `place_order` will do; the owner's
-    close-now, sold-out, closing-soon, open, extend and follow-my-schedule reach the server first.
-  - **Guarded slot in `find-my-order.tsx`** (Ethan approved 2026-09-29): `/lookup` shows the live form. Exact reversals
-    `LOOKUP_REVERSALS`, baselines regenerated, record in [protected-exception.md](protected-exception.md), port audit PASS;
-    the visual PNGs are unchanged.
-  - **Decisions and deviations:** the staff RPCs are **owner only** (helper pack/collect stays an open decision; a helper is
-    refused in the role suite). The switch is a `shop_state` table, not a setting (a fourth allowed key would have meant
-    redefining three settings functions). The 20260101003900 migration is a review fix, added rather than editing 3700.
-  - **Evidence:** `pnpm verify` 55 files / 1002 tests; G0 validator 1217 checks, 0 failures; port integrity OK; Python guards
-    63 OK; SQL role suite 1175 cases per reset, 2 resets, 143 regressions per reset, each detected; `pnpm build`,
-    `test:pages:spike`, `test:workers:spike` pass; `pnpm test:e2e` 89 / 1 (OFFLINE-01 WebKit) / 75; `test:live:checkout` 10
-    steps (the shop opens from the server window with no local override, close-now closes the banner, `/lookup` finds an
-    order). Unit tests carry a mutation per new branch (about 60 deliberate mutations, each caught). Port audit (Sonnet)
-    PASS. **Opus review:** no authorization bypass; one High (reopen could overbook a week), five Medium and six Low; fixed:
-    the High, the "this drop" sums (now the current pickup week, anchored on today's Manila date so an order nobody closed in a
-    past week cannot become "this week"), the extend-closing and close-drop switches (every other write of the engine's
-    `shopOverride` was checked: set-drop-state, close-early and reopen are wrapped; the preview toggles are hidden in live
-    mode), a swap refusal with no message, the swap total, lost replies, the refund amount, reopen of a refunded order, the
-    list limit. A second review pass by the advisor found the past-week bug and the close-drop gap in those fixes; both are
-    fixed and tested. Review finding 4 (demo orders on screen) is not a defect: `orders` is in `EMPTIED_KEYS`, so the live
-    base state never holds them (pinned by `live-state.test.ts`).
-  - **The order detail's link row** now shows the customer's real status link and really copies it (the ported values are a
-    made-up `happycookie.ph/o/…` address and a toast that copied nothing); an order with no token says so. No markup edit:
-    the values are view-model fields.
-  - **"Payments" screen:** the payments-review screen (`reconcile`) reads `state.orders`, so it lists the database's orders
-    and the paid tick is the confirm action. Its "matched to my statement" ticks (`state.matched`) are local only and do not
-    survive a reload: **not live yet**, a later slice (E1) if Cine wants them kept.
-  - **Left open from the review (not fixed, recorded):** the overage sheet's "over by" mixes cookies and weighted slots (only
-    wrong when a flavour's weight is not 1); an owed-back amount after a cheaper swap on a paid order is not shown (the ported
-    balance line has no negative form); **lapsed unpaid orders still count on the bake list** until the owner cancels them, which is a
-    question for Cine (she said unpaid orders show on her bake list, not whether an order past its 24-hour hold does).
-  - **Wording is placeholder** (`src/lib/orders/staff-copy.ts`, `STAFF_COPY`, `MESSAGE_SHEET`, `RULES_COPY`, and the customer
-    texts in `src/lib/orders/messages.ts`; the customer sentences in `copy.ts` are still open too): the paid, rejected,
-    reopened, packed, collected, no-show, refund, balance, flag and swap toasts; "tick paid before packing"; "a refunded order
-    cannot be reopened"; the offline, conflict and unsure lines; the four customer messages (payment reminder, payment
-    received, ready for pickup, flavour swap); the order-rules labels and the switch and rules save/refusal lines.
-  - **Still open from B2:** the status page has no pickup code in live mode (`showCode` false); the ported status line about
-    booking a Grab or Lalamove is false for the campus slot; the ported screens still say Saturday and Sunday for Monday and
-    Thursday pickup days (mapped by rank); the invoice wording (F10). **Ported lines false in live mode on the owner screens**
-    (kept, not edited): "Emailed when they submitted", the payment-proof sheet and the "Order submitted with proof" timeline line.
-  - **Still not run:** the physical-phone test for the 20-Oct gate, WebKit OFFLINE-01, a real signed-in owner session against
-    the hosted project (the owner screens are proven against the local stack and unit tests, not a browser sign-in).
+- **2026-09-29 (B4a, finish-plan slice B4 first half):** boxes, add-ons, the sampler cap and same-day, database and owner form.
+  Ethan chose the split (B4a database + owner form, B4b checkout + owner screens) because B4 is far over the ~400-line rule.
+  - **Database** (migration `20260101004000_order_extras.sql`): `order_extras` (one row, no API grant): same-day (on/off, percent,
+    whether it also covers add-ons and box charges), the sampler (a flavour of kind `set` plus a quantity limit), `box_sizes` and
+    `add_ons` (jsonb, validated by the save RPC). `get_order_extras`/`save_order_extras` (owner only, exact keys, whole numbers in
+    range, stale stamp `P0002`), public `get_shop_extras` (active items only). `place_order` redefined with optional `add_ons` and
+    `boxes` and ten new tagged rules (`same-day-off`, `same-day-time`, `sampler-cap`, `box-size`, `box-fit`, `addon-dup`,
+    `addon-unknown`, `addon-variant`, `addon-text`, `addon-qty`); every earlier rule tag and mutation target is byte for byte. New
+    SQLSTATE `ZC007` = a box size or add-on that is no longer offered (the customer's page is out of date). New tables
+    `order_add_ons` (name, price, variant, note frozen at order time) and `order_boxes`; `orders.surcharge_cents`, `orders.same_day`.
+    Total = items + add-ons + box charges + surcharge, all server-side; surcharge = `(base x percent + 50) / 100` centavos, half up,
+    where base is the items (plus add-ons and box charges when the owner turns that on). Same-day = pickup date is today in
+    Asia/Manila (the customer cannot dodge it); it is **off until the owner switches it on** (decision: a surcharge that starts by
+    itself on deploy is not a default to ship; Cine's form offers it). `order_status` and `get_staff_orders` carry add-ons, boxes
+    and surcharge; `order_status` never carries the note text. `anonymise_customer` and `prune_personal_data` blank the note-card
+    message before they blank the phone (D11); an erased unpaid order takes its lines with it.
+  - **Sampler = an ordinary flavour of kind `set`** (price, `capacity_weight` = its cookie count), made in Menu & flavours and named
+    in Boxes & add-ons; capacity, swap and reopen need no change. **Boxes are chosen by the customer** (`boxes:[{size,qty}]`,
+    at most as many cookies as the order holds; sets and the sampler are not boxable; the rest is bags); a box takes no extra
+    capacity. **Add-on limits count all lines of one add-on together.**
+  - **Owner form** (live mode, All tools > "Boxes & add-ons", no protected-markup edit): box sizes and charges, add-ons (name, price,
+    choices such as sticker numbers, an optional message label and length, limit, on/off), the sampler and its limit, the same-day
+    extra. Pesos on screen, centavos on the wire; nothing is deleted, an item is switched off.
+  - **Evidence:** `pnpm verify` 57 files / 1052 tests (one unrelated teardown flake in `ops-runtime-live-state` seen once, green on two
+    reruns); G0 validator 1217 checks, 0 failures; port integrity OK; Python guards 63 OK; SQL role suite 1318 cases per reset, 2
+    resets, 167 regressions per reset each detected (new suite `order-extras.sql`, 143 cases, 24 regressions); `pnpm build`,
+    `test:pages:spike`, `test:workers:spike` pass; `pnpm test:e2e` 89 / 1 (OFFLINE-01 WebKit) / 75; `test:live:checkout` 10 steps;
+    21 unit-test mutations (data layer, runtime, form) each caught. **Opus review** (SQL, money, personal data): no authorization
+    bypass, no High. Fixed: the add-on limit was per line (now per add-on, tested and mutation-checked); same-day default on ->
+    off; the same-day campus check used the slot's end (now its start, with cases); a test that passed for the wrong reason (sets
+    not boxable); duplicate box sizes `6` and `6.0` (compared as text). Recorded, not fixed: **a staff swap does not recalculate the
+    surcharge and can swap a cookie into a set or the sampler after the fact** (staff only; the B3 swap keeps the non-item part of the
+    total by design); same-day has no minimum-notice setting (a 16:58 order for 16:59 is accepted); the `23:59` test slot fails
+    only if the suite starts in the last minute of the Manila day; newlines are refused in the note message.
+  - **Customers see no change yet:** the live checkout sends no `add_ons` or `boxes` and offers no same-day date. `parseShopExtras`
+    (the customer read of `get_shop_extras`) is not written; B4b writes it.
+  - **Wording and prices are placeholders** (`EXTRAS_COPY` in `src/lib/orders/staff-copy.ts`; the September prices in the
+    `order_extras` defaults: note card 10, ribbon 10, sticker 15 with numbers 1-4, sticker pack 50 pesos; boxes 6/8/12 free). Cine's
+    real box charges and prices (C5) are entered in the app.
+  - **Still open from B3/B2:** unchanged (see [current-history.md](current-history.md)): helper pack/collect, lapsed unpaid orders on
+    the bake list, the overage sheet's "over by", no pickup code on the status page, the physical-phone test, WebKit OFFLINE-01, a real
+    signed-in owner session against the hosted project.
