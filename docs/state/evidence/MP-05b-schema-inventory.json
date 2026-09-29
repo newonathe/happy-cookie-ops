@@ -2072,6 +2072,87 @@
       "ordinal_position": 2
     },
     {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "scheduled_events",
+      "column_name": "id",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 1
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "scheduled_events",
+      "column_name": "name",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 2
+    },
+    {
+      "udt_name": "date",
+      "data_type": "date",
+      "table_name": "scheduled_events",
+      "column_name": "starts_on",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 3
+    },
+    {
+      "udt_name": "date",
+      "data_type": "date",
+      "table_name": "scheduled_events",
+      "column_name": "ends_on",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 4
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "scheduled_events",
+      "column_name": "place",
+      "is_nullable": "NO",
+      "column_default": "''::text",
+      "ordinal_position": 5
+    },
+    {
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "table_name": "scheduled_events",
+      "column_name": "rent_cents",
+      "is_nullable": "NO",
+      "column_default": "0",
+      "ordinal_position": 6
+    },
+    {
+      "udt_name": "bool",
+      "data_type": "boolean",
+      "table_name": "scheduled_events",
+      "column_name": "active",
+      "is_nullable": "NO",
+      "column_default": "true",
+      "ordinal_position": 7
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "scheduled_events",
+      "column_name": "event_id",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 8
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "scheduled_events",
+      "column_name": "updated_at",
+      "is_nullable": "NO",
+      "column_default": "now()",
+      "ordinal_position": 9
+    },
+    {
       "udt_name": "text",
       "data_type": "text",
       "table_name": "settings",
@@ -2744,6 +2825,16 @@
       "indexdef": "CREATE UNIQUE INDEX recipes_pkey ON public.recipes USING btree (product_id)",
       "indexname": "recipes_pkey",
       "tablename": "recipes"
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX scheduled_events_pkey ON public.scheduled_events USING btree (id)",
+      "indexname": "scheduled_events_pkey",
+      "tablename": "scheduled_events"
+    },
+    {
+      "indexdef": "CREATE INDEX scheduled_events_starts_idx ON public.scheduled_events USING btree (starts_on)",
+      "indexname": "scheduled_events_starts_idx",
+      "tablename": "scheduled_events"
     },
     {
       "indexdef": "CREATE UNIQUE INDEX settings_pkey ON public.settings USING btree (key)",
@@ -3542,6 +3633,21 @@
     },
     {
       "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "get_scheduled_events",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "57b05c6abb3b760437e1243edb812102",
+      "identity": "",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
       "name": "get_settings",
       "owner": "postgres",
       "config": [
@@ -3671,6 +3777,21 @@
       "body_md5": "f5f92ae7dd2097c41f862d37913b3efe",
       "identity": "p_entry jsonb",
       "execute_anon": true,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "link_scheduled_event",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(first_link boolean)",
+      "body_md5": "97545e92709e8c9aae73f64ceb0301c3",
+      "identity": "p_scheduled uuid, p_event uuid",
+      "execute_anon": false,
       "security_definer": true,
       "execute_service_role": true,
       "execute_authenticated": true
@@ -3865,6 +3986,21 @@
       "returns": "TABLE(id text, updated_at timestamp with time zone)",
       "body_md5": "bb6da0dc5c8fb57ddf2429a3b7dd6c92",
       "identity": "p_id text, p_method jsonb, p_expected_updated_at timestamp with time zone",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "save_scheduled_event",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(id uuid, updated_at timestamp with time zone)",
+      "body_md5": "3d938cc899e4fb501d174148494b7f9b",
+      "identity": "p_event jsonb, p_expected_updated_at timestamp with time zone",
       "execute_anon": false,
       "security_definer": true,
       "execute_service_role": true,
@@ -4972,6 +5108,42 @@
       "type": "c",
       "table": "recipes",
       "definition": "CHECK ((yield_count > 0))"
+    },
+    {
+      "name": "scheduled_events_dates",
+      "type": "c",
+      "table": "scheduled_events",
+      "definition": "CHECK (((ends_on >= starts_on) AND ((ends_on - starts_on) <= 14)))"
+    },
+    {
+      "name": "scheduled_events_event_id_fkey",
+      "type": "f",
+      "table": "scheduled_events",
+      "definition": "FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE SET NULL"
+    },
+    {
+      "name": "scheduled_events_name_check",
+      "type": "c",
+      "table": "scheduled_events",
+      "definition": "CHECK (((length(btrim(name)) >= 1) AND (length(btrim(name)) <= 80)))"
+    },
+    {
+      "name": "scheduled_events_pkey",
+      "type": "p",
+      "table": "scheduled_events",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "name": "scheduled_events_place_check",
+      "type": "c",
+      "table": "scheduled_events",
+      "definition": "CHECK ((length(place) <= 80))"
+    },
+    {
+      "name": "scheduled_events_rent_cents_check",
+      "type": "c",
+      "table": "scheduled_events",
+      "definition": "CHECK (((rent_cents >= 0) AND (rent_cents <= 100000000)))"
     },
     {
       "name": "settings_one_value",
@@ -8172,6 +8344,104 @@
       "privilege_type": "UPDATE"
     },
     {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "scheduled_events",
+      "is_grantable": "YES",
+      "privilege_type": "DELETE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "scheduled_events",
+      "is_grantable": "YES",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "scheduled_events",
+      "is_grantable": "YES",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "scheduled_events",
+      "is_grantable": "YES",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "scheduled_events",
+      "is_grantable": "YES",
+      "privilege_type": "TRIGGER"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "scheduled_events",
+      "is_grantable": "YES",
+      "privilege_type": "TRUNCATE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "scheduled_events",
+      "is_grantable": "YES",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "scheduled_events",
+      "is_grantable": "NO",
+      "privilege_type": "DELETE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "scheduled_events",
+      "is_grantable": "NO",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "scheduled_events",
+      "is_grantable": "NO",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "scheduled_events",
+      "is_grantable": "NO",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "scheduled_events",
+      "is_grantable": "NO",
+      "privilege_type": "TRIGGER"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "scheduled_events",
+      "is_grantable": "NO",
+      "privilege_type": "TRUNCATE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "scheduled_events",
+      "is_grantable": "NO",
+      "privilege_type": "UPDATE"
+    },
+    {
       "grantee": "anon",
       "grantor": "postgres",
       "table_name": "settings",
@@ -9169,6 +9439,12 @@
       "rls": true,
       "owner": "postgres",
       "table": "recipes",
+      "force_rls": false
+    },
+    {
+      "rls": true,
+      "owner": "postgres",
+      "table": "scheduled_events",
       "force_rls": false
     },
     {

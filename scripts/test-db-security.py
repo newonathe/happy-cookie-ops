@@ -20,7 +20,8 @@ ORDER_MIGRATIONS = [ROOT / 'supabase/migrations/20260101003500_place_order.sql',
                     ROOT / 'supabase/migrations/20260101003700_staff_orders.sql',
                     ROOT / 'supabase/migrations/20260101003800_shop_status.sql',
                     ROOT / 'supabase/migrations/20260101003900_staff_orders_review.sql',
-                    ROOT / 'supabase/migrations/20260101004000_order_extras.sql']
+                    ROOT / 'supabase/migrations/20260101004000_order_extras.sql',
+                    ROOT / 'supabase/migrations/20260101004100_scheduled_events.sql']
 _OUT = 'order outcome differs: anon / '
 _CHK = 'order check differs: anon / '
 _LOOK = 'lookup check differs: anon / '
@@ -209,10 +210,30 @@ EXTRAS_TABLE_MUTATIONS = {
     'boxes_table_select': ('grant select on public.order_boxes to anon;', _EXO + 'boxes_table_select / '),
 }
 
+# D4: the owner's scheduled bazaar events (scheduled-events.sql), acting on the last migration that defines each function.
+_SC = 'scheduled outcome differs: active_owner / '
+SCHEDULED_MUTATIONS = {
+    'rule_sched_keys': ('save_scheduled_event', 'rule', 'keys', _SC + 'save_keys_missing / '),
+    'rule_sched_text': ('save_scheduled_event', 'rule', 'text', _SC + 'save_name_blank / '),
+    'rule_sched_dates': ('save_scheduled_event', 'rule', 'dates', _SC + 'save_ends_before_start / '),
+    'rule_sched_rent': ('save_scheduled_event', 'rule', 'rent', _SC + 'save_rent_negative / '),
+    'rule_sched_create_stamp': ('save_scheduled_event', 'rule', 'create-stamp', _SC + 'create_with_stamp_unknown / '),
+    'rule_sched_replay': ('save_scheduled_event', 'rule', 'replay', _SC + 'create_replay / '),
+    'rule_sched_stale': ('save_scheduled_event', 'rule', 'stale', _SC + 'change_stale / '),
+    'rule_sched_link_missing': ('link_scheduled_event', 'rule', 'link-missing', _SC + 'link_booking_missing / '),
+    'rule_sched_link_event': ('link_scheduled_event', 'rule', 'link-event', _SC + 'link_event_missing / '),
+    'rule_sched_link_conflict': ('link_scheduled_event', 'rule', 'link-conflict', _SC + 'link_other_event / '),
+    'rule_sched_link_inactive': ('link_scheduled_event', 'rule', 'link-inactive', _SC + 'link_inactive / '),
+}
+SCHEDULED_TABLE_MUTATIONS = {
+    'scheduled_table_select': ('grant select on public.scheduled_events to anon;',
+                               'scheduled outcome differs: anon / scheduled_table_select / '),
+}
+
 
 def order_mutant(name):
     """The migration's one function, changed in exactly one place, as SQL to run inside the suite."""
-    function, kind, argument, _ = (ORDER_MUTATIONS | LOOKUP_MUTATIONS | STAFF_MUTATIONS | SHOP_MUTATIONS | EXTRAS_MUTATIONS)[name]
+    function, kind, argument, _ = (ORDER_MUTATIONS | LOOKUP_MUTATIONS | STAFF_MUTATIONS | SHOP_MUTATIONS | EXTRAS_MUTATIONS | SCHEDULED_MUTATIONS)[name]
     marker = 'create or replace function public.' + function + '('
     text = [m.read_text(encoding='utf-8') for m in ORDER_MIGRATIONS if marker in m.read_text(encoding='utf-8')][-1]
     start = text.index('create or replace function public.' + function + '(')
@@ -258,6 +279,8 @@ SUITES = (
     ('shop-state.sql', ('set_shop_override(text)',) + tuple(SHOP_MUTATIONS), 'forbidden shop state call succeeded', 29),
     ('order-extras.sql', ('get_order_extras()', 'save_order_extras(jsonb,timestamptz)')
                          + tuple(EXTRAS_MUTATIONS) + tuple(EXTRAS_TABLE_MUTATIONS), 'forbidden extras call succeeded', 143),
+    ('scheduled-events.sql', ('get_scheduled_events()', 'save_scheduled_event(jsonb,timestamptz)', 'link_scheduled_event(uuid,uuid)')
+                             + tuple(SCHEDULED_MUTATIONS) + tuple(SCHEDULED_TABLE_MUTATIONS), 'forbidden scheduled call succeeded', 65),
     ('bazaar-closeout.sql', ('event_summary(uuid)', 'load_event_stock(uuid,jsonb,bigint)', 'add_event_expense(jsonb)', 'close_event(jsonb)'), 'forbidden closeout call succeeded', 80),
 )
 CATALOG_GUARD_SQL = """
@@ -295,7 +318,7 @@ PAYMENT_MUTATIONS = {
 REPORT = ROOT / "docs/state/evidence/MP-06l-security.json"
 EMPTY_FIXTURES = 'select ' + ' and '.join(
     'not exists(select 1 from public.' + table + ')'
-    for table in ('orders', 'order_items', 'products', 'drops', 'settings', 'rate_limits', 'profiles', 'audit_log', 'ledger_entries', 'event_sales', 'event_sale_items', 'inventory_items', 'bake_batches', 'recipes', 'recipe_ingredients', 'suppliers', 'supplier_prices', 'events', 'erasure_requests', 'payment_methods', 'shop_texts', 'waitlist_entries', 'order_add_ons', 'order_boxes')) + " and not exists(select 1 from auth.users) and to_regnamespace('mp06f_probe') is null and to_regnamespace('mp06g_probe') is null and to_regclass('public.mp06g_future') is null and to_regclass('public.mp06g_future_id_seq') is null;"
+    for table in ('orders', 'order_items', 'products', 'drops', 'settings', 'rate_limits', 'profiles', 'audit_log', 'ledger_entries', 'event_sales', 'event_sale_items', 'inventory_items', 'bake_batches', 'recipes', 'recipe_ingredients', 'suppliers', 'supplier_prices', 'events', 'erasure_requests', 'payment_methods', 'shop_texts', 'waitlist_entries', 'order_add_ons', 'order_boxes', 'scheduled_events')) + " and not exists(select 1 from auth.users) and to_regnamespace('mp06f_probe') is null and to_regnamespace('mp06g_probe') is null and to_regclass('public.mp06g_future') is null and to_regclass('public.mp06g_future_id_seq') is null;"
 
 
 def main():
@@ -390,6 +413,13 @@ def main():
                         expected_error = STAFF_MUTATIONS[signature][3]
                     elif signature in STAFF_TABLE_MUTATIONS:
                         unsafe, expected_error = STAFF_TABLE_MUTATIONS[signature]
+                        broken = sql.replace('begin;', 'begin;' + chr(10) + unsafe, 1)
+                if filename == 'scheduled-events.sql':
+                    if signature in SCHEDULED_MUTATIONS:
+                        broken = sql.replace('begin;', 'begin;' + chr(10) + order_mutant(signature), 1)
+                        expected_error = SCHEDULED_MUTATIONS[signature][3]
+                    elif signature in SCHEDULED_TABLE_MUTATIONS:
+                        unsafe, expected_error = SCHEDULED_TABLE_MUTATIONS[signature]
                         broken = sql.replace('begin;', 'begin;' + chr(10) + unsafe, 1)
                 if filename == 'order-extras.sql':
                     if signature in EXTRAS_MUTATIONS:
@@ -488,7 +518,7 @@ def main():
                 h.fail(filename + ' did not return its complete role matrix')
             results.extend(rows)
             assert_empty()
-        if len(set(results)) != 1318:
+        if len(set(results)) != 1383:
             h.fail('combined role matrix has missing or duplicate cases: %d rows, %d unique (duplicates: %s)' % (len(results), len(set(results)), sorted({r for r in results if results.count(r) > 1})[:5]))
         assert_functions()
         assert_catalog_wide()
@@ -501,10 +531,10 @@ def main():
     try:
         code = h.main(after_reset=check)
         if (code == 0 and len(report["runs"]) == 2 and report["runs"][0] == report["runs"][1]
-                and len(report['regressions_detected']) == 334 and report['sequence_restorations'] == 10
+                and len(report['regressions_detected']) == 364 and report['sequence_restorations'] == 10
                 and report['upgrade_runs'] == 2 and report['function_guard_runs'] == 4
                 and report['catalog_guard_runs'] == 4 and report['catalog_guard_red_runs'] == 4):
-            report.update(status="passed", cases_per_reset=1318, resets=2, matrix_equal=True, rollback_verified=True,
+            report.update(status="passed", cases_per_reset=1383, resets=2, matrix_equal=True, rollback_verified=True,
                           sql_sha256={name: hashlib.sha256((ROOT / 'tests/integration/security' / name).read_bytes()).hexdigest() for name, _, _, _ in SUITES},
                           harness_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
     except (RuntimeError, OSError, ValueError) as error:

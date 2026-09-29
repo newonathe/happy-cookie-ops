@@ -1118,6 +1118,50 @@ export type Database = {
           },
         ]
       }
+      scheduled_events: {
+        Row: {
+          active: boolean
+          ends_on: string
+          event_id: string | null
+          id: string
+          name: string
+          place: string
+          rent_cents: number
+          starts_on: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          ends_on: string
+          event_id?: string | null
+          id: string
+          name: string
+          place?: string
+          rent_cents?: number
+          starts_on: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          ends_on?: string
+          event_id?: string | null
+          id?: string
+          name?: string
+          place?: string
+          rent_cents?: number
+          starts_on?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scheduled_events_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       settings: {
         Row: {
           cents_value: number | null
@@ -1598,6 +1642,7 @@ export type Database = {
           updated_at: string
         }[]
       }
+      get_scheduled_events: { Args: never; Returns: Json }
       get_settings: {
         Args: never
         Returns: {
@@ -1622,6 +1667,12 @@ export type Database = {
         Returns: {
           replayed: boolean
           waitlist_id: string
+        }[]
+      }
+      link_scheduled_event: {
+        Args: { p_event: string; p_scheduled: string }
+        Returns: {
+          first_link: boolean
         }[]
       }
       load_event_stock: {
@@ -1707,6 +1758,13 @@ export type Database = {
       }
       save_payment_method: {
         Args: { p_expected_updated_at: string; p_id: string; p_method: Json }
+        Returns: {
+          id: string
+          updated_at: string
+        }[]
+      }
+      save_scheduled_event: {
+        Args: { p_event: Json; p_expected_updated_at: string }
         Returns: {
           id: string
           updated_at: string

@@ -1,8 +1,8 @@
 {
   "status": "passed",
   "scope": "explicit-connection CLI reset on disposable loopback PostgreSQL; not managed --local or auth/RLS acceptance",
-  "project_id": "hcb-6abbb5ff-746fff",
-  "workdir": "C:\\Users\\ethan\\dev\\.hcb-bootstrap-6abbb5ff-746fff",
+  "project_id": "hcb-6abbf19d-df3acb",
+  "workdir": "C:\\Users\\ethan\\dev\\.hcb-bootstrap-6abbf19d-df3acb",
   "cleanup": "passed",
   "resets": 2,
   "harness_sha256": "a47a91d38c71ffbf52a14e597836fdfdbd1d22a3408f5c151f2b35b25459c963",
@@ -14,7 +14,7 @@
         "5432/tcp": [
           {
             "HostIp": "127.0.0.1",
-            "HostPort": "48756"
+            "HostPort": "48716"
           }
         ]
       }
@@ -25,7 +25,7 @@
         "5432/tcp": [
           {
             "HostIp": "127.0.0.1",
-            "HostPort": "48756"
+            "HostPort": "48716"
           }
         ]
       }
@@ -36,7 +36,7 @@
         "5432/tcp": [
           {
             "HostIp": "127.0.0.1",
-            "HostPort": "48756"
+            "HostPort": "48716"
           }
         ]
       }
@@ -47,7 +47,7 @@
         "5432/tcp": [
           {
             "HostIp": "127.0.0.1",
-            "HostPort": "48756"
+            "HostPort": "48716"
           }
         ]
       }
@@ -58,7 +58,7 @@
         "5432/tcp": [
           {
             "HostIp": "127.0.0.1",
-            "HostPort": "48756"
+            "HostPort": "48716"
           }
         ]
       }
@@ -69,7 +69,7 @@
         "5432/tcp": [
           {
             "HostIp": "127.0.0.1",
-            "HostPort": "48756"
+            "HostPort": "48716"
           }
         ]
       }
@@ -80,7 +80,7 @@
         "5432/tcp": [
           {
             "HostIp": "127.0.0.1",
-            "HostPort": "48756"
+            "HostPort": "48716"
           }
         ]
       }
@@ -91,7 +91,7 @@
         "5432/tcp": [
           {
             "HostIp": "127.0.0.1",
-            "HostPort": "48756"
+            "HostPort": "48716"
           }
         ]
       }
@@ -138,13 +138,14 @@
     "20260101003700_staff_orders.sql": "1fe40450b1f604a5ee528f913a4cd171e7613e547161608c737b9f38345940a0",
     "20260101003800_shop_status.sql": "965d5134d4b253172eac0de62d73637e49a5d9d95077b9b1e7f092a7e4330818",
     "20260101003900_staff_orders_review.sql": "d8ba97de27f5076c59868cc4087ee9e6237696ca65ab26c68178539daf466ede",
-    "20260101004000_order_extras.sql": "352dd437458b45619cde45414a266ee3a7a63c06fb6554193c998e9280137565"
+    "20260101004000_order_extras.sql": "352dd437458b45619cde45414a266ee3a7a63c06fb6554193c998e9280137565",
+    "20260101004100_scheduled_events.sql": "73ba0aec62ba5a7d7eeb34306504686618e24fadfc16bcf3dc82d46f456c1424"
   },
   "database_image": "sha256:af083ef64d0408c8f098ee6f5c364a59b26f36fbc0f3a334a62c5c1d57362e9b",
   "postgres_version_num": "150008",
   "cli_version": "2.116.0",
-  "loopback_port": 48756,
-  "container_id": "c1c79f7b975e4d450f3bfae5e54a5d8a341c296b437c7164e8135b1c15b953d7",
+  "loopback_port": 48716,
+  "container_id": "1387f12709966926afd16217790f02700375309b246d6c33d5d93121fca60aa0",
   "expected_versions": [
     "20260101000000",
     "20260101000100",
@@ -186,7 +187,8 @@
     "20260101003700",
     "20260101003800",
     "20260101003900",
-    "20260101004000"
+    "20260101004000",
+    "20260101004100"
   ],
   "catalog": [
     "function\tadd_event_expense(p_expense jsonb)\tTABLE(client_id text, duplicate boolean)",
@@ -212,6 +214,7 @@
     "function\tget_order_extras()\tjsonb",
     "function\tget_order_rules()\tTABLE(unpaid_hold_hours integer, max_unpaid_per_phone integer, pickup_days integer[], lead_min_days integer, lead_max_days integer, pickup_from_hour integer, pickup_cutoff_hour integer, campus_from text, campus_to text, updated_at timestamp with time zone)",
     "function\tget_payment_methods()\tTABLE(id text, label text, account_number text, account_name text, qr_path text, active boolean, sort_order integer, updated_at timestamp with time zone)",
+    "function\tget_scheduled_events()\tjsonb",
     "function\tget_settings()\tTABLE(key text, int_value bigint, text_value text, cents_value bigint, json_value jsonb, is_default boolean, updated_at timestamp with time zone)",
     "function\tget_shop_extras()\tjsonb",
     "function\tget_shop_order_rules()\tjsonb",
@@ -221,6 +224,7 @@
     "function\tis_owner()\tboolean",
     "function\tis_staff()\tboolean",
     "function\tjoin_waitlist(p_entry jsonb)\tTABLE(waitlist_id uuid, replayed boolean)",
+    "function\tlink_scheduled_event(p_scheduled uuid, p_event uuid)\tTABLE(first_link boolean)",
     "function\tload_event_stock(p_event uuid, p_loaded jsonb, p_float_cents bigint)\tTABLE(event_id uuid, opened_at timestamp with time zone, float_cents bigint, loaded jsonb)",
     "function\tlookup_order(p_order_id text, p_phone text)\tTABLE(id text, customer_name text, state order_state, pay_state pay_state, total_cents bigint, pickup_at timestamp with time zone, placed_at timestamp with time zone)",
     "function\torder_holds_capacity(p_state order_state, p_pay pay_state, p_placed_at timestamp with time zone, p_now timestamp with time zone, p_hold_hours integer)\tboolean",
@@ -234,6 +238,7 @@
     "function\tsave_order_extras(p_extras jsonb, p_expected_updated_at timestamp with time zone)\tTABLE(updated_at timestamp with time zone)",
     "function\tsave_order_rules(p_rules jsonb, p_expected_updated_at timestamp with time zone)\tTABLE(updated_at timestamp with time zone)",
     "function\tsave_payment_method(p_id text, p_method jsonb, p_expected_updated_at timestamp with time zone)\tTABLE(id text, updated_at timestamp with time zone)",
+    "function\tsave_scheduled_event(p_event jsonb, p_expected_updated_at timestamp with time zone)\tTABLE(id uuid, updated_at timestamp with time zone)",
     "function\tsave_setting(p_key text, p_value jsonb, p_expected_updated_at timestamp with time zone)\tTABLE(key text, updated_at timestamp with time zone)",
     "function\tsave_shop_texts(p_texts jsonb, p_expected_updated_at timestamp with time zone)\tTABLE(updated_at timestamp with time zone)",
     "function\tset_event_device(p_event uuid, p_device text)\ttext",
@@ -296,6 +301,7 @@
     "migration\t20260101003800\tapplied",
     "migration\t20260101003900\tapplied",
     "migration\t20260101004000\tapplied",
+    "migration\t20260101004100\tapplied",
     "settings_defaults\tsettings_effective\t28",
     "settings_overrides\tsettings\t0",
     "table_rows\taudit_log\t0",
@@ -322,6 +328,7 @@
     "table_rows\trate_limits\t0",
     "table_rows\trecipe_ingredients\t0",
     "table_rows\trecipes\t0",
+    "table_rows\tscheduled_events\t0",
     "table_rows\tsettings\t0",
     "table_rows\tshop_state\t1",
     "table_rows\tshop_texts\t0",
@@ -329,9 +336,9 @@
     "table_rows\tsuppliers\t0",
     "table_rows\twaitlist_entries\t0"
   ],
-  "catalog_sha256": "be7a81015cde93cb0f4d6c483e9bb54a4edf61c2aea9d7cfd38d00715c37c2db",
+  "catalog_sha256": "17871d741313e05a76ca1bd0f0a1b28602562a89639d47bd7ca2619ed24f85c4",
   "catalogs_equal": true,
-  "schema_sha256": "ba4911b97174fe4741c20aafe1fded53ab6a488e70bcddba8b0a1579bfbf465e",
+  "schema_sha256": "e9134b3e4b2e319bcc9edfedd49c4732f6b72788a590bea4c7570ed5c2d97ba3",
   "schemas_equal": true,
   "sentinel_removed": true
 }
