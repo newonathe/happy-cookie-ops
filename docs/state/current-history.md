@@ -4,6 +4,40 @@ Every checkpoint up to 2026-09-28, verbatim and newest first. Moved here from `c
 session reads only the short status in [current.md](current.md). Add nothing here by hand; move a checkpoint here
 when it leaves `current.md`.
 
+## Checkpoint - 2026-09-30 (A3)
+
+- **2026-09-30 (A3, finish-plan slice A3):** the owner's stock items, suppliers and supplier prices. Two commits (`3cd8770` database, `7582680` app).
+  - **Database:** the tables already existed (`suppliers`, `inventory_items`, `supplier_prices`); migration `20260101004300` adds `active` and
+    stamps and four owner-only RPCs: `get_stock_catalogue`, `save_supplier`, `save_stock_item`, `save_supplier_price` (exact keys, bounds,
+    case-insensitive unique names, stale stamp `P0002`, replay-safe creates; a changed price pushes the old one onto a three-deep "was" history; an
+    item with prices or recipes cannot be renamed; quantity on hand is never written, that is C1). The legacy direct INSERT/UPDATE/DELETE grants on
+    the three tables are revoked (as B3 did for orders): every write is validated. `trigger-authority.sql` now proves the inventory timestamp
+    trigger as `service_role`; the private-read regression now expects the read failure. New suite `stock-catalogue.sql` (138 cases, 29 rule
+    regressions, one table regression).
+  - **App (live mode, no protected markup or engine edit):** the owner's items become the inventory rows (state); suppliers, pack sizes and best
+    buys reach the ported suppliers, grocery and cost screens by refilling the engine's exported `SUPPLIERS`, `PACK_SIZE` and `BEST_BUY` in place
+    (`src/lib/data/engine-catalogue.ts`; `OPTIONS_FOR` reads `SUPPLIERS` when called). Demo mode gets the prototype's own values back; live mode
+    starts with none, and an empty supplier list shows one "No suppliers yet" tab because the engine's `adminVals` reads `SUPPLIERS[0]`. Two forms
+    under All tools: "Stock items" (list, edit, add) and "Suppliers & prices" (list; a supplier's details and a row per price plus a blank one; the
+    supplier is saved first, then each changed price with its own stamp; stops at the first failure). The ported "Add item" and "Remove" go to the
+    database (an item is switched off, never deleted); a stock count says it is not kept (C1).
+  - **Opus review:** SAFE TO MERGE, nothing critical. Fixed: a price create whose reply was lost could be overwritten by the next save (fresh id),
+    quantities changed on the screen were wiped by the reload after a save (kept), a rename and a price create now share one lock order, refusal
+    copy. **Recorded, not fixed:** (1) two suppliers selling one item in different pack sizes give a wrong best buy, cost and grocery estimate,
+    because a price carries no pack size of its own (the form says so; fix: a `pack_size` on the price, before real data is entered). (2) The
+    quantity on hand is 0 for every item until the stock ledger (C1) exists; receiving, waste, bake use and counts still change only the screen
+    (a reload after they were entered keeps them, a full page reload loses them). (3) Names stay taken after an item is switched off. (4) A
+    demotion without a reload leaves the catalogue in memory (theoretical). (5) The one-time import script is not written: Cine's workbook layout
+    is not in the repo, so it belongs with the cutover (finish-plan section 9). (6) A 70-item list is one long scroll: a search box is the next
+    step. (7) Only one table grant regression is restored in the SQL harness (RLS blocks the others with the same SQLSTATE).
+  - **Evidence:** `pnpm verify` 64 files / 1222 tests; G0 validator passes; port integrity OK (54 files); Python guards OK; SQL role suite 1525
+    cases per reset, 2 resets, 436 deliberate regressions detected; `pnpm build`, `test:pages:spike`, `test:workers:spike` pass; `pnpm test:e2e`
+    89 / 1 (OFFLINE-01 WebKit) / 75; `test:live:checkout` 11 steps. Mutations: 27 on the first version (26 caught, 1 fixed by a new test) and 3
+    on the review fixes, all caught. **Visual QA in the browser pane** (live-mode build, local owner, the seeded demo catalogue as data): the
+    inventory, grocery and the ported suppliers screens read the database (a price edit shows "Before: ₱420, ₱438, ₱445"), the Stock items list
+    and edit form (low-stock level 300 to 350 saved), the Suppliers & prices list and edit form (butter ₱420 to ₱430 saved, history kept).
+    Not looked at: a phone-width pass of the two forms, and the ported "Add stock" sheet end to end.
+
 ## Checkpoint - 2026-09-30 (D4)
 
 - **2026-09-30 (D4, finish-plan slice D4):** Cine's upcoming bazaars. Two commits (`d5536d9` database, then the app half and the review fix).

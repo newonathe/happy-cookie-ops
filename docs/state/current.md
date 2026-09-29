@@ -20,6 +20,8 @@ Short status, read at the start of every session. Keep it to one screen.
   - MP-09 c1: flavours on the database.
   - MP-09 c1b: prices save, `publish_flavours`, and the live shop shows only the published menu.
   - MP-09 c1c (F3, slice A1): the owner's flavour editor and "Publish menu" button, live mode only.
+- **A4 is done locally (2026-09-30):** Cine's recipes (yield, lines, versions) on the database and on the recipes and cost screens; a save makes a new
+  version and keeps the old one.
 - **A3 is done locally (2026-09-30):** Cine's stock items, suppliers and supplier prices on the database and on the inventory, grocery and
   suppliers screens, with two owner forms (quantities stay 0 until the stock ledger, C1).
 - **D4 is done locally (2026-09-30):** Cine's real bazaar bookings (name, dates, place, rent) in an owner form; the Bazaar screen lists
@@ -44,9 +46,9 @@ Short status, read at the start of every session. Keep it to one screen.
 - **Cine's inputs arrived 2026-09-28** and were analysed in [finish-plan.md](finish-plan.md) sections 2 and 4 and
   [apps-script-audit.md](apps-script-audit.md): the workbook, the September form, the payment image, the October
   menu, recipes and packaging, and the Apps Script. The files stay outside the repo; `Appscript/` is git-ignored.
-- **Baseline (2026-09-30, at A3 close):**
-  - `pnpm typecheck` clean; `pnpm verify` 64 files / 1222 tests; port integrity OK, 54 files; G0 validator 1217 checks, 0 failures;
-  - SQL role suite: 1525 cases per reset, 2 resets, 436 deliberate regressions detected in all; Python guards: 63 OK; migrations: 44; public functions: 73;
+- **Baseline (2026-09-30, at A4 close):**
+  - `pnpm typecheck` clean; `pnpm verify` 66 files / 1259 tests; port integrity OK, 54 files; G0 validator 1217 checks, 0 failures;
+  - SQL role suite: 1608 cases per reset, 2 resets, 470 deliberate regressions detected in all; Python guards: 63 OK; migrations: 46; public functions: 75;
   - `pnpm test:e2e`: 89 passed / 1 failed (WebKit OFFLINE-01) / 75 skipped, run with no Supabase variables (unchanged). Passing the local-stack variables at run time to `next start` makes its middleware send staff routes to sign-in, so do not.
   - `pnpm test:live:checkout`: 11 steps pass (needs `pnpm db:reset`; keys from `pnpm exec supabase status -o env`, the bare `supabase` binary is not on PATH).
 - **Known red:** OFFLINE-01 on WebKit only; `format:check` and E2E on CI `main`. No merge to `main` until they are green.
@@ -60,34 +62,31 @@ Short status, read at the start of every session. Keep it to one screen.
 
 ## Latest checkpoint (replace each slice; move the old one to current-history.md)
 
-- **2026-09-30 (A3, finish-plan slice A3):** the owner's stock items, suppliers and supplier prices. Two commits (`3cd8770` database, `7582680` app).
-  - **Database:** the tables already existed (`suppliers`, `inventory_items`, `supplier_prices`); migration `20260101004300` adds `active` and
-    stamps and four owner-only RPCs: `get_stock_catalogue`, `save_supplier`, `save_stock_item`, `save_supplier_price` (exact keys, bounds,
-    case-insensitive unique names, stale stamp `P0002`, replay-safe creates; a changed price pushes the old one onto a three-deep "was" history; an
-    item with prices or recipes cannot be renamed; quantity on hand is never written, that is C1). The legacy direct INSERT/UPDATE/DELETE grants on
-    the three tables are revoked (as B3 did for orders): every write is validated. `trigger-authority.sql` now proves the inventory timestamp
-    trigger as `service_role`; the private-read regression now expects the read failure. New suite `stock-catalogue.sql` (138 cases, 29 rule
-    regressions, one table regression).
-  - **App (live mode, no protected markup or engine edit):** the owner's items become the inventory rows (state); suppliers, pack sizes and best
-    buys reach the ported suppliers, grocery and cost screens by refilling the engine's exported `SUPPLIERS`, `PACK_SIZE` and `BEST_BUY` in place
-    (`src/lib/data/engine-catalogue.ts`; `OPTIONS_FOR` reads `SUPPLIERS` when called). Demo mode gets the prototype's own values back; live mode
-    starts with none, and an empty supplier list shows one "No suppliers yet" tab because the engine's `adminVals` reads `SUPPLIERS[0]`. Two forms
-    under All tools: "Stock items" (list, edit, add) and "Suppliers & prices" (list; a supplier's details and a row per price plus a blank one; the
-    supplier is saved first, then each changed price with its own stamp; stops at the first failure). The ported "Add item" and "Remove" go to the
-    database (an item is switched off, never deleted); a stock count says it is not kept (C1).
-  - **Opus review:** SAFE TO MERGE, nothing critical. Fixed: a price create whose reply was lost could be overwritten by the next save (fresh id),
-    quantities changed on the screen were wiped by the reload after a save (kept), a rename and a price create now share one lock order, refusal
-    copy. **Recorded, not fixed:** (1) two suppliers selling one item in different pack sizes give a wrong best buy, cost and grocery estimate,
-    because a price carries no pack size of its own (the form says so; fix: a `pack_size` on the price, before real data is entered). (2) The
-    quantity on hand is 0 for every item until the stock ledger (C1) exists; receiving, waste, bake use and counts still change only the screen
-    (a reload after they were entered keeps them, a full page reload loses them). (3) Names stay taken after an item is switched off. (4) A
-    demotion without a reload leaves the catalogue in memory (theoretical). (5) The one-time import script is not written: Cine's workbook layout
-    is not in the repo, so it belongs with the cutover (finish-plan section 9). (6) A 70-item list is one long scroll: a search box is the next
-    step. (7) Only one table grant regression is restored in the SQL harness (RLS blocks the others with the same SQLSTATE).
-  - **Evidence:** `pnpm verify` 64 files / 1222 tests; G0 validator passes; port integrity OK (54 files); Python guards OK; SQL role suite 1525
-    cases per reset, 2 resets, 436 deliberate regressions detected; `pnpm build`, `test:pages:spike`, `test:workers:spike` pass; `pnpm test:e2e`
-    89 / 1 (OFFLINE-01 WebKit) / 75; `test:live:checkout` 11 steps. Mutations: 27 on the first version (26 caught, 1 fixed by a new test) and 3
-    on the review fixes, all caught. **Visual QA in the browser pane** (live-mode build, local owner, the seeded demo catalogue as data): the
-    inventory, grocery and the ported suppliers screens read the database (a price edit shows "Before: ₱420, ₱438, ₱445"), the Stock items list
-    and edit form (low-stock level 300 to 350 saved), the Suppliers & prices list and edit form (butter ₱420 to ₱430 saved, history kept).
-    Not looked at: a phone-width pass of the two forms, and the ported "Add stock" sheet end to end.
+- **2026-09-30 (A4, finish-plan slice A4):** the owner's recipes with versions. Three commits (`9432dda` database, `1ff31fb` app and review fixes; the docs are the third).
+  - **Database:** `recipes` gets a version and stamp, `recipe_ingredients` an order, and `recipe_versions` keeps what each save replaced. Owner-only
+    `get_recipes` and `save_recipe` (exact keys; a yield of 1 to 10000; up to 80 lines, each a name, an exact quantity of 0.001 to 999,999 with at most
+    3 decimals, and g, ml or pcs; no ingredient twice; a line for a stock item must be in that item's unit, names compared ignoring case; stale stamp
+    `P0002`; a create is replay-safe; a save with nothing new answers without a new version). Legacy direct writes on the recipe tables are revoked.
+    Migration `20260101004500` redefines `save_stock_item` so an item a recipe uses keeps its unit (found by the review: a unit change would have
+    locked the recipe and put the cost out by the ratio). New suite `recipes.sql` (80 cases, 13 rule regressions), `stock-catalogue.sql` +3.
+  - **App (live mode, no protected markup or engine edit; the recipes are state-based, so no engine constant needed refilling):** the owner's recipes fill
+    `state.recipes`, `recipeBase`, `recipeVer` and `recipeHistory` for each flavour on the menu; a flavour with no recipe gets an empty one, never the
+    prototype's six (also at start-up, after a reset, and for a helper). The ported "Save as new version" calls `save_recipe`; the screen then shows
+    the version the database made, the versions it replaced, and the cost per cookie from the A3 prices. The blank-name warning, the local checks and
+    the wording of a refusal, a lost connection and a conflict are new PLACEHOLDER copy (`RECIPE_COPY`).
+  - **Opus review** (database SAFE; the app half was BLOCKED until fixed): an edit was saved against the newest stamp read, not the one it started on, so
+    a newer version made elsewhere could be overwritten with no warning; typed text before the first read landed on an empty placeholder and took the
+    real stamp; a reset with no recipes read brought the prototype's six back; a save's answer was thrown away, so a failed read-back could make the
+    next save a false conflict that discarded the edit; overlapping reads could bring back an older stamp. All fixed with tests; a conflict shows the
+    other version (the replaced lines stay in `recipe_versions`).
+  - **Recorded, not fixed:** (1) the history list shows counts, not the old lines, and there is no restore, although the database keeps every version.
+    (2) Batch counts ("baked on this version") read nothing until batches are loaded (C2). (3) The seeded demo recipe lines all sit at position 0, so
+    their order is arbitrary until first saved. (4) Item units are free text (A3) but a recipe unit is g, ml or pcs: an ingredient in kg cannot be
+    recipe-measured (the form's hint says g, ml, pcs). (5) The import for her current menu is not written: her workbook layout belongs with the cutover
+    (finish-plan section 9). (6) A conflict discards the local edit (their version shows). (7) Wording is PLACEHOLDER.
+  - **Evidence:** `pnpm verify` 66 files / 1259 tests; G0 validator passes; port integrity OK (54 files); Python guards OK; SQL role suite 1608 cases per
+    reset, 2 resets, 470 deliberate regressions detected; `pnpm build`, `test:pages:spike`, `test:workers:spike` pass; `pnpm test:e2e` 89 / 1 (OFFLINE-01
+    WebKit) / 75; `test:live:checkout` 11 steps. Mutations: 18 on the app, all caught bar two equivalent ones, and 9 more on the review fixes, all caught.
+    **Visual QA in the browser pane** (live-mode build, local owner, the seeded recipes as data): the recipes screen from the database (White
+    Chocolate Biscoff, 24 cookies, ₱32.58 per cookie from the A3 prices), an edit and "Save as new version", then "Version 2 - current" with Version 1
+    below it, and the database holding version 2 with version 1's ten lines kept. Not looked at: a phone-width pass, and a recipe for a flavour with none saved.
