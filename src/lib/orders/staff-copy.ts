@@ -71,3 +71,38 @@ export const RULES_COPY = {
   campusTo: 'Campus pickup until (like 15:30)',
   save: 'Save order rules'
 } as const;
+
+/** The boxes and add-ons form (B4). PLACEHOLDER, like the rest of this file. */
+export const EXTRAS_COPY = {
+  title: 'Boxes & add-ons',
+  saved: 'Boxes and add-ons saved.',
+  conflict: 'Someone else changed the boxes and add-ons just now. Showing their version.',
+  refused: 'The boxes and add-ons could not be saved. Check the numbers.',
+  intro:
+    'Everything the September form offered besides flavours. Prices and limits apply to new orders only. Nothing is deleted: switch an item off instead.',
+  sameDay: 'Same-day pickup',
+  sameDayOn: 'Offer same-day pickup',
+  sameDayPercent: 'Same-day extra (percent of the order)',
+  sameDayExtras: 'Also add the extra to add-ons and box charges',
+  sampler: 'Sampler box',
+  samplerNone: 'No sampler box',
+  samplerPick: 'Which item is the sampler (kind set, made under Menu & flavours)',
+  samplerMax: 'Most sampler boxes in one order',
+  boxes: 'Boxes',
+  boxesHelp: 'Cookies that do not fill a box go in bags. A charge of 0 means the box is free.',
+  boxSize: 'Holds (cookies)',
+  boxCharge: 'Charge per box (₱)',
+  addOns: 'Add-ons',
+  addOnsHelp:
+    'Choices are things like the sticker numbers, separated by commas. Give a message label to let the customer write a message.',
+  addOnName: 'Name',
+  addOnPrice: 'Price (₱)',
+  addOnMax: 'Most per order',
+  addOnChoices: 'Choices (comma separated)',
+  addOnMessage: 'Message label (blank for none)',
+  addOnMessageMax: 'Message length',
+  on: 'On',
+  addBox: 'New box size',
+  addAddOn: 'New add-on',
+  save: 'Save boxes & add-ons'
+} as const;

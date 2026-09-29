@@ -46,6 +46,27 @@ export interface LiveOrderRulesFields {
   campusTo: string;
 }
 
+/** The boxes and add-ons form's fields (B4). Money is pesos here; the runtime converts to centavos. */
+export interface LiveOrderExtrasFields {
+  sameDayEnabled: boolean;
+  sameDayPercent: number;
+  sameDayOnExtras: boolean;
+  /** A flavour id of kind `set`, or an empty string for none. */
+  samplerProductId: string;
+  samplerMaxQty: number;
+  boxSizes: Array<{ size: number; chargePesos: number; active: boolean }>;
+  addOns: Array<{
+    id: string;
+    name: string;
+    pricePesos: number;
+    active: boolean;
+    variants: string[];
+    textLabel: string;
+    textMax: number;
+    maxQty: number;
+  }>;
+}
+
 export interface LiveShopTexts {
   registrationBadge: string;
   tinLine: string;
@@ -117,6 +138,15 @@ export interface OpsVals {
     online: boolean;
     rules: LiveOrderRulesFields;
     save: (fields: LiveOrderRulesFields) => void;
+    close: (event?: unknown) => void;
+  } | null;
+  /** Live owner only (B4): the boxes and add-ons form (boxes, add-ons, sampler limit, same-day extra). */
+  liveOrderExtras?: {
+    online: boolean;
+    extras: LiveOrderExtrasFields;
+    /** Items of kind `set` the owner can name as the sampler. */
+    sets: Array<{ id: string; name: string }>;
+    save: (fields: LiveOrderExtrasFields) => void;
     close: (event?: unknown) => void;
   } | null;
   /** Live owner only (B3): the customer messages sheet, on the same form host. */

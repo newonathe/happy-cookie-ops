@@ -19,6 +19,7 @@ import { deviceId } from '@/lib/device';
 import { plural } from '@/store/engine/ops-engine';
 import type {
   LiveFlavourFormFields,
+  LiveOrderExtrasFields,
   LiveOrderRulesFields,
   LivePayFormFields,
   LiveShopTexts,
@@ -29,7 +30,15 @@ import { StaffOrderSync, type StaffOrderClient, type StaffOutcome } from '@/lib/
 import { messagesFor, statusLink } from '@/lib/orders/messages';
 import { fetchShopStatus, saveShopOverride, type ShopOverride, type ShopStatusClient } from '@/lib/data/shop-status';
 import { fetchOrderRules, orderRulesError, saveOrderRules, type OrderRulesRow } from '@/lib/data/order-rules';
-import { MESSAGE_SHEET, RULES_COPY, STAFF_COPY } from '@/lib/orders/staff-copy';
+import {
+  addOnId,
+  fetchOrderExtras,
+  orderExtrasError,
+  saveOrderExtras,
+  type OrderExtras,
+  type OrderExtrasFields
+} from '@/lib/data/order-extras';
+import { EXTRAS_COPY, MESSAGE_SHEET, RULES_COPY, STAFF_COPY } from '@/lib/orders/staff-copy';
 import { OrderFlow } from '@/lib/data/order-flow';
 import { tokenFromHash, type FieldErrors, type OrderClient } from '@/lib/data/orders';
 import { pickupLabel, statusCust } from '@/lib/orders/status-view';
@@ -261,6 +270,7 @@ export class OpsRuntime extends OpsProvider {
   /** The signed-in (or anonymous) browser client the shop status is read and switched through. */
   private shopClient?: ShopStatusClient;
   private rulesRow: OrderRulesRow | null = null;
+  private extrasRow: OrderExtras | null = null;
   private orderFlow?: OrderFlow;
   /** The last fragment this runtime wrote or adopted, so a link pasted into the tab is told apart. */
   private lastHash = '';
@@ -887,6 +897,7 @@ export class OpsRuntime extends OpsProvider {
       liveMessages: this.liveMessagesVals(),
       ...(this.orderSync ? { od: this.liveOrderDetail(starved.od) } : {}),
       liveOrderRules: this.liveOrderRulesVals(),
+      liveOrderExtras: this.liveOrderExtrasVals(),
       cust: this.liveStatusCust(this.livePayCust(starved.cust)),
       openLookup: () => this.openLookupSheet(),
       openWaitlist: () => this.openWaitlist(),
@@ -1100,6 +1111,114 @@ export class OpsRuntime extends OpsProvider {
       this.toast(RULES_COPY.conflict, 'warn');
       await this.openOrderRules();
     } else this.toast(outcome === 'refused' ? RULES_COPY.refused : STAFF_COPY.offline, 'warn');
+  }
+
+  // ------------------------------------------------------------------ B4: the boxes and add-ons form
+
+  private async loadOrderExtras(): Promise<boolean> {
+    if (!this.shopClient) return false;
+    try {
+      this.extrasRow = await fetchOrderExtras(this.shopClient);
+    } catch {
+      this.toast(STAFF_COPY.offline, 'warn');
+      return false;
+    }
+    this.forceUpdate();
+    return this.extrasRow !== null;
+  }
+
+  /** Read fresh first, so the stamp the form saves against is the current one. */
+  private openOrderExtras = async (): Promise<void> => {
+    if (!(await this.loadOrderExtras()) || !this.extrasRow) return;
+    this.sheet('orderextras', { updatedAt: this.extrasRow.updated_at });
+  };
+
+  private liveOrderExtrasVals(): OpsVals['liveOrderExtras'] {
+    const sh = this.state.sheet as FlavourSheetState | null;
+    const x = this.extrasRow;
+    if (this.state.role !== 'owner' || sh?.kind !== 'orderextras' || !x) return null;
+    const sets = (this.flavourSync?.current() ?? [])
+      .filter((r) => r.item_type === 'set')
+      .map((r) => ({ id: r.id, name: r.name }));
+    if (x.sampler_product_id && !sets.some((s) => s.id === x.sampler_product_id))
+      sets.push({ id: x.sampler_product_id, name: x.sampler_product_id });
+    return {
+      online: this.state.online && (typeof navigator === 'undefined' || navigator.onLine),
+      extras: {
+        sameDayEnabled: x.same_day_enabled,
+        sameDayPercent: x.same_day_percent,
+        sameDayOnExtras: x.same_day_on_extras,
+        samplerProductId: x.sampler_product_id ?? '',
+        samplerMaxQty: x.sampler_max_qty,
+        boxSizes: x.box_sizes.map((b) => ({
+          size: b.size,
+          chargePesos: centavosToPesos(b.charge_cents),
+          active: b.active
+        })),
+        addOns: x.add_ons.map((a) => ({
+          id: a.id,
+          name: a.name,
+          pricePesos: centavosToPesos(a.price_cents),
+          active: a.active,
+          variants: [...a.variants],
+          textLabel: a.text_label ?? '',
+          textMax: a.text_max,
+          maxQty: a.max_qty
+        }))
+      },
+      sets,
+      save: (f: LiveOrderExtrasFields) => void this.saveOrderExtrasForm(f, sh.updatedAt ?? null),
+      close: () => this.closeSheet()
+    };
+  }
+
+  private async saveOrderExtrasForm(f: LiveOrderExtrasFields, expectedUpdatedAt: string | null): Promise<void> {
+    const numbers = [
+      f.sameDayPercent,
+      f.samplerMaxQty,
+      ...f.boxSizes.flatMap((b) => [b.size, b.chargePesos]),
+      ...f.addOns.flatMap((a) => [a.pricePesos, a.textMax, a.maxQty])
+    ];
+    if (!numbers.every((n) => Number.isFinite(n))) return void this.toast(EXTRAS_COPY.refused, 'warn');
+    const taken = new Set(f.addOns.map((a) => a.id).filter(Boolean));
+    const fields: OrderExtrasFields = {
+      same_day_enabled: f.sameDayEnabled,
+      same_day_percent: f.sameDayPercent,
+      same_day_on_extras: f.sameDayOnExtras,
+      sampler_product_id: f.samplerProductId === '' ? null : f.samplerProductId,
+      sampler_max_qty: f.samplerMaxQty,
+      box_sizes: f.boxSizes.map((b) => ({
+        size: b.size,
+        charge_cents: pesosToCentavos(b.chargePesos),
+        active: b.active
+      })),
+      add_ons: f.addOns.map((a) => {
+        const id = a.id || addOnId(a.name, taken);
+        taken.add(id);
+        return {
+          id,
+          name: a.name,
+          price_cents: pesosToCentavos(a.pricePesos),
+          active: a.active,
+          variants: a.variants,
+          text_label: a.textLabel.trim() === '' ? null : a.textLabel,
+          text_max: a.textMax,
+          max_qty: a.maxQty
+        };
+      })
+    };
+    const problem = orderExtrasError(fields);
+    if (problem) return void this.toast(problem, 'warn');
+    if (!this.shopClient || !expectedUpdatedAt) return void this.toast(STAFF_COPY.offline, 'warn');
+    const outcome = await saveOrderExtras(this.shopClient, fields, expectedUpdatedAt);
+    if (outcome === 'saved') {
+      this.toast(EXTRAS_COPY.saved);
+      this.closeSheet();
+      await this.loadOrderExtras();
+    } else if (outcome === 'conflict') {
+      this.toast(EXTRAS_COPY.conflict, 'warn');
+      await this.openOrderExtras();
+    } else this.toast(outcome === 'refused' ? EXTRAS_COPY.refused : STAFF_COPY.offline, 'warn');
   }
 
   // ------------------------------------------------------------------ B3: the owner's orders
@@ -1368,6 +1487,13 @@ export class OpsRuntime extends OpsProvider {
               },
               {
                 icon: this.IC.cookie,
+                label: EXTRAS_COPY.title,
+                sub: 'Box sizes, add-ons, the sampler and the same-day extra',
+                badge: null,
+                go: () => void this.openOrderExtras()
+              },
+              {
+                icon: this.IC.cookie,
                 label: MESSAGE_SHEET.title,
                 sub: 'A status link and a text to copy for each open order',
                 badge: null,
@@ -1415,6 +1541,8 @@ export class OpsRuntime extends OpsProvider {
       return { ...sheet, liveForm: true, title: MESSAGE_SHEET.title };
     if (this.state.role === 'owner' && sh?.kind === 'orderrules')
       return { ...sheet, liveForm: true, title: 'Order rules' };
+    if (this.state.role === 'owner' && sh?.kind === 'orderextras')
+      return { ...sheet, liveForm: true, title: EXTRAS_COPY.title };
     if (this.state.role !== 'owner' || sh?.kind !== 'flavours')
       return { ...sheet, liveForm: false };
     const row = sh.pid ? this.flavourSync?.current().find((r) => r.id === sh.pid) : undefined;
