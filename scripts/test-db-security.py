@@ -19,7 +19,8 @@ ORDER_MIGRATIONS = [ROOT / 'supabase/migrations/20260101003500_place_order.sql',
                     ROOT / 'supabase/migrations/20260101003600_order_lookup.sql',
                     ROOT / 'supabase/migrations/20260101003700_staff_orders.sql',
                     ROOT / 'supabase/migrations/20260101003800_shop_status.sql',
-                    ROOT / 'supabase/migrations/20260101003900_staff_orders_review.sql']
+                    ROOT / 'supabase/migrations/20260101003900_staff_orders_review.sql',
+                    ROOT / 'supabase/migrations/20260101004000_order_extras.sql']
 _OUT = 'order outcome differs: anon / '
 _CHK = 'order check differs: anon / '
 _LOOK = 'lookup check differs: anon / '
@@ -160,9 +161,52 @@ ORDER_TABLE_MUTATIONS = {
 }
 
 
+# B4a: boxes, add-ons, the sampler cap and the same-day surcharge (order-extras.sql). The migration is the
+# last one in ORDER_MIGRATIONS that defines each function, so these act on its definitions.
+_EXO = 'extras outcome differs: anon / '
+_EXC = 'extras check differs: anon / '
+EXTRAS_MUTATIONS = {
+    'rule_same_day_off': ('place_order', 'rule', 'same-day-off', _EXO + 'place_same_day_off / '),
+    'rule_same_day_time': ('place_order', 'rule', 'same-day-time', _EXO + 'place_same_day_past_time / '),
+    'rule_sampler_cap': ('place_order', 'rule', 'sampler-cap', _EXO + 'place_sampler_cap / '),
+    'rule_box_size': ('place_order', 'rule', 'box-size', _EXO + 'place_box_size_unknown / '),
+    'rule_box_fit': ('place_order', 'rule', 'box-fit', _EXO + 'place_box_fit / '),
+    'rule_addon_dup': ('place_order', 'rule', 'addon-dup', _EXO + 'place_addon_dup / '),
+    'rule_addon_unknown': ('place_order', 'rule', 'addon-unknown', _EXO + 'place_addon_unknown / '),
+    'rule_addon_variant': ('place_order', 'rule', 'addon-variant', _EXO + 'place_addon_variant_missing / '),
+    'rule_addon_text': ('place_order', 'rule', 'addon-text', _EXO + 'place_addon_text_missing / '),
+    'rule_addon_qty': ('place_order', 'rule', 'addon-qty', _EXO + 'place_addon_qty / '),
+    'text_total_omits_boxes': ('place_order', 'text',
+                               ('v_total := v_total + v_addon_total + v_box_total + v_surcharge;',
+                                'v_total := v_total + v_addon_total + v_surcharge;'), _EXC + 'box_total'),
+    'text_total_omits_addons': ('place_order', 'text',
+                                ('v_total := v_total + v_addon_total + v_box_total + v_surcharge;',
+                                 'v_total := v_total + v_box_total + v_surcharge;'), _EXC + 'addons_total'),
+    'text_surcharge_base': ('place_order', 'text',
+                            ('v_base := v_total + case when v_extras.same_day_on_extras then v_addon_total + v_box_total else 0 end;',
+                             'v_base := v_total;'), _EXC + 'same_day_on_extras_total'),
+    'text_surcharge_rounding': ('place_order', 'text',
+                                ('(v_base * v_extras.same_day_percent + 50) / 100', '(v_base * v_extras.same_day_percent) / 100'),
+                                _EXC + 'same_day_rounding'),
+    'text_status_leaks_note': ('order_status', 'text', ("'variant', a.variant)", "'variant', a.variant, 'note', a.note)"),
+                               _EXC + 'status_hides_note'),
+    'text_erase_keeps_note': ('anonymise_customer', 'text',
+                              ("update order_add_ons a set note = null\n    from orders o\n   where a.order_id = o.id and regexp_replace(o.phone, '\\D', '', 'g') = v_norm and a.note is not null;",
+                               'null;'), 'extras check differs: erased paid order kept the note'),
+    'text_prune_keeps_note': ('prune_personal_data', 'text',
+                              ("update order_add_ons a set note = null\n    from orders o\n   where a.order_id = o.id and o.placed_at < now() - make_interval(days => p_retain_days)\n     and o.phone <> '' and a.note is not null;",
+                               'null;'), 'extras check differs: prune kept the note'),
+}
+EXTRAS_TABLE_MUTATIONS = {
+    'extras_table_select': ('grant select on public.order_extras to anon;', _EXO + 'extras_table_select / '),
+    'add_ons_table_select': ('grant select on public.order_add_ons to anon;', _EXO + 'add_ons_table_select / '),
+    'boxes_table_select': ('grant select on public.order_boxes to anon;', _EXO + 'boxes_table_select / '),
+}
+
+
 def order_mutant(name):
     """The migration's one function, changed in exactly one place, as SQL to run inside the suite."""
-    function, kind, argument, _ = (ORDER_MUTATIONS | LOOKUP_MUTATIONS | STAFF_MUTATIONS | SHOP_MUTATIONS)[name]
+    function, kind, argument, _ = (ORDER_MUTATIONS | LOOKUP_MUTATIONS | STAFF_MUTATIONS | SHOP_MUTATIONS | EXTRAS_MUTATIONS)[name]
     marker = 'create or replace function public.' + function + '('
     text = [m.read_text(encoding='utf-8') for m in ORDER_MIGRATIONS if marker in m.read_text(encoding='utf-8')][-1]
     start = text.index('create or replace function public.' + function + '(')
@@ -206,6 +250,8 @@ SUITES = (
     ('order-lookup.sql', tuple(LOOKUP_MUTATIONS), 'forbidden lookup call succeeded', 24),
     ('staff-orders.sql', STAFF_ACL + tuple(STAFF_MUTATIONS) + tuple(STAFF_TABLE_MUTATIONS), 'forbidden staff order call succeeded', 122),
     ('shop-state.sql', ('set_shop_override(text)',) + tuple(SHOP_MUTATIONS), 'forbidden shop state call succeeded', 29),
+    ('order-extras.sql', ('get_order_extras()', 'save_order_extras(jsonb,timestamptz)')
+                         + tuple(EXTRAS_MUTATIONS) + tuple(EXTRAS_TABLE_MUTATIONS), 'forbidden extras call succeeded', 138),
     ('bazaar-closeout.sql', ('event_summary(uuid)', 'load_event_stock(uuid,jsonb,bigint)', 'add_event_expense(jsonb)', 'close_event(jsonb)'), 'forbidden closeout call succeeded', 80),
 )
 CATALOG_GUARD_SQL = """
@@ -243,7 +289,7 @@ PAYMENT_MUTATIONS = {
 REPORT = ROOT / "docs/state/evidence/MP-06l-security.json"
 EMPTY_FIXTURES = 'select ' + ' and '.join(
     'not exists(select 1 from public.' + table + ')'
-    for table in ('orders', 'order_items', 'products', 'drops', 'settings', 'rate_limits', 'profiles', 'audit_log', 'ledger_entries', 'event_sales', 'event_sale_items', 'inventory_items', 'bake_batches', 'recipes', 'recipe_ingredients', 'suppliers', 'supplier_prices', 'events', 'erasure_requests', 'payment_methods', 'shop_texts', 'waitlist_entries')) + " and not exists(select 1 from auth.users) and to_regnamespace('mp06f_probe') is null and to_regnamespace('mp06g_probe') is null and to_regclass('public.mp06g_future') is null and to_regclass('public.mp06g_future_id_seq') is null;"
+    for table in ('orders', 'order_items', 'products', 'drops', 'settings', 'rate_limits', 'profiles', 'audit_log', 'ledger_entries', 'event_sales', 'event_sale_items', 'inventory_items', 'bake_batches', 'recipes', 'recipe_ingredients', 'suppliers', 'supplier_prices', 'events', 'erasure_requests', 'payment_methods', 'shop_texts', 'waitlist_entries', 'order_add_ons', 'order_boxes')) + " and not exists(select 1 from auth.users) and to_regnamespace('mp06f_probe') is null and to_regnamespace('mp06g_probe') is null and to_regclass('public.mp06g_future') is null and to_regclass('public.mp06g_future_id_seq') is null;"
 
 
 def main():
@@ -339,6 +385,13 @@ def main():
                     elif signature in STAFF_TABLE_MUTATIONS:
                         unsafe, expected_error = STAFF_TABLE_MUTATIONS[signature]
                         broken = sql.replace('begin;', 'begin;' + chr(10) + unsafe, 1)
+                if filename == 'order-extras.sql':
+                    if signature in EXTRAS_MUTATIONS:
+                        broken = sql.replace('begin;', 'begin;' + chr(10) + order_mutant(signature), 1)
+                        expected_error = EXTRAS_MUTATIONS[signature][3]
+                    elif signature in EXTRAS_TABLE_MUTATIONS:
+                        unsafe, expected_error = EXTRAS_TABLE_MUTATIONS[signature]
+                        broken = sql.replace('begin;', 'begin;' + chr(10) + unsafe, 1)
                 if filename == 'shop-state.sql' and signature in SHOP_MUTATIONS:
                     broken = sql.replace('begin;', 'begin;' + chr(10) + order_mutant(signature), 1)
                     expected_error = SHOP_MUTATIONS[signature][3]
@@ -429,7 +482,7 @@ def main():
                 h.fail(filename + ' did not return its complete role matrix')
             results.extend(rows)
             assert_empty()
-        if len(set(results)) != 1175:
+        if len(set(results)) != 1313:
             h.fail('combined role matrix has missing or duplicate cases: %d rows, %d unique (duplicates: %s)' % (len(results), len(set(results)), sorted({r for r in results if results.count(r) > 1})[:5]))
         assert_functions()
         assert_catalog_wide()
@@ -442,10 +495,10 @@ def main():
     try:
         code = h.main(after_reset=check)
         if (code == 0 and len(report["runs"]) == 2 and report["runs"][0] == report["runs"][1]
-                and len(report['regressions_detected']) == 286 and report['sequence_restorations'] == 10
+                and len(report['regressions_detected']) == 330 and report['sequence_restorations'] == 10
                 and report['upgrade_runs'] == 2 and report['function_guard_runs'] == 4
                 and report['catalog_guard_runs'] == 4 and report['catalog_guard_red_runs'] == 4):
-            report.update(status="passed", cases_per_reset=1175, resets=2, matrix_equal=True, rollback_verified=True,
+            report.update(status="passed", cases_per_reset=1313, resets=2, matrix_equal=True, rollback_verified=True,
                           sql_sha256={name: hashlib.sha256((ROOT / 'tests/integration/security' / name).read_bytes()).hexdigest() for name, _, _, _ in SUITES},
                           harness_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
     except (RuntimeError, OSError, ValueError) as error:

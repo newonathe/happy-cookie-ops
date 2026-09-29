@@ -1,5 +1,5 @@
 {
-  "scope": "Reviewed local function-authority drift baseline through B2 database half (get_shop_order_rules, find_order added); B1 (place_order, order_status, join_waitlist, order_holds_capacity, get_order_rules, save_order_rules added; anonymise_customer and prune_personal_data recreated for the new personal data); A2 (payment_methods, shop_texts, get_shop_payment_info added); load_event_stock/add_event_expense/close_event/event_summary added (D2); D1: start_event/set_event_device/record_event_sale/void_event_sale added (D1); MP-09 c1b: publish_flavours added (MP-09 c1b); get_flavours/save_flavour added (MP-09 c1); settings_effective gained three idle-minute defaults, get_settings/save_setting/get_operating_settings added; MP-09 b3 recreated settings_effective/get_settings/get_operating_settings with json_value and replaced save_setting; full capability/domain and hosted acceptance remain open",
+  "scope": "Reviewed local function-authority drift baseline through B4a (get_order_extras, save_order_extras, get_shop_extras added; place_order, order_status, get_staff_orders, anonymise_customer, prune_personal_data redefined for boxes, add-ons and the same-day surcharge); earlier: B2 database half (get_shop_order_rules, find_order added); B1 (place_order, order_status, join_waitlist, order_holds_capacity, get_order_rules, save_order_rules added; anonymise_customer and prune_personal_data recreated for the new personal data); A2 (payment_methods, shop_texts, get_shop_payment_info added); load_event_stock/add_event_expense/close_event/event_summary added (D2); D1: start_event/set_event_device/record_event_sale/void_event_sale added (D1); MP-09 c1b: publish_flavours added (MP-09 c1b); get_flavours/save_flavour added (MP-09 c1); settings_effective gained three idle-minute defaults, get_settings/save_setting/get_operating_settings added; MP-09 b3 recreated settings_effective/get_settings/get_operating_settings with json_value and replaced save_setting; full capability/domain and hosted acceptance remain open",
   "functions": [
     {
       "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
@@ -24,7 +24,7 @@
         "search_path=pg_catalog, public, pg_temp"
       ],
       "returns": "integer",
-      "body_md5": "0825f252a2b6a9014b62cc50140eefee",
+      "body_md5": "9861ac8d6b83de101f033b76d4ad0b54",
       "identity": "p_phone text, p_note text",
       "execute_anon": false,
       "security_definer": true,
@@ -369,7 +369,7 @@
         "search_path=\"\""
       ],
       "returns": "jsonb",
-      "body_md5": "2aff79171e313ed61f97a9f0055b063c",
+      "body_md5": "7e8d09ac4a58a1b988a82b93665b2e27",
       "identity": "p_token text",
       "execute_anon": true,
       "security_definer": true,
@@ -384,7 +384,7 @@
         "search_path=\"\""
       ],
       "returns": "TABLE(order_no text, status_token text, total_cents bigint, pickup_date date, pickup_window text, replayed boolean)",
-      "body_md5": "cefa49b0c381f92e56fab070ec6d3a7f",
+      "body_md5": "28def52f8e751d18d6f16b94218e0ad3",
       "identity": "p_order jsonb",
       "execute_anon": true,
       "security_definer": true,
@@ -399,7 +399,7 @@
         "search_path=pg_catalog, public, pg_temp"
       ],
       "returns": "integer",
-      "body_md5": "aacf53b26c8ef2d429366b9142029691",
+      "body_md5": "15e1f56986d341fcabf8aad10a548f54",
       "identity": "p_retain_days integer",
       "execute_anon": false,
       "security_definer": true,
@@ -909,7 +909,7 @@
         "search_path=\"\""
       ],
       "returns": "jsonb",
-      "body_md5": "a6c5b26262baeeeaac759e2ca1edbad6",
+      "body_md5": "3725d5c06cc0e31e39075655b22d2cfd",
       "identity": "",
       "execute_anon": false,
       "security_definer": true,
@@ -941,6 +941,51 @@
       "returns": "TABLE(updated_at timestamp with time zone)",
       "body_md5": "085c1763b7727f8d1ae4cca14611b9bd",
       "identity": "p_texts jsonb, p_expected_updated_at timestamp with time zone",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "get_order_extras",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "b2848177d8ed550befd139fc882fe008",
+      "identity": "",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{anon=X/postgres,authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "get_shop_extras",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "740df6ca408b760b43772d0e23846126",
+      "identity": "",
+      "execute_anon": true,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "save_order_extras",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(updated_at timestamp with time zone)",
+      "body_md5": "809dceaa4d8581307f56141104d9098d",
+      "identity": "p_extras jsonb, p_expected_updated_at timestamp with time zone",
       "execute_anon": false,
       "security_definer": true,
       "execute_service_role": true,

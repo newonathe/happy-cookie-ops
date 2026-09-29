@@ -532,6 +532,133 @@ export type Database = {
           },
         ]
       }
+      order_add_ons: {
+        Row: {
+          add_on_id: string
+          id: string
+          line_no: number
+          name: string
+          note: string | null
+          order_id: string
+          qty: number
+          unit_price_cents: number
+          variant: string | null
+        }
+        Insert: {
+          add_on_id: string
+          id?: string
+          line_no: number
+          name: string
+          note?: string | null
+          order_id: string
+          qty: number
+          unit_price_cents: number
+          variant?: string | null
+        }
+        Update: {
+          add_on_id?: string
+          id?: string
+          line_no?: number
+          name?: string
+          note?: string | null
+          order_id?: string
+          qty?: number
+          unit_price_cents?: number
+          variant?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_add_ons_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      order_boxes: {
+        Row: {
+          charge_cents: number
+          id: string
+          order_id: string
+          qty: number
+          size: number
+        }
+        Insert: {
+          charge_cents: number
+          id?: string
+          order_id: string
+          qty: number
+          size: number
+        }
+        Update: {
+          charge_cents?: number
+          id?: string
+          order_id?: string
+          qty?: number
+          size?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_boxes_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      order_extras: {
+        Row: {
+          add_ons: Json
+          box_sizes: Json
+          id: boolean
+          same_day_enabled: boolean
+          same_day_on_extras: boolean
+          same_day_percent: number
+          sampler_max_qty: number
+          sampler_product_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          add_ons?: Json
+          box_sizes?: Json
+          id?: boolean
+          same_day_enabled?: boolean
+          same_day_on_extras?: boolean
+          same_day_percent?: number
+          sampler_max_qty?: number
+          sampler_product_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          add_ons?: Json
+          box_sizes?: Json
+          id?: boolean
+          same_day_enabled?: boolean
+          same_day_on_extras?: boolean
+          same_day_percent?: number
+          sampler_max_qty?: number
+          sampler_product_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_extras_sampler_product_id_fkey"
+            columns: ["sampler_product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_extras_sampler_product_id_fkey"
+            columns: ["sampler_product_id"]
+            isOneToOne: false
+            referencedRelation: "shop_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_items: {
         Row: {
           capacity_weight: number
@@ -720,8 +847,10 @@ export type Database = {
           pickup_window: string | null
           placed_at: string
           refund_ref: string | null
+          same_day: boolean
           state: Database["public"]["Enums"]["order_state"]
           status_token: string | null
+          surcharge_cents: number
           total_cents: number
           updated_at: string
         }
@@ -746,8 +875,10 @@ export type Database = {
           pickup_window?: string | null
           placed_at?: string
           refund_ref?: string | null
+          same_day?: boolean
           state?: Database["public"]["Enums"]["order_state"]
           status_token?: string | null
+          surcharge_cents?: number
           total_cents?: number
           updated_at?: string
         }
@@ -772,8 +903,10 @@ export type Database = {
           pickup_window?: string | null
           placed_at?: string
           refund_ref?: string | null
+          same_day?: boolean
           state?: Database["public"]["Enums"]["order_state"]
           status_token?: string | null
+          surcharge_cents?: number
           total_cents?: number
           updated_at?: string
         }
@@ -1436,6 +1569,7 @@ export type Database = {
           updated_at: string
         }[]
       }
+      get_order_extras: { Args: never; Returns: Json }
       get_order_rules: {
         Args: never
         Returns: {
@@ -1476,6 +1610,7 @@ export type Database = {
           updated_at: string
         }[]
       }
+      get_shop_extras: { Args: never; Returns: Json }
       get_shop_order_rules: { Args: never; Returns: Json }
       get_shop_payment_info: { Args: never; Returns: Json }
       get_shop_status: { Args: never; Returns: Json }
@@ -1555,6 +1690,12 @@ export type Database = {
         Args: { p_expected_updated_at: string; p_flavour: Json; p_id: string }
         Returns: {
           id: string
+          updated_at: string
+        }[]
+      }
+      save_order_extras: {
+        Args: { p_expected_updated_at: string; p_extras: Json }
+        Returns: {
           updated_at: string
         }[]
       }

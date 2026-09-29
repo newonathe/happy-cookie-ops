@@ -355,8 +355,8 @@ begin
   perform pg_temp.assert_ok(a, 'status_found', s ->> 'order_no' = pg_temp.no('place_ok_priced'));
   perform pg_temp.assert_ok(a, 'status_keys_exact',
     (select array_agg(k order by k) from jsonb_object_keys(s) k)
-      = array['hold_expires_at', 'items', 'order_no', 'pay_method', 'pay_state', 'pickup_date', 'pickup_window',
-              'placed_at', 'state', 'total_cents']);
+      = array['add_ons', 'boxes', 'hold_expires_at', 'items', 'order_no', 'pay_method', 'pay_state', 'pickup_date',
+              'pickup_window', 'placed_at', 'same_day', 'state', 'surcharge_cents', 'total_cents']);
   perform pg_temp.assert_ok(a, 'status_shows_unpaid_hold',
     s ->> 'pay_state' = 'unpaid' and s ->> 'state' = 'Payment review' and (s ->> 'hold_expires_at') is not null);
   perform pg_temp.assert_ok(a, 'status_item_snapshot_price',
@@ -583,12 +583,15 @@ select pg_temp.phase_closed('anon');
 reset role;
 select pg_temp.set_window(true);
 
--- Every weekday is a pickup day: only the lead time refuses today and yesterday.
+-- Every weekday is a pickup day, and same-day pickup is off (B4): only the lead time and the same-day
+-- rule refuse today and yesterday. The same-day rules themselves are proved in order-extras.sql.
 update public.order_rules set pickup_days = '{1,2,3,4,5,6,7}';
+update public.order_extras set same_day_enabled = false;
 set local role anon;
 select pg_temp.set_subject(null, 'anon');
 select pg_temp.phase_lead('anon');
 reset role;
+update public.order_extras set same_day_enabled = true;
 update public.order_rules set pickup_days = '{1,4}';
 
 set local role anon;

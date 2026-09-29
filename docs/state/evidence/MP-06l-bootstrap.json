@@ -1,8 +1,8 @@
 {
   "status": "passed",
   "scope": "explicit-connection CLI reset on disposable loopback PostgreSQL; not managed --local or auth/RLS acceptance",
-  "project_id": "hcb-6abb8a16-633b94",
-  "workdir": "C:\\Users\\ethan\\dev\\.hcb-bootstrap-6abb8a16-633b94",
+  "project_id": "hcb-6abbae9c-d40251",
+  "workdir": "C:\\Users\\ethan\\dev\\.hcb-bootstrap-6abbae9c-d40251",
   "cleanup": "passed",
   "resets": 2,
   "harness_sha256": "a47a91d38c71ffbf52a14e597836fdfdbd1d22a3408f5c151f2b35b25459c963",
@@ -14,7 +14,7 @@
         "5432/tcp": [
           {
             "HostIp": "127.0.0.1",
-            "HostPort": "48716"
+            "HostPort": "48901"
           }
         ]
       }
@@ -25,7 +25,7 @@
         "5432/tcp": [
           {
             "HostIp": "127.0.0.1",
-            "HostPort": "48716"
+            "HostPort": "48901"
           }
         ]
       }
@@ -36,7 +36,7 @@
         "5432/tcp": [
           {
             "HostIp": "127.0.0.1",
-            "HostPort": "48716"
+            "HostPort": "48901"
           }
         ]
       }
@@ -47,7 +47,7 @@
         "5432/tcp": [
           {
             "HostIp": "127.0.0.1",
-            "HostPort": "48716"
+            "HostPort": "48901"
           }
         ]
       }
@@ -58,7 +58,7 @@
         "5432/tcp": [
           {
             "HostIp": "127.0.0.1",
-            "HostPort": "48716"
+            "HostPort": "48901"
           }
         ]
       }
@@ -69,7 +69,7 @@
         "5432/tcp": [
           {
             "HostIp": "127.0.0.1",
-            "HostPort": "48716"
+            "HostPort": "48901"
           }
         ]
       }
@@ -80,7 +80,7 @@
         "5432/tcp": [
           {
             "HostIp": "127.0.0.1",
-            "HostPort": "48716"
+            "HostPort": "48901"
           }
         ]
       }
@@ -91,7 +91,7 @@
         "5432/tcp": [
           {
             "HostIp": "127.0.0.1",
-            "HostPort": "48716"
+            "HostPort": "48901"
           }
         ]
       }
@@ -137,13 +137,14 @@
     "20260101003600_order_lookup.sql": "d6896585f9957a927233e0108cf23b41e26a406eae8940c0f3c91093a4b9f04b",
     "20260101003700_staff_orders.sql": "1fe40450b1f604a5ee528f913a4cd171e7613e547161608c737b9f38345940a0",
     "20260101003800_shop_status.sql": "965d5134d4b253172eac0de62d73637e49a5d9d95077b9b1e7f092a7e4330818",
-    "20260101003900_staff_orders_review.sql": "d8ba97de27f5076c59868cc4087ee9e6237696ca65ab26c68178539daf466ede"
+    "20260101003900_staff_orders_review.sql": "d8ba97de27f5076c59868cc4087ee9e6237696ca65ab26c68178539daf466ede",
+    "20260101004000_order_extras.sql": "fb822a97897dc1306b60d8f3f09e0ce6c7a023717ffb328385ef93ac3df2b4ac"
   },
   "database_image": "sha256:af083ef64d0408c8f098ee6f5c364a59b26f36fbc0f3a334a62c5c1d57362e9b",
   "postgres_version_num": "150008",
   "cli_version": "2.116.0",
-  "loopback_port": 48716,
-  "container_id": "7dc22463273513134ad5f97d4b71f99b98f055a4ed521570b83254f1cccbfd22",
+  "loopback_port": 48901,
+  "container_id": "ae5c849be357cb1c52546b1952466ec4f293174c4b8a02fd64fcf2f99f4c18f2",
   "expected_versions": [
     "20260101000000",
     "20260101000100",
@@ -184,7 +185,8 @@
     "20260101003600",
     "20260101003700",
     "20260101003800",
-    "20260101003900"
+    "20260101003900",
+    "20260101004000"
   ],
   "catalog": [
     "function\tadd_event_expense(p_expense jsonb)\tTABLE(client_id text, duplicate boolean)",
@@ -207,9 +209,11 @@
     "function\tfind_order(p_order_no text, p_phone text)\ttext",
     "function\tget_flavours()\tTABLE(id text, name text, short_name text, price_cents bigint, kind text, item_type text, capacity_weight integer, tag text, description text, image_path text, allergens text, active boolean, published boolean, sort_order integer, updated_at timestamp with time zone)",
     "function\tget_operating_settings()\tTABLE(key text, int_value bigint, text_value text, cents_value bigint, json_value jsonb, is_default boolean, updated_at timestamp with time zone)",
+    "function\tget_order_extras()\tjsonb",
     "function\tget_order_rules()\tTABLE(unpaid_hold_hours integer, max_unpaid_per_phone integer, pickup_days integer[], lead_min_days integer, lead_max_days integer, pickup_from_hour integer, pickup_cutoff_hour integer, campus_from text, campus_to text, updated_at timestamp with time zone)",
     "function\tget_payment_methods()\tTABLE(id text, label text, account_number text, account_name text, qr_path text, active boolean, sort_order integer, updated_at timestamp with time zone)",
     "function\tget_settings()\tTABLE(key text, int_value bigint, text_value text, cents_value bigint, json_value jsonb, is_default boolean, updated_at timestamp with time zone)",
+    "function\tget_shop_extras()\tjsonb",
     "function\tget_shop_order_rules()\tjsonb",
     "function\tget_shop_payment_info()\tjsonb",
     "function\tget_shop_status()\tjsonb",
@@ -227,6 +231,7 @@
     "function\tpublish_flavours(p_ids text[])\tTABLE(id text, published boolean, updated_at timestamp with time zone)",
     "function\trecord_event_sale(p_sale jsonb)\tTABLE(client_id text, sale_id uuid, duplicate boolean, voided boolean)",
     "function\tsave_flavour(p_id text, p_flavour jsonb, p_expected_updated_at timestamp with time zone)\tTABLE(id text, updated_at timestamp with time zone)",
+    "function\tsave_order_extras(p_extras jsonb, p_expected_updated_at timestamp with time zone)\tTABLE(updated_at timestamp with time zone)",
     "function\tsave_order_rules(p_rules jsonb, p_expected_updated_at timestamp with time zone)\tTABLE(updated_at timestamp with time zone)",
     "function\tsave_payment_method(p_id text, p_method jsonb, p_expected_updated_at timestamp with time zone)\tTABLE(id text, updated_at timestamp with time zone)",
     "function\tsave_setting(p_key text, p_value jsonb, p_expected_updated_at timestamp with time zone)\tTABLE(key text, updated_at timestamp with time zone)",
@@ -290,6 +295,7 @@
     "migration\t20260101003700\tapplied",
     "migration\t20260101003800\tapplied",
     "migration\t20260101003900\tapplied",
+    "migration\t20260101004000\tapplied",
     "settings_defaults\tsettings_effective\t28",
     "settings_overrides\tsettings\t0",
     "table_rows\taudit_log\t0",
@@ -303,6 +309,9 @@
     "table_rows\tevents\t0",
     "table_rows\tinventory_items\t0",
     "table_rows\tledger_entries\t0",
+    "table_rows\torder_add_ons\t0",
+    "table_rows\torder_boxes\t0",
+    "table_rows\torder_extras\t1",
     "table_rows\torder_items\t0",
     "table_rows\torder_rules\t1",
     "table_rows\torder_swaps\t0",
@@ -320,9 +329,9 @@
     "table_rows\tsuppliers\t0",
     "table_rows\twaitlist_entries\t0"
   ],
-  "catalog_sha256": "009f997732f080a8bd559a58f1485035a8ba259f3d3df74e73a3eddde49eb35f",
+  "catalog_sha256": "be7a81015cde93cb0f4d6c483e9bb54a4edf61c2aea9d7cfd38d00715c37c2db",
   "catalogs_equal": true,
-  "schema_sha256": "a0fa4d5c4daa08aca2a046239635e9d1e2ba061210339e2a2f446bf73b7b2acb",
+  "schema_sha256": "4d4349f5b739e224a64b6c5ef9cfebe7ec376733280ceb7ea7081ae6710934e9",
   "schemas_equal": true,
   "sentinel_removed": true
 }
