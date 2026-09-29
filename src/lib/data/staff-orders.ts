@@ -164,6 +164,8 @@ export interface EngineOrder {
   needsContact: boolean;
   swaps: Array<{ from: string; to: string; qty: number; at: number }>;
   replaced: boolean;
+  /** -1 for an order outside the current pickup week, so the engine's per-drop sums leave it out. */
+  drop?: number;
   refunded?: boolean;
   refundRef?: string;
   rejected?: boolean;
@@ -185,7 +187,32 @@ export function dayKey(pickupDate: string | null, pickupDays: readonly number[])
   return sorted.indexOf(ISO_DOW(pickupDate)) > 0 ? 'sun' : 'sat';
 }
 
-export function toEngineOrder(o: StaffOrder, pickupDays: readonly number[]): EngineOrder {
+/** The Monday of the week a pickup date falls in, as YYYY-MM-DD (UTC arithmetic on a plain date). */
+export function weekKey(pickupDate: string): string {
+  const d = new Date(`${pickupDate}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() - ((d.getUTCDay() || 7) - 1));
+  return d.toISOString().slice(0, 10);
+}
+
+const OPEN_STATES: readonly StaffState[] = ['Payment review', 'Confirmed', 'Preparing', 'Ready'];
+
+/**
+ * The pickup week the owner is working on: the earliest week that still has an open order. The
+ * engine's "this drop" sums (sold out, close-out, the bake list) then mean this week, not 60 days.
+ */
+export function currentWeek(orders: readonly StaffOrder[]): string | null {
+  const weeks = orders
+    .filter((o) => o.pickupDate && OPEN_STATES.includes(o.state))
+    .map((o) => weekKey(o.pickupDate as string))
+    .sort();
+  return weeks[0] ?? null;
+}
+
+export function toEngineOrder(
+  o: StaffOrder,
+  pickupDays: readonly number[],
+  week: string | null = null
+): EngineOrder {
   const items: Record<string, number> = {};
   const priced: Record<string, number> = {};
   const unavailable: string[] = [];
@@ -218,6 +245,7 @@ export function toEngineOrder(o: StaffOrder, pickupDays: readonly number[]): Eng
     needsContact: unavailable.length > 0,
     swaps: o.swaps.map((s) => ({ from: s.from, to: s.to, qty: s.qty, at: s.at })),
     replaced: o.swaps.length > 0,
+    ...(week && o.pickupDate && weekKey(o.pickupDate) !== week ? { drop: -1 } : {}),
     ...(o.payState === 'refunded' ? { refunded: true, refundRef: o.refundRef } : {})
   };
 }
@@ -300,7 +328,8 @@ export class StaffOrderSync {
       return false;
     }
     this.loaded = true;
-    this.hooks.apply(this.list.map((o) => toEngineOrder(o, this.hooks.pickupDays())));
+    const week = currentWeek(this.list);
+    this.hooks.apply(this.list.map((o) => toEngineOrder(o, this.hooks.pickupDays(), week)));
     return true;
   }
 
@@ -335,7 +364,11 @@ export class StaffOrderSync {
     } else if (outcome.kind === 'refused') {
       this.hooks.toast(STAFF_COPY.refused, 'warn');
       await this.load();
-    } else if (outcome.kind === 'offline') this.hooks.toast(STAFF_COPY.unknown, 'warn');
+    } else if (outcome.kind === 'offline') {
+      // A lost reply may have landed: show what the database holds rather than a guess.
+      this.hooks.toast(STAFF_COPY.unknown, 'warn');
+      await this.load();
+    }
     return outcome;
   }
 

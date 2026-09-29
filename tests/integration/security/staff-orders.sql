@@ -50,14 +50,25 @@ insert into public.orders(id, customer_name, phone, state, pay_state, pay_method
   ('HC-S11', 'S11', '09170000012', 'Payment review', 'unpaid',    'GCash', 10000, null,  now(), null, '10:00', encode(sha256('S11'::bytea), 'hex')),
   ('HC-S12', 'S12', '09170000013', 'Ready',          'confirmed', 'GCash', 10000, 10000, now(), null, '10:00', encode(sha256('S12'::bytea), 'hex')),
   ('HC-S13', 'S13', '09170000014', 'Confirmed',      'confirmed', 'GCash', 19000, 19000, now(), null, '10:00', encode(sha256('S13'::bytea), 'hex')),
-  ('HC-S14', 'S14', '09170000015', 'Confirmed',      'confirmed', 'GCash', 20000, 20000, now(), pg_temp.monday(), '10:00', encode(sha256('S14'::bytea), 'hex'));
+  ('HC-S14', 'S14', '09170000015', 'Confirmed',      'confirmed', 'GCash', 20000, 20000, now(), pg_temp.monday(), '10:00', encode(sha256('S14'::bytea), 'hex')),
+  -- S15: a total that carries more than its items (a surcharge); S16: a line stored at weight 2; S17: rejected, its slots gone.
+  ('HC-S15', 'S15', '09170000016', 'Confirmed',      'confirmed', 'GCash', 30000, 30000, now(), null, '10:00', encode(sha256('S15'::bytea), 'hex')),
+  ('HC-S16', 'S16', '09170000017', 'Confirmed',      'confirmed', 'GCash', 25000, 25000, now(), null, '10:00', encode(sha256('S16'::bytea), 'hex')),
+  ('HC-S17', 'S17', '09170000018', 'Cancelled',      'unpaid',    'GCash', 10000, null,  now(), pg_temp.monday(), '10:00', encode(sha256('S17'::bytea), 'hex')),
+  -- S18: one number with two unpaid orders holding slots (the limit is 2) and a rejected third, in an empty week.
+  ('HC-S18a', 'S18a', '09170000030', 'Payment review', 'unpaid', 'GCash', 10000, null, now(), null, '10:00', encode(sha256('S18a'::bytea), 'hex')),
+  ('HC-S18b', 'S18b', '09170000030', 'Payment review', 'unpaid', 'GCash', 10000, null, now(), null, '10:00', encode(sha256('S18b'::bytea), 'hex')),
+  ('HC-S18c', 'S18c', '09170000030', 'Cancelled',      'unpaid', 'GCash', 10000, null, now(), pg_temp.monday() + 14, '10:00', encode(sha256('S18c'::bytea), 'hex'));
 insert into public.order_items(order_id, product_id, qty, unit_price_cents, capacity_weight, unavailable) values
   ('HC-S1', 'b3-a', 2, 10000, 1, false), ('HC-S2', 'b3-a', 1, 10000, 1, false), ('HC-S2C', 'b3-a', 1, 10000, 1, false),
   ('HC-S3', 'b3-a', 2, 10000, 1, false), ('HC-S4', 'b3-a', 1, 10000, 1, true), ('HC-S5', 'b3-a', 2, 10000, 1, false),
   ('HC-S6', 'b3-a', 1, 10000, 1, false), ('HC-S7', 'b3-a', 2, 10000, 1, false), ('HC-S8', 'b3-a', 2, 10000, 1, false),
   ('HC-S9', 'b3-a', 197, 10000, 1, false), ('HC-S10', 'b3-a', 1, 10000, 1, false), ('HC-S11', 'b3-a', 1, 10000, 1, false),
   ('HC-S12', 'b3-a', 1, 10000, 1, false), ('HC-S13', 'b3-a', 1, 10000, 1, false), ('HC-S13', 'b3-c', 1, 9000, 1, false),
-  ('HC-S14', 'b3-a', 2, 10000, 1, false);
+  ('HC-S14', 'b3-a', 2, 10000, 1, false),
+  ('HC-S15', 'b3-a', 2, 10000, 1, false), ('HC-S16', 'b3-a', 1, 10000, 1, false), ('HC-S16', 'b3-c', 1, 15000, 2, false),
+  ('HC-S17', 'b3-a', 1, 10000, 1, false), ('HC-S18a', 'b3-a', 1, 10000, 1, false), ('HC-S18b', 'b3-a', 1, 10000, 1, false),
+  ('HC-S18c', 'b3-a', 1, 10000, 1, false);
 
 create function pg_temp.set_subject(n integer, claim_role text default 'authenticated') returns void
 language plpgsql security invoker as $$
@@ -151,7 +162,7 @@ declare
   sett text := 'select * from public.staff_settle_balance(%L, %s)';
 begin
   perform pg_temp.assert_ok(a, 'list_has_orders_and_tokens',
-    (select count(*) from jsonb_array_elements(public.get_staff_orders()) x where x ->> 'id' like 'HC-S%') = 15
+    (select count(*) from jsonb_array_elements(public.get_staff_orders()) x where x ->> 'id' like 'HC-S%') = 21
     and pg_temp.ord('HC-S1') ->> 'status_token' = encode(sha256('S1'::bytea), 'hex'));
   perform pg_temp.assert_ok(a, 'list_marks_lapsed_unpaid_as_not_holding',
     (pg_temp.ord('HC-S8') ->> 'holds')::boolean is false and (pg_temp.ord('HC-S1') ->> 'holds')::boolean is true);
@@ -181,6 +192,9 @@ begin
   perform pg_temp.expect(a, 'reopen_refunded', format(reo, 'HC-S10', pg_temp.st('HC-S10')), '55000');
   perform pg_temp.expect(a, 'reopen_ok', format(reo, 'HC-S2', pg_temp.st('HC-S2')), '00000');
   perform pg_temp.expect(a, 'reopen_replay', format(reo, 'HC-S2', old), '00000');
+  -- A reopened order holds slots again: the number's unpaid limit and the week's room are checked.
+  perform pg_temp.expect(a, 'reopen_phone_limit', format(reo, 'HC-S18c', pg_temp.st('HC-S18c')), 'ZC003');
+  perform pg_temp.expect(a, 'reopen_over_capacity', format(reo, 'HC-S17', pg_temp.st('HC-S17')), 'ZC002');
 
   -- baking, packed, collected
   perform pg_temp.expect(a, 'status_illegal', format(stat, 'HC-S3', 'Completed', pg_temp.st('HC-S3')), '55000');
@@ -239,6 +253,13 @@ begin
   perform pg_temp.expect(a, 'swap_client_id_reuse',
     format(swap, 'HC-S5', 'b3-a', 'b3-b', 'b3f00000-0000-4000-8000-000000000001', pg_temp.st('HC-S5')), '23505');
 
+  -- a swap keeps what is in the total besides the items, and will not merge into a line of another weight
+  perform pg_temp.expect(a, 'swap_keeps_surcharge',
+    format(swap, 'HC-S15', 'b3-a', 'b3-b', 'b3f00000-0000-4000-8000-000000000020', pg_temp.st('HC-S15')), '00000');
+  perform pg_temp.assert_ok(a, 'swap_keeps_the_surcharge', (pg_temp.ord('HC-S15') ->> 'total_cents')::bigint = 30000);
+  perform pg_temp.expect(a, 'swap_weight_clash',
+    format(swap, 'HC-S16', 'b3-a', 'b3-c', 'b3f00000-0000-4000-8000-000000000021', pg_temp.st('HC-S16')), '55000');
+
   -- money: refund and balance
   perform pg_temp.expect(a, 'refund_stale', format(refu, 'HC-S6', 'GC-1', old), 'P0002');
   perform pg_temp.expect(a, 'refund_unpaid', format(refu, 'HC-S11', 'GC-1', pg_temp.st('HC-S11')), '55000');
@@ -286,7 +307,7 @@ do $$ begin
      or (select state from public.orders where id = 'HC-S3') <> 'No-show'
      or (select state from public.orders where id = 'HC-S8') <> 'Confirmed'
      or (select state from public.orders where id = 'HC-S5') <> 'Confirmed'
-     or (select count(*) from public.order_swaps) <> 1
+     or (select count(*) from public.order_swaps) <> 2
      or exists (select 1 from public.order_items where order_id = 'HC-S14' and product_id <> 'b3-a')
      or (select state from public.orders where id = 'HC-S11') <> 'Payment review'
      or (select notes from public.orders where id = 'HC-S1') <> '' then

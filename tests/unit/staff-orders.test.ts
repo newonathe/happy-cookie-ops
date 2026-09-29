@@ -2,9 +2,11 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   StaffOrderSync,
   classify,
+  currentWeek,
   dayKey,
   parseStaffOrders,
   toEngineOrder,
+  weekKey,
   type StaffOrderClient
 } from '@/lib/data/staff-orders';
 import { messagesFor, statusLink } from '@/lib/orders/messages';
@@ -155,6 +157,38 @@ describe('toEngineOrder', () => {
   });
 });
 
+describe('the pickup week', () => {
+  const order = (over: Record<string, unknown> = {}) => parseStaffOrders([raw(over)])[0];
+
+  it('weekKey is the Monday of the pickup date', () => {
+    expect(weekKey('2026-10-05')).toBe('2026-10-05'); // a Monday
+    expect(weekKey('2026-10-08')).toBe('2026-10-05'); // the Thursday
+    expect(weekKey('2026-10-11')).toBe('2026-10-05'); // the Sunday is still that week
+    expect(weekKey('2026-10-12')).toBe('2026-10-12');
+    // Mutation: getUTCDay() without the Sunday-as-7 fix puts a Sunday pickup in the next week.
+  });
+
+  it('the current week is the earliest week with an open order, ignoring closed ones and undated ones', () => {
+    const list = [
+      order({ id: 'a', pickup_date: '2026-10-12' }),
+      order({ id: 'b', pickup_date: '2026-10-05', state: 'Completed' }),
+      order({ id: 'c', pickup_date: '2026-10-19', state: 'Payment review', pay_state: 'unpaid' }),
+      order({ id: 'd', pickup_date: null })
+    ];
+    expect(currentWeek(list)).toBe('2026-10-12');
+    expect(currentWeek([])).toBeNull();
+  });
+
+  it('an order outside the current week leaves the engine’s per-drop sums (drop -1); the current week and undated ones stay', () => {
+    const week = '2026-10-05';
+    expect(toEngineOrder(order({ pickup_date: '2026-10-19' }), [1, 4], week).drop).toBe(-1);
+    expect(toEngineOrder(order({ pickup_date: '2026-10-08' }), [1, 4], week).drop).toBeUndefined();
+    expect(toEngineOrder(order({ pickup_date: null }), [1, 4], week).drop).toBeUndefined();
+    expect(toEngineOrder(order({ pickup_date: '2026-10-19' }), [1, 4]).drop).toBeUndefined();
+    // Mutation: never setting drop counts 60 days of orders against one week's capacity ("Sold out" all the time).
+  });
+});
+
 describe('dayKey', () => {
   it('maps the first pickup day of the week to sat and later ones to sun, by rank', () => {
     // 2026-10-05 is a Monday, 2026-10-08 a Thursday.
@@ -283,7 +317,7 @@ describe('StaffOrderSync', () => {
     expect(calls.map((c) => c.name)).toEqual(['staff_reject_payment', 'get_staff_orders']);
   });
 
-  it('a refusal reloads and tells the owner; a lost reply does not reload', async () => {
+  it('a refusal reloads and tells the owner; a lost reply reloads too, and says it is unsure', async () => {
     const refused = fakeSync({ results: { staff_reopen_order: { error: { code: '55000' } } } });
     await refused.sync.load();
     refused.calls.length = 0;
@@ -295,8 +329,9 @@ describe('StaffOrderSync', () => {
     await lost.sync.load();
     lost.calls.length = 0;
     expect((await lost.sync.refund('HC-1001', 'x')).kind).toBe('offline');
-    expect(lost.calls.map((c) => c.name)).toEqual(['staff_refund']);
-    // Mutation: reloading after a lost reply hides an unknown outcome behind a fresh list that looks certain.
+    // The reply may have landed: the list is read again so the screen shows what the database holds.
+    expect(lost.calls.map((c) => c.name)).toEqual(['staff_refund', 'get_staff_orders']);
+    // Mutation: not reloading after a lost reply leaves the screen showing the old state of a change that went through.
   });
 
   it('a capacity refusal on the paid tick comes back with the slots left, without reloading', async () => {

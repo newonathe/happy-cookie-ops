@@ -32,6 +32,7 @@ export const STAFF_COPY = {
   swapClash: 'That flavour is already on the order at another price. Pick a different one.',
   cleared: 'Sorted. The order is back to normal.',
   packUnpaid: 'Tick this order paid before packing it.',
+  reopenRefunded: 'A refunded order cannot be reopened.',
   noRoom: (left: number): string =>
     left <= 0
       ? 'There is no room left in that pickup week.'

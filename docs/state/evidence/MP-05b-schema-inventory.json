@@ -3343,7 +3343,7 @@
         "search_path=\"\""
       ],
       "returns": "jsonb",
-      "body_md5": "89b37f4fc7a24553363ade6a8f92936b",
+      "body_md5": "a6c5b26262baeeeaac759e2ca1edbad6",
       "identity": "",
       "execute_anon": false,
       "security_definer": true,
@@ -3733,7 +3733,7 @@
         "search_path=\"\""
       ],
       "returns": "TABLE(order_id text, state order_state, pay_state pay_state, total_cents bigint, paid_cents bigint, updated_at timestamp with time zone, replayed boolean)",
-      "body_md5": "5bb98d5beaa1c35e860532f9900ba59d",
+      "body_md5": "bf4d391adb5d4f6b6dda4379690bec06",
       "identity": "p_order_id text, p_expected_updated_at timestamp with time zone",
       "execute_anon": false,
       "security_definer": true,
@@ -3778,7 +3778,7 @@
         "search_path=\"\""
       ],
       "returns": "TABLE(order_id text, state order_state, pay_state pay_state, total_cents bigint, paid_cents bigint, updated_at timestamp with time zone, replayed boolean)",
-      "body_md5": "3cdb903195998643a50822d32b229d90",
+      "body_md5": "8fb364c11328af1efbad410a10116ea2",
       "identity": "p_order_id text, p_from_product text, p_to_product text, p_client_id uuid, p_expected_updated_at timestamp with time zone",
       "execute_anon": false,
       "security_definer": true,

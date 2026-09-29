@@ -61,6 +61,7 @@ type Shop = {
   setDropState: (st: string) => void;
   closeDropEarly: () => void;
   reopenDrop: () => void;
+  extendDrop: () => void;
 };
 const shop = (r: OpsRuntime) => r as unknown as Shop;
 const settle = () => act(async () => void (await new Promise((resolve) => setTimeout(resolve, 0))));
@@ -178,6 +179,17 @@ describe('B3: the shop’s open state from the server (live mode)', () => {
     await settle();
     expect(called(f.rpc, 'set_shop_override')).toEqual([['set_shop_override', { p_mode: null }]]);
     expect(runtime.state.shopOverride).toBeNull();
+  });
+
+  it('"Extend closing" hands the shop back to the window on the server too, not only on screen', async () => {
+    const f = fake({ status: status({ override: 'closed' }) });
+    const runtime = await mounted('owner', f);
+    expect(runtime.state.shopOverride).toBe('closed');
+    act(() => shop(runtime).extendDrop());
+    await settle();
+    expect(called(f.rpc, 'set_shop_override')).toEqual([['set_shop_override', { p_mode: null }]]);
+    expect(runtime.state.shopOverride).toBeNull();
+    // Mutation: without the wrapper the screen says open while place_order keeps refusing with "closed".
   });
 
   it('a refused or unsent switch changes nothing on screen and says so', async () => {

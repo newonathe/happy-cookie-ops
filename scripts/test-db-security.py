@@ -18,7 +18,8 @@ verify_functions = runpy.run_path(str(ROOT / 'scripts/verify-function-authority.
 ORDER_MIGRATIONS = [ROOT / 'supabase/migrations/20260101003500_place_order.sql',
                     ROOT / 'supabase/migrations/20260101003600_order_lookup.sql',
                     ROOT / 'supabase/migrations/20260101003700_staff_orders.sql',
-                    ROOT / 'supabase/migrations/20260101003800_shop_status.sql']
+                    ROOT / 'supabase/migrations/20260101003800_shop_status.sql',
+                    ROOT / 'supabase/migrations/20260101003900_staff_orders_review.sql']
 _OUT = 'order outcome differs: anon / '
 _CHK = 'order check differs: anon / '
 _LOOK = 'lookup check differs: anon / '
@@ -137,6 +138,14 @@ SHOP_MUTATIONS = {
                                     "'override',  (select s.override from public.shop_state s where s.id), 'capacity', 200)"),
                                    'shop state check differs: anon / shop_status_keys_exact'),
 }
+STAFF_MUTATIONS |= {
+    'rule_reopen_capacity': ('staff_reopen_order', 'rule', 'reopen-capacity', _STF + 'reopen_over_capacity / '),
+    'rule_reopen_phone_limit': ('staff_reopen_order', 'rule', 'reopen-phone-limit', _STF + 'reopen_phone_limit / '),
+    'text_swap_keeps_surcharge': ('staff_swap_item', 'text', ('o.total_cents + (v_new_total - v_old_total)', 'v_new_total'),
+                                  'staff check differs: active_owner / swap_keeps_the_surcharge'),
+    'text_swap_weight_clash': ('staff_swap_item', 'text', (' or i.capacity_weight <> v_to.capacity_weight)', ')'),
+                               _STF + 'swap_weight_clash / '),
+}
 STAFF_TABLE_MUTATIONS = {
     'orders_update_grant': ('grant update on public.orders to authenticated;', 'staff outcome differs: active_helper / orders_table_update / '),
 }
@@ -195,7 +204,7 @@ SUITES = (
                              'orders_rows_leak', 'waitlist_table_select', 'rules_table_select')
                             + tuple(ORDER_MUTATIONS), 'forbidden order call succeeded', 175),
     ('order-lookup.sql', tuple(LOOKUP_MUTATIONS), 'forbidden lookup call succeeded', 24),
-    ('staff-orders.sql', STAFF_ACL + tuple(STAFF_MUTATIONS) + tuple(STAFF_TABLE_MUTATIONS), 'forbidden staff order call succeeded', 117),
+    ('staff-orders.sql', STAFF_ACL + tuple(STAFF_MUTATIONS) + tuple(STAFF_TABLE_MUTATIONS), 'forbidden staff order call succeeded', 122),
     ('shop-state.sql', ('set_shop_override(text)',) + tuple(SHOP_MUTATIONS), 'forbidden shop state call succeeded', 29),
     ('bazaar-closeout.sql', ('event_summary(uuid)', 'load_event_stock(uuid,jsonb,bigint)', 'add_event_expense(jsonb)', 'close_event(jsonb)'), 'forbidden closeout call succeeded', 80),
 )
@@ -420,7 +429,7 @@ def main():
                 h.fail(filename + ' did not return its complete role matrix')
             results.extend(rows)
             assert_empty()
-        if len(set(results)) != 1170:
+        if len(set(results)) != 1175:
             h.fail('combined role matrix has missing or duplicate cases: %d rows, %d unique (duplicates: %s)' % (len(results), len(set(results)), sorted({r for r in results if results.count(r) > 1})[:5]))
         assert_functions()
         assert_catalog_wide()
@@ -433,10 +442,10 @@ def main():
     try:
         code = h.main(after_reset=check)
         if (code == 0 and len(report["runs"]) == 2 and report["runs"][0] == report["runs"][1]
-                and len(report['regressions_detected']) == 278 and report['sequence_restorations'] == 10
+                and len(report['regressions_detected']) == 286 and report['sequence_restorations'] == 10
                 and report['upgrade_runs'] == 2 and report['function_guard_runs'] == 4
                 and report['catalog_guard_runs'] == 4 and report['catalog_guard_red_runs'] == 4):
-            report.update(status="passed", cases_per_reset=1170, resets=2, matrix_equal=True, rollback_verified=True,
+            report.update(status="passed", cases_per_reset=1175, resets=2, matrix_equal=True, rollback_verified=True,
                           sql_sha256={name: hashlib.sha256((ROOT / 'tests/integration/security' / name).read_bytes()).hexdigest() for name, _, _, _ in SUITES},
                           harness_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
     except (RuntimeError, OSError, ValueError) as error:

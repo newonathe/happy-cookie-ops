@@ -180,6 +180,7 @@ interface OrderActions {
   markBaking: (pid: string, s0?: { orders: unknown[] }) => unknown[];
   demand: (pid: string) => number;
   demandDay: (pid: string, day: string) => number;
+  inDrop: (s: unknown, o: unknown) => boolean;
 }
 
 /** The orders the bake list counts: unpaid ones too, because Cine bakes before she is paid (28 Sep). */
@@ -996,14 +997,17 @@ export class OpsRuntime extends OpsProvider {
       setDropState: (st: string) => void;
       closeDropEarly: () => void;
       reopenDrop: () => void;
+      extendDrop: () => void;
     };
-    const { setDropState, closeDropEarly, reopenDrop } = shop;
+    const { setDropState, closeDropEarly, reopenDrop, extendDrop } = shop;
     shop.setDropState = (st) => {
       const mode = st === 'auto' ? null : (st as ShopOverride);
       void this.persistOverride(mode).then((ok) => ok && setDropState(st));
     };
     shop.closeDropEarly = () => void this.persistOverride('closed').then((ok) => ok && closeDropEarly());
     shop.reopenDrop = () => void this.persistOverride(null).then((ok) => ok && reopenDrop());
+    // Extending the closing time also hands the shop back to the window (the ported action clears the hold).
+    shop.extendDrop = () => void this.persistOverride(null).then((ok) => ok && extendDrop());
   }
 
   private async persistOverride(mode: ShopOverride | null): Promise<boolean> {
@@ -1119,10 +1123,14 @@ export class OpsRuntime extends OpsProvider {
     return name.trim().split(/\s+/)[0] || 'The customer';
   }
 
+  /** What was actually paid (a refund returns that), falling back to the total. */
   private orderPesos(id: string): number {
     const order = this.orderSync?.find(id);
-    return order ? centavosToPesos(order.totalCents) : 0;
+    return order ? centavosToPesos(order.paidCents ?? order.totalCents) : 0;
   }
+
+  /** The client id of a swap that has not been settled, so a second tap after a lost reply is a replay. */
+  private swapIds = new Map<string, string>();
 
   /**
    * One owner change, server first: nothing changes on screen until the database says so, then the
@@ -1157,7 +1165,11 @@ export class OpsRuntime extends OpsProvider {
     const eng = this as unknown as OrderActions;
     eng.confirmPayment = (id, force) => void this.liveConfirm(id, force === true);
     eng.rejectPayment = (id) => void this.liveOrder((s) => s.reject(id), STAFF_COPY.rejected);
-    eng.reopenOrder = (id) => void this.liveOrder((s) => s.reopen(id), STAFF_COPY.reopened);
+    eng.reopenOrder = (id) => {
+      if (this.orderSync?.find(id)?.payState === 'refunded')
+        return void this.toast(STAFF_COPY.reopenRefunded, 'warn');
+      void this.liveOrder((s) => s.reopen(id), STAFF_COPY.reopened);
+    };
     eng.recordBalance = (id) =>
       void this.liveOrder((s) => s.settle(id), STAFF_COPY.settled(this.firstName(id)));
     eng.noShow = (id) =>
@@ -1209,23 +1221,30 @@ export class OpsRuntime extends OpsProvider {
       const qty = (this.orderSync?.find(id)?.items ?? [])
         .filter((i) => i.productId === from)
         .reduce((n, i) => n + i.qty, 0);
+      const key = `${id}|${from}|${to}`;
+      const clientId = this.swapIds.get(key) ?? globalThis.crypto.randomUUID();
+      this.swapIds.set(key, clientId);
       void this.liveOrder(
-        (s) => s.swap(id, from, to, globalThis.crypto.randomUUID()),
+        (s) => s.swap(id, from, to, clientId),
         STAFF_COPY.swapped(qty, this.flavourName(from), this.flavourName(to))
-      );
+      ).then((outcome) => {
+        // Only a lost reply keeps the id: the next tap must be a replay, not a second swap.
+        if (outcome?.kind !== 'offline') this.swapIds.delete(key);
+        if (outcome?.kind === 'capacity') this.toast(STAFF_COPY.noRoom(outcome.left), 'warn');
+      });
     };
     // Baking is not a status the live app records: a baked flavour's orders stay Confirmed until they
     // are packed (Ready), so the bake list keeps counting them until then.
     eng.markBaking = (_pid, s0) => (s0 ?? (this.state as unknown as { orders: unknown[] })).orders;
     const orders = () =>
       this.state.orders as Array<{ status: string; day?: string; items: Record<string, number> }>;
-    eng.demand = (pid) =>
-      orders()
-        .filter((o) => BAKED_FOR.includes(o.status))
-        .reduce((n, o) => n + (o.items[pid] || 0), 0);
+    // This pickup week only: an order for a later week (the lead window is up to 14 days) is not baked yet.
+    const counted = () =>
+      orders().filter((o) => BAKED_FOR.includes(o.status) && eng.inDrop(this.state, o));
+    eng.demand = (pid) => counted().reduce((n, o) => n + (o.items[pid] || 0), 0);
     eng.demandDay = (pid, day) =>
-      orders()
-        .filter((o) => BAKED_FOR.includes(o.status) && o.day === day)
+      counted()
+        .filter((o) => o.day === day)
         .reduce((n, o) => n + (o.items[pid] || 0), 0);
   }
 

@@ -73,6 +73,8 @@ const sent = (rpc: ReturnType<typeof fake>['rpc']) =>
 type Actions = {
   confirmPayment: (id: string, force?: boolean) => void;
   rejectPayment: (id: string) => void;
+  refundOrder: (id: string, ref?: string) => void;
+  reopenOrder: (id: string) => void;
   packOrder: (id: string) => void;
   collectOrder: (id: string) => void;
   noShow: (id: string) => void;
@@ -208,6 +210,54 @@ describe('B3: the owner reads and drives real orders (live mode)', () => {
     // Mutation: always sending true makes the flag impossible to clear.
   });
 
+  it('a second tap on the same swap after a lost reply is a replay (same client id); a settled one gets a new id', async () => {
+    const f = fake([raw()], { staff_swap_item: { error: { code: '' } } });
+    const runtime = await mounted('owner', f);
+    act(() => actions(runtime).replaceLine('HC-1001', 'wcb', 'rvc'));
+    await settle();
+    act(() => actions(runtime).replaceLine('HC-1001', 'wcb', 'rvc'));
+    await settle();
+    const ids = sent(f.rpc).map((c) => c[1].p_client_id);
+    expect(ids[0]).toBe(ids[1]);
+    // Mutation: a fresh id per tap turns a lost reply into a double swap, or a stale-order error for the owner's own change.
+    f.rpc.mockImplementation(async (name: string) =>
+      name === 'get_staff_orders'
+        ? { data: f.state.list, error: null }
+        : { data: [{ replayed: false }], error: null }
+    );
+    act(() => actions(runtime).replaceLine('HC-1001', 'wcb', 'rvc'));
+    await settle();
+    act(() => actions(runtime).replaceLine('HC-1001', 'wcb', 'rvc'));
+    await settle();
+    const later = sent(f.rpc).map((c) => c[1].p_client_id);
+    expect(later[2]).toBe(ids[0]); // the pending one is finally settled...
+    expect(later[3]).not.toBe(later[2]); // ...and the next swap is a new one
+  });
+
+  it('a swap the week has no room for says how many slots are left', async () => {
+    const f = fake([raw()], { staff_swap_item: { error: { code: 'ZC002', details: '1' } } });
+    const runtime = await mounted('owner', f);
+    act(() => actions(runtime).replaceLine('HC-1001', 'wcb', 'rvc'));
+    await settle();
+    expect(toasts(runtime)).toContain(STAFF_COPY.noRoom(1));
+  });
+
+  it('a refund shows what was paid, and a refunded order is not reopened', async () => {
+    const f = fake([raw({ total_cents: 30000, paid_cents: 20000 })]);
+    const runtime = await mounted('owner', f);
+    act(() => actions(runtime).refundOrder('HC-1001', 'GC-1'));
+    await settle();
+    expect(toasts(runtime)).toContain(STAFF_COPY.refunded('₱200'));
+    // Mutation: showing the total tells the owner she refunded ₱300 when only ₱200 was ever paid.
+    cleanup();
+    const g = fake([raw({ state: 'Cancelled', pay_state: 'refunded' })]);
+    const second = await mounted('owner', g);
+    act(() => actions(second).reopenOrder('HC-1001'));
+    await settle();
+    expect(sent(g.rpc)).toEqual([]);
+    expect(toasts(second)).toContain(STAFF_COPY.reopenRefunded);
+  });
+
   it('swapping a flavour for itself is refused before anything is sent', async () => {
     const f = fake([raw()]);
     const runtime = await mounted('owner', f);
@@ -262,14 +312,15 @@ describe('B3: the bake list counts unpaid orders (28 Sep)', () => {
       unpaid(),
       raw({ id: 'HC-1003', state: 'Cancelled', pay_state: 'refunded' }),
       raw({ id: 'HC-1004', state: 'Completed' }),
-      raw({ id: 'HC-1005', pickup_date: '2026-10-08' })
+      raw({ id: 'HC-1005', pickup_date: '2026-10-08' }),
+      raw({ id: 'HC-1006', pickup_date: '2026-10-19' }) // next-next week: not baked yet
     ]);
     const runtime = await mounted('owner', f);
     // wcb x2 confirmed (Mon), x2 unpaid (Mon), x2 confirmed (Thu); cancelled and completed do not count.
     expect(actions(runtime).demand('wcb')).toBe(6);
     expect(actions(runtime).demandDay('wcb', 'sat')).toBe(4);
     expect(actions(runtime).demandDay('wcb', 'sun')).toBe(2);
-    // Mutation: filtering on ['Confirmed', 'Preparing'] again drops the unpaid order Cine bakes for.
+    // Mutation: filtering on ['Confirmed', 'Preparing'] again drops the unpaid order Cine bakes for; dropping the drop test adds HC-1006's 2 wcb.
   });
 
   it('baking a flavour does not rewrite order statuses locally (live mode has no baking status)', async () => {
