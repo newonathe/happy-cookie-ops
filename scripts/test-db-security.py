@@ -23,7 +23,8 @@ ORDER_MIGRATIONS = [ROOT / 'supabase/migrations/20260101003500_place_order.sql',
                     ROOT / 'supabase/migrations/20260101004000_order_extras.sql',
                     ROOT / 'supabase/migrations/20260101004100_scheduled_events.sql',
                     ROOT / 'supabase/migrations/20260101004200_scheduled_event_rent.sql',
-                    ROOT / 'supabase/migrations/20260101004300_stock_catalogue.sql']
+                    ROOT / 'supabase/migrations/20260101004300_stock_catalogue.sql',
+                    ROOT / 'supabase/migrations/20260101004400_recipes.sql']
 _OUT = 'order outcome differs: anon / '
 _CHK = 'order check differs: anon / '
 _LOOK = 'lookup check differs: anon / '
@@ -274,10 +275,32 @@ STOCK_TABLE_MUTATIONS = {
                            'stock outcome differs: anon / stock_suppliers_update / '),
 }
 
+# A4: the owner's recipes with versions (recipes.sql), acting on the last migration that defines each function.
+_RC = 'recipe outcome differs: active_owner / '
+_RCC = 'recipe check differs: active_owner / '
+RECIPE_MUTATIONS = {
+    'rule_recipe_keys': ('save_recipe', 'rule', 'recipe-keys', _RC + 'recipe_keys_missing / '),
+    'rule_recipe_yield': ('save_recipe', 'rule', 'recipe-yield', _RC + 'recipe_yield_zero / '),
+    'rule_recipe_size': ('save_recipe', 'rule', 'recipe-size', _RC + 'recipe_too_many_lines / '),
+    'rule_line_keys': ('save_recipe', 'rule', 'line-keys', _RC + 'line_keys_missing / '),
+    'rule_line_name': ('save_recipe', 'rule', 'line-name', _RC + 'line_name_blank / '),
+    'rule_line_qty': ('save_recipe', 'rule', 'line-qty', _RC + 'line_qty_zero / '),
+    'rule_line_unit': ('save_recipe', 'rule', 'line-unit', _RC + 'line_unit_kg / '),
+    'rule_line_duplicate': ('save_recipe', 'rule', 'line-duplicate', _RC + 'line_duplicate / '),
+    'rule_line_unit_match': ('save_recipe', 'rule', 'line-unit-match', _RC + 'line_unit_mismatch / '),
+    'rule_recipe_product': ('save_recipe', 'rule', 'recipe-product', _RC + 'recipe_product_unknown / '),
+    'rule_recipe_create_stamp': ('save_recipe', 'rule', 'recipe-create-stamp', _RC + 'recipe_create_with_stamp_unknown / '),
+    'rule_recipe_noop': ('save_recipe', 'rule', 'recipe-noop', _RC + 'recipe_create_replay / '),
+    'rule_recipe_stale': ('save_recipe', 'rule', 'recipe-stale', _RC + 'recipe_change_stale / '),
+}
+RECIPE_TABLE_MUTATIONS = {
+    'recipes_table_update': ('grant update on public.recipes to anon;', 'recipe outcome differs: anon / recipes_update / '),
+}
+
 
 def order_mutant(name):
     """The migration's one function, changed in exactly one place, as SQL to run inside the suite."""
-    function, kind, argument, _ = (ORDER_MUTATIONS | LOOKUP_MUTATIONS | STAFF_MUTATIONS | SHOP_MUTATIONS | EXTRAS_MUTATIONS | SCHEDULED_MUTATIONS | STOCK_MUTATIONS)[name]
+    function, kind, argument, _ = (ORDER_MUTATIONS | LOOKUP_MUTATIONS | STAFF_MUTATIONS | SHOP_MUTATIONS | EXTRAS_MUTATIONS | SCHEDULED_MUTATIONS | STOCK_MUTATIONS | RECIPE_MUTATIONS)[name]
     marker = 'create or replace function public.' + function + '('
     text = [m.read_text(encoding='utf-8') for m in ORDER_MIGRATIONS if marker in m.read_text(encoding='utf-8')][-1]
     start = text.index('create or replace function public.' + function + '(')
@@ -328,6 +351,8 @@ SUITES = (
     ('stock-catalogue.sql', ('get_stock_catalogue()', 'save_supplier(jsonb,timestamptz)', 'save_stock_item(jsonb,timestamptz)',
                              'save_supplier_price(jsonb,timestamptz)') + tuple(STOCK_MUTATIONS) + tuple(STOCK_TABLE_MUTATIONS),
      'forbidden stock call succeeded', 138),
+    ('recipes.sql', ('get_recipes()', 'save_recipe(jsonb,timestamptz)') + tuple(RECIPE_MUTATIONS) + tuple(RECIPE_TABLE_MUTATIONS),
+     'forbidden recipe call succeeded', 79),
     ('bazaar-closeout.sql', ('event_summary(uuid)', 'load_event_stock(uuid,jsonb,bigint)', 'add_event_expense(jsonb)', 'close_event(jsonb)'), 'forbidden closeout call succeeded', 80),
 )
 CATALOG_GUARD_SQL = """
@@ -365,7 +390,7 @@ PAYMENT_MUTATIONS = {
 REPORT = ROOT / "docs/state/evidence/MP-06l-security.json"
 EMPTY_FIXTURES = 'select ' + ' and '.join(
     'not exists(select 1 from public.' + table + ')'
-    for table in ('orders', 'order_items', 'products', 'drops', 'settings', 'rate_limits', 'profiles', 'audit_log', 'ledger_entries', 'event_sales', 'event_sale_items', 'inventory_items', 'bake_batches', 'recipes', 'recipe_ingredients', 'suppliers', 'supplier_prices', 'events', 'erasure_requests', 'payment_methods', 'shop_texts', 'waitlist_entries', 'order_add_ons', 'order_boxes', 'scheduled_events')) + " and not exists(select 1 from auth.users) and to_regnamespace('mp06f_probe') is null and to_regnamespace('mp06g_probe') is null and to_regclass('public.mp06g_future') is null and to_regclass('public.mp06g_future_id_seq') is null;"
+    for table in ('orders', 'order_items', 'products', 'drops', 'settings', 'rate_limits', 'profiles', 'audit_log', 'ledger_entries', 'event_sales', 'event_sale_items', 'inventory_items', 'bake_batches', 'recipes', 'recipe_ingredients', 'suppliers', 'supplier_prices', 'events', 'erasure_requests', 'payment_methods', 'shop_texts', 'waitlist_entries', 'order_add_ons', 'order_boxes', 'scheduled_events', 'recipe_versions')) + " and not exists(select 1 from auth.users) and to_regnamespace('mp06f_probe') is null and to_regnamespace('mp06g_probe') is null and to_regclass('public.mp06g_future') is null and to_regclass('public.mp06g_future_id_seq') is null;"
 
 
 def main():
@@ -475,6 +500,13 @@ def main():
                     elif signature in STOCK_TABLE_MUTATIONS:
                         unsafe, expected_error = STOCK_TABLE_MUTATIONS[signature]
                         broken = sql.replace('begin;', 'begin;' + chr(10) + unsafe, 1)
+                if filename == 'recipes.sql':
+                    if signature in RECIPE_MUTATIONS:
+                        broken = sql.replace('begin;', 'begin;' + chr(10) + order_mutant(signature), 1)
+                        expected_error = RECIPE_MUTATIONS[signature][3]
+                    elif signature in RECIPE_TABLE_MUTATIONS:
+                        unsafe, expected_error = RECIPE_TABLE_MUTATIONS[signature]
+                        broken = sql.replace('begin;', 'begin;' + chr(10) + unsafe, 1)
                 if filename == 'order-extras.sql':
                     if signature in EXTRAS_MUTATIONS:
                         broken = sql.replace('begin;', 'begin;' + chr(10) + order_mutant(signature), 1)
@@ -574,7 +606,7 @@ def main():
                 h.fail(filename + ' did not return its complete role matrix')
             results.extend(rows)
             assert_empty()
-        if len(set(results)) != 1525:
+        if len(set(results)) != 1604:
             h.fail('combined role matrix has missing or duplicate cases: %d rows, %d unique (duplicates: %s)' % (len(results), len(set(results)), sorted({r for r in results if results.count(r) > 1})[:5]))
         assert_functions()
         assert_catalog_wide()
@@ -587,10 +619,10 @@ def main():
     try:
         code = h.main(after_reset=check)
         if (code == 0 and len(report["runs"]) == 2 and report["runs"][0] == report["runs"][1]
-                and len(report['regressions_detected']) == 436 and report['sequence_restorations'] == 10
+                and len(report['regressions_detected']) == 468 and report['sequence_restorations'] == 10
                 and report['upgrade_runs'] == 2 and report['function_guard_runs'] == 4
                 and report['catalog_guard_runs'] == 4 and report['catalog_guard_red_runs'] == 4):
-            report.update(status="passed", cases_per_reset=1525, resets=2, matrix_equal=True, rollback_verified=True,
+            report.update(status="passed", cases_per_reset=1604, resets=2, matrix_equal=True, rollback_verified=True,
                           sql_sha256={name: hashlib.sha256((ROOT / 'tests/integration/security' / name).read_bytes()).hexdigest() for name, _, _, _ in SUITES},
                           harness_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
     except (RuntimeError, OSError, ValueError) as error:

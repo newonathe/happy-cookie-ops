@@ -1063,6 +1063,7 @@ export type Database = {
         Row: {
           id: string
           item_name: string
+          position: number
           product_id: string
           qty: number
           unit: string
@@ -1070,6 +1071,7 @@ export type Database = {
         Insert: {
           id?: string
           item_name: string
+          position?: number
           product_id: string
           qty: number
           unit: string
@@ -1077,6 +1079,7 @@ export type Database = {
         Update: {
           id?: string
           item_name?: string
+          position?: number
           product_id?: string
           qty?: number
           unit?: string
@@ -1091,17 +1094,55 @@ export type Database = {
           },
         ]
       }
+      recipe_versions: {
+        Row: {
+          lines: Json
+          product_id: string
+          saved_at: string
+          version: number
+          yield_count: number
+        }
+        Insert: {
+          lines: Json
+          product_id: string
+          saved_at?: string
+          version: number
+          yield_count: number
+        }
+        Update: {
+          lines?: Json
+          product_id?: string
+          saved_at?: string
+          version?: number
+          yield_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recipe_versions_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "recipes"
+            referencedColumns: ["product_id"]
+          },
+        ]
+      }
       recipes: {
         Row: {
           product_id: string
+          updated_at: string
+          version: number
           yield_count: number
         }
         Insert: {
           product_id: string
+          updated_at?: string
+          version?: number
           yield_count: number
         }
         Update: {
           product_id?: string
+          updated_at?: string
+          version?: number
           yield_count?: number
         }
         Relationships: [
@@ -1657,6 +1698,7 @@ export type Database = {
           updated_at: string
         }[]
       }
+      get_recipes: { Args: never; Returns: Json }
       get_scheduled_events: { Args: never; Returns: Json }
       get_settings: {
         Args: never
@@ -1777,6 +1819,14 @@ export type Database = {
         Returns: {
           id: string
           updated_at: string
+        }[]
+      }
+      save_recipe: {
+        Args: { p_expected_updated_at: string; p_recipe: Json }
+        Returns: {
+          product_id: string
+          updated_at: string
+          version: number
         }[]
       }
       save_scheduled_event: {

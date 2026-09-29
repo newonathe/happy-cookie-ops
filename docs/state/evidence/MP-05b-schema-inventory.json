@@ -2063,6 +2063,60 @@
       "ordinal_position": 5
     },
     {
+      "udt_name": "int4",
+      "data_type": "integer",
+      "table_name": "recipe_ingredients",
+      "column_name": "position",
+      "is_nullable": "NO",
+      "column_default": "0",
+      "ordinal_position": 6
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "recipe_versions",
+      "column_name": "product_id",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 1
+    },
+    {
+      "udt_name": "int4",
+      "data_type": "integer",
+      "table_name": "recipe_versions",
+      "column_name": "version",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 2
+    },
+    {
+      "udt_name": "int4",
+      "data_type": "integer",
+      "table_name": "recipe_versions",
+      "column_name": "yield_count",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 3
+    },
+    {
+      "udt_name": "jsonb",
+      "data_type": "jsonb",
+      "table_name": "recipe_versions",
+      "column_name": "lines",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 4
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "recipe_versions",
+      "column_name": "saved_at",
+      "is_nullable": "NO",
+      "column_default": "now()",
+      "ordinal_position": 5
+    },
+    {
       "udt_name": "text",
       "data_type": "text",
       "table_name": "recipes",
@@ -2079,6 +2133,24 @@
       "is_nullable": "NO",
       "column_default": null,
       "ordinal_position": 2
+    },
+    {
+      "udt_name": "int4",
+      "data_type": "integer",
+      "table_name": "recipes",
+      "column_name": "version",
+      "is_nullable": "NO",
+      "column_default": "1",
+      "ordinal_position": 3
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "recipes",
+      "column_name": "updated_at",
+      "is_nullable": "NO",
+      "column_default": "now()",
+      "ordinal_position": 4
     },
     {
       "udt_name": "uuid",
@@ -2865,6 +2937,11 @@
       "indexdef": "CREATE UNIQUE INDEX recipe_ingredients_pkey ON public.recipe_ingredients USING btree (id)",
       "indexname": "recipe_ingredients_pkey",
       "tablename": "recipe_ingredients"
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX recipe_versions_pkey ON public.recipe_versions USING btree (product_id, version)",
+      "indexname": "recipe_versions_pkey",
+      "tablename": "recipe_versions"
     },
     {
       "indexdef": "CREATE UNIQUE INDEX recipes_pkey ON public.recipes USING btree (product_id)",
@@ -3683,6 +3760,21 @@
     },
     {
       "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "get_recipes",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "10da9870f424e7a4c794577fbe1c5fc2",
+      "identity": "",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
       "name": "get_scheduled_events",
       "owner": "postgres",
       "config": [
@@ -4058,6 +4150,21 @@
     },
     {
       "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "save_recipe",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(product_id text, version integer, updated_at timestamp with time zone)",
+      "body_md5": "1cae2dd4e7a9635ef8463dbc4f584429",
+      "identity": "p_recipe jsonb, p_expected_updated_at timestamp with time zone",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
       "name": "save_scheduled_event",
       "owner": "postgres",
       "config": [
@@ -4109,7 +4216,7 @@
         "search_path=\"\""
       ],
       "returns": "TABLE(id text, updated_at timestamp with time zone)",
-      "body_md5": "9dcc49ca3a540078aa86679a429937d4",
+      "body_md5": "fa87bf06e2e43a2ec4c7b647fa128c2c",
       "identity": "p_item jsonb, p_expected_updated_at timestamp with time zone",
       "execute_anon": false,
       "security_definer": true,
@@ -4124,7 +4231,7 @@
         "search_path=\"\""
       ],
       "returns": "TABLE(id text, updated_at timestamp with time zone)",
-      "body_md5": "73f92278f2b4cccfd942fc74033a7738",
+      "body_md5": "0c66b576d1bca53d96476947f5b8e005",
       "identity": "p_supplier jsonb, p_expected_updated_at timestamp with time zone",
       "execute_anon": false,
       "security_definer": true,
@@ -4139,7 +4246,7 @@
         "search_path=\"\""
       ],
       "returns": "TABLE(id uuid, updated_at timestamp with time zone)",
-      "body_md5": "556720f38c1e0a2e1c5b36a3b95a083f",
+      "body_md5": "63d0f8e678b7ec335458baa0a223b2e2",
       "identity": "p_price jsonb, p_expected_updated_at timestamp with time zone",
       "execute_anon": false,
       "security_definer": true,
@@ -5202,6 +5309,30 @@
       "definition": "FOREIGN KEY (product_id) REFERENCES recipes(product_id) ON DELETE CASCADE"
     },
     {
+      "name": "recipe_versions_pkey",
+      "type": "p",
+      "table": "recipe_versions",
+      "definition": "PRIMARY KEY (product_id, version)"
+    },
+    {
+      "name": "recipe_versions_product_id_fkey",
+      "type": "f",
+      "table": "recipe_versions",
+      "definition": "FOREIGN KEY (product_id) REFERENCES recipes(product_id) ON DELETE CASCADE"
+    },
+    {
+      "name": "recipe_versions_version_check",
+      "type": "c",
+      "table": "recipe_versions",
+      "definition": "CHECK ((version >= 1))"
+    },
+    {
+      "name": "recipe_versions_yield_count_check",
+      "type": "c",
+      "table": "recipe_versions",
+      "definition": "CHECK ((yield_count > 0))"
+    },
+    {
       "name": "recipes_pkey",
       "type": "p",
       "table": "recipes",
@@ -5212,6 +5343,12 @@
       "type": "f",
       "table": "recipes",
       "definition": "FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE"
+    },
+    {
+      "name": "recipes_version_check",
+      "type": "c",
+      "table": "recipes",
+      "definition": "CHECK ((version >= 1))"
     },
     {
       "name": "recipes_yield_count_check",
@@ -6638,48 +6775,6 @@
       "grantor": "postgres",
       "table_name": "inventory_items",
       "is_grantable": "NO",
-      "privilege_type": "DELETE"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "inventory_items",
-      "is_grantable": "NO",
-      "privilege_type": "INSERT"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "inventory_items",
-      "is_grantable": "NO",
-      "privilege_type": "SELECT"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "inventory_items",
-      "is_grantable": "NO",
-      "privilege_type": "UPDATE"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "inventory_items",
-      "is_grantable": "NO",
-      "privilege_type": "DELETE"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "inventory_items",
-      "is_grantable": "NO",
-      "privilege_type": "INSERT"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "inventory_items",
-      "is_grantable": "NO",
       "privilege_type": "SELECT"
     },
     {
@@ -6687,7 +6782,7 @@
       "grantor": "postgres",
       "table_name": "inventory_items",
       "is_grantable": "NO",
-      "privilege_type": "UPDATE"
+      "privilege_type": "SELECT"
     },
     {
       "grantee": "postgres",
@@ -8150,48 +8245,6 @@
       "grantor": "postgres",
       "table_name": "recipe_ingredients",
       "is_grantable": "NO",
-      "privilege_type": "DELETE"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "recipe_ingredients",
-      "is_grantable": "NO",
-      "privilege_type": "INSERT"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "recipe_ingredients",
-      "is_grantable": "NO",
-      "privilege_type": "SELECT"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "recipe_ingredients",
-      "is_grantable": "NO",
-      "privilege_type": "UPDATE"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "recipe_ingredients",
-      "is_grantable": "NO",
-      "privilege_type": "DELETE"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "recipe_ingredients",
-      "is_grantable": "NO",
-      "privilege_type": "INSERT"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "recipe_ingredients",
-      "is_grantable": "NO",
       "privilege_type": "SELECT"
     },
     {
@@ -8199,7 +8252,7 @@
       "grantor": "postgres",
       "table_name": "recipe_ingredients",
       "is_grantable": "NO",
-      "privilege_type": "UPDATE"
+      "privilege_type": "SELECT"
     },
     {
       "grantee": "postgres",
@@ -8300,49 +8353,105 @@
       "privilege_type": "UPDATE"
     },
     {
-      "grantee": "anon",
+      "grantee": "postgres",
       "grantor": "postgres",
-      "table_name": "recipes",
+      "table_name": "recipe_versions",
+      "is_grantable": "YES",
+      "privilege_type": "DELETE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "recipe_versions",
+      "is_grantable": "YES",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "recipe_versions",
+      "is_grantable": "YES",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "recipe_versions",
+      "is_grantable": "YES",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "recipe_versions",
+      "is_grantable": "YES",
+      "privilege_type": "TRIGGER"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "recipe_versions",
+      "is_grantable": "YES",
+      "privilege_type": "TRUNCATE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "recipe_versions",
+      "is_grantable": "YES",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "recipe_versions",
       "is_grantable": "NO",
       "privilege_type": "DELETE"
     },
     {
-      "grantee": "anon",
+      "grantee": "service_role",
       "grantor": "postgres",
-      "table_name": "recipes",
+      "table_name": "recipe_versions",
       "is_grantable": "NO",
       "privilege_type": "INSERT"
     },
     {
-      "grantee": "anon",
+      "grantee": "service_role",
       "grantor": "postgres",
-      "table_name": "recipes",
+      "table_name": "recipe_versions",
+      "is_grantable": "NO",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "recipe_versions",
       "is_grantable": "NO",
       "privilege_type": "SELECT"
     },
     {
-      "grantee": "anon",
+      "grantee": "service_role",
       "grantor": "postgres",
-      "table_name": "recipes",
+      "table_name": "recipe_versions",
+      "is_grantable": "NO",
+      "privilege_type": "TRIGGER"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "recipe_versions",
+      "is_grantable": "NO",
+      "privilege_type": "TRUNCATE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "recipe_versions",
       "is_grantable": "NO",
       "privilege_type": "UPDATE"
     },
     {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "recipes",
-      "is_grantable": "NO",
-      "privilege_type": "DELETE"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "recipes",
-      "is_grantable": "NO",
-      "privilege_type": "INSERT"
-    },
-    {
-      "grantee": "authenticated",
+      "grantee": "anon",
       "grantor": "postgres",
       "table_name": "recipes",
       "is_grantable": "NO",
@@ -8353,7 +8462,7 @@
       "grantor": "postgres",
       "table_name": "recipes",
       "is_grantable": "NO",
-      "privilege_type": "UPDATE"
+      "privilege_type": "SELECT"
     },
     {
       "grantee": "postgres",
@@ -9004,48 +9113,6 @@
       "grantor": "postgres",
       "table_name": "supplier_prices",
       "is_grantable": "NO",
-      "privilege_type": "DELETE"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "supplier_prices",
-      "is_grantable": "NO",
-      "privilege_type": "INSERT"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "supplier_prices",
-      "is_grantable": "NO",
-      "privilege_type": "SELECT"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "supplier_prices",
-      "is_grantable": "NO",
-      "privilege_type": "UPDATE"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "supplier_prices",
-      "is_grantable": "NO",
-      "privilege_type": "DELETE"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "supplier_prices",
-      "is_grantable": "NO",
-      "privilege_type": "INSERT"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "supplier_prices",
-      "is_grantable": "NO",
       "privilege_type": "SELECT"
     },
     {
@@ -9053,7 +9120,7 @@
       "grantor": "postgres",
       "table_name": "supplier_prices",
       "is_grantable": "NO",
-      "privilege_type": "UPDATE"
+      "privilege_type": "SELECT"
     },
     {
       "grantee": "postgres",
@@ -9158,48 +9225,6 @@
       "grantor": "postgres",
       "table_name": "suppliers",
       "is_grantable": "NO",
-      "privilege_type": "DELETE"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "suppliers",
-      "is_grantable": "NO",
-      "privilege_type": "INSERT"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "suppliers",
-      "is_grantable": "NO",
-      "privilege_type": "SELECT"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "suppliers",
-      "is_grantable": "NO",
-      "privilege_type": "UPDATE"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "suppliers",
-      "is_grantable": "NO",
-      "privilege_type": "DELETE"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "suppliers",
-      "is_grantable": "NO",
-      "privilege_type": "INSERT"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "suppliers",
-      "is_grantable": "NO",
       "privilege_type": "SELECT"
     },
     {
@@ -9207,7 +9232,7 @@
       "grantor": "postgres",
       "table_name": "suppliers",
       "is_grantable": "NO",
-      "privilege_type": "UPDATE"
+      "privilege_type": "SELECT"
     },
     {
       "grantee": "postgres",
@@ -9543,6 +9568,12 @@
       "rls": true,
       "owner": "postgres",
       "table": "recipe_ingredients",
+      "force_rls": false
+    },
+    {
+      "rls": true,
+      "owner": "postgres",
+      "table": "recipe_versions",
       "force_rls": false
     },
     {
