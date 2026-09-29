@@ -20,16 +20,16 @@ Short status, read at the start of every session. Keep it to one screen.
   - MP-09 c1: flavours on the database.
   - MP-09 c1b: prices save, `publish_flavours`, and the live shop shows only the published menu.
   - MP-09 c1c (F3, slice A1): the owner's flavour editor and "Publish menu" button, live mode only.
-- **D1 is done locally:** bazaar events and sales on the database, offline on one phone (checkpoint below).
+- **D1 and D2 are done locally:** bazaar events, offline sales and the close-out (stock, expenses, cash count, event profit) on the database (checkpoint below).
 - **Screen by screen:** orders, payments, bake/dough, inventory, grocery, suppliers, recipes, P&L and the
-  waitlist still live only in the browser (bazaar sales now reach the database; its stock and close-out are D2), so they are empty in live mode. **The owner can now edit, add and
+  waitlist still live only in the browser (bazaar sales, stock, expenses and close-out now reach the database), so they are empty in live mode. **The owner can now edit, add and
   publish flavours**; every other screen is still A2 onward.
 - **Cine's inputs arrived 2026-09-28** and were analysed in [finish-plan.md](finish-plan.md) sections 2 and 4 and
   [apps-script-audit.md](apps-script-audit.md): the workbook, the September form, the payment image, the October
   menu, recipes and packaging, and the Apps Script. The files stay outside the repo; `Appscript/` is git-ignored.
-- **Baseline (2026-09-29, at D1 close):**
-  - `pnpm typecheck` clean; `pnpm verify` 46 files / 714 tests; port integrity OK, 54 files; G0 validator 1201 checks, 0 failures;
-  - SQL role suite: 657 cases per reset, 2 resets; Python guards: 63 OK; migrations: 33;
+- **Baseline (2026-09-29, at D2 close):**
+  - `pnpm typecheck` clean; `pnpm verify` 46 files / 736 tests; port integrity OK, 54 files; G0 validator 1201 checks, 0 failures;
+  - SQL role suite: 737 cases per reset, 2 resets; Python guards: 63 OK; migrations: 34;
   - `pnpm test:e2e`: 89 passed / 1 failed (WebKit OFFLINE-01) / 30 skipped.
 - **Known red:** OFFLINE-01 on WebKit only; `format:check` and E2E on CI `main`. No merge to `main` until they are green.
 
@@ -42,44 +42,37 @@ Short status, read at the start of every session. Keep it to one screen.
 
 ## Latest checkpoint (replace each slice; move the old one to current-history.md)
 
-- **2026-09-29 (D1, finish-plan slice D1 — bazaar sales, offline on one phone):** committed in two parts, the SQL
-  half (`ee6f3be`) and the phone half.
-  - **Database (migration `20260101003200_bazaar_events.sql`):** an event holds its price snapshot (taken at
-    `start_event`, DP-20) and one selling device (decision 5; `set_event_device` keeps the old phone accepted).
-    `record_event_sale` is idempotent on the client id plus a hash of the body: a true repeat is acknowledged once,
-    the same id with a different body is refused (23505), a total that disagrees with the snapshot is refused
-    (22023), a freebie books no ledger row. `void_event_sale` is a never-clearing marker, so void-before-sale,
-    repeat void and a stale retry all end voided. `start_event` takes a client event id so a lost reply cannot open
-    a second event. Owner-only (DP-18 open), `search_path ''`, EXECUTE for `authenticated`.
-  - **Phone:** `src/lib/offline/sync.ts` now sends one row at a time to those RPCs through the signed-in
-    browser client (`src/lib/data/event-sales.ts`, pesos to centavos in one place) and clears a row only when the
-    reply names its client id. A void is its own queue row. `OpsRuntime` wraps `startEvent` (live: online only,
-    server snapshot prices, event id kept in `hc-event-attempt` for a retry), `voidSale` (queues the void),
-    `recordSale` (renames a sale id the engine reused after a void), `setEventPrice` (locked in live) and, in live
-    mode, keeps the running event in `hc-live-bazaar` so a reload at the stall carries on with the same event
-    (`bazaar-state.ts`). After every flush the on-screen sale flags follow the queue (live only). `OfflineBridge`
-    subscribes to sales (this was the OFFLINE-01 root cause), retries a failed IndexedDB write, and stores the
-    scripts the page loaded through the service worker so the phone can reload with no signal (`shell.ts`,
-    `data-hc-offline-ready`). `public/sw.js` no longer posts anywhere: it wakes open tabs and caches the shell.
-    `src/app/api/sync/route.ts` stays as an uncalled 503 only because the G0 validator pins it as a delivery
-    file; the middleware carve-out for it is gone.
-  - **OFFLINE-01:** passes on desktop and phone (Pixel 7). **WebKit (iPhone 13 profile) still fails** at
-    `page.reload()` offline with "WebKit encountered an internal error", before any of our code runs; not
-    diagnosed further (Playwright's WebKit with a service worker and `setOffline`). The e2e build has no Supabase
-    project, so the acknowledgment comes from a stand-in `saleClient` set on the engine; the server contract is
-    proven by the SQL role suite. **The physical-phone test for the 20-Oct gate is not run and still needed.**
-  - **Evidence:** `pnpm verify` 46 files / 714 tests, exit 0; `pnpm test:e2e` 89 passed / 1 failed (WebKit
-    OFFLINE-01) / 30 skipped; SQL role suite `bazaar-events.sql` 87 cases per reset (657 combined, 2 resets, 76
-    deliberate regressions detected); Python guards 63 OK (function count 36); G0 validator 1201 checks, 0 failures.
-    Mutation checks: four on the RPCs (SQL), eight on the phone code (reply not checked, every row marked sent,
-    void not queued, id collision left, start retry id, unnamed event sent, saved event not read back, flags not
-    from the queue) each caught by a test. Two Opus reviews: SQL (no P0/P1; two P2 fixed) and phone (two P1 and
-    four P2; the reload-loses-the-event P1 fixed by `hc-live-bazaar`, the void-guard P1 not applicable because
-    the engine's `voidSale` only returns early for an unknown id).
-  - **Recorded, not fixed:** (1) a flavour that was inactive when the event started is still on the sell grid;
-    a sale of it is refused (22023) and stays queued as failed. The start now says how many flavours cannot be sold;
-    D2's stock loading should stop offering them. (2) A permanently refused sale (22023/23505/42501) is retried
-    on every flush and looks like a network failure; the sync toast counts void rows as sales. (3) Old queue rows
-    from before D1 have no server event and stay failed. (4) The advisory lock (void racing its own sale) needs a
-    two-connection test. (5) The owner can already write `event_sales`/`events` directly under RLS, so E1's revenue
-    query must skip rows with `voided_at`. (6) Helper access to selling waits for DP-18.
+- **2026-09-29 (D2, finish-plan slice D2 — bazaar close-out):**
+  - **Database (migration `20260101003300_bazaar_closeout.sql`):** four owner-only RPCs, `search_path ''`, EXECUTE
+    for `authenticated`. `load_event_stock` sets the table stock and the drawer float once (only flavours in the
+    event's price snapshot; the float has its own column so `start_event`'s retry still matches). `add_event_expense`
+    is idempotent on a client id plus a body hash and posts a negative cost to the ledger. `close_event` sets
+    `closed_at`, stores the count and the unsold stock, books a short drawer as a cost and an over drawer as
+    takings, and returns `event_summary`. `event_summary` is recomputed from rows every time: voided sales never
+    count; profit is takings minus expenses plus the drawer variance, and leaves out ingredient cost (needs C2).
+  - **Close safety (from the Opus review, both P1s):** the close carries the phone's `floatCents` and `cashCents`.
+    The server closes only when its own float and non-voided Cash total match; otherwise it refuses with `40001`,
+    which the phone treats as "try again later". So a close that overtakes a sale, a void or the stock load is
+    retried instead of being booked as a drawer variance. A close dated before an already-recorded sale is refused.
+  - **Phone:** stock load, each expense and the close are queued like sales (`open:<event>`, `expense:<uuid>`,
+    `close:<event>` rows, frozen bodies, sent in the order sales, voids, stock, expenses, close). `OpsRuntime`
+    wraps `setEventStock` (a flavour off the event menu cannot be put on the table: closes D1 carry-over 1),
+    `openSelling`, `addEventExpense` (positive amounts only), `closeEvent` (queued only if the engine actually
+    closed) and `reopenEvent` (a closed event stays closed in live mode). Refusals (22023, 23505, 42501, 55000,
+    P0002) are now told apart from a lost connection, and the sync toast says so (closes D1 carry-over 2).
+  - **Evidence:** `pnpm verify` and `pnpm test:e2e` numbers in the baseline above; SQL role suite 737 cases per
+    reset (2 resets, 84 deliberate regressions detected), `bazaar-closeout.sql` 80 cases; 17 deliberate
+    mutations of the new SQL and 12 of the phone code, each caught by a test; Python guards 63 OK (function count
+    40); G0 validator 1201 checks, 0 failures. Opus review of the SQL: two P1s and four P2s, all fixed or
+    recorded; a second look at the fixes found no new P0/P1.
+  - **Recorded, not fixed:** (1) **The close can retry forever** if the phone counts money the server will
+    never hold: a sale the server permanently refused, Cash sales from a former phone after `set_event_device`, or
+    a stock load that was refused. The phone should build `cashCents`/`floatCents` only from rows the server has
+    acknowledged, and an audited owner override after N tries; do this before a two-phone event. (2) A Cash sale
+    that arrives from a former device after the close changes the summary's expected cash but not the stored
+    variance. (3) The variance ledger row is linked to its event only by its memo. (4) An expense's date is not
+    bounded by the event. (5) A close with no count cannot be given one later. (6) A close dated before a sale
+    (clock corrected backwards) is refused as permanent. (7) The lock around `record_event_sale` still needs a
+    two-connection test. (8) E1's revenue must use `event_summary` or skip rows with `voided_at`. (9) Helper
+    access to selling and closing waits for DP-18.
+  - **Still not run:** the physical-phone test for the 20-Oct gate; WebKit OFFLINE-01 (Playwright).

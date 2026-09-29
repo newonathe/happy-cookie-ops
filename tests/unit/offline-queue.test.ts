@@ -271,3 +271,99 @@ describe('flushQueue: voids', () => {
     expect((await allSales())[0]!.state).toBe('failed');
   });
 });
+
+describe('flushQueue: bazaar commands', () => {
+  type Args = Record<string, Record<string, unknown> | string | number>;
+  function commandClient(reply?: (name: string, args: Args) => { data: unknown; error: unknown }) {
+    const calls: Array<{ name: string; args: Args }> = [];
+    const rpc = vi.fn(async (name: string, args: Args) => {
+      calls.push({ name, args });
+      if (reply) return reply(name, args);
+      if (name === 'add_event_expense') return { data: [{ client_id: (args.p_expense as { clientId: string }).clientId, duplicate: false }], error: null };
+      if (name === 'load_event_stock') return { data: [{ event_id: args.p_event }], error: null };
+      if (name === 'close_event') return { data: [{ event_id: (args.p_close as { eventId: string }).eventId, closed: true }], error: null };
+      const id = ((args.p_sale ?? args.p_void) as { clientId: string }).clientId;
+      return { data: [{ client_id: id, duplicate: false }], error: null };
+    });
+    return { client: { rpc } as never, rpc, calls };
+  }
+  const expense = { clientId: 'expense:u1', eventId: EVENT, label: 'Table rent', category: 'Bazaar rent', amountCents: 150000, at: 5 };
+  const close = { eventId: EVENT, at: 9, countedCents: 62500, returned: { dcf: 2 } };
+  const queueAll = async () => {
+    const q = await load();
+    await q.enqueueCommand({ clientId: 'close:' + EVENT, kind: 'close', eventId: EVENT, payload: close, at: 9 });
+    await q.enqueueCommand({ clientId: 'expense:u1', kind: 'expense', eventId: EVENT, payload: expense, at: 5 });
+    await q.enqueueCommand({ clientId: 'open:' + EVENT, kind: 'open', eventId: EVENT, payload: { loaded: { dcf: 5 }, floatCents: 100000 }, at: 3 });
+    await q.enqueueVoid('dev1:S1:1', 4);
+    await q.enqueueSale(sale('S1', 1));
+    return q;
+  };
+
+  it('sends sales, then voids, stock, expenses, and the close last, whatever order they were queued', async () => {
+    const q = await queueAll();
+    const { client, calls } = commandClient();
+    const result = await q.flushQueue(client);
+    expect(calls.map((c) => c.name)).toEqual(['record_event_sale', 'void_event_sale', 'load_event_stock', 'add_event_expense', 'close_event']);
+    expect(result.sent).toHaveLength(5);
+  });
+
+  it('sends each command body exactly as queued', async () => {
+    const q = await queueAll();
+    const { client, calls } = commandClient();
+    await q.flushQueue(client);
+    const by = Object.fromEntries(calls.map((c) => [c.name, c.args]));
+    expect(by.load_event_stock).toEqual({ p_event: EVENT, p_loaded: { dcf: 5 }, p_float_cents: 100000 });
+    expect(by.add_event_expense).toEqual({ p_expense: expense });
+    expect(by.close_event).toEqual({ p_close: close });
+  });
+
+  it('a repeat delivery sends nothing, and a command queued twice keeps its first body', async () => {
+    const q = await queueAll();
+    await q.enqueueCommand({ clientId: 'close:' + EVENT, kind: 'close', eventId: EVENT, payload: { ...close, countedCents: 1 }, at: 10 });
+    const { client, rpc } = commandClient();
+    await q.flushQueue(client);
+    expect((rpc.mock.calls.find((c) => c[0] === 'close_event')![1] as Args).p_close).toEqual(close);
+    rpc.mockClear();
+    await q.flushQueue(client);
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
+  it('keeps a close the server did not confirm as closed', async () => {
+    const q = await load();
+    await q.enqueueCommand({ clientId: 'close:' + EVENT, kind: 'close', eventId: EVENT, payload: close, at: 9 });
+    const { client } = commandClient(() => ({ data: [{ event_id: EVENT, closed: false }], error: null }));
+    const result = await q.flushQueue(client);
+    expect(result.sent).toEqual([]);
+    expect((await q.allSales())[0]!.state).toBe('failed');
+  });
+
+  it('tells a refusal from a lost connection', async () => {
+    const q = await queueAll();
+    const refuse = commandClient((name) =>
+      name === 'add_event_expense'
+        ? { data: null, error: { code: '23505', message: 'client id was already used' } }
+        : { data: null, error: { code: '', message: 'Failed to fetch' } }
+    );
+    const result = await q.flushQueue(refuse.client);
+    const flag = Object.fromEntries(result.failed.map((f) => [f.clientId, f.permanent]));
+    expect(flag['expense:u1']).toBe(true);
+    expect(flag['close:' + EVENT]).toBe(false);
+    expect(flag['dev1:S1:1']).toBe(false);
+  });
+
+  it('holds a command whose event is not a server event, and keeps it', async () => {
+    const q = await load();
+    await q.enqueueCommand({ clientId: 'expense:u2', kind: 'expense', eventId: 'g0-synthetic-event', payload: expense, at: 5 });
+    const { client, rpc } = commandClient();
+    const result = await q.flushQueue(client);
+    expect(rpc).not.toHaveBeenCalled();
+    expect(result.failed).toHaveLength(1);
+    expect((await q.allSales())[0]!.state).toBe('failed');
+  });
+
+  it('tells sale keys from command keys', async () => {
+    const { isSaleKey } = await load();
+    expect(isSaleKey('dev1:S1:1')).toBe(true);
+    expect(['void:dev1:S1:1', 'open:x', 'expense:x', 'close:x'].some(isSaleKey)).toBe(false);
+  });
+});

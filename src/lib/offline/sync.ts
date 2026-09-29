@@ -1,12 +1,12 @@
-import { markFailed, markSent, pendingSales, pruneSent, isVoidRow } from './queue';
-import type { QueuedSale, QueueRow } from './queue';
-import { isEventUuid, sendSale, sendVoid, type EventSalesClient } from '@/lib/data/event-sales';
+import { markFailed, markSent, pendingSales, pruneSent, isCommandRow, isVoidRow } from './queue';
+import type { QueuedCommand, QueuedSale, QueueRow } from './queue';
+import { isEventUuid, sendCommand, sendSale, sendVoid, type EventSalesClient } from '@/lib/data/event-sales';
 import { createClient } from '@/lib/supabase/client';
 import { hasSupabaseConfig } from '@/lib/supabase/config';
 
 export interface FlushResult {
   sent: string[];
-  failed: Array<{ clientId: string; error: string }>;
+  failed: Array<{ clientId: string; error: string; permanent: boolean }>;
   skipped: boolean;
 }
 
@@ -60,31 +60,39 @@ async function flushOnce(client: EventSalesClient | null): Promise<FlushResult> 
   if (!target) return { sent: [], failed: [], skipped: true };
 
   const sent: string[] = [];
-  const failed: Array<{ clientId: string; error: string }> = [];
-  const ordered: QueueRow[] = [...pending].sort(
-    (a, b) => Number(isVoidRow(a)) - Number(isVoidRow(b)) || a.at - b.at
-  );
+  const failed: FlushResult['failed'] = [];
+  // Sales first, then voids, stock, expenses, and the close last: whatever is still on the phone
+  // reaches the server before the event is closed on it.
+  const rank = (row: QueueRow) => (isVoidRow(row) ? 1 : isCommandRow(row) ? { open: 2, expense: 3, close: 4 }[row.kind] : 0);
+  const ordered: QueueRow[] = [...pending].sort((a, b) => rank(a) - rank(b) || a.at - b.at);
   for (const row of ordered) {
     const outcome = isVoidRow(row)
       ? await sendVoid(target, row.saleClientId, row.at)
-      : await sendOneSale(target, row);
+      : isCommandRow(row)
+        ? await sendOneCommand(target, row)
+        : await sendOneSale(target, row);
     if (outcome.ok) {
       await markSent([row.clientId]);
       sent.push(row.clientId);
     } else {
       await markFailed(row.clientId, outcome.error);
-      failed.push({ clientId: row.clientId, error: outcome.error });
+      failed.push({ clientId: row.clientId, error: outcome.error, permanent: outcome.permanent === true });
     }
   }
   await pruneSent();
   return { sent, failed, skipped: false };
 }
 
+const NO_EVENT = { ok: false as const, error: 'no server event: start the event while online', permanent: false };
+
 async function sendOneSale(target: EventSalesClient, row: QueuedSale) {
-  if (!isEventUuid(row.eventId)) {
-    return { ok: false as const, error: 'no server event: start the event while online' };
-  }
+  if (!isEventUuid(row.eventId)) return NO_EVENT;
   return sendSale(target, row);
+}
+
+async function sendOneCommand(target: EventSalesClient, row: QueuedCommand) {
+  if (!isEventUuid(row.eventId)) return NO_EVENT;
+  return sendCommand(target, row);
 }
 
 /** Asks the service worker to wake the open app once the radio comes back. */

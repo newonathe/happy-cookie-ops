@@ -57,7 +57,20 @@ export function salePayload(sale: SaleToSend): Json {
   };
 }
 
-export type SendOutcome = { ok: true; duplicate: boolean } | { ok: false; error: string };
+/** `permanent`: the server understood and refused, so retrying the same body cannot help. */
+export type SendOutcome = { ok: true; duplicate: boolean } | { ok: false; error: string; permanent: boolean };
+
+const REFUSED = new Set(['22023', '23505', '42501', '55000', 'P0002']);
+const refused = (error: { code?: string; message?: string }): SendOutcome => ({
+  ok: false,
+  error: message(error),
+  permanent: REFUSED.has(error.code ?? '')
+});
+const unreachable = (error: unknown): SendOutcome => ({
+  ok: false,
+  error: error instanceof Error ? error.message.slice(0, 160) : 'network',
+  permanent: false
+});
 
 const message = (error: { code?: string; message?: string }) =>
   ((error.code ? error.code + ' ' : '') + (error.message ?? 'rpc failed')).slice(0, 160);
@@ -66,11 +79,11 @@ const message = (error: { code?: string; message?: string }) =>
 export async function sendSale(client: EventSalesClient, sale: SaleToSend): Promise<SendOutcome> {
   try {
     const { data, error } = await client.rpc('record_event_sale', { p_sale: salePayload(sale) });
-    if (error) return { ok: false, error: message(error) };
+    if (error) return refused(error);
     const row = (data ?? []).find((r) => r.client_id === sale.clientId);
-    return row ? { ok: true, duplicate: row.duplicate } : { ok: false, error: 'not acknowledged' };
+    return row ? { ok: true, duplicate: row.duplicate } : { ok: false, error: 'not acknowledged', permanent: false };
   } catch (error) {
-    return { ok: false, error: error instanceof Error ? error.message.slice(0, 160) : 'network' };
+    return unreachable(error);
   }
 }
 
@@ -83,11 +96,11 @@ export async function sendVoid(
     const { data, error } = await client.rpc('void_event_sale', {
       p_void: { clientId: saleClientId, deviceId: deviceOf(saleClientId), at }
     });
-    if (error) return { ok: false, error: message(error) };
+    if (error) return refused(error);
     const row = (data ?? []).find((r) => r.client_id === saleClientId);
-    return row ? { ok: true, duplicate: row.duplicate } : { ok: false, error: 'not acknowledged' };
+    return row ? { ok: true, duplicate: row.duplicate } : { ok: false, error: 'not acknowledged', permanent: false };
   } catch (error) {
-    return { ok: false, error: error instanceof Error ? error.message.slice(0, 160) : 'network' };
+    return unreachable(error);
   }
 }
 
@@ -124,5 +137,41 @@ export async function startEventOnServer(
     return { ok: true, eventId: row.event_id, prices };
   } catch (error) {
     return { ok: false, error: error instanceof Error ? error.message.slice(0, 160) : 'network' };
+  }
+}
+
+export type CommandToSend = { kind: 'open' | 'expense' | 'close'; eventId: string; payload: Record<string, unknown> };
+
+/**
+ * Stock loaded, an expense, the close. Each is acknowledged only when the reply names what
+ * was sent: the event for `open` and `close` (a close also has to come back closed), the
+ * client id for an expense.
+ */
+export async function sendCommand(client: EventSalesClient, command: CommandToSend): Promise<SendOutcome> {
+  const { kind, eventId, payload } = command;
+  const p = payload as Record<string, Json | undefined>;
+  try {
+    if (kind === 'expense') {
+      const { data, error } = await client.rpc('add_event_expense', { p_expense: payload as Json });
+      if (error) return refused(error);
+      const row = (data ?? []).find((r) => r.client_id === p.clientId);
+      return row ? { ok: true, duplicate: row.duplicate } : { ok: false, error: 'not acknowledged', permanent: false };
+    }
+    if (kind === 'open') {
+      const { data, error } = await client.rpc('load_event_stock', {
+        p_event: eventId,
+        p_loaded: p.loaded as Json,
+        p_float_cents: Number(p.floatCents)
+      });
+      if (error) return refused(error);
+      const row = (data ?? []).find((r) => r.event_id === eventId);
+      return row ? { ok: true, duplicate: false } : { ok: false, error: 'not acknowledged', permanent: false };
+    }
+    const { data, error } = await client.rpc('close_event', { p_close: payload as Json });
+    if (error) return refused(error);
+    const row = (data ?? []).find((r) => r.event_id === eventId);
+    return row?.closed ? { ok: true, duplicate: false } : { ok: false, error: 'not acknowledged', permanent: false };
+  } catch (error) {
+    return unreachable(error);
   }
 }

@@ -178,6 +178,57 @@ export type Database = {
         }
         Relationships: []
       }
+      event_expenses: {
+        Row: {
+          amount_cents: number
+          category: string
+          client_id: string
+          event_id: string
+          label: string
+          ledger_id: string | null
+          payload_hash: string
+          received_at: string
+          spent_at: string
+        }
+        Insert: {
+          amount_cents: number
+          category: string
+          client_id: string
+          event_id: string
+          label: string
+          ledger_id?: string | null
+          payload_hash: string
+          received_at?: string
+          spent_at: string
+        }
+        Update: {
+          amount_cents?: number
+          category?: string
+          client_id?: string
+          event_id?: string
+          label?: string
+          ledger_id?: string | null
+          payload_hash?: string
+          received_at?: string
+          spent_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_expenses_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_expenses_ledger_id_fkey"
+            columns: ["ledger_id"]
+            isOneToOne: false
+            referencedRelation: "ledger_entries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_sale_items: {
         Row: {
           id: string
@@ -320,36 +371,57 @@ export type Database = {
       events: {
         Row: {
           closed_at: string | null
+          closed_hash: string | null
+          counted_cents: number | null
+          drawer_float_cents: number | null
           ends_at: string | null
           float_cents: number
           former_devices: string[]
           id: string
+          loaded: Json
           name: string
+          opened_at: string | null
           price_snapshot: Json
+          returned: Json
           selling_device: string | null
           starts_at: string
+          variance_cents: number | null
         }
         Insert: {
           closed_at?: string | null
+          closed_hash?: string | null
+          counted_cents?: number | null
+          drawer_float_cents?: number | null
           ends_at?: string | null
           float_cents?: number
           former_devices?: string[]
           id?: string
+          loaded?: Json
           name: string
+          opened_at?: string | null
           price_snapshot?: Json
+          returned?: Json
           selling_device?: string | null
           starts_at: string
+          variance_cents?: number | null
         }
         Update: {
           closed_at?: string | null
+          closed_hash?: string | null
+          counted_cents?: number | null
+          drawer_float_cents?: number | null
           ends_at?: string | null
           float_cents?: number
           former_devices?: string[]
           id?: string
+          loaded?: Json
           name?: string
+          opened_at?: string | null
           price_snapshot?: Json
+          returned?: Json
           selling_device?: string | null
           starts_at?: string
+          variance_cents?: number | null
         }
         Relationships: []
       }
@@ -901,6 +973,13 @@ export type Database = {
       }
     }
     Functions: {
+      add_event_expense: {
+        Args: { p_expense: Json }
+        Returns: {
+          client_id: string
+          duplicate: boolean
+        }[]
+      }
       anonymise_customer: {
         Args: { p_note?: string; p_phone: string }
         Returns: number
@@ -1011,6 +1090,27 @@ export type Database = {
         Args: { p_capacity: number; p_committed: number; p_requested: number }
         Returns: boolean
       }
+      close_event: {
+        Args: { p_close: Json }
+        Returns: {
+          cash_expected_cents: number
+          closed: boolean
+          cookies_sold: number
+          counted_cents: number
+          event_id: string
+          expenses_cents: number
+          float_cents: number
+          freebie_count: number
+          loaded: Json
+          name: string
+          profit_cents: number
+          returned: Json
+          revenue_cents: number
+          sales_count: number
+          variance_cents: number
+          voided_count: number
+        }[]
+      }
       consume_rate_limit: {
         Args: { p_key: string; p_limit: number; p_window_s: number }
         Returns: {
@@ -1024,6 +1124,27 @@ export type Database = {
         Returns: Database["public"]["Enums"]["app_role"]
       }
       drop_remaining: { Args: { p_drop_id: string }; Returns: number }
+      event_summary: {
+        Args: { p_event: string }
+        Returns: {
+          cash_expected_cents: number
+          closed: boolean
+          cookies_sold: number
+          counted_cents: number
+          event_id: string
+          expenses_cents: number
+          float_cents: number
+          freebie_count: number
+          loaded: Json
+          name: string
+          profit_cents: number
+          returned: Json
+          revenue_cents: number
+          sales_count: number
+          variance_cents: number
+          voided_count: number
+        }[]
+      }
       get_flavours: {
         Args: never
         Returns: {
@@ -1070,6 +1191,15 @@ export type Database = {
       }
       is_owner: { Args: never; Returns: boolean }
       is_staff: { Args: never; Returns: boolean }
+      load_event_stock: {
+        Args: { p_event: string; p_float_cents: number; p_loaded: Json }
+        Returns: {
+          event_id: string
+          float_cents: number
+          loaded: Json
+          opened_at: string
+        }[]
+      }
       lookup_order: {
         Args: { p_order_id: string; p_phone: string }
         Returns: {

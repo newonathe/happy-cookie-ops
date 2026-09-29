@@ -44,10 +44,33 @@ export interface QueuedVoid {
   lastError: string | null;
 }
 
-export type QueueRow = QueuedSale | QueuedVoid;
+/**
+ * The rest of the bazaar's commands: stock put on the table, an expense, the close. Each has a
+ * stable key (`open:<event>`, `close:<event>`, `expense:<uuid>`), so queueing one twice keeps
+ * the first body, and the server acknowledges the key like a sale's.
+ */
+export type CommandKind = 'open' | 'expense' | 'close';
+export interface QueuedCommand {
+  clientId: string;
+  kind: CommandKind;
+  eventId: string;
+  /** The exact JSON the RPC takes, in centavos: a retry must send the same body. */
+  payload: Record<string, unknown>;
+  at: number;
+  state: QueuedState;
+  attempts: number;
+  lastError: string | null;
+}
+
+export type QueueRow = QueuedSale | QueuedVoid | QueuedCommand;
 export type SaleInput = Omit<QueuedSale, 'clientId' | 'kind' | 'state' | 'attempts' | 'lastError'>;
 
 export const isVoidRow = (row: QueueRow): row is QueuedVoid => row.kind === 'void';
+export const isCommandRow = (row: QueueRow): row is QueuedCommand =>
+  row.kind === 'open' || row.kind === 'expense' || row.kind === 'close';
+export const commandKey = (kind: CommandKind, id: string) => kind + ':' + id;
+/** Keys of rows that are not sales: they lead with the kind, a sale's leads with its device. */
+export const isSaleKey = (clientId: string) => !/^(void|open|expense|close):/.test(clientId);
 export const voidKey = (saleClientId: string) => 'void:' + saleClientId;
 
 /**
@@ -81,6 +104,14 @@ export async function enqueueVoid(saleClientId: string, at = Date.now()): Promis
     attempts: 0,
     lastError: null
   };
+  await idb.put(row);
+  return row;
+}
+
+export async function enqueueCommand(command: Omit<QueuedCommand, 'state' | 'attempts' | 'lastError'>): Promise<QueuedCommand> {
+  const existing = await idb.get<QueuedCommand>(command.clientId);
+  if (existing) return existing;
+  const row: QueuedCommand = { ...command, state: 'pending', attempts: 0, lastError: null };
   await idb.put(row);
   return row;
 }

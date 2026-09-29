@@ -4,6 +4,48 @@ Every checkpoint up to 2026-09-28, verbatim and newest first. Moved here from `c
 session reads only the short status in [current.md](current.md). Add nothing here by hand; move a checkpoint here
 when it leaves `current.md`.
 
+## Checkpoint — 2026-09-29 (D1, bazaar sales offline on one phone)
+
+  - **Database (migration `20260101003200_bazaar_events.sql`):** an event holds its price snapshot (taken at
+    `start_event`, DP-20) and one selling device (decision 5; `set_event_device` keeps the old phone accepted).
+    `record_event_sale` is idempotent on the client id plus a hash of the body: a true repeat is acknowledged once,
+    the same id with a different body is refused (23505), a total that disagrees with the snapshot is refused
+    (22023), a freebie books no ledger row. `void_event_sale` is a never-clearing marker, so void-before-sale,
+    repeat void and a stale retry all end voided. `start_event` takes a client event id so a lost reply cannot open
+    a second event. Owner-only (DP-18 open), `search_path ''`, EXECUTE for `authenticated`.
+  - **Phone:** `src/lib/offline/sync.ts` now sends one row at a time to those RPCs through the signed-in
+    browser client (`src/lib/data/event-sales.ts`, pesos to centavos in one place) and clears a row only when the
+    reply names its client id. A void is its own queue row. `OpsRuntime` wraps `startEvent` (live: online only,
+    server snapshot prices, event id kept in `hc-event-attempt` for a retry), `voidSale` (queues the void),
+    `recordSale` (renames a sale id the engine reused after a void), `setEventPrice` (locked in live) and, in live
+    mode, keeps the running event in `hc-live-bazaar` so a reload at the stall carries on with the same event
+    (`bazaar-state.ts`). After every flush the on-screen sale flags follow the queue (live only). `OfflineBridge`
+    subscribes to sales (this was the OFFLINE-01 root cause), retries a failed IndexedDB write, and stores the
+    scripts the page loaded through the service worker so the phone can reload with no signal (`shell.ts`,
+    `data-hc-offline-ready`). `public/sw.js` no longer posts anywhere: it wakes open tabs and caches the shell.
+    `src/app/api/sync/route.ts` stays as an uncalled 503 only because the G0 validator pins it as a delivery
+    file; the middleware carve-out for it is gone.
+  - **OFFLINE-01:** passes on desktop and phone (Pixel 7). **WebKit (iPhone 13 profile) still fails** at
+    `page.reload()` offline with "WebKit encountered an internal error", before any of our code runs; not
+    diagnosed further (Playwright's WebKit with a service worker and `setOffline`). The e2e build has no Supabase
+    project, so the acknowledgment comes from a stand-in `saleClient` set on the engine; the server contract is
+    proven by the SQL role suite. **The physical-phone test for the 20-Oct gate is not run and still needed.**
+  - **Evidence:** `pnpm verify` 46 files / 714 tests, exit 0; `pnpm test:e2e` 89 passed / 1 failed (WebKit
+    OFFLINE-01) / 30 skipped; SQL role suite `bazaar-events.sql` 87 cases per reset (657 combined, 2 resets, 76
+    deliberate regressions detected); Python guards 63 OK (function count 36); G0 validator 1201 checks, 0 failures.
+    Mutation checks: four on the RPCs (SQL), eight on the phone code (reply not checked, every row marked sent,
+    void not queued, id collision left, start retry id, unnamed event sent, saved event not read back, flags not
+    from the queue) each caught by a test. Two Opus reviews: SQL (no P0/P1; two P2 fixed) and phone (two P1 and
+    four P2; the reload-loses-the-event P1 fixed by `hc-live-bazaar`, the void-guard P1 not applicable because
+    the engine's `voidSale` only returns early for an unknown id).
+  - **Recorded, not fixed:** (1) a flavour that was inactive when the event started is still on the sell grid;
+    a sale of it is refused (22023) and stays queued as failed. The start now says how many flavours cannot be sold;
+    D2's stock loading should stop offering them. (2) A permanently refused sale (22023/23505/42501) is retried
+    on every flush and looks like a network failure; the sync toast counts void rows as sales. (3) Old queue rows
+    from before D1 have no server event and stay failed. (4) The advisory lock (void racing its own sale) needs a
+    two-connection test. (5) The owner can already write `event_sales`/`events` directly under RLS, so E1's revenue
+    query must skip rows with `voided_at`. (6) Helper access to selling waits for DP-18.
+
 ## Checkpoint — 2026-09-28 (MP-09 c1c, slice A1)
 
   - The owner can now add, edit and publish flavours in live mode: name, short name, description, photo path,

@@ -11,9 +11,9 @@ import {
 } from '@/store/engine/ops-engine';
 import type { EventSale, OpsEngineProps, Role } from '@/store/engine/ops-engine';
 import { defaultSalesClient, flushQueue, requestBackgroundSync, type FlushResult } from '@/lib/offline/sync';
-import { allSales, clientIdFor, enqueueVoid, pendingSales } from '@/lib/offline/queue';
+import { allSales, clientIdFor, commandKey, enqueueCommand, enqueueVoid, isSaleKey, pendingSales, type CommandKind } from '@/lib/offline/queue';
 import { clearBazaar, readBazaar, saveBazaar } from '@/lib/offline/bazaar-state';
-import { startEventOnServer, type EventSalesClient } from '@/lib/data/event-sales';
+import { isEventUuid, startEventOnServer, type EventSalesClient } from '@/lib/data/event-sales';
 import { deviceId } from '@/lib/device';
 import { plural } from '@/store/engine/ops-engine';
 import type { LiveFlavourFormFields, OpsVals } from '@/view-models/vals';
@@ -21,7 +21,7 @@ import { isLiveMode } from '@/lib/config/app-mode';
 import { clearStoredBooks, liveBaseState } from '@/lib/data/live-state';
 import { STATE_LEVEL_KEYS, type SettingsClient } from '@/lib/data/settings';
 import { SettingsSync } from '@/lib/data/settings-sync';
-import { centavosFromDb, centavosToPesos } from '@/lib/money';
+import { centavosFromDb, centavosToPesos, pesosToCentavos } from '@/lib/money';
 import {
   FLAVOUR_TOASTS,
   FlavourSync,
@@ -99,6 +99,28 @@ interface BazaarActions {
   voidSale: (id: string) => void;
   startEvent: (ev: { name: string; date: string }) => void;
   setEventPrice: (pid: string, value: unknown) => void;
+  setEventStock: (pid: string, d: number) => void;
+  openSelling: () => void;
+  addEventExpense: (label: string, amount: unknown, cat?: string) => void;
+  closeEvent: () => void;
+  reopenEvent: () => void;
+}
+
+interface LiveEvent {
+  id?: string;
+  stage?: string;
+  snapshot?: string[];
+  closedAt?: number;
+}
+
+/** Whole, positive counts of the flavours the server knows for this event. */
+function stockOn(counts: unknown, snapshot: string[] | undefined): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const [pid, n] of Object.entries((counts ?? {}) as Record<string, unknown>)) {
+    const qty = Math.floor(Number(n));
+    if (qty > 0 && (!snapshot || snapshot.includes(pid))) out[pid] = qty;
+  }
+  return out;
 }
 
 /**
@@ -192,6 +214,79 @@ export class OpsRuntime extends OpsProvider {
     bazaar.setEventPrice = () => {
       this.toast('Bazaar prices are the menu prices from the moment the event starts.', 'warn');
     };
+    // D2. Only flavours on the event's menu can be put on the table, and the stock load, each
+    // expense and the close are queued like sales: kept on the phone, sent when there is signal.
+    const { setEventStock, openSelling, addEventExpense, closeEvent } = bazaar;
+    bazaar.setEventStock = (pid, d) => {
+      const snapshot = (this.state.event as LiveEvent | null)?.snapshot;
+      if (d > 0 && snapshot && !snapshot.includes(pid)) {
+        this.toast("That flavour is not on this event's menu. The menu is fixed when the event starts.", 'warn');
+        return;
+      }
+      setEventStock(pid, d);
+    };
+    bazaar.openSelling = () => {
+      openSelling();
+      this.afterUpdate(() => {
+        const event = this.state.event as LiveEvent | null;
+        if (!event || event.stage !== 'selling' || !isEventUuid(event.id)) return;
+        const drawer = this.state.drawer as { float?: number } | null;
+        void this.queueCommand('open', event.id, commandKey('open', event.id), {
+          loaded: stockOn(this.state.eventLoaded, event.snapshot),
+          floatCents: pesosToCentavos(Number(drawer?.float) || 0)
+        });
+      });
+    };
+    bazaar.addEventExpense = (label, amount, cat) => {
+      const text = String(label ?? '').trim();
+      const pesos = Number(amount);
+      const event = this.state.event as LiveEvent | null;
+      if (!text || !(pesos > 0) || !Number.isFinite(pesos) || !isEventUuid(event?.id)) {
+        this.toast('Add a label and an amount.', 'warn');
+        return;
+      }
+      const category = String(cat || 'Bazaar rent').trim().slice(0, 40) || 'Bazaar rent';
+      addEventExpense(text, amount, cat);
+      const id = 'expense:' + crypto.randomUUID();
+      void this.queueCommand('expense', event.id, id, {
+        clientId: id,
+        eventId: event.id,
+        label: text.slice(0, 80),
+        category,
+        amountCents: pesosToCentavos(pesos),
+        at: Date.now()
+      });
+    };
+    bazaar.closeEvent = () => {
+      const before = this.state;
+      const counted = (before.drawer as { counted?: unknown } | null)?.counted;
+      const pesos = counted === '' || counted == null ? NaN : Number(counted);
+      const snapshot = (before.event as LiveEvent | null)?.snapshot;
+      const returned = stockOn(before.eventStock, snapshot);
+      // The server closes only when it holds the same float and cash, so a close that overtakes
+      // a sale or the stock load is retried instead of being booked as a drawer variance.
+      const floatCents = pesosToCentavos(Number((before.drawer as { float?: unknown } | null)?.float) || 0);
+      const cashCents = (before.sales as EventSale[])
+        .filter((sale) => sale.pay === 'Cash')
+        .reduce((sum, sale) => sum + pesosToCentavos(sale.total), 0);
+      closeEvent();
+      this.afterUpdate(() => {
+        const event = this.state.event as LiveEvent | null;
+        if (!event || event.stage !== 'closed' || !isEventUuid(event.id)) return;
+        void this.queueCommand('close', event.id, commandKey('close', event.id), {
+          eventId: event.id,
+          at: Number(event.closedAt) || Date.now(),
+          countedCents: Number.isFinite(pesos) && pesos >= 0 ? pesosToCentavos(pesos) : null,
+          returned,
+          floatCents,
+          cashCents
+        });
+      });
+    };
+    // A closed event stays closed: the server has (or will have) its count and its books.
+    bazaar.reopenEvent = () => {
+      this.toast('A closed event stays closed. Start a new event for anything after this.', 'warn');
+    };
     this.state = liveBaseState();
     // Not the demo books: only the running bazaar (event id, snapshot prices, stall stock,
     // the day's sales) is kept, so a reload at the stall can carry on selling. The empty
@@ -236,6 +331,27 @@ export class OpsRuntime extends OpsProvider {
     };
   }
 
+  /** Runs once the state change just asked for has landed. */
+  private afterUpdate(then: () => void): void {
+    this.setState({}, then);
+  }
+
+  /** Keeps a bazaar command on the phone under a stable key, then tries to send the queue. */
+  private async queueCommand(
+    kind: CommandKind,
+    eventId: string,
+    key: string,
+    payload: Record<string, unknown>
+  ): Promise<void> {
+    try {
+      await enqueueCommand({ clientId: key, kind, eventId, payload, at: Date.now() });
+      if (navigator.onLine) await this.flushSales();
+      else await requestBackgroundSync();
+    } catch {
+      this.toast('That could not be saved on this phone. Try again.', 'warn');
+    }
+  }
+
   /** Online only: the server snapshots the prices and names this phone the selling device. */
   private async startLiveEvent(
     ev: { name: string; date: string },
@@ -265,7 +381,7 @@ export class OpsRuntime extends OpsProvider {
       );
     }
     this.setState((s) => ({
-      event: { ...(s.event ?? {}), id: outcome.eventId },
+      event: { ...(s.event ?? {}), id: outcome.eventId, snapshot: Object.keys(outcome.prices) },
       eventPrices: { ...(s.eventPrices as Record<string, number>), ...outcome.prices }
     }));
   }
@@ -856,6 +972,7 @@ export class OpsRuntime extends OpsProvider {
       return;
     }
     const sentIds = new Set(result.sent);
+    const sentSales = result.sent.filter(isSaleKey).length;
     const failed = result.failed.length;
 
     if (failed) {
@@ -872,10 +989,14 @@ export class OpsRuntime extends OpsProvider {
                 : { ...sale, failed: !sale.synced }
             )
       }));
+      if (result.failed.some((f) => f.permanent)) {
+        this.toast('The server refused something it was sent. It is still saved on this phone. Ask Ethan to look at it.', 'warn');
+        return;
+      }
       this.toast(
-        result.sent.length +
+        sentSales +
           ' of ' +
-          (result.sent.length + failed) +
+          (sentSales + failed) +
           ' sales synced. One could not be sent — nothing was lost. Tap Sync now again to finish.',
         'warn'
       );
@@ -888,7 +1009,7 @@ export class OpsRuntime extends OpsProvider {
       unsynced: 0,
       sales: s.sales.map((sale: EventSale) => ({ ...sale, synced: true, failed: false }))
     }));
-    this.toast(plural(result.sent.length || pending, 'sale', 'sales') + ' synced.');
+    this.toast(plural(sentSales || pending, 'sale', 'sales') + ' synced.');
   }
 }
 
