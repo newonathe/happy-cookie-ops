@@ -16,66 +16,56 @@ When a goal finishes, the agent deletes its block here, leaves the next one on t
 - If files changed since the last index, re-index first: `index_repository`, repo path `C:/Users/ethan/dev/happy-cookie-ops-g0`.
 - Pinned toolchain: prefix PATH with `C:\Users\ethan\dev\happy-cookie-tools\bin;C:\Users\ethan\dev\happy-cookie-tools\node-v24.20.0-win-x64`. In Git Bash call `pnpm.cmd`: a bare `pnpm` resolves to the global npm shim first (it warns that the `pnpm` field is ignored).
 - Docker Desktop must be running for SQL work, and for one Python guard (`tests/integration/db`).
-- **Baseline (2026-09-29, at B2 close):**
-  - `pnpm typecheck` clean; `pnpm verify` green (see current.md); port integrity OK, 54 files; G0 validator 1211 checks, 0 failures;
-  - Python guards 63 OK, via `python -m unittest discover -s <dir> -p "test_*.py"` for each of `tests/unit`, `tests/integration/auth`, `tests/integration/db` and `tests/integration/security`, with `G0_PYTHON_LIBS=C:\Users\ethan\dev\happy-cookie-tools\python-libs-314`; SQL role suite 1000 cases/reset, 2 resets (`python scripts/test-db-security.py`);
-  - `pnpm build:pages:spike`/`test:pages:spike`/`test:workers:spike` pass with or without `NEXT_PUBLIC_SUPABASE_URL`/`…PUBLISHABLE_KEY` (local stack values: `supabase status -o env`);
-  - `pnpm build` passes, and `pnpm test:e2e` gives 89 passed / 1 failed / 30 skipped. The one failure is OFFLINE-01 on WebKit (Playwright's WebKit cannot reload offline with a service worker); desktop and phone pass.
+- **Baseline (2026-09-29, at B3 close):**
+  - `pnpm typecheck` clean; `pnpm verify` green (see current.md); port integrity OK, 54 files; G0 validator 1217 checks, 0 failures;
+  - Python guards 63 OK, via `python -m unittest discover -s <dir> -p "test_*.py"` for each of `tests/unit`, `tests/integration/auth`, `tests/integration/db` and `tests/integration/security`, with `G0_PYTHON_LIBS=C:\Users\ethan\dev\happy-cookie-tools\python-libs-314`; SQL role suite 1175 cases/reset, 2 resets (`python scripts/test-db-security.py`, about 3 minutes);
+  - `pnpm build:pages:spike`/`test:pages:spike`/`test:workers:spike` pass with or without `NEXT_PUBLIC_SUPABASE_URL`/`…PUBLISHABLE_KEY` (local stack values: `pnpm exec supabase status -o env`; the bare `supabase` binary is not on PATH);
+  - `pnpm build` passes, and `pnpm test:e2e` gives 89 passed / 1 failed / 75 skipped with no Supabase variables set. The one failure is OFFLINE-01 on WebKit (Playwright's WebKit cannot reload offline with a service worker); desktop and phone pass;
+  - `pnpm test:live:checkout`: 10 steps (needs `pnpm db:reset` first and the three local keys in the environment).
+  - **Adding a migration touches more than SQL:** `tests/fixtures/mp08g-source-pins.json` (sha256, CRLF file), `tests/fixtures/function-authority.json` (a manifest entry per function and its body hash, regenerated from a reset local database), the function count in `tests/integration/security/test_function_authority.py`, `scripts/test-db-security.py` (suites, mutation maps, the asserted totals), `pnpm db:types`. A redefined function is mutated from its latest definition. The pre-commit hook runs `pnpm verify` and needs the pinned toolchain on PATH.
 - **Codex only:** run `/status` once in the repo root to confirm the project `.codex/config.toml` loaded. Accept the trust prompt if asked. The project sandbox has no network, so `git push` will ask for approval.
 
-## Next goal — B3 (MP-12/13/14 lean): orders on the owner side
+## Next goal — B4 (MP-10 b): every September form feature
 
-Drafted 2026-09-29 after B2 closed. Customers can now place orders (`place_order`), see them (`order_status`), find them
-and join the waiting list; nothing on the owner's side reads them yet, so the orders, payments, bake and pack screens are
-empty in live mode. This slice puts the owner and staff in front of those orders.
+Drafted 2026-09-29 after B3 closed. The live checkout takes a name, Instagram, mobile, pickup date and time, a payment
+method and flavours by the piece; `place_order` prices them from the menu. Cine's September form also has boxes, add-ons,
+a sampler box and a same-day surcharge. This slice puts them on the server-priced order and on the live checkout, all
+owner-configurable ("every form feature… configurable", 28 Sep).
 
-**Read first:** the finish-plan.md B3 row and section 4; `docs/state/protected-exception.md` (the B2 section: what is
-guarded, what is false and recorded); `supabase/migrations/20260101003500_place_order.sql` (the order columns, the D1
-capacity predicate `order_holds_capacity`, `order_rules`); `src/lib/data/order-flow.ts` and `src/store/ops-runtime.tsx`
-(how the customer side reads and writes, and the F3 live form host the owner forms plug into); how A1/A2 loaded owner
-data (`FlavourSync`, `PaymentSync`).
+**Read first:** the finish-plan.md B4 row, section 2 (the September form, page by page) and section 4 (findings 7 and 8:
+conflicting packaging costs, the Nutella fries set of 4); `docs/state/protected-exception.md` (B2 checkout slot and B3
+lookup slot: what is guarded, what is false and recorded); `supabase/migrations/20260101003800_shop_status.sql` (the
+latest `place_order`, which this slice redefines: keep every rule tag, add new ones); `src/lib/data/orders.ts`,
+`src/lib/data/order-flow.ts` and `src/components/live/live-checkout.tsx` (the live form is a live-only component; the
+guarded slot in `checkout.tsx` already mounts it, so this slice should need no protected-markup edit); how B3 added
+`staff_swap_item` (a swap keeps any part of the total that is not an item price: a surcharge must survive it).
 
-**The slice:** staff read and transition RPCs for orders (idempotent, `updated_at` checks, owner and helper roles as the
-ported screens allow): the paid tick (`pay_state`), status changes, the swap of an unavailable flavour, pack and collect,
-and the messages Cine copies to customers (status link and copy-paste text; proof stays in the DMs, F5); the orders and
-payments screens read the database in live mode; the bake list counts unpaid orders too (28 Sep). The engine's local
-`orders` list stays demo-only.
+**The slice:** (1) box sizes 6/8/12 with the fewer-than-6 bag rule and per-size prices, entered by the owner (finding 7:
+nothing hard-coded); (2) add-ons: note card with a message, ribbon, stickers 1–4, sticker pack, each with an owner-set
+price and an optional text (sticker number, note text, length-limited); (3) the sampler box as a bundle (quantity 1–3);
+(4) same-day pickup at a percentage set by the owner (form: +40%), applied by the server; (5) all of it in server pricing
+and in the capacity weights (a box takes its cookies' slots; the fries set of 4 already models `item_type = set`); (6) the
+owner's screens show add-ons and the surcharge on an order (the mapper in `src/lib/data/staff-orders.ts` and the
+message texts). Unresolved wording and prices are Cine's: use each default in finish-plan section 11, record placeholders.
 
-**Carry-overs from B2 that land here or before cutover:**
-
-1. **The shop's open state must come from the server** (blocker for cutover). An anonymous customer's engine uses the
-   default schedule, so the shop banner and the add buttons ignore the owner's window, and the owner's "close now"
-   (`shopOverride`) is not on the server, so it stops nothing. Add a public read of the ordering window and the override,
-   persist the override as a setting, make `place_order` honour it (a migration that redefines the function; extend
-   `scripts/test-db-security.py` for the new rule), and feed the customer engine from it.
-2. **Owner form for the order rules** (`get_order_rules`/`save_order_rules`): hold hours, unpaid orders per number, pickup
-   days, lead days, pickup hours, the campus slot. A `LiveFormHost` form in All tools, like A2's payment methods.
-3. The status page has no pickup code in live mode (`showCode` is false); decide with Cine whether collection needs one.
-4. **Approved by Ethan, 2026-09-29: add the second guarded slot in `find-my-order.tsx`.** The direct URL `/lookup` still
-   shows the ported page (protected copy promising email lookup, false in live mode). Same recipe as the B2 checkout slot:
-   `{bareFrame ? <LiveLookup v={v} /> : (…ported intro and form, verbatim…)}` around the intro paragraph and the form,
-   inserted by script (the hook blocks direct edits), exact reversals in `scripts/validate-g0.py` (a new dict, applied
-   like `CHECKOUT_REVERSALS`), baselines regenerated with `--update` and `port-structure.mjs --write-baseline` in the same
-   commit, a section in `protected-exception.md`, port audit, and reuse `LiveLookup` (`src/components/live/live-checkout.tsx`)
-   with the same `v.liveLookup` values, so the screen and the sheet share one form. The `/lookup` screen has no sheet
-   open, so `liveLookupVals` must also return values when the current screen is `lookup`.
-5. Wording: every customer sentence in `src/lib/orders/copy.ts` is a placeholder except the closed-drop sentence; list
-   the ones the owner screens add here too.
+**Carry-overs from B3:** helper access to pack and collect is an open decision (owner-only shipped); lapsed unpaid orders
+still count on the bake list until cancelled (ask Cine); the overage sheet's "over by" mixes cookies and weighted slots;
+no pickup code on the live status page; wording for every sentence `staff-copy.ts` and `copy.ts` mark PLACEHOLDER.
 
 ```text
-/goal B3 (docs/state/finish-plan.md slice B3): orders on the owner side. Staff read and transition RPCs for orders
-(SECURITY DEFINER, search_path '', in-function role check, explicit grants, idempotent, updated_at checks): the paid tick,
-status transitions, the flavour swap, pack and collect, and the customer message texts; the orders and payments screens
-read the database in live mode (a LiveFormHost form or the ported screens fed from view-model data; any protected-markup
-edit needs its own record and exact reversals, port audit first); the bake list counts unpaid orders (28 Sep). Then the
-B2 carry-overs in this file: the shop's open state and the owner's close-now read from and enforced by the server, the
-owner form for the order rules, and the approved guarded slot in find-my-order.tsx (carry-over 4: LiveLookup on the
-/lookup screen, reversals, baselines, exception record, port audit). SQL role suite with a deliberate regression per new rule, unit tests with a mutation
-per new branch, and one different-model review (Opus). All exit 0 in this session: pnpm verify, Python guards, the G0
-validator (revert evidence/*.json churn), port integrity, pnpm build, test:pages:spike, test:workers:spike, test:e2e
-(baseline in current.md), test:live:checkout, python scripts/test-db-security.py. Committed and pushed; current.md
-checkpoint and task-status updated; this block replaced by the next goal from finish-plan section 6. No deploy. Stop
-after 2 failed fix attempts or 25 turns.
+/goal B4 (docs/state/finish-plan.md slice B4): every September form feature on the server-priced order. Box sizes 6/8/12
+and bags, add-ons with sticker number and note text, the sampler bundle and the same-day percentage, all owner-configurable
+(a new migration: tables or settings plus owner get/save RPCs with stale-stamp checks, SECURITY DEFINER, search_path '',
+in-function role check, explicit grants), priced by the server in a redefined place_order (keep every rule tag; new rules
+tagged; the harness picks the latest definition), capacity weights right, and the live checkout (live-only components; a
+protected-markup edit needs its own record, exact reversals, port audit first) and the owner's order screens and messages
+showing them; a swap or a surcharge never changes what a customer owes except the item difference. SQL role suite with a
+deliberate regression per new rule, unit tests with a mutation per new branch, and one different-model review (Opus). All
+exit 0 in this session: pnpm verify, Python guards, the G0 validator (revert evidence/*.json churn), port integrity, pnpm
+build, test:pages:spike, test:workers:spike, test:e2e (baseline in current.md), test:live:checkout (extend it for one
+add-on and the same-day surcharge), python scripts/test-db-security.py. Committed and pushed; current.md checkpoint and
+task-status updated; this block replaced by the next goal from finish-plan section 6 (A3). No deploy. Stop after 2 failed
+fix attempts or 25 turns.
 ```
 
 ## After these goals

@@ -4,6 +4,48 @@ Every checkpoint up to 2026-09-28, verbatim and newest first. Moved here from `c
 session reads only the short status in [current.md](current.md). Add nothing here by hand; move a checkpoint here
 when it leaves `current.md`.
 
+## Checkpoint — 2026-09-29 (B2 app half)
+
+- **2026-09-29 (B2 app half, finish-plan slice B2):** the live checkout on the customer pages, live mode only.
+  - **One guarded slot in `checkout.tsx`** (D4): `{bareFrame ? <LiveCheckout v={v} /> : (…ported, verbatim…)}` from "About
+    you" to the footnote. Exact reversals in `scripts/validate-g0.py` (`CHECKOUT_REVERSALS`), baselines regenerated,
+    recorded with the ported lines that are false in live mode in [protected-exception.md](protected-exception.md).
+    `order-status.tsx`, `find-my-order.tsx` and `shop.tsx` are not touched by this slice.
+  - **What a customer does:** name, Instagram, contact number, pickup date (the owner's pickup days inside the lead
+    window, counted on the Manila clock, from `get_shop_order_rules()`), pickup time (half hours, or the campus slot),
+    payment method and QR, an optional reference. No email, address, amount or screenshot. `place_order` is called under one
+    client id per attempt; the form and box are locked while it is sending, unsettled or placed, so "Try again" always
+    resends the identical frozen body; definite refusals (ZC001 to ZC006, 22023, 23505, 42501, 55000) are worded, anything
+    else is an unknown outcome. The order number and the status link (`/status#t=…`, fragment only) show on success.
+  - **Status page:** fed from `order_status(token)` through `cust.*` (no invoice, no "payment proof", no pickup code); a
+    link opens it on a direct load or pasted into the tab. **Find my order** (number + phone) and the **waiting list**
+    open as sheets from the shop footer, on customer screens only (gated on the screen, because an anonymous visitor's
+    engine role is `'owner'`).
+  - **Evidence:** `pnpm verify` 51 files / 898 tests; G0 validator 1211 checks, 0 failures; port integrity OK, 54 files;
+    Python guards 63 OK; `pnpm build`, `test:pages:spike`, `test:workers:spike` pass; **`pnpm test:live:checkout`** (new,
+    headless Chromium against the live static export and the local stack after `pnpm db:reset`): shop, order, database
+    row, status link and reload, lookup, waiting list, no CSP violation, no foreign origin, token in no URL. 43
+    deliberate mutations, each caught. Port audit (Sonnet) PASS; Opus review: no Critical, one High (the sent order
+    could differ from the screen), fixed with the Mediums and most Lows. `pnpm test:e2e`: see the line under Baseline.
+  - **Customer wording is placeholder.** Every new sentence is in `src/lib/orders/copy.ts` (marked PLACEHOLDER; the
+    closed-drop sentence is the signed-off one). Cine still needs to word: not enough room (in slots), too many unpaid
+    orders, pickup not available, payment method not offered, waiting-list limit, malformed order, order id reused,
+    ordering unavailable, the lost-reply and "Change the order" lines, the pay-help line, the unpaid, lapsed, cancelled and
+    ready lines on the status page, and the lookup and waiting-list lines.
+  - **Cutover blockers found here (not built):**
+    1. **The shop's open state must come from the server.** An anonymous customer's engine decides open or closed from the
+       default schedule (Monday 9:00 to Thursday 21:00), not the owner's settings: outside it the shop shows "Orders are
+       closed" with no add buttons even if the server would take the order, and inside it the banner can say open while
+       `place_order` refuses (ZC001). The owner's "close now" (`shopOverride`) is not on the server either, so it stops
+       nothing. Needs a public read of the ordering window and the override, and a migration that redefines `place_order`.
+    2. The direct URL `/lookup` still shows the ported page (its copy promises email lookup); the shop footer opens the live
+       sheet. A second guarded slot in `find-my-order.tsx` fixes it; **Ethan approved it on 2026-09-29, it lands in B3**.
+    3. The ported status line "Book your Grab or Lalamove for that window. We send the exact address that morning." is
+       protected and false for the campus slot.
+  - **Also open:** the owner's form for the order rules (`get_order_rules`/`save_order_rules`) is B3; the two heaviest
+    render-every-screen tests in `flavours.test.tsx` got an explicit 20 s timeout (they exceeded 5 s under load at HEAD too).
+  - **Still not run:** the physical-phone test for the 20-Oct gate, WebKit OFFLINE-01.
+
 ## Checkpoint — 2026-09-29 (B2 database half)
 
 - **2026-09-29 (B2, database half only; the app half was not started):** migration
