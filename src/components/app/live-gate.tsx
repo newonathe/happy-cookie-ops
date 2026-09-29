@@ -77,6 +77,8 @@ export function LiveGate({
       // verified, so it stays closed and goes to sign-in, like a failed first check.
       runFirstCheck.current = () =>
         window.location.replace('/sign-in?next=' + encodeURIComponent(window.location.pathname));
+      // Nothing to read the payment methods from either (MP-09 c2): the checkout shows none.
+      if (engine instanceof OpsRuntime) void engine.loadShopPayment(null);
       // Nothing to read the published menu from: the shop shows no flavours (MP-09 c1b).
       if (CUSTOMER_SCREENS.includes(initialScreen) && engine instanceof OpsRuntime)
         void engine.loadShopMenu(null);
@@ -87,6 +89,8 @@ export function LiveGate({
     let flavoursStarted = false;
     let stopIdle = () => undefined as void;
     const supabase = createClient();
+    // MP-09 c2: the payment methods and shop texts, read on every live page, signed in or not.
+    if (engine instanceof OpsRuntime) void engine.loadShopPayment(supabase);
     // MP-09 c1b: customer pages show the owner's published menu (`shop_products`), signed
     // in or not. Staff pages load the full list instead (below).
     if (CUSTOMER_SCREENS.includes(initialScreen) && engine instanceof OpsRuntime)

@@ -2,6 +2,7 @@ import { Fragment } from 'react';
 import type { OpsVals } from '@/view-models/vals';
 import { s } from '@/lib/css';
 import { Pressable } from '@/components/ui/pressable';
+import { LiveShopFooter } from '@/components/live/live-shop-footer';
 
 export function ShopScreen({ v }: { v: OpsVals }) {
   const {
@@ -154,6 +155,7 @@ export function ShopScreen({ v }: { v: OpsVals }) {
             </>
           ) : null}
         </div>
+        {bareFrame ? <LiveShopFooter v={v} /> : (
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', padding: '4px 2px 0' }}>
           <span style={{ width: '44px', height: '44px', flexShrink: '0', borderRadius: '10px', border: '1px solid #EADCC4', background: '#FFFFFF', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1px' }}>
             <span style={{ fontSize: '9px', fontWeight: '700', letterSpacing: '.04em', color: '#C24A15' }}>BIR</span>
@@ -169,6 +171,7 @@ export function ShopScreen({ v }: { v: OpsVals }) {
             </Pressable>
           </span>
         </div>
+        )}
       </div>
     </>
   );

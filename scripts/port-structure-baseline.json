@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "provenance": "Original delivery plus owner-approved MP-02 five null guards, the MP-04 live-frame guards and the MP-09 c1c live form host; see docs/state/protected-exception.md",
+  "provenance": "Original delivery plus owner-approved MP-02 five null guards and the MP-04 live-frame guards, the MP-09 c1c live form host and the MP-09 c2 shop footer host; see docs/state/protected-exception.md",
   "files": {
     "src/components/screens/all-tools.tsx": "30f0aea3847cb5cb88cfe6043fac3aec7fd2c3c1148209bb540eb84c35c3448a",
     "src/components/screens/bake-plan.tsx": "b078603290b8e192ca74294459c5e593dbb5b54484eb276c33f2e523a9b26876",
@@ -23,7 +23,7 @@
     "src/components/screens/recipes.tsx": "f2fc87d17a90d58a2c3aa5864708208618841be4e52bd78462d77ad97dbb5bf1",
     "src/components/screens/sales-log.tsx": "335a69612e0f5223d7c985bd859b5393fc4cd6c3e4d12a1a9549a2488c228592",
     "src/components/screens/settings.tsx": "a9c21537c601274107ab360460c77e67a35df0d7de1f77b1f0f2b9493bf014f0",
-    "src/components/screens/shop.tsx": "d9e7240ce6fb440d396eb5d343396a2d3f63845288ced733e452d2c382ed8d85",
+    "src/components/screens/shop.tsx": "0b3ffdfa0ef0102c822a33d1588d41748ddc04b760cc472bd191745b7ae8b2ab",
     "src/components/screens/suppliers.tsx": "bff0d493b824652628b0805a5456787989aca75fdfa35dbbaba26ffbaf2e8528",
     "src/components/screens/system-health.tsx": "e921d35fef503a2a615db1d59316b17c3f86fd3ff2ea06e4de1debeb0ff2eb9d",
     "src/components/sheets/add-inv.tsx": "05c8adf46f38d99162ceb5443b87eba9cdd0ce8f7c9d6a0b0ff6f2ddd2c97340",

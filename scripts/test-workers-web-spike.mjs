@@ -111,7 +111,8 @@ try {
   const directives = new Map(csp.split(';').map((part) => part.trim().split(/\s+/)).map(([name, ...values]) => [name, values.join(' ')]));
   const supabaseOrigin = manifest.staticHeaders.supabaseOrigin;
   assert((supabaseOrigin === null || /^https?:\/\/[^/\s;*]+$/.test(supabaseOrigin)) && directives.get('form-action') === "'self'" &&
-    directives.get('connect-src') === (supabaseOrigin ? `'self' ${supabaseOrigin}` : "'self'"), 'csp_connect_or_form_action_invalid');
+    directives.get('connect-src') === (supabaseOrigin ? `'self' ${supabaseOrigin}` : "'self'") &&
+    directives.get('img-src') === (supabaseOrigin ? `'self' ${supabaseOrigin}` : "'self'"), 'csp_connect_or_form_action_invalid');
   let checkedRoutes = 0;
   for (const page of manifest.emittedPages) {
     const route = page.html === 'index.html' ? '/' : `/${page.html.slice(0, -'.html'.length)}`;

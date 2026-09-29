@@ -41,8 +41,9 @@ const directives = new Map(
 );
 check(
   directives.get('connect-src') === `'self' ${supabaseOrigin}` &&
+    directives.get('img-src') === `'self' ${supabaseOrigin}` &&
     directives.get('form-action') === "'self'",
-  'manifest CSP connect-src/form-action is not exactly self plus the preview Supabase origin'
+  'manifest CSP connect-src/img-src/form-action is not exactly self plus the preview Supabase origin'
 );
 let routes = 0;
 for (const page of manifest.emittedPages) {

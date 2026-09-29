@@ -1,6 +1,6 @@
 {
   "note": "Fingerprint of the ported markup at the moment of the port. scripts/check-port-integrity.mjs compares against this. Regenerate ONLY with an approved copy or style change: pnpm verify:port --update",
-  "generated": "2026-09-28",
+  "generated": "2026-09-29",
   "files": {
     "src/components/screens/all-tools.tsx": {
       "copy": "811c9dc5",
@@ -154,7 +154,7 @@
       "copyCount": 6,
       "styles": 49,
       "dynamicStyles": 6,
-      "elements": 64
+      "elements": 65
     },
     "src/components/screens/suppliers.tsx": {
       "copy": "f10261dc",

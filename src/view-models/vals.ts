@@ -22,6 +22,24 @@ export interface LiveFlavourFormFields {
   active: boolean;
 }
 
+/** Every field the live payment method form submits (MP-09 c2). */
+export interface LivePayFormFields {
+  label: string;
+  accountNumber: string;
+  accountName: string;
+  qrPath: string;
+  active: boolean;
+  sortOrder: number;
+}
+
+/** The four shop footer texts the owner may set (MP-09 c2). */
+export interface LiveShopTexts {
+  registrationBadge: string;
+  tinLine: string;
+  invoiceNote: string;
+  allergenNote: string;
+}
+
 export interface OpsVals {
   appSub: React.ReactNode;
   /**
@@ -54,9 +72,45 @@ export interface OpsVals {
           id: string | null;
           save: (fields: LiveFlavourFormFields) => void;
           cancel: (event?: unknown) => void;
+          /** Uploads a photo to the shop-media bucket; resolves to its stored path, or null. */
+          upload: (file: File) => Promise<string | null>;
         })
       | null;
   } | null;
+  /** Live owner only (MP-09 c2): the payment methods list and editor, on the same form host. */
+  livePay?: {
+    online: boolean;
+    rows: Array<{
+      id: string;
+      label: string;
+      detail: string;
+      active: boolean;
+      hasQr: boolean;
+      edit: (event?: unknown) => void;
+    }>;
+    addNew: (event?: unknown) => void;
+    close: (event?: unknown) => void;
+    editing:
+      | (LivePayFormFields & {
+          id: string | null;
+          save: (fields: LivePayFormFields) => void;
+          cancel: (event?: unknown) => void;
+          upload: (file: File) => Promise<string | null>;
+        })
+      | null;
+  } | null;
+  /** Live owner only (MP-09 c2): the shop footer's four texts. */
+  liveTexts?: {
+    online: boolean;
+    texts: LiveShopTexts;
+    save: (texts: LiveShopTexts) => void;
+    close: (event?: unknown) => void;
+  } | null;
+  /**
+   * Live mode only (MP-09 c2, finding 16): what the shop footer may claim. Every line is the
+   * owner's own text; an empty string means the footer prints nothing for it.
+   */
+  shopFooter?: { badge: string; tin: string; invoice: string; allergens: string };
   askClose: (event?: unknown) => void;
   askReset: (event?: unknown) => void;
   attachReceipt: (event?: unknown) => void;

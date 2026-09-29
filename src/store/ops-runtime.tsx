@@ -7,7 +7,8 @@ import {
   OpsProvider,
   PESO,
   PRODUCTS,
-  replaceFlavours
+  replaceFlavours,
+  replacePayAccounts
 } from '@/store/engine/ops-engine';
 import type { EventSale, OpsEngineProps, Role } from '@/store/engine/ops-engine';
 import { defaultSalesClient, flushQueue, requestBackgroundSync, type FlushResult } from '@/lib/offline/sync';
@@ -16,7 +17,10 @@ import { clearBazaar, readBazaar, saveBazaar } from '@/lib/offline/bazaar-state'
 import { isEventUuid, startEventOnServer, type EventSalesClient } from '@/lib/data/event-sales';
 import { deviceId } from '@/lib/device';
 import { plural } from '@/store/engine/ops-engine';
-import type { LiveFlavourFormFields, OpsVals } from '@/view-models/vals';
+import type { LiveFlavourFormFields, LivePayFormFields, LiveShopTexts, OpsVals } from '@/view-models/vals';
+import { PaymentSync } from '@/lib/data/payment-sync';
+import { EMPTY_TEXTS, type PaymentClient, type UploadClient } from '@/lib/data/payments';
+import { resolveImagePath } from '@/lib/media/resolve-image';
 import { isLiveMode } from '@/lib/config/app-mode';
 import { clearStoredBooks, liveBaseState } from '@/lib/data/live-state';
 import { STATE_LEVEL_KEYS, type SettingsClient } from '@/lib/data/settings';
@@ -176,6 +180,7 @@ export class OpsRuntime extends OpsProvider {
   private stopViewportTracking?: () => void;
   private settingsSync?: SettingsSync;
   private flavourSync?: FlavourSync;
+  private paymentSync?: PaymentSync;
 
   /**
    * Live mode never shows or stores the demo books (docs/state/G2-plan.md "Slice audit",
@@ -207,6 +212,8 @@ export class OpsRuntime extends OpsProvider {
       })().catch(() => undefined);
     };
     if (!isLiveMode()) return;
+    // MP-09 c2: live mode never shows the ported demo payment accounts, not even before the read.
+    replacePayAccounts([]);
     // DP-20: an event sells at the menu prices it started with, taken by the server.
     bazaar.startEvent = (ev) => {
       void this.startLiveEvent(ev, startEvent);
@@ -525,6 +532,26 @@ export class OpsRuntime extends OpsProvider {
     return this.flavourSync.load();
   }
 
+  /**
+   * MP-09 c2: every live page reads the owner's payment methods and shop texts through
+   * `get_shop_payment_info()` (anon may execute it). A failed or empty read shows no method, no
+   * QR and no footer claim. With no client (a live build with no Supabase) it shows the same.
+   */
+  async loadShopPayment(client: (PaymentClient & UploadClient) | null): Promise<boolean> {
+    if (!isLiveMode()) return false;
+    if (!client) {
+      replacePayAccounts([]);
+      this.forceUpdate();
+      return false;
+    }
+    this.paymentSync = new PaymentSync(client, {
+      apply: (accounts) => replacePayAccounts(accounts),
+      changed: () => this.forceUpdate(),
+      toast: (message, tone) => this.toast(message, tone)
+    });
+    return this.paymentSync.loadPublic();
+  }
+
   /** False until the customer shop's menu has been read (or failed to be read). */
   private shopMenuRead = false;
 
@@ -743,6 +770,10 @@ export class OpsRuntime extends OpsProvider {
           : starved.productRows,
       sheet: this.liveSheet(starved.sheet),
       liveForm: this.liveFormVals(),
+      livePay: this.livePayVals(),
+      liveTexts: this.liveTextsVals(),
+      cust: this.livePayCust(starved.cust),
+      shopFooter: this.shopFooterVals(),
       // MP-09 c1b: until the published menu is read, a customer page shows no flavours
       // (the engine still holds the ported list, which is not the owner's menu).
       ...(CUSTOMER_SCREENS.includes(this.state.screen as ScreenKey) &&
@@ -823,6 +854,20 @@ export class OpsRuntime extends OpsProvider {
                   ' · edit, add, publish',
                 badge: null,
                 go: () => this.openFlavourList()
+              },
+              {
+                icon: this.IC.cookie,
+                label: 'Payment methods',
+                sub: 'GCash, Maya, bank: account numbers and QR codes',
+                badge: null,
+                go: () => this.openPayments()
+              },
+              {
+                icon: this.IC.cookie,
+                label: 'Shop texts',
+                sub: 'The shop footer: registration, TIN, invoice, allergens',
+                badge: null,
+                go: () => void this.openShopTexts()
               }
             ]
           }
@@ -845,6 +890,16 @@ export class OpsRuntime extends OpsProvider {
   private liveSheet(sheet: OpsVals['sheet']): OpsVals['sheet'] {
     if (!sheet) return sheet;
     const sh = this.state.sheet as FlavourSheetState | null;
+    if (this.state.role === 'owner' && sh?.kind === 'payments') {
+      const method = sh.pid ? this.paymentSync?.rows.find((r) => r.id === sh.pid) : undefined;
+      return {
+        ...sheet,
+        liveForm: true,
+        title: sh.isNew ? 'Add a payment method' : method ? 'Edit ' + method.label : 'Payment methods'
+      };
+    }
+    if (this.state.role === 'owner' && sh?.kind === 'shoptexts')
+      return { ...sheet, liveForm: true, title: 'Shop texts' };
     if (this.state.role !== 'owner' || sh?.kind !== 'flavours')
       return { ...sheet, liveForm: false };
     const row = sh.pid ? this.flavourSync?.current().find((r) => r.id === sh.pid) : undefined;
@@ -887,7 +942,8 @@ export class OpsRuntime extends OpsProvider {
             active: target?.active ?? true,
             save: (fields: LiveFlavourFormFields) =>
               void this.saveFlavourForm(target?.id ?? null, fields, expectedUpdatedAt),
-            cancel: () => this.openFlavourList()
+            cancel: () => this.openFlavourList(),
+            upload: this.uploadImage('flavours')
           }
         : null;
     return {
@@ -906,6 +962,164 @@ export class OpsRuntime extends OpsProvider {
       publish: () => void this.publishMenu(),
       close: () => this.closeSheet(),
       editing
+    };
+  }
+
+  /** The owner's payment methods and shop texts (MP-09 c2). Sheet kinds 'payments' and 'shoptexts'. */
+  private openPayments(): void {
+    this.sheet('payments', {});
+    void this.paymentSync?.loadRows();
+  }
+
+  private openPayEditor(id: string): void {
+    const updatedAt = this.paymentSync?.rows.find((r) => r.id === id)?.updated_at ?? null;
+    this.sheet('payments', { pid: id, updatedAt });
+  }
+
+  private openNewPay(): void {
+    this.sheet('payments', { isNew: true });
+  }
+
+  private openShopTexts = async (): Promise<void> => {
+    // Read fresh first, so the stamp the form saves against is the current one.
+    await this.paymentSync?.loadPublic();
+    this.sheet('shoptexts', { updatedAt: this.paymentSync?.info?.textsUpdatedAt ?? null });
+  };
+
+  private async savePayForm(
+    id: string | null,
+    f: LivePayFormFields,
+    expectedUpdatedAt: string | null
+  ): Promise<void> {
+    if (!this.paymentSync) {
+      this.toast('Payment methods cannot be saved here: no connection to the database.', 'warn');
+      return;
+    }
+    const fields = {
+      label: f.label.trim(),
+      account_number: f.accountNumber.trim(),
+      account_name: f.accountName.trim(),
+      qr_path: f.qrPath.trim(),
+      active: f.active,
+      sort_order: f.sortOrder
+    };
+    const existing = new Set(this.paymentSync.rows.map((r) => r.id));
+    const methodId = id ?? slugifyFlavourId(fields.label, existing);
+    if ((await this.paymentSync.saveMethod(methodId, fields, expectedUpdatedAt)) === 'saved') {
+      this.toast('Payment method saved.');
+      this.openPayments();
+    }
+  }
+
+  private async saveTextsForm(t: LiveShopTexts, expectedUpdatedAt: string | null): Promise<void> {
+    if (!this.paymentSync) {
+      this.toast('Shop texts cannot be saved here: no connection to the database.', 'warn');
+      return;
+    }
+    const outcome = await this.paymentSync.saveTexts(
+      {
+        registration_badge: t.registrationBadge.trim(),
+        tin_line: t.tinLine.trim(),
+        invoice_note: t.invoiceNote.trim(),
+        allergen_note: t.allergenNote.trim()
+      },
+      expectedUpdatedAt
+    );
+    if (outcome === 'saved') {
+      this.toast('Shop texts saved.');
+      this.closeSheet();
+    }
+  }
+
+  private uploadImage = (folder: 'qr' | 'flavours') => (file: File) =>
+    this.paymentSync ? this.paymentSync.upload(folder, file) : Promise.resolve(null);
+
+  /** The checkout's methods and QR in live mode: only what the read returned, never the ported accounts. */
+  private livePayCust(cust: OpsVals['cust']): OpsVals['cust'] {
+    const info = this.paymentSync?.info;
+    // `noQr` is the ported 'Pick a payment method…' note, which also names a bank number and cash on
+    // pickup: a customer must never be told to pay a number the owner did not enter (finding 16).
+    if (!info) return { ...cust, methods: [], qr: '', noQr: false };
+    const picked = info.methods.find(
+      (m) => m.label === (this.state.cust as { pay?: string } | undefined)?.pay
+    );
+    const url = picked ? resolveImagePath(picked.qr) : '';
+    // The engine builds the style with `url(RES(qr))`, which turns an absolute URL into a
+    // relative one, so the image URL is swapped for the resolved one; a method with no QR shows none.
+    const style = typeof cust.qr === 'string' ? cust.qr : '';
+    return {
+      ...cust,
+      noQr: false,
+      qr: url && style ? style.replace(/url\([^)]*\)/, 'url(' + url + ')') : ''
+    };
+  }
+
+  /** The shop footer's lines: the owner's own text, or nothing (finding 16). */
+  private shopFooterVals(): NonNullable<OpsVals['shopFooter']> {
+    const texts = this.paymentSync?.info?.texts ?? EMPTY_TEXTS;
+    return {
+      badge: texts.registration_badge,
+      tin: texts.tin_line,
+      invoice: texts.invoice_note,
+      allergens: texts.allergen_note
+    };
+  }
+
+  private livePayVals(): OpsVals['livePay'] {
+    const sh = this.state.sheet as FlavourSheetState | null;
+    if (this.state.role !== 'owner' || sh?.kind !== 'payments') return null;
+    const rows = this.paymentSync?.rows ?? [];
+    const target = sh.pid ? rows.find((r) => r.id === sh.pid) : undefined;
+    const expectedUpdatedAt = sh.isNew ? null : (sh.updatedAt ?? target?.updated_at ?? null);
+    const online = this.state.online && (typeof navigator === 'undefined' || navigator.onLine);
+    return {
+      online,
+      rows: rows.map((r) => ({
+        id: r.id,
+        label: r.label,
+        detail: [r.account_number, r.account_name].filter(Boolean).join(' · '),
+        active: r.active,
+        hasQr: r.qr_path !== '',
+        edit: () => this.openPayEditor(r.id)
+      })),
+      addNew: () => this.openNewPay(),
+      close: () => this.closeSheet(),
+      editing:
+        sh.isNew || target
+          ? {
+              id: target?.id ?? null,
+              label: target?.label ?? '',
+              accountNumber: target?.account_number ?? '',
+              accountName: target?.account_name ?? '',
+              qrPath: target?.qr_path ?? '',
+              active: target?.active ?? true,
+              sortOrder:
+                target?.sort_order ??
+                (rows.length ? Math.max(...rows.map((r) => r.sort_order)) + 1 : 0),
+              save: (fields: LivePayFormFields) =>
+                void this.savePayForm(target?.id ?? null, fields, expectedUpdatedAt),
+              cancel: () => this.openPayments(),
+              upload: this.uploadImage('qr')
+            }
+          : null
+    };
+  }
+
+  private liveTextsVals(): OpsVals['liveTexts'] {
+    const sh = this.state.sheet as FlavourSheetState | null;
+    if (this.state.role !== 'owner' || sh?.kind !== 'shoptexts') return null;
+    const texts = this.paymentSync?.info?.texts ?? EMPTY_TEXTS;
+    const online = this.state.online && (typeof navigator === 'undefined' || navigator.onLine);
+    return {
+      online,
+      texts: {
+        registrationBadge: texts.registration_badge,
+        tinLine: texts.tin_line,
+        invoiceNote: texts.invoice_note,
+        allergenNote: texts.allergen_note
+      },
+      save: (t: LiveShopTexts) => void this.saveTextsForm(t, sh.updatedAt ?? null),
+      close: () => this.closeSheet()
     };
   }
 

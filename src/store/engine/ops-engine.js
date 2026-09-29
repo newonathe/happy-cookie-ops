@@ -143,6 +143,9 @@ const PAY_ACCOUNTS = [
   { id: 'Maya', num: '+63 ••• ••• 5341', name: '@cinereyna', qr: 'assets/qr-maya.png' },
   { id: 'GoTyme', num: '••••••• 7002', name: 'Francine Reyna To', qr: 'assets/qr-gotyme.png' }
 ];
+// MP-09 c2 engine exception (docs/state/protected-exception.md): live mode swaps in the payment
+// methods loaded from the database. The same array, replaced in place.
+export const replacePayAccounts = list => { PAY_ACCOUNTS.splice(0, PAY_ACCOUNTS.length, ...list); };
 
 const PRODUCTS = [
   { id: 'dcf', name: 'double chocolate fudge', short: 'Double Chocolate Fudge', price: 130, img: 'assets/double-chocolate-fudge.png', kind: 'Permanent', tag: '', desc: 'golden-brown edges and soft, pillowy center studded with pools of molten chocolate.' },

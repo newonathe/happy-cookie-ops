@@ -47,6 +47,8 @@ export function analyzeHtml(html, source = '<html>') {
 // exactly the configured Supabase origin (from the same NEXT_PUBLIC_SUPABASE_URL the bundle
 // inlines). No ws:/wss: source: Realtime is not used. Only the parsed origin is emitted, so a
 // path, ';' or newline in the variable can never widen or inject into the policy.
+// img-src takes the same value (MP-09 c2): owner-uploaded QR codes and flavour photos are served
+// from the public shop-media bucket on that origin, and nothing else loads images from off-site.
 export function supabaseConnectOrigin(supabaseUrl) {
   if (supabaseUrl === undefined || supabaseUrl === '') return null;
   let url;
@@ -124,7 +126,7 @@ export async function generatePagesHeaders(publicOutput, templatePath, { supabas
   if (!inlineScripts) throw new Error('Pages output contains no inline scripts; refusing to emit a potentially stale CSP.');
 
   const connectSrc = supabaseOrigin ? `'self' ${supabaseOrigin}` : "'self'";
-  const csp = `default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; connect-src ${connectSrc}; script-src 'self' ${[...hashes].sort().join(' ')}; style-src 'self' 'unsafe-inline'`;
+  const csp = `default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; connect-src ${connectSrc}; img-src ${connectSrc}; script-src 'self' ${[...hashes].sort().join(' ')}; style-src 'self' 'unsafe-inline'`;
   const template = (await readFile(templatePath, 'utf8')).trimEnd();
   const headerLines = ['Content-Security-Policy: ' + csp];
   for (const line of headerLines) {

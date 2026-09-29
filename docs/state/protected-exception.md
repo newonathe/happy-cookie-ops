@@ -260,3 +260,63 @@ CI and the visual baselines render exactly as before (`tests/unit/helper-money.t
   not a security boundary: adding up every visible sale line by hand still gives the total.
 - **New owner row** at the end of the live rules sheet: "Helpers see sale totals", 0/1 with On/Off text, saved
   as `helperSeesSales` through `save_setting`.
+
+# MP-09 c2: payment accounts and the shop footer — APPLIED (2026-09-29, finish-plan slice A2)
+
+Status: APPLIED under the approved MP-09 c engine exception (`PAY_ACCOUNTS`) and the MP-10 checkout and shop-text
+exception (D4, finding 16). Live mode only (`NEXT_PUBLIC_APP_MODE=live`); demo, dev, CI and the visual baselines
+render exactly as before (`tests/unit/ops-runtime-payments.test.tsx` pins the demo footer and accounts).
+
+**Two protected edits, both inserted by script** (the `PreToolUse` hook blocks direct edits to protected paths):
+
+- `src/store/engine/ops-engine.js`: three lines right after the `PAY_ACCOUNTS` array, exporting
+  `replacePayAccounts(list)`, which splices the same array in place (the same technique as `replaceFlavours`). The
+  engine still reads a module constant; live mode overwrites it from rows it loaded. Only callers:
+  `OpsRuntime`'s constructor in live mode (`replacePayAccounts([])`, so the ported GCash/Maya/GoTyme accounts and
+  their placeholder numbers never show, not even before the read) and `PaymentSync` after each read of
+  `get_shop_payment_info()`. Nothing else in the file changed.
+- `src/components/screens/shop.tsx`: one import and one guarded branch, `{bareFrame ? <LiveShopFooter v={v} /> : (` … `)}`,
+  around the ported footer, which stays verbatim as the demo branch. Baseline change: `elements` +1 (styles and
+  copy unchanged). `LiveShopFooter` (new, unprotected, `src/components/live/live-shop-footer.tsx`) prints only the
+  owner's own four texts from `v.shopFooter`, each only when non-empty, plus the unchanged "Already ordered? Find my
+  order" link. The ported "BIR REGISTERED" badge, placeholder TIN, "An invoice is issued for every confirmed order"
+  and the fixed allergen sentence are therefore never shown in live mode (finding 16). The order status page and
+  order detail still label a confirmation number "Invoice INV-…": that wording waits for F10.
+
+**Not protected-file edits, same slice:**
+
+- `src/store/ops-runtime.tsx` (subclass): `loadShopPayment`, the owner entry points ("Payment methods" and "Shop
+  texts" under Business), `livePayCust` (the checkout's `cust.methods` are `[]` until a read succeeds, and
+  `cust.qr` has the engine's own style with its `url(RES(qr))` swapped for the resolved bucket URL, because `RES`
+  would turn an absolute URL into `/https://…`; a method without a QR shows none; and `cust.noQr` is forced false,
+  because the ported "Pick a payment method…" note it gates also names a bank number and cash on pickup) and `shopFooterVals`.
+- `src/lib/media/resolve-image.ts`: the one resolver from a stored path to a display URL, for flavours
+  (`enginePath`) and QR codes. `assets/…` stays page-relative; a generated bucket path becomes
+  `<Supabase origin>/storage/v1/object/public/shop-media/<path>`; anything with a quote, parenthesis, colon,
+  space, `..` or a leading slash on a bucket path draws nothing.
+- `src/lib/data/payments.ts`, `payment-sync.ts`, the owner forms in `src/components/live/` (`LiveFormHost`
+  dispatches on `liveForm`, `livePay` or `liveTexts`: no further protected markup) and the CSP `img-src` (same value as
+  `connect-src`) in `scripts/pages-spike-headers.mjs`.
+
+**Reversals:** `FLAVOUR_REVERSALS` in `scripts/validate-g0.py` gained the engine block, the three `shop.tsx`
+pieces and the `shop.tsx` block of `scripts/port-baseline.json` (`elements` 65 → 64), each exactly once, before the
+delivery-bytes check; the `"generated"` date tuple moved to 2026-09-29. `port-baseline.json` was updated only via
+`--update` and `port-structure-baseline.json` via `node scripts/port-structure.mjs --write-baseline`, in the same
+commit.
+
+**Evidence:** `tests/unit/payments.test.ts` (resolver, strict reader, field bounds, upload names, `PaymentSync`) and
+`tests/unit/ops-runtime-payments.test.tsx` (no ported accounts before, after a failed read, or with no Supabase;
+QR URL; footer empty by default; owner forms; demo unchanged); ten deliberate mutations of the new code, each
+caught by a test.
+
+**Independent review (Opus, 2026-09-29): BLOCKED, then fixed.** P1: `cust.noQr` (the engine's `!c.pay`) still
+showed the ported note "Bank transfer to 0962 962 5341 and cash on pickup are also accepted" to every live customer
+who had not yet picked a method, including on a failed read; a customer could pay that number and then be refused
+at submit ("Tell us how you paid."). Fixed in `livePayCust` (both returns) with `tests/unit/ops-runtime-payments.test.tsx`
+("never tells a customer to pay a number the owner did not enter", with a mutation check, and a demo-mode
+counterpart). P3s: two vacuous helper assertions removed (helpers have no Business group; `livePay`/`liveTexts` being
+null is the real check); a save with no Supabase now toasts instead of returning silently; recorded, not fixed: an
+uploaded image is never deleted when the owner cancels or replaces it (orphans stay in the bucket), and a customer who
+picked a method the owner then turned off can still submit its label (B1's `place_order` must check the method is
+offered). Otherwise clean: both protected edits reverse to the exact delivery bytes, demo rendering is unchanged, the
+resolver cannot leave `url(...)`, and the upload name never comes from the file.

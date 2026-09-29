@@ -112,7 +112,8 @@ try {
   const directives = new Map(csp.split(';').map((part) => part.trim().split(/\s+/)).map(([name, ...values]) => [name, values.join(' ')]));
   const supabaseOrigin = manifest.staticHeaders.supabaseOrigin;
   assert((supabaseOrigin === null || /^https?:\/\/[^/\s;*]+$/.test(supabaseOrigin)) && directives.get('form-action') === "'self'" &&
-    directives.get('connect-src') === (supabaseOrigin ? `'self' ${supabaseOrigin}` : "'self'"), 'Served CSP form-action/connect-src is not exactly self plus the configured Supabase origin.');
+    directives.get('connect-src') === (supabaseOrigin ? `'self' ${supabaseOrigin}` : "'self'") &&
+    directives.get('img-src') === (supabaseOrigin ? `'self' ${supabaseOrigin}` : "'self'"), 'Served CSP form-action/connect-src/img-src is not exactly self plus the configured Supabase origin.');
   const servedHashes = new Set([...csp.matchAll(/'sha256-([^']+)'/g)].map((match) => match[1]));
   let actualInlineScripts = 0;
   async function htmlFiles(directory, prefix = '') {

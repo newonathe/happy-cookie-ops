@@ -4,6 +4,41 @@ Every checkpoint up to 2026-09-28, verbatim and newest first. Moved here from `c
 session reads only the short status in [current.md](current.md). Add nothing here by hand; move a checkpoint here
 when it leaves `current.md`.
 
+## Checkpoint — 2026-09-29 (A2 database half)
+
+  - **Database (migration `20260101003400_payment_methods_shop_texts.sql`):** `payment_methods` (label the customer
+    sees and an order stores, account number and name, `qr_path`, on/off, order; unique label) and a one-row
+    `shop_texts` (registration badge, TIN line, invoice note, allergen note; empty means the shop prints nothing).
+    Both tables have RLS, no policy and no API grant. Owner RPCs, `search_path ''`, in-function `is_owner()`:
+    `get_payment_methods`, `save_payment_method` (exact keys; `qr_path` must be `qr/<name>.png|jpg|jpeg|webp`, so no
+    scheme, colon, `..`, leading slash or subfolder; stale `updated_at` gives P0002), `save_shop_texts`. The one
+    anonymous read is `get_shop_payment_info()` (active methods, the four texts, nothing else). The migration seeds
+    no row: no real number, QR or claim is committed.
+  - **Bucket:** `shop-media`, public, 2 MiB, png/jpeg/webp only (no SVG). Four `storage.objects` policies: only the
+    active owner selects (upsert needs it), inserts, updates and deletes, and only a generated name under `qr/` or
+    `flavours/`; there is no anon SELECT, so the bucket cannot be listed. The bucket row is created by the migration
+    when Storage's own columns exist, and otherwise from `supabase/config.toml` (`[storage.buckets.shop-media]`): a
+    fresh CLI reset applies migrations before Storage's migrations add `public` and the other columns. Hosted
+    projects need one check of the bucket's public flag, size limit and mime list at cutover (F3).
+  - **`save_flavour` is unchanged.** Its path rule already accepts `flavours/<generated>.png`; uploads get generated
+    names (uuid plus extension), so no widening was needed.
+  - **Evidence:** SQL role suite 825 cases per reset (`payment-methods.sql` 88), 2 resets, 100 deliberate
+    regressions detected (8 new per reset: three anon-EXECUTE grants, an anon bucket read, a helper bucket write, an
+    unchecked object name, a raw table write, and the public read leaking an inactive method); function manifest 44;
+    `pnpm typecheck` clean, `pnpm verify` 46 files / 736 tests, port integrity OK 54 files, G0 validator 1201 checks
+    0 failures, Python guards OK, `pnpm db:types` regenerated. An Opus review found no P0/P1 in the SQL logic; its two
+    P1s (a harness syntax error and a wrong mutation message) were in an intermediate state and are fixed, and its P2
+    (direct SELECT/UPDATE/DELETE probes for every actor on both tables) is in the suite.
+  - **Not done (the app half, still A2):** the engine `PAY_ACCOUNTS` guarded edit and its records/baselines, the
+    stored-path to URL resolver (one for flavours and QR; `RES` in the engine would turn `https://…` into `/https://…`),
+    the owner forms for methods, QR/photo upload and shop texts, the guarded footer edit in `shop.tsx` (finding 16),
+    CSP `img-src` and the D2 carry-over (the close's `cashCents`/`floatCents` from acknowledged rows). The next goal
+    in [next-goal.md](next-goal.md) carries the detail.
+  - **Recorded, accepted:** `get_shop_payment_info()` has no rate limit (it returns only what the shop prints, like
+    `shop_products`); the bucket's public/size/mime settings are enforced by the Storage API and are not asserted by
+    the SQL suite; the storage DELETE policy cannot be exercised over SQL (Storage's own trigger blocks it).
+  - **Still not run:** the physical-phone test for the 20-Oct gate; WebKit OFFLINE-01 (Playwright).
+
 ## Checkpoint — 2026-09-29 (D2, bazaar close-out)
 
   - **Database (migration `20260101003300_bazaar_closeout.sql`):** four owner-only RPCs, `search_path ''`, EXECUTE

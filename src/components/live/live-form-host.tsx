@@ -1,5 +1,8 @@
+import { useRef } from 'react';
 import type * as React from 'react';
 import type { OpsVals } from '@/view-models/vals';
+import { PayEditForm, PayList, ShopTextsForm, UploadField } from '@/components/live/payment-forms';
+import { inputStyle, labelStyle, primaryButton, secondaryButton, smallLabel } from '@/components/live/form-styles';
 
 /**
  * The live-only owner form host (MP-09 c1c, F3, docs/state/protected-exception.md): the
@@ -9,47 +12,23 @@ import type { OpsVals } from '@/view-models/vals';
  */
 export function LiveFormHost({ v }: { v: OpsVals }) {
   const { liveForm } = v;
-  if (!liveForm) return null;
-  if (liveForm.kind === 'flavours') {
+  if (liveForm && liveForm.kind === 'flavours') {
     return liveForm.editing ? (
       <FlavourEditForm editing={liveForm.editing} />
     ) : (
       <FlavourList liveForm={liveForm} />
     );
   }
+  if (v.livePay) {
+    return v.livePay.editing ? (
+      <PayEditForm editing={v.livePay.editing} />
+    ) : (
+      <PayList livePay={v.livePay} />
+    );
+  }
+  if (v.liveTexts) return <ShopTextsForm liveTexts={v.liveTexts} />;
   return null;
 }
-
-const inputStyle = {
-  height: '48px',
-  border: '1px solid #E7E1DC',
-  borderRadius: '12px',
-  padding: '0 13px',
-  fontSize: '14px',
-  fontWeight: 600,
-  background: '#FFFFFF',
-  color: '#3A1F14'
-};
-const labelStyle = { display: 'flex', flexDirection: 'column' as const, gap: '5px' };
-const smallLabel = { fontSize: '12px', fontWeight: 600, color: '#6E574B' };
-const primaryButton = {
-  minHeight: '48px',
-  border: '0',
-  borderRadius: '12px',
-  background: '#C24A15',
-  color: '#FFFFFF',
-  fontSize: '14px',
-  fontWeight: 600
-};
-const secondaryButton = {
-  minHeight: '44px',
-  border: '1px solid #E7E1DC',
-  background: '#FFFFFF',
-  borderRadius: '11px',
-  fontSize: '13px',
-  fontWeight: 600,
-  color: '#3A1F14'
-};
 
 function FlavourList({ liveForm }: { liveForm: NonNullable<OpsVals['liveForm']> }) {
   return (
@@ -128,6 +107,7 @@ function fieldNumber(form: HTMLFormElement, name: string): number {
 }
 
 function FlavourEditForm({ editing }: { editing: Editing }) {
+  const photoRef = useRef<HTMLInputElement>(null);
   const onSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const form = event.currentTarget;
@@ -184,12 +164,14 @@ function FlavourEditForm({ editing }: { editing: Editing }) {
       <label style={labelStyle}>
         <span style={smallLabel}>Photo path</span>
         <input
+          ref={photoRef}
           name="imagePath"
           defaultValue={editing.imagePath}
           maxLength={200}
           style={inputStyle}
         />
       </label>
+      <UploadField upload={editing.upload} target={photoRef} label="Upload a photo" />
       <label style={labelStyle}>
         <span style={smallLabel}>Allergens (shown as &quot;Contains …&quot;)</span>
         <input

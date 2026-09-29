@@ -80,7 +80,7 @@ LIVE_FRAME_REVERSALS = {
     # "generated" is one shared field: each later approved edit that reruns --update moves
     # this tuple's left side to that day's date, still reversing to the true original.
     'scripts/port-baseline.json': [
-        (b'"generated": "2026-09-28",', b'"generated": "2026-09-04",'),
+        (b'"generated": "2026-09-29",', b'"generated": "2026-09-04",'),
         (b'"copyCount": 15,\n      "styles": 144,', b'"copyCount": 15,\n      "styles": 146,'),
     ],
 }
@@ -90,6 +90,8 @@ FLAVOUR_REVERSALS = {
     'src/store/engine/ops-engine.js': [
         (b"PRODUCTS.forEach(p => { SEED_PRICES[p.id] = p.price; });\n// MP-09 c engine exception (docs/state/protected-exception.md): live mode swaps in the\n// flavour list loaded from the database. The same objects, replaced in place.\nexport const replaceFlavours = (list, allergens) => {\n  PRODUCTS.splice(0, PRODUCTS.length, ...list);\n  [P, SEED_PRICES, ALLERGENS].forEach(o => Object.keys(o).forEach(k => { delete o[k]; }));\n  PRODUCTS.forEach(p => { P[p.id] = p; SEED_PRICES[p.id] = p.price; ALLERGENS[p.id] = allergens[p.id] || ''; });\n};\n",
          b'PRODUCTS.forEach(p => { SEED_PRICES[p.id] = p.price; });\n'),
+        (b"  { id: 'GoTyme', num: '\xe2\x80\xa2\xe2\x80\xa2\xe2\x80\xa2\xe2\x80\xa2\xe2\x80\xa2\xe2\x80\xa2\xe2\x80\xa2 7002', name: 'Francine Reyna To', qr: 'assets/qr-gotyme.png' }\n];\n// MP-09 c2 engine exception (docs/state/protected-exception.md): live mode swaps in the payment\n// methods loaded from the database. The same array, replaced in place.\nexport const replacePayAccounts = list => { PAY_ACCOUNTS.splice(0, PAY_ACCOUNTS.length, ...list); };\n",
+         b"  { id: 'GoTyme', num: '\xe2\x80\xa2\xe2\x80\xa2\xe2\x80\xa2\xe2\x80\xa2\xe2\x80\xa2\xe2\x80\xa2\xe2\x80\xa2 7002', name: 'Francine Reyna To', qr: 'assets/qr-gotyme.png' }\n];\n"),
     ],
     'supabase/seed.sql': [
         (b"('nch', 'Vanilla extract', 10, 'ml');\n\n-- allergens (MP-09 c1)\nupdate products set allergens = v.allergens from (values\n  ('dcf', 'milk, eggs, wheat, soy'),\n  ('hc', 'milk, eggs, wheat, soy'),\n  ('wcb', 'milk, eggs, wheat, soy'),\n  ('pbm', 'milk, eggs, wheat, soy, peanuts'),\n  ('rvc', 'milk, eggs, wheat, soy'),\n  ('nch', 'milk, eggs, wheat, soy, tree nuts')\n) as v (id, allergens) where products.id = v.id;\n",
@@ -103,8 +105,20 @@ FLAVOUR_REVERSALS = {
         (b"                        {sheet.isEditPrice ? <EditPriceSheet v={v} /> : null}\n                        {bareFrame && sheet.liveForm ? <LiveFormHost v={v} /> : null}\n",
          b"                        {sheet.isEditPrice ? <EditPriceSheet v={v} /> : null}\n"),
     ],
+    # MP-09 c2 shop footer host (finding 16, D4; docs/state/protected-exception.md): an import and one guarded
+    # branch around the ported footer, which stays verbatim as the demo branch.
+    'src/components/screens/shop.tsx': [
+        (b"import { Pressable } from '@/components/ui/pressable';\nimport { LiveShopFooter } from '@/components/live/live-shop-footer';\n",
+         b"import { Pressable } from '@/components/ui/pressable';\n"),
+        (b"        {bareFrame ? <LiveShopFooter v={v} /> : (\n        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', padding: '4px 2px 0' }}>\n          <span style={{ width: '44px'",
+         b"        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', padding: '4px 2px 0' }}>\n          <span style={{ width: '44px'"),
+        (b'          </span>\n        </div>\n        )}\n      </div>\n    </>\n  );\n}',
+         b'          </span>\n        </div>\n      </div>\n    </>\n  );\n}'),
+    ],
     # Applied after LIVE_FRAME_REVERSALS already turned this block's "styles" back to 146.
     'scripts/port-baseline.json': [
+        (b'"src/components/screens/shop.tsx": {\n      "copy": "b9ed733a",\n      "copyCount": 6,\n      "styles": 49,\n      "dynamicStyles": 6,\n      "elements": 65\n    }',
+         b'"src/components/screens/shop.tsx": {\n      "copy": "b9ed733a",\n      "copyCount": 6,\n      "styles": 49,\n      "dynamicStyles": 6,\n      "elements": 64\n    }'),
         (b'"src/components/shell/app-frame.tsx": {\n      "copy": "8f7ed5b6",\n      "copyCount": 15,\n      "styles": 146,\n      "dynamicStyles": 10,\n      "elements": 244',
          b'"src/components/shell/app-frame.tsx": {\n      "copy": "8f7ed5b6",\n      "copyCount": 15,\n      "styles": 146,\n      "dynamicStyles": 10,\n      "elements": 243'),
     ],

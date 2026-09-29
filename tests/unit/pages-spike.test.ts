@@ -117,6 +117,7 @@ describe('Static CSP for direct Supabase (architecture A)', () => {
       const policy = directives(result.csp);
       expect(policy.get('form-action')).toBe("'self'");
       expect(policy.get('connect-src')).toBe("'self'");
+      expect(policy.get('img-src')).toBe("'self'");
       expect(result.supabaseOrigin).toBeNull();
       expect(result.content.split(/\r?\n/).every((line) => line.length <= 2000)).toBe(true);
     });
@@ -130,6 +131,7 @@ describe('Static CSP for direct Supabase (architecture A)', () => {
       const policy = directives(result.csp);
       expect(policy.get('form-action')).toBe("'self'");
       expect(policy.get('connect-src')).toBe("'self' https://abcdefghijklmnop.supabase.co");
+      expect(policy.get('img-src')).toBe("'self' https://abcdefghijklmnop.supabase.co");
       expect(policy.get('default-src')).toBe("'self'");
       expect(result.csp).not.toMatch(/wss?:|\*/);
       expect(result.supabaseOrigin).toBe('https://abcdefghijklmnop.supabase.co');

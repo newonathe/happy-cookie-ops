@@ -120,6 +120,13 @@ export const ALLERGENS: Record<string, string>;
  * the flavour list loaded from the database (docs/state/protected-exception.md).
  */
 export function replaceFlavours(list: EngineFlavour[], allergens: Record<string, string>): void;
+/**
+ * MP-09 c2 engine exception: replaces PAY_ACCOUNTS in place with the payment methods loaded from
+ * the database (docs/state/protected-exception.md).
+ */
+export function replacePayAccounts(
+  list: Array<{ id: string; num: string; name: string; qr: string }>
+): void;
 export const DEFAULT_CFG: Record<string, unknown>;
 export const RECIPES: Record<
   string,

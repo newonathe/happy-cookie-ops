@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database, Json } from '@/lib/types/database';
 import type { EngineFlavour } from '@/store/engine/ops-engine';
+import { resolveImagePath } from '@/lib/media/resolve-image';
 import { centavosFromDb, centavosToPesos, pesosToCentavos, type Pesos } from '@/lib/money';
 
 /**
@@ -25,7 +26,7 @@ export const SHOP_COLUMNS =
  * (`/assets/…`). One leading slash is dropped so a seeded flavour renders exactly as the
  * ported constant did.
  */
-const enginePath = (path: string) => path.replace(/^\//, '');
+const enginePath = (path: string) => resolveImagePath(path);
 
 type Catalogue = Pick<
   FlavourRow,

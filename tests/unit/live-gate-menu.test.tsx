@@ -14,6 +14,7 @@ const { FakeRuntime } = vi.hoisted(() => ({
     loadSettings = vi.fn();
     loadFlavours = vi.fn();
     loadShopMenu = vi.fn();
+    loadShopPayment = vi.fn();
   }
 }));
 vi.mock('@/store/ops-runtime', () => ({ OpsRuntime: FakeRuntime }));
@@ -62,6 +63,8 @@ describe('LiveGate: the flavour list each page loads', () => {
     );
     await act(settle);
     expect(engine.loadShopMenu).toHaveBeenCalledExactlyOnceWith(client);
+    // MP-09 c2: the payment methods and shop texts load on every live page.
+    expect(engine.loadShopPayment).toHaveBeenCalledExactlyOnceWith(client);
     // A signed-in owner on /shop: the token refresh verifies her, but the shop stays public.
     await act(async () => {
       authEvent('TOKEN_REFRESHED');
@@ -86,6 +89,7 @@ describe('LiveGate: the flavour list each page loads', () => {
     expect(engine.loadFlavours).toHaveBeenCalledExactlyOnceWith(client);
     expect(engine.loadSettings).toHaveBeenCalledTimes(1);
     expect(engine.loadShopMenu).not.toHaveBeenCalled();
+    expect(engine.loadShopPayment).toHaveBeenCalledExactlyOnceWith(client);
   });
 
   it('with no Supabase configured, a customer page gets an empty menu', async () => {
@@ -97,5 +101,6 @@ describe('LiveGate: the flavour list each page loads', () => {
     );
     await act(settle);
     expect(engine.loadShopMenu).toHaveBeenCalledExactlyOnceWith(null);
+    expect(engine.loadShopPayment).toHaveBeenCalledExactlyOnceWith(null);
   });
 });
