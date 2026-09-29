@@ -103,6 +103,9 @@ export const ORDER_COPY = {
     sameDayNotice: (percent: number): string =>
       `Same-day pickup adds ${percent}% to your order. The shop works out the total when you place the order.`,
     sameDayLabel: (percent: number): string => `same-day +${percent}%`,
+    sameDayNow: (percent: number): string =>
+      `That date is today now, so it is a same-day pickup: it adds ${percent}% to your order. Tap Place order again to go ahead, or pick another day.`,
+    priceNote: 'You pay per cookie. Boxes, add-ons and same-day pickup can add to it.',
     noSlotsToday: 'No pickup times are left today. Pick another day.',
     totalNote:
       'Add-ons, box charges and any same-day extra are added by the shop to the total above when you place the order.',

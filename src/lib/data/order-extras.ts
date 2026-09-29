@@ -290,6 +290,12 @@ export async function fetchShopExtras(client: OrderExtrasClient): Promise<ShopEx
   return parseShopExtras(data);
 }
 
+/**
+ * Separates an add-on id from its design in a selection key. The server refuses control characters in a
+ * design, so no design can contain it (a design with a `|` in it would have been cut in two).
+ */
+export const LINE_SEP = '\u001f';
+
 /** One add-on line the customer chose: a design (variant) and how many, plus a message where the add-on has one. */
 export interface AddOnLine {
   id: string;
@@ -343,7 +349,7 @@ export function extrasSelectionError(
     const text = l.text.trim();
     if (cfg.textLabel === null ? text !== '' : text === '' || l.qty !== 1) return words.text;
     if (text.length > cfg.textMax) return words.textLong;
-    const key = l.id + '|' + l.variant + '|' + text;
+    const key = l.id + LINE_SEP + l.variant + LINE_SEP + text;
     if (seen.has(key)) return words.addOn;
     seen.add(key);
     totals.set(l.id, (totals.get(l.id) ?? 0) + l.qty);

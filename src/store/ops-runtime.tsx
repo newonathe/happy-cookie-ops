@@ -37,6 +37,7 @@ import { extraDetails, extraRows } from '@/lib/orders/extras-view';
 import { fetchShopStatus, saveShopOverride, type ShopOverride, type ShopStatusClient } from '@/lib/data/shop-status';
 import { fetchOrderRules, orderRulesError, saveOrderRules, type OrderRulesRow } from '@/lib/data/order-rules';
 import {
+  LINE_SEP,
   addOnId,
   fetchOrderExtras,
   orderExtrasError,
@@ -49,7 +50,7 @@ import { OrderFlow } from '@/lib/data/order-flow';
 import { tokenFromHash, type FieldErrors, type OrderClient } from '@/lib/data/orders';
 import { pickupLabel, statusCust } from '@/lib/orders/status-view';
 import { ORDER_COPY } from '@/lib/orders/copy';
-import { manilaMinutes, pickupDates, pickupTimes, waitlistRange } from '@/lib/orders/pickup';
+import { manilaMinutes, manilaToday, pickupDates, pickupTimes, waitlistRange } from '@/lib/orders/pickup';
 import { EMPTY_TEXTS, type PaymentClient, type UploadClient } from '@/lib/data/payments';
 import { resolveImagePath } from '@/lib/media/resolve-image';
 import { isLiveMode } from '@/lib/config/app-mode';
@@ -1465,7 +1466,7 @@ export class OpsRuntime extends OpsProvider {
         name: o.name,
         label: m.label,
         text: m.text,
-        details: extraDetails(o),
+        details: extraDetails(o, true),
         copy: () => void this.copyMessage(m.text)
       }))
     );
@@ -1727,6 +1728,8 @@ export class OpsRuntime extends OpsProvider {
     const style = typeof cust.qr === 'string' ? cust.qr : '';
     return {
       ...cust,
+      // The ported note says there is no extra charge; boxes, add-ons and same-day can add to the total (B4b).
+      priceNote: ORDER_COPY.extras.priceNote,
       noQr: false,
       qr: url && style ? style.replace(/url\([^)]*\)/, 'url(' + url + ')') : ''
     };
@@ -1756,6 +1759,19 @@ export class OpsRuntime extends OpsProvider {
       return;
     }
     const c = (this.state.cust ?? {}) as CustFields;
+    const flow = this.orderFlow;
+    const sameDay = flow.extras?.sameDay;
+    // A date picked as tomorrow that is today by the time it is sent (midnight passed) would be charged the same-day
+    // extra without ever showing it. A retry of an unsettled attempt sends its frozen body and is left alone.
+    if (
+      sameDay?.enabled &&
+      !flow.unresolved &&
+      c.pickupDate === manilaToday() &&
+      flow.renderedSameDay !== c.pickupDate
+    ) {
+      flow.holdSameDay(ORDER_COPY.extras.sameDayNow(sameDay.percent));
+      return;
+    }
     await this.orderFlow.submit({
       name: c.name ?? '',
       ig: c.ig ?? '',
@@ -1857,6 +1873,8 @@ export class OpsRuntime extends OpsProvider {
     const x = flow?.extras ?? null;
     const dates = rules ? pickupDates(rules, Date.now(), x?.sameDay.enabled ? x.sameDay.percent : null) : [];
     const sameDayPicked = dates.some((d) => d.sameDay && d.value === c.pickupDate);
+    // What the customer can see right now, kept for `liveSubmit`: a same-day date shown as same-day was agreed to.
+    if (flow) flow.renderedSameDay = sameDayPicked ? (c.pickupDate ?? null) : null;
     const times = rules ? pickupTimes(rules, sameDayPicked ? manilaMinutes() : null) : [];
     const samplerId = x?.sampler.productId ?? null;
     const cookieQty = Object.entries(c.box ?? {})
@@ -1872,7 +1890,7 @@ export class OpsRuntime extends OpsProvider {
               ? ORDER_COPY.extras.noSlotsToday
               : ORDER_COPY.extras.sameDayNotice(x.sameDay.percent),
           boxes:
-            x.boxes.length && cookieQty >= x.boxes[0]!.size
+            x.boxes.length && (cookieQty >= x.boxes[0]!.size || Object.keys(flow?.boxQty ?? {}).length > 0)
               ? x.boxes.map((b) => {
                   const qty = flow?.boxQty[b.size] ?? 0;
                   return {
@@ -1885,7 +1903,7 @@ export class OpsRuntime extends OpsProvider {
                 })
               : [],
           addOns: x.addOns.map((a) => {
-            const keys = (a.variants.length ? a.variants : ['']).map((v) => a.id + '|' + v);
+            const keys = (a.variants.length ? a.variants : ['']).map((v) => a.id + LINE_SEP + v);
             const used = keys.reduce((n, k) => n + (flow?.lines[k]?.qty ?? 0), 0);
             return {
               id: a.id,

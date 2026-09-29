@@ -158,9 +158,30 @@ describe('rows and lines for the owner', () => {
     // Mutation: dropping the remainder row shows 265 lines against a 313 total.
   });
 
+  it('a charge no line explains still shows on a same-day order too, so the rows always add up', () => {
+    // total 313 = items 200 + sticker 30 + note 10 + box 25 + same-day 48, but one add-on line was malformed and dropped
+    const [o] = parseStaffOrders([
+      raw({
+        add_ons: [
+          { name: 'Sticker', qty: 2, unit_price_cents: 1500, variant: '2', note: null },
+          'broken'
+        ]
+      })
+    ]);
+    const rows = extraRows(o!);
+    expect(rows.map((r) => r.name)).toEqual([
+      'Sticker 2',
+      'Box of 6',
+      'Same-day pickup extra',
+      'Other charges'
+    ]);
+    expect(rows.reduce((n, r) => n + r.linePesos, 0)).toBe(113);
+    // Mutation: skipping the remainder when same-day is set leaves the rows 10 pesos short of the total.
+  });
+
   it('the pack lines carry the note text, and say nothing for a plain order', () => {
     const [o] = parseStaffOrders([raw()]);
-    expect(extraDetails(o!)).toEqual([
+    expect(extraDetails(o!, true)).toEqual([
       'Sticker 2 × 2',
       'Note card × 1: "Happy birthday Mika"',
       'Box of 6 × 1',
@@ -176,12 +197,23 @@ describe('rows and lines for the owner', () => {
   it('the payment and paid texts list what the total includes; a plain order says nothing extra', () => {
     const [o] = parseStaffOrders([raw()]);
     const [unpaid] = messagesFor(o!, 'https://x.test', () => 'Flavour');
+    // The customer text is forwarded (a gift, a receipt), so the card message stays out of it; the owner's pack line has it.
     expect(unpaid!.text).toContain(
-      'Includes: Sticker 2 × 2; Note card × 1: "Happy birthday Mika"; Box of 6 × 1; Same-day pickup.'
+      'Includes: Sticker 2 × 2; Note card × 1; Box of 6 × 1; Same-day pickup.'
     );
+    expect(unpaid!.text).not.toContain('Mika');
+    expect(extraDetails(o!)).toEqual([
+      'Sticker 2 × 2',
+      'Note card × 1',
+      'Box of 6 × 1',
+      'Same-day pickup'
+    ]);
+    // Mutation: passing withNotes to the customer text hands the card message to whoever the text is forwarded to.
     expect(unpaid!.text).toContain('The total is ₱313.'); // what the customer pays: flavours, extras and all
     const [cents] = parseStaffOrders([raw({ total_cents: 123450 })]);
-    expect(messagesFor(cents!, 'https://x.test', () => 'F')[0]!.text).toContain('The total is ₱1,234.50.');
+    expect(messagesFor(cents!, 'https://x.test', () => 'F')[0]!.text).toContain(
+      'The total is ₱1,234.50.'
+    );
     // Mutation: leaving the total out sends the customer a payment request with no amount.
     const [paid] = messagesFor(
       { ...o!, state: 'Confirmed', payState: 'confirmed' },

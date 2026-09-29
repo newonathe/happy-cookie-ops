@@ -374,6 +374,113 @@ describe('B4b: boxes, add-ons, the sampler and same-day on the live checkout', (
     // Mutation: showing the percent notice with no times leaves the customer at a picker that never appears.
   });
 
+  it('an unsettled attempt sends the identical body again, whatever is picked meanwhile', async () => {
+    let n = 0;
+    const { runtime, calls } = await mounted(
+      {
+        place_order: () => (++n === 1 ? new Error('lost reply') : { data: [PLACED], error: null })
+      },
+      { dcf: 7 }
+    );
+    fill(runtime);
+    act(() => live1(runtime).extras!.boxes[0]!.setQty(1));
+    await submit(runtime);
+    expect(live1(runtime).frozen).toBe(true);
+    act(() => live1(runtime).extras!.boxes[0]!.setQty(0)); // locked: ignored
+    act(() => live1(runtime).extras!.addOns[0]!.rows[0]!.setQty(1)); // locked: ignored
+    await submit(runtime);
+    const [first, second] = placed(calls);
+    expect(second).toEqual(first);
+    expect(second!.boxes).toEqual([{ size: 6, qty: 1 }]);
+    expect(second!.add_ons).toBeUndefined();
+    // Mutation: letting a locked form change the selection resends a different body under the same client id (23505).
+  });
+
+  it('a box already picked stays visible and removable when the cookies drop below the smallest box', async () => {
+    const { runtime } = await mounted({}, { dcf: 6 });
+    act(() => live1(runtime).extras!.boxes[0]!.setQty(1));
+    act(() => runtime.setState({ cust: { ...(runtime.state.cust as object), box: { dcf: 4 } } }));
+    const boxes = live1(runtime).extras!.boxes;
+    expect(boxes[0]).toMatchObject({ qty: 1 });
+    act(() => boxes[0]!.setQty(0));
+    expect(live1(runtime).extras!.boxes).toEqual([]);
+    // Mutation: hiding the card at once leaves a pick nobody can undo, and every submit refused.
+  });
+
+  it('a refusal of an order with boxes is worded about the boxes, not the generic "not accepted"', async () => {
+    const { runtime } = await mounted(
+      { place_order: () => ({ data: null, error: { code: '22023' } }) },
+      { dcf: 6 }
+    );
+    fill(runtime);
+    act(() => live1(runtime).extras!.boxes[0]!.setQty(1));
+    await submit(runtime);
+    expect(live1(runtime).banner?.text).toBe(ORDER_COPY.extras.box);
+    // Mutation: the generic sentence tells a customer nothing about the size or the cookies that failed.
+  });
+
+  it('a design with a bar in its name still orders as itself', async () => {
+    const { runtime, calls } = await mounted({
+      get_shop_extras: () => ({
+        data: EXTRAS({
+          add_ons: [
+            {
+              id: 'sticker',
+              name: 'Sticker',
+              price_cents: 1500,
+              variants: ['a|b', 'c'],
+              text_label: null,
+              text_max: 150,
+              max_qty: 4
+            }
+          ]
+        }),
+        error: null
+      })
+    });
+    fill(runtime);
+    act(() => live1(runtime).extras!.addOns[0]!.rows[0]!.setQty(1));
+    await submit(runtime);
+    expect(placed(calls)[0]!.add_ons).toEqual([{ id: 'sticker', qty: 1, variant: 'a|b' }]);
+    // Mutation: splitting the selection key on a bar cuts this design to "a" and the pick is dropped or refused.
+  });
+
+  it('a date that became today while the customer filled the form is confirmed before it is sent', async () => {
+    // Sunday 4 Oct, 23:59:30 in Manila. Monday is tomorrow, so it shows with no same-day extra.
+    vi.setSystemTime(new Date('2026-10-04T15:59:30Z'));
+    const { runtime, calls } = await mounted({
+      get_shop_extras: () => ({
+        data: EXTRAS({ same_day: { enabled: true, percent: 40, on_extras: false } }),
+        error: null
+      })
+    });
+    expect(live1(runtime).dates.some((d) => d.sameDay)).toBe(false);
+    fill(runtime, '2026-10-05');
+    expect(live1(runtime).extras!.sameDayNotice).toBe('');
+    // The tap lands on the button the customer saw before midnight, so nothing has re-rendered since.
+    const tap = runtime.renderVals().cust.submit;
+    vi.setSystemTime(new Date('2026-10-04T16:00:30Z')); // it is Monday now: the date is today, and same-day
+    await act(async () => {
+      tap();
+    });
+    await flush();
+    expect(placed(calls)).toEqual([]);
+    expect(live1(runtime).errors.date).toBe(ORDER_COPY.extras.sameDayNow(40));
+    // The page has re-rendered with the extra shown; the next tap goes through.
+    expect(live1(runtime).dates[0]).toMatchObject({ value: '2026-10-05', sameDay: true });
+    expect(live1(runtime).extras!.sameDayNotice).toBe(ORDER_COPY.extras.sameDayNotice(40));
+    custSet(runtime, 'pickupTime', '23:30');
+    await submit(runtime);
+    expect(placed(calls)).toHaveLength(1);
+    // Mutation: without the check the server adds 40% to an order whose form never said so.
+  });
+
+  it('the ported "no extra charge" line is replaced in live mode', async () => {
+    const { runtime } = await mounted();
+    expect(runtime.renderVals().cust.priceNote).toBe(ORDER_COPY.extras.priceNote);
+    expect(ORDER_COPY.extras.priceNote).not.toMatch(/no extra/i);
+  });
+
   it('same-day is not offered on a day that is not a pickup day', async () => {
     vi.setSystemTime(new Date('2026-10-06T03:00:00Z')); // a Tuesday
     const { runtime } = await mounted({

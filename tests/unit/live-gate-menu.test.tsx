@@ -52,6 +52,7 @@ const client = {
 vi.mock('@/lib/supabase/client', () => ({ createClient: () => client }));
 
 import { LiveGate } from '@/components/app/live-gate';
+import { checkStaffProfile } from '@/lib/auth/live-gate';
 
 const settle = () => new Promise((r) => setTimeout(r, 0));
 
@@ -159,6 +160,19 @@ describe('LiveGate: the owner’s orders (B3)', () => {
     role = 'owner';
     await mount('shop');
     expect(engine.loadOrders).not.toHaveBeenCalled();
+  });
+
+  it('a signed-in owner who passes through a customer page is still re-checked when the tab comes back', async () => {
+    await mount('orders'); // verified as the owner
+    engine.state.screen = 'shop' as ScreenKey; // the shop preview: a customer screen
+    vi.mocked(checkStaffProfile).mockClear();
+    Object.defineProperty(document, 'visibilityState', { configurable: true, value: 'visible' });
+    await act(async () => {
+      document.dispatchEvent(new Event('visibilitychange'));
+      await settle();
+    });
+    expect(checkStaffProfile).toHaveBeenCalledOnce();
+    // Mutation: skipping every customer screen lets an owner whose access was revoked keep the orders she already loaded.
   });
 
   it('reads them again when the tab comes back, not when it goes away', async () => {

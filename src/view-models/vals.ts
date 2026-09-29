@@ -196,7 +196,7 @@ export interface OpsVals {
     errors: Partial<
       Record<'name' | 'ig' | 'mobile' | 'date' | 'time' | 'pay' | 'items' | 'extras', string>
     >;
-    dates: Array<{ value: string; label: string }>;
+    dates: Array<{ value: string; label: string; sameDay?: boolean }>;
     times: Array<{ value: string; label: string }>;
     rulesState: 'loading' | 'ready' | 'failed';
     /** The order is sending or unsettled: the inputs are read-only. */

@@ -20,6 +20,7 @@ import {
 import { ORDER_COPY } from '@/lib/orders/copy';
 import type { ShopOrderRules } from '@/lib/orders/pickup';
 import {
+  LINE_SEP,
   extrasSelectionError,
   fetchShopExtras,
   type AddOnLine,
@@ -62,6 +63,8 @@ export class OrderFlow {
   lines: Record<string, { qty: number; text: string }> = {};
   /** What the placed order carried beyond flavours, as lines to show the customer. */
   placedLines: string[] = [];
+  /** The same-day date the last render showed as same-day (with its percent); null when none was. */
+  renderedSameDay: string | null = null;
   attempt: Attempt | null = null;
   sending = false;
   banner: Banner | null = null;
@@ -118,7 +121,7 @@ export class OrderFlow {
     );
     this.lines = Object.fromEntries(
       Object.entries(this.lines).filter(([key]) => {
-        const [id, variant = ''] = key.split('|');
+        const [id, variant = ''] = key.split(LINE_SEP);
         const cfg = x?.addOns.find((a) => a.id === id);
         return (
           !!cfg && (variant === '' ? cfg.variants.length === 0 : cfg.variants.includes(variant))
@@ -155,7 +158,7 @@ export class OrderFlow {
     const addOns: AddOnLine[] = Object.entries(this.lines)
       .filter(([, l]) => l.qty > 0)
       .map(([key, l]) => {
-        const [id = '', variant = ''] = key.split('|');
+        const [id = '', variant = ''] = key.split(LINE_SEP);
         return { id, variant, qty: l.qty, text: l.text };
       })
       .sort((a, b) => (a.id + a.variant).localeCompare(b.id + b.variant));
@@ -164,6 +167,16 @@ export class OrderFlow {
       .map(([size, qty]) => ({ size: Number(size), qty }))
       .sort((a, b) => a.size - b.size);
     return { addOns, boxes };
+  }
+
+  /**
+   * The picked date has become today since the customer picked it (midnight passed), so the server would add the
+   * same-day extra to an order that never showed one. Nothing is sent: the date says so, and the next tap places it.
+   */
+  holdSameDay(message: string): void {
+    this.errors = { date: message };
+    this.banner = null;
+    this.hooks.changed();
   }
 
   /** A field was edited: its refusal no longer applies. */
@@ -240,7 +253,8 @@ export class OrderFlow {
       if (outcome.code === 'ZC005') this.errors = { pay: outcome.message };
       this.banner = {
         tone: 'error',
-        text: outcome.message,
+        text:
+          outcome.code === '22023' && attempt.body.boxes ? ORDER_COPY.extras.box : outcome.message,
         canWaitlist: outcome.code === 'ZC001' || outcome.code === 'ZC002'
       };
     } else {

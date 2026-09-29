@@ -167,7 +167,9 @@ export function LiveGate({
       if (document.visibilityState === 'visible') {
         // A customer page has no staff session to re-check: verifying it finds none, and would sign the anonymous
         // customer "out" to /sign-in the moment they come back to the tab (say, from paying in their bank app).
-        if (!CUSTOMER_SCREENS.includes(engine.state.screen as ScreenKey)) void verify(false);
+        // A signed-in owner passing through a customer page (the shop preview) is still re-checked.
+        if (verifiedRef.current || !CUSTOMER_SCREENS.includes(engine.state.screen as ScreenKey))
+          void verify(false);
         // Customers order all day: read the owner's orders again when the tab comes back.
         if (engine instanceof OpsRuntime) void engine.reloadOrders();
         if (engine instanceof OpsRuntime) void engine.reloadShopStatus();

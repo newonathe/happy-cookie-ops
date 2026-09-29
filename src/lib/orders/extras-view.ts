@@ -33,22 +33,25 @@ export function extraRows(o: StaffOrder): ExtraRow[] {
   // The extra is the total minus everything else, so a hidden component can never make the rows disagree with it.
   const listed = rows.reduce((n, r) => n + Math.round(r.linePesos * 100), 0);
   const itemsCents = o.items.reduce((n, i) => n + i.qty * i.unitCents, 0);
-  const rest = o.totalCents - itemsCents - listed;
-  if (o.sameDay && o.surchargeCents > 0)
-    rows.push({
-      name: 'Same-day pickup extra',
-      qty: 1,
-      linePesos: centavosToPesos(o.surchargeCents)
-    });
-  else if (rest > 0) rows.push({ name: 'Other charges', qty: 1, linePesos: centavosToPesos(rest) });
+  const surcharge = o.sameDay && o.surchargeCents > 0 ? o.surchargeCents : 0;
+  const rest = o.totalCents - itemsCents - listed - surcharge;
+  if (surcharge > 0)
+    rows.push({ name: 'Same-day pickup extra', qty: 1, linePesos: centavosToPesos(surcharge) });
+  if (rest > 0) rows.push({ name: 'Other charges', qty: 1, linePesos: centavosToPesos(rest) });
   return rows;
 }
 
-/** Plain lines for the messages sheet and the customer texts: what to pack, including the note text. */
-export function extraDetails(o: StaffOrder): string[] {
+/**
+ * Plain lines for the owner and for the customer text. `withNotes` adds the card message, which the owner needs to
+ * write the card; the customer text leaves it out, because that text is forwarded (a gift, a receipt) and the card
+ * message is for the person opening the box.
+ */
+export function extraDetails(o: StaffOrder, withNotes = false): string[] {
   const out: string[] = [];
   for (const a of o.addOns)
-    out.push(`${label(a.name, a.variant)} × ${a.qty}${a.note ? ': "' + a.note + '"' : ''}`);
+    out.push(
+      `${label(a.name, a.variant)} × ${a.qty}${withNotes && a.note ? ': "' + a.note + '"' : ''}`
+    );
   for (const b of o.boxes) out.push(`Box of ${b.size} × ${b.qty}`);
   if (o.sameDay && o.surchargeCents > 0) out.push('Same-day pickup');
   return out;
