@@ -117,3 +117,60 @@ describe('LiveGate — "Back to ops" with no session', () => {
     expect(createClient).not.toHaveBeenCalled();
   });
 });
+
+describe('LiveGate — an anonymous customer returning to the tab', () => {
+  const realLocation = window.location;
+  const replace = vi.fn();
+
+  beforeEach(() => {
+    engine.state.screen = 'shop';
+    supabaseConfigured = true;
+    getUser.mockClear();
+    authSignOut.mockClear();
+    replace.mockClear();
+    Object.defineProperty(window, 'location', {
+      configurable: true,
+      value: { ...realLocation, replace }
+    });
+  });
+  afterEach(() => {
+    Object.defineProperty(window, 'location', { configurable: true, value: realLocation });
+  });
+
+  const comeBack = () => {
+    Object.defineProperty(document, 'visibilityState', { configurable: true, value: 'visible' });
+    document.dispatchEvent(new Event('visibilitychange'));
+  };
+
+  it('is not sent to sign-in: a customer page has no staff session to re-check', async () => {
+    for (const customerScreen of ['shop', 'checkout', 'status', 'lookup'] as ScreenKey[]) {
+      engine.state.screen = customerScreen;
+      const { unmount } = render(
+        <LiveGate initialScreen={customerScreen}>
+          <div>customer page</div>
+        </LiveGate>
+      );
+      comeBack();
+      await new Promise((resolve) => setTimeout(resolve, 20));
+      expect(getUser).not.toHaveBeenCalled();
+      expect(replace).not.toHaveBeenCalled();
+      expect(authSignOut).not.toHaveBeenCalled();
+      expect(screen.getByText('customer page')).toBeInTheDocument();
+      unmount();
+    }
+    // Mutation: verifying on every return (the old behaviour) finds no session for an anonymous customer and signs them out.
+  });
+
+  it('still re-checks a staff screen when the tab comes back', async () => {
+    engine.state.screen = 'today';
+    render(
+      <LiveGate initialScreen="today">
+        <div>staff frame</div>
+      </LiveGate>
+    );
+    getUser.mockClear();
+    comeBack();
+    await waitFor(() => expect(getUser).toHaveBeenCalled());
+  });
+});
+
