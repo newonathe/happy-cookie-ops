@@ -20,6 +20,8 @@ Short status, read at the start of every session. Keep it to one screen.
   - MP-09 c1: flavours on the database.
   - MP-09 c1b: prices save, `publish_flavours`, and the live shop shows only the published menu.
   - MP-09 c1c (F3, slice A1): the owner's flavour editor and "Publish menu" button, live mode only.
+- **A3 is done locally (2026-09-30):** Cine's stock items, suppliers and supplier prices on the database and on the inventory, grocery and
+  suppliers screens, with two owner forms (quantities stay 0 until the stock ledger, C1).
 - **D4 is done locally (2026-09-30):** Cine's real bazaar bookings (name, dates, place, rent) in an owner form; the Bazaar screen lists
   them in live mode; starting one opens the event and the database books its stall rent once.
 - **B4 is done locally (2026-09-30):** every September form feature on the server-priced order. B4a (2026-09-29): the
@@ -42,9 +44,9 @@ Short status, read at the start of every session. Keep it to one screen.
 - **Cine's inputs arrived 2026-09-28** and were analysed in [finish-plan.md](finish-plan.md) sections 2 and 4 and
   [apps-script-audit.md](apps-script-audit.md): the workbook, the September form, the payment image, the October
   menu, recipes and packaging, and the Apps Script. The files stay outside the repo; `Appscript/` is git-ignored.
-- **Baseline (2026-09-30, at D4 close):**
-  - `pnpm typecheck` clean; `pnpm verify` 62 files / 1150 tests; port integrity OK, 54 files; G0 validator 1217 checks, 0 failures;
-  - SQL role suite: 1387 cases per reset, 2 resets, 368 deliberate regressions detected in all; Python guards: 63 OK; migrations: 43; public functions: 69;
+- **Baseline (2026-09-30, at A3 close):**
+  - `pnpm typecheck` clean; `pnpm verify` 64 files / 1222 tests; port integrity OK, 54 files; G0 validator 1217 checks, 0 failures;
+  - SQL role suite: 1525 cases per reset, 2 resets, 436 deliberate regressions detected in all; Python guards: 63 OK; migrations: 44; public functions: 73;
   - `pnpm test:e2e`: 89 passed / 1 failed (WebKit OFFLINE-01) / 75 skipped, run with no Supabase variables (unchanged). Passing the local-stack variables at run time to `next start` makes its middleware send staff routes to sign-in, so do not.
   - `pnpm test:live:checkout`: 11 steps pass (needs `pnpm db:reset`; keys from `pnpm exec supabase status -o env`, the bare `supabase` binary is not on PATH).
 - **Known red:** OFFLINE-01 on WebKit only; `format:check` and E2E on CI `main`. No merge to `main` until they are green.
@@ -58,34 +60,34 @@ Short status, read at the start of every session. Keep it to one screen.
 
 ## Latest checkpoint (replace each slice; move the old one to current-history.md)
 
-- **2026-09-30 (D4, finish-plan slice D4):** Cine's upcoming bazaars. Two commits (`d5536d9` database, then the app half and the review fix).
-  - **Database:** `scheduled_events` (name, first and last day, place, rent in centavos, active, the event it became, `updated_at`; RLS on,
-    no API grant). Owner-only `get_scheduled_events()`, `save_scheduled_event(jsonb, stamp)` (exact keys, whole-centavo rent, at most 15
-    days, a stale stamp is `P0002`, an identical repeat of a create is answered) and `link_scheduled_event(booking, event)`. Migration
-    `20260101004200` (review fix) makes the first link also book the stall rent as that event's "Stall rent" expense (category "Bazaar
-    rent") and ledger cost in the same transaction, keyed on the booking, and gives an event at most one booking (unique index).
-  - **App (live mode, no protected markup or engine edit):** All tools > "Bazaar events" (owner only) is the form: a row per booking plus a
-    blank one, deactivate instead of delete, only changed rows are sent, each with its own stamp. The Bazaar screen's "Start an event"
-    list shows her active, unstarted bookings that have not ended (name, "Sat, Oct 24 - Sun, Oct 25 · place"), soonest first, then "Start
-    without a booking" (the two prototype events are never shown in live mode). Starting one opens the event under its name and links it;
-    the event's expense list and close-out show "Stall rent" (a local, display-only row from the engine's own function: the
-    server already booked it, so it is never queued). Unconfirmed links are kept on the phone (`hc-pending-link`, a list, 3 days) and
-    retried whenever the list loads; the toast then tells her not to add the rent by hand.
-  - **Opus review (before the fix: BLOCKED on one High):** the rent was booked by the phone after the link answered "first", with a random
-    client id, so a lost reply, a failed link or a killed tab could book it twice or never, and the old warning ("add it under expenses")
-    invited the double. Fixed as above (the database books it; a retry of the link is always harmless). Also fixed: a start whose reply was
-    lost is reused by booking id, not by name (two bookings with the same name could share an event); the form remounts after a conflict so
-    it shows what is saved; a create whose reply was lost leaves the blank row on a new id. Security side clean (owner check, grants,
-    `search_path`, inputs, Manila dates, no personal data).
-  - **Evidence:** `pnpm verify` 62 files / 1150 tests; G0 validator passes; port integrity OK (54 files); Python guards OK; SQL role suite
-    1387 cases per reset, 2 resets, 368 deliberate regressions detected (for D4: 12 rule tags, the unique index and a table
-    grant); `pnpm build`, `test:pages:spike`, `test:workers:spike` pass; `pnpm test:e2e` 89 / 1
-    (OFFLINE-01 WebKit) / 75; `test:live:checkout` 11 steps. Mutations on the new branches: 17 on the first version (16 caught, 1 equivalent) and 8 on the review fix, all caught.
-    **Visual QA in the browser pane** (live-mode build, local owner): the form and its saved rows, the Bazaar list, starting a booking
-    (event opens under its name, "Stall rent ₱1,800" in Event expenses, one rent expense in the database, the booking linked and gone from
-    the list). Not looked at: a test sale and the close-out screen with the rent (needs baked stock; it reads the same local row).
-  - **Recorded, not fixed:** (1) the stale check compares to the millisecond, so two saves in the same millisecond are not told apart
-    (one owner; theoretical). (2) A booking starts only when the phone is online (the event start is online-only by design). (3) The rent is
-    the amount the booking asks at the moment of linking; changing it later does not touch an expense already booked. (4) `docs/DATA.md`
-    does not list `scheduled_events` (nor `event_expenses`); documentation debt. (5) A pending link that keeps failing (for example refused with 23505) is retried silently for 3 days, then dropped. (6) Wording is PLACEHOLDER (`SCHEDULED_COPY`,
-    `src/lib/orders/staff-copy.ts`). (7) The B4b items below and everything in [current-history.md](current-history.md) still stand.
+- **2026-09-30 (A3, finish-plan slice A3):** the owner's stock items, suppliers and supplier prices. Two commits (`3cd8770` database, `7582680` app).
+  - **Database:** the tables already existed (`suppliers`, `inventory_items`, `supplier_prices`); migration `20260101004300` adds `active` and
+    stamps and four owner-only RPCs: `get_stock_catalogue`, `save_supplier`, `save_stock_item`, `save_supplier_price` (exact keys, bounds,
+    case-insensitive unique names, stale stamp `P0002`, replay-safe creates; a changed price pushes the old one onto a three-deep "was" history; an
+    item with prices or recipes cannot be renamed; quantity on hand is never written, that is C1). The legacy direct INSERT/UPDATE/DELETE grants on
+    the three tables are revoked (as B3 did for orders): every write is validated. `trigger-authority.sql` now proves the inventory timestamp
+    trigger as `service_role`; the private-read regression now expects the read failure. New suite `stock-catalogue.sql` (138 cases, 29 rule
+    regressions, one table regression).
+  - **App (live mode, no protected markup or engine edit):** the owner's items become the inventory rows (state); suppliers, pack sizes and best
+    buys reach the ported suppliers, grocery and cost screens by refilling the engine's exported `SUPPLIERS`, `PACK_SIZE` and `BEST_BUY` in place
+    (`src/lib/data/engine-catalogue.ts`; `OPTIONS_FOR` reads `SUPPLIERS` when called). Demo mode gets the prototype's own values back; live mode
+    starts with none, and an empty supplier list shows one "No suppliers yet" tab because the engine's `adminVals` reads `SUPPLIERS[0]`. Two forms
+    under All tools: "Stock items" (list, edit, add) and "Suppliers & prices" (list; a supplier's details and a row per price plus a blank one; the
+    supplier is saved first, then each changed price with its own stamp; stops at the first failure). The ported "Add item" and "Remove" go to the
+    database (an item is switched off, never deleted); a stock count says it is not kept (C1).
+  - **Opus review:** SAFE TO MERGE, nothing critical. Fixed: a price create whose reply was lost could be overwritten by the next save (fresh id),
+    quantities changed on the screen were wiped by the reload after a save (kept), a rename and a price create now share one lock order, refusal
+    copy. **Recorded, not fixed:** (1) two suppliers selling one item in different pack sizes give a wrong best buy, cost and grocery estimate,
+    because a price carries no pack size of its own (the form says so; fix: a `pack_size` on the price, before real data is entered). (2) The
+    quantity on hand is 0 for every item until the stock ledger (C1) exists; receiving, waste, bake use and counts still change only the screen
+    (a reload after they were entered keeps them, a full page reload loses them). (3) Names stay taken after an item is switched off. (4) A
+    demotion without a reload leaves the catalogue in memory (theoretical). (5) The one-time import script is not written: Cine's workbook layout
+    is not in the repo, so it belongs with the cutover (finish-plan section 9). (6) A 70-item list is one long scroll: a search box is the next
+    step. (7) Only one table grant regression is restored in the SQL harness (RLS blocks the others with the same SQLSTATE).
+  - **Evidence:** `pnpm verify` 64 files / 1222 tests; G0 validator passes; port integrity OK (54 files); Python guards OK; SQL role suite 1525
+    cases per reset, 2 resets, 436 deliberate regressions detected; `pnpm build`, `test:pages:spike`, `test:workers:spike` pass; `pnpm test:e2e`
+    89 / 1 (OFFLINE-01 WebKit) / 75; `test:live:checkout` 11 steps. Mutations: 27 on the first version (26 caught, 1 fixed by a new test) and 3
+    on the review fixes, all caught. **Visual QA in the browser pane** (live-mode build, local owner, the seeded demo catalogue as data): the
+    inventory, grocery and the ported suppliers screens read the database (a price edit shows "Before: ₱420, ₱438, ₱445"), the Stock items list
+    and edit form (low-stock level 300 to 350 saved), the Suppliers & prices list and edit form (butter ₱420 to ₱430 saved, history kept).
+    Not looked at: a phone-width pass of the two forms, and the ported "Add stock" sheet end to end.
