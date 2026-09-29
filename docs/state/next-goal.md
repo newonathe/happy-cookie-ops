@@ -115,10 +115,25 @@ block replaced by the next goal from finish-plan section 6 (A3). No deploy. Stop
 1. **Hosted preview: live (2026-09-27, see [current state](current.md)).** The route/CSP/cache oracle, anonymous RLS/RPC probes, `connect-src` proof, default-privilege probe and catalog RLS guard pass on the hosted project. Still open:
    - the direct-parent refresh probe and the `auth.sessions` checks, with a test account Ethan creates and signs in with himself;
    - move the local stack to Postgres 17 and revoke the PG17 MAINTAIN privilege from API roles in a reviewed migration.
-2. **Remaining slices: [finish-plan.md](finish-plan.md) section 6.** The approved order after D2 is [D3 if
-   the pilot gate passes by 20 Oct] → A2 → B1–B4 → A3–A4 → C1–C2 → E1 → F1–F4. Each next block is written from there when the previous one lands. Carry-overs:
+2. **Queued next after B4b: D4, the bazaar events list** (Ethan approved 2026-09-29). Cine cannot add bazaar events today: the Bazaar
+   screen's "Start an event" list is two hard-coded prototype events in the engine, with no add control. Her real bookings are
+   24-25 Oct and 12-13 Dec (with rent). Scope and design are in the finish-plan D4 row. It runs before the 20 Oct pilot gate. The goal
+   block is written when B4b lands, with this Session settings table:
+
+   | Setting | Value |
+   | --- | --- |
+   | Conversation | New, in the repo root |
+   | Builder model · reasoning effort | Sonnet 5 · high |
+   | Plan mode | Off (the goal block is the approval) |
+   | Permission mode | Auto mode on |
+   | Review model | Opus 5.5 · medium as a subagent (`model: opus`); `port-auditor` on Sonnet if any protected markup is near |
+   | Browser QA | Required: live-mode build in the built-in pane; add an event in the form, see it on the Bazaar screen, start it, place a test sale |
+   | Stop budget | 2 failed fix attempts or 25 turns |
+
+3. **Remaining slices: [finish-plan.md](finish-plan.md) section 6.** The approved order after D2 is [D3 if
+   the pilot gate passes by 20 Oct] → A2 → B1–B4 → D4 → A3–A4 → C1–C2 → E1 → F1–F4. Each next block is written from there when the previous one lands. Carry-overs:
    - Rate limiting for anonymous checkout: key on phone number plus the weekly cap, never the client IP (the gateway's forwarded-IP header is caller-controlled; finish-plan section 10).
-   3. **G4 (operations):**
+4. **G4 (operations):**
    - Keep-alive: Supabase pauses Free projects after about 7 days of low activity; its docs allow keep-alive API calls.
    - Weekly encrypted `supabase db dump` (Free has no automatic backups; DP-10).
    - `prune_personal_data` set to the owner's 1 year.
