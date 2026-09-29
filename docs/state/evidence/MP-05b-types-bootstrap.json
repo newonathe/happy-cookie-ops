@@ -1,8 +1,8 @@
 {
   "status": "passed",
   "scope": "explicit-connection CLI reset on disposable loopback PostgreSQL; not managed --local or auth/RLS acceptance",
-  "project_id": "hcb-6abc1d26-df24b3",
-  "workdir": "C:\\Users\\ethan\\dev\\.hcb-bootstrap-6abc1d26-df24b3",
+  "project_id": "hcb-6abc2fcf-aab686",
+  "workdir": "C:\\Users\\ethan\\dev\\.hcb-bootstrap-6abc2fcf-aab686",
   "cleanup": "passed",
   "resets": 2,
   "harness_sha256": "a47a91d38c71ffbf52a14e597836fdfdbd1d22a3408f5c151f2b35b25459c963",
@@ -142,13 +142,15 @@
     "20260101004100_scheduled_events.sql": "73ba0aec62ba5a7d7eeb34306504686618e24fadfc16bcf3dc82d46f456c1424",
     "20260101004200_scheduled_event_rent.sql": "511159fc07779a4a183cf9c9fff37ad3cda2ff5d483d05c40c080dd3e803179c",
     "20260101004300_stock_catalogue.sql": "2d15b626001b790180a8c0a5522a3decb6415ce254374a1c6e4032830fee23a1",
-    "20260101004400_recipes.sql": "ade270d1660086d52666e35e7802d23efd8dc568a902220468eaa322c6bea509"
+    "20260101004400_recipes.sql": "032490efcecc7860451d52687c95f59ca8d3210b56780243788477e6a176fb43",
+    "20260101004500_stock_unit_guard.sql": "6e6aba4fd3ff29d5f97bda3e8480c99e4ceec78a89d1908c2671d88eb0bdc98e",
+    "20260101004600_stock_ledger.sql": "3c7c435750a545c0564befd2b3000f5cfacb2aeeb3d456319d7c48219a0f8514"
   },
   "database_image": "sha256:af083ef64d0408c8f098ee6f5c364a59b26f36fbc0f3a334a62c5c1d57362e9b",
   "postgres_version_num": "150008",
   "cli_version": "2.116.0",
   "loopback_port": 48716,
-  "container_id": "cd266eed52ade74a167480a4f4607e1802c8e572ccc20e4c9af49db0c7e6c096",
+  "container_id": "6afe5ee4c13664f4365296245ecc06f960be0322ceb24a0ae5c88c3ce98fd40a",
   "expected_versions": [
     "20260101000000",
     "20260101000100",
@@ -194,7 +196,9 @@
     "20260101004100",
     "20260101004200",
     "20260101004300",
-    "20260101004400"
+    "20260101004400",
+    "20260101004500",
+    "20260101004600"
   ],
   "catalog": [
     "function\tadd_event_expense(p_expense jsonb)\tTABLE(client_id text, duplicate boolean)",
@@ -216,6 +220,7 @@
     "function\tevent_summary(p_event uuid)\tTABLE(event_id uuid, name text, closed boolean, sales_count integer, voided_count integer, freebie_count integer, cookies_sold integer, revenue_cents bigint, expenses_cents bigint, variance_cents bigint, profit_cents bigint, float_cents bigint, cash_expected_cents bigint, counted_cents bigint, loaded jsonb, returned jsonb)",
     "function\tfind_order(p_order_no text, p_phone text)\ttext",
     "function\tget_flavours()\tTABLE(id text, name text, short_name text, price_cents bigint, kind text, item_type text, capacity_weight integer, tag text, description text, image_path text, allergens text, active boolean, published boolean, sort_order integer, updated_at timestamp with time zone)",
+    "function\tget_last_paid()\tjsonb",
     "function\tget_operating_settings()\tTABLE(key text, int_value bigint, text_value text, cents_value bigint, json_value jsonb, is_default boolean, updated_at timestamp with time zone)",
     "function\tget_order_extras()\tjsonb",
     "function\tget_order_rules()\tTABLE(unpaid_hold_hours integer, max_unpaid_per_phone integer, pickup_days integer[], lead_min_days integer, lead_max_days integer, pickup_from_hour integer, pickup_cutoff_hour integer, campus_from text, campus_to text, updated_at timestamp with time zone)",
@@ -242,6 +247,7 @@
     "function\tprune_rate_limits()\tinteger",
     "function\tpublish_flavours(p_ids text[])\tTABLE(id text, published boolean, updated_at timestamp with time zone)",
     "function\trecord_event_sale(p_sale jsonb)\tTABLE(client_id text, sale_id uuid, duplicate boolean, voided boolean)",
+    "function\trecord_stock_movement(p_movement jsonb)\tTABLE(item_id text, on_hand numeric, duplicate boolean)",
     "function\tsave_flavour(p_id text, p_flavour jsonb, p_expected_updated_at timestamp with time zone)\tTABLE(id text, updated_at timestamp with time zone)",
     "function\tsave_order_extras(p_extras jsonb, p_expected_updated_at timestamp with time zone)\tTABLE(updated_at timestamp with time zone)",
     "function\tsave_order_rules(p_rules jsonb, p_expected_updated_at timestamp with time zone)\tTABLE(updated_at timestamp with time zone)",
@@ -317,6 +323,8 @@
     "migration\t20260101004200\tapplied",
     "migration\t20260101004300\tapplied",
     "migration\t20260101004400\tapplied",
+    "migration\t20260101004500\tapplied",
+    "migration\t20260101004600\tapplied",
     "settings_defaults\tsettings_effective\t28",
     "settings_overrides\tsettings\t0",
     "table_rows\taudit_log\t0",
@@ -348,13 +356,14 @@
     "table_rows\tsettings\t0",
     "table_rows\tshop_state\t1",
     "table_rows\tshop_texts\t0",
+    "table_rows\tstock_movements\t0",
     "table_rows\tsupplier_prices\t0",
     "table_rows\tsuppliers\t0",
     "table_rows\twaitlist_entries\t0"
   ],
-  "catalog_sha256": "c61f182ccc6fd48f5000059a9ad9385fb2d2bb31fc7401e4d6e1ea0518424c9d",
+  "catalog_sha256": "5a5e69817fa9912c99273b2e5e4131cc6aecdb2e03595889da0b1cea7c3e207a",
   "catalogs_equal": true,
-  "schema_sha256": "3c7a8fd7dde6f0d6e816bf46c926e7b0cef395cc0aebbde0ae0a80f3b076e492",
+  "schema_sha256": "ab5990c19a18a069a14e7153557a837ad6530559741dd16c7b990d87beefc724",
   "schemas_equal": true,
   "sentinel_removed": true
 }

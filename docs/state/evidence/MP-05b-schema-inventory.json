@@ -2515,6 +2515,123 @@
     {
       "udt_name": "uuid",
       "data_type": "uuid",
+      "table_name": "stock_movements",
+      "column_name": "id",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 1
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "stock_movements",
+      "column_name": "item_id",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 2
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "stock_movements",
+      "column_name": "kind",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 3
+    },
+    {
+      "udt_name": "numeric",
+      "data_type": "numeric",
+      "table_name": "stock_movements",
+      "column_name": "qty_delta",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 4
+    },
+    {
+      "udt_name": "numeric",
+      "data_type": "numeric",
+      "table_name": "stock_movements",
+      "column_name": "counted",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 5
+    },
+    {
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "table_name": "stock_movements",
+      "column_name": "cost_cents",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 6
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "stock_movements",
+      "column_name": "supplier",
+      "is_nullable": "NO",
+      "column_default": "''::text",
+      "ordinal_position": 7
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "stock_movements",
+      "column_name": "reason",
+      "is_nullable": "NO",
+      "column_default": "''::text",
+      "ordinal_position": 8
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "stock_movements",
+      "column_name": "at",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 9
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "stock_movements",
+      "column_name": "ledger_id",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 10
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "stock_movements",
+      "column_name": "payload_hash",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 11
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "stock_movements",
+      "column_name": "created_by",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 12
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "stock_movements",
+      "column_name": "received_at",
+      "is_nullable": "NO",
+      "column_default": "now()",
+      "ordinal_position": 13
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
       "table_name": "supplier_prices",
       "column_name": "id",
       "is_nullable": "NO",
@@ -2977,6 +3094,16 @@
       "indexdef": "CREATE UNIQUE INDEX shop_texts_pkey ON public.shop_texts USING btree (id)",
       "indexname": "shop_texts_pkey",
       "tablename": "shop_texts"
+    },
+    {
+      "indexdef": "CREATE INDEX stock_movements_item_idx ON public.stock_movements USING btree (item_id, at)",
+      "indexname": "stock_movements_item_idx",
+      "tablename": "stock_movements"
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX stock_movements_pkey ON public.stock_movements USING btree (id)",
+      "indexname": "stock_movements_pkey",
+      "tablename": "stock_movements"
     },
     {
       "indexdef": "CREATE INDEX supplier_prices_item_idx ON public.supplier_prices USING btree (item_name, price_cents)",
@@ -3700,6 +3827,21 @@
     },
     {
       "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "get_last_paid",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "68ec94e2d30e12ed326b82669d9e1669",
+      "identity": "",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
       "name": "get_operating_settings",
       "owner": "postgres",
       "config": [
@@ -4090,6 +4232,21 @@
     },
     {
       "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "record_stock_movement",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(item_id text, on_hand numeric, duplicate boolean)",
+      "body_md5": "20d746724837a4d3fbba45d97a8417c6",
+      "identity": "p_movement jsonb",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
       "name": "save_flavour",
       "owner": "postgres",
       "config": [
@@ -4156,7 +4313,7 @@
         "search_path=\"\""
       ],
       "returns": "TABLE(product_id text, version integer, updated_at timestamp with time zone)",
-      "body_md5": "1cae2dd4e7a9635ef8463dbc4f584429",
+      "body_md5": "083429ef82a41835bd93280f16bac43a",
       "identity": "p_recipe jsonb, p_expected_updated_at timestamp with time zone",
       "execute_anon": false,
       "security_definer": true,
@@ -4216,7 +4373,7 @@
         "search_path=\"\""
       ],
       "returns": "TABLE(id text, updated_at timestamp with time zone)",
-      "body_md5": "fa87bf06e2e43a2ec4c7b647fa128c2c",
+      "body_md5": "84df2ce9c48d8e0099108ddff35e083d",
       "identity": "p_item jsonb, p_expected_updated_at timestamp with time zone",
       "execute_anon": false,
       "security_definer": true,
@@ -5463,6 +5620,60 @@
       "type": "c",
       "table": "shop_texts",
       "definition": "CHECK ((length(tin_line) <= 80))"
+    },
+    {
+      "name": "stock_movements_cost_cents_check",
+      "type": "c",
+      "table": "stock_movements",
+      "definition": "CHECK (((cost_cents IS NULL) OR (cost_cents >= 0)))"
+    },
+    {
+      "name": "stock_movements_created_by_fkey",
+      "type": "f",
+      "table": "stock_movements",
+      "definition": "FOREIGN KEY (created_by) REFERENCES profiles(id) ON DELETE SET NULL"
+    },
+    {
+      "name": "stock_movements_item_id_fkey",
+      "type": "f",
+      "table": "stock_movements",
+      "definition": "FOREIGN KEY (item_id) REFERENCES inventory_items(id)"
+    },
+    {
+      "name": "stock_movements_kind_check",
+      "type": "c",
+      "table": "stock_movements",
+      "definition": "CHECK ((kind = ANY (ARRAY['opening'::text, 'receipt'::text, 'count'::text, 'waste'::text, 'adjust'::text])))"
+    },
+    {
+      "name": "stock_movements_ledger_id_fkey",
+      "type": "f",
+      "table": "stock_movements",
+      "definition": "FOREIGN KEY (ledger_id) REFERENCES ledger_entries(id) ON DELETE SET NULL"
+    },
+    {
+      "name": "stock_movements_payload_hash_check",
+      "type": "c",
+      "table": "stock_movements",
+      "definition": "CHECK ((payload_hash ~ '^[0-9a-f]{64}$'::text))"
+    },
+    {
+      "name": "stock_movements_pkey",
+      "type": "p",
+      "table": "stock_movements",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "name": "stock_movements_reason_check",
+      "type": "c",
+      "table": "stock_movements",
+      "definition": "CHECK ((length(reason) <= 80))"
+    },
+    {
+      "name": "stock_movements_supplier_check",
+      "type": "c",
+      "table": "stock_movements",
+      "definition": "CHECK ((length(supplier) <= 80))"
     },
     {
       "name": "supplier_prices_pkey",
@@ -9109,6 +9320,104 @@
       "privilege_type": "UPDATE"
     },
     {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "stock_movements",
+      "is_grantable": "YES",
+      "privilege_type": "DELETE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "stock_movements",
+      "is_grantable": "YES",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "stock_movements",
+      "is_grantable": "YES",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "stock_movements",
+      "is_grantable": "YES",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "stock_movements",
+      "is_grantable": "YES",
+      "privilege_type": "TRIGGER"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "stock_movements",
+      "is_grantable": "YES",
+      "privilege_type": "TRUNCATE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "stock_movements",
+      "is_grantable": "YES",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "stock_movements",
+      "is_grantable": "NO",
+      "privilege_type": "DELETE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "stock_movements",
+      "is_grantable": "NO",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "stock_movements",
+      "is_grantable": "NO",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "stock_movements",
+      "is_grantable": "NO",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "stock_movements",
+      "is_grantable": "NO",
+      "privilege_type": "TRIGGER"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "stock_movements",
+      "is_grantable": "NO",
+      "privilege_type": "TRUNCATE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "stock_movements",
+      "is_grantable": "NO",
+      "privilege_type": "UPDATE"
+    },
+    {
       "grantee": "anon",
       "grantor": "postgres",
       "table_name": "supplier_prices",
@@ -9604,6 +9913,12 @@
       "rls": true,
       "owner": "postgres",
       "table": "shop_texts",
+      "force_rls": false
+    },
+    {
+      "rls": true,
+      "owner": "postgres",
+      "table": "stock_movements",
       "force_rls": false
     },
     {

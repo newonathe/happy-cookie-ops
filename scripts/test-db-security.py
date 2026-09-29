@@ -25,7 +25,8 @@ ORDER_MIGRATIONS = [ROOT / 'supabase/migrations/20260101003500_place_order.sql',
                     ROOT / 'supabase/migrations/20260101004200_scheduled_event_rent.sql',
                     ROOT / 'supabase/migrations/20260101004300_stock_catalogue.sql',
                     ROOT / 'supabase/migrations/20260101004400_recipes.sql',
-                    ROOT / 'supabase/migrations/20260101004500_stock_unit_guard.sql']
+                    ROOT / 'supabase/migrations/20260101004500_stock_unit_guard.sql',
+                    ROOT / 'supabase/migrations/20260101004600_stock_ledger.sql']
 _OUT = 'order outcome differs: anon / '
 _CHK = 'order check differs: anon / '
 _LOOK = 'lookup check differs: anon / '
@@ -299,10 +300,34 @@ RECIPE_TABLE_MUTATIONS = {
     'recipes_table_update': ('grant update on public.recipes to anon;', 'recipe outcome differs: anon / recipes_update / '),
 }
 
+# C1: the stock ledger (stock-ledger.sql), acting on the last migration that defines each function.
+_LG = 'ledger outcome differs: active_owner / '
+_LGC = 'ledger check differs: active_owner / '
+LEDGER_MUTATIONS = {
+    'rule_mv_keys': ('record_stock_movement', 'rule', 'mv-keys', _LG + 'mv_keys_missing / '),
+    'rule_mv_id': ('record_stock_movement', 'rule', 'mv-id', _LG + 'mv_id_bad / '),
+    'rule_mv_kind': ('record_stock_movement', 'rule', 'mv-kind', _LG + 'mv_kind_bad / '),
+    'rule_mv_qty': ('record_stock_movement', 'rule', 'mv-qty', _LG + 'mv_receipt_qty_zero / '),
+    'rule_mv_cost': ('record_stock_movement', 'rule', 'mv-cost', _LG + 'mv_cost_negative / '),
+    'rule_mv_cost_kind': ('record_stock_movement', 'rule', 'mv-cost-kind', _LG + 'mv_cost_on_waste / '),
+    'rule_mv_text': ('record_stock_movement', 'rule', 'mv-text', _LG + 'mv_supplier_long / '),
+    'rule_mv_reason': ('record_stock_movement', 'rule', 'mv-reason', _LG + 'mv_waste_no_reason / '),
+    'rule_mv_at': ('record_stock_movement', 'rule', 'mv-at', _LG + 'mv_at_future / '),
+    'rule_mv_replay_conflict': ('record_stock_movement', 'rule', 'mv-replay-conflict', _LG + 'mv_replay_other_body / '),
+    'rule_mv_item_missing': ('record_stock_movement', 'rule', 'mv-item-missing', _LG + 'mv_item_missing / '),
+    'rule_mv_item_inactive': ('record_stock_movement', 'rule', 'mv-item-inactive', _LG + 'mv_item_inactive / '),
+    'rule_mv_opening_first': ('record_stock_movement', 'rule', 'mv-opening-first', _LG + 'mv_opening_twice / '),
+    'rule_mv_waste_clamp': ('record_stock_movement', 'rule', 'mv-waste-clamp', _LGC + 'mv_waste_stops_at_zero'),
+    'rule_mv_receipt_books': ('record_stock_movement', 'rule', 'mv-receipt-books', _LGC + 'mv_receipt_books_the_cost'),
+}
+LEDGER_TABLE_MUTATIONS = {
+    'movements_table_select': ('grant select on public.stock_movements to anon;', 'ledger outcome differs: anon / movements_select / '),
+}
+
 
 def order_mutant(name):
     """The migration's one function, changed in exactly one place, as SQL to run inside the suite."""
-    function, kind, argument, _ = (ORDER_MUTATIONS | LOOKUP_MUTATIONS | STAFF_MUTATIONS | SHOP_MUTATIONS | EXTRAS_MUTATIONS | SCHEDULED_MUTATIONS | STOCK_MUTATIONS | RECIPE_MUTATIONS)[name]
+    function, kind, argument, _ = (ORDER_MUTATIONS | LOOKUP_MUTATIONS | STAFF_MUTATIONS | SHOP_MUTATIONS | EXTRAS_MUTATIONS | SCHEDULED_MUTATIONS | STOCK_MUTATIONS | RECIPE_MUTATIONS | LEDGER_MUTATIONS)[name]
     marker = 'create or replace function public.' + function + '('
     text = [m.read_text(encoding='utf-8') for m in ORDER_MIGRATIONS if marker in m.read_text(encoding='utf-8')][-1]
     start = text.index('create or replace function public.' + function + '(')
@@ -355,6 +380,8 @@ SUITES = (
      'forbidden stock call succeeded', 141),
     ('recipes.sql', ('get_recipes()', 'save_recipe(jsonb,timestamptz)') + tuple(RECIPE_MUTATIONS) + tuple(RECIPE_TABLE_MUTATIONS),
      'forbidden recipe call succeeded', 80),
+    ('stock-ledger.sql', ('record_stock_movement(jsonb)', 'get_last_paid()') + tuple(LEDGER_MUTATIONS) + tuple(LEDGER_TABLE_MUTATIONS),
+     'forbidden ledger call succeeded', 84),
     ('bazaar-closeout.sql', ('event_summary(uuid)', 'load_event_stock(uuid,jsonb,bigint)', 'add_event_expense(jsonb)', 'close_event(jsonb)'), 'forbidden closeout call succeeded', 80),
 )
 CATALOG_GUARD_SQL = """
@@ -392,7 +419,7 @@ PAYMENT_MUTATIONS = {
 REPORT = ROOT / "docs/state/evidence/MP-06l-security.json"
 EMPTY_FIXTURES = 'select ' + ' and '.join(
     'not exists(select 1 from public.' + table + ')'
-    for table in ('orders', 'order_items', 'products', 'drops', 'settings', 'rate_limits', 'profiles', 'audit_log', 'ledger_entries', 'event_sales', 'event_sale_items', 'inventory_items', 'bake_batches', 'recipes', 'recipe_ingredients', 'suppliers', 'supplier_prices', 'events', 'erasure_requests', 'payment_methods', 'shop_texts', 'waitlist_entries', 'order_add_ons', 'order_boxes', 'scheduled_events', 'recipe_versions')) + " and not exists(select 1 from auth.users) and to_regnamespace('mp06f_probe') is null and to_regnamespace('mp06g_probe') is null and to_regclass('public.mp06g_future') is null and to_regclass('public.mp06g_future_id_seq') is null;"
+    for table in ('orders', 'order_items', 'products', 'drops', 'settings', 'rate_limits', 'profiles', 'audit_log', 'ledger_entries', 'event_sales', 'event_sale_items', 'inventory_items', 'bake_batches', 'recipes', 'recipe_ingredients', 'suppliers', 'supplier_prices', 'events', 'erasure_requests', 'payment_methods', 'shop_texts', 'waitlist_entries', 'order_add_ons', 'order_boxes', 'scheduled_events', 'recipe_versions', 'stock_movements')) + " and not exists(select 1 from auth.users) and to_regnamespace('mp06f_probe') is null and to_regnamespace('mp06g_probe') is null and to_regclass('public.mp06g_future') is null and to_regclass('public.mp06g_future_id_seq') is null;"
 
 
 def main():
@@ -509,6 +536,13 @@ def main():
                     elif signature in RECIPE_TABLE_MUTATIONS:
                         unsafe, expected_error = RECIPE_TABLE_MUTATIONS[signature]
                         broken = sql.replace('begin;', 'begin;' + chr(10) + unsafe, 1)
+                if filename == 'stock-ledger.sql':
+                    if signature in LEDGER_MUTATIONS:
+                        broken = sql.replace('begin;', 'begin;' + chr(10) + order_mutant(signature), 1)
+                        expected_error = LEDGER_MUTATIONS[signature][3]
+                    elif signature in LEDGER_TABLE_MUTATIONS:
+                        unsafe, expected_error = LEDGER_TABLE_MUTATIONS[signature]
+                        broken = sql.replace('begin;', 'begin;' + chr(10) + unsafe, 1)
                 if filename == 'order-extras.sql':
                     if signature in EXTRAS_MUTATIONS:
                         broken = sql.replace('begin;', 'begin;' + chr(10) + order_mutant(signature), 1)
@@ -608,7 +642,7 @@ def main():
                 h.fail(filename + ' did not return its complete role matrix')
             results.extend(rows)
             assert_empty()
-        if len(set(results)) != 1608:
+        if len(set(results)) != 1692:
             h.fail('combined role matrix has missing or duplicate cases: %d rows, %d unique (duplicates: %s)' % (len(results), len(set(results)), sorted({r for r in results if results.count(r) > 1})[:5]))
         assert_functions()
         assert_catalog_wide()
@@ -621,10 +655,10 @@ def main():
     try:
         code = h.main(after_reset=check)
         if (code == 0 and len(report["runs"]) == 2 and report["runs"][0] == report["runs"][1]
-                and len(report['regressions_detected']) == 470 and report['sequence_restorations'] == 10
+                and len(report['regressions_detected']) == 506 and report['sequence_restorations'] == 10
                 and report['upgrade_runs'] == 2 and report['function_guard_runs'] == 4
                 and report['catalog_guard_runs'] == 4 and report['catalog_guard_red_runs'] == 4):
-            report.update(status="passed", cases_per_reset=1608, resets=2, matrix_equal=True, rollback_verified=True,
+            report.update(status="passed", cases_per_reset=1692, resets=2, matrix_equal=True, rollback_verified=True,
                           sql_sha256={name: hashlib.sha256((ROOT / 'tests/integration/security' / name).read_bytes()).hexdigest() for name, _, _, _ in SUITES},
                           harness_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
     except (RuntimeError, OSError, ValueError) as error:

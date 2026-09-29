@@ -1281,6 +1281,76 @@ export type Database = {
         }
         Relationships: []
       }
+      stock_movements: {
+        Row: {
+          at: string
+          cost_cents: number | null
+          counted: number | null
+          created_by: string | null
+          id: string
+          item_id: string
+          kind: string
+          ledger_id: string | null
+          payload_hash: string
+          qty_delta: number
+          reason: string
+          received_at: string
+          supplier: string
+        }
+        Insert: {
+          at: string
+          cost_cents?: number | null
+          counted?: number | null
+          created_by?: string | null
+          id: string
+          item_id: string
+          kind: string
+          ledger_id?: string | null
+          payload_hash: string
+          qty_delta: number
+          reason?: string
+          received_at?: string
+          supplier?: string
+        }
+        Update: {
+          at?: string
+          cost_cents?: number | null
+          counted?: number | null
+          created_by?: string | null
+          id?: string
+          item_id?: string
+          kind?: string
+          ledger_id?: string | null
+          payload_hash?: string
+          qty_delta?: number
+          reason?: string
+          received_at?: string
+          supplier?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_movements_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_movements_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_movements_ledger_id_fkey"
+            columns: ["ledger_id"]
+            isOneToOne: false
+            referencedRelation: "ledger_entries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       supplier_prices: {
         Row: {
           active: boolean
@@ -1657,6 +1727,7 @@ export type Database = {
           updated_at: string
         }[]
       }
+      get_last_paid: { Args: never; Returns: Json }
       get_operating_settings: {
         Args: never
         Returns: {
@@ -1793,6 +1864,14 @@ export type Database = {
           duplicate: boolean
           sale_id: string
           voided: boolean
+        }[]
+      }
+      record_stock_movement: {
+        Args: { p_movement: Json }
+        Returns: {
+          duplicate: boolean
+          item_id: string
+          on_hand: number
         }[]
       }
       save_flavour: {
