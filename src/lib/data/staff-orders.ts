@@ -196,16 +196,23 @@ export function weekKey(pickupDate: string): string {
 
 const OPEN_STATES: readonly StaffState[] = ['Payment review', 'Confirmed', 'Preparing', 'Ready'];
 
+/** Today's date on the business clock (Asia/Manila, UTC+8, no daylight saving), as YYYY-MM-DD. */
+export function manilaToday(now: number = Date.now()): string {
+  return new Date(now + 8 * 3_600_000).toISOString().slice(0, 10);
+}
+
 /**
- * The pickup week the owner is working on: the earliest week that still has an open order. The
- * engine's "this drop" sums (sold out, close-out, the bake list) then mean this week, not 60 days.
+ * The pickup week the owner is working on: the earliest week that has an open order to pick up
+ * today or later, else this week. Anchored on today so that an order nobody closed (a lapsed unpaid
+ * one, a packed one never tapped collected) cannot make a past week the current one. The engine's
+ * "this drop" sums (sold out, close-out, the bake list) then mean this week, not 60 days.
  */
-export function currentWeek(orders: readonly StaffOrder[]): string | null {
+export function currentWeek(orders: readonly StaffOrder[], today: string): string {
   const weeks = orders
-    .filter((o) => o.pickupDate && OPEN_STATES.includes(o.state))
+    .filter((o) => o.pickupDate && o.pickupDate >= today && OPEN_STATES.includes(o.state))
     .map((o) => weekKey(o.pickupDate as string))
     .sort();
-  return weeks[0] ?? null;
+  return weeks[0] ?? weekKey(today);
 }
 
 export function toEngineOrder(
@@ -295,6 +302,8 @@ export interface StaffOrderHooks {
   toast: (message: string, tone?: 'warn') => void;
   /** The owner's pickup days as ISO weekdays; the bake screen's two columns follow their rank. */
   pickupDays: () => readonly number[];
+  /** Today on the business clock; a test may fix it. */
+  today?: () => string;
 }
 
 type Call = (stamp: string) => PromiseLike<RpcResult>;
@@ -328,7 +337,7 @@ export class StaffOrderSync {
       return false;
     }
     this.loaded = true;
-    const week = currentWeek(this.list);
+    const week = currentWeek(this.list, this.hooks.today?.() ?? manilaToday());
     this.hooks.apply(this.list.map((o) => toEngineOrder(o, this.hooks.pickupDays(), week)));
     return true;
   }

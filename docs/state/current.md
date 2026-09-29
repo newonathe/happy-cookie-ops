@@ -37,7 +37,7 @@ Short status, read at the start of every session. Keep it to one screen.
   [apps-script-audit.md](apps-script-audit.md): the workbook, the September form, the payment image, the October
   menu, recipes and packaging, and the Apps Script. The files stay outside the repo; `Appscript/` is git-ignored.
 - **Baseline (2026-09-29, at B3 close):**
-  - `pnpm typecheck` clean; `pnpm verify` 55 files / 994 tests; port integrity OK, 54 files; G0 validator 1217 checks, 0 failures;
+  - `pnpm typecheck` clean; `pnpm verify` 55 files / 1002 tests; port integrity OK, 54 files; G0 validator 1217 checks, 0 failures;
   - SQL role suite: 1175 cases per reset, 2 resets, 143 deliberate regressions per reset each detected; Python guards: 63 OK; migrations: 40;
   - `pnpm test:e2e`: 89 passed / 1 failed (WebKit OFFLINE-01) / 75 skipped, run with no Supabase variables (unchanged). Passing the local-stack variables at run time to `next start` makes its middleware send staff routes to sign-in, so do not.
   - `pnpm test:live:checkout`: 10 steps pass (needs `pnpm db:reset`; keys from `pnpm exec supabase status -o env`, the bare `supabase` binary is not on PATH).
@@ -73,14 +73,25 @@ Short status, read at the start of every session. Keep it to one screen.
   - **Decisions and deviations:** the staff RPCs are **owner only** (helper pack/collect stays an open decision; a helper is
     refused in the role suite). The switch is a `shop_state` table, not a setting (a fourth allowed key would have meant
     redefining three settings functions). The 20260101003900 migration is a review fix, added rather than editing 3700.
-  - **Evidence:** `pnpm verify` 55 files / 994 tests; G0 validator 1217 checks, 0 failures; port integrity OK; Python guards
+  - **Evidence:** `pnpm verify` 55 files / 1002 tests; G0 validator 1217 checks, 0 failures; port integrity OK; Python guards
     63 OK; SQL role suite 1175 cases per reset, 2 resets, 143 regressions per reset, each detected; `pnpm build`,
     `test:pages:spike`, `test:workers:spike` pass; `pnpm test:e2e` 89 / 1 (OFFLINE-01 WebKit) / 75; `test:live:checkout` 10
     steps (the shop opens from the server window with no local override, close-now closes the banner, `/lookup` finds an
     order). Unit tests carry a mutation per new branch (about 60 deliberate mutations, each caught). Port audit (Sonnet)
     PASS. **Opus review:** no authorization bypass; one High (reopen could overbook a week), five Medium and six Low; fixed:
-    the High, the "this drop" sums (now the current pickup week), the extend-closing switch, a swap refusal with no message,
-    the swap total, lost replies, the refund amount, reopen of a refunded order, the list limit.
+    the High, the "this drop" sums (now the current pickup week, anchored on today's Manila date so an order nobody closed in a
+    past week cannot become "this week"), the extend-closing and close-drop switches (every other write of the engine's
+    `shopOverride` was checked: set-drop-state, close-early and reopen are wrapped; the preview toggles are hidden in live
+    mode), a swap refusal with no message, the swap total, lost replies, the refund amount, reopen of a refunded order, the
+    list limit. A second review pass by the advisor found the past-week bug and the close-drop gap in those fixes; both are
+    fixed and tested. Review finding 4 (demo orders on screen) is not a defect: `orders` is in `EMPTIED_KEYS`, so the live
+    base state never holds them (pinned by `live-state.test.ts`).
+  - **The order detail's link row** now shows the customer's real status link and really copies it (the ported values are a
+    made-up `happycookie.ph/o/…` address and a toast that copied nothing); an order with no token says so. No markup edit:
+    the values are view-model fields.
+  - **"Payments" screen:** the payments-review screen (`reconcile`) reads `state.orders`, so it lists the database's orders
+    and the paid tick is the confirm action. Its "matched to my statement" ticks (`state.matched`) are local only and do not
+    survive a reload: **not live yet**, a later slice (E1) if Cine wants them kept.
   - **Left open from the review (not fixed, recorded):** the overage sheet's "over by" mixes cookies and weighted slots (only
     wrong when a flavour's weight is not 1); an owed-back amount after a cheaper swap on a paid order is not shown (the ported
     balance line has no negative form); **lapsed unpaid orders still count on the bake list** until the owner cancels them, which is a

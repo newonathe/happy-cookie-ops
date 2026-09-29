@@ -4,6 +4,7 @@ import {
   classify,
   currentWeek,
   dayKey,
+  manilaToday,
   parseStaffOrders,
   toEngineOrder,
   weekKey,
@@ -168,15 +169,42 @@ describe('the pickup week', () => {
     // Mutation: getUTCDay() without the Sunday-as-7 fix puts a Sunday pickup in the next week.
   });
 
-  it('the current week is the earliest week with an open order, ignoring closed ones and undated ones', () => {
+  it('the current week is the earliest week with an open order to pick up today or later, else this week', () => {
     const list = [
       order({ id: 'a', pickup_date: '2026-10-12' }),
       order({ id: 'b', pickup_date: '2026-10-05', state: 'Completed' }),
       order({ id: 'c', pickup_date: '2026-10-19', state: 'Payment review', pay_state: 'unpaid' }),
       order({ id: 'd', pickup_date: null })
     ];
-    expect(currentWeek(list)).toBe('2026-10-12');
-    expect(currentWeek([])).toBeNull();
+    expect(currentWeek(list, '2026-10-06')).toBe('2026-10-12');
+    expect(currentWeek([], '2026-10-08')).toBe('2026-10-05'); // nothing open: this week
+  });
+
+  it('an order nobody closed in a past week does not make that week the current one', () => {
+    const list = [
+      // Last week: an unpaid order that lapsed and a packed order never tapped collected.
+      order({ id: 'old1', pickup_date: '2026-09-28', state: 'Payment review', pay_state: 'unpaid' }),
+      order({ id: 'old2', pickup_date: '2026-10-01', state: 'Ready' }),
+      order({ id: 'now1', pickup_date: '2026-10-05' }),
+      order({ id: 'now2', pickup_date: '2026-10-08' })
+    ];
+    expect(currentWeek(list, '2026-10-06')).toBe('2026-10-05');
+    expect(toEngineOrder(list[0], [1, 4], '2026-10-05').drop).toBe(-1);
+    expect(toEngineOrder(list[2], [1, 4], '2026-10-05').drop).toBeUndefined();
+    // Mutation: taking the earliest open week without the pickup-today-or-later filter makes last week "current",
+    // so every order for the real week gets drop -1 and the bake list and the sold-out sums read near zero.
+  });
+
+  it('a Thursday order this week keeps the week even when its Monday pickups have passed', () => {
+    const list = [order({ id: 'thu', pickup_date: '2026-10-08' })];
+    expect(currentWeek(list, '2026-10-08')).toBe('2026-10-05');
+    expect(currentWeek(list, '2026-10-09')).toBe('2026-10-09'.replace('2026-10-09', weekKey('2026-10-09'))); // Friday: nothing left to pick up
+  });
+
+  it('manilaToday is the business clock, eight hours ahead of UTC', () => {
+    expect(manilaToday(Date.parse('2026-10-05T15:59:00Z'))).toBe('2026-10-05');
+    expect(manilaToday(Date.parse('2026-10-05T16:01:00Z'))).toBe('2026-10-06');
+    // Mutation: using the UTC date puts the shop a day behind for the first eight hours of every Manila day.
   });
 
   it('an order outside the current week leaves the engine’s per-drop sums (drop -1); the current week and undated ones stay', () => {

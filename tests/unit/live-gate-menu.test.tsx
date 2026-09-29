@@ -143,6 +143,14 @@ describe('LiveGate: the owner’s orders (B3)', () => {
     // Mutation: dropping the owner test reads the orders for a helper, who is refused every order RPC.
   });
 
+  it('does not read the orders when the flavour list could not be read (an unknown flavour would crash the screens)', async () => {
+    engine.loadFlavours.mockResolvedValue(false);
+    await mount('orders');
+    expect(engine.loadFlavours).toHaveBeenCalledOnce();
+    expect(engine.loadOrders).not.toHaveBeenCalled();
+    // Mutation: ignoring the result loads orders whose flavours the screens do not know.
+  });
+
   it('never reads the orders for a helper, or on a customer page', async () => {
     role = 'helper';
     await mount('orders');

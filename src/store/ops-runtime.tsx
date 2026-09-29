@@ -26,7 +26,7 @@ import type {
 } from '@/view-models/vals';
 import { PaymentSync } from '@/lib/data/payment-sync';
 import { StaffOrderSync, type StaffOrderClient, type StaffOutcome } from '@/lib/data/staff-orders';
-import { messagesFor } from '@/lib/orders/messages';
+import { messagesFor, statusLink } from '@/lib/orders/messages';
 import { fetchShopStatus, saveShopOverride, type ShopOverride, type ShopStatusClient } from '@/lib/data/shop-status';
 import { fetchOrderRules, orderRulesError, saveOrderRules, type OrderRulesRow } from '@/lib/data/order-rules';
 import { MESSAGE_SHEET, RULES_COPY, STAFF_COPY } from '@/lib/orders/staff-copy';
@@ -885,6 +885,7 @@ export class OpsRuntime extends OpsProvider {
       livePay: this.livePayVals(),
       liveTexts: this.liveTextsVals(),
       liveMessages: this.liveMessagesVals(),
+      ...(this.orderSync ? { od: this.liveOrderDetail(starved.od) } : {}),
       liveOrderRules: this.liveOrderRulesVals(),
       cust: this.liveStatusCust(this.livePayCust(starved.cust)),
       openLookup: () => this.openLookupSheet(),
@@ -998,8 +999,9 @@ export class OpsRuntime extends OpsProvider {
       closeDropEarly: () => void;
       reopenDrop: () => void;
       extendDrop: () => void;
+      closeDrop: () => void;
     };
-    const { setDropState, closeDropEarly, reopenDrop, extendDrop } = shop;
+    const { setDropState, closeDropEarly, reopenDrop, extendDrop, closeDrop } = shop;
     shop.setDropState = (st) => {
       const mode = st === 'auto' ? null : (st as ShopOverride);
       void this.persistOverride(mode).then((ok) => ok && setDropState(st));
@@ -1008,6 +1010,16 @@ export class OpsRuntime extends OpsProvider {
     shop.reopenDrop = () => void this.persistOverride(null).then((ok) => ok && reopenDrop());
     // Extending the closing time also hands the shop back to the window (the ported action clears the hold).
     shop.extendDrop = () => void this.persistOverride(null).then((ok) => ok && extendDrop());
+    // Closing the drop (the rollover) also clears the hold, but only when the engine lets it close: it refuses
+    // while orders are unfinished. So the ported action runs first and the server follows what it did. Its local
+    // ledger line is a demo-side effect that live mode has no books for until E1.
+    shop.closeDrop = () => {
+      const before = (this.state as unknown as { dropNo: number }).dropNo;
+      closeDrop();
+      this.afterUpdate(() => {
+        if ((this.state as unknown as { dropNo: number }).dropNo !== before) void this.persistOverride(null);
+      });
+    };
   }
 
   private async persistOverride(mode: ShopOverride | null): Promise<boolean> {
@@ -1131,6 +1143,24 @@ export class OpsRuntime extends OpsProvider {
 
   /** The client id of a swap that has not been settled, so a second tap after a lost reply is a replay. */
   private swapIds = new Map<string, string>();
+
+  /**
+   * The order detail's link row: the ported values are a made-up address and a "Link copied." toast that
+   * copies nothing. Live mode shows the customer's real status link and really copies it.
+   */
+  private liveOrderDetail(od: OpsVals['od']): OpsVals['od'] {
+    if (!od || !this.orderSync) return od;
+    const order = this.orderSync.find(String(od.id));
+    if (!order) return od;
+    const origin = typeof window === 'undefined' ? '' : window.location.origin;
+    const link = statusLink(origin, order.statusToken);
+    return {
+      ...od,
+      link: link ?? '',
+      linkSent: link ? STAFF_COPY.linkHint : STAFF_COPY.linkErased,
+      copyLink: () => void this.copyMessage(link ?? '', link ? undefined : STAFF_COPY.linkErased)
+    };
+  }
 
   /**
    * One owner change, server first: nothing changes on screen until the database says so, then the
@@ -1288,7 +1318,8 @@ export class OpsRuntime extends OpsProvider {
     return { rows, close: () => this.closeSheet() };
   }
 
-  private async copyMessage(text: string): Promise<void> {
+  private async copyMessage(text: string, none?: string): Promise<void> {
+    if (!text) return void this.toast(none ?? MESSAGE_SHEET.copyFailed, 'warn');
     try {
       await navigator.clipboard.writeText(text);
       this.toast(MESSAGE_SHEET.copied);

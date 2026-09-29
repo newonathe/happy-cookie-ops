@@ -7,8 +7,12 @@ vi.mock('@/lib/config/app-mode', () => ({ isLiveMode: () => live }));
 
 import { OpsRuntime } from '@/store/ops-runtime';
 import type { Role } from '@/store/engine/ops-engine';
+import type { ScreenKey } from '@/lib/screens';
 import type { StaffOrderClient } from '@/lib/data/staff-orders';
 import { STAFF_COPY } from '@/lib/orders/staff-copy';
+import { OrdersScreen } from '@/components/screens/orders';
+import { OrderDetailScreen } from '@/components/screens/order-detail';
+import { BakePlanScreen } from '@/components/screens/bake-plan';
 
 /**
  * B3: in live mode the owner's order actions ask the database and the screens are fed from it.
@@ -106,8 +110,13 @@ const toasts = (r: OpsRuntime) => JSON.stringify(r.state.toasts ?? r.state.toast
 describe('B3: the owner reads and drives real orders (live mode)', () => {
   beforeEach(() => {
     live = true;
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-09-30T05:00:00Z'));
   });
-  afterEach(() => cleanup());
+  afterEach(() => {
+    cleanup();
+    vi.useRealTimers();
+  });
 
   it('replaces the engine list with the database orders and shows them on the orders screen', async () => {
     const f = fake([raw(), unpaid()]);
@@ -303,8 +312,13 @@ describe('B3: the owner reads and drives real orders (live mode)', () => {
 describe('B3: the bake list counts unpaid orders (28 Sep)', () => {
   beforeEach(() => {
     live = true;
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-09-30T05:00:00Z'));
   });
-  afterEach(() => cleanup());
+  afterEach(() => {
+    cleanup();
+    vi.useRealTimers();
+  });
 
   it('counts paid and unpaid orders, not cancelled or finished ones, per pickup day', async () => {
     const f = fake([
@@ -313,7 +327,9 @@ describe('B3: the bake list counts unpaid orders (28 Sep)', () => {
       raw({ id: 'HC-1003', state: 'Cancelled', pay_state: 'refunded' }),
       raw({ id: 'HC-1004', state: 'Completed' }),
       raw({ id: 'HC-1005', pickup_date: '2026-10-08' }),
-      raw({ id: 'HC-1006', pickup_date: '2026-10-19' }) // next-next week: not baked yet
+      raw({ id: 'HC-1006', pickup_date: '2026-10-19' }), // the week after next: not baked yet
+      // Last week: an unpaid order nobody cancelled must not turn last week into this week.
+      unpaid({ id: 'HC-0900', pickup_date: '2026-09-21' })
     ]);
     const runtime = await mounted('owner', f);
     // wcb x2 confirmed (Mon), x2 unpaid (Mon), x2 confirmed (Thu); cancelled and completed do not count.
@@ -334,8 +350,13 @@ describe('B3: the bake list counts unpaid orders (28 Sep)', () => {
 describe('B3: customer messages', () => {
   beforeEach(() => {
     live = true;
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-09-30T05:00:00Z'));
   });
-  afterEach(() => cleanup());
+  afterEach(() => {
+    cleanup();
+    vi.useRealTimers();
+  });
 
   const businessItems = (r: OpsRuntime) =>
     r.renderVals().toolGroups.find((g) => g.title === 'Business')?.items ?? [];
@@ -366,7 +387,10 @@ describe('B3: customer messages', () => {
 });
 
 describe('B3: demo mode is untouched', () => {
-  afterEach(() => cleanup());
+  afterEach(() => {
+    cleanup();
+    vi.useRealTimers();
+  });
 
   it('reads nothing from the database and keeps the engine’s own local actions', async () => {
     live = false;
@@ -385,5 +409,91 @@ describe('B3: demo mode is untouched', () => {
     ).toBe('Confirmed');
     expect(f.rpc).not.toHaveBeenCalled();
     expect(runtime.renderVals().liveMessages ?? null).toBeNull();
+  });
+});
+
+describe('B3: the order detail’s status link and the ported screens fed from the database', () => {
+  beforeEach(() => {
+    live = true;
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-09-30T05:00:00Z'));
+  });
+  afterEach(() => {
+    cleanup();
+    vi.useRealTimers();
+  });
+
+  const openOrder = (runtime: OpsRuntime, id: string) =>
+    act(() => runtime.setState({ screen: 'order', orderId: id }));
+
+  it('shows the real status link and really copies it, not the ported made-up address', async () => {
+    const f = fake([raw()]);
+    const runtime = await mounted('owner', f);
+    openOrder(runtime, 'HC-1001');
+    const od = runtime.renderVals().od!;
+    expect(od.link).toBe(`${window.location.origin}/status#t=${TOKEN}`);
+    expect(String(od.link)).not.toContain('happycookie.ph');
+    const write = vi.fn(async () => undefined);
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: write } });
+    await act(async () => od.copyLink());
+    expect(write).toHaveBeenCalledWith(od.link);
+    // Mutation: leaving the ported values sends Cine a dead link and a toast that copied nothing.
+  });
+
+  it('an order with no token (erased) has no link and says so instead of copying nothing', async () => {
+    const f = fake([raw({ status_token: null })]);
+    const runtime = await mounted('owner', f);
+    openOrder(runtime, 'HC-1001');
+    const od = runtime.renderVals().od!;
+    expect(od.link).toBe('');
+    const write = vi.fn(async () => undefined);
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: write } });
+    await act(async () => od.copyLink());
+    expect(write).not.toHaveBeenCalled();
+    expect(toasts(runtime)).toContain('no status link');
+  });
+
+  it('the orders, order-detail and bake screens render orders from the database, with a swap, a flag, a balance and a refund', async () => {
+    const f = fake([
+      raw({
+        id: 'HC-2001',
+        total_cents: 30000,
+        paid_cents: 20000, // a balance of 100 pesos after a dearer swap
+        items: [
+          { product_id: 'wcb', qty: 1, unit_price_cents: 10000, unavailable: true },
+          { product_id: 'rvc', qty: 1, unit_price_cents: 20000, unavailable: false }
+        ],
+        swaps: [{ from: 'hc', to: 'rvc', qty: 1, delta_cents: 10000, at: '2026-09-29T03:00:00.000Z' }]
+      }),
+      raw({ id: 'HC-2002', state: 'Cancelled', pay_state: 'refunded', refund_ref: 'GC-9' }),
+      unpaid({ id: 'HC-2003' })
+    ]);
+    const errors = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const runtime = await mounted('owner', f);
+    const views: Array<[string, string]> = [
+      ['orders', ''],
+      ['order', 'HC-2001'],
+      ['order', 'HC-2002'],
+      ['order', 'HC-2003'],
+      ['bake', '']
+    ];
+    for (const [screen, id] of views) {
+      act(() => runtime.setState({ screen: screen as ScreenKey, orderId: id || null }));
+      const v = runtime.renderVals();
+      const { container, unmount } = render(
+        screen === 'orders' ? (
+          <OrdersScreen v={v} />
+        ) : screen === 'order' ? (
+          <OrderDetailScreen v={v} />
+        ) : (
+          <BakePlanScreen v={v} />
+        )
+      );
+      expect(container.textContent).not.toMatch(/undefined|NaN|Infinity/);
+      if (screen === 'order' && id === 'HC-2001') expect(container.textContent).toContain('100');
+      unmount();
+    }
+    expect(errors).not.toHaveBeenCalled();
+    errors.mockRestore();
   });
 });

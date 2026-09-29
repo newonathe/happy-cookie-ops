@@ -33,6 +33,8 @@ export const STAFF_COPY = {
   cleared: 'Sorted. The order is back to normal.',
   packUnpaid: 'Tick this order paid before packing it.',
   reopenRefunded: 'A refunded order cannot be reopened.',
+  linkHint: 'The customer’s status page. Send it to them yourself.',
+  linkErased: 'This order has no status link any more (its personal data was erased).',
   noRoom: (left: number): string =>
     left <= 0
       ? 'There is no room left in that pickup week.'
