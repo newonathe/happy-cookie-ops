@@ -1,0 +1,319 @@
+{
+  "status": "passed",
+  "scope": "explicit-connection CLI reset on disposable loopback PostgreSQL; not managed --local or auth/RLS acceptance",
+  "project_id": "hcb-6abb77eb-e9c9fb",
+  "workdir": "C:\\Users\\ethan\\dev\\.hcb-bootstrap-6abb77eb-e9c9fb",
+  "cleanup": "passed",
+  "resets": 2,
+  "harness_sha256": "a47a91d38c71ffbf52a14e597836fdfdbd1d22a3408f5c151f2b35b25459c963",
+  "assertions_sha256": "60aba2b2ca557a721debd684ddb33fc222eab86dddb63c80ce6591b4d028e046",
+  "binding_checks": [
+    {
+      "running_required": false,
+      "bindings": {
+        "5432/tcp": [
+          {
+            "HostIp": "127.0.0.1",
+            "HostPort": "48716"
+          }
+        ]
+      }
+    },
+    {
+      "running_required": true,
+      "bindings": {
+        "5432/tcp": [
+          {
+            "HostIp": "127.0.0.1",
+            "HostPort": "48716"
+          }
+        ]
+      }
+    },
+    {
+      "running_required": true,
+      "bindings": {
+        "5432/tcp": [
+          {
+            "HostIp": "127.0.0.1",
+            "HostPort": "48716"
+          }
+        ]
+      }
+    },
+    {
+      "running_required": true,
+      "bindings": {
+        "5432/tcp": [
+          {
+            "HostIp": "127.0.0.1",
+            "HostPort": "48716"
+          }
+        ]
+      }
+    },
+    {
+      "running_required": true,
+      "bindings": {
+        "5432/tcp": [
+          {
+            "HostIp": "127.0.0.1",
+            "HostPort": "48716"
+          }
+        ]
+      }
+    },
+    {
+      "running_required": true,
+      "bindings": {
+        "5432/tcp": [
+          {
+            "HostIp": "127.0.0.1",
+            "HostPort": "48716"
+          }
+        ]
+      }
+    },
+    {
+      "running_required": true,
+      "bindings": {
+        "5432/tcp": [
+          {
+            "HostIp": "127.0.0.1",
+            "HostPort": "48716"
+          }
+        ]
+      }
+    },
+    {
+      "running_required": true,
+      "bindings": {
+        "5432/tcp": [
+          {
+            "HostIp": "127.0.0.1",
+            "HostPort": "48716"
+          }
+        ]
+      }
+    }
+  ],
+  "source_hashes": {
+    "20260101000000_init.sql": "2f123c8cc79d7586792eb8bb30425621a9e82b4ef257e384ccc56f326b11a9a2",
+    "20260101000100_sync_sales.sql": "6d4b9d110413cb2dd79687e590e17dfa73a80f39a8892e404cb2532c7c027815",
+    "20260101000200_catalogue_fidelity.sql": "2f0d7afc512e9d09ca98d3b54fc54c6861af9284bf4cc3f0bab9cc4c914dea04",
+    "20260101000300_rate_limits.sql": "f178558c82f4181a53983aeae3c6b7ef1fe3faa4a5be5bd122f3d76a3be3882f",
+    "20260101000400_capacity_parity.sql": "348f917f5c661cb6b9fd00aaa18b183820deb11ee1da0f4aeeb6d99b402fa65a",
+    "20260101000500_retention.sql": "9156de7b17a85fe21ea820c60c849fc62700e11fc6a7758fcc802118179571eb",
+    "20260101000600_concurrency.sql": "2275ba1be999abdfcca2c6beb45a8e09923b8abce3d137805a18e5cca2375090",
+    "20260101000700_settings.sql": "e54163cf7f7bd079d7960b87fa57d33bbaf2a019608f194b2488b685d0c5d29a",
+    "20260101000800_maintenance_authority.sql": "0e5eb2a40f4d8c3b965a3251a67df098e5e46c8e11e2904aa4730705d125d175",
+    "20260101000900_read_rpc_authority.sql": "4b2478201d48fc98976c83cb6edb17dcbf9d88da3754630aec123b4dce3cbcb9",
+    "20260101001000_order_insert_authority.sql": "68749050da6cecb07527937b0a5b008b207a60c0d56462014f07412206ca8531",
+    "20260101001100_active_profile_authority.sql": "bbb87256a99a74361ccbb6cceec66583cc027de5545cbf9310ed69f6e20ab7c1",
+    "20260101001200_settings_read_authority.sql": "a5afd997e89c9f144253773257b7dcf9a13207dd58880a72c0e61509647df6f4",
+    "20260101001300_table_truncate_authority.sql": "309b5c79ed4b3f7481c2679c9fe215db172dceb6d85b8d8149eaed99a6f55c7a",
+    "20260101001400_audit_write_authority.sql": "61822101ed8b6ca67d3361c34c8dac012e91a07089bff6da7e4619280fbd5557",
+    "20260101001500_legacy_mutation_authority.sql": "422a362f07571258f943313d632ecdc4f3e66f3a3f26ce3935a17820ec359489",
+    "20260101001600_trigger_authority.sql": "1d7e7310e7439c1d80099d4ba5eaa79236a3b85cbd19abe839c1c2b9ef79e213",
+    "20260101001700_auxiliary_authority.sql": "7b2c62de25ea1b5d6c3d233a2cc7e24188b4a175f0f908d3b5b64394e508425c",
+    "20260101001800_future_table_authority.sql": "df8b68279b53919f17f131bc70978d028865d21e324fbb584eb15ffa9abaaccf",
+    "20260101001900_explicit_existing_table_authority.sql": "15303b35245047462aa7168d97350497dde318894d1b9788e9973c6bf9d24ad8",
+    "20260101002000_function_search_paths.sql": "6b6df7eb1f9fa2bd23d49d7749a1ba2f8c1f2d63d06c71ffa3ee9ddd71a57440",
+    "20260101002100_private_role_authority.sql": "125f95f35f8131a71c84c99ae9f50aa58e8cacabfa92a87b3b7edc296f76db8c",
+    "20260101002200_public_catalog_projection.sql": "2f2c5eba4a17daa3dce8732bb91f6b18e9a67437d9c358039f4780af83559b1b",
+    "20260101002300_private_bff_sessions.sql": "e7082c0f0480ecac66424e8f3986d1cc7ab78bea696173cf4ec127d1e7cc135c",
+    "20260101002400_bff_cleanup_recovery.sql": "22b5e0ce709df7f619d69fcd0905564c8c11d1ec433ffdd67397fa10085166a9",
+    "20260101002500_bff_cleanup_fair_claims.sql": "0ad8ec77d1963e5a2a70bcf1680a8044b260a393af5a06bacba5d5a198bd327b",
+    "20260101002600_erasure_digest_authority.sql": "74fa5d9bc48e9c9acc4092bd308ba4bcb2fd6f9811a328728c53248f3a06f8f1",
+    "20260101002700_function_default_privileges.sql": "a6283dfe6b8ef152f57cdd23f1c95c57a611afad5e895f2e416f8ef048f1c396",
+    "20260101002800_settings_authority.sql": "7c9dea1394da88105b4beb86ee9cb6f8243af91f8efd6c671d6b37b90e7a6959",
+    "20260101002900_settings_preferences.sql": "17355ae140709be3146b993fbb22e3950c8ed410b4bf53108afebfdf793984c3",
+    "20260101003000_flavours.sql": "2dcc51b44d9152b803489b7e27dca45a5f864aa73493108db2643e5253bf5bd0",
+    "20260101003100_publish_flavours.sql": "57d6a402d79e23a13d4cd1b0fbd40f39964eba0622c24dbfd2c25f67fdcf9115",
+    "20260101003200_bazaar_events.sql": "3a54d33a2b1eb98b349736adad30d647c12310afff0423a3204f2d294218a5b4",
+    "20260101003300_bazaar_closeout.sql": "0b82997dda4b529e5cf1b8e7fd4aecaed27a996b49097e97194152a23ae93efe",
+    "20260101003400_payment_methods_shop_texts.sql": "744606b2769e55fa29a7857bc7ac5912f1e8b484d6e2f2b7f573d49a8502ab24",
+    "20260101003500_place_order.sql": "b9d01d566a3bb7cc4d366b612955135803fd603dc64942402bf136eaf0923c48",
+    "20260101003600_order_lookup.sql": "d6896585f9957a927233e0108cf23b41e26a406eae8940c0f3c91093a4b9f04b",
+    "20260101003700_staff_orders.sql": "f8ab9684e8d38ea7aee5be0479c84afc2c8bfc782db24dc60e52f2d4f6c18275"
+  },
+  "database_image": "sha256:af083ef64d0408c8f098ee6f5c364a59b26f36fbc0f3a334a62c5c1d57362e9b",
+  "postgres_version_num": "150008",
+  "cli_version": "2.116.0",
+  "loopback_port": 48716,
+  "container_id": "343ae2ef9d6ba7e28a939ac24996df8cd653110db203d99f96dc8cbf59fb2ba9",
+  "expected_versions": [
+    "20260101000000",
+    "20260101000100",
+    "20260101000200",
+    "20260101000300",
+    "20260101000400",
+    "20260101000500",
+    "20260101000600",
+    "20260101000700",
+    "20260101000800",
+    "20260101000900",
+    "20260101001000",
+    "20260101001100",
+    "20260101001200",
+    "20260101001300",
+    "20260101001400",
+    "20260101001500",
+    "20260101001600",
+    "20260101001700",
+    "20260101001800",
+    "20260101001900",
+    "20260101002000",
+    "20260101002100",
+    "20260101002200",
+    "20260101002300",
+    "20260101002400",
+    "20260101002500",
+    "20260101002600",
+    "20260101002700",
+    "20260101002800",
+    "20260101002900",
+    "20260101003000",
+    "20260101003100",
+    "20260101003200",
+    "20260101003300",
+    "20260101003400",
+    "20260101003500",
+    "20260101003600",
+    "20260101003700"
+  ],
+  "catalog": [
+    "function\tadd_event_expense(p_expense jsonb)\tTABLE(client_id text, duplicate boolean)",
+    "function\tanonymise_customer(p_phone text, p_note text)\tinteger",
+    "function\tbff_session_acquire_refresh(p_session_hash text)\tTABLE(p_user_id uuid, p_provider_session_id uuid, p_credential_envelope text, p_credentials_version integer, p_next_credentials_version integer, p_refresh_fence bigint, p_lease_until timestamp with time zone)",
+    "function\tbff_session_begin_revoke(p_session_hash text)\tTABLE(p_user_id uuid, p_provider_session_id uuid, p_credential_envelope text, p_credentials_version integer, p_refresh_fence bigint)",
+    "function\tbff_session_claim_cleanup(p_limit integer)\tTABLE(p_session_hash text, p_user_id uuid, p_provider_session_id uuid, p_credential_envelope text, p_credentials_version integer, p_refresh_fence bigint)",
+    "function\tbff_session_complete_cleanup(p_session_hash text, p_refresh_fence bigint)\tTABLE(p_completed_at timestamp with time zone)",
+    "function\tbff_session_complete_if_provider_absent(p_session_hash text, p_refresh_fence bigint, p_user_id uuid, p_provider_session_id uuid)\tTABLE(p_completed_at timestamp with time zone)",
+    "function\tbff_session_create(p_session_hash text, p_csrf_token text, p_user_id uuid, p_provider_session_id uuid, p_credential_envelope text)\tTABLE(p_role app_role, p_csrf_token_out text, p_expires_at bigint)",
+    "function\tbff_session_finalize_refresh(p_session_hash text, p_refresh_fence bigint, p_user_id uuid, p_provider_session_id uuid, p_next_credentials_version integer, p_credential_envelope text)\tTABLE(p_role app_role, p_csrf_token text, p_expires_at bigint)",
+    "function\tbff_session_read(p_session_hash text)\tTABLE(p_user_id uuid, p_role app_role, p_csrf_token text, p_expires_at bigint)",
+    "function\tbff_session_save_cleanup_rotation(p_session_hash text, p_refresh_fence bigint, p_user_id uuid, p_provider_session_id uuid, p_credentials_version integer, p_next_credentials_version integer, p_credential_envelope text)\tTABLE(p_saved_credentials_version integer)",
+    "function\tcapacity_allows(p_capacity integer, p_committed integer, p_requested integer)\tboolean",
+    "function\tclose_event(p_close jsonb)\tTABLE(event_id uuid, name text, closed boolean, sales_count integer, voided_count integer, freebie_count integer, cookies_sold integer, revenue_cents bigint, expenses_cents bigint, variance_cents bigint, profit_cents bigint, float_cents bigint, cash_expected_cents bigint, counted_cents bigint, loaded jsonb, returned jsonb)",
+    "function\tconsume_rate_limit(p_key text, p_limit integer, p_window_s integer)\tTABLE(allowed boolean, remaining integer, reset_at timestamp with time zone)",
+    "function\tcurrent_role_name()\tapp_role",
+    "function\tdrop_remaining(p_drop_id uuid)\tinteger",
+    "function\tevent_summary(p_event uuid)\tTABLE(event_id uuid, name text, closed boolean, sales_count integer, voided_count integer, freebie_count integer, cookies_sold integer, revenue_cents bigint, expenses_cents bigint, variance_cents bigint, profit_cents bigint, float_cents bigint, cash_expected_cents bigint, counted_cents bigint, loaded jsonb, returned jsonb)",
+    "function\tfind_order(p_order_no text, p_phone text)\ttext",
+    "function\tget_flavours()\tTABLE(id text, name text, short_name text, price_cents bigint, kind text, item_type text, capacity_weight integer, tag text, description text, image_path text, allergens text, active boolean, published boolean, sort_order integer, updated_at timestamp with time zone)",
+    "function\tget_operating_settings()\tTABLE(key text, int_value bigint, text_value text, cents_value bigint, json_value jsonb, is_default boolean, updated_at timestamp with time zone)",
+    "function\tget_order_rules()\tTABLE(unpaid_hold_hours integer, max_unpaid_per_phone integer, pickup_days integer[], lead_min_days integer, lead_max_days integer, pickup_from_hour integer, pickup_cutoff_hour integer, campus_from text, campus_to text, updated_at timestamp with time zone)",
+    "function\tget_payment_methods()\tTABLE(id text, label text, account_number text, account_name text, qr_path text, active boolean, sort_order integer, updated_at timestamp with time zone)",
+    "function\tget_settings()\tTABLE(key text, int_value bigint, text_value text, cents_value bigint, json_value jsonb, is_default boolean, updated_at timestamp with time zone)",
+    "function\tget_shop_order_rules()\tjsonb",
+    "function\tget_shop_payment_info()\tjsonb",
+    "function\tget_staff_orders()\tjsonb",
+    "function\tis_owner()\tboolean",
+    "function\tis_staff()\tboolean",
+    "function\tjoin_waitlist(p_entry jsonb)\tTABLE(waitlist_id uuid, replayed boolean)",
+    "function\tload_event_stock(p_event uuid, p_loaded jsonb, p_float_cents bigint)\tTABLE(event_id uuid, opened_at timestamp with time zone, float_cents bigint, loaded jsonb)",
+    "function\tlookup_order(p_order_id text, p_phone text)\tTABLE(id text, customer_name text, state order_state, pay_state pay_state, total_cents bigint, pickup_at timestamp with time zone, placed_at timestamp with time zone)",
+    "function\torder_holds_capacity(p_state order_state, p_pay pay_state, p_placed_at timestamp with time zone, p_now timestamp with time zone, p_hold_hours integer)\tboolean",
+    "function\torder_status(p_token text)\tjsonb",
+    "function\tplace_order(p_order jsonb)\tTABLE(order_no text, status_token text, total_cents bigint, pickup_date date, pickup_window text, replayed boolean)",
+    "function\tprune_personal_data(p_retain_days integer)\tinteger",
+    "function\tprune_rate_limits()\tinteger",
+    "function\tpublish_flavours(p_ids text[])\tTABLE(id text, published boolean, updated_at timestamp with time zone)",
+    "function\trecord_event_sale(p_sale jsonb)\tTABLE(client_id text, sale_id uuid, duplicate boolean, voided boolean)",
+    "function\tsave_flavour(p_id text, p_flavour jsonb, p_expected_updated_at timestamp with time zone)\tTABLE(id text, updated_at timestamp with time zone)",
+    "function\tsave_order_rules(p_rules jsonb, p_expected_updated_at timestamp with time zone)\tTABLE(updated_at timestamp with time zone)",
+    "function\tsave_payment_method(p_id text, p_method jsonb, p_expected_updated_at timestamp with time zone)\tTABLE(id text, updated_at timestamp with time zone)",
+    "function\tsave_setting(p_key text, p_value jsonb, p_expected_updated_at timestamp with time zone)\tTABLE(key text, updated_at timestamp with time zone)",
+    "function\tsave_shop_texts(p_texts jsonb, p_expected_updated_at timestamp with time zone)\tTABLE(updated_at timestamp with time zone)",
+    "function\tset_event_device(p_event uuid, p_device text)\ttext",
+    "function\tsettings_effective()\tTABLE(key text, int_value bigint, text_value text, cents_value bigint, json_value jsonb, is_default boolean)",
+    "function\tsettings_touch()\ttrigger",
+    "function\tstaff_confirm_payment(p_order_id text, p_expected_updated_at timestamp with time zone, p_force boolean)\tTABLE(order_id text, state order_state, pay_state pay_state, total_cents bigint, paid_cents bigint, updated_at timestamp with time zone, replayed boolean)",
+    "function\tstaff_flag_item(p_order_id text, p_product_id text, p_flagged boolean, p_expected_updated_at timestamp with time zone)\tTABLE(order_id text, state order_state, pay_state pay_state, total_cents bigint, paid_cents bigint, updated_at timestamp with time zone, replayed boolean)",
+    "function\tstaff_refund(p_order_id text, p_ref text, p_expected_updated_at timestamp with time zone)\tTABLE(order_id text, state order_state, pay_state pay_state, total_cents bigint, paid_cents bigint, updated_at timestamp with time zone, replayed boolean)",
+    "function\tstaff_reject_payment(p_order_id text, p_expected_updated_at timestamp with time zone)\tTABLE(order_id text, state order_state, pay_state pay_state, total_cents bigint, paid_cents bigint, updated_at timestamp with time zone, replayed boolean)",
+    "function\tstaff_reopen_order(p_order_id text, p_expected_updated_at timestamp with time zone)\tTABLE(order_id text, state order_state, pay_state pay_state, total_cents bigint, paid_cents bigint, updated_at timestamp with time zone, replayed boolean)",
+    "function\tstaff_set_status(p_order_id text, p_to order_state, p_expected_updated_at timestamp with time zone)\tTABLE(order_id text, state order_state, pay_state pay_state, total_cents bigint, paid_cents bigint, updated_at timestamp with time zone, replayed boolean)",
+    "function\tstaff_settle_balance(p_order_id text, p_expected_updated_at timestamp with time zone)\tTABLE(order_id text, state order_state, pay_state pay_state, total_cents bigint, paid_cents bigint, updated_at timestamp with time zone, replayed boolean)",
+    "function\tstaff_swap_item(p_order_id text, p_from_product text, p_to_product text, p_client_id uuid, p_expected_updated_at timestamp with time zone)\tTABLE(order_id text, state order_state, pay_state pay_state, total_cents bigint, paid_cents bigint, updated_at timestamp with time zone, replayed boolean)",
+    "function\tstart_event(p_name text, p_device text, p_float_cents bigint, p_event_id uuid)\tTABLE(event_id uuid, starts_at timestamp with time zone, selling_device text, prices jsonb)",
+    "function\tstate_is_recognised(p_state order_state)\tboolean",
+    "function\tstate_reserves_capacity(p_state order_state)\tboolean",
+    "function\tsync_event_sale(p_sale jsonb)\tTABLE(client_id text, sale_id uuid, duplicate boolean)",
+    "function\ttouch_updated_at()\ttrigger",
+    "function\tupdate_order_state(p_order_id text, p_seen_at timestamp with time zone, p_state text, p_pay_state text, p_pay_ref text)\tTABLE(id text, state text, pay_state text, updated_at timestamp with time zone)",
+    "function\tvoid_event_sale(p_void jsonb)\tTABLE(client_id text, sale_known boolean, duplicate boolean)",
+    "migration\t20260101000000\tapplied",
+    "migration\t20260101000100\tapplied",
+    "migration\t20260101000200\tapplied",
+    "migration\t20260101000300\tapplied",
+    "migration\t20260101000400\tapplied",
+    "migration\t20260101000500\tapplied",
+    "migration\t20260101000600\tapplied",
+    "migration\t20260101000700\tapplied",
+    "migration\t20260101000800\tapplied",
+    "migration\t20260101000900\tapplied",
+    "migration\t20260101001000\tapplied",
+    "migration\t20260101001100\tapplied",
+    "migration\t20260101001200\tapplied",
+    "migration\t20260101001300\tapplied",
+    "migration\t20260101001400\tapplied",
+    "migration\t20260101001500\tapplied",
+    "migration\t20260101001600\tapplied",
+    "migration\t20260101001700\tapplied",
+    "migration\t20260101001800\tapplied",
+    "migration\t20260101001900\tapplied",
+    "migration\t20260101002000\tapplied",
+    "migration\t20260101002100\tapplied",
+    "migration\t20260101002200\tapplied",
+    "migration\t20260101002300\tapplied",
+    "migration\t20260101002400\tapplied",
+    "migration\t20260101002500\tapplied",
+    "migration\t20260101002600\tapplied",
+    "migration\t20260101002700\tapplied",
+    "migration\t20260101002800\tapplied",
+    "migration\t20260101002900\tapplied",
+    "migration\t20260101003000\tapplied",
+    "migration\t20260101003100\tapplied",
+    "migration\t20260101003200\tapplied",
+    "migration\t20260101003300\tapplied",
+    "migration\t20260101003400\tapplied",
+    "migration\t20260101003500\tapplied",
+    "migration\t20260101003600\tapplied",
+    "migration\t20260101003700\tapplied",
+    "settings_defaults\tsettings_effective\t28",
+    "settings_overrides\tsettings\t0",
+    "table_rows\taudit_log\t0",
+    "table_rows\tbake_batches\t0",
+    "table_rows\tdrops\t0",
+    "table_rows\terasure_requests\t0",
+    "table_rows\tevent_expenses\t0",
+    "table_rows\tevent_sale_items\t0",
+    "table_rows\tevent_sale_voids\t0",
+    "table_rows\tevent_sales\t0",
+    "table_rows\tevents\t0",
+    "table_rows\tinventory_items\t0",
+    "table_rows\tledger_entries\t0",
+    "table_rows\torder_items\t0",
+    "table_rows\torder_rules\t1",
+    "table_rows\torder_swaps\t0",
+    "table_rows\torders\t0",
+    "table_rows\tpayment_methods\t0",
+    "table_rows\tproducts\t0",
+    "table_rows\tprofiles\t0",
+    "table_rows\trate_limits\t0",
+    "table_rows\trecipe_ingredients\t0",
+    "table_rows\trecipes\t0",
+    "table_rows\tsettings\t0",
+    "table_rows\tshop_texts\t0",
+    "table_rows\tsupplier_prices\t0",
+    "table_rows\tsuppliers\t0",
+    "table_rows\twaitlist_entries\t0"
+  ],
+  "catalog_sha256": "274060a166ef63cdc9b69957ef2dcbf6714f6d72a91232a983614c35973fe727",
+  "catalogs_equal": true,
+  "schema_sha256": "1c691d1c96cd673c258199f7624bff23cc7a57d3ede25caee1a2b743b4f3c2f6",
+  "schemas_equal": true,
+  "sentinel_removed": true
+}

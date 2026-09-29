@@ -1111,6 +1111,15 @@
     {
       "udt_name": "bool",
       "data_type": "boolean",
+      "table_name": "order_items",
+      "column_name": "unavailable",
+      "is_nullable": "NO",
+      "column_default": "false",
+      "ordinal_position": 8
+    },
+    {
+      "udt_name": "bool",
+      "data_type": "boolean",
       "table_name": "order_rules",
       "column_name": "id",
       "is_nullable": "NO",
@@ -1206,6 +1215,78 @@
       "is_nullable": "NO",
       "column_default": "now()",
       "ordinal_position": 11
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "order_swaps",
+      "column_name": "id",
+      "is_nullable": "NO",
+      "column_default": "gen_random_uuid()",
+      "ordinal_position": 1
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "order_swaps",
+      "column_name": "client_id",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 2
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "order_swaps",
+      "column_name": "order_id",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 3
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "order_swaps",
+      "column_name": "from_product",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 4
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "order_swaps",
+      "column_name": "to_product",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 5
+    },
+    {
+      "udt_name": "int4",
+      "data_type": "integer",
+      "table_name": "order_swaps",
+      "column_name": "qty",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 6
+    },
+    {
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "table_name": "order_swaps",
+      "column_name": "price_delta_cents",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 7
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "order_swaps",
+      "column_name": "swapped_at",
+      "is_nullable": "NO",
+      "column_default": "now()",
+      "ordinal_position": 8
     },
     {
       "udt_name": "text",
@@ -1404,6 +1485,24 @@
       "is_nullable": "YES",
       "column_default": null,
       "ordinal_position": 22
+    },
+    {
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "table_name": "orders",
+      "column_name": "paid_cents",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 23
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "orders",
+      "column_name": "refund_ref",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 24
     },
     {
       "udt_name": "text",
@@ -2278,6 +2377,21 @@
       "indexdef": "CREATE UNIQUE INDEX order_rules_pkey ON public.order_rules USING btree (id)",
       "indexname": "order_rules_pkey",
       "tablename": "order_rules"
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX order_swaps_client_id_key ON public.order_swaps USING btree (client_id)",
+      "indexname": "order_swaps_client_id_key",
+      "tablename": "order_swaps"
+    },
+    {
+      "indexdef": "CREATE INDEX order_swaps_order_idx ON public.order_swaps USING btree (order_id)",
+      "indexname": "order_swaps_order_idx",
+      "tablename": "order_swaps"
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX order_swaps_pkey ON public.order_swaps USING btree (id)",
+      "indexname": "order_swaps_pkey",
+      "tablename": "order_swaps"
     },
     {
       "indexdef": "CREATE UNIQUE INDEX orders_client_id_key ON public.orders USING btree (client_id)",
@@ -3175,6 +3289,21 @@
       "execute_authenticated": true
     },
     {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "get_staff_orders",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "89b37f4fc7a24553363ade6a8f92936b",
+      "identity": "",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
       "acl": "{=X/postgres,anon=X/postgres,authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
       "name": "is_owner",
       "owner": "postgres",
@@ -3473,6 +3602,126 @@
       "security_definer": false,
       "execute_service_role": true,
       "execute_authenticated": false
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "staff_confirm_payment",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(order_id text, state order_state, pay_state pay_state, total_cents bigint, paid_cents bigint, updated_at timestamp with time zone, replayed boolean)",
+      "body_md5": "d30ca5aaf51797311555c0f6cc970bde",
+      "identity": "p_order_id text, p_expected_updated_at timestamp with time zone, p_force boolean",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "staff_flag_item",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(order_id text, state order_state, pay_state pay_state, total_cents bigint, paid_cents bigint, updated_at timestamp with time zone, replayed boolean)",
+      "body_md5": "409095de3963cdb472c6cd09a48b58d7",
+      "identity": "p_order_id text, p_product_id text, p_flagged boolean, p_expected_updated_at timestamp with time zone",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "staff_refund",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(order_id text, state order_state, pay_state pay_state, total_cents bigint, paid_cents bigint, updated_at timestamp with time zone, replayed boolean)",
+      "body_md5": "e7efe966f121383e891e251e1ae923cb",
+      "identity": "p_order_id text, p_ref text, p_expected_updated_at timestamp with time zone",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "staff_reject_payment",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(order_id text, state order_state, pay_state pay_state, total_cents bigint, paid_cents bigint, updated_at timestamp with time zone, replayed boolean)",
+      "body_md5": "6e14528ac9aa39e7aa8a3c76e794a5dc",
+      "identity": "p_order_id text, p_expected_updated_at timestamp with time zone",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "staff_reopen_order",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(order_id text, state order_state, pay_state pay_state, total_cents bigint, paid_cents bigint, updated_at timestamp with time zone, replayed boolean)",
+      "body_md5": "5bb98d5beaa1c35e860532f9900ba59d",
+      "identity": "p_order_id text, p_expected_updated_at timestamp with time zone",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "staff_set_status",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(order_id text, state order_state, pay_state pay_state, total_cents bigint, paid_cents bigint, updated_at timestamp with time zone, replayed boolean)",
+      "body_md5": "af165a626509a74fe5e83c3c8224912d",
+      "identity": "p_order_id text, p_to order_state, p_expected_updated_at timestamp with time zone",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "staff_settle_balance",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(order_id text, state order_state, pay_state pay_state, total_cents bigint, paid_cents bigint, updated_at timestamp with time zone, replayed boolean)",
+      "body_md5": "1203c2d3ab596fe23159ab3a64655c44",
+      "identity": "p_order_id text, p_expected_updated_at timestamp with time zone",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "staff_swap_item",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(order_id text, state order_state, pay_state pay_state, total_cents bigint, paid_cents bigint, updated_at timestamp with time zone, replayed boolean)",
+      "body_md5": "3cdb903195998643a50822d32b229d90",
+      "identity": "p_order_id text, p_from_product text, p_to_product text, p_client_id uuid, p_expected_updated_at timestamp with time zone",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
     },
     {
       "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
@@ -4014,6 +4263,42 @@
       "definition": "CHECK (((unpaid_hold_hours >= 1) AND (unpaid_hold_hours <= 168)))"
     },
     {
+      "name": "order_swaps_client_id_key",
+      "type": "u",
+      "table": "order_swaps",
+      "definition": "UNIQUE (client_id)"
+    },
+    {
+      "name": "order_swaps_from_product_fkey",
+      "type": "f",
+      "table": "order_swaps",
+      "definition": "FOREIGN KEY (from_product) REFERENCES products(id)"
+    },
+    {
+      "name": "order_swaps_order_id_fkey",
+      "type": "f",
+      "table": "order_swaps",
+      "definition": "FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE"
+    },
+    {
+      "name": "order_swaps_pkey",
+      "type": "p",
+      "table": "order_swaps",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "name": "order_swaps_qty_check",
+      "type": "c",
+      "table": "order_swaps",
+      "definition": "CHECK ((qty > 0))"
+    },
+    {
+      "name": "order_swaps_to_product_fkey",
+      "type": "f",
+      "table": "order_swaps",
+      "definition": "FOREIGN KEY (to_product) REFERENCES products(id)"
+    },
+    {
       "name": "orders_client_id_key",
       "type": "u",
       "table": "orders",
@@ -4032,6 +4317,12 @@
       "definition": "CHECK ((length(ig) <= 31))"
     },
     {
+      "name": "orders_paid_cents_check",
+      "type": "c",
+      "table": "orders",
+      "definition": "CHECK (((paid_cents IS NULL) OR (paid_cents >= 0)))"
+    },
+    {
       "name": "orders_payload_hash_check",
       "type": "c",
       "table": "orders",
@@ -4048,6 +4339,12 @@
       "type": "p",
       "table": "orders",
       "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "name": "orders_refund_ref_check",
+      "type": "c",
+      "table": "orders",
+      "definition": "CHECK (((refund_ref IS NULL) OR (length(refund_ref) <= 60)))"
     },
     {
       "name": "orders_status_token_check",
@@ -5870,13 +6167,6 @@
       "privilege_type": "SELECT"
     },
     {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "order_items",
-      "is_grantable": "NO",
-      "privilege_type": "UPDATE"
-    },
-    {
       "grantee": "authenticated",
       "grantor": "postgres",
       "table_name": "order_items",
@@ -5889,13 +6179,6 @@
       "table_name": "order_items",
       "is_grantable": "NO",
       "privilege_type": "SELECT"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "order_items",
-      "is_grantable": "NO",
-      "privilege_type": "UPDATE"
     },
     {
       "grantee": "postgres",
@@ -6094,6 +6377,104 @@
       "privilege_type": "UPDATE"
     },
     {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "order_swaps",
+      "is_grantable": "YES",
+      "privilege_type": "DELETE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "order_swaps",
+      "is_grantable": "YES",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "order_swaps",
+      "is_grantable": "YES",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "order_swaps",
+      "is_grantable": "YES",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "order_swaps",
+      "is_grantable": "YES",
+      "privilege_type": "TRIGGER"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "order_swaps",
+      "is_grantable": "YES",
+      "privilege_type": "TRUNCATE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "order_swaps",
+      "is_grantable": "YES",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "order_swaps",
+      "is_grantable": "NO",
+      "privilege_type": "DELETE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "order_swaps",
+      "is_grantable": "NO",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "order_swaps",
+      "is_grantable": "NO",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "order_swaps",
+      "is_grantable": "NO",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "order_swaps",
+      "is_grantable": "NO",
+      "privilege_type": "TRIGGER"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "order_swaps",
+      "is_grantable": "NO",
+      "privilege_type": "TRUNCATE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "order_swaps",
+      "is_grantable": "NO",
+      "privilege_type": "UPDATE"
+    },
+    {
       "grantee": "anon",
       "grantor": "postgres",
       "table_name": "orders",
@@ -6108,13 +6489,6 @@
       "privilege_type": "SELECT"
     },
     {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "orders",
-      "is_grantable": "NO",
-      "privilege_type": "UPDATE"
-    },
-    {
       "grantee": "authenticated",
       "grantor": "postgres",
       "table_name": "orders",
@@ -6127,13 +6501,6 @@
       "table_name": "orders",
       "is_grantable": "NO",
       "privilege_type": "SELECT"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "orders",
-      "is_grantable": "NO",
-      "privilege_type": "UPDATE"
     },
     {
       "grantee": "postgres",
@@ -7837,6 +8204,12 @@
       "rls": true,
       "owner": "postgres",
       "table": "order_rules",
+      "force_rls": false
+    },
+    {
+      "rls": true,
+      "owner": "postgres",
+      "table": "order_swaps",
       "force_rls": false
     },
     {

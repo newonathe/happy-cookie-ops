@@ -483,6 +483,126 @@
     },
     {
       "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "staff_confirm_payment",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(order_id text, state order_state, pay_state pay_state, total_cents bigint, paid_cents bigint, updated_at timestamp with time zone, replayed boolean)",
+      "body_md5": "975cf4a6bafd8d22b0d6bdedb849f333",
+      "identity": "p_order_id text, p_expected_updated_at timestamp with time zone, p_force boolean",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "staff_flag_item",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(order_id text, state order_state, pay_state pay_state, total_cents bigint, paid_cents bigint, updated_at timestamp with time zone, replayed boolean)",
+      "body_md5": "409095de3963cdb472c6cd09a48b58d7",
+      "identity": "p_order_id text, p_product_id text, p_flagged boolean, p_expected_updated_at timestamp with time zone",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "staff_refund",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(order_id text, state order_state, pay_state pay_state, total_cents bigint, paid_cents bigint, updated_at timestamp with time zone, replayed boolean)",
+      "body_md5": "e7efe966f121383e891e251e1ae923cb",
+      "identity": "p_order_id text, p_ref text, p_expected_updated_at timestamp with time zone",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "staff_reject_payment",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(order_id text, state order_state, pay_state pay_state, total_cents bigint, paid_cents bigint, updated_at timestamp with time zone, replayed boolean)",
+      "body_md5": "6e14528ac9aa39e7aa8a3c76e794a5dc",
+      "identity": "p_order_id text, p_expected_updated_at timestamp with time zone",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "staff_reopen_order",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(order_id text, state order_state, pay_state pay_state, total_cents bigint, paid_cents bigint, updated_at timestamp with time zone, replayed boolean)",
+      "body_md5": "5bb98d5beaa1c35e860532f9900ba59d",
+      "identity": "p_order_id text, p_expected_updated_at timestamp with time zone",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "staff_set_status",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(order_id text, state order_state, pay_state pay_state, total_cents bigint, paid_cents bigint, updated_at timestamp with time zone, replayed boolean)",
+      "body_md5": "af165a626509a74fe5e83c3c8224912d",
+      "identity": "p_order_id text, p_to order_state, p_expected_updated_at timestamp with time zone",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "staff_settle_balance",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(order_id text, state order_state, pay_state pay_state, total_cents bigint, paid_cents bigint, updated_at timestamp with time zone, replayed boolean)",
+      "body_md5": "1203c2d3ab596fe23159ab3a64655c44",
+      "identity": "p_order_id text, p_expected_updated_at timestamp with time zone",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "staff_swap_item",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(order_id text, state order_state, pay_state pay_state, total_cents bigint, paid_cents bigint, updated_at timestamp with time zone, replayed boolean)",
+      "body_md5": "3cdb903195998643a50822d32b229d90",
+      "identity": "p_order_id text, p_from_product text, p_to_product text, p_client_id uuid, p_expected_updated_at timestamp with time zone",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
       "name": "start_event",
       "owner": "postgres",
       "config": [
@@ -747,6 +867,21 @@
       "body_md5": "da6f0a9c8d28fb9e2062ba019721134f",
       "identity": "",
       "execute_anon": true,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "get_staff_orders",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "89b37f4fc7a24553363ade6a8f92936b",
+      "identity": "",
+      "execute_anon": false,
       "security_definer": true,
       "execute_service_role": true,
       "execute_authenticated": true

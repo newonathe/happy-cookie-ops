@@ -116,7 +116,7 @@ truncate table public.audit_log, public.bake_batches, public.drops, public.erasu
   public.event_sale_items, public.event_sales, public.events, public.inventory_items,
   public.ledger_entries, public.order_items, public.orders, public.products, public.profiles,
   public.rate_limits, public.recipe_ingredients, public.recipes, public.settings,
-  public.supplier_prices, public.suppliers, public.event_expenses;
+  public.supplier_prices, public.suppliers, public.event_expenses, public.order_swaps;
 reset role;
 do $$ declare relation_name text; populated boolean;
 begin

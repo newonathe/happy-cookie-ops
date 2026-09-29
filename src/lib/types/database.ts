@@ -539,6 +539,7 @@ export type Database = {
           order_id: string
           product_id: string
           qty: number
+          unavailable: boolean
           unit_price_cents: number
           updated_at: string
         }
@@ -548,6 +549,7 @@ export type Database = {
           order_id: string
           product_id: string
           qty: number
+          unavailable?: boolean
           unit_price_cents: number
           updated_at?: string
         }
@@ -557,6 +559,7 @@ export type Database = {
           order_id?: string
           product_id?: string
           qty?: number
+          unavailable?: boolean
           unit_price_cents?: number
           updated_at?: string
         }
@@ -626,6 +629,75 @@ export type Database = {
         }
         Relationships: []
       }
+      order_swaps: {
+        Row: {
+          client_id: string
+          from_product: string
+          id: string
+          order_id: string
+          price_delta_cents: number
+          qty: number
+          swapped_at: string
+          to_product: string
+        }
+        Insert: {
+          client_id: string
+          from_product: string
+          id?: string
+          order_id: string
+          price_delta_cents: number
+          qty: number
+          swapped_at?: string
+          to_product: string
+        }
+        Update: {
+          client_id?: string
+          from_product?: string
+          id?: string
+          order_id?: string
+          price_delta_cents?: number
+          qty?: number
+          swapped_at?: string
+          to_product?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_swaps_from_product_fkey"
+            columns: ["from_product"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_swaps_from_product_fkey"
+            columns: ["from_product"]
+            isOneToOne: false
+            referencedRelation: "shop_products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_swaps_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_swaps_to_product_fkey"
+            columns: ["to_product"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_swaps_to_product_fkey"
+            columns: ["to_product"]
+            isOneToOne: false
+            referencedRelation: "shop_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orders: {
         Row: {
           cancelled_at: string | null
@@ -638,6 +710,7 @@ export type Database = {
           ig: string
           notes: string
           packaging_cents: number
+          paid_cents: number | null
           pay_method: string | null
           pay_ref: string | null
           pay_state: Database["public"]["Enums"]["pay_state"]
@@ -646,6 +719,7 @@ export type Database = {
           pickup_date: string | null
           pickup_window: string | null
           placed_at: string
+          refund_ref: string | null
           state: Database["public"]["Enums"]["order_state"]
           status_token: string | null
           total_cents: number
@@ -662,6 +736,7 @@ export type Database = {
           ig?: string
           notes?: string
           packaging_cents?: number
+          paid_cents?: number | null
           pay_method?: string | null
           pay_ref?: string | null
           pay_state?: Database["public"]["Enums"]["pay_state"]
@@ -670,6 +745,7 @@ export type Database = {
           pickup_date?: string | null
           pickup_window?: string | null
           placed_at?: string
+          refund_ref?: string | null
           state?: Database["public"]["Enums"]["order_state"]
           status_token?: string | null
           total_cents?: number
@@ -686,6 +762,7 @@ export type Database = {
           ig?: string
           notes?: string
           packaging_cents?: number
+          paid_cents?: number | null
           pay_method?: string | null
           pay_ref?: string | null
           pay_state?: Database["public"]["Enums"]["pay_state"]
@@ -694,6 +771,7 @@ export type Database = {
           pickup_date?: string | null
           pickup_window?: string | null
           placed_at?: string
+          refund_ref?: string | null
           state?: Database["public"]["Enums"]["order_state"]
           status_token?: string | null
           total_cents?: number
@@ -1382,6 +1460,7 @@ export type Database = {
       }
       get_shop_order_rules: { Args: never; Returns: Json }
       get_shop_payment_info: { Args: never; Returns: Json }
+      get_staff_orders: { Args: never; Returns: Json }
       is_owner: { Args: never; Returns: boolean }
       is_staff: { Args: never; Returns: boolean }
       join_waitlist: {
@@ -1499,6 +1578,125 @@ export type Database = {
           json_value: Json
           key: string
           text_value: string
+        }[]
+      }
+      staff_confirm_payment: {
+        Args: {
+          p_expected_updated_at: string
+          p_force?: boolean
+          p_order_id: string
+        }
+        Returns: {
+          order_id: string
+          paid_cents: number
+          pay_state: Database["public"]["Enums"]["pay_state"]
+          replayed: boolean
+          state: Database["public"]["Enums"]["order_state"]
+          total_cents: number
+          updated_at: string
+        }[]
+      }
+      staff_flag_item: {
+        Args: {
+          p_expected_updated_at: string
+          p_flagged: boolean
+          p_order_id: string
+          p_product_id: string
+        }
+        Returns: {
+          order_id: string
+          paid_cents: number
+          pay_state: Database["public"]["Enums"]["pay_state"]
+          replayed: boolean
+          state: Database["public"]["Enums"]["order_state"]
+          total_cents: number
+          updated_at: string
+        }[]
+      }
+      staff_refund: {
+        Args: {
+          p_expected_updated_at: string
+          p_order_id: string
+          p_ref: string
+        }
+        Returns: {
+          order_id: string
+          paid_cents: number
+          pay_state: Database["public"]["Enums"]["pay_state"]
+          replayed: boolean
+          state: Database["public"]["Enums"]["order_state"]
+          total_cents: number
+          updated_at: string
+        }[]
+      }
+      staff_reject_payment: {
+        Args: { p_expected_updated_at: string; p_order_id: string }
+        Returns: {
+          order_id: string
+          paid_cents: number
+          pay_state: Database["public"]["Enums"]["pay_state"]
+          replayed: boolean
+          state: Database["public"]["Enums"]["order_state"]
+          total_cents: number
+          updated_at: string
+        }[]
+      }
+      staff_reopen_order: {
+        Args: { p_expected_updated_at: string; p_order_id: string }
+        Returns: {
+          order_id: string
+          paid_cents: number
+          pay_state: Database["public"]["Enums"]["pay_state"]
+          replayed: boolean
+          state: Database["public"]["Enums"]["order_state"]
+          total_cents: number
+          updated_at: string
+        }[]
+      }
+      staff_set_status: {
+        Args: {
+          p_expected_updated_at: string
+          p_order_id: string
+          p_to: Database["public"]["Enums"]["order_state"]
+        }
+        Returns: {
+          order_id: string
+          paid_cents: number
+          pay_state: Database["public"]["Enums"]["pay_state"]
+          replayed: boolean
+          state: Database["public"]["Enums"]["order_state"]
+          total_cents: number
+          updated_at: string
+        }[]
+      }
+      staff_settle_balance: {
+        Args: { p_expected_updated_at: string; p_order_id: string }
+        Returns: {
+          order_id: string
+          paid_cents: number
+          pay_state: Database["public"]["Enums"]["pay_state"]
+          replayed: boolean
+          state: Database["public"]["Enums"]["order_state"]
+          total_cents: number
+          updated_at: string
+        }[]
+      }
+      staff_swap_item: {
+        Args: {
+          p_client_id: string
+          p_expected_updated_at: string
+          p_from_product: string
+          p_order_id: string
+          p_to_product: string
+        }
+        Returns: {
+          order_id: string
+          paid_cents: number
+          pay_state: Database["public"]["Enums"]["pay_state"]
+          replayed: boolean
+          state: Database["public"]["Enums"]["order_state"]
+          total_cents: number
+          updated_at: string
         }[]
       }
       start_event: {

@@ -16,7 +16,8 @@ verify_functions = runpy.run_path(str(ROOT / 'scripts/verify-function-authority.
 # neutralises exactly that line, or applies one text substitution, inside the one function it names, and
 # the refusal case must then fail. Expected text is the failing operation of the suite, in suite order.
 ORDER_MIGRATIONS = [ROOT / 'supabase/migrations/20260101003500_place_order.sql',
-                    ROOT / 'supabase/migrations/20260101003600_order_lookup.sql']
+                    ROOT / 'supabase/migrations/20260101003600_order_lookup.sql',
+                    ROOT / 'supabase/migrations/20260101003700_staff_orders.sql']
 _OUT = 'order outcome differs: anon / '
 _CHK = 'order check differs: anon / '
 _LOOK = 'lookup check differs: anon / '
@@ -87,6 +88,48 @@ LOOKUP_MUTATIONS = {
                                ("'unpaid_hold_hours', r.unpaid_hold_hours)", "'unpaid_hold_hours', r.unpaid_hold_hours, 'max_unpaid_per_phone', r.max_unpaid_per_phone)"),
                                _LOOK + 'rules_keys_are_the_customer_ones'),
 }
+_STF = 'staff outcome differs: active_owner / '
+STAFF_MUTATIONS = {
+    'rule_confirm_replay': ('staff_confirm_payment', 'rule', 'confirm-replay', _STF + 'confirm_replay / '),
+    'rule_confirm_stale': ('staff_confirm_payment', 'rule', 'stale', _STF + 'confirm_stale / '),
+    'rule_confirm_state': ('staff_confirm_payment', 'rule', 'confirm-state', _STF + 'confirm_cancelled / '),
+    'rule_confirm_capacity': ('staff_confirm_payment', 'rule', 'confirm-capacity', _STF + 'confirm_lapsed_over_capacity / '),
+    'rule_reject_replay': ('staff_reject_payment', 'rule', 'reject-replay', _STF + 'reject_replay / '),
+    'rule_reject_stale': ('staff_reject_payment', 'rule', 'stale', _STF + 'reject_stale / '),
+    'rule_reject_state': ('staff_reject_payment', 'rule', 'reject-state', _STF + 'reject_paid_order / '),
+    'rule_reopen_replay': ('staff_reopen_order', 'rule', 'reopen-replay', _STF + 'reopen_replay / '),
+    'rule_reopen_stale': ('staff_reopen_order', 'rule', 'stale', _STF + 'reopen_stale / '),
+    'rule_reopen_state': ('staff_reopen_order', 'rule', 'reopen-state', _STF + 'reopen_paid_order / '),
+    'rule_status_replay': ('staff_set_status', 'rule', 'status-replay', _STF + 'status_replay / '),
+    'rule_status_stale': ('staff_set_status', 'rule', 'stale', _STF + 'status_stale / '),
+    'rule_status_transition': ('staff_set_status', 'rule', 'status-transition', _STF + 'status_illegal / '),
+    'rule_pack_flagged': ('staff_set_status', 'rule', 'pack-flagged', _STF + 'pack_flagged / '),
+    'rule_flag_item': ('staff_flag_item', 'rule', 'flag-item', _STF + 'flag_missing_item / '),
+    'rule_flag_replay': ('staff_flag_item', 'rule', 'flag-replay', _STF + 'flag_replay / '),
+    'rule_flag_stale': ('staff_flag_item', 'rule', 'stale', _STF + 'flag_stale / '),
+    'rule_flag_state': ('staff_flag_item', 'rule', 'flag-state', _STF + 'flag_finished / '),
+    'rule_swap_client_id_reuse': ('staff_swap_item', 'rule', 'swap-client-id-reuse', _STF + 'swap_client_id_reuse / '),
+    'rule_swap_stale': ('staff_swap_item', 'rule', 'stale', _STF + 'swap_stale / '),
+    'rule_swap_state': ('staff_swap_item', 'rule', 'swap-state', _STF + 'swap_finished / '),
+    'rule_swap_same': ('staff_swap_item', 'rule', 'swap-same', _STF + 'swap_same / '),
+    'rule_swap_item': ('staff_swap_item', 'rule', 'swap-item', _STF + 'swap_missing_item / '),
+    'rule_swap_menu': ('staff_swap_item', 'rule', 'swap-menu', _STF + 'swap_menu / '),
+    'rule_swap_price_clash': ('staff_swap_item', 'rule', 'swap-price-clash', _STF + 'swap_price_clash / '),
+    'rule_swap_capacity': ('staff_swap_item', 'rule', 'swap-capacity', _STF + 'swap_capacity / '),
+    'rule_refund_replay': ('staff_refund', 'rule', 'refund-replay', _STF + 'refund_replay / '),
+    'rule_refund_stale': ('staff_refund', 'rule', 'stale', _STF + 'refund_stale / '),
+    'rule_refund_paid': ('staff_refund', 'rule', 'refund-paid', _STF + 'refund_unpaid / '),
+    'rule_settle_replay': ('staff_settle_balance', 'rule', 'settle-replay', _STF + 'settle_replay / '),
+    'rule_settle_stale': ('staff_settle_balance', 'rule', 'stale', _STF + 'settle_stale / '),
+    'rule_settle_paid': ('staff_settle_balance', 'rule', 'settle-paid', _STF + 'settle_unpaid / '),
+}
+STAFF_TABLE_MUTATIONS = {
+    'orders_update_grant': ('grant update on public.orders to authenticated;', 'staff outcome differs: active_helper / orders_table_update / '),
+}
+STAFF_ACL = ('get_staff_orders()', 'staff_confirm_payment(text,timestamptz,boolean)', 'staff_reject_payment(text,timestamptz)',
+             'staff_reopen_order(text,timestamptz)', 'staff_set_status(text,public.order_state,timestamptz)',
+             'staff_flag_item(text,text,boolean,timestamptz)', 'staff_swap_item(text,text,text,uuid,timestamptz)',
+             'staff_refund(text,text,timestamptz)', 'staff_settle_balance(text,timestamptz)')
 ORDER_TABLE_MUTATIONS = {
     'orders_rows_leak': ('alter policy "orders staff read" on public.orders using (true);', _CHK + 'orders_rows_hidden'),
     'waitlist_table_select': ('grant select on public.waitlist_entries to anon;', _OUT + 'waitlist_table_select / '),
@@ -96,7 +139,7 @@ ORDER_TABLE_MUTATIONS = {
 
 def order_mutant(name):
     """The migration's one function, changed in exactly one place, as SQL to run inside the suite."""
-    function, kind, argument, _ = (ORDER_MUTATIONS | LOOKUP_MUTATIONS)[name]
+    function, kind, argument, _ = (ORDER_MUTATIONS | LOOKUP_MUTATIONS | STAFF_MUTATIONS)[name]
     marker = 'create or replace function public.' + function + '('
     text = next(m.read_text(encoding='utf-8') for m in ORDER_MIGRATIONS if marker in m.read_text(encoding='utf-8'))
     start = text.index('create or replace function public.' + function + '(')
@@ -138,6 +181,7 @@ SUITES = (
                              'orders_rows_leak', 'waitlist_table_select', 'rules_table_select')
                             + tuple(ORDER_MUTATIONS), 'forbidden order call succeeded', 175),
     ('order-lookup.sql', tuple(LOOKUP_MUTATIONS), 'forbidden lookup call succeeded', 24),
+    ('staff-orders.sql', STAFF_ACL + tuple(STAFF_MUTATIONS) + tuple(STAFF_TABLE_MUTATIONS), 'forbidden staff order call succeeded', 117),
     ('bazaar-closeout.sql', ('event_summary(uuid)', 'load_event_stock(uuid,jsonb,bigint)', 'add_event_expense(jsonb)', 'close_event(jsonb)'), 'forbidden closeout call succeeded', 80),
 )
 CATALOG_GUARD_SQL = """
@@ -264,6 +308,13 @@ def main():
                 if filename == 'order-lookup.sql':
                     broken = sql.replace('begin;', 'begin;\n' + order_mutant(signature), 1)
                     expected_error = LOOKUP_MUTATIONS[signature][3]
+                if filename == 'staff-orders.sql':
+                    if signature in STAFF_MUTATIONS:
+                        broken = sql.replace('begin;', 'begin;' + chr(10) + order_mutant(signature), 1)
+                        expected_error = STAFF_MUTATIONS[signature][3]
+                    elif signature in STAFF_TABLE_MUTATIONS:
+                        unsafe, expected_error = STAFF_TABLE_MUTATIONS[signature]
+                        broken = sql.replace('begin;', 'begin;' + chr(10) + unsafe, 1)
                 if filename == 'payment-methods.sql' and signature in PAYMENT_MUTATIONS:
                     unsafe, expected_error = PAYMENT_MUTATIONS[signature]
                     broken = sql.replace('begin;', 'begin;' + chr(10) + unsafe, 1)
@@ -351,7 +402,7 @@ def main():
                 h.fail(filename + ' did not return its complete role matrix')
             results.extend(rows)
             assert_empty()
-        if len(set(results)) != 1024:
+        if len(set(results)) != 1141:
             h.fail('combined role matrix has missing or duplicate cases: %d rows, %d unique' % (len(results), len(set(results))))
         assert_functions()
         assert_catalog_wide()
@@ -364,10 +415,10 @@ def main():
     try:
         code = h.main(after_reset=check)
         if (code == 0 and len(report["runs"]) == 2 and report["runs"][0] == report["runs"][1]
-                and len(report['regressions_detected']) == 182 and report['sequence_restorations'] == 10
+                and len(report['regressions_detected']) == 266 and report['sequence_restorations'] == 10
                 and report['upgrade_runs'] == 2 and report['function_guard_runs'] == 4
                 and report['catalog_guard_runs'] == 4 and report['catalog_guard_red_runs'] == 4):
-            report.update(status="passed", cases_per_reset=1024, resets=2, matrix_equal=True, rollback_verified=True,
+            report.update(status="passed", cases_per_reset=1141, resets=2, matrix_equal=True, rollback_verified=True,
                           sql_sha256={name: hashlib.sha256((ROOT / 'tests/integration/security' / name).read_bytes()).hexdigest() for name, _, _, _ in SUITES},
                           harness_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
     except (RuntimeError, OSError, ValueError) as error:

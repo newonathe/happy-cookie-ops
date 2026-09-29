@@ -63,9 +63,14 @@ begin
       when 'orders' then 'update public.orders set notes=''denied'''
       when 'order_items' then 'update public.order_items set qty=2'
       else 'update public.bake_batches set baked_qty=1' end;
-    execute statement; get diagnostics changed = row_count;
-    if changed <> 0 then raise exception 'private update succeeded: % / % / %',actor,relation,changed; end if;
-    insert into pg_temp.authority_results values('private_update',actor,relation||'=zero_rows');
+    begin
+      execute statement; get diagnostics changed = row_count;
+      if changed <> 0 then raise exception 'private update succeeded: % / % / %',actor,relation,changed; end if;
+      insert into pg_temp.authority_results values('private_update',actor,relation||'=zero_rows');
+    exception when insufficient_privilege then
+      -- B3 revoked UPDATE on orders/order_items from the API roles: refused outright, not filtered to zero rows.
+      insert into pg_temp.authority_results values('private_update',actor,relation||'=denied_42501');
+    end;
   end loop;
 end $$;
 create function pg_temp.assert_private_insert_denied(actor text) returns void
