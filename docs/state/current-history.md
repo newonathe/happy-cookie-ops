@@ -4,6 +4,42 @@ Every checkpoint up to 2026-09-28, verbatim and newest first. Moved here from `c
 session reads only the short status in [current.md](current.md). Add nothing here by hand; move a checkpoint here
 when it leaves `current.md`.
 
+## Checkpoint — 2026-09-29 (D2, bazaar close-out)
+
+  - **Database (migration `20260101003300_bazaar_closeout.sql`):** four owner-only RPCs, `search_path ''`, EXECUTE
+    for `authenticated`. `load_event_stock` sets the table stock and the drawer float once (only flavours in the
+    event's price snapshot; the float has its own column so `start_event`'s retry still matches). `add_event_expense`
+    is idempotent on a client id plus a body hash and posts a negative cost to the ledger. `close_event` sets
+    `closed_at`, stores the count and the unsold stock, books a short drawer as a cost and an over drawer as
+    takings, and returns `event_summary`. `event_summary` is recomputed from rows every time: voided sales never
+    count; profit is takings minus expenses plus the drawer variance, and leaves out ingredient cost (needs C2).
+  - **Close safety (from the Opus review, both P1s):** the close carries the phone's `floatCents` and `cashCents`.
+    The server closes only when its own float and non-voided Cash total match; otherwise it refuses with `40001`,
+    which the phone treats as "try again later". So a close that overtakes a sale, a void or the stock load is
+    retried instead of being booked as a drawer variance. A close dated before an already-recorded sale is refused.
+  - **Phone:** stock load, each expense and the close are queued like sales (`open:<event>`, `expense:<uuid>`,
+    `close:<event>` rows, frozen bodies, sent in the order sales, voids, stock, expenses, close). `OpsRuntime`
+    wraps `setEventStock` (a flavour off the event menu cannot be put on the table: closes D1 carry-over 1),
+    `openSelling`, `addEventExpense` (positive amounts only), `closeEvent` (queued only if the engine actually
+    closed) and `reopenEvent` (a closed event stays closed in live mode). Refusals (22023, 23505, 42501, 55000,
+    P0002) are now told apart from a lost connection, and the sync toast says so (closes D1 carry-over 2).
+  - **Evidence:** `pnpm verify` and `pnpm test:e2e` numbers in the baseline above; SQL role suite 737 cases per
+    reset (2 resets, 84 deliberate regressions detected), `bazaar-closeout.sql` 80 cases; 17 deliberate
+    mutations of the new SQL and 12 of the phone code, each caught by a test; Python guards 63 OK (function count
+    40); G0 validator 1201 checks, 0 failures. Opus review of the SQL: two P1s and four P2s, all fixed or
+    recorded; a second look at the fixes found no new P0/P1.
+  - **Recorded, not fixed:** (1) **The close can retry forever** if the phone counts money the server will
+    never hold: a sale the server permanently refused, Cash sales from a former phone after `set_event_device`, or
+    a stock load that was refused. The phone should build `cashCents`/`floatCents` only from rows the server has
+    acknowledged, and an audited owner override after N tries; do this before a two-phone event. (2) A Cash sale
+    that arrives from a former device after the close changes the summary's expected cash but not the stored
+    variance. (3) The variance ledger row is linked to its event only by its memo. (4) An expense's date is not
+    bounded by the event. (5) A close with no count cannot be given one later. (6) A close dated before a sale
+    (clock corrected backwards) is refused as permanent. (7) The lock around `record_event_sale` still needs a
+    two-connection test. (8) E1's revenue must use `event_summary` or skip rows with `voided_at`. (9) Helper
+    access to selling and closing waits for DP-18.
+  - **Still not run:** the physical-phone test for the 20-Oct gate; WebKit OFFLINE-01 (Playwright).
+
 ## Checkpoint — 2026-09-29 (D1, bazaar sales offline on one phone)
 
   - **Database (migration `20260101003200_bazaar_events.sql`):** an event holds its price snapshot (taken at

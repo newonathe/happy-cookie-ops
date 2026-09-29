@@ -653,6 +653,39 @@ export type Database = {
           },
         ]
       }
+      payment_methods: {
+        Row: {
+          account_name: string
+          account_number: string
+          active: boolean
+          id: string
+          label: string
+          qr_path: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          account_name?: string
+          account_number?: string
+          active?: boolean
+          id: string
+          label: string
+          qr_path?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          account_name?: string
+          account_number?: string
+          active?: boolean
+          id?: string
+          label?: string
+          qr_path?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           active: boolean
@@ -838,6 +871,33 @@ export type Database = {
           text_value?: string | null
           updated_at?: string
           updated_by?: string | null
+        }
+        Relationships: []
+      }
+      shop_texts: {
+        Row: {
+          allergen_note: string
+          id: boolean
+          invoice_note: string
+          registration_badge: string
+          tin_line: string
+          updated_at: string
+        }
+        Insert: {
+          allergen_note?: string
+          id?: boolean
+          invoice_note?: string
+          registration_badge?: string
+          tin_line?: string
+          updated_at?: string
+        }
+        Update: {
+          allergen_note?: string
+          id?: boolean
+          invoice_note?: string
+          registration_badge?: string
+          tin_line?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -1177,6 +1237,19 @@ export type Database = {
           updated_at: string
         }[]
       }
+      get_payment_methods: {
+        Args: never
+        Returns: {
+          account_name: string
+          account_number: string
+          active: boolean
+          id: string
+          label: string
+          qr_path: string
+          sort_order: number
+          updated_at: string
+        }[]
+      }
       get_settings: {
         Args: never
         Returns: {
@@ -1189,6 +1262,7 @@ export type Database = {
           updated_at: string
         }[]
       }
+      get_shop_payment_info: { Args: never; Returns: Json }
       is_owner: { Args: never; Returns: boolean }
       is_staff: { Args: never; Returns: boolean }
       load_event_stock: {
@@ -1238,10 +1312,23 @@ export type Database = {
           updated_at: string
         }[]
       }
+      save_payment_method: {
+        Args: { p_expected_updated_at: string; p_id: string; p_method: Json }
+        Returns: {
+          id: string
+          updated_at: string
+        }[]
+      }
       save_setting: {
         Args: { p_expected_updated_at: string; p_key: string; p_value: Json }
         Returns: {
           key: string
+          updated_at: string
+        }[]
+      }
+      save_shop_texts: {
+        Args: { p_expected_updated_at: string; p_texts: Json }
+        Returns: {
           updated_at: string
         }[]
       }

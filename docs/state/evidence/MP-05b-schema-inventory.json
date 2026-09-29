@@ -86,6 +86,28 @@
       "label": "refunded"
     }
   ],
+  "views": [
+    {
+      "acl": "{postgres=arwdDxt/postgres,anon=r/postgres,authenticated=r/postgres,service_role=r/postgres}",
+      "name": "shop_drops",
+      "owner": "postgres",
+      "options": [
+        "security_barrier=true",
+        "security_invoker=false"
+      ],
+      "definition": " SELECT drops.id,\n    drops.week_label,\n    drops.opens_at,\n    drops.closes_at,\n    drops.pickup_at\n   FROM drops\n  WHERE drops.published;"
+    },
+    {
+      "acl": "{postgres=arwdDxt/postgres,anon=r/postgres,authenticated=r/postgres,service_role=r/postgres}",
+      "name": "shop_products",
+      "owner": "postgres",
+      "options": [
+        "security_barrier=true",
+        "security_invoker=false"
+      ],
+      "definition": " SELECT products.id,\n    products.name,\n    products.short_name,\n    products.price_cents,\n    products.kind,\n    products.tag,\n    products.description,\n    products.image_path,\n    products.sort_order,\n    products.allergens\n   FROM products\n  WHERE products.published AND products.active;"
+    }
+  ],
   "columns": [
     {
       "udt_name": "int8",
@@ -304,6 +326,15 @@
       "ordinal_position": 8
     },
     {
+      "udt_name": "bool",
+      "data_type": "boolean",
+      "table_name": "drops",
+      "column_name": "published",
+      "is_nullable": "NO",
+      "column_default": "false",
+      "ordinal_position": 9
+    },
+    {
       "udt_name": "uuid",
       "data_type": "uuid",
       "table_name": "erasure_requests",
@@ -367,6 +398,87 @@
       "ordinal_position": 7
     },
     {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "event_expenses",
+      "column_name": "client_id",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 1
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "event_expenses",
+      "column_name": "event_id",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 2
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "event_expenses",
+      "column_name": "label",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 3
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "event_expenses",
+      "column_name": "category",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 4
+    },
+    {
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "table_name": "event_expenses",
+      "column_name": "amount_cents",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 5
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "event_expenses",
+      "column_name": "spent_at",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 6
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "event_expenses",
+      "column_name": "ledger_id",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 7
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "event_expenses",
+      "column_name": "payload_hash",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 8
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "event_expenses",
+      "column_name": "received_at",
+      "is_nullable": "NO",
+      "column_default": "now()",
+      "ordinal_position": 9
+    },
+    {
       "udt_name": "uuid",
       "data_type": "uuid",
       "table_name": "event_sale_items",
@@ -410,6 +522,42 @@
       "is_nullable": "NO",
       "column_default": null,
       "ordinal_position": 5
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "event_sale_voids",
+      "column_name": "client_id",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 1
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "event_sale_voids",
+      "column_name": "device_id",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 2
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "event_sale_voids",
+      "column_name": "voided_at",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 3
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "event_sale_voids",
+      "column_name": "received_at",
+      "is_nullable": "NO",
+      "column_default": "now()",
+      "ordinal_position": 4
     },
     {
       "udt_name": "uuid",
@@ -538,6 +686,24 @@
       "ordinal_position": 14
     },
     {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "event_sales",
+      "column_name": "voided_at",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 15
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "event_sales",
+      "column_name": "payload_hash",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 16
+    },
+    {
       "udt_name": "uuid",
       "data_type": "uuid",
       "table_name": "events",
@@ -590,6 +756,96 @@
       "is_nullable": "YES",
       "column_default": null,
       "ordinal_position": 6
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "events",
+      "column_name": "selling_device",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 7
+    },
+    {
+      "udt_name": "_text",
+      "data_type": "ARRAY",
+      "table_name": "events",
+      "column_name": "former_devices",
+      "is_nullable": "NO",
+      "column_default": "'{}'::text[]",
+      "ordinal_position": 8
+    },
+    {
+      "udt_name": "jsonb",
+      "data_type": "jsonb",
+      "table_name": "events",
+      "column_name": "price_snapshot",
+      "is_nullable": "NO",
+      "column_default": "'{}'::jsonb",
+      "ordinal_position": 9
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "events",
+      "column_name": "opened_at",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 10
+    },
+    {
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "table_name": "events",
+      "column_name": "drawer_float_cents",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 11
+    },
+    {
+      "udt_name": "jsonb",
+      "data_type": "jsonb",
+      "table_name": "events",
+      "column_name": "loaded",
+      "is_nullable": "NO",
+      "column_default": "'{}'::jsonb",
+      "ordinal_position": 12
+    },
+    {
+      "udt_name": "jsonb",
+      "data_type": "jsonb",
+      "table_name": "events",
+      "column_name": "returned",
+      "is_nullable": "NO",
+      "column_default": "'{}'::jsonb",
+      "ordinal_position": 13
+    },
+    {
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "table_name": "events",
+      "column_name": "counted_cents",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 14
+    },
+    {
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "table_name": "events",
+      "column_name": "variance_cents",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 15
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "events",
+      "column_name": "closed_hash",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 16
     },
     {
       "udt_name": "text",
@@ -990,6 +1246,78 @@
     {
       "udt_name": "text",
       "data_type": "text",
+      "table_name": "payment_methods",
+      "column_name": "id",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 1
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "payment_methods",
+      "column_name": "label",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 2
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "payment_methods",
+      "column_name": "account_number",
+      "is_nullable": "NO",
+      "column_default": "''::text",
+      "ordinal_position": 3
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "payment_methods",
+      "column_name": "account_name",
+      "is_nullable": "NO",
+      "column_default": "''::text",
+      "ordinal_position": 4
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "payment_methods",
+      "column_name": "qr_path",
+      "is_nullable": "NO",
+      "column_default": "''::text",
+      "ordinal_position": 5
+    },
+    {
+      "udt_name": "bool",
+      "data_type": "boolean",
+      "table_name": "payment_methods",
+      "column_name": "active",
+      "is_nullable": "NO",
+      "column_default": "true",
+      "ordinal_position": 6
+    },
+    {
+      "udt_name": "int4",
+      "data_type": "integer",
+      "table_name": "payment_methods",
+      "column_name": "sort_order",
+      "is_nullable": "NO",
+      "column_default": "0",
+      "ordinal_position": 7
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "payment_methods",
+      "column_name": "updated_at",
+      "is_nullable": "NO",
+      "column_default": "now()",
+      "ordinal_position": 8
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
       "table_name": "products",
       "column_name": "id",
       "is_nullable": "NO",
@@ -1078,6 +1406,51 @@
       "ordinal_position": 10
     },
     {
+      "udt_name": "bool",
+      "data_type": "boolean",
+      "table_name": "products",
+      "column_name": "published",
+      "is_nullable": "NO",
+      "column_default": "false",
+      "ordinal_position": 11
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "products",
+      "column_name": "allergens",
+      "is_nullable": "NO",
+      "column_default": "''::text",
+      "ordinal_position": 12
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "products",
+      "column_name": "item_type",
+      "is_nullable": "NO",
+      "column_default": "'cookie'::text",
+      "ordinal_position": 13
+    },
+    {
+      "udt_name": "int4",
+      "data_type": "integer",
+      "table_name": "products",
+      "column_name": "capacity_weight",
+      "is_nullable": "NO",
+      "column_default": "1",
+      "ordinal_position": 14
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "products",
+      "column_name": "updated_at",
+      "is_nullable": "NO",
+      "column_default": "now()",
+      "ordinal_position": 15
+    },
+    {
       "udt_name": "uuid",
       "data_type": "uuid",
       "table_name": "profiles",
@@ -1112,6 +1485,15 @@
       "is_nullable": "NO",
       "column_default": "now()",
       "ordinal_position": 4
+    },
+    {
+      "udt_name": "bool",
+      "data_type": "boolean",
+      "table_name": "profiles",
+      "column_name": "active",
+      "is_nullable": "NO",
+      "column_default": "false",
+      "ordinal_position": 5
     },
     {
       "udt_name": "text",
@@ -1258,6 +1640,204 @@
       "ordinal_position": 6
     },
     {
+      "udt_name": "jsonb",
+      "data_type": "jsonb",
+      "table_name": "settings",
+      "column_name": "json_value",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 7
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "shop_drops",
+      "column_name": "id",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 1
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "shop_drops",
+      "column_name": "week_label",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 2
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "shop_drops",
+      "column_name": "opens_at",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 3
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "shop_drops",
+      "column_name": "closes_at",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 4
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "shop_drops",
+      "column_name": "pickup_at",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 5
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "shop_products",
+      "column_name": "id",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 1
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "shop_products",
+      "column_name": "name",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 2
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "shop_products",
+      "column_name": "short_name",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 3
+    },
+    {
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "table_name": "shop_products",
+      "column_name": "price_cents",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 4
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "shop_products",
+      "column_name": "kind",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 5
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "shop_products",
+      "column_name": "tag",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 6
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "shop_products",
+      "column_name": "description",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 7
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "shop_products",
+      "column_name": "image_path",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 8
+    },
+    {
+      "udt_name": "int4",
+      "data_type": "integer",
+      "table_name": "shop_products",
+      "column_name": "sort_order",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 9
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "shop_products",
+      "column_name": "allergens",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 10
+    },
+    {
+      "udt_name": "bool",
+      "data_type": "boolean",
+      "table_name": "shop_texts",
+      "column_name": "id",
+      "is_nullable": "NO",
+      "column_default": "true",
+      "ordinal_position": 1
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "shop_texts",
+      "column_name": "registration_badge",
+      "is_nullable": "NO",
+      "column_default": "''::text",
+      "ordinal_position": 2
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "shop_texts",
+      "column_name": "tin_line",
+      "is_nullable": "NO",
+      "column_default": "''::text",
+      "ordinal_position": 3
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "shop_texts",
+      "column_name": "invoice_note",
+      "is_nullable": "NO",
+      "column_default": "''::text",
+      "ordinal_position": 4
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "shop_texts",
+      "column_name": "allergen_note",
+      "is_nullable": "NO",
+      "column_default": "''::text",
+      "ordinal_position": 5
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "shop_texts",
+      "column_name": "updated_at",
+      "is_nullable": "NO",
+      "column_default": "now()",
+      "ordinal_position": 6
+    },
+    {
       "udt_name": "uuid",
       "data_type": "uuid",
       "table_name": "supplier_prices",
@@ -1397,9 +1977,19 @@
       "tablename": "erasure_requests"
     },
     {
+      "indexdef": "CREATE UNIQUE INDEX event_expenses_pkey ON public.event_expenses USING btree (client_id)",
+      "indexname": "event_expenses_pkey",
+      "tablename": "event_expenses"
+    },
+    {
       "indexdef": "CREATE UNIQUE INDEX event_sale_items_pkey ON public.event_sale_items USING btree (id)",
       "indexname": "event_sale_items_pkey",
       "tablename": "event_sale_items"
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX event_sale_voids_pkey ON public.event_sale_voids USING btree (client_id)",
+      "indexname": "event_sale_voids_pkey",
+      "tablename": "event_sale_voids"
     },
     {
       "indexdef": "CREATE UNIQUE INDEX event_sales_client_id_key ON public.event_sales USING btree (client_id)",
@@ -1462,6 +2052,16 @@
       "tablename": "orders"
     },
     {
+      "indexdef": "CREATE UNIQUE INDEX payment_methods_label_key ON public.payment_methods USING btree (label)",
+      "indexname": "payment_methods_label_key",
+      "tablename": "payment_methods"
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX payment_methods_pkey ON public.payment_methods USING btree (id)",
+      "indexname": "payment_methods_pkey",
+      "tablename": "payment_methods"
+    },
+    {
       "indexdef": "CREATE UNIQUE INDEX products_pkey ON public.products USING btree (id)",
       "indexname": "products_pkey",
       "tablename": "products"
@@ -1497,6 +2097,11 @@
       "tablename": "settings"
     },
     {
+      "indexdef": "CREATE UNIQUE INDEX shop_texts_pkey ON public.shop_texts USING btree (id)",
+      "indexname": "shop_texts_pkey",
+      "tablename": "shop_texts"
+    },
+    {
       "indexdef": "CREATE INDEX supplier_prices_item_idx ON public.supplier_prices USING btree (item_name, price_cents)",
       "indexname": "supplier_prices_item_idx",
       "tablename": "supplier_prices"
@@ -1530,26 +2135,15 @@
       "with_check": null
     },
     {
-      "cmd": "INSERT",
-      "qual": null,
-      "roles": [
-        "public"
-      ],
-      "tablename": "audit_log",
-      "permissive": "PERMISSIVE",
-      "policyname": "audit staff insert",
-      "with_check": "is_staff()"
-    },
-    {
       "cmd": "ALL",
-      "qual": "is_staff()",
+      "qual": "is_owner()",
       "roles": [
         "public"
       ],
       "tablename": "bake_batches",
       "permissive": "PERMISSIVE",
       "policyname": "batches staff all",
-      "with_check": "is_staff()"
+      "with_check": "is_owner()"
     },
     {
       "cmd": "ALL",
@@ -1564,7 +2158,7 @@
     },
     {
       "cmd": "SELECT",
-      "qual": "true",
+      "qual": "is_owner()",
       "roles": [
         "public"
       ],
@@ -1593,11 +2187,11 @@
       "tablename": "event_sale_items",
       "permissive": "PERMISSIVE",
       "policyname": "sale items staff insert",
-      "with_check": "is_staff()"
+      "with_check": "is_owner()"
     },
     {
       "cmd": "SELECT",
-      "qual": "is_staff()",
+      "qual": "is_owner()",
       "roles": [
         "public"
       ],
@@ -1615,11 +2209,11 @@
       "tablename": "event_sales",
       "permissive": "PERMISSIVE",
       "policyname": "sales staff insert",
-      "with_check": "is_staff()"
+      "with_check": "is_owner()"
     },
     {
       "cmd": "SELECT",
-      "qual": "is_staff()",
+      "qual": "is_owner()",
       "roles": [
         "public"
       ],
@@ -1641,7 +2235,7 @@
     },
     {
       "cmd": "SELECT",
-      "qual": "is_staff()",
+      "qual": "is_owner()",
       "roles": [
         "public"
       ],
@@ -1663,7 +2257,7 @@
     },
     {
       "cmd": "SELECT",
-      "qual": "is_staff()",
+      "qual": "is_owner()",
       "roles": [
         "public"
       ],
@@ -1674,14 +2268,14 @@
     },
     {
       "cmd": "UPDATE",
-      "qual": "is_staff()",
+      "qual": "is_owner()",
       "roles": [
         "public"
       ],
       "tablename": "inventory_items",
       "permissive": "PERMISSIVE",
       "policyname": "stock staff write",
-      "with_check": "is_staff()"
+      "with_check": "is_owner()"
     },
     {
       "cmd": "INSERT",
@@ -1718,7 +2312,7 @@
     },
     {
       "cmd": "SELECT",
-      "qual": "is_staff()",
+      "qual": "is_owner()",
       "roles": [
         "public"
       ],
@@ -1729,14 +2323,14 @@
     },
     {
       "cmd": "UPDATE",
-      "qual": "is_staff()",
+      "qual": "is_owner()",
       "roles": [
         "public"
       ],
       "tablename": "order_items",
       "permissive": "PERMISSIVE",
       "policyname": "order items staff write",
-      "with_check": "is_staff()"
+      "with_check": "is_owner()"
     },
     {
       "cmd": "INSERT",
@@ -1751,7 +2345,7 @@
     },
     {
       "cmd": "SELECT",
-      "qual": "is_staff()",
+      "qual": "is_owner()",
       "roles": [
         "public"
       ],
@@ -1762,14 +2356,14 @@
     },
     {
       "cmd": "UPDATE",
-      "qual": "is_staff()",
+      "qual": "is_owner()",
       "roles": [
         "public"
       ],
       "tablename": "orders",
       "permissive": "PERMISSIVE",
       "policyname": "orders staff write",
-      "with_check": "is_staff()"
+      "with_check": "is_owner()"
     },
     {
       "cmd": "ALL",
@@ -1784,7 +2378,7 @@
     },
     {
       "cmd": "SELECT",
-      "qual": "(active OR is_staff())",
+      "qual": "is_owner()",
       "roles": [
         "public"
       ],
@@ -1839,7 +2433,7 @@
     },
     {
       "cmd": "SELECT",
-      "qual": "is_staff()",
+      "qual": "is_owner()",
       "roles": [
         "public"
       ],
@@ -1861,7 +2455,7 @@
     },
     {
       "cmd": "SELECT",
-      "qual": "is_staff()",
+      "qual": "is_owner()",
       "roles": [
         "public"
       ],
@@ -1882,17 +2476,6 @@
       "with_check": "is_owner()"
     },
     {
-      "cmd": "SELECT",
-      "qual": "is_staff()",
-      "roles": [
-        "public"
-      ],
-      "tablename": "settings",
-      "permissive": "PERMISSIVE",
-      "policyname": "settings staff read",
-      "with_check": null
-    },
-    {
       "cmd": "ALL",
       "qual": "is_owner()",
       "roles": [
@@ -1905,7 +2488,7 @@
     },
     {
       "cmd": "SELECT",
-      "qual": "is_staff()",
+      "qual": "is_owner()",
       "roles": [
         "public"
       ],
@@ -1927,7 +2510,7 @@
     },
     {
       "cmd": "SELECT",
-      "qual": "is_staff()",
+      "qual": "is_owner()",
       "roles": [
         "public"
       ],
@@ -1939,25 +2522,179 @@
   ],
   "functions": [
     {
-      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
-      "name": "anonymise_customer",
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "add_event_expense",
       "owner": "postgres",
       "config": [
-        "search_path=public"
+        "search_path=\"\""
       ],
-      "returns": "integer",
-      "identity": "p_phone text, p_note text",
-      "execute_anon": true,
+      "returns": "TABLE(client_id text, duplicate boolean)",
+      "body_md5": "6a8d16ef9286007f7aacf224fdf88e04",
+      "identity": "p_expense jsonb",
+      "execute_anon": false,
       "security_definer": true,
       "execute_service_role": true,
       "execute_authenticated": true
     },
     {
-      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "anonymise_customer",
+      "owner": "postgres",
+      "config": [
+        "search_path=pg_catalog, public, pg_temp"
+      ],
+      "returns": "integer",
+      "body_md5": "b02890dcc9af44635413ddd4a3c46f2c",
+      "identity": "p_phone text, p_note text",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "name": "bff_session_acquire_refresh",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(p_user_id uuid, p_provider_session_id uuid, p_credential_envelope text, p_credentials_version integer, p_next_credentials_version integer, p_refresh_fence bigint, p_lease_until timestamp with time zone)",
+      "body_md5": "e67d765f0f9b962993b177c258e60f8f",
+      "identity": "p_session_hash text",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "name": "bff_session_begin_revoke",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(p_user_id uuid, p_provider_session_id uuid, p_credential_envelope text, p_credentials_version integer, p_refresh_fence bigint)",
+      "body_md5": "12322e5d0208b0e9f3c6a0a918250146",
+      "identity": "p_session_hash text",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "name": "bff_session_claim_cleanup",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(p_session_hash text, p_user_id uuid, p_provider_session_id uuid, p_credential_envelope text, p_credentials_version integer, p_refresh_fence bigint)",
+      "body_md5": "aef012e2ca0788f2ca918d6fd2422541",
+      "identity": "p_limit integer",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "name": "bff_session_complete_cleanup",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(p_completed_at timestamp with time zone)",
+      "body_md5": "118790a22233a3dfefe7876716c11c46",
+      "identity": "p_session_hash text, p_refresh_fence bigint",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "name": "bff_session_complete_if_provider_absent",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(p_completed_at timestamp with time zone)",
+      "body_md5": "41c3a3b0d7f5c249b237eb31069419e8",
+      "identity": "p_session_hash text, p_refresh_fence bigint, p_user_id uuid, p_provider_session_id uuid",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "name": "bff_session_create",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(p_role app_role, p_csrf_token_out text, p_expires_at bigint)",
+      "body_md5": "2cbc14faa20acab3948bcb89f1ff8ebb",
+      "identity": "p_session_hash text, p_csrf_token text, p_user_id uuid, p_provider_session_id uuid, p_credential_envelope text",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "name": "bff_session_finalize_refresh",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(p_role app_role, p_csrf_token text, p_expires_at bigint)",
+      "body_md5": "a3b59abde8a82a78fd345753da023b96",
+      "identity": "p_session_hash text, p_refresh_fence bigint, p_user_id uuid, p_provider_session_id uuid, p_next_credentials_version integer, p_credential_envelope text",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "name": "bff_session_read",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(p_user_id uuid, p_role app_role, p_csrf_token text, p_expires_at bigint)",
+      "body_md5": "35af19d829dc32b592377df9f3eabe0a",
+      "identity": "p_session_hash text",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "name": "bff_session_save_cleanup_rotation",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(p_saved_credentials_version integer)",
+      "body_md5": "411b24da1a6d67dc4f2d9d12cd276707",
+      "identity": "p_session_hash text, p_refresh_fence bigint, p_user_id uuid, p_provider_session_id uuid, p_credentials_version integer, p_next_credentials_version integer, p_credential_envelope text",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{=X/postgres,anon=X/postgres,authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
       "name": "capacity_allows",
       "owner": "postgres",
-      "config": null,
+      "config": [
+        "search_path=pg_catalog, public, pg_temp"
+      ],
       "returns": "boolean",
+      "body_md5": "0c56f63e70ab97455e6d943d668b0b13",
       "identity": "p_capacity integer, p_committed integer, p_requested integer",
       "execute_anon": true,
       "security_definer": false,
@@ -1965,27 +2702,44 @@
       "execute_authenticated": true
     },
     {
-      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "close_event",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(event_id uuid, name text, closed boolean, sales_count integer, voided_count integer, freebie_count integer, cookies_sold integer, revenue_cents bigint, expenses_cents bigint, variance_cents bigint, profit_cents bigint, float_cents bigint, cash_expected_cents bigint, counted_cents bigint, loaded jsonb, returned jsonb)",
+      "body_md5": "c3360d47273a8c9ceed418bc29f4a63a",
+      "identity": "p_close jsonb",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
       "name": "consume_rate_limit",
       "owner": "postgres",
       "config": [
-        "search_path=public"
+        "search_path=pg_catalog, public, pg_temp"
       ],
       "returns": "TABLE(allowed boolean, remaining integer, reset_at timestamp with time zone)",
+      "body_md5": "74198636c01a261b33724534929e5bd2",
       "identity": "p_key text, p_limit integer, p_window_s integer",
-      "execute_anon": true,
+      "execute_anon": false,
       "security_definer": true,
       "execute_service_role": true,
-      "execute_authenticated": true
+      "execute_authenticated": false
     },
     {
-      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "acl": "{=X/postgres,anon=X/postgres,authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
       "name": "current_role_name",
       "owner": "postgres",
       "config": [
-        "search_path=public"
+        "search_path=\"\""
       ],
       "returns": "app_role",
+      "body_md5": "a4831754eb6b712e47fb2eb66a1b5257",
       "identity": "",
       "execute_anon": true,
       "security_definer": true,
@@ -1993,27 +2747,119 @@
       "execute_authenticated": true
     },
     {
-      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
       "name": "drop_remaining",
       "owner": "postgres",
       "config": [
-        "search_path=public"
+        "search_path=pg_catalog, public, pg_temp"
       ],
       "returns": "integer",
+      "body_md5": "edc83ca3ecb43a1c9cf72bf65340a310",
       "identity": "p_drop_id uuid",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "event_summary",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(event_id uuid, name text, closed boolean, sales_count integer, voided_count integer, freebie_count integer, cookies_sold integer, revenue_cents bigint, expenses_cents bigint, variance_cents bigint, profit_cents bigint, float_cents bigint, cash_expected_cents bigint, counted_cents bigint, loaded jsonb, returned jsonb)",
+      "body_md5": "ea56a92fd9839c09439db3383d75e771",
+      "identity": "p_event uuid",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "get_flavours",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(id text, name text, short_name text, price_cents bigint, kind text, item_type text, capacity_weight integer, tag text, description text, image_path text, allergens text, active boolean, published boolean, sort_order integer, updated_at timestamp with time zone)",
+      "body_md5": "d8f3be86aa9536d1b666284af6998ccd",
+      "identity": "",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "get_operating_settings",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(key text, int_value bigint, text_value text, cents_value bigint, json_value jsonb, is_default boolean, updated_at timestamp with time zone)",
+      "body_md5": "799d3d984d8132792c9c8f424810669d",
+      "identity": "",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "get_payment_methods",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(id text, label text, account_number text, account_name text, qr_path text, active boolean, sort_order integer, updated_at timestamp with time zone)",
+      "body_md5": "4f83ca378d9136e381e3edc27fb9c01a",
+      "identity": "",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "get_settings",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(key text, int_value bigint, text_value text, cents_value bigint, json_value jsonb, is_default boolean, updated_at timestamp with time zone)",
+      "body_md5": "4d2d36ecf707ed776f5da5d9441fdffb",
+      "identity": "",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{anon=X/postgres,authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "get_shop_payment_info",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "da6f0a9c8d28fb9e2062ba019721134f",
+      "identity": "",
       "execute_anon": true,
       "security_definer": true,
       "execute_service_role": true,
       "execute_authenticated": true
     },
     {
-      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "acl": "{=X/postgres,anon=X/postgres,authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
       "name": "is_owner",
       "owner": "postgres",
       "config": [
-        "search_path=public"
+        "search_path=pg_catalog, public, pg_temp"
       ],
       "returns": "boolean",
+      "body_md5": "01e2d6ee9463de9885f60717bba2eef8",
       "identity": "",
       "execute_anon": true,
       "security_definer": true,
@@ -2021,13 +2867,14 @@
       "execute_authenticated": true
     },
     {
-      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "acl": "{=X/postgres,anon=X/postgres,authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
       "name": "is_staff",
       "owner": "postgres",
       "config": [
-        "search_path=public"
+        "search_path=pg_catalog, public, pg_temp"
       ],
       "returns": "boolean",
+      "body_md5": "63df4f488f967b141a33afddb8e27f80",
       "identity": "",
       "execute_anon": true,
       "security_definer": true,
@@ -2035,77 +2882,224 @@
       "execute_authenticated": true
     },
     {
-      "acl": "{postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "load_event_stock",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(event_id uuid, opened_at timestamp with time zone, float_cents bigint, loaded jsonb)",
+      "body_md5": "e85eb6e1a1fc9cc041d101fba98cbb65",
+      "identity": "p_event uuid, p_loaded jsonb, p_float_cents bigint",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
       "name": "lookup_order",
       "owner": "postgres",
       "config": [
-        "search_path=public"
+        "search_path=pg_catalog, public, pg_temp"
       ],
       "returns": "TABLE(id text, customer_name text, state order_state, pay_state pay_state, total_cents bigint, pickup_at timestamp with time zone, placed_at timestamp with time zone)",
+      "body_md5": "a347cc7362764f5b8fc070eef09c8146",
       "identity": "p_order_id text, p_phone text",
-      "execute_anon": true,
+      "execute_anon": false,
       "security_definer": true,
       "execute_service_role": true,
-      "execute_authenticated": true
+      "execute_authenticated": false
     },
     {
-      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
       "name": "prune_personal_data",
       "owner": "postgres",
       "config": [
-        "search_path=public"
+        "search_path=pg_catalog, public, pg_temp"
       ],
       "returns": "integer",
+      "body_md5": "2972a1e191174178b4b85c62a75b7f2a",
       "identity": "p_retain_days integer",
-      "execute_anon": true,
+      "execute_anon": false,
       "security_definer": true,
       "execute_service_role": true,
-      "execute_authenticated": true
+      "execute_authenticated": false
     },
     {
-      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
       "name": "prune_rate_limits",
       "owner": "postgres",
       "config": [
-        "search_path=public"
+        "search_path=pg_catalog, public, pg_temp"
       ],
       "returns": "integer",
+      "body_md5": "2483cc9753379ff31e636f44bbdb6168",
       "identity": "",
-      "execute_anon": true,
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "publish_flavours",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(id text, published boolean, updated_at timestamp with time zone)",
+      "body_md5": "49c9ae83f04fa8e28167338c541e6617",
+      "identity": "p_ids text[]",
+      "execute_anon": false,
       "security_definer": true,
       "execute_service_role": true,
       "execute_authenticated": true
     },
     {
-      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "record_event_sale",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(client_id text, sale_id uuid, duplicate boolean, voided boolean)",
+      "body_md5": "a7c6e234683b90e211141e5f13ddc021",
+      "identity": "p_sale jsonb",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "save_flavour",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(id text, updated_at timestamp with time zone)",
+      "body_md5": "e2f5e95aff7d178fd7d565aed8417ac9",
+      "identity": "p_id text, p_flavour jsonb, p_expected_updated_at timestamp with time zone",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "save_payment_method",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(id text, updated_at timestamp with time zone)",
+      "body_md5": "bb6da0dc5c8fb57ddf2429a3b7dd6c92",
+      "identity": "p_id text, p_method jsonb, p_expected_updated_at timestamp with time zone",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "save_setting",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(key text, updated_at timestamp with time zone)",
+      "body_md5": "0083e32608ec177c7faf69dc2a355254",
+      "identity": "p_key text, p_value jsonb, p_expected_updated_at timestamp with time zone",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "save_shop_texts",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(updated_at timestamp with time zone)",
+      "body_md5": "085c1763b7727f8d1ae4cca14611b9bd",
+      "identity": "p_texts jsonb, p_expected_updated_at timestamp with time zone",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "set_event_device",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "text",
+      "body_md5": "d1d17ed9e7c8c656faff9a7b8290eeaf",
+      "identity": "p_event uuid, p_device text",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
       "name": "settings_effective",
       "owner": "postgres",
-      "config": null,
-      "returns": "TABLE(key text, int_value bigint, text_value text, cents_value bigint, is_default boolean)",
+      "config": [
+        "search_path=pg_catalog, public, pg_temp"
+      ],
+      "returns": "TABLE(key text, int_value bigint, text_value text, cents_value bigint, json_value jsonb, is_default boolean)",
+      "body_md5": "24d653b680d5f0a50fc621e6ebc1da11",
       "identity": "",
-      "execute_anon": true,
+      "execute_anon": false,
       "security_definer": false,
       "execute_service_role": true,
-      "execute_authenticated": true
+      "execute_authenticated": false
     },
     {
-      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
       "name": "settings_touch",
       "owner": "postgres",
-      "config": null,
+      "config": [
+        "search_path=pg_catalog, public, pg_temp"
+      ],
       "returns": "trigger",
+      "body_md5": "785317d052154950ac9c788f4e9f243e",
       "identity": "",
-      "execute_anon": true,
+      "execute_anon": false,
       "security_definer": false,
+      "execute_service_role": true,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "start_event",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(event_id uuid, starts_at timestamp with time zone, selling_device text, prices jsonb)",
+      "body_md5": "87406bacf82eff49036544266429c089",
+      "identity": "p_name text, p_device text, p_float_cents bigint, p_event_id uuid",
+      "execute_anon": false,
+      "security_definer": true,
       "execute_service_role": true,
       "execute_authenticated": true
     },
     {
-      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "acl": "{=X/postgres,anon=X/postgres,authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
       "name": "state_is_recognised",
       "owner": "postgres",
-      "config": null,
+      "config": [
+        "search_path=pg_catalog, public, pg_temp"
+      ],
       "returns": "boolean",
+      "body_md5": "fd1b5d692ebd4ce592628c9a74d0f826",
       "identity": "p_state order_state",
       "execute_anon": true,
       "security_definer": false,
@@ -2113,11 +3107,14 @@
       "execute_authenticated": true
     },
     {
-      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "acl": "{=X/postgres,anon=X/postgres,authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
       "name": "state_reserves_capacity",
       "owner": "postgres",
-      "config": null,
+      "config": [
+        "search_path=pg_catalog, public, pg_temp"
+      ],
       "returns": "boolean",
+      "body_md5": "2ba04ba470bcfbb14ddec2ce89802159",
       "identity": "p_state order_state",
       "execute_anon": true,
       "security_definer": false,
@@ -2125,44 +3122,80 @@
       "execute_authenticated": true
     },
     {
-      "acl": "{postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
       "name": "sync_event_sale",
       "owner": "postgres",
       "config": [
-        "search_path=public"
+        "search_path=pg_catalog, public, pg_temp"
       ],
       "returns": "TABLE(client_id text, sale_id uuid, duplicate boolean)",
+      "body_md5": "dd435d225e521c735a9598ad309d218e",
       "identity": "p_sale jsonb",
-      "execute_anon": true,
+      "execute_anon": false,
       "security_definer": true,
       "execute_service_role": true,
-      "execute_authenticated": true
+      "execute_authenticated": false
     },
     {
-      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
       "name": "touch_updated_at",
       "owner": "postgres",
-      "config": null,
+      "config": [
+        "search_path=pg_catalog, public, pg_temp"
+      ],
       "returns": "trigger",
+      "body_md5": "1c4318bee4240d4113d86fad7eb15623",
       "identity": "",
-      "execute_anon": true,
+      "execute_anon": false,
       "security_definer": false,
       "execute_service_role": true,
-      "execute_authenticated": true
+      "execute_authenticated": false
     },
     {
-      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
       "name": "update_order_state",
       "owner": "postgres",
       "config": [
-        "search_path=public"
+        "search_path=pg_catalog, public, pg_temp"
       ],
       "returns": "TABLE(id text, state text, pay_state text, updated_at timestamp with time zone)",
+      "body_md5": "a13883cbcf47523d5122eaa36b70aa5e",
       "identity": "p_order_id text, p_seen_at timestamp with time zone, p_state text, p_pay_state text, p_pay_ref text",
-      "execute_anon": true,
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "void_event_sale",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(client_id text, sale_known boolean, duplicate boolean)",
+      "body_md5": "5611a5a34967eacdbb8e91986fa9b1f9",
+      "identity": "p_void jsonb",
+      "execute_anon": false,
       "security_definer": true,
       "execute_service_role": true,
       "execute_authenticated": true
+    }
+  ],
+  "sequences": [
+    {
+      "acl": "{postgres=rwU/postgres,service_role=rwU/postgres}",
+      "name": "audit_log_id_seq",
+      "owner": "postgres",
+      "anon_usage": false,
+      "anon_select": false,
+      "anon_update": false,
+      "service_usage": true,
+      "service_select": true,
+      "service_update": true,
+      "authenticated_usage": false,
+      "authenticated_select": false,
+      "authenticated_update": false
     }
   ],
   "constraints": [
@@ -2233,6 +3266,54 @@
       "definition": "PRIMARY KEY (id)"
     },
     {
+      "name": "event_expenses_amount_cents_check",
+      "type": "c",
+      "table": "event_expenses",
+      "definition": "CHECK ((amount_cents > 0))"
+    },
+    {
+      "name": "event_expenses_category_check",
+      "type": "c",
+      "table": "event_expenses",
+      "definition": "CHECK (((btrim(category) <> ''::text) AND (length(category) <= 40)))"
+    },
+    {
+      "name": "event_expenses_client_id_check",
+      "type": "c",
+      "table": "event_expenses",
+      "definition": "CHECK (((length(client_id) >= 1) AND (length(client_id) <= 160)))"
+    },
+    {
+      "name": "event_expenses_event_id_fkey",
+      "type": "f",
+      "table": "event_expenses",
+      "definition": "FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE"
+    },
+    {
+      "name": "event_expenses_label_check",
+      "type": "c",
+      "table": "event_expenses",
+      "definition": "CHECK (((btrim(label) <> ''::text) AND (length(label) <= 80)))"
+    },
+    {
+      "name": "event_expenses_ledger_id_fkey",
+      "type": "f",
+      "table": "event_expenses",
+      "definition": "FOREIGN KEY (ledger_id) REFERENCES ledger_entries(id) ON DELETE SET NULL"
+    },
+    {
+      "name": "event_expenses_payload_hash_check",
+      "type": "c",
+      "table": "event_expenses",
+      "definition": "CHECK ((payload_hash ~ '^[0-9a-f]{64}$'::text))"
+    },
+    {
+      "name": "event_expenses_pkey",
+      "type": "p",
+      "table": "event_expenses",
+      "definition": "PRIMARY KEY (client_id)"
+    },
+    {
       "name": "event_sale_items_pkey",
       "type": "p",
       "table": "event_sale_items",
@@ -2255,6 +3336,24 @@
       "type": "f",
       "table": "event_sale_items",
       "definition": "FOREIGN KEY (sale_id) REFERENCES event_sales(id) ON DELETE CASCADE"
+    },
+    {
+      "name": "event_sale_voids_client_id_check",
+      "type": "c",
+      "table": "event_sale_voids",
+      "definition": "CHECK (((length(client_id) >= 1) AND (length(client_id) <= 160)))"
+    },
+    {
+      "name": "event_sale_voids_device_id_check",
+      "type": "c",
+      "table": "event_sale_voids",
+      "definition": "CHECK ((device_id ~ '^[A-Za-z0-9_-]{1,64}$'::text))"
+    },
+    {
+      "name": "event_sale_voids_pkey",
+      "type": "p",
+      "table": "event_sale_voids",
+      "definition": "PRIMARY KEY (client_id)"
     },
     {
       "name": "event_sales_client_id_key",
@@ -2287,6 +3386,12 @@
       "definition": "FOREIGN KEY (ledger_id) REFERENCES ledger_entries(id) ON DELETE SET NULL"
     },
     {
+      "name": "event_sales_payload_hash_check",
+      "type": "c",
+      "table": "event_sales",
+      "definition": "CHECK (((payload_hash IS NULL) OR (payload_hash ~ '^[0-9a-f]{64}$'::text)))"
+    },
+    {
       "name": "event_sales_pkey",
       "type": "p",
       "table": "event_sales",
@@ -2299,10 +3404,52 @@
       "definition": "CHECK ((total_cents >= 0))"
     },
     {
+      "name": "events_closed_hash_check",
+      "type": "c",
+      "table": "events",
+      "definition": "CHECK (((closed_hash IS NULL) OR (closed_hash ~ '^[0-9a-f]{64}$'::text)))"
+    },
+    {
+      "name": "events_counted_cents_check",
+      "type": "c",
+      "table": "events",
+      "definition": "CHECK (((counted_cents IS NULL) OR (counted_cents >= 0)))"
+    },
+    {
+      "name": "events_drawer_float_cents_check",
+      "type": "c",
+      "table": "events",
+      "definition": "CHECK (((drawer_float_cents IS NULL) OR ((drawer_float_cents >= 0) AND (drawer_float_cents <= 100000000))))"
+    },
+    {
+      "name": "events_loaded_check",
+      "type": "c",
+      "table": "events",
+      "definition": "CHECK ((jsonb_typeof(loaded) = 'object'::text))"
+    },
+    {
       "name": "events_pkey",
       "type": "p",
       "table": "events",
       "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "name": "events_price_snapshot_check",
+      "type": "c",
+      "table": "events",
+      "definition": "CHECK ((jsonb_typeof(price_snapshot) = 'object'::text))"
+    },
+    {
+      "name": "events_returned_check",
+      "type": "c",
+      "table": "events",
+      "definition": "CHECK ((jsonb_typeof(returned) = 'object'::text))"
+    },
+    {
+      "name": "events_selling_device_check",
+      "type": "c",
+      "table": "events",
+      "definition": "CHECK (((selling_device IS NULL) OR (selling_device ~ '^[A-Za-z0-9_-]{1,64}$'::text)))"
     },
     {
       "name": "inventory_items_pkey",
@@ -2383,6 +3530,66 @@
       "definition": "CHECK ((total_cents >= 0))"
     },
     {
+      "name": "payment_methods_account_name_check",
+      "type": "c",
+      "table": "payment_methods",
+      "definition": "CHECK ((length(account_name) <= 60))"
+    },
+    {
+      "name": "payment_methods_account_number_check",
+      "type": "c",
+      "table": "payment_methods",
+      "definition": "CHECK ((length(account_number) <= 40))"
+    },
+    {
+      "name": "payment_methods_id_check",
+      "type": "c",
+      "table": "payment_methods",
+      "definition": "CHECK ((id ~ '^[a-z0-9][a-z0-9-]{0,31}$'::text))"
+    },
+    {
+      "name": "payment_methods_label_check",
+      "type": "c",
+      "table": "payment_methods",
+      "definition": "CHECK (((length(btrim(label)) >= 1) AND (length(btrim(label)) <= 30)))"
+    },
+    {
+      "name": "payment_methods_label_key",
+      "type": "u",
+      "table": "payment_methods",
+      "definition": "UNIQUE (label)"
+    },
+    {
+      "name": "payment_methods_pkey",
+      "type": "p",
+      "table": "payment_methods",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "name": "payment_methods_qr_path_check",
+      "type": "c",
+      "table": "payment_methods",
+      "definition": "CHECK (((qr_path = ''::text) OR (qr_path ~ '^qr/[A-Za-z0-9_-]{1,64}\\.(png|jpg|jpeg|webp)$'::text)))"
+    },
+    {
+      "name": "payment_methods_sort_order_check",
+      "type": "c",
+      "table": "payment_methods",
+      "definition": "CHECK (((sort_order >= 0) AND (sort_order <= 99)))"
+    },
+    {
+      "name": "products_capacity_weight",
+      "type": "c",
+      "table": "products",
+      "definition": "CHECK (((capacity_weight >= 1) AND (capacity_weight <= 48)))"
+    },
+    {
+      "name": "products_item_type",
+      "type": "c",
+      "table": "products",
+      "definition": "CHECK ((item_type = ANY (ARRAY['cookie'::text, 'set'::text])))"
+    },
+    {
       "name": "products_pkey",
       "type": "p",
       "table": "products",
@@ -2446,7 +3653,7 @@
       "name": "settings_one_value",
       "type": "c",
       "table": "settings",
-      "definition": "CHECK ((((((int_value IS NOT NULL))::integer + ((text_value IS NOT NULL))::integer) + ((cents_value IS NOT NULL))::integer) <= 1))"
+      "definition": "CHECK (((((((int_value IS NOT NULL))::integer + ((text_value IS NOT NULL))::integer) + ((cents_value IS NOT NULL))::integer) + ((json_value IS NOT NULL))::integer) <= 1))"
     },
     {
       "name": "settings_pkey",
@@ -2459,6 +3666,42 @@
       "type": "f",
       "table": "settings",
       "definition": "FOREIGN KEY (updated_by) REFERENCES auth.users(id)"
+    },
+    {
+      "name": "shop_texts_allergen_note_check",
+      "type": "c",
+      "table": "shop_texts",
+      "definition": "CHECK ((length(allergen_note) <= 300))"
+    },
+    {
+      "name": "shop_texts_id_check",
+      "type": "c",
+      "table": "shop_texts",
+      "definition": "CHECK (id)"
+    },
+    {
+      "name": "shop_texts_invoice_note_check",
+      "type": "c",
+      "table": "shop_texts",
+      "definition": "CHECK ((length(invoice_note) <= 200))"
+    },
+    {
+      "name": "shop_texts_pkey",
+      "type": "p",
+      "table": "shop_texts",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "name": "shop_texts_registration_badge_check",
+      "type": "c",
+      "table": "shop_texts",
+      "definition": "CHECK ((length(registration_badge) <= 20))"
+    },
+    {
+      "name": "shop_texts_tin_line_check",
+      "type": "c",
+      "table": "shop_texts",
+      "definition": "CHECK ((length(tin_line) <= 80))"
     },
     {
       "name": "supplier_prices_pkey",
@@ -2497,76 +3740,6 @@
       "grantor": "postgres",
       "table_name": "audit_log",
       "is_grantable": "NO",
-      "privilege_type": "DELETE"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "audit_log",
-      "is_grantable": "NO",
-      "privilege_type": "INSERT"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "audit_log",
-      "is_grantable": "NO",
-      "privilege_type": "REFERENCES"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "audit_log",
-      "is_grantable": "NO",
-      "privilege_type": "SELECT"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "audit_log",
-      "is_grantable": "NO",
-      "privilege_type": "TRIGGER"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "audit_log",
-      "is_grantable": "NO",
-      "privilege_type": "TRUNCATE"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "audit_log",
-      "is_grantable": "NO",
-      "privilege_type": "UPDATE"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "audit_log",
-      "is_grantable": "NO",
-      "privilege_type": "DELETE"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "audit_log",
-      "is_grantable": "NO",
-      "privilege_type": "INSERT"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "audit_log",
-      "is_grantable": "NO",
-      "privilege_type": "REFERENCES"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "audit_log",
-      "is_grantable": "NO",
       "privilege_type": "SELECT"
     },
     {
@@ -2574,21 +3747,7 @@
       "grantor": "postgres",
       "table_name": "audit_log",
       "is_grantable": "NO",
-      "privilege_type": "TRIGGER"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "audit_log",
-      "is_grantable": "NO",
-      "privilege_type": "TRUNCATE"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "audit_log",
-      "is_grantable": "NO",
-      "privilege_type": "UPDATE"
+      "privilege_type": "SELECT"
     },
     {
       "grantee": "postgres",
@@ -2707,28 +3866,7 @@
       "grantor": "postgres",
       "table_name": "bake_batches",
       "is_grantable": "NO",
-      "privilege_type": "REFERENCES"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "bake_batches",
-      "is_grantable": "NO",
       "privilege_type": "SELECT"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "bake_batches",
-      "is_grantable": "NO",
-      "privilege_type": "TRIGGER"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "bake_batches",
-      "is_grantable": "NO",
-      "privilege_type": "TRUNCATE"
     },
     {
       "grantee": "anon",
@@ -2756,28 +3894,7 @@
       "grantor": "postgres",
       "table_name": "bake_batches",
       "is_grantable": "NO",
-      "privilege_type": "REFERENCES"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "bake_batches",
-      "is_grantable": "NO",
       "privilege_type": "SELECT"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "bake_batches",
-      "is_grantable": "NO",
-      "privilege_type": "TRIGGER"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "bake_batches",
-      "is_grantable": "NO",
-      "privilege_type": "TRUNCATE"
     },
     {
       "grantee": "authenticated",
@@ -2903,28 +4020,7 @@
       "grantor": "postgres",
       "table_name": "drops",
       "is_grantable": "NO",
-      "privilege_type": "REFERENCES"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "drops",
-      "is_grantable": "NO",
       "privilege_type": "SELECT"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "drops",
-      "is_grantable": "NO",
-      "privilege_type": "TRIGGER"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "drops",
-      "is_grantable": "NO",
-      "privilege_type": "TRUNCATE"
     },
     {
       "grantee": "anon",
@@ -2952,28 +4048,7 @@
       "grantor": "postgres",
       "table_name": "drops",
       "is_grantable": "NO",
-      "privilege_type": "REFERENCES"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "drops",
-      "is_grantable": "NO",
       "privilege_type": "SELECT"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "drops",
-      "is_grantable": "NO",
-      "privilege_type": "TRIGGER"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "drops",
-      "is_grantable": "NO",
-      "privilege_type": "TRUNCATE"
     },
     {
       "grantee": "authenticated",
@@ -3099,28 +4174,7 @@
       "grantor": "postgres",
       "table_name": "erasure_requests",
       "is_grantable": "NO",
-      "privilege_type": "REFERENCES"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "erasure_requests",
-      "is_grantable": "NO",
       "privilege_type": "SELECT"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "erasure_requests",
-      "is_grantable": "NO",
-      "privilege_type": "TRIGGER"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "erasure_requests",
-      "is_grantable": "NO",
-      "privilege_type": "TRUNCATE"
     },
     {
       "grantee": "anon",
@@ -3148,28 +4202,7 @@
       "grantor": "postgres",
       "table_name": "erasure_requests",
       "is_grantable": "NO",
-      "privilege_type": "REFERENCES"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "erasure_requests",
-      "is_grantable": "NO",
       "privilege_type": "SELECT"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "erasure_requests",
-      "is_grantable": "NO",
-      "privilege_type": "TRIGGER"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "erasure_requests",
-      "is_grantable": "NO",
-      "privilege_type": "TRUNCATE"
     },
     {
       "grantee": "authenticated",
@@ -3277,6 +4310,104 @@
       "privilege_type": "UPDATE"
     },
     {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "event_expenses",
+      "is_grantable": "YES",
+      "privilege_type": "DELETE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "event_expenses",
+      "is_grantable": "YES",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "event_expenses",
+      "is_grantable": "YES",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "event_expenses",
+      "is_grantable": "YES",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "event_expenses",
+      "is_grantable": "YES",
+      "privilege_type": "TRIGGER"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "event_expenses",
+      "is_grantable": "YES",
+      "privilege_type": "TRUNCATE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "event_expenses",
+      "is_grantable": "YES",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "event_expenses",
+      "is_grantable": "NO",
+      "privilege_type": "DELETE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "event_expenses",
+      "is_grantable": "NO",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "event_expenses",
+      "is_grantable": "NO",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "event_expenses",
+      "is_grantable": "NO",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "event_expenses",
+      "is_grantable": "NO",
+      "privilege_type": "TRIGGER"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "event_expenses",
+      "is_grantable": "NO",
+      "privilege_type": "TRUNCATE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "event_expenses",
+      "is_grantable": "NO",
+      "privilege_type": "UPDATE"
+    },
+    {
       "grantee": "anon",
       "grantor": "postgres",
       "table_name": "event_sale_items",
@@ -3295,28 +4426,7 @@
       "grantor": "postgres",
       "table_name": "event_sale_items",
       "is_grantable": "NO",
-      "privilege_type": "REFERENCES"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "event_sale_items",
-      "is_grantable": "NO",
       "privilege_type": "SELECT"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "event_sale_items",
-      "is_grantable": "NO",
-      "privilege_type": "TRIGGER"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "event_sale_items",
-      "is_grantable": "NO",
-      "privilege_type": "TRUNCATE"
     },
     {
       "grantee": "anon",
@@ -3344,28 +4454,7 @@
       "grantor": "postgres",
       "table_name": "event_sale_items",
       "is_grantable": "NO",
-      "privilege_type": "REFERENCES"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "event_sale_items",
-      "is_grantable": "NO",
       "privilege_type": "SELECT"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "event_sale_items",
-      "is_grantable": "NO",
-      "privilege_type": "TRIGGER"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "event_sale_items",
-      "is_grantable": "NO",
-      "privilege_type": "TRUNCATE"
     },
     {
       "grantee": "authenticated",
@@ -3473,6 +4562,104 @@
       "privilege_type": "UPDATE"
     },
     {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "event_sale_voids",
+      "is_grantable": "YES",
+      "privilege_type": "DELETE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "event_sale_voids",
+      "is_grantable": "YES",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "event_sale_voids",
+      "is_grantable": "YES",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "event_sale_voids",
+      "is_grantable": "YES",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "event_sale_voids",
+      "is_grantable": "YES",
+      "privilege_type": "TRIGGER"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "event_sale_voids",
+      "is_grantable": "YES",
+      "privilege_type": "TRUNCATE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "event_sale_voids",
+      "is_grantable": "YES",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "event_sale_voids",
+      "is_grantable": "NO",
+      "privilege_type": "DELETE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "event_sale_voids",
+      "is_grantable": "NO",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "event_sale_voids",
+      "is_grantable": "NO",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "event_sale_voids",
+      "is_grantable": "NO",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "event_sale_voids",
+      "is_grantable": "NO",
+      "privilege_type": "TRIGGER"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "event_sale_voids",
+      "is_grantable": "NO",
+      "privilege_type": "TRUNCATE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "event_sale_voids",
+      "is_grantable": "NO",
+      "privilege_type": "UPDATE"
+    },
+    {
       "grantee": "anon",
       "grantor": "postgres",
       "table_name": "event_sales",
@@ -3491,28 +4678,7 @@
       "grantor": "postgres",
       "table_name": "event_sales",
       "is_grantable": "NO",
-      "privilege_type": "REFERENCES"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "event_sales",
-      "is_grantable": "NO",
       "privilege_type": "SELECT"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "event_sales",
-      "is_grantable": "NO",
-      "privilege_type": "TRIGGER"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "event_sales",
-      "is_grantable": "NO",
-      "privilege_type": "TRUNCATE"
     },
     {
       "grantee": "anon",
@@ -3540,28 +4706,7 @@
       "grantor": "postgres",
       "table_name": "event_sales",
       "is_grantable": "NO",
-      "privilege_type": "REFERENCES"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "event_sales",
-      "is_grantable": "NO",
       "privilege_type": "SELECT"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "event_sales",
-      "is_grantable": "NO",
-      "privilege_type": "TRIGGER"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "event_sales",
-      "is_grantable": "NO",
-      "privilege_type": "TRUNCATE"
     },
     {
       "grantee": "authenticated",
@@ -3687,28 +4832,7 @@
       "grantor": "postgres",
       "table_name": "events",
       "is_grantable": "NO",
-      "privilege_type": "REFERENCES"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "events",
-      "is_grantable": "NO",
       "privilege_type": "SELECT"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "events",
-      "is_grantable": "NO",
-      "privilege_type": "TRIGGER"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "events",
-      "is_grantable": "NO",
-      "privilege_type": "TRUNCATE"
     },
     {
       "grantee": "anon",
@@ -3736,28 +4860,7 @@
       "grantor": "postgres",
       "table_name": "events",
       "is_grantable": "NO",
-      "privilege_type": "REFERENCES"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "events",
-      "is_grantable": "NO",
       "privilege_type": "SELECT"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "events",
-      "is_grantable": "NO",
-      "privilege_type": "TRIGGER"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "events",
-      "is_grantable": "NO",
-      "privilege_type": "TRUNCATE"
     },
     {
       "grantee": "authenticated",
@@ -3883,28 +4986,7 @@
       "grantor": "postgres",
       "table_name": "inventory_items",
       "is_grantable": "NO",
-      "privilege_type": "REFERENCES"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "inventory_items",
-      "is_grantable": "NO",
       "privilege_type": "SELECT"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "inventory_items",
-      "is_grantable": "NO",
-      "privilege_type": "TRIGGER"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "inventory_items",
-      "is_grantable": "NO",
-      "privilege_type": "TRUNCATE"
     },
     {
       "grantee": "anon",
@@ -3932,28 +5014,7 @@
       "grantor": "postgres",
       "table_name": "inventory_items",
       "is_grantable": "NO",
-      "privilege_type": "REFERENCES"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "inventory_items",
-      "is_grantable": "NO",
       "privilege_type": "SELECT"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "inventory_items",
-      "is_grantable": "NO",
-      "privilege_type": "TRIGGER"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "inventory_items",
-      "is_grantable": "NO",
-      "privilege_type": "TRUNCATE"
     },
     {
       "grantee": "authenticated",
@@ -4079,28 +5140,7 @@
       "grantor": "postgres",
       "table_name": "ledger_entries",
       "is_grantable": "NO",
-      "privilege_type": "REFERENCES"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "ledger_entries",
-      "is_grantable": "NO",
       "privilege_type": "SELECT"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "ledger_entries",
-      "is_grantable": "NO",
-      "privilege_type": "TRIGGER"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "ledger_entries",
-      "is_grantable": "NO",
-      "privilege_type": "TRUNCATE"
     },
     {
       "grantee": "anon",
@@ -4128,28 +5168,7 @@
       "grantor": "postgres",
       "table_name": "ledger_entries",
       "is_grantable": "NO",
-      "privilege_type": "REFERENCES"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "ledger_entries",
-      "is_grantable": "NO",
       "privilege_type": "SELECT"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "ledger_entries",
-      "is_grantable": "NO",
-      "privilege_type": "TRIGGER"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "ledger_entries",
-      "is_grantable": "NO",
-      "privilege_type": "TRUNCATE"
     },
     {
       "grantee": "authenticated",
@@ -4268,35 +5287,7 @@
       "grantor": "postgres",
       "table_name": "order_items",
       "is_grantable": "NO",
-      "privilege_type": "INSERT"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "order_items",
-      "is_grantable": "NO",
-      "privilege_type": "REFERENCES"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "order_items",
-      "is_grantable": "NO",
       "privilege_type": "SELECT"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "order_items",
-      "is_grantable": "NO",
-      "privilege_type": "TRIGGER"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "order_items",
-      "is_grantable": "NO",
-      "privilege_type": "TRUNCATE"
     },
     {
       "grantee": "anon",
@@ -4317,35 +5308,7 @@
       "grantor": "postgres",
       "table_name": "order_items",
       "is_grantable": "NO",
-      "privilege_type": "INSERT"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "order_items",
-      "is_grantable": "NO",
-      "privilege_type": "REFERENCES"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "order_items",
-      "is_grantable": "NO",
       "privilege_type": "SELECT"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "order_items",
-      "is_grantable": "NO",
-      "privilege_type": "TRIGGER"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "order_items",
-      "is_grantable": "NO",
-      "privilege_type": "TRUNCATE"
     },
     {
       "grantee": "authenticated",
@@ -4464,35 +5427,7 @@
       "grantor": "postgres",
       "table_name": "orders",
       "is_grantable": "NO",
-      "privilege_type": "INSERT"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "orders",
-      "is_grantable": "NO",
-      "privilege_type": "REFERENCES"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "orders",
-      "is_grantable": "NO",
       "privilege_type": "SELECT"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "orders",
-      "is_grantable": "NO",
-      "privilege_type": "TRIGGER"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "orders",
-      "is_grantable": "NO",
-      "privilege_type": "TRUNCATE"
     },
     {
       "grantee": "anon",
@@ -4513,35 +5448,7 @@
       "grantor": "postgres",
       "table_name": "orders",
       "is_grantable": "NO",
-      "privilege_type": "INSERT"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "orders",
-      "is_grantable": "NO",
-      "privilege_type": "REFERENCES"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "orders",
-      "is_grantable": "NO",
       "privilege_type": "SELECT"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "orders",
-      "is_grantable": "NO",
-      "privilege_type": "TRIGGER"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "orders",
-      "is_grantable": "NO",
-      "privilege_type": "TRUNCATE"
     },
     {
       "grantee": "authenticated",
@@ -4649,77 +5556,105 @@
       "privilege_type": "UPDATE"
     },
     {
-      "grantee": "anon",
+      "grantee": "postgres",
       "grantor": "postgres",
-      "table_name": "products",
+      "table_name": "payment_methods",
+      "is_grantable": "YES",
+      "privilege_type": "DELETE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "payment_methods",
+      "is_grantable": "YES",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "payment_methods",
+      "is_grantable": "YES",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "payment_methods",
+      "is_grantable": "YES",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "payment_methods",
+      "is_grantable": "YES",
+      "privilege_type": "TRIGGER"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "payment_methods",
+      "is_grantable": "YES",
+      "privilege_type": "TRUNCATE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "payment_methods",
+      "is_grantable": "YES",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "payment_methods",
       "is_grantable": "NO",
       "privilege_type": "DELETE"
     },
     {
-      "grantee": "anon",
+      "grantee": "service_role",
       "grantor": "postgres",
-      "table_name": "products",
+      "table_name": "payment_methods",
       "is_grantable": "NO",
       "privilege_type": "INSERT"
     },
     {
-      "grantee": "anon",
+      "grantee": "service_role",
       "grantor": "postgres",
-      "table_name": "products",
+      "table_name": "payment_methods",
       "is_grantable": "NO",
       "privilege_type": "REFERENCES"
     },
     {
-      "grantee": "anon",
+      "grantee": "service_role",
       "grantor": "postgres",
-      "table_name": "products",
+      "table_name": "payment_methods",
       "is_grantable": "NO",
       "privilege_type": "SELECT"
     },
     {
-      "grantee": "anon",
+      "grantee": "service_role",
       "grantor": "postgres",
-      "table_name": "products",
+      "table_name": "payment_methods",
       "is_grantable": "NO",
       "privilege_type": "TRIGGER"
     },
     {
-      "grantee": "anon",
+      "grantee": "service_role",
       "grantor": "postgres",
-      "table_name": "products",
+      "table_name": "payment_methods",
       "is_grantable": "NO",
       "privilege_type": "TRUNCATE"
     },
     {
-      "grantee": "anon",
+      "grantee": "service_role",
       "grantor": "postgres",
-      "table_name": "products",
+      "table_name": "payment_methods",
       "is_grantable": "NO",
       "privilege_type": "UPDATE"
     },
     {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "products",
-      "is_grantable": "NO",
-      "privilege_type": "DELETE"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "products",
-      "is_grantable": "NO",
-      "privilege_type": "INSERT"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "products",
-      "is_grantable": "NO",
-      "privilege_type": "REFERENCES"
-    },
-    {
-      "grantee": "authenticated",
+      "grantee": "anon",
       "grantor": "postgres",
       "table_name": "products",
       "is_grantable": "NO",
@@ -4730,21 +5665,7 @@
       "grantor": "postgres",
       "table_name": "products",
       "is_grantable": "NO",
-      "privilege_type": "TRIGGER"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "products",
-      "is_grantable": "NO",
-      "privilege_type": "TRUNCATE"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "products",
-      "is_grantable": "NO",
-      "privilege_type": "UPDATE"
+      "privilege_type": "SELECT"
     },
     {
       "grantee": "postgres",
@@ -4863,28 +5784,7 @@
       "grantor": "postgres",
       "table_name": "profiles",
       "is_grantable": "NO",
-      "privilege_type": "REFERENCES"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "profiles",
-      "is_grantable": "NO",
       "privilege_type": "SELECT"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "profiles",
-      "is_grantable": "NO",
-      "privilege_type": "TRIGGER"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "profiles",
-      "is_grantable": "NO",
-      "privilege_type": "TRUNCATE"
     },
     {
       "grantee": "anon",
@@ -4912,28 +5812,7 @@
       "grantor": "postgres",
       "table_name": "profiles",
       "is_grantable": "NO",
-      "privilege_type": "REFERENCES"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "profiles",
-      "is_grantable": "NO",
       "privilege_type": "SELECT"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "profiles",
-      "is_grantable": "NO",
-      "privilege_type": "TRIGGER"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "profiles",
-      "is_grantable": "NO",
-      "privilege_type": "TRUNCATE"
     },
     {
       "grantee": "authenticated",
@@ -5157,28 +6036,7 @@
       "grantor": "postgres",
       "table_name": "recipe_ingredients",
       "is_grantable": "NO",
-      "privilege_type": "REFERENCES"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "recipe_ingredients",
-      "is_grantable": "NO",
       "privilege_type": "SELECT"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "recipe_ingredients",
-      "is_grantable": "NO",
-      "privilege_type": "TRIGGER"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "recipe_ingredients",
-      "is_grantable": "NO",
-      "privilege_type": "TRUNCATE"
     },
     {
       "grantee": "anon",
@@ -5206,28 +6064,7 @@
       "grantor": "postgres",
       "table_name": "recipe_ingredients",
       "is_grantable": "NO",
-      "privilege_type": "REFERENCES"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "recipe_ingredients",
-      "is_grantable": "NO",
       "privilege_type": "SELECT"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "recipe_ingredients",
-      "is_grantable": "NO",
-      "privilege_type": "TRIGGER"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "recipe_ingredients",
-      "is_grantable": "NO",
-      "privilege_type": "TRUNCATE"
     },
     {
       "grantee": "authenticated",
@@ -5353,28 +6190,7 @@
       "grantor": "postgres",
       "table_name": "recipes",
       "is_grantable": "NO",
-      "privilege_type": "REFERENCES"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "recipes",
-      "is_grantable": "NO",
       "privilege_type": "SELECT"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "recipes",
-      "is_grantable": "NO",
-      "privilege_type": "TRIGGER"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "recipes",
-      "is_grantable": "NO",
-      "privilege_type": "TRUNCATE"
     },
     {
       "grantee": "anon",
@@ -5402,28 +6218,7 @@
       "grantor": "postgres",
       "table_name": "recipes",
       "is_grantable": "NO",
-      "privilege_type": "REFERENCES"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "recipes",
-      "is_grantable": "NO",
       "privilege_type": "SELECT"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "recipes",
-      "is_grantable": "NO",
-      "privilege_type": "TRIGGER"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "recipes",
-      "is_grantable": "NO",
-      "privilege_type": "TRUNCATE"
     },
     {
       "grantee": "authenticated",
@@ -5535,76 +6330,6 @@
       "grantor": "postgres",
       "table_name": "settings",
       "is_grantable": "NO",
-      "privilege_type": "DELETE"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "settings",
-      "is_grantable": "NO",
-      "privilege_type": "INSERT"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "settings",
-      "is_grantable": "NO",
-      "privilege_type": "REFERENCES"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "settings",
-      "is_grantable": "NO",
-      "privilege_type": "SELECT"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "settings",
-      "is_grantable": "NO",
-      "privilege_type": "TRIGGER"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "settings",
-      "is_grantable": "NO",
-      "privilege_type": "TRUNCATE"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "settings",
-      "is_grantable": "NO",
-      "privilege_type": "UPDATE"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "settings",
-      "is_grantable": "NO",
-      "privilege_type": "DELETE"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "settings",
-      "is_grantable": "NO",
-      "privilege_type": "INSERT"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "settings",
-      "is_grantable": "NO",
-      "privilege_type": "REFERENCES"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "settings",
-      "is_grantable": "NO",
       "privilege_type": "SELECT"
     },
     {
@@ -5612,21 +6337,7 @@
       "grantor": "postgres",
       "table_name": "settings",
       "is_grantable": "NO",
-      "privilege_type": "TRIGGER"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "settings",
-      "is_grantable": "NO",
-      "privilege_type": "TRUNCATE"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "settings",
-      "is_grantable": "NO",
-      "privilege_type": "UPDATE"
+      "privilege_type": "SELECT"
     },
     {
       "grantee": "postgres",
@@ -5723,6 +6434,244 @@
       "grantee": "service_role",
       "grantor": "postgres",
       "table_name": "settings",
+      "is_grantable": "NO",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "shop_drops",
+      "is_grantable": "NO",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "shop_drops",
+      "is_grantable": "NO",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "shop_drops",
+      "is_grantable": "YES",
+      "privilege_type": "DELETE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "shop_drops",
+      "is_grantable": "YES",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "shop_drops",
+      "is_grantable": "YES",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "shop_drops",
+      "is_grantable": "YES",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "shop_drops",
+      "is_grantable": "YES",
+      "privilege_type": "TRIGGER"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "shop_drops",
+      "is_grantable": "YES",
+      "privilege_type": "TRUNCATE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "shop_drops",
+      "is_grantable": "YES",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "shop_drops",
+      "is_grantable": "NO",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "shop_products",
+      "is_grantable": "NO",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "shop_products",
+      "is_grantable": "NO",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "shop_products",
+      "is_grantable": "YES",
+      "privilege_type": "DELETE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "shop_products",
+      "is_grantable": "YES",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "shop_products",
+      "is_grantable": "YES",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "shop_products",
+      "is_grantable": "YES",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "shop_products",
+      "is_grantable": "YES",
+      "privilege_type": "TRIGGER"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "shop_products",
+      "is_grantable": "YES",
+      "privilege_type": "TRUNCATE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "shop_products",
+      "is_grantable": "YES",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "shop_products",
+      "is_grantable": "NO",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "shop_texts",
+      "is_grantable": "YES",
+      "privilege_type": "DELETE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "shop_texts",
+      "is_grantable": "YES",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "shop_texts",
+      "is_grantable": "YES",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "shop_texts",
+      "is_grantable": "YES",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "shop_texts",
+      "is_grantable": "YES",
+      "privilege_type": "TRIGGER"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "shop_texts",
+      "is_grantable": "YES",
+      "privilege_type": "TRUNCATE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "shop_texts",
+      "is_grantable": "YES",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "shop_texts",
+      "is_grantable": "NO",
+      "privilege_type": "DELETE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "shop_texts",
+      "is_grantable": "NO",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "shop_texts",
+      "is_grantable": "NO",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "shop_texts",
+      "is_grantable": "NO",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "shop_texts",
+      "is_grantable": "NO",
+      "privilege_type": "TRIGGER"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "shop_texts",
+      "is_grantable": "NO",
+      "privilege_type": "TRUNCATE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "shop_texts",
       "is_grantable": "NO",
       "privilege_type": "UPDATE"
     },
@@ -5745,28 +6694,7 @@
       "grantor": "postgres",
       "table_name": "supplier_prices",
       "is_grantable": "NO",
-      "privilege_type": "REFERENCES"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "supplier_prices",
-      "is_grantable": "NO",
       "privilege_type": "SELECT"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "supplier_prices",
-      "is_grantable": "NO",
-      "privilege_type": "TRIGGER"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "supplier_prices",
-      "is_grantable": "NO",
-      "privilege_type": "TRUNCATE"
     },
     {
       "grantee": "anon",
@@ -5794,28 +6722,7 @@
       "grantor": "postgres",
       "table_name": "supplier_prices",
       "is_grantable": "NO",
-      "privilege_type": "REFERENCES"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "supplier_prices",
-      "is_grantable": "NO",
       "privilege_type": "SELECT"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "supplier_prices",
-      "is_grantable": "NO",
-      "privilege_type": "TRIGGER"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "supplier_prices",
-      "is_grantable": "NO",
-      "privilege_type": "TRUNCATE"
     },
     {
       "grantee": "authenticated",
@@ -5941,28 +6848,7 @@
       "grantor": "postgres",
       "table_name": "suppliers",
       "is_grantable": "NO",
-      "privilege_type": "REFERENCES"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "suppliers",
-      "is_grantable": "NO",
       "privilege_type": "SELECT"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "suppliers",
-      "is_grantable": "NO",
-      "privilege_type": "TRIGGER"
-    },
-    {
-      "grantee": "anon",
-      "grantor": "postgres",
-      "table_name": "suppliers",
-      "is_grantable": "NO",
-      "privilege_type": "TRUNCATE"
     },
     {
       "grantee": "anon",
@@ -5990,28 +6876,7 @@
       "grantor": "postgres",
       "table_name": "suppliers",
       "is_grantable": "NO",
-      "privilege_type": "REFERENCES"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "suppliers",
-      "is_grantable": "NO",
       "privilege_type": "SELECT"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "suppliers",
-      "is_grantable": "NO",
-      "privilege_type": "TRIGGER"
-    },
-    {
-      "grantee": "authenticated",
-      "grantor": "postgres",
-      "table_name": "suppliers",
-      "is_grantable": "NO",
-      "privilege_type": "TRUNCATE"
     },
     {
       "grantee": "authenticated",
@@ -6147,7 +7012,19 @@
     {
       "rls": true,
       "owner": "postgres",
+      "table": "event_expenses",
+      "force_rls": false
+    },
+    {
+      "rls": true,
+      "owner": "postgres",
       "table": "event_sale_items",
+      "force_rls": false
+    },
+    {
+      "rls": true,
+      "owner": "postgres",
+      "table": "event_sale_voids",
       "force_rls": false
     },
     {
@@ -6189,6 +7066,12 @@
     {
       "rls": true,
       "owner": "postgres",
+      "table": "payment_methods",
+      "force_rls": false
+    },
+    {
+      "rls": true,
+      "owner": "postgres",
       "table": "products",
       "force_rls": false
     },
@@ -6225,6 +7108,12 @@
     {
       "rls": true,
       "owner": "postgres",
+      "table": "shop_texts",
+      "force_rls": false
+    },
+    {
+      "rls": true,
+      "owner": "postgres",
       "table": "supplier_prices",
       "force_rls": false
     },
@@ -6239,31 +7128,151 @@
     {
       "acl": "{postgres=rwU/supabase_admin,anon=rwU/supabase_admin,authenticated=rwU/supabase_admin,service_role=rwU/supabase_admin}",
       "owner": "supabase_admin",
+      "schema": "public",
       "object_type": "S"
     },
     {
       "acl": "{postgres=X/supabase_admin,anon=X/supabase_admin,authenticated=X/supabase_admin,service_role=X/supabase_admin}",
       "owner": "supabase_admin",
+      "schema": "public",
       "object_type": "f"
     },
     {
       "acl": "{postgres=arwdDxt/supabase_admin,anon=arwdDxt/supabase_admin,authenticated=arwdDxt/supabase_admin,service_role=arwdDxt/supabase_admin}",
       "owner": "supabase_admin",
+      "schema": "public",
+      "object_type": "r"
+    },
+    {
+      "acl": "{postgres=r*w*U*/supabase_admin}",
+      "owner": "supabase_admin",
+      "schema": "extensions",
+      "object_type": "S"
+    },
+    {
+      "acl": "{postgres=X*/supabase_admin}",
+      "owner": "supabase_admin",
+      "schema": "extensions",
+      "object_type": "f"
+    },
+    {
+      "acl": "{postgres=a*r*w*d*D*x*t*/supabase_admin}",
+      "owner": "supabase_admin",
+      "schema": "extensions",
+      "object_type": "r"
+    },
+    {
+      "acl": "{postgres=rwU/supabase_admin,dashboard_user=rwU/supabase_admin}",
+      "owner": "supabase_admin",
+      "schema": "realtime",
+      "object_type": "S"
+    },
+    {
+      "acl": "{postgres=X/supabase_admin,dashboard_user=X/supabase_admin}",
+      "owner": "supabase_admin",
+      "schema": "realtime",
+      "object_type": "f"
+    },
+    {
+      "acl": "{postgres=arwdDxt/supabase_admin,dashboard_user=arwdDxt/supabase_admin}",
+      "owner": "supabase_admin",
+      "schema": "realtime",
+      "object_type": "r"
+    },
+    {
+      "acl": "{postgres=rwU/supabase_admin,anon=rwU/supabase_admin,authenticated=rwU/supabase_admin,service_role=rwU/supabase_admin}",
+      "owner": "supabase_admin",
+      "schema": "graphql_public",
+      "object_type": "S"
+    },
+    {
+      "acl": "{postgres=X/supabase_admin,anon=X/supabase_admin,authenticated=X/supabase_admin,service_role=X/supabase_admin}",
+      "owner": "supabase_admin",
+      "schema": "graphql_public",
+      "object_type": "f"
+    },
+    {
+      "acl": "{postgres=arwdDxt/supabase_admin,anon=arwdDxt/supabase_admin,authenticated=arwdDxt/supabase_admin,service_role=arwdDxt/supabase_admin}",
+      "owner": "supabase_admin",
+      "schema": "graphql_public",
+      "object_type": "r"
+    },
+    {
+      "acl": "{postgres=rwU/supabase_admin,anon=rwU/supabase_admin,authenticated=rwU/supabase_admin,service_role=rwU/supabase_admin}",
+      "owner": "supabase_admin",
+      "schema": "graphql",
+      "object_type": "S"
+    },
+    {
+      "acl": "{postgres=X/supabase_admin,anon=X/supabase_admin,authenticated=X/supabase_admin,service_role=X/supabase_admin}",
+      "owner": "supabase_admin",
+      "schema": "graphql",
+      "object_type": "f"
+    },
+    {
+      "acl": "{postgres=arwdDxt/supabase_admin,anon=arwdDxt/supabase_admin,authenticated=arwdDxt/supabase_admin,service_role=arwdDxt/supabase_admin}",
+      "owner": "supabase_admin",
+      "schema": "graphql",
+      "object_type": "r"
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "owner": "postgres",
+      "schema": "<global>",
+      "object_type": "f"
+    },
+    {
+      "acl": "{postgres=rwU/postgres,service_role=rwU/postgres}",
+      "owner": "postgres",
+      "schema": "public",
+      "object_type": "S"
+    },
+    {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "owner": "postgres",
+      "schema": "public",
+      "object_type": "f"
+    },
+    {
+      "acl": "{postgres=arwdDxt/postgres,service_role=arwdDxt/postgres}",
+      "owner": "postgres",
+      "schema": "public",
       "object_type": "r"
     },
     {
       "acl": "{postgres=rwU/postgres,anon=rwU/postgres,authenticated=rwU/postgres,service_role=rwU/postgres}",
       "owner": "postgres",
+      "schema": "storage",
       "object_type": "S"
     },
     {
       "acl": "{postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
       "owner": "postgres",
+      "schema": "storage",
       "object_type": "f"
     },
     {
       "acl": "{postgres=arwdDxt/postgres,anon=arwdDxt/postgres,authenticated=arwdDxt/postgres,service_role=arwdDxt/postgres}",
       "owner": "postgres",
+      "schema": "storage",
+      "object_type": "r"
+    },
+    {
+      "acl": "{postgres=rwU/supabase_auth_admin,dashboard_user=rwU/supabase_auth_admin}",
+      "owner": "supabase_auth_admin",
+      "schema": "auth",
+      "object_type": "S"
+    },
+    {
+      "acl": "{postgres=X/supabase_auth_admin,dashboard_user=X/supabase_auth_admin}",
+      "owner": "supabase_auth_admin",
+      "schema": "auth",
+      "object_type": "f"
+    },
+    {
+      "acl": "{postgres=arwdDxt/supabase_auth_admin,dashboard_user=arwdDxt/supabase_auth_admin}",
+      "owner": "supabase_auth_admin",
+      "schema": "auth",
       "object_type": "r"
     }
   ]

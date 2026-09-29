@@ -31,3 +31,10 @@ enable_signup = false          # staff accounts are created by the owner, not se
 # accounts and everyone signs in with a password.
 enable_signup = true
 enable_confirmations = false
+
+# MP-09 c2: the public image bucket (QR codes, new flavour photos). Owner-only writes are the
+# storage.objects policies in migration 20260101003400; a fresh reset creates the bucket from here.
+[storage.buckets.shop-media]
+public = true
+file_size_limit = "2MiB"
+allowed_mime_types = ["image/png", "image/jpeg", "image/webp"]

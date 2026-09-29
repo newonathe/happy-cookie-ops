@@ -29,6 +29,9 @@ SUITES = (
     ('erasure-authority.sql', ('anonymise_customer(text,text)',), 'erasure ACL boundary missing: anon', 12),
     ('flavours.sql', ('get_flavours()', 'save_flavour(text,jsonb,timestamptz)', 'publish_flavours(text[])'), 'forbidden flavour call succeeded', 52),
     ('bazaar-events.sql', ('start_event(text,text,bigint,uuid)', 'set_event_device(uuid,text)', 'record_event_sale(jsonb)', 'void_event_sale(jsonb)'), 'forbidden bazaar call succeeded', 87),
+    ('payment-methods.sql', ('get_payment_methods()', 'save_payment_method(text,jsonb,timestamptz)', 'save_shop_texts(jsonb,timestamptz)',
+                             'shop_media_anon_read', 'shop_media_helper_write', 'shop_media_path_unchecked',
+                             'payment_tables_raw_write', 'public_read_leaks_inactive'), 'forbidden payment call succeeded', 88),
     ('bazaar-closeout.sql', ('event_summary(uuid)', 'load_event_stock(uuid,jsonb,bigint)', 'add_event_expense(jsonb)', 'close_event(jsonb)'), 'forbidden closeout call succeeded', 80),
 )
 CATALOG_GUARD_SQL = """
@@ -50,10 +53,23 @@ select json_build_object(
         and has_table_privilege(role_name, t.oid, priv)) q), '[]'::json)
 )::text;
 """
+PAYMENT_MUTATIONS = {
+    'shop_media_anon_read': ("create policy \"leak\" on storage.objects for select to anon using (bucket_id = 'shop-media');",
+                             'forbidden payment call succeeded: anon / media_list'),
+    'shop_media_helper_write': ("create policy \"leak\" on storage.objects for insert to authenticated with check (bucket_id = 'shop-media');",
+                                'forbidden payment call succeeded: active_helper / media_insert'),
+    'shop_media_path_unchecked': ("alter policy \"shop media owner insert\" on storage.objects with check (bucket_id = 'shop-media' and public.is_owner());",
+                                  'forbidden payment call succeeded: active_owner / media_insert_traversal'),
+    'payment_tables_raw_write': ("grant select, insert, update, delete on public.payment_methods to authenticated; create policy \"leak\" on public.payment_methods for all to authenticated using (public.is_owner()) with check (public.is_owner());",
+                                 'forbidden payment call succeeded: active_helper / methods_table_select'),
+    'public_read_leaks_inactive': ("create or replace function public.get_shop_payment_info() returns jsonb language sql stable security definer set search_path = '' as $f$ select jsonb_build_object('methods', coalesce((select jsonb_agg(jsonb_build_object('id', m.id, 'label', m.label, 'number', m.account_number, 'name', m.account_name, 'qr', m.qr_path) order by m.sort_order, m.id) from public.payment_methods m), '[]'::jsonb), 'texts', coalesce((select jsonb_build_object('registration_badge', t.registration_badge, 'tin_line', t.tin_line, 'invoice_note', t.invoice_note, 'allergen_note', t.allergen_note, 'updated_at', t.updated_at) from public.shop_texts t), jsonb_build_object('registration_badge', '', 'tin_line', '', 'invoice_note', '', 'allergen_note', '', 'updated_at', null))); $f$;",
+                                   'public payment read differs: anon_default'),
+}
+
 REPORT = ROOT / "docs/state/evidence/MP-06l-security.json"
 EMPTY_FIXTURES = 'select ' + ' and '.join(
     'not exists(select 1 from public.' + table + ')'
-    for table in ('orders', 'order_items', 'products', 'drops', 'settings', 'rate_limits', 'profiles', 'audit_log', 'ledger_entries', 'event_sales', 'event_sale_items', 'inventory_items', 'bake_batches', 'recipes', 'recipe_ingredients', 'suppliers', 'supplier_prices', 'events', 'erasure_requests')) + " and not exists(select 1 from auth.users) and to_regnamespace('mp06f_probe') is null and to_regnamespace('mp06g_probe') is null and to_regclass('public.mp06g_future') is null and to_regclass('public.mp06g_future_id_seq') is null;"
+    for table in ('orders', 'order_items', 'products', 'drops', 'settings', 'rate_limits', 'profiles', 'audit_log', 'ledger_entries', 'event_sales', 'event_sale_items', 'inventory_items', 'bake_batches', 'recipes', 'recipe_ingredients', 'suppliers', 'supplier_prices', 'events', 'erasure_requests', 'payment_methods', 'shop_texts')) + " and not exists(select 1 from auth.users) and to_regnamespace('mp06f_probe') is null and to_regnamespace('mp06g_probe') is null and to_regclass('public.mp06g_future') is null and to_regclass('public.mp06g_future_id_seq') is null;"
 
 
 def main():
@@ -132,6 +148,9 @@ def main():
                 operation = signature + '_insert' if table_test else signature.split('(')[0]
                 broken = sql.replace('begin;', 'begin;\n' + grant + signature + ' to anon;', 1)
                 expected_error = forbidden + ': anon / ' + operation
+                if filename == 'payment-methods.sql' and signature in PAYMENT_MUTATIONS:
+                    unsafe, expected_error = PAYMENT_MUTATIONS[signature]
+                    broken = sql.replace('begin;', 'begin;' + chr(10) + unsafe, 1)
                 if filename == 'profiles.sql':
                     # Restore only the missing active filter, within the failing transaction.
                     unsafe = "create or replace function public.current_role_name() returns public.app_role language sql stable security definer set search_path='' as $$ select p.role from public.profiles p where p.id=auth.uid() $$;"
@@ -216,8 +235,8 @@ def main():
                 h.fail(filename + ' did not return its complete role matrix')
             results.extend(rows)
             assert_empty()
-        if len(set(results)) != 737:
-            h.fail('combined role matrix has missing or duplicate cases')
+        if len(set(results)) != 825:
+            h.fail('combined role matrix has missing or duplicate cases: %d rows, %d unique' % (len(results), len(set(results))))
         assert_functions()
         assert_catalog_wide()
         h.catalog(db_id, workdir, h.sql_for(h.expected_versions()))
@@ -229,10 +248,10 @@ def main():
     try:
         code = h.main(after_reset=check)
         if (code == 0 and len(report["runs"]) == 2 and report["runs"][0] == report["runs"][1]
-                and len(report['regressions_detected']) == 84 and report['sequence_restorations'] == 10
+                and len(report['regressions_detected']) == 100 and report['sequence_restorations'] == 10
                 and report['upgrade_runs'] == 2 and report['function_guard_runs'] == 4
                 and report['catalog_guard_runs'] == 4 and report['catalog_guard_red_runs'] == 4):
-            report.update(status="passed", cases_per_reset=737, resets=2, matrix_equal=True, rollback_verified=True,
+            report.update(status="passed", cases_per_reset=825, resets=2, matrix_equal=True, rollback_verified=True,
                           sql_sha256={name: hashlib.sha256((ROOT / 'tests/integration/security' / name).read_bytes()).hexdigest() for name, _, _, _ in SUITES},
                           harness_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
     except (RuntimeError, OSError, ValueError) as error:
