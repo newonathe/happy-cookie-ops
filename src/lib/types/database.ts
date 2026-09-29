@@ -224,6 +224,27 @@ export type Database = {
           },
         ]
       }
+      event_sale_voids: {
+        Row: {
+          client_id: string
+          device_id: string
+          received_at: string
+          voided_at: string
+        }
+        Insert: {
+          client_id: string
+          device_id: string
+          received_at?: string
+          voided_at: string
+        }
+        Update: {
+          client_id?: string
+          device_id?: string
+          received_at?: string
+          voided_at?: string
+        }
+        Relationships: []
+      }
       event_sales: {
         Row: {
           change_cents: number
@@ -236,10 +257,12 @@ export type Database = {
           ledger_id: string | null
           pay_method: string
           pay_ref: string
+          payload_hash: string | null
           received_at: string
           sold_at: string
           tendered_cents: number
           total_cents: number
+          voided_at: string | null
         }
         Insert: {
           change_cents?: number
@@ -252,10 +275,12 @@ export type Database = {
           ledger_id?: string | null
           pay_method: string
           pay_ref?: string
+          payload_hash?: string | null
           received_at?: string
           sold_at: string
           tendered_cents?: number
           total_cents: number
+          voided_at?: string | null
         }
         Update: {
           change_cents?: number
@@ -268,10 +293,12 @@ export type Database = {
           ledger_id?: string | null
           pay_method?: string
           pay_ref?: string
+          payload_hash?: string | null
           received_at?: string
           sold_at?: string
           tendered_cents?: number
           total_cents?: number
+          voided_at?: string | null
         }
         Relationships: [
           {
@@ -295,24 +322,33 @@ export type Database = {
           closed_at: string | null
           ends_at: string | null
           float_cents: number
+          former_devices: string[]
           id: string
           name: string
+          price_snapshot: Json
+          selling_device: string | null
           starts_at: string
         }
         Insert: {
           closed_at?: string | null
           ends_at?: string | null
           float_cents?: number
+          former_devices?: string[]
           id?: string
           name: string
+          price_snapshot?: Json
+          selling_device?: string | null
           starts_at: string
         }
         Update: {
           closed_at?: string | null
           ends_at?: string | null
           float_cents?: number
+          former_devices?: string[]
           id?: string
           name?: string
+          price_snapshot?: Json
+          selling_device?: string | null
           starts_at?: string
         }
         Relationships: []
@@ -1056,6 +1092,15 @@ export type Database = {
           updated_at: string
         }[]
       }
+      record_event_sale: {
+        Args: { p_sale: Json }
+        Returns: {
+          client_id: string
+          duplicate: boolean
+          sale_id: string
+          voided: boolean
+        }[]
+      }
       save_flavour: {
         Args: { p_expected_updated_at: string; p_flavour: Json; p_id: string }
         Returns: {
@@ -1070,6 +1115,10 @@ export type Database = {
           updated_at: string
         }[]
       }
+      set_event_device: {
+        Args: { p_device: string; p_event: string }
+        Returns: string
+      }
       settings_effective: {
         Args: never
         Returns: {
@@ -1079,6 +1128,20 @@ export type Database = {
           json_value: Json
           key: string
           text_value: string
+        }[]
+      }
+      start_event: {
+        Args: {
+          p_device: string
+          p_event_id?: string
+          p_float_cents?: number
+          p_name: string
+        }
+        Returns: {
+          event_id: string
+          prices: Json
+          selling_device: string
+          starts_at: string
         }[]
       }
       state_is_recognised: {
@@ -1110,6 +1173,14 @@ export type Database = {
           pay_state: string
           state: string
           updated_at: string
+        }[]
+      }
+      void_event_sale: {
+        Args: { p_void: Json }
+        Returns: {
+          client_id: string
+          duplicate: boolean
+          sale_known: boolean
         }[]
       }
     }

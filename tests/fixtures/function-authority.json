@@ -1,5 +1,5 @@
 {
-  "scope": "Reviewed local function-authority drift baseline through MP-09 c1b; publish_flavours added (MP-09 c1b); get_flavours/save_flavour added (MP-09 c1); settings_effective gained three idle-minute defaults, get_settings/save_setting/get_operating_settings added; MP-09 b3 recreated settings_effective/get_settings/get_operating_settings with json_value and replaced save_setting; full capability/domain and hosted acceptance remain open",
+  "scope": "Reviewed local function-authority drift baseline through D1; start_event/set_event_device/record_event_sale/void_event_sale added (D1); MP-09 c1b: publish_flavours added (MP-09 c1b); get_flavours/save_flavour added (MP-09 c1); settings_effective gained three idle-minute defaults, get_settings/save_setting/get_operating_settings added; MP-09 b3 recreated settings_effective/get_settings/get_operating_settings with json_value and replaced save_setting; full capability/domain and hosted acceptance remain open",
   "functions": [
     {
       "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
@@ -287,6 +287,36 @@
       "execute_authenticated": false
     },
     {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "record_event_sale",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(client_id text, sale_id uuid, duplicate boolean, voided boolean)",
+      "body_md5": "a7c6e234683b90e211141e5f13ddc021",
+      "identity": "p_sale jsonb",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "set_event_device",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "text",
+      "body_md5": "d1d17ed9e7c8c656faff9a7b8290eeaf",
+      "identity": "p_event uuid, p_device text",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
       "acl": "{postgres=X/postgres,service_role=X/postgres}",
       "name": "settings_effective",
       "owner": "postgres",
@@ -315,6 +345,21 @@
       "security_definer": false,
       "execute_service_role": true,
       "execute_authenticated": false
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "start_event",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(event_id uuid, starts_at timestamp with time zone, selling_device text, prices jsonb)",
+      "body_md5": "87406bacf82eff49036544266429c089",
+      "identity": "p_name text, p_device text, p_float_cents bigint, p_event_id uuid",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
     },
     {
       "acl": "{=X/postgres,anon=X/postgres,authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
@@ -476,6 +521,21 @@
       "returns": "TABLE(id text, published boolean, updated_at timestamp with time zone)",
       "body_md5": "49c9ae83f04fa8e28167338c541e6617",
       "identity": "p_ids text[]",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "void_event_sale",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(client_id text, sale_known boolean, duplicate boolean)",
+      "body_md5": "5611a5a34967eacdbb8e91986fa9b1f9",
+      "identity": "p_void jsonb",
       "execute_anon": false,
       "security_definer": true,
       "execute_service_role": true,

@@ -12,8 +12,8 @@ BASE = json.loads(guard['MANIFEST'].read_text(encoding='utf-8'))['functions']
 
 class FunctionAuthority(unittest.TestCase):
     def test_exact_inventory_and_reordering_pass(self):
-        self.assertEqual(guard['verify_functions'](BASE), 32)
-        self.assertEqual(guard['verify_functions'](list(reversed(BASE))), 32)
+        self.assertEqual(guard['verify_functions'](BASE), 36)
+        self.assertEqual(guard['verify_functions'](list(reversed(BASE))), 36)
 
     def test_unknown_missing_and_duplicate_fail(self):
         unknown = copy.deepcopy(BASE[0])
