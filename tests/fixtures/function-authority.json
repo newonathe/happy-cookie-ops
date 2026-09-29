@@ -1089,7 +1089,7 @@
         "search_path=\"\""
       ],
       "returns": "TABLE(id uuid, updated_at timestamp with time zone)",
-      "body_md5": "1aef659b8fc69eefe90e9b535d798226",
+      "body_md5": "63d0f8e678b7ec335458baa0a223b2e2",
       "identity": "p_price jsonb, p_expected_updated_at timestamp with time zone",
       "execute_anon": false,
       "security_definer": true,

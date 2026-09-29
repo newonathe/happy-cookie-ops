@@ -67,6 +67,66 @@ export interface LiveOrderExtrasFields {
   }>;
 }
 
+/** One stock item in the owner's list (A3). */
+export interface LiveStockItemRow {
+  id: string;
+  name: string;
+  category: string;
+  unit: string;
+  supplierName: string;
+  active: boolean;
+}
+
+/** One stock item on the owner's edit form (A3). The quantity on hand is not here: counts belong to the stock ledger. */
+export interface LiveStockItemEdit {
+  id: string;
+  isNew: boolean;
+  name: string;
+  category: 'Ingredients' | 'Packaging';
+  unit: string;
+  parLevel: number;
+  packSize: number | null;
+  packLabel: string;
+  supplierId: string | null;
+  useByDays: number | null;
+  active: boolean;
+}
+
+/** One supplier in the owner's list (A3). */
+export interface LiveStockSupplierRow {
+  id: string;
+  name: string;
+  place: string;
+  priceCount: number;
+  active: boolean;
+}
+
+/** One supplier's price for one item, in pesos on the form (A3). */
+export interface LiveStockPriceRow {
+  id: string;
+  itemName: string;
+  packLabel: string;
+  pricePesos: number;
+  lastBought: string;
+  preferred: boolean;
+  active: boolean;
+  /** "Before: ₱438, ₱445" or "First price", read only. */
+  previousText: string;
+}
+
+/** One supplier on the owner's edit form, with its price rows and one blank row (A3). */
+export interface LiveStockSupplierEdit {
+  id: string;
+  isNew: boolean;
+  name: string;
+  phone: string;
+  notes: string;
+  place: string;
+  active: boolean;
+  prices: LiveStockPriceRow[];
+  newPriceId: string;
+}
+
 /** One upcoming bazaar on the owner's form (D4). Rent is pesos here; the runtime converts to centavos. */
 export interface LiveScheduledRow {
   id: string;
@@ -160,6 +220,33 @@ export interface OpsVals {
     /** Changes when the list was reloaded under the form (a conflict), so the form shows what is saved. */
     version: number;
     save: (rows: LiveScheduledRow[]) => void;
+    close: (event?: unknown) => void;
+  } | null;
+  /** Live owner only (A3): the stock items list and edit form. `version` remounts the form after a conflict. */
+  liveStockItems?: {
+    online: boolean;
+    rows: LiveStockItemRow[];
+    editing: LiveStockItemEdit | null;
+    suppliers: Array<{ id: string; name: string }>;
+    version: number;
+    add: () => void;
+    edit: (id: string) => void;
+    save: (item: LiveStockItemEdit) => void;
+    back: () => void;
+    close: (event?: unknown) => void;
+  } | null;
+  /** Live owner only (A3): the suppliers list and edit form, with each supplier's prices. */
+  liveStockSuppliers?: {
+    online: boolean;
+    rows: LiveStockSupplierRow[];
+    editing: LiveStockSupplierEdit | null;
+    /** Names of the active stock items a price can be for. */
+    itemNames: string[];
+    version: number;
+    add: () => void;
+    edit: (id: string) => void;
+    save: (supplier: LiveStockSupplierEdit) => void;
+    back: () => void;
     close: (event?: unknown) => void;
   } | null;
   /** Live owner only (B4): the boxes and add-ons form (boxes, add-ons, sampler limit, same-day extra). */

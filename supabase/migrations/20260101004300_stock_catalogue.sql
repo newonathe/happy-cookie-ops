@@ -359,6 +359,7 @@ begin
   v_pref := (p_price ->> 'preferred')::boolean;
   v_active := (p_price ->> 'active')::boolean;
 
+  perform pg_advisory_xact_lock(hashtextextended('stock_catalogue:items', 0));
   perform pg_advisory_xact_lock(hashtextextended('stock_catalogue:prices', 0));
   if not exists (select 1 from public.suppliers s where s.id = v_sup) then -- rule:price-supplier
     raise exception 'that supplier does not exist' using errcode = '22023';

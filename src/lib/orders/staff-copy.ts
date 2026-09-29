@@ -112,6 +112,35 @@ export const EXTRAS_COPY = {
 } as const;
 
 /** The upcoming bazaars form and the Bazaar screen's list (D4). PLACEHOLDER, like the rest of this file. */
+/** PLACEHOLDER wording (A3): the owner's stock catalogue forms. */
+export const STOCK_COPY = {
+  itemsTitle: 'Stock items',
+  itemsSub: 'Ingredients and packaging: unit, low-stock level, pack size, supplier',
+  suppliersTitle: 'Suppliers & prices',
+  suppliersSub: 'Who you buy from and what each one charges',
+  itemsIntro:
+    'Your ingredients and packaging. Nothing is deleted: switch an item off instead. How much you have is counted on the Inventory screen once the stock ledger is built.',
+  suppliersIntro:
+    'Your suppliers and their prices. Nothing is deleted: switch a supplier or a price off instead. The cheapest active price is the best buy.',
+  addItem: 'Add an item',
+  addSupplier: 'Add a supplier',
+  noItems: 'No items yet.',
+  noSuppliers: 'No suppliers yet.',
+  saved: 'Saved.',
+  conflict: 'Someone else changed this just now. Showing their version.',
+  refusedItem:
+    'That item could not be saved. Check the name is not already used (a switched-off item keeps its name), that an item with prices or recipes is not being renamed, and the unit, level, pack size and use-by days.',
+  refusedSupplier:
+    'That supplier could not be saved. Check the name is not already used, and each price has an item, a pack label and a price.',
+  priceHint:
+    'Enter the price for one pack of the size set on the item under Stock items. Two suppliers selling one item in different pack sizes are not supported yet.',
+  quantityNote:
+    'Quantities are counted with the stock ledger, which is built next. The item was added with none on hand.',
+  countsNotSaved:
+    'Stock counts are saved with the stock ledger, which is built next. This change was not kept.',
+  removedNote: 'switched off. Past records keep their history.'
+} as const;
+
 export const SCHEDULED_COPY = {
   title: 'Bazaar events',
   saved: 'Bazaar events saved.',

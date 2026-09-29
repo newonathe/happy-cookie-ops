@@ -22,6 +22,9 @@ import type {
   LiveOrderExtrasFields,
   LiveOrderRulesFields,
   LiveScheduledRow,
+  LiveStockItemEdit,
+  LiveStockPriceRow,
+  LiveStockSupplierEdit,
   LivePayFormFields,
   LiveShopTexts,
   OpsVals
@@ -61,8 +64,25 @@ import {
   MESSAGE_SHEET,
   RULES_COPY,
   SCHEDULED_COPY,
-  STAFF_COPY
+  STAFF_COPY,
+  STOCK_COPY
 } from '@/lib/orders/staff-copy';
+import {
+  engineInventory,
+  fetchStockCatalogue,
+  itemError,
+  priceError,
+  saveStockItem,
+  saveSupplier,
+  saveSupplierPrice,
+  supplierError,
+  type ItemFields,
+  type PriceFields,
+  type StockCatalogue,
+  type StockClient
+} from '@/lib/data/stock-catalogue';
+import { currentSuppliers, firstSupplierName, fillDemoCatalogue, fillLiveCatalogue } from '@/lib/data/engine-catalogue';
+import type { SaveOutcome } from '@/lib/data/payments';
 import { OrderFlow } from '@/lib/data/order-flow';
 import { tokenFromHash, type FieldErrors, type OrderClient } from '@/lib/data/orders';
 import { pickupLabel, statusCust } from '@/lib/orders/status-view';
@@ -196,6 +216,16 @@ interface BazaarActions {
   closeEvent: () => void;
   reopenEvent: () => void;
 }
+
+/** The engine's inventory actions (instance fields the typings do not list), replaced in live mode by A3. */
+interface InvActions {
+  addInv: (cat: string, name: string, qty: unknown, unit: string, level: unknown, supplier: string) => void;
+  removeInv: (name: string) => void;
+  saveInv: (name: string, qty: unknown) => void;
+}
+
+/** `state.sheet` while an A3 stock form is open. */
+type StockSheetState = { kind?: string; id?: string; isNew?: boolean };
 
 /** The engine's own order actions, replaced in live mode by the ones that ask the database (B3). */
 interface OrderActions {
@@ -356,6 +386,12 @@ export class OpsRuntime extends OpsProvider {
   private pendingSchedule: ScheduledEvent | null = null;
   private scheduledNewId = '';
   private scheduledVersion = 0;
+  private stockCatalogue: StockCatalogue | null = null;
+  private stockClient: StockClient | null = null;
+  private stockNewId = '';
+  private stockNewPriceId = '';
+  private stockVersion = 0;
+  private stockApplied = false;
   private localEventExpense: ((label: string, amount: unknown, cat?: string) => void) | null = null;
   private orderFlow?: OrderFlow;
   /** The last fragment this runtime wrote or adopted, so a link pasted into the tab is told apart. */
@@ -390,7 +426,10 @@ export class OpsRuntime extends OpsProvider {
         else await requestBackgroundSync();
       })().catch(() => undefined);
     };
-    if (!isLiveMode()) return;
+    if (!isLiveMode()) {
+      fillDemoCatalogue();
+      return;
+    }
     // MP-09 c2: live mode never shows the ported demo payment accounts, not even before the read.
     replacePayAccounts([]);
     this.installOrderOverrides();
@@ -513,6 +552,17 @@ export class OpsRuntime extends OpsProvider {
       this.toast('A closed event stays closed. Start a new event for anything after this.', 'warn');
     };
     this.state = liveBaseState();
+    // A3: no demo suppliers, prices or pack sizes in the engine's constants until the owner's are read.
+    fillLiveCatalogue(null);
+    // The engine's inventory actions would change only this screen: they go to the database instead.
+    const inv = this as unknown as InvActions;
+    inv.addInv = (cat, name, qty, unit, level, supplier) =>
+      void this.liveAddInv(cat, name, qty, unit, level, supplier);
+    inv.removeInv = (name) => void this.liveRemoveInv(name);
+    inv.saveInv = () => {
+      this.setState({ sheet: null });
+      this.toast(STOCK_COPY.countsNotSaved, 'warn');
+    };
     // Not the demo books: only the running bazaar (event id, snapshot prices, stall stock,
     // the day's sales) is kept, so a reload at the stall can carry on selling. The empty
     // start (no event) is never saved, so it cannot overwrite the event before it is read back.
@@ -998,6 +1048,8 @@ export class OpsRuntime extends OpsProvider {
       liveOrderRules: this.liveOrderRulesVals(),
       liveOrderExtras: this.liveOrderExtrasVals(),
       liveScheduled: this.liveScheduledVals(),
+      liveStockItems: this.liveStockItemsVals(),
+      liveStockSuppliers: this.liveStockSuppliersVals(),
       // D4: in live mode the Bazaar list is the owner's bookings, never the ported prototype events.
       events: this.liveBazaarEvents(),
       cust: this.liveStatusCust(this.livePayCust(starved.cust)),
@@ -1500,6 +1552,367 @@ export class OpsRuntime extends OpsProvider {
     await this.loadScheduledEvents(null);
   }
 
+  // ------------------------------------------------------------------ A3: the owner's stock catalogue
+
+  /** Reads the owner's items, suppliers and prices (the gate calls it once the owner is verified). False when it could not. */
+  async loadStockCatalogue(client: StockClient | null): Promise<boolean> {
+    if (client) this.stockClient = client;
+    const use = client ?? this.stockClient;
+    if (!isLiveMode() || !use) return false;
+    try {
+      this.stockCatalogue = await fetchStockCatalogue(use);
+    } catch {
+      return false;
+    }
+    this.applyStockCatalogue();
+    return true;
+  }
+
+  /**
+   * The inventory rows go into state; the suppliers, pack sizes and best buys go into the engine's own constants,
+   * which nothing in state reaches (see engine-catalogue.ts). The suppliers screen opens on a supplier that exists.
+   */
+  private applyStockCatalogue(): void {
+    const c = this.stockCatalogue;
+    if (!c) return;
+    fillLiveCatalogue(c);
+    const first = firstSupplierName();
+    // The first read takes the database's quantities. A later read (after a save) keeps the ones already on this
+    // screen: receiving, waste and counts change only the screen until the stock ledger (C1) exists.
+    const keep = this.stockApplied;
+    this.stockApplied = true;
+    this.setState((s) => ({
+      inv: engineInventory(c).map((row) => {
+        const there = keep
+          ? (s.inv as Array<{ name: string; qty: number; updatedAt: number }>).find((r) => r.name === row.name)
+          : undefined;
+        return there ? { ...row, qty: there.qty, updatedAt: there.updatedAt } : row;
+      }),
+      supplierOpen: currentSuppliers().some((x) => x.name === s.supplierOpen) ? s.supplierOpen : first
+    }));
+  }
+
+  private openStockItems = async (): Promise<void> => {
+    if (!(await this.loadStockCatalogue(null)) || !this.stockCatalogue) {
+      this.toast(STAFF_COPY.offline, 'warn');
+      return;
+    }
+    this.sheet('stockitems', {});
+  };
+
+  private openStockSuppliers = async (): Promise<void> => {
+    if (!(await this.loadStockCatalogue(null)) || !this.stockCatalogue) {
+      this.toast(STAFF_COPY.offline, 'warn');
+      return;
+    }
+    this.sheet('stocksuppliers', {});
+  };
+
+  private stockOnline(): boolean {
+    return this.state.online && (typeof navigator === 'undefined' || navigator.onLine);
+  }
+
+  private liveStockItemsVals(): OpsVals['liveStockItems'] {
+    const sh = this.state.sheet as StockSheetState | null;
+    const c = this.stockCatalogue;
+    if (this.state.role !== 'owner' || sh?.kind !== 'stockitems' || !c) return null;
+    const names = new Map(c.suppliers.map((s) => [s.id, s.name]));
+    const found = sh.id ? c.items.find((i) => i.id === sh.id) : undefined;
+    let editing: LiveStockItemEdit | null = null;
+    if (sh.isNew)
+      editing = {
+        id: this.stockNewId,
+        isNew: true,
+        name: '',
+        category: 'Ingredients',
+        unit: 'g',
+        parLevel: 0,
+        packSize: null,
+        packLabel: '',
+        supplierId: null,
+        useByDays: null,
+        active: true
+      };
+    else if (found)
+      editing = {
+        id: found.id,
+        isNew: false,
+        name: found.name,
+        category: found.category,
+        unit: found.unit,
+        parLevel: found.parLevel,
+        packSize: found.packSize,
+        packLabel: found.packLabel,
+        supplierId: found.supplierId,
+        useByDays: found.useByDays,
+        active: found.active
+      };
+    return {
+      online: this.stockOnline(),
+      rows: c.items.map((i) => ({
+        id: i.id,
+        name: i.name,
+        category: i.category,
+        unit: i.unit,
+        supplierName: (i.supplierId && names.get(i.supplierId)) || 'No supplier',
+        active: i.active
+      })),
+      editing,
+      suppliers: c.suppliers.filter((s) => s.active).map((s) => ({ id: s.id, name: s.name })),
+      version: this.stockVersion,
+      add: () => {
+        this.stockNewId = crypto.randomUUID();
+        this.sheet('stockitems', { isNew: true });
+      },
+      edit: (id) => this.sheet('stockitems', { id }),
+      save: (f) => void this.saveStockItemForm(f),
+      back: () => this.sheet('stockitems', {}),
+      close: () => this.closeSheet()
+    };
+  }
+
+  private liveStockSuppliersVals(): OpsVals['liveStockSuppliers'] {
+    const sh = this.state.sheet as StockSheetState | null;
+    const c = this.stockCatalogue;
+    if (this.state.role !== 'owner' || sh?.kind !== 'stocksuppliers' || !c) return null;
+    const found = sh.id ? c.suppliers.find((s) => s.id === sh.id) : undefined;
+    const pesos = (cents: number) => '₱' + centavosToPesos(cents).toLocaleString('en-PH');
+    let editing: LiveStockSupplierEdit | null = null;
+    if (sh.isNew)
+      editing = {
+        id: this.stockNewId,
+        isNew: true,
+        name: '',
+        phone: '',
+        notes: '',
+        place: '',
+        active: true,
+        prices: [],
+        newPriceId: this.stockNewPriceId
+      };
+    else if (found)
+      editing = {
+        id: found.id,
+        isNew: false,
+        name: found.name,
+        phone: found.phone,
+        notes: found.notes,
+        place: found.place,
+        active: found.active,
+        prices: c.prices
+          .filter((p) => p.supplierId === found.id)
+          .map(
+            (p): LiveStockPriceRow => ({
+              id: p.id,
+              itemName: p.itemName,
+              packLabel: p.packLabel,
+              pricePesos: centavosToPesos(p.priceCents),
+              lastBought: p.lastBought,
+              preferred: p.preferred,
+              active: p.active,
+              previousText: p.previousCents.length
+                ? 'Before: ' + p.previousCents.map(pesos).join(', ')
+                : 'First price'
+            })
+          ),
+        newPriceId: this.stockNewPriceId
+      };
+    return {
+      online: this.stockOnline(),
+      rows: c.suppliers.map((s) => ({
+        id: s.id,
+        name: s.name,
+        place: s.place,
+        priceCount: c.prices.filter((p) => p.supplierId === s.id && p.active).length,
+        active: s.active
+      })),
+      editing,
+      itemNames: c.items.filter((i) => i.active).map((i) => i.name),
+      version: this.stockVersion,
+      add: () => {
+        this.stockNewId = crypto.randomUUID();
+        this.sheet('stocksuppliers', { isNew: true });
+      },
+      edit: (id) => {
+        this.stockNewPriceId = crypto.randomUUID();
+        this.sheet('stocksuppliers', { id });
+      },
+      save: (f) => void this.saveStockSupplierForm(f),
+      back: () => this.sheet('stocksuppliers', {}),
+      close: () => this.closeSheet()
+    };
+  }
+
+  /** After a save: on success the list is re-read and shown; otherwise the list is re-read and she is told why. */
+  private async finishStockSave(
+    outcome: SaveOutcome,
+    kind: 'stockitems' | 'stocksuppliers',
+    refused: string
+  ): Promise<void> {
+    await this.loadStockCatalogue(null);
+    if (outcome === 'saved') {
+      this.toast(STOCK_COPY.saved);
+      this.sheet(kind, {});
+      return;
+    }
+    // A price create whose reply was lost is saved: the blank price row must not reuse its id (it would overwrite
+    // that price). A new item or supplier keeps its id, so an identical retry is answered, not duplicated; only a
+    // different body under a saved id (a conflict) gets a fresh one.
+    const c = this.stockCatalogue;
+    const takenPrice = !!c && c.prices.some((p) => p.id === this.stockNewPriceId);
+    if (takenPrice) this.stockNewPriceId = crypto.randomUUID();
+    const takenNew = !!c && (c.items.some((i) => i.id === this.stockNewId) || c.suppliers.some((x) => x.id === this.stockNewId));
+    if (takenNew && outcome === 'conflict') this.stockNewId = crypto.randomUUID();
+    if (takenPrice || outcome === 'conflict') this.stockVersion += 1;
+    if (outcome === 'conflict') {
+      this.toast(STOCK_COPY.conflict, 'warn');
+      this.forceUpdate();
+    } else this.toast(outcome === 'refused' ? refused : STAFF_COPY.offline, 'warn');
+  }
+
+  private async saveStockItemForm(f: LiveStockItemEdit): Promise<void> {
+    const client = this.stockClient;
+    const c = this.stockCatalogue;
+    if (!client || !c) return void this.toast(STAFF_COPY.offline, 'warn');
+    const fields: ItemFields = {
+      id: f.id,
+      name: f.name,
+      category: f.category,
+      unit: f.unit,
+      parLevel: f.parLevel,
+      packSize: f.packSize,
+      packLabel: f.packLabel,
+      supplierId: f.supplierId,
+      useByDays: f.useByDays,
+      active: f.active
+    };
+    const problem = itemError(fields);
+    if (problem) return void this.toast(problem, 'warn');
+    const was = c.items.find((i) => i.id === f.id);
+    const outcome = await saveStockItem(client, fields, was?.updatedAt ?? null);
+    await this.finishStockSave(outcome, 'stockitems', STOCK_COPY.refusedItem);
+  }
+
+  /** The supplier, then each new or changed price, one at a time and each with its own stamp; stops at the first failure. */
+  private async saveStockSupplierForm(f: LiveStockSupplierEdit): Promise<void> {
+    const client = this.stockClient;
+    const c = this.stockCatalogue;
+    if (!client || !c) return void this.toast(STAFF_COPY.offline, 'warn');
+    const supplier = { id: f.id, name: f.name, phone: f.phone, notes: f.notes, place: f.place, active: f.active };
+    const problem = supplierError(supplier);
+    if (problem) return void this.toast(problem, 'warn');
+    if (f.prices.some((r) => !Number.isFinite(r.pricePesos)))
+      return void this.toast(STOCK_COPY.refusedSupplier, 'warn');
+    const priceJobs: Array<{ fields: PriceFields; stamp: string | null }> = [];
+    for (const r of f.prices) {
+      const fields: PriceFields = {
+        id: r.id,
+        supplierId: f.id,
+        itemName: r.itemName,
+        packLabel: r.packLabel,
+        priceCents: pesosToCentavos(r.pricePesos),
+        lastBought: r.lastBought,
+        preferred: r.preferred,
+        active: r.active
+      };
+      const bad = priceError(fields);
+      if (bad) return void this.toast(bad, 'warn');
+      const was = c.prices.find((p) => p.id === r.id);
+      const same =
+        !!was &&
+        was.itemName === fields.itemName.trim() &&
+        was.packLabel === fields.packLabel.trim() &&
+        was.priceCents === fields.priceCents &&
+        was.lastBought === fields.lastBought.trim() &&
+        was.preferred === fields.preferred &&
+        was.active === fields.active;
+      if (!same) priceJobs.push({ fields, stamp: was?.updatedAt ?? null });
+    }
+    const wasSupplier = c.suppliers.find((s) => s.id === f.id);
+    const supplierSame =
+      !!wasSupplier &&
+      wasSupplier.name === supplier.name.trim() &&
+      wasSupplier.phone === supplier.phone.trim() &&
+      wasSupplier.notes === supplier.notes.trim() &&
+      wasSupplier.place === supplier.place.trim() &&
+      wasSupplier.active === supplier.active;
+    if (!supplierSame) {
+      const outcome = await saveSupplier(client, supplier, wasSupplier?.updatedAt ?? null);
+      if (outcome !== 'saved') return void (await this.finishStockSave(outcome, 'stocksuppliers', STOCK_COPY.refusedSupplier));
+    }
+    for (const job of priceJobs) {
+      const outcome = await saveSupplierPrice(client, job.fields, job.stamp);
+      if (outcome !== 'saved') return void (await this.finishStockSave(outcome, 'stocksuppliers', STOCK_COPY.refusedSupplier));
+    }
+    await this.finishStockSave('saved', 'stocksuppliers', STOCK_COPY.refusedSupplier);
+  }
+
+  /** The ported "Add item" sheet: the item is created in the catalogue. Its quantity is not kept (stock ledger, C1). */
+  private async liveAddInv(
+    cat: string,
+    name: string,
+    qty: unknown,
+    unit: string,
+    level: unknown,
+    supplier: string
+  ): Promise<void> {
+    const client = this.stockClient;
+    const c = this.stockCatalogue;
+    if (this.state.role !== 'owner' || !client || !c) return void this.toast(STAFF_COPY.offline, 'warn');
+    const sup = c.suppliers.find((s) => s.active && s.name === supplier);
+    const fields: ItemFields = {
+      id: crypto.randomUUID(),
+      name: String(name ?? '').trim(),
+      category: cat === 'Packaging' ? 'Packaging' : 'Ingredients',
+      unit: String(unit || 'g').trim(),
+      parLevel: Number(level) || 0,
+      packSize: null,
+      packLabel: '',
+      supplierId: sup?.id ?? null,
+      useByDays: null,
+      active: true
+    };
+    const problem = itemError(fields);
+    if (problem) return void this.toast(problem, 'warn');
+    const outcome = await saveStockItem(client, fields, null);
+    if (outcome !== 'saved') {
+      return void this.toast(outcome === 'refused' ? STOCK_COPY.refusedItem : STAFF_COPY.offline, 'warn');
+    }
+    await this.loadStockCatalogue(null);
+    this.setState({ sheet: null });
+    if (Number(qty) > 0) this.toast(STOCK_COPY.quantityNote, 'warn');
+    else this.toast(fields.name + ' added to ' + fields.category + '.');
+  }
+
+  /** The ported "Remove" button: the item is switched off (never deleted), so past records keep their history. */
+  private async liveRemoveInv(name: string): Promise<void> {
+    const client = this.stockClient;
+    const item = this.stockCatalogue?.items.find((i) => i.active && i.name === name);
+    if (this.state.role !== 'owner' || !client || !item) return void this.toast(STAFF_COPY.offline, 'warn');
+    const outcome = await saveStockItem(
+      client,
+      {
+        id: item.id,
+        name: item.name,
+        category: item.category,
+        unit: item.unit,
+        parLevel: item.parLevel,
+        packSize: item.packSize,
+        packLabel: item.packLabel,
+        supplierId: item.supplierId,
+        useByDays: item.useByDays,
+        active: false
+      },
+      item.updatedAt
+    );
+    await this.loadStockCatalogue(null);
+    if (outcome !== 'saved') {
+      return void this.toast(outcome === 'conflict' ? STOCK_COPY.conflict : STAFF_COPY.offline, 'warn');
+    }
+    this.setState({ sheet: null });
+    this.toast(name + ' ' + STOCK_COPY.removedNote, 'warn');
+  }
+
   // ------------------------------------------------------------------ B3: the owner's orders
 
   /**
@@ -1789,6 +2202,20 @@ export class OpsRuntime extends OpsProvider {
               },
               {
                 icon: this.IC.cookie,
+                label: STOCK_COPY.itemsTitle,
+                sub: STOCK_COPY.itemsSub,
+                badge: null,
+                go: () => void this.openStockItems()
+              },
+              {
+                icon: this.IC.cookie,
+                label: STOCK_COPY.suppliersTitle,
+                sub: STOCK_COPY.suppliersSub,
+                badge: null,
+                go: () => void this.openStockSuppliers()
+              },
+              {
+                icon: this.IC.cookie,
                 label: EXTRAS_COPY.title,
                 sub: 'Box sizes, add-ons, the sampler and the same-day extra',
                 badge: null,
@@ -1847,6 +2274,10 @@ export class OpsRuntime extends OpsProvider {
       return { ...sheet, liveForm: true, title: EXTRAS_COPY.title };
     if (this.state.role === 'owner' && sh?.kind === 'scheduledevents')
       return { ...sheet, liveForm: true, title: SCHEDULED_COPY.title };
+    if (this.state.role === 'owner' && sh?.kind === 'stockitems')
+      return { ...sheet, liveForm: true, title: STOCK_COPY.itemsTitle };
+    if (this.state.role === 'owner' && sh?.kind === 'stocksuppliers')
+      return { ...sheet, liveForm: true, title: STOCK_COPY.suppliersTitle };
     if (this.state.role !== 'owner' || sh?.kind !== 'flavours')
       return { ...sheet, liveForm: false };
     const row = sh.pid ? this.flavourSync?.current().find((r) => r.id === sh.pid) : undefined;

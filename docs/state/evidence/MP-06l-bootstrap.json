@@ -1,8 +1,8 @@
 {
   "status": "passed",
   "scope": "explicit-connection CLI reset on disposable loopback PostgreSQL; not managed --local or auth/RLS acceptance",
-  "project_id": "hcb-6abc0e55-b72f8e",
-  "workdir": "C:\\Users\\ethan\\dev\\.hcb-bootstrap-6abc0e55-b72f8e",
+  "project_id": "hcb-6abc18fe-9bb12c",
+  "workdir": "C:\\Users\\ethan\\dev\\.hcb-bootstrap-6abc18fe-9bb12c",
   "cleanup": "passed",
   "resets": 2,
   "harness_sha256": "a47a91d38c71ffbf52a14e597836fdfdbd1d22a3408f5c151f2b35b25459c963",
@@ -141,13 +141,13 @@
     "20260101004000_order_extras.sql": "352dd437458b45619cde45414a266ee3a7a63c06fb6554193c998e9280137565",
     "20260101004100_scheduled_events.sql": "73ba0aec62ba5a7d7eeb34306504686618e24fadfc16bcf3dc82d46f456c1424",
     "20260101004200_scheduled_event_rent.sql": "511159fc07779a4a183cf9c9fff37ad3cda2ff5d483d05c40c080dd3e803179c",
-    "20260101004300_stock_catalogue.sql": "6aa8e2e833a5b717bfcc3039ade2241294101cb11e97ca648d7904bdfc83b6f5"
+    "20260101004300_stock_catalogue.sql": "2d15b626001b790180a8c0a5522a3decb6415ce254374a1c6e4032830fee23a1"
   },
   "database_image": "sha256:af083ef64d0408c8f098ee6f5c364a59b26f36fbc0f3a334a62c5c1d57362e9b",
   "postgres_version_num": "150008",
   "cli_version": "2.116.0",
   "loopback_port": 48716,
-  "container_id": "88454519bb2900058cf866253d458673a92bcd413f04733b8d559f65e7473402",
+  "container_id": "f419a347764be4e8b6fb88dbf33a5bae8d9235edfcb781908d0ebb1887ecc4c5",
   "expected_versions": [
     "20260101000000",
     "20260101000100",
@@ -348,7 +348,7 @@
   ],
   "catalog_sha256": "282f7565c909426398de30b1bf34131e074c983f383b29da934d14bd1db5d16f",
   "catalogs_equal": true,
-  "schema_sha256": "c5a12cb7da4a67a69408bb81d9b41948a0705b7d5570f3a2ce124473d896936f",
+  "schema_sha256": "ca1f210c4dd43d054dde7b156fd66308b75a8dcf4b1d1e2815421cf60a54ef06",
   "schemas_equal": true,
   "sentinel_removed": true
 }

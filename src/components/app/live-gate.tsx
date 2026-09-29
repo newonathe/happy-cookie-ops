@@ -149,6 +149,7 @@ export function LiveGate({
         const owner = result.role === 'owner';
         // D4: the owner's upcoming bazaars, for the Bazaar screen's list.
         if (owner && !cancelled) void engine.loadScheduledEvents(supabase);
+        if (owner && !cancelled) void engine.loadStockCatalogue(supabase);
         // Only after the flavour list was read: an order for a flavour outside the ported list would crash the screens.
         void Promise.resolve(engine.loadFlavours(supabase)).then((loaded) => {
           if (owner && !cancelled && loaded !== false) void engine.loadOrders(supabase);
