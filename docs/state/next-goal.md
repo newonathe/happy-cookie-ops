@@ -16,62 +16,59 @@ When a goal finishes, the agent deletes its block here, leaves the next one on t
 - If files changed since the last index, re-index first: `index_repository`, repo path `C:/Users/ethan/dev/happy-cookie-ops-g0`.
 - Pinned toolchain: prefix PATH with `C:\Users\ethan\dev\happy-cookie-tools\bin;C:\Users\ethan\dev\happy-cookie-tools\node-v24.20.0-win-x64`. In Git Bash call `pnpm.cmd`: a bare `pnpm` resolves to the global npm shim first (it warns that the `pnpm` field is ignored).
 - Docker Desktop must be running for SQL work, and for one Python guard (`tests/integration/db`).
-- **Baseline (2026-09-29, at B1 close):**
-  - `pnpm typecheck` clean; `pnpm verify` green (see current.md); port integrity OK, 54 files; G0 validator 1206 checks, 0 failures;
+- **Baseline (2026-09-29, at B2 close):**
+  - `pnpm typecheck` clean; `pnpm verify` green (see current.md); port integrity OK, 54 files; G0 validator 1211 checks, 0 failures;
   - Python guards 63 OK, via `python -m unittest discover -s <dir> -p "test_*.py"` for each of `tests/unit`, `tests/integration/auth`, `tests/integration/db` and `tests/integration/security`, with `G0_PYTHON_LIBS=C:\Users\ethan\dev\happy-cookie-tools\python-libs-314`; SQL role suite 1000 cases/reset, 2 resets (`python scripts/test-db-security.py`);
   - `pnpm build:pages:spike`/`test:pages:spike`/`test:workers:spike` pass with or without `NEXT_PUBLIC_SUPABASE_URL`/`…PUBLISHABLE_KEY` (local stack values: `supabase status -o env`);
   - `pnpm build` passes, and `pnpm test:e2e` gives 89 passed / 1 failed / 30 skipped. The one failure is OFFLINE-01 on WebKit (Playwright's WebKit cannot reload offline with a service worker); desktop and phone pass.
 - **Codex only:** run `/status` once in the repo root to confirm the project `.codex/config.toml` loaded. Accept the trust prompt if asked. The project sandbox has no network, so `git push` will ask for approval.
 
-## Next goal — B2 (MP-10 a), app half: the live checkout
+## Next goal — B3 (MP-12/13/14 lean): orders on the owner side
 
-Drafted 2026-09-29 after B1 closed; the B2 database half landed the same day (`20260101003600_order_lookup.sql`:
-`get_shop_order_rules()` and `find_order(order_no, phone)`, see [current.md](current.md)). What is left is the app half.
+Drafted 2026-09-29 after B2 closed. Customers can now place orders (`place_order`), see them (`order_status`), find them
+and join the waiting list; nothing on the owner's side reads them yet, so the orders, payments, bake and pack screens are
+empty in live mode. This slice puts the owner and staff in front of those orders.
 
-**Read first:** the finish-plan.md B2 row and section 4; `docs/state/order-form-audit.md` (element inventory);
-`docs/state/protected-exception.md` (D4: the checkout exception, and how A2 recorded its guarded edits);
-`supabase/migrations/20260101003500_place_order.sql` (the contract: keys, SQLSTATEs, rules) and its checkpoint in
-[current.md](current.md); `src/lib/data/payments.ts` (how A2 reads an anonymous RPC); `checkout.tsx` and `status.tsx`
-under `src/components/screens/`.
+**Read first:** the finish-plan.md B3 row and section 4; `docs/state/protected-exception.md` (the B2 section: what is
+guarded, what is false and recorded); `supabase/migrations/20260101003500_place_order.sql` (the order columns, the D1
+capacity predicate `order_holds_capacity`, `order_rules`); `src/lib/data/order-flow.ts` and `src/store/ops-runtime.tsx`
+(how the customer side reads and writes, and the F3 live form host the owner forms plug into); how A1/A2 loaded owner
+data (`FlavourSync`, `PaymentSync`).
 
-**Carry-overs that land here:**
+**The slice:** staff read and transition RPCs for orders (idempotent, `updated_at` checks, owner and helper roles as the
+ported screens allow): the paid tick (`pay_state`), status changes, the swap of an unavailable flavour, pack and collect,
+and the messages Cine copies to customers (status link and copy-paste text; proof stays in the DMs, F5); the orders and
+payments screens read the database in live mode; the bake list counts unpaid orders too (28 Sep). The engine's local
+`orders` list stays demo-only.
 
-1. **Wording for refusals.** `place_order` refuses with ZC001 closed, ZC002 not enough room (DETAIL = slots left),
-   ZC003 too many unpaid orders on the number, ZC004 pickup date or time, ZC005 method not offered, ZC006 waitlist
-   limit, 22023 malformed, 23505 id reused. Only the closed-drop sentence is signed off (`DROP_CLOSED_MESSAGE`);
-   the others need Cine's words, so show the honest placeholder pattern of `capacityRefusal()` and list them for her.
-2. **Find my order by number and phone: the database side is done.** `find_order` returns the status token or null,
-   throttled per order number; the lookup screen (protected copy promises email lookup, false in live mode) needs a
-   live body, by a second guarded slot in `find-my-order.tsx` or by the live sheet host if a customer page can open it.
-   Read the pickup rules with `get_shop_order_rules()` (the date picker must not hard-code Mon/Thu or 1 to 14 days).
-3. **Phone form.** The database accepts `09XXXXXXXXX`, `+63…`, `63…` and `9XXXXXXXXX` (all normalised to `09…`).
-   The checkout may send what the customer typed.
-4. **One client id per attempt.** Mint a lowercase uuid per attempt. After a network error (outcome unknown) resend the
-   identical frozen body with the same id; after a definite refusal or a success mint a new one (restart and reorder
-   too). 23505 means the same id met a different body: say "check your order". Trim values before sending.
-   Put the status token in the URL fragment (`#t=`), not the query string.
-5. **Close-drop early is not on the server.** The engine's `shopOverride` is not saved to the database, so
-   `place_order` cannot see it; persist it (a setting) before the live checkout ships, or the owner's "close now"
-   button will not stop orders.
-6. **"Invoice INV-…" wording** becomes "Order no." in live mode (F10), under the same guarded slot.
-7. **Owner form for the order rules** (`get_order_rules`/`save_order_rules`): hold hours, unpaid orders per number,
-   pickup days, lead days, pickup hours and the campus slot. No screen edits them yet; a `LiveFormHost` form in All
-   tools, as A2 did for payment methods, is the natural place (this slice or B3).
+**Carry-overs from B2 that land here or before cutover:**
+
+1. **The shop's open state must come from the server** (blocker for cutover). An anonymous customer's engine uses the
+   default schedule, so the shop banner and the add buttons ignore the owner's window, and the owner's "close now"
+   (`shopOverride`) is not on the server, so it stops nothing. Add a public read of the ordering window and the override,
+   persist the override as a setting, make `place_order` honour it (a migration that redefines the function; extend
+   `scripts/test-db-security.py` for the new rule), and feed the customer engine from it.
+2. **Owner form for the order rules** (`get_order_rules`/`save_order_rules`): hold hours, unpaid orders per number, pickup
+   days, lead days, pickup hours, the campus slot. A `LiveFormHost` form in All tools, like A2's payment methods.
+3. The status page has no pickup code in live mode (`showCode` is false); decide with Cine whether collection needs one.
+4. Direct URL `/lookup` still shows the ported page (protected copy promising email lookup). Ask Ethan before adding a
+   second guarded slot in `find-my-order.tsx`.
+5. Wording: every customer sentence in `src/lib/orders/copy.ts` is a placeholder except the closed-drop sentence; list
+   the ones the owner screens add here too.
 
 ```text
-/goal B2 (docs/state/finish-plan.md slice B2): the live checkout, app half. In live mode only, one guarded slot in
-checkout.tsx (D4, recorded in protected-exception.md with exact reversals in scripts/validate-g0.py and baselines
-regenerated in the same commit): the fields of her form (name, Instagram, contact number, pickup date from the
-owner's pickup days and lead time, pickup time or the campus slot, payment method from get_shop_payment_info, an
-optional reference), no email and no address. A `custSubmit` override in OpsRuntime calls place_order with a client
-id per attempt, maps the SQLSTATEs to messages, and shows the order number and status link; the status page reads
-order_status(token); lookup by order number + phone and the waitlist (join_waitlist) as the audit lists them. Demo
-mode is unchanged. Port audit, an E2E happy path against the local stack, unit tests with a deliberate mutation per
-new branch, and one different-model review of the guarded edits. All exit 0 in this session: pnpm verify, Python
-guards, the G0 validator (revert evidence/*.json churn), port integrity, pnpm build, test:pages:spike,
-test:workers:spike, test:e2e (baseline: only OFFLINE-01 on WebKit red). Committed and pushed; current.md checkpoint
-and task-status updated; this block replaced by B3 from finish-plan section 6. No deploy. Stop after 2 failed fix
-attempts or 25 turns.
+/goal B3 (docs/state/finish-plan.md slice B3): orders on the owner side. Staff read and transition RPCs for orders
+(SECURITY DEFINER, search_path '', in-function role check, explicit grants, idempotent, updated_at checks): the paid tick,
+status transitions, the flavour swap, pack and collect, and the customer message texts; the orders and payments screens
+read the database in live mode (a LiveFormHost form or the ported screens fed from view-model data; any protected-markup
+edit needs its own record and exact reversals, port audit first); the bake list counts unpaid orders (28 Sep). Then the
+B2 carry-overs in this file: the shop's open state and the owner's close-now read from and enforced by the server, and
+the owner form for the order rules. SQL role suite with a deliberate regression per new rule, unit tests with a mutation
+per new branch, and one different-model review (Opus). All exit 0 in this session: pnpm verify, Python guards, the G0
+validator (revert evidence/*.json churn), port integrity, pnpm build, test:pages:spike, test:workers:spike, test:e2e
+(baseline in current.md), test:live:checkout, python scripts/test-db-security.py. Committed and pushed; current.md
+checkpoint and task-status updated; this block replaced by the next goal from finish-plan section 6. No deploy. Stop
+after 2 failed fix attempts or 25 turns.
 ```
 
 ## After these goals

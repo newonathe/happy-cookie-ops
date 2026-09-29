@@ -4,6 +4,36 @@ Every checkpoint up to 2026-09-28, verbatim and newest first. Moved here from `c
 session reads only the short status in [current.md](current.md). Add nothing here by hand; move a checkpoint here
 when it leaves `current.md`.
 
+## Checkpoint — 2026-09-29 (B2 database half)
+
+- **2026-09-29 (B2, database half only; the app half was not started):** migration
+  `20260101003600_order_lookup.sql`.
+  - **`get_shop_order_rules()`** (anon may execute): the eight pickup values a customer's date picker needs (pickup
+    days, lead min and max, pickup hours, campus slot, unpaid hold hours) and nothing else. `get_order_rules()` stays
+    owner-only because it also holds the anti-abuse numbers.
+  - **`find_order(order_no, phone)`** (anon): the status token for an order number and the phone it was placed with,
+    or null. Every miss is the same null: malformed input, unknown number, wrong phone, erased order, too many tries.
+    The phone is normalised exactly as in `place_order` and `anonymise_customer` (including `+63…` and `9XXXXXXXXX`).
+    Throttled per order number, ten tries per fifteen minutes, and only on orders that exist (so no counter row is
+    created for a made-up number); the price is that a stranger can use up someone's tries for a while.
+  - **Fixture:** the parity case `committed = 2.9` is marked `"sql": false` (TypeScript only) in
+    `capacity-cases.json`, and the SQL half of the parity spec skips it, with a note: `capacity_allows()` takes integers
+    and the server's committed count is always an integer sum. With that, the spec passes in full against a live stack.
+  - **Evidence:** SQL role suite 1024 cases per reset (`order-lookup.sql` 24), 2 resets, 182 regressions detected
+    (5 new per reset: throttle, phone check, both phone forms, and a rules leak); function manifest 52; types
+    regenerated.
+  - **The app half is still to do** and is written in [next-goal.md](next-goal.md): the guarded slot in `checkout.tsx`,
+    the `custSubmit` override, the status page from `order_status`, the lookup screen and the waitlist. Decisions
+    already made for it (advisor review, 2026-09-29): keep the status token in the URL fragment (`#t=`), not the query
+    string; keep one client id per attempt and resend the identical frozen body after a network error; mint a new id
+    after a definite refusal or a success; check that a customer page can open the live sheet host before adding a
+    second protected edit (the lookup screen's ported copy promises email lookup, which is false in live mode); run
+    `pnpm db:reset` before any E2E run (the long-running dev stack was hand-migrated and its grants are stale); the E2E
+    fixture must set its own world through the service role (a published flavour, an active method, an open ordering
+    window computed in Asia/Manila).
+  - **Still not run:** everything in the B2 goal that is app work, `pnpm test:e2e`, the physical-phone test for the
+    20-Oct gate, WebKit OFFLINE-01.
+
 ## Checkpoint — 2026-09-29 (B1 database half)
 
 - **2026-09-29 (B1, finish-plan slice B1, database half):** migration `20260101003500_place_order.sql`.

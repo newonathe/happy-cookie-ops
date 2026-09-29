@@ -21,21 +21,23 @@ Short status, read at the start of every session. Keep it to one screen.
   - MP-09 c1b: prices save, `publish_flavours`, and the live shop shows only the published menu.
   - MP-09 c1c (F3, slice A1): the owner's flavour editor and "Publish menu" button, live mode only.
 - **A2 is done locally (2026-09-29):** payment methods, QR and photo upload, and the shop footer texts, on the database and on screen (live mode).
-- **B2 is half done (2026-09-29): the database half** (customer-readable pickup rules, lookup by order number and
-  phone) is done; **the app half (the live checkout screens) is not started**.
+- **B2 is done locally (2026-09-29):** the live checkout on the database and on screen (customer pages, live mode): the
+  order form, the order number and status link, the status page, Find my order and the waiting list. Two cutover
+  blockers found and recorded below (the shop's open state is not read from the server; `/lookup` URL).
 - **B1 is done locally (2026-09-29):** the order command on the database (`place_order`, `order_status`,
-  `join_waitlist`, the owner's order rules); the live checkout that calls it is B2.
+  `join_waitlist`, the owner's order rules).
 - **D1 and D2 are done locally:** bazaar events, offline sales and the close-out (stock, expenses, cash count, event profit) on the database (checkpoint below).
-- **Screen by screen:** orders (the database can now take them; the checkout and the owner screens are B2/B3), payments, bake/dough, inventory, grocery, suppliers, recipes, P&L and the
+- **Screen by screen:** orders (customers can now place them, live; the owner screens do not see them until B3), payments, bake/dough, inventory, grocery, suppliers, recipes, P&L and the
   waitlist still live only in the browser (bazaar sales, stock, expenses and close-out now reach the database), so they are empty in live mode. **The owner can now edit, add and
   publish flavours**; every other screen is still A2 onward.
 - **Cine's inputs arrived 2026-09-28** and were analysed in [finish-plan.md](finish-plan.md) sections 2 and 4 and
   [apps-script-audit.md](apps-script-audit.md): the workbook, the September form, the payment image, the October
   menu, recipes and packaging, and the Apps Script. The files stay outside the repo; `Appscript/` is git-ignored.
-- **Baseline (2026-09-29, at B1 close):**
-  - `pnpm typecheck` clean; `pnpm verify` 48 files / 814 tests; port integrity OK, 54 files; G0 validator 1206 checks, 0 failures;
+- **Baseline (2026-09-29, at B2 close):**
+  - `pnpm typecheck` clean; `pnpm verify` 51 files / 898 tests; port integrity OK, 54 files; G0 validator 1211 checks, 0 failures;
   - SQL role suite: 1024 cases per reset, 2 resets, 182 deliberate regressions each detected; Python guards: 63 OK; migrations: 37;
-  - `pnpm test:e2e`: 89 passed / 1 failed (WebKit OFFLINE-01) / 30 skipped.
+  - `pnpm test:e2e`: 89 passed / 1 failed (WebKit OFFLINE-01) / 75 skipped, run with no Supabase variables (the capacity-parity specs skip without a local stack, so the skipped count is higher than the 30 recorded earlier; passed and failed are unchanged). Passing the local-stack variables at run time to `next start` makes its middleware send staff routes to sign-in, so do not.
+  - `pnpm test:live:checkout`: 8 steps pass (needs `pnpm db:reset` and the local stack keys in the environment).
 - **Known red:** OFFLINE-01 on WebKit only; `format:check` and E2E on CI `main`. No merge to `main` until they are green.
 
 ## Waiting on
@@ -47,30 +49,42 @@ Short status, read at the start of every session. Keep it to one screen.
 
 ## Latest checkpoint (replace each slice; move the old one to current-history.md)
 
-- **2026-09-29 (B2, database half only; the app half was not started):** migration
-  `20260101003600_order_lookup.sql`.
-  - **`get_shop_order_rules()`** (anon may execute): the eight pickup values a customer's date picker needs (pickup
-    days, lead min and max, pickup hours, campus slot, unpaid hold hours) and nothing else. `get_order_rules()` stays
-    owner-only because it also holds the anti-abuse numbers.
-  - **`find_order(order_no, phone)`** (anon): the status token for an order number and the phone it was placed with,
-    or null. Every miss is the same null: malformed input, unknown number, wrong phone, erased order, too many tries.
-    The phone is normalised exactly as in `place_order` and `anonymise_customer` (including `+63…` and `9XXXXXXXXX`).
-    Throttled per order number, ten tries per fifteen minutes, and only on orders that exist (so no counter row is
-    created for a made-up number); the price is that a stranger can use up someone's tries for a while.
-  - **Fixture:** the parity case `committed = 2.9` is marked `"sql": false` (TypeScript only) in
-    `capacity-cases.json`, and the SQL half of the parity spec skips it, with a note: `capacity_allows()` takes integers
-    and the server's committed count is always an integer sum. With that, the spec passes in full against a live stack.
-  - **Evidence:** SQL role suite 1024 cases per reset (`order-lookup.sql` 24), 2 resets, 182 regressions detected
-    (5 new per reset: throttle, phone check, both phone forms, and a rules leak); function manifest 52; types
-    regenerated.
-  - **The app half is still to do** and is written in [next-goal.md](next-goal.md): the guarded slot in `checkout.tsx`,
-    the `custSubmit` override, the status page from `order_status`, the lookup screen and the waitlist. Decisions
-    already made for it (advisor review, 2026-09-29): keep the status token in the URL fragment (`#t=`), not the query
-    string; keep one client id per attempt and resend the identical frozen body after a network error; mint a new id
-    after a definite refusal or a success; check that a customer page can open the live sheet host before adding a
-    second protected edit (the lookup screen's ported copy promises email lookup, which is false in live mode); run
-    `pnpm db:reset` before any E2E run (the long-running dev stack was hand-migrated and its grants are stale); the E2E
-    fixture must set its own world through the service role (a published flavour, an active method, an open ordering
-    window computed in Asia/Manila).
-  - **Still not run:** everything in the B2 goal that is app work, `pnpm test:e2e`, the physical-phone test for the
-    20-Oct gate, WebKit OFFLINE-01.
+- **2026-09-29 (B2 app half, finish-plan slice B2):** the live checkout on the customer pages, live mode only.
+  - **One guarded slot in `checkout.tsx`** (D4): `{bareFrame ? <LiveCheckout v={v} /> : (…ported, verbatim…)}` from "About
+    you" to the footnote. Exact reversals in `scripts/validate-g0.py` (`CHECKOUT_REVERSALS`), baselines regenerated,
+    recorded with the ported lines that are false in live mode in [protected-exception.md](protected-exception.md).
+    `order-status.tsx`, `find-my-order.tsx` and `shop.tsx` are not touched by this slice.
+  - **What a customer does:** name, Instagram, contact number, pickup date (the owner's pickup days inside the lead
+    window, counted on the Manila clock, from `get_shop_order_rules()`), pickup time (half hours, or the campus slot),
+    payment method and QR, an optional reference. No email, address, amount or screenshot. `place_order` is called under one
+    client id per attempt; the form and box are locked while it is sending, unsettled or placed, so "Try again" always
+    resends the identical frozen body; definite refusals (ZC001 to ZC006, 22023, 23505, 42501, 55000) are worded, anything
+    else is an unknown outcome. The order number and the status link (`/status#t=…`, fragment only) show on success.
+  - **Status page:** fed from `order_status(token)` through `cust.*` (no invoice, no "payment proof", no pickup code); a
+    link opens it on a direct load or pasted into the tab. **Find my order** (number + phone) and the **waiting list**
+    open as sheets from the shop footer, on customer screens only (gated on the screen, because an anonymous visitor's
+    engine role is `'owner'`).
+  - **Evidence:** `pnpm verify` 51 files / 898 tests; G0 validator 1211 checks, 0 failures; port integrity OK, 54 files;
+    Python guards 63 OK; `pnpm build`, `test:pages:spike`, `test:workers:spike` pass; **`pnpm test:live:checkout`** (new,
+    headless Chromium against the live static export and the local stack after `pnpm db:reset`): shop, order, database
+    row, status link and reload, lookup, waiting list, no CSP violation, no foreign origin, token in no URL. 43
+    deliberate mutations, each caught. Port audit (Sonnet) PASS; Opus review: no Critical, one High (the sent order
+    could differ from the screen), fixed with the Mediums and most Lows. `pnpm test:e2e`: see the line under Baseline.
+  - **Customer wording is placeholder.** Every new sentence is in `src/lib/orders/copy.ts` (marked PLACEHOLDER; the
+    closed-drop sentence is the signed-off one). Cine still needs to word: not enough room (in slots), too many unpaid
+    orders, pickup not available, payment method not offered, waiting-list limit, malformed order, order id reused,
+    ordering unavailable, the lost-reply and "Change the order" lines, the pay-help line, the unpaid, lapsed, cancelled and
+    ready lines on the status page, and the lookup and waiting-list lines.
+  - **Cutover blockers found here (not built):**
+    1. **The shop's open state must come from the server.** An anonymous customer's engine decides open or closed from the
+       default schedule (Monday 9:00 to Thursday 21:00), not the owner's settings: outside it the shop shows "Orders are
+       closed" with no add buttons even if the server would take the order, and inside it the banner can say open while
+       `place_order` refuses (ZC001). The owner's "close now" (`shopOverride`) is not on the server either, so it stops
+       nothing. Needs a public read of the ordering window and the override, and a migration that redefines `place_order`.
+    2. The direct URL `/lookup` still shows the ported page (its copy promises email lookup); the shop footer opens the live
+       sheet. A second guarded slot in `find-my-order.tsx` would fix it; D4 does not name that screen, so ask Ethan.
+    3. The ported status line "Book your Grab or Lalamove for that window. We send the exact address that morning." is
+       protected and false for the campus slot.
+  - **Also open:** the owner's form for the order rules (`get_order_rules`/`save_order_rules`) is B3; the two heaviest
+    render-every-screen tests in `flavours.test.tsx` got an explicit 20 s timeout (they exceeded 5 s under load at HEAD too).
+  - **Still not run:** the physical-phone test for the 20-Oct gate, WebKit OFFLINE-01.
