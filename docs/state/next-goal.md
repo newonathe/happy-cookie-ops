@@ -18,96 +18,74 @@ When a goal finishes, the agent deletes its block here, leaves the next one on t
 - If files changed since the last index, re-index first: `index_repository`, repo path `C:/Users/ethan/dev/happy-cookie-ops-g0`.
 - Pinned toolchain: prefix PATH with `C:\Users\ethan\dev\happy-cookie-tools\bin;C:\Users\ethan\dev\happy-cookie-tools\node-v24.20.0-win-x64`. In Git Bash call `pnpm.cmd`: a bare `pnpm` resolves to the global npm shim first (it warns that the `pnpm` field is ignored).
 - Docker Desktop must be running for SQL work, and for one Python guard (`tests/integration/db`).
-- **Baseline (2026-09-29, at B4a close):**
-  - `pnpm typecheck` clean; `pnpm verify` green, 57 files / 1052 tests (see current.md); port integrity OK, 54 files; G0 validator 1217 checks, 0 failures;
+- **Baseline (2026-09-30, at B4b close):**
+  - `pnpm typecheck` clean; `pnpm verify` green, 60 files / 1110 tests (see current.md); port integrity OK, 54 files; G0 validator 1217 checks, 0 failures;
   - Python guards 63 OK, via `python -m unittest discover -s <dir> -p "test_*.py"` for each of `tests/unit`, `tests/integration/auth`, `tests/integration/db` and `tests/integration/security`, with `G0_PYTHON_LIBS=C:\Users\ethan\dev\happy-cookie-tools\python-libs-314`; SQL role suite 1318 cases/reset, 2 resets (`python scripts/test-db-security.py`, about 3 minutes);
   - `pnpm build:pages:spike`/`test:pages:spike`/`test:workers:spike` pass with or without `NEXT_PUBLIC_SUPABASE_URL`/`…PUBLISHABLE_KEY` (local stack values: `pnpm exec supabase status -o env`; the bare `supabase` binary is not on PATH);
   - `pnpm build` passes, and `pnpm test:e2e` gives 89 passed / 1 failed / 75 skipped with no Supabase variables set. The one failure is OFFLINE-01 on WebKit (Playwright's WebKit cannot reload offline with a service worker); desktop and phone pass;
-  - `pnpm test:live:checkout`: 10 steps (needs `pnpm db:reset` first and the three local keys in the environment).
+  - `pnpm test:live:checkout`: 11 steps (needs `pnpm db:reset` first and the three local keys in the environment).
   - **Adding a migration touches more than SQL:** `tests/fixtures/mp08g-source-pins.json` (sha256, CRLF file), `tests/fixtures/function-authority.json` (a manifest entry per function and its body hash, regenerated from a reset local database), the function count in `tests/integration/security/test_function_authority.py`, `scripts/test-db-security.py` (suites, mutation maps, the asserted totals), `pnpm db:types`. A redefined function is mutated from its latest definition. The pre-commit hook runs `pnpm verify` and needs the pinned toolchain on PATH.
 - **Codex only:** run `/status` once in the repo root to confirm the project `.codex/config.toml` loaded. Accept the trust prompt if asked. The project sandbox has no network, so `git push` will ask for approval.
 
-## Next goal — B4b (MP-10 b): boxes, add-ons, the sampler and same-day on the live checkout and the owner's order screens
+## Next goal — D4: the bazaar events list (Cine adds her real bookings)
+
+Drafted 2026-09-30 after B4 closed; approved by Ethan on 2026-09-29 (finish-plan D4 row). Today the Bazaar screen's "Start an
+event" list is two hard-coded prototype events inside the protected engine (`bazaarVals`, `events:`), with no way to add one, and
+none of the fields she needs (place, rent). Her bookings are 24-25 Oct and 12-13 Dec, both accepted, with rent. D1 and D2 built
+selling, close-out, event stock, expenses and event profit; this slice gives her the list to start them from. It runs before the
+20 Oct pilot gate.
 
 ### Session settings (set these before pasting the goal)
 
 | Setting | Value | Why |
 | --- | --- | --- |
-| Conversation | **New**, started in the repo root (`C:/Users/ethan/dev/happy-cookie-ops-g0`) | One slice per conversation; the hooks, agents and `.mcp.json` load only from the root (finish-plan 8.1) |
-| Builder model · reasoning effort | **Sonnet 5 · high** | finish-plan section 6, row B4; section 8.2 (high is Sonnet 5's default) |
-| Plan mode | **Off** | The goal block is the approval (AGENTS.md "Working agreement" 2). Turn plan mode on only if the port audit forces a protected-markup edit, or if the goal stalls twice |
+| Conversation | **New**, started in the repo root (`C:/Users/ethan/dev/happy-cookie-ops-g0`) | One slice per conversation; hooks, agents and `.mcp.json` load only from the root |
+| Builder model · reasoning effort | **Sonnet 5 · high** | finish-plan section 6 row D4; section 8.2 |
+| Plan mode | **Off** | The goal block is the approval (AGENTS.md "Working agreement" 2). Turn it on only if the port audit forces a protected-markup edit |
 | Permission mode | **Auto mode on** | finish-plan 8.1 |
-| Fast mode | Off | Not needed; it changes cost, not correctness |
-| Sign-off and review model | **Opus 5.5 · medium**, run as a subagent with `model: opus` on the invocation (the agent files are pinned to Sonnet) | A different model from the builder reviews SQL, money and personal data (lean plan rule 4). This slice: the app half, plus anything in the price path |
-| Port audit | `port-auditor` on **Sonnet**, before any edit near protected markup | The checkout slot and order screens are protected |
+| Fast mode | Off | Not needed |
+| Sign-off and review model | **Opus 5.5 · medium** as a subagent with `model: opus` on the invocation | A different model reviews SQL, money and offline (lean plan rule 4). This slice: the migration, the RPCs and the rent-to-expense path |
+| Port audit | `port-auditor` on **Sonnet**, before any edit near protected markup | The Bazaar screen and the engine's `bazaarVals` are protected: the list must come from a runtime post-process (the B3/B4b pattern), not an edit |
 | Literal code search | Explore subagent (Haiku) or codebase-memory-mcp | Cheapest; never read the 4,000-line engine whole |
-| Browser QA | **Required.** Use the built-in browser pane: it is allowed (Ethan, 2026-09-29, overriding the older AGENTS.md line). Run the live-mode build and look at every screen this slice touches | Ethan asked for visual QA of everything. Recipe: build with `scripts/build-pages-spike.mjs` using the local Supabase URL and publishable key, serve it with wrangler pages dev, sign in with a local test owner (a local test account is allowed on `localhost` only). If his Chrome times out on port 54321, route the database through the app's own port with a same-origin proxy |
+| Browser QA | **Required.** Built-in browser pane (allowed by Ethan, 2026-09-29): live-mode build, local test owner (`localhost` only), same-origin database proxy if his Chrome times out on port 54321 (recipe in the B4b notes of `current.md` history and the memory file). Add an event in the form, see it on the Bazaar screen, start it, place a test sale, close it, see the rent as an event expense | Ethan asked for visual QA of everything |
 | Stop budget | 2 failed fix attempts or 25 turns | Written in the goal |
 | Environment | Docker Desktop running; pinned toolchain on PATH; `pnpm.cmd` in Git Bash | See "Before starting" |
 
-Drafted 2026-09-29 after B4a closed. B4a put the September form's extras on the database: `place_order` prices boxes,
-add-ons, the sampler cap and the same-day surcharge from the owner's configuration (`order_extras`, migration
-`20260101004000_order_extras.sql`), `order_status` and `get_staff_orders` return the add-ons, boxes and surcharge, and the
-owner edits it all in "Boxes & add-ons" (All tools). Customers cannot use any of it yet: the live checkout sends no `add_ons`
-or `boxes`, offers no same-day date, and the owner's order screens show only the items. This slice closes that.
+**Read first:** finish-plan D4, D1, D2 rows and section 4 finding 15; the D1 and D2 checkpoints in `docs/state/current-history.md`;
+`supabase/migrations/20260101003200_bazaar_events.sql` and `20260101003300_bazaar_closeout.sql` (the `events` table has `name`,
+`starts_at`, `ends_at`, `float_cents`, `closed_at`; `start_event(text, text, bigint, uuid)`; the expense RPC `add_event_expense`);
+`src/store/engine/ops-engine.js` `bazaarVals` (the hard-coded `events` value, ~line 3045) and `startEvent`; `src/store/ops-runtime.tsx`
+(`startLiveEvent`, the bazaar wrappers, `renderVals` post-processing, the B4a "Boxes & add-ons" form as the pattern for an owner
+form on the live form host); `src/lib/data/order-extras.ts` and `src/components/live/order-extras-form.tsx` (the pattern:
+`get`/`save` with a stale stamp, exact keys, a strict parser, pesos on screen and centavos on the wire).
 
-**Read first:** the B4a checkpoint in `docs/state/current.md`; the header comment and the `place_order` body of
-`supabase/migrations/20260101004000_order_extras.sql` (the payload shape and every refusal: `ZC007` = a box size or add-on
-that is no longer offered, `ZC004` also covers same-day off and a time already past, `22023` the rest); `src/lib/data/order-extras.ts`
-(the owner side; the customer read `get_shop_extras()` has no parser yet: write `parseShopExtras` beside it, like
-`parseShopOrderRules` in `src/lib/orders/pickup.ts`); `src/components/live/live-checkout.tsx`, `src/lib/data/orders.ts`,
-`src/lib/data/order-flow.ts`, `src/lib/orders/pickup.ts`, `src/lib/orders/copy.ts`; `src/lib/data/staff-orders.ts`
-(`toEngineOrder`), `src/lib/orders/messages.ts`, `src/components/live/order-messages.tsx`; `docs/state/protected-exception.md`.
+**The slice (design, each a default Cine can change):** (1) a `scheduled_events` table (name, start and end date, place, rent in
+centavos, active, `updated_at`) with owner-only get/save RPCs in the settings pattern (stale stamp, exact keys, `SECURITY DEFINER`,
+`search_path ''`, in-function role check, explicit grants, idempotent); deactivate instead of delete. (2) An "Add event" form on the
+live form host under All tools (name, start and end date, place, rent), no protected markup. (3) In live mode `OpsRuntime` replaces the
+`events` value of the Bazaar vals with her active upcoming events (name, "date · place", and a `go` that starts it), engine untouched.
+(4) Starting one passes its id to `start_event` (a new optional parameter, or a new function) so the event row carries the schedule's
+dates; the rent becomes an event expense at close-out (or when the event starts) through the existing expense path, category
+"Bazaar rent" (the engine already uses that category name). (5) Past events drop off the list; an event already started is not offered
+twice. (6) The 24-25 Oct and 12-13 Dec bookings are entered by Cine in the app, never seeded.
 
-**Decisions already taken (finish-plan B4 plan; each is a default Cine can change):**
-
-1. **No protected-markup edit.** Owner totals: `toEngineOrder` puts the non-item part of the total (add-ons + boxes + surcharge,
-   pesos) in a reserved key of `priced` (`__extras`; grep every reader of `o.priced` keys first). `boxTotal` is a class-field
-   arrow in the engine: override it as an **instance field in the `OpsRuntime` constructor** (as for `custSubmit`), and in live
-   mode do **not** call the base (it applies `priceMode`, `packagingFee`, `flatBox`, which the server never uses): live formula
-   = Σ `priceOf(k, priced) × qty` + `priced.__extras`. Demo mode and the customer cart call (`boxTotal(c.box, s.prices)`) keep the base.
-2. **Order detail and orders list**: append `lines` rows in the B3 post-process (`liveOrderDetail`, and the list): one per add-on
-   ("Sticker no. 2"), per box ("Box of 6") and "Same-day pickup (+40%)", with a neutral swatch `imgStyle`, `inStock: true`,
-   `out: false`, `flagLabel: 'Extra'` and a no-op `flag`. `orders.tsx` shows name, qty, line only; `order-detail.tsx` also renders the
-   flag button. Neither markup file changes. Port audit first; if a row shape cannot render, stop and ask Ethan for a
-   protected-exception record.
-3. The note text, sticker numbers and boxes also show in the live-only "Customer messages" sheet and the customer message text.
-4. **The ported "Your order" card shows an items-only total.** No client price estimate (it would need a TS/SQL pricing parity
-   fixture). The live checkout shows each add-on's and box's price and the same-day percent as labels, and a PLACEHOLDER line
-   under the ported card: add-ons, box charges and the same-day amount are added by the shop. The placed card shows the
-   server total and the add-ons chosen.
-5. Customer wording is PLACEHOLDER (`src/lib/orders/copy.ts`): `ZC007` ("that add-on is not offered any more, reload"), same-day off,
-   time passed, box and add-on limits.
-6. **Same-day is off by default** (the owner switches it on in Boxes & add-ons): the checkout offers today only when `get_shop_extras` says it is on.
-7. **Add-on limits count all lines of one add-on together** (the server refuses otherwise): mirror that in the form.
-8. **Same-day tests must not depend on the wall clock**: seed the rules (all seven pickup days, hours 0-24) and use `23:59`
-   to accept, `00:00` for "already past".
-
-**The slice:** `parseShopExtras` + a customer read of `get_shop_extras` in `OrderFlow`; the checkout's Boxes card (shown once the
-cookie count reaches the smallest box), Add-ons card (variant select, note field with its length), the same-day date (today,
-labelled with the percent, only when same-day is on and today is a pickup day: `pickupDates` gains an extras argument) and
-notice, sent as `add_ons` and `boxes` in `place_order`, with the same checks the server makes; refusal wording; owner side per
-decisions 1-3; `scripts/test-live-checkout.mjs` extended for one add-on (a sticker with a number) and a same-day order, asserting
-the row's total, its `order_add_ons` row and its surcharge.
-
-**Carry-overs:** the sampler is an ordinary flavour of kind `set` (the owner makes it under Menu & flavours and names it in
-Boxes & add-ons), so the bake list shows "Sampler box x N" without expanding it to flavours (D10 contents are open); helper access
-to pack and collect (owner-only shipped); lapsed unpaid orders still count on the bake list until cancelled (ask Cine); the overage
-sheet's "over by" mixes cookies and weighted slots; no pickup code on the live status page; wording for every sentence
-`staff-copy.ts` and `copy.ts` mark PLACEHOLDER; Cine's real box charges and add-on prices (C5) are entered in the app, not code.
+**Carry-overs:** the recorded B4b items in `current.md` (same-day across midnight, boxes for non-cookie sets, extras on the status
+page); a direct load of a staff URL lands on Home in live mode (not investigated); helper access to pack and collect; wording for
+every sentence marked PLACEHOLDER.
 
 ```text
-/goal B4b (docs/state/finish-plan.md slice B4, second half): the September form's boxes, add-ons, sampler and same-day extra on the
-live checkout and the owner's order screens and messages, per the decisions above (no protected-markup edit unless the port audit
-forces one, with its own record and exact reversals). Customers pick boxes (only sizes the owner offers), add-ons with a sticker
-number or a note message, the sampler (its cap) and same-day pickup (surcharge shown as a percent; the server prices it); a
-swap or a surcharge never changes what a customer owes except the item difference. Unit tests with a mutation per new branch, a
-port audit (Sonnet) before any edit near protected markup, and one different-model review (Opus) of the app half. All exit 0 in
-this session: pnpm verify, Python guards, the G0 validator (revert evidence/*.json churn), port integrity, pnpm build,
-test:pages:spike, test:workers:spike, test:e2e (baseline in current.md), test:live:checkout (extended for one add-on and a
-same-day order), python scripts/test-db-security.py, and a visual pass in the browser pane over every screen touched
-(screenshots looked at, one order placed through the new checkout, and read back on the owner's screens). Committed and pushed; current.md checkpoint and task-status updated; this
-block replaced by the next goal from finish-plan section 6 (A3). No deploy. Stop after 2 failed fix attempts or 25 turns.
+/goal D4 (docs/state/finish-plan.md slice D4): Cine adds her real bazaar bookings (name, start and end date, place, rent) in an owner
+form, and the Bazaar screen lists them in live mode instead of the two hard-coded prototype events; starting one opens the event with
+its dates, and its rent becomes an event expense. New migration (a scheduled-events table and owner get/save RPCs with stale-stamp
+checks, SECURITY DEFINER, search_path '', in-function role check, explicit grants), the list from an OpsRuntime post-process with no
+protected-markup or engine edit unless the port audit forces one (then its own record and exact reversals). SQL role suite with a
+deliberate regression per new rule, unit tests with a mutation per new branch, a port audit (Sonnet) before any edit near protected
+markup, and one different-model review (Opus). All exit 0 in this session: pnpm verify, Python guards, the G0 validator (revert
+evidence/*.json churn), port integrity, pnpm build, test:pages:spike, test:workers:spike, test:e2e (baseline in current.md),
+test:live:checkout, python scripts/test-db-security.py, and a visual pass in the browser pane over every screen touched
+(screenshots looked at: the form, the Bazaar list, starting an event, a test sale, the close-out with the rent). Committed and pushed;
+current.md checkpoint and task-status updated; this block replaced by the next goal from finish-plan section 6 (A3). No deploy. Stop
+after 2 failed fix attempts or 25 turns.
 ```
 
 ## After these goals
@@ -115,23 +93,8 @@ block replaced by the next goal from finish-plan section 6 (A3). No deploy. Stop
 1. **Hosted preview: live (2026-09-27, see [current state](current.md)).** The route/CSP/cache oracle, anonymous RLS/RPC probes, `connect-src` proof, default-privilege probe and catalog RLS guard pass on the hosted project. Still open:
    - the direct-parent refresh probe and the `auth.sessions` checks, with a test account Ethan creates and signs in with himself;
    - move the local stack to Postgres 17 and revoke the PG17 MAINTAIN privilege from API roles in a reviewed migration.
-2. **Queued next after B4b: D4, the bazaar events list** (Ethan approved 2026-09-29). Cine cannot add bazaar events today: the Bazaar
-   screen's "Start an event" list is two hard-coded prototype events in the engine, with no add control. Her real bookings are
-   24-25 Oct and 12-13 Dec (with rent). Scope and design are in the finish-plan D4 row. It runs before the 20 Oct pilot gate. The goal
-   block is written when B4b lands, with this Session settings table:
-
-   | Setting | Value |
-   | --- | --- |
-   | Conversation | New, in the repo root |
-   | Builder model · reasoning effort | Sonnet 5 · high |
-   | Plan mode | Off (the goal block is the approval) |
-   | Permission mode | Auto mode on |
-   | Review model | Opus 5.5 · medium as a subagent (`model: opus`); `port-auditor` on Sonnet if any protected markup is near |
-   | Browser QA | Required: live-mode build in the built-in pane; add an event in the form, see it on the Bazaar screen, start it, place a test sale |
-   | Stop budget | 2 failed fix attempts or 25 turns |
-
-3. **Remaining slices: [finish-plan.md](finish-plan.md) section 6.** The approved order after D2 is [D3 if
-   the pilot gate passes by 20 Oct] → A2 → B1–B4 → D4 → A3–A4 → C1–C2 → E1 → F1–F4. Each next block is written from there when the previous one lands. Carry-overs:
+2. **Remaining slices: [finish-plan.md](finish-plan.md) section 6.** The approved order after D2 is [D3 if
+   the pilot gate passes by 20 Oct] → A2 → B1–B4 → [D4 is the top goal above] → A3–A4 → C1–C2 → E1 → F1–F4. Each next block is written from there when the previous one lands. Carry-overs:
    - Rate limiting for anonymous checkout: key on phone number plus the weekly cap, never the client IP (the gateway's forwarded-IP header is caller-controlled; finish-plan section 10).
 4. **G4 (operations):**
    - Keep-alive: Supabase pauses Free projects after about 7 days of low activity; its docs allow keep-alive API calls.
