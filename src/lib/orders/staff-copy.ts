@@ -145,10 +145,21 @@ export const STOCK_COPY = {
     'That supplier could not be saved. Check the name is not already used, and each price has an item, a pack label and a price.',
   priceHint:
     'Enter the price for one pack of the size set on the item under Stock items. Two suppliers selling one item in different pack sizes are not supported yet.',
-  quantityNote:
-    'Quantities are counted with the stock ledger, which is built next. The item was added with none on hand.',
-  countsNotSaved:
-    'Stock counts are saved with the stock ledger, which is built next. This change was not kept.',
+  movementNotSaved:
+    'Not confirmed: the connection dropped, so that stock change may or may not have gone through. Check the quantity, then repeat it exactly: the database will not count the same entry twice.',
+  ownerOnly: 'Only Cine can change stock.',
+  someSaved: (saved: number, total: number) =>
+    saved + ' of ' + total + ' counts saved. The rest are still on the count sheet.',
+  itemAddedNoOpening:
+    'The item was added, but its opening quantity was not recorded. Count it from the inventory screen.',
+  movementRefused:
+    'That stock change was refused: check the amount, that the item is still in use, and that nothing came in or went out after a count was taken (count again). Stock on screen shows what the database holds.',
+  received: (name: string, qty: string, spend: string) =>
+    qty + ' of ' + name + ' in stock.' + (spend ? ' ' + spend + ' logged under your costs.' : ''),
+  counted: (n: number) =>
+    n === 0 ? 'Count matched your records. Nothing to correct.' : (n === 1 ? '1 item' : n + ' items') + ' corrected.',
+  adjustReason: 'Adjusted on the Inventory screen',
+  openingNote: 'added with its opening quantity.',
   removedNote: 'switched off. Past records keep their history.'
 } as const;
 

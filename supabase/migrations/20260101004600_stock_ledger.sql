@@ -168,12 +168,18 @@ begin
     raise exception 'that item is switched off' using errcode = '22023';
   end if;
   if v_kind = 'opening' then
-    v_bad := exists (select 1 from public.stock_movements m where m.item_id = v_item_id);
+    v_bad := exists (select 1 from public.stock_movements m where m.item_id = v_item_id) or v_item.on_hand <> 0;
     if v_bad then -- rule:mv-opening-first
-      raise exception 'the opening quantity is the first movement of an item' using errcode = '22023';
+      raise exception 'the opening quantity is the first movement of an item, with nothing on hand' using errcode = '22023';
     end if;
     v_delta := v_qty;
   elsif v_kind = 'count' then
+    -- A count is a picture of one moment. If anything moved after it was taken (a delivery, waste, another count), applying
+    -- it would wipe that out: it is refused, and she counts again.
+    v_bad := exists (select 1 from public.stock_movements m where m.item_id = v_item_id and m.at > v_at);
+    if v_bad then -- rule:mv-count-stale
+      raise exception 'something moved after this count was taken: count again' using errcode = '22023';
+    end if;
     v_delta := v_qty - v_item.on_hand;
   elsif v_kind = 'waste' then
     v_delta := -v_qty;

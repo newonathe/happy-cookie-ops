@@ -1149,7 +1149,7 @@
         "search_path=\"\""
       ],
       "returns": "TABLE(item_id text, on_hand numeric, duplicate boolean)",
-      "body_md5": "20d746724837a4d3fbba45d97a8417c6",
+      "body_md5": "7d313a5ee07f16d1891675898b629729",
       "identity": "p_movement jsonb",
       "execute_anon": false,
       "security_definer": true,

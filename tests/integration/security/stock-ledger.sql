@@ -21,7 +21,9 @@ insert into public.inventory_items(id, name, unit, category, active) values
   ('c1i-off', 'C1 Off', 'g', 'Ingredients', false),
   ('c1i-count', 'C1 Count', 'g', 'Ingredients', true),
   ('c1i-waste', 'C1 Waste', 'g', 'Ingredients', true),
-  ('c1i-adj', 'C1 Adjust', 'g', 'Ingredients', true);
+  ('c1i-adj', 'C1 Adjust', 'g', 'Ingredients', true),
+  ('c1i-seeded', 'C1 Seeded', 'g', 'Ingredients', true);
+update public.inventory_items set on_hand = 40 where id = 'c1i-seeded';
 
 -- Reads the books as the fixture owner (an API role cannot read them): how many cost entries a receipt wrote.
 create function pg_temp.book_total(cat text) returns bigint language sql security definer as $$
@@ -116,6 +118,8 @@ begin
   perform pg_temp.rec(a, 'mv_opening_ok', pg_temp.mv(1, 'c1i-flour', 'opening', 1000), '00000');
   perform pg_temp.assert_ok(a, 'mv_opening_sets_on_hand', pg_temp.on_hand('c1i-flour') = 1000 and pg_temp.moves('c1i-flour') = 1);
   perform pg_temp.rec(a, 'mv_opening_twice', pg_temp.mv(2, 'c1i-flour', 'opening', 5), '22023');
+  -- an opening needs nothing on hand: an item that already holds a quantity (say from the seed) is refused too
+  perform pg_temp.rec(a, 'mv_opening_when_stock_exists', pg_temp.mv(17, 'c1i-seeded', 'opening', 5), '22023');
 
   -- replay: an identical retry is answered and changes nothing; another body under the id is refused
   select * into r from public.record_stock_movement(pg_temp.mv(1, 'c1i-flour', 'opening', 1000));
@@ -170,6 +174,10 @@ begin
 
   -- a count is the total counted; the variance comes from what the database held
   perform pg_temp.rec(a, 'mv_count_opening', pg_temp.mv(8, 'c1i-count', 'opening', 100), '00000');
+  -- a count taken before a later movement is refused (it would wipe that movement out); one taken after it is applied
+  perform pg_temp.rec(a, 'mv_count_stale_refused', pg_temp.mv(16, 'c1i-count', 'count', 50,
+    jsonb_build_object('at', ((extract(epoch from now()) - 3600) * 1000)::bigint)), '22023');
+  perform pg_temp.assert_ok(a, 'mv_count_stale_changed_nothing', pg_temp.on_hand('c1i-count') = 100 and pg_temp.moves('c1i-count') = 1);
   perform pg_temp.rec(a, 'mv_count_ok', pg_temp.mv(9, 'c1i-count', 'count', 90), '00000');
   perform pg_temp.assert_ok(a, 'mv_count_sets_the_total', pg_temp.on_hand('c1i-count') = 90);
   perform pg_temp.rec(a, 'mv_count_up', pg_temp.mv(10, 'c1i-count', 'count', 120), '00000');

@@ -317,6 +317,7 @@ LEDGER_MUTATIONS = {
     'rule_mv_item_missing': ('record_stock_movement', 'rule', 'mv-item-missing', _LG + 'mv_item_missing / '),
     'rule_mv_item_inactive': ('record_stock_movement', 'rule', 'mv-item-inactive', _LG + 'mv_item_inactive / '),
     'rule_mv_opening_first': ('record_stock_movement', 'rule', 'mv-opening-first', _LG + 'mv_opening_twice / '),
+    'rule_mv_count_stale': ('record_stock_movement', 'rule', 'mv-count-stale', _LG + 'mv_count_stale_refused / '),
     'rule_mv_waste_clamp': ('record_stock_movement', 'rule', 'mv-waste-clamp', _LGC + 'mv_waste_stops_at_zero'),
     'rule_mv_receipt_books': ('record_stock_movement', 'rule', 'mv-receipt-books', _LGC + 'mv_receipt_books_the_cost'),
 }
@@ -381,7 +382,7 @@ SUITES = (
     ('recipes.sql', ('get_recipes()', 'save_recipe(jsonb,timestamptz)') + tuple(RECIPE_MUTATIONS) + tuple(RECIPE_TABLE_MUTATIONS),
      'forbidden recipe call succeeded', 80),
     ('stock-ledger.sql', ('record_stock_movement(jsonb)', 'get_last_paid()') + tuple(LEDGER_MUTATIONS) + tuple(LEDGER_TABLE_MUTATIONS),
-     'forbidden ledger call succeeded', 84),
+     'forbidden ledger call succeeded', 87),
     ('bazaar-closeout.sql', ('event_summary(uuid)', 'load_event_stock(uuid,jsonb,bigint)', 'add_event_expense(jsonb)', 'close_event(jsonb)'), 'forbidden closeout call succeeded', 80),
 )
 CATALOG_GUARD_SQL = """
@@ -642,7 +643,7 @@ def main():
                 h.fail(filename + ' did not return its complete role matrix')
             results.extend(rows)
             assert_empty()
-        if len(set(results)) != 1692:
+        if len(set(results)) != 1695:
             h.fail('combined role matrix has missing or duplicate cases: %d rows, %d unique (duplicates: %s)' % (len(results), len(set(results)), sorted({r for r in results if results.count(r) > 1})[:5]))
         assert_functions()
         assert_catalog_wide()
@@ -655,10 +656,10 @@ def main():
     try:
         code = h.main(after_reset=check)
         if (code == 0 and len(report["runs"]) == 2 and report["runs"][0] == report["runs"][1]
-                and len(report['regressions_detected']) == 506 and report['sequence_restorations'] == 10
+                and len(report['regressions_detected']) == 508 and report['sequence_restorations'] == 10
                 and report['upgrade_runs'] == 2 and report['function_guard_runs'] == 4
                 and report['catalog_guard_runs'] == 4 and report['catalog_guard_red_runs'] == 4):
-            report.update(status="passed", cases_per_reset=1692, resets=2, matrix_equal=True, rollback_verified=True,
+            report.update(status="passed", cases_per_reset=1695, resets=2, matrix_equal=True, rollback_verified=True,
                           sql_sha256={name: hashlib.sha256((ROOT / 'tests/integration/security' / name).read_bytes()).hexdigest() for name, _, _, _ in SUITES},
                           harness_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
     except (RuntimeError, OSError, ValueError) as error:

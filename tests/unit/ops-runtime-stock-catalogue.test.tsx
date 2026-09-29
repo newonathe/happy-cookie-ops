@@ -138,11 +138,19 @@ const catalogue = (): Wire => ({
 interface Fake {
   data: Wire;
   save: { data: unknown; error: unknown };
+  /** The answer to record_stock_movement (C1). */
+  movement?: { data: unknown; error: unknown };
+  lastPaid?: unknown[];
 }
 function fakeClient(state: Fake) {
   const rpc = vi.fn(async (name: string) => {
     if (name === 'get_stock_catalogue') return { data: state.data, error: null };
     if (name.startsWith('save_')) return state.save;
+    if (name === 'record_stock_movement')
+      return (
+        state.movement ?? { data: [{ item_id: 'x', on_hand: 0, duplicate: false }], error: null }
+      );
+    if (name === 'get_last_paid') return { data: state.lastPaid ?? [], error: null };
     return { data: null, error: null };
   });
   return { rpc, client: { rpc } };
@@ -620,7 +628,7 @@ describe('A3: reloads and lost replies', () => {
   });
   afterEach(() => cleanup());
 
-  it('a reload after a save keeps the quantities changed on this screen, the first read takes the database’s', async () => {
+  it('a reload always shows the database’s quantities: a change is a movement, never only this screen', async () => {
     const { runtime } = await mounted('owner', fresh());
     expect(inv(runtime).find((r) => r.name === 'Unsalted butter')!.qty).toBe(900);
     act(() =>
@@ -633,9 +641,8 @@ describe('A3: reloads and lost replies', () => {
     await act(async () => {
       await runtime.loadStockCatalogue(null);
     });
-    expect(inv(runtime).find((r) => r.name === 'Unsalted butter')!.qty).toBe(5);
-    expect(inv(runtime).find((r) => r.name === 'Box of 6')!.qty).toBe(9);
-    // Mutation: taking the database's quantity on every read wipes what she received, so the grocery list asks again.
+    expect(inv(runtime).find((r) => r.name === 'Unsalted butter')!.qty).toBe(900);
+    // Mutation: keeping the screen's quantity shows stock the database does not hold.
   });
 
   it('a new item saved elsewhere under the same id (a conflict) gets a fresh id; a lost reply keeps it for an identical retry', async () => {
@@ -729,7 +736,7 @@ describe('A3: the ported inventory actions go to the database', () => {
   });
   afterEach(() => cleanup());
 
-  it('"Add item" creates the item in the catalogue, matched to its supplier by name, and says a quantity is not kept', async () => {
+  it('"Add item" creates the item in the catalogue, matched to its supplier by name, then records its opening quantity', async () => {
     const { runtime, rpc } = await mounted('owner', fresh());
     act(() =>
       (runtime as unknown as InvActions).addInv(
@@ -753,8 +760,15 @@ describe('A3: the ported inventory actions go to the database', () => {
       pack_size: null
     });
     expect(Object.keys(args.p_item as object)).not.toContain('on_hand');
-    expect(toasts(runtime)).toContain('Quantities are counted with the stock ledger');
-    // Mutation: adding only to local state shows an item that is gone on the next load.
+    const [[, move]] = called(rpc, 'record_stock_movement');
+    expect(move.p_movement).toMatchObject({
+      item_id: (args.p_item as Wire).id,
+      kind: 'opening',
+      qty: 500,
+      cost_cents: null
+    });
+    expect(toasts(runtime)).toContain('Fine salt added to Ingredients');
+    // Mutation: adding only to local state shows an item that is gone on the next load; no opening movement shows 0 on hand.
   });
 
   it('"Add item" with no name, or offline, sends nothing', async () => {
@@ -785,13 +799,22 @@ describe('A3: the ported inventory actions go to the database', () => {
     expect(toasts(runtime)).toContain('switched off');
   });
 
-  it('a stock count says it is not kept, and changes nothing', async () => {
-    const { runtime, rpc } = await mounted('owner', fresh());
+  it('a count of one item is a count movement of the total; the screen then shows what the database holds', async () => {
+    const state = fresh({
+      movement: { data: [{ item_id: 'butter', on_hand: 5, duplicate: false }], error: null }
+    });
+    const { runtime, rpc } = await mounted('owner', state);
     act(() => (runtime as unknown as InvActions).saveInv('Unsalted butter', 5));
     await settle();
-    expect(rpc.mock.calls.filter((c) => c[0].startsWith('save_'))).toEqual([]);
-    expect(inv(runtime).find((r) => r.name === 'Unsalted butter')!.qty).toBe(900);
-    expect(toasts(runtime)).toContain('not kept');
+    const [[, args]] = called(rpc, 'record_stock_movement');
+    expect(args.p_movement).toMatchObject({
+      item_id: 'butter',
+      kind: 'count',
+      qty: 5,
+      cost_cents: null
+    });
+    expect(toasts(runtime)).toContain('updated');
+    // Mutation: sending an adjustment for the difference records a variance against a quantity that may have moved.
   });
 });
 

@@ -92,6 +92,14 @@ import {
 } from '@/lib/data/stock-catalogue';
 import { currentSuppliers, firstSupplierName, fillDemoCatalogue, fillLiveCatalogue } from '@/lib/data/engine-catalogue';
 import type { SaveOutcome } from '@/lib/data/payments';
+import {
+  enginePaid,
+  fetchLastPaid,
+  movementError,
+  recordStockMovement,
+  type LedgerClient,
+  type MovementFields
+} from '@/lib/data/stock-ledger';
 import { OrderFlow } from '@/lib/data/order-flow';
 import { tokenFromHash, type FieldErrors, type OrderClient } from '@/lib/data/orders';
 import { pickupLabel, statusCust } from '@/lib/orders/status-view';
@@ -231,6 +239,14 @@ interface InvActions {
   addInv: (cat: string, name: string, qty: unknown, unit: string, level: unknown, supplier: string) => void;
   removeInv: (name: string) => void;
   saveInv: (name: string, qty: unknown) => void;
+  adjustInv: (name: string, qty: unknown, dir: number) => void;
+  logSpoilage: (name: string, qty: unknown, why: string, pid?: string, kind?: string) => void;
+  reconcile: () => void;
+  countInput: (name: string, v: string) => void;
+  startStocktake: () => void;
+  confirmReceive: (e: { preventDefault: () => void; target: unknown }, item: { name: string; supplier: string; key: string; add: number }) => void;
+  addExpense: (cat: string, label: string, amount: unknown, itemName?: string, itemQty?: unknown) => void;
+  costPerUnit: (name: string) => number;
 }
 
 /** The engine's recipe save (an instance field the typings do not list), replaced in live mode by A4. */
@@ -408,10 +424,13 @@ export class OpsRuntime extends OpsProvider {
   private scheduledVersion = 0;
   private stockCatalogue: StockCatalogue | null = null;
   private stockClient: StockClient | null = null;
+  /** A movement whose answer never came is kept, so repeating it exactly sends the same id and time: the database answers it, never applies it twice. */
+  private pendingMovements = new Map<string, MovementFields>();
+  /** When each item's count was entered on the open stocktake, so a count is measured at its own moment. */
+  private countedAt: Record<string, number> = {};
   private stockNewId = '';
   private stockNewPriceId = '';
   private stockVersion = 0;
-  private stockApplied = false;
   private recipeRows: Recipe[] | null = null;
   private recipeClient: RecipeClient | null = null;
   /** The stamp of each flavour's saved recipe as its screen last showed it: what an edit is saved against. */
@@ -592,9 +611,54 @@ export class OpsRuntime extends OpsProvider {
     inv.addInv = (cat, name, qty, unit, level, supplier) =>
       void this.liveAddInv(cat, name, qty, unit, level, supplier);
     inv.removeInv = (name) => void this.liveRemoveInv(name);
-    inv.saveInv = () => {
-      this.setState({ sheet: null });
-      this.toast(STOCK_COPY.countsNotSaved, 'warn');
+    // C1: every change of a quantity is a movement on the database; the screen then shows what the database holds.
+    const keep = {
+      confirmReceive: inv.confirmReceive,
+      addExpense: inv.addExpense,
+      logSpoilage: inv.logSpoilage,
+      countInput: inv.countInput,
+      startStocktake: inv.startStocktake
+    };
+    inv.saveInv = (name, qty) => void this.liveSaveInv(name, qty);
+    inv.adjustInv = (name, qty, dir) => void this.liveAdjustInv(name, qty, dir);
+    inv.reconcile = () => void this.liveReconcile();
+    inv.startStocktake = () => {
+      this.countedAt = {};
+      keep.startStocktake();
+    };
+    inv.countInput = (name, v) => {
+      this.countedAt[name] = Date.now();
+      keep.countInput(name, v);
+    };
+    inv.logSpoilage = (name, qty, why, pid, kind) => {
+      if (pid && kind) return keep.logSpoilage(name, qty, why, pid, kind); // cookies and dough: the engine's own, no stock moves
+      void this.liveWaste(name, qty, why);
+    };
+    inv.confirmReceive = (e, item) => {
+      const target = e.target as { rqty?: { value: string }; rpaid?: { value: string } };
+      const got = Number(target.rqty?.value);
+      const paid = Number(target.rpaid?.value);
+      if (!(got > 0)) return keep.confirmReceive(e, item); // the engine says what is missing
+      e.preventDefault();
+      // The record first: the engine's own bookkeeping (part deliveries, substitutions, the grocery list) runs only once the
+      // database has the delivery, and the screen then shows what the database holds.
+      void (async () => {
+        if (!(await this.liveReceipt(item.name, got, paid, item.supplier))) return;
+        this.withoutUndo(() => keep.confirmReceive(e, item));
+        await this.loadStockCatalogue(null);
+      })();
+    };
+    inv.addExpense = (cat, label, amount, itemName, itemQty) => {
+      const item = itemName ? this.stockItem(itemName) : undefined;
+      const qty = Number(itemQty) || 0;
+      // The engine refuses a form with no category or amount, and a plain expense moves money only.
+      if (!cat || !amount || !item || qty <= 0) return keep.addExpense(cat, label, amount, itemName, itemQty);
+      const supplier = this.stockCatalogue?.suppliers.find((x) => x.id === item.supplierId)?.name ?? '';
+      void (async () => {
+        if (!(await this.liveReceipt(item.name, qty, Number(amount) || 0, supplier))) return;
+        this.withoutUndo(() => keep.addExpense(cat, label, amount, itemName, itemQty));
+        await this.loadStockCatalogue(null);
+      })();
     };
     // A4: the recipes screen saves to the database (a new version per change), never only to this screen.
     (this as unknown as RecipeActions).recipeSave = (pid) => void this.liveRecipeSave(pid);
@@ -1707,6 +1771,13 @@ export class OpsRuntime extends OpsProvider {
       return false;
     }
     this.applyStockCatalogue();
+    // What was last paid for each item, which the cost per unit is worked out from (a failed read leaves what was there).
+    try {
+      const paid = enginePaid(await fetchLastPaid(use as LedgerClient));
+      this.setState({ paid });
+    } catch {
+      /* the catalogue's own best-buy prices stand in */
+    }
     return true;
   }
 
@@ -1719,17 +1790,9 @@ export class OpsRuntime extends OpsProvider {
     if (!c) return;
     fillLiveCatalogue(c);
     const first = firstSupplierName();
-    // The first read takes the database's quantities. A later read (after a save) keeps the ones already on this
-    // screen: receiving, waste and counts change only the screen until the stock ledger (C1) exists.
-    const keep = this.stockApplied;
-    this.stockApplied = true;
+    // The database's quantities always win: every change of a quantity is a movement (C1).
     this.setState((s) => ({
-      inv: engineInventory(c).map((row) => {
-        const there = keep
-          ? (s.inv as Array<{ name: string; qty: number; updatedAt: number }>).find((r) => r.name === row.name)
-          : undefined;
-        return there ? { ...row, qty: there.qty, updatedAt: there.updatedAt } : row;
-      }),
+      inv: engineInventory(c),
       supplierOpen: currentSuppliers().some((x) => x.name === s.supplierOpen) ? s.supplierOpen : first
     }));
   }
@@ -2020,10 +2083,175 @@ export class OpsRuntime extends OpsProvider {
     if (outcome !== 'saved') {
       return void this.toast(outcome === 'refused' ? STOCK_COPY.refusedItem : STAFF_COPY.offline, 'warn');
     }
+    const opening = Number(qty) > 0 ? await this.recordMovement(fields.id, 'opening', Number(qty), null, '', '') : true;
     await this.loadStockCatalogue(null);
     this.setState({ sheet: null });
-    if (Number(qty) > 0) this.toast(STOCK_COPY.quantityNote, 'warn');
-    else this.toast(fields.name + ' added to ' + fields.category + '.');
+    if (opening) this.toast(fields.name + ' added to ' + fields.category + '.');
+    else this.toast(STOCK_COPY.itemAddedNoOpening, 'warn');
+  }
+
+  // ------------------------------------------------------------------ C1: the stock ledger
+
+  /** The engine's toasts offer an Undo that would change only this screen; a stock change is a movement, so none is offered. */
+  private withoutUndo(fn: () => void): void {
+    const original = this.toast;
+    this.toast = (message: string, tone?: 'ok' | 'warn') => original(message, tone);
+    try {
+      fn();
+    } finally {
+      this.toast = original;
+    }
+  }
+
+  private stockItem(name: string) {
+    return this.stockCatalogue?.items.find((i) => i.active && i.name === name);
+  }
+
+  /**
+   * Records one movement and, whatever happens, re-reads the catalogue so the screen shows what the database holds.
+   * Returns whether it was saved; if not, she is told nothing changed.
+   */
+  private async recordMovement(
+    itemId: string,
+    kind: MovementFields['kind'],
+    qty: number,
+    costCents: number | null,
+    supplier: string,
+    reason: string,
+    at?: number
+  ): Promise<boolean> {
+    const client = this.stockClient as LedgerClient | null;
+    if (this.state.role !== 'owner') {
+      this.toast(STOCK_COPY.ownerOnly, 'warn');
+      return false;
+    }
+    if (!client) {
+      this.toast(STAFF_COPY.offline, 'warn');
+      return false;
+    }
+    const rounded = Math.round(qty * 1000) / 1000;
+    // The same entry repeated after an unconfirmed answer is the same movement (same id, same time), never a second one.
+    const signature = [itemId, kind, rounded, costCents, supplier.trim(), reason.trim()].join('|');
+    const fields: MovementFields = this.pendingMovements.get(signature) ?? {
+      id: crypto.randomUUID(),
+      itemId,
+      kind,
+      qty: rounded,
+      costCents,
+      supplier,
+      reason,
+      at: at ?? Date.now()
+    };
+    const problem = movementError(fields);
+    if (problem) {
+      this.toast(problem, 'warn');
+      await this.loadStockCatalogue(null);
+      return false;
+    }
+    const result = await recordStockMovement(client, fields);
+    if (result.outcome === 'offline') this.pendingMovements.set(signature, fields);
+    else this.pendingMovements.delete(signature);
+    await this.loadStockCatalogue(null);
+    if (result.outcome !== 'saved') {
+      this.toast(result.outcome === 'refused' ? STOCK_COPY.movementRefused : STOCK_COPY.movementNotSaved, 'warn');
+      return false;
+    }
+    return true;
+  }
+
+  /** The ported "Set to" on an item: the total counted becomes a count movement. */
+  private async liveSaveInv(name: string, qty: unknown): Promise<void> {
+    const item = this.stockItem(name);
+    const n = Number(qty);
+    if (!item || qty === '' || !Number.isFinite(n) || n < 0)
+      return void this.toast('Enter a quantity of 0 or more.', 'warn');
+    if (await this.recordMovement(item.id, 'count', n, null, '', '')) {
+      this.setState({ sheet: null });
+      this.toast(name + ' updated.');
+    } else this.setState({ sheet: null });
+  }
+
+  /** The ported add and subtract on an item: a signed adjustment with a fixed reason. */
+  private async liveAdjustInv(name: string, qty: unknown, dir: number): Promise<void> {
+    const item = this.stockItem(name);
+    const n = Math.abs(Number(qty) || 0);
+    if (!n) return void this.toast('Type how much to ' + (dir < 0 ? 'subtract' : 'add') + '.', 'warn');
+    if (!item) return;
+    const before = item.onHand;
+    if (await this.recordMovement(item.id, 'adjust', dir * n, null, '', STOCK_COPY.adjustReason)) {
+      const after = this.stockItem(name)?.onHand ?? before;
+      this.setState({ sheet: null });
+      this.toast(name + ': ' + before + ' ' + item.unit + ' → ' + after + ' ' + item.unit + '.');
+    } else this.setState({ sheet: null });
+  }
+
+  /** The ported waste sheet for raw stock: a waste movement (never more than is there), with the cost the engine works out. */
+  private async liveWaste(name: string, qty: unknown, why: string): Promise<void> {
+    const item = this.stockItem(name);
+    const n = Number(qty) || 0;
+    if (!n) return void this.toast('Enter how much went to waste.', 'warn');
+    if (!item) return;
+    const cost = Math.round(n * (this as unknown as InvActions).costPerUnit(name));
+    if (await this.recordMovement(item.id, 'waste', n, null, '', why || 'Spoiled')) {
+      this.setState({ sheet: null });
+      this.toast(
+        n + ' of ' + name.toLowerCase() + ' written off. About ₱' + cost.toLocaleString('en-PH') +
+          ' of stock gone. It was already expensed when you bought it, so profit does not move twice.',
+        'warn'
+      );
+    } else this.setState({ sheet: null });
+  }
+
+  /** A delivery came in: a receipt movement, with what was paid, which also writes the cost to the books once. */
+  private async liveReceipt(name: string, qty: number, spendPesos: number, supplier: string): Promise<boolean> {
+    const item = this.stockItem(name);
+    if (!item) {
+      await this.loadStockCatalogue(null);
+      return false;
+    }
+    const cents = Number.isFinite(spendPesos) && spendPesos > 0 ? pesosToCentavos(spendPesos) : null;
+    return this.recordMovement(item.id, 'receipt', qty, cents, supplier === '—' ? '' : supplier, '');
+  }
+
+  /**
+   * The ported stocktake: each item counted becomes a count movement, taken at the moment it was entered (a delivery received
+   * after that is refused, not wiped out). It stops at the first count that cannot be saved and keeps the rest on the count sheet.
+   */
+  private async liveReconcile(): Promise<void> {
+    const stocktake = this.state.stocktake as { counts?: Record<string, string> } | null;
+    const counts = { ...(stocktake?.counts ?? {}) } as Record<string, string>;
+    const names = Object.keys(counts).filter((n) => counts[n] !== undefined && counts[n] !== '');
+    let corrected = 0;
+    let value = 0;
+    let saved = 0;
+    for (const name of names) {
+      const item = this.stockItem(name);
+      const counted = Number(counts[name]);
+      if (!item || !Number.isFinite(counted) || counted < 0) break;
+      const before = item.onHand;
+      if (!(await this.recordMovement(item.id, 'count', counted, null, '', '', this.countedAt[name]))) break;
+      saved += 1;
+      delete counts[name];
+      if (counted !== before) {
+        corrected += 1;
+        value += (counted - before) * (this as unknown as InvActions).costPerUnit(name);
+      }
+    }
+    if (saved < names.length) {
+      // Some are not in: what is unsaved stays on the count sheet.
+      this.setState((s) => ({ stocktake: s.stocktake ? { ...(s.stocktake as object), counts } : s.stocktake }));
+      this.toast(STOCK_COPY.someSaved(saved, names.length), 'warn');
+      return;
+    }
+    this.setState({ stocktake: null });
+    if (!saved) return;
+    const shown = Math.abs(Math.round(value)).toLocaleString('en-PH');
+    this.toast(
+      corrected === 0
+        ? STOCK_COPY.counted(0)
+        : STOCK_COPY.counted(corrected) + (value < 0 ? ' ₱' + shown + ' of stock unaccounted for.' : ' ₱' + shown + ' more than your records said.'),
+      corrected === 0 ? 'ok' : 'warn'
+    );
   }
 
   /** The ported "Remove" button: the item is switched off (never deleted), so past records keep their history. */

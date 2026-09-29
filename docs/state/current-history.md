@@ -4,6 +4,37 @@ Every checkpoint up to 2026-09-28, verbatim and newest first. Moved here from `c
 session reads only the short status in [current.md](current.md). Add nothing here by hand; move a checkpoint here
 when it leaves `current.md`.
 
+## Checkpoint - 2026-09-30 (A4)
+
+- **2026-09-30 (A4, finish-plan slice A4):** the owner's recipes with versions. Three commits (`9432dda` database, `1ff31fb` app and review fixes; the docs are the third).
+  - **Database:** `recipes` gets a version and stamp, `recipe_ingredients` an order, and `recipe_versions` keeps what each save replaced. Owner-only
+    `get_recipes` and `save_recipe` (exact keys; a yield of 1 to 10000; up to 80 lines, each a name, an exact quantity of 0.001 to 999,999 with at most
+    3 decimals, and g, ml or pcs; no ingredient twice; a line for a stock item must be in that item's unit, names compared ignoring case; stale stamp
+    `P0002`; a create is replay-safe; a save with nothing new answers without a new version). Legacy direct writes on the recipe tables are revoked.
+    Migration `20260101004500` redefines `save_stock_item` so an item a recipe uses keeps its unit (found by the review: a unit change would have
+    locked the recipe and put the cost out by the ratio). New suite `recipes.sql` (80 cases, 13 rule regressions), `stock-catalogue.sql` +3.
+  - **App (live mode, no protected markup or engine edit; the recipes are state-based, so no engine constant needed refilling):** the owner's recipes fill
+    `state.recipes`, `recipeBase`, `recipeVer` and `recipeHistory` for each flavour on the menu; a flavour with no recipe gets an empty one, never the
+    prototype's six (also at start-up, after a reset, and for a helper). The ported "Save as new version" calls `save_recipe`; the screen then shows
+    the version the database made, the versions it replaced, and the cost per cookie from the A3 prices. The blank-name warning, the local checks and
+    the wording of a refusal, a lost connection and a conflict are new PLACEHOLDER copy (`RECIPE_COPY`).
+  - **Opus review** (database SAFE; the app half was BLOCKED until fixed): an edit was saved against the newest stamp read, not the one it started on, so
+    a newer version made elsewhere could be overwritten with no warning; typed text before the first read landed on an empty placeholder and took the
+    real stamp; a reset with no recipes read brought the prototype's six back; a save's answer was thrown away, so a failed read-back could make the
+    next save a false conflict that discarded the edit; overlapping reads could bring back an older stamp. All fixed with tests; a conflict shows the
+    other version (the replaced lines stay in `recipe_versions`).
+  - **Recorded, not fixed:** (1) the history list shows counts, not the old lines, and there is no restore, although the database keeps every version.
+    (2) Batch counts ("baked on this version") read nothing until batches are loaded (C2). (3) The seeded demo recipe lines all sit at position 0, so
+    their order is arbitrary until first saved. (4) Item units are free text (A3) but a recipe unit is g, ml or pcs: an ingredient in kg cannot be
+    recipe-measured (the form's hint says g, ml, pcs). (5) The import for her current menu is not written: her workbook layout belongs with the cutover
+    (finish-plan section 9). (6) A conflict discards the local edit (their version shows). (7) Wording is PLACEHOLDER.
+  - **Evidence:** `pnpm verify` 66 files / 1259 tests; G0 validator passes; port integrity OK (54 files); Python guards OK; SQL role suite 1608 cases per
+    reset, 2 resets, 470 deliberate regressions detected; `pnpm build`, `test:pages:spike`, `test:workers:spike` pass; `pnpm test:e2e` 89 / 1 (OFFLINE-01
+    WebKit) / 75; `test:live:checkout` 11 steps. Mutations: 18 on the app, all caught bar two equivalent ones, and 9 more on the review fixes, all caught.
+    **Visual QA in the browser pane** (live-mode build, local owner, the seeded recipes as data): the recipes screen from the database (White
+    Chocolate Biscoff, 24 cookies, ₱32.58 per cookie from the A3 prices), an edit and "Save as new version", then "Version 2 - current" with Version 1
+    below it, and the database holding version 2 with version 1's ten lines kept. Not looked at: a phone-width pass, and a recipe for a flavour with none saved.
+
 ## Checkpoint - 2026-09-30 (A3)
 
 - **2026-09-30 (A3, finish-plan slice A3):** the owner's stock items, suppliers and supplier prices. Two commits (`3cd8770` database, `7582680` app).

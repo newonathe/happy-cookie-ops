@@ -1,8 +1,8 @@
 {
   "status": "passed",
   "scope": "explicit-connection CLI reset on disposable loopback PostgreSQL; not managed --local or auth/RLS acceptance",
-  "project_id": "hcb-6abc30d6-c9f5da",
-  "workdir": "C:\\Users\\ethan\\dev\\.hcb-bootstrap-6abc30d6-c9f5da",
+  "project_id": "hcb-6abc38a7-44536e",
+  "workdir": "C:\\Users\\ethan\\dev\\.hcb-bootstrap-6abc38a7-44536e",
   "cleanup": "passed",
   "resets": 2,
   "harness_sha256": "a47a91d38c71ffbf52a14e597836fdfdbd1d22a3408f5c151f2b35b25459c963",
@@ -144,13 +144,13 @@
     "20260101004300_stock_catalogue.sql": "2d15b626001b790180a8c0a5522a3decb6415ce254374a1c6e4032830fee23a1",
     "20260101004400_recipes.sql": "032490efcecc7860451d52687c95f59ca8d3210b56780243788477e6a176fb43",
     "20260101004500_stock_unit_guard.sql": "6e6aba4fd3ff29d5f97bda3e8480c99e4ceec78a89d1908c2671d88eb0bdc98e",
-    "20260101004600_stock_ledger.sql": "3c7c435750a545c0564befd2b3000f5cfacb2aeeb3d456319d7c48219a0f8514"
+    "20260101004600_stock_ledger.sql": "d2814c72d869ced6982006d20f5f375a33c4b3c51c00e393b660a5f1762808ca"
   },
   "database_image": "sha256:af083ef64d0408c8f098ee6f5c364a59b26f36fbc0f3a334a62c5c1d57362e9b",
   "postgres_version_num": "150008",
   "cli_version": "2.116.0",
   "loopback_port": 48716,
-  "container_id": "a0509f37abe0f6e2baf7afd78090bda85649fd9fbfe76ddc941cd4f574f38fd7",
+  "container_id": "db6861d35d89d68c333472a89855b481eb574c332e18ce8e5e78caef2b1c1620",
   "expected_versions": [
     "20260101000000",
     "20260101000100",
@@ -363,7 +363,7 @@
   ],
   "catalog_sha256": "5a5e69817fa9912c99273b2e5e4131cc6aecdb2e03595889da0b1cea7c3e207a",
   "catalogs_equal": true,
-  "schema_sha256": "ab5990c19a18a069a14e7153557a837ad6530559741dd16c7b990d87beefc724",
+  "schema_sha256": "fd9815a44b1a1bab3656b00df11dc8635bf8d7f82857e4c27bc2c6487ecf9d00",
   "schemas_equal": true,
   "sentinel_removed": true
 }
