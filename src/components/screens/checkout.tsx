@@ -2,9 +2,10 @@ import { Fragment } from 'react';
 import type { OpsVals } from '@/view-models/vals';
 import { s } from '@/lib/css';
 import { Pressable } from '@/components/ui/pressable';
+import { LiveCheckout } from '@/components/live/live-checkout';
 
 export function CheckoutScreen({ v }: { v: OpsVals }) {
-  const { backToShop, cust, ic } = v;
+  const { backToShop, bareFrame, cust, ic } = v;
   return (
     <>
       <div data-screen-label="Customer checkout" style={{ display: 'flex', flexDirection: 'column', gap: '14px', padding: '16px 14px 32px', background: '#FFF5E5', minHeight: '100%' }}>
@@ -36,6 +37,8 @@ export function CheckoutScreen({ v }: { v: OpsVals }) {
           </div>
           <span style={{ fontSize: '11px', color: '#66524A' }}>{cust.priceNote}</span>
         </div>
+        {bareFrame ? <LiveCheckout v={v} /> : (
+        <>
         <div style={{ background: '#FFFFFF', border: '1px solid #F0E2CB', borderRadius: '18px', padding: '14px', display: 'flex', flexDirection: 'column', gap: '11px' }}>
           <span style={{ fontSize: '12px', fontWeight: '700', color: '#6E574B' }}>About you</span>
           <label style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
@@ -246,6 +249,8 @@ export function CheckoutScreen({ v }: { v: OpsVals }) {
         <span style={{ maxWidth: '40ch', alignSelf: 'center', fontSize: '11px', color: '#66524A', textAlign: 'center', lineHeight: '1.5', textWrap: 'pretty' }}>
           Your slot is held once Cine verifies the payment.
         </span>
+        </>
+        )}
       </div>
     </>
   );

@@ -91,6 +91,8 @@ export function LiveGate({
     const supabase = createClient();
     // MP-09 c2: the payment methods and shop texts, read on every live page, signed in or not.
     if (engine instanceof OpsRuntime) void engine.loadShopPayment(supabase);
+    // B2: the pickup rules, the checkout, "Find my order" and the waiting list, on every live page.
+    if (engine instanceof OpsRuntime) void engine.loadShopOrders(supabase);
     // MP-09 c1b: customer pages show the owner's published menu (`shop_products`), signed
     // in or not. Staff pages load the full list instead (below).
     if (CUSTOMER_SCREENS.includes(initialScreen) && engine instanceof OpsRuntime)

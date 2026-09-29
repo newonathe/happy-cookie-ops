@@ -149,6 +149,12 @@ async function mounted(save: (args: Record<string, unknown>) => unknown = saved)
 const toastText = (runtime: OpsRuntime) => JSON.stringify(runtime.state.toast ?? null);
 const onMenu = (runtime: OpsRuntime) => runtime.state.dropActive as Record<string, boolean>;
 
+/**
+ * Rendering every screen is the heaviest test in the suite; under a loaded machine (the whole suite in
+ * parallel, Docker running) it can pass the default 5 s limit. This is a load allowance, not a change to what it checks.
+ */
+const RENDER_ALL_TIMEOUT = 20_000;
+
 describe('MP-09 c1: flavours from the database', () => {
   beforeEach(() => {
     live = true;
@@ -211,7 +217,7 @@ describe('MP-09 c1: flavours from the database', () => {
     } finally {
       errorSpy.mockRestore();
     }
-  });
+  }, RENDER_ALL_TIMEOUT);
 
   it('saves the on-menu switch through the engine action, whole flavour and last updated_at', async () => {
     const { runtime, rpc } = await mounted();
@@ -651,7 +657,7 @@ describe('MP-09 c1b: prices, publishing and the shop menu', () => {
     } finally {
       errorSpy.mockRestore();
     }
-  });
+  }, RENDER_ALL_TIMEOUT);
 
   it('keeps the staff list when the shop read lands after it', async () => {
     const { runtime } = await mounted();

@@ -53,6 +53,11 @@ export const ORDER_COPY = {
   needTime: 'Choose your pickup time.',
   needMethod: 'Choose how you will pay.',
   needItems: 'Pick at least one cookie.',
+  payHelp:
+    'Pick how you will pay. You pay after you place the order, to the account you pick; there is nothing to attach here.',
+  noMethods: 'No payment method is set up yet. Message Cine on Instagram to order.',
+  noDates: 'There are no pickup dates open right now.',
+  qrNote: 'Scan this to pay after you place your order.',
   placedTitle: 'Order received',
   placedBody:
     'Keep this order number and the status link: they are how you check on your order. Payment goes to the account you picked.',

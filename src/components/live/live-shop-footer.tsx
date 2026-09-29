@@ -74,6 +74,26 @@ export function LiveShopFooter({ v }: { v: OpsVals }) {
         >
           Already ordered? Find my order
         </Pressable>
+        {v.openWaitlist ? (
+          <Pressable
+            as="button"
+            onClick={v.openWaitlist}
+            style={{
+              alignSelf: 'flex-start',
+              minHeight: '38px',
+              padding: '0',
+              border: '0',
+              background: 'transparent',
+              fontSize: '11px',
+              fontWeight: '600',
+              color: '#6E574B',
+              transition: 'color .18s ease'
+            }}
+            hoverStyle={{ color: '#3A1F14' }}
+          >
+            Join the waiting list
+          </Pressable>
+        ) : null}
       </span>
     </div>
   );

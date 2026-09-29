@@ -2,6 +2,7 @@ import { useRef } from 'react';
 import type * as React from 'react';
 import type { OpsVals } from '@/view-models/vals';
 import { PayEditForm, PayList, ShopTextsForm, UploadField } from '@/components/live/payment-forms';
+import { LiveLookup, LiveWaitlistForm } from '@/components/live/live-checkout';
 import { inputStyle, labelStyle, primaryButton, secondaryButton, smallLabel } from '@/components/live/form-styles';
 
 /**
@@ -27,6 +28,8 @@ export function LiveFormHost({ v }: { v: OpsVals }) {
     );
   }
   if (v.liveTexts) return <ShopTextsForm liveTexts={v.liveTexts} />;
+  if (v.liveLookup) return <LiveLookup v={v} />;
+  if (v.liveWaitlist) return <LiveWaitlistForm v={v} />;
   return null;
 }
 

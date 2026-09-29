@@ -19,6 +19,11 @@ import { deviceId } from '@/lib/device';
 import { plural } from '@/store/engine/ops-engine';
 import type { LiveFlavourFormFields, LivePayFormFields, LiveShopTexts, OpsVals } from '@/view-models/vals';
 import { PaymentSync } from '@/lib/data/payment-sync';
+import { OrderFlow } from '@/lib/data/order-flow';
+import { tokenFromHash, type FieldErrors, type OrderClient } from '@/lib/data/orders';
+import { statusCust } from '@/lib/orders/status-view';
+import { ORDER_COPY } from '@/lib/orders/copy';
+import { pickupDates, pickupTimes, waitlistRange } from '@/lib/orders/pickup';
 import { EMPTY_TEXTS, type PaymentClient, type UploadClient } from '@/lib/data/payments';
 import { resolveImagePath } from '@/lib/media/resolve-image';
 import { isLiveMode } from '@/lib/config/app-mode';
@@ -96,6 +101,44 @@ const IDLE_ROWS: Array<{ role: Role; label: string }> = [
   { role: 'support', label: 'Sign support out after' },
   { role: 'helper', label: 'Sign helpers out after' }
 ];
+
+/** The customer form fields `state.cust` holds in live mode (B2). */
+type CustFields = {
+  name?: string;
+  ig?: string;
+  mobile?: string;
+  pay?: string;
+  ref?: string;
+  pickupDate?: string;
+  pickupTime?: string;
+  box?: Record<string, number>;
+};
+
+/** Which refusal a `state.cust` key clears when the customer edits it. */
+const FIELD_FOR_CUST_KEY: Record<string, keyof FieldErrors> = {
+  name: 'name',
+  ig: 'ig',
+  mobile: 'mobile',
+  pickupDate: 'date',
+  pickupTime: 'time',
+  pay: 'pay'
+};
+
+/** An empty checkout, the shape the ported `custRestart` resets to. */
+const BLANK_CUST = {
+  name: '',
+  mobile: '',
+  email: '',
+  ig: '',
+  window: 'mon',
+  pay: '',
+  ref: '',
+  sender: '',
+  amount: '',
+  proof: 'none',
+  errors: {},
+  orderNo: ''
+};
 
 /** The engine's bazaar actions are instance fields the typings do not list; wrapped below. */
 interface BazaarActions {
@@ -181,6 +224,7 @@ export class OpsRuntime extends OpsProvider {
   private settingsSync?: SettingsSync;
   private flavourSync?: FlavourSync;
   private paymentSync?: PaymentSync;
+  private orderFlow?: OrderFlow;
 
   /**
    * Live mode never shows or stores the demo books (docs/state/G2-plan.md "Slice audit",
@@ -214,6 +258,22 @@ export class OpsRuntime extends OpsProvider {
     if (!isLiveMode()) return;
     // MP-09 c2: live mode never shows the ported demo payment accounts, not even before the read.
     replacePayAccounts([]);
+    // B2: a live checkout places real orders; the engine's local order list plays no part. The
+    // form fields still live in `state.cust`, so the ported setters and reset actions are kept.
+    this.custSubmit = () => {
+      void this.liveSubmit();
+    };
+    const { custRestart, custSet } = this;
+    this.custRestart = () => {
+      this.orderFlow?.resetCheckout();
+      custRestart();
+    };
+    this.custReorder = () => this.liveReorder();
+    this.custSet = (key, value) => {
+      const field = FIELD_FOR_CUST_KEY[key];
+      if (field) this.orderFlow?.clearError(field);
+      custSet(key, value);
+    };
     // DP-20: an event sells at the menu prices it started with, taken by the server.
     bazaar.startEvent = (ev) => {
       void this.startLiveEvent(ev, startEvent);
@@ -772,7 +832,12 @@ export class OpsRuntime extends OpsProvider {
       liveForm: this.liveFormVals(),
       livePay: this.livePayVals(),
       liveTexts: this.liveTextsVals(),
-      cust: this.livePayCust(starved.cust),
+      cust: this.liveStatusCust(this.livePayCust(starved.cust)),
+      openLookup: () => this.openLookupSheet(),
+      openWaitlist: () => this.openWaitlist(),
+      liveCheckout: this.liveCheckoutVals(),
+      liveLookup: this.liveLookupVals(),
+      liveWaitlist: this.liveWaitlistVals(),
       shopFooter: this.shopFooterVals(),
       // MP-09 c1b: until the published menu is read, a customer page shows no flavours
       // (the engine still holds the ported list, which is not the owner's menu).
@@ -890,6 +955,13 @@ export class OpsRuntime extends OpsProvider {
   private liveSheet(sheet: OpsVals['sheet']): OpsVals['sheet'] {
     if (!sheet) return sheet;
     const sh = this.state.sheet as FlavourSheetState | null;
+    const customerKind = this.customerSheetKind();
+    if (customerKind)
+      return {
+        ...sheet,
+        liveForm: true,
+        title: customerKind === 'liveLookup' ? 'Find my order' : 'Join the waiting list'
+      };
     if (this.state.role === 'owner' && sh?.kind === 'payments') {
       const method = sh.pid ? this.paymentSync?.rows.find((r) => r.id === sh.pid) : undefined;
       return {
@@ -1052,6 +1124,226 @@ export class OpsRuntime extends OpsProvider {
       noQr: false,
       qr: url && style ? style.replace(/url\([^)]*\)/, 'url(' + url + ')') : ''
     };
+  }
+
+  /**
+   * B2: the customer's checkout, lookup and waiting list talk to the database through one
+   * `OrderFlow`. With no client (a live build with no Supabase) there is none, and the pages say
+   * ordering is unavailable rather than pretending.
+   */
+  async loadShopOrders(client: OrderClient | null): Promise<boolean> {
+    if (!isLiveMode() || !client) return false;
+    if (!this.orderFlow) {
+      this.orderFlow = new OrderFlow(client, {
+        changed: () => this.forceUpdate(),
+        mintId: () => crypto.randomUUID()
+      });
+    }
+    this.syncStatusRoute();
+    return this.orderFlow.loadRules();
+  }
+
+  private async liveSubmit(): Promise<void> {
+    if (!this.orderFlow) {
+      this.toast(ORDER_COPY.unavailable, 'warn');
+      return;
+    }
+    const c = (this.state.cust ?? {}) as CustFields;
+    await this.orderFlow.submit({
+      name: c.name ?? '',
+      ig: c.ig ?? '',
+      mobile: c.mobile ?? '',
+      method: c.pay ?? '',
+      pickupDate: c.pickupDate ?? '',
+      pickupWindow: c.pickupTime ?? '',
+      ref: c.ref ?? '',
+      items: c.box ?? {}
+    });
+  }
+
+  /** "Order this cookie again": the cookies of the order on screen that are still on the menu. */
+  private liveReorder(): void {
+    const box: Record<string, number> = {};
+    for (const item of this.orderFlow?.status?.items ?? []) {
+      if (PRODUCTS.some((p) => p.id === item.productId)) box[item.productId] = item.qty;
+    }
+    this.orderFlow?.resetCheckout();
+    this.setState({ cust: { ...BLANK_CUST, box } });
+    this.go('shop');
+    const any = Object.keys(box).length > 0;
+    this.toast(any ? 'Same box loaded. Change anything before you check out.' : ORDER_COPY.noMenu, any ? 'ok' : 'warn');
+  }
+
+  /**
+   * Keeps the status link (`#t=` in the fragment, never the query string) in the address bar and
+   * adopts it on a direct load. Called after every render by `LiveOrderRoute`, which runs after
+   * `RouteSync`, so the route's own `pushState` (which drops a fragment) has already happened.
+   */
+  syncStatusRoute(): void {
+    if (!isLiveMode() || typeof window === 'undefined' || !this.orderFlow) return;
+    if (this.state.screen !== 'status') return;
+    const flow = this.orderFlow;
+    if (!flow.statusToken) {
+      const fromUrl = tokenFromHash(window.location.hash);
+      if (fromUrl) void flow.loadStatus(fromUrl);
+      return;
+    }
+    const wanted = '#t=' + flow.statusToken;
+    if (window.location.hash !== wanted)
+      window.history.replaceState(window.history.state, '', window.location.pathname + wanted);
+  }
+
+  private onCustomerScreen(): boolean {
+    return CUSTOMER_SCREENS.includes(this.state.screen as ScreenKey);
+  }
+
+  /**
+   * The customer sheets are gated on the CURRENT SCREEN being a customer screen, never on the role:
+   * an anonymous visitor's engine role defaults to 'owner'.
+   */
+  private customerSheetKind(): 'liveLookup' | 'liveWaitlist' | null {
+    const kind = (this.state.sheet as FlavourSheetState | null)?.kind;
+    return this.onCustomerScreen() && (kind === 'liveLookup' || kind === 'liveWaitlist') ? kind : null;
+  }
+
+  private openLookupSheet(): void {
+    this.orderFlow?.clearLookup();
+    this.sheet('liveLookup', {});
+  }
+
+  private openWaitlist(): void {
+    if (this.orderFlow && this.orderFlow.waitlistState !== 'unknown') this.orderFlow.resetWaitlist();
+    this.sheet('liveWaitlist', {});
+  }
+
+  /** Not `runLookup`: that is the engine's own instance field, which would replace this method. */
+  private async runLiveLookup(orderNo: string, mobile: string): Promise<void> {
+    if (!this.orderFlow) {
+      this.toast(ORDER_COPY.lookupError, 'warn');
+      return;
+    }
+    if ((await this.orderFlow.lookup(orderNo, mobile)) === 'found') {
+      this.closeSheet();
+      this.go('status');
+    }
+  }
+
+  /** The checkout's live slot (B2): fields, pickup choices, refusals and the placed order. */
+  private liveCheckoutVals(): OpsVals['liveCheckout'] {
+    if (this.state.screen !== 'checkout') return null;
+    const flow = this.orderFlow;
+    const c = (this.state.cust ?? {}) as CustFields;
+    const rules = flow?.rules ?? null;
+    const placed = flow?.placed ?? null;
+    const statusUrl = (token: string) => window.location.origin + '/status#t=' + token;
+    return {
+      fields: {
+        name: c.name ?? '',
+        ig: c.ig ?? '',
+        mobile: c.mobile ?? '',
+        ref: c.ref ?? '',
+        pickupDate: c.pickupDate ?? '',
+        pickupTime: c.pickupTime ?? '',
+        pay: c.pay ?? ''
+      },
+      set: (key, value) => this.custSet(key, value),
+      errors: flow?.errors ?? {},
+      dates: rules ? pickupDates(rules) : [],
+      times: rules ? pickupTimes(rules) : [],
+      rulesState: flow ? flow.rulesState : 'failed',
+      readOnly: flow?.unresolved ?? false,
+      sending: flow?.sending ?? false,
+      banner: flow?.banner ?? null,
+      submit: () => this.custSubmit(),
+      changeOrder: () => flow?.changeOrder(),
+      openWaitlist: () => this.openWaitlist(),
+      holdNote: rules ? ORDER_COPY.payLater(rules.unpaidHoldHours) : '',
+      placed: placed
+        ? {
+            orderNo: placed.orderNo,
+            statusUrl: statusUrl(placed.token),
+            totalText: PESO(centavosToPesos(centavosFromDb(placed.totalCents))),
+            copyLink: () => {
+              const write = navigator.clipboard?.writeText(statusUrl(placed.token));
+              if (!write) {
+                this.toast('Copy the link from the page instead.', 'warn');
+                return;
+              }
+              void write.then(
+                () => this.toast('Link copied.'),
+                () => this.toast('Copy the link from the page instead.', 'warn')
+              );
+            },
+            seeOrder: () => {
+              flow?.resetCheckout();
+              this.setState({ cust: { ...BLANK_CUST, box: {} } });
+              void flow?.loadStatus(placed.token);
+              this.go('status');
+            },
+            orderAgain: () => this.custRestart()
+          }
+        : null
+    };
+  }
+
+  private liveLookupVals(): OpsVals['liveLookup'] {
+    if (this.customerSheetKind() !== 'liveLookup') return null;
+    return {
+      state: this.orderFlow?.lookupState ?? 'idle',
+      run: (orderNo, mobile) => void this.runLiveLookup(orderNo, mobile),
+      close: () => this.closeSheet()
+    };
+  }
+
+  private liveWaitlistVals(): OpsVals['liveWaitlist'] {
+    if (this.customerSheetKind() !== 'liveWaitlist') return null;
+    const flow = this.orderFlow;
+    return {
+      state: flow?.waitlistState ?? 'idle',
+      message: flow?.waitlistMessage ?? '',
+      errors: flow?.waitlistErrors ?? {},
+      ...waitlistRange(),
+      join: (fields) => {
+        if (!flow) {
+          this.toast(ORDER_COPY.unavailable, 'warn');
+          return;
+        }
+        void flow.joinWaitlist(fields);
+      },
+      close: () => {
+        flow?.resetWaitlist();
+        this.closeSheet();
+      }
+    };
+  }
+
+  /** The status page's values from `order_status`, never from the engine's local orders. */
+  private liveStatusCust(cust: OpsVals['cust']): OpsVals['cust'] {
+    if (this.state.screen !== 'status') return cust;
+    const flow = this.orderFlow;
+    const allergenNote = this.paymentSync?.info?.texts.allergen_note ?? '';
+    if (flow?.status && flow.statusState !== 'missing')
+      return {
+        ...cust,
+        ...statusCust(flow.status, { allergenNote }),
+        reorder: () => this.liveReorder()
+      };
+    const shell = {
+      ...cust,
+      orderNo: '—',
+      invoiceLine: '',
+      showRetry: false,
+      showCode: false,
+      pickupCode: '',
+      windowText: '',
+      allergenNote,
+      timeline: [] as OpsVals['cust']['timeline']
+    };
+    const state = flow?.statusState ?? 'idle';
+    if (state === 'loading') return { ...shell, heroTitle: 'Loading your order…', heroBody: '' };
+    if (state === 'error')
+      return { ...shell, heroTitle: 'We could not load your order', heroBody: ORDER_COPY.statusError };
+    return { ...shell, heroTitle: 'We could not find that order', heroBody: ORDER_COPY.statusMissing };
   }
 
   /** The shop footer's lines: the owner's own text, or nothing (finding 16). */

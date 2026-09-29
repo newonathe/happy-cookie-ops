@@ -90,6 +90,11 @@ export declare class OpsEngine extends React.Component<OpsEngineProps, OpsEngine
   sheet: (kind: string, data?: Record<string, unknown>) => void;
   /** Closes the bottom sheet (`state.sheet = null`). An instance field. */
   closeSheet: () => void;
+  /** Customer checkout actions (B2): instance fields the live runtime replaces. */
+  custSubmit: () => void;
+  custRestart: () => void;
+  custReorder: () => void;
+  custSet: (key: string, value: unknown) => void;
   /** SVG path data keyed by icon name. An instance field. */
   IC: Record<string, string>;
 }

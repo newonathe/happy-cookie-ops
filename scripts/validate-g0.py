@@ -123,6 +123,23 @@ FLAVOUR_REVERSALS = {
          b'"src/components/shell/app-frame.tsx": {\n      "copy": "8f7ed5b6",\n      "copyCount": 15,\n      "styles": 146,\n      "dynamicStyles": 10,\n      "elements": 243'),
     ],
 }
+# B2 live checkout slot (D4, approved 2026-09-28; docs/state/protected-exception.md): one import, one destructured
+# name and one guarded region in checkout.tsx, the ported "About you" to footnote markup kept verbatim as the demo branch.
+CHECKOUT_REVERSALS = {
+    'src/components/screens/checkout.tsx': [
+        (b"import { Pressable } from '@/components/ui/pressable';\nimport { LiveCheckout } from '@/components/live/live-checkout';\n",
+         b"import { Pressable } from '@/components/ui/pressable';\n"),
+        (b"const { backToShop, bareFrame, cust, ic } = v;", b"const { backToShop, cust, ic } = v;"),
+        (b"        {bareFrame ? <LiveCheckout v={v} /> : (\n        <>\n        <div style={{ background: '#FFFFFF', border: '1px solid #F0E2CB', borderRadius: '18px', padding: '14px', display: 'flex', flexDirection: 'column', gap: '11px' }}>\n          <span style={{ fontSize: '12px', fontWeight: '700', color: '#6E574B' }}>About you</span>",
+         b"        <div style={{ background: '#FFFFFF', border: '1px solid #F0E2CB', borderRadius: '18px', padding: '14px', display: 'flex', flexDirection: 'column', gap: '11px' }}>\n          <span style={{ fontSize: '12px', fontWeight: '700', color: '#6E574B' }}>About you</span>"),
+        (b"          Your slot is held once Cine verifies the payment.\n        </span>\n        </>\n        )}\n      </div>\n",
+         b"          Your slot is held once Cine verifies the payment.\n        </span>\n      </div>\n"),
+    ],
+    'scripts/port-baseline.json': [
+        (b'"src/components/screens/checkout.tsx": {\n      "copy": "16d02c0c",\n      "copyCount": 6,\n      "styles": 89,\n      "dynamicStyles": 2,\n      "elements": 101\n    }',
+         b'"src/components/screens/checkout.tsx": {\n      "copy": "16d02c0c",\n      "copyCount": 6,\n      "styles": 89,\n      "dynamicStyles": 2,\n      "elements": 100\n    }'),
+    ],
+}
 changes = []
 for entry in load(EVIDENCE / 'delivery-manifest.json'):
     rel = entry['path']
@@ -155,6 +172,9 @@ for entry in load(EVIDENCE / 'delivery-manifest.json'):
             data = data.replace(edited, original, 1)
         for index, (edited, original) in enumerate(FLAVOUR_REVERSALS.get(rel, [])):
             check(f'approved_flavour_exception_once:{rel}:{index}', data.count(edited) == 1)
+            data = data.replace(edited, original, 1)
+        for index, (edited, original) in enumerate(CHECKOUT_REVERSALS.get(rel, [])):
+            check(f'approved_checkout_exception_once:{rel}:{index}', data.count(edited) == 1)
             data = data.replace(edited, original, 1)
         check('protected_delivery_bytes:' + rel, hashlib.sha256(data).hexdigest() == entry['sha256'])
 notices = [[line for line in (ROOT / name).read_text().splitlines() if line.startswith('> **Current planning authority')] for name in ['AGENTS.md', 'CLAUDE.md']]

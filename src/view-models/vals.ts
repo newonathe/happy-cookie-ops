@@ -111,6 +111,61 @@ export interface OpsVals {
    * owner's own text; an empty string means the footer prints nothing for it.
    */
   shopFooter?: { badge: string; tin: string; invoice: string; allergens: string };
+  /**
+   * Live mode only (B2): the customer's checkout, "Find my order" and waiting list. Each is null
+   * unless it is on screen, and undefined in demo, so the ported screens are unchanged.
+   */
+  liveCheckout?: {
+    fields: {
+      name: string;
+      ig: string;
+      mobile: string;
+      ref: string;
+      pickupDate: string;
+      pickupTime: string;
+      pay: string;
+    };
+    set: (
+      key: 'name' | 'ig' | 'mobile' | 'ref' | 'pickupDate' | 'pickupTime',
+      value: string
+    ) => void;
+    errors: Partial<Record<'name' | 'ig' | 'mobile' | 'date' | 'time' | 'pay' | 'items', string>>;
+    dates: Array<{ value: string; label: string }>;
+    times: Array<{ value: string; label: string }>;
+    rulesState: 'loading' | 'ready' | 'failed';
+    /** True while an earlier attempt's outcome is unknown: the fields are frozen. */
+    readOnly: boolean;
+    sending: boolean;
+    banner: { tone: 'error' | 'notice'; text: string; canWaitlist: boolean } | null;
+    submit: (event?: unknown) => void;
+    changeOrder: (event?: unknown) => void;
+    openWaitlist: (event?: unknown) => void;
+    holdNote: string;
+    placed: {
+      orderNo: string;
+      statusUrl: string;
+      totalText: string;
+      copyLink: (event?: unknown) => void;
+      seeOrder: (event?: unknown) => void;
+      orderAgain: (event?: unknown) => void;
+    } | null;
+  } | null;
+  liveLookup?: {
+    state: 'idle' | 'busy' | 'missed' | 'error';
+    run: (orderNo: string, mobile: string) => void;
+    close: (event?: unknown) => void;
+  } | null;
+  liveWaitlist?: {
+    state: 'idle' | 'sending' | 'done' | 'refused' | 'unknown';
+    message: string;
+    errors: Partial<Record<'name' | 'ig' | 'mobile' | 'date', string>>;
+    min: string;
+    max: string;
+    join: (fields: { name: string; ig: string; mobile: string; wantedDate: string }) => void;
+    close: (event?: unknown) => void;
+  } | null;
+  /** Live customer pages: opens the waiting list form. */
+  openWaitlist?: (event?: unknown) => void;
   askClose: (event?: unknown) => void;
   askReset: (event?: unknown) => void;
   attachReceipt: (event?: unknown) => void;

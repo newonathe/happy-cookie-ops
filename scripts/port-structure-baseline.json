@@ -1,11 +1,11 @@
 {
   "schema": 1,
-  "provenance": "Original delivery plus owner-approved MP-02 five null guards and the MP-04 live-frame guards, the MP-09 c1c live form host and the MP-09 c2 shop footer host; see docs/state/protected-exception.md",
+  "provenance": "Original delivery plus owner-approved MP-02 five null guards and the MP-04 live-frame guards, the MP-09 c1c live form host, the MP-09 c2 shop footer host and the B2 live checkout slot; see docs/state/protected-exception.md",
   "files": {
     "src/components/screens/all-tools.tsx": "30f0aea3847cb5cb88cfe6043fac3aec7fd2c3c1148209bb540eb84c35c3448a",
     "src/components/screens/bake-plan.tsx": "b078603290b8e192ca74294459c5e593dbb5b54484eb276c33f2e523a9b26876",
     "src/components/screens/bazaar-mode.tsx": "dee291830dbd59e2615195ddf8a4835e38d19a6d26f88a32ec9b93734355e332",
-    "src/components/screens/checkout.tsx": "c0477c025a638aa56bfc213c3e68af4046d654c5aa2cbc678a77de0b5c873f15",
+    "src/components/screens/checkout.tsx": "52562058e77e8d3c225d3264653496dd28a76d5ae6339be9107dd4895a321e94",
     "src/components/screens/drops.tsx": "c033c3f088511367035895db4fd1a7074d9b01ce4c70f6e52fc30a9706550528",
     "src/components/screens/find-my-order.tsx": "d9a65b645d7c56d5275fdebb8ecf950d093eae2def45bc7def8e072d60281c32",
     "src/components/screens/form-queue.tsx": "5017203ac24abd19a8e28e26640b340fa1fb4cb9f0b0ccacbf8c07252a83021b",

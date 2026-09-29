@@ -320,3 +320,91 @@ uploaded image is never deleted when the owner cancels or replaces it (orphans s
 picked a method the owner then turned off can still submit its label (B1's `place_order` must check the method is
 offered). Otherwise clean: both protected edits reverse to the exact delivery bytes, demo rendering is unchanged, the
 resolver cannot leave `url(...)`, and the upload name never comes from the file.
+# MP-10 a / B2: the live checkout slot — APPLIED (2026-09-29, finish-plan slice B2, app half)
+
+Status: APPLIED under decision D4 (Ethan, 2026-09-28: the checkout may have guarded, live-only insertion points; the
+"MP-10 checkout and shop-text locked-UI exception" above). Live mode only (`NEXT_PUBLIC_APP_MODE=live`); demo, dev, CI
+and the visual baselines render exactly as before (`tests/unit/ops-runtime-live-checkout.test.tsx` pins the demo
+checkout text and the engine's own submit).
+
+**One protected file changed, `src/components/screens/checkout.tsx`, inserted by script** (the `PreToolUse` hook blocks
+direct edits): an import, `bareFrame` added to the destructure, and one guarded region.
+
+```
+import { LiveCheckout } from '@/components/live/live-checkout';
+const { backToShop, bareFrame, cust, ic } = v;
+…header and the ported "Your order" card, unchanged…
+{bareFrame ? <LiveCheckout v={v} /> : (
+<>
+  …the ported "About you", "Collection" and "Payment" cards, the submit button and the slot footnote, verbatim…
+</>
+)}
+```
+
+Baseline change: `elements` +1 for this file (`<LiveCheckout>`); copy hash, copy count and styles unchanged.
+
+**Ported lines that are false in live mode, so never shown there** (they stay verbatim as the demo branch):
+
+- Email is required ("Your order link is emailed here…"). A live order takes no email.
+- "Amount you sent" and the required "Payment screenshot". A live order is placed unpaid; proof stays in the DMs (F5).
+- "Send ₱X to one of these, then attach the screenshot", and `cust.qrNote` (tells the customer to attach a screenshot).
+- "(optional)" on Instagram. Her form requires it, so the live form does too (client side; the database accepts none).
+- "Your slot is held once Cine verifies the payment." A live order holds its slots at once, for the owner's unpaid hold
+  hours (D1).
+
+**What `LiveCheckout` shows instead** (new, unprotected, `src/components/live/live-checkout.tsx`, existing tokens
+only): name, Instagram, contact number, pickup date (the owner's pickup days inside the lead window, from
+`get_shop_order_rules()`, counted on the Asia/Manila clock), pickup time (half hours from the start hour to before the
+cutoff hour, plus the campus slot), payment method and QR (`v.cust.methods` and `v.cust.qr`, already resolved from
+`get_shop_payment_info()` by `livePayCust`), an optional reference, and the refusal banner. After a success it shows
+the order number, the status link (`/status#t=…`, in the fragment, never the query string), "Copy the link", "See my
+order" and "Order again".
+
+**Not protected-file edits, same slice:**
+
+- `src/store/ops-runtime.tsx` (subclass, live constructor branch and `renderVals`): `custSubmit` calls `place_order`
+  through `OrderFlow`; `custRestart`, `custReorder` and `custSet` are wrapped; the status page's `cust` values come
+  from `order_status(token)` (`statusCust`), never from the engine's local orders, so `order-status.tsx` needed no edit
+  (it also drops "Invoice INV-…": `invoiceLine` is empty, F10); the live `openLookup` opens a lookup sheet, and the
+  shop footer's new "Join the waiting list" opens the waitlist sheet, both through the F3 form host
+  (`LiveFormHost`), so no second protected insertion was needed. **Customer sheets are gated on the current screen being
+  a customer screen, never on the role**: an anonymous visitor's engine role defaults to `'owner'`.
+- `src/lib/data/orders.ts`, `order-flow.ts`, `src/lib/orders/{pickup,copy,status-view}.ts`, `LiveOrderRoute` in
+  `ops-app.tsx` (keeps `#t=` in the address bar after `RouteSync`'s own `pushState`, adopts it on a direct load),
+  `loadShopOrders` in `live-gate.tsx`, and additive types in `vals.ts` and `ops-engine.d.ts`.
+- The engine's own `runLookup` is an instance field, so the runtime's helper is named `runLiveLookup`; naming it
+  `runLookup` silently lost to the engine (found by a test, fixed).
+
+**Reversals:** `CHECKOUT_REVERSALS` in `scripts/validate-g0.py` removes the import, the destructured name, the guard's
+opening and its closing, and reverses `scripts/port-baseline.json`'s `elements` count for `checkout.tsx` (101 → 100),
+each exactly once, before the delivery-bytes check (G0 validator: 1211 checks, 0 failures).
+`scripts/port-baseline.json` was updated only through `--update` and `scripts/port-structure-baseline.json` through
+`node scripts/port-structure.mjs --write-baseline` (its provenance line restored and extended), in the same commit.
+
+**Wording that is not the owner's yet** (all in `src/lib/orders/copy.ts`, one place, each marked PLACEHOLDER except the
+closed-drop sentence, which is `DROP_CLOSED_MESSAGE`, signed off): not enough room (in slots, not boxes), too many
+unpaid orders on the number, pickup not available, payment method not offered, waiting-list limit, malformed order, order
+id reused, ordering unavailable, unknown outcome and "Change the order", the pay-help line, the received and
+status-page lines for an unpaid order, and the lookup and waiting-list lines. The status page keeps the ported
+sentences that are still true ("Your box is ready", "Collected — thank you", "You missed your slot", "Payment
+confirmed").
+
+**Known limits, recorded rather than fixed here:**
+
+- The engine's `shopOverride` ("close now") is not on the server, so it does not stop orders. **Cutover blocker**;
+  needs a migration that redefines `place_order`.
+- An anonymous customer's engine runs on `DEFAULT_CFG`, so the shop banner can say open while the server answers
+  ZC001 (whose message is the signed-off closed-drop sentence). It also says "Monday 9:00 AM", true only with the
+  default schedule.
+- The status screen's protected line "Book your Grab or Lalamove for that window. We send the exact address that
+  morning." is true for the courier pickup and not for the campus slot.
+- A direct visit to `/lookup` still shows the ported page, whose copy promises email lookup. The in-app path (the shop
+  footer) opens the live sheet instead. Fixing the URL needs a second guarded slot in `find-my-order.tsx`, which D4 does
+  not name; ask Ethan first.
+- The owner's form for the order rules (`get_order_rules`/`save_order_rules`) is B3.
+
+**Evidence:** `tests/unit/pickup.test.ts`, `orders.test.ts` (49 tests, 17 deliberate mutations, each caught) and
+`ops-runtime-live-checkout.test.tsx` (27 tests, 13 deliberate mutations, each caught); `live-gate-menu.test.tsx` gained
+the `loadShopOrders` calls. `tests/unit/flavours.test.tsx`'s two render-every-screen tests got an explicit 20 s timeout:
+they are the heaviest in the suite and exceed the default 5 s when the whole suite runs on a busy machine (they did the
+same at HEAD without this slice), so this is a load allowance and does not change what they check.
