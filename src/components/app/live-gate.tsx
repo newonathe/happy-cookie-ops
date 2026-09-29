@@ -143,7 +143,11 @@ export function LiveGate({
         !CUSTOMER_SCREENS.includes(engine.state.screen as ScreenKey)
       ) {
         flavoursStarted = true;
-        void engine.loadFlavours(supabase);
+        // B3: the owner's orders, once the flavour list is in (the screens need every ordered flavour).
+        const owner = result.role === 'owner';
+        void Promise.resolve(engine.loadFlavours(supabase)).then(() => {
+          if (owner && !cancelled) void engine.loadOrders(supabase);
+        });
       }
     }
 
@@ -157,7 +161,11 @@ export function LiveGate({
     });
 
     function onVisible() {
-      if (document.visibilityState === 'visible') void verify(false);
+      if (document.visibilityState === 'visible') {
+        void verify(false);
+        // Customers order all day: read the owner's orders again when the tab comes back.
+        if (engine instanceof OpsRuntime) void engine.reloadOrders();
+      }
     }
     document.addEventListener('visibilitychange', onVisible);
 

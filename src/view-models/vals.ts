@@ -99,6 +99,18 @@ export interface OpsVals {
         })
       | null;
   } | null;
+  /** Live owner only (B3): the customer messages sheet, on the same form host. */
+  liveMessages?: {
+    rows: Array<{
+      key: string;
+      order: string;
+      name: string;
+      label: string;
+      text: string;
+      copy: (event?: unknown) => void;
+    }>;
+    close: (event?: unknown) => void;
+  } | null;
   /** Live owner only (MP-09 c2): the shop footer's four texts. */
   liveTexts?: {
     online: boolean;

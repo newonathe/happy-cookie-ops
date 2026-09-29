@@ -19,6 +19,9 @@ import { deviceId } from '@/lib/device';
 import { plural } from '@/store/engine/ops-engine';
 import type { LiveFlavourFormFields, LivePayFormFields, LiveShopTexts, OpsVals } from '@/view-models/vals';
 import { PaymentSync } from '@/lib/data/payment-sync';
+import { StaffOrderSync, type StaffOrderClient, type StaffOutcome } from '@/lib/data/staff-orders';
+import { messagesFor } from '@/lib/orders/messages';
+import { MESSAGE_SHEET, STAFF_COPY } from '@/lib/orders/staff-copy';
 import { OrderFlow } from '@/lib/data/order-flow';
 import { tokenFromHash, type FieldErrors, type OrderClient } from '@/lib/data/orders';
 import { pickupLabel, statusCust } from '@/lib/orders/status-view';
@@ -153,6 +156,27 @@ interface BazaarActions {
   reopenEvent: () => void;
 }
 
+/** The engine's own order actions, replaced in live mode by the ones that ask the database (B3). */
+interface OrderActions {
+  confirmPayment: (id: string, force?: boolean) => void;
+  rejectPayment: (id: string) => void;
+  reopenOrder: (id: string) => void;
+  refundOrder: (id: string, ref?: string) => void;
+  noShow: (id: string) => void;
+  recordBalance: (id: string) => void;
+  flagLine: (id: string, pid: string) => void;
+  replaceLine: (id: string, from: string, to: string) => void;
+  clearContact: (id: string) => void;
+  packOrder: (id: string) => void;
+  collectOrder: (id: string) => void;
+  markBaking: (pid: string, s0?: { orders: unknown[] }) => unknown[];
+  demand: (pid: string) => number;
+  demandDay: (pid: string, day: string) => number;
+}
+
+/** The orders the bake list counts: unpaid ones too, because Cine bakes before she is paid (28 Sep). */
+const BAKED_FOR = ['Payment review', 'Confirmed', 'Preparing'];
+
 interface LiveEvent {
   id?: string;
   stage?: string;
@@ -224,6 +248,7 @@ export class OpsRuntime extends OpsProvider {
   private settingsSync?: SettingsSync;
   private flavourSync?: FlavourSync;
   private paymentSync?: PaymentSync;
+  private orderSync?: StaffOrderSync;
   private orderFlow?: OrderFlow;
   /** The last fragment this runtime wrote or adopted, so a link pasted into the tab is told apart. */
   private lastHash = '';
@@ -260,6 +285,7 @@ export class OpsRuntime extends OpsProvider {
     if (!isLiveMode()) return;
     // MP-09 c2: live mode never shows the ported demo payment accounts, not even before the read.
     replacePayAccounts([]);
+    this.installOrderOverrides();
     // B2: a live checkout places real orders; the engine's local order list plays no part. The
     // form fields still live in `state.cust`, so the ported setters and reset actions are kept.
     this.custSubmit = () => {
@@ -845,6 +871,7 @@ export class OpsRuntime extends OpsProvider {
       liveForm: this.liveFormVals(),
       livePay: this.livePayVals(),
       liveTexts: this.liveTextsVals(),
+      liveMessages: this.liveMessagesVals(),
       cust: this.liveStatusCust(this.livePayCust(starved.cust)),
       openLookup: () => this.openLookupSheet(),
       openWaitlist: () => this.openWaitlist(),
@@ -916,6 +943,198 @@ export class OpsRuntime extends OpsProvider {
     return [...rules, ...idle, helperTotals];
   }
 
+  // ------------------------------------------------------------------ B3: the owner's orders
+
+  /**
+   * Reads the owner's orders into `state.orders` (owner, staff screens; after the flavour list, so
+   * every ordered flavour is known to the screens). The engine's local order list plays no part in
+   * live mode; the demo books are never shown.
+   */
+  loadOrders(client: StaffOrderClient): Promise<boolean> {
+    if (!isLiveMode()) return Promise.resolve(false);
+    this.orderSync = new StaffOrderSync(client, {
+      apply: (orders) => this.setState({ orders }),
+      online: () => this.state.online && (typeof navigator === 'undefined' || navigator.onLine),
+      toast: (message, tone) => this.toast(message, tone),
+      pickupDays: () => this.orderFlow?.rules?.pickupDays ?? [1, 4]
+    });
+    return this.orderSync.load();
+  }
+
+  /** Customers order all day: the live gate reads the list again when the tab comes back. */
+  reloadOrders(): Promise<boolean> {
+    return this.orderSync?.load() ?? Promise.resolve(false);
+  }
+
+  private flavourName(pid: string): string {
+    const p = PRODUCTS.find((x) => x.id === pid) as { short?: string; name?: string } | undefined;
+    return p?.short ?? p?.name ?? pid;
+  }
+
+  private firstName(id: string): string {
+    const name = this.orderSync?.find(id)?.name ?? '';
+    return name.trim().split(/\s+/)[0] || 'The customer';
+  }
+
+  private orderPesos(id: string): number {
+    const order = this.orderSync?.find(id);
+    return order ? centavosToPesos(order.totalCents) : 0;
+  }
+
+  /**
+   * One owner change, server first: nothing changes on screen until the database says so, then the
+   * list is read again (in `StaffOrderSync`). `done` words the success; the caller words the rest.
+   */
+  private async liveOrder(
+    run: (sync: StaffOrderSync) => Promise<StaffOutcome>,
+    done: string,
+    undo?: () => void
+  ): Promise<StaffOutcome | null> {
+    const sync = this.orderSync;
+    if (!sync?.loaded) {
+      this.toast(STAFF_COPY.notLoaded, 'warn');
+      return null;
+    }
+    const outcome = await run(sync);
+    if (outcome.kind === 'ok') {
+      this.closeSheet();
+      this.toast(done, 'ok', undo);
+    }
+    return outcome;
+  }
+
+  /**
+   * Live mode replaces the engine's order actions, which only edit the local list, with the ones
+   * that call the `staff_*` RPCs. The engine's local side effects are deliberately not repeated:
+   * packing does not check packaging stock (there is none in live mode until C1/C2), refunds and
+   * no-shows do not touch the local ledger or baked counts, no invoice is issued (F10 is open),
+   * and the capacity check on payment is the server's.
+   */
+  private installOrderOverrides(): void {
+    const eng = this as unknown as OrderActions;
+    eng.confirmPayment = (id, force) => void this.liveConfirm(id, force === true);
+    eng.rejectPayment = (id) => void this.liveOrder((s) => s.reject(id), STAFF_COPY.rejected);
+    eng.reopenOrder = (id) => void this.liveOrder((s) => s.reopen(id), STAFF_COPY.reopened);
+    eng.recordBalance = (id) =>
+      void this.liveOrder((s) => s.settle(id), STAFF_COPY.settled(this.firstName(id)));
+    eng.noShow = (id) =>
+      void this.liveOrder((s) => s.setStatus(id, 'No-show'), STAFF_COPY.noShow(this.firstName(id)));
+    eng.refundOrder = (id, ref) => {
+      const amount = PESO(this.orderPesos(id));
+      void this.liveOrder((s) => s.refund(id, String(ref ?? '').trim()), STAFF_COPY.refunded(amount));
+    };
+    eng.packOrder = (id) => {
+      const order = this.orderSync?.find(id);
+      if (order?.state === 'Payment review') return void this.toast(STAFF_COPY.packUnpaid, 'warn');
+      if (order?.items.some((i) => i.unavailable))
+        return void this.toast(
+          'Settle the unavailable flavour with ' + this.firstName(id) + ' before packing this one.',
+          'warn'
+        );
+      void this.liveOrder((s) => s.setStatus(id, 'Ready'), STAFF_COPY.packed(this.firstName(id)));
+    };
+    eng.collectOrder = (id) => {
+      const undo = () =>
+        void this.liveOrder((s) => s.setStatus(id, 'Ready'), STAFF_COPY.packed(this.firstName(id)));
+      void this.liveOrder(
+        (s) => s.setStatus(id, 'Completed'),
+        STAFF_COPY.collected(this.firstName(id)),
+        undo
+      );
+    };
+    eng.flagLine = (id, pid) => {
+      const on = !this.orderSync?.find(id)?.items.some((i) => i.productId === pid && i.unavailable);
+      void this.liveOrder(
+        (s) => s.flag(id, pid, on),
+        on
+          ? STAFF_COPY.flagged(this.flavourName(pid), this.firstName(id))
+          : STAFF_COPY.unflagged(this.flavourName(pid))
+      );
+    };
+    eng.clearContact = (id) => {
+      const flagged = (this.orderSync?.find(id)?.items ?? []).filter((i) => i.unavailable);
+      void (async () => {
+        for (const item of flagged) {
+          const outcome = await this.orderSync?.flag(id, item.productId, false);
+          if (outcome?.kind !== 'ok') return;
+        }
+        this.toast(STAFF_COPY.cleared);
+      })();
+    };
+    eng.replaceLine = (id, from, to) => {
+      if (from === to) return void this.toast('Pick a different flavour to swap in.', 'warn');
+      const qty = (this.orderSync?.find(id)?.items ?? [])
+        .filter((i) => i.productId === from)
+        .reduce((n, i) => n + i.qty, 0);
+      void this.liveOrder(
+        (s) => s.swap(id, from, to, globalThis.crypto.randomUUID()),
+        STAFF_COPY.swapped(qty, this.flavourName(from), this.flavourName(to))
+      );
+    };
+    // Baking is not a status the live app records: a baked flavour's orders stay Confirmed until they
+    // are packed (Ready), so the bake list keeps counting them until then.
+    eng.markBaking = (_pid, s0) => (s0 ?? (this.state as unknown as { orders: unknown[] })).orders;
+    const orders = () =>
+      this.state.orders as Array<{ status: string; day?: string; items: Record<string, number> }>;
+    eng.demand = (pid) =>
+      orders()
+        .filter((o) => BAKED_FOR.includes(o.status))
+        .reduce((n, o) => n + (o.items[pid] || 0), 0);
+    eng.demandDay = (pid, day) =>
+      orders()
+        .filter((o) => BAKED_FOR.includes(o.status) && o.day === day)
+        .reduce((n, o) => n + (o.items[pid] || 0), 0);
+  }
+
+  /** The paid tick. A lapsed unpaid order that no longer fits its week opens the ported overage sheet. */
+  private async liveConfirm(id: string, force: boolean): Promise<void> {
+    const order = this.orderSync?.find(id);
+    const first = this.firstName(id);
+    const outcome = await this.liveOrder((s) => s.confirm(id, force), STAFF_COPY.paid(first));
+    if (outcome?.kind === 'capacity') {
+      const n = (order?.items ?? []).reduce((total, i) => total + i.qty, 0);
+      this.sheet('overage', {
+        id,
+        over: Math.max(1, n - outcome.left),
+        left: outcome.left,
+        n,
+        name: order?.name ?? first
+      });
+    }
+  }
+
+  private openMessages(): void {
+    this.sheet('ordermessages', {});
+    void this.reloadOrders();
+  }
+
+  /** The messages sheet: a status link and a text to copy for each open order (live owner). */
+  private liveMessagesVals(): OpsVals['liveMessages'] {
+    const sh = this.state.sheet as FlavourSheetState | null;
+    if (this.state.role !== 'owner' || sh?.kind !== 'ordermessages') return null;
+    const origin = typeof window === 'undefined' ? '' : window.location.origin;
+    const rows = (this.orderSync?.current() ?? []).flatMap((o) =>
+      messagesFor(o, origin, (pid) => this.flavourName(pid)).map((m) => ({
+        key: m.key,
+        order: o.id,
+        name: o.name,
+        label: m.label,
+        text: m.text,
+        copy: () => void this.copyMessage(m.text)
+      }))
+    );
+    return { rows, close: () => this.closeSheet() };
+  }
+
+  private async copyMessage(text: string): Promise<void> {
+    try {
+      await navigator.clipboard.writeText(text);
+      this.toast(MESSAGE_SHEET.copied);
+    } catch {
+      this.toast(MESSAGE_SHEET.copyFailed, 'warn');
+    }
+  }
+
   /** "Menu & flavours" in the Business group. No markup edit: All tools already maps `toolGroups`. */
   private liveToolGroups(groups: OpsVals['toolGroups']): OpsVals['toolGroups'] {
     return groups.map((g) =>
@@ -946,6 +1165,13 @@ export class OpsRuntime extends OpsProvider {
                 sub: 'The shop footer: registration, TIN, invoice, allergens',
                 badge: null,
                 go: () => void this.openShopTexts()
+              },
+              {
+                icon: this.IC.cookie,
+                label: MESSAGE_SHEET.title,
+                sub: 'A status link and a text to copy for each open order',
+                badge: null,
+                go: () => this.openMessages()
               }
             ]
           }
@@ -985,6 +1211,8 @@ export class OpsRuntime extends OpsProvider {
     }
     if (this.state.role === 'owner' && sh?.kind === 'shoptexts')
       return { ...sheet, liveForm: true, title: 'Shop texts' };
+    if (this.state.role === 'owner' && sh?.kind === 'ordermessages')
+      return { ...sheet, liveForm: true, title: MESSAGE_SHEET.title };
     if (this.state.role !== 'owner' || sh?.kind !== 'flavours')
       return { ...sheet, liveForm: false };
     const row = sh.pid ? this.flavourSync?.current().find((r) => r.id === sh.pid) : undefined;
