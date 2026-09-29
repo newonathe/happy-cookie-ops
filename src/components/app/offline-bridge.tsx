@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { useOpsEngine } from '@/store/use-ops';
+import { useOpsEngine, useOpsVals } from '@/store/use-ops';
 import { enqueueSale } from '@/lib/offline/queue';
 import { flushQueue, requestBackgroundSync } from '@/lib/offline/sync';
 import type { EventSale } from '@/store/engine/ops-engine';
@@ -17,6 +17,7 @@ import type { EventSale } from '@/store/engine/ops-engine';
  *   3. coming back online flushes the queue and asks for background sync.
  */
 export function OfflineBridge() {
+  useOpsVals();
   const engine = useOpsEngine();
   const mirrored = useRef<Set<string>>(new Set());
   const sales = engine.state.sales;

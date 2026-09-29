@@ -42,6 +42,13 @@ Short status, read at the start of every session. Keep it to one screen.
 - **Pilot gate:** Bazaar Mode for 24–25 Oct only if OFFLINE-01 and the offline test on her phone pass by 20 Oct.
 - **Hosted updates:** Ethan runs `supabase login` before the next hosted update.
 
+## D1 in progress (2026-09-29) - not done, stopped at the turn limit
+
+- **Fixed and proven:** `OfflineBridge` never re-rendered when a sale was recorded (it read `engine.state.sales` without subscribing), so nothing reached IndexedDB. Adding `useOpsVals()` makes the sale queue. OFFLINE-01 now gets past the queue check and fails one step later.
+- **Next OFFLINE-01 blocker, found not fixed:** the offline reload never hydrates. `public/sw.js` caches the page shell but not the hashed `/_next/static/` scripts, and those load before the worker controls the page, so a runtime cache rule alone did not help (tried, reverted). Needs the page to hand its loaded script URLs to the worker once it is ready.
+- **Engine traps for the RPC wiring (protected engine, so wrap in `OpsRuntime`):** sale ids are `'S' + (sales.length + 1)` so a void then a new sale reuses an id; `OfflineBridge` keys `mirrored` on that id and would drop the new sale; voids never reach the queue; `runSync` matches results with `clientId.split(':')[1]`; `startEvent` creates no event id; `public/sw.js` background sync still posts to `/api/sync` with no auth.
+- **Not started:** the migration (events selling device, price snapshot, `record_event_sale`, void, freebie), SQL role-suite row, fixtures/pins/types, queue and sync rewiring, Opus review. `next-goal.md` D1 stays the goal.
+
 ## Latest checkpoint (replace each slice; move the old one to current-history.md)
 
 - **2026-09-28 (MP-09 c1c, F3, slice A1 — the flavour editor and "Publish menu"):**
