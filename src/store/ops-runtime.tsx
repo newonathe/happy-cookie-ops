@@ -295,38 +295,39 @@ function pesoText(cents: number): string {
   return '₱' + centavosToPesos(cents).toLocaleString('en-PH');
 }
 
-function readPendingLink(): PendingLink | null {
+function readPendingLinks(): PendingLink[] {
   try {
-    const saved = JSON.parse(localStorage.getItem(PENDING_LINK) ?? 'null') as Partial<PendingLink> | null;
-    if (
-      saved &&
-      typeof saved.scheduledId === 'string' &&
-      typeof saved.eventId === 'string' &&
-      typeof saved.rentCents === 'number' &&
-      typeof saved.at === 'number' &&
-      Date.now() - saved.at < 3 * 86_400_000
-    )
-      return saved as PendingLink;
+    const saved = JSON.parse(localStorage.getItem(PENDING_LINK) ?? '[]') as unknown;
+    if (!Array.isArray(saved)) return [];
+    return saved.filter(
+      (l): l is PendingLink =>
+        !!l &&
+        typeof l.scheduledId === 'string' &&
+        typeof l.eventId === 'string' &&
+        typeof l.rentCents === 'number' &&
+        typeof l.at === 'number' &&
+        Date.now() - l.at < 3 * 86_400_000
+    );
   } catch {
-    /* unreadable: nothing pending */
+    return [];
   }
-  return null;
 }
 
-function savePendingLink(link: PendingLink): void {
+function writePendingLinks(links: PendingLink[]): void {
   try {
-    localStorage.setItem(PENDING_LINK, JSON.stringify(link));
+    if (links.length) localStorage.setItem(PENDING_LINK, JSON.stringify(links));
+    else localStorage.removeItem(PENDING_LINK);
   } catch {
     /* private mode: the owner is told, and a later start of the same booking links again */
   }
 }
 
-function clearPendingLink(): void {
-  try {
-    localStorage.removeItem(PENDING_LINK);
-  } catch {
-    /* nothing to clear */
-  }
+function savePendingLink(link: PendingLink): void {
+  writePendingLinks([...readPendingLinks().filter((l) => l.scheduledId !== link.scheduledId), link]);
+}
+
+function clearPendingLink(link: PendingLink): void {
+  writePendingLinks(readPendingLinks().filter((l) => l.scheduledId !== link.scheduledId));
 }
 
 export class OpsRuntime extends OpsProvider {
@@ -355,6 +356,7 @@ export class OpsRuntime extends OpsProvider {
   private pendingSchedule: ScheduledEvent | null = null;
   private scheduledNewId = '';
   private scheduledVersion = 0;
+  private localEventExpense: ((label: string, amount: unknown, cat?: string) => void) | null = null;
   private orderFlow?: OrderFlow;
   /** The last fragment this runtime wrote or adopted, so a link pasted into the tab is told apart. */
   private lastHash = '';
@@ -437,6 +439,9 @@ export class OpsRuntime extends OpsProvider {
     // D2. Only flavours on the event's menu can be put on the table, and the stock load, each
     // expense and the close are queued like sales: kept on the phone, sent when there is signal.
     const { setEventStock, openSelling, addEventExpense, closeEvent } = bazaar;
+    // The engine's own function writes only the local books (the list and the close-out screen); the queued
+    // override below also sends an expense. The stall rent is booked by the database, so it uses this one.
+    this.localEventExpense = addEventExpense;
     bazaar.setEventStock = (pid, d) => {
       const snapshot = (this.state.event as LiveEvent | null)?.snapshot;
       if (d > 0 && snapshot && !snapshot.includes(pid)) {
@@ -1340,13 +1345,31 @@ export class OpsRuntime extends OpsProvider {
    * stall rent with the first link and answers a repeat harmlessly, so retrying can never book it twice.
    */
   private async retryPendingLink(client: ScheduledClient): Promise<void> {
-    const pending = readPendingLink();
-    if (!pending) return;
-    const linked = await linkScheduledEvent(client, pending.scheduledId, pending.eventId);
-    if (linked === 'failed') return;
-    clearPendingLink();
-    if (linked === 'first' && pending.rentCents > 0) this.toast(SCHEDULED_COPY.rentBooked(pesoText(pending.rentCents)));
-    await this.loadScheduledEvents(null);
+    let again = false;
+    for (const pending of readPendingLinks()) {
+      const linked = await linkScheduledEvent(client, pending.scheduledId, pending.eventId);
+      if (linked === 'failed') continue;
+      clearPendingLink(pending);
+      again = true;
+      if (linked === 'first') this.showRentBooked(pending.eventId, pending.rentCents);
+    }
+    if (again) await this.loadScheduledEvents(null);
+  }
+
+  /**
+   * The database has just booked a booking's stall rent. When that event is the one on screen, the engine's local
+   * expense row shows it in the event's list and the close-out (display only, never sent: the server has it);
+   * otherwise she is only told.
+   */
+  private showRentBooked(eventId: string, rentCents: number): void {
+    if (rentCents <= 0) return;
+    // After the start has landed in the state, which is what says whether this event is the one on screen.
+    this.afterUpdate(() => {
+      const event = this.state.event as LiveEvent | null;
+      if (event?.id === eventId && this.localEventExpense)
+        this.localEventExpense(SCHEDULED_COPY.rentLabel, centavosToPesos(rentCents), 'Bazaar rent');
+      else this.toast(SCHEDULED_COPY.rentBooked(pesoText(rentCents)));
+    });
   }
 
   private openScheduled = async (): Promise<void> => {
@@ -1471,8 +1494,8 @@ export class OpsRuntime extends OpsProvider {
       // The database books the rent with the first link; keep the pair until a retry is confirmed.
       savePendingLink({ scheduledId: row.id, eventId, rentCents: row.rentCents, at: Date.now() });
       this.toast(SCHEDULED_COPY.linkPending, 'warn');
-    } else if (linked === 'first' && row.rentCents > 0) {
-      this.toast(SCHEDULED_COPY.rentBooked(pesoText(row.rentCents)));
+    } else if (linked === 'first') {
+      this.showRentBooked(eventId, row.rentCents);
     }
     await this.loadScheduledEvents(null);
   }

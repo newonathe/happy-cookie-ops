@@ -128,7 +128,8 @@ export const SCHEDULED_COPY = {
   on: 'Show on the Bazaar screen',
   onStarted: 'Show on the Bazaar screen (already started)',
   save: 'Save bazaar events',
-  rentBooked: (amount: string) => amount + ' stall rent added under Bazaar rent. It is in your P&L already.',
+  rentLabel: 'Stall rent',
+  rentBooked: (amount: string) => amount + ' stall rent booked as an event expense.',
   linkPending:
     'The event started, but this phone could not tell the server which booking it was. Do not add the stall rent by hand: it is booked automatically the next time this phone is online.',
   unbookedTitle: 'Start without a booking',

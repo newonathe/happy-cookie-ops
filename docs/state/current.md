@@ -68,8 +68,9 @@ Short status, read at the start of every session. Keep it to one screen.
     blank one, deactivate instead of delete, only changed rows are sent, each with its own stamp. The Bazaar screen's "Start an event"
     list shows her active, unstarted bookings that have not ended (name, "Sat, Oct 24 - Sun, Oct 25 · place"), soonest first, then "Start
     without a booking" (the two prototype events are never shown in live mode). Starting one opens the event under its name and links it;
-    the toast says "₱2,500 stall rent added under Bazaar rent. It is in your P&L already." An unconfirmed link is kept on the phone
-    (`hc-pending-link`, 3 days) and retried whenever the list loads; the toast then tells her not to add the rent by hand.
+    the event's expense list and close-out show "Stall rent" (a local, display-only row from the engine's own function: the
+    server already booked it, so it is never queued). Unconfirmed links are kept on the phone (`hc-pending-link`, a list, 3 days) and
+    retried whenever the list loads; the toast then tells her not to add the rent by hand.
   - **Opus review (before the fix: BLOCKED on one High):** the rent was booked by the phone after the link answered "first", with a random
     client id, so a lost reply, a failed link or a killed tab could book it twice or never, and the old warning ("add it under expenses")
     invited the double. Fixed as above (the database books it; a retry of the link is always harmless). Also fixed: a start whose reply was
@@ -81,9 +82,10 @@ Short status, read at the start of every session. Keep it to one screen.
     grant); `pnpm build`, `test:pages:spike`, `test:workers:spike` pass; `pnpm test:e2e` 89 / 1
     (OFFLINE-01 WebKit) / 75; `test:live:checkout` 11 steps. Mutations on the new branches: 17 on the first version (16 caught, 1 equivalent) and 8 on the review fix, all caught.
     **Visual QA in the browser pane** (live-mode build, local owner): the form and its saved rows, the Bazaar list, starting a booking
-    (event opens under its name, toast, one rent expense in the database, the booking linked and gone from the list).
+    (event opens under its name, "Stall rent ₱1,800" in Event expenses, one rent expense in the database, the booking linked and gone from
+    the list). Not looked at: a test sale and the close-out screen with the rent (needs baked stock; it reads the same local row).
   - **Recorded, not fixed:** (1) the stale check compares to the millisecond, so two saves in the same millisecond are not told apart
     (one owner; theoretical). (2) A booking starts only when the phone is online (the event start is online-only by design). (3) The rent is
     the amount the booking asks at the moment of linking; changing it later does not touch an expense already booked. (4) `docs/DATA.md`
-    does not list `scheduled_events` (nor `event_expenses`); documentation debt. (5) Wording is PLACEHOLDER (`SCHEDULED_COPY`,
-    `src/lib/orders/staff-copy.ts`). (6) The B4b items below and everything in [current-history.md](current-history.md) still stand.
+    does not list `scheduled_events` (nor `event_expenses`); documentation debt. (5) A pending link that keeps failing (for example refused with 23505) is retried silently for 3 days, then dropped. (6) Wording is PLACEHOLDER (`SCHEDULED_COPY`,
+    `src/lib/orders/staff-copy.ts`). (7) The B4b items below and everything in [current-history.md](current-history.md) still stand.
