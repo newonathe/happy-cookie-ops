@@ -51,8 +51,14 @@ payments screens read the database in live mode; the bake list counts unpaid ord
 2. **Owner form for the order rules** (`get_order_rules`/`save_order_rules`): hold hours, unpaid orders per number, pickup
    days, lead days, pickup hours, the campus slot. A `LiveFormHost` form in All tools, like A2's payment methods.
 3. The status page has no pickup code in live mode (`showCode` is false); decide with Cine whether collection needs one.
-4. Direct URL `/lookup` still shows the ported page (protected copy promising email lookup). Ask Ethan before adding a
-   second guarded slot in `find-my-order.tsx`.
+4. **Approved by Ethan, 2026-09-29: add the second guarded slot in `find-my-order.tsx`.** The direct URL `/lookup` still
+   shows the ported page (protected copy promising email lookup, false in live mode). Same recipe as the B2 checkout slot:
+   `{bareFrame ? <LiveLookup v={v} /> : (…ported intro and form, verbatim…)}` around the intro paragraph and the form,
+   inserted by script (the hook blocks direct edits), exact reversals in `scripts/validate-g0.py` (a new dict, applied
+   like `CHECKOUT_REVERSALS`), baselines regenerated with `--update` and `port-structure.mjs --write-baseline` in the same
+   commit, a section in `protected-exception.md`, port audit, and reuse `LiveLookup` (`src/components/live/live-checkout.tsx`)
+   with the same `v.liveLookup` values, so the screen and the sheet share one form. The `/lookup` screen has no sheet
+   open, so `liveLookupVals` must also return values when the current screen is `lookup`.
 5. Wording: every customer sentence in `src/lib/orders/copy.ts` is a placeholder except the closed-drop sentence; list
    the ones the owner screens add here too.
 
@@ -62,8 +68,9 @@ payments screens read the database in live mode; the bake list counts unpaid ord
 status transitions, the flavour swap, pack and collect, and the customer message texts; the orders and payments screens
 read the database in live mode (a LiveFormHost form or the ported screens fed from view-model data; any protected-markup
 edit needs its own record and exact reversals, port audit first); the bake list counts unpaid orders (28 Sep). Then the
-B2 carry-overs in this file: the shop's open state and the owner's close-now read from and enforced by the server, and
-the owner form for the order rules. SQL role suite with a deliberate regression per new rule, unit tests with a mutation
+B2 carry-overs in this file: the shop's open state and the owner's close-now read from and enforced by the server, the
+owner form for the order rules, and the approved guarded slot in find-my-order.tsx (carry-over 4: LiveLookup on the
+/lookup screen, reversals, baselines, exception record, port audit). SQL role suite with a deliberate regression per new rule, unit tests with a mutation
 per new branch, and one different-model review (Opus). All exit 0 in this session: pnpm verify, Python guards, the G0
 validator (revert evidence/*.json churn), port integrity, pnpm build, test:pages:spike, test:workers:spike, test:e2e
 (baseline in current.md), test:live:checkout, python scripts/test-db-security.py. Committed and pushed; current.md

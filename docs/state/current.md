@@ -82,7 +82,7 @@ Short status, read at the start of every session. Keep it to one screen.
        `place_order` refuses (ZC001). The owner's "close now" (`shopOverride`) is not on the server either, so it stops
        nothing. Needs a public read of the ordering window and the override, and a migration that redefines `place_order`.
     2. The direct URL `/lookup` still shows the ported page (its copy promises email lookup); the shop footer opens the live
-       sheet. A second guarded slot in `find-my-order.tsx` would fix it; D4 does not name that screen, so ask Ethan.
+       sheet. A second guarded slot in `find-my-order.tsx` fixes it; **Ethan approved it on 2026-09-29, it lands in B3**.
     3. The ported status line "Book your Grab or Lalamove for that window. We send the exact address that morning." is
        protected and false for the campus slot.
   - **Also open:** the owner's form for the order rules (`get_order_rules`/`save_order_rules`) is B3; the two heaviest

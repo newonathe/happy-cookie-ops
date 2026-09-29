@@ -399,7 +399,7 @@ confirmed").
 - The status screen's protected line "Book your Grab or Lalamove for that window. We send the exact address that
   morning." is true for the courier pickup and not for the campus slot.
 - A direct visit to `/lookup` still shows the ported page, whose copy promises email lookup. The in-app path (the shop
-  footer) opens the live sheet instead. Fixing the URL needs a second guarded slot in `find-my-order.tsx`, which D4 does
+  footer) opens the live sheet instead. **Ethan approved that second guarded slot on 2026-09-29; it lands in B3.** Fixing the URL needs a second guarded slot in `find-my-order.tsx`, which D4 does
   not name; ask Ethan first.
 - The owner's form for the order rules (`get_order_rules`/`save_order_rules`) is B3.
 
