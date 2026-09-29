@@ -20,6 +20,8 @@ Short status, read at the start of every session. Keep it to one screen.
   - MP-09 c1: flavours on the database.
   - MP-09 c1b: prices save, `publish_flavours`, and the live shop shows only the published menu.
   - MP-09 c1c (F3, slice A1): the owner's flavour editor and "Publish menu" button, live mode only.
+- **D4 is done locally (2026-09-30):** Cine's real bazaar bookings (name, dates, place, rent) in an owner form; the Bazaar screen lists
+  them in live mode; starting one opens the event and the database books its stall rent once.
 - **B4 is done locally (2026-09-30):** every September form feature on the server-priced order. B4a (2026-09-29): the
   database (boxes, add-ons, the sampler cap, the same-day surcharge) and the owner's "Boxes & add-ons" form. B4b (2026-09-30): the
   live checkout (boxes, add-ons with a design or a note message, the sampler, a same-day pickup), the owner's order screens and
@@ -40,9 +42,9 @@ Short status, read at the start of every session. Keep it to one screen.
 - **Cine's inputs arrived 2026-09-28** and were analysed in [finish-plan.md](finish-plan.md) sections 2 and 4 and
   [apps-script-audit.md](apps-script-audit.md): the workbook, the September form, the payment image, the October
   menu, recipes and packaging, and the Apps Script. The files stay outside the repo; `Appscript/` is git-ignored.
-- **Baseline (2026-09-30, at B4b close):**
-  - `pnpm typecheck` clean; `pnpm verify` 60 files / 1110 tests; port integrity OK, 54 files; G0 validator 1217 checks, 0 failures;
-  - SQL role suite: 1318 cases per reset, 2 resets, 167 deliberate regressions per reset each detected; Python guards: 63 OK; migrations: 41;
+- **Baseline (2026-09-30, at D4 close):**
+  - `pnpm typecheck` clean; `pnpm verify` 62 files / 1150 tests; port integrity OK, 54 files; G0 validator 1217 checks, 0 failures;
+  - SQL role suite: 1387 cases per reset, 2 resets, 368 deliberate regressions detected in all; Python guards: 63 OK; migrations: 43; public functions: 69;
   - `pnpm test:e2e`: 89 passed / 1 failed (WebKit OFFLINE-01) / 75 skipped, run with no Supabase variables (unchanged). Passing the local-stack variables at run time to `next start` makes its middleware send staff routes to sign-in, so do not.
   - `pnpm test:live:checkout`: 11 steps pass (needs `pnpm db:reset`; keys from `pnpm exec supabase status -o env`, the bare `supabase` binary is not on PATH).
 - **Known red:** OFFLINE-01 on WebKit only; `format:check` and E2E on CI `main`. No merge to `main` until they are green.
@@ -56,42 +58,32 @@ Short status, read at the start of every session. Keep it to one screen.
 
 ## Latest checkpoint (replace each slice; move the old one to current-history.md)
 
-- **2026-09-30 (B4b, finish-plan slice B4 second half):** the checkout and the owner's screens, two commits plus review fixes.
-  - **Customer checkout** (live mode, `live-checkout.tsx`, no protected markup edited): a Boxes card (shown once the cookies reach
-    the smallest box the owner offers; the picked boxes stay removable), an Add-ons card (a row per design, a message box only on an
-    add-on that has one, limits counted across all rows of one add-on), the same-day date (today, labelled "same-day +N%", only when
-    the owner switched it on and today is a pickup day; only time slots later than now, and a message when none are left), and the
-    sampler (the ported flavour stepper; its cap is checked before sending). The client sends only ids, quantities, a design and a
-    trimmed message; the server prices everything. The placed card shows the server total and "With: ..." lines. A new refusal
-    `ZC007` (a size or add-on switched off after the page loaded) reloads the choices. The ported "no extra charge" line is replaced
-    in live mode; a PLACEHOLDER line says extras are added to the total.
-  - **Owner's ported screens, no markup edit:** `toEngineOrder` puts the part of the total the flavours do not explain into a reserved
-    `priced.__extras` key; `OpsRuntime` replaces `boxTotal` (live only, in the constructor) with flavours at their sold prices plus that
-    key, so every ported screen shows the server total by construction (the base also applied the demo price mode, packaging fee and
-    flat box price, which the server never uses; this also corrects the customer cart total). The order detail gets rows for each
-    add-on, box and the same-day extra ("Extra" label, no swap), the messages sheet a "To pack" line with the card message, and the
-    payment reminder states the total and what it includes (never the card message: that text is forwarded).
-  - **Bug found by visual QA and fixed (`6d7e759`):** the live gate re-checked the staff profile whenever a tab became visible,
-    including on customer pages, where it finds no session and sent the anonymous customer to `/sign-in`, losing their checkout (for
-    example on returning from paying in a bank app). It predates B4b. Customer screens are now left alone; a verified owner is still
-    re-checked. Reproduced in Chromium and covered by tests.
-  - **Evidence:** `pnpm verify` 60 files / 1110 tests; G0 validator 1217 checks, 0 failures; port integrity OK (54 files); Python
-    guards 63 OK; SQL role suite 1318 cases per reset, 2 resets (SQL unchanged in B4b); `pnpm build`, `test:pages:spike`,
-    `test:workers:spike` pass; `pnpm test:e2e` 89 / 1 (OFFLINE-01 WebKit) / 75; `test:live:checkout` 11 steps (a sticker, a note card
-    and a same-day pickup priced by the server and stored; the script takes the next pickup day when no slot is left today, so it
-    passes at any hour). 38 mutations on the new branches, each caught. **Visual QA in the browser pane** (live-mode build, local
-    owner): the checkout (boxes, add-ons, same-day notice and slots), the placed card, the owner's orders list, order detail (rows add
-    up to the server total), the messages sheet and the status page. **Opus review:** the client cannot influence any price; the
-    `__extras` key does not leak; no protected markup touched. Fixed: a date that became today while the form was open (midnight)
-    is confirmed before the same-day extra is added; a box stuck with no control; boxes refusal wording; a design containing `|`;
-    the card message left out of the forwarded text; rows adding up on same-day orders; the owner re-check; the ported price note.
-  - **Recorded, not fixed:** (1) the server derives same-day from the date at the moment it runs, so an unsettled retry that
-    crosses midnight can still add the extra; a server-side `same_day` flag in the body (refused when it disagrees with the date) would
-    close it, and needs a migration. (2) Boxes are offered for any non-sampler item; the server boxes only `cookie` items, so a cart
-    with another set can be refused (the refusal is worded about the boxes); the shop view carries no item type. (3) The customer's
-    status page does not list add-ons, boxes or the surcharge. (4) The ported "Your order" card total is the flavours only until the
-    order is placed (the note under it says so). (5) The bake list shows a sampler as one line, not its flavours. (6) A staff swap
-    does not recalculate the surcharge (B4a). (7) Wording is PLACEHOLDER: `ORDER_COPY.extras` (`src/lib/orders/copy.ts`),
-    `EXTRAS_COPY` and `MESSAGE_SHEET` (`src/lib/orders/staff-copy.ts`), and the customer texts in `messages.ts`.
-  - **Still open from earlier slices:** unchanged (see [current-history.md](current-history.md)). A direct load of a staff URL (for
-    example `/orders`) lands on Home after the gate verifies, in live mode; navigate from Home instead (not investigated).
+- **2026-09-30 (D4, finish-plan slice D4):** Cine's upcoming bazaars. Two commits (`d5536d9` database, then the app half and the review fix).
+  - **Database:** `scheduled_events` (name, first and last day, place, rent in centavos, active, the event it became, `updated_at`; RLS on,
+    no API grant). Owner-only `get_scheduled_events()`, `save_scheduled_event(jsonb, stamp)` (exact keys, whole-centavo rent, at most 15
+    days, a stale stamp is `P0002`, an identical repeat of a create is answered) and `link_scheduled_event(booking, event)`. Migration
+    `20260101004200` (review fix) makes the first link also book the stall rent as that event's "Stall rent" expense (category "Bazaar
+    rent") and ledger cost in the same transaction, keyed on the booking, and gives an event at most one booking (unique index).
+  - **App (live mode, no protected markup or engine edit):** All tools > "Bazaar events" (owner only) is the form: a row per booking plus a
+    blank one, deactivate instead of delete, only changed rows are sent, each with its own stamp. The Bazaar screen's "Start an event"
+    list shows her active, unstarted bookings that have not ended (name, "Sat, Oct 24 - Sun, Oct 25 · place"), soonest first, then "Start
+    without a booking" (the two prototype events are never shown in live mode). Starting one opens the event under its name and links it;
+    the toast says "₱2,500 stall rent added under Bazaar rent. It is in your P&L already." An unconfirmed link is kept on the phone
+    (`hc-pending-link`, 3 days) and retried whenever the list loads; the toast then tells her not to add the rent by hand.
+  - **Opus review (before the fix: BLOCKED on one High):** the rent was booked by the phone after the link answered "first", with a random
+    client id, so a lost reply, a failed link or a killed tab could book it twice or never, and the old warning ("add it under expenses")
+    invited the double. Fixed as above (the database books it; a retry of the link is always harmless). Also fixed: a start whose reply was
+    lost is reused by booking id, not by name (two bookings with the same name could share an event); the form remounts after a conflict so
+    it shows what is saved; a create whose reply was lost leaves the blank row on a new id. Security side clean (owner check, grants,
+    `search_path`, inputs, Manila dates, no personal data).
+  - **Evidence:** `pnpm verify` 62 files / 1150 tests; G0 validator passes; port integrity OK (54 files); Python guards OK; SQL role suite
+    1387 cases per reset, 2 resets, 368 deliberate regressions detected (for D4: 12 rule tags, the unique index and a table
+    grant); `pnpm build`, `test:pages:spike`, `test:workers:spike` pass; `pnpm test:e2e` 89 / 1
+    (OFFLINE-01 WebKit) / 75; `test:live:checkout` 11 steps. Mutations on the new branches: 17 on the first version (16 caught, 1 equivalent) and 8 on the review fix, all caught.
+    **Visual QA in the browser pane** (live-mode build, local owner): the form and its saved rows, the Bazaar list, starting a booking
+    (event opens under its name, toast, one rent expense in the database, the booking linked and gone from the list).
+  - **Recorded, not fixed:** (1) the stale check compares to the millisecond, so two saves in the same millisecond are not told apart
+    (one owner; theoretical). (2) A booking starts only when the phone is online (the event start is online-only by design). (3) The rent is
+    the amount the booking asks at the moment of linking; changing it later does not touch an expense already booked. (4) `docs/DATA.md`
+    does not list `scheduled_events` (nor `event_expenses`); documentation debt. (5) Wording is PLACEHOLDER (`SCHEDULED_COPY`,
+    `src/lib/orders/staff-copy.ts`). (6) The B4b items below and everything in [current-history.md](current-history.md) still stand.
