@@ -17,6 +17,11 @@ insert into public.profiles(id, role, display_name, active) values
   ('a3c00000-0000-4000-8000-000000000003', 'support', 'Stock support', true),
   ('a3c00000-0000-4000-8000-000000000004', 'owner', 'Stock inactive owner', false);
 
+-- A recipe (written as the fixture owner, never through an API role) that uses the item the unit-change cases name.
+insert into public.products(id, name, short_name, price_cents, kind) values ('a3p1', 'A3 cookie', 'A3', 100, 'cookie');
+insert into public.recipes(product_id, yield_count) values ('a3p1', 1);
+insert into public.recipe_ingredients(product_id, item_name, qty, unit) values ('a3p1', 'A3 item 6', 1, 'g');
+
 create function pg_temp.set_subject(n integer, claim_role text default 'authenticated') returns void
 language plpgsql security invoker as $$
 declare subject text := case when n is null then '' else
@@ -198,6 +203,12 @@ begin
     (pg_temp.row_of('items', pg_temp.iid(1)) ->> 'par_level')::numeric = 750
     and (pg_temp.row_of('items', pg_temp.iid(1)) ->> 'on_hand')::numeric = 0);
   perform pg_temp.save(a, 'item_change_stale', 'save_stock_item', pg_temp.itm(1, '{"par_level": 1}'), s1 - interval '1 minute', 'P0002');
+  -- an item a recipe uses keeps its unit; one no recipe uses may change it
+  perform pg_temp.save(a, 'item_six_create_ok', 'save_stock_item', pg_temp.itm(6), null, '00000');
+  perform pg_temp.save(a, 'item_unit_change_referenced', 'save_stock_item', pg_temp.itm(6, '{"unit": "kg"}'), pg_temp.stamp('items', pg_temp.iid(6)), '22023');
+  perform pg_temp.save(a, 'item_unit_change_unreferenced_ok', 'save_stock_item',
+    pg_temp.itm(3, '{"category": "Packaging", "unit": "box", "pack_size": null, "supplier_id": null, "use_by_days": null}'),
+    pg_temp.stamp('items', pg_temp.iid(3)), '00000');
 end $$;
 
 create function pg_temp.phase_prices(a text) returns void language plpgsql security invoker as $$

@@ -112,6 +112,17 @@ export const EXTRAS_COPY = {
 } as const;
 
 /** The upcoming bazaars form and the Bazaar screen's list (D4). PLACEHOLDER, like the rest of this file. */
+/** PLACEHOLDER wording (A4): saving a recipe in live mode. */
+export const RECIPE_COPY = {
+  saved: (version: number) =>
+    'Saved as Version ' + version + '. The version before it is kept for anything already baked on it.',
+  created: 'Saved as Version 1.',
+  unchanged: 'Nothing changed, so there is no new version.',
+  conflict: 'Someone else changed this recipe just now. Showing their version.',
+  refused:
+    'That recipe could not be saved. Check each ingredient has a name and an amount above 0, is measured in g, ml or pcs, is not listed twice, and that an ingredient you stock is measured in its stock unit.'
+} as const;
+
 /** PLACEHOLDER wording (A3): the owner's stock catalogue forms. */
 export const STOCK_COPY = {
   itemsTitle: 'Stock items',

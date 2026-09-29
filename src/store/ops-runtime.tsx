@@ -64,9 +64,18 @@ import {
   MESSAGE_SHEET,
   RULES_COPY,
   SCHEDULED_COPY,
+  RECIPE_COPY,
   STAFF_COPY,
   STOCK_COPY
 } from '@/lib/orders/staff-copy';
+import {
+  engineRecipes,
+  fetchRecipes,
+  recipeError,
+  saveRecipe,
+  type Recipe,
+  type RecipeClient
+} from '@/lib/data/recipes';
 import {
   engineInventory,
   fetchStockCatalogue,
@@ -222,6 +231,17 @@ interface InvActions {
   addInv: (cat: string, name: string, qty: unknown, unit: string, level: unknown, supplier: string) => void;
   removeInv: (name: string) => void;
   saveInv: (name: string, qty: unknown) => void;
+}
+
+/** The engine's recipe save (an instance field the typings do not list), replaced in live mode by A4. */
+interface RecipeActions {
+  recipeSave: (pid: string) => void;
+}
+
+/** The parts of `state` the recipes screen keeps, as the runtime reads them. */
+interface RecipeState {
+  recipes: Record<string, { yield: number; ing: Array<[string, unknown, string]> }>;
+  recipeDirty?: Record<string, boolean>;
 }
 
 /** `state.sheet` while an A3 stock form is open. */
@@ -392,6 +412,11 @@ export class OpsRuntime extends OpsProvider {
   private stockNewPriceId = '';
   private stockVersion = 0;
   private stockApplied = false;
+  private recipeRows: Recipe[] | null = null;
+  private recipeClient: RecipeClient | null = null;
+  /** The stamp of each flavour's saved recipe as its screen last showed it: what an edit is saved against. */
+  private recipeBaseStamp: Record<string, string | null> = {};
+  private recipeLoadSeq = 0;
   private localEventExpense: ((label: string, amount: unknown, cat?: string) => void) | null = null;
   private orderFlow?: OrderFlow;
   /** The last fragment this runtime wrote or adopted, so a link pasted into the tab is told apart. */
@@ -554,6 +579,14 @@ export class OpsRuntime extends OpsProvider {
     this.state = liveBaseState();
     // A3: no demo suppliers, prices or pack sizes in the engine's constants until the owner's are read.
     fillLiveCatalogue(null);
+    // A4: none of the prototype's recipes either, until the owner's are read (an empty recipe for each flavour).
+    Object.assign(
+      this.state as unknown as Record<string, unknown>,
+      engineRecipes(
+        [],
+        PRODUCTS.map((p) => p.id)
+      )
+    );
     // The engine's inventory actions would change only this screen: they go to the database instead.
     const inv = this as unknown as InvActions;
     inv.addInv = (cat, name, qty, unit, level, supplier) =>
@@ -563,6 +596,8 @@ export class OpsRuntime extends OpsProvider {
       this.setState({ sheet: null });
       this.toast(STOCK_COPY.countsNotSaved, 'warn');
     };
+    // A4: the recipes screen saves to the database (a new version per change), never only to this screen.
+    (this as unknown as RecipeActions).recipeSave = (pid) => void this.liveRecipeSave(pid);
     // Not the demo books: only the running bazaar (event id, snapshot prices, stall stock,
     // the day's sales) is kept, so a reload at the stall can carry on selling. The empty
     // start (no event) is never saved, so it cannot overwrite the event before it is read back.
@@ -580,6 +615,10 @@ export class OpsRuntime extends OpsProvider {
       // BASE_STATE() names only the six ported flavours; keep the loaded list's own state.
       const flavours = this.flavourSync?.current() ?? [];
       if (flavours.length) Object.assign(fresh, flavourStatePatch(flavours, fresh));
+      // The reset starts again from the prototype's six recipes: the owner's are put back.
+      for (const p of PRODUCTS)
+        this.recipeBaseStamp[p.id] = this.recipeRows?.find((r) => r.productId === p.id)?.updatedAt ?? null;
+      Object.assign(fresh, this.recipesPatch(fresh as unknown as RecipeState, undefined, true));
       this.setState(fresh);
       setTimeout(
         // Unlike the demo reset, this must not claim "gone": a sale already queued to
@@ -1550,6 +1589,109 @@ export class OpsRuntime extends OpsProvider {
       this.showRentBooked(eventId, row.rentCents);
     }
     await this.loadScheduledEvents(null);
+  }
+
+  // ------------------------------------------------------------------ A4: the owner's recipes
+
+  /**
+   * Reads the owner's recipes (the gate calls it once the flavour list is in: a recipe for a flavour the screens do not
+   * know is ignored). `refresh` is the flavour whose local edit the read replaces (it was just saved, or conflicted);
+   * an unsaved edit on any other flavour is kept.
+   */
+  async loadRecipes(client: RecipeClient | null, refresh?: string): Promise<boolean> {
+    if (client) this.recipeClient = client;
+    const use = client ?? this.recipeClient;
+    if (!isLiveMode() || !use) return false;
+    const seq = (this.recipeLoadSeq += 1);
+    let rows: Recipe[];
+    try {
+      rows = await fetchRecipes(use);
+    } catch {
+      return false;
+    }
+    // A newer read started meanwhile: it will apply, an older answer must not bring back an older stamp.
+    if (seq !== this.recipeLoadSeq) return true;
+    // Anything typed before the first read was on an empty placeholder: the saved recipe replaces it.
+    const first = this.recipeRows === null;
+    this.recipeRows = rows;
+    const dirty = (this.state as unknown as RecipeState).recipeDirty ?? {};
+    for (const p of PRODUCTS)
+      if (first || !dirty[p.id] || p.id === refresh)
+        this.recipeBaseStamp[p.id] = rows.find((r) => r.productId === p.id)?.updatedAt ?? null;
+    this.setState((s) => this.recipesPatch(s as unknown as RecipeState, refresh, first));
+    return true;
+  }
+
+  /** The state keys the recipes screen reads: the saved recipe for each flavour, or an empty one, never the prototype's. */
+  private recipesPatch(s: RecipeState, refresh?: string, discardEdits = false): Record<string, unknown> {
+    // With no read yet (a helper, or a read that failed) the screens still get empty recipes, never the prototype's.
+    const mapped = engineRecipes(
+      this.recipeRows ?? [],
+      PRODUCTS.map((p) => p.id)
+    );
+    const dirty: Record<string, boolean> = {};
+    const recipes = { ...mapped.recipes } as Record<string, unknown>;
+    for (const pid of Object.keys(mapped.recipes)) {
+      if (!discardEdits && s.recipeDirty?.[pid] && pid !== refresh && s.recipes?.[pid]) {
+        recipes[pid] = s.recipes[pid];
+        dirty[pid] = true;
+      }
+    }
+    return {
+      recipes,
+      recipeBase: mapped.recipeBase,
+      recipeVer: mapped.recipeVer,
+      recipeHistory: mapped.recipeHistory,
+      recipeDirty: dirty
+    };
+  }
+
+  /** The ported "Save" on a recipe: the database makes the new version; the screen then shows what it holds. */
+  private async liveRecipeSave(pid: string): Promise<void> {
+    const client = this.recipeClient;
+    const r = (this.state as unknown as RecipeState).recipes[pid];
+    if (!r) return;
+    const blank = r.ing.filter((i) => !String(i[0]).trim()).length;
+    if (blank)
+      return void this.toast(plural(blank, 'ingredient still has', 'ingredients still have') + ' no name.', 'warn');
+    if (this.state.role !== 'owner' || !client || !this.recipeRows)
+      return void this.toast(STAFF_COPY.offline, 'warn');
+    const fields = {
+      productId: pid,
+      yield: r.yield,
+      lines: r.ing.map((i) => ({ name: String(i[0]), qty: Number(i[1]), unit: String(i[2]) }))
+    };
+    const problem = recipeError(fields);
+    if (problem) return void this.toast(problem, 'warn');
+    const was = this.recipeRows.find((x) => x.productId === pid);
+    // Against the stamp this edit was started on, never a newer one read since: if the recipe moved meanwhile, the
+    // database says so (a conflict) instead of being overwritten.
+    const { outcome, version, updatedAt } = await saveRecipe(client, fields, this.recipeBaseStamp[pid] ?? null);
+    if (outcome === 'saved' && updatedAt) this.recipeBaseStamp[pid] = updatedAt;
+    // A saved recipe, or another person's newer one, replaces this edit; a refusal or a lost connection keeps it.
+    const read = await this.loadRecipes(null, outcome === 'saved' || outcome === 'conflict' ? pid : undefined);
+    if (outcome === 'saved') {
+      if (!read && version !== null && updatedAt) {
+        // The read after the save failed: the answer to the save is enough to show it saved and to save again.
+        this.recipeRows = (this.recipeRows ?? []).map((x) =>
+          x.productId === pid ? { ...x, version, updatedAt } : x
+        );
+        this.setState((s) => {
+          const t = s as unknown as RecipeState & { recipeVer: Record<string, number> };
+          const dirty = { ...(t.recipeDirty ?? {}) };
+          delete dirty[pid];
+          return { recipeDirty: dirty, recipeVer: { ...t.recipeVer, [pid]: version } };
+        });
+      }
+      this.toast(
+        !was
+          ? RECIPE_COPY.created
+          : version !== null && version === was.version
+            ? RECIPE_COPY.unchanged
+            : RECIPE_COPY.saved(version ?? 0)
+      );
+    } else if (outcome === 'conflict') this.toast(RECIPE_COPY.conflict, 'warn');
+    else this.toast(outcome === 'refused' ? RECIPE_COPY.refused : STAFF_COPY.offline, 'warn');
   }
 
   // ------------------------------------------------------------------ A3: the owner's stock catalogue

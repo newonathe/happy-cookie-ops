@@ -148,8 +148,10 @@ begin
   if v_bad then -- rule:line-duplicate
     raise exception 'an ingredient is listed twice' using errcode = '22023';
   end if;
+  -- The catalogue's lock, so an item's unit cannot change between this check and the save.
+  perform pg_advisory_xact_lock(hashtextextended('stock_catalogue:items', 0));
   v_bad := exists (select 1 from jsonb_array_elements(v_norm) x
-                    join public.inventory_items i on i.name = x ->> 'name' and i.unit <> x ->> 'unit');
+                    join public.inventory_items i on lower(i.name) = lower(x ->> 'name') and i.unit <> x ->> 'unit');
   if v_bad then -- rule:line-unit-match
     raise exception 'an ingredient in stock is measured in the unit it is stocked in' using errcode = '22023';
   end if;

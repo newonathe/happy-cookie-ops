@@ -1059,7 +1059,7 @@
         "search_path=\"\""
       ],
       "returns": "TABLE(id text, updated_at timestamp with time zone)",
-      "body_md5": "fa87bf06e2e43a2ec4c7b647fa128c2c",
+      "body_md5": "84df2ce9c48d8e0099108ddff35e083d",
       "identity": "p_item jsonb, p_expected_updated_at timestamp with time zone",
       "execute_anon": false,
       "security_definer": true,
@@ -1119,7 +1119,7 @@
         "search_path=\"\""
       ],
       "returns": "TABLE(product_id text, version integer, updated_at timestamp with time zone)",
-      "body_md5": "1cae2dd4e7a9635ef8463dbc4f584429",
+      "body_md5": "083429ef82a41835bd93280f16bac43a",
       "identity": "p_recipe jsonb, p_expected_updated_at timestamp with time zone",
       "execute_anon": false,
       "security_definer": true,

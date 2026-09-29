@@ -148,6 +148,7 @@ begin
   perform pg_temp.save(a, 'line_unit_kg', pg_temp.rec('a4p2', jsonb_build_object('lines', jsonb_build_array(pg_temp.line('x', 1, 'kg')))), pg_temp.stamp('a4p2'), '22023');
   perform pg_temp.save(a, 'line_duplicate', pg_temp.rec('a4p2', jsonb_build_object('lines', jsonb_build_array(pg_temp.line('x', 1, 'g'), pg_temp.line(' x ', 2, 'g')))), pg_temp.stamp('a4p2'), '22023');
   perform pg_temp.save(a, 'line_unit_mismatch', pg_temp.rec('a4p2', jsonb_build_object('lines', jsonb_build_array(pg_temp.line('A4 Flour', 1, 'ml')))), pg_temp.stamp('a4p2'), '22023');
+  perform pg_temp.save(a, 'line_unit_mismatch_ignores_case', pg_temp.rec('a4p2', jsonb_build_object('lines', jsonb_build_array(pg_temp.line('a4 flour', 1, 'ml')))), pg_temp.stamp('a4p2'), '22023');
   perform pg_temp.save(a, 'line_smallest_and_largest_ok', pg_temp.rec('a4p2', jsonb_build_object('lines', jsonb_build_array(pg_temp.line('x', 0.001, 'g'), pg_temp.line('y', 999999, 'pcs')))), pg_temp.stamp('a4p2'), '00000');
 
   -- a change with the stamp it read is a new version, and the old one is kept

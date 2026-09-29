@@ -20,6 +20,7 @@ const { FakeRuntime } = vi.hoisted(() => ({
     reloadOrders = vi.fn();
     loadScheduledEvents = vi.fn();
     loadStockCatalogue = vi.fn();
+    loadRecipes = vi.fn();
     loadShopStatus = vi.fn();
     reloadShopStatus = vi.fn();
   }
@@ -143,6 +144,11 @@ describe('LiveGate: the owner’s orders (B3)', () => {
     expect(engine.loadOrders.mock.invocationCallOrder[0]).toBeGreaterThan(
       engine.loadFlavours.mock.invocationCallOrder[0]
     );
+    // The owner's recipes too, for the same reason: a recipe for a flavour the screens do not know is ignored.
+    expect(engine.loadRecipes).toHaveBeenCalledExactlyOnceWith(client);
+    expect(engine.loadRecipes.mock.invocationCallOrder[0]).toBeGreaterThan(
+      engine.loadFlavours.mock.invocationCallOrder[0]
+    );
     // Mutation: dropping the owner test reads the orders for a helper, who is refused every order RPC.
   });
 
@@ -151,6 +157,7 @@ describe('LiveGate: the owner’s orders (B3)', () => {
     await mount('orders');
     expect(engine.loadFlavours).toHaveBeenCalledOnce();
     expect(engine.loadOrders).not.toHaveBeenCalled();
+    expect(engine.loadRecipes).not.toHaveBeenCalled();
     // Mutation: ignoring the result loads orders whose flavours the screens do not know.
   });
 
@@ -172,14 +179,16 @@ describe('LiveGate: the owner’s orders (B3)', () => {
     // Mutation: dropping the owner test asks a helper for a list the database refuses, and the customer page for one it cannot see.
   });
 
-  it('never reads the orders for a helper, or on a customer page', async () => {
+  it('never reads the orders or the recipes for a helper, or on a customer page', async () => {
     role = 'helper';
     await mount('orders');
     expect(engine.loadOrders).not.toHaveBeenCalled();
+    expect(engine.loadRecipes).not.toHaveBeenCalled();
     engine = new FakeRuntime();
     role = 'owner';
     await mount('shop');
     expect(engine.loadOrders).not.toHaveBeenCalled();
+    expect(engine.loadRecipes).not.toHaveBeenCalled();
   });
 
   it('a signed-in owner who passes through a customer page is still re-checked when the tab comes back', async () => {

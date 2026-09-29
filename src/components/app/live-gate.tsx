@@ -153,6 +153,8 @@ export function LiveGate({
         // Only after the flavour list was read: an order for a flavour outside the ported list would crash the screens.
         void Promise.resolve(engine.loadFlavours(supabase)).then((loaded) => {
           if (owner && !cancelled && loaded !== false) void engine.loadOrders(supabase);
+          // A4: the owner's recipes, for the flavours the list just brought in.
+          if (owner && !cancelled && loaded !== false) void engine.loadRecipes(supabase);
         });
       }
     }
