@@ -95,6 +95,7 @@ export declare class OpsEngine extends React.Component<OpsEngineProps, OpsEngine
   custRestart: () => void;
   custReorder: () => void;
   custSet: (key: string, value: unknown) => void;
+  custAdd: (pid: string, delta: number) => void;
   /** SVG path data keyed by icon name. An instance field. */
   IC: Record<string, string>;
 }

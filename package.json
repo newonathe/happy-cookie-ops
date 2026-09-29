@@ -45,7 +45,8 @@
     "typecheck:e2e": "tsc --noEmit --project tsconfig.e2e.json",
     "build:pages:spike": "node scripts/build-pages-spike.mjs",
     "test:pages:spike": "node scripts/test-pages-spike.mjs",
-    "test:workers:spike": "node scripts/test-workers-web-spike.mjs"
+    "test:workers:spike": "node scripts/test-workers-web-spike.mjs",
+    "test:live:checkout": "node scripts/test-live-checkout.mjs"
   },
   "dependencies": {
     "next": "16.3.3",

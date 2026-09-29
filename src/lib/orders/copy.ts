@@ -27,7 +27,7 @@ export const ORDER_COPY = {
   method: 'That payment method is not offered any more. Pick another.',
   waitlistLimit: 'This number is already on the waiting list for several dates.',
   malformed:
-    'Something in your order was not accepted. Check your name, Instagram handle and mobile number, and that every cookie is still on the menu.',
+    'Something in your order was not accepted. Check your name, Instagram handle, mobile number and reference, how many cookies you picked, and that every cookie is still on the menu.',
   idReused:
     'This order was already used for a different order. Check "Find my order" before you order again.',
   unavailable: 'Ordering is not available right now. Try again later.',
@@ -38,6 +38,34 @@ export const ORDER_COPY = {
     'Check "Find my order" first: your last try may have gone through, and a changed order is a new order.',
   rulesUnavailable: 'The pickup days could not be loaded. Check your connection and reload.',
   noMenu: 'Nothing is on the menu yet.',
+  noOrderToRepeat: 'There is no order on screen to repeat.',
+  locked:
+    'Your last try is not settled yet. Tap "Try again" on the checkout, or "Change the order".',
+  placedLocked: 'Your order is placed. Tap "Order again" to start another.',
+  lookupIntro: 'Your order number and the mobile number you ordered with will find it.',
+  refPlaceholder: 'From your receipt, if you have paid',
+  loadingOrder: 'Loading your order…',
+  statusErrorTitle: 'We could not load your order',
+  statusMissingTitle: 'We could not find that order',
+  linkCopied: 'Link copied.',
+  linkCopyFailed: 'Copy the link from the page instead.',
+  /** The status page's new lines (the ported sentences it keeps are in status-view.ts). */
+  status: {
+    receivedHeld: (method: string, when: string): string =>
+      `We have your order. Send payment with ${method}; the order is held until ${when}.`,
+    receivedNoHold: 'We have your order. Cine will confirm your payment.',
+    lapsed:
+      'This order was not paid in time, so its slots were released. Message Cine on Instagram if you still want it.',
+    cancelledBody: 'This order is cancelled. Message Cine on Instagram if you have any questions.',
+    readyBody: 'Packed and waiting for your pickup window.',
+    stepReceived: 'We have your order',
+    stepWaiting: 'Waiting for your payment',
+    stepLapsed: 'Not paid in time',
+    stepCancelled: 'This order will not be baked',
+    stepReady: 'Ready for your pickup window',
+    stepAddress: 'We send the exact address the morning of your slot',
+    stepCampus: 'At the campus pickup slot'
+  } as const,
   lookupMiss:
     'Nothing matches that. Check the number, or message Cine on Instagram and she will look it up.',
   lookupError: 'We could not look that up. Check your connection and try again.',
@@ -58,6 +86,7 @@ export const ORDER_COPY = {
   noMethods: 'No payment method is set up yet. Message Cine on Instagram to order.',
   noDates: 'There are no pickup dates open right now.',
   qrNote: 'Scan this to pay after you place your order.',
+  pickupLine: (when: string): string => `Pickup ${when}`,
   placedTitle: 'Order received',
   placedBody:
     'Keep this order number and the status link: they are how you check on your order. Payment goes to the account you picked.',

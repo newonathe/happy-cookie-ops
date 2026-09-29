@@ -319,6 +319,46 @@ describe('B2: the live checkout', () => {
     // Mutation: minting a new id on every submit sends a different client_id the second time.
   });
 
+  it('locks the form and the box while the order is sending, unsettled or placed', async () => {
+    let release: (r: Reply) => void = () => undefined;
+    let n = 0;
+    const { runtime, calls } = await mounted({
+      place_order: () =>
+        ++n === 1 ? new Promise<Reply>((resolve) => (release = resolve)) : { data: [PLACED], error: null }
+    });
+    await fillForm(runtime);
+    await act(async () => {
+      runtime.renderVals().cust.submit();
+    });
+    // Sending: inputs read-only, an edit is ignored, the box cannot change.
+    expect(runtime.renderVals().liveCheckout!.readOnly).toBe(true);
+    expect(runtime.renderVals().liveCheckout!.frozen).toBe(false);
+    custSet(runtime, 'pickupTime', '16:00');
+    expect((runtime.state.cust as { pickupTime: string }).pickupTime).toBe('10:30');
+    act(() => (runtime as unknown as { custAdd: (p: string, d: number) => void }).custAdd('dcf', 1));
+    expect((runtime.state.cust as { box: Record<string, number> }).box).toEqual({ dcf: 2 });
+    // The reply is lost: unsettled and frozen, and still the same body on "Try again".
+    await act(async () => release(new TypeError('offline') as unknown as Reply));
+    await flush();
+    expect(runtime.renderVals().liveCheckout!.frozen).toBe(true);
+    custSet(runtime, 'name', 'Changed');
+    act(() => (runtime as unknown as { custAdd: (p: string, d: number) => void }).custAdd('dcf', 1));
+    expect((runtime.state.cust as { name: string }).name).toBe('Ana');
+    expect((runtime.state.cust as { box: Record<string, number> }).box).toEqual({ dcf: 2 });
+    await submit(runtime);
+    const [first, second] = placeCalls(calls);
+    expect(second).toEqual(first);
+    // Placed: the box stays put too, and the panel says when the pickup is.
+    const placed = runtime.renderVals().liveCheckout!.placed!;
+    expect(placed.pickupText).toBe('Thu, Oct 8 · 10:30 AM');
+    act(() => (runtime as unknown as { custAdd: (p: string, d: number) => void }).custAdd('dcf', 1));
+    expect((runtime.state.cust as { box: Record<string, number> }).box).toEqual({ dcf: 2 });
+    expect(render(<CheckoutScreen v={runtime.renderVals()} />).container.textContent).toContain(
+      'Pickup Thu, Oct 8 · 10:30 AM'
+    );
+    // Mutation: dropping the lock lets a changed box or date ride an old attempt.
+  });
+
   it('"Change the order" drops the frozen attempt and warns to check Find my order', async () => {
     const { runtime, calls } = await mounted({ place_order: () => new TypeError('offline') });
     await fillForm(runtime);
@@ -474,6 +514,61 @@ describe('B2: the status page', () => {
     expect(window.location.pathname).toBe('/status');
   });
 
+  it('a link pasted into the tab replaces the order on screen; a lookup then replaces that link', async () => {
+    const TOKEN_B = 'c'.repeat(64);
+    const { runtime, calls } = await mounted({}, 'status');
+    await act(async () => {
+      await (runtime as unknown as { orderFlow: { loadStatus: (t: string) => Promise<void> } }).orderFlow.loadStatus(TOKEN);
+    });
+    act(() => runtime.syncStatusRoute());
+    expect(window.location.hash).toBe('#t=' + TOKEN);
+    // A lookup for another order right after this runtime wrote the first link: the lookup wins.
+    const TOKEN_A2 = 'f'.repeat(64);
+    await act(async () => {
+      await (runtime as unknown as { orderFlow: { loadStatus: (t: string) => Promise<void> } }).orderFlow.loadStatus(TOKEN_A2);
+    });
+    act(() => runtime.syncStatusRoute());
+    expect(window.location.hash).toBe('#t=' + TOKEN_A2);
+    window.history.replaceState(null, '', '/status#t=' + TOKEN_B);
+    await act(async () => runtime.syncStatusRoute());
+    await flush();
+    expect(calls.filter((c) => c.name === 'order_status').map((c) => c.args.p_token)).toEqual([TOKEN, TOKEN_A2, TOKEN_B]);
+    expect(window.location.hash).toBe('#t=' + TOKEN_B);
+    // A lookup for another order wins over the address bar it leaves behind.
+    const TOKEN_C = 'd'.repeat(64);
+    await act(async () => {
+      await (runtime as unknown as { orderFlow: { loadStatus: (t: string) => Promise<void> } }).orderFlow.loadStatus(TOKEN_C);
+    });
+    act(() => runtime.syncStatusRoute());
+    expect(window.location.hash).toBe('#t=' + TOKEN_C);
+    // Mutation: without the pasted-link check, the old token is written back over the new link.
+  });
+
+  it('never shows the last order under a different link while the new one loads', async () => {
+    let n = 0;
+    let release: (r: Reply) => void = () => undefined;
+    const { runtime } = await mounted(
+      {
+        order_status: () =>
+          ++n === 1 ? { data: STATUS, error: null } : new Promise<Reply>((resolve) => (release = resolve))
+      },
+      'status'
+    );
+    await act(async () => (runtime as unknown as { orderFlow: { loadStatus: (t: string) => Promise<void> } }).orderFlow.loadStatus(TOKEN));
+    expect(runtime.renderVals().cust.orderNo).toBe('HC-1001');
+    await act(async () => void (runtime as unknown as { orderFlow: { loadStatus: (t: string) => Promise<void> } }).orderFlow.loadStatus('e'.repeat(64)));
+    expect(runtime.renderVals().cust.orderNo).toBe('—');
+    expect(runtime.renderVals().cust.heroTitle).toBe('Loading your order…');
+    await act(async () => release({ data: STATUS, error: null }));
+  });
+
+  it('"Order this cookie again" with no order on screen says so', async () => {
+    const { runtime } = await mounted({}, 'status');
+    act(() => runtime.renderVals().cust.reorder());
+    expect(runtime.state.screen).toBe('status');
+    expect(JSON.stringify(runtime.state.toast)).toContain('no order on screen');
+  });
+
   it('does nothing to the address bar off the status screen', async () => {
     window.history.replaceState(null, '', '/shop');
     const { runtime } = await mounted({}, 'shop');
@@ -612,6 +707,30 @@ describe('B2: find my order and the waiting list', () => {
     expect(bodies).toHaveLength(2);
     expect(bodies[1]).toEqual(bodies[0]);
     expect(runtime.renderVals().liveWaitlist!.state).toBe('done');
+  });
+
+  it('closing the waiting list with an unsettled entry keeps it, so opening it again resends the same id', async () => {
+    let n = 0;
+    const { runtime, calls } = await mounted(
+      {
+        join_waitlist: () =>
+          ++n === 1 ? new TypeError('offline') : { data: [{ waitlist_id: 'w', replayed: true }], error: null }
+      },
+      'shop'
+    );
+    act(() => runtime.renderVals().openWaitlist!());
+    const form = runtime.renderVals().liveWaitlist!;
+    const fields = { name: 'Ana', ig: '', mobile: '09171234567', wantedDate: form.min };
+    await act(async () => form.join(fields));
+    await flush();
+    act(() => runtime.renderVals().liveWaitlist!.close());
+    act(() => runtime.renderVals().openWaitlist!());
+    expect(runtime.renderVals().liveWaitlist!.state).toBe('unknown');
+    await act(async () => runtime.renderVals().liveWaitlist!.join(fields));
+    await flush();
+    const bodies = calls.filter((c) => c.name === 'join_waitlist').map((c) => c.args.p_entry);
+    expect(bodies[1]).toEqual(bodies[0]);
+    // Mutation: resetting on close sends a second entry under a new id.
   });
 
   it('demo mode has none of it', () => {

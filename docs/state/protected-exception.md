@@ -408,3 +408,44 @@ confirmed").
 the `loadShopOrders` calls. `tests/unit/flavours.test.tsx`'s two render-every-screen tests got an explicit 20 s timeout:
 they are the heaviest in the suite and exceed the default 5 s when the whole suite runs on a busy machine (they did the
 same at HEAD without this slice), so this is a load allowance and does not change what they check.
+**Independent port audit (Sonnet `port-auditor`, 2026-09-29): PASS on all five points.** The `checkout.tsx` diff is the
+import, `bareFrame` in the destructure and the guard's four lines, nothing else; the four `CHECKOUT_REVERSALS` tuples
+applied to the new bytes reproduce the previous file byte for byte (hash `03d304619afd…`), and the `elements` 101 → 100
+tuple matches the baseline diff; port integrity OK (54 files); no other protected file changed (`ops-engine.d.ts`
+gained type declarations only); demo mode renders the ported branch because only the live branch of
+`OpsRuntime.renderVals()` sets `bareFrame`.
+
+**Independent review (Opus 5.5, a different model from the builder, 2026-09-29): no Critical; one High, fixed.**
+
+- **High, fixed:** the order sent could differ from the screen. The inputs became read-only only after the first reply,
+  and the box could still be edited through Back to the shop, so a customer who changed the date during a slow send
+  and then lost the reply would "Try again" with the old date under a form showing the new one. Now the form and the
+  box are locked while the order is sending, unsettled or placed (`OrderFlow.locked`; `custSet` and `custAdd` refuse
+  while locked; the inputs are read-only while sending; "Change the order" shows only when unsettled), and the
+  placed panel shows the pickup date and time. Test: "locks the form and the box while the order is sending, unsettled
+  or placed", with mutations.
+- **Medium, fixed:** the record's "one place" claim was false. Every new customer line is now in
+  `ORDER_COPY` (`ORDER_COPY.status` for the status page), and the ported sentences the status page keeps are marked as such
+  in `status-view.ts`. A lapsed unpaid order no longer says "held until": it says it was not paid in time
+  (the hold time is compared with the clock).
+- **Low, fixed:** the status page never shows the previous order under a new link while it loads; a no-show has one
+  current step; the "we send the exact address" line is not shown for a campus pickup; "Order this cookie again" with no
+  order says so; closing the waiting list keeps an unsettled entry (so reopening resends the same id); the malformed-order
+  message also names the reference and the cookie count; a link pasted into the same tab replaces the order on screen
+  (`lastHash` tells it from one this runtime wrote, and a lookup still wins over the old address).
+- **Recorded, not changed:** `orders.ts` imports the pure `normalisePhone` (the SQL mirror) from `src/lib/idempotency.ts`,
+  which AGENTS.md calls legacy for the rate limiter and idempotency, not for that helper; one implementation, not two.
+  A 22023 refusal still has one message for its several causes.
+
+**Evidence after review:** `tests/unit/pickup.test.ts`, `orders.test.ts` and `ops-runtime-live-checkout.test.tsx`
+(mutations: 17 + 13 + 12 + 1, each caught); `scripts/test-live-checkout.mjs` (`pnpm test:live:checkout`), the live
+happy path against the local stack: shop, checkout, order placed, the database row (unpaid, server-priced total,
+normalised phone, Monday or Thursday pickup), status page and reload by link, lookup by number and phone (a wrong phone
+finds nothing), waiting list, no console error, no CSP violation, no foreign origin, and the token in no request URL. It
+sets the shop open through the engine's `shopOverride` because an anonymous customer's engine runs on the default schedule.
+
+**Sharper statement of the schedule limit:** an anonymous customer's engine decides open or closed from the default
+schedule (Monday 9:00 to Thursday 21:00), not from the owner's settings, which a customer cannot read. Outside that
+window the shop shows "Orders are closed" with no add buttons even when the server would take the order; inside it the
+banner can say open while the server refuses. It is the same defect as the un-persisted `shopOverride`: the shop's open
+state has to come from the server (a public read of the ordering window and the owner's override). **Cutover blocker.**

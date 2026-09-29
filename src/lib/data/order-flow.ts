@@ -95,6 +95,14 @@ export class OrderFlow {
     return this.attempt !== null;
   }
 
+  /**
+   * The order is being sent, is unsettled, or has been placed: the form and the box are locked, so what
+   * "Try again" sends is always what the customer sees.
+   */
+  get locked(): boolean {
+    return this.sending || this.attempt !== null || this.placed !== null;
+  }
+
   async submit(fields: OrderFields): Promise<void> {
     if (this.sending || this.placed) return;
     if (!this.attempt) {
@@ -151,6 +159,8 @@ export class OrderFlow {
   /** The order for a status token. A later call wins over an earlier one still in flight. */
   async loadStatus(token: string): Promise<void> {
     const seq = ++this.statusSeq;
+    // A different link never shows the last order under its own address.
+    if (this.statusToken !== token) this.status = null;
     this.statusToken = token;
     this.statusState = 'loading';
     this.hooks.changed();

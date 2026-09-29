@@ -133,8 +133,10 @@ export interface OpsVals {
     dates: Array<{ value: string; label: string }>;
     times: Array<{ value: string; label: string }>;
     rulesState: 'loading' | 'ready' | 'failed';
-    /** True while an earlier attempt's outcome is unknown: the fields are frozen. */
+    /** The order is sending or unsettled: the inputs are read-only. */
     readOnly: boolean;
+    /** An earlier attempt's outcome is unknown: "Change the order" is offered. */
+    frozen: boolean;
     sending: boolean;
     banner: { tone: 'error' | 'notice'; text: string; canWaitlist: boolean } | null;
     submit: (event?: unknown) => void;
@@ -145,6 +147,7 @@ export interface OpsVals {
       orderNo: string;
       statusUrl: string;
       totalText: string;
+      pickupText: string;
       copyLink: (event?: unknown) => void;
       seeOrder: (event?: unknown) => void;
       orderAgain: (event?: unknown) => void;

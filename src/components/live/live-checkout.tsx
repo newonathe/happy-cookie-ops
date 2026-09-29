@@ -291,7 +291,7 @@ export function LiveCheckout({ v }: { v: OpsVals }) {
           value={fields.ref}
           onChange={(x) => live.set('ref', x)}
           readOnly={readOnly}
-          placeholder="From your receipt, if you have paid"
+          placeholder={ORDER_COPY.refPlaceholder}
         />
       </div>
       {errors.items ? <span style={errorText}>{errors.items}</span> : null}
@@ -340,9 +340,9 @@ export function LiveCheckout({ v }: { v: OpsVals }) {
         hoverStyle={{ background: '#A93D0F' }}
         activeStyle={{ transform: 'scale(.985)' }}
       >
-        {live.sending ? 'Sending…' : readOnly ? 'Try again' : 'Place order'}
+        {live.sending ? 'Sending…' : live.frozen ? 'Try again' : 'Place order'}
       </Pressable>
-      {readOnly ? (
+      {live.frozen ? (
         <button
           type="button"
           onClick={live.changeOrder}
@@ -397,7 +397,9 @@ function Placed({
       <span style={{ fontSize: '13px', color: '#6E574B', lineHeight: '1.5' }}>
         {ORDER_COPY.placedBody}
       </span>
-      <span style={{ fontSize: '12px', fontWeight: '600' }}>Total {placed.totalText}</span>
+      <span style={{ fontSize: '12px', fontWeight: '600' }}>
+        {placed.pickupText ? ORDER_COPY.pickupLine(placed.pickupText) + ' · ' : ''}Total {placed.totalText}
+      </span>
       <a
         href={placed.statusUrl}
         style={{ fontSize: '11px', color: '#C24A15', overflowWrap: 'anywhere', lineHeight: '1.5' }}
@@ -432,7 +434,7 @@ export function LiveLookup({ v }: { v: OpsVals }) {
       style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}
     >
       <span style={{ fontSize: '13px', color: '#6E574B', lineHeight: '1.5' }}>
-        Your order number and the mobile number you ordered with will find it.
+        {ORDER_COPY.lookupIntro}
       </span>
       <label style={labelStyle}>
         <span style={smallLabel}>Order number</span>

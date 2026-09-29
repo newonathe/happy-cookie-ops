@@ -313,7 +313,10 @@ describe('the status page', () => {
   });
 
   it('says received while unpaid, without the ported claim of payment proof, and never an invoice', () => {
-    const view = statusCust(parseOrderStatus(base)!, { allergenNote: 'Contains milk.' });
+    const view = statusCust(parseOrderStatus(base)!, {
+      allergenNote: 'Contains milk.',
+      now: Date.parse('2026-10-05T02:00:00Z')
+    });
     expect(view.heroTitle).toBe('Order received');
     expect(view.heroBody).not.toMatch(/proof/i);
     expect(view.heroBody).toMatch(/GCash/);
@@ -337,6 +340,31 @@ describe('the status page', () => {
     expect(of('Cancelled').heroTitle).toBe('Order cancelled');
     expect(of('Cancelled').timeline).toHaveLength(2);
     expect(of('Completed').timeline.every((t) => t.done)).toBe(true);
+  });
+
+  it('never says an order is held after the hold has passed', () => {
+    const order = parseOrderStatus(base)!;
+    const before = statusCust(order, { allergenNote: '', now: Date.parse('2026-10-05T02:00:00Z') });
+    expect(before.heroBody).toMatch(/held until/);
+    const after = statusCust(order, { allergenNote: '', now: Date.parse('2026-10-07T00:00:00Z') });
+    expect(after.heroBody).toMatch(/not paid in time/);
+    expect(after.heroBody).not.toMatch(/held until/);
+    expect(after.timeline[1]).toMatchObject({ sub: 'Not paid in time', now: false });
+    // Mutation: dropping the lapsed check brings back "held until" for an order whose slots are gone.
+  });
+
+  it('a no-show has one current step, and the paid and ready steps are done', () => {
+    const view = statusCust(parseOrderStatus({ ...base, state: 'No-show' })!, { allergenNote: '' });
+    expect(view.timeline.filter((t) => t.now)).toHaveLength(1);
+    expect(view.timeline.at(-1)).toMatchObject({ what: 'Missed collection', now: true });
+    expect(view.timeline.slice(0, 4).every((t) => t.done)).toBe(true);
+  });
+
+  it('does not promise an address for a campus pickup', () => {
+    const campus = statusCust(parseOrderStatus({ ...base, pickup_window: 'campus' })!, { allergenNote: '' });
+    expect(campus.timeline[3]?.sub).toBe('At the campus pickup slot');
+    const courier = statusCust(parseOrderStatus(base)!, { allergenNote: '' });
+    expect(courier.timeline[3]?.sub).toMatch(/exact address/);
   });
 
   it('words the campus slot', () => {

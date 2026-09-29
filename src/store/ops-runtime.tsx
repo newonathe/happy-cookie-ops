@@ -21,7 +21,7 @@ import type { LiveFlavourFormFields, LivePayFormFields, LiveShopTexts, OpsVals }
 import { PaymentSync } from '@/lib/data/payment-sync';
 import { OrderFlow } from '@/lib/data/order-flow';
 import { tokenFromHash, type FieldErrors, type OrderClient } from '@/lib/data/orders';
-import { statusCust } from '@/lib/orders/status-view';
+import { pickupLabel, statusCust } from '@/lib/orders/status-view';
 import { ORDER_COPY } from '@/lib/orders/copy';
 import { pickupDates, pickupTimes, waitlistRange } from '@/lib/orders/pickup';
 import { EMPTY_TEXTS, type PaymentClient, type UploadClient } from '@/lib/data/payments';
@@ -225,6 +225,8 @@ export class OpsRuntime extends OpsProvider {
   private flavourSync?: FlavourSync;
   private paymentSync?: PaymentSync;
   private orderFlow?: OrderFlow;
+  /** The last fragment this runtime wrote or adopted, so a link pasted into the tab is told apart. */
+  private lastHash = '';
 
   /**
    * Live mode never shows or stores the demo books (docs/state/G2-plan.md "Slice audit",
@@ -269,7 +271,18 @@ export class OpsRuntime extends OpsProvider {
       custRestart();
     };
     this.custReorder = () => this.liveReorder();
+    // While an order is sending, unsettled or placed, the form and the box are locked: "Try again"
+    // must send exactly what the customer sees, and a placed order is not edited from this screen.
+    const { custAdd } = this;
+    this.custAdd = (pid, delta) => {
+      if (this.orderFlow?.locked) {
+        this.toast(this.orderFlow.placed ? ORDER_COPY.placedLocked : ORDER_COPY.locked, 'warn');
+        return;
+      }
+      custAdd(pid, delta);
+    };
     this.custSet = (key, value) => {
+      if (this.orderFlow?.locked) return;
       const field = FIELD_FOR_CUST_KEY[key];
       if (field) this.orderFlow?.clearError(field);
       custSet(key, value);
@@ -1163,8 +1176,13 @@ export class OpsRuntime extends OpsProvider {
 
   /** "Order this cookie again": the cookies of the order on screen that are still on the menu. */
   private liveReorder(): void {
+    const items = this.orderFlow?.status?.items;
+    if (!items) {
+      this.toast(ORDER_COPY.noOrderToRepeat, 'warn');
+      return;
+    }
     const box: Record<string, number> = {};
-    for (const item of this.orderFlow?.status?.items ?? []) {
+    for (const item of items) {
       if (PRODUCTS.some((p) => p.id === item.productId)) box[item.productId] = item.qty;
     }
     this.orderFlow?.resetCheckout();
@@ -1183,14 +1201,20 @@ export class OpsRuntime extends OpsProvider {
     if (!isLiveMode() || typeof window === 'undefined' || !this.orderFlow) return;
     if (this.state.screen !== 'status') return;
     const flow = this.orderFlow;
-    if (!flow.statusToken) {
-      const fromUrl = tokenFromHash(window.location.hash);
-      if (fromUrl) void flow.loadStatus(fromUrl);
+    const hash = window.location.hash;
+    const fromUrl = tokenFromHash(hash);
+    // A link the customer opened or pasted into this tab: the fragment changed and nothing here wrote it.
+    if (fromUrl && fromUrl !== flow.statusToken && hash !== this.lastHash) {
+      this.lastHash = hash;
+      void flow.loadStatus(fromUrl);
       return;
     }
+    if (!flow.statusToken) return;
     const wanted = '#t=' + flow.statusToken;
-    if (window.location.hash !== wanted)
+    if (hash !== wanted) {
+      this.lastHash = wanted;
       window.history.replaceState(window.history.state, '', window.location.pathname + wanted);
+    }
   }
 
   private onCustomerScreen(): boolean {
@@ -1251,7 +1275,8 @@ export class OpsRuntime extends OpsProvider {
       dates: rules ? pickupDates(rules) : [],
       times: rules ? pickupTimes(rules) : [],
       rulesState: flow ? flow.rulesState : 'failed',
-      readOnly: flow?.unresolved ?? false,
+      readOnly: (flow?.unresolved ?? false) || (flow?.sending ?? false),
+      frozen: flow?.unresolved ?? false,
       sending: flow?.sending ?? false,
       banner: flow?.banner ?? null,
       submit: () => this.custSubmit(),
@@ -1263,15 +1288,16 @@ export class OpsRuntime extends OpsProvider {
             orderNo: placed.orderNo,
             statusUrl: statusUrl(placed.token),
             totalText: PESO(centavosToPesos(centavosFromDb(placed.totalCents))),
+            pickupText: pickupLabel(placed.pickupDate, placed.pickupWindow),
             copyLink: () => {
               const write = navigator.clipboard?.writeText(statusUrl(placed.token));
               if (!write) {
-                this.toast('Copy the link from the page instead.', 'warn');
+                this.toast(ORDER_COPY.linkCopyFailed, 'warn');
                 return;
               }
               void write.then(
-                () => this.toast('Link copied.'),
-                () => this.toast('Copy the link from the page instead.', 'warn')
+                () => this.toast(ORDER_COPY.linkCopied),
+                () => this.toast(ORDER_COPY.linkCopyFailed, 'warn')
               );
             },
             seeOrder: () => {
@@ -1311,7 +1337,8 @@ export class OpsRuntime extends OpsProvider {
         void flow.joinWaitlist(fields);
       },
       close: () => {
-        flow?.resetWaitlist();
+        // An unsettled entry stays frozen, so opening the form again resends it under the same id.
+        if (flow && flow.waitlistState !== 'unknown') flow.resetWaitlist();
         this.closeSheet();
       }
     };
@@ -1340,10 +1367,10 @@ export class OpsRuntime extends OpsProvider {
       timeline: [] as OpsVals['cust']['timeline']
     };
     const state = flow?.statusState ?? 'idle';
-    if (state === 'loading') return { ...shell, heroTitle: 'Loading your order…', heroBody: '' };
+    if (state === 'loading') return { ...shell, heroTitle: ORDER_COPY.loadingOrder, heroBody: '' };
     if (state === 'error')
-      return { ...shell, heroTitle: 'We could not load your order', heroBody: ORDER_COPY.statusError };
-    return { ...shell, heroTitle: 'We could not find that order', heroBody: ORDER_COPY.statusMissing };
+      return { ...shell, heroTitle: ORDER_COPY.statusErrorTitle, heroBody: ORDER_COPY.statusError };
+    return { ...shell, heroTitle: ORDER_COPY.statusMissingTitle, heroBody: ORDER_COPY.statusMissing };
   }
 
   /** The shop footer's lines: the owner's own text, or nothing (finding 16). */
