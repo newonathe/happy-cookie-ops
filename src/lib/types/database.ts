@@ -427,6 +427,7 @@ export type Database = {
       }
       inventory_items: {
         Row: {
+          active: boolean
           category: string
           id: string
           last_counted: string | null
@@ -441,6 +442,7 @@ export type Database = {
           use_by_days: number | null
         }
         Insert: {
+          active?: boolean
           category?: string
           id: string
           last_counted?: string | null
@@ -455,6 +457,7 @@ export type Database = {
           use_by_days?: number | null
         }
         Update: {
+          active?: boolean
           category?: string
           id?: string
           last_counted?: string | null
@@ -1239,6 +1242,7 @@ export type Database = {
       }
       supplier_prices: {
         Row: {
+          active: boolean
           id: string
           item_name: string
           last_bought: string
@@ -1247,8 +1251,10 @@ export type Database = {
           previous_cents: number[]
           price_cents: number
           supplier_id: string
+          updated_at: string
         }
         Insert: {
+          active?: boolean
           id?: string
           item_name: string
           last_bought?: string
@@ -1257,8 +1263,10 @@ export type Database = {
           previous_cents?: number[]
           price_cents: number
           supplier_id: string
+          updated_at?: string
         }
         Update: {
+          active?: boolean
           id?: string
           item_name?: string
           last_bought?: string
@@ -1267,6 +1275,7 @@ export type Database = {
           previous_cents?: number[]
           price_cents?: number
           supplier_id?: string
+          updated_at?: string
         }
         Relationships: [
           {
@@ -1280,25 +1289,31 @@ export type Database = {
       }
       suppliers: {
         Row: {
+          active: boolean
           id: string
           name: string
           notes: string
           phone: string
           place: string
+          updated_at: string
         }
         Insert: {
+          active?: boolean
           id: string
           name: string
           notes?: string
           phone?: string
           place?: string
+          updated_at?: string
         }
         Update: {
+          active?: boolean
           id?: string
           name?: string
           notes?: string
           phone?: string
           place?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -1660,6 +1675,7 @@ export type Database = {
       get_shop_payment_info: { Args: never; Returns: Json }
       get_shop_status: { Args: never; Returns: Json }
       get_staff_orders: { Args: never; Returns: Json }
+      get_stock_catalogue: { Args: never; Returns: Json }
       is_owner: { Args: never; Returns: boolean }
       is_staff: { Args: never; Returns: boolean }
       join_waitlist: {
@@ -1780,6 +1796,27 @@ export type Database = {
       save_shop_texts: {
         Args: { p_expected_updated_at: string; p_texts: Json }
         Returns: {
+          updated_at: string
+        }[]
+      }
+      save_stock_item: {
+        Args: { p_expected_updated_at: string; p_item: Json }
+        Returns: {
+          id: string
+          updated_at: string
+        }[]
+      }
+      save_supplier: {
+        Args: { p_expected_updated_at: string; p_supplier: Json }
+        Returns: {
+          id: string
+          updated_at: string
+        }[]
+      }
+      save_supplier_price: {
+        Args: { p_expected_updated_at: string; p_price: Json }
+        Returns: {
+          id: string
           updated_at: string
         }[]
       }

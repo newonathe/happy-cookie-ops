@@ -956,6 +956,15 @@
       "ordinal_position": 12
     },
     {
+      "udt_name": "bool",
+      "data_type": "boolean",
+      "table_name": "inventory_items",
+      "column_name": "active",
+      "is_nullable": "NO",
+      "column_default": "true",
+      "ordinal_position": 13
+    },
+    {
       "udt_name": "uuid",
       "data_type": "uuid",
       "table_name": "ledger_entries",
@@ -2504,6 +2513,24 @@
       "ordinal_position": 8
     },
     {
+      "udt_name": "bool",
+      "data_type": "boolean",
+      "table_name": "supplier_prices",
+      "column_name": "active",
+      "is_nullable": "NO",
+      "column_default": "true",
+      "ordinal_position": 9
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "supplier_prices",
+      "column_name": "updated_at",
+      "is_nullable": "NO",
+      "column_default": "now()",
+      "ordinal_position": 10
+    },
+    {
       "udt_name": "text",
       "data_type": "text",
       "table_name": "suppliers",
@@ -2547,6 +2574,24 @@
       "is_nullable": "NO",
       "column_default": "''::text",
       "ordinal_position": 5
+    },
+    {
+      "udt_name": "bool",
+      "data_type": "boolean",
+      "table_name": "suppliers",
+      "column_name": "active",
+      "is_nullable": "NO",
+      "column_default": "true",
+      "ordinal_position": 6
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "suppliers",
+      "column_name": "updated_at",
+      "is_nullable": "NO",
+      "column_default": "now()",
+      "ordinal_position": 7
     },
     {
       "udt_name": "uuid",
@@ -3742,6 +3787,21 @@
       "execute_authenticated": true
     },
     {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "get_stock_catalogue",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "ff45767365987ab32098203fc2b11fde",
+      "identity": "",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
       "acl": "{=X/postgres,anon=X/postgres,authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
       "name": "is_owner",
       "owner": "postgres",
@@ -4036,6 +4096,51 @@
       "returns": "TABLE(updated_at timestamp with time zone)",
       "body_md5": "085c1763b7727f8d1ae4cca14611b9bd",
       "identity": "p_texts jsonb, p_expected_updated_at timestamp with time zone",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "save_stock_item",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(id text, updated_at timestamp with time zone)",
+      "body_md5": "9dcc49ca3a540078aa86679a429937d4",
+      "identity": "p_item jsonb, p_expected_updated_at timestamp with time zone",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "save_supplier",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(id text, updated_at timestamp with time zone)",
+      "body_md5": "73f92278f2b4cccfd942fc74033a7738",
+      "identity": "p_supplier jsonb, p_expected_updated_at timestamp with time zone",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "save_supplier_price",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(id uuid, updated_at timestamp with time zone)",
+      "body_md5": "556720f38c1e0a2e1c5b36a3b95a083f",
+      "identity": "p_price jsonb, p_expected_updated_at timestamp with time zone",
       "execute_anon": false,
       "security_definer": true,
       "execute_service_role": true,

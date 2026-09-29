@@ -22,7 +22,8 @@ ORDER_MIGRATIONS = [ROOT / 'supabase/migrations/20260101003500_place_order.sql',
                     ROOT / 'supabase/migrations/20260101003900_staff_orders_review.sql',
                     ROOT / 'supabase/migrations/20260101004000_order_extras.sql',
                     ROOT / 'supabase/migrations/20260101004100_scheduled_events.sql',
-                    ROOT / 'supabase/migrations/20260101004200_scheduled_event_rent.sql']
+                    ROOT / 'supabase/migrations/20260101004200_scheduled_event_rent.sql',
+                    ROOT / 'supabase/migrations/20260101004300_stock_catalogue.sql']
 _OUT = 'order outcome differs: anon / '
 _CHK = 'order check differs: anon / '
 _LOOK = 'lookup check differs: anon / '
@@ -234,10 +235,49 @@ SCHEDULED_TABLE_MUTATIONS = {
                                'scheduled outcome differs: active_owner / link_event_taken / '),
 }
 
+# A3: the owner's stock catalogue (stock-catalogue.sql), acting on the last migration that defines each function.
+_ST = 'stock outcome differs: active_owner / '
+_STC = 'stock check differs: active_owner / '
+STOCK_MUTATIONS = {
+    'rule_supplier_keys': ('save_supplier', 'rule', 'supplier-keys', _ST + 'sup_keys_missing / '),
+    'rule_supplier_id': ('save_supplier', 'rule', 'supplier-id', _ST + 'sup_id_bad / '),
+    'rule_supplier_text': ('save_supplier', 'rule', 'supplier-text', _ST + 'sup_name_blank / '),
+    'rule_supplier_name_taken': ('save_supplier', 'rule', 'supplier-name-taken', _ST + 'sup_name_taken / '),
+    'rule_supplier_create_stamp': ('save_supplier', 'rule', 'supplier-create-stamp', _ST + 'sup_create_with_stamp_unknown / '),
+    'rule_supplier_replay': ('save_supplier', 'rule', 'supplier-replay', _ST + 'sup_create_replay / '),
+    'rule_supplier_stale': ('save_supplier', 'rule', 'supplier-stale', _ST + 'sup_change_stale / '),
+    'rule_item_keys': ('save_stock_item', 'rule', 'item-keys', _ST + 'item_keys_missing / '),
+    'rule_item_id': ('save_stock_item', 'rule', 'item-id', _ST + 'item_id_bad / '),
+    'rule_item_text': ('save_stock_item', 'rule', 'item-text', _ST + 'item_name_blank / '),
+    'rule_item_category': ('save_stock_item', 'rule', 'item-category', _ST + 'item_category_bad / '),
+    'rule_item_numbers': ('save_stock_item', 'rule', 'item-numbers', _ST + 'item_par_negative / '),
+    'rule_item_useby': ('save_stock_item', 'rule', 'item-useby', _ST + 'item_useby_zero / '),
+    'rule_item_supplier': ('save_stock_item', 'rule', 'item-supplier', _ST + 'item_supplier_unknown / '),
+    'rule_item_name_taken': ('save_stock_item', 'rule', 'item-name-taken', _ST + 'item_name_taken / '),
+    'rule_item_create_stamp': ('save_stock_item', 'rule', 'item-create-stamp', _ST + 'item_create_with_stamp_unknown / '),
+    'rule_item_replay': ('save_stock_item', 'rule', 'item-replay', _ST + 'item_create_replay / '),
+    'rule_item_stale': ('save_stock_item', 'rule', 'item-stale', _ST + 'item_change_stale / '),
+    'rule_item_rename_referenced': ('save_stock_item', 'rule', 'item-rename-referenced', _ST + 'item_rename_referenced / '),
+    'rule_price_keys': ('save_supplier_price', 'rule', 'price-keys', _ST + 'price_keys_missing / '),
+    'rule_price_text': ('save_supplier_price', 'rule', 'price-text', _ST + 'price_label_blank / '),
+    'rule_price_cents': ('save_supplier_price', 'rule', 'price-cents', _ST + 'price_cents_negative / '),
+    'rule_price_supplier': ('save_supplier_price', 'rule', 'price-supplier', _ST + 'price_supplier_unknown / '),
+    'rule_price_item': ('save_supplier_price', 'rule', 'price-item', _ST + 'price_item_unknown / '),
+    'rule_price_duplicate': ('save_supplier_price', 'rule', 'price-duplicate', _ST + 'price_duplicate / '),
+    'rule_price_create_stamp': ('save_supplier_price', 'rule', 'price-create-stamp', _ST + 'price_create_with_stamp_unknown / '),
+    'rule_price_replay': ('save_supplier_price', 'rule', 'price-replay', _ST + 'price_create_replay / '),
+    'rule_price_history': ('save_supplier_price', 'rule', 'price-history', _STC + 'price_history_pushed'),
+    'rule_price_stale': ('save_supplier_price', 'rule', 'price-stale', _ST + 'price_change_stale / '),
+}
+STOCK_TABLE_MUTATIONS = {
+    'stock_table_update': ('grant update on public.suppliers to anon;',
+                           'stock outcome differs: anon / stock_suppliers_update / '),
+}
+
 
 def order_mutant(name):
     """The migration's one function, changed in exactly one place, as SQL to run inside the suite."""
-    function, kind, argument, _ = (ORDER_MUTATIONS | LOOKUP_MUTATIONS | STAFF_MUTATIONS | SHOP_MUTATIONS | EXTRAS_MUTATIONS | SCHEDULED_MUTATIONS)[name]
+    function, kind, argument, _ = (ORDER_MUTATIONS | LOOKUP_MUTATIONS | STAFF_MUTATIONS | SHOP_MUTATIONS | EXTRAS_MUTATIONS | SCHEDULED_MUTATIONS | STOCK_MUTATIONS)[name]
     marker = 'create or replace function public.' + function + '('
     text = [m.read_text(encoding='utf-8') for m in ORDER_MIGRATIONS if marker in m.read_text(encoding='utf-8')][-1]
     start = text.index('create or replace function public.' + function + '(')
@@ -285,6 +325,9 @@ SUITES = (
                          + tuple(EXTRAS_MUTATIONS) + tuple(EXTRAS_TABLE_MUTATIONS), 'forbidden extras call succeeded', 143),
     ('scheduled-events.sql', ('get_scheduled_events()', 'save_scheduled_event(jsonb,timestamptz)', 'link_scheduled_event(uuid,uuid)')
                              + tuple(SCHEDULED_MUTATIONS) + tuple(SCHEDULED_TABLE_MUTATIONS), 'forbidden scheduled call succeeded', 69),
+    ('stock-catalogue.sql', ('get_stock_catalogue()', 'save_supplier(jsonb,timestamptz)', 'save_stock_item(jsonb,timestamptz)',
+                             'save_supplier_price(jsonb,timestamptz)') + tuple(STOCK_MUTATIONS) + tuple(STOCK_TABLE_MUTATIONS),
+     'forbidden stock call succeeded', 138),
     ('bazaar-closeout.sql', ('event_summary(uuid)', 'load_event_stock(uuid,jsonb,bigint)', 'add_event_expense(jsonb)', 'close_event(jsonb)'), 'forbidden closeout call succeeded', 80),
 )
 CATALOG_GUARD_SQL = """
@@ -425,6 +468,13 @@ def main():
                     elif signature in SCHEDULED_TABLE_MUTATIONS:
                         unsafe, expected_error = SCHEDULED_TABLE_MUTATIONS[signature]
                         broken = sql.replace('begin;', 'begin;' + chr(10) + unsafe, 1)
+                if filename == 'stock-catalogue.sql':
+                    if signature in STOCK_MUTATIONS:
+                        broken = sql.replace('begin;', 'begin;' + chr(10) + order_mutant(signature), 1)
+                        expected_error = STOCK_MUTATIONS[signature][3]
+                    elif signature in STOCK_TABLE_MUTATIONS:
+                        unsafe, expected_error = STOCK_TABLE_MUTATIONS[signature]
+                        broken = sql.replace('begin;', 'begin;' + chr(10) + unsafe, 1)
                 if filename == 'order-extras.sql':
                     if signature in EXTRAS_MUTATIONS:
                         broken = sql.replace('begin;', 'begin;' + chr(10) + order_mutant(signature), 1)
@@ -490,7 +540,9 @@ def main():
                     else:
                         unsafe = 'alter policy "stock staff read" on public.inventory_items using (public.is_staff()); alter policy "stock staff write" on public.inventory_items using (public.is_staff()) with check (public.is_staff());'
                         broken = raw_sql.replace('__PRIVATE_RED_POLICY__', '').replace('__PRIVATE_RED_UPDATE_POLICY__', 'reset role; ' + unsafe + ' set local role authenticated;')
-                        expected_error = 'private update succeeded: active_helper / inventory_items / 1'
+                        # A3 revoked UPDATE on inventory_items from the API roles (writes go through save_stock_item), as B3 did
+                        # for orders: the widened policy is now caught by the read check, and the write by stock-catalogue.sql.
+                        expected_error = 'private read differs: active_support / inventory_items / 1'
                 if filename == 'public-catalog.sql':
                     if signature == 'catalog_raw_read':
                         unsafe = 'alter policy "catalogue public read" on public.products using (active or public.is_staff());'
@@ -514,7 +566,7 @@ def main():
                     if filename == 'legacy-mutations.sql':
                         report['legacy_regression_diagnostics'].append(str(error))
                 else:
-                    h.fail('role suite failed to detect a deliberately restored unsafe grant')
+                    h.fail('role suite failed to detect a deliberately restored unsafe grant: ' + filename + ' / ' + signature)
                 assert_empty()
             output = run_suite(sql, filename == 'auxiliary-authority.sql')
             rows = [line for line in output.splitlines() if line.startswith('SEC_RESULT|')]
@@ -522,7 +574,7 @@ def main():
                 h.fail(filename + ' did not return its complete role matrix')
             results.extend(rows)
             assert_empty()
-        if len(set(results)) != 1387:
+        if len(set(results)) != 1525:
             h.fail('combined role matrix has missing or duplicate cases: %d rows, %d unique (duplicates: %s)' % (len(results), len(set(results)), sorted({r for r in results if results.count(r) > 1})[:5]))
         assert_functions()
         assert_catalog_wide()
@@ -535,10 +587,10 @@ def main():
     try:
         code = h.main(after_reset=check)
         if (code == 0 and len(report["runs"]) == 2 and report["runs"][0] == report["runs"][1]
-                and len(report['regressions_detected']) == 368 and report['sequence_restorations'] == 10
+                and len(report['regressions_detected']) == 436 and report['sequence_restorations'] == 10
                 and report['upgrade_runs'] == 2 and report['function_guard_runs'] == 4
                 and report['catalog_guard_runs'] == 4 and report['catalog_guard_red_runs'] == 4):
-            report.update(status="passed", cases_per_reset=1387, resets=2, matrix_equal=True, rollback_verified=True,
+            report.update(status="passed", cases_per_reset=1525, resets=2, matrix_equal=True, rollback_verified=True,
                           sql_sha256={name: hashlib.sha256((ROOT / 'tests/integration/security' / name).read_bytes()).hexdigest() for name, _, _, _ in SUITES},
                           harness_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
     except (RuntimeError, OSError, ValueError) as error:

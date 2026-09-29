@@ -1035,6 +1035,66 @@
       "security_definer": true,
       "execute_service_role": true,
       "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "get_stock_catalogue",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "ff45767365987ab32098203fc2b11fde",
+      "identity": "",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "save_stock_item",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(id text, updated_at timestamp with time zone)",
+      "body_md5": "fa87bf06e2e43a2ec4c7b647fa128c2c",
+      "identity": "p_item jsonb, p_expected_updated_at timestamp with time zone",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "save_supplier",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(id text, updated_at timestamp with time zone)",
+      "body_md5": "0c66b576d1bca53d96476947f5b8e005",
+      "identity": "p_supplier jsonb, p_expected_updated_at timestamp with time zone",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "save_supplier_price",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(id uuid, updated_at timestamp with time zone)",
+      "body_md5": "1aef659b8fc69eefe90e9b535d798226",
+      "identity": "p_price jsonb, p_expected_updated_at timestamp with time zone",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
     }
   ]
 }

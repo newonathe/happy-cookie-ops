@@ -52,7 +52,7 @@ insert into public.drops(week_label,opens_at,closes_at,pickup_at,capacity,update
 select set_config('request.jwt.claim.sub','a6e00000-0000-4000-8000-000000000001',true);
 set local role authenticated;
 do $$ declare t text; n integer; begin
- foreach t in array array['inventory_items','bake_batches','drops'] loop
+ foreach t in array array['bake_batches','drops'] loop
   execute format('update public.%I set updated_at=%L',t,'2020-01-01');
   get diagnostics n=row_count;
   if n<>1 then raise exception 'positive fixture update count differs: %',t; end if;
@@ -62,11 +62,11 @@ do $$ declare t text; n integer; begin
  end loop;
 end $$;
 reset role;
--- B3 revokes direct UPDATE on orders and order_items from the API roles (the staff RPCs are the only
+-- B3 revokes direct UPDATE on orders and order_items (and A3 on inventory_items) from the API roles (the staff RPCs are the only
 -- writers), so their trigger-firing proof runs as service_role, as the settings proof below does.
 set local role service_role;
 do $$ declare t text; n integer; begin
- foreach t in array array['orders','order_items'] loop
+ foreach t in array array['orders','order_items','inventory_items'] loop
   execute format('update public.%I set updated_at=%L',t,'2020-01-01');
   get diagnostics n=row_count;
   if n<>1 then raise exception 'positive fixture update count differs: %',t; end if;
