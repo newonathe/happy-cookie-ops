@@ -91,5 +91,32 @@ export const ORDER_COPY = {
   placedBody:
     'Keep this order number and the status link: they are how you check on your order. Payment goes to the account you picked.',
   payLater: (hours: number): string =>
-    `Your order is held for ${hours} ${hours === 1 ? 'hour' : 'hours'} until it is paid.`
+    `Your order is held for ${hours} ${hours === 1 ? 'hour' : 'hours'} until it is paid.`,
+  /** B4b: boxes, add-ons, the sampler and same-day. PLACEHOLDER wording, like the rest of this file. */
+  extras: {
+    boxesTitle: 'Boxes',
+    boxesHelp: 'Cookies that do not fill a box go in bags.',
+    boxLabel: (size: number, chargeText: string): string =>
+      `Box of ${size}${chargeText ? ' · ' + chargeText : ''}`,
+    addOnsTitle: 'Add-ons',
+    noteHelp: 'Add a message',
+    sameDayNotice: (percent: number): string =>
+      `Same-day pickup adds ${percent}% to your order. The shop works out the total when you place the order.`,
+    sameDayLabel: (percent: number): string => `same-day +${percent}%`,
+    noSlotsToday: 'No pickup times are left today. Pick another day.',
+    totalNote:
+      'Add-ons, box charges and any same-day extra are added by the shop to the total above when you place the order.',
+    box: 'Check your boxes: pick a size the shop offers, and no more cookies in boxes than you ordered.',
+    addOn: 'One of your add-ons is not offered or is listed twice.',
+    variant: 'Choose which design or number you want for that add-on.',
+    text: 'Write your message for the add-on that has one, one card at a time.',
+    textLong: 'Your message is too long.',
+    qty: 'You picked more of an add-on than the shop allows.',
+    sampler: 'You picked more sampler boxes than the shop allows in one order.',
+    /** ZC007: the owner switched a size or an add-on off after this page loaded. */
+    notOffered:
+      'A box size or add-on you picked is not offered any more. Its choices have been reloaded: check them and try again.',
+    loadFailed: 'Boxes and add-ons could not be loaded. You can still order cookies.',
+    placedLines: 'With'
+  } as const
 } as const;

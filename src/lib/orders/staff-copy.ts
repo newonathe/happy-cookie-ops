@@ -47,6 +47,7 @@ export const MESSAGE_SHEET = {
   intro:
     'A status link and a text to copy for each open order. Send them from Instagram or Messenger yourself.',
   empty: 'No open orders to message.',
+  packLine: 'To pack',
   copy: 'Copy text',
   copied: 'Copied.',
   copyFailed: 'Could not copy. Select the text and copy it yourself.'
@@ -104,5 +105,8 @@ export const EXTRAS_COPY = {
   on: 'On',
   addBox: 'New box size',
   addAddOn: 'New add-on',
+  extraFlag: 'Extra',
+  extraFlagToast:
+    'That is an add-on, box or extra, not a flavour: there is nothing to flag or swap.',
   save: 'Save boxes & add-ons'
 } as const;

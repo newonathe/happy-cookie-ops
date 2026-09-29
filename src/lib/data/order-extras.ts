@@ -213,3 +213,144 @@ export async function saveOrderExtras(
     return 'offline';
   }
 }
+
+// ---------------------------------------------------------------- the customer's side (B4b)
+
+/** What a customer's checkout builds its pickers from (`get_shop_extras()`: active items only). */
+export interface ShopExtras {
+  sameDay: { enabled: boolean; percent: number; onExtras: boolean };
+  sampler: { productId: string | null; maxQty: number };
+  boxes: Array<{ size: number; chargeCents: number }>;
+  addOns: Array<{
+    id: string;
+    name: string;
+    priceCents: number;
+    variants: string[];
+    textLabel: string | null;
+    textMax: number;
+    maxQty: number;
+  }>;
+}
+
+/** Strict: anything unexpected is no extras at all (the checkout then offers none), never a half-shown picker. */
+export function parseShopExtras(json: unknown): ShopExtras | null {
+  if (!isObject(json)) return null;
+  const { same_day: sd, sampler, boxes, add_ons: addOns } = json;
+  if (!isObject(sd) || !isObject(sampler) || !Array.isArray(boxes) || !Array.isArray(addOns))
+    return null;
+  if (
+    typeof sd.enabled !== 'boolean' ||
+    typeof sd.on_extras !== 'boolean' ||
+    !whole(sd.percent, 0, 100) ||
+    !whole(sampler.max_qty, 1, 20) ||
+    (sampler.product_id !== null && typeof sampler.product_id !== 'string')
+  )
+    return null;
+  const outBoxes: ShopExtras['boxes'] = [];
+  for (const b of boxes) {
+    if (!isObject(b) || !whole(b.size, 2, 48) || !whole(b.charge_cents, 0, 100000)) return null;
+    outBoxes.push({ size: b.size, chargeCents: b.charge_cents });
+  }
+  const outAddOns: ShopExtras['addOns'] = [];
+  for (const a of addOns) {
+    if (
+      !isObject(a) ||
+      typeof a.id !== 'string' ||
+      !ADD_ON_ID.test(a.id) ||
+      typeof a.name !== 'string' ||
+      !whole(a.price_cents, 0, 1_000_000) ||
+      !whole(a.text_max, 1, 300) ||
+      !whole(a.max_qty, 1, 50) ||
+      (a.text_label !== null && typeof a.text_label !== 'string') ||
+      !Array.isArray(a.variants) ||
+      !a.variants.every((v) => typeof v === 'string')
+    )
+      return null;
+    outAddOns.push({
+      id: a.id,
+      name: a.name,
+      priceCents: a.price_cents,
+      variants: a.variants as string[],
+      textLabel: a.text_label as string | null,
+      textMax: a.text_max,
+      maxQty: a.max_qty
+    });
+  }
+  return {
+    sameDay: { enabled: sd.enabled, percent: sd.percent, onExtras: sd.on_extras },
+    sampler: { productId: sampler.product_id as string | null, maxQty: sampler.max_qty },
+    boxes: outBoxes.sort((a, b) => a.size - b.size),
+    addOns: outAddOns
+  };
+}
+
+export async function fetchShopExtras(client: OrderExtrasClient): Promise<ShopExtras | null> {
+  const { data, error } = await client.rpc('get_shop_extras');
+  if (error) throw new Error('shop extras load failed: ' + (error.code || error.message));
+  return parseShopExtras(data);
+}
+
+/** One add-on line the customer chose: a design (variant) and how many, plus a message where the add-on has one. */
+export interface AddOnLine {
+  id: string;
+  variant: string;
+  qty: number;
+  text: string;
+}
+export interface BoxLine {
+  size: number;
+  qty: number;
+}
+
+/**
+ * The same checks `place_order` makes on the extras (rules box-size, box-fit, sampler-cap, addon-*),
+ * so a sure refusal is never sent. `cookieQty` is the cookies in the cart (the sampler and other sets do
+ * not count and cannot be boxed); `samplerQty` the sampler boxes. Null means acceptable.
+ */
+export function extrasSelectionError(
+  extras: ShopExtras,
+  sel: { addOns: AddOnLine[]; boxes: BoxLine[] },
+  cart: { cookieQty: number; samplerQty: number },
+  words: {
+    box: string;
+    addOn: string;
+    variant: string;
+    text: string;
+    textLong: string;
+    qty: string;
+    sampler: string;
+  }
+): string | null {
+  if (extras.sampler.productId && cart.samplerQty > extras.sampler.maxQty) return words.sampler;
+  let boxed = 0;
+  const sizes = new Set<number>();
+  for (const b of sel.boxes) {
+    if (!extras.boxes.some((x) => x.size === b.size) || sizes.has(b.size)) return words.box;
+    sizes.add(b.size);
+    boxed += b.size * b.qty;
+  }
+  if (boxed > cart.cookieQty) return words.box;
+  const totals = new Map<string, number>();
+  const seen = new Set<string>();
+  for (const l of sel.addOns) {
+    const cfg = extras.addOns.find((a) => a.id === l.id);
+    if (!cfg) return words.addOn;
+    if (
+      cfg.variants.length > 0 !== (l.variant !== '') ||
+      (l.variant && !cfg.variants.includes(l.variant))
+    )
+      return words.variant;
+    const text = l.text.trim();
+    if (cfg.textLabel === null ? text !== '' : text === '' || l.qty !== 1) return words.text;
+    if (text.length > cfg.textMax) return words.textLong;
+    const key = l.id + '|' + l.variant + '|' + text;
+    if (seen.has(key)) return words.addOn;
+    seen.add(key);
+    totals.set(l.id, (totals.get(l.id) ?? 0) + l.qty);
+  }
+  for (const [id, qty] of totals) {
+    const cfg = extras.addOns.find((a) => a.id === id);
+    if (!cfg || qty > cfg.maxQty) return words.qty;
+  }
+  return null;
+}

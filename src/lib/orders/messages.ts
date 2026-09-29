@@ -5,6 +5,7 @@
  * credential, so it is built from the token the owner list carries and never logged or stored.
  */
 import type { StaffOrder } from '@/lib/data/staff-orders';
+import { extraDetails } from '@/lib/orders/extras-view';
 
 export type MessageKind = 'unpaid' | 'paid' | 'ready' | 'swap';
 
@@ -29,6 +30,13 @@ export function statusLink(origin: string, token: string | null): string | null 
 
 const firstName = (name: string): string => name.trim().split(/\s+/)[0] || 'there';
 
+/** ₱1,234 or ₱1,234.50, from centavos: the customer needs the exact amount to pay. */
+const pesos = (cents: number): string => {
+  const whole = Math.floor(cents / 100);
+  const rest = cents % 100;
+  return '₱' + whole.toLocaleString('en-US') + (rest ? '.' + String(rest).padStart(2, '0') : '');
+};
+
 /** The pickup, as the customer's form worded it: a date, and a time or the campus slot. */
 function pickupText(order: StaffOrder): string {
   if (!order.pickupDate) return '';
@@ -46,11 +54,14 @@ function body(kind: MessageKind, order: StaffOrder, link: string | null, flavour
   const ref = order.id;
   const tail = link ? `\nYou can check your order here: ${link}` : '';
   const pickup = pickupText(order);
+  // The add-ons, boxes and same-day extra the total already carries, so the customer can check the sum.
+  const extras = extraDetails(order);
+  const withExtras = extras.length ? `\nIncludes: ${extras.join('; ')}.` : '';
   switch (kind) {
     case 'unpaid':
-      return `${hi} Your order ${ref} is waiting for payment. Please send it and reply with the reference.${tail}`;
+      return `${hi} Your order ${ref} is waiting for payment. The total is ${pesos(order.totalCents)}. Please send it and reply with the reference.${withExtras}${tail}`;
     case 'paid':
-      return `${hi} We got your payment for order ${ref}. Thank you!${pickup ? ' Pickup: ' + pickup + '.' : ''}${tail}`;
+      return `${hi} We got your payment for order ${ref}. Thank you!${pickup ? ' Pickup: ' + pickup + '.' : ''}${withExtras}${tail}`;
     case 'ready':
       return `${hi} Your order ${ref} is ready for pickup${pickup ? ' (' + pickup + ')' : ''}.${tail}`;
     case 'swap':

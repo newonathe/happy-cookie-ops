@@ -31,6 +31,19 @@ export interface StaffOrderItem {
   unitCents: number;
   unavailable: boolean;
 }
+/** An add-on the order carries (B4): frozen at order time. `note` is the customer's own message. */
+export interface StaffAddOn {
+  name: string;
+  qty: number;
+  unitCents: number;
+  variant: string;
+  note: string;
+}
+export interface StaffBox {
+  size: number;
+  qty: number;
+  chargeCents: number;
+}
 export interface StaffOrderSwap {
   from: string;
   to: string;
@@ -59,6 +72,11 @@ export interface StaffOrder {
   holds: boolean;
   items: StaffOrderItem[];
   swaps: StaffOrderSwap[];
+  /** B4: what the total carries beyond the items. `totalCents` already includes all of it. */
+  surchargeCents: number;
+  sameDay: boolean;
+  addOns: StaffAddOn[];
+  boxes: StaffBox[];
 }
 
 type Obj = Record<string, unknown>;
@@ -75,6 +93,24 @@ function parseItem(raw: unknown): StaffOrderItem | null {
     unitCents: centavosFromDb(raw.unit_price_cents),
     unavailable: raw.unavailable === true
   };
+}
+
+function parseAddOn(raw: unknown): StaffAddOn | null {
+  if (!isObj(raw) || !text(raw.name) || !whole(raw.qty) || raw.qty < 1) return null;
+  if (!whole(raw.unit_price_cents) || raw.unit_price_cents < 0) return null;
+  return {
+    name: raw.name,
+    qty: raw.qty,
+    unitCents: centavosFromDb(raw.unit_price_cents),
+    variant: text(raw.variant) ? raw.variant : '',
+    note: text(raw.note) ? raw.note : ''
+  };
+}
+
+function parseBox(raw: unknown): StaffBox | null {
+  if (!isObj(raw) || !whole(raw.size) || !whole(raw.qty) || raw.qty < 1) return null;
+  if (!whole(raw.charge_cents) || raw.charge_cents < 0) return null;
+  return { size: raw.size, qty: raw.qty, chargeCents: centavosFromDb(raw.charge_cents) };
 }
 
 function parseSwap(raw: unknown): StaffOrderSwap | null {
@@ -137,7 +173,19 @@ export function parseStaffOrders(json: unknown): StaffOrder[] {
       items: items as StaffOrderItem[],
       swaps: (Array.isArray(raw.swaps) ? raw.swaps : [])
         .map(parseSwap)
-        .filter((s): s is StaffOrderSwap => s !== null)
+        .filter((s): s is StaffOrderSwap => s !== null),
+      // A malformed extras line is left out of the detail; the total is the server's and stays right.
+      surchargeCents:
+        whole(raw.surcharge_cents) && raw.surcharge_cents > 0
+          ? centavosFromDb(raw.surcharge_cents)
+          : 0,
+      sameDay: raw.same_day === true,
+      addOns: (Array.isArray(raw.add_ons) ? raw.add_ons : [])
+        .map(parseAddOn)
+        .filter((a): a is StaffAddOn => a !== null),
+      boxes: (Array.isArray(raw.boxes) ? raw.boxes : [])
+        .map(parseBox)
+        .filter((b): b is StaffBox => b !== null)
     });
   }
   return out;
@@ -215,6 +263,19 @@ export function currentWeek(orders: readonly StaffOrder[], today: string): strin
   return weeks[0] ?? weekKey(today);
 }
 
+/**
+ * The reserved key of `EngineOrder.priced` that carries the part of an order's total that is not a
+ * flavour: add-ons, box charges and the same-day extra, in pesos. The live `boxTotal` adds it, so every
+ * ported screen shows the server's total. It is never a product id.
+ */
+export const EXTRAS_KEY = '__extras';
+
+/** The part of the total that the items do not explain (add-ons, box charges, the same-day extra), in centavos. */
+export function extrasCents(o: StaffOrder): number {
+  const itemsCents = o.items.reduce((n, i) => n + i.qty * i.unitCents, 0);
+  return Math.max(0, o.totalCents - itemsCents);
+}
+
 export function toEngineOrder(
   o: StaffOrder,
   pickupDays: readonly number[],
@@ -228,6 +289,8 @@ export function toEngineOrder(
     priced[i.productId] ??= centavosToPesos(i.unitCents);
     if (i.unavailable && !unavailable.includes(i.productId)) unavailable.push(i.productId);
   }
+  const extras = extrasCents(o);
+  if (extras > 0) priced[EXTRAS_KEY] = centavosToPesos(extras);
   const balanceCents =
     o.paidCents !== null && o.payState === 'confirmed' ? o.totalCents - o.paidCents : 0;
   return {

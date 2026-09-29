@@ -157,6 +157,8 @@ export interface OpsVals {
       name: string;
       label: string;
       text: string;
+      /** What the order carries beyond flavours, with the customer's note text: what to pack. */
+      details: string[];
       copy: (event?: unknown) => void;
     }>;
     close: (event?: unknown) => void;
@@ -191,7 +193,9 @@ export interface OpsVals {
       key: 'name' | 'ig' | 'mobile' | 'ref' | 'pickupDate' | 'pickupTime',
       value: string
     ) => void;
-    errors: Partial<Record<'name' | 'ig' | 'mobile' | 'date' | 'time' | 'pay' | 'items', string>>;
+    errors: Partial<
+      Record<'name' | 'ig' | 'mobile' | 'date' | 'time' | 'pay' | 'items' | 'extras', string>
+    >;
     dates: Array<{ value: string; label: string }>;
     times: Array<{ value: string; label: string }>;
     rulesState: 'loading' | 'ready' | 'failed';
@@ -205,11 +209,41 @@ export interface OpsVals {
     changeOrder: (event?: unknown) => void;
     openWaitlist: (event?: unknown) => void;
     holdNote: string;
+    /** B4b: boxes, add-ons and the same-day notice; null while the owner's extras are unread or unavailable. */
+    extras: {
+      sameDayNotice: string;
+      boxes: Array<{
+        size: number;
+        label: string;
+        qty: number;
+        max: number;
+        setQty: (qty: number) => void;
+      }>;
+      addOns: Array<{
+        id: string;
+        name: string;
+        priceText: string;
+        textLabel: string | null;
+        textMax: number;
+        rows: Array<{
+          key: string;
+          label: string;
+          qty: number;
+          max: number;
+          text: string;
+          setQty: (qty: number) => void;
+          setText: (text: string) => void;
+        }>;
+      }>;
+    } | null;
+    /** Said under the ported total when extras or a same-day date are picked: the shop adds them to it. */
+    totalNote: string;
     placed: {
       orderNo: string;
       statusUrl: string;
       totalText: string;
       pickupText: string;
+      extraLines: string[];
       copyLink: (event?: unknown) => void;
       seeOrder: (event?: unknown) => void;
       orderAgain: (event?: unknown) => void;

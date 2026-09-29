@@ -26,8 +26,14 @@ import type {
   OpsVals
 } from '@/view-models/vals';
 import { PaymentSync } from '@/lib/data/payment-sync';
-import { StaffOrderSync, type StaffOrderClient, type StaffOutcome } from '@/lib/data/staff-orders';
+import {
+  EXTRAS_KEY,
+  StaffOrderSync,
+  type StaffOrderClient,
+  type StaffOutcome
+} from '@/lib/data/staff-orders';
 import { messagesFor, statusLink } from '@/lib/orders/messages';
+import { extraDetails, extraRows } from '@/lib/orders/extras-view';
 import { fetchShopStatus, saveShopOverride, type ShopOverride, type ShopStatusClient } from '@/lib/data/shop-status';
 import { fetchOrderRules, orderRulesError, saveOrderRules, type OrderRulesRow } from '@/lib/data/order-rules';
 import {
@@ -43,7 +49,7 @@ import { OrderFlow } from '@/lib/data/order-flow';
 import { tokenFromHash, type FieldErrors, type OrderClient } from '@/lib/data/orders';
 import { pickupLabel, statusCust } from '@/lib/orders/status-view';
 import { ORDER_COPY } from '@/lib/orders/copy';
-import { pickupDates, pickupTimes, waitlistRange } from '@/lib/orders/pickup';
+import { manilaMinutes, pickupDates, pickupTimes, waitlistRange } from '@/lib/orders/pickup';
 import { EMPTY_TEXTS, type PaymentClient, type UploadClient } from '@/lib/data/payments';
 import { resolveImagePath } from '@/lib/media/resolve-image';
 import { isLiveMode } from '@/lib/config/app-mode';
@@ -192,6 +198,12 @@ interface OrderActions {
   inDrop: (s: unknown, o: unknown) => boolean;
 }
 
+/** The engine's total is an instance field the typings do not list; replaced in live mode (B4b). */
+interface TotalActions {
+  boxTotal: (items: Record<string, number>, priced?: Record<string, number>) => number;
+  priceOf: (pid: string, priced?: Record<string, number>) => number;
+}
+
 /** The orders the bake list counts: unpaid ones too, because Cine bakes before she is paid (28 Sep). */
 const BAKED_FOR = ['Payment review', 'Confirmed', 'Preparing'];
 
@@ -309,6 +321,13 @@ export class OpsRuntime extends OpsProvider {
     replacePayAccounts([]);
     this.installOrderOverrides();
     this.installShopOverrides();
+    // B4b: an order's total is what the server charged: its flavours at the prices it was sold at, plus the
+    // add-ons, box charges and same-day extra it carries (`EXTRAS_KEY`). The ported total also applies the demo
+    // price mode, packaging fee and flat box price, none of which the server uses. This replaces it in live mode.
+    const totals = this as unknown as TotalActions;
+    totals.boxTotal = (items, priced) =>
+      Object.keys(items).reduce((t, k) => t + totals.priceOf(k, priced) * (items[k] ?? 0), 0) +
+      Number(priced?.[EXTRAS_KEY] ?? 0);
     // B2: a live checkout places real orders; the engine's local order list plays no part. The
     // form fields still live in `state.cust`, so the ported setters and reset actions are kept.
     this.custSubmit = () => {
@@ -1273,8 +1292,23 @@ export class OpsRuntime extends OpsProvider {
     if (!order) return od;
     const origin = typeof window === 'undefined' ? '' : window.location.origin;
     const link = statusLink(origin, order.statusToken);
+    // B4b: add-ons, boxes and the same-day extra as rows after the flavours. `orders.tsx` shows name, quantity
+    // and line total; `order-detail.tsx` also draws the flag button, so it says "Extra" and does nothing.
+    const extra = extraRows(order).map((r) => ({
+      name: r.name,
+      qty: r.qty + '×',
+      imgStyle: 'display:block;width:36px;height:36px;border-radius:9px;background:#F8F6F4',
+      price: PESO(r.linePesos / r.qty),
+      line: PESO(r.linePesos),
+      out: false,
+      inStock: true,
+      flagLabel: EXTRAS_COPY.extraFlag,
+      flag: () => this.toast(EXTRAS_COPY.extraFlagToast),
+      swap: () => undefined
+    }));
     return {
       ...od,
+      lines: [...(od.lines ?? []), ...extra],
       link: link ?? '',
       linkSent: link ? STAFF_COPY.linkHint : STAFF_COPY.linkErased,
       copyLink: () => void this.copyMessage(link ?? '', link ? undefined : STAFF_COPY.linkErased)
@@ -1431,6 +1465,7 @@ export class OpsRuntime extends OpsProvider {
         name: o.name,
         label: m.label,
         text: m.text,
+        details: extraDetails(o),
         copy: () => void this.copyMessage(m.text)
       }))
     );
@@ -1711,6 +1746,7 @@ export class OpsRuntime extends OpsProvider {
       });
     }
     this.syncStatusRoute();
+    void this.orderFlow.loadExtras();
     return this.orderFlow.loadRules();
   }
 
@@ -1818,6 +1854,64 @@ export class OpsRuntime extends OpsProvider {
     const rules = flow?.rules ?? null;
     const placed = flow?.placed ?? null;
     const statusUrl = (token: string) => window.location.origin + '/status#t=' + token;
+    const x = flow?.extras ?? null;
+    const dates = rules ? pickupDates(rules, Date.now(), x?.sameDay.enabled ? x.sameDay.percent : null) : [];
+    const sameDayPicked = dates.some((d) => d.sameDay && d.value === c.pickupDate);
+    const times = rules ? pickupTimes(rules, sameDayPicked ? manilaMinutes() : null) : [];
+    const samplerId = x?.sampler.productId ?? null;
+    const cookieQty = Object.entries(c.box ?? {})
+      .filter(([id]) => id !== samplerId)
+      .reduce((n, [, qty]) => n + Math.max(0, qty), 0);
+    const boxed = Object.entries(flow?.boxQty ?? {}).reduce((n, [size, qty]) => n + Number(size) * qty, 0);
+    const money = (cents: number) => PESO(centavosToPesos(centavosFromDb(cents)));
+    const extras: NonNullable<OpsVals['liveCheckout']>['extras'] = x
+      ? {
+          sameDayNotice: !sameDayPicked
+            ? ''
+            : times.length === 0
+              ? ORDER_COPY.extras.noSlotsToday
+              : ORDER_COPY.extras.sameDayNotice(x.sameDay.percent),
+          boxes:
+            x.boxes.length && cookieQty >= x.boxes[0]!.size
+              ? x.boxes.map((b) => {
+                  const qty = flow?.boxQty[b.size] ?? 0;
+                  return {
+                    size: b.size,
+                    label: ORDER_COPY.extras.boxLabel(b.size, b.chargeCents > 0 ? money(b.chargeCents) : ''),
+                    qty,
+                    max: qty + Math.max(0, Math.floor((cookieQty - boxed) / b.size)),
+                    setQty: (n: number) => flow?.setBox(b.size, n)
+                  };
+                })
+              : [],
+          addOns: x.addOns.map((a) => {
+            const keys = (a.variants.length ? a.variants : ['']).map((v) => a.id + '|' + v);
+            const used = keys.reduce((n, k) => n + (flow?.lines[k]?.qty ?? 0), 0);
+            return {
+              id: a.id,
+              name: a.name,
+              priceText: money(a.priceCents),
+              textLabel: a.textLabel,
+              textMax: a.textMax,
+              rows: keys.map((key) => {
+                const v = key.slice(a.id.length + 1);
+                const line = flow?.lines[key];
+                const qty = line?.qty ?? 0;
+                return {
+                  key,
+                  label: v ? a.name + ' ' + v : a.name,
+                  qty,
+                  max: a.textLabel !== null ? 1 : qty + Math.max(0, a.maxQty - used),
+                  text: line?.text ?? '',
+                  setQty: (n: number) => flow?.setLine(key, { qty: n }),
+                  setText: (t: string) => flow?.setLine(key, { text: t.slice(0, a.textMax) })
+                };
+              })
+            };
+          })
+        }
+      : null;
+    const anyExtras = Object.keys(flow?.boxQty ?? {}).length > 0 || Object.values(flow?.lines ?? {}).some((l) => l.qty > 0);
     return {
       fields: {
         name: c.name ?? '',
@@ -1830,8 +1924,10 @@ export class OpsRuntime extends OpsProvider {
       },
       set: (key, value) => this.custSet(key, value),
       errors: flow?.errors ?? {},
-      dates: rules ? pickupDates(rules) : [],
-      times: rules ? pickupTimes(rules) : [],
+      dates,
+      times,
+      extras,
+      totalNote: anyExtras || sameDayPicked ? ORDER_COPY.extras.totalNote : '',
       rulesState: flow ? flow.rulesState : 'failed',
       readOnly: (flow?.unresolved ?? false) || (flow?.sending ?? false),
       frozen: flow?.unresolved ?? false,
@@ -1847,6 +1943,7 @@ export class OpsRuntime extends OpsProvider {
             statusUrl: statusUrl(placed.token),
             totalText: PESO(centavosToPesos(centavosFromDb(placed.totalCents))),
             pickupText: pickupLabel(placed.pickupDate, placed.pickupWindow),
+            extraLines: flow?.placedLines ?? [],
             copyLink: () => {
               const write = navigator.clipboard?.writeText(statusUrl(placed.token));
               if (!write) {

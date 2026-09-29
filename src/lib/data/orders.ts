@@ -3,6 +3,7 @@ import type { Database, Json } from '@/lib/types/database';
 import { normalisePhone } from '@/lib/idempotency';
 import { ORDER_COPY } from '@/lib/orders/copy';
 import { parseShopOrderRules, type ShopOrderRules } from '@/lib/orders/pickup';
+import type { AddOnLine, BoxLine } from '@/lib/data/order-extras';
 
 /**
  * The customer side of the order command (B2, migrations 20260101003500 and 20260101003600).
@@ -27,6 +28,7 @@ export const DEFINITE_CODES = [
   'ZC004',
   'ZC005',
   'ZC006',
+  'ZC007',
   '22023',
   '23505',
   '42501',
@@ -58,6 +60,8 @@ export function refusalMessage(code: string, details?: string | null): string {
       return ORDER_COPY.method;
     case 'ZC006':
       return ORDER_COPY.waitlistLimit;
+    case 'ZC007':
+      return ORDER_COPY.extras.notOffered;
     case '22023':
       return ORDER_COPY.malformed;
     case '23505':
@@ -81,6 +85,9 @@ export interface OrderFields {
   ref: string;
   /** Product id to quantity. */
   items: Record<string, number>;
+  /** B4: add-on lines and box lines; both optional, and left out of the body when empty. */
+  addOns?: AddOnLine[];
+  boxes?: BoxLine[];
 }
 
 /** Exactly the keys `place_order` accepts. No price, total, state or role. */
@@ -94,6 +101,8 @@ export type OrderBody = {
   pickup_date: string;
   pickup_window: string;
   pay_ref?: string;
+  add_ons?: Array<{ id: string; qty: number; variant?: string; text?: string }>;
+  boxes?: Array<{ size: number; qty: number }>;
 };
 
 export function buildOrderBody(clientId: string, f: OrderFields): OrderBody {
@@ -112,11 +121,26 @@ export function buildOrderBody(clientId: string, f: OrderFields): OrderBody {
   };
   const ref = f.ref.trim();
   if (ref) body.pay_ref = ref;
+  const addOns = (f.addOns ?? []).filter((l) => l.qty > 0);
+  if (addOns.length)
+    body.add_ons = addOns.map((l) => {
+      const line: { id: string; qty: number; variant?: string; text?: string } = {
+        id: l.id,
+        qty: l.qty
+      };
+      if (l.variant) line.variant = l.variant;
+      const text = l.text.trim();
+      if (text) line.text = text;
+      return line;
+    });
+  const boxes = (f.boxes ?? []).filter((b) => b.qty > 0);
+  if (boxes.length)
+    body.boxes = boxes.map((b) => ({ size: b.size, qty: b.qty })).sort((a, b) => a.size - b.size);
   return body;
 }
 
 export type FieldErrors = Partial<
-  Record<'name' | 'ig' | 'mobile' | 'date' | 'time' | 'pay' | 'items', string>
+  Record<'name' | 'ig' | 'mobile' | 'date' | 'time' | 'pay' | 'items' | 'extras', string>
 >;
 
 /** Mirrors the shape checks `place_order` makes, so a sure refusal is never sent. */

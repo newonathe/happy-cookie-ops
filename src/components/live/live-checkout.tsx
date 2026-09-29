@@ -130,6 +130,66 @@ function Text({
   );
 }
 
+const stepButton: React.CSSProperties = {
+  width: '38px',
+  height: '38px',
+  border: '1px solid #EADCC4',
+  borderRadius: '10px',
+  background: '#FFFDF9',
+  fontSize: '18px',
+  fontWeight: '700',
+  color: '#3A1F14'
+};
+
+/** A quantity with minus and plus, in the checkout's own tokens (a box, or one add-on choice). */
+function Stepper({
+  label,
+  name,
+  qty,
+  max,
+  readOnly,
+  onChange
+}: {
+  /** What is shown. */
+  label: string;
+  /** What a screen reader hears ('More Sticker 2'); the label when not given. */
+  name?: string;
+  qty: number;
+  max: number;
+  readOnly: boolean;
+  onChange: (qty: number) => void;
+}) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+      <span style={{ flex: '1', minWidth: '0', fontSize: '13px', fontWeight: '600' }}>{label}</span>
+      <button
+        type="button"
+        aria-label={'Fewer ' + (name ?? label)}
+        disabled={readOnly || qty <= 0}
+        onClick={() => onChange(qty - 1)}
+        style={{ ...stepButton, opacity: readOnly || qty <= 0 ? 0.5 : 1 }}
+      >
+        −
+      </button>
+      <span
+        style={{ minWidth: '20px', textAlign: 'center', fontSize: '14px', fontWeight: '700' }}
+        aria-live="polite"
+      >
+        {qty}
+      </span>
+      <button
+        type="button"
+        aria-label={'More ' + (name ?? label)}
+        disabled={readOnly || qty >= max}
+        onClick={() => onChange(qty + 1)}
+        style={{ ...stepButton, opacity: readOnly || qty >= max ? 0.5 : 1 }}
+      >
+        +
+      </button>
+    </div>
+  );
+}
+
 export function LiveCheckout({ v }: { v: OpsVals }) {
   const live = v.liveCheckout;
   if (!live) return null;
@@ -197,6 +257,11 @@ export function LiveCheckout({ v }: { v: OpsVals }) {
           </Pressable>
         ))}
         {errors.date ? <span style={errorText}>{errors.date}</span> : null}
+        {live.extras?.sameDayNotice ? (
+          <span style={{ fontSize: '12px', color: '#6E574B', lineHeight: '1.5' }}>
+            {live.extras.sameDayNotice}
+          </span>
+        ) : null}
         {live.times.length ? (
           <label style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
             <span style={fieldLabel}>Pickup time</span>
@@ -217,6 +282,66 @@ export function LiveCheckout({ v }: { v: OpsVals }) {
           </label>
         ) : null}
       </div>
+      {live.extras && live.extras.boxes.length > 0 ? (
+        <div style={{ ...card, gap: '9px' }}>
+          <span style={cardTitle}>{ORDER_COPY.extras.boxesTitle}</span>
+          <span style={{ fontSize: '12px', color: '#6E574B' }}>{ORDER_COPY.extras.boxesHelp}</span>
+          {live.extras.boxes.map((b) => (
+            <Stepper
+              key={b.size}
+              label={b.label}
+              qty={b.qty}
+              max={b.max}
+              readOnly={readOnly}
+              onChange={b.setQty}
+            />
+          ))}
+        </div>
+      ) : null}
+      {live.extras && live.extras.addOns.length > 0 ? (
+        <div style={{ ...card, gap: '11px' }}>
+          <span style={cardTitle}>{ORDER_COPY.extras.addOnsTitle}</span>
+          {live.extras.addOns.map((a) => (
+            <div key={a.id} style={{ display: 'flex', flexDirection: 'column', gap: '7px' }}>
+              {a.rows.length > 1 ? (
+                <span style={{ fontSize: '12px', color: '#6E574B' }}>
+                  {a.name} · {a.priceText}
+                </span>
+              ) : null}
+              {a.rows.map((row) => (
+                <div key={row.key} style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <Stepper
+                    label={a.rows.length > 1 ? row.label : row.label + ' · ' + a.priceText}
+                    name={row.label}
+                    qty={row.qty}
+                    max={row.max}
+                    readOnly={readOnly}
+                    onChange={row.setQty}
+                  />
+                  {a.textLabel !== null && row.qty > 0 ? (
+                    <label style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                      <span style={fieldLabel}>{a.textLabel}</span>
+                      <input
+                        value={row.text}
+                        onChange={(e) => row.setText(e.target.value)}
+                        readOnly={readOnly}
+                        maxLength={a.textMax}
+                        style={field}
+                      />
+                    </label>
+                  ) : null}
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      ) : null}
+      {errors.extras ? <span style={errorText}>{errors.extras}</span> : null}
+      {live.totalNote ? (
+        <span style={{ fontSize: '12px', color: '#6E574B', lineHeight: '1.5' }}>
+          {live.totalNote}
+        </span>
+      ) : null}
       <div style={{ ...card, gap: '9px' }}>
         <span style={cardTitle}>Payment</span>
         <span style={{ fontSize: '13px', color: '#6E574B', lineHeight: '1.5' }}>
@@ -398,8 +523,14 @@ function Placed({
         {ORDER_COPY.placedBody}
       </span>
       <span style={{ fontSize: '12px', fontWeight: '600' }}>
-        {placed.pickupText ? ORDER_COPY.pickupLine(placed.pickupText) + ' · ' : ''}Total {placed.totalText}
+        {placed.pickupText ? ORDER_COPY.pickupLine(placed.pickupText) + ' · ' : ''}Total{' '}
+        {placed.totalText}
       </span>
+      {placed.extraLines.length ? (
+        <span style={{ fontSize: '12px', color: '#6E574B', lineHeight: '1.5' }}>
+          {ORDER_COPY.extras.placedLines}: {placed.extraLines.join(' · ')}
+        </span>
+      ) : null}
       <a
         href={placed.statusUrl}
         style={{ fontSize: '11px', color: '#C24A15', overflowWrap: 'anywhere', lineHeight: '1.5' }}

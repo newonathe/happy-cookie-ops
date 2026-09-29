@@ -19,6 +19,13 @@ import {
 } from '@/lib/data/orders';
 import { ORDER_COPY } from '@/lib/orders/copy';
 import type { ShopOrderRules } from '@/lib/orders/pickup';
+import {
+  extrasSelectionError,
+  fetchShopExtras,
+  type AddOnLine,
+  type BoxLine,
+  type ShopExtras
+} from '@/lib/data/order-extras';
 
 /**
  * The customer's checkout, lookup and waitlist state (B2). One instance per live page, held by
@@ -33,6 +40,7 @@ import type { ShopOrderRules } from '@/lib/orders/pickup';
  */
 export type Banner = { tone: 'error' | 'notice'; text: string; canWaitlist: boolean };
 export type RulesState = 'loading' | 'ready' | 'failed';
+export type ExtrasState = 'loading' | 'ready' | 'failed';
 export type StatusState = 'idle' | 'loading' | 'loaded' | 'missing' | 'error';
 export type LookupState = 'idle' | 'busy' | 'missed' | 'error';
 export type WaitlistState = 'idle' | 'sending' | 'done' | 'refused' | 'unknown';
@@ -46,6 +54,14 @@ export interface OrderFlowHooks {
 export class OrderFlow {
   rules: ShopOrderRules | null = null;
   rulesState: RulesState = 'loading';
+  /** B4b: the owner's boxes, add-ons, sampler and same-day rule, and what this customer picked from them. */
+  extras: ShopExtras | null = null;
+  extrasState: ExtrasState = 'loading';
+  boxQty: Record<number, number> = {};
+  /** Add-on lines by `id|variant`: how many, and the message where the add-on has one. */
+  lines: Record<string, { qty: number; text: string }> = {};
+  /** What the placed order carried beyond flavours, as lines to show the customer. */
+  placedLines: string[] = [];
   attempt: Attempt | null = null;
   sending = false;
   banner: Banner | null = null;
@@ -81,6 +97,75 @@ export class OrderFlow {
     return this.rules !== null;
   }
 
+  /** The owner's extras, read fresh on every live page. A failed read offers no extras; cookies still order. */
+  async loadExtras(): Promise<boolean> {
+    try {
+      this.extras = await fetchShopExtras(this.client);
+    } catch {
+      this.extras = null;
+    }
+    this.extrasState = this.extras ? 'ready' : 'failed';
+    this.pruneSelection();
+    this.hooks.changed();
+    return this.extras !== null;
+  }
+
+  /** What was picked stays only while the owner still offers it. */
+  private pruneSelection(): void {
+    const x = this.extras;
+    this.boxQty = Object.fromEntries(
+      Object.entries(this.boxQty).filter(([size]) => x?.boxes.some((b) => b.size === Number(size)))
+    );
+    this.lines = Object.fromEntries(
+      Object.entries(this.lines).filter(([key]) => {
+        const [id, variant = ''] = key.split('|');
+        const cfg = x?.addOns.find((a) => a.id === id);
+        return (
+          !!cfg && (variant === '' ? cfg.variants.length === 0 : cfg.variants.includes(variant))
+        );
+      })
+    );
+  }
+
+  setBox(size: number, qty: number): void {
+    if (this.locked) return;
+    const next = { ...this.boxQty };
+    if (qty > 0) next[size] = Math.min(qty, 50);
+    else delete next[size];
+    this.boxQty = next;
+    this.clearError('extras');
+    this.hooks.changed();
+  }
+
+  setLine(key: string, patch: { qty?: number; text?: string }): void {
+    if (this.locked) return;
+    const cur = this.lines[key] ?? { qty: 0, text: '' };
+    const qty = Math.max(0, Math.min(patch.qty ?? cur.qty, 50));
+    const next = { ...this.lines };
+    const line = { qty, text: patch.text ?? cur.text };
+    if (qty > 0 || line.text !== '') next[key] = line;
+    else delete next[key];
+    this.lines = next;
+    this.clearError('extras');
+    this.hooks.changed();
+  }
+
+  /** The picked lines in the shape `place_order` takes; add-on lines with nothing picked are left out. */
+  selection(): { addOns: AddOnLine[]; boxes: BoxLine[] } {
+    const addOns: AddOnLine[] = Object.entries(this.lines)
+      .filter(([, l]) => l.qty > 0)
+      .map(([key, l]) => {
+        const [id = '', variant = ''] = key.split('|');
+        return { id, variant, qty: l.qty, text: l.text };
+      })
+      .sort((a, b) => (a.id + a.variant).localeCompare(b.id + b.variant));
+    const boxes: BoxLine[] = Object.entries(this.boxQty)
+      .filter(([, qty]) => qty > 0)
+      .map(([size, qty]) => ({ size: Number(size), qty }))
+      .sort((a, b) => a.size - b.size);
+    return { addOns, boxes };
+  }
+
   /** A field was edited: its refusal no longer applies. */
   clearError(key: keyof FieldErrors): void {
     if (!(key in this.errors)) return;
@@ -105,8 +190,31 @@ export class OrderFlow {
 
   async submit(fields: OrderFields): Promise<void> {
     if (this.sending || this.placed) return;
+    const picked = this.selection();
+    fields = { ...fields, addOns: picked.addOns, boxes: picked.boxes };
     if (!this.attempt) {
       const errors = orderFieldErrors(fields);
+      const x = this.extras;
+      const samplerId = x?.sampler.productId ?? null;
+      const cart = {
+        cookieQty: Object.entries(fields.items)
+          .filter(([id]) => id !== samplerId)
+          .reduce((n, [, qty]) => n + Math.max(0, qty), 0),
+        samplerQty: samplerId ? Math.max(0, fields.items[samplerId] ?? 0) : 0
+      };
+      const extrasError =
+        x && (picked.addOns.length || picked.boxes.length || cart.samplerQty)
+          ? extrasSelectionError(x, picked, cart, {
+              box: ORDER_COPY.extras.box,
+              addOn: ORDER_COPY.extras.addOn,
+              variant: ORDER_COPY.extras.variant,
+              text: ORDER_COPY.extras.text,
+              textLong: ORDER_COPY.extras.textLong,
+              qty: ORDER_COPY.extras.qty,
+              sampler: ORDER_COPY.extras.sampler
+            })
+          : null;
+      if (extrasError) errors.extras = extrasError;
       if (Object.keys(errors).length) {
         this.errors = errors;
         this.banner = null;
@@ -124,7 +232,9 @@ export class OrderFlow {
     this.sending = false;
     if (outcome.kind === 'placed') {
       this.placed = outcome.order;
+      this.placedLines = this.describeLines(picked);
     } else if (outcome.kind === 'refused') {
+      if (outcome.code === 'ZC007') void this.loadExtras();
       // A refusal a field can carry is shown on that field as well as in the banner.
       if (outcome.code === 'ZC004') this.errors = { date: outcome.message };
       if (outcome.code === 'ZC005') this.errors = { pay: outcome.message };
@@ -137,6 +247,17 @@ export class OrderFlow {
       this.banner = { tone: 'notice', text: ORDER_COPY.unknown, canWaitlist: false };
     }
     this.hooks.changed();
+  }
+
+  /** The picked extras as lines the placed card shows ("Sticker 2 x1", "Box of 6 x1"). */
+  private describeLines(picked: { addOns: AddOnLine[]; boxes: BoxLine[] }): string[] {
+    const out: string[] = [];
+    for (const l of picked.addOns) {
+      const name = this.extras?.addOns.find((a) => a.id === l.id)?.name ?? l.id;
+      out.push(`${name}${l.variant ? ' ' + l.variant : ''} × ${l.qty}`);
+    }
+    for (const b of picked.boxes) out.push(`Box of ${b.size} × ${b.qty}`);
+    return out;
   }
 
   /** Drops the frozen attempt. The customer is told to check whether the last try went through. */
@@ -153,6 +274,9 @@ export class OrderFlow {
     this.banner = null;
     this.errors = {};
     this.placed = null;
+    this.boxQty = {};
+    this.lines = {};
+    this.placedLines = [];
     this.hooks.changed();
   }
 

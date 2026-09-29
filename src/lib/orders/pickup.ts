@@ -24,6 +24,8 @@ export interface PickupDate {
   /** YYYY-MM-DD, what `place_order` takes. */
   value: string;
   label: string;
+  /** Today: the server adds the same-day extra. */
+  sameDay?: boolean;
 }
 export interface PickupTime {
   /** HH:MM, or `campus`. */
@@ -94,10 +96,33 @@ function addDays(ymd: string, days: number): Date {
   return new Date(Date.UTC(y, m - 1, d + days));
 }
 
-/** The dates a customer can pick: pickup days within the lead window, both ends inclusive. */
-export function pickupDates(rules: ShopOrderRules, now: Date | number = Date.now()): PickupDate[] {
+/**
+ * The dates a customer can pick: pickup days within the lead window, both ends inclusive. With
+ * `sameDayPercent` (the owner has switched same-day on) today is offered too when it is a pickup day,
+ * labelled with its extra; `place_order` derives same-day from the date, so this only offers it.
+ */
+export function pickupDates(
+  rules: ShopOrderRules,
+  now: Date | number = Date.now(),
+  sameDayPercent: number | null = null
+): PickupDate[] {
   const today = manilaToday(now);
   const out: PickupDate[] = [];
+  if (sameDayPercent !== null) {
+    const day = addDays(today, 0);
+    const isoWeekday = day.getUTCDay() === 0 ? 7 : day.getUTCDay();
+    if (rules.pickupDays.includes(isoWeekday))
+      out.push({
+        value: today,
+        sameDay: true,
+        label:
+          'Today, ' +
+          day.toLocaleDateString('en-US', { timeZone: 'UTC', month: 'short', day: 'numeric' }) +
+          ' · same-day +' +
+          sameDayPercent +
+          '%'
+      });
+  }
   for (let lead = rules.leadMinDays; lead <= rules.leadMaxDays; lead += 1) {
     const day = addDays(today, lead);
     const isoWeekday = day.getUTCDay() === 0 ? 7 : day.getUTCDay();
@@ -121,18 +146,35 @@ export function clockLabel(hhmm: string): string {
   return (h % 12 || 12) + ':' + String(m).padStart(2, '0') + ' ' + (h < 12 ? 'AM' : 'PM');
 }
 
-/** Half-hour slots from the start hour up to (not including) the cutoff, then the campus slot. */
-export function pickupTimes(rules: ShopOrderRules): PickupTime[] {
+/** Minutes since midnight on the business clock (Asia/Manila). */
+export function manilaMinutes(now: Date | number = Date.now()): number {
+  const t = new Date((typeof now === 'number' ? now : now.getTime()) + 8 * 3_600_000);
+  return t.getUTCHours() * 60 + t.getUTCMinutes();
+}
+
+/**
+ * Half-hour slots from the start hour up to (not including) the cutoff, then the campus slot. For a
+ * same-day pickup pass the current minute (`afterMinute`): `place_order` refuses a slot whose start has
+ * passed, so only later ones are offered.
+ */
+export function pickupTimes(
+  rules: ShopOrderRules,
+  afterMinute: number | null = null
+): PickupTime[] {
   const out: PickupTime[] = [];
   for (let minute = rules.pickupFromHour * 60; minute < rules.pickupCutoffHour * 60; minute += 30) {
+    if (afterMinute !== null && minute <= afterMinute) continue;
     const hhmm =
       String(Math.floor(minute / 60)).padStart(2, '0') + ':' + String(minute % 60).padStart(2, '0');
     out.push({ value: hhmm, label: clockLabel(hhmm) });
   }
-  out.push({
-    value: 'campus',
-    label: 'Campus · ' + clockLabel(rules.campusFrom) + ' – ' + clockLabel(rules.campusTo)
-  });
+  const campusStart =
+    Number(rules.campusFrom.slice(0, 2)) * 60 + Number(rules.campusFrom.slice(3, 5));
+  if (afterMinute === null || campusStart > afterMinute)
+    out.push({
+      value: 'campus',
+      label: 'Campus · ' + clockLabel(rules.campusFrom) + ' – ' + clockLabel(rules.campusTo)
+    });
   return out;
 }
 

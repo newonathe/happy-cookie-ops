@@ -236,29 +236,32 @@ try {
     );
   });
 
-  await step("the owner's close-now closes the shop banner, and following the window reopens it", async () => {
-    // The refusal itself (ZC001 from place_order) is proven by the SQL role suite; here the customer's page must agree.
-    const setSwitch = async (mode) => {
-      const { error } = await admin.from('shop_state').update({ override: mode }).eq('id', true);
-      assert(!error, `shop_state: ${error?.message}`);
-    };
-    await setSwitch('closed');
-    try {
+  await step(
+    "the owner's close-now closes the shop banner, and following the window reopens it",
+    async () => {
+      // The refusal itself (ZC001 from place_order) is proven by the SQL role suite; here the customer's page must agree.
+      const setSwitch = async (mode) => {
+        const { error } = await admin.from('shop_state').update({ override: mode }).eq('id', true);
+        assert(!error, `shop_state: ${error?.message}`);
+      };
+      await setSwitch('closed');
+      try {
+        await page.goto(`${base}/shop`, { waitUntil: 'networkidle' });
+        await page.waitForSelector('[data-screen-label="Customer shop"]');
+        assert(
+          !(await page.evaluate(() => window.__hcOps.shopOpen())),
+          'the shop banner says open while the owner has closed it'
+        );
+      } finally {
+        await setSwitch(null);
+      }
       await page.goto(`${base}/shop`, { waitUntil: 'networkidle' });
-      await page.waitForSelector('[data-screen-label="Customer shop"]');
       assert(
-        !(await page.evaluate(() => window.__hcOps.shopOpen())),
-        'the shop banner says open while the owner has closed it'
+        await page.evaluate(() => window.__hcOps.shopOpen()),
+        'the shop did not reopen after the owner went back to the window'
       );
-    } finally {
-      await setSwitch(null);
     }
-    await page.goto(`${base}/shop`, { waitUntil: 'networkidle' });
-    assert(
-      await page.evaluate(() => window.__hcOps.shopOpen()),
-      'the shop did not reopen after the owner went back to the window'
-    );
-  });
+  );
 
   await step('two cookies go to the checkout, which is the live form', async () => {
     const add = page.getByRole('button', { name: 'Add one' }).first();
@@ -391,19 +394,28 @@ try {
     }
   );
 
-  await step('the /lookup URL shows the live form, not the email promise, and finds the order', async () => {
-    await page.goto(`${base}/lookup`, { waitUntil: 'networkidle' });
-    await page.waitForSelector('[data-screen-label="Find my order"]');
-    await page.locator('input[placeholder="HC-1042"]').waitFor();
-    const text = (await page.locator('[data-screen-label="Find my order"]').textContent()) ?? '';
-    assert(!/emailed|or email/i.test(text), `the /lookup page still promises email lookup: ${text.slice(0, 200)}`);
-    await page.locator('input[placeholder="HC-1042"]').fill(orderNo);
-    await page.locator('input[placeholder="09XX XXX XXXX"]').fill(PHONE_TYPED);
-    await page.getByRole('button', { name: 'Find it' }).click();
-    await page.waitForSelector('[data-screen-label="Customer order status"]');
-    await page.getByText(orderNo).first().waitFor();
-    assert(page.url().endsWith('/status#t=' + token), `Address bar after lookup is ${page.url()}`);
-  });
+  await step(
+    'the /lookup URL shows the live form, not the email promise, and finds the order',
+    async () => {
+      await page.goto(`${base}/lookup`, { waitUntil: 'networkidle' });
+      await page.waitForSelector('[data-screen-label="Find my order"]');
+      await page.locator('input[placeholder="HC-1042"]').waitFor();
+      const text = (await page.locator('[data-screen-label="Find my order"]').textContent()) ?? '';
+      assert(
+        !/emailed|or email/i.test(text),
+        `the /lookup page still promises email lookup: ${text.slice(0, 200)}`
+      );
+      await page.locator('input[placeholder="HC-1042"]').fill(orderNo);
+      await page.locator('input[placeholder="09XX XXX XXXX"]').fill(PHONE_TYPED);
+      await page.getByRole('button', { name: 'Find it' }).click();
+      await page.waitForSelector('[data-screen-label="Customer order status"]');
+      await page.getByText(orderNo).first().waitFor();
+      assert(
+        page.url().endsWith('/status#t=' + token),
+        `Address bar after lookup is ${page.url()}`
+      );
+    }
+  );
 
   await step('the waiting list takes an entry', async () => {
     await page.goto(`${base}/shop`, { waitUntil: 'networkidle' });
@@ -425,6 +437,116 @@ try {
       'waitlist row differs'
     );
   });
+
+  await step(
+    'B4: a sticker, a note card and a same-day pickup are priced by the server and stored',
+    async () => {
+      // The owner switches same-day on, and every weekday and hour is a pickup day and hour, so today is offered whatever
+      // the weekday (the clock decides only which time slots are still ahead).
+      const rules = await admin
+        .from('order_rules')
+        .update({ pickup_days: [1, 2, 3, 4, 5, 6, 7], pickup_from_hour: 0, pickup_cutoff_hour: 24 })
+        .eq('id', true);
+      assert(!rules.error, `order_rules: ${rules.error?.message}`);
+      const extras = await admin
+        .from('order_extras')
+        .update({ same_day_enabled: true, same_day_percent: 40, same_day_on_extras: false })
+        .eq('id', true);
+      assert(!extras.error, `order_extras: ${extras.error?.message}`);
+
+      await page.goto(`${base}/shop`, { waitUntil: 'networkidle' });
+      await page.waitForSelector('[data-screen-label="Customer shop"]');
+      const add = page.getByRole('button', { name: 'Add one' }).first();
+      await add.click();
+      await add.click();
+      await page.getByRole('button', { name: /^Continue/ }).click();
+      await page.getByText('Almost yours').waitFor();
+
+      // The add-ons the owner offers, from the database: a sticker design and a note card with its message.
+      await page.getByText('Add-ons', { exact: true }).waitFor();
+      await page.getByRole('button', { name: 'More Sticker 2' }).click();
+      await page.getByRole('button', { name: 'More Note card' }).click();
+      await page.getByLabel('Message').fill('Happy birthday Mika');
+      // Two cookies do not reach a box of six: no Boxes card.
+      assert(
+        (await page.getByText('Boxes', { exact: true }).count()) === 0,
+        'a Boxes card is shown for two cookies'
+      );
+
+      await page.locator('#lc-name').fill('Cara Extras');
+      await page.locator('#lc-ig').fill('@cara.extras');
+      const phone2 = '09' + String(Math.floor(Math.random() * 1e9)).padStart(9, '0');
+      await page.locator('#lc-mobile').fill(phone2);
+      await page.getByRole('button', { name: /^Today, .*same-day \+40%/ }).click();
+      await page.getByText('Add-ons, box charges and any same-day extra are added').waitFor();
+      // Only slots later than now are offered today. In the last half hour of the day there are none: the page says
+      // so, and the order goes to the next pickup day instead, with no same-day extra.
+      const later = await page
+        .locator('select option')
+        .evaluateAll((options) => options.map((o) => o.value).filter((v) => /^\d\d:\d\d$/.test(v)));
+      const sameDay = later.length > 0;
+      if (sameDay) {
+        await page.getByText('Same-day pickup adds 40%').waitFor();
+        await page.locator('select').selectOption(later[later.length - 1]);
+      } else {
+        await page.getByText('No pickup times are left today').waitFor();
+        await page
+          .getByRole('button', { name: /^(Mon|Tue|Wed|Thu|Fri|Sat|Sun), / })
+          .first()
+          .click();
+        await page.locator('select').selectOption('10:30');
+      }
+      await page.getByRole('button', { name: /GCash/ }).click();
+      await page.getByRole('button', { name: 'Place order' }).click();
+      await page.getByText('Order received').waitFor();
+      await page.getByText(/^With: Note card × 1 · Sticker 2 × 1/).waitFor();
+      const placedNo = (await page.getByText(/^Order no\. HC-\d+/).innerText())
+        .replace('Order no. ', '')
+        .trim();
+
+      const items = 2 * Number(flavour.price_cents);
+      const surcharge = sameDay ? Math.floor((items * 40 + 50) / 100) : 0;
+      const wantedTotal = items + 1500 + 1000 + surcharge;
+      const { data: order, error } = await admin
+        .from('orders')
+        .select('*')
+        .eq('id', placedNo)
+        .single();
+      assert(!error && order, `order row: ${error?.message}`);
+      assert(order.same_day === sameDay, `same_day is ${order.same_day}, wanted ${sameDay}`);
+      assert(
+        Number(order.surcharge_cents) === surcharge,
+        `surcharge ${order.surcharge_cents}, wanted ${surcharge}`
+      );
+      assert(
+        Number(order.total_cents) === wantedTotal,
+        `total ${order.total_cents}, wanted ${wantedTotal}`
+      );
+      const { data: lines } = await admin
+        .from('order_add_ons')
+        .select('name, qty, unit_price_cents, variant, note, line_no')
+        .eq('order_id', placedNo)
+        .order('line_no');
+      assert(
+        lines?.length === 2 &&
+          lines[0].name === 'Note card' &&
+          lines[0].note === 'Happy birthday Mika' &&
+          Number(lines[0].unit_price_cents) === 1000 &&
+          lines[1].name === 'Sticker' &&
+          lines[1].variant === '2' &&
+          lines[1].qty === 1 &&
+          Number(lines[1].unit_price_cents) === 1500,
+        `add-on lines differ: ${JSON.stringify(lines)}`
+      );
+      // The status page sends the note nowhere: only the server total appears.
+      const totalText = await page.getByText(/^Pickup .* · Total ₱/).innerText();
+      const shown = Number(totalText.match(/Total ₱([\d,.]+)/)?.[1]?.replace(/,/g, ''));
+      assert(
+        Math.abs(shown - wantedTotal / 100) < 0.005,
+        `the placed card shows ${shown}, wanted ${wantedTotal / 100}`
+      );
+    }
+  );
 
   await step(
     'no errors, no CSP violations, no foreign origin, and the token never travelled in a URL',

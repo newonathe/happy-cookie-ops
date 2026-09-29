@@ -30,6 +30,11 @@ export function OrderMessages({
             <span style={{ fontSize: '13px', fontWeight: 600 }}>
               {row.name} · {row.order} · {row.label}
             </span>
+            {row.details.length ? (
+              <span style={{ fontSize: '12px', color: '#6E574B', lineHeight: '1.5' }}>
+                {MESSAGE_SHEET.packLine}: {row.details.join(' · ')}
+              </span>
+            ) : null}
             <textarea
               readOnly
               value={row.text}
