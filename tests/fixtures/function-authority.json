@@ -1,5 +1,5 @@
 {
-  "scope": "Reviewed local function-authority drift baseline through A2 (payment_methods, shop_texts, get_shop_payment_info added); load_event_stock/add_event_expense/close_event/event_summary added (D2); D1: start_event/set_event_device/record_event_sale/void_event_sale added (D1); MP-09 c1b: publish_flavours added (MP-09 c1b); get_flavours/save_flavour added (MP-09 c1); settings_effective gained three idle-minute defaults, get_settings/save_setting/get_operating_settings added; MP-09 b3 recreated settings_effective/get_settings/get_operating_settings with json_value and replaced save_setting; full capability/domain and hosted acceptance remain open",
+  "scope": "Reviewed local function-authority drift baseline through B1 (place_order, order_status, join_waitlist, order_holds_capacity, get_order_rules, save_order_rules added; anonymise_customer and prune_personal_data recreated for the new personal data); A2 (payment_methods, shop_texts, get_shop_payment_info added); load_event_stock/add_event_expense/close_event/event_summary added (D2); D1: start_event/set_event_device/record_event_sale/void_event_sale added (D1); MP-09 c1b: publish_flavours added (MP-09 c1b); get_flavours/save_flavour added (MP-09 c1); settings_effective gained three idle-minute defaults, get_settings/save_setting/get_operating_settings added; MP-09 b3 recreated settings_effective/get_settings/get_operating_settings with json_value and replaced save_setting; full capability/domain and hosted acceptance remain open",
   "functions": [
     {
       "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
@@ -24,7 +24,7 @@
         "search_path=pg_catalog, public, pg_temp"
       ],
       "returns": "integer",
-      "body_md5": "b02890dcc9af44635413ddd4a3c46f2c",
+      "body_md5": "0825f252a2b6a9014b62cc50140eefee",
       "identity": "p_phone text, p_note text",
       "execute_anon": false,
       "security_definer": true,
@@ -287,6 +287,21 @@
       "execute_authenticated": true
     },
     {
+      "acl": "{anon=X/postgres,authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "join_waitlist",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(waitlist_id uuid, replayed boolean)",
+      "body_md5": "f5f92ae7dd2097c41f862d37913b3efe",
+      "identity": "p_entry jsonb",
+      "execute_anon": true,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
       "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
       "name": "load_event_stock",
       "owner": "postgres",
@@ -317,6 +332,51 @@
       "execute_authenticated": false
     },
     {
+      "acl": "{=X/postgres,anon=X/postgres,authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "order_holds_capacity",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "boolean",
+      "body_md5": "a1cfcd7d67dab1fa59a70b5d8adc6105",
+      "identity": "p_state order_state, p_pay pay_state, p_placed_at timestamp with time zone, p_now timestamp with time zone, p_hold_hours integer",
+      "execute_anon": true,
+      "security_definer": false,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{anon=X/postgres,authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "order_status",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "2aff79171e313ed61f97a9f0055b063c",
+      "identity": "p_token text",
+      "execute_anon": true,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{anon=X/postgres,authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "place_order",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(order_no text, status_token text, total_cents bigint, pickup_date date, pickup_window text, replayed boolean)",
+      "body_md5": "5ed3fb1212924d323fd9b9f0c7d1d140",
+      "identity": "p_order jsonb",
+      "execute_anon": true,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
       "acl": "{postgres=X/postgres,service_role=X/postgres}",
       "name": "prune_personal_data",
       "owner": "postgres",
@@ -324,7 +384,7 @@
         "search_path=pg_catalog, public, pg_temp"
       ],
       "returns": "integer",
-      "body_md5": "2972a1e191174178b4b85c62a75b7f2a",
+      "body_md5": "aacf53b26c8ef2d429366b9142029691",
       "identity": "p_retain_days integer",
       "execute_anon": false,
       "security_definer": true,
@@ -543,6 +603,21 @@
     },
     {
       "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "get_order_rules",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(unpaid_hold_hours integer, max_unpaid_per_phone integer, pickup_days integer[], lead_min_days integer, lead_max_days integer, pickup_from_hour integer, pickup_cutoff_hour integer, campus_from text, campus_to text, updated_at timestamp with time zone)",
+      "body_md5": "b3c2d9ee522cf9943656d8b78341bc8d",
+      "identity": "",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
       "name": "get_flavours",
       "owner": "postgres",
       "config": [
@@ -566,6 +641,21 @@
       "returns": "TABLE(id text, updated_at timestamp with time zone)",
       "body_md5": "e2f5e95aff7d178fd7d565aed8417ac9",
       "identity": "p_id text, p_flavour jsonb, p_expected_updated_at timestamp with time zone",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "save_order_rules",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(updated_at timestamp with time zone)",
+      "body_md5": "866796d7ec6430e87d8111170faa4b18",
+      "identity": "p_rules jsonb, p_expected_updated_at timestamp with time zone",
       "execute_anon": false,
       "security_definer": true,
       "execute_service_role": true,

@@ -16,44 +16,59 @@ When a goal finishes, the agent deletes its block here, leaves the next one on t
 - If files changed since the last index, re-index first: `index_repository`, repo path `C:/Users/ethan/dev/happy-cookie-ops-g0`.
 - Pinned toolchain: prefix PATH with `C:\Users\ethan\dev\happy-cookie-tools\bin;C:\Users\ethan\dev\happy-cookie-tools\node-v24.20.0-win-x64`. In Git Bash call `pnpm.cmd`: a bare `pnpm` resolves to the global npm shim first (it warns that the `pnpm` field is ignored).
 - Docker Desktop must be running for SQL work, and for one Python guard (`tests/integration/db`).
-- **Baseline (2026-09-29, at A2 close):**
-  - `pnpm typecheck` clean; `pnpm verify` green (see current.md); port integrity OK, 54 files; G0 validator 1201 checks, 0 failures;
-  - Python guards 63 OK, via `python -m unittest discover -s <dir> -p "test_*.py"` for each of `tests/unit`, `tests/integration/auth`, `tests/integration/db` and `tests/integration/security`, with `G0_PYTHON_LIBS=C:\Users\ethan\dev\happy-cookie-tools\python-libs-314`; SQL role suite 825 cases/reset, 2 resets (`python scripts/test-db-security.py`);
+- **Baseline (2026-09-29, at B1 close):**
+  - `pnpm typecheck` clean; `pnpm verify` green (see current.md); port integrity OK, 54 files; G0 validator 1206 checks, 0 failures;
+  - Python guards 63 OK, via `python -m unittest discover -s <dir> -p "test_*.py"` for each of `tests/unit`, `tests/integration/auth`, `tests/integration/db` and `tests/integration/security`, with `G0_PYTHON_LIBS=C:\Users\ethan\dev\happy-cookie-tools\python-libs-314`; SQL role suite 1000 cases/reset, 2 resets (`python scripts/test-db-security.py`);
   - `pnpm build:pages:spike`/`test:pages:spike`/`test:workers:spike` pass with or without `NEXT_PUBLIC_SUPABASE_URL`/`…PUBLISHABLE_KEY` (local stack values: `supabase status -o env`);
   - `pnpm build` passes, and `pnpm test:e2e` gives 89 passed / 1 failed / 30 skipped. The one failure is OFFLINE-01 on WebKit (Playwright's WebKit cannot reload offline with a service worker); desktop and phone pass.
 - **Codex only:** run `/status` once in the repo root to confirm the project `.codex/config.toml` loaded. Accept the trust prompt if asked. The project sandbox has no network, so `git push` will ask for approval.
 
-## Next goal — B1 (MP-10 a, database): the order command
+## Next goal — B2 (MP-10 a, app): the live checkout
 
-Drafted 2026-09-29 after A2 closed. Finish-plan.md slice B1 (section 6). D3 (the early production project) is
-skipped unless Ethan confirms the pilot gate passes. B1 is database-only: B2 (live checkout) is the next app slice.
+Drafted 2026-09-29 after B1 closed. Finish-plan.md slice B2 (section 6): orders like her form, pay now or later.
+B1 built the database half; B2 is the app half and needs one small migration of its own (carry-over 2).
 
-**Read first:** the finish-plan.md B1 row and section 4 (the order-form audit findings); `docs/state/order-form-audit.md`;
-`docs/state/decision-register.md` rows for capacity (D1, D9), the pickup rules and the per-phone unpaid limit; the
-existing capacity rule in `src/lib/rules/capacity.ts`, `capacity_allows()` and `tests/fixtures/capacity-cases.json`
-(one rule, two runtimes: change all three in the same commit); the orders/order_items tables and `lookup_order`
-in the migrations; and `supabase/migrations/20260101003400_payment_methods_shop_texts.sql` for the house style.
+**Read first:** the finish-plan.md B2 row and section 4; `docs/state/order-form-audit.md` (element inventory);
+`docs/state/protected-exception.md` (D4: the checkout exception, and how A2 recorded its guarded edits);
+`supabase/migrations/20260101003500_place_order.sql` (the contract: keys, SQLSTATEs, rules) and its checkpoint in
+[current.md](current.md); `src/lib/data/payments.ts` (how A2 reads an anonymous RPC); `checkout.tsx` and `status.tsx`
+under `src/components/screens/`.
 
 **Carry-overs that land here:**
 
-1. `place_order` must check that the chosen payment method is one the owner currently offers
-   (`payment_methods.active`, by label): the customer's page can be stale after the owner turns one off (A2 review).
-2. The order's confirmation number is shown as "Invoice INV-…" by protected copy; F10 says "Order no." in live mode
-   (a later guarded label, B2/B3): B1 only issues the number and never calls it an invoice.
-3. No IP-based limit (the forwarded-IP header is caller-controlled): key on phone number plus the weekly cap.
+1. **Wording for refusals.** `place_order` refuses with ZC001 closed, ZC002 not enough room (DETAIL = slots left),
+   ZC003 too many unpaid orders on the number, ZC004 pickup date or time, ZC005 method not offered, ZC006 waitlist
+   limit, 22023 malformed, 23505 id reused. Only the closed-drop sentence is signed off (`DROP_CLOSED_MESSAGE`);
+   the others need Cine's words, so show the honest placeholder pattern of `capacityRefusal()` and list them for her.
+2. **Find my order by number and phone.** `lookup_order` is service_role-only; B1 issues the status link by token
+   only. Add the small anonymous RPC B2 needs (order number + phone in, status out, no enumeration, no personal
+   text back) in a new migration with its suite cases, or decide with Ethan that the link alone is enough.
+3. **Phone form.** The database accepts `09XXXXXXXXX`, `+63…`, `63…` and `9XXXXXXXXX` (all normalised to `09…`).
+   The checkout may send what the customer typed.
+4. **One client id per attempt.** Generate a lowercase uuid when the checkout opens and reuse it on every retry:
+   the server answers a repeat with the same order and token, and refuses the same id with a different body.
+5. **Close-drop early is not on the server.** The engine's `shopOverride` is not saved to the database, so
+   `place_order` cannot see it; persist it (a setting) before the live checkout ships, or the owner's "close now"
+   button will not stop orders.
+6. **"Invoice INV-…" wording** becomes "Order no." in live mode (F10), under the same guarded slot.
+7. **Owner form for the order rules** (`get_order_rules`/`save_order_rules`): hold hours, unpaid orders per number,
+   pickup days, lead days, pickup hours and the campus slot. No screen edits them yet; a `LiveFormHost` form in All
+   tools, as A2 did for payment methods, is the natural place (this slice or B3).
 
 ```text
-/goal B1 (docs/state/finish-plan.md slice B1): the order command, database half. `place_order` (anon may execute;
-SECURITY DEFINER, search_path '', server-priced from the products table, never a client price or role; capacity by
-the D1 rule with `capacity.ts`, `capacity_allows()` and `tests/fixtures/capacity-cases.json` changed together;
-pickup date and window rules; the per-phone unpaid-order limit; a chosen payment method must be one the owner
-offers; idempotent on a client id; returns the order number and an unguessable status token), `order_status(token)`,
-and `join_waitlist`. No IP-keyed limits. New migration, explicit grants, in-function checks, RLS as the boundary.
-A SQL role-suite file with a mutation check per rule; capacity parity green; DB types regenerated; the function
-manifest, migration pin and harness counts updated. All exit 0 in this session: the pre-commit pnpm verify, the
-Python guards, the G0 validator (revert evidence/*.json churn), the SQL role suite, port integrity. Opus review
-(model opus) of the migration before commit. Committed and pushed; current.md checkpoint and task-status updated;
-this block replaced by B2 from finish-plan section 6. No deploy. Stop after 2 failed fix attempts or 25 turns.
+/goal B2 (docs/state/finish-plan.md slice B2): the live checkout, app half. In live mode only, one guarded slot in
+checkout.tsx (D4, recorded in protected-exception.md with exact reversals in scripts/validate-g0.py and baselines
+regenerated in the same commit): the fields of her form (name, Instagram, contact number, pickup date from the
+owner's pickup days and lead time, pickup time or the campus slot, payment method from get_shop_payment_info, an
+optional reference), no email and no address. A `custSubmit` override in OpsRuntime calls place_order with a client
+id per attempt, maps the SQLSTATEs to messages, and shows the order number and status link; the status page reads
+order_status(token); lookup by order number + phone and the waitlist (join_waitlist) as the audit lists them. Demo
+mode is unchanged. Port audit, an E2E happy path against the local stack, unit tests with a deliberate mutation per
+new branch, and one different-model review of the guarded edits. All exit 0 in this session: pnpm verify, Python
+guards, the G0 validator (revert evidence/*.json churn), port integrity, pnpm build, test:pages:spike,
+test:workers:spike, test:e2e (baseline: only OFFLINE-01 on WebKit red). Committed and pushed; current.md checkpoint
+and task-status updated; this block replaced by B3 from finish-plan section 6. No deploy. Stop after 2 failed fix
+attempts or 25 turns.
 ```
 
 ## After these goals

@@ -1,7 +1,12 @@
 import { readFileSync } from 'node:fs';
 import { expect, test } from '@playwright/test';
 import { createClient } from '@supabase/supabase-js';
-import { decideCapacity } from '../../src/lib/rules/capacity';
+import {
+  decideCapacity,
+  holdsCapacity,
+  type OrderState,
+  type PayState
+} from '../../src/lib/rules/capacity';
 
 interface Case {
   name: string;
@@ -11,8 +16,19 @@ interface Case {
   ok: boolean;
 }
 
-const { cases } = JSON.parse(readFileSync('tests/fixtures/capacity-cases.json', 'utf8')) as {
+interface HoldCase {
+  name: string;
+  state: OrderState;
+  pay_state: PayState;
+  placed_at: string;
+  now: string;
+  hold_hours: number;
+  holds: boolean;
+}
+
+const { cases, holds } = JSON.parse(readFileSync('tests/fixtures/capacity-cases.json', 'utf8')) as {
   cases: Case[];
+  holds: HoldCase[];
 };
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -41,6 +57,35 @@ test.describe('capacity rule parity: SQL vs TypeScript', () => {
 
       const fromTypeScript = decideCapacity(testCase).ok;
       expect(data, 'SQL must agree with the fixture').toBe(testCase.ok);
+      expect(data, 'SQL must agree with TypeScript').toBe(fromTypeScript);
+    });
+  }
+});
+
+/** Decision D1: the same `holds` cases against order_holds_capacity() and holdsCapacity(). */
+test.describe('order-holds-slots rule parity: SQL vs TypeScript', () => {
+  test.skip(!url || !key, 'needs a local Supabase (pnpm db:start)');
+
+  for (const testCase of holds) {
+    test(testCase.name, async () => {
+      const supabase = createClient(url!, key!);
+      const { data, error } = await supabase.rpc('order_holds_capacity', {
+        p_state: testCase.state,
+        p_pay: testCase.pay_state,
+        p_placed_at: testCase.placed_at,
+        p_now: testCase.now,
+        p_hold_hours: testCase.hold_hours
+      });
+      expect(error, 'order_holds_capacity() should exist and be callable by anon').toBeNull();
+
+      const fromTypeScript = holdsCapacity({
+        state: testCase.state,
+        payState: testCase.pay_state,
+        placedAt: Date.parse(testCase.placed_at),
+        now: Date.parse(testCase.now),
+        holdHours: testCase.hold_hours
+      });
+      expect(data, 'SQL must agree with the fixture').toBe(testCase.holds);
       expect(data, 'SQL must agree with TypeScript').toBe(fromTypeScript);
     });
   }

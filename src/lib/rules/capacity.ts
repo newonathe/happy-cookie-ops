@@ -37,7 +37,11 @@ export interface CapacityDecision {
  * worse than a refusal. A request of zero is not ok — it is a bug upstream, and silently
  * accepting it creates an empty order.
  */
-export function decideCapacity({ capacity, committed, requested }: CapacityInput): CapacityDecision {
+export function decideCapacity({
+  capacity,
+  committed,
+  requested
+}: CapacityInput): CapacityDecision {
   const safeCapacity = Math.max(0, Math.floor(capacity));
   const safeCommitted = Math.max(0, Math.floor(committed));
   const safeRequested = Math.floor(requested);
@@ -47,6 +51,42 @@ export function decideCapacity({ capacity, committed, requested }: CapacityInput
     remaining,
     available: remaining
   };
+}
+
+export type OrderState =
+  'Payment review' | 'Confirmed' | 'Preparing' | 'Ready' | 'Completed' | 'Cancelled' | 'No-show';
+export type PayState = 'unpaid' | 'claimed' | 'confirmed' | 'refunded';
+
+export interface HoldInput {
+  state: OrderState;
+  payState: PayState;
+  /** When the order was placed, epoch milliseconds. */
+  placedAt: number;
+  /** The moment being asked about, epoch milliseconds. */
+  now: number;
+  /** The owner's unpaid-hold hours (decision D1, default 24). */
+  holdHours: number;
+}
+
+/**
+ * Whether an order still holds slots in its pickup week (decision D1, Ethan 2026-09-28).
+ *
+ * Unpaid orders hold slots too, so the checkout no longer needs proof of payment, but an unpaid
+ * order still in review lets go after the owner's N hours, unless she marks it paid. An order
+ * that is cancelled, a no-show or refunded never holds. Everything else does: paid or claimed
+ * orders, and any order the owner has already moved past review.
+ *
+ * `decideCapacity` is unchanged: D1 changes which orders make up `committed`, not the sum.
+ * Mirror of `order_holds_capacity()` in Postgres, which place_order() uses; the `holds` cases in
+ * tests/fixtures/capacity-cases.json run against both. Change both together.
+ */
+export function holdsCapacity({ state, payState, placedAt, now, holdHours }: HoldInput): boolean {
+  if (state === 'Cancelled' || state === 'No-show') return false;
+  if (payState === 'refunded') return false;
+  if (state === 'Payment review' && payState === 'unpaid') {
+    return now < placedAt + Math.max(0, holdHours) * 3_600_000;
+  }
+  return true;
 }
 
 /**

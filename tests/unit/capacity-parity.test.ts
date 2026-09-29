@@ -1,6 +1,13 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { DROP_CLOSED_MESSAGE, capacityRefusal, decideCapacity } from '@/lib/rules/capacity';
+import {
+  DROP_CLOSED_MESSAGE,
+  capacityRefusal,
+  decideCapacity,
+  holdsCapacity,
+  type OrderState,
+  type PayState
+} from '@/lib/rules/capacity';
 
 interface Case {
   name: string;
@@ -11,7 +18,20 @@ interface Case {
   remaining: number;
 }
 
-const { cases } = JSON.parse(readFileSync('tests/fixtures/capacity-cases.json', 'utf8')) as { cases: Case[] };
+interface HoldCase {
+  name: string;
+  state: OrderState;
+  pay_state: PayState;
+  placed_at: string;
+  now: string;
+  hold_hours: number;
+  holds: boolean;
+}
+
+const { cases, holds } = JSON.parse(readFileSync('tests/fixtures/capacity-cases.json', 'utf8')) as {
+  cases: Case[];
+  holds: HoldCase[];
+};
 
 /**
  * Capacity is enforced twice — in the engine so the UI can refuse instantly, and in
@@ -28,6 +48,29 @@ describe('capacity rule (TypeScript side)', () => {
       const decision = decideCapacity(testCase);
       expect(decision.ok).toBe(testCase.ok);
       expect(decision.remaining).toBe(testCase.remaining);
+    });
+  }
+});
+
+/**
+ * Decision D1: which orders make up `committed`. The SQL half is order_holds_capacity(), run over
+ * the same `holds` cases in tests/e2e/capacity-parity.spec.ts.
+ */
+describe('order holds slots (decision D1, TypeScript side)', () => {
+  it('has cases to run', () => {
+    expect(holds.length).toBeGreaterThan(10);
+  });
+  for (const testCase of holds) {
+    it(testCase.name, () => {
+      expect(
+        holdsCapacity({
+          state: testCase.state,
+          payState: testCase.pay_state,
+          placedAt: Date.parse(testCase.placed_at),
+          now: Date.parse(testCase.now),
+          holdHours: testCase.hold_hours
+        })
+      ).toBe(testCase.holds);
     });
   }
 });

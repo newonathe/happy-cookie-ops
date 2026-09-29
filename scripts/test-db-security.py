@@ -2,6 +2,7 @@
 import hashlib
 import importlib.util
 import json
+import re
 import runpy
 from pathlib import Path
 import sys
@@ -11,6 +12,91 @@ spec = importlib.util.spec_from_file_location("bootstrap", ROOT / "scripts/test-
 h = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(h)
 verify_functions = runpy.run_path(str(ROOT / 'scripts/verify-function-authority.py'))['verify_functions']
+# B1: each customer rule is one tagged line (`if ... then -- rule:name`) in the migration; the suite
+# neutralises exactly that line, or applies one text substitution, inside the one function it names, and
+# the refusal case must then fail. Expected text is the failing operation of the suite, in suite order.
+ORDER_MIGRATION = ROOT / 'supabase/migrations/20260101003500_place_order.sql'
+_OUT = 'order outcome differs: anon / '
+_CHK = 'order check differs: anon / '
+ORDER_MUTATIONS = {
+    'rule_keys_required': ('place_order', 'rule', 'keys-required', _OUT + 'place_missing_field / '),
+    'rule_keys_unknown': ('place_order', 'rule', 'keys-unknown', _OUT + 'place_unknown_price / '),
+    'rule_replay': ('place_order', 'rule', 'replay', _OUT + 'place_replay_same_body / '),
+    'rule_client_id_reuse': ('place_order', 'rule', 'client-id-reuse', _OUT + 'place_replay_other_body / '),
+    'rule_window': ('place_order', 'rule', 'window', _OUT + 'place_closed_window / '),
+    'rule_method': ('place_order', 'rule', 'method', _OUT + 'place_method_unknown / '),
+    'rule_pickup_day': ('place_order', 'rule', 'pickup-day', _OUT + 'place_pickup_tuesday / '),
+    'rule_pickup_lead': ('place_order', 'rule', 'pickup-lead', _OUT + 'place_pickup_too_far / '),
+    'rule_pickup_time': ('place_order', 'rule', 'pickup-time', _OUT + 'place_time_before_open / '),
+    'rule_menu': ('place_order', 'rule', 'menu', _OUT + 'place_item_unpublished / '),
+    'rule_max_per_order': ('place_order', 'rule', 'max-per-order', _OUT + 'place_over_max / '),
+    'rule_phone_limit': ('place_order', 'rule', 'phone-limit', _OUT + 'place_phone_limit / '),
+    'rule_capacity': ('place_order', 'rule', 'capacity', _OUT + 'place_capacity_full / '),
+    'rule_waitlist_date': ('join_waitlist', 'rule', 'waitlist-date', _OUT + 'wait_date_past / '),
+    'rule_waitlist_client_id_reuse': ('join_waitlist', 'rule', 'waitlist-client-id-reuse', _OUT + 'wait_replay_other_body / '),
+    'rule_waitlist_replay': ('join_waitlist', 'rule', 'waitlist-replay', _OUT + 'wait_replay_other_body / '),
+    'rule_waitlist_dedupe': ('join_waitlist', 'rule', 'waitlist-dedupe', 'duplicate key value violates unique constraint'),
+    'rule_waitlist_limit': ('join_waitlist', 'rule', 'waitlist-limit', _OUT + 'wait_limit / '),
+    'text_menu_published': ('place_order', 'text',
+                            ('join public.products p on p.id = t.pid and p.published and p.active;',
+                             'join public.products p on p.id = t.pid and p.active;'), _OUT + 'place_item_unpublished / '),
+    'text_menu_active': ('place_order', 'text',
+                         ('join public.products p on p.id = t.pid and p.published and p.active;',
+                          'join public.products p on p.id = t.pid and p.published;'), _OUT + 'place_item_inactive / '),
+    'text_method_active': ('place_order', 'text',
+                           ('where m.active and m.label = v_method', 'where m.label = v_method'), _OUT + 'place_method_inactive / '),
+    'text_weight_committed': ('place_order', 'text',
+                              ('sum(oi.qty * oi.capacity_weight)', 'sum(oi.qty)'), _OUT + 'place_capacity_full / '),
+    'text_weight_requested': ('place_order', 'text',
+                              ('coalesce(sum(t.qty * p.capacity_weight), 0)', 'coalesce(sum(t.qty), 0)'), _OUT + 'cap_fries_too_heavy / '),
+    'text_hold_expiry': ('order_holds_capacity', 'text',
+                         ('then p_now < p_placed_at + make_interval(hours => greatest(0, p_hold_hours))', 'then true'),
+                         _OUT + 'place_phone_after_expiry / '),
+    'text_hold_refunded': ('order_holds_capacity', 'text',
+                           ("when p_pay = 'refunded' then false", "when false then false"), _OUT + 'cap_refund_and_cancel_release / '),
+    'text_hold_cancelled': ('order_holds_capacity', 'text',
+                            ("when p_state in ('Cancelled', 'No-show') then false", "when false then false"),
+                            _OUT + 'cap_refund_and_cancel_release / '),
+    'text_status_leaks_phone': ('order_status', 'text',
+                                ("'order_no', o.id, 'state'", "'order_no', o.id, 'phone', o.phone, 'state'"),
+                                _CHK + 'status_keys_exact'),
+    'text_erase_keeps_token': ('anonymise_customer', 'text',
+                               ("ig = '',\n           status_token = null,\n", "ig = '',\n"),
+                               'erased paid order kept personal data'),
+    'text_erase_keeps_waitlist': ('anonymise_customer', 'text',
+                                  ('delete from waitlist_entries where phone = v_norm;', 'null;'),
+                                  'erased number kept waitlist entries'),
+    'text_prune_keeps_handle': ('prune_personal_data', 'text',
+                                ("ig = '',\n           status_token = null,\n", 'status_token = null,\n'), 'prune kept personal data'),
+    'text_prune_keeps_waitlist': ('prune_personal_data', 'text',
+                                  ('delete from waitlist_entries where created_at < now() - make_interval(days => p_retain_days);', 'null;'),
+                                  'prune kept personal data'),
+}
+ORDER_TABLE_MUTATIONS = {
+    'orders_rows_leak': ('alter policy "orders staff read" on public.orders using (true);', _CHK + 'orders_rows_hidden'),
+    'waitlist_table_select': ('grant select on public.waitlist_entries to anon;', _OUT + 'waitlist_table_select / '),
+    'rules_table_select': ('grant select on public.order_rules to anon;', _OUT + 'rules_table_select / '),
+}
+
+
+def order_mutant(name):
+    """The migration's one function, changed in exactly one place, as SQL to run inside the suite."""
+    function, kind, argument, _ = ORDER_MUTATIONS[name]
+    text = ORDER_MIGRATION.read_text(encoding='utf-8')
+    start = text.index('create or replace function public.' + function + '(')
+    block = text[start:text.index('\n$$;', start) + len('\n$$;')]
+    if kind == 'rule':
+        pattern = r'(?m)^(\s*)if\s.*\sthen\s*-- rule:' + re.escape(argument) + r'\s*$'
+        block, count = re.subn(pattern, r'\1if false then -- mutated', block)
+    else:
+        old, new = argument
+        count = block.count(old)
+        block = block.replace(old, new)
+    if count != 1:
+        h.fail('order mutation ' + name + ' matched ' + str(count) + ' places, not one')
+    return block
+
+
 SUITES = (
     ('public-catalog.sql', ('catalog_raw_read','catalog_view_update'), 'catalog boundary', 41),
     ('private-role-authority.sql', ('private_orders_select','private_stock_update'), 'private authority', 103),
@@ -32,6 +118,9 @@ SUITES = (
     ('payment-methods.sql', ('get_payment_methods()', 'save_payment_method(text,jsonb,timestamptz)', 'save_shop_texts(jsonb,timestamptz)',
                              'shop_media_anon_read', 'shop_media_helper_write', 'shop_media_path_unchecked',
                              'payment_tables_raw_write', 'public_read_leaks_inactive'), 'forbidden payment call succeeded', 88),
+    ('order-placement.sql', ('get_order_rules()', 'save_order_rules(jsonb,timestamptz)',
+                             'orders_rows_leak', 'waitlist_table_select', 'rules_table_select')
+                            + tuple(ORDER_MUTATIONS), 'forbidden order call succeeded', 175),
     ('bazaar-closeout.sql', ('event_summary(uuid)', 'load_event_stock(uuid,jsonb,bigint)', 'add_event_expense(jsonb)', 'close_event(jsonb)'), 'forbidden closeout call succeeded', 80),
 )
 CATALOG_GUARD_SQL = """
@@ -69,7 +158,7 @@ PAYMENT_MUTATIONS = {
 REPORT = ROOT / "docs/state/evidence/MP-06l-security.json"
 EMPTY_FIXTURES = 'select ' + ' and '.join(
     'not exists(select 1 from public.' + table + ')'
-    for table in ('orders', 'order_items', 'products', 'drops', 'settings', 'rate_limits', 'profiles', 'audit_log', 'ledger_entries', 'event_sales', 'event_sale_items', 'inventory_items', 'bake_batches', 'recipes', 'recipe_ingredients', 'suppliers', 'supplier_prices', 'events', 'erasure_requests', 'payment_methods', 'shop_texts')) + " and not exists(select 1 from auth.users) and to_regnamespace('mp06f_probe') is null and to_regnamespace('mp06g_probe') is null and to_regclass('public.mp06g_future') is null and to_regclass('public.mp06g_future_id_seq') is null;"
+    for table in ('orders', 'order_items', 'products', 'drops', 'settings', 'rate_limits', 'profiles', 'audit_log', 'ledger_entries', 'event_sales', 'event_sale_items', 'inventory_items', 'bake_batches', 'recipes', 'recipe_ingredients', 'suppliers', 'supplier_prices', 'events', 'erasure_requests', 'payment_methods', 'shop_texts', 'waitlist_entries')) + " and not exists(select 1 from auth.users) and to_regnamespace('mp06f_probe') is null and to_regnamespace('mp06g_probe') is null and to_regclass('public.mp06g_future') is null and to_regclass('public.mp06g_future_id_seq') is null;"
 
 
 def main():
@@ -148,6 +237,13 @@ def main():
                 operation = signature + '_insert' if table_test else signature.split('(')[0]
                 broken = sql.replace('begin;', 'begin;\n' + grant + signature + ' to anon;', 1)
                 expected_error = forbidden + ': anon / ' + operation
+                if filename == 'order-placement.sql':
+                    if signature in ORDER_MUTATIONS:
+                        broken = sql.replace('begin;', 'begin;\n' + order_mutant(signature), 1)
+                        expected_error = ORDER_MUTATIONS[signature][3]
+                    elif signature in ORDER_TABLE_MUTATIONS:
+                        unsafe, expected_error = ORDER_TABLE_MUTATIONS[signature]
+                        broken = sql.replace('begin;', 'begin;\n' + unsafe, 1)
                 if filename == 'payment-methods.sql' and signature in PAYMENT_MUTATIONS:
                     unsafe, expected_error = PAYMENT_MUTATIONS[signature]
                     broken = sql.replace('begin;', 'begin;' + chr(10) + unsafe, 1)
@@ -235,7 +331,7 @@ def main():
                 h.fail(filename + ' did not return its complete role matrix')
             results.extend(rows)
             assert_empty()
-        if len(set(results)) != 825:
+        if len(set(results)) != 1000:
             h.fail('combined role matrix has missing or duplicate cases: %d rows, %d unique' % (len(results), len(set(results))))
         assert_functions()
         assert_catalog_wide()
@@ -248,10 +344,10 @@ def main():
     try:
         code = h.main(after_reset=check)
         if (code == 0 and len(report["runs"]) == 2 and report["runs"][0] == report["runs"][1]
-                and len(report['regressions_detected']) == 100 and report['sequence_restorations'] == 10
+                and len(report['regressions_detected']) == 172 and report['sequence_restorations'] == 10
                 and report['upgrade_runs'] == 2 and report['function_guard_runs'] == 4
                 and report['catalog_guard_runs'] == 4 and report['catalog_guard_red_runs'] == 4):
-            report.update(status="passed", cases_per_reset=825, resets=2, matrix_equal=True, rollback_verified=True,
+            report.update(status="passed", cases_per_reset=1000, resets=2, matrix_equal=True, rollback_verified=True,
                           sql_sha256={name: hashlib.sha256((ROOT / 'tests/integration/security' / name).read_bytes()).hexdigest() for name, _, _, _ in SUITES},
                           harness_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
     except (RuntimeError, OSError, ValueError) as error:

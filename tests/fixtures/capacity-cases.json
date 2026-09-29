@@ -81,5 +81,152 @@
       "ok": true,
       "remaining": 8
     }
+  ],
+  "holds_note": "Cases for which orders still hold slots (decision D1). Read by tests/unit/capacity-parity.test.ts against holdsCapacity() and by tests/e2e/capacity-parity.spec.ts against order_holds_capacity(). Add a case here and both sides must satisfy it.",
+  "holds": [
+    {
+      "name": "an unpaid order placed an hour ago holds its slots",
+      "state": "Payment review",
+      "pay_state": "unpaid",
+      "placed_at": "2026-09-28T09:00:00Z",
+      "now": "2026-09-28T10:00:00Z",
+      "hold_hours": 24,
+      "holds": true
+    },
+    {
+      "name": "an unpaid order one minute before the hold ends still holds",
+      "state": "Payment review",
+      "pay_state": "unpaid",
+      "placed_at": "2026-09-28T09:00:00Z",
+      "now": "2026-09-29T08:59:00Z",
+      "hold_hours": 24,
+      "holds": true
+    },
+    {
+      "name": "an unpaid order lets go exactly when the hold ends",
+      "state": "Payment review",
+      "pay_state": "unpaid",
+      "placed_at": "2026-09-28T09:00:00Z",
+      "now": "2026-09-29T09:00:00Z",
+      "hold_hours": 24,
+      "holds": false
+    },
+    {
+      "name": "an unpaid order long past the hold has let go",
+      "state": "Payment review",
+      "pay_state": "unpaid",
+      "placed_at": "2026-09-28T09:00:00Z",
+      "now": "2026-10-05T09:00:00Z",
+      "hold_hours": 24,
+      "holds": false
+    },
+    {
+      "name": "a claimed payment keeps the slots past the hold",
+      "state": "Payment review",
+      "pay_state": "claimed",
+      "placed_at": "2026-09-28T09:00:00Z",
+      "now": "2026-10-05T09:00:00Z",
+      "hold_hours": 24,
+      "holds": true
+    },
+    {
+      "name": "a confirmed payment keeps the slots past the hold",
+      "state": "Confirmed",
+      "pay_state": "confirmed",
+      "placed_at": "2026-09-28T09:00:00Z",
+      "now": "2026-10-05T09:00:00Z",
+      "hold_hours": 24,
+      "holds": true
+    },
+    {
+      "name": "an order the owner moved past review holds even while unpaid",
+      "state": "Confirmed",
+      "pay_state": "unpaid",
+      "placed_at": "2026-09-28T09:00:00Z",
+      "now": "2026-10-05T09:00:00Z",
+      "hold_hours": 24,
+      "holds": true
+    },
+    {
+      "name": "a preparing order holds",
+      "state": "Preparing",
+      "pay_state": "confirmed",
+      "placed_at": "2026-09-28T09:00:00Z",
+      "now": "2026-10-05T09:00:00Z",
+      "hold_hours": 24,
+      "holds": true
+    },
+    {
+      "name": "a ready order holds",
+      "state": "Ready",
+      "pay_state": "confirmed",
+      "placed_at": "2026-09-28T09:00:00Z",
+      "now": "2026-10-05T09:00:00Z",
+      "hold_hours": 24,
+      "holds": true
+    },
+    {
+      "name": "a completed order holds",
+      "state": "Completed",
+      "pay_state": "confirmed",
+      "placed_at": "2026-09-28T09:00:00Z",
+      "now": "2026-10-05T09:00:00Z",
+      "hold_hours": 24,
+      "holds": true
+    },
+    {
+      "name": "a cancelled order never holds, even if it was paid",
+      "state": "Cancelled",
+      "pay_state": "confirmed",
+      "placed_at": "2026-09-28T09:00:00Z",
+      "now": "2026-09-28T10:00:00Z",
+      "hold_hours": 24,
+      "holds": false
+    },
+    {
+      "name": "a no-show order never holds",
+      "state": "No-show",
+      "pay_state": "confirmed",
+      "placed_at": "2026-09-28T09:00:00Z",
+      "now": "2026-09-28T10:00:00Z",
+      "hold_hours": 24,
+      "holds": false
+    },
+    {
+      "name": "a refunded order never holds",
+      "state": "Confirmed",
+      "pay_state": "refunded",
+      "placed_at": "2026-09-28T09:00:00Z",
+      "now": "2026-09-28T10:00:00Z",
+      "hold_hours": 24,
+      "holds": false
+    },
+    {
+      "name": "a hold of zero hours releases an unpaid order at once",
+      "state": "Payment review",
+      "pay_state": "unpaid",
+      "placed_at": "2026-09-28T09:00:00Z",
+      "now": "2026-09-28T09:00:00Z",
+      "hold_hours": 0,
+      "holds": false
+    },
+    {
+      "name": "a negative hold is treated as zero",
+      "state": "Payment review",
+      "pay_state": "unpaid",
+      "placed_at": "2026-09-28T09:00:00Z",
+      "now": "2026-09-28T09:00:00Z",
+      "hold_hours": -5,
+      "holds": false
+    },
+    {
+      "name": "a longer hold keeps the order until it ends",
+      "state": "Payment review",
+      "pay_state": "unpaid",
+      "placed_at": "2026-09-28T09:00:00Z",
+      "now": "2026-09-30T08:59:00Z",
+      "hold_hours": 48,
+      "holds": true
+    }
   ]
 }

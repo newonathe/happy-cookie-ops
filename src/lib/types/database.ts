@@ -534,6 +534,7 @@ export type Database = {
       }
       order_items: {
         Row: {
+          capacity_weight: number
           id: string
           order_id: string
           product_id: string
@@ -542,6 +543,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          capacity_weight?: number
           id?: string
           order_id: string
           product_id: string
@@ -550,6 +552,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          capacity_weight?: number
           id?: string
           order_id?: string
           product_id?: string
@@ -581,58 +584,118 @@ export type Database = {
           },
         ]
       }
+      order_rules: {
+        Row: {
+          campus_from: string
+          campus_to: string
+          id: boolean
+          lead_max_days: number
+          lead_min_days: number
+          max_unpaid_per_phone: number
+          pickup_cutoff_hour: number
+          pickup_days: number[]
+          pickup_from_hour: number
+          unpaid_hold_hours: number
+          updated_at: string
+        }
+        Insert: {
+          campus_from?: string
+          campus_to?: string
+          id?: boolean
+          lead_max_days?: number
+          lead_min_days?: number
+          max_unpaid_per_phone?: number
+          pickup_cutoff_hour?: number
+          pickup_days?: number[]
+          pickup_from_hour?: number
+          unpaid_hold_hours?: number
+          updated_at?: string
+        }
+        Update: {
+          campus_from?: string
+          campus_to?: string
+          id?: boolean
+          lead_max_days?: number
+          lead_min_days?: number
+          max_unpaid_per_phone?: number
+          pickup_cutoff_hour?: number
+          pickup_days?: number[]
+          pickup_from_hour?: number
+          unpaid_hold_hours?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       orders: {
         Row: {
           cancelled_at: string | null
           channel: string
+          client_id: string | null
           collected_at: string | null
           customer_name: string
           drop_id: string | null
           id: string
+          ig: string
           notes: string
           packaging_cents: number
           pay_method: string | null
           pay_ref: string | null
           pay_state: Database["public"]["Enums"]["pay_state"]
+          payload_hash: string | null
           phone: string
+          pickup_date: string | null
+          pickup_window: string | null
           placed_at: string
           state: Database["public"]["Enums"]["order_state"]
+          status_token: string | null
           total_cents: number
           updated_at: string
         }
         Insert: {
           cancelled_at?: string | null
           channel?: string
+          client_id?: string | null
           collected_at?: string | null
           customer_name: string
           drop_id?: string | null
           id: string
+          ig?: string
           notes?: string
           packaging_cents?: number
           pay_method?: string | null
           pay_ref?: string | null
           pay_state?: Database["public"]["Enums"]["pay_state"]
+          payload_hash?: string | null
           phone: string
+          pickup_date?: string | null
+          pickup_window?: string | null
           placed_at?: string
           state?: Database["public"]["Enums"]["order_state"]
+          status_token?: string | null
           total_cents?: number
           updated_at?: string
         }
         Update: {
           cancelled_at?: string | null
           channel?: string
+          client_id?: string | null
           collected_at?: string | null
           customer_name?: string
           drop_id?: string | null
           id?: string
+          ig?: string
           notes?: string
           packaging_cents?: number
           pay_method?: string | null
           pay_ref?: string | null
           pay_state?: Database["public"]["Enums"]["pay_state"]
+          payload_hash?: string | null
           phone?: string
+          pickup_date?: string | null
+          pickup_window?: string | null
           placed_at?: string
           state?: Database["public"]["Enums"]["order_state"]
+          status_token?: string | null
           total_cents?: number
           updated_at?: string
         }
@@ -966,6 +1029,42 @@ export type Database = {
         }
         Relationships: []
       }
+      waitlist_entries: {
+        Row: {
+          client_id: string
+          contacted_at: string | null
+          created_at: string
+          id: string
+          ig: string
+          name: string
+          payload_hash: string
+          phone: string
+          wanted_date: string
+        }
+        Insert: {
+          client_id: string
+          contacted_at?: string | null
+          created_at?: string
+          id?: string
+          ig?: string
+          name: string
+          payload_hash: string
+          phone: string
+          wanted_date: string
+        }
+        Update: {
+          client_id?: string
+          contacted_at?: string | null
+          created_at?: string
+          id?: string
+          ig?: string
+          name?: string
+          payload_hash?: string
+          phone?: string
+          wanted_date?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       shop_drops: {
@@ -1237,6 +1336,21 @@ export type Database = {
           updated_at: string
         }[]
       }
+      get_order_rules: {
+        Args: never
+        Returns: {
+          campus_from: string
+          campus_to: string
+          lead_max_days: number
+          lead_min_days: number
+          max_unpaid_per_phone: number
+          pickup_cutoff_hour: number
+          pickup_days: number[]
+          pickup_from_hour: number
+          unpaid_hold_hours: number
+          updated_at: string
+        }[]
+      }
       get_payment_methods: {
         Args: never
         Returns: {
@@ -1265,6 +1379,13 @@ export type Database = {
       get_shop_payment_info: { Args: never; Returns: Json }
       is_owner: { Args: never; Returns: boolean }
       is_staff: { Args: never; Returns: boolean }
+      join_waitlist: {
+        Args: { p_entry: Json }
+        Returns: {
+          replayed: boolean
+          waitlist_id: string
+        }[]
+      }
       load_event_stock: {
         Args: { p_event: string; p_float_cents: number; p_loaded: Json }
         Returns: {
@@ -1283,6 +1404,28 @@ export type Database = {
           pickup_at: string
           placed_at: string
           state: Database["public"]["Enums"]["order_state"]
+          total_cents: number
+        }[]
+      }
+      order_holds_capacity: {
+        Args: {
+          p_hold_hours: number
+          p_now: string
+          p_pay: Database["public"]["Enums"]["pay_state"]
+          p_placed_at: string
+          p_state: Database["public"]["Enums"]["order_state"]
+        }
+        Returns: boolean
+      }
+      order_status: { Args: { p_token: string }; Returns: Json }
+      place_order: {
+        Args: { p_order: Json }
+        Returns: {
+          order_no: string
+          pickup_date: string
+          pickup_window: string
+          replayed: boolean
+          status_token: string
           total_cents: number
         }[]
       }
@@ -1309,6 +1452,12 @@ export type Database = {
         Args: { p_expected_updated_at: string; p_flavour: Json; p_id: string }
         Returns: {
           id: string
+          updated_at: string
+        }[]
+      }
+      save_order_rules: {
+        Args: { p_expected_updated_at: string; p_rules: Json }
+        Returns: {
           updated_at: string
         }[]
       }

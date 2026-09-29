@@ -4,6 +4,42 @@ Every checkpoint up to 2026-09-28, verbatim and newest first. Moved here from `c
 session reads only the short status in [current.md](current.md). Add nothing here by hand; move a checkpoint here
 when it leaves `current.md`.
 
+## Checkpoint — 2026-09-29 (A2 app half)
+
+- **2026-09-29 (A2 app half, finish-plan slice A2):**
+  - **Live checkout:** the customer sees only the payment methods `get_shop_payment_info()` returned, each with
+    the owner's account number and name and a QR when she uploaded one. A failed or empty read, or a build with no
+    Supabase, shows no method, no QR and none of the ported bank/cash note (the Opus review's P1: that note
+    named a real-looking number). Demo mode is unchanged.
+  - **Shop footer (finding 16):** live mode prints the registration badge, TIN line, invoice note and allergen
+    note only when the owner has typed them; empty prints nothing. The order status page and order detail still
+    say "Invoice INV-…": that wording waits for F10 ("Order no.").
+  - **Owner forms** (in the existing `LiveFormHost`, no further protected markup): All tools, Business: "Payment
+    methods" (list, add, edit, show/hide, order, QR upload) and "Shop texts". The flavour editor gained a photo
+    upload. Uploads go to the public `shop-media` bucket under a generated name (uuid plus extension); PNG, JPEG or
+    WebP up to 2 MB, checked before sending; the bucket and its owner-only policies are the real lock.
+  - **One resolver** (`src/lib/media/resolve-image.ts`) turns a stored path into a display URL for flavours and QR:
+    `assets/…` stays page-relative, a generated bucket path becomes the Supabase public URL, anything unsafe draws
+    nothing. CSP `img-src` gained the Supabase origin (same value as `connect-src`).
+  - **Two protected edits**, recorded in [protected-exception.md](protected-exception.md) with exact reversals in
+    `scripts/validate-g0.py` and the baselines regenerated in the same commit: `replacePayAccounts` in the engine
+    (three lines after `PAY_ACCOUNTS`) and one guarded branch around the footer in `shop.tsx` (`elements` +1).
+  - **Evidence:** `pnpm verify` 48 files / 797 tests (new: `payments.test.ts`, `ops-runtime-payments.test.tsx`; the
+    live-gate test also checks the payment read); ten deliberate mutations of the new code, each caught; port
+    integrity OK; G0 validator 1206 checks, 0 failures; Python guards OK; `pnpm build`, `test:pages:spike`,
+    `test:workers:spike` pass; `pnpm test:e2e` 89 passed / 1 failed (WebKit OFFLINE-01) / 30 skipped. No SQL changed
+    in this half, so the SQL role suite stands at the database half's 825 cases per reset. Opus review of the two
+    protected edits and the upload path: BLOCKED on the P1 above, fixed and re-tested (see the record).
+  - **Recorded, not fixed:** (1) an image is never deleted when the owner cancels or replaces it (orphans stay in
+    the bucket); (2) a customer who picked a method the owner then turned off can still submit its label, so B1's
+    `place_order` must check the method is offered; (3) the checkout still runs the ported local submit until B2;
+    (4) **the D2 carry-over was not built** (the close's `cashCents`/`floatCents` from acknowledged rows): it is
+    money/offline work and this slice was already past the size limit, so it stays open ("Recorded, not fixed" 1
+    in the D2 checkpoint, [current-history.md](current-history.md)); do it before a two-phone event.
+  - **Hosted setup at cutover (F3):** check the `shop-media` bucket on the hosted project (public, 2 MiB, png/jpeg/
+    webp); the local config declares it, hosted needs the dashboard or `supabase config push`.
+  - **Still not run:** the physical-phone test for the 20-Oct gate; WebKit OFFLINE-01 (Playwright).
+
 ## Checkpoint — 2026-09-29 (A2 database half)
 
   - **Database (migration `20260101003400_payment_methods_shop_texts.sql`):** `payment_methods` (label the customer
