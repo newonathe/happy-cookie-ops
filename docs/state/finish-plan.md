@@ -269,7 +269,7 @@ settings and payment methods, not the offline queue.
 7. **Docs, three touches only:**
    - a 5-line status in `current.md`;
    - one `task-status.json` entry;
-   - swap the next-goal block.
+   - swap the next-goal block, including its **Session settings** table (model, effort, plan mode, permission mode, review model, browser QA), which is refreshed for every goal (Ethan, 2026-09-29).
    Commit by explicit path, then push.
 
 ### 8.2 Models and effort (why)

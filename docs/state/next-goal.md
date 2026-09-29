@@ -3,9 +3,11 @@
 Paste **one** goal block into a **new conversation started in the repo root**.
 
 - **Claude Code:** build on **Sonnet 5 · high**; plan, sign off and review SQL/money/offline on **Opus 5.5 · medium**
-  (the other model from the builder). Pick the model once per conversation; auto mode on; `/goal …`.
+  (the other model from the builder). Pick the model once per conversation; auto mode on; plan mode off inside an approved `/goal`; `/goal …`. The exact values for each goal are in its Session settings table.
   Why: [finish-plan.md](finish-plan.md) section 8.2.
 - **Codex:** the default profile (`gpt-6-sol` high), `/goal …`.
+
+**Every goal block below starts with a "Session settings" table** (model, reasoning effort, plan mode on or off, permission mode, subagent models, review model, browser QA, stop budget). Whoever rewrites the block fills it in from [finish-plan.md](finish-plan.md) section 6 (the slice's "Model · effort" cell) and section 8.2, and updates the table whenever a goal changes. Do not leave a setting implied. Ethan asked for this on 2026-09-29.
 
 When a goal finishes, the agent deletes its block here, leaves the next one on top, and commits. Rules: [lean plan](lean-plan.md). Architecture A: direct `supabase-js`, with RLS as the boundary. G1 goals and the hosted preview are done (see [current state](current.md)). **The forward plan is [finish-plan.md](finish-plan.md)** (approved 2026-09-28 with every default; decisions F1–F10 in its section 11). It replaces the order in G2-plan.md; take the top goal below.
 
@@ -26,6 +28,22 @@ When a goal finishes, the agent deletes its block here, leaves the next one on t
 - **Codex only:** run `/status` once in the repo root to confirm the project `.codex/config.toml` loaded. Accept the trust prompt if asked. The project sandbox has no network, so `git push` will ask for approval.
 
 ## Next goal — B4b (MP-10 b): boxes, add-ons, the sampler and same-day on the live checkout and the owner's order screens
+
+### Session settings (set these before pasting the goal)
+
+| Setting | Value | Why |
+| --- | --- | --- |
+| Conversation | **New**, started in the repo root (`C:/Users/ethan/dev/happy-cookie-ops-g0`) | One slice per conversation; the hooks, agents and `.mcp.json` load only from the root (finish-plan 8.1) |
+| Builder model · reasoning effort | **Sonnet 5 · high** | finish-plan section 6, row B4; section 8.2 (high is Sonnet 5's default) |
+| Plan mode | **Off** | The goal block is the approval (AGENTS.md "Working agreement" 2). Turn plan mode on only if the port audit forces a protected-markup edit, or if the goal stalls twice |
+| Permission mode | **Auto mode on** | finish-plan 8.1 |
+| Fast mode | Off | Not needed; it changes cost, not correctness |
+| Sign-off and review model | **Opus 5.5 · medium**, run as a subagent with `model: opus` on the invocation (the agent files are pinned to Sonnet) | A different model from the builder reviews SQL, money and personal data (lean plan rule 4). This slice: the app half, plus anything in the price path |
+| Port audit | `port-auditor` on **Sonnet**, before any edit near protected markup | The checkout slot and order screens are protected |
+| Literal code search | Explore subagent (Haiku) or codebase-memory-mcp | Cheapest; never read the 4,000-line engine whole |
+| Browser QA | **Required.** Use the built-in browser pane: it is allowed (Ethan, 2026-09-29, overriding the older AGENTS.md line). Run the live-mode build and look at every screen this slice touches | Ethan asked for visual QA of everything. Recipe: build with `scripts/build-pages-spike.mjs` using the local Supabase URL and publishable key, serve it with wrangler pages dev, sign in with a local test owner (a local test account is allowed on `localhost` only). If his Chrome times out on port 54321, route the database through the app's own port with a same-origin proxy |
+| Stop budget | 2 failed fix attempts or 25 turns | Written in the goal |
+| Environment | Docker Desktop running; pinned toolchain on PATH; `pnpm.cmd` in Git Bash | See "Before starting" |
 
 Drafted 2026-09-29 after B4a closed. B4a put the September form's extras on the database: `place_order` prices boxes,
 add-ons, the sampler cap and the same-day surcharge from the owner's configuration (`order_extras`, migration
@@ -87,7 +105,8 @@ swap or a surcharge never changes what a customer owes except the item differenc
 port audit (Sonnet) before any edit near protected markup, and one different-model review (Opus) of the app half. All exit 0 in
 this session: pnpm verify, Python guards, the G0 validator (revert evidence/*.json churn), port integrity, pnpm build,
 test:pages:spike, test:workers:spike, test:e2e (baseline in current.md), test:live:checkout (extended for one add-on and a
-same-day order), python scripts/test-db-security.py. Committed and pushed; current.md checkpoint and task-status updated; this
+same-day order), python scripts/test-db-security.py, and a visual pass in the browser pane over every screen touched
+(screenshots looked at, one order placed through the new checkout, and read back on the owner's screens). Committed and pushed; current.md checkpoint and task-status updated; this
 block replaced by the next goal from finish-plan section 6 (A3). No deploy. Stop after 2 failed fix attempts or 25 turns.
 ```
 
