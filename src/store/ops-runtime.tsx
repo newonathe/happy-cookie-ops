@@ -21,6 +21,7 @@ import type {
   LiveFlavourFormFields,
   LiveOrderExtrasFields,
   LiveOrderRulesFields,
+  LiveScheduledRow,
   LivePayFormFields,
   LiveShopTexts,
   OpsVals
@@ -45,7 +46,23 @@ import {
   type OrderExtras,
   type OrderExtrasFields
 } from '@/lib/data/order-extras';
-import { EXTRAS_COPY, MESSAGE_SHEET, RULES_COPY, STAFF_COPY } from '@/lib/orders/staff-copy';
+import {
+  dateRange,
+  fetchScheduledEvents,
+  linkScheduledEvent,
+  saveScheduledEvent,
+  scheduledEventError,
+  upcomingEvents,
+  type ScheduledClient,
+  type ScheduledEvent
+} from '@/lib/data/scheduled-events';
+import {
+  EXTRAS_COPY,
+  MESSAGE_SHEET,
+  RULES_COPY,
+  SCHEDULED_COPY,
+  STAFF_COPY
+} from '@/lib/orders/staff-copy';
 import { OrderFlow } from '@/lib/data/order-flow';
 import { tokenFromHash, type FieldErrors, type OrderClient } from '@/lib/data/orders';
 import { pickupLabel, statusCust } from '@/lib/orders/status-view';
@@ -264,6 +281,54 @@ function clearEventAttempt(): void {
   }
 }
 
+const PENDING_LINK = 'hc-pending-link';
+
+interface PendingLink {
+  scheduledId: string;
+  eventId: string;
+  rentCents: number;
+  at: number;
+}
+
+/** `₱2,500`, from centavos. */
+function pesoText(cents: number): string {
+  return '₱' + centavosToPesos(cents).toLocaleString('en-PH');
+}
+
+function readPendingLink(): PendingLink | null {
+  try {
+    const saved = JSON.parse(localStorage.getItem(PENDING_LINK) ?? 'null') as Partial<PendingLink> | null;
+    if (
+      saved &&
+      typeof saved.scheduledId === 'string' &&
+      typeof saved.eventId === 'string' &&
+      typeof saved.rentCents === 'number' &&
+      typeof saved.at === 'number' &&
+      Date.now() - saved.at < 3 * 86_400_000
+    )
+      return saved as PendingLink;
+  } catch {
+    /* unreadable: nothing pending */
+  }
+  return null;
+}
+
+function savePendingLink(link: PendingLink): void {
+  try {
+    localStorage.setItem(PENDING_LINK, JSON.stringify(link));
+  } catch {
+    /* private mode: the owner is told, and a later start of the same booking links again */
+  }
+}
+
+function clearPendingLink(): void {
+  try {
+    localStorage.removeItem(PENDING_LINK);
+  } catch {
+    /* nothing to clear */
+  }
+}
+
 export class OpsRuntime extends OpsProvider {
   /**
    * Where bazaar sales go. Null uses the signed-in browser client, or nothing at all in a
@@ -284,6 +349,12 @@ export class OpsRuntime extends OpsProvider {
   private shopClient?: ShopStatusClient;
   private rulesRow: OrderRulesRow | null = null;
   private extrasRow: OrderExtras | null = null;
+  /** D4: the owner's bookings (null until read), the client they were read with, the booking being started, and the id the blank form row will use. */
+  private scheduledRows: ScheduledEvent[] | null = null;
+  private scheduledClient: ScheduledClient | null = null;
+  private pendingSchedule: ScheduledEvent | null = null;
+  private scheduledNewId = '';
+  private scheduledVersion = 0;
   private orderFlow?: OrderFlow;
   /** The last fragment this runtime wrote or adopted, so a link pasted into the tab is told apart. */
   private lastHash = '';
@@ -506,6 +577,8 @@ export class OpsRuntime extends OpsProvider {
     ev: { name: string; date: string },
     begin: (ev: { name: string; date: string }) => void
   ): Promise<void> {
+    const pending = this.pendingSchedule;
+    this.pendingSchedule = null;
     const target = this.state.online ? this.salesTarget() : null;
     if (!target) {
       this.toast('Start the event while you have signal. Sales can go offline after that.', 'warn');
@@ -514,7 +587,7 @@ export class OpsRuntime extends OpsProvider {
     const outcome = await startEventOnServer(target, {
       name: ev.name,
       deviceId: deviceId(),
-      eventId: eventAttemptId(ev.name)
+      eventId: eventAttemptId(pending ? 'booking:' + pending.id : ev.name)
     });
     if (!outcome.ok) {
       this.toast('The event could not be started. Try again.', 'warn');
@@ -533,6 +606,7 @@ export class OpsRuntime extends OpsProvider {
       event: { ...(s.event ?? {}), id: outcome.eventId, snapshot: Object.keys(outcome.prices) },
       eventPrices: { ...(s.eventPrices as Record<string, number>), ...outcome.prices }
     }));
+    if (pending) void this.afterScheduledStart(pending, outcome.eventId);
   }
 
   /**
@@ -918,6 +992,9 @@ export class OpsRuntime extends OpsProvider {
       ...(this.orderSync ? { od: this.liveOrderDetail(starved.od) } : {}),
       liveOrderRules: this.liveOrderRulesVals(),
       liveOrderExtras: this.liveOrderExtrasVals(),
+      liveScheduled: this.liveScheduledVals(),
+      // D4: in live mode the Bazaar list is the owner's bookings, never the ported prototype events.
+      events: this.liveBazaarEvents(),
       cust: this.liveStatusCust(this.livePayCust(starved.cust)),
       openLookup: () => this.openLookupSheet(),
       openWaitlist: () => this.openWaitlist(),
@@ -1241,6 +1318,165 @@ export class OpsRuntime extends OpsProvider {
     } else this.toast(outcome === 'refused' ? EXTRAS_COPY.refused : STAFF_COPY.offline, 'warn');
   }
 
+  // ------------------------------------------------------------------ D4: the owner's upcoming bazaars
+
+  /** Reads the owner's bookings (the gate calls it once the owner is verified). False when it could not. */
+  async loadScheduledEvents(client: ScheduledClient | null): Promise<boolean> {
+    if (client) this.scheduledClient = client;
+    const use = client ?? this.scheduledClient;
+    if (!isLiveMode() || !use) return false;
+    try {
+      this.scheduledRows = await fetchScheduledEvents(use);
+    } catch {
+      return false;
+    }
+    this.forceUpdate();
+    void this.retryPendingLink(use);
+    return true;
+  }
+
+  /**
+   * A start whose link to its booking was not confirmed is retried whenever the list loads. The database books the
+   * stall rent with the first link and answers a repeat harmlessly, so retrying can never book it twice.
+   */
+  private async retryPendingLink(client: ScheduledClient): Promise<void> {
+    const pending = readPendingLink();
+    if (!pending) return;
+    const linked = await linkScheduledEvent(client, pending.scheduledId, pending.eventId);
+    if (linked === 'failed') return;
+    clearPendingLink();
+    if (linked === 'first' && pending.rentCents > 0) this.toast(SCHEDULED_COPY.rentBooked(pesoText(pending.rentCents)));
+    await this.loadScheduledEvents(null);
+  }
+
+  private openScheduled = async (): Promise<void> => {
+    if (!(await this.loadScheduledEvents(null)) || !this.scheduledRows) {
+      this.toast(STAFF_COPY.offline, 'warn');
+      return;
+    }
+    this.scheduledNewId = crypto.randomUUID();
+    this.sheet('scheduledevents', {});
+  };
+
+  private liveScheduledVals(): OpsVals['liveScheduled'] {
+    const sh = this.state.sheet as FlavourSheetState | null;
+    const rows = this.scheduledRows;
+    if (this.state.role !== 'owner' || sh?.kind !== 'scheduledevents' || !rows) return null;
+    return {
+      online: this.state.online && (typeof navigator === 'undefined' || navigator.onLine),
+      rows: rows.map((r) => ({
+        id: r.id,
+        name: r.name,
+        startsOn: r.startsOn,
+        endsOn: r.endsOn,
+        place: r.place,
+        rentPesos: centavosToPesos(r.rentCents),
+        active: r.active,
+        started: r.started
+      })),
+      newId: this.scheduledNewId,
+      version: this.scheduledVersion,
+      save: (form: LiveScheduledRow[]) => void this.saveScheduledForm(form),
+      close: () => this.closeSheet()
+    };
+  }
+
+  /** Saves each booking that is new or changed, one at a time and each with its own stamp; stops at the first failure. */
+  private async saveScheduledForm(form: LiveScheduledRow[]): Promise<void> {
+    const client = this.scheduledClient;
+    const before = this.scheduledRows ?? [];
+    if (!client) return void this.toast(STAFF_COPY.offline, 'warn');
+    if (form.some((r) => !Number.isFinite(r.rentPesos)))
+      return void this.toast(SCHEDULED_COPY.refused, 'warn');
+    const jobs = form.flatMap((r) => {
+      const fields = {
+        id: r.id,
+        name: r.name,
+        startsOn: r.startsOn,
+        endsOn: r.endsOn,
+        place: r.place,
+        rentCents: pesosToCentavos(r.rentPesos),
+        active: r.active
+      };
+      const was = before.find((b) => b.id === r.id);
+      const same =
+        !!was &&
+        was.name === fields.name.trim() &&
+        was.startsOn === fields.startsOn &&
+        was.endsOn === fields.endsOn &&
+        was.place === fields.place.trim() &&
+        was.rentCents === fields.rentCents &&
+        was.active === fields.active;
+      return same ? [] : [{ fields, stamp: was?.updatedAt ?? null }];
+    });
+    for (const job of jobs) {
+      const problem = scheduledEventError(job.fields);
+      if (problem) return void this.toast(problem, 'warn');
+    }
+    for (const job of jobs) {
+      const outcome = await saveScheduledEvent(client, job.fields, job.stamp);
+      if (outcome === 'saved') continue;
+      await this.loadScheduledEvents(null);
+      // The blank row must not reuse an id the list now holds (a create whose reply was lost).
+      const taken = (this.scheduledRows ?? []).some((r) => r.id === this.scheduledNewId);
+      if (outcome === 'conflict' || taken) {
+        this.scheduledNewId = crypto.randomUUID();
+        this.scheduledVersion += 1;
+      }
+      if (outcome === 'conflict') {
+        this.toast(SCHEDULED_COPY.conflict, 'warn');
+        this.forceUpdate();
+      } else this.toast(outcome === 'refused' ? SCHEDULED_COPY.refused : STAFF_COPY.offline, 'warn');
+      return;
+    }
+    this.toast(SCHEDULED_COPY.saved);
+    await this.loadScheduledEvents(null);
+    this.closeSheet();
+  }
+
+  /**
+   * The Bazaar screen's "Start an event" list in live mode: the owner's upcoming bookings, then one row to start an
+   * event that was never booked. The ported list (two prototype events) is never shown.
+   */
+  private liveBazaarEvents(): OpsVals['events'] {
+    const bazaar = this as unknown as BazaarActions;
+    const today = manilaToday();
+    const rows = upcomingEvents(this.scheduledRows ?? [], today).map((row) => ({
+      name: row.name,
+      date: dateRange(row.startsOn, row.endsOn),
+      place: row.place || SCHEDULED_COPY.unbookedPlace,
+      go: () => {
+        this.pendingSchedule = row;
+        bazaar.startEvent({ name: row.name, date: dateRange(row.startsOn, row.endsOn) });
+      }
+    }));
+    const label = dateRange(today, today);
+    rows.push({
+      name: SCHEDULED_COPY.unbookedTitle,
+      date: label,
+      place: SCHEDULED_COPY.unbookedPlace,
+      go: () => {
+        this.pendingSchedule = null;
+        bazaar.startEvent({ name: 'Bazaar · ' + label, date: label });
+      }
+    });
+    return rows;
+  }
+
+  /** The event is open: record which booking it was, and book the stall rent as an event expense, once. */
+  private async afterScheduledStart(row: ScheduledEvent, eventId: string): Promise<void> {
+    const client = this.scheduledClient;
+    const linked = client ? await linkScheduledEvent(client, row.id, eventId) : 'failed';
+    if (linked === 'failed') {
+      // The database books the rent with the first link; keep the pair until a retry is confirmed.
+      savePendingLink({ scheduledId: row.id, eventId, rentCents: row.rentCents, at: Date.now() });
+      this.toast(SCHEDULED_COPY.linkPending, 'warn');
+    } else if (linked === 'first' && row.rentCents > 0) {
+      this.toast(SCHEDULED_COPY.rentBooked(pesoText(row.rentCents)));
+    }
+    await this.loadScheduledEvents(null);
+  }
+
   // ------------------------------------------------------------------ B3: the owner's orders
 
   /**
@@ -1523,6 +1759,13 @@ export class OpsRuntime extends OpsProvider {
               },
               {
                 icon: this.IC.cookie,
+                label: SCHEDULED_COPY.title,
+                sub: 'Your upcoming bazaars: dates, place and stall rent',
+                badge: null,
+                go: () => void this.openScheduled()
+              },
+              {
+                icon: this.IC.cookie,
                 label: EXTRAS_COPY.title,
                 sub: 'Box sizes, add-ons, the sampler and the same-day extra',
                 badge: null,
@@ -1579,6 +1822,8 @@ export class OpsRuntime extends OpsProvider {
       return { ...sheet, liveForm: true, title: 'Order rules' };
     if (this.state.role === 'owner' && sh?.kind === 'orderextras')
       return { ...sheet, liveForm: true, title: EXTRAS_COPY.title };
+    if (this.state.role === 'owner' && sh?.kind === 'scheduledevents')
+      return { ...sheet, liveForm: true, title: SCHEDULED_COPY.title };
     if (this.state.role !== 'owner' || sh?.kind !== 'flavours')
       return { ...sheet, liveForm: false };
     const row = sh.pid ? this.flavourSync?.current().find((r) => r.id === sh.pid) : undefined;

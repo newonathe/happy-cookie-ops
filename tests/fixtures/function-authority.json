@@ -1014,7 +1014,7 @@
         "search_path=\"\""
       ],
       "returns": "TABLE(first_link boolean)",
-      "body_md5": "97545e92709e8c9aae73f64ceb0301c3",
+      "body_md5": "97ad1c087168a79ca99c540b7efcf50b",
       "identity": "p_scheduled uuid, p_event uuid",
       "execute_anon": false,
       "security_definer": true,

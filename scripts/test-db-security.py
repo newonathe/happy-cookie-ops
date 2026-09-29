@@ -21,7 +21,8 @@ ORDER_MIGRATIONS = [ROOT / 'supabase/migrations/20260101003500_place_order.sql',
                     ROOT / 'supabase/migrations/20260101003800_shop_status.sql',
                     ROOT / 'supabase/migrations/20260101003900_staff_orders_review.sql',
                     ROOT / 'supabase/migrations/20260101004000_order_extras.sql',
-                    ROOT / 'supabase/migrations/20260101004100_scheduled_events.sql']
+                    ROOT / 'supabase/migrations/20260101004100_scheduled_events.sql',
+                    ROOT / 'supabase/migrations/20260101004200_scheduled_event_rent.sql']
 _OUT = 'order outcome differs: anon / '
 _CHK = 'order check differs: anon / '
 _LOOK = 'lookup check differs: anon / '
@@ -224,10 +225,13 @@ SCHEDULED_MUTATIONS = {
     'rule_sched_link_event': ('link_scheduled_event', 'rule', 'link-event', _SC + 'link_event_missing / '),
     'rule_sched_link_conflict': ('link_scheduled_event', 'rule', 'link-conflict', _SC + 'link_other_event / '),
     'rule_sched_link_inactive': ('link_scheduled_event', 'rule', 'link-inactive', _SC + 'link_inactive / '),
+    'rule_sched_link_rent': ('link_scheduled_event', 'rule', 'link-rent', 'scheduled check differs: active_owner / link_books_rent'),
 }
 SCHEDULED_TABLE_MUTATIONS = {
     'scheduled_table_select': ('grant select on public.scheduled_events to anon;',
                                'scheduled outcome differs: anon / scheduled_table_select / '),
+    'scheduled_event_unique': ('drop index public.scheduled_events_event_uq;',
+                               'scheduled outcome differs: active_owner / link_event_taken / '),
 }
 
 
@@ -280,7 +284,7 @@ SUITES = (
     ('order-extras.sql', ('get_order_extras()', 'save_order_extras(jsonb,timestamptz)')
                          + tuple(EXTRAS_MUTATIONS) + tuple(EXTRAS_TABLE_MUTATIONS), 'forbidden extras call succeeded', 143),
     ('scheduled-events.sql', ('get_scheduled_events()', 'save_scheduled_event(jsonb,timestamptz)', 'link_scheduled_event(uuid,uuid)')
-                             + tuple(SCHEDULED_MUTATIONS) + tuple(SCHEDULED_TABLE_MUTATIONS), 'forbidden scheduled call succeeded', 65),
+                             + tuple(SCHEDULED_MUTATIONS) + tuple(SCHEDULED_TABLE_MUTATIONS), 'forbidden scheduled call succeeded', 69),
     ('bazaar-closeout.sql', ('event_summary(uuid)', 'load_event_stock(uuid,jsonb,bigint)', 'add_event_expense(jsonb)', 'close_event(jsonb)'), 'forbidden closeout call succeeded', 80),
 )
 CATALOG_GUARD_SQL = """
@@ -518,7 +522,7 @@ def main():
                 h.fail(filename + ' did not return its complete role matrix')
             results.extend(rows)
             assert_empty()
-        if len(set(results)) != 1383:
+        if len(set(results)) != 1387:
             h.fail('combined role matrix has missing or duplicate cases: %d rows, %d unique (duplicates: %s)' % (len(results), len(set(results)), sorted({r for r in results if results.count(r) > 1})[:5]))
         assert_functions()
         assert_catalog_wide()
@@ -531,10 +535,10 @@ def main():
     try:
         code = h.main(after_reset=check)
         if (code == 0 and len(report["runs"]) == 2 and report["runs"][0] == report["runs"][1]
-                and len(report['regressions_detected']) == 364 and report['sequence_restorations'] == 10
+                and len(report['regressions_detected']) == 368 and report['sequence_restorations'] == 10
                 and report['upgrade_runs'] == 2 and report['function_guard_runs'] == 4
                 and report['catalog_guard_runs'] == 4 and report['catalog_guard_red_runs'] == 4):
-            report.update(status="passed", cases_per_reset=1383, resets=2, matrix_equal=True, rollback_verified=True,
+            report.update(status="passed", cases_per_reset=1387, resets=2, matrix_equal=True, rollback_verified=True,
                           sql_sha256={name: hashlib.sha256((ROOT / 'tests/integration/security' / name).read_bytes()).hexdigest() for name, _, _, _ in SUITES},
                           harness_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
     except (RuntimeError, OSError, ValueError) as error:

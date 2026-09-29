@@ -1,8 +1,8 @@
 {
   "status": "passed",
   "scope": "explicit-connection CLI reset on disposable loopback PostgreSQL; not managed --local or auth/RLS acceptance",
-  "project_id": "hcb-6abbf19d-df3acb",
-  "workdir": "C:\\Users\\ethan\\dev\\.hcb-bootstrap-6abbf19d-df3acb",
+  "project_id": "hcb-6abbfb4b-48be25",
+  "workdir": "C:\\Users\\ethan\\dev\\.hcb-bootstrap-6abbfb4b-48be25",
   "cleanup": "passed",
   "resets": 2,
   "harness_sha256": "a47a91d38c71ffbf52a14e597836fdfdbd1d22a3408f5c151f2b35b25459c963",
@@ -139,13 +139,14 @@
     "20260101003800_shop_status.sql": "965d5134d4b253172eac0de62d73637e49a5d9d95077b9b1e7f092a7e4330818",
     "20260101003900_staff_orders_review.sql": "d8ba97de27f5076c59868cc4087ee9e6237696ca65ab26c68178539daf466ede",
     "20260101004000_order_extras.sql": "352dd437458b45619cde45414a266ee3a7a63c06fb6554193c998e9280137565",
-    "20260101004100_scheduled_events.sql": "73ba0aec62ba5a7d7eeb34306504686618e24fadfc16bcf3dc82d46f456c1424"
+    "20260101004100_scheduled_events.sql": "73ba0aec62ba5a7d7eeb34306504686618e24fadfc16bcf3dc82d46f456c1424",
+    "20260101004200_scheduled_event_rent.sql": "511159fc07779a4a183cf9c9fff37ad3cda2ff5d483d05c40c080dd3e803179c"
   },
   "database_image": "sha256:af083ef64d0408c8f098ee6f5c364a59b26f36fbc0f3a334a62c5c1d57362e9b",
   "postgres_version_num": "150008",
   "cli_version": "2.116.0",
   "loopback_port": 48716,
-  "container_id": "1387f12709966926afd16217790f02700375309b246d6c33d5d93121fca60aa0",
+  "container_id": "0a09a2c2c0f4d8c1ca613a9fe30c8b4381786e3c0b052277677bdf02e4ebc8e9",
   "expected_versions": [
     "20260101000000",
     "20260101000100",
@@ -188,7 +189,8 @@
     "20260101003800",
     "20260101003900",
     "20260101004000",
-    "20260101004100"
+    "20260101004100",
+    "20260101004200"
   ],
   "catalog": [
     "function\tadd_event_expense(p_expense jsonb)\tTABLE(client_id text, duplicate boolean)",
@@ -302,6 +304,7 @@
     "migration\t20260101003900\tapplied",
     "migration\t20260101004000\tapplied",
     "migration\t20260101004100\tapplied",
+    "migration\t20260101004200\tapplied",
     "settings_defaults\tsettings_effective\t28",
     "settings_overrides\tsettings\t0",
     "table_rows\taudit_log\t0",
@@ -336,9 +339,9 @@
     "table_rows\tsuppliers\t0",
     "table_rows\twaitlist_entries\t0"
   ],
-  "catalog_sha256": "17871d741313e05a76ca1bd0f0a1b28602562a89639d47bd7ca2619ed24f85c4",
+  "catalog_sha256": "1ca61bd4ad419ed4a75cac7dd5f3339adb16a335f21f0a9565a30d25007ab279",
   "catalogs_equal": true,
-  "schema_sha256": "e9134b3e4b2e319bcc9edfedd49c4732f6b72788a590bea4c7570ed5c2d97ba3",
+  "schema_sha256": "eb262783e72a1086caac20ba5f1cc6fc71d992b1e8085b2c8307d9f2c0e19739",
   "schemas_equal": true,
   "sentinel_removed": true
 }

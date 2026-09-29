@@ -18,6 +18,7 @@ const { FakeRuntime } = vi.hoisted(() => ({
     loadShopOrders = vi.fn();
     loadOrders = vi.fn();
     reloadOrders = vi.fn();
+    loadScheduledEvents = vi.fn();
     loadShopStatus = vi.fn();
     reloadShopStatus = vi.fn();
   }
@@ -150,6 +151,21 @@ describe('LiveGate: the owner’s orders (B3)', () => {
     expect(engine.loadFlavours).toHaveBeenCalledOnce();
     expect(engine.loadOrders).not.toHaveBeenCalled();
     // Mutation: ignoring the result loads orders whose flavours the screens do not know.
+  });
+
+  it('reads the owner’s upcoming bazaars once she is verified, and for nobody else', async () => {
+    role = 'owner';
+    await mount('bazaar');
+    expect(engine.loadScheduledEvents).toHaveBeenCalledExactlyOnceWith(client);
+    engine = new FakeRuntime();
+    role = 'helper';
+    await mount('bazaar');
+    expect(engine.loadScheduledEvents).not.toHaveBeenCalled();
+    engine = new FakeRuntime();
+    role = 'owner';
+    await mount('shop'); // a customer page: nothing is verified there
+    expect(engine.loadScheduledEvents).not.toHaveBeenCalled();
+    // Mutation: dropping the owner test asks a helper for a list the database refuses, and the customer page for one it cannot see.
   });
 
   it('never reads the orders for a helper, or on a customer page', async () => {

@@ -5,6 +5,7 @@ import { PayEditForm, PayList, ShopTextsForm, UploadField } from '@/components/l
 import { LiveLookup, LiveWaitlistForm } from '@/components/live/live-checkout';
 import { OrderMessages } from '@/components/live/order-messages';
 import { OrderExtrasForm } from '@/components/live/order-extras-form';
+import { ScheduledEventsForm } from '@/components/live/scheduled-events-form';
 import { OrderRulesForm } from '@/components/live/order-rules-form';
 import { inputStyle, labelStyle, primaryButton, secondaryButton, smallLabel } from '@/components/live/form-styles';
 
@@ -34,6 +35,7 @@ export function LiveFormHost({ v }: { v: OpsVals }) {
   if (v.liveMessages) return <OrderMessages liveMessages={v.liveMessages} />;
   if (v.liveOrderRules) return <OrderRulesForm liveOrderRules={v.liveOrderRules} />;
   if (v.liveOrderExtras) return <OrderExtrasForm liveOrderExtras={v.liveOrderExtras} />;
+  if (v.liveScheduled) return <ScheduledEventsForm liveScheduled={v.liveScheduled} />;
   if (v.liveLookup) return <LiveLookup v={v} />;
   if (v.liveWaitlist) return <LiveWaitlistForm v={v} />;
   return null;

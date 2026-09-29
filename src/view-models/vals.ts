@@ -67,6 +67,18 @@ export interface LiveOrderExtrasFields {
   }>;
 }
 
+/** One upcoming bazaar on the owner's form (D4). Rent is pesos here; the runtime converts to centavos. */
+export interface LiveScheduledRow {
+  id: string;
+  name: string;
+  startsOn: string;
+  endsOn: string;
+  place: string;
+  rentPesos: number;
+  active: boolean;
+  started: boolean;
+}
+
 export interface LiveShopTexts {
   registrationBadge: string;
   tinLine: string;
@@ -138,6 +150,16 @@ export interface OpsVals {
     online: boolean;
     rules: LiveOrderRulesFields;
     save: (fields: LiveOrderRulesFields) => void;
+    close: (event?: unknown) => void;
+  } | null;
+  /** Live owner only (D4): the upcoming bazaars form. `newId` is the id the blank row will be saved under. */
+  liveScheduled?: {
+    online: boolean;
+    rows: LiveScheduledRow[];
+    newId: string;
+    /** Changes when the list was reloaded under the form (a conflict), so the form shows what is saved. */
+    version: number;
+    save: (rows: LiveScheduledRow[]) => void;
     close: (event?: unknown) => void;
   } | null;
   /** Live owner only (B4): the boxes and add-ons form (boxes, add-ons, sampler limit, same-day extra). */

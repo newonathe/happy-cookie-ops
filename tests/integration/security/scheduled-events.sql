@@ -173,14 +173,26 @@ begin
   select l.first_link into first_time
     from public.link_scheduled_event(pg_temp.eid(1)::uuid, 'd4e00000-0000-4000-8000-000000000001'::uuid) l;
   perform pg_temp.assert_ok(a, 'link_first_is_true', first_time is true);
+  -- the first link books the stall rent (the booking now asks 300000) as the event's expense, in the same transaction
+  perform pg_temp.assert_ok(a, 'link_books_rent',
+    (select s.expenses_cents from public.event_summary('d4e00000-0000-4000-8000-000000000001'::uuid) s) = 300000);
   perform pg_temp.assert_ok(a, 'link_repeat_is_false',
     (select l.first_link from public.link_scheduled_event(pg_temp.eid(1)::uuid, 'd4e00000-0000-4000-8000-000000000001'::uuid) l) is false);
+  perform pg_temp.assert_ok(a, 'link_rent_once',
+    (select s.expenses_cents from public.event_summary('d4e00000-0000-4000-8000-000000000001'::uuid) s) = 300000);
   perform pg_temp.assert_ok(a, 'link_marks_started',
     (select (x ->> 'started')::boolean from jsonb_array_elements(public.get_scheduled_events()) x where x ->> 'id' = pg_temp.eid(1)));
   perform pg_temp.link(a, 'link_other_event', pg_temp.eid(1), 'd4e00000-0000-4000-8000-000000000002', '23505');
   perform pg_temp.link(a, 'link_booking_missing', pg_temp.eid(99), 'd4e00000-0000-4000-8000-000000000001', 'P0002');
   perform pg_temp.link(a, 'link_event_missing', pg_temp.eid(3), 'd4e00000-0000-4000-8000-0000000000ff', 'P0002');
   perform pg_temp.link(a, 'link_inactive', pg_temp.eid(5), 'd4e00000-0000-4000-8000-000000000002', '22023');
+  -- an event belongs to one booking only
+  perform pg_temp.link(a, 'link_event_taken', pg_temp.eid(3), 'd4e00000-0000-4000-8000-000000000001', '23505');
+  -- a booking with no rent books no expense
+  select l.first_link into first_time
+    from public.link_scheduled_event(pg_temp.eid(4)::uuid, 'd4e00000-0000-4000-8000-000000000002'::uuid) l;
+  perform pg_temp.assert_ok(a, 'link_zero_rent_books_none',
+    first_time is true and (select s.expenses_cents from public.event_summary('d4e00000-0000-4000-8000-000000000002'::uuid) s) = 0);
 end $$;
 
 grant execute on function

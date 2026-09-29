@@ -110,3 +110,27 @@ export const EXTRAS_COPY = {
     'That is an add-on, box or extra, not a flavour: there is nothing to flag or swap.',
   save: 'Save boxes & add-ons'
 } as const;
+
+/** The upcoming bazaars form and the Bazaar screen's list (D4). PLACEHOLDER, like the rest of this file. */
+export const SCHEDULED_COPY = {
+  title: 'Bazaar events',
+  saved: 'Bazaar events saved.',
+  conflict: 'Someone else changed the bazaar events just now. Showing their version.',
+  refused: 'The bazaar events could not be saved. Check the names, dates and rent.',
+  intro:
+    'Your upcoming bazaars. They appear on the Bazaar screen until they have ended or been started. Nothing is deleted: switch a booking off instead.',
+  addTitle: 'New bazaar',
+  name: 'Name',
+  starts: 'First day',
+  ends: 'Last day',
+  place: 'Place',
+  rent: 'Stall rent (₱)',
+  on: 'Show on the Bazaar screen',
+  onStarted: 'Show on the Bazaar screen (already started)',
+  save: 'Save bazaar events',
+  rentBooked: (amount: string) => amount + ' stall rent added under Bazaar rent. It is in your P&L already.',
+  linkPending:
+    'The event started, but this phone could not tell the server which booking it was. Do not add the stall rent by hand: it is booked automatically the next time this phone is online.',
+  unbookedTitle: 'Start without a booking',
+  unbookedPlace: 'A one-off event'
+} as const;
