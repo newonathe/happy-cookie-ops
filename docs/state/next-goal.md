@@ -16,59 +16,45 @@ When a goal finishes, the agent deletes its block here, leaves the next one on t
 - If files changed since the last index, re-index first: `index_repository`, repo path `C:/Users/ethan/dev/happy-cookie-ops-g0`.
 - Pinned toolchain: prefix PATH with `C:\Users\ethan\dev\happy-cookie-tools\bin;C:\Users\ethan\dev\happy-cookie-tools\node-v24.20.0-win-x64`. In Git Bash call `pnpm.cmd`: a bare `pnpm` resolves to the global npm shim first (it warns that the `pnpm` field is ignored).
 - Docker Desktop must be running for SQL work, and for one Python guard (`tests/integration/db`).
-- **Baseline (2026-09-28; `pnpm typecheck`/`vitest`/port integrity/G0 validator re-run at MP-09 c1c (A1) close; the SQL role suite and Python guards unchanged since c1b — no migration in A1; the rest unchanged since the static-header goal):**
-  - `pnpm typecheck` clean; `pnpm exec vitest run` 44 files / 688 tests; port integrity OK, 54 files; G0 validator 1201 checks, 0 failures;
-  - Python guards 63 OK, via `python -m unittest discover -s <dir> -p "test_*.py"` for each of `tests/unit`, `tests/integration/auth`, `tests/integration/db` and `tests/integration/security`, with `G0_PYTHON_LIBS=C:\Users\ethan\dev\happy-cookie-tools\python-libs-314`; SQL role suite 570 cases/reset, 2 resets;
+- **Baseline (2026-09-29, at D1 close):**
+  - `pnpm typecheck` clean; `pnpm verify` 46 files / 714 tests; port integrity OK, 54 files; G0 validator 1201 checks, 0 failures;
+  - Python guards 63 OK, via `python -m unittest discover -s <dir> -p "test_*.py"` for each of `tests/unit`, `tests/integration/auth`, `tests/integration/db` and `tests/integration/security`, with `G0_PYTHON_LIBS=C:\Users\ethan\dev\happy-cookie-tools\python-libs-314`; SQL role suite 657 cases/reset, 2 resets (`python scripts/test-db-security.py`);
   - `pnpm build:pages:spike`/`test:pages:spike`/`test:workers:spike` pass with or without `NEXT_PUBLIC_SUPABASE_URL`/`…PUBLISHABLE_KEY` (local stack values: `supabase status -o env`);
-  - `pnpm build` passes, and `pnpm test:e2e` gives 87 passed / 3 failed / 30 skipped. The 3 failures are the same known OFFLINE-01 durable-queue test on phone, WebKit and desktop (G3).
+  - `pnpm build` passes, and `pnpm test:e2e` gives 89 passed / 1 failed / 30 skipped. The one failure is OFFLINE-01 on WebKit (Playwright's WebKit cannot reload offline with a service worker); desktop and phone pass.
 - **Codex only:** run `/status` once in the repo root to confirm the project `.codex/config.toml` loaded. Accept the trust prompt if asked. The project sandbox has no network, so `git push` will ask for approval.
 
-## Next goal — D1 (MP-07 finish + MP-18/19 lean): bazaar sales, offline on one phone
+## Next goal — D2 (MP-20 lean): bazaar close-out
 
-Drafted 2026-09-28 after A1 closed (flavour editor + Publish menu, `docs/state/protected-exception.md`
-"MP-09 c1c"). Finish-plan.md slice D1, sections 4 and 6; approved order puts D1 right after A1 so 24–25 Oct
-stays reachable (section 6, F4).
+Drafted 2026-09-29 after D1 closed (`docs/state/current.md`, D1 checkpoint). Finish-plan.md slice D2, sections 4 and 6:
+event stock, expenses, cash count and event profit. D3 follows only if the 24–25 Oct gate passes.
 
-**Current state (finding 14, finish-plan.md section 4):** the IndexedDB offline sale queue
-(`src/lib/offline/queue.ts`) exists and `src/lib/offline/sync.ts` flushes it, but it posts to the archived BFF
-route `/api/sync` (`src/app/api/sync/route.ts`), which architecture A no longer uses. `tests/e2e/bazaar-offline.spec.ts`
-(OFFLINE-01) is the known-red test this slice must turn green — 3 failures across phone/WebKit/desktop per
-[current state](current.md).
+**Already in place from D1:** events on the database with a price snapshot and one selling device
+(`start_event`, `set_event_device`), idempotent `record_event_sale` / `void_event_sale`, `events.closed_at` (sales made
+before it are still accepted late; later ones are refused, 55000), `events.float_cents`, and the phone-side
+`OpsRuntime` wrappers and `hc-live-bazaar` state. Read `supabase/migrations/20260101003200_bazaar_events.sql` first.
 
-**Facts already decided:**
+**Carry-overs from D1 review that this slice should close:**
 
-- One selling device at a time, any phone/tablet/laptop (decision register, decision 5); other devices stay
-  online-only.
-- Bazaar prices equal online prices (decision register DP-20) — an event price snapshot, not a live read, so a
-  mid-event online price change never changes what a running bazaar charges.
-- The bazaar date gate (finish-plan.md section 6, F4, approved): 24–25 Oct only if OFFLINE-01 and a real offline
-  test on Cine's phone both pass by 20 Oct; otherwise she sells as today and 12–13 Dec is the pilot. This slice
-  is what OFFLINE-01 gates on — it does not itself run the phone test or decide the gate.
-- Needs A1: bazaar selling reads the flavour list A1's editor writes; it does not read payment accounts (A2).
-
-**Not re-audited against the code.** Read these first: `src/lib/offline/queue.ts`, `src/lib/offline/sync.ts`,
-`src/app/api/sync/route.ts` (what it is replacing), the bazaar screens and the `EventSale` type
-(`src/store/engine/ops-engine.d.ts`), `OpsRuntime.runSync`/`syncNow` (`src/store/ops-runtime.tsx`), and
-`tests/e2e/bazaar-offline.spec.ts` for what OFFLINE-01 actually asserts.
+- A flavour that was inactive when the event started is still on the sell grid; its sales are refused and stay queued
+  as failed. Stock loading here must only offer flavours in the event's `price_snapshot`.
+- E1's revenue must skip `event_sales` rows with `voided_at`.
+- Helper access to selling waits for DP-18 (owner-only today).
+- Surface a permanently refused sale (22023/23505/42501) as such, not as a network failure.
 
 ```text
-/goal D1 (docs/state/finish-plan.md slice D1): bazaar sales, offline on one phone.
-Events on the database (a new migration): one designated selling device per event (decision register, decision
-5), an event price snapshot taken at event start so a later online price change never reaches a running event
-(DP-20). Replace the archived /api/sync route with an idempotent record_event_sale RPC keyed on the sale's
-client-generated id, callable while offline-queued and safely retried; wire OpsRuntime's existing IndexedDB
-queue (src/lib/offline/queue.ts) and sync (src/lib/offline/sync.ts) to it instead of /api/sync. Void and
-freebie sales, same idempotency. Never drop a queued sale the server has not acknowledged by clientId (AGENTS.md).
-No protected-file edit expected; if one seems required, stop and say so first. Existing tokens only if any new
-UI is needed. Unit tests for record_event_sale's idempotency (repeat delivery, out-of-order retry, void,
-freebie) and the queue/sync rewiring, each with one mutation check. Must turn tests/e2e/bazaar-offline.spec.ts
-(OFFLINE-01) green on at least the desktop project; report phone/WebKit results honestly, since the real
-20-Oct gate also needs a physical-phone test this slice does not run. All exit 0 in this session: the
-pre-commit pnpm verify, the Python guards, the G0 validator (revert evidence/*.json churn), the SQL role suite
-(this slice adds a migration). Opus review (if this session is Sonnet, invoke it with model opus) for the new
-RPC and the offline/idempotency logic. Committed and pushed; current.md checkpoint and task-status updated;
-this block replaced by the next slice from finish-plan section 6 (D2, unless the OFFLINE-01 gate reopens D1).
-No deploy. Stop after 2 failed fix attempts or 25 turns.
+/goal D2 (docs/state/finish-plan.md slice D2): bazaar close-out — event stock, expenses, cash count and event profit.
+On top of D1's events: stock loaded onto the table and returned at close, event expenses (rent and the categories
+Cine sets, decision register) posted as ledger costs against the event, a cash count against float plus cash sales
+(voided sales excluded), and an idempotent owner-only close_event RPC that sets closed_at (D1 already refuses later
+sales), stores the counts, and returns event profit. New migration, SECURITY DEFINER, search_path '', explicit grants,
+in-function role check, a SQL role-suite file with a mutation check per rule. Wire the bazaar close-out through
+OpsRuntime wrappers over the existing engine actions; no protected-file edit expected, and if one seems required, stop
+and say so first. Existing tokens only. Unit tests for the new client code, each with one mutation check. Also close the
+D1 carry-overs above. All exit 0 in this session: the pre-commit pnpm verify, the Python guards, the G0 validator
+(revert evidence/*.json churn), the SQL role suite. Opus review (if this session is Sonnet, invoke it with model opus)
+for the new RPC and money logic. Committed and pushed; current.md checkpoint and task-status updated; this block
+replaced by the next slice from finish-plan section 6 (D3 only if the pilot gate passes, otherwise A2). No deploy.
+Stop after 2 failed fix attempts or 25 turns.
 ```
 
 ## After these goals
@@ -76,7 +62,7 @@ No deploy. Stop after 2 failed fix attempts or 25 turns.
 1. **Hosted preview: live (2026-09-27, see [current state](current.md)).** The route/CSP/cache oracle, anonymous RLS/RPC probes, `connect-src` proof, default-privilege probe and catalog RLS guard pass on the hosted project. Still open:
    - the direct-parent refresh probe and the `auth.sessions` checks, with a test account Ethan creates and signs in with himself;
    - move the local stack to Postgres 17 and revoke the PG17 MAINTAIN privilege from API roles in a reviewed migration.
-2. **Remaining slices: [finish-plan.md](finish-plan.md) section 6.** The approved order after A1 is D1 → D2 → [D3 if
+2. **Remaining slices: [finish-plan.md](finish-plan.md) section 6.** The approved order after D1 is D2 → [D3 if
    the pilot gate passes by 20 Oct] → A2 → B1–B4 → A3–A4 → C1–C2 → E1 → F1–F4. Each next block is written from there when the previous one lands. Carry-overs:
    - Rate limiting for anonymous checkout: key on phone number plus the weekly cap, never the client IP (the gateway's forwarded-IP header is caller-controlled; finish-plan section 10).
    - Add the Supabase origin to `img-src` when owner-uploaded images (A2: QR codes, flavour photos) are first displayed.

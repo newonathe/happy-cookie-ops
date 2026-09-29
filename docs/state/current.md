@@ -20,61 +20,66 @@ Short status, read at the start of every session. Keep it to one screen.
   - MP-09 c1: flavours on the database.
   - MP-09 c1b: prices save, `publish_flavours`, and the live shop shows only the published menu.
   - MP-09 c1c (F3, slice A1): the owner's flavour editor and "Publish menu" button, live mode only.
-- **Screen by screen:** orders, payments, bake/dough, inventory, grocery, suppliers, recipes, bazaar, P&L and the
-  waitlist still live only in the browser, so they are empty in live mode. **The owner can now edit, add and
+- **D1 is done locally:** bazaar events and sales on the database, offline on one phone (checkpoint below).
+- **Screen by screen:** orders, payments, bake/dough, inventory, grocery, suppliers, recipes, P&L and the
+  waitlist still live only in the browser (bazaar sales now reach the database; its stock and close-out are D2), so they are empty in live mode. **The owner can now edit, add and
   publish flavours**; every other screen is still A2 onward.
 - **Cine's inputs arrived 2026-09-28** and were analysed in [finish-plan.md](finish-plan.md) sections 2 and 4 and
   [apps-script-audit.md](apps-script-audit.md): the workbook, the September form, the payment image, the October
   menu, recipes and packaging, and the Apps Script. The files stay outside the repo; `Appscript/` is git-ignored.
-- **Baseline (2026-09-28, at A1/MP-09 c1c close):**
-  - `pnpm typecheck`: clean; `pnpm exec vitest run`: 44 files / 688 tests;
-  - SQL role suite: unchanged (570 cases per reset × 2 — no migration this slice);
-  - Python guards: unchanged (63 OK — not re-run this slice, no Python-relevant change);
-  - port integrity: OK, 54 files; G0 validator: 1201 checks, 0 failures;
-  - `pnpm test:e2e`: unchanged (87 passed / 3 failed OFFLINE-01 / 30 skipped — not re-run this slice);
-  - migrations: 32 (unchanged — no SQL this slice).
-- **Known red:** OFFLINE-01 ×3; `format:check` and E2E on CI `main`. No merge to `main` until they are green.
+- **Baseline (2026-09-29, at D1 close):**
+  - `pnpm typecheck` clean; `pnpm verify` 46 files / 714 tests; port integrity OK, 54 files; G0 validator 1201 checks, 0 failures;
+  - SQL role suite: 657 cases per reset, 2 resets; Python guards: 63 OK; migrations: 33;
+  - `pnpm test:e2e`: 89 passed / 1 failed (WebKit OFFLINE-01) / 30 skipped.
+- **Known red:** OFFLINE-01 on WebKit only; `format:check` and E2E on CI `main`. No merge to `main` until they are green.
 
 ## Waiting on
 
 - **Cine:** her answers to C1–C12 ([finish-plan.md](finish-plan.md) section 11). The build uses each default until
   she answers. Ethan approved F1–F10 on 2026-09-28.
-- **Pilot gate:** Bazaar Mode for 24–25 Oct only if OFFLINE-01 and the offline test on her phone pass by 20 Oct.
+- **Pilot gate:** Bazaar Mode for 24–25 Oct only if OFFLINE-01 and the offline test on her phone pass by 20 Oct. OFFLINE-01 passes on desktop and Android-sized phone in Playwright; WebKit fails in the test runner and the physical-phone test (her phone model) has not been run.
 - **Hosted updates:** Ethan runs `supabase login` before the next hosted update.
-
-## D1 in progress (2026-09-29) - SQL half done, TypeScript half not started
-
-- **Done (SQL half):** migration `20260101003200_bazaar_events.sql`. An event now holds its price snapshot (taken at `start_event`, DP-20) and one selling device (`set_event_device` keeps the old phone accepted so its queued sales are not lost). `record_event_sale` is idempotent on the client id: a repeat is acknowledged once, a total that disagrees with the snapshot is refused (22023, the phone keeps it queued as failed), a freebie writes no ledger row. `void_event_sale` is a never-clearing marker (`event_sale_voids`, no policy), so a void before its sale, a repeat void and a stale retry all end voided with revenue netting to zero. All four are owner-only (DP-18 open), `search_path ''`, EXECUTE for `authenticated` only. Legacy `sync_event_sale` stays quarantined.
-- **Evidence:** SQL role suite `bazaar-events.sql` 87 cases per reset (657 combined, 2 resets, 76 deliberate regressions detected); four deliberate RPC mutations each caught (ledger for a voided sale, payload-hash check removed, void sign flipped, repeat judged after the device check); Python guards 63 OK (function count 36); G0 validator 1201 checks, 0 failures; `pnpm typecheck` clean; types regenerated.
-- **Opus review (security-reviewer, model opus):** no P0/P1. Fixed: P2 a repeat with a different body was acknowledged (now a stored SHA-256 payload hash, refused 23505, per MASTER-PLAN's idempotency key plus payload hash); P2 repeat-before-other-checks was untested (now repeat after a device change and after close); P3 ledger row now written after the sale row; P3 sale time may not precede the event start by more than a day; P3 an out-of-order void is audited; P3 inactive-owner test uses the plain authenticated claim; P3 `start_event` takes an optional client event id so a lost reply cannot open a second event. Not fixed, recorded: the advisory lock (void racing its own sale) needs a two-connection test; the owner's existing RLS lets them write `event_sales`/`events` directly, so any report that sums `event_sales.total_cents` (E1) must skip rows with `voided_at`.
-- **Still to do (TypeScript half):** call the RPCs from `src/lib/offline/sync.ts` (pesos to centavos via `money.ts`, send `deviceId`, match results on `clientId`), an `OpsRuntime` `startEvent` wrapper that calls `start_event` online and stamps the event uuid and snapshot prices, a `voidSale` wrapper that queues a void (never deletes a sale), a unique sale `clientId` stamped on the sale (the engine reuses `S<n>` after a void), replace the `/api/sync` call in `public/sw.js` with a message to open tabs, and OFFLINE-01 (the offline reload does not hydrate: `/_next/static` scripts are not cached). `OfflineBridge` already subscribes to sales (commit `9aae6cd`).
-- **Also open:** the e2e build has no Supabase config, so OFFLINE-01 needs a mocked `rest/v1/rpc/record_event_sale` plus a way to reach it without the sign-in redirect.
 
 ## Latest checkpoint (replace each slice; move the old one to current-history.md)
 
-- **2026-09-28 (MP-09 c1c, F3, slice A1 — the flavour editor and "Publish menu"):**
-  - The owner can now add, edit and publish flavours in live mode: name, short name, description, photo path,
-    allergens, badge, Permanent/Rotating, cookie/set, capacity weight, sort order and price, saved whole through
-    `FlavourSync.saveWhole`/`save_flavour`. A new flavour is a draft (unpublished) until the next publish, with
-    an id slugged from its name. "Publish menu" calls `FlavourSync.publish()` and says how many flavours
-    customers will now see. Entry points: "Menu & flavours" in `toolGroups` (Business group) and the products
-    screen's "Edit price", both owner-only in live mode; every other role still gets the ported edit-price
-    sheet. No SQL migration: `save_flavour`/`publish_flavours` already covered every field.
-  - **F3 applied for the first time:** one live-only form host, reached through the engine's own unrecognised
-    `sheet('flavours', …)` kind (already rendered as empty before this slice — confirmed by reading the engine,
-    not assumed). `app-frame.tsx` (protected) gained exactly one import and one `bareFrame`-guarded render line;
-    inserted by script, not the Edit tool, so it was never reformatted. Exact record: `protected-exception.md`
-    "MP-09 c1c"; exact reversals: `scripts/validate-g0.py`; `port-baseline.json`/`port-structure-baseline.json`
-    regenerated in the same commit.
-  - **Independent review (Opus) first BLOCKED**, on one P0 (an unloaded flavour cache let "Publish menu"
-    unpublish every real flavour, or a new-flavour save shrink the engine's whole list to one row) and two P1s
-    (a form left open across a concurrent quick edit could silently revert it, since its own fields are
-    uncontrolled; a cleared price field saved as ₱0). All three fixed, regression-tested and re-verified: **SAFE
-    TO MERGE.** One P2 (a same-flavour quick edit mid-whole-form-save is dropped, not resent) accepted, not
-    fixed — narrow, no worse than pre-c1c behaviour for that overlap. Independent port audit (Opus): PASS on
-    every point; also caught and fixed a formatter's CRLF→LF rewrite of `vals.ts` (content-only diff restored)
-    and reverted evidence-file churn left by its own validator run.
-  - Evidence: `pnpm typecheck` clean; 688 tests / 44 files (17 new, each locally mutation-checked); port
-    integrity OK; G0 validator 1201 checks / 0 failures (evidence churn reverted). No SQL role suite run (no
-    migration). No deploy.
-  - Next goal: D1 (bazaar sales, offline on one phone), then D2, gated on the OFFLINE-01/phone test by 20 Oct.
+- **2026-09-29 (D1, finish-plan slice D1 — bazaar sales, offline on one phone):** committed in two parts, the SQL
+  half (`ee6f3be`) and the phone half.
+  - **Database (migration `20260101003200_bazaar_events.sql`):** an event holds its price snapshot (taken at
+    `start_event`, DP-20) and one selling device (decision 5; `set_event_device` keeps the old phone accepted).
+    `record_event_sale` is idempotent on the client id plus a hash of the body: a true repeat is acknowledged once,
+    the same id with a different body is refused (23505), a total that disagrees with the snapshot is refused
+    (22023), a freebie books no ledger row. `void_event_sale` is a never-clearing marker, so void-before-sale,
+    repeat void and a stale retry all end voided. `start_event` takes a client event id so a lost reply cannot open
+    a second event. Owner-only (DP-18 open), `search_path ''`, EXECUTE for `authenticated`.
+  - **Phone:** `src/lib/offline/sync.ts` now sends one row at a time to those RPCs through the signed-in
+    browser client (`src/lib/data/event-sales.ts`, pesos to centavos in one place) and clears a row only when the
+    reply names its client id. A void is its own queue row. `OpsRuntime` wraps `startEvent` (live: online only,
+    server snapshot prices, event id kept in `hc-event-attempt` for a retry), `voidSale` (queues the void),
+    `recordSale` (renames a sale id the engine reused after a void), `setEventPrice` (locked in live) and, in live
+    mode, keeps the running event in `hc-live-bazaar` so a reload at the stall carries on with the same event
+    (`bazaar-state.ts`). After every flush the on-screen sale flags follow the queue (live only). `OfflineBridge`
+    subscribes to sales (this was the OFFLINE-01 root cause), retries a failed IndexedDB write, and stores the
+    scripts the page loaded through the service worker so the phone can reload with no signal (`shell.ts`,
+    `data-hc-offline-ready`). `public/sw.js` no longer posts anywhere: it wakes open tabs and caches the shell.
+    `src/app/api/sync/route.ts` stays as an uncalled 503 only because the G0 validator pins it as a delivery
+    file; the middleware carve-out for it is gone.
+  - **OFFLINE-01:** passes on desktop and phone (Pixel 7). **WebKit (iPhone 13 profile) still fails** at
+    `page.reload()` offline with "WebKit encountered an internal error", before any of our code runs; not
+    diagnosed further (Playwright's WebKit with a service worker and `setOffline`). The e2e build has no Supabase
+    project, so the acknowledgment comes from a stand-in `saleClient` set on the engine; the server contract is
+    proven by the SQL role suite. **The physical-phone test for the 20-Oct gate is not run and still needed.**
+  - **Evidence:** `pnpm verify` 46 files / 714 tests, exit 0; `pnpm test:e2e` 89 passed / 1 failed (WebKit
+    OFFLINE-01) / 30 skipped; SQL role suite `bazaar-events.sql` 87 cases per reset (657 combined, 2 resets, 76
+    deliberate regressions detected); Python guards 63 OK (function count 36); G0 validator 1201 checks, 0 failures.
+    Mutation checks: four on the RPCs (SQL), eight on the phone code (reply not checked, every row marked sent,
+    void not queued, id collision left, start retry id, unnamed event sent, saved event not read back, flags not
+    from the queue) each caught by a test. Two Opus reviews: SQL (no P0/P1; two P2 fixed) and phone (two P1 and
+    four P2; the reload-loses-the-event P1 fixed by `hc-live-bazaar`, the void-guard P1 not applicable because
+    the engine's `voidSale` only returns early for an unknown id).
+  - **Recorded, not fixed:** (1) a flavour that was inactive when the event started is still on the sell grid;
+    a sale of it is refused (22023) and stays queued as failed. The start now says how many flavours cannot be sold;
+    D2's stock loading should stop offering them. (2) A permanently refused sale (22023/23505/42501) is retried
+    on every flush and looks like a network failure; the sync toast counts void rows as sales. (3) Old queue rows
+    from before D1 have no server event and stay failed. (4) The advisory lock (void racing its own sale) needs a
+    two-connection test. (5) The owner can already write `event_sales`/`events` directly under RLS, so E1's revenue
+    query must skip rows with `voided_at`. (6) Helper access to selling waits for DP-18.

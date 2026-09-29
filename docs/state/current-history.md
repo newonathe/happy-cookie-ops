@@ -4,6 +4,34 @@ Every checkpoint up to 2026-09-28, verbatim and newest first. Moved here from `c
 session reads only the short status in [current.md](current.md). Add nothing here by hand; move a checkpoint here
 when it leaves `current.md`.
 
+## Checkpoint — 2026-09-28 (MP-09 c1c, slice A1)
+
+  - The owner can now add, edit and publish flavours in live mode: name, short name, description, photo path,
+    allergens, badge, Permanent/Rotating, cookie/set, capacity weight, sort order and price, saved whole through
+    `FlavourSync.saveWhole`/`save_flavour`. A new flavour is a draft (unpublished) until the next publish, with
+    an id slugged from its name. "Publish menu" calls `FlavourSync.publish()` and says how many flavours
+    customers will now see. Entry points: "Menu & flavours" in `toolGroups` (Business group) and the products
+    screen's "Edit price", both owner-only in live mode; every other role still gets the ported edit-price
+    sheet. No SQL migration: `save_flavour`/`publish_flavours` already covered every field.
+  - **F3 applied for the first time:** one live-only form host, reached through the engine's own unrecognised
+    `sheet('flavours', …)` kind (already rendered as empty before this slice — confirmed by reading the engine,
+    not assumed). `app-frame.tsx` (protected) gained exactly one import and one `bareFrame`-guarded render line;
+    inserted by script, not the Edit tool, so it was never reformatted. Exact record: `protected-exception.md`
+    "MP-09 c1c"; exact reversals: `scripts/validate-g0.py`; `port-baseline.json`/`port-structure-baseline.json`
+    regenerated in the same commit.
+  - **Independent review (Opus) first BLOCKED**, on one P0 (an unloaded flavour cache let "Publish menu"
+    unpublish every real flavour, or a new-flavour save shrink the engine's whole list to one row) and two P1s
+    (a form left open across a concurrent quick edit could silently revert it, since its own fields are
+    uncontrolled; a cleared price field saved as ₱0). All three fixed, regression-tested and re-verified: **SAFE
+    TO MERGE.** One P2 (a same-flavour quick edit mid-whole-form-save is dropped, not resent) accepted, not
+    fixed — narrow, no worse than pre-c1c behaviour for that overlap. Independent port audit (Opus): PASS on
+    every point; also caught and fixed a formatter's CRLF→LF rewrite of `vals.ts` (content-only diff restored)
+    and reverted evidence-file churn left by its own validator run.
+  - Evidence: `pnpm typecheck` clean; 688 tests / 44 files (17 new, each locally mutation-checked); port
+    integrity OK; G0 validator 1201 checks / 0 failures (evidence churn reverted). No SQL role suite run (no
+    migration). No deploy.
+  - Next goal: D1 (bazaar sales, offline on one phone), then D2, gated on the OFFLINE-01/phone test by 20 Oct.
+
 ## Current checkpoint — 2026-09-28 (audit of Cine's current system; finish-plan.md written)
 
 - Audited Cine's whole current system against the app.

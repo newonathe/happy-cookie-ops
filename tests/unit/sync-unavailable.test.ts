@@ -1,20 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const sale = (saleId: string, at: number) => ({
-  saleId,
-  eventId: null,
-  items: { cookie: 2 },
-  gross: 200,
-  discount: 0,
-  total: 200,
-  pay: 'cash',
-  ref: '',
-  clerk: 'Mia',
-  at,
-  tendered: 200,
-  change: 0
-});
-
 async function unavailable(request: Request): Promise<Response> {
   const { POST } = await import('@/app/api/sync/route');
   const handler: (request: Request) => ReturnType<typeof POST> = POST;
@@ -63,41 +48,5 @@ describe('the quarantined sync endpoint', () => {
     const response = await unavailable(new Request('http://localhost/api/sync', { method: 'POST' }));
     expect(response.status).toBe(503);
     expect(createClient).not.toHaveBeenCalled();
-  });
-});
-
-describe('a 503 sync response', () => {
-  beforeEach(() => {
-    vi.resetModules();
-    vi.unstubAllGlobals();
-  });
-
-  it('retains every queued sale and increments failure metadata across retries', async () => {
-    const rows = new Map<string, Record<string, unknown>>();
-    vi.doMock('@/lib/offline/idb', () => ({
-      idb: {
-        supported: () => true,
-        get: async <T>(key: string) => rows.get(key) as T | undefined,
-        put: async <T extends { clientId: string }>(row: T) => rows.set(row.clientId, structuredClone(row)),
-        all: async <T>() => [...rows.values()].map((row) => structuredClone(row)) as T[],
-        delete: async (key: string) => rows.delete(key)
-      }
-    }));
-    vi.doMock('@/lib/device', () => ({ deviceId: () => 'device-a' }));
-    vi.stubGlobal('navigator', { onLine: true });
-    vi.stubGlobal('fetch', async () => unavailable(new Request('http://localhost/api/sync', { method: 'POST' })));
-
-    const { enqueueSale, allSales } = await import('@/lib/offline/queue');
-    const { flushQueue } = await import('@/lib/offline/sync');
-    const first = await enqueueSale(sale('S1', 1_760_000_000_001));
-    const second = await enqueueSale(sale('S2', 1_760_000_000_002));
-
-    await expect(flushQueue()).resolves.toMatchObject({ sent: [], failed: [{ clientId: first.clientId }, { clientId: second.clientId }] });
-    await expect(flushQueue()).resolves.toMatchObject({ sent: [], failed: [{ clientId: first.clientId }, { clientId: second.clientId }] });
-
-    expect(await allSales()).toEqual([
-      { ...first, state: 'failed', attempts: 2, lastError: '503 {"error":"sync_unavailable","accepted":[]}' },
-      { ...second, state: 'failed', attempts: 2, lastError: '503 {"error":"sync_unavailable","accepted":[]}' }
-    ]);
   });
 });

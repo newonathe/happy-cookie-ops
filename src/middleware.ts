@@ -14,9 +14,6 @@ const PUBLIC_PATHS = ['/shop', '/checkout', '/status', '/lookup'];
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });
 
-  // The quarantined endpoint returns only 503/no ACK and must never contact auth.
-  if (request.nextUrl.pathname === '/api/sync') return response;
-
   /**
    * No backend configured — run the app anyway, unauthenticated.
    *
@@ -27,8 +24,8 @@ export async function middleware(request: NextRequest) {
    * have no way to tell a configuration mistake from a broken build.
    *
    * The books live in localStorage at this stage (docs/TECH-DEBT.md item 1), so the app
-   * is genuinely usable like this. Sign-in and the sync endpoint are the only things that
-   * need Supabase, and both fail with a message that names the missing variable.
+   * is genuinely usable like this. Sign-in is the only thing that
+   * needs Supabase, and both fail with a message that names the missing variable.
    *
    * Remove this branch only once Supabase is required for the app to function at all —
    * which is after T-14, not before.

@@ -12,33 +12,23 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
-describe('sync quarantine middleware boundary', () => {
-  it.each([false, true])(
-    'does not contact auth for exact sync path (configured=%s)',
-    async (configured) => {
-      vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', configured ? 'https://invalid.example' : '');
-      vi.stubEnv('NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY', configured ? 'synthetic-key' : '');
-      const response = await middleware(
-        new NextRequest('http://localhost/api/sync', { method: 'POST' })
-      );
-      expect(response.headers.get('x-middleware-next')).toBe('1');
-      expect(createServerClient).not.toHaveBeenCalled();
-      expect(getUser).not.toHaveBeenCalled();
-    }
-  );
+describe('the retired /api/sync path', () => {
+  it('has no carve-out any more: an unsigned POST goes through the sign-in check', async () => {
+    vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'https://invalid.example');
+    vi.stubEnv('NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY', 'synthetic-key');
+    const response = await middleware(
+      new NextRequest('http://localhost/api/sync', { method: 'POST' })
+    );
+    expect(createServerClient).toHaveBeenCalledTimes(1);
+    expect(response.status).toBe(307);
+    expect(response.headers.get('location')).toContain('/sign-in');
+  });
 
-  it.each(['/api/sync-extra', '/api/sync/nested', '/orders'])(
-    'keeps authentication on %s',
-    async (path) => {
-      vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'https://invalid.example');
-      vi.stubEnv('NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY', 'synthetic-key');
-      const response = await middleware(new NextRequest('http://localhost' + path));
-      expect(createServerClient).toHaveBeenCalledOnce();
-      expect(getUser).toHaveBeenCalledOnce();
-      expect(response.status).toBe(307);
-      const redirect = new URL(response.headers.get('location') ?? 'http://missing.invalid');
-      expect(redirect.pathname).toBe('/sign-in');
-      expect(redirect.searchParams.get('next')).toBe(path);
-    }
-  );
+  it('still runs the app with no backend configured', async () => {
+    vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', '');
+    vi.stubEnv('NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY', '');
+    const response = await middleware(new NextRequest('http://localhost/orders'));
+    expect(response.headers.get('x-middleware-next')).toBe('1');
+    expect(createServerClient).not.toHaveBeenCalled();
+  });
 });

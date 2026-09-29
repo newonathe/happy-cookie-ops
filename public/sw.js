@@ -1,18 +1,37 @@
 /* The Happy Cookie Ops — service worker.
  *
- * Two jobs: keep the app openable with no signal, and get bazaar sales out of the
- * device even if the tab is closed. Nothing here caches customer or money data beyond
- * the sale queue it is trying to send.
+ * Two jobs: keep the app openable with no signal, and wake the open app when the
+ * radio comes back so it can send queued sales. It holds no sign-in and sends nothing
+ * itself: the page owns the session, so the page sends. Nothing here caches customer
+ * or money data.
  */
-const VERSION = 'hc-ops-v1';
+const VERSION = 'hc-ops-v2';
 const SHELL = ['/', '/bazaar', '/manifest.webmanifest'];
-const QUEUE_DB = 'hc-ops';
-const QUEUE_STORE = 'sale-queue';
+
+/*
+ * Stores the page shell and every build file it names. A redirected answer (the sign-in page
+ * served for a signed-out visitor) is never stored as a page: it would be replayed for a
+ * navigation, which the browser refuses, leaving an error page instead of the app.
+ */
+async function storeShell(cache) {
+  await Promise.all(
+    SHELL.map(async (path) => {
+      try {
+        const response = await fetch(path, { cache: 'reload' });
+        if (!response.ok || response.redirected) return;
+        const html = await response.clone().text();
+        await cache.put(path, response);
+        const files = [...new Set(html.match(/\/_next\/static\/[^"'\\)\s]+/g) || [])].slice(0, 200);
+        await Promise.all(files.map((u) => cache.match(u).then((hit) => hit || cache.add(u).catch(() => undefined))));
+      } catch (error) {
+        /* offline at install: the page is stored when it next loads online */
+      }
+    })
+  );
+}
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(VERSION).then((cache) => cache.addAll(SHELL)).then(() => self.skipWaiting())
-  );
+  event.waitUntil(caches.open(VERSION).then(storeShell).then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', (event) => {
@@ -38,6 +57,14 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // hashed build files never change under one URL; the page hands them over once loaded
+  if (url.pathname.startsWith('/_next/static/')) {
+    event.respondWith(
+      caches.match(request).then((hit) => hit || fetch(request).then((response) => put(request, response)))
+    );
+    return;
+  }
+
   // screens: network first, fall back to the last copy so the app still opens offline
   if (request.mode === 'navigate') {
     event.respondWith(
@@ -56,57 +83,42 @@ function put(request, response) {
   return response;
 }
 
-/* ---------- background sync: send queued sales without an open tab ---------- */
+/* ---------- background sync: wake the open app so it sends queued sales ---------- */
 self.addEventListener('sync', (event) => {
-  if (event.tag === 'hc-sale-sync') event.waitUntil(flushQueue());
+  if (event.tag === 'hc-sale-sync') event.waitUntil(wakeClients());
 });
+
+async function wakeClients() {
+  const clients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+  clients.forEach((client) => client.postMessage({ type: 'hc-flush' }));
+}
+
+/* ---------- the page lists the scripts it loaded, so a reload works with no signal ---------- */
+function cacheable(raw) {
+  try {
+    const url = new URL(raw, self.location.origin);
+    return url.origin === self.location.origin &&
+      (url.pathname.startsWith('/_next/static/') || url.pathname.startsWith('/assets/'));
+  } catch (error) {
+    return false;
+  }
+}
 
 self.addEventListener('message', (event) => {
-  if (event.data === 'hc-flush') event.waitUntil(flushQueue());
+  const data = event.data;
+  if (!data || data.type !== 'hc-precache' || !Array.isArray(data.urls)) return;
+  const port = event.ports && event.ports[0];
+  const urls = data.urls.filter(cacheable).slice(0, 400);
+  event.waitUntil(
+    caches
+      .open(VERSION)
+      .then((cache) =>
+        Promise.all([
+          storeShell(cache),
+          ...urls.map((u) => cache.match(u).then((hit) => hit || cache.add(u)))
+        ])
+      )
+      .then(() => port && port.postMessage({ ok: true }))
+      .catch(() => port && port.postMessage({ ok: false }))
+  );
 });
-
-function openQueue() {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open(QUEUE_DB, 1);
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
-  });
-}
-
-function readPending(db) {
-  return new Promise((resolve, reject) => {
-    const request = db.transaction(QUEUE_STORE, 'readonly').objectStore(QUEUE_STORE).getAll();
-    request.onsuccess = () => resolve((request.result || []).filter((row) => row.state !== 'sent'));
-    request.onerror = () => reject(request.error);
-  });
-}
-
-function markSent(db, clientIds) {
-  return new Promise((resolve) => {
-    const store = db.transaction(QUEUE_STORE, 'readwrite').objectStore(QUEUE_STORE);
-    clientIds.forEach((clientId) => {
-      const get = store.get(clientId);
-      get.onsuccess = () => {
-        const row = get.result;
-        if (row) store.put(Object.assign({}, row, { state: 'sent', lastError: null }));
-      };
-    });
-    store.transaction.oncomplete = () => resolve();
-  });
-}
-
-async function flushQueue() {
-  const db = await openQueue();
-  const pending = await readPending(db);
-  if (!pending.length) return;
-  const response = await fetch('/api/sync', {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ sales: pending })
-  });
-  if (!response.ok) throw new Error('sync failed: ' + response.status);
-  const body = await response.json();
-  await markSent(db, body.accepted || []);
-  const clients = await self.clients.matchAll({ includeUncontrolled: true });
-  clients.forEach((client) => client.postMessage({ type: 'hc-synced', accepted: body.accepted || [] }));
-}

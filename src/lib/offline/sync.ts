@@ -1,4 +1,8 @@
-import { markFailed, markSent, pendingSales, pruneSent } from './queue';
+import { markFailed, markSent, pendingSales, pruneSent, isVoidRow } from './queue';
+import type { QueuedSale, QueueRow } from './queue';
+import { isEventUuid, sendSale, sendVoid, type EventSalesClient } from '@/lib/data/event-sales';
+import { createClient } from '@/lib/supabase/client';
+import { hasSupabaseConfig } from '@/lib/supabase/config';
 
 export interface FlushResult {
   sent: string[];
@@ -6,48 +10,93 @@ export interface FlushResult {
   skipped: boolean;
 }
 
-const ENDPOINT = '/api/sync';
-
-/**
- * Sends everything the device is holding, in one request, and only clears the rows the
- * server names in its reply. A sale that is not acknowledged stays queued — a lost sale
- * is worse than a duplicate request, and the endpoint is idempotent on client_id.
- */
-export async function flushQueue(): Promise<FlushResult> {
-  const pending = await pendingSales();
-  if (!pending.length) return { sent: [], failed: [], skipped: true };
-  if (typeof navigator !== 'undefined' && !navigator.onLine) return { sent: [], failed: [], skipped: true };
-
+/** The signed-in browser client, or null when no backend is configured (demo builds). */
+export function defaultSalesClient(): EventSalesClient | null {
+  if (!hasSupabaseConfig()) return null;
   try {
-    const response = await fetch(ENDPOINT, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ sales: pending })
-    });
-    if (!response.ok) {
-      const text = await response.text();
-      for (const row of pending) await markFailed(row.clientId, response.status + ' ' + text.slice(0, 120));
-      return { sent: [], failed: pending.map((r) => ({ clientId: r.clientId, error: String(response.status) })), skipped: false };
-    }
-    const body = (await response.json()) as { accepted?: string[]; rejected?: Array<{ clientId: string; error: string }> };
-    const accepted = body.accepted ?? [];
-    await markSent(accepted);
-    for (const bad of body.rejected ?? []) await markFailed(bad.clientId, bad.error);
-    await pruneSent();
-    return { sent: accepted, failed: body.rejected ?? [], skipped: false };
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'network';
-    for (const row of pending) await markFailed(row.clientId, message);
-    return { sent: [], failed: pending.map((r) => ({ clientId: r.clientId, error: message })), skipped: false };
+    return createClient();
+  } catch {
+    return null;
   }
 }
 
-/** Asks the service worker to retry in the background once the radio comes back. */
+let running: Promise<FlushResult> | null = null;
+let again = false;
+
+/**
+ * Sends everything the device is holding, one row at a time, and clears only the row the
+ * server names in its reply. A row that is not acknowledged stays queued — a lost sale is
+ * worse than a repeated request, and both RPCs are idempotent on the client id. Calls that
+ * overlap share one run; rows queued while it runs are picked up by a second pass.
+ */
+export function flushQueue(client?: EventSalesClient | null): Promise<FlushResult> {
+  if (running) {
+    again = true;
+    return running;
+  }
+  const run = (async () => {
+    const total: FlushResult = { sent: [], failed: [], skipped: true };
+    do {
+      again = false;
+      const part = await flushOnce(client ?? null);
+      if (!part.skipped) total.skipped = false;
+      total.sent.push(...part.sent);
+      total.failed.push(...part.failed);
+    } while (again);
+    return total;
+  })().finally(() => {
+    running = null;
+  });
+  running = run;
+  return run;
+}
+
+async function flushOnce(client: EventSalesClient | null): Promise<FlushResult> {
+  const pending = await pendingSales();
+  if (!pending.length) return { sent: [], failed: [], skipped: true };
+  if (typeof navigator !== 'undefined' && !navigator.onLine)
+    return { sent: [], failed: [], skipped: true };
+  const target = client ?? defaultSalesClient();
+  if (!target) return { sent: [], failed: [], skipped: true };
+
+  const sent: string[] = [];
+  const failed: Array<{ clientId: string; error: string }> = [];
+  const ordered: QueueRow[] = [...pending].sort(
+    (a, b) => Number(isVoidRow(a)) - Number(isVoidRow(b)) || a.at - b.at
+  );
+  for (const row of ordered) {
+    const outcome = isVoidRow(row)
+      ? await sendVoid(target, row.saleClientId, row.at)
+      : await sendOneSale(target, row);
+    if (outcome.ok) {
+      await markSent([row.clientId]);
+      sent.push(row.clientId);
+    } else {
+      await markFailed(row.clientId, outcome.error);
+      failed.push({ clientId: row.clientId, error: outcome.error });
+    }
+  }
+  await pruneSent();
+  return { sent, failed, skipped: false };
+}
+
+async function sendOneSale(target: EventSalesClient, row: QueuedSale) {
+  if (!isEventUuid(row.eventId)) {
+    return { ok: false as const, error: 'no server event: start the event while online' };
+  }
+  return sendSale(target, row);
+}
+
+/** Asks the service worker to wake the open app once the radio comes back. */
 export async function requestBackgroundSync(): Promise<void> {
   if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) return;
   try {
     const registration = await navigator.serviceWorker.ready;
-    const sync = (registration as ServiceWorkerRegistration & { sync?: { register: (tag: string) => Promise<void> } }).sync;
+    const sync = (
+      registration as ServiceWorkerRegistration & {
+        sync?: { register: (tag: string) => Promise<void> };
+      }
+    ).sync;
     if (sync) await sync.register('hc-sale-sync');
   } catch {
     /* background sync is a bonus; the online listener covers the rest */

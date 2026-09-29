@@ -10,8 +10,11 @@ import {
   replaceFlavours
 } from '@/store/engine/ops-engine';
 import type { EventSale, OpsEngineProps, Role } from '@/store/engine/ops-engine';
-import { flushQueue, requestBackgroundSync } from '@/lib/offline/sync';
-import { pendingSales } from '@/lib/offline/queue';
+import { defaultSalesClient, flushQueue, requestBackgroundSync, type FlushResult } from '@/lib/offline/sync';
+import { allSales, clientIdFor, enqueueVoid, pendingSales } from '@/lib/offline/queue';
+import { clearBazaar, readBazaar, saveBazaar } from '@/lib/offline/bazaar-state';
+import { startEventOnServer, type EventSalesClient } from '@/lib/data/event-sales';
+import { deviceId } from '@/lib/device';
 import { plural } from '@/store/engine/ops-engine';
 import type { LiveFlavourFormFields, OpsVals } from '@/view-models/vals';
 import { isLiveMode } from '@/lib/config/app-mode';
@@ -50,7 +53,7 @@ import {
  *
  * The prototype faked bazaar sync with a timeout — deliberately, so the owner could see
  * what a partial sync looks like. Here it is the actual IndexedDB queue talking to
- * /api/sync. The user-facing copy is unchanged: the same sentences fire on the same
+ * the record_event_sale / void_event_sale RPCs. The user-facing copy is unchanged: the same sentences fire on the same
  * outcomes, because those sentences were signed off.
  *
  * Everything else is inherited from the port untouched. Overriding here rather than
@@ -90,7 +93,64 @@ const IDLE_ROWS: Array<{ role: Role; label: string }> = [
   { role: 'helper', label: 'Sign helpers out after' }
 ];
 
+/** The engine's bazaar actions are instance fields the typings do not list; wrapped below. */
+interface BazaarActions {
+  recordSale: (pay: string, freebie?: boolean) => void;
+  voidSale: (id: string) => void;
+  startEvent: (ev: { name: string; date: string }) => void;
+  setEventPrice: (pid: string, value: unknown) => void;
+}
+
+/**
+ * The engine numbers a sale `'S' + (sales.length + 1)`, so a void followed by a new sale
+ * reuses an id and the two share it until one is voided (which removes both). Only the newest
+ * sale, first in the list, can collide; it takes the next unused number.
+ */
+function withUniqueNewestId(sales: EventSale[]): EventSale[] | null {
+  const newest = sales[0];
+  if (!newest || !sales.slice(1).some((sale) => sale.id === newest.id)) return null;
+  const highest = sales.reduce((max, sale) => Math.max(max, Number(sale.id.slice(1)) || 0), 0);
+  return [{ ...newest, id: 'S' + (highest + 1) }, ...sales.slice(1)];
+}
+
+const EVENT_ATTEMPT = 'hc-event-attempt';
+
+/** A start that lost its reply is retried under the same event id, so it cannot open a second event. */
+function eventAttemptId(name: string): string {
+  try {
+    const saved = JSON.parse(localStorage.getItem(EVENT_ATTEMPT) ?? 'null') as { name?: string; id?: string; at?: number } | null;
+    if (saved && saved.name === name && typeof saved.id === 'string' && Date.now() - (saved.at ?? 0) < 600_000) return saved.id;
+  } catch {
+    /* unreadable: start a fresh attempt */
+  }
+  const id = crypto.randomUUID();
+  try {
+    localStorage.setItem(EVENT_ATTEMPT, JSON.stringify({ name, id, at: Date.now() }));
+  } catch {
+    /* private mode: a retry after a lost reply may open a second event */
+  }
+  return id;
+}
+
+function clearEventAttempt(): void {
+  try {
+    localStorage.removeItem(EVENT_ATTEMPT);
+  } catch {
+    /* nothing to clear */
+  }
+}
+
 export class OpsRuntime extends OpsProvider {
+  /**
+   * Where bazaar sales go. Null uses the signed-in browser client, or nothing at all in a
+   * build with no backend (sales then stay queued). A test may set it on the instance.
+   */
+  saleClient: EventSalesClient | null = null;
+
+  private salesTarget(): EventSalesClient | null {
+    return this.saleClient ?? defaultSalesClient();
+  }
+
   private stopViewportTracking?: () => void;
   private settingsSync?: SettingsSync;
   private flavourSync?: FlavourSync;
@@ -103,11 +163,43 @@ export class OpsRuntime extends OpsProvider {
    */
   constructor(props: OpsEngineProps) {
     super(props);
+    const bazaar = this as unknown as BazaarActions;
+    const { recordSale, voidSale, startEvent } = bazaar;
+    bazaar.recordSale = (pay, freebie) => {
+      recordSale(pay, freebie);
+      this.setState((s: { sales: EventSale[] }) => {
+        const sales = withUniqueNewestId(s.sales);
+        return sales ? { sales } : null;
+      });
+    };
+    // A void never deletes the queued sale: it queues a void row, and the server settles
+    // the pair in either order.
+    bazaar.voidSale = (id) => {
+      const sale = this.state.sales.find((x: EventSale) => x.id === id);
+      voidSale(id);
+      if (!sale) return;
+      void (async () => {
+        await enqueueVoid(clientIdFor({ saleId: sale.id, at: sale.at }));
+        if (navigator.onLine) await flushQueue(this.saleClient);
+        else await requestBackgroundSync();
+      })().catch(() => undefined);
+    };
     if (!isLiveMode()) return;
+    // DP-20: an event sells at the menu prices it started with, taken by the server.
+    bazaar.startEvent = (ev) => {
+      void this.startLiveEvent(ev, startEvent);
+    };
+    bazaar.setEventPrice = () => {
+      this.toast('Bazaar prices are the menu prices from the moment the event starts.', 'warn');
+    };
     this.state = liveBaseState();
-    this.persist = () => {};
+    // Not the demo books: only the running bazaar (event id, snapshot prices, stall stock,
+    // the day's sales) is kept, so a reload at the stall can carry on selling. The empty
+    // start (no event) is never saved, so it cannot overwrite the event before it is read back.
+    this.persist = () => saveBazaar(this.state);
     this.resetData = () => {
       clearStoredBooks();
+      clearBazaar();
       const fresh = liveBaseState() as Record<string, unknown>;
       Object.keys(this.state).forEach((k) => {
         if (!(k in fresh)) fresh[k] = undefined;
@@ -142,6 +234,40 @@ export class OpsRuntime extends OpsProvider {
       setPrice(pid, value);
       this.saveFlavourEdit(pid, { price: Math.max(0, Number(value) || 0) }, before);
     };
+  }
+
+  /** Online only: the server snapshots the prices and names this phone the selling device. */
+  private async startLiveEvent(
+    ev: { name: string; date: string },
+    begin: (ev: { name: string; date: string }) => void
+  ): Promise<void> {
+    const target = this.state.online ? this.salesTarget() : null;
+    if (!target) {
+      this.toast('Start the event while you have signal. Sales can go offline after that.', 'warn');
+      return;
+    }
+    const outcome = await startEventOnServer(target, {
+      name: ev.name,
+      deviceId: deviceId(),
+      eventId: eventAttemptId(ev.name)
+    });
+    if (!outcome.ok) {
+      this.toast('The event could not be started. Try again.', 'warn');
+      return;
+    }
+    clearEventAttempt();
+    begin(ev);
+    const unsellable = PRODUCTS.filter((p) => !(p.id in outcome.prices)).length;
+    if (unsellable) {
+      this.toast(
+        plural(unsellable, 'flavour is', 'flavours are') + ' not on the menu, so ' + (unsellable === 1 ? 'it' : 'they') + ' cannot be sold at this event.',
+        'warn'
+      );
+    }
+    this.setState((s) => ({
+      event: { ...(s.event ?? {}), id: outcome.eventId },
+      eventPrices: { ...(s.eventPrices as Record<string, number>), ...outcome.prices }
+    }));
   }
 
   /**
@@ -416,6 +542,8 @@ export class OpsRuntime extends OpsProvider {
   componentDidMount(): void {
     if (isLiveMode()) {
       clearStoredBooks();
+      const bazaar = readBazaar();
+      if (bazaar) this.setState(bazaar);
       this.afterRestore();
       return;
     }
@@ -683,6 +811,31 @@ export class OpsRuntime extends OpsProvider {
     void this.runSync();
   };
 
+  /**
+   * Sends the queue, then makes the sale rows on screen say what the queue says. Live only:
+   * the prototype's optimistic flags stay as they were in demo mode.
+   */
+  flushSales = async (): Promise<FlushResult> => {
+    const result = await flushQueue(this.saleClient);
+    await this.reflectQueue();
+    return result;
+  };
+
+  private async reflectQueue(): Promise<void> {
+    if (!isLiveMode()) return;
+    const states = new Map((await allSales()).map((row) => [row.clientId, row.state]));
+    this.setState((s) => {
+      const sales = (s.sales as EventSale[]).map((sale) => {
+        const state = states.get(clientIdFor({ saleId: sale.id, at: sale.at }));
+        if (!state) return sale;
+        const synced = state === 'sent';
+        const failed = state === 'failed';
+        return sale.synced === synced && sale.failed === failed ? sale : { ...sale, synced, failed };
+      });
+      return { sales, unsynced: sales.filter((sale) => !sale.synced).length };
+    });
+  }
+
   private async runSync(): Promise<void> {
     if (!this.state.online) {
       this.toast('Still offline. Sales are safe on this phone.', 'warn');
@@ -696,8 +849,13 @@ export class OpsRuntime extends OpsProvider {
     }
 
     this.setState({ syncState: 'syncing' });
-    const result = await flushQueue();
-    const sentIds = new Set(result.sent.map((clientId) => clientId.split(':')[1]));
+    const result = await this.flushSales();
+    if (result.skipped) {
+      this.setState({ syncState: 'partial', syncTried: true });
+      this.toast('Sales are safe on this phone. They will send once it can reach the server.', 'warn');
+      return;
+    }
+    const sentIds = new Set(result.sent);
     const failed = result.failed.length;
 
     if (failed) {
@@ -705,12 +863,14 @@ export class OpsRuntime extends OpsProvider {
       this.setState((s) => ({
         syncState: 'partial',
         syncTried: true,
-        unsynced: failed,
-        sales: s.sales.map((sale: EventSale) =>
-          sentIds.has(sale.id)
-            ? { ...sale, synced: true, failed: false }
-            : { ...sale, failed: !sale.synced }
-        )
+        unsynced: isLiveMode() ? s.unsynced : failed,
+        sales: isLiveMode()
+          ? s.sales
+          : s.sales.map((sale: EventSale) =>
+              sentIds.has(clientIdFor({ saleId: sale.id, at: sale.at }))
+                ? { ...sale, synced: true, failed: false }
+                : { ...sale, failed: !sale.synced }
+            )
       }));
       this.toast(
         result.sent.length +
