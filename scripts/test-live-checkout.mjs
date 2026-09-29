@@ -228,9 +228,36 @@ try {
     await page.goto(`${base}/shop`, { waitUntil: 'networkidle' });
     await page.waitForSelector('[data-screen-label="Customer shop"]');
     await page.getByText(flavour.short_name, { exact: false }).first().waitFor();
-    // An anonymous customer's engine runs on the default schedule, so off Monday to Thursday its own banner says
-    // closed. The server is the authority (the window seeded above), so open the shop the way the review tool does.
-    await page.evaluate(() => window.__hcOps.setState({ shopOverride: 'open' }));
+    // B3: the customer's engine takes the owner's ordering window from the server (the window seeded above), so the
+    // shop is open here on any day of the week, with no local override to force it.
+    assert(
+      await page.evaluate(() => window.__hcOps.shopOpen()),
+      'the shop banner says closed although the seeded window covers now'
+    );
+  });
+
+  await step("the owner's close-now closes the shop banner, and following the window reopens it", async () => {
+    // The refusal itself (ZC001 from place_order) is proven by the SQL role suite; here the customer's page must agree.
+    const setSwitch = async (mode) => {
+      const { error } = await admin.from('shop_state').update({ override: mode }).eq('id', true);
+      assert(!error, `shop_state: ${error?.message}`);
+    };
+    await setSwitch('closed');
+    try {
+      await page.goto(`${base}/shop`, { waitUntil: 'networkidle' });
+      await page.waitForSelector('[data-screen-label="Customer shop"]');
+      assert(
+        !(await page.evaluate(() => window.__hcOps.shopOpen())),
+        'the shop banner says open while the owner has closed it'
+      );
+    } finally {
+      await setSwitch(null);
+    }
+    await page.goto(`${base}/shop`, { waitUntil: 'networkidle' });
+    assert(
+      await page.evaluate(() => window.__hcOps.shopOpen()),
+      'the shop did not reopen after the owner went back to the window'
+    );
   });
 
   await step('two cookies go to the checkout, which is the live form', async () => {
@@ -363,6 +390,20 @@ try {
       );
     }
   );
+
+  await step('the /lookup URL shows the live form, not the email promise, and finds the order', async () => {
+    await page.goto(`${base}/lookup`, { waitUntil: 'networkidle' });
+    await page.waitForSelector('[data-screen-label="Find my order"]');
+    await page.locator('input[placeholder="HC-1042"]').waitFor();
+    const text = (await page.locator('[data-screen-label="Find my order"]').textContent()) ?? '';
+    assert(!/emailed|or email/i.test(text), `the /lookup page still promises email lookup: ${text.slice(0, 200)}`);
+    await page.locator('input[placeholder="HC-1042"]').fill(orderNo);
+    await page.locator('input[placeholder="09XX XXX XXXX"]').fill(PHONE_TYPED);
+    await page.getByRole('button', { name: 'Find it' }).click();
+    await page.waitForSelector('[data-screen-label="Customer order status"]');
+    await page.getByText(orderNo).first().waitFor();
+    assert(page.url().endsWith('/status#t=' + token), `Address bar after lookup is ${page.url()}`);
+  });
 
   await step('the waiting list takes an entry', async () => {
     await page.goto(`${base}/shop`, { waitUntil: 'networkidle' });

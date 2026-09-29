@@ -449,3 +449,60 @@ schedule (Monday 9:00 to Thursday 21:00), not from the owner's settings, which a
 window the shop shows "Orders are closed" with no add buttons even when the server would take the order; inside it the
 banner can say open while the server refuses. It is the same defect as the un-persisted `shopOverride`: the shop's open
 state has to come from the server (a public read of the ordering window and the owner's override). **Cutover blocker.**
+
+# B3: the live lookup slot — APPLIED (2026-09-29, finish-plan slice B3)
+
+Status: APPLIED. **Ethan approved this second guarded slot on 2026-09-29** ("it lands in B3", carry-over 4 of the B2
+close-out). Same recipe and same scope as the checkout slot above: live mode only (`NEXT_PUBLIC_APP_MODE=live`); demo,
+dev, CI and the visual baselines render exactly as before. Port audit (Sonnet): PASS on all five checks (diff limited to
+the import, the destructured name and the two wrappers; copy and styles unchanged; demo render identical; the four
+textual reversals restore the file byte for byte; no false live-mode text left on the screen).
+
+**Why:** the direct URL `/lookup` (also reachable from a pasted link) rendered the ported page, whose intro promises
+lookup by "order number, payment reference or email". A live order takes no email and no payment reference is the key;
+the live lookup is order number plus the phone it was placed with (`find_order`). The shop footer already opened that
+live form as a sheet; the screen itself did not.
+
+**One protected file changed, `src/components/screens/find-my-order.tsx`, inserted by script** (the `PreToolUse` hook
+blocks direct edits): an import, `bareFrame` added to the destructure, and two guarded regions.
+
+```
+import { LiveLookup } from '@/components/live/live-checkout';
+const { backToShop, bareFrame, ic, lookupMissed, lookupQ, runLookup, setLookupIn } = v;
+…back button and the "Find my order" heading, unchanged…
+{bareFrame ? null : (
+<p …>Lost the link we emailed you? Your order number, payment reference or email will find it.</p>
+)}
+…
+{bareFrame ? <LiveLookup v={v} /> : (
+<form onSubmit={runLookup} …> …the ported field, "Find it" button and miss sentence, verbatim… </form>
+)}
+```
+
+`LiveLookup` is the same component the shop footer opens as a sheet, fed by the same `v.liveLookup`; on the `/lookup`
+screen `liveLookupVals()` returns values without a sheet (`src/store/ops-runtime.tsx`). It brings its own intro sentence
+and miss/error lines (`ORDER_COPY`, placeholder wording for Cine), and a found order opens the status page.
+
+Baseline change: `elements` 11 → 12 for this file (`<LiveLookup>`); copy hash, copy count and styles unchanged; the AST
+fingerprint (`scripts/port-structure-baseline.json`) regenerated with `port-structure.mjs --write-baseline` in the same
+commit. **Exact reversals** are `LOOKUP_REVERSALS` in `scripts/validate-g0.py`, applied like `CHECKOUT_REVERSALS`: the G0
+validator restores the original bytes (import, destructure, both wrappers, the baseline entry) before checking the
+delivery hash. The Docker visual PNGs (`lookup*`) are not regenerated: the non-live branch is byte-identical and the
+visual tests run with `bareFrame` false, so they must pass unchanged.
+
+**Ported lines that are false in live mode, so never shown there** (they stay verbatim as the demo branch): the intro
+paragraph above; the placeholder "HC-1042, a reference, or your email"; the miss sentence "Nothing matches that. Check the
+number, or message Cine on Instagram and she will look it up." (the live form has its own miss line).
+
+**Evidence:** `tests/unit/ops-runtime-live-checkout.test.tsx` ("B3: the /lookup screen": the live form on the screen with
+no sheet and no email promise, a found order opens the status page, a miss stays and says so, demo renders the ported
+page); `scripts/test-live-checkout.mjs` opens `/lookup` directly against the local stack.
+
+## What B3 closed of the B2 cutover blockers
+
+- The shop's open state now comes from the server (migration `20260101003800`, `get_shop_status()`; `place_order`
+  honours the owner's switch). The customer engine's schedule and `shopOverride` are fed from it, with no engine edit.
+- The `/lookup` URL shows the live form (this section).
+- **Still open:** the ported status line "Book your Grab or Lalamove for that window. We send the exact address that
+  morning." is protected and false for the campus slot; and the ported order screens still say Saturday and Sunday for
+  the owner's Monday and Thursday pickup days (mapped by rank; recorded, not edited).

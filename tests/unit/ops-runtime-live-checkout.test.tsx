@@ -9,6 +9,7 @@ import { OpsRuntime } from '@/store/ops-runtime';
 import { CheckoutScreen } from '@/components/screens/checkout';
 import { OrderStatusScreen } from '@/components/screens/order-status';
 import { LiveFormHost } from '@/components/live/live-form-host';
+import { FindMyOrderScreen } from '@/components/screens/find-my-order';
 import { LiveShopFooter } from '@/components/live/live-shop-footer';
 import { PAY_ACCOUNTS, replacePayAccounts } from '@/store/engine/ops-engine';
 import type { OrderClient } from '@/lib/data/orders';
@@ -741,5 +742,62 @@ describe('B2: find my order and the waiting list', () => {
     expect(v.liveLookup).toBeUndefined();
     expect(v.liveWaitlist).toBeUndefined();
     expect(v.openWaitlist).toBeUndefined();
+  });
+});
+
+describe('B3: the /lookup screen (the second guarded slot)', () => {
+  beforeEach(() => {
+    live = true;
+  });
+  afterEach(() => {
+    cleanup();
+    replacePayAccounts(PORTED.map((m) => ({ ...m })));
+  });
+
+  it('shows the live form itself, with no sheet and no promise of email lookup', async () => {
+    const { runtime } = await mounted({}, 'lookup');
+    const v = runtime.renderVals();
+    expect(v.liveLookup).not.toBeNull();
+    expect(v.sheet).toBeNull();
+    const text = render(<FindMyOrderScreen v={v} />).container.textContent ?? '';
+    expect(text).toContain('Find my order');
+    expect(text).toContain('Order number');
+    expect(text).toContain('Mobile number');
+    expect(text).not.toMatch(/emailed|or email/i);
+    // Mutation: dropping the lookup-screen case leaves liveLookup null there, and the screen renders nothing to type into.
+  });
+
+  it('finds an order from the screen, then shows it', async () => {
+    const { runtime, calls } = await mounted({}, 'lookup');
+    await act(async () => runtime.renderVals().liveLookup!.run('hc-1001', '0917 123 4567'));
+    await flush();
+    expect(calls.find((c) => c.name === 'find_order')?.args).toEqual({
+      p_order_no: 'HC-1001',
+      p_phone: '0917 123 4567'
+    });
+    expect(runtime.state.screen).toBe('status');
+  });
+
+  it('a miss stays on the screen and says so', async () => {
+    const { runtime } = await mounted({ find_order: () => ({ data: null, error: null }) }, 'lookup');
+    await act(async () => runtime.renderVals().liveLookup!.run('HC-1001', '0917 123 4567'));
+    await flush();
+    expect(runtime.state.screen).toBe('lookup');
+    expect(runtime.renderVals().liveLookup!.state).toBe('missed');
+    expect(render(<FindMyOrderScreen v={runtime.renderVals()} />).container.textContent).toContain(
+      'Nothing matches that.'
+    );
+  });
+
+  it('demo mode renders the ported page: the email promise, the one field, no live form', () => {
+    live = false;
+    const ref: { current: OpsRuntime | null } = { current: null };
+    render(<OpsRuntime ref={(r) => void (ref.current = r)} />);
+    act(() => ref.current!.setState({ screen: 'lookup' }));
+    const v = ref.current!.renderVals();
+    expect(v.liveLookup).toBeUndefined();
+    const text = render(<FindMyOrderScreen v={v} />).container.textContent ?? '';
+    expect(text).toContain('Lost the link we emailed you?');
+    expect(text).not.toContain('Mobile number');
   });
 });

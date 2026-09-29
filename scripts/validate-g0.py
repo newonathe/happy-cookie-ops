@@ -140,6 +140,27 @@ CHECKOUT_REVERSALS = {
          b'"src/components/screens/checkout.tsx": {\n      "copy": "16d02c0c",\n      "copyCount": 6,\n      "styles": 89,\n      "dynamicStyles": 2,\n      "elements": 100\n    }'),
     ],
 }
+# B3 live lookup slot (approved by Ethan 2026-09-29; docs/state/protected-exception.md): one import, one destructured
+# name and two guarded regions in find-my-order.tsx (the email-lookup intro, and the ported form), the ported markup
+# kept verbatim as the demo branch.
+LOOKUP_REVERSALS = {
+    'src/components/screens/find-my-order.tsx': [
+        (b"import { Pressable } from '@/components/ui/pressable';\nimport { LiveLookup } from '@/components/live/live-checkout';\n",
+         b"import { Pressable } from '@/components/ui/pressable';\n"),
+        (b"const { backToShop, bareFrame, ic, lookupMissed, lookupQ, runLookup, setLookupIn } = v;",
+         b"const { backToShop, ic, lookupMissed, lookupQ, runLookup, setLookupIn } = v;"),
+        (b"          {bareFrame ? null : (\n          <p style={{ margin: '0', maxWidth: '34ch',",
+         b"          <p style={{ margin: '0', maxWidth: '34ch',"),
+        (b"          </p>\n          )}\n        </div>\n        {bareFrame ? <LiveLookup v={v} /> : (\n        <form onSubmit={runLookup}",
+         b"          </p>\n        </div>\n        <form onSubmit={runLookup}"),
+        (b"        </form>\n        )}\n      </div>\n    </>\n",
+         b"        </form>\n      </div>\n    </>\n"),
+    ],
+    'scripts/port-baseline.json': [
+        (b'"src/components/screens/find-my-order.tsx": {\n      "copy": "74b938db",\n      "copyCount": 4,\n      "styles": 9,\n      "dynamicStyles": 0,\n      "elements": 12\n    }',
+         b'"src/components/screens/find-my-order.tsx": {\n      "copy": "74b938db",\n      "copyCount": 4,\n      "styles": 9,\n      "dynamicStyles": 0,\n      "elements": 11\n    }'),
+    ],
+}
 changes = []
 for entry in load(EVIDENCE / 'delivery-manifest.json'):
     rel = entry['path']
@@ -175,6 +196,9 @@ for entry in load(EVIDENCE / 'delivery-manifest.json'):
             data = data.replace(edited, original, 1)
         for index, (edited, original) in enumerate(CHECKOUT_REVERSALS.get(rel, [])):
             check(f'approved_checkout_exception_once:{rel}:{index}', data.count(edited) == 1)
+            data = data.replace(edited, original, 1)
+        for index, (edited, original) in enumerate(LOOKUP_REVERSALS.get(rel, [])):
+            check(f'approved_lookup_exception_once:{rel}:{index}', data.count(edited) == 1)
             data = data.replace(edited, original, 1)
         check('protected_delivery_bytes:' + rel, hashlib.sha256(data).hexdigest() == entry['sha256'])
 notices = [[line for line in (ROOT / name).read_text().splitlines() if line.startswith('> **Current planning authority')] for name in ['AGENTS.md', 'CLAUDE.md']]

@@ -1693,7 +1693,10 @@ export class OpsRuntime extends OpsProvider {
   }
 
   private liveLookupVals(): OpsVals['liveLookup'] {
-    if (this.customerSheetKind() !== 'liveLookup') return null;
+    // The /lookup screen carries the form itself (the guarded slot in find-my-order.tsx, B3); on any
+    // other customer screen it is the sheet the shop footer opens.
+    const onLookupScreen = this.state.screen === 'lookup';
+    if (!onLookupScreen && this.customerSheetKind() !== 'liveLookup') return null;
     return {
       state: this.orderFlow?.lookupState ?? 'idle',
       run: (orderNo, mobile) => void this.runLiveLookup(orderNo, mobile),
