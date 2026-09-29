@@ -7,8 +7,8 @@
   "inventory_equal": true,
   "generator_image": "public.ecr.aws/supabase/postgres-meta:v0.98.0",
   "generator_image_id": "sha256:cef71ba901751dcc242cc685cf13786935ea8926820fb342f23bb0fbef77de5a",
-  "types_sha256": "82e9488231139e5d3e138b02fd9b121738e5214bac0712390313fa5db48d3ccd",
+  "types_sha256": "926e8cfe6d74830b7dc6a6e9b02da3e45f2159d0d4d86647ed73d09dfccd68f5",
   "generator_sha256": "075a56539b22cb988add683c59cf625aeac9f8479ffcb860b85d6030ff9864c8",
   "fixture_sha256": "a47a91d38c71ffbf52a14e597836fdfdbd1d22a3408f5c151f2b35b25459c963",
-  "artifact_unchanged": false
+  "artifact_unchanged": true
 }

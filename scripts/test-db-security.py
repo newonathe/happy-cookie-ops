@@ -17,7 +17,8 @@ verify_functions = runpy.run_path(str(ROOT / 'scripts/verify-function-authority.
 # the refusal case must then fail. Expected text is the failing operation of the suite, in suite order.
 ORDER_MIGRATIONS = [ROOT / 'supabase/migrations/20260101003500_place_order.sql',
                     ROOT / 'supabase/migrations/20260101003600_order_lookup.sql',
-                    ROOT / 'supabase/migrations/20260101003700_staff_orders.sql']
+                    ROOT / 'supabase/migrations/20260101003700_staff_orders.sql',
+                    ROOT / 'supabase/migrations/20260101003800_shop_status.sql']
 _OUT = 'order outcome differs: anon / '
 _CHK = 'order check differs: anon / '
 _LOOK = 'lookup check differs: anon / '
@@ -123,6 +124,19 @@ STAFF_MUTATIONS = {
     'rule_settle_stale': ('staff_settle_balance', 'rule', 'stale', _STF + 'settle_stale / '),
     'rule_settle_paid': ('staff_settle_balance', 'rule', 'settle-paid', _STF + 'settle_unpaid / '),
 }
+_SHP = 'shop state outcome differs: '
+SHOP_MUTATIONS = {
+    'rule_override_closed': ('place_order', 'rule', 'override-closed', _SHP + 'anon / place_while_closed / '),
+    'rule_override_soldout': ('place_order', 'rule', 'override-soldout', _SHP + 'anon / place_while_soldout / '),
+    'rule_override_mode': ('set_shop_override', 'rule', 'override-mode', _SHP + 'active_owner / override_bad_mode / '),
+    'text_override_open_skips_window': ('place_order', 'text',
+                                        (" and v_override is distinct from 'open' and v_override is distinct from 'soon' then -- rule:window", " then -- rule:window"),
+                                        _SHP + 'anon / place_open_outside_window / '),
+    'text_status_leaks_capacity': ('get_shop_status', 'text',
+                                   ("'override',  (select s.override from public.shop_state s where s.id))",
+                                    "'override',  (select s.override from public.shop_state s where s.id), 'capacity', 200)"),
+                                   'shop state check differs: anon / shop_status_keys_exact'),
+}
 STAFF_TABLE_MUTATIONS = {
     'orders_update_grant': ('grant update on public.orders to authenticated;', 'staff outcome differs: active_helper / orders_table_update / '),
 }
@@ -139,9 +153,9 @@ ORDER_TABLE_MUTATIONS = {
 
 def order_mutant(name):
     """The migration's one function, changed in exactly one place, as SQL to run inside the suite."""
-    function, kind, argument, _ = (ORDER_MUTATIONS | LOOKUP_MUTATIONS | STAFF_MUTATIONS)[name]
+    function, kind, argument, _ = (ORDER_MUTATIONS | LOOKUP_MUTATIONS | STAFF_MUTATIONS | SHOP_MUTATIONS)[name]
     marker = 'create or replace function public.' + function + '('
-    text = next(m.read_text(encoding='utf-8') for m in ORDER_MIGRATIONS if marker in m.read_text(encoding='utf-8'))
+    text = [m.read_text(encoding='utf-8') for m in ORDER_MIGRATIONS if marker in m.read_text(encoding='utf-8')][-1]
     start = text.index('create or replace function public.' + function + '(')
     block = text[start:text.index('\n$$;', start) + len('\n$$;')]
     if kind == 'rule':
@@ -182,6 +196,7 @@ SUITES = (
                             + tuple(ORDER_MUTATIONS), 'forbidden order call succeeded', 175),
     ('order-lookup.sql', tuple(LOOKUP_MUTATIONS), 'forbidden lookup call succeeded', 24),
     ('staff-orders.sql', STAFF_ACL + tuple(STAFF_MUTATIONS) + tuple(STAFF_TABLE_MUTATIONS), 'forbidden staff order call succeeded', 117),
+    ('shop-state.sql', ('set_shop_override(text)',) + tuple(SHOP_MUTATIONS), 'forbidden shop state call succeeded', 29),
     ('bazaar-closeout.sql', ('event_summary(uuid)', 'load_event_stock(uuid,jsonb,bigint)', 'add_event_expense(jsonb)', 'close_event(jsonb)'), 'forbidden closeout call succeeded', 80),
 )
 CATALOG_GUARD_SQL = """
@@ -315,6 +330,9 @@ def main():
                     elif signature in STAFF_TABLE_MUTATIONS:
                         unsafe, expected_error = STAFF_TABLE_MUTATIONS[signature]
                         broken = sql.replace('begin;', 'begin;' + chr(10) + unsafe, 1)
+                if filename == 'shop-state.sql' and signature in SHOP_MUTATIONS:
+                    broken = sql.replace('begin;', 'begin;' + chr(10) + order_mutant(signature), 1)
+                    expected_error = SHOP_MUTATIONS[signature][3]
                 if filename == 'payment-methods.sql' and signature in PAYMENT_MUTATIONS:
                     unsafe, expected_error = PAYMENT_MUTATIONS[signature]
                     broken = sql.replace('begin;', 'begin;' + chr(10) + unsafe, 1)
@@ -402,8 +420,8 @@ def main():
                 h.fail(filename + ' did not return its complete role matrix')
             results.extend(rows)
             assert_empty()
-        if len(set(results)) != 1141:
-            h.fail('combined role matrix has missing or duplicate cases: %d rows, %d unique' % (len(results), len(set(results))))
+        if len(set(results)) != 1170:
+            h.fail('combined role matrix has missing or duplicate cases: %d rows, %d unique (duplicates: %s)' % (len(results), len(set(results)), sorted({r for r in results if results.count(r) > 1})[:5]))
         assert_functions()
         assert_catalog_wide()
         h.catalog(db_id, workdir, h.sql_for(h.expected_versions()))
@@ -415,10 +433,10 @@ def main():
     try:
         code = h.main(after_reset=check)
         if (code == 0 and len(report["runs"]) == 2 and report["runs"][0] == report["runs"][1]
-                and len(report['regressions_detected']) == 266 and report['sequence_restorations'] == 10
+                and len(report['regressions_detected']) == 278 and report['sequence_restorations'] == 10
                 and report['upgrade_runs'] == 2 and report['function_guard_runs'] == 4
                 and report['catalog_guard_runs'] == 4 and report['catalog_guard_red_runs'] == 4):
-            report.update(status="passed", cases_per_reset=1141, resets=2, matrix_equal=True, rollback_verified=True,
+            report.update(status="passed", cases_per_reset=1170, resets=2, matrix_equal=True, rollback_verified=True,
                           sql_sha256={name: hashlib.sha256((ROOT / 'tests/integration/security' / name).read_bytes()).hexdigest() for name, _, _, _ in SUITES},
                           harness_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
     except (RuntimeError, OSError, ValueError) as error:

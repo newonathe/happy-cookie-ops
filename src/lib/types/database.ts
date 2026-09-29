@@ -1015,6 +1015,24 @@ export type Database = {
         }
         Relationships: []
       }
+      shop_state: {
+        Row: {
+          id: boolean
+          override: string | null
+          updated_at: string
+        }
+        Insert: {
+          id?: boolean
+          override?: string | null
+          updated_at?: string
+        }
+        Update: {
+          id?: boolean
+          override?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       shop_texts: {
         Row: {
           allergen_note: string
@@ -1460,6 +1478,7 @@ export type Database = {
       }
       get_shop_order_rules: { Args: never; Returns: Json }
       get_shop_payment_info: { Args: never; Returns: Json }
+      get_shop_status: { Args: never; Returns: Json }
       get_staff_orders: { Args: never; Returns: Json }
       is_owner: { Args: never; Returns: boolean }
       is_staff: { Args: never; Returns: boolean }
@@ -1568,6 +1587,13 @@ export type Database = {
       set_event_device: {
         Args: { p_device: string; p_event: string }
         Returns: string
+      }
+      set_shop_override: {
+        Args: { p_mode: string }
+        Returns: {
+          override: string
+          updated_at: string
+        }[]
       }
       settings_effective: {
         Args: never

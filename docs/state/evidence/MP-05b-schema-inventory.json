@@ -2047,6 +2047,33 @@
     {
       "udt_name": "bool",
       "data_type": "boolean",
+      "table_name": "shop_state",
+      "column_name": "id",
+      "is_nullable": "NO",
+      "column_default": "true",
+      "ordinal_position": 1
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "shop_state",
+      "column_name": "override",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 2
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "shop_state",
+      "column_name": "updated_at",
+      "is_nullable": "NO",
+      "column_default": "now()",
+      "ordinal_position": 3
+    },
+    {
+      "udt_name": "bool",
+      "data_type": "boolean",
       "table_name": "shop_texts",
       "column_name": "id",
       "is_nullable": "NO",
@@ -2472,6 +2499,11 @@
       "indexdef": "CREATE UNIQUE INDEX settings_pkey ON public.settings USING btree (key)",
       "indexname": "settings_pkey",
       "tablename": "settings"
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX shop_state_pkey ON public.shop_state USING btree (id)",
+      "indexname": "shop_state_pkey",
+      "tablename": "shop_state"
     },
     {
       "indexdef": "CREATE UNIQUE INDEX shop_texts_pkey ON public.shop_texts USING btree (id)",
@@ -3289,6 +3321,21 @@
       "execute_authenticated": true
     },
     {
+      "acl": "{anon=X/postgres,authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "get_shop_status",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "8682912a85598b7facc59d2f3b84709a",
+      "identity": "",
+      "execute_anon": true,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
       "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
       "name": "get_staff_orders",
       "owner": "postgres",
@@ -3416,7 +3463,7 @@
         "search_path=\"\""
       ],
       "returns": "TABLE(order_no text, status_token text, total_cents bigint, pickup_date date, pickup_window text, replayed boolean)",
-      "body_md5": "5ed3fb1212924d323fd9b9f0c7d1d140",
+      "body_md5": "cefa49b0c381f92e56fab070ec6d3a7f",
       "identity": "p_order jsonb",
       "execute_anon": true,
       "security_definer": true,
@@ -3574,6 +3621,21 @@
       "execute_authenticated": true
     },
     {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "set_shop_override",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(override text, updated_at timestamp with time zone)",
+      "body_md5": "e93d37936fa1f6e4c4308af0574dd37d",
+      "identity": "p_mode text",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
       "acl": "{postgres=X/postgres,service_role=X/postgres}",
       "name": "settings_effective",
       "owner": "postgres",
@@ -3611,7 +3673,7 @@
         "search_path=\"\""
       ],
       "returns": "TABLE(order_id text, state order_state, pay_state pay_state, total_cents bigint, paid_cents bigint, updated_at timestamp with time zone, replayed boolean)",
-      "body_md5": "d30ca5aaf51797311555c0f6cc970bde",
+      "body_md5": "975cf4a6bafd8d22b0d6bdedb849f333",
       "identity": "p_order_id text, p_expected_updated_at timestamp with time zone, p_force boolean",
       "execute_anon": false,
       "security_definer": true,
@@ -4501,6 +4563,24 @@
       "type": "f",
       "table": "settings",
       "definition": "FOREIGN KEY (updated_by) REFERENCES auth.users(id)"
+    },
+    {
+      "name": "shop_state_id_check",
+      "type": "c",
+      "table": "shop_state",
+      "definition": "CHECK (id)"
+    },
+    {
+      "name": "shop_state_override_check",
+      "type": "c",
+      "table": "shop_state",
+      "definition": "CHECK ((override = ANY (ARRAY['open'::text, 'soon'::text, 'closed'::text, 'soldout'::text])))"
+    },
+    {
+      "name": "shop_state_pkey",
+      "type": "p",
+      "table": "shop_state",
+      "definition": "PRIMARY KEY (id)"
     },
     {
       "name": "shop_texts_allergen_note_check",
@@ -7625,6 +7705,104 @@
     {
       "grantee": "postgres",
       "grantor": "postgres",
+      "table_name": "shop_state",
+      "is_grantable": "YES",
+      "privilege_type": "DELETE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "shop_state",
+      "is_grantable": "YES",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "shop_state",
+      "is_grantable": "YES",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "shop_state",
+      "is_grantable": "YES",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "shop_state",
+      "is_grantable": "YES",
+      "privilege_type": "TRIGGER"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "shop_state",
+      "is_grantable": "YES",
+      "privilege_type": "TRUNCATE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "shop_state",
+      "is_grantable": "YES",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "shop_state",
+      "is_grantable": "NO",
+      "privilege_type": "DELETE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "shop_state",
+      "is_grantable": "NO",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "shop_state",
+      "is_grantable": "NO",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "shop_state",
+      "is_grantable": "NO",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "shop_state",
+      "is_grantable": "NO",
+      "privilege_type": "TRIGGER"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "shop_state",
+      "is_grantable": "NO",
+      "privilege_type": "TRUNCATE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "shop_state",
+      "is_grantable": "NO",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
       "table_name": "shop_texts",
       "is_grantable": "YES",
       "privilege_type": "DELETE"
@@ -8258,6 +8436,12 @@
       "rls": true,
       "owner": "postgres",
       "table": "settings",
+      "force_rls": false
+    },
+    {
+      "rls": true,
+      "owner": "postgres",
+      "table": "shop_state",
       "force_rls": false
     },
     {

@@ -33,6 +33,19 @@ export interface LivePayFormFields {
 }
 
 /** The four shop footer texts the owner may set (MP-09 c2). */
+export interface LiveOrderRulesFields {
+  unpaidHoldHours: number;
+  maxUnpaidPerPhone: number;
+  /** ISO weekdays, 1 (Monday) to 7 (Sunday). */
+  pickupDays: number[];
+  leadMinDays: number;
+  leadMaxDays: number;
+  pickupFromHour: number;
+  pickupCutoffHour: number;
+  campusFrom: string;
+  campusTo: string;
+}
+
 export interface LiveShopTexts {
   registrationBadge: string;
   tinLine: string;
@@ -98,6 +111,13 @@ export interface OpsVals {
           upload: (file: File) => Promise<string | null>;
         })
       | null;
+  } | null;
+  /** Live owner only (B3): the order rules form (pickup days, lead time, holds, campus slot). */
+  liveOrderRules?: {
+    online: boolean;
+    rules: LiveOrderRulesFields;
+    save: (fields: LiveOrderRulesFields) => void;
+    close: (event?: unknown) => void;
   } | null;
   /** Live owner only (B3): the customer messages sheet, on the same form host. */
   liveMessages?: {

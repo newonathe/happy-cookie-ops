@@ -17,11 +17,19 @@ import { clearBazaar, readBazaar, saveBazaar } from '@/lib/offline/bazaar-state'
 import { isEventUuid, startEventOnServer, type EventSalesClient } from '@/lib/data/event-sales';
 import { deviceId } from '@/lib/device';
 import { plural } from '@/store/engine/ops-engine';
-import type { LiveFlavourFormFields, LivePayFormFields, LiveShopTexts, OpsVals } from '@/view-models/vals';
+import type {
+  LiveFlavourFormFields,
+  LiveOrderRulesFields,
+  LivePayFormFields,
+  LiveShopTexts,
+  OpsVals
+} from '@/view-models/vals';
 import { PaymentSync } from '@/lib/data/payment-sync';
 import { StaffOrderSync, type StaffOrderClient, type StaffOutcome } from '@/lib/data/staff-orders';
 import { messagesFor } from '@/lib/orders/messages';
-import { MESSAGE_SHEET, STAFF_COPY } from '@/lib/orders/staff-copy';
+import { fetchShopStatus, saveShopOverride, type ShopOverride, type ShopStatusClient } from '@/lib/data/shop-status';
+import { fetchOrderRules, orderRulesError, saveOrderRules, type OrderRulesRow } from '@/lib/data/order-rules';
+import { MESSAGE_SHEET, RULES_COPY, STAFF_COPY } from '@/lib/orders/staff-copy';
 import { OrderFlow } from '@/lib/data/order-flow';
 import { tokenFromHash, type FieldErrors, type OrderClient } from '@/lib/data/orders';
 import { pickupLabel, statusCust } from '@/lib/orders/status-view';
@@ -249,6 +257,9 @@ export class OpsRuntime extends OpsProvider {
   private flavourSync?: FlavourSync;
   private paymentSync?: PaymentSync;
   private orderSync?: StaffOrderSync;
+  /** The signed-in (or anonymous) browser client the shop status is read and switched through. */
+  private shopClient?: ShopStatusClient;
+  private rulesRow: OrderRulesRow | null = null;
   private orderFlow?: OrderFlow;
   /** The last fragment this runtime wrote or adopted, so a link pasted into the tab is told apart. */
   private lastHash = '';
@@ -286,6 +297,7 @@ export class OpsRuntime extends OpsProvider {
     // MP-09 c2: live mode never shows the ported demo payment accounts, not even before the read.
     replacePayAccounts([]);
     this.installOrderOverrides();
+    this.installShopOverrides();
     // B2: a live checkout places real orders; the engine's local order list plays no part. The
     // form fields still live in `state.cust`, so the ported setters and reset actions are kept.
     this.custSubmit = () => {
@@ -872,6 +884,7 @@ export class OpsRuntime extends OpsProvider {
       livePay: this.livePayVals(),
       liveTexts: this.liveTextsVals(),
       liveMessages: this.liveMessagesVals(),
+      liveOrderRules: this.liveOrderRulesVals(),
       cust: this.liveStatusCust(this.livePayCust(starved.cust)),
       openLookup: () => this.openLookupSheet(),
       openWaitlist: () => this.openWaitlist(),
@@ -941,6 +954,136 @@ export class OpsRuntime extends OpsProvider {
         )
     };
     return [...rules, ...idle, helperTotals];
+  }
+
+  // ------------------------------------------------------------------ B3: the shop's open state
+
+  /**
+   * Every live page reads the owner's ordering window and the "close now" switch from the
+   * server. The switch is always applied; the window only where the staff settings are not
+   * loaded (a customer page), because a signed-in owner's settings already carry it and an
+   * unsaved edit must not be overwritten. A failed or malformed read keeps what was there.
+   */
+  async loadShopStatus(client: ShopStatusClient | null): Promise<boolean> {
+    if (!isLiveMode() || !client) return false;
+    this.shopClient = client;
+    let status;
+    try {
+      status = await fetchShopStatus(client);
+    } catch {
+      return false;
+    }
+    if (!status) return false;
+    this.setState((s) => ({
+      shopOverride: status.override,
+      cfg: this.settingsSync ? s.cfg : { ...(s.cfg as Record<string, unknown>), ...status.window }
+    }));
+    return true;
+  }
+
+  /** A customer's banner must not go stale: read again when the tab comes back. */
+  reloadShopStatus(): Promise<boolean> {
+    return this.loadShopStatus(this.shopClient ?? null);
+  }
+
+  /**
+   * The owner's "close now", "sold out", "closing soon", "open" and "follow my schedule" reach the
+   * server first; only then does the ported action run, so the screen, its toast and the database
+   * agree. A refused or unsent switch changes nothing on screen.
+   */
+  private installShopOverrides(): void {
+    const shop = this as unknown as {
+      setDropState: (st: string) => void;
+      closeDropEarly: () => void;
+      reopenDrop: () => void;
+    };
+    const { setDropState, closeDropEarly, reopenDrop } = shop;
+    shop.setDropState = (st) => {
+      const mode = st === 'auto' ? null : (st as ShopOverride);
+      void this.persistOverride(mode).then((ok) => ok && setDropState(st));
+    };
+    shop.closeDropEarly = () => void this.persistOverride('closed').then((ok) => ok && closeDropEarly());
+    shop.reopenDrop = () => void this.persistOverride(null).then((ok) => ok && reopenDrop());
+  }
+
+  private async persistOverride(mode: ShopOverride | null): Promise<boolean> {
+    const client = this.shopClient;
+    if (!client || !this.state.online || (typeof navigator !== 'undefined' && !navigator.onLine)) {
+      this.toast(STAFF_COPY.offline, 'warn');
+      return false;
+    }
+    const outcome = await saveShopOverride(client, mode);
+    if (outcome === 'saved') return true;
+    this.toast(outcome === 'refused' ? RULES_COPY.switchRefused : STAFF_COPY.offline, 'warn');
+    return false;
+  }
+
+  // ------------------------------------------------------------------ B3: the order rules form
+
+  private async loadOrderRules(): Promise<boolean> {
+    if (!this.shopClient) return false;
+    try {
+      this.rulesRow = await fetchOrderRules(this.shopClient);
+    } catch {
+      this.toast(STAFF_COPY.offline, 'warn');
+      return false;
+    }
+    this.forceUpdate();
+    return this.rulesRow !== null;
+  }
+
+  /** Read fresh first, so the stamp the form saves against is the current one. */
+  private openOrderRules = async (): Promise<void> => {
+    if (!(await this.loadOrderRules()) || !this.rulesRow) return;
+    this.sheet('orderrules', { updatedAt: this.rulesRow.updated_at });
+  };
+
+  private liveOrderRulesVals(): OpsVals['liveOrderRules'] {
+    const sh = this.state.sheet as FlavourSheetState | null;
+    const r = this.rulesRow;
+    if (this.state.role !== 'owner' || sh?.kind !== 'orderrules' || !r) return null;
+    return {
+      online: this.state.online && (typeof navigator === 'undefined' || navigator.onLine),
+      rules: {
+        unpaidHoldHours: r.unpaid_hold_hours,
+        maxUnpaidPerPhone: r.max_unpaid_per_phone,
+        pickupDays: [...r.pickup_days],
+        leadMinDays: r.lead_min_days,
+        leadMaxDays: r.lead_max_days,
+        pickupFromHour: r.pickup_from_hour,
+        pickupCutoffHour: r.pickup_cutoff_hour,
+        campusFrom: r.campus_from,
+        campusTo: r.campus_to
+      },
+      save: (f: LiveOrderRulesFields) => void this.saveOrderRulesForm(f, sh.updatedAt ?? null),
+      close: () => this.closeSheet()
+    };
+  }
+
+  private async saveOrderRulesForm(f: LiveOrderRulesFields, expectedUpdatedAt: string | null): Promise<void> {
+    const fields = {
+      unpaid_hold_hours: f.unpaidHoldHours,
+      max_unpaid_per_phone: f.maxUnpaidPerPhone,
+      pickup_days: [...f.pickupDays].sort((a, b) => a - b),
+      lead_min_days: f.leadMinDays,
+      lead_max_days: f.leadMaxDays,
+      pickup_from_hour: f.pickupFromHour,
+      pickup_cutoff_hour: f.pickupCutoffHour,
+      campus_from: f.campusFrom.trim(),
+      campus_to: f.campusTo.trim()
+    };
+    const problem = orderRulesError(fields);
+    if (problem) return void this.toast(problem, 'warn');
+    if (!this.shopClient || !expectedUpdatedAt) return void this.toast(STAFF_COPY.offline, 'warn');
+    const outcome = await saveOrderRules(this.shopClient, fields, expectedUpdatedAt);
+    if (outcome === 'saved') {
+      this.toast(RULES_COPY.saved);
+      this.closeSheet();
+      await this.loadOrderRules();
+    } else if (outcome === 'conflict') {
+      this.toast(RULES_COPY.conflict, 'warn');
+      await this.openOrderRules();
+    } else this.toast(outcome === 'refused' ? RULES_COPY.refused : STAFF_COPY.offline, 'warn');
   }
 
   // ------------------------------------------------------------------ B3: the owner's orders
@@ -1168,6 +1311,13 @@ export class OpsRuntime extends OpsProvider {
               },
               {
                 icon: this.IC.cookie,
+                label: 'Order rules',
+                sub: 'Pickup days, lead time, unpaid holds and the campus slot',
+                badge: null,
+                go: () => void this.openOrderRules()
+              },
+              {
+                icon: this.IC.cookie,
                 label: MESSAGE_SHEET.title,
                 sub: 'A status link and a text to copy for each open order',
                 badge: null,
@@ -1213,6 +1363,8 @@ export class OpsRuntime extends OpsProvider {
       return { ...sheet, liveForm: true, title: 'Shop texts' };
     if (this.state.role === 'owner' && sh?.kind === 'ordermessages')
       return { ...sheet, liveForm: true, title: MESSAGE_SHEET.title };
+    if (this.state.role === 'owner' && sh?.kind === 'orderrules')
+      return { ...sheet, liveForm: true, title: 'Order rules' };
     if (this.state.role !== 'owner' || sh?.kind !== 'flavours')
       return { ...sheet, liveForm: false };
     const row = sh.pid ? this.flavourSync?.current().find((r) => r.id === sh.pid) : undefined;

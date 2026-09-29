@@ -1,8 +1,8 @@
 {
   "status": "passed",
   "scope": "explicit-connection CLI reset on disposable loopback PostgreSQL; not managed --local or auth/RLS acceptance",
-  "project_id": "hcb-6abb77eb-e9c9fb",
-  "workdir": "C:\\Users\\ethan\\dev\\.hcb-bootstrap-6abb77eb-e9c9fb",
+  "project_id": "hcb-6abb825b-394d64",
+  "workdir": "C:\\Users\\ethan\\dev\\.hcb-bootstrap-6abb825b-394d64",
   "cleanup": "passed",
   "resets": 2,
   "harness_sha256": "a47a91d38c71ffbf52a14e597836fdfdbd1d22a3408f5c151f2b35b25459c963",
@@ -135,13 +135,14 @@
     "20260101003400_payment_methods_shop_texts.sql": "744606b2769e55fa29a7857bc7ac5912f1e8b484d6e2f2b7f573d49a8502ab24",
     "20260101003500_place_order.sql": "b9d01d566a3bb7cc4d366b612955135803fd603dc64942402bf136eaf0923c48",
     "20260101003600_order_lookup.sql": "d6896585f9957a927233e0108cf23b41e26a406eae8940c0f3c91093a4b9f04b",
-    "20260101003700_staff_orders.sql": "f8ab9684e8d38ea7aee5be0479c84afc2c8bfc782db24dc60e52f2d4f6c18275"
+    "20260101003700_staff_orders.sql": "1fe40450b1f604a5ee528f913a4cd171e7613e547161608c737b9f38345940a0",
+    "20260101003800_shop_status.sql": "965d5134d4b253172eac0de62d73637e49a5d9d95077b9b1e7f092a7e4330818"
   },
   "database_image": "sha256:af083ef64d0408c8f098ee6f5c364a59b26f36fbc0f3a334a62c5c1d57362e9b",
   "postgres_version_num": "150008",
   "cli_version": "2.116.0",
   "loopback_port": 48716,
-  "container_id": "343ae2ef9d6ba7e28a939ac24996df8cd653110db203d99f96dc8cbf59fb2ba9",
+  "container_id": "31ef99f306375c2dafac5c3c7141c5f97d46dc0ee49e1725065be44de2200635",
   "expected_versions": [
     "20260101000000",
     "20260101000100",
@@ -180,7 +181,8 @@
     "20260101003400",
     "20260101003500",
     "20260101003600",
-    "20260101003700"
+    "20260101003700",
+    "20260101003800"
   ],
   "catalog": [
     "function\tadd_event_expense(p_expense jsonb)\tTABLE(client_id text, duplicate boolean)",
@@ -208,6 +210,7 @@
     "function\tget_settings()\tTABLE(key text, int_value bigint, text_value text, cents_value bigint, json_value jsonb, is_default boolean, updated_at timestamp with time zone)",
     "function\tget_shop_order_rules()\tjsonb",
     "function\tget_shop_payment_info()\tjsonb",
+    "function\tget_shop_status()\tjsonb",
     "function\tget_staff_orders()\tjsonb",
     "function\tis_owner()\tboolean",
     "function\tis_staff()\tboolean",
@@ -227,6 +230,7 @@
     "function\tsave_setting(p_key text, p_value jsonb, p_expected_updated_at timestamp with time zone)\tTABLE(key text, updated_at timestamp with time zone)",
     "function\tsave_shop_texts(p_texts jsonb, p_expected_updated_at timestamp with time zone)\tTABLE(updated_at timestamp with time zone)",
     "function\tset_event_device(p_event uuid, p_device text)\ttext",
+    "function\tset_shop_override(p_mode text)\tTABLE(override text, updated_at timestamp with time zone)",
     "function\tsettings_effective()\tTABLE(key text, int_value bigint, text_value text, cents_value bigint, json_value jsonb, is_default boolean)",
     "function\tsettings_touch()\ttrigger",
     "function\tstaff_confirm_payment(p_order_id text, p_expected_updated_at timestamp with time zone, p_force boolean)\tTABLE(order_id text, state order_state, pay_state pay_state, total_cents bigint, paid_cents bigint, updated_at timestamp with time zone, replayed boolean)",
@@ -282,6 +286,7 @@
     "migration\t20260101003500\tapplied",
     "migration\t20260101003600\tapplied",
     "migration\t20260101003700\tapplied",
+    "migration\t20260101003800\tapplied",
     "settings_defaults\tsettings_effective\t28",
     "settings_overrides\tsettings\t0",
     "table_rows\taudit_log\t0",
@@ -306,14 +311,15 @@
     "table_rows\trecipe_ingredients\t0",
     "table_rows\trecipes\t0",
     "table_rows\tsettings\t0",
+    "table_rows\tshop_state\t1",
     "table_rows\tshop_texts\t0",
     "table_rows\tsupplier_prices\t0",
     "table_rows\tsuppliers\t0",
     "table_rows\twaitlist_entries\t0"
   ],
-  "catalog_sha256": "274060a166ef63cdc9b69957ef2dcbf6714f6d72a91232a983614c35973fe727",
+  "catalog_sha256": "cce9907baeabc0aa66070c1c180bb3261ab95da900bbe99ff834fac092b9aa47",
   "catalogs_equal": true,
-  "schema_sha256": "1c691d1c96cd673c258199f7624bff23cc7a57d3ede25caee1a2b743b4f3c2f6",
+  "schema_sha256": "1cb00652be44ebaad1d326086b41145b98cf706189c6cbc6eab3c6a222095bb9",
   "schemas_equal": true,
   "sentinel_removed": true
 }

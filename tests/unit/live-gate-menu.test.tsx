@@ -18,6 +18,8 @@ const { FakeRuntime } = vi.hoisted(() => ({
     loadShopOrders = vi.fn();
     loadOrders = vi.fn();
     reloadOrders = vi.fn();
+    loadShopStatus = vi.fn();
+    reloadShopStatus = vi.fn();
   }
 }));
 vi.mock('@/store/ops-runtime', () => ({ OpsRuntime: FakeRuntime }));

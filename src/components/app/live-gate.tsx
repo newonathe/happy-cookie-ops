@@ -93,6 +93,8 @@ export function LiveGate({
     if (engine instanceof OpsRuntime) void engine.loadShopPayment(supabase);
     // B2: the pickup rules, the checkout, "Find my order" and the waiting list, on every live page.
     if (engine instanceof OpsRuntime) void engine.loadShopOrders(supabase);
+    // B3: the owner's ordering window and "close now" switch, so every page says open or closed as the server does.
+    if (engine instanceof OpsRuntime) void engine.loadShopStatus(supabase);
     // MP-09 c1b: customer pages show the owner's published menu (`shop_products`), signed
     // in or not. Staff pages load the full list instead (below).
     if (CUSTOMER_SCREENS.includes(initialScreen) && engine instanceof OpsRuntime)
@@ -165,6 +167,7 @@ export function LiveGate({
         void verify(false);
         // Customers order all day: read the owner's orders again when the tab comes back.
         if (engine instanceof OpsRuntime) void engine.reloadOrders();
+        if (engine instanceof OpsRuntime) void engine.reloadShopStatus();
       }
     }
     document.addEventListener('visibilitychange', onVisible);

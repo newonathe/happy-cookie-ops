@@ -48,3 +48,23 @@ export const MESSAGE_SHEET = {
   copied: 'Copied.',
   copyFailed: 'Could not copy. Select the text and copy it yourself.'
 } as const;
+
+/** The order rules form and the shop switch (B3). PLACEHOLDER, like the rest of this file. */
+export const RULES_COPY = {
+  saved: 'Order rules saved.',
+  conflict: 'Someone else changed the order rules just now. Showing their version.',
+  refused: 'The order rules could not be saved. Check the numbers.',
+  switchRefused: 'The shop switch could not be saved.',
+  intro:
+    'These decide what a customer can pick and how long an unpaid order holds its slots. They apply to new orders only.',
+  days: 'Pickup days',
+  holdHours: 'Unpaid order holds its slots for (hours)',
+  maxUnpaid: 'Unpaid orders allowed per mobile number',
+  leadMin: 'Earliest pickup (days ahead)',
+  leadMax: 'Latest pickup (days ahead)',
+  fromHour: 'Pickup starts (hour, 0 to 23)',
+  cutoffHour: 'Pickup ends (hour, 1 to 24)',
+  campusFrom: 'Campus pickup from (like 14:00)',
+  campusTo: 'Campus pickup until (like 15:30)',
+  save: 'Save order rules'
+} as const;
