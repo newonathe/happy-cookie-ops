@@ -506,3 +506,40 @@ page); `scripts/test-live-checkout.mjs` opens `/lookup` directly against the loc
 - **Still open:** the ported status line "Book your Grab or Lalamove for that window. We send the exact address that
   morning." is protected and false for the campus slot; and the ported order screens still say Saturday and Sunday for
   the owner's Monday and Thursday pickup days (mapped by rank; recorded, not edited).
+
+# B2 re-audit (2026-09-30): port audit and second independent review of the guarded edits
+
+Run on the tip (`46122ce`) after B3, B4, D4, A3, A4 and C1 had landed, because the B2 slice's own review predates them. Nothing in
+the product changed.
+
+- **Port audit (Sonnet, `port-auditor`): PASS on all four items.**
+  - Both guarded edits are live-only branches (`bareFrame ? <Live… /> : (…ported markup…)`) and the ported markup inside the else branch
+    is unchanged: `checkout.tsx` (c261c99, +6/-1) and `find-my-order.tsx` (dbc7243, +6/-1).
+  - No later commit changed either file. No other protected file changed beyond what this record covers.
+  - Both baselines were regenerated in the same commit as each edit; `CHECKOUT_REVERSALS` and `LOOKUP_REVERSALS` in
+    `scripts/validate-g0.py` are each defined once and applied once.
+  - Demo mode renders the ported branch, because `bareFrame` is set only in the live `renderVals()` path and the two early returns
+    for demo come first.
+  - **One gap in this record:** c261c99 added four declarations (`custSubmit`, `custRestart`, `custReorder`, `custSet`) to the type-only
+    `src/store/engine/ops-engine.d.ts:93-97`. They are additive types for the overrides above, and are named here so the record covers them.
+- **Independent review (Opus): no P0 or P1, safe to merge.** Checked and correct: no client-sent price, total, state or role reaches
+  `place_order`; one client id per attempt with the frozen body resent after a lost reply; the status token only ever in the URL fragment and
+  scrubbed from reports; every refusal mapped, with every line except the closed-shop sentence marked as a placeholder; demo mode
+  untouched; no personal data in toasts, console or storage; double submit blocked.
+- **Recorded, not fixed (follow-ups before real customers order):**
+  1. **P2:** a stalled `place_order` or `join_waitlist` request has no timeout, so the form stays on "Sending…" with no way out but a reload
+     (`order-flow.ts:240-244`, `supabase/client.ts:15`). Add an abort signal of about 20 s and treat it as an unknown outcome, and put
+     everything after `sending = true` in `try/finally`.
+  2. **P2:** an unsettled attempt lives only in memory (`order-flow.ts:68`). If the reply is lost but the order was created, a reload and a
+     new tap makes a second unpaid order. Add a `beforeunload` prompt while an order is sending or unsettled; saving the body to
+     sessionStorage would also work, but it holds name, phone and handle, so that is the owner's call.
+  3. **P3:** the waiting list reuses checkout wording for 22023 and 23505, and does not check the 90-day limit in the browser
+     (`orders.ts:422-434`).
+  4. **P3:** the waiting-list form empties on reopen while its frozen entry stays (`live-checkout.tsx:609-612`).
+  5. **P3:** "Campus pickup" is customer wording outside `ORDER_COPY` (`status-view.ts:63`).
+  - Branches with no test that would fail if the branch were deleted: the late-status-answer guard (`order-flow.ts:313`), the lookup busy
+    guard (`:321`), `canWaitlist` for ZC002 (`:258`), a 23505 at runtime level, both outcomes of copying the link
+    (`ops-runtime.tsx:3034-3043`), and the waiting-list 22023 and 23505 wording.
+- **Gates run on the tip (this re-audit):** `pnpm verify` 68 files / 1303 tests; Python guards 63 OK; G0 validator 1217 checks, 0 failures;
+  `pnpm build`; `test:pages:spike`; `test:workers:spike`; `test:e2e` 89 passed / 1 failed (WebKit OFFLINE-01) / 75 skipped;
+  `pnpm test:live:checkout` 11 steps pass on a freshly reset local stack.

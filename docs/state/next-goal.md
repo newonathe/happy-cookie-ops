@@ -63,7 +63,7 @@ database (`bake_batches` and a dough record), read into `state.batches`, `dough`
 ported confirm actions replaced from `OpsRuntime` in the C1 pattern. (4) Packaging used at packing and at a bazaar sale through the same movement.
 (5) Half and double batches and the ± tolerance the finish-plan row names.
 
-**Carry-overs:** the recorded C1, A4, A3, D4 and B4b items in `current.md` (a mistyped receipt cost; mixed pack sizes; the item list needs a search box;
+**Carry-overs:** the two P2 follow-ups from the B2 re-audit in `protected-exception.md` (a timeout on `place_order` and `join_waitlist`, and a `beforeunload` prompt while an order is unsettled) before real customers order; the recorded C1, A4, A3, D4 and B4b items in `current.md` (a mistyped receipt cost; mixed pack sizes; the item list needs a search box;
 history is counts only; same-day across midnight; boxes for non-cookie sets; extras on the status page); a direct load of a staff URL lands on Home
 in live mode (not investigated); helper access to pack and collect; wording for every sentence marked PLACEHOLDER.
 
