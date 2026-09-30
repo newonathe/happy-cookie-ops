@@ -51,6 +51,10 @@ decision this slice must settle with Ethan before it builds the headline number.
 | Stop budget | 2 failed fix attempts or 25 turns | Written in the goal |
 | Environment | Docker Desktop running; pinned toolchain on PATH; `pnpm.cmd` in Git Bash | See "Before starting" |
 
+**Before E1 (open from C2, silent under-deduction):** binned dough and binned baked cookies are recorded only on the screen, so the database still counts them (mix 6, bin 2, bake 6 takes no
+ingredients for the 2). Fix first, as its own small slice: a record for dough and baked-cookie waste written by the engine's `logSpoilage` (flavour and kind), subtracted from both
+balances; also decide whether leftover baked cookies carry into the next drop (the engine carries them; `get_production` scopes them per drop). See the C2 checkpoint in `current.md`.
+
 **Read first:** finish-plan E1, DP-04 in `decision-register.md`, the C1 and C2 checkpoints in `current.md`, `20260101004600_stock_ledger.sql` and
 `20260101004700_production.sql` (the `use` movements), the init migration's `ledger_entries`, and the engine's P&L helpers.
 

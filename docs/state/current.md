@@ -83,17 +83,21 @@ Short status, read at the start of every session. Keep it to one screen.
   - **Opus review** (database SAFE; the app half was NOT SAFE until fixed): a partial read overwrote the chilled dough and baked counts (binned dough came back,
     a sale flush put the stall's cookies back); a double tap recorded a batch twice (and a Back during the record crashed the engine's confirm); an order for
     another week could not be packed (drop -1); dough pieces could round up one too many. All fixed with tests.
+  - **Open, and it silently under-deducts stock (fix next, in its own migration):** dough or cookies binned on the spoilage sheet are recorded only on the screen, so the
+    database still counts them. Example: mix 6, bin 2, bake 6: the screen says 4 come from dough and 2 are mixed, but the database uses all 6 from dough and takes NO ingredients
+    off stock for the other 2, and nothing shows the mismatch (the server's `used_dough` answer is ignored). The fix is a record for dough and baked-cookie waste that the engine's
+    `logSpoilage` (with a flavour and kind) writes, so both balances subtract it. Until then, do not bin dough and then bake against it.
   - **Recorded, not fixed:** (1) Packaging names and the pack rule (full sixes in a box, loose in pouches, a sticker each, a card per box) are the ported defaults, hard-coded
     in the database (DP-03 stays open: real box sizes 6/8/12 from `order_boxes` and per-flavour footprints are not used); a renamed catalogue item is a permanent
-    shortfall; if her recipes list the pouch per cookie AND packing takes one, it is taken twice (decide at import). (2) Binned dough or cookies, the stall's stock load
-    and close-out still change only the screen: they come back on a reload (they need their own records; the server's baked count does not yet subtract an event's loaded stock).
+    shortfall; if her recipes list the pouch per cookie AND packing takes one, it is taken twice: **question for Ethan: which one owns packaging, the recipe line at bake or the pack rule at packing?** (the seed recipes have no packaging lines, so nothing is doubled today). (2) The stall's stock load and close-out still change only the screen (see the open item above for binned dough): after a reload the server's baked count does not subtract an event's loaded stock.
+    (2b) Baked cookies are counted per drop on the server (`drop_no`), but the engine carries leftover baked cookies into the next drop (its drop rollover, `ops-engine.js:1091`, does not reset `baked`): after a rollover the server's view of last week's leftovers is 0. Decide in E1 whether leftovers carry over.
     (3) Packing records a shortfall and goes ahead; the ported engine refused to pack when packaging was short. (4) A count taken after a late `use` (an offline sale synced
     after a count) can double-count it. (5) A sale voided before it syncs deducts nothing on the server but the pouches on screen. (6) A batch of 0 is refused (the engine
     allowed it). (7) The staff RPCs are owner-only, so a helper cannot pack (unchanged). (8) Wording is PLACEHOLDER (`PRODUCTION_COPY`). (9) `bake_batches` (init) stays unused.
   - **Evidence:** `pnpm verify` 70 files / 1355 tests; G0 validator 1217 checks, 0 failures; port integrity OK (54 files); Python guards OK; SQL role suite 1783 cases per
     reset, 2 resets, 572 regressions detected (2 resets x 286); `pnpm build`, `test:pages:spike`, `test:workers:spike` pass; `pnpm test:e2e` 89 / 1 (OFFLINE-01 WebKit) / 75;
-    `test:live:checkout` 11 steps. Mutations: 28 on the unit tests (all caught; three survivors were strengthened and re-run). **Visual QA in the browser pane** (live-mode
+    `test:live:checkout` 11 steps. Mutations: 28 on the unit tests (all caught; two survived their first run, m02 and m19, and were strengthened and re-run; one, m18, matched nothing and was re-run by hand and caught). The two new test files and the gate test ran 5 times in a row green; the first pre-commit run of the app-half commit failed a test once and passed on retry with no change (cause not found). **Visual QA in the browser pane** (live-mode
     build, local test owner): mixed 12 dough balls (flour 4200 -> 4000 g in the database, 12 chilled dough), reloaded (still 12), baked 4 with 1 reject (dough went to 8, "1 still
     to bake"), the recipe screen said "1 batch baked on this version", packed a 13-cookie order (Box of 6 9 -> 7, sticker 4 -> 1, pouch 64 -> 63, card 42 -> 40), and after a
-    reload the Inventory ingredients, packaging and dough tabs showed those quantities. Not looked at on screen: the stall sale's packaging (SQL and unit tests only), a
+    reload the Inventory ingredients, packaging and dough tabs showed those quantities. Not looked at on screen: the Inventory screen before the changes (its "before" quantities come from the dough sheet and database queries), the stall sale's packaging (SQL and unit tests only), a
     shortfall toast, and a phone-width pass.
