@@ -152,6 +152,8 @@ export function LiveGate({
         if (owner && !cancelled) void engine.loadStockCatalogue(supabase);
         // C2: the owner's batches, dough and baked counts.
         if (owner && !cancelled) void engine.loadProduction(supabase);
+        // E1: the owner's books, for the P&L, Home profit and the expense list.
+        if (owner && !cancelled) void engine.loadBooks(supabase);
         // Only after the flavour list was read: an order for a flavour outside the ported list would crash the screens.
         void Promise.resolve(engine.loadFlavours(supabase)).then((loaded) => {
           if (owner && !cancelled && loaded !== false) void engine.loadOrders(supabase);

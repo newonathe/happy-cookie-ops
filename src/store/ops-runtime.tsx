@@ -67,6 +67,7 @@ import {
   RECIPE_COPY,
   STAFF_COPY,
   PRODUCTION_COPY,
+  BOOKS_COPY,
   STOCK_COPY
 } from '@/lib/orders/staff-copy';
 import {
@@ -115,6 +116,23 @@ import {
   type ProductionFields,
   type ProductionResult
 } from '@/lib/data/production';
+import {
+  booksCsv,
+  correctionError,
+  drawError,
+  engineLedger,
+  expenseError,
+  fetchBooks,
+  recordCostCorrection,
+  recordDraw,
+  recordExpense,
+  saveCostBasis,
+  type Books,
+  type BooksClient,
+  type CorrectionFields,
+  type DrawFields,
+  type ExpenseFields
+} from '@/lib/data/books';
 import { OrderFlow } from '@/lib/data/order-flow';
 import { tokenFromHash, type FieldErrors, type OrderClient } from '@/lib/data/orders';
 import { pickupLabel, statusCust } from '@/lib/orders/status-view';
@@ -463,6 +481,13 @@ export class OpsRuntime extends OpsProvider {
   private pendingProduction = new Map<string, ProductionFields>();
   private pendingDiscards = new Map<string, DiscardFields>();
   private discardBusy = false;
+  /** E1: the client the books are read and written with, the last read, the read in flight, and entries whose answer never came (repeating one reuses its id and time). */
+  private booksClient: BooksClient | null = null;
+  private booksRows: Books | null = null;
+  private booksLoadSeq = 0;
+  private pendingExpenses = new Map<string, ExpenseFields>();
+  private pendingDraws = new Map<string, DrawFields>();
+  private pendingCorrections = new Map<string, CorrectionFields>();
   /** True while one dough mix or batch is being recorded: a second tap on Confirm must not mint a second record. */
   private productionBusy = false;
   /** The last picture of the database applied to `dough`, `baked` and `doughAt`: a later read moves them by what changed on the database, so a change made only on the screen (dough or cookies binned, stall stock) is kept. */
@@ -688,24 +713,31 @@ export class OpsRuntime extends OpsProvider {
         if (!(await this.liveReceipt(item.name, got, paid, item.supplier))) return;
         this.withoutUndo(() => keep.confirmReceive(e, item));
         await this.loadStockCatalogue(null);
+        await this.loadBooks(null);
       })();
     };
     inv.addExpense = (cat, label, amount, itemName, itemQty) => {
       const item = itemName ? this.stockItem(itemName) : undefined;
       const qty = Number(itemQty) || 0;
-      // The engine refuses a form with no category or amount, and a plain expense moves money only.
-      if (!cat || !amount || !item || qty <= 0) return keep.addExpense(cat, label, amount, itemName, itemQty);
+      // The engine refuses a form with no category or amount; a plain expense (wages, transport, ...) moves money only, and is a book entry.
+      if (!cat || !amount) return keep.addExpense(cat, label, amount, itemName, itemQty);
+      // With a stock item named the form is a delivery: the engine says what is missing (how much came in), and nothing is booked.
+      if (itemName && (!item || qty <= 0)) return keep.addExpense(cat, label, amount, itemName, itemQty);
+      if (!item) return void this.livePlainExpense(() => keep.addExpense(cat, label, amount, itemName, itemQty), cat, label, amount);
       const supplier = this.stockCatalogue?.suppliers.find((x) => x.id === item.supplierId)?.name ?? '';
       void (async () => {
         if (!(await this.liveReceipt(item.name, qty, Number(amount) || 0, supplier))) return;
         this.withoutUndo(() => keep.addExpense(cat, label, amount, itemName, itemQty));
         await this.loadStockCatalogue(null);
+        await this.loadBooks(null);
       })();
     };
     // A4: the recipes screen saves to the database (a new version per change), never only to this screen.
     (this as unknown as RecipeActions).recipeSave = (pid) => void this.liveRecipeSave(pid);
     // C2: mixing dough and baking take their ingredients off on the database, in one step, and the screens read the records back.
     this.installProductionOverrides();
+    // E1: the P&L, Home profit and the expense list read the database's books; the export writes them.
+    this.installBooksOverrides();
     // Not the demo books: only the running bazaar (event id, snapshot prices, stall stock,
     // the day's sales) is kept, so a reload at the stall can carry on selling. The empty
     // start (no event) is never saved, so it cannot overwrite the event before it is read back.
@@ -1195,6 +1227,7 @@ export class OpsRuntime extends OpsProvider {
       liveOrderRules: this.liveOrderRulesVals(),
       liveOrderExtras: this.liveOrderExtrasVals(),
       liveScheduled: this.liveScheduledVals(),
+      liveBooks: this.liveBooksVals(),
       liveStockItems: this.liveStockItemsVals(),
       liveStockSuppliers: this.liveStockSuppliersVals(),
       // D4: in live mode the Bazaar list is the owner's bookings, never the ported prototype events.
@@ -2527,6 +2560,181 @@ export class OpsRuntime extends OpsProvider {
     };
   }
 
+  // ------------------------------------------------------------------ E1: the owner's books
+
+  /**
+   * Reads the owner's books for the last 35 days and puts them in the engine's ledger (the P&L, Home profit and the expense
+   * list read it). The ledger is replaced, never added to: the engine's own entries for the same event (a receipt, a stall
+   * sale, an expense) are the database's lines by the time this returns. False when it could not be read.
+   */
+  async loadBooks(client: BooksClient | null): Promise<boolean> {
+    if (client) this.booksClient = client;
+    const use = client ?? this.booksClient;
+    if (!isLiveMode() || !use) return false;
+    const seq = (this.booksLoadSeq += 1);
+    let books: Books;
+    try {
+      const now = Date.now();
+      books = await fetchBooks(use, now - 35 * 86_400_000, now + 86_400_000);
+    } catch {
+      return false;
+    }
+    if (seq !== this.booksLoadSeq) return true;
+    this.booksRows = books;
+    this.setState({ ledger: engineLedger(books.lines) } as never);
+    return true;
+  }
+
+  private installBooksOverrides(): void {
+    const eng = this as unknown as {
+      orderRevenue: (s: unknown) => number;
+      exportBooks: () => void;
+      recordDraw: (amount: unknown, note: string) => void;
+      closeDrop: () => void;
+    };
+    // Revenue is booked as each order is paid, so closing a drop books nothing more: the engine's toast would say "closed at 0".
+    const keepClose = eng.closeDrop;
+    eng.closeDrop = () => {
+      const original = this.toast;
+      this.toast = (message: string, tone?: 'ok' | 'warn') => {
+        const m = /^Drop (\d+) closed at .* Drop (\d+) is open/.exec(message);
+        return original(m ? BOOKS_COPY.dropClosed(m[1]!, m[2]!) : message, tone);
+      };
+      try {
+        keepClose();
+      } finally {
+        this.toast = original;
+      }
+    };
+    const keepDraw = eng.recordDraw;
+    // Money the owner takes out is a book entry of its own (outside expenses); the engine's own toast and sheet still run.
+    eng.recordDraw = (amount, note) => {
+      if (!Number(amount)) return keepDraw(amount, note); // the engine says what is missing
+      void this.liveDraw(() => keepDraw(amount, note), amount, note);
+    };
+    // Revenue is each paid order in the books, so the engine's own count of the open drop's orders would count it twice.
+    eng.orderRevenue = () => 0;
+    eng.exportBooks = () => void this.liveExport();
+  }
+
+  /** A plain expense: recorded first (once, however often it is repeated), then the engine's own bookkeeping, then the books are read back. */
+  private async livePlainExpense(run: () => void, cat: string, label: string, amount: unknown): Promise<void> {
+    const client = this.booksClient;
+    if (this.state.role !== 'owner') return void this.toast(BOOKS_COPY.ownerOnly, 'warn');
+    if (!client) return void this.toast(STAFF_COPY.offline, 'warn');
+    const cents = pesosToCentavos(Number(amount));
+    const signature = JSON.stringify([cat, label, cents]);
+    const fields: ExpenseFields =
+      this.pendingExpenses.get(signature) ?? { id: crypto.randomUUID(), category: cat, memo: String(label ?? '').slice(0, 120), amountCents: cents, at: Date.now() };
+    const problem = expenseError(fields);
+    if (problem) return void this.toast(problem, 'warn');
+    this.pendingExpenses.set(signature, fields);
+    const outcome = await recordExpense(client, fields);
+    if (outcome !== 'offline') this.pendingExpenses.delete(signature);
+    if (outcome !== 'saved') return void this.toast(outcome === 'refused' ? BOOKS_COPY.refused : BOOKS_COPY.notSaved, 'warn');
+    this.withoutUndo(run);
+    await this.loadBooks(null);
+  }
+
+  private async liveDraw(run: () => void, amount: unknown, note: string): Promise<void> {
+    const client = this.booksClient;
+    if (this.state.role !== 'owner') return void this.toast(BOOKS_COPY.ownerOnly, 'warn');
+    if (!client) return void this.toast(STAFF_COPY.offline, 'warn');
+    const cents = pesosToCentavos(Number(amount));
+    const memo = String(note ?? '').slice(0, 120);
+    const signature = JSON.stringify([memo, cents]);
+    const fields: DrawFields = this.pendingDraws.get(signature) ?? { id: crypto.randomUUID(), memo, amountCents: cents, at: Date.now() };
+    const problem = drawError(fields);
+    if (problem) return void this.toast(problem, 'warn');
+    this.pendingDraws.set(signature, fields);
+    const outcome = await recordDraw(client, fields);
+    if (outcome !== 'offline') this.pendingDraws.delete(signature);
+    if (outcome !== 'saved') return void this.toast(outcome === 'refused' ? BOOKS_COPY.refused : BOOKS_COPY.notSaved, 'warn');
+    this.withoutUndo(run);
+    await this.loadBooks(null);
+  }
+
+  private async openBooks(): Promise<void> {
+    if (!(await this.loadBooks(null)) || !this.booksRows) return void this.toast(STAFF_COPY.offline, 'warn');
+    this.sheet('books', {});
+  }
+
+  private liveBooksVals(): OpsVals['liveBooks'] {
+    const sh = this.state.sheet as { kind?: string } | null;
+    const books = this.booksRows;
+    if (this.state.role !== 'owner' || sh?.kind !== 'books' || !books) return null;
+    return {
+      online: this.state.online && (typeof navigator === 'undefined' || navigator.onLine),
+      basis: books.basis,
+      receipts: books.receipts.map((r) => ({
+        movementId: r.movementId,
+        label:
+          r.item + ' · ' + r.qty + ' · ₱' + (r.costCents / 100).toLocaleString('en-PH') + (r.supplier ? ' · ' + r.supplier : '') +
+          ' · ' + new Date(r.at).toLocaleDateString('en-PH', { day: 'numeric', month: 'short' })
+      })),
+      setBasis: (b) => void this.liveSetBasis(b),
+      correct: (movementId, pesos) => void this.liveCorrect(movementId, pesos),
+      download: () => void this.liveExport(),
+      close: () => this.closeSheet()
+    };
+  }
+
+  private async liveSetBasis(basis: 'bought' | 'used'): Promise<void> {
+    const client = this.booksClient;
+    if (this.state.role !== 'owner') return void this.toast(BOOKS_COPY.ownerOnly, 'warn');
+    if (!client) return void this.toast(STAFF_COPY.offline, 'warn');
+    const outcome = await saveCostBasis(client, basis);
+    if (outcome !== 'saved') return void this.toast(outcome === 'refused' ? BOOKS_COPY.refused : BOOKS_COPY.notSaved, 'warn');
+    await this.loadBooks(null);
+    this.toast(BOOKS_COPY.basisSaved(basis));
+  }
+
+  private async liveCorrect(movementId: string, pesos: string): Promise<void> {
+    const client = this.booksClient;
+    if (this.state.role !== 'owner') return void this.toast(BOOKS_COPY.ownerOnly, 'warn');
+    if (!client) return void this.toast(STAFF_COPY.offline, 'warn');
+    const value = Number(pesos);
+    if (pesos.trim() === '' || !Number.isFinite(value) || value < 0) return void this.toast(BOOKS_COPY.refused, 'warn');
+    const cents = pesosToCentavos(value);
+    const signature = JSON.stringify([movementId, cents]);
+    const fields: CorrectionFields =
+      this.pendingCorrections.get(signature) ?? { id: crypto.randomUUID(), movementId, costCents: cents, at: Date.now() };
+    const problem = correctionError(fields);
+    if (problem) return void this.toast(problem, 'warn');
+    this.pendingCorrections.set(signature, fields);
+    const outcome = await recordCostCorrection(client, fields);
+    if (outcome !== 'offline') this.pendingCorrections.delete(signature);
+    if (outcome !== 'saved') return void this.toast(outcome === 'refused' ? BOOKS_COPY.refused : BOOKS_COPY.notSaved, 'warn');
+    await this.loadBooks(null);
+    void this.loadStockCatalogue(null); // what was last paid follows the correction
+    this.toast(BOOKS_COPY.corrected);
+  }
+
+  /** The books for the last 13 months as a CSV download: read fresh from the database, so it is the same numbers as the screens. */
+  private async liveExport(): Promise<void> {
+    const client = this.booksClient;
+    if (this.state.role !== 'owner') return void this.toast(BOOKS_COPY.ownerOnly, 'warn');
+    if (!client) return void this.toast(STAFF_COPY.offline, 'warn');
+    let books: Books;
+    try {
+      const now = Date.now();
+      books = await fetchBooks(client, now - 396 * 86_400_000, now + 86_400_000);
+    } catch {
+      return void this.toast(STAFF_COPY.offline, 'warn');
+    }
+    try {
+      const blob = new Blob([booksCsv(books)], { type: 'text/csv' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'happy-cookie-books-' + new Date().toISOString().slice(0, 10) + '.csv';
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+      this.toast(BOOKS_COPY.downloaded);
+    } catch {
+      this.toast(BOOKS_COPY.downloadBlocked, 'warn');
+    }
+  }
+
   // ------------------------------------------------------------------ B3: the owner's orders
 
   /**
@@ -2620,6 +2828,7 @@ export class OpsRuntime extends OpsProvider {
     if (outcome.kind === 'ok') {
       this.closeSheet();
       this.toast(done, 'ok', undo);
+      if (this.state.role === 'owner') void this.loadBooks(null);
     }
     return outcome;
   }
@@ -2836,6 +3045,13 @@ export class OpsRuntime extends OpsProvider {
               },
               {
                 icon: this.IC.cookie,
+                label: BOOKS_COPY.title,
+                sub: BOOKS_COPY.sub,
+                badge: null,
+                go: () => void this.openBooks()
+              },
+              {
+                icon: this.IC.cookie,
                 label: STOCK_COPY.itemsTitle,
                 sub: STOCK_COPY.itemsSub,
                 badge: null,
@@ -2908,6 +3124,8 @@ export class OpsRuntime extends OpsProvider {
       return { ...sheet, liveForm: true, title: EXTRAS_COPY.title };
     if (this.state.role === 'owner' && sh?.kind === 'scheduledevents')
       return { ...sheet, liveForm: true, title: SCHEDULED_COPY.title };
+    if (this.state.role === 'owner' && sh?.kind === 'books')
+      return { ...sheet, liveForm: true, title: BOOKS_COPY.title };
     if (this.state.role === 'owner' && sh?.kind === 'stockitems')
       return { ...sheet, liveForm: true, title: STOCK_COPY.itemsTitle };
     if (this.state.role === 'owner' && sh?.kind === 'stocksuppliers')
@@ -3477,7 +3695,10 @@ export class OpsRuntime extends OpsProvider {
     const result = await flushQueue(this.saleClient);
     await this.reflectQueue();
     // A sale that reached the server used its pouches and bag there (stock only: no batch or dough changed): show what stock the database holds.
-    if (result.sent.length > 0 && this.state.role === 'owner') void this.loadStockCatalogue(null);
+    if (result.sent.length > 0 && this.state.role === 'owner') {
+      void this.loadStockCatalogue(null);
+      void this.loadBooks(null);
+    }
     return result;
   };
 

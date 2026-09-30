@@ -212,6 +212,16 @@ export interface OpsVals {
     save: (fields: LiveOrderRulesFields) => void;
     close: (event?: unknown) => void;
   } | null;
+  /** Live owner only (E1): the books settings: cost basis, a correction to a delivery cost, the CSV. */
+  liveBooks?: {
+    online: boolean;
+    basis: 'bought' | 'used';
+    receipts: Array<{ movementId: string; label: string }>;
+    setBasis: (basis: 'bought' | 'used') => void;
+    correct: (movementId: string, pesos: string) => void;
+    download: () => void;
+    close: (event?: unknown) => void;
+  } | null;
   /** Live owner only (D4): the upcoming bazaars form. `newId` is the id the blank row will be saved under. */
   liveScheduled?: {
     online: boolean;

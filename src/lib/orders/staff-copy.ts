@@ -177,6 +177,38 @@ export const PRODUCTION_COPY = {
   ranShort: (names: string) => ' Ran short of ' + names + ': logged.'
 } as const;
 
+/** PLACEHOLDER wording (E1): the books settings form and what saving changes. */
+export const BOOKS_COPY = {
+  title: 'Books & costs',
+  sub: 'How stock is costed, correct a delivery cost, download the books',
+  offline: 'Offline. Changes here will not save until this device is back online.',
+  basisTitle: 'When does stock count as a cost?',
+  basisNote:
+    'Bought: each delivery is a cost the day you buy it. Used: stock is a cost when it goes into a batch, a mix, a pack or a sale, at the price you last paid.',
+  bought: 'When bought',
+  used: 'When used',
+  basisSaved: (b: string) => 'Stock now counts as a cost ' + (b === 'used' ? 'when it is used.' : 'when it is bought.'),
+  correctTitle: 'Correct a delivery cost',
+  correctNote:
+    'A wrong cost is answered with a correcting entry in the books: nothing is edited or deleted. The price you last paid follows the correction.',
+  receipt: 'Delivery',
+  newCost: 'What it really cost (pesos)',
+  correct: 'Correct the cost',
+  noReceipts: 'No costed deliveries in the last 90 days.',
+  corrected: 'Cost corrected. The books show the difference.',
+  downloadTitle: 'Download the books',
+  downloadNote: 'Every line of the books for the last 13 months as a spreadsheet (CSV), with how stock is costed.',
+  download: 'Download CSV',
+  downloaded: 'Downloaded: the books as a spreadsheet. Nothing is locked in here.',
+  downloadBlocked: 'This device would not let the file download. Try again from a normal browser tab.',
+  notSaved:
+    'Not confirmed: the connection dropped, so this may or may not have been recorded. Check the books, then repeat it exactly: the database will not count the same entry twice.',
+  refused: 'That could not be recorded. Check the amount, the category and that the delivery was costed.',
+  dropClosed: (n: string, next: string) =>
+    'Drop ' + n + ' closed. Its paid orders are already in your P&L. Drop ' + next + ' is open for orders.',
+  ownerOnly: 'Only Cine can change the books.'
+} as const;
+
 export const SCHEDULED_COPY = {
   title: 'Bazaar events',
   saved: 'Bazaar events saved.',

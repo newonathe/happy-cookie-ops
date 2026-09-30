@@ -112,6 +112,24 @@ export type Database = {
           },
         ]
       }
+      books_settings: {
+        Row: {
+          cost_basis: string
+          id: boolean
+          updated_at: string
+        }
+        Insert: {
+          cost_basis?: string
+          id?: boolean
+          updated_at?: string
+        }
+        Update: {
+          cost_basis?: string
+          id?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       drops: {
         Row: {
           capacity: number
@@ -485,6 +503,7 @@ export type Database = {
         Row: {
           amount_cents: number
           category: string
+          client_id: string | null
           created_at: string
           created_by: string | null
           id: string
@@ -492,11 +511,13 @@ export type Database = {
           memo: string
           occurred_at: string
           order_id: string | null
+          payload_hash: string | null
           sale_id: string | null
         }
         Insert: {
           amount_cents: number
           category: string
+          client_id?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
@@ -504,11 +525,13 @@ export type Database = {
           memo?: string
           occurred_at: string
           order_id?: string | null
+          payload_hash?: string | null
           sale_id?: string | null
         }
         Update: {
           amount_cents?: number
           category?: string
+          client_id?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
@@ -516,6 +539,7 @@ export type Database = {
           memo?: string
           occurred_at?: string
           order_id?: string | null
+          payload_hash?: string | null
           sale_id?: string | null
         }
         Relationships: [
@@ -840,6 +864,7 @@ export type Database = {
           ig: string
           notes: string
           packaging_cents: number
+          paid_at: string | null
           paid_cents: number | null
           pay_method: string | null
           pay_ref: string | null
@@ -850,6 +875,7 @@ export type Database = {
           pickup_window: string | null
           placed_at: string
           refund_ref: string | null
+          refunded_at: string | null
           same_day: boolean
           state: Database["public"]["Enums"]["order_state"]
           status_token: string | null
@@ -868,6 +894,7 @@ export type Database = {
           ig?: string
           notes?: string
           packaging_cents?: number
+          paid_at?: string | null
           paid_cents?: number | null
           pay_method?: string | null
           pay_ref?: string | null
@@ -878,6 +905,7 @@ export type Database = {
           pickup_window?: string | null
           placed_at?: string
           refund_ref?: string | null
+          refunded_at?: string | null
           same_day?: boolean
           state?: Database["public"]["Enums"]["order_state"]
           status_token?: string | null
@@ -896,6 +924,7 @@ export type Database = {
           ig?: string
           notes?: string
           packaging_cents?: number
+          paid_at?: string | null
           paid_cents?: number | null
           pay_method?: string | null
           pay_ref?: string | null
@@ -906,6 +935,7 @@ export type Database = {
           pickup_window?: string | null
           placed_at?: string
           refund_ref?: string | null
+          refunded_at?: string | null
           same_day?: boolean
           state?: Database["public"]["Enums"]["order_state"]
           status_token?: string | null
@@ -1357,6 +1387,61 @@ export type Database = {
         }
         Relationships: []
       }
+      stock_cost_corrections: {
+        Row: {
+          at: string
+          cost_cents: number
+          created_by: string | null
+          id: string
+          ledger_id: string | null
+          movement_id: string
+          payload_hash: string
+          received_at: string
+        }
+        Insert: {
+          at: string
+          cost_cents: number
+          created_by?: string | null
+          id: string
+          ledger_id?: string | null
+          movement_id: string
+          payload_hash: string
+          received_at?: string
+        }
+        Update: {
+          at?: string
+          cost_cents?: number
+          created_by?: string | null
+          id?: string
+          ledger_id?: string | null
+          movement_id?: string
+          payload_hash?: string
+          received_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_cost_corrections_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_cost_corrections_ledger_id_fkey"
+            columns: ["ledger_id"]
+            isOneToOne: false
+            referencedRelation: "ledger_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_cost_corrections_movement_id_fkey"
+            columns: ["movement_id"]
+            isOneToOne: false
+            referencedRelation: "stock_movements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       stock_movements: {
         Row: {
           at: string
@@ -1793,6 +1878,7 @@ export type Database = {
         Args: { p_order_no: string; p_phone: string }
         Returns: string
       }
+      get_books: { Args: { p_from: string; p_to: string }; Returns: Json }
       get_flavours: {
         Args: never
         Returns: {
@@ -1945,11 +2031,26 @@ export type Database = {
           updated_at: string
         }[]
       }
+      receipt_cost: { Args: { p_movement: string }; Returns: number }
+      record_cost_correction: {
+        Args: { p_corr: Json }
+        Returns: {
+          correction_id: string
+          duplicate: boolean
+        }[]
+      }
       record_discard: {
         Args: { p_rec: Json }
         Returns: {
           duplicate: boolean
           record_id: string
+        }[]
+      }
+      record_draw: {
+        Args: { p_draw: Json }
+        Returns: {
+          client_id: string
+          duplicate: boolean
         }[]
       }
       record_event_sale: {
@@ -1959,6 +2060,13 @@ export type Database = {
           duplicate: boolean
           sale_id: string
           voided: boolean
+        }[]
+      }
+      record_expense: {
+        Args: { p_expense: Json }
+        Returns: {
+          client_id: string
+          duplicate: boolean
         }[]
       }
       record_pack: {
@@ -2065,6 +2173,7 @@ export type Database = {
           updated_at: string
         }[]
       }
+      set_cost_basis: { Args: { p_basis: string }; Returns: string }
       set_event_device: {
         Args: { p_device: string; p_event: string }
         Returns: string
@@ -2236,6 +2345,7 @@ export type Database = {
           sale_id: string
         }[]
       }
+      unit_price_at: { Args: { p_at: string; p_item: string }; Returns: number }
       update_order_state: {
         Args: {
           p_order_id: string

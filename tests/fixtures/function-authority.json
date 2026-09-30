@@ -1134,7 +1134,7 @@
         "search_path=\"\""
       ],
       "returns": "jsonb",
-      "body_md5": "68ec94e2d30e12ed326b82669d9e1669",
+      "body_md5": "a871b656a4acc34b42058b0fcf972874",
       "identity": "",
       "execute_anon": false,
       "security_definer": true,
@@ -1256,6 +1256,126 @@
       "returns": "TABLE(record_id uuid, duplicate boolean)",
       "body_md5": "a8fea24e6ff14bd04fd756086b325689",
       "identity": "p_rec jsonb",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "get_books",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "c49838fcffeb977ece3220ba2603d638",
+      "identity": "p_from timestamp with time zone, p_to timestamp with time zone",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "name": "orders_books_stamp",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "trigger",
+      "body_md5": "ce86c272b0f0732028c59be598fb2b3a",
+      "identity": "",
+      "execute_anon": false,
+      "security_definer": false,
+      "execute_service_role": true,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "name": "receipt_cost",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "bigint",
+      "body_md5": "1c6a4b754e4052cec98450acb9e8fc21",
+      "identity": "p_movement uuid",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "record_cost_correction",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(correction_id uuid, duplicate boolean)",
+      "body_md5": "c540f1e4d2c5be277a923c4f572247b4",
+      "identity": "p_corr jsonb",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "record_expense",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(client_id uuid, duplicate boolean)",
+      "body_md5": "324eb009e0ba9e3a16c2359e3dcfd272",
+      "identity": "p_expense jsonb",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "set_cost_basis",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "text",
+      "body_md5": "09678172bb73b3e1ae15a46b08a5aa7a",
+      "identity": "p_basis text",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "name": "unit_price_at",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "numeric",
+      "body_md5": "579afb26a993eef158a2a77ae617f6ff",
+      "identity": "p_item text, p_at timestamp with time zone",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "record_draw",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(client_id uuid, duplicate boolean)",
+      "body_md5": "fa5c165114d78ea84015aea06782548e",
+      "identity": "p_draw jsonb",
       "execute_anon": false,
       "security_definer": true,
       "execute_service_role": true,

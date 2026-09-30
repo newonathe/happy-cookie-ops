@@ -6,6 +6,7 @@ import { LiveLookup, LiveWaitlistForm } from '@/components/live/live-checkout';
 import { OrderMessages } from '@/components/live/order-messages';
 import { OrderExtrasForm } from '@/components/live/order-extras-form';
 import { ScheduledEventsForm } from '@/components/live/scheduled-events-form';
+import { BooksForm } from '@/components/live/books-form';
 import { StockItemsForm } from '@/components/live/stock-items-form';
 import { StockSuppliersForm } from '@/components/live/stock-suppliers-form';
 import { OrderRulesForm } from '@/components/live/order-rules-form';
@@ -38,6 +39,7 @@ export function LiveFormHost({ v }: { v: OpsVals }) {
   if (v.liveOrderRules) return <OrderRulesForm liveOrderRules={v.liveOrderRules} />;
   if (v.liveOrderExtras) return <OrderExtrasForm liveOrderExtras={v.liveOrderExtras} />;
   if (v.liveScheduled) return <ScheduledEventsForm liveScheduled={v.liveScheduled} />;
+  if (v.liveBooks) return <BooksForm liveBooks={v.liveBooks} />;
   if (v.liveStockItems) return <StockItemsForm liveStock={v.liveStockItems} />;
   if (v.liveStockSuppliers) return <StockSuppliersForm liveStock={v.liveStockSuppliers} />;
   if (v.liveLookup) return <LiveLookup v={v} />;

@@ -254,6 +254,33 @@
       "ordinal_position": 9
     },
     {
+      "udt_name": "bool",
+      "data_type": "boolean",
+      "table_name": "books_settings",
+      "column_name": "id",
+      "is_nullable": "NO",
+      "column_default": "true",
+      "ordinal_position": 1
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "books_settings",
+      "column_name": "cost_basis",
+      "is_nullable": "NO",
+      "column_default": "'bought'::text",
+      "ordinal_position": 2
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "books_settings",
+      "column_name": "updated_at",
+      "is_nullable": "NO",
+      "column_default": "now()",
+      "ordinal_position": 3
+    },
+    {
       "udt_name": "uuid",
       "data_type": "uuid",
       "table_name": "drops",
@@ -1057,6 +1084,24 @@
     {
       "udt_name": "uuid",
       "data_type": "uuid",
+      "table_name": "ledger_entries",
+      "column_name": "client_id",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 11
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "ledger_entries",
+      "column_name": "payload_hash",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 12
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
       "table_name": "order_add_ons",
       "column_name": "id",
       "is_nullable": "NO",
@@ -1737,6 +1782,24 @@
       "is_nullable": "NO",
       "column_default": "false",
       "ordinal_position": 26
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "orders",
+      "column_name": "paid_at",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 27
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "orders",
+      "column_name": "refunded_at",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 28
     },
     {
       "udt_name": "text",
@@ -2650,6 +2713,78 @@
     {
       "udt_name": "uuid",
       "data_type": "uuid",
+      "table_name": "stock_cost_corrections",
+      "column_name": "id",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 1
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "stock_cost_corrections",
+      "column_name": "movement_id",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 2
+    },
+    {
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "table_name": "stock_cost_corrections",
+      "column_name": "cost_cents",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 3
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "stock_cost_corrections",
+      "column_name": "ledger_id",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 4
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "stock_cost_corrections",
+      "column_name": "at",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 5
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "stock_cost_corrections",
+      "column_name": "payload_hash",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 6
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "stock_cost_corrections",
+      "column_name": "created_by",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 7
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "stock_cost_corrections",
+      "column_name": "received_at",
+      "is_nullable": "NO",
+      "column_default": "now()",
+      "ordinal_position": 8
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
       "table_name": "stock_movements",
       "column_name": "id",
       "is_nullable": "NO",
@@ -3020,6 +3155,11 @@
       "tablename": "bake_batches"
     },
     {
+      "indexdef": "CREATE UNIQUE INDEX books_settings_pkey ON public.books_settings USING btree (id)",
+      "indexname": "books_settings_pkey",
+      "tablename": "books_settings"
+    },
+    {
       "indexdef": "CREATE UNIQUE INDEX drops_pkey ON public.drops USING btree (id)",
       "indexname": "drops_pkey",
       "tablename": "drops"
@@ -3063,6 +3203,11 @@
       "indexdef": "CREATE UNIQUE INDEX inventory_items_pkey ON public.inventory_items USING btree (id)",
       "indexname": "inventory_items_pkey",
       "tablename": "inventory_items"
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX ledger_entries_client_id_key ON public.ledger_entries USING btree (client_id)",
+      "indexname": "ledger_entries_client_id_key",
+      "tablename": "ledger_entries"
     },
     {
       "indexdef": "CREATE UNIQUE INDEX ledger_entries_pkey ON public.ledger_entries USING btree (id)",
@@ -3248,6 +3393,16 @@
       "indexdef": "CREATE UNIQUE INDEX shop_texts_pkey ON public.shop_texts USING btree (id)",
       "indexname": "shop_texts_pkey",
       "tablename": "shop_texts"
+    },
+    {
+      "indexdef": "CREATE INDEX stock_cost_corrections_movement_idx ON public.stock_cost_corrections USING btree (movement_id, at)",
+      "indexname": "stock_cost_corrections_movement_idx",
+      "tablename": "stock_cost_corrections"
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX stock_cost_corrections_pkey ON public.stock_cost_corrections USING btree (id)",
+      "indexname": "stock_cost_corrections_pkey",
+      "tablename": "stock_cost_corrections"
     },
     {
       "indexdef": "CREATE INDEX stock_movements_item_idx ON public.stock_movements USING btree (item_id, at)",
@@ -3966,6 +4121,21 @@
     },
     {
       "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "get_books",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "c49838fcffeb977ece3220ba2603d638",
+      "identity": "p_from timestamp with time zone, p_to timestamp with time zone",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
       "name": "get_flavours",
       "owner": "postgres",
       "config": [
@@ -3987,7 +4157,7 @@
         "search_path=\"\""
       ],
       "returns": "jsonb",
-      "body_md5": "68ec94e2d30e12ed326b82669d9e1669",
+      "body_md5": "a871b656a4acc34b42058b0fcf972874",
       "identity": "",
       "execute_anon": false,
       "security_definer": true,
@@ -4340,6 +4510,21 @@
       "execute_authenticated": true
     },
     {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "name": "orders_books_stamp",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "trigger",
+      "body_md5": "ce86c272b0f0732028c59be598fb2b3a",
+      "identity": "",
+      "execute_anon": false,
+      "security_definer": false,
+      "execute_service_role": true,
+      "execute_authenticated": false
+    },
+    {
       "acl": "{anon=X/postgres,authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
       "name": "place_order",
       "owner": "postgres",
@@ -4400,6 +4585,36 @@
       "execute_authenticated": true
     },
     {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "name": "receipt_cost",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "bigint",
+      "body_md5": "1c6a4b754e4052cec98450acb9e8fc21",
+      "identity": "p_movement uuid",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "record_cost_correction",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(correction_id uuid, duplicate boolean)",
+      "body_md5": "c540f1e4d2c5be277a923c4f572247b4",
+      "identity": "p_corr jsonb",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
       "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
       "name": "record_discard",
       "owner": "postgres",
@@ -4416,6 +4631,21 @@
     },
     {
       "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "record_draw",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(client_id uuid, duplicate boolean)",
+      "body_md5": "fa5c165114d78ea84015aea06782548e",
+      "identity": "p_draw jsonb",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
       "name": "record_event_sale",
       "owner": "postgres",
       "config": [
@@ -4424,6 +4654,21 @@
       "returns": "TABLE(client_id text, sale_id uuid, duplicate boolean, voided boolean)",
       "body_md5": "8cf2bd637503cd4ef791a80eb415bb43",
       "identity": "p_sale jsonb",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "record_expense",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(client_id uuid, duplicate boolean)",
+      "body_md5": "324eb009e0ba9e3a16c2359e3dcfd272",
+      "identity": "p_expense jsonb",
       "execute_anon": false,
       "security_definer": true,
       "execute_service_role": true,
@@ -4649,6 +4894,21 @@
       "returns": "TABLE(id uuid, updated_at timestamp with time zone)",
       "body_md5": "63d0f8e678b7ec335458baa0a223b2e2",
       "identity": "p_price jsonb, p_expected_updated_at timestamp with time zone",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "set_cost_basis",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "text",
+      "body_md5": "09678172bb73b3e1ae15a46b08a5aa7a",
+      "identity": "p_basis text",
       "execute_anon": false,
       "security_definer": true,
       "execute_service_role": true,
@@ -4911,6 +5171,21 @@
     },
     {
       "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "name": "unit_price_at",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "numeric",
+      "body_md5": "579afb26a993eef158a2a77ae617f6ff",
+      "identity": "p_item text, p_at timestamp with time zone",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
       "name": "update_order_state",
       "owner": "postgres",
       "config": [
@@ -5027,6 +5302,24 @@
       "type": "f",
       "table": "bake_batches",
       "definition": "FOREIGN KEY (product_id) REFERENCES products(id)"
+    },
+    {
+      "name": "books_settings_cost_basis_check",
+      "type": "c",
+      "table": "books_settings",
+      "definition": "CHECK ((cost_basis = ANY (ARRAY['bought'::text, 'used'::text])))"
+    },
+    {
+      "name": "books_settings_id_check",
+      "type": "c",
+      "table": "books_settings",
+      "definition": "CHECK (id)"
+    },
+    {
+      "name": "books_settings_pkey",
+      "type": "p",
+      "table": "books_settings",
+      "definition": "PRIMARY KEY (id)"
     },
     {
       "name": "drops_capacity_check",
@@ -5249,6 +5542,12 @@
       "type": "f",
       "table": "inventory_items",
       "definition": "FOREIGN KEY (supplier_id) REFERENCES suppliers(id) ON DELETE SET NULL"
+    },
+    {
+      "name": "ledger_entries_client_id_key",
+      "type": "u",
+      "table": "ledger_entries",
+      "definition": "UNIQUE (client_id)"
     },
     {
       "name": "ledger_entries_created_by_fkey",
@@ -5959,6 +6258,42 @@
       "definition": "CHECK ((length(tin_line) <= 80))"
     },
     {
+      "name": "stock_cost_corrections_cost_cents_check",
+      "type": "c",
+      "table": "stock_cost_corrections",
+      "definition": "CHECK ((cost_cents >= 0))"
+    },
+    {
+      "name": "stock_cost_corrections_created_by_fkey",
+      "type": "f",
+      "table": "stock_cost_corrections",
+      "definition": "FOREIGN KEY (created_by) REFERENCES profiles(id) ON DELETE SET NULL"
+    },
+    {
+      "name": "stock_cost_corrections_ledger_id_fkey",
+      "type": "f",
+      "table": "stock_cost_corrections",
+      "definition": "FOREIGN KEY (ledger_id) REFERENCES ledger_entries(id) ON DELETE SET NULL"
+    },
+    {
+      "name": "stock_cost_corrections_movement_id_fkey",
+      "type": "f",
+      "table": "stock_cost_corrections",
+      "definition": "FOREIGN KEY (movement_id) REFERENCES stock_movements(id)"
+    },
+    {
+      "name": "stock_cost_corrections_payload_hash_check",
+      "type": "c",
+      "table": "stock_cost_corrections",
+      "definition": "CHECK ((payload_hash ~ '^[0-9a-f]{64}$'::text))"
+    },
+    {
+      "name": "stock_cost_corrections_pkey",
+      "type": "p",
+      "table": "stock_cost_corrections",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
       "name": "stock_movements_cost_cents_check",
       "type": "c",
       "table": "stock_movements",
@@ -6359,6 +6694,104 @@
       "privilege_type": "UPDATE"
     },
     {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "books_settings",
+      "is_grantable": "YES",
+      "privilege_type": "DELETE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "books_settings",
+      "is_grantable": "YES",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "books_settings",
+      "is_grantable": "YES",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "books_settings",
+      "is_grantable": "YES",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "books_settings",
+      "is_grantable": "YES",
+      "privilege_type": "TRIGGER"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "books_settings",
+      "is_grantable": "YES",
+      "privilege_type": "TRUNCATE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "books_settings",
+      "is_grantable": "YES",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "books_settings",
+      "is_grantable": "NO",
+      "privilege_type": "DELETE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "books_settings",
+      "is_grantable": "NO",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "books_settings",
+      "is_grantable": "NO",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "books_settings",
+      "is_grantable": "NO",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "books_settings",
+      "is_grantable": "NO",
+      "privilege_type": "TRIGGER"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "books_settings",
+      "is_grantable": "NO",
+      "privilege_type": "TRUNCATE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "books_settings",
+      "is_grantable": "NO",
+      "privilege_type": "UPDATE"
+    },
+    {
       "grantee": "anon",
       "grantor": "postgres",
       "table_name": "drops",
@@ -9757,6 +10190,104 @@
       "grantee": "service_role",
       "grantor": "postgres",
       "table_name": "shop_texts",
+      "is_grantable": "NO",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "stock_cost_corrections",
+      "is_grantable": "YES",
+      "privilege_type": "DELETE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "stock_cost_corrections",
+      "is_grantable": "YES",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "stock_cost_corrections",
+      "is_grantable": "YES",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "stock_cost_corrections",
+      "is_grantable": "YES",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "stock_cost_corrections",
+      "is_grantable": "YES",
+      "privilege_type": "TRIGGER"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "stock_cost_corrections",
+      "is_grantable": "YES",
+      "privilege_type": "TRUNCATE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "stock_cost_corrections",
+      "is_grantable": "YES",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "stock_cost_corrections",
+      "is_grantable": "NO",
+      "privilege_type": "DELETE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "stock_cost_corrections",
+      "is_grantable": "NO",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "stock_cost_corrections",
+      "is_grantable": "NO",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "stock_cost_corrections",
+      "is_grantable": "NO",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "stock_cost_corrections",
+      "is_grantable": "NO",
+      "privilege_type": "TRIGGER"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "stock_cost_corrections",
+      "is_grantable": "NO",
+      "privilege_type": "TRUNCATE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "stock_cost_corrections",
       "is_grantable": "NO",
       "privilege_type": "UPDATE"
     },
@@ -10197,6 +10728,12 @@
     {
       "rls": true,
       "owner": "postgres",
+      "table": "books_settings",
+      "force_rls": false
+    },
+    {
+      "rls": true,
+      "owner": "postgres",
       "table": "drops",
       "force_rls": false
     },
@@ -10360,6 +10897,12 @@
       "rls": true,
       "owner": "postgres",
       "table": "shop_texts",
+      "force_rls": false
+    },
+    {
+      "rls": true,
+      "owner": "postgres",
+      "table": "stock_cost_corrections",
       "force_rls": false
     },
     {

@@ -28,7 +28,8 @@ ORDER_MIGRATIONS = [ROOT / 'supabase/migrations/20260101003500_place_order.sql',
                     ROOT / 'supabase/migrations/20260101004500_stock_unit_guard.sql',
                     ROOT / 'supabase/migrations/20260101004600_stock_ledger.sql',
                     ROOT / 'supabase/migrations/20260101004700_production.sql',
-                    ROOT / 'supabase/migrations/20260101004800_production_discard.sql']
+                    ROOT / 'supabase/migrations/20260101004800_production_discard.sql',
+                    ROOT / 'supabase/migrations/20260101004900_books.sql']
 _OUT = 'order outcome differs: anon / '
 _CHK = 'order check differs: anon / '
 _LOOK = 'lookup check differs: anon / '
@@ -389,9 +390,59 @@ PRODUCTION_TABLE_MUTATIONS = {
 }
 
 
+# E1: the owner's books (books.sql), acting on the last migration that defines each function.
+_BK = 'books outcome differs: active_owner / '
+_BKC = 'books check differs: active_owner / '
+BOOKS_MUTATIONS = {
+    'rule_exp_keys': ('record_expense', 'rule', 'exp-keys', _BK + 'exp_keys_missing / '),
+    'rule_exp_id': ('record_expense', 'rule', 'exp-id', _BK + 'exp_id_bad / '),
+    'rule_exp_text': ('record_expense', 'rule', 'exp-text', _BK + 'exp_category_blank / '),
+    'rule_exp_amount': ('record_expense', 'rule', 'exp-amount', _BK + 'exp_amount_zero / '),
+    'rule_exp_at': ('record_expense', 'rule', 'exp-at', _BK + 'exp_at_future / '),
+    'rule_exp_replay_conflict': ('record_expense', 'rule', 'exp-replay-conflict', _BK + 'exp_replay_other_body / '),
+    'rule_exp_reserved': ('record_expense', 'rule', 'exp-reserved', _BK + 'exp_reserved_category / '),
+    'rule_draw_keys': ('record_draw', 'rule', 'draw-keys', _BK + 'draw_keys_missing / '),
+    'rule_draw_id': ('record_draw', 'rule', 'draw-id', _BK + 'draw_id_bad / '),
+    'rule_draw_amount': ('record_draw', 'rule', 'draw-amount', _BK + 'draw_amount_zero / '),
+    'rule_draw_at': ('record_draw', 'rule', 'draw-at', _BK + 'draw_at_future / '),
+    'rule_draw_replay_conflict': ('record_draw', 'rule', 'draw-replay-conflict', _BK + 'draw_replay_other_body / '),
+    'text_draw_not_expense': ('get_books', 'text', ("l.kind in ('cost', 'adjustment') and l.category <> 'Owner draw' and", "l.kind in ('cost', 'adjustment') and"),
+                              _BKC + 'draw_is_not_an_expense'),
+    'rule_cor_keys': ('record_cost_correction', 'rule', 'cor-keys', _BK + 'cor_keys_missing / '),
+    'rule_cor_id': ('record_cost_correction', 'rule', 'cor-id', _BK + 'cor_id_bad / '),
+    'rule_cor_cost': ('record_cost_correction', 'rule', 'cor-cost', _BK + 'cor_cost_negative / '),
+    'rule_cor_at': ('record_cost_correction', 'rule', 'cor-at', _BK + 'cor_at_future / '),
+    'rule_cor_replay_conflict': ('record_cost_correction', 'rule', 'cor-replay-conflict', _BK + 'cor_replay_other_body / '),
+    'rule_cor_movement_missing': ('record_cost_correction', 'rule', 'cor-movement-missing', _BK + 'cor_movement_missing / '),
+    'rule_cor_not_costed': ('record_cost_correction', 'rule', 'cor-not-costed', _BK + 'cor_not_a_costed_receipt / '),
+    'rule_cor_no_change': ('record_cost_correction', 'rule', 'cor-no-change', _BK + 'cor_no_change / '),
+    'rule_basis_value': ('set_cost_basis', 'rule', 'basis-value', _BK + 'basis_bad / '),
+    'rule_books_period': ('get_books', 'rule', 'books-period', _BK + 'books_period_reversed / '),
+    'text_bought_has_no_use_cost': ('get_books', 'text', ("where v_basis = 'used' and m.kind in ('use', 'waste')", "where m.kind in ('use', 'waste')"),
+                                    _BKC + 'books_bought_expenses'),
+    'text_last_paid_corrected': ('get_last_paid', 'text', ('public.receipt_cost(m.id) as cost_cents', 'm.cost_cents as cost_cents'),
+                                 _BKC + 'last_paid_uses_the_corrected_cost'),
+    'text_price_latest_receipt': ('unit_price_at', 'text', ('and r.at <= p_at', "and r.at <= p_at - interval '100 years'"),
+                                  _BKC + 'used_excludes_receipts_and_prices_use'),
+    'text_correction_saved_order': ('receipt_cost', 'text', ('order by c.received_at desc, c.id desc limit 1', 'order by c.at desc, c.received_at desc limit 1'),
+                                    _BKC + 'cor_latest_is_the_one_saved_last'),
+    'text_period_exclusive': ('get_books', 'text', ('o.paid_at >= p_from and o.paid_at < p_to and o.paid_cents > 0', 'o.paid_at >= p_from and o.paid_at <= p_to and o.paid_cents > 0'),
+                              _BKC + 'books_period_upper_bound_exclusive'),
+    'text_stamp_paid': ('orders_books_stamp', 'text', ('if new.paid_cents is not null and old.paid_cents is null and new.paid_at is null then', 'if false then'),
+                        _BKC + 'trigger_stamps_paid_at'),
+    'text_stamp_refunded': ('orders_books_stamp', 'text', ("if new.pay_state = 'refunded' and old.pay_state is distinct from 'refunded' and new.refunded_at is null then", 'if false then'),
+                            _BKC + 'trigger_stamps_refunded_at'),
+    'text_correction_sign': ('record_cost_correction', 'text', ('v_now - v_cost::bigint,', 'v_cost::bigint - v_now,'),
+                             _BKC + 'cor_lowers_the_cost_by_the_difference'),
+}
+BOOKS_TABLE_MUTATIONS = {
+    'settings_table_select': ('grant select on public.books_settings to anon;', 'books outcome differs: anon / settings_select / '),
+}
+
+
 def order_mutant(name):
     """The migration's one function, changed in exactly one place, as SQL to run inside the suite."""
-    function, kind, argument, _ = (ORDER_MUTATIONS | LOOKUP_MUTATIONS | STAFF_MUTATIONS | SHOP_MUTATIONS | EXTRAS_MUTATIONS | SCHEDULED_MUTATIONS | STOCK_MUTATIONS | RECIPE_MUTATIONS | LEDGER_MUTATIONS | PRODUCTION_MUTATIONS)[name]
+    function, kind, argument, _ = (ORDER_MUTATIONS | LOOKUP_MUTATIONS | STAFF_MUTATIONS | SHOP_MUTATIONS | EXTRAS_MUTATIONS | SCHEDULED_MUTATIONS | STOCK_MUTATIONS | RECIPE_MUTATIONS | LEDGER_MUTATIONS | PRODUCTION_MUTATIONS | BOOKS_MUTATIONS)[name]
     marker = 'create or replace function public.' + function + '('
     text = [m.read_text(encoding='utf-8') for m in ORDER_MIGRATIONS if marker in m.read_text(encoding='utf-8')][-1]
     start = text.index('create or replace function public.' + function + '(')
@@ -448,6 +499,8 @@ SUITES = (
      'forbidden ledger call succeeded', 87),
     ('production.sql', ('record_production(jsonb)', 'record_pack(text,integer)', 'get_production(integer)', 'record_discard(jsonb)')
                        + tuple(PRODUCTION_MUTATIONS) + tuple(PRODUCTION_TABLE_MUTATIONS), 'forbidden production call succeeded', 112),
+    ('books.sql', ('get_books(timestamptz,timestamptz)', 'record_expense(jsonb)', 'record_cost_correction(jsonb)', 'set_cost_basis(text)', 'record_draw(jsonb)')
+                  + tuple(BOOKS_MUTATIONS) + tuple(BOOKS_TABLE_MUTATIONS), 'forbidden books call succeeded', 101),
     ('bazaar-closeout.sql', ('event_summary(uuid)', 'load_event_stock(uuid,jsonb,bigint)', 'add_event_expense(jsonb)', 'close_event(jsonb)'), 'forbidden closeout call succeeded', 80),
 )
 CATALOG_GUARD_SQL = """
@@ -616,6 +669,13 @@ def main():
                     elif signature in PRODUCTION_TABLE_MUTATIONS:
                         unsafe, expected_error = PRODUCTION_TABLE_MUTATIONS[signature]
                         broken = sql.replace('begin;', 'begin;' + chr(10) + unsafe, 1)
+                if filename == 'books.sql':
+                    if signature in BOOKS_MUTATIONS:
+                        broken = sql.replace('begin;', 'begin;' + chr(10) + order_mutant(signature), 1)
+                        expected_error = BOOKS_MUTATIONS[signature][3]
+                    elif signature in BOOKS_TABLE_MUTATIONS:
+                        unsafe, expected_error = BOOKS_TABLE_MUTATIONS[signature]
+                        broken = sql.replace('begin;', 'begin;' + chr(10) + unsafe, 1)
                 if filename == 'order-extras.sql':
                     if signature in EXTRAS_MUTATIONS:
                         broken = sql.replace('begin;', 'begin;' + chr(10) + order_mutant(signature), 1)
@@ -715,7 +775,7 @@ def main():
                 h.fail(filename + ' did not return its complete role matrix')
             results.extend(rows)
             assert_empty()
-        if len(set(results)) != 1807:
+        if len(set(results)) != 1908:
             h.fail('combined role matrix has missing or duplicate cases: %d rows, %d unique (duplicates: %s)' % (len(results), len(set(results)), sorted({r for r in results if results.count(r) > 1})[:5]))
         assert_functions()
         assert_catalog_wide()
@@ -728,10 +788,10 @@ def main():
     try:
         code = h.main(after_reset=check)
         if (code == 0 and len(report["runs"]) == 2 and report["runs"][0] == report["runs"][1]
-                and len(report['regressions_detected']) == 596 and report['sequence_restorations'] == 10
+                and len(report['regressions_detected']) == 670 and report['sequence_restorations'] == 10
                 and report['upgrade_runs'] == 2 and report['function_guard_runs'] == 4
                 and report['catalog_guard_runs'] == 4 and report['catalog_guard_red_runs'] == 4):
-            report.update(status="passed", cases_per_reset=1807, resets=2, matrix_equal=True, rollback_verified=True,
+            report.update(status="passed", cases_per_reset=1908, resets=2, matrix_equal=True, rollback_verified=True,
                           sql_sha256={name: hashlib.sha256((ROOT / 'tests/integration/security' / name).read_bytes()).hexdigest() for name, _, _, _ in SUITES},
                           harness_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
     except (RuntimeError, OSError, ValueError) as error:
