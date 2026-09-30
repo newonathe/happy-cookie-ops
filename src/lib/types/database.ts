@@ -963,6 +963,82 @@ export type Database = {
         }
         Relationships: []
       }
+      production_records: {
+        Row: {
+          at: string
+          created_by: string | null
+          dough_used: number
+          drop_no: number
+          id: string
+          kind: string
+          payload_hash: string
+          product_id: string | null
+          qty: number
+          received_at: string
+          recipe_version: number | null
+          ref: string
+          rejects: number
+          short: Json
+          target: number | null
+        }
+        Insert: {
+          at: string
+          created_by?: string | null
+          dough_used?: number
+          drop_no?: number
+          id: string
+          kind: string
+          payload_hash: string
+          product_id?: string | null
+          qty: number
+          received_at?: string
+          recipe_version?: number | null
+          ref?: string
+          rejects?: number
+          short?: Json
+          target?: number | null
+        }
+        Update: {
+          at?: string
+          created_by?: string | null
+          dough_used?: number
+          drop_no?: number
+          id?: string
+          kind?: string
+          payload_hash?: string
+          product_id?: string | null
+          qty?: number
+          received_at?: string
+          recipe_version?: number | null
+          ref?: string
+          rejects?: number
+          short?: Json
+          target?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "production_records_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "production_records_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "production_records_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "shop_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           active: boolean
@@ -1292,6 +1368,7 @@ export type Database = {
           kind: string
           ledger_id: string | null
           payload_hash: string
+          production_id: string | null
           qty_delta: number
           reason: string
           received_at: string
@@ -1307,6 +1384,7 @@ export type Database = {
           kind: string
           ledger_id?: string | null
           payload_hash: string
+          production_id?: string | null
           qty_delta: number
           reason?: string
           received_at?: string
@@ -1322,6 +1400,7 @@ export type Database = {
           kind?: string
           ledger_id?: string | null
           payload_hash?: string
+          production_id?: string | null
           qty_delta?: number
           reason?: string
           received_at?: string
@@ -1347,6 +1426,13 @@ export type Database = {
             columns: ["ledger_id"]
             isOneToOne: false
             referencedRelation: "ledger_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_movements_production_id_fkey"
+            columns: ["production_id"]
+            isOneToOne: false
+            referencedRelation: "production_records"
             referencedColumns: ["id"]
           },
         ]
@@ -1769,6 +1855,7 @@ export type Database = {
           updated_at: string
         }[]
       }
+      get_production: { Args: { p_drop: number }; Returns: Json }
       get_recipes: { Args: never; Returns: Json }
       get_scheduled_events: { Args: never; Returns: Json }
       get_settings: {
@@ -1813,6 +1900,7 @@ export type Database = {
           opened_at: string
         }[]
       }
+      lock_stock_items: { Args: { p_names: string[] }; Returns: undefined }
       lookup_order: {
         Args: { p_order_id: string; p_phone: string }
         Returns: {
@@ -1865,6 +1953,27 @@ export type Database = {
           sale_id: string
           voided: boolean
         }[]
+      }
+      record_pack: {
+        Args: { p_drop: number; p_order: string }
+        Returns: {
+          duplicate: boolean
+          record_id: string
+          shortfall: Json
+        }[]
+      }
+      record_production: {
+        Args: { p_rec: Json }
+        Returns: {
+          duplicate: boolean
+          record_id: string
+          shortfall: Json
+          used_dough: number
+        }[]
+      }
+      record_sale_packaging: {
+        Args: { p_at: string; p_cookies: number; p_sale: string }
+        Returns: undefined
       }
       record_stock_movement: {
         Args: { p_movement: Json }
@@ -2134,6 +2243,17 @@ export type Database = {
           state: string
           updated_at: string
         }[]
+      }
+      use_stock: {
+        Args: {
+          p_at: string
+          p_name: string
+          p_prod: string
+          p_qty: number
+          p_reason: string
+          p_seq: number
+        }
+        Returns: number
       }
       void_event_sale: {
         Args: { p_void: Json }

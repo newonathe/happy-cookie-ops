@@ -26,7 +26,8 @@ ORDER_MIGRATIONS = [ROOT / 'supabase/migrations/20260101003500_place_order.sql',
                     ROOT / 'supabase/migrations/20260101004300_stock_catalogue.sql',
                     ROOT / 'supabase/migrations/20260101004400_recipes.sql',
                     ROOT / 'supabase/migrations/20260101004500_stock_unit_guard.sql',
-                    ROOT / 'supabase/migrations/20260101004600_stock_ledger.sql']
+                    ROOT / 'supabase/migrations/20260101004600_stock_ledger.sql',
+                    ROOT / 'supabase/migrations/20260101004700_production.sql']
 _OUT = 'order outcome differs: anon / '
 _CHK = 'order check differs: anon / '
 _LOOK = 'lookup check differs: anon / '
@@ -326,9 +327,56 @@ LEDGER_TABLE_MUTATIONS = {
 }
 
 
+# C2: production (production.sql), acting on the last migration that defines each function.
+_PD = 'production outcome differs: active_owner / '
+_PDC = 'production check differs: active_owner / '
+PRODUCTION_MUTATIONS = {
+    'rule_prod_keys': ('record_production', 'rule', 'prod-keys', _PD + 'prod_keys_missing / '),
+    'rule_prod_id': ('record_production', 'rule', 'prod-id', _PD + 'prod_id_bad / '),
+    'rule_prod_kind': ('record_production', 'rule', 'prod-kind', _PD + 'prod_kind_pack / '),
+    'rule_prod_qty': ('record_production', 'rule', 'prod-qty', _PD + 'prod_qty_zero / '),
+    'rule_prod_rejects': ('record_production', 'rule', 'prod-rejects', _PD + 'prod_rejects_over / '),
+    'rule_prod_target': ('record_production', 'rule', 'prod-target', _PD + 'prod_target_missing / '),
+    'rule_prod_at': ('record_production', 'rule', 'prod-at', _PD + 'prod_at_future / '),
+    'rule_prod_adj_dough': ('record_production', 'rule', 'prod-adj-dough', _PD + 'prod_adj_on_dough / '),
+    'rule_prod_adj_range': ('record_production', 'rule', 'prod-adj-range', _PD + 'prod_adj_range / '),
+    'rule_prod_replay_conflict': ('record_production', 'rule', 'prod-replay-conflict', _PD + 'prod_replay_other_body / '),
+    'rule_prod_no_recipe': ('record_production', 'rule', 'prod-no-recipe', _PD + 'prod_no_recipe / '),
+    'rule_prod_stale_version': ('record_production', 'rule', 'prod-stale-version', _PD + 'prod_stale_version / '),
+    'rule_prod_dough_size': ('record_production', 'rule', 'prod-dough-size', _PD + 'prod_dough_too_big / '),
+    'rule_prod_adj_unknown': ('record_production', 'rule', 'prod-adj-unknown', _PD + 'prod_adj_unknown / '),
+    'rule_prod_shortfall': ('record_production', 'rule', 'prod-shortfall', _PDC + 'prod_shortfall_recorded'),
+    'rule_pack_order_missing': ('record_pack', 'rule', 'pack-order-missing', _PD + 'pack_order_missing / '),
+    'rule_pack_empty': ('record_pack', 'rule', 'pack-empty', _PD + 'pack_empty / '),
+    'rule_pack_shortfall': ('record_pack', 'rule', 'pack-shortfall', _PDC + 'pack_shortfall_recorded'),
+    'rule_sale_packaging_live': ('record_event_sale', 'rule', 'sale-packaging-live', _PDC + 'sale_uses_packaging'),
+    'text_sale_packaging_voided': ('record_event_sale', 'text',
+                                   ('if v_voided is null then -- rule:sale-packaging-live', 'if true then -- rule:sale-packaging-live'),
+                                   _PDC + 'sale_voided_uses_nothing'),
+    'text_use_never_more': ('use_stock', 'text', ('v_take := least(p_qty, v_item.on_hand);', 'v_take := p_qty;'),
+                            _PDC + 'prod_batch_takes_what_is_there'),
+    'text_dough_first': ('record_production', 'text', ('v_used := least(greatest(v_bal, 0), v_qty)::integer;', 'v_used := 0;'),
+                         _PDC + 'prod_batch_uses_dough_first'),
+    'text_pcs_round_up': ('record_production', 'text', ('ceil(v_raw)', 'round(v_raw, 1)'),
+                          _PDC + 'prod_dough_takes_the_scaled_lines'),
+    'text_multiply_first': ('record_production', 'text', ('v_raw := v_line.qty * v_mixed / v_recipe.yield_count;', 'v_raw := v_line.qty * (v_mixed / v_recipe.yield_count);'),
+                            _PDC + 'prod_dough_pieces_not_rounded_up'),
+    'text_ml_step': ('record_production', 'text', ("when 'ml' then 5", "when 'ml' then 10"), _PDC + 'prod_ml_step_and_rounding'),
+    'text_pack_once': ('record_pack', 'text', ("v_id := md5('pack:' || p_order)::uuid;", 'v_id := gen_random_uuid();'),
+                       _PDC + 'pack_twice_takes_nothing_more'),
+    'text_pack_boxes': ('record_pack', 'text', ('v_boxes := v_count / 6;', 'v_boxes := v_count / 12;'),
+                        _PDC + 'pack_takes_the_packaging'),
+    'text_baked_minus_packed': ('get_production', 'text', ('select oi.product_id, -oi.qty from public.production_records r', 'select oi.product_id, 0 from public.production_records r'),
+                                _PDC + 'get_production_baked_not_packed'),
+}
+PRODUCTION_TABLE_MUTATIONS = {
+    'records_table_select': ('grant select on public.production_records to anon;', 'production outcome differs: anon / records_select / '),
+}
+
+
 def order_mutant(name):
     """The migration's one function, changed in exactly one place, as SQL to run inside the suite."""
-    function, kind, argument, _ = (ORDER_MUTATIONS | LOOKUP_MUTATIONS | STAFF_MUTATIONS | SHOP_MUTATIONS | EXTRAS_MUTATIONS | SCHEDULED_MUTATIONS | STOCK_MUTATIONS | RECIPE_MUTATIONS | LEDGER_MUTATIONS)[name]
+    function, kind, argument, _ = (ORDER_MUTATIONS | LOOKUP_MUTATIONS | STAFF_MUTATIONS | SHOP_MUTATIONS | EXTRAS_MUTATIONS | SCHEDULED_MUTATIONS | STOCK_MUTATIONS | RECIPE_MUTATIONS | LEDGER_MUTATIONS | PRODUCTION_MUTATIONS)[name]
     marker = 'create or replace function public.' + function + '('
     text = [m.read_text(encoding='utf-8') for m in ORDER_MIGRATIONS if marker in m.read_text(encoding='utf-8')][-1]
     start = text.index('create or replace function public.' + function + '(')
@@ -383,6 +431,8 @@ SUITES = (
      'forbidden recipe call succeeded', 80),
     ('stock-ledger.sql', ('record_stock_movement(jsonb)', 'get_last_paid()') + tuple(LEDGER_MUTATIONS) + tuple(LEDGER_TABLE_MUTATIONS),
      'forbidden ledger call succeeded', 87),
+    ('production.sql', ('record_production(jsonb)', 'record_pack(text,integer)', 'get_production(integer)')
+                       + tuple(PRODUCTION_MUTATIONS) + tuple(PRODUCTION_TABLE_MUTATIONS), 'forbidden production call succeeded', 88),
     ('bazaar-closeout.sql', ('event_summary(uuid)', 'load_event_stock(uuid,jsonb,bigint)', 'add_event_expense(jsonb)', 'close_event(jsonb)'), 'forbidden closeout call succeeded', 80),
 )
 CATALOG_GUARD_SQL = """
@@ -544,6 +594,13 @@ def main():
                     elif signature in LEDGER_TABLE_MUTATIONS:
                         unsafe, expected_error = LEDGER_TABLE_MUTATIONS[signature]
                         broken = sql.replace('begin;', 'begin;' + chr(10) + unsafe, 1)
+                if filename == 'production.sql':
+                    if signature in PRODUCTION_MUTATIONS:
+                        broken = sql.replace('begin;', 'begin;' + chr(10) + order_mutant(signature), 1)
+                        expected_error = PRODUCTION_MUTATIONS[signature][3]
+                    elif signature in PRODUCTION_TABLE_MUTATIONS:
+                        unsafe, expected_error = PRODUCTION_TABLE_MUTATIONS[signature]
+                        broken = sql.replace('begin;', 'begin;' + chr(10) + unsafe, 1)
                 if filename == 'order-extras.sql':
                     if signature in EXTRAS_MUTATIONS:
                         broken = sql.replace('begin;', 'begin;' + chr(10) + order_mutant(signature), 1)
@@ -643,7 +700,7 @@ def main():
                 h.fail(filename + ' did not return its complete role matrix')
             results.extend(rows)
             assert_empty()
-        if len(set(results)) != 1695:
+        if len(set(results)) != 1783:
             h.fail('combined role matrix has missing or duplicate cases: %d rows, %d unique (duplicates: %s)' % (len(results), len(set(results)), sorted({r for r in results if results.count(r) > 1})[:5]))
         assert_functions()
         assert_catalog_wide()
@@ -656,10 +713,10 @@ def main():
     try:
         code = h.main(after_reset=check)
         if (code == 0 and len(report["runs"]) == 2 and report["runs"][0] == report["runs"][1]
-                and len(report['regressions_detected']) == 508 and report['sequence_restorations'] == 10
+                and len(report['regressions_detected']) == 572 and report['sequence_restorations'] == 10
                 and report['upgrade_runs'] == 2 and report['function_guard_runs'] == 4
                 and report['catalog_guard_runs'] == 4 and report['catalog_guard_red_runs'] == 4):
-            report.update(status="passed", cases_per_reset=1695, resets=2, matrix_equal=True, rollback_verified=True,
+            report.update(status="passed", cases_per_reset=1783, resets=2, matrix_equal=True, rollback_verified=True,
                           sql_sha256={name: hashlib.sha256((ROOT / 'tests/integration/security' / name).read_bytes()).hexdigest() for name, _, _, _ in SUITES},
                           harness_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
     except (RuntimeError, OSError, ValueError) as error:

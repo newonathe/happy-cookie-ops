@@ -1811,6 +1811,141 @@
       "ordinal_position": 8
     },
     {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "production_records",
+      "column_name": "id",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 1
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "production_records",
+      "column_name": "kind",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 2
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "production_records",
+      "column_name": "product_id",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 3
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "production_records",
+      "column_name": "ref",
+      "is_nullable": "NO",
+      "column_default": "''::text",
+      "ordinal_position": 4
+    },
+    {
+      "udt_name": "int4",
+      "data_type": "integer",
+      "table_name": "production_records",
+      "column_name": "qty",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 5
+    },
+    {
+      "udt_name": "int4",
+      "data_type": "integer",
+      "table_name": "production_records",
+      "column_name": "target",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 6
+    },
+    {
+      "udt_name": "int4",
+      "data_type": "integer",
+      "table_name": "production_records",
+      "column_name": "rejects",
+      "is_nullable": "NO",
+      "column_default": "0",
+      "ordinal_position": 7
+    },
+    {
+      "udt_name": "int4",
+      "data_type": "integer",
+      "table_name": "production_records",
+      "column_name": "dough_used",
+      "is_nullable": "NO",
+      "column_default": "0",
+      "ordinal_position": 8
+    },
+    {
+      "udt_name": "int4",
+      "data_type": "integer",
+      "table_name": "production_records",
+      "column_name": "recipe_version",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 9
+    },
+    {
+      "udt_name": "int4",
+      "data_type": "integer",
+      "table_name": "production_records",
+      "column_name": "drop_no",
+      "is_nullable": "NO",
+      "column_default": "0",
+      "ordinal_position": 10
+    },
+    {
+      "udt_name": "jsonb",
+      "data_type": "jsonb",
+      "table_name": "production_records",
+      "column_name": "short",
+      "is_nullable": "NO",
+      "column_default": "'[]'::jsonb",
+      "ordinal_position": 11
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "production_records",
+      "column_name": "at",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 12
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "production_records",
+      "column_name": "payload_hash",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 13
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "production_records",
+      "column_name": "created_by",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 14
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "production_records",
+      "column_name": "received_at",
+      "is_nullable": "NO",
+      "column_default": "now()",
+      "ordinal_position": 15
+    },
+    {
       "udt_name": "text",
       "data_type": "text",
       "table_name": "products",
@@ -2632,6 +2767,15 @@
     {
       "udt_name": "uuid",
       "data_type": "uuid",
+      "table_name": "stock_movements",
+      "column_name": "production_id",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 14
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
       "table_name": "supplier_prices",
       "column_name": "id",
       "is_nullable": "NO",
@@ -3029,6 +3173,16 @@
       "indexdef": "CREATE UNIQUE INDEX payment_methods_pkey ON public.payment_methods USING btree (id)",
       "indexname": "payment_methods_pkey",
       "tablename": "payment_methods"
+    },
+    {
+      "indexdef": "CREATE INDEX production_records_kind_idx ON public.production_records USING btree (kind, at)",
+      "indexname": "production_records_kind_idx",
+      "tablename": "production_records"
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX production_records_pkey ON public.production_records USING btree (id)",
+      "indexname": "production_records_pkey",
+      "tablename": "production_records"
     },
     {
       "indexdef": "CREATE UNIQUE INDEX products_pkey ON public.products USING btree (id)",
@@ -3902,6 +4056,21 @@
     },
     {
       "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "get_production",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "a7304433022c7e6d7d893cc1ec3b46b6",
+      "identity": "p_drop integer",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
       "name": "get_recipes",
       "owner": "postgres",
       "config": [
@@ -4112,6 +4281,21 @@
     },
     {
       "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "name": "lock_stock_items",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "void",
+      "body_md5": "27a7be08ec00e4903a22d4c3ecab398c",
+      "identity": "p_names text[]",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
       "name": "lookup_order",
       "owner": "postgres",
       "config": [
@@ -4223,12 +4407,57 @@
         "search_path=\"\""
       ],
       "returns": "TABLE(client_id text, sale_id uuid, duplicate boolean, voided boolean)",
-      "body_md5": "a7c6e234683b90e211141e5f13ddc021",
+      "body_md5": "8cf2bd637503cd4ef791a80eb415bb43",
       "identity": "p_sale jsonb",
       "execute_anon": false,
       "security_definer": true,
       "execute_service_role": true,
       "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "record_pack",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(record_id uuid, duplicate boolean, shortfall jsonb)",
+      "body_md5": "1a731b5c10c2c565dc7680a973ead457",
+      "identity": "p_order text, p_drop integer",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "record_production",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(record_id uuid, duplicate boolean, used_dough integer, shortfall jsonb)",
+      "body_md5": "d3a46a01aced4af77829afbf3fdd9635",
+      "identity": "p_rec jsonb",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "name": "record_sale_packaging",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "void",
+      "body_md5": "ed099ea02c79d4fe9c1d0c8c13dc9c97",
+      "identity": "p_sale uuid, p_cookies integer, p_at timestamp with time zone",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": false
     },
     {
       "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
@@ -4238,7 +4467,7 @@
         "search_path=\"\""
       ],
       "returns": "TABLE(item_id text, on_hand numeric, duplicate boolean)",
-      "body_md5": "20d746724837a4d3fbba45d97a8417c6",
+      "body_md5": "7d313a5ee07f16d1891675898b629729",
       "identity": "p_movement jsonb",
       "execute_anon": false,
       "security_definer": true,
@@ -4675,6 +4904,21 @@
       "returns": "TABLE(id text, state text, pay_state text, updated_at timestamp with time zone)",
       "body_md5": "a13883cbcf47523d5122eaa36b70aa5e",
       "identity": "p_order_id text, p_seen_at timestamp with time zone, p_state text, p_pay_state text, p_pay_ref text",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "name": "use_stock",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "numeric",
+      "body_md5": "68d62ace16ccc7a16d13994cc1c22045",
+      "identity": "p_prod uuid, p_seq integer, p_name text, p_qty numeric, p_reason text, p_at timestamp with time zone",
       "execute_anon": false,
       "security_definer": true,
       "execute_service_role": true,
@@ -5412,6 +5656,84 @@
       "definition": "CHECK (((sort_order >= 0) AND (sort_order <= 99)))"
     },
     {
+      "name": "production_records_created_by_fkey",
+      "type": "f",
+      "table": "production_records",
+      "definition": "FOREIGN KEY (created_by) REFERENCES profiles(id) ON DELETE SET NULL"
+    },
+    {
+      "name": "production_records_dough_used_check",
+      "type": "c",
+      "table": "production_records",
+      "definition": "CHECK ((dough_used >= 0))"
+    },
+    {
+      "name": "production_records_drop_no_check",
+      "type": "c",
+      "table": "production_records",
+      "definition": "CHECK ((drop_no >= 0))"
+    },
+    {
+      "name": "production_records_kind_check",
+      "type": "c",
+      "table": "production_records",
+      "definition": "CHECK ((kind = ANY (ARRAY['dough'::text, 'batch'::text, 'pack'::text, 'sale'::text])))"
+    },
+    {
+      "name": "production_records_payload_hash_check",
+      "type": "c",
+      "table": "production_records",
+      "definition": "CHECK ((payload_hash ~ '^[0-9a-f]{64}$'::text))"
+    },
+    {
+      "name": "production_records_pkey",
+      "type": "p",
+      "table": "production_records",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "name": "production_records_product_id_fkey",
+      "type": "f",
+      "table": "production_records",
+      "definition": "FOREIGN KEY (product_id) REFERENCES products(id)"
+    },
+    {
+      "name": "production_records_qty_check",
+      "type": "c",
+      "table": "production_records",
+      "definition": "CHECK ((qty >= 0))"
+    },
+    {
+      "name": "production_records_recipe_version_check",
+      "type": "c",
+      "table": "production_records",
+      "definition": "CHECK (((recipe_version IS NULL) OR (recipe_version >= 1)))"
+    },
+    {
+      "name": "production_records_ref_check",
+      "type": "c",
+      "table": "production_records",
+      "definition": "CHECK ((length(ref) <= 160))"
+    },
+    {
+      "name": "production_records_rejects_check",
+      "type": "c",
+      "table": "production_records",
+      "definition": "CHECK ((rejects >= 0))"
+    },
+    {
+      "name": "production_records_short_check",
+      "type": "c",
+      "table": "production_records",
+      "definition": "CHECK ((jsonb_typeof(short) = 'array'::text))"
+    },
+    {
+      "name": "production_records_target_check",
+      "type": "c",
+      "table": "production_records",
+      "definition": "CHECK (((target IS NULL) OR (target >= 0)))"
+    },
+    {
       "name": "products_capacity_weight",
       "type": "c",
       "table": "products",
@@ -5643,7 +5965,7 @@
       "name": "stock_movements_kind_check",
       "type": "c",
       "table": "stock_movements",
-      "definition": "CHECK ((kind = ANY (ARRAY['opening'::text, 'receipt'::text, 'count'::text, 'waste'::text, 'adjust'::text])))"
+      "definition": "CHECK ((kind = ANY (ARRAY['opening'::text, 'receipt'::text, 'count'::text, 'waste'::text, 'adjust'::text, 'use'::text])))"
     },
     {
       "name": "stock_movements_ledger_id_fkey",
@@ -5662,6 +5984,12 @@
       "type": "p",
       "table": "stock_movements",
       "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "name": "stock_movements_production_id_fkey",
+      "type": "f",
+      "table": "stock_movements",
+      "definition": "FOREIGN KEY (production_id) REFERENCES production_records(id)"
     },
     {
       "name": "stock_movements_reason_check",
@@ -8088,6 +8416,104 @@
       "privilege_type": "UPDATE"
     },
     {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "production_records",
+      "is_grantable": "YES",
+      "privilege_type": "DELETE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "production_records",
+      "is_grantable": "YES",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "production_records",
+      "is_grantable": "YES",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "production_records",
+      "is_grantable": "YES",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "production_records",
+      "is_grantable": "YES",
+      "privilege_type": "TRIGGER"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "production_records",
+      "is_grantable": "YES",
+      "privilege_type": "TRUNCATE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "production_records",
+      "is_grantable": "YES",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "production_records",
+      "is_grantable": "NO",
+      "privilege_type": "DELETE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "production_records",
+      "is_grantable": "NO",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "production_records",
+      "is_grantable": "NO",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "production_records",
+      "is_grantable": "NO",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "production_records",
+      "is_grantable": "NO",
+      "privilege_type": "TRIGGER"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "production_records",
+      "is_grantable": "NO",
+      "privilege_type": "TRUNCATE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "production_records",
+      "is_grantable": "NO",
+      "privilege_type": "UPDATE"
+    },
+    {
       "grantee": "anon",
       "grantor": "postgres",
       "table_name": "products",
@@ -9853,6 +10279,12 @@
       "rls": true,
       "owner": "postgres",
       "table": "payment_methods",
+      "force_rls": false
+    },
+    {
+      "rls": true,
+      "owner": "postgres",
+      "table": "production_records",
       "force_rls": false
     },
     {

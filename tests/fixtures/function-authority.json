@@ -1,5 +1,5 @@
 {
-  "scope": "Reviewed local function-authority drift baseline through B4a (get_order_extras, save_order_extras, get_shop_extras added; place_order, order_status, get_staff_orders, anonymise_customer, prune_personal_data redefined for boxes, add-ons and the same-day surcharge); earlier: B2 database half (get_shop_order_rules, find_order added); B1 (place_order, order_status, join_waitlist, order_holds_capacity, get_order_rules, save_order_rules added; anonymise_customer and prune_personal_data recreated for the new personal data); A2 (payment_methods, shop_texts, get_shop_payment_info added); load_event_stock/add_event_expense/close_event/event_summary added (D2); D1: start_event/set_event_device/record_event_sale/void_event_sale added (D1); MP-09 c1b: publish_flavours added (MP-09 c1b); get_flavours/save_flavour added (MP-09 c1); settings_effective gained three idle-minute defaults, get_settings/save_setting/get_operating_settings added; MP-09 b3 recreated settings_effective/get_settings/get_operating_settings with json_value and replaced save_setting; full capability/domain and hosted acceptance remain open",
+  "scope": "Reviewed local function-authority drift baseline through C2 (record_production, record_pack, get_production, use_stock, lock_stock_items, record_sale_packaging added; record_event_sale redefined to use packaging); earlier: Reviewed local function-authority drift baseline through B4a (get_order_extras, save_order_extras, get_shop_extras added; place_order, order_status, get_staff_orders, anonymise_customer, prune_personal_data redefined for boxes, add-ons and the same-day surcharge); earlier: B2 database half (get_shop_order_rules, find_order added); B1 (place_order, order_status, join_waitlist, order_holds_capacity, get_order_rules, save_order_rules added; anonymise_customer and prune_personal_data recreated for the new personal data); A2 (payment_methods, shop_texts, get_shop_payment_info added); load_event_stock/add_event_expense/close_event/event_summary added (D2); D1: start_event/set_event_device/record_event_sale/void_event_sale added (D1); MP-09 c1b: publish_flavours added (MP-09 c1b); get_flavours/save_flavour added (MP-09 c1); settings_effective gained three idle-minute defaults, get_settings/save_setting/get_operating_settings added; MP-09 b3 recreated settings_effective/get_settings/get_operating_settings with json_value and replaced save_setting; full capability/domain and hosted acceptance remain open",
   "functions": [
     {
       "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
@@ -429,7 +429,7 @@
         "search_path=\"\""
       ],
       "returns": "TABLE(client_id text, sale_id uuid, duplicate boolean, voided boolean)",
-      "body_md5": "a7c6e234683b90e211141e5f13ddc021",
+      "body_md5": "8cf2bd637503cd4ef791a80eb415bb43",
       "identity": "p_sale jsonb",
       "execute_anon": false,
       "security_definer": true,
@@ -1155,6 +1155,96 @@
       "security_definer": true,
       "execute_service_role": true,
       "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "get_production",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "a7304433022c7e6d7d893cc1ec3b46b6",
+      "identity": "p_drop integer",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "name": "lock_stock_items",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "void",
+      "body_md5": "27a7be08ec00e4903a22d4c3ecab398c",
+      "identity": "p_names text[]",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "record_pack",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(record_id uuid, duplicate boolean, shortfall jsonb)",
+      "body_md5": "1a731b5c10c2c565dc7680a973ead457",
+      "identity": "p_order text, p_drop integer",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "record_production",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(record_id uuid, duplicate boolean, used_dough integer, shortfall jsonb)",
+      "body_md5": "d3a46a01aced4af77829afbf3fdd9635",
+      "identity": "p_rec jsonb",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "name": "record_sale_packaging",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "void",
+      "body_md5": "ed099ea02c79d4fe9c1d0c8c13dc9c97",
+      "identity": "p_sale uuid, p_cookies integer, p_at timestamp with time zone",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "name": "use_stock",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "numeric",
+      "body_md5": "68d62ace16ccc7a16d13994cc1c22045",
+      "identity": "p_prod uuid, p_seq integer, p_name text, p_qty numeric, p_reason text, p_at timestamp with time zone",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": false
     }
   ]
 }
