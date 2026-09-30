@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
+  discardError,
   engineProduction,
+  recordDiscard,
+  type DiscardFields,
   fetchProduction,
   parseProduction,
   productionError,
@@ -299,5 +302,62 @@ describe('parseProduction and engineProduction', () => {
         5
       )
     ).rejects.toThrow('not understood');
+  });
+});
+
+const dis = (over: Partial<DiscardFields> = {}): DiscardFields => ({
+  id: ID,
+  kind: 'dough',
+  productId: 'dcf',
+  qty: 2,
+  reason: 'Spoiled',
+  dropNo: 5,
+  at: AT,
+  ...over
+});
+
+describe('discardError mirrors the database bounds', () => {
+  it('accepts dough and baked cookies', () => {
+    expect(discardError(dis())).toBeNull();
+    expect(discardError(dis({ kind: 'baked', qty: 10000, reason: 'x'.repeat(80) }))).toBeNull();
+  });
+
+  it.each([
+    ['an id that is not a uuid', dis({ id: 'x' }), 'no id'],
+    ['no flavour', dis({ productId: '' }), 'no id'],
+    ['a kind it does not know', dis({ kind: 'raw' as never }), 'dough or baked'],
+    ['zero', dis({ qty: 0 }), 'whole number'],
+    ['a fraction', dis({ qty: 1.5 }), 'whole number'],
+    ['no reason', dis({ reason: '  ' }), 'reason'],
+    ['a reason of 81', dis({ reason: 'x'.repeat(81) }), 'reason'],
+    ['a control character in the reason', dis({ reason: 'a\u0007' }), 'reason'],
+    ['a negative week', dis({ dropNo: -1 }), 'week'],
+    ['a time in seconds', dis({ at: 1_790_000_000 }), 'time']
+  ])('refuses %s', (_label, fields, text) => {
+    expect(discardError(fields)).toContain(text);
+    // Mutation: dropping the matching check returns null and the refusal test fails.
+  });
+});
+
+describe('recordDiscard', () => {
+  it('sends exactly the body (reason trimmed) and reports a retry as saved', async () => {
+    const rpc = vi.fn(async () => ({ data: [{ record_id: ID, duplicate: true }], error: null }));
+    const r = await recordDiscard(client(rpc), dis({ reason: ' Spoiled ' }));
+    expect(rpc).toHaveBeenCalledWith('record_discard', {
+      p_rec: { id: ID, kind: 'dough', product_id: 'dcf', qty: 2, reason: 'Spoiled', drop_no: 5, at: AT }
+    });
+    expect(r).toEqual({ outcome: 'saved', duplicate: true });
+  });
+
+  it.each([
+    ['22023', 'refused'],
+    ['23505', 'refused'],
+    ['42501', 'refused'],
+    ['08006', 'offline']
+  ])('an error %s is %s; a thrown request and an unreadable answer are offline', async (code, outcome) => {
+    expect((await recordDiscard(client(async () => ({ data: null, error: { code } })), dis())).outcome).toBe(outcome);
+    expect((await recordDiscard(client(async () => Promise.reject(new Error('net'))), dis())).outcome).toBe('offline');
+    expect((await recordDiscard(client(async () => ({ data: [{ duplicate: 'x' }], error: null })), dis())).outcome).toBe('offline');
+    // Mutation: treating a refusal as offline keeps a refused id alive for a retry.
   });
 });

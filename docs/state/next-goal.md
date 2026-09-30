@@ -18,9 +18,9 @@ When a goal finishes, the agent deletes its block here, leaves the next one on t
 - If files changed since the last index, re-index first: `index_repository`, repo path `C:/Users/ethan/dev/happy-cookie-ops-g0`.
 - Pinned toolchain: prefix PATH with `C:\Users\ethan\dev\happy-cookie-tools\bin;C:\Users\ethan\dev\happy-cookie-tools\node-v24.20.0-win-x64`. In Git Bash call `pnpm.cmd`: a bare `pnpm` resolves to the global npm shim first (it warns that the `pnpm` field is ignored).
 - Docker Desktop must be running for SQL work, and for one Python guard (`tests/integration/db`).
-- **Baseline (2026-09-30, at C2 close):**
-  - `pnpm typecheck` clean; `pnpm verify` green, 70 files / 1355 tests (see current.md); port integrity OK, 54 files; G0 validator 1217 checks, 0 failures;
-  - Python guards 63 OK, via `python -m unittest discover -s <dir> -p "test_*.py"` for each of `tests/unit`, `tests/integration/auth`, `tests/integration/db` and `tests/integration/security`, with `G0_PYTHON_LIBS=C:\Users\ethan\dev\happy-cookie-tools\python-libs-314`; SQL role suite 1783 cases/reset, 2 resets (`python scripts/test-db-security.py`, about 3 minutes);
+- **Baseline (2026-09-30, after the C2 follow-up):**
+  - `pnpm typecheck` clean; `pnpm verify` green, 70 files / 1375 tests (see current.md); port integrity OK, 54 files; G0 validator 1217 checks, 0 failures;
+  - Python guards 63 OK, via `python -m unittest discover -s <dir> -p "test_*.py"` for each of `tests/unit`, `tests/integration/auth`, `tests/integration/db` and `tests/integration/security`, with `G0_PYTHON_LIBS=C:\Users\ethan\dev\happy-cookie-tools\python-libs-314`; SQL role suite 1807 cases/reset, 2 resets (`python scripts/test-db-security.py`, about 3 minutes);
   - `pnpm build:pages:spike`/`test:pages:spike`/`test:workers:spike` pass with or without `NEXT_PUBLIC_SUPABASE_URL`/`…PUBLISHABLE_KEY` (local stack values: `pnpm exec supabase status -o env`; the bare `supabase` binary is not on PATH);
   - `pnpm build` passes, and `pnpm test:e2e` gives 89 passed / 1 failed / 75 skipped with no Supabase variables set. The one failure is OFFLINE-01 on WebKit (Playwright's WebKit cannot reload offline with a service worker); desktop and phone pass;
   - `pnpm test:live:checkout`: 11 steps (needs `pnpm db:reset` first and the three local keys in the environment).
@@ -28,6 +28,22 @@ When a goal finishes, the agent deletes its block here, leaves the next one on t
 - **Codex only:** run `/status` once in the repo root to confirm the project `.codex/config.toml` loaded. Accept the trust prompt if asked. The project sandbox has no network, so `git push` will ask for approval.
 
 ## Next goal — E1: ledger and P&L
+
+**Re-scoped 2026-09-30 after a port audit: E1 is three slices, not one.** Ethan decided DP-04 as "both, with a setting" (default: cost when bought, so nothing changes until Cine
+chooses) and asked for the dough-waste fix first (done, see the C2 follow-up in `current.md`). What the audit found, which makes one goal too large:
+- The engine's P&L (`pnlTotals`, ~3187) is computed from `state.ledger` entries (`expense`, `revenue`, `refund`, `draw`; positive pesos) plus `orderRevenue(state)` for the open drop. In live mode
+  `ledger` is emptied. The database's `ledger_entries` holds only costs (receipts, event expenses, rent, cash variance) and stall sales; paid orders, refunds, plain expenses (wages,
+  transport) and draws are not in it. Orders have no `paid_at`, so a revenue date does not exist yet (`updated_at` moves with every status change).
+- Local entries the engine adds beside a database row (receipts, stall sales, expenses, close-out variance) would be counted twice if the ledger were only appended to.
+- The ported markup has no cost-basis control and no P&L export button; the only export is `exportBooks` on the system-health screen. A setting needs the live form host (All tools) or a DP-00 exception.
+- Decisions still needed: the revenue date (when paid, when picked up, or when the drop closes) and whether draws and drop close-out are kept.
+
+The split (each a `/goal` with its own SQL suite and Opus review):
+1. **E1a, the books on screen:** `orders.paid_at` and `refunded_at` (set by the paid tick, settle and refund RPCs, redefined; backfilled), owner-only `get_books(from, to)`, the ported P&L, Home profit and
+   records screens fed from it through `OpsRuntime` (`orderRevenue` returns 0 in live mode; `state.ledger` is replaced, never appended), cost when bought.
+2. **E1b, expenses and export:** owner-only `record_expense` (her categories including wages; idempotent), a correcting entry for a wrong receipt cost (`get_last_paid` honours it), the
+   `exportBooks` override writing the database's numbers as CSV.
+3. **E1c, cost when used:** the setting (live form host) and the used-basis cost from `use` movements at the last price paid.
 
 Drafted 2026-09-30 after C2 closed (finish-plan approved order: ... C1 → C2 → **E1** → F1–F4). The books exist on the database (`ledger_entries`: paid orders and
 stall sales as revenue, receipts and event expenses as costs, event rent) but the P&L, Home profit and the records screens still read the engine's local ledger, so
@@ -50,10 +66,6 @@ decision this slice must settle with Ethan before it builds the headline number.
 | Browser QA | **Required.** Built-in browser pane, live-mode build, local test owner (`localhost` only); a paid order, a stall sale, a receipt and a bake, then the P&L before and after and the CSV | See the C2 checkpoint in `current.md` for the recipe |
 | Stop budget | 2 failed fix attempts or 25 turns | Written in the goal |
 | Environment | Docker Desktop running; pinned toolchain on PATH; `pnpm.cmd` in Git Bash | See "Before starting" |
-
-**Before E1 (open from C2, silent under-deduction):** binned dough and binned baked cookies are recorded only on the screen, so the database still counts them (mix 6, bin 2, bake 6 takes no
-ingredients for the 2). Fix first, as its own small slice: a record for dough and baked-cookie waste written by the engine's `logSpoilage` (flavour and kind), subtracted from both
-balances; also decide whether leftover baked cookies carry into the next drop (the engine carries them; `get_production` scopes them per drop). See the C2 checkpoint in `current.md`.
 
 **Read first:** finish-plan E1, DP-04 in `decision-register.md`, the C1 and C2 checkpoints in `current.md`, `20260101004600_stock_ledger.sql` and
 `20260101004700_production.sql` (the `use` movements), the init migration's `ledger_entries`, and the engine's P&L helpers.

@@ -50,9 +50,9 @@ Short status, read at the start of every session. Keep it to one screen.
 - **Cine's inputs arrived 2026-09-28** and were analysed in [finish-plan.md](finish-plan.md) sections 2 and 4 and
   [apps-script-audit.md](apps-script-audit.md): the workbook, the September form, the payment image, the October
   menu, recipes and packaging, and the Apps Script. The files stay outside the repo; `Appscript/` is git-ignored.
-- **Baseline (2026-09-30, at C2 close):**
-  - `pnpm typecheck` clean; `pnpm verify` 70 files / 1355 tests; port integrity OK, 54 files; G0 validator 1217 checks, 0 failures;
-  - SQL role suite: 1783 cases per reset, 2 resets, 572 deliberate regressions detected in all; Python guards: 63 OK; migrations: 48; public functions: 83;
+- **Baseline (2026-09-30, after the C2 follow-up):**
+  - `pnpm typecheck` clean; `pnpm verify` 70 files / 1375 tests; port integrity OK, 54 files; G0 validator 1217 checks, 0 failures;
+  - SQL role suite: 1807 cases per reset, 2 resets, 596 deliberate regressions detected in all; Python guards: 63 OK; migrations: 49; public functions: 84;
   - `pnpm test:e2e`: 89 passed / 1 failed (WebKit OFFLINE-01) / 75 skipped, run with no Supabase variables (unchanged). Passing the local-stack variables at run time to `next start` makes its middleware send staff routes to sign-in, so do not.
   - `pnpm test:live:checkout`: 11 steps pass (needs `pnpm db:reset`; keys from `pnpm exec supabase status -o env`, the bare `supabase` binary is not on PATH).
 - **Known red:** OFFLINE-01 on WebKit only; `format:check` and E2E on CI `main`. No merge to `main` until they are green.
@@ -65,6 +65,14 @@ Short status, read at the start of every session. Keep it to one screen.
 - **Hosted updates:** Ethan runs `supabase login` before the next hosted update.
 
 ## Latest checkpoint (replace each slice; move the old one to current-history.md)
+
+- **2026-09-30 (C2 follow-up, before E1):** binned dough and binned baked cookies are now recorded on the database. Migration `20260101004800`: owner-only `record_discard`
+  (exact keys; dough or baked; a whole number up to what is there, a reason of 1 to 80 characters; idempotent on a client id) and `record_production` and `get_production`
+  redefined so the chilled dough and the baked count subtract what was binned. The ported spoilage action for dough and cookies (`logSpoilage` with a flavour and kind) records
+  first, then runs the engine's own bookkeeping with its own change to the counts undone, then reads the counts back (once, not twice). This closes the silent under-deduction the
+  C2 review left open (mix 6, bin 2, bake 6 used to take no ingredients for the other 2). Evidence: `production.sql` 112 cases; SQL role suite 1807 cases per reset, 2 resets,
+  596 regressions detected; unit tests with 8 mutations, all caught. Raw-stock waste was already a `waste` movement (C1). Not looked at on screen: the spoilage sheet.
+  **E1 was started and re-scoped:** see the E1 block in `next-goal.md` (three slices, and the owner decisions each needs).
 
 - **2026-09-30 (C2, finish-plan slice C2):** production. Two code commits (`3fd4df2` database, then the app half and review fixes).
   - **Database:** migration `20260101004700`: `production_records` (no API grant), `use` added to the stock movement kinds (only the new functions write
@@ -83,10 +91,6 @@ Short status, read at the start of every session. Keep it to one screen.
   - **Opus review** (database SAFE; the app half was NOT SAFE until fixed): a partial read overwrote the chilled dough and baked counts (binned dough came back,
     a sale flush put the stall's cookies back); a double tap recorded a batch twice (and a Back during the record crashed the engine's confirm); an order for
     another week could not be packed (drop -1); dough pieces could round up one too many. All fixed with tests.
-  - **Open, and it silently under-deducts stock (fix next, in its own migration):** dough or cookies binned on the spoilage sheet are recorded only on the screen, so the
-    database still counts them. Example: mix 6, bin 2, bake 6: the screen says 4 come from dough and 2 are mixed, but the database uses all 6 from dough and takes NO ingredients
-    off stock for the other 2, and nothing shows the mismatch (the server's `used_dough` answer is ignored). The fix is a record for dough and baked-cookie waste that the engine's
-    `logSpoilage` (with a flavour and kind) writes, so both balances subtract it. Until then, do not bin dough and then bake against it.
   - **Recorded, not fixed:** (1) Packaging names and the pack rule (full sixes in a box, loose in pouches, a sticker each, a card per box) are the ported defaults, hard-coded
     in the database (DP-03 stays open: real box sizes 6/8/12 from `order_boxes` and per-flavour footprints are not used); a renamed catalogue item is a permanent
     shortfall; if her recipes list the pouch per cookie AND packing takes one, it is taken twice: **question for Ethan: which one owns packaging, the recipe line at bake or the pack rule at packing?** (the seed recipes have no packaging lines, so nothing is doubled today). (2) The stall's stock load and close-out still change only the screen (see the open item above for binned dough): after a reload the server's baked count does not subtract an event's loaded stock.
@@ -94,7 +98,7 @@ Short status, read at the start of every session. Keep it to one screen.
     (3) Packing records a shortfall and goes ahead; the ported engine refused to pack when packaging was short. (4) A count taken after a late `use` (an offline sale synced
     after a count) can double-count it. (5) A sale voided before it syncs deducts nothing on the server but the pouches on screen. (6) A batch of 0 is refused (the engine
     allowed it). (7) The staff RPCs are owner-only, so a helper cannot pack (unchanged). (8) Wording is PLACEHOLDER (`PRODUCTION_COPY`). (9) `bake_batches` (init) stays unused.
-  - **Evidence:** `pnpm verify` 70 files / 1355 tests; G0 validator 1217 checks, 0 failures; port integrity OK (54 files); Python guards OK; SQL role suite 1783 cases per
+  - **Evidence:** `pnpm verify` 70 files / 1375 tests; G0 validator 1217 checks, 0 failures; port integrity OK (54 files); Python guards OK; SQL role suite 1783 cases per
     reset, 2 resets, 572 regressions detected (2 resets x 286); `pnpm build`, `test:pages:spike`, `test:workers:spike` pass; `pnpm test:e2e` 89 / 1 (OFFLINE-01 WebKit) / 75;
     `test:live:checkout` 11 steps. Mutations: 28 on the unit tests (all caught; two survived their first run, m02 and m19, and were strengthened and re-run; one, m18, matched nothing and was re-run by hand and caught). The two new test files and the gate test ran 5 times in a row green; the first pre-commit run of the app-half commit failed a test once and passed on retry with no change (cause not found). **Visual QA in the browser pane** (live-mode
     build, local test owner): mixed 12 dough balls (flour 4200 -> 4000 g in the database, 12 chilled dough), reloaded (still 12), baked 4 with 1 reject (dough went to 8, "1 still

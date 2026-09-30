@@ -113,6 +113,7 @@ function fakeClient(f: Fake) {
     if (name === 'get_recipes') return { data: [], error: null };
     if (name === 'get_staff_orders') return { data: f.orders, error: null };
     if (name === 'record_production') return f.answers.shift() ?? saved();
+    if (name === 'record_discard') return { data: [{ record_id: 'd', duplicate: false }], error: null };
     if (name === 'record_pack')
       return (
         f.packAnswers.shift() ?? {
@@ -137,6 +138,7 @@ interface Acts {
   confirmDough: () => void;
   confirmBatch: () => void;
   packOrder: (id: string) => void;
+  logSpoilage: (name: string, qty: unknown, why: string, pid?: string, kind?: string) => void;
 }
 const acts = (r: OpsRuntime) => r as unknown as Acts;
 
@@ -469,6 +471,68 @@ describe('C2: baking, mixing dough and packing record on the database (live mode
     await settle();
     expect(called(rpc, 'record_pack')[0]![1]).toEqual({ p_order: 'HC-2002', p_drop: 5 });
     // Mutation: sending the order's own -1 is refused by the database and the order can never be packed.
+  });
+
+  it('binning dough is recorded on the database first, then the counts are read back once (not taken off twice)', async () => {
+    const f = fresh({ production: wireProduction({ dough: [{ product_id: PID, balls: 6, at: 7000 }] }) });
+    const { runtime, rpc } = await mounted('owner', f);
+    f.production = wireProduction({ dough: [{ product_id: PID, balls: 4, at: 7000 }] }); // the database's answer after the record
+    act(() => acts(runtime).logSpoilage('Dough', 2, 'Went off', PID, 'dough'));
+    await settle();
+    const sent = called(rpc, 'record_discard');
+    expect(sent).toHaveLength(1);
+    expect(sent[0]![1].p_rec).toMatchObject({ kind: 'dough', product_id: PID, qty: 2, reason: 'Went off', drop_no: 5 });
+    const s = runtime.state as unknown as { dough: Record<string, number>; spoilage: Array<{ qty: number }> };
+    expect(s.dough[PID]).toBe(4); // 6 - 2, once: the engine's own -2 is undone before the database's -2 is read back
+    expect(s.spoilage).toHaveLength(1); // the waste record still gets its line
+    // Mutation: not undoing the engine's own change makes it 2 (taken off twice).
+    // Mutation: not recording first leaves the database counting the binned dough.
+  });
+
+  it('binning baked cookies sends a baked discard; more than is there, or a fraction, sends nothing', async () => {
+    const f = fresh({ production: wireProduction({ baked: [{ product_id: PID, qty: 5 }] }) });
+    const { runtime, rpc } = await mounted('owner', f);
+    act(() => acts(runtime).logSpoilage('Cookie', 6, 'x', PID, 'baked')); // the engine refuses: only 5
+    await settle();
+    expect(called(rpc, 'record_discard')).toHaveLength(0);
+    act(() => acts(runtime).logSpoilage('Cookie', 1.5, 'x', PID, 'baked'));
+    await settle();
+    expect(called(rpc, 'record_discard')).toHaveLength(0);
+    expect(msg(runtime)).toBe(PRODUCTION_COPY.discardWhole);
+    act(() => acts(runtime).logSpoilage('Cookie', 2, '', PID, 'baked'));
+    await settle();
+    expect(called(rpc, 'record_discard')[0]![1].p_rec).toMatchObject({ kind: 'baked', qty: 2, reason: 'Spoiled' });
+    // Mutation: sending a count the engine would refuse records waste the screen never showed.
+  });
+
+  it('a lost reply keeps the binned dough on screen and repeating it sends the same id and time', async () => {
+    const f = fresh({ production: wireProduction({ dough: [{ product_id: PID, balls: 6, at: 7000 }] }) });
+    const { runtime, rpc } = await mounted('owner', f);
+    const answers: Array<{ data: unknown; error: unknown }> = [{ data: null, error: { code: '08006' } }];
+    const inner = rpc.getMockImplementation()!;
+    rpc.mockImplementation(async (name: string) => {
+      if (name === 'record_discard') return answers.shift() ?? { data: [{ record_id: 'd', duplicate: false }], error: null };
+      return inner(name);
+    });
+    act(() => acts(runtime).logSpoilage('Dough', 2, 'x', PID, 'dough'));
+    await settle();
+    expect(msg(runtime)).toBe(PRODUCTION_COPY.notSaved);
+    expect((runtime.state as unknown as { dough: Record<string, number> }).dough[PID]).toBe(6);
+    act(() => acts(runtime).logSpoilage('Dough', 2, 'x', PID, 'dough'));
+    await settle();
+    const [a, b] = called(rpc, 'record_discard').map((c) => c[1].p_rec as Record<string, unknown>);
+    expect(b!.id).toBe(a!.id);
+    expect(b!.at).toBe(a!.at);
+    // Mutation: minting a new id on every tap lets a lost reply be counted twice.
+  });
+
+  it('a helper cannot bin dough on the database', async () => {
+    const { runtime, rpc } = await mounted('helper', fresh());
+    act(() => runtime.setState({ dough: { [PID]: 6 } } as never));
+    act(() => acts(runtime).logSpoilage('Dough', 2, 'x', PID, 'dough'));
+    await settle();
+    expect(called(rpc, 'record_discard')).toHaveLength(0);
+    expect(msg(runtime)).toBe(PRODUCTION_COPY.ownerOnly);
   });
 
   it('an older production read never replaces a newer one', async () => {

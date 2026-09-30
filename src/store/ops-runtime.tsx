@@ -105,8 +105,11 @@ import {
   engineProduction,
   fetchProduction,
   productionError,
+  discardError,
+  recordDiscard,
   recordPack,
   recordProduction,
+  type DiscardFields,
   type ProductionClient,
   type Production,
   type ProductionFields,
@@ -458,6 +461,8 @@ export class OpsRuntime extends OpsProvider {
   private productionClient: ProductionClient | null = null;
   private productionLoadSeq = 0;
   private pendingProduction = new Map<string, ProductionFields>();
+  private pendingDiscards = new Map<string, DiscardFields>();
+  private discardBusy = false;
   /** True while one dough mix or batch is being recorded: a second tap on Confirm must not mint a second record. */
   private productionBusy = false;
   /** The last picture of the database applied to `dough`, `baked` and `doughAt`: a later read moves them by what changed on the database, so a change made only on the screen (dough or cookies binned, stall stock) is kept. */
@@ -665,7 +670,10 @@ export class OpsRuntime extends OpsProvider {
       keep.countInput(name, v);
     };
     inv.logSpoilage = (name, qty, why, pid, kind) => {
-      if (pid && kind) return keep.logSpoilage(name, qty, why, pid, kind); // cookies and dough: the engine's own, no stock moves
+      // Dough and baked cookies thrown away are recorded on the database (C2), so the next bake draws on what is really left.
+      if (pid && (kind === 'dough' || kind === 'baked'))
+        return void this.liveDiscard(() => keep.logSpoilage(name, qty, why, pid, kind), qty, why, pid, kind);
+      if (pid && kind) return keep.logSpoilage(name, qty, why, pid, kind);
       void this.liveWaste(name, qty, why);
     };
     inv.confirmReceive = (e, item) => {
@@ -2410,6 +2418,45 @@ export class OpsRuntime extends OpsProvider {
       'warn'
     );
     return null;
+  }
+
+  /**
+   * The ported waste sheet for dough or baked cookies: recorded first, then the engine's own bookkeeping (the waste record, the
+   * toast) with its own change to the counts undone, then the counts are read back. Anything the engine would refuse (more than is
+   * there) is left to it, and nothing is recorded.
+   */
+  private async liveDiscard(run: () => void, qty: unknown, why: string, pid: string, kind: 'dough' | 'baked'): Promise<void> {
+    const st = this.state as unknown as { dropNo: number; dough: Record<string, number>; baked: Record<string, number> };
+    const n = Number(qty) || 0;
+    const have = (kind === 'dough' ? st.dough : st.baked)[pid] || 0;
+    if (!n || n > have) return run(); // the engine says what is wrong
+    const client = this.productionClient;
+    if (this.state.role !== 'owner') return void this.toast(PRODUCTION_COPY.ownerOnly, 'warn');
+    if (!client) return void this.toast(STAFF_COPY.offline, 'warn');
+    if (!Number.isInteger(n)) return void this.toast(PRODUCTION_COPY.discardWhole, 'warn');
+    if (this.discardBusy) return;
+    const reason = (why || 'Spoiled').trim().slice(0, 80) || 'Spoiled';
+    const signature = JSON.stringify([kind, pid, n, reason, st.dropNo]);
+    const fields: DiscardFields =
+      this.pendingDiscards.get(signature) ?? { id: crypto.randomUUID(), kind, productId: pid, qty: n, reason, dropNo: st.dropNo, at: Date.now() };
+    const problem = discardError(fields);
+    if (problem) return void this.toast(problem, 'warn');
+    this.pendingDiscards.set(signature, fields);
+    this.discardBusy = true;
+    let result;
+    try {
+      result = await recordDiscard(client, fields);
+    } finally {
+      this.discardBusy = false;
+    }
+    if (result.outcome !== 'offline') this.pendingDiscards.delete(signature);
+    if (result.outcome !== 'saved') {
+      this.toast(result.outcome === 'refused' ? PRODUCTION_COPY.refused : PRODUCTION_COPY.notSaved, 'warn');
+      if (result.outcome === 'refused') await this.refreshProduction();
+      return;
+    }
+    this.keepBookkeeping(run);
+    await this.refreshProduction();
   }
 
   /** What the database holds now, for the screens (after every production action, whatever happened). */

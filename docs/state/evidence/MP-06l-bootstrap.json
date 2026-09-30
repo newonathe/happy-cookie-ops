@@ -1,8 +1,8 @@
 {
   "status": "passed",
   "scope": "explicit-connection CLI reset on disposable loopback PostgreSQL; not managed --local or auth/RLS acceptance",
-  "project_id": "hcb-6abd1938-36591b",
-  "workdir": "C:\\Users\\ethan\\dev\\.hcb-bootstrap-6abd1938-36591b",
+  "project_id": "hcb-6abd24e8-e44ddf",
+  "workdir": "C:\\Users\\ethan\\dev\\.hcb-bootstrap-6abd24e8-e44ddf",
   "cleanup": "passed",
   "resets": 2,
   "harness_sha256": "a47a91d38c71ffbf52a14e597836fdfdbd1d22a3408f5c151f2b35b25459c963",
@@ -145,13 +145,14 @@
     "20260101004400_recipes.sql": "032490efcecc7860451d52687c95f59ca8d3210b56780243788477e6a176fb43",
     "20260101004500_stock_unit_guard.sql": "6e6aba4fd3ff29d5f97bda3e8480c99e4ceec78a89d1908c2671d88eb0bdc98e",
     "20260101004600_stock_ledger.sql": "d2814c72d869ced6982006d20f5f375a33c4b3c51c00e393b660a5f1762808ca",
-    "20260101004700_production.sql": "2c0637938bbb5a88adfabb4bfd50f85df2ee1152a2be32e115b88a6c688e830a"
+    "20260101004700_production.sql": "2c0637938bbb5a88adfabb4bfd50f85df2ee1152a2be32e115b88a6c688e830a",
+    "20260101004800_production_discard.sql": "1d8d3193c9683acae9ff1c55b0b84a001983a538dbc941b55589f7e3eea553c9"
   },
   "database_image": "sha256:af083ef64d0408c8f098ee6f5c364a59b26f36fbc0f3a334a62c5c1d57362e9b",
   "postgres_version_num": "150008",
   "cli_version": "2.116.0",
   "loopback_port": 48716,
-  "container_id": "46b1cbff8445badf0821246f63872fa222d88d2eba47611aeafb6fd4b70e3d45",
+  "container_id": "b049635a77b151e9089b5c5609fbae47ab093e34530ccd6554f4c7f8806f2005",
   "expected_versions": [
     "20260101000000",
     "20260101000100",
@@ -200,7 +201,8 @@
     "20260101004400",
     "20260101004500",
     "20260101004600",
-    "20260101004700"
+    "20260101004700",
+    "20260101004800"
   ],
   "catalog": [
     "function\tadd_event_expense(p_expense jsonb)\tTABLE(client_id text, duplicate boolean)",
@@ -250,6 +252,7 @@
     "function\tprune_personal_data(p_retain_days integer)\tinteger",
     "function\tprune_rate_limits()\tinteger",
     "function\tpublish_flavours(p_ids text[])\tTABLE(id text, published boolean, updated_at timestamp with time zone)",
+    "function\trecord_discard(p_rec jsonb)\tTABLE(record_id uuid, duplicate boolean)",
     "function\trecord_event_sale(p_sale jsonb)\tTABLE(client_id text, sale_id uuid, duplicate boolean, voided boolean)",
     "function\trecord_pack(p_order text, p_drop integer)\tTABLE(record_id uuid, duplicate boolean, shortfall jsonb)",
     "function\trecord_production(p_rec jsonb)\tTABLE(record_id uuid, duplicate boolean, used_dough integer, shortfall jsonb)",
@@ -334,6 +337,7 @@
     "migration\t20260101004500\tapplied",
     "migration\t20260101004600\tapplied",
     "migration\t20260101004700\tapplied",
+    "migration\t20260101004800\tapplied",
     "settings_defaults\tsettings_effective\t28",
     "settings_overrides\tsettings\t0",
     "table_rows\taudit_log\t0",
@@ -371,9 +375,9 @@
     "table_rows\tsuppliers\t0",
     "table_rows\twaitlist_entries\t0"
   ],
-  "catalog_sha256": "7f6bbae7e87e582d354c462ccdc31101d6c3a51e3bc2ad1431f32d06e23c59ae",
+  "catalog_sha256": "0297eb5d3b34ed00b9914b47a4c6759fe8993ac5a5f3dfdfade28158a87cdfbe",
   "catalogs_equal": true,
-  "schema_sha256": "c2967ac46a920e2fca74d11d0c9589ffac1f61be5661053a547821b61242fff0",
+  "schema_sha256": "e15eafc76ad4411580f9aafd1eef27580f06eee4983d843091c76a2c75d13158",
   "schemas_equal": true,
   "sentinel_removed": true
 }

@@ -103,10 +103,21 @@ begin
   perform pg_temp.expect(actor, op, format('select * from public.record_production(%L::jsonb)', body::text), wanted);
 end $$;
 
+-- A valid discard: number n gives its id; `over` replaces keys, `dropkeys` removes them.
+create function pg_temp.dr(n integer, kind text, product text, qty numeric, over jsonb default '{}'::jsonb, dropkeys text[] default '{}')
+returns jsonb language sql stable as $$
+  select (jsonb_build_object('id', 'c2d00000-0000-4000-8000-' || lpad(n::text, 12, '0'), 'kind', kind, 'product_id', product, 'qty', qty,
+    'reason', 'Spoiled', 'drop_no', 5, 'at', (extract(epoch from now()) * 1000)::bigint) || over) - dropkeys $$;
+create function pg_temp.dis(actor text, op text, body jsonb, wanted text) returns void
+language plpgsql security invoker as $$
+begin
+  perform pg_temp.expect(actor, op, format('select * from public.record_discard(%L::jsonb)', body::text), wanted);
+end $$;
+
 create function pg_temp.assert_acl() returns void language plpgsql security invoker as $$
 declare f text;
 begin
-  foreach f in array array['record_production(jsonb)', 'record_pack(text,integer)', 'get_production(integer)'] loop
+  foreach f in array array['record_production(jsonb)', 'record_pack(text,integer)', 'get_production(integer)', 'record_discard(jsonb)'] loop
     if has_function_privilege('anon', 'public.' || f, 'EXECUTE') then
       raise exception 'forbidden production call succeeded: anon / %', f;
     end if;
@@ -136,6 +147,7 @@ begin
   perform pg_temp.expect(actor, 'record_production', 'select * from public.record_production(''{}''::jsonb)', '42501');
   perform pg_temp.expect(actor, 'record_pack', 'select * from public.record_pack(''C2-ORD-1'', 5)', '42501');
   perform pg_temp.expect(actor, 'get_production', 'select public.get_production(5)', '42501');
+  perform pg_temp.expect(actor, 'record_discard', 'select * from public.record_discard(''{}''::jsonb)', '42501');
 end $$;
 
 create function pg_temp.phase_owner(a text) returns void language plpgsql security invoker as $$
@@ -238,6 +250,34 @@ begin
   -- 4 more are mixed from ingredients (the 5 balls of dough go first): 4/9 of the pieces, 44.4 ml less 3 steps of 5 ml
   select * into r from public.record_production(pg_temp.pr(9, 'batch', 'c2p4', 9, '{"adj": {"C2 Milk": -3}}'));
   perform pg_temp.assert_ok(a, 'prod_ml_step_and_rounding', r.used_dough = 5 and pg_temp.on_hand('c2i-yolk') = 11 and pg_temp.on_hand('c2i-milk') = 915.0);
+
+  -- binned dough and cookies: c2p1 has 4 chilled dough and 30 baked (drop 5) at this point
+  perform pg_temp.dis(a, 'disc_keys_missing', pg_temp.dr(10, 'dough', 'c2p1', 2, '{}', array['reason']), '22023');
+  perform pg_temp.dis(a, 'disc_keys_extra', pg_temp.dr(10, 'dough', 'c2p1', 2, '{"cost": 1}'), '22023');
+  perform pg_temp.dis(a, 'disc_type_qty', pg_temp.dr(10, 'dough', 'c2p1', 2, '{"qty": "2"}'), '22023');
+  perform pg_temp.dis(a, 'disc_id_bad', pg_temp.dr(10, 'dough', 'c2p1', 2, '{"id": "nope"}'), '22023');
+  perform pg_temp.dis(a, 'disc_kind_bad', pg_temp.dr(10, 'pack', 'c2p1', 2), '22023');
+  perform pg_temp.dis(a, 'disc_qty_zero', pg_temp.dr(10, 'dough', 'c2p1', 0), '22023');
+  perform pg_temp.dis(a, 'disc_qty_fraction', pg_temp.dr(10, 'dough', 'c2p1', 1.5), '22023');
+  perform pg_temp.dis(a, 'disc_reason_blank', pg_temp.dr(10, 'dough', 'c2p1', 2, '{"reason": "  "}'), '22023');
+  perform pg_temp.dis(a, 'disc_at_future', pg_temp.dr(10, 'dough', 'c2p1', 2, jsonb_build_object('at', (extract(epoch from now() + interval '3 days') * 1000)::bigint)), '22023');
+  perform pg_temp.dis(a, 'disc_product_unknown', pg_temp.dr(10, 'dough', 'nope', 2), '22023');
+  perform pg_temp.assert_ok(a, 'disc_refusals_changed_nothing', pg_temp.records('discard_dough') = 0 and pg_temp.records('discard_baked') = 0);
+  perform pg_temp.dis(a, 'disc_dough_ok', pg_temp.dr(10, 'dough', 'c2p1', 2), '00000');
+  select * into r from public.record_discard(pg_temp.dr(10, 'dough', 'c2p1', 2));
+  perform pg_temp.assert_ok(a, 'disc_replay_is_duplicate', r.duplicate and pg_temp.records('discard_dough') = 1);
+  perform pg_temp.dis(a, 'disc_replay_other_body', pg_temp.dr(10, 'dough', 'c2p1', 3), '23505');
+  perform pg_temp.dis(a, 'disc_dough_more_than_there', pg_temp.dr(11, 'dough', 'c2p1', 3), '22023');
+  j := public.get_production(5);
+  perform pg_temp.assert_ok(a, 'get_production_dough_after_discard',
+    (select (d ->> 'balls')::int from jsonb_array_elements(j -> 'dough') d where d ->> 'product_id' = 'c2p1') = 2);
+  perform pg_temp.dis(a, 'disc_baked_ok', pg_temp.dr(12, 'baked', 'c2p1', 5), '00000');
+  perform pg_temp.dis(a, 'disc_baked_more_than_there', pg_temp.dr(13, 'baked', 'c2p1', 26), '22023');
+  perform pg_temp.assert_ok(a, 'get_production_baked_after_discard',
+    (select (k ->> 'qty')::int from jsonb_array_elements(public.get_production(5) -> 'baked') k where k ->> 'product_id' = 'c2p1') = 25);
+  -- a batch of 4 draws only on the dough that is left (2 of the 4 mixed), and mixes the other 2
+  select * into r from public.record_production(pg_temp.pr(10, 'batch', 'c2p1', 4));
+  perform pg_temp.assert_ok(a, 'prod_discard_reduces_dough', r.used_dough = 2);
 end $$;
 
 create function pg_temp.sale(client text, cookies integer) returns jsonb
@@ -254,7 +294,7 @@ $$;
 grant execute on function
   pg_temp.on_hand(text), pg_temp.uses(text), pg_temp.use_reason(text), pg_temp.records(text), pg_temp.pid(integer),
   pg_temp.set_subject(integer, text), pg_temp.expect(text, text, text, text), pg_temp.assert_ok(text, text, boolean),
-  pg_temp.pr(integer, text, text, numeric, jsonb, text[]), pg_temp.rec(text, text, jsonb, text),
+  pg_temp.pr(integer, text, text, numeric, jsonb, text[]), pg_temp.rec(text, text, jsonb, text), pg_temp.dr(integer, text, text, numeric, jsonb, text[]), pg_temp.dis(text, text, jsonb, text),
   pg_temp.sale(text, integer), pg_temp.void(text),
   pg_temp.assert_acl(), pg_temp.assert_table(text), pg_temp.assert_refused(text), pg_temp.phase_owner(text)
   to anon, authenticated, service_role;

@@ -1945,6 +1945,13 @@ export type Database = {
           updated_at: string
         }[]
       }
+      record_discard: {
+        Args: { p_rec: Json }
+        Returns: {
+          duplicate: boolean
+          record_id: string
+        }[]
+      }
       record_event_sale: {
         Args: { p_sale: Json }
         Returns: {

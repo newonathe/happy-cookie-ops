@@ -27,7 +27,8 @@ ORDER_MIGRATIONS = [ROOT / 'supabase/migrations/20260101003500_place_order.sql',
                     ROOT / 'supabase/migrations/20260101004400_recipes.sql',
                     ROOT / 'supabase/migrations/20260101004500_stock_unit_guard.sql',
                     ROOT / 'supabase/migrations/20260101004600_stock_ledger.sql',
-                    ROOT / 'supabase/migrations/20260101004700_production.sql']
+                    ROOT / 'supabase/migrations/20260101004700_production.sql',
+                    ROOT / 'supabase/migrations/20260101004800_production_discard.sql']
 _OUT = 'order outcome differs: anon / '
 _CHK = 'order check differs: anon / '
 _LOOK = 'lookup check differs: anon / '
@@ -362,6 +363,20 @@ PRODUCTION_MUTATIONS = {
     'text_multiply_first': ('record_production', 'text', ('v_raw := v_line.qty * v_mixed / v_recipe.yield_count;', 'v_raw := v_line.qty * (v_mixed / v_recipe.yield_count);'),
                             _PDC + 'prod_dough_pieces_not_rounded_up'),
     'text_ml_step': ('record_production', 'text', ("when 'ml' then 5", "when 'ml' then 10"), _PDC + 'prod_ml_step_and_rounding'),
+    'rule_disc_keys': ('record_discard', 'rule', 'disc-keys', _PD + 'disc_keys_missing / '),
+    'rule_disc_id': ('record_discard', 'rule', 'disc-id', _PD + 'disc_id_bad / '),
+    'rule_disc_kind': ('record_discard', 'rule', 'disc-kind', _PD + 'disc_kind_bad / '),
+    'rule_disc_qty': ('record_discard', 'rule', 'disc-qty', _PD + 'disc_qty_zero / '),
+    'rule_disc_reason': ('record_discard', 'rule', 'disc-reason', _PD + 'disc_reason_blank / '),
+    'rule_disc_at': ('record_discard', 'rule', 'disc-at', _PD + 'disc_at_future / '),
+    'rule_disc_replay_conflict': ('record_discard', 'rule', 'disc-replay-conflict', _PD + 'disc_replay_other_body / '),
+    'rule_disc_more_than_there': ('record_discard', 'rule', 'disc-more-than-there', _PD + 'disc_dough_more_than_there / '),
+    'text_discard_dough_balance': ('record_production', 'text', ("when 'discard_dough' then -r.qty else -r.dough_used end), 0) into v_bal", "else -r.dough_used end), 0) into v_bal"),
+                                   _PDC + 'prod_discard_reduces_dough'),
+    'text_discard_dough_read': ('get_production', 'text', ("when 'discard_dough' then -r.qty else -r.dough_used end)::integer as balls", "else -r.dough_used end)::integer as balls"),
+                                _PDC + 'get_production_dough_after_discard'),
+    'text_discard_baked_read': ('get_production', 'text', ("select r.product_id, -r.qty from public.production_records r where r.kind = 'discard_baked'", "select r.product_id, 0 from public.production_records r where r.kind = 'discard_baked'"),
+                                _PDC + 'get_production_baked_after_discard'),
     'text_pack_once': ('record_pack', 'text', ("v_id := md5('pack:' || p_order)::uuid;", 'v_id := gen_random_uuid();'),
                        _PDC + 'pack_twice_takes_nothing_more'),
     'text_pack_boxes': ('record_pack', 'text', ('v_boxes := v_count / 6;', 'v_boxes := v_count / 12;'),
@@ -431,8 +446,8 @@ SUITES = (
      'forbidden recipe call succeeded', 80),
     ('stock-ledger.sql', ('record_stock_movement(jsonb)', 'get_last_paid()') + tuple(LEDGER_MUTATIONS) + tuple(LEDGER_TABLE_MUTATIONS),
      'forbidden ledger call succeeded', 87),
-    ('production.sql', ('record_production(jsonb)', 'record_pack(text,integer)', 'get_production(integer)')
-                       + tuple(PRODUCTION_MUTATIONS) + tuple(PRODUCTION_TABLE_MUTATIONS), 'forbidden production call succeeded', 88),
+    ('production.sql', ('record_production(jsonb)', 'record_pack(text,integer)', 'get_production(integer)', 'record_discard(jsonb)')
+                       + tuple(PRODUCTION_MUTATIONS) + tuple(PRODUCTION_TABLE_MUTATIONS), 'forbidden production call succeeded', 112),
     ('bazaar-closeout.sql', ('event_summary(uuid)', 'load_event_stock(uuid,jsonb,bigint)', 'add_event_expense(jsonb)', 'close_event(jsonb)'), 'forbidden closeout call succeeded', 80),
 )
 CATALOG_GUARD_SQL = """
@@ -700,7 +715,7 @@ def main():
                 h.fail(filename + ' did not return its complete role matrix')
             results.extend(rows)
             assert_empty()
-        if len(set(results)) != 1783:
+        if len(set(results)) != 1807:
             h.fail('combined role matrix has missing or duplicate cases: %d rows, %d unique (duplicates: %s)' % (len(results), len(set(results)), sorted({r for r in results if results.count(r) > 1})[:5]))
         assert_functions()
         assert_catalog_wide()
@@ -713,10 +728,10 @@ def main():
     try:
         code = h.main(after_reset=check)
         if (code == 0 and len(report["runs"]) == 2 and report["runs"][0] == report["runs"][1]
-                and len(report['regressions_detected']) == 572 and report['sequence_restorations'] == 10
+                and len(report['regressions_detected']) == 596 and report['sequence_restorations'] == 10
                 and report['upgrade_runs'] == 2 and report['function_guard_runs'] == 4
                 and report['catalog_guard_runs'] == 4 and report['catalog_guard_red_runs'] == 4):
-            report.update(status="passed", cases_per_reset=1783, resets=2, matrix_equal=True, rollback_verified=True,
+            report.update(status="passed", cases_per_reset=1807, resets=2, matrix_equal=True, rollback_verified=True,
                           sql_sha256={name: hashlib.sha256((ROOT / 'tests/integration/security' / name).read_bytes()).hexdigest() for name, _, _, _ in SUITES},
                           harness_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
     except (RuntimeError, OSError, ValueError) as error:

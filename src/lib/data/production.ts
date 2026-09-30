@@ -156,6 +156,68 @@ export async function recordPack(
   }
 }
 
+export interface DiscardFields {
+  /** A uuid minted once per action: a retry of the same action is answered, never applied twice. */
+  id: string;
+  kind: 'dough' | 'baked';
+  productId: string;
+  qty: number;
+  reason: string;
+  dropNo: number;
+  /** Epoch milliseconds. */
+  at: number;
+}
+
+const CONTROL_CHARS = /[\u0000-\u001f\u007f-\u009f]/;
+
+/** The same bounds `record_discard` enforces. Null means the discard is acceptable. */
+export function discardError(f: DiscardFields): string | null {
+  if (!UUID.test(f.id) || f.productId === '') return 'This change has no id yet. Reload and try again.';
+  if (f.kind !== 'dough' && f.kind !== 'baked') return 'That is not dough or baked cookies.';
+  if (!whole(f.qty, 1, 10000)) return 'Enter a whole number from 1 to 10000.';
+  const reason = f.reason.trim();
+  if (reason.length < 1 || reason.length > 80 || CONTROL_CHARS.test(reason))
+    return 'The reason is 1 to 80 characters.';
+  if (!whole(f.dropNo, 0, 100000)) return 'The week is not valid.';
+  if (!Number.isInteger(f.at) || f.at < 100_000_000_000 || f.at > 99_999_999_999_999)
+    return 'The time is not valid.';
+  return null;
+}
+
+export interface DiscardResult {
+  outcome: 'saved' | 'refused' | 'offline';
+  duplicate: boolean;
+}
+
+/** Sends one discard. `saved` includes an identical retry (answered, never applied twice). */
+export async function recordDiscard(client: ProductionClient, f: DiscardFields): Promise<DiscardResult> {
+  try {
+    const { data, error } = await client.rpc('record_discard', {
+      p_rec: {
+        id: f.id,
+        kind: f.kind,
+        product_id: f.productId,
+        qty: f.qty,
+        reason: f.reason.trim(),
+        drop_no: f.dropNo,
+        at: f.at
+      }
+    });
+    if (error) {
+      const code = error.code ?? '';
+      return {
+        outcome: ['22023', '23505', '42501', 'P0002', '23503'].includes(code) ? 'refused' : 'offline',
+        duplicate: false
+      };
+    }
+    const row = Array.isArray(data) ? (data[0] as Record<string, unknown> | undefined) : undefined;
+    if (!row || typeof row.duplicate !== 'boolean') return { outcome: 'offline', duplicate: false };
+    return { outcome: 'saved', duplicate: row.duplicate };
+  } catch {
+    return { outcome: 'offline', duplicate: false };
+  }
+}
+
 export interface BatchRow {
   productId: string;
   qty: number;

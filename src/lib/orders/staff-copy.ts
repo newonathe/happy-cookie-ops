@@ -172,6 +172,7 @@ export const PRODUCTION_COPY = {
   stale:
     'The recipe changed since this screen was opened. The recipes were read again: check the amounts and confirm once more.',
   packNotSaved: 'The packaging could not be recorded, so the order was not marked packed. Try again.',
+  discardWhole: 'Enter a whole number of dough balls or cookies.',
   recorded: 'Recorded. The screen you were on had already moved on, so check the stock and the batch list.',
   ranShort: (names: string) => ' Ran short of ' + names + ': logged.'
 } as const;

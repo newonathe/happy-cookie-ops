@@ -1164,7 +1164,7 @@
         "search_path=\"\""
       ],
       "returns": "jsonb",
-      "body_md5": "a7304433022c7e6d7d893cc1ec3b46b6",
+      "body_md5": "429e237eed3f0bbaf5ebb33ba9c4a557",
       "identity": "p_drop integer",
       "execute_anon": false,
       "security_definer": true,
@@ -1209,7 +1209,7 @@
         "search_path=\"\""
       ],
       "returns": "TABLE(record_id uuid, duplicate boolean, used_dough integer, shortfall jsonb)",
-      "body_md5": "d3a46a01aced4af77829afbf3fdd9635",
+      "body_md5": "ac23910d160889d99931d19a70029664",
       "identity": "p_rec jsonb",
       "execute_anon": false,
       "security_definer": true,
@@ -1245,6 +1245,21 @@
       "security_definer": true,
       "execute_service_role": true,
       "execute_authenticated": false
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "record_discard",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(record_id uuid, duplicate boolean)",
+      "body_md5": "a8fea24e6ff14bd04fd756086b325689",
+      "identity": "p_rec jsonb",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
     }
   ]
 }
