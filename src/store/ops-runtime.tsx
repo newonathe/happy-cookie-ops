@@ -66,6 +66,7 @@ import {
   SCHEDULED_COPY,
   RECIPE_COPY,
   STAFF_COPY,
+  PRODUCTION_COPY,
   STOCK_COPY
 } from '@/lib/orders/staff-copy';
 import {
@@ -100,6 +101,17 @@ import {
   type LedgerClient,
   type MovementFields
 } from '@/lib/data/stock-ledger';
+import {
+  engineProduction,
+  fetchProduction,
+  productionError,
+  recordPack,
+  recordProduction,
+  type ProductionClient,
+  type Production,
+  type ProductionFields,
+  type ProductionResult
+} from '@/lib/data/production';
 import { OrderFlow } from '@/lib/data/order-flow';
 import { tokenFromHash, type FieldErrors, type OrderClient } from '@/lib/data/orders';
 import { pickupLabel, statusCust } from '@/lib/orders/status-view';
@@ -247,6 +259,20 @@ interface InvActions {
   confirmReceive: (e: { preventDefault: () => void; target: unknown }, item: { name: string; supplier: string; key: string; add: number }) => void;
   addExpense: (cat: string, label: string, amount: unknown, itemName?: string, itemQty?: unknown) => void;
   costPerUnit: (name: string) => number;
+}
+
+/** The engine's confirm actions for dough and baking (instance fields the typings do not list), replaced in live mode by C2. */
+interface ProductionActions {
+  confirmDough: () => void;
+  confirmBatch: () => void;
+}
+
+/** The parts of `state` the production actions read. */
+interface ProductionState {
+  dropNo: number;
+  recipeVer: Record<string, number>;
+  doughPrep: { pid: string; balls: number } | null;
+  batch: { pid: string; target: number; actual: number; rejects?: number; adj?: Record<string, number> } | null;
 }
 
 /** The engine's recipe save (an instance field the typings do not list), replaced in live mode by A4. */
@@ -428,6 +454,14 @@ export class OpsRuntime extends OpsProvider {
   private pendingMovements = new Map<string, MovementFields>();
   /** When each item's count was entered on the open stocktake, so a count is measured at its own moment. */
   private countedAt: Record<string, number> = {};
+  /** C2: the client production is read and recorded with, the read in flight, and an action whose answer never came (repeating it reuses its id and time). */
+  private productionClient: ProductionClient | null = null;
+  private productionLoadSeq = 0;
+  private pendingProduction = new Map<string, ProductionFields>();
+  /** True while one dough mix or batch is being recorded: a second tap on Confirm must not mint a second record. */
+  private productionBusy = false;
+  /** The last picture of the database applied to `dough`, `baked` and `doughAt`: a later read moves them by what changed on the database, so a change made only on the screen (dough or cookies binned, stall stock) is kept. */
+  private lastProduction: Production | null = null;
   private stockNewId = '';
   private stockNewPriceId = '';
   private stockVersion = 0;
@@ -662,6 +696,8 @@ export class OpsRuntime extends OpsProvider {
     };
     // A4: the recipes screen saves to the database (a new version per change), never only to this screen.
     (this as unknown as RecipeActions).recipeSave = (pid) => void this.liveRecipeSave(pid);
+    // C2: mixing dough and baking take their ingredients off on the database, in one step, and the screens read the records back.
+    this.installProductionOverrides();
     // Not the demo books: only the running bazaar (event id, snapshot prices, stall stock,
     // the day's sales) is kept, so a reload at the stall can carry on selling. The empty
     // start (no event) is never saved, so it cannot overwrite the event before it is read back.
@@ -2283,6 +2319,167 @@ export class OpsRuntime extends OpsProvider {
     this.toast(name + ' ' + STOCK_COPY.removedNote, 'warn');
   }
 
+  // ------------------------------------------------------------------ C2: production
+
+  /** Reads the owner's batches, dough and baked counts (the live gate calls it once the owner is verified). False when it could not. */
+  async loadProduction(client: ProductionClient | null): Promise<boolean> {
+    if (client) this.productionClient = client;
+    const use = client ?? this.productionClient;
+    if (!isLiveMode() || !use) return false;
+    const seq = (this.productionLoadSeq += 1);
+    let rows;
+    try {
+      rows = await fetchProduction(use, (this.state as unknown as { dropNo: number }).dropNo);
+    } catch {
+      return false;
+    }
+    // A newer read started meanwhile: it will apply, an older answer must not bring back an older picture.
+    if (seq !== this.productionLoadSeq) return true;
+    this.applyProduction(rows);
+    return true;
+  }
+
+  /**
+   * The screens read the batches, the variances and the shortfalls straight from the database. The chilled dough and the baked
+   * count are also changed by actions that are not recorded there yet (binned dough or cookies, the stall's stock), so a later
+   * read moves them by what changed on the database since the last one instead of replacing them.
+   */
+  private applyProduction(rows: Production): void {
+    const patch = engineProduction(rows, (pid) => this.flavourName(pid));
+    const prev = this.lastProduction ? engineProduction(this.lastProduction, (pid) => this.flavourName(pid)) : null;
+    this.lastProduction = rows;
+    this.setState((s: unknown) => {
+      if (!prev) return patch;
+      const st = s as { dough: Record<string, number>; baked: Record<string, number>; doughAt: Record<string, number> };
+      const moved = (now: Record<string, number>, was: Record<string, number>, cur: Record<string, number>) => {
+        const out: Record<string, number> = {};
+        for (const pid of new Set([...Object.keys(now), ...Object.keys(was), ...Object.keys(cur)])) {
+          const n = Math.max(0, (cur[pid] || 0) + (now[pid] || 0) - (was[pid] || 0));
+          if (n > 0) out[pid] = n;
+        }
+        return out;
+      };
+      const dough = moved(patch.dough, prev.dough, st.dough ?? {});
+      const doughAt: Record<string, number> = {};
+      for (const pid of Object.keys(dough)) {
+        const at = patch.doughAt[pid] ?? st.doughAt?.[pid];
+        if (at !== undefined) doughAt[pid] = at;
+      }
+      return { ...patch, dough, doughAt, baked: moved(patch.baked, prev.baked, st.baked ?? {}) };
+    });
+  }
+
+  /**
+   * Sends one dough mix or batch. Returns the answer when it was recorded (an identical retry counts), else null after telling
+   * her why. Nothing is re-read here: the engine's own bookkeeping runs next against the quantities it was shown.
+   */
+  private async recordProductionNow(f: Omit<ProductionFields, 'id' | 'at'>): Promise<ProductionResult | null> {
+    const client = this.productionClient;
+    if (this.state.role !== 'owner') {
+      this.toast(PRODUCTION_COPY.ownerOnly, 'warn');
+      return null;
+    }
+    if (!client) {
+      this.toast(STAFF_COPY.offline, 'warn');
+      return null;
+    }
+    // A second tap while the first is being recorded does nothing: it would be a second record.
+    if (this.productionBusy) return null;
+    // The same entry repeated after an unconfirmed answer is the same record (same id, same time), never a second one.
+    const signature = JSON.stringify([f.kind, f.productId, f.qty, f.target, f.rejects, Object.entries(f.adj).sort(), f.recipeVersion, f.dropNo]);
+    const fields: ProductionFields = this.pendingProduction.get(signature) ?? { ...f, id: crypto.randomUUID(), at: Date.now() };
+    const problem = productionError(fields);
+    if (problem) {
+      this.toast(problem, 'warn');
+      return null;
+    }
+    // Kept from before the call: whatever happens to the answer, this entry keeps its id until an answer says otherwise.
+    this.pendingProduction.set(signature, fields);
+    this.productionBusy = true;
+    let result: ProductionResult;
+    try {
+      result = await recordProduction(client, fields);
+    } finally {
+      this.productionBusy = false;
+    }
+    if (result.outcome !== 'offline') this.pendingProduction.delete(signature);
+    if (result.outcome === 'saved') return result;
+    if (result.outcome === 'stale') void this.loadRecipes(null);
+    this.toast(
+      result.outcome === 'stale' ? PRODUCTION_COPY.stale : result.outcome === 'refused' ? PRODUCTION_COPY.refused : PRODUCTION_COPY.notSaved,
+      'warn'
+    );
+    return null;
+  }
+
+  /** What the database holds now, for the screens (after every production action, whatever happened). */
+  private async refreshProduction(): Promise<void> {
+    await this.loadStockCatalogue(null);
+    await this.loadProduction(null);
+  }
+
+  /**
+   * Runs one of the engine's confirm actions for its own bookkeeping (the toast, what ran short, the screen it returns to), then
+   * puts the dough and the baked count back as they were: the database's record moves them, once, when it is read back.
+   */
+  private keepBookkeeping(run: () => void): void {
+    const before = this.state as unknown as { dough: unknown; baked: unknown; doughAt: unknown };
+    const keep = { dough: before.dough, baked: before.baked, doughAt: before.doughAt };
+    this.withoutUndo(run);
+    this.setState(keep as never);
+  }
+
+  private installProductionOverrides(): void {
+    const eng = this as unknown as ProductionActions;
+    const keep = { confirmDough: eng.confirmDough, confirmBatch: eng.confirmBatch };
+    eng.confirmDough = () => {
+      const s = this.state as unknown as ProductionState;
+      const dp = s.doughPrep;
+      if (!dp) return;
+      void (async () => {
+        const done = await this.recordProductionNow({
+          kind: 'dough',
+          productId: dp.pid,
+          qty: dp.balls,
+          target: null,
+          rejects: 0,
+          adj: {},
+          recipeVersion: s.recipeVer[dp.pid] ?? 1,
+          dropNo: s.dropNo
+        });
+        if (!done) return;
+        // The record is in. If the sheet is still open, the engine's own bookkeeping (the sheet, the toast) runs against the
+        // quantities it showed; its own change to the dough is undone, because the database's record replaces it below.
+        if ((this.state as unknown as ProductionState).doughPrep?.pid === dp.pid) this.keepBookkeeping(() => keep.confirmDough());
+        else this.toast(PRODUCTION_COPY.recorded);
+        await this.refreshProduction();
+      })();
+    };
+    eng.confirmBatch = () => {
+      const s = this.state as unknown as ProductionState;
+      const b = s.batch;
+      if (!b) return;
+      void (async () => {
+        const adj: Record<string, number> = {};
+        for (const [name, steps] of Object.entries(b.adj ?? {})) if (steps) adj[name] = steps;
+        const done = await this.recordProductionNow({
+          kind: 'batch',
+          productId: b.pid,
+          qty: b.actual,
+          target: b.target,
+          rejects: b.rejects || 0,
+          adj,
+          recipeVersion: s.recipeVer[b.pid] ?? 1,
+          dropNo: s.dropNo
+        });
+        if (!done) return;
+        if ((this.state as unknown as ProductionState).batch?.pid === b.pid) this.keepBookkeeping(() => keep.confirmBatch());
+        else this.toast(PRODUCTION_COPY.recorded);
+        await this.refreshProduction();
+      })();
+    };
+  }
+
   // ------------------------------------------------------------------ B3: the owner's orders
 
   /**
@@ -2412,7 +2609,27 @@ export class OpsRuntime extends OpsProvider {
           'Settle the unavailable flavour with ' + this.firstName(id) + ' before packing this one.',
           'warn'
         );
-      void this.liveOrder((s) => s.setStatus(id, 'Ready'), STAFF_COPY.packed(this.firstName(id)));
+      void (async () => {
+        // C2: packing takes the packaging off stock, once per order (the database answers a repeat without taking more). A
+        // helper's pack still moves the order on: recording stock is the owner's, like every stock change.
+        let ranShort = '';
+        const client = this.productionClient;
+        if (this.state.role === 'owner' && client) {
+          const st = this.state as unknown as { dropNo: number; orders: Array<{ id: string; drop?: number | null }> };
+          // An order for another week carries no drop number of ours (-1): its cookies are still taken from what is baked now.
+          const orderDrop = st.orders.find((o) => o.id === id)?.drop;
+          const dropNo = typeof orderDrop === 'number' && orderDrop >= 0 ? orderDrop : st.dropNo;
+          const result = await recordPack(client, id, dropNo);
+          if (result.outcome !== 'saved') {
+            this.toast(result.outcome === 'offline' ? PRODUCTION_COPY.packNotSaved : PRODUCTION_COPY.refused, 'warn');
+            return;
+          }
+          if (result.shortfall.length)
+            ranShort = PRODUCTION_COPY.ranShort(result.shortfall.map((x) => x.name.toLowerCase()).join(' and '));
+        }
+        await this.liveOrder((s) => s.setStatus(id, 'Ready'), STAFF_COPY.packed(this.firstName(id)) + ranShort);
+        if (this.state.role === 'owner' && client) await this.refreshProduction();
+      })();
     };
     eng.collectOrder = (id) => {
       const undo = () =>
@@ -3212,6 +3429,8 @@ export class OpsRuntime extends OpsProvider {
   flushSales = async (): Promise<FlushResult> => {
     const result = await flushQueue(this.saleClient);
     await this.reflectQueue();
+    // A sale that reached the server used its pouches and bag there (stock only: no batch or dough changed): show what stock the database holds.
+    if (result.sent.length > 0 && this.state.role === 'owner') void this.loadStockCatalogue(null);
     return result;
   };
 

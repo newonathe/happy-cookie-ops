@@ -4,6 +4,41 @@ Every checkpoint up to 2026-09-28, verbatim and newest first. Moved here from `c
 session reads only the short status in [current.md](current.md). Add nothing here by hand; move a checkpoint here
 when it leaves `current.md`.
 
+## Checkpoint - 2026-09-30 (C1)
+
+- **2026-09-30 (C1, finish-plan slice C1):** the stock ledger. Two code commits (`f713738` database, then the app half and review fixes).
+  - **Database:** migration `20260101004600`: `stock_movements` (no API grant) and owner-only `record_stock_movement` (exact keys; kinds opening,
+    receipt, count, waste, adjust; idempotent on a client id: an identical retry is answered, a different body under the same id is `23505`).
+    `on_hand` changes only here. A receipt with a cost also writes the cost to `ledger_entries` (category = the item's kind, negative amount) in the
+    same transaction, so a retry can never book it twice. A count is the total counted and the variance comes from what the database held under a
+    lock; a count taken before a later movement is refused (it would wipe that movement out); waste and adjustments never take more than is there; an
+    opening needs nothing on hand and no earlier movement. `get_last_paid` returns the latest costed receipt per item. New suite `stock-ledger.sql`
+    (87 cases, 16 rule regressions).
+  - **App (live mode, no protected markup or engine edit):** the engine's actions are replaced from `OpsRuntime`: a count of one item (count movement), add
+    and subtract (adjustments with a fixed reason), waste of raw stock (waste; cookies and dough waste stay the engine's own), a delivery (receipt with
+    the cost paid and the supplier) from the receive sheet and from the expense sheet's stock purchase, the stocktake (a count per item entered, each
+    taken at the moment it was entered) and "Add item" (opening quantity). The record is made first; the engine's own bookkeeping (part deliveries,
+    substitutions, the grocery list) then runs and the catalogue is re-read, so the screen always shows what the database holds; no Undo is offered on
+    stock toasts. `state.paid` comes from `get_last_paid`, so the cost per unit is what was really last paid. An unconfirmed answer keeps the entry:
+    repeating it exactly reuses its id and time and can never count twice.
+  - **Opus review** (database SAFE; the app half was BLOCKED until fixed): a receipt was recorded even when the engine refused the expense form (stock
+    counted twice on the resend); a lost reply was reported as "nothing changed", inviting a second delivery and cost; a stocktake that failed partway
+    threw away the unsaved counts and hid the failure; a paused stocktake could wipe out a later delivery; the engine's delayed toasts could hide a
+    refusal and a refused delivery still ticked the grocery list. All fixed with tests, plus an opening only when nothing is on hand and quantities
+    rounded to 3 decimals before sending.
+  - **Recorded, not fixed:** (1) a mistyped receipt cost cannot be corrected (the books are append-only and undo is gone): a correcting entry belongs with E1.
+    (2) Baking, dough mixing and bazaar packaging still change only the screen and are lost on a reload: they need a `use` movement, which is C2.
+    (3) Raw-stock waste and live stocktakes add nothing to the engine's local waste record and count log (the records screen). (4) The waste toast shows
+    the typed amount even when the server capped it at what was on hand. (5) Two quick movements can briefly show an older quantity (no out-of-order guard on
+    the catalogue read). (6) Every movement bumps the item's stamp, so an open item-edit form is refused as stale (correct, costs a retry). (7) Wording
+    is PLACEHOLDER (`STOCK_COPY`).
+  - **Evidence:** `pnpm verify` 68 files / 1303 tests; G0 validator passes; port integrity OK (54 files); Python guards OK; SQL role suite 1695 cases per
+    reset, 2 resets, 508 deliberate regressions detected; `pnpm build`, `test:pages:spike`, `test:workers:spike` pass; `pnpm test:e2e` 89 / 1 (OFFLINE-01
+    WebKit) / 75; `test:live:checkout` 11 steps. Mutations: 16 on the first version (13 caught, 3 equivalent or fixed by tests) and 8 on the review fixes,
+    all caught. **Visual QA in the browser pane** (live-mode build, local owner): the item sheet's count (850 g saved, movement -50 g in the database),
+    the receive sheet (2000 g for ₱840 in stock, one receipt and one cost entry of -84000, the grocery list then shorter). Not looked at: waste and the
+    stocktake sheets on screen, and a phone-width pass.
+
 ## Checkpoint - 2026-09-30 (A4)
 
 - **2026-09-30 (A4, finish-plan slice A4):** the owner's recipes with versions. Three commits (`9432dda` database, `1ff31fb` app and review fixes; the docs are the third).

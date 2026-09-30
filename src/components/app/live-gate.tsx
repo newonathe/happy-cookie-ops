@@ -150,6 +150,8 @@ export function LiveGate({
         // D4: the owner's upcoming bazaars, for the Bazaar screen's list.
         if (owner && !cancelled) void engine.loadScheduledEvents(supabase);
         if (owner && !cancelled) void engine.loadStockCatalogue(supabase);
+        // C2: the owner's batches, dough and baked counts.
+        if (owner && !cancelled) void engine.loadProduction(supabase);
         // Only after the flavour list was read: an order for a flavour outside the ported list would crash the screens.
         void Promise.resolve(engine.loadFlavours(supabase)).then((loaded) => {
           if (owner && !cancelled && loaded !== false) void engine.loadOrders(supabase);

@@ -20,6 +20,7 @@ const { FakeRuntime } = vi.hoisted(() => ({
     reloadOrders = vi.fn();
     loadScheduledEvents = vi.fn();
     loadStockCatalogue = vi.fn();
+    loadProduction = vi.fn();
     loadRecipes = vi.fn();
     loadShopStatus = vi.fn();
     reloadShopStatus = vi.fn();
@@ -166,16 +167,19 @@ describe('LiveGate: the owner’s orders (B3)', () => {
     await mount('bazaar');
     expect(engine.loadScheduledEvents).toHaveBeenCalledExactlyOnceWith(client);
     expect(engine.loadStockCatalogue).toHaveBeenCalledExactlyOnceWith(client);
+    expect(engine.loadProduction).toHaveBeenCalledExactlyOnceWith(client); // C2
     engine = new FakeRuntime();
     role = 'helper';
     await mount('bazaar');
     expect(engine.loadScheduledEvents).not.toHaveBeenCalled();
     expect(engine.loadStockCatalogue).not.toHaveBeenCalled();
+    expect(engine.loadProduction).not.toHaveBeenCalled();
     engine = new FakeRuntime();
     role = 'owner';
     await mount('shop'); // a customer page: nothing is verified there
     expect(engine.loadScheduledEvents).not.toHaveBeenCalled();
     expect(engine.loadStockCatalogue).not.toHaveBeenCalled();
+    expect(engine.loadProduction).not.toHaveBeenCalled();
     // Mutation: dropping the owner test asks a helper for a list the database refuses, and the customer page for one it cannot see.
   });
 

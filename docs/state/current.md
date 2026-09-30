@@ -20,6 +20,8 @@ Short status, read at the start of every session. Keep it to one screen.
   - MP-09 c1: flavours on the database.
   - MP-09 c1b: prices save, `publish_flavours`, and the live shop shows only the published menu.
   - MP-09 c1c (F3, slice A1): the owner's flavour editor and "Publish menu" button, live mode only.
+- **C2 is done locally (2026-09-30):** mixing dough, baking a batch and packing an order (and a stall sale) take stock off on the database; batches and dough are
+  records that survive a reload and feed the Bake, dough, inventory and recipes screens ("baked on this version").
 - **C1 is done locally (2026-09-30):** the quantity of every stock item is a ledger on the database (receipts with their cost, counts, waste,
   adjustments, opening); inventory, receive, stocktake and waste on the ported screens record movements.
 - **A4 is done locally (2026-09-30):** Cine's recipes (yield, lines, versions) on the database and on the recipes and cost screens; a save makes a new
@@ -43,14 +45,14 @@ Short status, read at the start of every session. Keep it to one screen.
   `join_waitlist`, the owner's order rules).
 - **D1 and D2 are done locally:** bazaar events, offline sales and the close-out (stock, expenses, cash count, event profit) on the database (checkpoint below).
 - **Screen by screen:** orders and the bake list (the owner now reads and drives real orders, live), payments (methods, A2), dough, inventory, grocery, suppliers, recipes, P&L and the
-  waitlist still live only in the browser (bazaar sales, stock, expenses and close-out now reach the database), so they are empty in live mode. **The owner can now edit, add and
+  waitlist still live only in the browser (bazaar sales, stock, expenses, close-out, batches, dough and packing now reach the database), so they are empty in live mode. **The owner can now edit, add and
   publish flavours**; every other screen is still A2 onward.
 - **Cine's inputs arrived 2026-09-28** and were analysed in [finish-plan.md](finish-plan.md) sections 2 and 4 and
   [apps-script-audit.md](apps-script-audit.md): the workbook, the September form, the payment image, the October
   menu, recipes and packaging, and the Apps Script. The files stay outside the repo; `Appscript/` is git-ignored.
-- **Baseline (2026-09-30, at C1 close):**
-  - `pnpm typecheck` clean; `pnpm verify` 68 files / 1303 tests; port integrity OK, 54 files; G0 validator 1217 checks, 0 failures;
-  - SQL role suite: 1695 cases per reset, 2 resets, 508 deliberate regressions detected in all; Python guards: 63 OK; migrations: 47; public functions: 77;
+- **Baseline (2026-09-30, at C2 close):**
+  - `pnpm typecheck` clean; `pnpm verify` 70 files / 1355 tests; port integrity OK, 54 files; G0 validator 1217 checks, 0 failures;
+  - SQL role suite: 1783 cases per reset, 2 resets, 572 deliberate regressions detected in all; Python guards: 63 OK; migrations: 48; public functions: 83;
   - `pnpm test:e2e`: 89 passed / 1 failed (WebKit OFFLINE-01) / 75 skipped, run with no Supabase variables (unchanged). Passing the local-stack variables at run time to `next start` makes its middleware send staff routes to sign-in, so do not.
   - `pnpm test:live:checkout`: 11 steps pass (needs `pnpm db:reset`; keys from `pnpm exec supabase status -o env`, the bare `supabase` binary is not on PATH).
 - **Known red:** OFFLINE-01 on WebKit only; `format:check` and E2E on CI `main`. No merge to `main` until they are green.
@@ -64,35 +66,34 @@ Short status, read at the start of every session. Keep it to one screen.
 
 ## Latest checkpoint (replace each slice; move the old one to current-history.md)
 
-- **2026-09-30 (C1, finish-plan slice C1):** the stock ledger. Two code commits (`f713738` database, then the app half and review fixes).
-  - **Database:** migration `20260101004600`: `stock_movements` (no API grant) and owner-only `record_stock_movement` (exact keys; kinds opening,
-    receipt, count, waste, adjust; idempotent on a client id: an identical retry is answered, a different body under the same id is `23505`).
-    `on_hand` changes only here. A receipt with a cost also writes the cost to `ledger_entries` (category = the item's kind, negative amount) in the
-    same transaction, so a retry can never book it twice. A count is the total counted and the variance comes from what the database held under a
-    lock; a count taken before a later movement is refused (it would wipe that movement out); waste and adjustments never take more than is there; an
-    opening needs nothing on hand and no earlier movement. `get_last_paid` returns the latest costed receipt per item. New suite `stock-ledger.sql`
-    (87 cases, 16 rule regressions).
-  - **App (live mode, no protected markup or engine edit):** the engine's actions are replaced from `OpsRuntime`: a count of one item (count movement), add
-    and subtract (adjustments with a fixed reason), waste of raw stock (waste; cookies and dough waste stay the engine's own), a delivery (receipt with
-    the cost paid and the supplier) from the receive sheet and from the expense sheet's stock purchase, the stocktake (a count per item entered, each
-    taken at the moment it was entered) and "Add item" (opening quantity). The record is made first; the engine's own bookkeeping (part deliveries,
-    substitutions, the grocery list) then runs and the catalogue is re-read, so the screen always shows what the database holds; no Undo is offered on
-    stock toasts. `state.paid` comes from `get_last_paid`, so the cost per unit is what was really last paid. An unconfirmed answer keeps the entry:
-    repeating it exactly reuses its id and time and can never count twice.
-  - **Opus review** (database SAFE; the app half was BLOCKED until fixed): a receipt was recorded even when the engine refused the expense form (stock
-    counted twice on the resend); a lost reply was reported as "nothing changed", inviting a second delivery and cost; a stocktake that failed partway
-    threw away the unsaved counts and hid the failure; a paused stocktake could wipe out a later delivery; the engine's delayed toasts could hide a
-    refusal and a refused delivery still ticked the grocery list. All fixed with tests, plus an opening only when nothing is on hand and quantities
-    rounded to 3 decimals before sending.
-  - **Recorded, not fixed:** (1) a mistyped receipt cost cannot be corrected (the books are append-only and undo is gone): a correcting entry belongs with E1.
-    (2) Baking, dough mixing and bazaar packaging still change only the screen and are lost on a reload: they need a `use` movement, which is C2.
-    (3) Raw-stock waste and live stocktakes add nothing to the engine's local waste record and count log (the records screen). (4) The waste toast shows
-    the typed amount even when the server capped it at what was on hand. (5) Two quick movements can briefly show an older quantity (no out-of-order guard on
-    the catalogue read). (6) Every movement bumps the item's stamp, so an open item-edit form is refused as stale (correct, costs a retry). (7) Wording
-    is PLACEHOLDER (`STOCK_COPY`).
-  - **Evidence:** `pnpm verify` 68 files / 1303 tests; G0 validator passes; port integrity OK (54 files); Python guards OK; SQL role suite 1695 cases per
-    reset, 2 resets, 508 deliberate regressions detected; `pnpm build`, `test:pages:spike`, `test:workers:spike` pass; `pnpm test:e2e` 89 / 1 (OFFLINE-01
-    WebKit) / 75; `test:live:checkout` 11 steps. Mutations: 16 on the first version (13 caught, 3 equivalent or fixed by tests) and 8 on the review fixes,
-    all caught. **Visual QA in the browser pane** (live-mode build, local owner): the item sheet's count (850 g saved, movement -50 g in the database),
-    the receive sheet (2000 g for ₱840 in stock, one receipt and one cost entry of -84000, the grocery list then shorter). Not looked at: waste and the
-    stocktake sheets on screen, and a phone-width pass.
+- **2026-09-30 (C2, finish-plan slice C2):** production. Two code commits (`3fd4df2` database, then the app half and review fixes).
+  - **Database:** migration `20260101004700`: `production_records` (no API grant), `use` added to the stock movement kinds (only the new functions write
+    it; `record_stock_movement` still refuses it), and owner-only `record_production` (a dough mix or a baked batch: exact keys; every recipe line of the
+    version it was made on comes off stock in ONE transaction as `use` movements, never more than is there, the shortfall kept on the record; a batch draws
+    on chilled dough first; pieces round up, the rest to 0.1, +/- steps of 10 g / 5 ml / 1 pc, multiply-first so 9 pieces of 9 stay 5, not 6; refused if the
+    recipe changed since the screen read it; idempotent on a client id), `record_pack` (an order's packaging once per order: the record id is derived from the
+    order), `get_production` (batches with their version, the chilled dough, the cookies baked and not yet packed in one drop, the shortfalls), and
+    `record_event_sale` redefined to use a stall sale's pouches and bag on its first insert only (a replay, or a sale that arrives already voided, adds nothing).
+    New suite `production.sql` (88 cases, 32 rule/text regressions).
+  - **App (live mode, no protected markup or engine edit):** `confirmDough` and `confirmBatch` are replaced from `OpsRuntime`: the record is sent first, the
+    engine's own bookkeeping (sheet, toast, what ran short) runs against the quantities it showed, then the stock, batches, dough and baked count are read back.
+    Packing an order records its packaging first, then sets Ready. A second tap on Confirm is ignored while one is in flight; a lost reply keeps the id so
+    repeating it never counts twice. `state.batches`, `variances`, `shortfalls` come from the database, so "baked on this version" and the records screen are
+    real; `dough` and `baked` move by what changed on the database, so a change made only on the screen (binned dough or cookies, stall stock) is kept.
+  - **Opus review** (database SAFE; the app half was NOT SAFE until fixed): a partial read overwrote the chilled dough and baked counts (binned dough came back,
+    a sale flush put the stall's cookies back); a double tap recorded a batch twice (and a Back during the record crashed the engine's confirm); an order for
+    another week could not be packed (drop -1); dough pieces could round up one too many. All fixed with tests.
+  - **Recorded, not fixed:** (1) Packaging names and the pack rule (full sixes in a box, loose in pouches, a sticker each, a card per box) are the ported defaults, hard-coded
+    in the database (DP-03 stays open: real box sizes 6/8/12 from `order_boxes` and per-flavour footprints are not used); a renamed catalogue item is a permanent
+    shortfall; if her recipes list the pouch per cookie AND packing takes one, it is taken twice (decide at import). (2) Binned dough or cookies, the stall's stock load
+    and close-out still change only the screen: they come back on a reload (they need their own records; the server's baked count does not yet subtract an event's loaded stock).
+    (3) Packing records a shortfall and goes ahead; the ported engine refused to pack when packaging was short. (4) A count taken after a late `use` (an offline sale synced
+    after a count) can double-count it. (5) A sale voided before it syncs deducts nothing on the server but the pouches on screen. (6) A batch of 0 is refused (the engine
+    allowed it). (7) The staff RPCs are owner-only, so a helper cannot pack (unchanged). (8) Wording is PLACEHOLDER (`PRODUCTION_COPY`). (9) `bake_batches` (init) stays unused.
+  - **Evidence:** `pnpm verify` 70 files / 1355 tests; G0 validator 1217 checks, 0 failures; port integrity OK (54 files); Python guards OK; SQL role suite 1783 cases per
+    reset, 2 resets, 572 regressions detected (2 resets x 286); `pnpm build`, `test:pages:spike`, `test:workers:spike` pass; `pnpm test:e2e` 89 / 1 (OFFLINE-01 WebKit) / 75;
+    `test:live:checkout` 11 steps. Mutations: 28 on the unit tests (all caught; three survivors were strengthened and re-run). **Visual QA in the browser pane** (live-mode
+    build, local test owner): mixed 12 dough balls (flour 4200 -> 4000 g in the database, 12 chilled dough), reloaded (still 12), baked 4 with 1 reject (dough went to 8, "1 still
+    to bake"), the recipe screen said "1 batch baked on this version", packed a 13-cookie order (Box of 6 9 -> 7, sticker 4 -> 1, pouch 64 -> 63, card 42 -> 40), and after a
+    reload the Inventory ingredients, packaging and dough tabs showed those quantities. Not looked at on screen: the stall sale's packaging (SQL and unit tests only), a
+    shortfall toast, and a phone-width pass.

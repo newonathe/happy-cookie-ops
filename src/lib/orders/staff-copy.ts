@@ -163,6 +163,19 @@ export const STOCK_COPY = {
   removedNote: 'switched off. Past records keep their history.'
 } as const;
 
+/** PLACEHOLDER wording (C2): mixing dough, baking and packing take stock off on the database. */
+export const PRODUCTION_COPY = {
+  ownerOnly: 'Only Cine can record baking, dough and packing.',
+  notSaved:
+    'Not confirmed: the connection dropped, so this may or may not have been recorded. Check the stock, then repeat it exactly: the database will not count the same entry twice.',
+  refused: 'That could not be recorded. Check the numbers, and that this flavour has a saved recipe.',
+  stale:
+    'The recipe changed since this screen was opened. The recipes were read again: check the amounts and confirm once more.',
+  packNotSaved: 'The packaging could not be recorded, so the order was not marked packed. Try again.',
+  recorded: 'Recorded. The screen you were on had already moved on, so check the stock and the batch list.',
+  ranShort: (names: string) => ' Ran short of ' + names + ': logged.'
+} as const;
+
 export const SCHEDULED_COPY = {
   title: 'Bazaar events',
   saved: 'Bazaar events saved.',
