@@ -127,6 +127,7 @@ import {
   recordDraw,
   recordExpense,
   saveCostBasis,
+  unpaidOrders,
   type Books,
   type BooksClient,
   type CorrectionFields,
@@ -2666,6 +2667,7 @@ export class OpsRuntime extends OpsProvider {
     return {
       online: this.state.online && (typeof navigator === 'undefined' || navigator.onLine),
       basis: books.basis,
+      unpaid: this.unpaidVals(),
       receipts: books.receipts.map((r) => ({
         movementId: r.movementId,
         label:
@@ -2676,6 +2678,25 @@ export class OpsRuntime extends OpsProvider {
       correct: (movementId, pesos) => void this.liveCorrect(movementId, pesos),
       download: () => void this.liveExport(),
       close: () => this.closeSheet()
+    };
+  }
+
+  /** The orders still owed money, from the owner's orders (null until they are read). */
+  private unpaidVals(): NonNullable<OpsVals['liveBooks']>['unpaid'] {
+    const orders = this.orderSync?.current();
+    if (!orders) return null;
+    const peso = (cents: number) => '₱' + (cents / 100).toLocaleString('en-PH');
+    const { rows, totalCents } = unpaidOrders(orders, Date.now());
+    return {
+      summary: rows.length ? BOOKS_COPY.unpaidSummary(rows.length, peso(totalCents)) : BOOKS_COPY.unpaidNone,
+      rows: rows.map((r) => ({
+        id: r.id,
+        title: r.id + ' · ' + r.name,
+        detail:
+          (r.status === 'claimed' ? BOOKS_COPY.unpaidClaimed : r.status === 'balance' ? BOOKS_COPY.unpaidBalance : BOOKS_COPY.unpaidWaiting) +
+          ' · ' + BOOKS_COPY.unpaidDays(r.days),
+        amount: peso(r.owedCents)
+      }))
     };
   }
 

@@ -276,3 +276,51 @@ export async function saveCostBasis(client: BooksClient, basis: CostBasis): Prom
     return 'offline';
   }
 }
+
+/** What an order must be (a slice of `StaffOrder`) to be counted by the unpaid tracker. */
+export interface UnpaidSource {
+  id: string;
+  name: string;
+  state: string;
+  payState: string;
+  totalCents: number;
+  paidCents: number | null;
+  placedAt: number;
+}
+
+export interface UnpaidRow {
+  id: string;
+  name: string;
+  /** What is still owed, centavos. */
+  owedCents: number;
+  /** `unpaid`: nothing paid yet. `claimed`: the customer says they paid, not confirmed. `balance`: part paid, the rest owed. */
+  status: 'unpaid' | 'claimed' | 'balance';
+  /** Whole days since the order was placed. */
+  days: number;
+}
+
+export interface Unpaid {
+  rows: UnpaidRow[];
+  totalCents: number;
+}
+
+/**
+ * The orders that are still owed money, oldest first: nothing paid (or a payment claimed but not confirmed) on an order that is still on,
+ * and the unpaid balance of a part-paid order. A cancelled order and a no-show owe nothing, and a refunded order is neither unpaid nor part paid.
+ */
+export function unpaidOrders(orders: readonly UnpaidSource[], now: number): Unpaid {
+  const rows: UnpaidRow[] = [];
+  for (const o of orders) {
+    if (o.state === 'Cancelled' || o.state === 'No-show') continue;
+    const paid = o.paidCents ?? 0;
+    let status: UnpaidRow['status'] | null = null;
+    if (o.payState === 'unpaid' || o.payState === 'claimed') status = o.payState;
+    else if (o.payState !== 'refunded' && paid < o.totalCents) status = 'balance'; // paid, with a balance left
+    if (!status) continue;
+    const owedCents = o.totalCents - (status === 'balance' ? paid : 0);
+    if (owedCents <= 0) continue;
+    rows.push({ id: o.id, name: o.name, owedCents, status, days: Math.max(0, Math.floor((now - o.placedAt) / 86_400_000)) });
+  }
+  rows.sort((a, b) => b.days - a.days || a.id.localeCompare(b.id));
+  return { rows, totalCents: rows.reduce((n, r) => n + r.owedCents, 0) };
+}

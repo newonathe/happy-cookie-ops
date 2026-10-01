@@ -25,7 +25,7 @@ const card = {
  * spreadsheet. Existing tokens only (form-styles).
  */
 export function BooksForm({ liveBooks }: { liveBooks: LiveBooks }) {
-  const { basis, receipts, online } = liveBooks;
+  const { basis, receipts, online, unpaid } = liveBooks;
   const onCorrect = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const form = event.currentTarget;
@@ -36,6 +36,21 @@ export function BooksForm({ liveBooks }: { liveBooks: LiveBooks }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
       {!online ? <span style={{ fontSize: '12px', color: '#A8231B' }}>{C.offline}</span> : null}
+      {unpaid ? (
+        <div style={card}>
+          <span style={smallLabel}>{C.unpaidTitle}</span>
+          <span style={{ fontSize: '13px', fontWeight: 600, color: '#3A1F14' }}>{unpaid.summary}</span>
+          {unpaid.rows.map((r) => (
+            <div key={r.id} style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', fontSize: '12px', color: '#3A1F14' }}>
+              <span style={{ display: 'flex', flexDirection: 'column' }}>
+                <span style={{ fontWeight: 600 }}>{r.title}</span>
+                <span style={{ color: '#66524A' }}>{r.detail}</span>
+              </span>
+              <span style={{ fontWeight: 600 }}>{r.amount}</span>
+            </div>
+          ))}
+        </div>
+      ) : null}
       <div style={card}>
         <span style={smallLabel}>{C.basisTitle}</span>
         <span style={{ fontSize: '12px', color: '#66524A' }}>{C.basisNote}</span>

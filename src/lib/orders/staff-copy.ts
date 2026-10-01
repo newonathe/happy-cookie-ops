@@ -188,6 +188,13 @@ export const BOOKS_COPY = {
   bought: 'When bought',
   used: 'When used',
   basisSaved: (b: string) => 'Stock now counts as a cost ' + (b === 'used' ? 'when it is used.' : 'when it is bought.'),
+  unpaidTitle: 'Waiting on payment',
+  unpaidNone: 'Nobody owes you anything right now.',
+  unpaidSummary: (n: number, total: string) => (n === 1 ? '1 order' : n + ' orders') + ' · ' + total + ' still to come in',
+  unpaidClaimed: 'says they paid: check it',
+  unpaidBalance: 'balance owed',
+  unpaidWaiting: 'no payment yet',
+  unpaidDays: (d: number) => (d === 0 ? 'today' : d === 1 ? '1 day ago' : d + ' days ago'),
   correctTitle: 'Correct a delivery cost',
   correctNote:
     'A wrong cost is answered with a correcting entry in the books: nothing is edited or deleted. The price you last paid follows the correction.',

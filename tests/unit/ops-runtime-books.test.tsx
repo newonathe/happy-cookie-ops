@@ -106,7 +106,20 @@ const order = (): Wire => ({
   swaps: []
 });
 
+const unpaidRaw = (over: Wire = {}): Wire => ({
+  ...order(),
+  id: 'HC-1002',
+  name: 'Ben Diaz',
+  state: 'Payment review',
+  pay_state: 'unpaid',
+  paid_cents: null,
+  total_cents: 15000,
+  placed_at: new Date(Date.now() - 3 * 86_400_000).toISOString(),
+  ...over
+});
+
 interface Fake {
+  orders?: Wire[];
   books: Wire;
   /** Answers to a write in order, then the default (saved). */
   answers: Record<string, Array<{ data: unknown; error: unknown }>>;
@@ -128,7 +141,7 @@ function fakeClient(f: Fake) {
     if (name === 'get_production')
       return { data: { batches: [], dough: [], baked: [], shortfalls: [] }, error: null };
     if (name === 'get_recipes') return { data: [], error: null };
-    if (name === 'get_staff_orders') return { data: [order()], error: null };
+    if (name === 'get_staff_orders') return { data: f.orders ?? [order(), unpaidRaw()], error: null };
     if (
       [
         'record_expense',
@@ -382,6 +395,25 @@ describe('E1: the books on screen and their writes (live mode)', () => {
     const h = await mounted('helper', fresh());
     await act(async () => void (await acts(h.runtime).openBooks()));
     expect(h.runtime.renderVals().liveBooks).toBeFalsy();
+  });
+
+  it('the books form tracks the orders still owed money: who, how much, how long, and the total', async () => {
+    const { runtime } = await mounted('owner', fresh());
+    await act(async () => void (await acts(runtime).openBooks()));
+    const u = runtime.renderVals().liveBooks?.unpaid;
+    expect(u?.summary).toBe(BOOKS_COPY.unpaidSummary(1, '₱150'));
+    expect(u?.rows).toEqual([
+      { id: 'HC-1002', title: 'HC-1002 · Ben Diaz', detail: BOOKS_COPY.unpaidWaiting + ' · ' + BOOKS_COPY.unpaidDays(3), amount: '₱150' }
+    ]);
+    // Mutation: counting the paid order too puts HC-1001 on the tracker.
+  });
+
+  it('with nobody owing anything the tracker says so', async () => {
+    const { runtime } = await mounted('owner', fresh({ orders: [order()] }));
+    await act(async () => void (await acts(runtime).openBooks()));
+    const u = runtime.renderVals().liveBooks?.unpaid;
+    expect(u?.rows).toEqual([]);
+    expect(u?.summary).toBe(BOOKS_COPY.unpaidNone);
   });
 
   it('choosing how stock is costed saves it, reads the books again and says what changed', async () => {

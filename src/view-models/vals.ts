@@ -217,6 +217,8 @@ export interface OpsVals {
     online: boolean;
     basis: 'bought' | 'used';
     receipts: Array<{ movementId: string; label: string }>;
+    /** Orders still owed money (null until the orders are read). */
+    unpaid: { summary: string; rows: Array<{ id: string; title: string; detail: string; amount: string }> } | null;
     setBasis: (basis: 'bought' | 'used') => void;
     correct: (movementId: string, pesos: string) => void;
     download: () => void;

@@ -11,6 +11,8 @@ import {
   recordDraw,
   recordExpense,
   saveCostBasis,
+  unpaidOrders,
+  type UnpaidSource,
   type BooksClient,
   type CorrectionFields,
   type DrawFields,
@@ -302,5 +304,59 @@ describe('drawError and recordDraw', () => {
   it('a draw line becomes an engine draw entry, outside the expenses', () => {
     const e = engineLedger([{ id: 'l:3', kind: 'draw', cat: 'Owner draw', label: 'Rent share', amountCents: 10000, at: 5 }]);
     expect(e[0]).toEqual({ id: 'l:3', kind: 'draw', at: 5, cat: 'Owner drawings', label: 'Rent share', amount: 100 });
+  });
+});
+
+const DAY = 86_400_000;
+const NOW = 1_790_000_000_000;
+const ord = (over: Partial<UnpaidSource> = {}): UnpaidSource => ({
+  id: 'HC-1',
+  name: 'Ana',
+  state: 'Payment review',
+  payState: 'unpaid',
+  totalCents: 20000,
+  paidCents: null,
+  placedAt: NOW - 3 * DAY,
+  ...over
+});
+
+describe('unpaidOrders: the tracker of what is still owed', () => {
+  it('lists unpaid, claimed and part-paid orders, oldest first, with what is still owed', () => {
+    const u = unpaidOrders(
+      [
+        ord({ id: 'HC-3', placedAt: NOW - 1 * DAY }),
+        ord({ id: 'HC-1', payState: 'claimed', totalCents: 15000, placedAt: NOW - 5 * DAY }),
+        ord({ id: 'HC-2', state: 'Confirmed', payState: 'confirmed', totalCents: 20000, paidCents: 5000, placedAt: NOW - 2 * DAY })
+      ],
+      NOW
+    );
+    expect(u.rows.map((r) => [r.id, r.status, r.owedCents, r.days])).toEqual([
+      ['HC-1', 'claimed', 15000, 5],
+      ['HC-2', 'balance', 15000, 2],
+      ['HC-3', 'unpaid', 20000, 1]
+    ]);
+    expect(u.totalCents).toBe(50000);
+    // Mutation: counting a part-paid order's whole total instead of its balance overstates what is owed.
+    // Mutation: sorting newest first puts the order that has waited longest last.
+  });
+
+  it('counts nothing for a paid order, a cancelled one, a no-show, a refund, or a balance already settled', () => {
+    const u = unpaidOrders(
+      [
+        ord({ id: 'paid', state: 'Confirmed', payState: 'confirmed', paidCents: 20000 }),
+        ord({ id: 'over', state: 'Confirmed', payState: 'confirmed', paidCents: 25000 }),
+        ord({ id: 'cancelled', state: 'Cancelled' }),
+        ord({ id: 'noshow', state: 'No-show', payState: 'claimed' }),
+        ord({ id: 'refunded', payState: 'refunded', paidCents: 20000 }),
+        ord({ id: 'free', totalCents: 0 })
+      ],
+      NOW
+    );
+    expect(u).toEqual({ rows: [], totalCents: 0 });
+    // Mutation: dropping the cancelled check keeps an order nobody will pay on the tracker.
+  });
+
+  it('never shows a negative number of days (a clock a little behind)', () => {
+    expect(unpaidOrders([ord({ placedAt: NOW + 5000 })], NOW).rows[0]?.days).toBe(0);
   });
 });

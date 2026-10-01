@@ -52,7 +52,7 @@ Short status, read at the start of every session. Keep it to one screen.
   [apps-script-audit.md](apps-script-audit.md): the workbook, the September form, the payment image, the October
   menu, recipes and packaging, and the Apps Script. The files stay outside the repo; `Appscript/` is git-ignored.
 - **Baseline (2026-10-01, at E1 close):**
-  - `pnpm typecheck` clean; `pnpm verify` 72 files / 1432 tests; port integrity OK, 54 files; G0 validator 1217 checks, 0 failures;
+  - `pnpm typecheck` clean; `pnpm verify` 72 files / 1437 tests; port integrity OK, 54 files; G0 validator 1217 checks, 0 failures;
   - SQL role suite: 1908 cases per reset, 2 resets, 670 deliberate regressions detected in all; Python guards: 63 OK; migrations: 50; public functions: 92;
   - `pnpm test:e2e`: 89 passed / 1 failed (WebKit OFFLINE-01) / 75 skipped, run with no Supabase variables (unchanged). Passing the local-stack variables at run time to `next start` makes its middleware send staff routes to sign-in, so do not.
   - `pnpm test:live:checkout`: 11 steps pass (needs `pnpm db:reset`; keys from `pnpm exec supabase status -o env`, the bare `supabase` binary is not on PATH).
@@ -80,6 +80,9 @@ Short status, read at the start of every session. Keep it to one screen.
     and a draw are recorded first, once (a lost reply keeps the id), then the books are read back. A delivery form with a quantity missing, or an item the catalogue does not have, is left to the
     engine to refuse and books nothing. "Books & costs" under All tools (the live form host): the cost basis, correct a delivery cost, download the CSV. The export (the ported system-health
     control) now writes the database's books for the last 13 months as a CSV. Books are read again after an order moves on, a receipt or expense, a stall sale that reached the server.
+  - **Unpaid-orders tracker (added after E1, 2026-10-01):** "Books & costs" opens on "Waiting on payment": every order still owed money, oldest first (no payment yet, a payment claimed but not
+    confirmed, or the balance of a part-paid order), with what is owed, how long it has waited and the total. It is read from the owner's orders already on the phone (no database change); a
+    cancelled order and a no-show owe nothing. Seen in the browser pane: "2 orders · ₱649 still to come in" (HC-1001 ₱260, HC-1002 ₱389), matching the Orders screen. Unit tests with 5 mutations.
   - **Opus review** (database SAFE; the app half was NOT SAFE until fixed): an expense form naming a stock item with no quantity was booked on the database while the engine told her no (the cost
     counted twice when she entered it again); the latest correction was chosen by the phone's clock, not the save order; the drop-close toast claimed revenue was booked at 0; cost when used
     fell back to a LATER delivery's price. All fixed with tests (a SQL case and a mutation for each database fix).
@@ -88,9 +91,9 @@ Short status, read at the start of every session. Keep it to one screen.
     is costed at 0. (3) The retry ids live in memory: a reload loses them, so re-entering an expense whose reply was lost can record it twice; two identical entries while one is unconfirmed merge.
     (4) A stall sale or event expense that exists only on the phone (not synced) is not in the books until it syncs. (5) Renaming an expense category changes only the local ledger. (6) Voids and
     drawer variance are read through `get_books` but not covered by a case. (7) Wording is PLACEHOLDER (`BOOKS_COPY`). (8) The 30-day P&L window is the engine's rolling 30 days over the fetched 35.
-  - **Evidence:** `pnpm verify` 72 files / 1432 tests; SQL role suite 1908 cases per reset, 2 resets, 670 regressions detected (books.sql 101 cases, 37 per reset); mutations: 20 on the
+  - **Evidence:** `pnpm verify` 72 files / 1437 tests; SQL role suite 1908 cases per reset, 2 resets, 670 regressions detected (books.sql 101 cases, 37 per reset); mutations: 20 on the
     books' unit tests (the ones that survived a first run were strengthened); the closing gates are listed below.
-  - **Gates, all exit 0 in this session:** `pnpm verify` 72 files / 1432 tests; Python guards OK; G0 validator 1217 checks, 0 failures; port integrity OK (54 files); `pnpm build`, `test:pages:spike`,
+  - **Gates, all exit 0 in this session:** `pnpm verify` 72 files / 1437 tests; Python guards OK; G0 validator 1217 checks, 0 failures; port integrity OK (54 files); `pnpm build`, `test:pages:spike`,
     `test:workers:spike` pass; `pnpm test:e2e` 89 / 1 (OFFLINE-01 WebKit) / 75; `test:live:checkout` 11 steps; SQL role suite 1908 cases per reset, 2 resets, 670 regressions (the suite's same-day
     order case fails between 23:00 and midnight Manila time: a time-of-day dependence that is not E1's).
   - **Visual QA in the browser pane** (live-mode build, local test owner; a paid order, a refunded order, a stall sale, a costed delivery and 300 g of it used in the database): Home showed
