@@ -1,0 +1,56 @@
+{
+  "date": "2026-10-02",
+  "scope": "Codex-only local encrypted database backup and restore drill",
+  "source": {
+    "kind": "local Supabase CLI database",
+    "cli_version": "2.116.0",
+    "postgres_image": "public.ecr.aws/supabase/postgres:15.8.1.085",
+    "included_schemas": ["public", "auth"],
+    "dump_components": ["roles", "schema", "data"]
+  },
+  "backup": {
+    "status": "PASS",
+    "cipher": "AES-256-GCM",
+    "encrypted_archive_sha256": "24fec8d081870e055b62ef1134e68364be049b7a73d25c1dfe46a52c297f4756",
+    "plaintext_sha256": "d8b21192034d4d8962c040d07029d418a6c731d3070acc0e4e954ca8e88de83b",
+    "verified_after_write": true,
+    "output_location": "outside repository; removed after ACL verification"
+  },
+  "negative_tests": {
+    "status": "PASS",
+    "cases": ["wrong key", "tampered ciphertext", "truncated archive", "malformed archive", "non-loopback restore URL"]
+  },
+  "restore": {
+    "status": "UNPROVEN",
+    "target": "new labeled loopback disposable container; removed after drill",
+    "attempts": [
+      {
+        "attempt": 1,
+        "change_before_attempt": "initial restore implementation",
+        "result": "FAIL",
+        "sanitized_error": "role supabase_realtime_admin does not exist"
+      },
+      {
+        "attempt": 2,
+        "change_before_attempt": "one attempted fix: bootstrap referenced supabase_* roles as NOLOGIN",
+        "result": "FAIL",
+        "sanitized_error": "supabase_realtime_admin is a reserved role, only superusers can modify it"
+      }
+    ],
+    "fix_attempts": 1,
+    "row_count_comparison": "NOT RUN",
+    "row_hash_comparison": "NOT RUN",
+    "foreign_key_validation": "NOT RUN"
+  },
+  "boundaries": {
+    "included": "database objects and rows from public and auth schemas, plus CLI role dump",
+    "excluded": ["Storage object bytes", "Auth provider configuration and API keys", "Edge Functions", "Realtime settings", "other project configuration"],
+    "hosted_writes": false,
+    "schedule_activated": false,
+    "plaintext_or_key_in_receipt": false
+  },
+  "cleanup": {
+    "owned_restore_container_removed": true,
+    "temporary_plaintext_and_test_archives_removed": true
+  }
+}

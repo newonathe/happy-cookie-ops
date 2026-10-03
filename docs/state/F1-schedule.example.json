@@ -1,0 +1,12 @@
+{
+  "enabled": false,
+  "activationRequires": "Ethan approves the target project, secret custody, off-device destination, retention and proven restore drill",
+  "timezone": "Asia/Manila",
+  "jobs": [
+    { "job": "backup", "cronUtc": "0 0 * * 1", "localTime": "Monday 08:00", "command": "node scripts/f1-backup.mjs backup --out OPERATOR_OFF_DEVICE_DESTINATION", "reportSuccessAfter": "Ciphertext is authenticated and copied off-device; restoration has been proven separately" },
+    { "job": "keepalive", "cronUtc": "0 0 * * *", "localTime": "Daily 08:00", "command": "node scripts/f1-operations.mjs keepalive --hosted-approved" },
+    { "job": "retention", "cronUtc": "0 18 * * *", "localTime": "Daily 02:00", "command": "node scripts/f1-operations.mjs retention --hosted-approved" }
+  ],
+  "operatorEnvironment": ["F1_BACKUP_KEY", "F1_BACKUP_SOURCE", "F1_SUPABASE_URL", "F1_SERVICE_KEY"],
+  "note": "Preparation only. No scheduler consumes this file; no hosted calls or timer registration have occurred. Archive-expiry and failure delivery remain to be configured before activation."
+}

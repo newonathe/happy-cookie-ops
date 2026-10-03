@@ -1,0 +1,20 @@
+{
+  "status": "passed",
+  "scope": "F1 operations status RPC and fixed one-year retention SQL role proof; local disposable PostgreSQL only",
+  "cases_per_reset": 1922,
+  "resets": 2,
+  "matrix_equal": true,
+  "rollback_verified": true,
+  "regressions_detected": 684,
+  "operations_cases": 14,
+  "operations_mutations": 7,
+  "function_inventory": 94,
+  "database_types_sha256": "ba45e040011f13558ac4f93ca8fa051a01038c8748ff421b49ca47d1afcc42b4",
+  "sha256": {
+    "migration": "74d5c9ab19cc93cffb2a170eddb53d419216ce5965d1b8419f89db1920d9183c",
+    "operations_sql": "6204a8b9974b3c51effd289e441a5cda90981c30b9bfb021a720cc66d90e3c44",
+    "security_harness": "aca9c94e7371cd4465a2821cf6556e507aff22b801e7f8b168024f6994b31a24",
+    "function_authority": "2a484e9c3c4553b0c0617a3fc19d67fd17b10d3edfb99f19091e7d0b1e7b5ee9",
+    "source_pins": "8b804212a3682c6f462b0a9233c8cf4d52050699afa87974913df19894f17cee"
+  }
+}

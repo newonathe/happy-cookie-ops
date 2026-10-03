@@ -1,0 +1,137 @@
+{
+  "date": "2026-10-03",
+  "status": "accepted_locally",
+  "scope": "F1 local acceptance; hosted activation and physical-device trials remain separate",
+  "toolchain": {
+    "node": "24.20.0",
+    "pnpm": "9.12.3"
+  },
+  "verify": {
+    "exitCode": 0,
+    "files": 77,
+    "tests": 1462,
+    "portFiles": 54
+  },
+  "restore": {
+    "receipt": "F1-backup-20261003.json",
+    "tables": 61,
+    "rows": 236,
+    "foreignKeys": 55,
+    "countsHashesMatch": true,
+    "zeroOrphans": true,
+    "atomicRollback": true,
+    "ownedCleanup": true,
+    "finalF1SchemaIncluded": true
+  },
+  "sql": {
+    "receipt": "F1-operations-sql.json",
+    "casesPerReset": 1922,
+    "resets": 2,
+    "mutantsDetected": 684,
+    "currentSourceAndTypeHashesVerified": true
+  },
+  "unitMutations": {
+    "previous": 16,
+    "authParser": 4,
+    "total": 20,
+    "temporarySourcesRestored": true
+  },
+  "otherGates": {
+    "pythonGuards": 63,
+    "g0Checks": 1217,
+    "g0Failures": 0,
+    "g0UnknownProgressIdRejected": true,
+    "normalBuild": "PASS",
+    "liveStaticBuild": "PASS",
+    "pagesEmulator": "PASS",
+    "workersEmulator": "PASS",
+    "liveCheckoutSteps": 11
+  },
+  "e2e": {
+    "passed": 89,
+    "failed": 1,
+    "skipped": 75,
+    "exitCode": 1,
+    "knownFailure": "WebKit OFFLINE-01",
+    "evidence": "unchanged demo/offline full-suite run reused; no claim of a green E2E suite"
+  },
+  "visual": {
+    "browser": "headless Chromium",
+    "viewports": [
+      "390x844",
+      "1440x900"
+    ],
+    "screenshots": 11,
+    "allScreenshotsInspected": true,
+    "checks": [
+      "Actual absent operational records remain red.",
+      "A real missing-backup alert navigates to System health.",
+      "The desktop missing-backup alert also navigates to System health.",
+      "Synthetic technical job records verify the success rendering; they are not real protection evidence.",
+      "Both widths show the failed latest backup and the live privacy notice without horizontal page overflow."
+    ],
+    "cleanup": "PASS",
+    "syntheticSuccessRecordsAreNotProtectionEvidence": true
+  },
+  "reviews": {
+    "sqlMoneyOffline": "prior bounded independent Sol review reused; no remaining P1/P2",
+    "protectedPort": "independent final port audit PASS; no protected source or baseline changed",
+    "backupRepair": "independent Luna review PASS after receipt gap fix; extraction delta PASS"
+  },
+  "boundaries": {
+    "hostedWrites": false,
+    "schedulesActivated": false,
+    "deployed": false,
+    "merged": false,
+    "offDeviceCustodyConfigured": false,
+    "archiveExpiryConfigured": false,
+    "physicalPhoneTested": false
+  },
+  "publication": {
+    "status": "code_committed_and_pushed",
+    "branch": "agent/codex/MP-04-g1-feasibility",
+    "codeHead": "3a4ba02cfd3dab098c08bc71094b2569c0f1ee22",
+    "commits": [
+      {
+        "commit": "699be4ee9c75c4cc39046b67371d0e2d40362e54",
+        "message": "chore(toolchain): pin Windows verification and Webpack builds",
+        "changedLines": 7,
+        "verifyExitCode": 0
+      },
+      {
+        "commit": "e7f97b603e96afd1844e8d69a299a18ae625c6ba",
+        "message": "feat(operations): record job health and prune one-year personal data",
+        "changedLines": 411,
+        "verifyExitCode": 0
+      },
+      {
+        "commit": "7833c73ab9a0275df686f8dbc77c5fc048b434eb",
+        "message": "feat(health): load operational results and show live privacy notice",
+        "changedLines": 363,
+        "verifyExitCode": 0
+      },
+      {
+        "commit": "edc9834af896e4a2dbe9e2f1b04234925c82991a",
+        "message": "feat(runtime): drive health and alerts from live operation data",
+        "changedLines": 404,
+        "verifyExitCode": 0
+      },
+      {
+        "commit": "3ea37d9acba2e6ce2bfd73835150aec53f47a5eb",
+        "message": "feat(backup): encrypt complete database dumps with guarded restore",
+        "changedLines": 290,
+        "verifyExitCode": 0
+      },
+      {
+        "commit": "3a4ba02cfd3dab098c08bc71094b2569c0f1ee22",
+        "message": "test(operations): prove restore fidelity and guard operator commands",
+        "changedLines": 410,
+        "verifyExitCode": 0
+      }
+    ]
+  },
+  "secretScan": {
+    "status": "PASS",
+    "scope": "credential-pattern scan of all F1 changed/untracked nonignored files; no credential values logged"
+  }
+}

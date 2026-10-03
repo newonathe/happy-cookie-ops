@@ -1397,3 +1397,51 @@ The first two-worker visual comparison passed 73 and timed out during page setup
 Stop at G0. The next product work follows G1/MP-04 onward and its decision gates; routing and offline fixes require their assigned packages. See [continuation](continuation.md). Keep preview fixtures isolated and use a fresh reviewed origin for eventual production. No further owner setup is needed for the current demo; future database/hosting decisions are not silently settled by this preview.
 
 > **Current environment note:** Docker recovered for MP-06d; both owned SQL/type fixtures and cleanup pass. Earlier c5 daemon failure remains historical evidence. See [recovery evidence](evidence/MP-06d-environment.json). No image/volume/data reset.
+
+
+## Preserved checkpoint before F1 (2026-10-03)
+
+- **2026-10-01 (E1, finish-plan slice E1, done in one goal after all):** the owner's books. Decisions (Ethan, 2026-09-30): the cost rule is **both, with a setting** (default: when bought);
+  revenue is dated **when the order was paid**; draws and the drop close-out stay in live mode.
+  - **Database:** migration `20260101004900`. `orders.paid_at` / `refunded_at` (stamped by a trigger, so the paid tick, settle and refund RPCs are unchanged; backfilled from `updated_at`
+    without bumping it). Owner-only `get_books(from, to)` (revenue: each order at `paid_at`, stall sales; refunds; expenses; draws; the cost basis; the deliveries of the last 90 days that
+    can be corrected), `record_expense` (her categories including wages; exact keys; idempotent on a client id; the category "Owner draw" is refused), `record_draw` (kept apart: never an
+    expense, profit does not move), `record_cost_correction` (a wrong delivery cost is answered by a correcting entry, nothing is edited; `get_last_paid` and the cost of stock used read the
+    corrected cost; the latest correction is the one saved last), `set_cost_basis`. Cost **when used** = stock used or wasted x the price per unit of the latest costed receipt up to that moment
+    (0 before any: a later delivery never reprices a reported period); the receipts' own cost lines are then not costs. New tables have no API grant. Suite `books.sql` (101 cases).
+  - **App (live mode, no protected-markup or engine edit):** the P&L, Home profit and the expense list read the database's books (`state.ledger` is REPLACED on every read, never added to; the
+    engine's own count of the open drop's orders returns 0 so paid orders are not counted twice; closing a drop says its orders are already in the P&L). A plain expense (no stock item named)
+    and a draw are recorded first, once (a lost reply keeps the id), then the books are read back. A delivery form with a quantity missing, or an item the catalogue does not have, is left to the
+    engine to refuse and books nothing. "Books & costs" under All tools (the live form host): the cost basis, correct a delivery cost, download the CSV. The export (the ported system-health
+    control) now writes the database's books for the last 13 months as a CSV. Books are read again after an order moves on, a receipt or expense, a stall sale that reached the server.
+  - **Unpaid-orders tracker (added after E1, 2026-10-01):** "Books & costs" opens on "Waiting on payment": every order still owed money, oldest first (no payment yet, a payment claimed but not
+    confirmed, or the balance of a part-paid order), with what is owed, how long it has waited and the total. It is read from the owner's orders already on the phone (no database change); a
+    cancelled order and a no-show owe nothing. Seen in the browser pane: "2 orders · ₱649 still to come in" (HC-1001 ₱260, HC-1002 ₱389), matching the Orders screen. Unit tests with 5 mutations.
+  - **Opus review** (database SAFE; the app half was NOT SAFE until fixed): an expense form naming a stock item with no quantity was booked on the database while the engine told her no (the cost
+    counted twice when she entered it again); the latest correction was chosen by the phone's clock, not the save order; the drop-close toast claimed revenue was booked at 0; cost when used
+    fell back to a LATER delivery's price. All fixed with tests (a SQL case and a mutation for each database fix).
+  - **Recorded, not fixed:** (1) money given back through a settle after a cheaper swap lowers `paid_cents`, so the first-paid date's revenue shrinks and no refund line appears; a dearer balance
+    lands on the first-paid date (revenue date = when first paid). (2) Under "used", stock counts (shrinkage) and adjustments never become costs, and the part of a use that stock could not cover
+    is costed at 0. (3) The retry ids live in memory: a reload loses them, so re-entering an expense whose reply was lost can record it twice; two identical entries while one is unconfirmed merge.
+    (4) A stall sale or event expense that exists only on the phone (not synced) is not in the books until it syncs. (5) Renaming an expense category changes only the local ledger. (6) Voids and
+    drawer variance are read through `get_books` but not covered by a case. (7) Wording is PLACEHOLDER (`BOOKS_COPY`). (8) The 30-day P&L window is the engine's rolling 30 days over the fetched 35.
+  - **Evidence:** `pnpm verify` 72 files / 1437 tests; SQL role suite 1908 cases per reset, 2 resets, 670 regressions detected (books.sql 101 cases, 37 per reset); mutations: 20 on the
+    books' unit tests (the ones that survived a first run were strengthened); the closing gates are listed below.
+  - **Gates, all exit 0 in this session:** `pnpm verify` 72 files / 1437 tests; Python guards OK; G0 validator 1217 checks, 0 failures; port integrity OK (54 files); `pnpm build`, `test:pages:spike`,
+    `test:workers:spike` pass; `pnpm test:e2e` 89 / 1 (OFFLINE-01 WebKit) / 75; `test:live:checkout` 11 steps; SQL role suite 1908 cases per reset, 2 resets, 670 regressions (the suite's same-day
+    order case fails between 23:00 and midnight Manila time: a time-of-day dependence that is not E1's).
+  - **Visual QA in the browser pane** (live-mode build, local test owner; a paid order, a refunded order, a stall sale, a costed delivery and 300 g of it used in the database): Home showed
+    Profit ₱1,180 (revenue ₱1,600, expenses ₱420); the P&L showed Revenue ₱1,600 (Drops ₱1,300, Bazaar ₱300), Refunded ₱500, Ingredients ₱420; "Record expense" of ₱500 under Helper wages
+    (one row in the database) made it Profit ₱680 and survived a reload; the drill-down listed "Week 1 wages ₱500" and "Bread flour · Landers ₱420" (total ₱920); "Books & costs" corrected the
+    delivery to ₱400 (a +₱20 adjusting entry, nothing edited); "When used" made the P&L Profit ₱980 (Ingredients ₱120 = 300 g at the corrected ₱0.40/g); the CSV (read in the page) had one row per
+    line with the basis. Not looked at on screen: a phone-width pass, the Home card under "used", an offline state.
+
+## F1 in-progress checkpoint before local acceptance — 2026-10-03
+
+
+- **2026-10-03 (F1, Codex only, IN PROGRESS; not accepted):** local implementation exists for encrypted database dumps, service-only operation receipts, a fixed 365-day retention routine, live System health/alerts and the live shop privacy notice. No protected screen/shell/engine or applied migration edited. No hosted operation, schedule activation or deployment.
+  - **Verified:** `pnpm verify` 76 files/1,456 tests; SQL role suite 1,922 cases/reset across two fresh resets, identical matrices, 684 deliberate regressions detected, rollback and disposable cleanup passed. Generated types and authority/source pins updated. Python guards 63 passed; G0 validator 1,217 checks/0 failures (historical receipt churn reverted); port integrity 54 files. Normal build passes with the explicit Webpack build command. Live Pages and Workers emulator checks pass; shop hydration has zero CSP violations/JavaScript errors after disabling Zod's eval probe before schema construction. E2E remains 89 passed/1 failed/75 skipped (known WebKit OFFLINE-01). Sixteen unit mutations detected; final port audit and dismissal-preservation test pass.
+  - **Restore PASS after explicit renewal:** all 60 tables/254 rows across `public`, `auth` and `hco_private` match source counts and hashes; all 55 foreign keys match, validate and have zero orphans. Atomic rollback, wrong-port sentinel probes and exact owned cleanup passed. The CLI excludes Auth migration history; an additional read-only dump now preserves those rows. No off-device copy or hosted backup-health success is claimed. See [backup receipt](evidence/F1-backup-20261003.json), [SQL receipt](evidence/F1-operations-sql.json), [operations guide](F1-operations.md) and [checkpoint](F1-checkpoint.md).
+  - **Independent review:** bounded Sol review found no remaining P1/P2 code defect after correcting false backup-success reporting, target binding, Windows containment, privacy wording and post-enqueue health-read failures. Acceptance still requires recovery proof. Final port review passes; headless live health/alerts/privacy visual QA and live-checkout gate remain outstanding; no F1 completion/commit/push claimed.
+  - **Continue F1, not F2.** Stop-budget reconciliation and latest gate output are in F1-checkpoint.md. Hosted activation and schedule activation still need Ethan's approval after a concrete, reviewed local result.
+  - **Latest verify rerun exited 1:** port/engine/typechecks/lint passed; 75 test files / 1,455 tests passed, with one 5-second timeout at `tests/unit/sync-unavailable.test.ts:15`. Earlier green verify remains historical evidence; the latest gate is not green. No retry after the exhausted restore budget.

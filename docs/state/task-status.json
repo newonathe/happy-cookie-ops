@@ -3,6 +3,16 @@
   "progress_authority": "docs/state/task-status.json",
   "catalog_role": "planned scope only; generated files retain historical planned status",
   "packages": {
+    "F1": {
+      "status": "complete",
+      "slices": {
+        "local_implementation": "Accepted locally 2026-10-03: operations receipts, 365-day retention, real health/alerts/privacy, encrypted dump with complete isolated recovery; protected sources unchanged",
+        "sql": "verified on two fresh disposable resets: 1922 cases/reset, identical matrices, 684 deliberate regressions detected; types and authority pins updated",
+        "recovery": "PASS final F1 schema: 61 tables/236 rows across public/auth/hco_private match counts and hashes; 55 validated FKs match with zero orphans; atomic rollback and exact owned cleanup pass; off-device custody remains unconfigured",
+        "acceptance": "Local checks pass: verify 77 files/1462 tests; Python 63; G0 1217/0 failures; SQL 1922x2/684 mutants; 20 unit mutations; builds/emulators and 11 checkout steps pass; 11 phone/desktop screenshots inspected. E2E known WebKit OFFLINE-01 remains 89/1/75. Commit/push in progress; no hosted activation. All six accepted code slices committed and pushed; F2 is next; hosted jobs remain inactive."
+      },
+      "evidence": "docs/state/evidence/F1-acceptance.json; F1-backup-20261003.json; F1-operations-sql.json; F1-checkpoint.md"
+    },
     "MP-00": {
       "status": "complete",
       "slices": {
