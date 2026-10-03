@@ -8,12 +8,14 @@
       "approved_finish_plan_name": "F2: owner trial",
       "slices": {
         "preparation": "2026-10-03: practical seven-day Cine checklist, actual-phone rehearsal and dated fix ledger prepared; concrete local preparation only",
-        "local_qa": "Fresh pinned build/verify pass (77 files/1462 tests); full E2E 89 pass/1 WebKit OFFLINE-01 fail/75 skip, exit 1; 47 headless phone/desktop captures inspected; unresolved protected P&L caption F2-002",
+        "local_qa": "Pinned build/verify PASS (77 files/1464 tests); full E2E89/1/75 FAIL; selected nonzero SQL684x2 PASS rollback/cleanup. Two new demo captions inspected; fresh live UI/CSV and live-caption visuals pending at two-failed-harness-fix checkpoint.",
         "real_week": "Not started or accepted: suitable approved real-data target, Cine owner access, seven recorded dates and feedback remain missing",
         "physical_phone": "Pending actual-device evidence; 24-25 Oct pilot requires BOTH OFFLINE-01 and real-phone PASS by 20 Oct, otherwise current process and 12-13 Dec fallback",
-        "acceptance": "Incomplete; F3 closed, next-goal remains F2. F1 hosted jobs inactive; no deploy, merge, resources, imports or runner"
+        "acceptance": "Incomplete; two external live-harness corrections failed before mutations, so further debugging stopped. F3 closed/next-goal F2; no hosted writes/deploy/resources/jobs/merge/import/runner.",
+        "technical": "2026-10-03: provisional live rolling-period caption code patch; exact protected reversal/port audit pass; WebKit emulation defect isolated with minimal SW and origin-stopped controls; original OFFLINE-01 remains FAIL.",
+        "target": "Dedicated isolated Supabase + fresh Workers trial origin proposed; static config prepared. Existing September27 release/RPC incompatibility inspected read-only; hosted/account/data-scope approval pending."
       },
-      "evidence": "docs/state/F2-owner-trial.md; F2-fix-list.md; F2-checkpoint.md; evidence/F2-trial.json"
+      "evidence": "docs/state/F2-owner-trial.md; F2-fix-list.md; F2-checkpoint.md; evidence/F2-trial.json; docs/state/F2-trial-setup.md"
     },
     "F1": {
       "status": "complete",

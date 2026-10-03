@@ -1,58 +1,94 @@
-# F2 / MP-26 trial checkpoint — 2026-10-03
+# F2 / MP-26 technical checkpoint — 3 October 2026
 
-Status: local preparation accepted by independent Sol/high review; real-week acceptance **incomplete**. F3 remains closed and next-goal stays F2.
+**Incomplete; stopped at the two-failed-harness-repair boundary.** Real-week acceptance
+and physical-phone evidence remain pending. F3 is closed; next-goal stays F2. Reuse local
+preparation `d34bff9`, [Cine's checklist](F2-owner-trial.md) and verified F1 evidence.
+No repository audit or checklist rebuild was performed.
 
-## Deliverables and authority
+## Concrete results
 
-Read the whole next-goal.md; finish-plan.md sections 6 and 10 govern this package.
-[Cine checklist](F2-owner-trial.md) provides seven dated daily records, scenario outcomes, reconciliation, feedback and actual-device rehearsal.
-[Fix ledger](F2-fix-list.md) records current reproductions, severity, absent Cine feedback and unresolved dispositions. No app fix is claimed.
-[Receipt](evidence/F2-trial.json) separates local preparation, automated QA, physical-device proof and owner acceptance.
+- F2-001: the trace/full E2E locate failure after the durable pending sale, at WebKit
+  offline reload. Framework-free HTML/cache-first SW controls confirm a controller and
+  exact cached routes: Chromium online/offline reload/navigation passes; WebKit online
+  passes but offline emulation gives the same internal error. With the origin stopped,
+  both return 200 from SW. This strongly isolates Playwright/WebKit offline emulation,
+  corroborated by [upstream issue 42775](https://github.com/microsoft/playwright/issues/42775).
+  No app/SW/queue/test source changed. Original OFFLINE-01 stays failing; this diagnosis
+  does not prove actual Safari/PWA behavior or waive the pilot gate.
+- F2-002: a **provisional local source patch** changes only the live caption to `Profit · `
+  plus the existing rolling 30-day `pl.periodText`. Demo retains August; styles/layout/
+  interactions unchanged. Type declaration, two cross-month/demo tests, exact protected
+  reversals and one AST hash accompany it. Independent code/port review passes, but live
+  visual QA remains pending. **This slice is not accepted/complete and stays uncommitted.**
+  The patch is saved outside Git as `F2-provisional-caption.patch` and in the working tree.
+- [Trial setup proposal](F2-trial-setup.md): dedicated isolated Supabase trial database and
+  fresh Workers origin, architecture A. Prepared static config at
+  `spikes/owner-trial/wrangler.jsonc` has no jobs/bindings/secrets. Begin with rehearsal;
+  real-week order use needs approved customer/data/payment scope and shop access. There
+  is no owner-side manual order-entry feature.
+- Read-only preview inspection: Workers version `2697ca3e-0680-4448-afd5-3c8500ff3461`
+  is from September 27; six current public RPC probes return `404/PGRST202`. Signup is
+  now disabled, superseding the old observation. Privileged schema inventory and Cine
+  access remain unverified; neither preview is established as a current trial target.
 
-User delegated technical selection on 2026-10-03 and asked to finish quickly. Codex can prepare and select a proposal; that statement supplies neither Cine's actual operation/feedback nor approval to deploy/create resources. No passwords or keys were requested in chat.
+## Verification and limits
 
-## Existing URLs and trial target
+Pinned Node 24.20.0 / pnpm 9.12.3; headless command-line Playwright only.
+New external evidence directory:
+`C:/Users/ethan/.codex/visualizations/2026/10/03/01a100c5-8e04-78f1-8839-a28fd619a44e/`.
+The [receipt](evidence/F2-trial.json) retains earlier preparation evidence separately.
 
-- Existing Workers preview: `https://happy-cookie-preview.admin-kethai.workers.dev`.
-- Existing protected Vercel demo: `https://happy-cookie-ops-demo-m0wbduoz7-newonathes-projects.vercel.app`.
-- Read-only HTTP probes returned 200 for both. Response reachability does not prove authenticated app operation. Web fetch could not inspect either; no hosted browser or signed-in test ran.
-- Current-history.md records Workers as synthetic/fake catalogue with the historical 28-migration snapshot; Vercel is a manually deployed demo. Neither is established as a current real-data trial target. Do not use real customers/payments there based on this preparation.
-- Selected local QA targets: current standalone demo and existing current live static export served on loopback against local Supabase. A short-lived synthetic owner and technical health fixtures were removed after QA. No reset, migration, real transaction or hosted write occurred.
-- Before real use, Ethan must approve a suitable target and permitted data scope and arrange Cine's owner-role access. Technical configuration is Codex's responsibility; Cine's completed week and device record must come from her actual use.
+| Check                                          | Result                                                                                                                              |
+| ---------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Production build                               | PASS, exit 0; `F2-build.log`                                                                                                        |
+| `pnpm.cmd verify`, including provisional patch | PASS, exit 0; 77 files / 1,464 tests, both typechecks/lint/54-file port/engine; `F2-verify.log`                                     |
+| Caption regression file                        | PASS, 24 tests; September/October, October/November and unchanged demo literal                                                      |
+| G0 reversals/original bytes                    | PASS, 1,219 checks / zero failures; external `F2-g0-validation.json`; generated historical churn restored                           |
+| Full E2E                                       | FAIL, exit 1; 89 passed / 1 failed / 75 skipped; unchanged WebKit OFFLINE-01; `F2-e2e.log`, copied trace                            |
+| Nine nonzero SQL role/RPC suites               | PASS, 684 assertions per fresh reset × 2; rollback/disposable cleanup; `F2-disposable-workflows.json`, `F2-workflow-bootstrap.json` |
+| New demo visuals                               | Two phone 390×844 / desktop 1440×900 captures individually inspected; no overflow; `F2-caption-demo.json`                           |
+| Fresh live transactions/CSV/caption visuals    | INCOMPLETE; wrapper failed read-only preflight before checkout or mutations                                                         |
 
-## Local evidence
+Fresh SQL scenarios verify publication, shop window/override, payment/status transitions,
+stock movements, production/packing/waste, expenses/books, replay/void/close-out and health
+permissions. They do not prove every browser button or CSV download. F1's accepted
+11-step checkout, broad SQL/recovery and earlier F2's 47 inspected captures remain historical
+evidence. Windows pixel baselines were not regenerated; no physical device was tested.
 
-Pinned Node 24.20.0 / pnpm 9.12.3. Evidence directory outside Git:
-`C:/Users/ethan/.codex/visualizations/2026/10/03/01a10096-15fb-7a83-99bc-be8b53ce2c03/`.
+## Stop, review and publication
 
-G0 continuity also passes: 1,217 checks / zero failures, exit 0; MP-26 is an accepted historical task ID. External `F2-g0-validation.json` preserves the run; generated historical receipt churn was restored after preservation.
+Initial caption verify found the already-produced period absent from `OpsVals`; the bounded
+type correction passed verify. Initial date-format expectations were corrected to the
+existing formatter. Ambient shared SQL attempts encountered fixture setup differences;
+fresh disposable suites supply accepted proof. Shared transactions closed on error.
 
-| Gate                     | Result and file                                                                                                                                                                                      |
-| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Production build         | PASS, exit 0; `F2-build.log`                                                                                                                                                                         |
-| Full `pnpm.cmd verify`   | PASS, exit 0; 77 files / 1,462 tests, both typechecks/lint; port 54 files, engine 49 exports / 21 settings / 38 tables; `F2-verify.log`                                                              |
-| Full `pnpm.cmd test:e2e` | **FAIL**, exit 1; 89 passed / 1 failed / 75 skipped; WebKit OFFLINE-01 internal reload error, `F2-e2e.log`; skipped SQL parity cases are not positive SQL evidence                                   |
-| Headless live Chromium   | Capture checks PASS, 37 screenshots; 13 owner/public route layouts at both widths plus missing/success/failed health, alert navigation and privacy; `F2-visual.json`, `F2-live-visual-run2.log`      |
-| Headless demo Chromium   | Capture checks PASS, 10 screenshots; order/checkout/status/production/bazaar at both widths; `F2-demo-visual.json`, `F2-demo-visual.log`                                                             |
-| Human image inspection   | All 47 captures inspected via ten contact sheets. No horizontal page overflow or screen-error fallback observed. P&L caption mismatch logged as F2-002; this is not an unqualified visual acceptance |
-| F1 schedule config       | `F1-schedule.example.json` still `enabled:false`, unchanged; no jobs activated                                                                                                                       |
+Luna's external live wrapper encountered an environment-variable/parser problem, then
+failed to establish an exact local order-sequence snapshot. It stopped after two repair
+attempts before checkout, owner creation or mutation. No further debugging in this run.
+Its unaccepted external script is retained; review its preflight **and cleanup** before
+execution. No fresh browser transaction/CSV success is claimed.
 
-Demo captures use the G0 synthetic fixture and engine-forced navigation; checkout has an empty cart and bazaar shows the event chooser. They prove those visible layouts only. Live captures use existing synthetic local records; they do not prove every action, successful sale, CSV transaction or live checkout. Unchanged F1 source/SQL/recovery/live-checkout proof is reused without claiming a fresh SQL or transaction run. Windows captures are not accepted Docker pixel baselines; none were regenerated.
+Independent coordination/review (Sol/high requested) and port-auditor code/reversal review
+are in the receipt. Root runtime did not switch; actual delegated runtime model was not
+independently verified. A brief peak of three active children during final read-only port
+follow-up exceeded the two-worker ceiling; recorded in the receipt. The
+implementation/port workers finished and no further delegation occurred.
 
-Physical phone, Safari/PWA, actual-owner access, real-week checklist, feedback and acceptance are **pending**. Headless Chromium at 390×844 is computer proof only. Failure trace stays in ignored `test-results/`; a durable copy is retained in the external evidence directory.
+Only accepted checkpoint/proposal/config documents are committed/pushed after secret scan
+and verification hook. Caption source/type/tests/exception/AST/reversals remain local until
+live visual acceptance. No merge, deployment, hosted writes/resources/jobs, import,
+legal/accounting decision or automatic runner. F1 hosted schedules remain inactive.
 
-## Reproductions, review and publication
+## Resume gates
 
-- F2-001 remains the known WebKit blocker. No runtime/SQL/offline or protected-source fix attempted; queue acknowledgment rules are unchanged.
-- F2-002 is a reproduced misleading caption in locked markup; an exact approved exception and independent port audit are needed before a patch. No ledger arithmetic defect is asserted.
-- First live harness invocation failed before any database mutation because its copied receipt filename said F2-backup. Corrected the external-only path to the existing F1 receipt; second invocation passed and owned cleanup passed. No app repair failed.
-- Codex only: requested Sol/high planning and independent local-preparation sign-off; Luna/medium checklist writer, at most two child workers, no grandchildren or paid fallback. Root model was not changed by delegation.
-- Stop tracking: current user-triggered goal turn, zero app fix attempts/failed app fixes. Two failed fixes or 25 goal turns requires checkpoint/stop; this does not authorize looping while waiting for owner evidence.
-- Independent Sol/high review accepts local preparation only; corrected a stale pending-run sentence and clarified that the app is the operating record, with the old sheet as archive/fallback. No remaining documentation blocker. Credential-pattern secret scan PASS for six changed/new files. Publication authority is the Git commit containing this checkpoint plus external `F2-commit.log`, `F2-push.log` and `F2-publication.json`; no PR, merge, deployment, hosted resource, import, F3 legal/accounting decision or automatic runner occurred.
-
-## Resume and acceptance gate
-
-1. Approve an appropriate real-data target and arrange owner access securely; check that its release/database actually contain the accepted slices before use. Any hosted write/deployment/resource remains a separate explicit approval.
-2. Cine completes all seven dates, scenario results, private evidence references and end-week feedback; record sanitized outcomes in the receipt/checklist. Resolve/retest trial defects with applicable review and gates.
-3. Before 20 October 2026, obtain both a passing OFFLINE-01 result and actual-phone offline rehearsal. Without both, 24–25 October uses current selling/paper process and 12–13 December becomes the pilot. Any D3 early hosted setup needs Ethan's approval at creation/deployment.
-4. Sol/high reviews real-week evidence and required device/issue dispositions; only then mark MP-26 complete and advance next-goal to F3. Prepared paperwork, synthetic QA and AI sign-off cannot satisfy this gate.
+1. New bounded continuation: review failed harness preflight/cleanup, obtain fresh nonzero
+   live browser transaction/CSV proof and live caption at both widths. Obtain independent
+   visual/port acceptance; verify, scan, commit/push the accepted caption slice.
+2. Ethan approves the concrete hosted setup and exact real-trial data/customer/payment
+   scope. Provision secure access and verify release/schema/roles/recovery before use.
+   No hosted action is authorized by this checkpoint.
+3. Cine records seven actual dates, feedback/acceptance and actual Safari/PWA phone rehearsal.
+   By **20 October**, both OFFLINE-01 and phone rehearsal must pass for 24–25 October.
+   Otherwise use today's selling/paper process and move the pilot to 12–13 December.
+4. Only real-week acceptance can complete F2 and open F3. Paperwork, SQL, headless Chromium
+   and AI review cannot satisfy that gate.

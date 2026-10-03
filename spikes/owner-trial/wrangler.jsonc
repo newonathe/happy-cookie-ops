@@ -1,0 +1,13 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  // Prepared locally only. Creation/deployment requires Ethan's explicit approval.
+  // Fresh origin: never attach real-data access to the old demo/preview caches.
+  "name": "happy-cookie-owner-trial",
+  "compatibility_date": "2026-09-08",
+  "workers_dev": true,
+  "preview_urls": false,
+  "assets": {
+    "directory": "../../build/pages-spike/public",
+    "not_found_handling": "none"
+  }
+}

@@ -2,7 +2,7 @@
   "date": "2026-10-03",
   "package": "F2",
   "historicalTask": "MP-26",
-  "status": "local_preparation_accepted_real_week_incomplete",
+  "status": "technical_checkpoint_incomplete_real_week_pending",
   "trialComplete": false,
   "f3MayAdvance": false,
   "checklist": "docs/state/F2-owner-trial.md",
@@ -76,7 +76,11 @@
     "fallbackDates": ["2026-12-12", "2026-12-13"],
     "headlessPhoneIsSeparateProof": true
   },
-  "openIssues": ["F2-001 WebKit OFFLINE-01", "F2-002 protected P&L period caption"],
+  "openIssues": [
+    "F2-001 original WebKit OFFLINE-01 still fails",
+    "F2-002 live-caption visual verification pending",
+    "F2-003 fresh nonzero live browser transactions/CSV proof incomplete"
+  ],
   "review": {
     "planner": "gpt-6-sol/high",
     "checklistWriter": "gpt-6-luna/medium",
@@ -103,5 +107,110 @@
     "files": 6,
     "scope": "Changed and untracked nonignored files, credential-pattern scan; no values logged",
     "receipt": "F2-secret-scan.json"
+  },
+  "technicalRenewal": {
+    "date": "2026-10-03",
+    "baseline": "d34bff9",
+    "privateEvidenceDirectory": "C:/Users/ethan/.codex/visualizations/2026/10/03/01a100c5-8e04-78f1-8839-a28fd619a44e",
+    "outcome": "Checkpoint at two failed external live-harness repair attempts; further debugging stopped. F2 technical readiness and real-week acceptance remain incomplete.",
+    "verify": {
+      "exitCode": 0,
+      "files": 77,
+      "tests": 1464,
+      "log": "F2-verify.log"
+    },
+    "build": {
+      "exitCode": 0,
+      "log": "F2-build.log"
+    },
+    "e2e": {
+      "exitCode": 1,
+      "passed": 89,
+      "failed": 1,
+      "skipped": 75,
+      "green": false,
+      "log": "F2-e2e.log",
+      "failure": "Unchanged WebKit OFFLINE-01 offline page.reload internal error"
+    },
+    "caption": {
+      "status": "provisional_local_patch_not_accepted_live_visual_pending",
+      "period": "Existing rolling last-30-days pl.periodText; original demo August caption preserved",
+      "tests": "Cross-month live periods and demo literal; ops-runtime-books 24 tests pass",
+      "portReview": "Independent port-auditor found no fidelity issue; exact reversals and original delivery hash PASS",
+      "g0": {
+        "checks": 1219,
+        "failures": 0
+      },
+      "visual": "Two new demo phone/desktop screenshots captured and individually inspected; no page overflow. Fresh live caption visual remains pending."
+    },
+    "offline": {
+      "status": "diagnosed_not_resolved",
+      "classification": "Strong evidence of Playwright/WebKit offline emulation defect, not an application-specific or cache-readiness failure",
+      "control": "Minimal HTML/cache-first SW, actual controller and both exact routes cached; Chromium online/offline reload+navigation PASS; WebKit online PASS but setOffline reload+navigation internal error; both origin-stopped reloads return 200 from SW",
+      "upstream": "https://github.com/microsoft/playwright/issues/42775",
+      "receipt": "F2-sw-isolation.json",
+      "repositoryChanges": false,
+      "originalTestUnchanged": true,
+      "physicalPhone": "PENDING"
+    },
+    "workflows": {
+      "receipt": "F2-disposable-workflows.json",
+      "fixtureReceipt": "F2-workflow-bootstrap.json",
+      "suites": 9,
+      "casesPerReset": 684,
+      "resets": 2,
+      "cleanup": "PASS",
+      "proof": "Existing nonzero SQL role/RPC scenarios for publication, shop, staff payment/status transitions, stock, production/waste, books, event replay/void/close-out, operational health. This is SQL proof, not fresh browser transaction/CSV proof.",
+      "reused": "Verified F1 11-step checkout, broad SQL/recovery and original F2 47 inspected captures reused as historical evidence.",
+      "unverified": [
+        "Fresh pay-now/pay-later live UI transaction run",
+        "Fresh live owner payment/packing/collection UI run",
+        "Fresh browser CSV-to-P&L reconciliation",
+        "Fresh live caption phone/desktop visuals"
+      ]
+    },
+    "target": {
+      "proposal": "docs/state/F2-trial-setup.md",
+      "preparedConfig": "spikes/owner-trial/wrangler.jsonc",
+      "inspection": "F2-preview-readonly.json",
+      "existingVersion": "2697ca3e-0680-4448-afd5-3c8500ff3461",
+      "existingReleaseDate": "2026-09-27",
+      "signupDisabled": true,
+      "currentRpcProbes": "Six 404/PGRST202 results; not a privileged schema inventory; reject compatibility",
+      "ownerAccessVerified": false,
+      "hostedApproval": false
+    },
+    "stop": {
+      "goalTurns": 1,
+      "failedExternalHarnessRepairAttempts": 2,
+      "codeRepairAttempts": 1,
+      "codeRepairFailure": "Initial verify typecheck found missing type for already-existing engine periodText; corrected and verify passed",
+      "harnessDetails": "Luna wrapper stopped at read-only local sequence snapshot before checkout, owner creation or mutations. Initial unit date-format oracle also corrected. Ambient shared SQL fixture attempts failed setup; fresh disposable suites provide accepted proof.",
+      "furtherDebuggingStopped": true
+    },
+    "reviews": {
+      "coordination": "Requested gpt-6-sol/high independent coordination/sign-off; root runtime not changed",
+      "port": "Independent port-auditor PASS on code/reversal scope; live visual gap remains",
+      "worker": "gpt-6-luna/medium, external live harness incomplete",
+      "concurrency": "Brief peak of three active child agents during final read-only port follow-up while Sol awaited evidence and live worker ran; two-worker limit was exceeded transiently. Port and live workers now finished; no further delegation."
+    },
+    "boundaries": {
+      "hostedWrites": false,
+      "deployments": false,
+      "hostedResources": false,
+      "schedules": false,
+      "merge": false,
+      "runner": false,
+      "realDataImport": false,
+      "realWeek": false,
+      "physicalPhone": false,
+      "f3MayAdvance": false
+    },
+    "publication": {
+      "scope": "Accepted checkpoint/proposal/configuration only; caption source, type, tests, exception, AST/reversals remain uncommitted pending live visual acceptance",
+      "branch": "agent/codex/MP-04-g1-feasibility",
+      "secretScan": "PASS:13 changed/new files, credential-pattern scan, no findings",
+      "review": "Independent coordinator accepts docs-only checkpoint after wording corrections; Sol/high requested, actual delegated runtime not independently verified. Caption slice withheld until live visual evidence."
+    }
   }
 }
