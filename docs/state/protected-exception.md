@@ -543,3 +543,21 @@ the product changed.
 - **Gates run on the tip (this re-audit):** `pnpm verify` 68 files / 1303 tests; Python guards 63 OK; G0 validator 1217 checks, 0 failures;
   `pnpm build`; `test:pages:spike`; `test:workers:spike`; `test:e2e` 89 passed / 1 failed (WebKit OFFLINE-01) / 75 skipped;
   `pnpm test:live:checkout` 11 steps pass on a freshly reset local stack.
+
+## F1 privacy and operational values (2026-10-03, local verification passed)
+
+The approved F1 goal adds a privacy notice inside `src/components/live/live-shop-footer.tsx`.
+The existing `bareFrame` branch in the protected shop screen selects this live-only footer;
+its demo branch, protected screen markup and port baseline are unchanged. The new paragraph
+uses the footer's existing typography and colours. It names the fields the one-year routine
+clears, retained financial references/records, separate encrypted copies and the usual ordering
+channel for access, correction or removal requests. No registration or compliance claim is added.
+
+`OpsRuntime` supplies actual operational checks, queue status and business alerts to the existing
+screen contracts. It also replaces the inherited demo health summary and tool badges in live
+mode. No protected engine edit is involved. First port contract audit completed; port integrity
+passes all 54 files. Final port review passes after preserving dismissed alerts across ordinary health
+refreshes (focused test and deliberate mutation detected). Headless Chromium visual QA passed on
+390x844 phone and 1440x900 desktop views for missing/success/failed health, alert navigation and
+privacy; all 11 screenshots were inspected. The final-schema recovery drill passes 61 tables and
+55 validated, orphan-free FKs. Physical-device and hosted acceptance remain outside this local proof.

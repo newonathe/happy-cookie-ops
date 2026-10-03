@@ -22,6 +22,7 @@ const { FakeRuntime } = vi.hoisted(() => ({
     loadStockCatalogue = vi.fn();
     loadProduction = vi.fn();
     loadBooks = vi.fn();
+    loadOperationsHealth = vi.fn();
     loadRecipes = vi.fn();
     loadShopStatus = vi.fn();
     reloadShopStatus = vi.fn();
@@ -102,6 +103,7 @@ describe('LiveGate: the flavour list each page loads', () => {
     });
     expect(engine.loadFlavours).toHaveBeenCalledExactlyOnceWith(client);
     expect(engine.loadSettings).toHaveBeenCalledTimes(1);
+    expect(engine.loadOperationsHealth).toHaveBeenCalledWith(client);
     expect(engine.loadShopMenu).not.toHaveBeenCalled();
     expect(engine.loadShopPayment).toHaveBeenCalledExactlyOnceWith(client);
     expect(engine.loadShopOrders).toHaveBeenCalledExactlyOnceWith(client);
@@ -187,11 +189,13 @@ describe('LiveGate: the owner’s orders (B3)', () => {
   it('never reads the orders or the recipes for a helper, or on a customer page', async () => {
     role = 'helper';
     await mount('orders');
+    expect(engine.loadOperationsHealth).not.toHaveBeenCalled();
     expect(engine.loadOrders).not.toHaveBeenCalled();
     expect(engine.loadRecipes).not.toHaveBeenCalled();
     engine = new FakeRuntime();
     role = 'owner';
     await mount('shop');
+    expect(engine.loadOperationsHealth).not.toHaveBeenCalled();
     expect(engine.loadOrders).not.toHaveBeenCalled();
     expect(engine.loadRecipes).not.toHaveBeenCalled();
   });
@@ -212,6 +216,7 @@ describe('LiveGate: the owner’s orders (B3)', () => {
   it('reads them again when the tab comes back, not when it goes away', async () => {
     await mount('orders');
     engine.reloadOrders.mockClear();
+    engine.loadOperationsHealth.mockClear();
     const visibility = async (value: 'hidden' | 'visible') => {
       Object.defineProperty(document, 'visibilityState', { configurable: true, value });
       await act(async () => {
@@ -221,7 +226,9 @@ describe('LiveGate: the owner’s orders (B3)', () => {
     };
     await visibility('hidden');
     expect(engine.reloadOrders).not.toHaveBeenCalled();
+    expect(engine.loadOperationsHealth).not.toHaveBeenCalled();
     await visibility('visible');
     expect(engine.reloadOrders).toHaveBeenCalledOnce();
+    expect(engine.loadOperationsHealth).toHaveBeenCalledWith(null);
   });
 });
