@@ -1,0 +1,107 @@
+{
+  "date": "2026-10-03",
+  "package": "F2",
+  "historicalTask": "MP-26",
+  "status": "local_preparation_accepted_real_week_incomplete",
+  "trialComplete": false,
+  "f3MayAdvance": false,
+  "checklist": "docs/state/F2-owner-trial.md",
+  "fixList": "docs/state/F2-fix-list.md",
+  "checkpoint": "docs/state/F2-checkpoint.md",
+  "privateEvidenceDirectory": "C:/Users/ethan/.codex/visualizations/2026/10/03/01a10096-15fb-7a83-99bc-be8b53ce2c03",
+  "local": {
+    "toolchain": {
+      "node": "24.20.0",
+      "pnpm": "9.12.3"
+    },
+    "build": {
+      "exitCode": 0,
+      "log": "F2-build.log"
+    },
+    "verify": {
+      "exitCode": 0,
+      "files": 77,
+      "tests": 1462,
+      "log": "F2-verify.log"
+    },
+    "e2e": {
+      "exitCode": 1,
+      "passed": 89,
+      "failed": 1,
+      "skipped": 75,
+      "green": false,
+      "failure": "WebKit OFFLINE-01: internal error at offline page.reload(), bazaar-offline.spec.ts:103",
+      "log": "F2-e2e.log",
+      "trace": "F2-OFFLINE-01-webkit-trace.zip"
+    },
+    "visual": {
+      "browser": "headless Chromium",
+      "viewports": ["390x844", "1440x900"],
+      "liveScreenshots": 37,
+      "demoScreenshots": 10,
+      "all47Inspected": true,
+      "captureChecks": "PASS; no horizontal page overflow or screen-error fallback observed",
+      "acceptance": "Open F2-002 caption mismatch; capture success is not complete visual/owner acceptance",
+      "receipts": ["F2-visual.json", "F2-demo-visual.json"],
+      "conditions": "Loopback synthetic owner/existing test records; demo engine-forced G0 fixture layouts, empty checkout cart/event chooser. Not physical-phone or real-week proof, Docker baselines, or fresh all-transaction/CSV acceptance.",
+      "ownedCleanup": "PASS; synthetic owner and technical health records removed"
+    },
+    "reusedF1Evidence": "evidence/F1-acceptance.json; unchanged app/SQL/source, no fresh SQL/recovery/live-checkout acceptance claim",
+    "failedAppFixes": 0,
+    "appFixAttempts": 0,
+    "harnessIncident": "External-only receipt filename typo failed before mutation; corrected path, rerun passed and cleanup passed",
+    "g0": {
+      "checks": 1217,
+      "failures": 0,
+      "exitCode": 0,
+      "receipt": "F2-g0-validation.json; generated historical receipt churn restored after external preservation"
+    }
+  },
+  "owner": {
+    "technicalSelectionDelegated": true,
+    "suitableRealDataTargetApproved": false,
+    "accountAccessVerified": false,
+    "trialStart": null,
+    "trialEnd": null,
+    "sevenDaysRecorded": 0,
+    "cineFeedbackRecorded": false,
+    "acceptanceRecorded": false
+  },
+  "pilot": {
+    "deadline": "2026-10-20",
+    "octoberDates": ["2026-10-24", "2026-10-25"],
+    "offline01": "FAIL_WEBKIT",
+    "physicalPhone": "PENDING_ACTUAL_DEVICE",
+    "mayProceed": false,
+    "fallbackDates": ["2026-12-12", "2026-12-13"],
+    "headlessPhoneIsSeparateProof": true
+  },
+  "openIssues": ["F2-001 WebKit OFFLINE-01", "F2-002 protected P&L period caption"],
+  "review": {
+    "planner": "gpt-6-sol/high",
+    "checklistWriter": "gpt-6-luna/medium",
+    "independentSignoff": "ACCEPT LOCAL PREPARATION ONLY, gpt-6-sol/high, 2026-10-03; two documentation findings corrected and rechecked, no remaining local-preparation blocker",
+    "protectedPort": "No protected files or baselines changed; any future F2-002 fix requires exact approved exception and independent port audit"
+  },
+  "publication": {
+    "branch": "agent/codex/MP-04-g1-feasibility",
+    "evidence": "Git commit containing this receipt and external F2-commit.log / F2-push.log / F2-publication.json are the publication authority; no merge or deployment",
+    "plannedMessage": "docs(trial): prepare F2 owner week and record acceptance blockers"
+  },
+  "boundaries": {
+    "hostedWrites": false,
+    "schedulesActivated": false,
+    "deployed": false,
+    "merged": false,
+    "hostedResourcesCreated": false,
+    "automaticRunner": false,
+    "physicalPhoneTested": false,
+    "f3ImportsOrLegalDecisions": false
+  },
+  "secretScan": {
+    "status": "PASS",
+    "files": 6,
+    "scope": "Changed and untracked nonignored files, credential-pattern scan; no values logged",
+    "receipt": "F2-secret-scan.json"
+  }
+}
