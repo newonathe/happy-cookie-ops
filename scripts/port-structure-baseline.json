@@ -19,7 +19,7 @@
     "src/components/screens/payments.tsx": "ff031c9c222b684032d75f7af5e3b2a4311dee062a62641d08715fb61cbeb320",
     "src/components/screens/production-focus.tsx": "8fba43baa86ca74a5d24ae4c9c4a04efc9b6936ab458e1b3dbd89a7afe014ee3",
     "src/components/screens/products.tsx": "6e41539564f210ed7ede091e4ef9286291c972b21d3c757e6f921e5d69ce7b79",
-    "src/components/screens/profit-and-loss.tsx": "4fe2acc8f8748a9174ba3fdbf2c1a31b94cb9017f40878e7741fcfe76748026d",
+    "src/components/screens/profit-and-loss.tsx": "f9cc09fff240db054245aaae72a7385ad2d6b1add8cfbce6dd503f9aa05cf6a1",
     "src/components/screens/recipes.tsx": "f2fc87d17a90d58a2c3aa5864708208618841be4e52bd78462d77ad97dbb5bf1",
     "src/components/screens/sales-log.tsx": "335a69612e0f5223d7c985bd859b5393fc4cd6c3e4d12a1a9549a2488c228592",
     "src/components/screens/settings.tsx": "a9c21537c601274107ab360460c77e67a35df0d7de1f77b1f0f2b9493bf014f0",

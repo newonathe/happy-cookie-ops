@@ -1,11 +1,11 @@
 # F2 / MP-26 technical checkpoint — 3 October 2026
 
-**Incomplete; stopped at the two-failed-harness-repair boundary.** Real-week acceptance
+**F2 remains incomplete; the local caption continuation is accepted.** Real-week acceptance
 and physical-phone evidence remain pending. F3 is closed; next-goal stays F2. Reuse local
 preparation `d34bff9`, [Cine's checklist](F2-owner-trial.md) and verified F1 evidence.
 No repository audit or checklist rebuild was performed.
 
-## Concrete results
+## Earlier checkpoint results (bdd83f6)
 
 - F2-001: the trace/full E2E locate failure after the durable pending sale, at WebKit
   offline reload. Framework-free HTML/cache-first SW controls confirm a controller and
@@ -31,7 +31,7 @@ No repository audit or checklist rebuild was performed.
   now disabled, superseding the old observation. Privileged schema inventory and Cine
   access remain unverified; neither preview is established as a current trial target.
 
-## Verification and limits
+## Earlier verification and limits
 
 Pinned Node 24.20.0 / pnpm 9.12.3; headless command-line Playwright only.
 New external evidence directory:
@@ -55,7 +55,7 @@ permissions. They do not prove every browser button or CSV download. F1's accept
 11-step checkout, broad SQL/recovery and earlier F2's 47 inspected captures remain historical
 evidence. Windows pixel baselines were not regenerated; no physical device was tested.
 
-## Stop, review and publication
+## Earlier stop, review and publication
 
 Initial caption verify found the already-produced period absent from `OpsVals`; the bounded
 type correction passed verify. Initial date-format expectations were corrected to the
@@ -81,9 +81,8 @@ legal/accounting decision or automatic runner. F1 hosted schedules remain inacti
 
 ## Resume gates
 
-1. New bounded continuation: review failed harness preflight/cleanup, obtain fresh nonzero
-   live browser transaction/CSV proof and live caption at both widths. Obtain independent
-   visual/port acceptance; verify, scan, commit/push the accepted caption slice.
+1. Local caption continuation is now accepted with the evidence below. Preserve its results;
+   no audit or harness restart is needed. Hosted trial execution remains approval-gated.
 2. Ethan approves the concrete hosted setup and exact real-trial data/customer/payment
    scope. Provision secure access and verify release/schema/roles/recovery before use.
    No hosted action is authorized by this checkpoint.
@@ -92,3 +91,42 @@ legal/accounting decision or automatic runner. F1 hosted schedules remain inacti
    Otherwise use today's selling/paper process and move the pilot to 12–13 December.
 4. Only real-week acceptance can complete F2 and open F3. Paperwork, SQL, headless Chromium
    and AI review cannot satisfy that gate.
+
+## Accepted local continuation from bdd83f6 — 3 October 2026
+
+Private evidence: `C:/Users/ethan/.codex/visualizations/2026/10/03/01a101cc-ce31-7cd1-be5b-65218afaa853`. Fresh pinned verify passes 77 files /
+1,464 tests; G0 continuity passes 1,219 checks / zero failures. The exact six
+caption files are reused, with no arithmetic/style/interaction change.
+
+The repaired external harness runs fresh customer checkout and owner UI payment,
+packing (including stock use), collection and expense controls. Downloaded CSV
+contains 2 rows (2 in the rolling period).
+Exact period totals in centavos: net revenue 38900,
+expenses 1234, profit 37666; CSV and RPC agree,
+then both P&L displays agree with the existing whole-peso formatter.
+Phone 390×844 and desktop 1440×900 P&L plus the books capture were individually
+inspected; independent code/cleanup/financial/visual acceptance is recorded in
+`F2-independent-acceptance.md`. No physical Safari evidence is inferred.
+Final captures use reducedMotion=reduce and await/recheck the settled profit.
+Attempt3 passed transactions but missed the phone caption; attempt4 sampled the
+desktop counter mid-animation. Attempt5 passes both captures. An intervening
+scratch-file encoding error occurred before execution; reconstructed cleanup was
+independently reviewed. Earlier attempt receipts remain private evidence.
+
+Cleanup PASS removes only exact synthetic orders/children, expense, packing
+records/movements, audit/rate counters and owner access; touched configuration and
+packaging quantities are restored. Twelve trigger-updated timestamps advance;
+byte-identical baseline restoration is not claimed. Sequence advancement is retained
+to avoid a shared-database rewind race. Earlier harness failures are setup history,
+not product fixes. `F2-live-workflows.json` records actual execution and cleanup.
+
+Full E2E89/1/75 and OFFLINE-01 diagnosis/test are reused unchanged. SQL684×2 and
+verified F1 evidence are reused for their stated scope; this is targeted browser
+acceptance, not an exhaustive new audit. No hosted write/resource/deploy/job, merge,
+import or runner. F2 remains in progress and F3 closed pending Cine's real week.
+
+Next: obtain Ethan's approval for the concrete isolated Supabase/Workers setup and
+exact customer/data/payment scope in F2-trial-setup.md, establish access and target
+verification/recovery, then record all seven actual dates and Cine's acceptance.
+Both original OFFLINE-01 and actual-phone rehearsal must PASS by 20 October for
+the 24–25 October pilot; otherwise use the current process and December fallback.

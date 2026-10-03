@@ -1155,6 +1155,7 @@ export interface OpsVals {
     remove: (event?: unknown) => void;
   }>;
   pl: {
+    periodText: string;
     bazaar: React.ReactNode;
     drawText: React.ReactNode;
     drops: React.ReactNode;

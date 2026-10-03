@@ -162,6 +162,15 @@ LOOKUP_REVERSALS = {
          b'"src/components/screens/find-my-order.tsx": {\n      "copy": "74b938db",\n      "copyCount": 4,\n      "styles": 9,\n      "dynamicStyles": 0,\n      "elements": 11\n    }'),
     ],
 }
+# F2-002: owner-approved live-only caption, exact reversal before original delivery hash.
+PNL_CAPTION_REVERSALS = {
+    'src/components/screens/profit-and-loss.tsx': [
+        (b'      bareFrame, ic, openCategories, openExpense, pl, plCols, plExpenseDrill, plRevenueDrill, plRows, plTrend',
+         b'      ic, openCategories, openExpense, pl, plCols, plExpenseDrill, plRevenueDrill, plRows, plTrend'),
+        ("{bareFrame ? 'Profit · ' + pl.periodText : 'Profit · August 2026'}".encode(),
+         'Profit · August 2026'.encode()),
+    ],
+}
 changes = []
 for entry in load(EVIDENCE / 'delivery-manifest.json'):
     rel = entry['path']
@@ -200,6 +209,9 @@ for entry in load(EVIDENCE / 'delivery-manifest.json'):
             data = data.replace(edited, original, 1)
         for index, (edited, original) in enumerate(LOOKUP_REVERSALS.get(rel, [])):
             check(f'approved_lookup_exception_once:{rel}:{index}', data.count(edited) == 1)
+            data = data.replace(edited, original, 1)
+        for index, (edited, original) in enumerate(PNL_CAPTION_REVERSALS.get(rel, [])):
+            check(f'approved_pnl_caption_once:{rel}:{index}', data.count(edited) == 1)
             data = data.replace(edited, original, 1)
         check('protected_delivery_bytes:' + rel, hashlib.sha256(data).hexdigest() == entry['sha256'])
 notices = [[line for line in (ROOT / name).read_text().splitlines() if line.startswith('> **Current planning authority')] for name in ['AGENTS.md', 'CLAUDE.md']]

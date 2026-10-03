@@ -544,6 +544,28 @@ the product changed.
   `pnpm build`; `test:pages:spike`; `test:workers:spike`; `test:e2e` 89 passed / 1 failed (WebKit OFFLINE-01) / 75 skipped;
   `pnpm test:live:checkout` 11 steps pass on a freshly reset local stack.
 
+## F2-002 live reporting-period caption (approved 2026-10-03)
+
+Ethan explicitly approved a narrow live-only caption correction. The P&L totals use the
+engine's rolling 30-day ledger filter, not a calendar month. The live caption now uses
+that same `pl.periodText`; it does not infer the reporting period from the October header.
+No arithmetic, styles, elements, layout controls or interactions change. Demo retains
+the original `Profit · August 2026` literal.
+
+Exact edits in `src/components/screens/profit-and-loss.tsx`:
+
+- Add `bareFrame, ` before `ic` in its view-model destructuring.
+- Replace the caption text with
+  `{bareFrame ? 'Profit · ' + pl.periodText : 'Profit · August 2026'}` inside the original span.
+
+Reverse these exact two edits to recover original delivery bytes; `PNL_CAPTION_REVERSALS`
+in `scripts/validate-g0.py` requires each exactly once before the original hash check.
+Only this screen's AST hash changes in `scripts/port-structure-baseline.json`.
+The copy/style baseline `scripts/port-baseline.json` is unchanged because its fingerprint
+does not change. Unit coverage verifies live September/October and October/November
+ranges and the original demo caption. Independent port audit and headless phone/desktop
+captures are recorded in the F2 checkpoint before acceptance.
+
 ## F1 privacy and operational values (2026-10-03, local verification passed)
 
 The approved F1 goal adds a privacy notice inside `src/components/live/live-shop-footer.tsx`.

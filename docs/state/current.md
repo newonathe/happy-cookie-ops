@@ -12,13 +12,13 @@ Read this at the start of a session. History: [current-history.md](current-histo
 
 ## Latest checkpoint — F2 technical renewal (2026-10-03)
 
-- Fresh pinned build and `pnpm verify` pass including the provisional caption patch: 77 files / 1,464 tests. Caption code remains unaccepted/unpublished until live visual QA.
-- Fresh full E2E: **89 passed / 1 failed / 75 skipped**, exit 1; WebKit OFFLINE-01 fails at offline reload with an internal WebKit error. The suite is **not green**.
+- Fresh pinned `pnpm verify` passes: 77 files / 1,464 tests. The live rolling-period caption now has fresh nonzero UI/CSV and inspected phone/desktop evidence plus independent acceptance; publication authority is the continuation receipt and Git.
+- Full E2E from bdd83f6 reused unchanged: **89 passed / 1 failed / 75 skipped**, exit 1; WebKit OFFLINE-01 fails at offline reload with an internal WebKit error. The suite is **not green**.
 - Minimal cached/controlled SW reproduces WebKit's offline-emulation error; Chromium passes and both return 200 from SW when the origin is stopped. Strong evidence of a Playwright/WebKit emulation defect; original OFFLINE-01 stays unchanged/failing. No application/offline fix is justified.
-- Live P&L caption patch uses the actual rolling period and retains demo styles/literal. Unit/port review and 1,219 G0 checks pass. Two new demo phone/desktop captures inspected; prior 47 captures reused. Live-caption visuals remain pending, so its source patch stays uncommitted.
-- Nine nonzero SQL workflow suites pass twice on disposable databases: 684 assertions per run, rollback/cleanup pass. Fresh browser transactions/CSV proof remains incomplete; the external wrapper stopped after two preflight repairs before mutations. Further debugging stopped.
+- Live P&L caption patch uses the actual rolling period and retains demo styles/literal. Unit/port review and 1,219 G0 checks pass. Two new demo phone/desktop captures inspected; prior 47 captures reused. Fresh live phone/desktop P&L and books captures are inspected and accepted in the continuation.
+- Nine nonzero SQL workflow suites pass twice on disposable databases: 684 assertions per run, rollback/cleanup pass. Continuation repairs the external harness preflight and exact cleanup. Fresh customer/owner UI workflows and CSV-to-RPC/P&L reconciliation pass; touched settings and packing stock restore, synthetic data is removed, and monotonic sequence advancement is retained. Earlier failed setup attempts remain in the receipt.
 - Read-only preview probes show an older September 27 release and six missing current RPCs; signup is now disabled but Cine access is unverified. Dedicated Supabase + fresh Workers trial origin proposed; static config prepared locally. Hosted setup and real-trial data/customer/payment scope need approval.
-- Independent coordinator review (Sol/high requested) and port reviews cover their stated scope; root model was not changed. A brief three-child overlap exceeded the two-worker limit and is recorded in the receipt. No hosted writes, jobs, deployment, merge or runner. F1 evidence and the checklist are reused.
+- Independent coordinator review (Sol/high requested) and port reviews cover their stated scope; root model was not changed. The earlier checkpoint's three-child overlap is preserved in the receipt; this continuation used at most two workers. No hosted writes, jobs, deployment, merge or runner. F1 evidence and the checklist are reused.
 
 ## Previous accepted checkpoint — F1
 

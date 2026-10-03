@@ -8,11 +8,11 @@
       "approved_finish_plan_name": "F2: owner trial",
       "slices": {
         "preparation": "2026-10-03: practical seven-day Cine checklist, actual-phone rehearsal and dated fix ledger prepared; concrete local preparation only",
-        "local_qa": "Pinned build/verify PASS (77 files/1464 tests); full E2E89/1/75 FAIL; selected nonzero SQL684x2 PASS rollback/cleanup. Two new demo captions inspected; fresh live UI/CSV and live-caption visuals pending at two-failed-harness-fix checkpoint.",
+        "local_qa": "Pinned verify77/1464 and G01219/0 PASS; fresh11-step checkout plus owner UI payment/packing/collection/expense, CSV/RPC exact-cent reconciliation and both live P&L viewports PASS; exact cleanup PASS, monotonic sequence retained. Prior full E2E89/1/75 remains FAIL OFFLINE-01; SQL684x2/F1 reused.",
         "real_week": "Not started or accepted: suitable approved real-data target, Cine owner access, seven recorded dates and feedback remain missing",
         "physical_phone": "Pending actual-device evidence; 24-25 Oct pilot requires BOTH OFFLINE-01 and real-phone PASS by 20 Oct, otherwise current process and 12-13 Dec fallback",
-        "acceptance": "Incomplete; two external live-harness corrections failed before mutations, so further debugging stopped. F3 closed/next-goal F2; no hosted writes/deploy/resources/jobs/merge/import/runner.",
-        "technical": "2026-10-03: provisional live rolling-period caption code patch; exact protected reversal/port audit pass; WebKit emulation defect isolated with minimal SW and origin-stopped controls; original OFFLINE-01 remains FAIL.",
+        "acceptance": "Caption accepted locally by independent code/port/cleanup/financial/visual review; secret-scan and Git publication recorded in continuation receipt/external logs. F2 incomplete/F3 closed pending approved target/access and Cine real-week/actual-phone evidence. No hosted action, merge, import or runner.",
+        "technical": "Live caption uses existing rolling period; original demo literal/styles/math retained. Six-file patch accepted with fresh live phone/desktop evidence. WebKit emulation diagnosis unchanged; original OFFLINE-01 FAIL.",
         "target": "Dedicated isolated Supabase + fresh Workers trial origin proposed; static config prepared. Existing September27 release/RPC incompatibility inspected read-only; hosted/account/data-scope approval pending."
       },
       "evidence": "docs/state/F2-owner-trial.md; F2-fix-list.md; F2-checkpoint.md; evidence/F2-trial.json; docs/state/F2-trial-setup.md"

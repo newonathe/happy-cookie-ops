@@ -15,7 +15,7 @@ complete F2 or authorize F3.
 
 - Read-only Wrangler deployment listing identifies the latest Workers version as
   `2697ca3e-0680-4448-afd5-3c8500ff3461`, uploaded 27 September at 10:32:48 UTC.
-  It predates accepted product slices through F1 and the provisional caption patch.
+  It predates accepted product slices through F1 and the now locally accepted rolling-period caption patch.
 - Fresh HTTP GET probes extracted only the public client configuration from that release.
   Its database origin is `https://xyfnkanixderzbfngdah.supabase.co`. Auth reports
   `disable_signup:true`, `mailer_autoconfirm:false`; the September record saying signup
@@ -85,3 +85,5 @@ By **20 October 2026**, both OFFLINE-01 and her actual-phone rehearsal must pass
 diagnosis is not a waiver. Without both results, use the current selling/paper process in
 October and move the app pilot to 12–13 December. D3 early hosted setup requires explicit
 approval. F2 remains in progress and F3 remains closed until real-week acceptance.
+
+Local continuation from bdd83f6: targeted fresh live customer/owner workflows, CSV/P&L reconciliation, corrected phone/desktop caption captures, independent acceptance and pinned verification are now complete for this slice. The technicalContinuation receipt records exact scope and cleanup metadata drift; the existing checklist is unchanged. This supplies a concrete release candidate for the approval above, not hosted or owner-week acceptance.

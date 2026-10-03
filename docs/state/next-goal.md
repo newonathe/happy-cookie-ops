@@ -56,3 +56,9 @@ are complete. No automatic runner.
 ```
 
 Known carry-overs: hosted signed-in probes need Ethan's test account; local Postgres 17/MAINTAIN hardening is still separate work; `format:check` and WebKit E2E on main remain known red. No merge to main while its required checks fail. F1 off-device custody, archive expiry and hosted activation are documented approval decisions, not configured production protection.
+
+## Continuation after the accepted caption slice — 3 October
+
+Reuse bdd83f6, the six-file accepted caption slice and technicalContinuation in evidence/F2-trial.json. Fresh local checkout/owner UI, CSV/P&L and phone/desktop caption evidence now pass; preserve earlier setup failures and explicit local timestamp/sequence side effects. Do not restart the audit or repeat the harness without a changed source or unresolved concern.
+
+Next continuation goal: finish F2 trial-target preparation and Cine's actual week. Obtain Ethan's explicit approval for the concrete isolated Supabase project/schema/catalogue/owner account and fresh Workers release in F2-trial-setup.md, and separately record permitted customer/data/payment/shop-opening scope. Then verify the approved target, secure access, manual backup/custody/recovery and all seven actual dates with Cine's acceptance. Hosted jobs, imports, merge and runner remain off. Actual-phone evidence and original OFFLINE-01 must both pass by 20 October; F2 stays incomplete/F3 closed until real-week acceptance.

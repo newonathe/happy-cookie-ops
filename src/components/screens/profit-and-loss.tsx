@@ -5,13 +5,13 @@ import { Pressable } from '@/components/ui/pressable';
 
 export function ProfitAndLossScreen({ v }: { v: OpsVals }) {
   const {
-      ic, openCategories, openExpense, pl, plCols, plExpenseDrill, plRevenueDrill, plRows, plTrend
+      bareFrame, ic, openCategories, openExpense, pl, plCols, plExpenseDrill, plRevenueDrill, plRows, plTrend
   } = v;
   return (
     <>
       <div data-screen-label="P and L" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-          <span style={{ fontSize: '13px', color: '#6E574B' }}>Profit · August 2026</span>
+          <span style={{ fontSize: '13px', color: '#6E574B' }}>{bareFrame ? 'Profit · ' + pl.periodText : 'Profit · August 2026'}</span>
           <span style={{ fontSize: '38px', fontWeight: '600', letterSpacing: '-1.3px', lineHeight: '1' }}>{pl.profitNum}</span>
           <span style={{ fontSize: '13px', color: '#66524A' }}>{pl.note}</span>
         </div>

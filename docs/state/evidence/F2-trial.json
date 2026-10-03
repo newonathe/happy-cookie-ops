@@ -41,7 +41,7 @@
       "demoScreenshots": 10,
       "all47Inspected": true,
       "captureChecks": "PASS; no horizontal page overflow or screen-error fallback observed",
-      "acceptance": "Open F2-002 caption mismatch; capture success is not complete visual/owner acceptance",
+      "acceptance": "Earlier preparation: open F2-002 caption mismatch; capture success was not complete visual/owner acceptance. Superseded locally by technicalContinuation; owner week still pending.",
       "receipts": ["F2-visual.json", "F2-demo-visual.json"],
       "conditions": "Loopback synthetic owner/existing test records; demo engine-forced G0 fixture layouts, empty checkout cart/event chooser. Not physical-phone or real-week proof, Docker baselines, or fresh all-transaction/CSV acceptance.",
       "ownedCleanup": "PASS; synthetic owner and technical health records removed"
@@ -78,14 +78,14 @@
   },
   "openIssues": [
     "F2-001 original WebKit OFFLINE-01 still fails",
-    "F2-002 live-caption visual verification pending",
-    "F2-003 fresh nonzero live browser transactions/CSV proof incomplete"
+    "Approved hosted target/access/data scope and Cine seven-day acceptance pending",
+    "Actual-phone rehearsal pending before 20 October"
   ],
   "review": {
     "planner": "gpt-6-sol/high",
     "checklistWriter": "gpt-6-luna/medium",
     "independentSignoff": "ACCEPT LOCAL PREPARATION ONLY, gpt-6-sol/high, 2026-10-03; two documentation findings corrected and rechecked, no remaining local-preparation blocker",
-    "protectedPort": "No protected files or baselines changed; any future F2-002 fix requires exact approved exception and independent port audit"
+    "protectedPort": "Earlier local-preparation review before technicalContinuation: no protected files or baselines changed; F2-002 required an exact approved exception and independent port audit. The accepted continuation now includes both."
   },
   "publication": {
     "branch": "agent/codex/MP-04-g1-feasibility",
@@ -211,6 +211,73 @@
       "branch": "agent/codex/MP-04-g1-feasibility",
       "secretScan": "PASS:13 changed/new files, credential-pattern scan, no findings",
       "review": "Independent coordinator accepts docs-only checkpoint after wording corrections; Sol/high requested, actual delegated runtime not independently verified. Caption slice withheld until live visual evidence."
+    }
+  },
+  "technicalContinuation": {
+    "date": "2026-10-03",
+    "baseline": "bdd83f6",
+    "privateEvidenceDirectory": "C:/Users/ethan/.codex/visualizations/2026/10/03/01a101cc-ce31-7cd1-be5b-65218afaa853",
+    "status": "caption_accepted_locally_real_week_pending",
+    "setupHistory": "Attempt1: configured pickup-day oracle failed; synthetic residuals zero, timestamp equality warning. Attempt2: all11 checkout steps and owner payment/pack/collect passed; async expense readback failed. Timestamp triggers diagnosed. Attempt3: workflows, exact financials and semantic cleanup passed; phone capture missed caption. Attempt4: phone correct; desktop sampled animated counter before settling. A scratch-runner encoding error occurred before execution; semantic reconstruction was independently reviewed. Attempt5: all workflows, financials, settled captures and exact cleanup PASS. Earlier receipts retained privately. Distinct harness/oracle/capture issues, no product repair or OFFLINE-01 change.",
+    "verify": {
+      "exitCode": 0,
+      "files": 77,
+      "tests": 1464,
+      "log": "F2-verify.log"
+    },
+    "g0": {
+      "checks": 1219,
+      "failures": 0,
+      "receipt": "F2-g0-validation.json"
+    },
+    "liveBrowser": {
+      "receipt": "F2-live-workflows.json",
+      "scope": "Fresh 11-step customer checkout; owner UI payment, packing/stock use, collection, expense, P&L and CSV download. Existing SQL684x2/F1 evidence reused for other workflows.",
+      "orders": 2,
+      "steps": [
+        "payment confirmed",
+        "packed and stock taken",
+        "collected",
+        "expense recorded"
+      ],
+      "csvRows": 2,
+      "rollingPeriodRows": 2,
+      "csvKindCents": {
+        "revenue": 38900,
+        "expense": 1234
+      },
+      "netRevenueCents": 38900,
+      "expenseCents": 1234,
+      "profitCents": 37666,
+      "oracle": "CSV/RPC same-period exact centavos; both UI viewports match existing whole-peso rounding; owner draws excluded from profit.",
+      "cleanup": "PASS semantic cleanup: exact owned data removed, business configuration and packaging quantities restored. Trigger-updated timestamps and monotonic sequence advancement retained and explicitly reported; no byte-identical baseline claim."
+    },
+    "visual": {
+      "browser": "headless Chromium",
+      "phone": "390x844",
+      "desktop": "1440x900",
+      "captureConditions": "reducedMotion=reduce; expected profit awaited, 500ms settle and recheck before both screenshots",
+      "screenshots": [
+        "F2-live-workflows-pnl-phone.png",
+        "F2-live-workflows-pnl-desktop.png",
+        "F2-live-workflows-books.png"
+      ],
+      "rootInspected": true,
+      "independentAcceptance": "F2-independent-acceptance.md"
+    },
+    "offline": "Original OFFLINE-01/test/diagnosis unchanged; prior full E2E89/1/75 exit1 reused. No actual Safari/device readiness claim.",
+    "publication": "Accepted caption slice and continuation records; commit/push logs and F2-publication.json outside Git are publication authority.",
+    "boundaries": {
+      "hostedWrites": false,
+      "resources": false,
+      "deployment": false,
+      "jobs": false,
+      "merge": false,
+      "imports": false,
+      "runner": false,
+      "realWeek": false,
+      "actualPhone": false,
+      "f3MayAdvance": false
     }
   }
 }

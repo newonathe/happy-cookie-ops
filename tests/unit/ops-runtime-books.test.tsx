@@ -27,6 +27,7 @@ import { OpsRuntime } from '@/store/ops-runtime';
 import { PRODUCTS, type Role } from '@/store/engine/ops-engine';
 import type { StaffOrderClient } from '@/lib/data/staff-orders';
 import { BOOKS_COPY, STAFF_COPY } from '@/lib/orders/staff-copy';
+import { ProfitAndLossScreen } from '@/components/screens/profit-and-loss';
 
 /**
  * E1: in live mode the P&L, Home profit and the expense list read the database's books; plain expenses, draws, cost corrections and
@@ -211,6 +212,29 @@ describe('E1: the books on screen and their writes (live mode)', () => {
     flush.result = { sent: [], failed: [], skipped: false };
   });
   afterEach(() => cleanup());
+
+  it('F2: the live caption describes the rolling ledger period, including across months', async () => {
+    const { runtime } = await mounted('owner', fresh());
+    act(() => runtime.setState({ now: Date.parse('2026-10-03T04:00:00Z') } as never));
+    const vals = runtime.renderVals();
+    expect(vals.pl.periodText).toBe('Last 30 days · 3 Sep to 3 Oct');
+    const view = render(<ProfitAndLossScreen v={vals} />);
+    expect(view.getByText('Profit · Last 30 days · 3 Sep to 3 Oct')).toBeTruthy();
+    expect(view.queryByText('Profit · August 2026')).toBeNull();
+    act(() => runtime.setState({ now: Date.parse('2026-11-04T04:00:00Z') } as never));
+    view.rerender(<ProfitAndLossScreen v={runtime.renderVals()} />);
+    expect(view.getByText('Profit · Last 30 days · 5 Oct to 4 Nov')).toBeTruthy();
+  });
+
+  it('F2: the original demo caption is retained even when its computed period differs', async () => {
+    live = false;
+    const { runtime } = await mounted('owner', fresh(), false);
+    const vals = runtime.renderVals();
+    expect(vals.bareFrame).toBeFalsy();
+    const view = render(<ProfitAndLossScreen v={vals} />);
+    expect(view.getByText('Profit · August 2026')).toBeTruthy();
+    expect(view.queryByText('Profit · ' + vals.pl.periodText)).toBeNull();
+  });
 
   it('the books replace the engine’s ledger and the P&L reads them: revenue less refunds, expenses, and a draw that leaves profit alone', async () => {
     const { runtime } = await mounted('owner', fresh());
