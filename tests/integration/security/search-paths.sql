@@ -43,7 +43,7 @@ do $$ declare r text; begin
   if has_schema_privilege(r,'public','CREATE') then raise exception 'public schema is writable by API role'; end if;
  end loop;
  if (select count(*) from pg_proc where pronamespace='public'::regnamespace and proname<>'current_role_name'
-     and proconfig=array['search_path=pg_catalog, public, pg_temp'])<>16 then raise exception 'function search path inventory differs'; end if;
+     and proconfig=array['search_path=pg_catalog, public, pg_temp'])<>15 then raise exception 'function search path inventory differs'; end if;
  if (select proconfig from pg_proc where oid='public.current_role_name()'::regprocedure)<>array['search_path=""'] then
   raise exception 'qualified role lookup changed';
  end if;

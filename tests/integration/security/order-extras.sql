@@ -63,6 +63,7 @@ declare subject text := case when n is null then '' else
   'b4c00000-0000-4000-8000-' || lpad(n::text, 12, '0') end;
 begin
   perform set_config('request.jwt.claim.sub', subject, true);
+  perform set_config('request.jwt.claim.role', claim_role, true);
   perform set_config('request.jwt.claims',
     jsonb_build_object('sub', subject, 'role', claim_role, 'app_role', 'owner')::text, true);
 end $$;
@@ -451,7 +452,7 @@ begin
 end $$;
 create function pg_temp.phase_prune() returns void language plpgsql security invoker as $$
 begin
-  perform pg_temp.expect('service_role', 'prune_blanks_note', 'select public.prune_personal_data(-1)', '00000');
+  perform pg_temp.expect('service_role', 'prune_blanks_note', 'select public.prune_personal_data(365)', '00000');
 end $$;
 
 grant execute on function
@@ -630,6 +631,10 @@ begin
   end if;
   insert into pg_temp.authority_results values ('erasure_reaches_notes', 'preserved', 'ok');
 end $$;
+
+-- These synthetic orders have completed their one-year retention window.
+update public.orders set placed_at = now() - interval '366 days';
+update public.orders set phone = '' where id = pg_temp.no('place_note_pruned');
 
 set local role service_role;
 select pg_temp.set_subject(9, 'service_role');

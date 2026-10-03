@@ -53,6 +53,8 @@ do $$ begin
 end $$;
 
 set local role service_role;
+select set_config('request.jwt.claim.role','service_role',true);
+select set_config('request.jwt.claims','{"role":"service_role"}',true);
 do $$ declare result record; count_changed integer;
 begin
   select * into result from public.consume_rate_limit('mp06-service',1,60);
@@ -67,11 +69,13 @@ begin
   select public.prune_rate_limits() into count_changed;
   if count_changed <> 1 then raise exception 'service stale counter prune differs'; end if;
   insert into pg_temp.authority_results values ('prune_rate_limits','service_role','one_stale_counter');
-  select public.prune_personal_data(730) into count_changed;
+  select public.prune_personal_data(365) into count_changed;
   if count_changed <> 1 then raise exception 'service retention prune differs'; end if;
   insert into pg_temp.authority_results values ('prune_personal_data','service_role','one_old_order');
 end $$;
 reset role;
+select set_config('request.jwt.claim.role','',true);
+select set_config('request.jwt.claims','',true);
 
 do $$ declare signature text; actor text;
 begin

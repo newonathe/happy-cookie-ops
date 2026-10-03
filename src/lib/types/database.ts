@@ -559,6 +559,30 @@ export type Database = {
           },
         ]
       }
+      operations_runs: {
+        Row: {
+          archive_sha256: string | null
+          completed_at: string
+          job: string
+          run_id: string
+          status: string
+        }
+        Insert: {
+          archive_sha256?: string | null
+          completed_at: string
+          job: string
+          run_id: string
+          status: string
+        }
+        Update: {
+          archive_sha256?: string | null
+          completed_at?: string
+          job?: string
+          run_id?: string
+          status?: string
+        }
+        Relationships: []
+      }
       order_add_ons: {
         Row: {
           add_on_id: string
@@ -1912,6 +1936,7 @@ export type Database = {
           updated_at: string
         }[]
       }
+      get_operations_health: { Args: never; Returns: Json }
       get_order_extras: { Args: never; Returns: Json }
       get_order_rules: {
         Args: never
@@ -2068,6 +2093,16 @@ export type Database = {
           client_id: string
           duplicate: boolean
         }[]
+      }
+      record_operations_run: {
+        Args: {
+          p_archive_sha256?: string
+          p_completed_at: string
+          p_job: string
+          p_run_id: string
+          p_status: string
+        }
+        Returns: undefined
       }
       record_pack: {
         Args: { p_drop: number; p_order: string }

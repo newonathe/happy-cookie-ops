@@ -29,7 +29,8 @@ ORDER_MIGRATIONS = [ROOT / 'supabase/migrations/20260101003500_place_order.sql',
                     ROOT / 'supabase/migrations/20260101004600_stock_ledger.sql',
                     ROOT / 'supabase/migrations/20260101004700_production.sql',
                     ROOT / 'supabase/migrations/20260101004800_production_discard.sql',
-                    ROOT / 'supabase/migrations/20260101004900_books.sql']
+                    ROOT / 'supabase/migrations/20260101004900_books.sql',
+                    ROOT / 'supabase/migrations/20260101005000_operations.sql']
 _OUT = 'order outcome differs: anon / '
 _CHK = 'order check differs: anon / '
 _LOOK = 'lookup check differs: anon / '
@@ -82,9 +83,9 @@ ORDER_MUTATIONS = {
                                   ('delete from waitlist_entries where phone = v_norm;', 'null;'),
                                   'erased number kept waitlist entries'),
     'text_prune_keeps_handle': ('prune_personal_data', 'text',
-                                ("ig = '',\n           status_token = null,\n", 'status_token = null,\n'), 'prune kept personal data'),
+                                ("notes = '', ig = '',\n           status_token = null, payload_hash = null", "notes = '',\n           status_token = null, payload_hash = null"), 'prune kept personal data'),
     'text_prune_keeps_waitlist': ('prune_personal_data', 'text',
-                                  ('delete from waitlist_entries where created_at < now() - make_interval(days => p_retain_days);', 'null;'),
+                                  ("delete from public.waitlist_entries where created_at < v_now - interval '365 days';", 'null;'),
                                   'prune kept personal data'),
 }
 LOOKUP_MUTATIONS = {
@@ -209,8 +210,8 @@ EXTRAS_MUTATIONS = {
                               ("update order_add_ons a set note = null\n    from orders o\n   where a.order_id = o.id and regexp_replace(o.phone, '\\D', '', 'g') = v_norm and a.note is not null;",
                                'null;'), 'extras check differs: erased paid order kept the note'),
     'text_prune_keeps_note': ('prune_personal_data', 'text',
-                              ("update order_add_ons a set note = null\n    from orders o\n   where a.order_id = o.id and o.placed_at < now() - make_interval(days => p_retain_days)\n     and o.phone <> '' and a.note is not null;",
-                               'null;'), 'extras check differs: prune kept the note'),
+                              ("update public.order_add_ons a set note = null\n    from public.orders o\n   where a.order_id = o.id and o.placed_at < v_now - interval '365 days' and a.note is not null;",
+                               "update public.order_add_ons a set note = null\n    from public.orders o\n   where a.order_id = o.id and o.placed_at < v_now - interval '365 days' and o.phone <> '' and a.note is not null;"), 'extras check differs: prune kept the note'),
 }
 EXTRAS_TABLE_MUTATIONS = {
     'extras_table_select': ('grant select on public.order_extras to anon;', _EXO + 'extras_table_select / '),
@@ -438,11 +439,20 @@ BOOKS_MUTATIONS = {
 BOOKS_TABLE_MUTATIONS = {
     'settings_table_select': ('grant select on public.books_settings to anon;', 'books outcome differs: anon / settings_select / '),
 }
+OPERATIONS_MUTATIONS = {
+    'rule_ops_service': ('record_operations_run', 'rule', 'run-service', 'operations denial differs: record_anon / 00000'),
+    'rule_ops_time': ('record_operations_run', 'rule', 'run-time', 'future run time accepted'),
+    'rule_ops_input': ('record_operations_run', 'rule', 'run-input', 'nonbackup archive hash accepted'),
+    'rule_ops_idempotency': ('record_operations_run', 'rule', 'run-idempotency', 'idempotency conflict differs: 00000'),
+    'rule_ops_health_role': ('get_operations_health', 'rule', 'health-role', 'operations denial differs: health_helper / 00000'),
+    'rule_ops_retention_service': ('prune_personal_data', 'rule', 'retention-service', 'operations denial differs: retention_helper / 00000'),
+    'rule_ops_retention_window': ('prune_personal_data', 'rule', 'retention-window', 'short retention accepted'),
+}
 
 
 def order_mutant(name):
     """The migration's one function, changed in exactly one place, as SQL to run inside the suite."""
-    function, kind, argument, _ = (ORDER_MUTATIONS | LOOKUP_MUTATIONS | STAFF_MUTATIONS | SHOP_MUTATIONS | EXTRAS_MUTATIONS | SCHEDULED_MUTATIONS | STOCK_MUTATIONS | RECIPE_MUTATIONS | LEDGER_MUTATIONS | PRODUCTION_MUTATIONS | BOOKS_MUTATIONS)[name]
+    function, kind, argument, _ = (ORDER_MUTATIONS | LOOKUP_MUTATIONS | STAFF_MUTATIONS | SHOP_MUTATIONS | EXTRAS_MUTATIONS | SCHEDULED_MUTATIONS | STOCK_MUTATIONS | RECIPE_MUTATIONS | LEDGER_MUTATIONS | PRODUCTION_MUTATIONS | BOOKS_MUTATIONS | OPERATIONS_MUTATIONS)[name]
     marker = 'create or replace function public.' + function + '('
     text = [m.read_text(encoding='utf-8') for m in ORDER_MIGRATIONS if marker in m.read_text(encoding='utf-8')][-1]
     start = text.index('create or replace function public.' + function + '(')
@@ -501,6 +511,7 @@ SUITES = (
                        + tuple(PRODUCTION_MUTATIONS) + tuple(PRODUCTION_TABLE_MUTATIONS), 'forbidden production call succeeded', 112),
     ('books.sql', ('get_books(timestamptz,timestamptz)', 'record_expense(jsonb)', 'record_cost_correction(jsonb)', 'set_cost_basis(text)', 'record_draw(jsonb)')
                   + tuple(BOOKS_MUTATIONS) + tuple(BOOKS_TABLE_MUTATIONS), 'forbidden books call succeeded', 101),
+    ('operations.sql', tuple(OPERATIONS_MUTATIONS), 'forbidden operations call succeeded', 14),
     ('bazaar-closeout.sql', ('event_summary(uuid)', 'load_event_stock(uuid,jsonb,bigint)', 'add_event_expense(jsonb)', 'close_event(jsonb)'), 'forbidden closeout call succeeded', 80),
 )
 CATALOG_GUARD_SQL = """
@@ -624,6 +635,9 @@ def main():
                     elif signature in ORDER_TABLE_MUTATIONS:
                         unsafe, expected_error = ORDER_TABLE_MUTATIONS[signature]
                         broken = sql.replace('begin;', 'begin;\n' + unsafe, 1)
+                if filename == 'maintenance.sql' and signature == 'prune_personal_data(integer)':
+                    # The in-function service guard refuses the injected grant; the later ACL oracle catches it.
+                    expected_error = 'effective maintenance execute still granted'
                 if filename == 'order-lookup.sql':
                     broken = sql.replace('begin;', 'begin;\n' + order_mutant(signature), 1)
                     expected_error = LOOKUP_MUTATIONS[signature][3]
@@ -676,6 +690,9 @@ def main():
                     elif signature in BOOKS_TABLE_MUTATIONS:
                         unsafe, expected_error = BOOKS_TABLE_MUTATIONS[signature]
                         broken = sql.replace('begin;', 'begin;' + chr(10) + unsafe, 1)
+                if filename == 'operations.sql':
+                    broken = sql.replace('begin;', 'begin;' + chr(10) + order_mutant(signature), 1)
+                    expected_error = OPERATIONS_MUTATIONS[signature][3]
                 if filename == 'order-extras.sql':
                     if signature in EXTRAS_MUTATIONS:
                         broken = sql.replace('begin;', 'begin;' + chr(10) + order_mutant(signature), 1)
@@ -775,7 +792,7 @@ def main():
                 h.fail(filename + ' did not return its complete role matrix')
             results.extend(rows)
             assert_empty()
-        if len(set(results)) != 1908:
+        if len(set(results)) != 1922:
             h.fail('combined role matrix has missing or duplicate cases: %d rows, %d unique (duplicates: %s)' % (len(results), len(set(results)), sorted({r for r in results if results.count(r) > 1})[:5]))
         assert_functions()
         assert_catalog_wide()
@@ -788,10 +805,10 @@ def main():
     try:
         code = h.main(after_reset=check)
         if (code == 0 and len(report["runs"]) == 2 and report["runs"][0] == report["runs"][1]
-                and len(report['regressions_detected']) == 670 and report['sequence_restorations'] == 10
+                and len(report['regressions_detected']) == 684 and report['sequence_restorations'] == 10
                 and report['upgrade_runs'] == 2 and report['function_guard_runs'] == 4
                 and report['catalog_guard_runs'] == 4 and report['catalog_guard_red_runs'] == 4):
-            report.update(status="passed", cases_per_reset=1908, resets=2, matrix_equal=True, rollback_verified=True,
+            report.update(status="passed", cases_per_reset=1922, resets=2, matrix_equal=True, rollback_verified=True,
                           sql_sha256={name: hashlib.sha256((ROOT / 'tests/integration/security' / name).read_bytes()).hexdigest() for name, _, _, _ in SUITES},
                           harness_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
     except (RuntimeError, OSError, ValueError) as error:

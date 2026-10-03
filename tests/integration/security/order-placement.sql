@@ -58,6 +58,7 @@ declare subject text := case when n is null then '' else
   'b1c92000-0000-4000-8000-' || lpad(n::text, 12, '0') end;
 begin
   perform set_config('request.jwt.claim.sub', subject, true);
+  perform set_config('request.jwt.claim.role', claim_role, true);
   perform set_config('request.jwt.claims',
     jsonb_build_object('sub', subject, 'role', claim_role, 'app_role', 'owner')::text, true);
 end $$;
@@ -505,7 +506,7 @@ end $$;
 
 create function pg_temp.phase_prune() returns void language plpgsql security invoker as $$
 begin
-  perform pg_temp.expect('service_role', 'prune_blanks_new_data', 'select public.prune_personal_data(-1)', '00000');
+  perform pg_temp.expect('service_role', 'prune_blanks_new_data', 'select public.prune_personal_data(365)', '00000');
 end $$;
 
 grant execute on function
@@ -660,6 +661,9 @@ end $$;
 -- A waitlist entry that only pruning can remove (erasure already took the other number's).
 insert into public.waitlist_entries(client_id, payload_hash, name, phone, wanted_date)
 values (gen_random_uuid(), repeat('b', 64), 'Prune me', '09180000077', pg_temp.today() + 30);
+-- Everything remaining is past the one-year window before the service-role prune.
+update public.orders set placed_at = now() - interval '366 days';
+update public.waitlist_entries set created_at = now() - interval '366 days';
 
 set local role service_role;
 select pg_temp.set_subject(9, 'service_role');
