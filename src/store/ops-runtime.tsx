@@ -10,7 +10,9 @@ import {
   replaceFlavours,
   replacePayAccounts
 } from '@/store/engine/ops-engine';
-import type { EventSale, OpsEngineProps, Role } from '@/store/engine/ops-engine';
+import type { EventSale, OpsEngineProps, OpsEngineState, Role } from '@/store/engine/ops-engine';
+import { idb } from '@/lib/offline/idb';
+import { fetchOperationsHealth, healthView, type HealthPhase, type LiveAlert, type OperationsClient, type OperationsHealth } from '@/lib/data/operations-health';
 import { defaultSalesClient, flushQueue, requestBackgroundSync, type FlushResult } from '@/lib/offline/sync';
 import { allSales, clientIdFor, commandKey, enqueueCommand, enqueueVoid, isSaleKey, pendingSales, type CommandKind } from '@/lib/offline/queue';
 import { clearBazaar, readBazaar, saveBazaar } from '@/lib/offline/bazaar-state';
@@ -486,6 +488,11 @@ export class OpsRuntime extends OpsProvider {
   private booksClient: BooksClient | null = null;
   private booksRows: Books | null = null;
   private booksLoadSeq = 0;
+  private operationsClient: OperationsClient | null = null;
+  private operationsHealth: OperationsHealth | null = null;
+  private operationsPhase: HealthPhase = 'loading';
+  private operationsLoadSeq = 0;
+  private operationsQueue = -1;
   private pendingExpenses = new Map<string, ExpenseFields>();
   private pendingDraws = new Map<string, DrawFields>();
   private pendingCorrections = new Map<string, CorrectionFields>();
@@ -531,7 +538,8 @@ export class OpsRuntime extends OpsProvider {
       if (!sale) return;
       void (async () => {
         await enqueueVoid(clientIdFor({ saleId: sale.id, at: sale.at }));
-        if (navigator.onLine) await flushQueue(this.saleClient);
+        await this.reflectQueue();
+        if (navigator.onLine) await this.flushSales();
         else await requestBackgroundSync();
       })().catch(() => undefined);
     };
@@ -800,10 +808,16 @@ export class OpsRuntime extends OpsProvider {
   ): Promise<void> {
     try {
       await enqueueCommand({ clientId: key, kind, eventId, payload, at: Date.now() });
+    } catch {
+      this.toast('That could not be saved on this phone. Try again.', 'warn');
+      return;
+    }
+    await this.reflectQueue();
+    try {
       if (navigator.onLine) await this.flushSales();
       else await requestBackgroundSync();
     } catch {
-      this.toast('That could not be saved on this phone. Try again.', 'warn');
+      this.toast('Saved on this phone. Sync is still pending.', 'warn');
     }
   }
 
@@ -1180,11 +1194,68 @@ export class OpsRuntime extends OpsProvider {
    *
    * This is not a security boundary. Row-level security is (docs/DATA.md).
    */
+  async loadOperationsHealth(client: OperationsClient | null): Promise<boolean> {
+    if (!isLiveMode() || this.state.role === 'helper') return false;
+    const use = client ?? this.operationsClient;
+    if (!use) return false;
+    this.operationsClient = use;
+    const seq = ++this.operationsLoadSeq;
+    try {
+      if (!idb.supported()) throw new Error('Queue storage unavailable');
+      const [health, queue] = await Promise.all([fetchOperationsHealth(use), pendingSales()]);
+      if (seq !== this.operationsLoadSeq) return false;
+      this.operationsHealth = health;
+      this.operationsQueue = queue.length;
+      this.operationsPhase = 'ready';
+      this.setState({});
+      return true;
+    } catch {
+      if (seq !== this.operationsLoadSeq) return false;
+      this.operationsPhase = 'error';
+      this.operationsQueue = -1;
+      this.setState({});
+      return false;
+    }
+  }
+
+  /** The inherited screens and badges call this method; demo uses the original implementation. */
+  notifs(s: OpsEngineState): LiveAlert[] {
+    if (!isLiveMode()) return (OpsProvider.prototype as unknown as {notifs: (s: OpsEngineState) => LiveAlert[]}).notifs.call(this, s);
+    const alerts: LiveAlert[] = [];
+    const channels = (s.channels ?? {}) as Record<string, boolean>;
+    const add = (channel: string, k: LiveAlert['k'], label: string, sub: string, tone: LiveAlert['tone']) => {
+      if (channels[channel] === false || (s.role !== 'owner' && k !== 'health')) return;
+      if (s.role === 'helper') return;
+      alerts.push({k, label, sub, tone, urgency: tone === 'bad' ? 'Action needed now' : tone === 'warn' ? 'Needs attention soon' : 'Information', go: () => this.go(k)});
+    };
+    const view = healthView(this.operationsHealth, this.operationsPhase, Date.now(), this.operationsQueue < 0 ? -1 : Math.max(this.operationsQueue, s.unsynced), s.online);
+    for (const row of view.healthRows.filter(row => row.bad)) {
+      add(row.label === 'Encrypted database backup' ? 'Backup failure' : 'System error', 'health', String(row.label) + ': ' + String(row.value), 'System health', 'bad');
+    }
+    if (s.role !== 'owner') return alerts;
+    const orders = this.orderSync?.current() ?? [];
+    const newest = orders.filter(o => !['Cancelled', 'No-show', 'Completed'].includes(o.state) && o.placedAt <= Date.now() && Date.now() - o.placedAt <= 86_400_000)
+      .sort((a,b) => b.placedAt - a.placedAt)[0];
+    if (newest) add('New order', 'orders', 'New order ' + newest.id, newest.name, 'info');
+    const today = manilaToday();
+    const pickups = orders.filter(o => o.pickupDate === today && ['Confirmed', 'Preparing', 'Ready'].includes(o.state));
+    if (pickups.length) add('Pickup reminder', 'orders', `${pickups.length} order(s) for pickup today`, 'Fulfilment · ' + today, 'info');
+    const low = this.stockCatalogue?.items.filter(i => i.active && i.onHand < i.parLevel) ?? [];
+    if (low.length) add('Low stock', 'inventory', `${low.length} stock item(s) below reorder level`, low.map(i => i.name).join(', '), 'warn');
+    if (this.stockCatalogue && this.recipeRows && this.orderSync?.loaded) {
+      const plan = (this as unknown as {groceryPlan: (s: OpsEngineState) => Array<{key: string}>}).groceryPlan(s);
+      if (plan.length) add('Grocery shortage', 'grocery', `${plan.length} item(s) on the grocery list`, 'Based on current orders, stock and recipes', 'warn');
+    }
+    return alerts;
+  }
+
   renderVals(): OpsVals {
     const vals = super.renderVals();
     if (HARNESS && !isLiveMode()) return vals;
     const starved = { ...vals, devices: [], roles: [], showPhoneWidths: false } as OpsVals;
     if (!isLiveMode()) return starved;
+    const health = healthView(this.operationsHealth, this.operationsPhase, Date.now(), this.operationsQueue < 0 ? -1 : Math.max(this.operationsQueue, this.state.unsynced), this.state.online);
+    const healthProblems = health.healthRows.filter(row => row.bad).length;
     // Live: the real app, not the review harness. No header row, flow strip or flow bar,
     // and the device frame fills the screen instead of drawing a phone/tablet mock-up (so the
     // mock-up bezel — radius, border, shadow — goes too; background colours are unchanged).
@@ -1211,10 +1282,11 @@ export class OpsRuntime extends OpsProvider {
       plTrend: trend.filter((row) => row.now).map((row) => ({ ...row, v: barHeight })),
       rules: this.state.role === 'owner' ? this.liveRules(starved.rules ?? []) : starved.rules,
       // MP-09 c1c: the flavour editor's entry points and form host, live owner only.
-      toolGroups:
-        this.state.role === 'owner'
+      toolGroups: (this.state.role === 'owner'
           ? this.liveToolGroups(starved.toolGroups ?? [])
-          : starved.toolGroups,
+          : starved.toolGroups).map(group => ({...group, items: group.items.map(item =>
+            item.label === 'System health' ? {...item, sub: health.healthTitle, badge: healthProblems || null} :
+            item.label === 'Backups & export' ? {...item, sub: 'Recorded checks and books CSV'} : item)})),
       productRows:
         this.state.role === 'owner'
           ? this.liveProductRows(starved.productRows ?? [])
@@ -1229,6 +1301,19 @@ export class OpsRuntime extends OpsProvider {
       liveOrderExtras: this.liveOrderExtrasVals(),
       liveScheduled: this.liveScheduledVals(),
       liveBooks: this.liveBooksVals(),
+      ...health,
+      system: {...starved.system, ok: health.healthOk, bad: !health.healthOk,
+        label: health.healthTitle, detail: health.healthSub},
+      // The database's books are exportable; demo record-group examples are never live evidence.
+      recordGroups: this.state.role === 'owner' && this.booksRows?.lines.length ? [{
+        title: 'Database books', countText: plural(this.booksRows.lines.length, 'record', 'records'),
+        rows: this.booksRows.lines.slice(-10).map(line => ({what: line.label,
+          when: new Date(line.at).toLocaleDateString('en-PH', {timeZone: 'Asia/Manila'}), value: PESO(line.amountCents / 100)}))
+      }] : [],
+      hasRecords: this.state.role === 'owner' && !!this.booksRows?.lines.length,
+      retryBackup: () => { void this.loadOperationsHealth(null); this.toast('Checking recorded results. Backups are run by the operator.', 'warn'); },
+      contactSupport: () => this.toast('Please contact KETH AI support and share the result shown here.', 'warn'),
+      ...(this.state.role !== 'owner' ? { exportNow: () => this.toast('Only the owner can export the books.', 'warn') } : {}),
       liveStockItems: this.liveStockItemsVals(),
       liveStockSuppliers: this.liveStockSuppliersVals(),
       // D4: in live mode the Bazaar list is the owner's bookings, never the ported prototype events.
@@ -3725,7 +3810,16 @@ export class OpsRuntime extends OpsProvider {
 
   private async reflectQueue(): Promise<void> {
     if (!isLiveMode()) return;
-    const states = new Map((await allSales()).map((row) => [row.clientId, row.state]));
+    let queue: Awaited<ReturnType<typeof allSales>>;
+    try {
+      queue = await allSales();
+    } catch {
+      this.operationsQueue = -1;
+      this.setState({});
+      return;
+    }
+    this.operationsQueue = queue.filter(row => row.state !== 'sent').length;
+    const states = new Map(queue.map((row) => [row.clientId, row.state]));
     this.setState((s) => {
       const sales = (s.sales as EventSale[]).map((sale) => {
         const state = states.get(clientIdFor({ saleId: sale.id, at: sale.at }));
