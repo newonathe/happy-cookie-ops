@@ -1,10 +1,12 @@
 {
   "$schema": "../../node_modules/wrangler/config-schema.json",
-  // Prepared locally only. Creation/deployment requires Ethan's explicit approval.
+  // Ethan approved free-plan closed-shop trial hosting on 2026-10-04.
+  // Keep every public entry point disabled until the private Access gate passes.
   // Fresh origin: never attach real-data access to the old demo/preview caches.
   "name": "happy-cookie-owner-trial",
+  "account_id": "0cb53d2d20d41cf04207d2b78d39de2d",
   "compatibility_date": "2026-09-08",
-  "workers_dev": true,
+  "workers_dev": false,
   "preview_urls": false,
   "assets": {
     "directory": "../../build/pages-spike/public",

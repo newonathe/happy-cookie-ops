@@ -1,4 +1,30 @@
-# F2 owner-trial target proposal — 3 October 2026
+# F2 owner-trial target setup — 4 October 2026
+
+## Current approval and execution
+
+Ethan approved online test setup, then reuse of **keth-ai's Project**
+(`enftprwcsrdbnlplfrwk`) after read-only checks found zero app tables/users/objects.
+The free organisation already had two active projects: none was created, paused,
+deleted or upgraded. The older preview database remains untouched.
+
+All 52 migrations apply on PG17.6 after the explicitly approved three-place 029
+quotation correction and additive 051 maintenance hardening. Owner Auth/profile
+access and six unpublished catalogue/allergen definitions are provisioned. The shop
+is closed; no full seed, stock, orders, expenses or payment accounts were imported.
+Automated owner sign-in/refresh and hosted-target local-browser P&L pass. Credentials
+are owner-only DPAPI outside Git; private handoff/change and Cine's sign-in remain open.
+
+Fresh static Worker version `12ed8ba6-fb61-47ff-822a-6724f982d91a` is uploaded with
+zero routes and both canonical/version URLs disabled (404). Hosting OAuth's Access
+requests return 403; the requested scoped credential is needed before the private
+gate and a reachable URL. The build contains only the target's publishable key;
+actual privileged key bytes and working payment QR bytes are absent. No usable link yet.
+
+Planning assumes iPhone 14 or newer and a MacBook, using Safari and Chrome; exact
+devices and results remain unconfirmed. Real-data/payment/customer/shop-opening
+scope, encrypted off-device custody/target recovery, seven dates and Cine acceptance
+remain separate gates. Jobs/imports/merge/runner stay off. The original proposal below
+is history; this section supersedes its unapproved/create-new-project wording.
 
 **Selected setup:** a dedicated Supabase trial database and fresh Workers static origin,
 using architecture A and the reviewed working-branch release. Keep the public shop closed

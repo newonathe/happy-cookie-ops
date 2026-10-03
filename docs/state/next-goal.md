@@ -55,10 +55,22 @@ F3 only when the real week, checklist and required acceptance evidence
 are complete. No automatic runner.
 ```
 
-Known carry-overs: hosted signed-in probes need Ethan's test account; local Postgres 17/MAINTAIN hardening is still separate work; `format:check` and WebKit E2E on main remain known red. No merge to main while its required checks fail. F1 off-device custody, archive expiry and hosted activation are documented approval decisions, not configured production protection.
+Known carry-overs: target owner/refresh and PG17 MAINTAIN checks now pass; private-origin/human/device and broader session scenarios remain open. `format:check` and WebKit E2E on main remain known red. No merge to main while its required checks fail. F1 off-device custody, archive expiry and hosted activation are documented approval decisions, not configured production protection.
 
-## Continuation after the accepted caption slice — 3 October
+## Historical continuation after the accepted caption slice — 3 October
 
 Reuse bdd83f6, the six-file accepted caption slice and technicalContinuation in evidence/F2-trial.json. Fresh local checkout/owner UI, CSV/P&L and phone/desktop caption evidence now pass; preserve earlier setup failures and explicit local timestamp/sequence side effects. Do not restart the audit or repeat the harness without a changed source or unresolved concern.
 
 Next continuation goal: finish F2 trial-target preparation and Cine's actual week. Obtain Ethan's explicit approval for the concrete isolated Supabase project/schema/catalogue/owner account and fresh Workers release in F2-trial-setup.md, and separately record permitted customer/data/payment/shop-opening scope. Then verify the approved target, secure access, manual backup/custody/recovery and all seven actual dates with Cine's acceptance. Hosted jobs, imports, merge and runner remain off. Actual-phone evidence and original OFFLINE-01 must both pass by 20 October; F2 stays incomplete/F3 closed until real-week acceptance.
+
+## Current continuation — 4 October
+
+Reuse accepted caption commit `85f6bc6` and hosted-preparation evidence. Do not request
+setup/project-reuse/three-quote approval again. Finish the requested Cloudflare Access
+credential/gate, rebuild the accepted reset-timer cleanup into the disabled Worker,
+prove anonymous denial before enabling the private Worker URL, hand
+over/change the owner password privately, and confirm Cine's sign-in. Then obtain the
+separate real-data/payment/customer/shop-opening and backup-custody/recovery decisions;
+begin all seven actual dates and device rehearsal. The uploaded Worker is currently
+unrouted and both URLs return 404. F2 is incomplete/F3 closed; unchanged OFFLINE-01
+and actual-phone rehearsal must both pass by 20 October for the October pilot.

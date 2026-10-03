@@ -214,6 +214,15 @@ for entry in load(EVIDENCE / 'delivery-manifest.json'):
             check(f'approved_pnl_caption_once:{rel}:{index}', data.count(edited) == 1)
             data = data.replace(edited, original, 1)
         check('protected_delivery_bytes:' + rel, hashlib.sha256(data).hexdigest() == entry['sha256'])
+# F2 PG17 exception (Ethan, 2026-10-04): only three output-name quotes.
+# This later migration is outside the original delivery inventory; restore its
+# reviewed 85f6bc6 bytes independently instead of widening delivery protection.
+pg17_settings = (ROOT / 'supabase/migrations/20260101002900_settings_preferences.sql').read_bytes().replace(b'\r\n', b'\n')
+pg17_declarations = re.findall(rb'(?m)^returns table \([^\n]*"json_value" jsonb[^\n]*\)$', pg17_settings)
+check('approved_pg17_settings_quotes_three', len(pg17_declarations) == 3)
+for declaration in pg17_declarations:
+    pg17_settings = pg17_settings.replace(declaration, declaration.replace(b'"json_value"', b'json_value'), 1)
+check('approved_pg17_settings_original_bytes', hashlib.sha256(pg17_settings).hexdigest() == '17355ae140709be3146b993fbb22e3950c8ed410b4bf53108afebfdf793984c3')
 notices = [[line for line in (ROOT / name).read_text().splitlines() if line.startswith('> **Current planning authority')] for name in ['AGENTS.md', 'CLAUDE.md']]
 check('agent_authority_notices_aligned', len(notices[0]) == 1 and notices[0] == notices[1])
 policy_notices = [[line for line in (ROOT / name).read_text().splitlines() if line.startswith('Shared worker policy:')] for name in ['AGENTS.md', 'CLAUDE.md']]

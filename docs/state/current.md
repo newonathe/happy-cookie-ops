@@ -2,7 +2,11 @@
 
 Read this at the start of a session. History: [current-history.md](current-history.md). Approved forward plan: [finish-plan.md](finish-plan.md). One executable package: [next-goal.md](next-goal.md).
 
-## Where things stand — 2026-10-03
+## Where things stand — 2026-10-04
+
+- **Approved closed-shop hosted preparation is implemented.** Ethan approved free-plan setup and reuse of the empty existing trial project. All 52 migrations apply on PG17.6; the explicitly approved three-place 029 compatibility fix and new 051 maintenance hardening pass. Automated owner sign-in/refresh, active role and anonymous financial denial pass. Six catalogue definitions remain drafts; no orders, fake stock or payment accounts were imported.
+- **The fresh trial Worker is uploaded but unreachable:** version `12ed8ba6-fb61-47ff-822a-6724f982d91a`, zero routes, workers.dev and preview URLs disabled; both GET probes return 404. Current hosting OAuth lacks Access permissions (403); a scoped credential is requested before enabling a private link. Owner credential handoff/change and Cine's human sign-in remain pending.
+- Fresh `pnpm verify`: **77 files / 1,464 tests PASS**. PG15 SQL role suite: **1,922 cases/reset × 2**, 684 regressions detected, rollback/cleanup PASS. Hosted PG17: 94 app function contracts match apart from three expected quoted return-name renderings; all 37 public tables have RLS; browser MAINTAIN is zero across 39 public relations and service authority is preserved. The existing provider RLS event trigger is retained separately. Hosted-target local-browser P&L phone/desktop captures are inspected; this is separate from reachable private-origin or actual-device acceptance.
 
 - **F2 technical work is checkpointed; readiness and real-week acceptance remain incomplete.** [Trial setup proposal](F2-trial-setup.md), [fix list](F2-fix-list.md), [checkpoint](F2-checkpoint.md) and [receipt](evidence/F2-trial.json) separate verified work from remaining browser/owner evidence. MP-26 stays in progress, next-goal stays F2 and F3 is closed.
 - **F1 remains accepted locally, committed and pushed.** Encrypted database dumps and isolated recovery, fixed one-year retention, operational receipts, live health/alerts and the shop privacy notice are implemented; hosted jobs stay inactive.
@@ -34,6 +38,6 @@ Read this at the start of a session. History: [current-history.md](current-histo
 
 - **Hosted operations:** no timer, keep-alive, retention job or backup-health write is activated. Ethan must approve the target, secret custody, off-device destination, archive expiry and failure delivery. Inactive schedule metadata is prepared; local recovery does not establish off-device protection.
 - **F2:** Cine's actual real-week checklist and feedback on an explicitly approved target. Prepared checklists or synthetic tests do not complete that trial.
-- **Existing carry-overs:** hosted signed-in/session probes need Ethan's test account; local Postgres 17 and reviewed `MAINTAIN` hardening remain separate. `format:check` and WebKit E2E on main are known red; no merge while required checks fail.
+- **Existing carry-overs:** target owner/refresh and PG17 maintenance checks pass; private-origin, human/device and broader session scenarios remain open. `format:check` and WebKit E2E on main are known red; no merge while required checks fail.
 - **Bazaar pilot:** 24–25 October requires OFFLINE-01 and the physical-phone test to pass by **20 October**. Phone-sized Chromium is separate evidence.
 - Cine's C1–C12 answers remain open; Ethan approved the finish-plan defaults on 2026-09-28. No automatic runner, production cutover, hosted resource or deployment is authorized by F1.

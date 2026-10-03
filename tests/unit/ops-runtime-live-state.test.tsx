@@ -243,4 +243,47 @@ describe('MP-09 a: storage boundary', () => {
     expect(runtime.state.screen).toBe('today');
     expect(window.localStorage.getItem(STORE_KEY)).toBeNull();
   });
+
+  it('cancels the pending reset message when its screen unmounts', () => {
+    live = true;
+    vi.useFakeTimers();
+    try {
+      const ref = createRef<OpsRuntime>();
+      const view = render(<OpsRuntime ref={ref} />);
+      const runtime = ref.current;
+      if (!runtime) throw new Error('Runtime did not mount');
+      const toast = vi.spyOn(runtime, 'toast');
+      act(() => runtime.resetData());
+      view.unmount();
+      act(() => vi.advanceTimersByTime(80));
+      expect(toast).not.toHaveBeenCalled();
+    } finally {
+      cleanup();
+      vi.useRealTimers();
+    }
+  });
+
+  it('shows one reset acknowledgement after the latest reset while mounted', () => {
+    live = true;
+    vi.useFakeTimers();
+    try {
+      const ref = createRef<OpsRuntime>();
+      render(<OpsRuntime ref={ref} />);
+      const runtime = ref.current;
+      if (!runtime) throw new Error('Runtime did not mount');
+      const toast = vi.spyOn(runtime, 'toast');
+      act(() => runtime.resetData());
+      act(() => vi.advanceTimersByTime(40));
+      act(() => runtime.resetData());
+      act(() => vi.advanceTimersByTime(80));
+      expect(toast).toHaveBeenCalledTimes(1);
+      expect(toast).toHaveBeenCalledWith(
+        'Back to empty. Local records on this device were cleared.',
+        'warn'
+      );
+    } finally {
+      cleanup();
+      vi.useRealTimers();
+    }
+  });
 });

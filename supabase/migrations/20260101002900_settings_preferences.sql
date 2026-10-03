@@ -42,7 +42,7 @@ drop function public.get_operating_settings();
 drop function public.settings_effective();
 
 create function public.settings_effective()
-returns table (key text, int_value bigint, text_value text, cents_value bigint, json_value jsonb, is_default boolean)
+returns table (key text, int_value bigint, text_value text, cents_value bigint, "json_value" jsonb, is_default boolean)
 language sql
 stable
 set search_path = pg_catalog, public, pg_temp
@@ -277,7 +277,7 @@ grant execute on function public.save_setting(text, jsonb, timestamptz) to authe
 
 /** The owner's full settings, every key, with each key's updated_at for save_setting. */
 create function public.get_settings()
-returns table (key text, int_value bigint, text_value text, cents_value bigint, json_value jsonb, is_default boolean, updated_at timestamptz)
+returns table (key text, int_value bigint, text_value text, cents_value bigint, "json_value" jsonb, is_default boolean, updated_at timestamptz)
 language plpgsql
 security definer
 set search_path = ''
@@ -303,7 +303,7 @@ grant execute on function public.get_settings() to authenticated;
  * reaches the notifications screen) and helperSeesSales (b4). None is a cost or a price.
  */
 create function public.get_operating_settings()
-returns table (key text, int_value bigint, text_value text, cents_value bigint, json_value jsonb, is_default boolean, updated_at timestamptz)
+returns table (key text, int_value bigint, text_value text, cents_value bigint, "json_value" jsonb, is_default boolean, updated_at timestamptz)
 language plpgsql
 security definer
 set search_path = ''

@@ -458,6 +458,7 @@ export class OpsRuntime extends OpsProvider {
   }
 
   private stopViewportTracking?: () => void;
+  private resetNoticeTimer?: ReturnType<typeof setTimeout>;
   private settingsSync?: SettingsSync;
   private flavourSync?: FlavourSync;
   private paymentSync?: PaymentSync;
@@ -769,10 +770,14 @@ export class OpsRuntime extends OpsProvider {
         this.recipeBaseStamp[p.id] = this.recipeRows?.find((r) => r.productId === p.id)?.updatedAt ?? null;
       Object.assign(fresh, this.recipesPatch(fresh as unknown as RecipeState, undefined, true));
       this.setState(fresh);
-      setTimeout(
+      clearTimeout(this.resetNoticeTimer);
+      this.resetNoticeTimer = setTimeout(
         // Unlike the demo reset, this must not claim "gone": a sale already queued to
         // sync lives in IndexedDB (invariant 2), not in this cleared state.
-        () => this.toast('Back to empty. Local records on this device were cleared.', 'warn'),
+        () => {
+          this.resetNoticeTimer = undefined;
+          this.toast('Back to empty. Local records on this device were cleared.', 'warn');
+        },
         80
       );
       void this.settingsSync?.reload();
@@ -1175,6 +1180,8 @@ export class OpsRuntime extends OpsProvider {
   }
 
   componentWillUnmount(): void {
+    clearTimeout(this.resetNoticeTimer);
+    this.resetNoticeTimer = undefined;
     super.componentWillUnmount?.();
     this.stopViewportTracking?.();
     this.settingsSync?.dispose();

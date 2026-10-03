@@ -130,3 +130,57 @@ exact customer/data/payment scope in F2-trial-setup.md, establish access and tar
 verification/recovery, then record all seven actual dates and Cine's acceptance.
 Both original OFFLINE-01 and actual-phone rehearsal must PASS by 20 October for
 the 24–25 October pilot; otherwise use the current process and December fallback.
+
+## Approved hosted preparation — 4 October 2026
+
+Ethan approved free-plan closed-shop online tests, reuse of the empty existing
+trial project and, separately, exactly three 029 output-name quotation corrections.
+No third project, upgrade, pause or delete was performed. The old preview is untouched.
+The first schema push applied 00000–02800 and stopped on PG17's 029 output-name
+syntax. Readback confirmed absent json column, old signatures, enabled touch trigger
+and no users/products/orders/settings; a whole-candidate transaction compiled and
+rolled back. Independently reviewed resume applies all 52 versions on PG17.6.
+
+94 application function contracts match body/grants/roles; only the three expected
+PG17 quoted return-name renderings differ. The existing provider automatic-RLS event
+trigger is recorded separately. All 37 public tables have RLS. New 051 removes the
+reproduced MAINTAIN leak: zero effective browser grants across 39 public relations,
+unchanged service access for 21 preexisting relations, anon/PUBLIC red grants detected,
+future postgres-created table safe, transaction/probe cleanup PASS.
+
+One active owner is provisioned with owner-only DPAPI temporary credentials; zero
+emails sent. Six exact catalogue/allergen definitions remain unpublished; shop closed,
+zero orders, no full seed, stock or payment accounts. Actual hosted owner/password,
+refresh, profile, books and anonymous denial PASS. Headless local static Worker UI
+connects to that hosted target: phone/desktop P&L and reload PASS; screenshots inspected.
+These zero-data target checks are distinct from the accepted nonzero local CSV proof.
+First smoke's cleanup oracle looked in localStorage; SSR-cookie correction passes,
+earlier setup sessions are revoked, and browser cookies/context are removed.
+
+Pinned verify77/1464 PASS; PG15 roles1922 × 2 and 684 regressions PASS with cleanup.
+Build uses only target publishable configuration; actual privileged key bytes and
+working payment QR bytes are absent. Fresh Worker version
+`12ed8ba6-fb61-47ff-822a-6724f982d91a` is uploaded with no routes, canonical/preview
+URLs disabled and both GETs404. OAuth Access403 requires the requested scoped
+credential before a private URL can be enabled; no reachable-origin acceptance yet.
+
+Private evidence stays in the continuation directory. Harness preflight/count/scan
+and Auth admin-key setup failures are retained separately from product repairs.
+Human credential handoff/change, Cine sign-in, real-data/payment/customer/shop-opening
+scope, encrypted custody/target recovery, seven actual dates and physical-phone
+evidence remain open. Planning device assumptions are not actual Safari proof.
+F2 remains incomplete/F3 closed; original OFFLINE-01 is unchanged/failing. Both it
+and actual-phone rehearsal must pass by 20 October. Jobs/imports/merge/runner stay off.
+
+Final independent Sol review ACCEPT: authorized SQL/pins/continuity guard, provider
+trigger classification, disabled Worker and readiness boundaries. Both final target
+P&L screenshots and corrected UTF-8 caption record match. G0: 1221 checks/0 failures.
+Initial secret scan PASS for all 14 hosted-preparation files: exact private credentials and owner
+identity absent. Publication receipt stays outside Git to avoid self-referential hashes.
+
+The first precommit run passed all 1464 assertions but failed on one unhandled live
+reset notice after jsdom teardown. Two added regressions fail on the original code;
+one lifecycle repair owns/cancels its 80 ms timer and passes all 74 focused tests.
+Independent Sol ACCEPT preserves copy, delay, demo and offline queue. The complete
+precommit retry/publication result is recorded externally. The disabled upload still
+contains frontend 85f6bc6; rebuild the accepted cleanup before enabling its private URL.

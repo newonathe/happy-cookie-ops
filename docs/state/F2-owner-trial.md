@@ -1,6 +1,6 @@
 # F2 owner trial — one real week
 
-Status: preparation only (2026-10-03); no real-week run or Cine feedback is recorded here. Technical choice is delegated to Ethan/Codex. The currently reachable preview URL is for demo checks: its Workers site connects to a synthetic Supabase project with fake catalogue data. It is not an approved real-data trial target. Do not enter real business/customer data there. No new target, deployment, hosted write, or resource is authorized by this checklist. Ethan must identify and approve a suitable real-data destination before Cine uses it.
+Status: closed-shop test preparation (2026-10-04); no real-week run or Cine feedback is recorded here. Ethan approved the existing empty trial database, owner setup and fresh free-plan private hosting. The database and automated owner checks pass; the fresh Worker is deliberately unreachable pending the private Access gate. The old reachable preview remains demo-only. Before real records, agree customer/data/payment scope, shop opening, backup custody/recovery and seven dates. This checklist alone does not authorize those later actions.
 
 Keep customer/staff names, contact details, account numbers, screenshots, raw CSVs, recipes, and private feedback outside Git. Use app record IDs without names and sanitized evidence references here; retain the evidence privately.
 

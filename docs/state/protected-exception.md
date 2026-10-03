@@ -583,3 +583,25 @@ refreshes (focused test and deliberate mutation detected). Headless Chromium vis
 390x844 phone and 1440x900 desktop views for missing/success/failed health, alert navigation and
 privacy; all 11 screenshots were inspected. The final-schema recovery drill passes 61 tables and
 55 validated, orphan-free FKs. Physical-device and hosted acceptance remain outside this local proof.
+
+## F2 PostgreSQL 17 migration compatibility (2026-10-04)
+
+Ethan explicitly approved the three-place SQL compatibility fix after independent
+review and a transaction-rolled-back compile probe on the approved empty PG17.6
+trial target. In `20260101002900_settings_preferences.sql`, quote only the
+`json_value` output name in the three `RETURNS TABLE` declarations (lines 45,
+280 and 306). The output name, types, function bodies, grants and data behavior
+are unchanged. PG17 rejects the unquoted name in this declaration context.
+
+Original authority is commit `85f6bc685719498f24a0765e148f1dfdc8c3b50b`;
+the original LF-normalized SQL SHA256 is
+`17355ae140709be3146b993fbb22e3950c8ed410b4bf53108afebfdf793984c3`.
+The continuity validator requires exactly three quoted declarations, reverses
+only those output-name quotes and checks that original hash. The earlier PG15
+applied history is not rewritten remotely. The new trial applied versions
+00000 through 02800 before this failure; 029 had no committed schema effects.
+No other applied-migration amendment is authorized by this exception.
+
+PG17's separately reproduced browser `MAINTAIN` grant is corrected in the new
+051 migration, with effective-permission, service-parity and rolled-back red/
+future-table probes. That additive correction does not extend this exception.

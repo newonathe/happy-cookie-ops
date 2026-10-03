@@ -1,8 +1,8 @@
 {
-  "date": "2026-10-03",
+  "date": "2026-10-04",
   "package": "F2",
   "historicalTask": "MP-26",
-  "status": "technical_checkpoint_incomplete_real_week_pending",
+  "status": "hosted_prepared_private_access_and_real_week_pending",
   "trialComplete": false,
   "f3MayAdvance": false,
   "checklist": "docs/state/F2-owner-trial.md",
@@ -61,6 +61,8 @@
     "technicalSelectionDelegated": true,
     "suitableRealDataTargetApproved": false,
     "accountAccessVerified": false,
+    "automatedAccountAccessVerified": true,
+    "closedShopTestTargetApproved": true,
     "trialStart": null,
     "trialEnd": null,
     "sevenDaysRecorded": 0,
@@ -78,7 +80,7 @@
   },
   "openIssues": [
     "F2-001 original WebKit OFFLINE-01 still fails",
-    "Approved hosted target/access/data scope and Cine seven-day acceptance pending",
+    "Private Access gate/credential handoff, real-data/shop-opening scope and Cine seven-day acceptance pending",
     "Actual-phone rehearsal pending before 20 October"
   ],
   "review": {
@@ -89,15 +91,15 @@
   },
   "publication": {
     "branch": "agent/codex/MP-04-g1-feasibility",
-    "evidence": "Git commit containing this receipt and external F2-commit.log / F2-push.log / F2-publication.json are the publication authority; no merge or deployment",
-    "plannedMessage": "docs(trial): prepare F2 owner week and record acceptance blockers"
+    "evidence": "Git and external F2-hosted-publication.json are publication authority; static trial Worker uploaded unrouted, no merge",
+    "plannedMessage": "fix(db): prepare PG17 owner trial safely"
   },
   "boundaries": {
-    "hostedWrites": false,
+    "hostedWrites": true,
     "schedulesActivated": false,
-    "deployed": false,
+    "deployed": true,
     "merged": false,
-    "hostedResourcesCreated": false,
+    "hostedResourcesCreated": true,
     "automaticRunner": false,
     "physicalPhoneTested": false,
     "f3ImportsOrLegalDecisions": false
@@ -279,5 +281,117 @@
       "actualPhone": false,
       "f3MayAdvance": false
     }
+  },
+  "hostedPreparation": {
+    "date": "2026-10-04",
+    "status": "prepared_unrouted_private_access_pending",
+    "approvals": [
+      "Free-plan closed-shop test setup",
+      "Reuse empty existing keth-ai project",
+      "Exactly three 029 SQL output-name quotes"
+    ],
+    "projectRef": "enftprwcsrdbnlplfrwk",
+    "oldPreviewUntouched": true,
+    "newProjectCreated": false,
+    "planUpgradedOrProjectPausedDeleted": false,
+    "postgres": "17.6",
+    "migrations": 52,
+    "migrationApply": "PASS; partial first push stopped at 029; approved correction and exact 29-history/rollback predicates verified before reviewed resume",
+    "functionAuthority": {
+      "applicationFunctions": 94,
+      "bodyGrantRoleMatch": true,
+      "expectedPg17RenderingDifferences": "Only three quoted json_value return names",
+      "providerExtra": "Existing rls_auto_enable event trigger; pg_catalog search_path, no browser CREATE; independently recorded"
+    },
+    "publicTablesRls": {
+      "tables": 37,
+      "missingRls": 0
+    },
+    "pg17Maintain": {
+      "publicRelations": 39,
+      "browserEffectivePrivileges": 0,
+      "serviceParityBaselineRelations": 21,
+      "serviceParity": "PASS",
+      "redAnonAndPublicGrants": "DETECTED in rolled-back transaction",
+      "futurePostgresDefault": "PASS",
+      "probeCleanup": "PASS"
+    },
+    "auth": {
+      "publicSignup": false,
+      "jwtSeconds": 1800,
+      "activeOwners": 1,
+      "credentialCustody": "Owner-only Windows DPAPI outside Git; temporary-password handoff/change still required",
+      "emailsSent": 0,
+      "automatedSignInRefreshProfile": "PASS",
+      "anonymousFinancialDenial": "PASS",
+      "setupSessionsRevoked": true,
+      "humanSignIn": "pending"
+    },
+    "data": {
+      "catalogueDefinitions": 6,
+      "publishedProducts": 0,
+      "shopOverride": "closed",
+      "orders": 0,
+      "fullSeedImported": false,
+      "stockOrPaymentAccountsImported": false,
+      "realDataScopeApproved": false
+    },
+    "build": {
+      "status": "PASS",
+      "frontendSourceCommit": "85f6bc685719498f24a0765e148f1dfdc8c3b50b",
+      "publishableKeyOnly": true,
+      "actualPrivilegedKeyBytesAbsent": true,
+      "workingPaymentQrBytesAbsent": true
+    },
+    "worker": {
+      "name": "happy-cookie-owner-trial",
+      "version": "12ed8ba6-fb61-47ff-822a-6724f982d91a",
+      "deployment": "unrouted static preparation only",
+      "routes": 0,
+      "workersDevEnabled": false,
+      "versionPreviewEnabled": false,
+      "canonicalGet": 404,
+      "versionGet": 404,
+      "reachablePrivateOriginAccepted": false,
+      "accessCredential": "requested; current OAuth Access API 403"
+    },
+    "visual": {
+      "scope": "Local headless static Worker connects to actual hosted trial DB; empty P&L, distinct from earlier nonzero local CSV reconciliation",
+      "phone": "390x844",
+      "desktop": "1440x900",
+      "screenshots": [
+        "F2-hosted-target-pnl-phone.png",
+        "F2-hosted-target-pnl-desktop.png"
+      ],
+      "caption": "Profit · Last 30 days · 4 Sep to 4 Oct",
+      "rootInspected": true,
+      "physicalDevice": false
+    },
+    "devicePlanningAssumptions": "iPhone 14 or newer; MacBook possibly M2; Safari and Chrome. Actual model/OS and results unconfirmed.",
+    "verification": {
+      "pnpmVerify": "Pre-cleanup PASS77/1464; current full precommit result recorded in external publication receipt",
+      "pg15RoleCasesPerReset": 1922,
+      "pg15Resets": 2,
+      "g0Checks": 1221,
+      "g0Failures": 0,
+      "secretScan": "PASS16; exact private credentials and owner identity absent",
+      "regressionsDetected": 684,
+      "rollbackCleanup": "PASS"
+    },
+    "setupHistory": "PowerShell empty-history wrapper guard: initial and first repair failed before mutation, second repair passed. Resume pin-count guard needed one correction before mutation. Bundle scanner initially matched its own sb_secret_ validator literal; exact privileged-key scan and bounded key-pattern rerun passed. New-secret Auth admin GET401, verified legacy server-admin JWT GET200. First smoke passed API/UI checks but cleanup oracle looked in localStorage; SSR-cookie correction passed, earlier setup sessions revoked. These are harness/provider setup issues; no product/offline repair inferred.",
+    "privateEvidenceDirectory": "C:/Users/ethan/.codex/visualizations/2026/10/03/01a101cc-ce31-7cd1-be5b-65218afaa853",
+    "independentReview": "Final independent Sol ACCEPT: exact authorized 029 quotes, continuity hash, additive 051, target contracts, credential/catalogue and unrouted-hosting boundaries; corrected caption matches inspected phone/desktop images. Lifecycle cleanup also independently ACCEPTED after two RED regressions and PASS74 focused tests; current full precommit/publication remains the final gate.",
+    "remaining": [
+      "Scoped Cloudflare Access credential, private gate and reachable-origin acceptance",
+      "Private owner-password handoff/change and Cine sign-in",
+      "Real customer/data/payment/shop-opening scope",
+      "Off-device encrypted custody and target recovery before real records",
+      "Seven actual dates and Cine acceptance",
+      "Actual-phone and unchanged OFFLINE-01 dual PASS by 20 October"
+    ],
+    "lifecycleCleanup": {"issue": "Precommit assertions all pass but reset notice fires after jsdom teardown", "firstPrecommit": "FAIL77/1464 plus one unhandled window-is-not-defined error", "repairAttempts": 1, "regressionBefore": "Two tests RED", "focusedAfter": "PASS74", "review": "Independent Sol ACCEPT; queue/copy/delay/demo preserved", "uploadedFrontend": "85f6bc6; rebuild cleanup before enabling private URL"},
+    "jobsImportsMergeRunner": "inactive/not performed",
+    "trialComplete": false,
+    "f3MayAdvance": false
   }
 }

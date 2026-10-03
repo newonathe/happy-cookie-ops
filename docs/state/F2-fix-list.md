@@ -1,4 +1,21 @@
-# F2 fix list — dated 2026-10-03
+# F2 fix list — updated 2026-10-04
+
+## Hosted preparation findings — 4 October
+
+- **F2-004, hosted compatibility blocker, resolved:** PG17 rejected the unquoted
+  `json_value` output name at migration 029; 29 earlier migrations applied. Ethan
+  explicitly approved three output-name quotation changes after independent review
+  and a rolled-back PG17 compile test. Resume applies all 52 migrations; function
+  bodies/grants/output names remain unchanged, with exact original-byte reversal guard.
+- **F2-005, hosted security blocker, resolved:** PG17 provider defaults left effective
+  browser MAINTAIN on 18 older public tables. New 051 removes it. Postapply zero across
+  39 relations, existing service parity, anon/PUBLIC red-grant detection and future-table
+  default probes pass. Probe transactions roll back with no owned table remaining.
+- **Hosting access blocker remains:** OAuth Access requests return 403. A scoped
+  credential is requested; the new Worker has no routes and both URL types return 404.
+  Auth setup's new-secret-key admin probe returned 401; the documented server-only
+  legacy admin JWT probe and provisioning pass. These are setup issues, not app defects.
+  No Cine feedback or real-week acceptance is inferred from these resolutions.
 
 Factual issue ledger only. Add an app defect from reproducible evidence or explicit Cine feedback; missing access, target approval, participation, or proof is a trial blocker, not an app defect. Keep PII, raw feedback, screenshots and CSVs outside Git. Existing WebKit OFFLINE-01 was reproduced on 2026-10-03: full E2E is 89 passed / 1 failed / 75 skipped, exit 1. OFFLINE-01 remains failing; the caption slice is accepted locally with fresh live phone/desktop and financial proof; F2 remains incomplete pending real-week acceptance.
 
@@ -33,3 +50,7 @@ Selected nonzero SQL scenarios pass on two disposable resets (684 assertions eac
 SQL proof and historical F1 checkout do not close this browser evidence gap.
 
 Continuation from bdd83f6 resolves F2-003 locally: 11 fresh customer browser steps plus owner UI payment, packing/stock, collection and expense; CSV/RPC exact-cent and rounded P&L comparison pass. Final attempt5 captures pass with reducedMotion=reduce and the settled counter awaited/rechecked. Exact synthetic residuals are zero, business configuration/stock restored. Twelve update-trigger timestamps and monotonic sequence advancement are retained explicitly; original timestamp equality is not claimed. Earlier attempt1–4 receipts and pre-execution scratch-file recovery are preserved privately. No product/offline source repair. Original OFFLINE-01 remains FAIL and actual-phone/real-week evidence is pending.
+
+F2-006: final precommit exposed a pending live-reset toast after unmount (all1464
+assertions passed, one unhandled error). Two RED regressions -> one timer-ownership
+repair -> PASS74 focused tests; independent ACCEPT. Original OFFLINE-01 untouched.
