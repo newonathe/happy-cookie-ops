@@ -9,7 +9,7 @@
   "packageManager": "pnpm@9.12.3",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build --webpack",
     "start": "node scripts/start-standalone.mjs",
     "lint": "eslint . --max-warnings 0",
     "lint:fix": "eslint . --fix",

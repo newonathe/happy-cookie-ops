@@ -1,2 +1,5 @@
 # Validate without autoformatting protected delivery sources.
-pnpm verify
+case "$(uname -s)" in
+  MINGW*|MSYS*|CYGWIN*) pnpm.cmd verify ;;
+  *) pnpm verify ;;
+esac
