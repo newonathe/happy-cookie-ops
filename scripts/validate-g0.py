@@ -38,7 +38,8 @@ from jsonschema import Draft202012Validator
 errors = [e.message for e in Draft202012Validator(load(PLAN / 'templates/task-catalog.schema.json')).iter_errors(catalog)]
 check('catalog_schema', not errors, errors)
 status = load(ROOT / 'docs/state/task-status.json')
-check('manual_progress_scope', {'MP-00', 'MP-01', 'MP-02', 'MP-03'} <= set(status['packages']) <= ids)
+# F1 is the approved lean-plan package spanning historical MP-22/23/24.
+check('manual_progress_scope', {'MP-00', 'MP-01', 'MP-02', 'MP-03'} <= set(status['packages']) <= ids | {'F1'})
 check('manual_status_values', all(p['status'] in {'pending', 'in_progress', 'complete', 'blocked'} for p in status['packages'].values()))
 scratch = Path(tempfile.mkdtemp(prefix='happy-cookie-catalog-'))
 (scratch / 'evidence').mkdir()
