@@ -56,6 +56,14 @@ Weekly count and Apple Pie recipe. Strict headless checks retain an entered17 ac
 same-role profile rechecks. These use a local static Worker against the hosted trial
 database; they do not establish physical Safari or Cine's real-week acceptance.
 
+Accepted code `73e556e04abe06f543bddc2344308121457bf1fc` is secret-scanned,
+committed/pushed and rebuilt from the clean commit. Full precommit78/1471 PASS.
+The existing private Worker was updated to `4ecc095c-960e-4036-937f-555e2358af4e`.
+Exact-owner Access GETs pass before/after; canonical enabled, previews disabled and
+routes empty. Anonymous login/P&L/actual JS/SW redirect to Access; new version URL404.
+Both Access login viewports200 are inspected. No new resources/jobs or shop opening.
+Prior human sign-in is retained; the updated app's human login is not an automated claim.
+
 ## Remaining facts and gates
 
 Six recipes need current yields and measured solid teaspoon/pinch/piece weights.

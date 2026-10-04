@@ -22,7 +22,17 @@
     "physicalDevice": false,
     "targetedTests": "42 PASS",
     "pnpmVerify": "PASS78files/1471tests; port,G0,typecheck,lint included",
-    "build": "PASS;211 static assets, privileged credential/real QR scan PASS; private frontend update pending",
+    "build": "PASS from clean accepted73e556e;211 static assets, privileged credential/real QR scan PASS",
+    "publication": {
+      "sourceCommit": "73e556e04abe06f543bddc2344308121457bf1fc",
+      "workerVersion": "4ecc095c-960e-4036-937f-555e2358af4e",
+      "status": "PASS existing private Worker updated; canonical enabled, version previews disabled, routes empty",
+      "access": "Fresh exact-owner OTP/policy/IdP GET before/after PASS; anonymous login/P&L/actual JS/SW302, new version preview404; both Access login viewports200/root inspected",
+      "humanUpdatedAppSignIn": "Pending; prior owner mailbox/dashboard sign-in confirmed separately",
+      "receipts": ["F2-real-data-publication.json", "F2-real-data-access-post-browser.json", "F2-real-data-secret-scan.json", "F2-real-data-precommit.log"],
+      "secretScan": "PASS15 changed/new files; exact credentials/owner identity and credential patterns absent",
+      "precommit": "PASS78files/1471tests;73e556e committed and pushed"
+    },
     "setupHistory": "Timestamp guard repaired twice to typed comparison PASS; initial broad visual assertions rejected after screenshot review, replaced with strict count assertions. Local source build type errors and asset lock repaired. Incorrect new catalogue-header state field caused local product boot failure, fixed and independently accepted before publication. Recipe-caption locator corrected as harness failure.",
     "records": "docs/state/F2-real-data.md",
     "privateEvidenceDirectory": "C:/Users/ethan/.codex/visualizations/2026/10/03/01a101cc-ce31-7cd1-be5b-65218afaa853",

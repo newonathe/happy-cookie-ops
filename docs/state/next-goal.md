@@ -11,6 +11,29 @@ resources. Keep menu unpublished until allergens confirmed and shop closed until
 separate operating approval. Reuse accepted stocktake/pending-data UI proof. F2
 incomplete/F3 closed; unchanged OFFLINE-01 and actual phone must both PASS by20October.
 
+Accepted catalogue/control code73e556e is pushed and published to the existing private
+trial (version4ecc095c). Verify/precommit78/1471 and inspected headless visuals PASS.
+Prior setup/approval prompts below are historical; do not recreate resources or repeat
+the approved catalogue import. Shop opening, payment setup and operational jobs remain
+outside this approval.
+
+```text
+/goal Continue F2 from73e556e: finish Cine's October recipe/cost preparation,
+opening count and real-week acceptance using F2-real-data.md and existing receipts.
+Preserve the supplied seven recipes; obtain only missing yields, solid tsp/pinch/piece
+weights, ingredient identities and allergen confirmation. Resolve held supplier/pack
+cost links without guessing. Reuse existing owner editing controls and accepted QA.
+Keep the shop closed and menu unpublished until the remaining decisions are confirmed.
+Prepare concrete operating/recovery steps before requesting their specific approval.
+Then record Cine's actual opening count, seven trial dates/feedback and real iPhone
+Safari/Chrome evidence. Preserve unchanged failing OFFLINE-01; it and actual-phone
+evidence must both PASS by20October. F2 stays incomplete/F3 closed until acceptance.
+Pinned tools and headless CLI Playwright only; Codex Sol/high coordination, bounded
+workers at most two. Stop on two failed repairs of one issue or25turns. Commit/push
+accepted slices after verify/secret scan; no new resources/jobs/runner/merge or wider
+deployment without explicit approval. Finish with actual evidence and next goal.
+```
+
 | Setting | Value |
 | --- | --- |
 | Coordinator and sign-off | Codex `gpt-6-sol` · high |

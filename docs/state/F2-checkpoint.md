@@ -4,6 +4,9 @@
 13 suppliers/eight quotes,26 library products/seven October prices,one exact recipe
 and runtime/auth/stocktake fixes. No physical counts or historical transactions
 imported. Recipe conversions/cost links/allergens and Cine acceptance remain pending.
+Code73e556e is committed/pushed and published as private Worker version4ecc095c;
+verify/precommit78/1471, inspected headless catalogue/count visuals and fresh Access
+gate/anonymous assets/disabled-preview probes PASS. Original OFFLINE-01 unchanged.
 
 **F2 remains incomplete; the local caption continuation is accepted.** Real-week acceptance
 and physical-phone evidence remain pending. F3 is closed; next-goal stays F2. Reuse local
