@@ -27,10 +27,7 @@
           "downloadThroughputKbps": 0,
           "uploadThroughputKbps": 0
         },
-        "skipAudits": [
-          "uses-http2",
-          "canonical"
-        ]
+        "skipAudits": ["uses-http2", "canonical"]
       }
     },
     "assert": {

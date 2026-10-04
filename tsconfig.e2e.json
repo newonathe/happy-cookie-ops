@@ -3,9 +3,6 @@
   "compilerOptions": {
     "incremental": false
   },
-  "include": [
-    "tests/e2e/**/*.ts",
-    "tests/fixtures/**/*.ts"
-  ],
+  "include": ["tests/e2e/**/*.ts", "tests/fixtures/**/*.ts"],
   "exclude": []
 }
