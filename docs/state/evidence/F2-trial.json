@@ -605,7 +605,7 @@
         "F2-hosted-target-pnl-phone.png",
         "F2-hosted-target-pnl-desktop.png"
       ],
-      "caption": "Profit · Last 30 days · 4 Sep to 4 Oct",
+      "caption": "Profit Â· Last 30 days Â· 4 Sep to 4 Oct",
       "rootInspected": true,
       "physicalDevice": false
     },
@@ -730,5 +730,74 @@
     "adminMailboxDeliveryRestored": false,
     "trialComplete": false,
     "f3MayAdvance": false
+  },
+  "historicalFinancialContinuation": {
+    "date": "2026-10-05 continuation",
+    "authorization": "Explicit historical import, private GitHub CI/CD, whole dummy workbook exclusion; subsequent blank-date carry and genuine-repeat assumptions",
+    "applied": {
+      "financialRows": 804,
+      "sales": 722,
+      "stockPurchaseCosts": 82,
+      "original257ExactPreserved": true,
+      "sourceHash": "c32c12fd8064092d06e9d2ad741a8b1fb50a1c3d2a887ada1e36b601b9eb52cb",
+      "appendPlanSha256": "3840c7a7d4997700b2c3d37dbc9d17922c233c83339b3e30107b6f86973ae964",
+      "appendPlanHash": "0fa6191b3ee9dcd249c43de7128b485400a55ccf74f547ac7bbc4a6766eeeb1a",
+      "independentReview": "Luna exact-scope ACCEPT; dry-run/apply/readback PASS",
+      "dummyWorkbook": "entirely excluded",
+      "stockOrdersPrices": "unchanged",
+      "shop": "closed"
+    },
+    "held": {
+      "salesWithoutAmounts": 28,
+      "incompletePurchases": 8,
+      "operatingExpenses": "no actual source; broken formulas",
+      "historicalStock": "unit/opening/as-of unresolved",
+      "currentStock": "uncounted; no fabricated counts"
+    },
+    "receiptCostLink": "Durable provenance; PG17 rollback no-double-book/missing-opening/duplicate refusal PASS",
+    "browser": {
+      "scope": "Headless local accepted assets against actual hosted DB",
+      "physicalDevice": false,
+      "viewports": [
+        "390x844",
+        "1440x900"
+      ],
+      "inspected": true,
+      "uiCsvRows": 804,
+      "sourceRpcCsvTotals": "PASS",
+      "displayed30DayPnlCsv": "PASS",
+      "financialCompleteness": "Partial; operating expenses missing"
+    },
+    "pnlRepair": {
+      "commit": "c30e3bd",
+      "issue": "Historical revenue omitted from two-channel sum",
+      "period": "same30-day ledgerIn; regression excludes31-day rows",
+      "demoProtectedSources": "unchanged",
+      "review": "Independent root review of Luna implementation ACCEPT"
+    },
+    "verification": {
+      "pnpmVerifyFiles": 81,
+      "pnpmVerifyTests": 1487,
+      "fullCommitHooks": "PASS",
+      "originalOffline01": "unchanged failing; baseline89/1/75 reused"
+    },
+    "ciCd": {
+      "approved": true,
+      "existingTargetOnly": true,
+      "sameCommitFullGates": true,
+      "readOnlyLivePreflight": "PASS",
+      "credentials": "Existing public build/Access token configured securely; dedicated Workers token missing",
+      "formatCheck": "FAIL642files including54protected",
+      "existingRun": 37217614536,
+      "green": false,
+      "deployedByCi": false
+    },
+    "privatePublication": {"frontend": "c30e3bd", "source": "4dfad9b", "version": "772d4a7e-9fde-4e77-bb50-7d7d6f0e9739", "gateAnonymousRoutesPreview": "PASS", "manualExistingApproval": true, "ciRelease": false, "setupFailure": "Legacy old-version postcheck failed; actual new-version read-only checks PASS without redeploy"},
+    "humanLogin": "User confirmed alternate Access mailbox and existing owner app sign-in; Cine separate",
+    "privateEvidenceDirectory": "C:/Users/ethan/.codex/visualizations/2026/10/03/01a101cc-ce31-7cd1-be5b-65218afaa853",
+    "trialComplete": false,
+    "f3MayAdvance": false,
+    "jobsMergeRunner": "inactive/not performed",
+    "deadline": "Actual phone and unchanged OFFLINE-01 both PASS by20October"
   }
 }

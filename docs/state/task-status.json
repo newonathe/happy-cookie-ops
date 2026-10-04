@@ -177,6 +177,7 @@
   },
   "release_acceptance": "FAIL: latest full CLI E2E 87 passed/3 failed/30 skipped; MP-18-21 durable offline queue, MP-06 remaining authority, MP-07 real bootstrap/selected IDs/public SSR, MP-08 signed-in hosted checks (refresh probe, auth.sessions, role bootstrap, idle sign-out) with an Ethan-created test account and provider-account MFA/recovery-code rehearsal, hosted Cloudflare/physical Apple acceptance and inherited CI formatting remain open",
   "ops_notes": [
+    "2026-10-05 (Codex): F2 historical financial subset804 lines (722sales/82purchases) applied with approved date/repeat assumptions; whole dummy workbook excluded. P&L/CSV headless reconciliation PASS; private CI/CD approved/prepared but formatting/token/OFFLINE gates remain open. MP26 in progress, F3 closed.",
     "2026-09-24 (Claude): Uptime workflow disabled on GitHub (was failing 85/85 with no PRODUCTION_URL); issue #4 closed; working-branch uptime.yml now guarded by vars.PRODUCTION_URL, env-indirected and on github-script@v9.",
     "2026-09-24 (Claude): Dependabot PR #7 (157 updates) closed unmerged; PR #6 (Next 16.3.4, sharp 0.35.4) and #1 (github-script v9) left open with triage comments for small reviewed slices on the working branch.",
     "2026-09-24 (Claude): Ethan enabled Dependabot alerts and security updates (verified via API); dependabot.yml on the working branch now sets open-pull-requests-limit 0 (security-only), effective once merged to main.",

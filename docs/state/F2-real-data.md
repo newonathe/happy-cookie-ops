@@ -1,10 +1,11 @@
-# F2 owner controls and real data — 4 October 2026
+# F2 owner controls and real data â€” 4 October 2026
 
 Ethan requested owner editing of flavours/products, monthly menu, prices, recipes and
 stocktake, and population from Cine's supplied files. This authorizes the bounded
 real catalogue import into the existing approved private trial, superseding its
-earlier test-data-only/import hold. It does not authorize opening the shop, importing
-historical sales, jobs, merge or production launch.
+earlier test-data-only/import hold. The5October approval below separately authorizes
+historical imports and private-target CI/CD. Shop opening, jobs, merge and production
+launch remain outside scope.
 
 ## Applied, independently accepted and read back
 
@@ -93,3 +94,68 @@ corrected before the final build. These are separate setup/product failure recor
 
 See [F2-recipe-drafts.md](F2-recipe-drafts.md). Original text and batch sizes are
 available for editing now; missing measured quantities concern production/costing.
+
+
+## Historical financial import and CI/CD - 5 October continuation
+
+Ethan explicitly approved historical sales, expenses and stock records, GitHub
+publication and CI/CD, then excluded dummy data. The entire `[DUMMY VER]` workbook
+is excluded; the previously hash-verified real workbook is the sole source here.
+Ethan subsequently instructed us to assume blank sales dates inherit the preceding
+explicit date and repeated identical lines represent separate genuine sales.
+
+804 actual financial lines are applied:722 sales and82 dated stock-purchase costs.
+Initial175 unambiguous sales/82 costs were independently accepted and applied; the
+subsequently approved547-sale append uses deterministic source-row IDs and an exact
+existing-ledger digest. Original257 rows are preserved exactly. Both stages have
+rollback proofs, independent Luna acceptance, encrypted before snapshots and fresh
+readback. Receipt costs carry durable audit mappings; future receipt imports must
+link those costs rather than book them again. Actual PG17 rollback proof refuses
+missing historical opening balances and duplicate links without double booking.
+
+28 sales rows without valid amounts and8 incomplete receipts are held. Sales GForm
+responses are not counted a second time. No newer expense/count source exists per
+Ethan: the workbook's broken P&L expense formulas do not constitute expense entries.
+Undated manual counts and stock-out units/opening balances are unresolved, so current
+stock, stock movements, orders, menu prices and closed-shop state remain unchanged.
+Current profit is only the available books; zero recent costs/100% margin must not
+be interpreted as complete business profitability.
+
+Visual inspection caught a genuine P&L defect: only Drops/Bazaar revenue was summed.
+Live runtime now includes other revenue while retaining the same30-day filter,
+refunds, draws and channel subtotals; it does not guess the historical channel.
+Independent root money review found/fixed a35-versus30-day mismatch; regression covers
+both10-day and31-day entries. Demo and protected engine/screens remain unchanged.
+Fresh headless phone390x844/desktop1440x900 P&L captures are inspected. Actual UI CSV
+contains804 rows and exact source/RPC totals; both displayed P&L totals reconcile
+against the CSV's30-day subset. Real-device and owner-week acceptance remain open.
+
+Private release helper checks the exact existing account/Worker/app/policy/OTP,
+two approved-email hashes, eight-hour sessions, no bypass/routes/previews and Access
+denial for app/P&L/actualJS/SW. Failed deployment/postcheck disables both Worker domains.
+Read-only live preflight PASS. Trusted-branch CI requires every existing gate before
+calling a same-commit reusable/manual release; original OFFLINE-01 is retained.
+Two existing credentials and email hashes are configured securely in GitHub; a
+separate Workers deployment token remains missing. CI run37217614536 failed the
+inherited formatting check at642 files (54 protected); later jobs skipped. No green
+CI/CD, main merge, production launch, business job or automatic runner is claimed.
+
+Accepted code: e1f02fa release guard, c30e3bd P&L repair,77a0cb6 import compiler,
+23bad2c reusable release and4dfad9b trusted CI caller. Full verify/precommit81 files/
+1487 tests PASS. Private receipts: F2-history-Apply.json, F2-history-append-Apply.json,
+F2-history-LinkProof.json, F2-history-append-acceptance.json, F2-history-browser.json.
+Setup failures remain distinct: initial wrapper normalization, a PowerShell nested
+here-string parse, DPAPI size limit repaired with encrypted chunks, Windows ESM URL
+corrected before dry-run, and a SHA256-versus-SHA384 review-packet misunderstanding.
+Initial weak UI oracle was rejected from actual zero screenshots; final totals are
+independently reconciled against actual CSV/body captures. No such failure weakened
+product assertions or OFFLINE-01. F2 incomplete; F3 closed.
+
+Private P&L update is published manually under the existing trial approval:
+frontendc30e3bd, Worker version772d4a7e-9fde-4e77-bb50-7d7d6f0e9739. Built committed
+app bytes are unchanged in later tooling commits; actual target gate/anonymous denial
+PASS before/after, canonical enabled, previews disabled, version-preview404, routes0.
+This is separate from blocked automatic CI release. A legacy post-deploy readback
+expected the previous version and failed; new-version read-only checks passed without
+another deployment. Publication receipt: F2-history-private-publication.json.
+Independent port acceptance confirms protected/demo fidelity and30-day calculations.

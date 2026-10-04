@@ -4,31 +4,31 @@ The approved forward plan is [finish-plan.md](finish-plan.md), section 6. F1 is 
 
 ## Session settings
 
-Immediate continuation: confirm the approved alternate mailbox actually receives a
-new code/signs in; resolve the admin OTP delivery issue before Cine's real week.
-Two exact emails are now explicitly allowed; do not recreate the gate or reset app
-credentials. Reuse F2-otp-personal receipts/private updated guard; delivery unconfirmed.
-
-Current continuation: editable originals are delivered on private72d7d17/version
-b29a55bc;53 migrations. Read F2-recipe-drafts.md first. Earlier fixed-yield requests
-below are superseded: Cine can edit all seven source texts and batch sizes now.
+Immediate continuation: reuse the accepted historical import and editable owner
+controls. Human alternate-mailbox/owner app login is confirmed. No dummy workbook
+content is imported; source-date/repeat assumptions are explicitly owner-approved.
 
 ```text
-/goal Continue F2 from72d7d17 and the editable recipe-draft evidence. Do not restart
-setup/audit/imports or require immutable recipe values. Reuse existing owner menu,
-prices, source/production recipe, supplier/stock item and stocktake controls. Finish
-six production ingredient/weight and cost links from the preserved originals without
-guessing conversions; keep batch yields editable. Prepare opening count, allergen
-confirmation, custody/recovery and concrete shop/payment operating steps, then request
-only the remaining specific operating approval. Record Cine's seven actual dates,
-feedback and real iPhone Safari/Chrome/MacBook evidence. F2 incomplete/F3 closed until
-real-week acceptance; unchanged OFFLINE-01 and actual phone must PASS by20October.
-Use pinned headless CLI tools, Codex only, at most two bounded workers; stop after two
-failed repairs on one issue or25turns. Verify/secret-scan/commit/push accepted slices.
-No new resources, wider deployment, jobs, merge or runner without explicit approval.
-Finish with actual gaps and the next continuation goal.
+/goal Continue F2 from the latest pushed historical-data and private-CI commits.
+Read current.md, F2-real-data.md and evidence/F2-trial.json; do not restart setup or
+reimport the804 financial rows (722sales/82purchases). Reuse editable menu/prices,
+seven original recipe drafts and stocktake. Preserve the approved date carry-forward
+and separate-repeat interpretation, source hashes and exact receipt-cost links.
+Finish historical stock reconciliation only when exact units/opening/as-of dates
+are supported; no current stock or missing operating expenses may be invented.
+Finish six measured recipe/cost links and allergens. Fix CI formatting in bounded
+slices respecting protected source; obtain an exact exception before protected edits.
+Configure the dedicated Workers deployment token securely and validate the existing
+private release gates. Preserve unchanged OFFLINE-01; no suppressed failing checks.
+Complete Cine's opening count, password custody, seven actual dates/feedback and
+real iPhone Safari/Chrome/MacBook acceptance. F2 incomplete/F3 closed until the real
+week passes. Actual-phone and OFFLINE-01 dualPASS required by20October. Pinned
+headless CLI tools only, Codex Sol/high coordination, at most two bounded workers;
+stop after two failed repairs on one issue or25turns. Verify, secret-scan, commit/push
+accepted slices. Existing private-trial data and CI/CD are approved; no new resources,
+production launch, shop opening, business jobs, merge or runner without approval.
+Finish with actual remaining gaps and the next continuation goal.
 ```
-
 
 Previous catalogue-only continuation (superseded above): finish six October recipe weight/yield mappings and full cost
 references from [F2-real-data.md](F2-real-data.md), then Cine's opening count and actual
