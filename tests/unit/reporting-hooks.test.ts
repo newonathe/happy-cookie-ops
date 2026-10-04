@@ -1,7 +1,11 @@
 import { afterEach, expect, it, vi } from 'vitest';
 import * as Sentry from '@sentry/nextjs';
 vi.mock('@sentry/nextjs', () => ({ init: vi.fn(), captureRouterTransitionStart: vi.fn() }));
-afterEach(() => { vi.unstubAllEnvs(); vi.clearAllMocks(); vi.resetModules(); });
+afterEach(() => {
+  vi.unstubAllEnvs();
+  vi.clearAllMocks();
+  vi.resetModules();
+});
 const loaders = [
   ['browser', () => import('../../instrumentation-client')],
   ['server', () => import('../../sentry.server.config')],
@@ -15,8 +19,17 @@ it.each(loaders)('%s reporter applies privacy boundaries', async (_name, load) =
   expect(options).toBeDefined();
   if (!options?.beforeSend || !options.beforeBreadcrumb) throw new Error('Missing privacy hooks');
   const canary = 'Synthetic Private Name sk_test_canary';
-  expect(JSON.stringify(await options.beforeSend({ type: undefined, message: canary, extra: { [canary]: canary } }, {}))).not.toContain(canary);
-  expect(JSON.stringify(options.beforeBreadcrumb({ message: canary, data: { name: canary } }, {}))).not.toContain(canary);
+  expect(
+    JSON.stringify(
+      await options.beforeSend(
+        { type: undefined, message: canary, extra: { [canary]: canary } },
+        {}
+      )
+    )
+  ).not.toContain(canary);
+  expect(
+    JSON.stringify(options.beforeBreadcrumb({ message: canary, data: { name: canary } }, {}))
+  ).not.toContain(canary);
   expect(options.sendDefaultPii).toBe(false);
   expect(options.tracesSampleRate).toBe(0);
 });
