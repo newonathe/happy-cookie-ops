@@ -1,1 +1,8 @@
-{"fixture_containers":0,"fixture_networks":0,"fixture_workdirs":0,"runtime_drivers":0,"test_network_scratch":1,"test_network_scratch_names":[".mp08n3-network-sxm347"]}
+{
+  "fixture_containers": 0,
+  "fixture_networks": 0,
+  "fixture_workdirs": 0,
+  "runtime_drivers": 0,
+  "test_network_scratch": 1,
+  "test_network_scratch_names": [".mp08n3-network-sxm347"]
+}
