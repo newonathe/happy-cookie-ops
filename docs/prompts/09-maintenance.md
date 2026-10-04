@@ -15,6 +15,7 @@ build prompts are history.
 > house style, and `src/app/orders/page.tsx` for the route shape. Nothing else.
 >
 > Then:
+>
 > 1. Add the key to `SCREEN_KEYS` in `src/lib/screens.ts`. The unit test in
 >    `tests/unit/screens.test.ts` will fail until the engine agrees — that is deliberate,
 >    and it is telling you the engine needs the key too.

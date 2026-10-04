@@ -117,6 +117,7 @@ Use when a diff adds tests, and after phase 03 in particular.
 > maintenance and buys false confidence.
 >
 > For each new test:
+>
 > 1. **Would it fail if the behaviour broke?** Say how you know. If you cannot tell, that
 >    is the finding.
 > 2. **Is it asserting its own mock?** A test whose subject is mocked tests nothing.

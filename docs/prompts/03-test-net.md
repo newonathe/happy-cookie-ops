@@ -24,6 +24,7 @@ The prototype was the acceptance test for every rule in here. It still runs — 
 > are covered.
 >
 > Cover:
+>
 > - **box pricing** in both modes — sum of menu prices, and the flat box price;
 > - the **packaging fee** (₱38.44) and where it does and does not apply;
 > - **discounts** — every kind the prototype supports, including a full freebie;
@@ -34,6 +35,7 @@ The prototype was the acceptance test for every rule in here. It still runs — 
 >   non-integer number of centavos.
 >
 > Method:
+>
 > - Test through the engine's exported functions and `renderVals()`. Never reach into
 >   private fields — a test coupled to internals will break on the migration and teach you
 >   nothing when it does.
@@ -67,6 +69,7 @@ The prototype was the acceptance test for every rule in here. It still runs — 
 > 25-route render test, which proves they do not throw and nothing else.
 >
 > Work through `docs/reference/spec/03-business-rules.md` and write tests for:
+>
 > 1. **spoilage** — what is written off, when, and what the ledger shows;
 > 2. **the stock-count reconciliation** — a count that differs from the expected on-hand;
 > 3. **no-shows** — an uncollected order at the end of a pickup window;

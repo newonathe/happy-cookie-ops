@@ -42,6 +42,7 @@ blind.
 > 9. `pnpm test:e2e`.
 >
 > Rules for fixing:
+>
 > - A missing type, a wrong import path, a config key: fix it.
 > - A ported screen that genuinely throws: **quote the stack trace, find the corresponding
 >   region in `docs/reference/prototype.dc.html`, quote that too, and propose the minimal

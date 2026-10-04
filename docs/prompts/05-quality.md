@@ -42,6 +42,7 @@ that runs and software someone can rely on daily.
 > 6. Then delete the two exceptions from `eslint.config.mjs` and make `pnpm lint` pass.
 >
 > Proving no visual change is part of the task, not an afterthought:
+>
 > - screenshot `/`, `/bazaar` and `/orders` before you start;
 > - screenshot them after;
 > - show me both sets. If anything moved by a pixel, it is wrong.
@@ -132,7 +133,7 @@ that runs and software someone can rely on daily.
 >    `onRequestError` rather than silently 500ing.
 > 4. Inspect both payloads. Assert that none of a fixture customer's name, mobile number,
 >    order notes, sale contents or payment reference appears anywhere — including inside
->    an exception *message*, which is where they most often hide: a failed insert quotes
+>    an exception _message_, which is where they most often hide: a failed insert quotes
 >    the offending row back at you.
 > 5. Confirm the request URL is truncated at the `?`. The lookup route carries the order
 >    number and phone in its query string, so the URL alone is the disclosure.

@@ -24,6 +24,7 @@ per-task prompts assume it.
 > a preference.
 >
 > Three rules that override anything I ask for in this session:
+>
 > 1. Do not restyle ported markup (`src/components/screens`, `sheets`, `shell`). The
 >    inline style objects are the specification.
 > 2. Do not rewrite user-visible copy.
@@ -39,6 +40,7 @@ per-task prompts assume it.
 ## The postamble — paste after every task prompt
 
 > Before you write any code:
+>
 > 1. State your plan — the files you will change, the test you will write, and the order.
 > 2. List what could go wrong with this change, including anything you are unsure about
 >    in the existing code.
@@ -46,6 +48,7 @@ per-task prompts assume it.
 >    Do not agree with me by default. If you think this task is a bad idea, say so now.
 >
 > Then wait for my approval. After I approve:
+>
 > - implement it, in commits small enough to revert individually;
 > - run `pnpm verify` and paste the **actual output**, not a summary;
 > - tell me what you did **not** do that I asked for, and why.
@@ -55,7 +58,7 @@ per-task prompts assume it.
 ## After the agent finishes
 
 1. **Read the diff.** `git diff main...HEAD`. The diff, not the agent's description of it.
-2. **Cross-review.** Open the *other* model and run the matching prompt from
+2. **Cross-review.** Open the _other_ model and run the matching prompt from
    `07-review-library.md` with only the diff in context. Same-model review agrees with
    its own reasoning and is worth much less.
 3. **Resolve every blocker.** A `should-fix` may be a follow-up task; a `blocker` may not.

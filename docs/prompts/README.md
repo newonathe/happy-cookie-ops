@@ -7,31 +7,31 @@ bakery", in order, complete enough to paste without editing.
 
 ## How this relates to the other documents
 
-| Document | Use it for |
-| --- | --- |
-| `AGENTS.md` / `CLAUDE.md` | The binding rules. Agents read these automatically. |
-| `docs/WORKFLOW.md` | How you, Claude Code and Codex divide work. Read once. |
-| `docs/TASKS.md` | The task board — ids, dependencies, status. Your map. |
-| **`docs/prompts/`** | **The prompts themselves. Paste from here.** |
-| `docs/PROMPTS.md` | The earlier narrative version, kept because it explains *why* the sequence is ordered as it is. |
+| Document                  | Use it for                                                                                      |
+| ------------------------- | ----------------------------------------------------------------------------------------------- |
+| `AGENTS.md` / `CLAUDE.md` | The binding rules. Agents read these automatically.                                             |
+| `docs/WORKFLOW.md`        | How you, Claude Code and Codex divide work. Read once.                                          |
+| `docs/TASKS.md`           | The task board — ids, dependencies, status. Your map.                                           |
+| **`docs/prompts/`**       | **The prompts themselves. Paste from here.**                                                    |
+| `docs/PROMPTS.md`         | The earlier narrative version, kept because it explains _why_ the sequence is ordered as it is. |
 
 A task id (`T-04`) is the same work in all of them. `docs/TASKS.md` tells you what is
 unblocked; this directory tells you what to say.
 
 ## Files
 
-| File | Covers |
-| --- | --- |
-| [`00-session-protocol.md`](./00-session-protocol.md) | The wrapper every prompt goes inside. Read this first — the rest assumes it. |
-| [`01-foundation.md`](./01-foundation.md) | T-01 – T-03. Get it running, prove the port, pin the toolchain. |
-| [`02-identity.md`](./02-identity.md) | T-04 – T-06. Staff accounts, the real role gate, sync hardening. |
-| [`03-test-net.md`](./03-test-net.md) | T-07 – T-09. The safety net that makes the migration survivable. |
-| [`04-postgres.md`](./04-postgres.md) | T-10 – T-14. Move the books to Postgres, one table at a time. |
-| [`05-quality.md`](./05-quality.md) | T-15 – T-19. Accessibility, realtime, reporting, performance. |
-| [`06-production.md`](./06-production.md) | Launch: deploy, install on the phone, the first bazaar, handover. |
-| [`07-review-library.md`](./07-review-library.md) | Review and audit prompts. Run these against every diff. |
-| [`08-recovery.md`](./08-recovery.md) | When something is broken, stuck, or an agent is thrashing. |
-| [`09-maintenance.md`](./09-maintenance.md) | After launch: a new screen, a new rule, dependency updates, schema changes, quarterly review, onboarding. |
+| File                                                 | Covers                                                                                                    |
+| ---------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| [`00-session-protocol.md`](./00-session-protocol.md) | The wrapper every prompt goes inside. Read this first — the rest assumes it.                              |
+| [`01-foundation.md`](./01-foundation.md)             | T-01 – T-03. Get it running, prove the port, pin the toolchain.                                           |
+| [`02-identity.md`](./02-identity.md)                 | T-04 – T-06. Staff accounts, the real role gate, sync hardening.                                          |
+| [`03-test-net.md`](./03-test-net.md)                 | T-07 – T-09. The safety net that makes the migration survivable.                                          |
+| [`04-postgres.md`](./04-postgres.md)                 | T-10 – T-14. Move the books to Postgres, one table at a time.                                             |
+| [`05-quality.md`](./05-quality.md)                   | T-15 – T-19. Accessibility, realtime, reporting, performance.                                             |
+| [`06-production.md`](./06-production.md)             | Launch: deploy, install on the phone, the first bazaar, handover.                                         |
+| [`07-review-library.md`](./07-review-library.md)     | Review and audit prompts. Run these against every diff.                                                   |
+| [`08-recovery.md`](./08-recovery.md)                 | When something is broken, stuck, or an agent is thrashing.                                                |
+| [`09-maintenance.md`](./09-maintenance.md)           | After launch: a new screen, a new rule, dependency updates, schema changes, quarterly review, onboarding. |
 
 ## The order
 
@@ -52,17 +52,17 @@ tell you the migration broke a rule the owner depends on.
 ## Before you paste anything
 
 **Check the task's status marker on `docs/TASKS.md` first.** The board is the source of
-truth for *what state the work is in*; this directory is the source of truth for *what to
-say*. Two files, two jobs — but they can drift, and they have:
+truth for _what state the work is in_; this directory is the source of truth for _what to
+say_. Two files, two jobs — but they can drift, and they have:
 
-| Marker | What it means for the prompt |
-| --- | --- |
-| `○` | Not started. Paste the prompt as written. |
-| `◐` | **Built already.** The work exists; the prompt is a verification or switch-it-on task. Read it before pasting — if it still asks the agent to *create* something, the board is newer than the prompt, and the board wins. Tell me. |
-| `●` | Done. Do not run it. |
+| Marker | What it means for the prompt                                                                                                                                                                                                       |
+| ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `○`    | Not started. Paste the prompt as written.                                                                                                                                                                                          |
+| `◐`    | **Built already.** The work exists; the prompt is a verification or switch-it-on task. Read it before pasting — if it still asks the agent to _create_ something, the board is newer than the prompt, and the board wins. Tell me. |
+| `●`    | Done. Do not run it.                                                                                                                                                                                                               |
 
 This matters because the failure is expensive and quiet: an agent handed a prompt for
-work that already exists builds a *second* implementation. Two rate limiters, two
+work that already exists builds a _second_ implementation. Two rate limiters, two
 scrubbers, two money conversions, two error boundaries — and a duplicate error boundary
 swallows the error twice, so neither report is complete. That is the same
 one-rule-two-places bug `src/lib/rules/capacity.ts` exists to prevent, and it has already

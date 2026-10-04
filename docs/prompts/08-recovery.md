@@ -69,7 +69,7 @@ it is an underspecified task.
 
 1. `/handoff` so what was learned is not lost.
 2. Read the note. What did it not know that it needed?
-3. Rewrite the task in `docs/TASKS.md`: narrow the scope, name more files in *Context*,
+3. Rewrite the task in `docs/TASKS.md`: narrow the scope, name more files in _Context_,
    or split it in two.
 4. `/clear`, fresh session, new task.
 
@@ -155,6 +155,7 @@ Prevention is in `docs/WORKFLOW.md` §4: only parallelise tasks with no shared f
 > entries), `git log --oneline -30`, and `git status`.
 >
 > Tell me:
+>
 > 1. Which tasks are done, by their ids.
 > 2. Which is in progress, and where it stopped.
 > 3. What is unblocked and could start now.

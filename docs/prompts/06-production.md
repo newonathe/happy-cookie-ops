@@ -113,6 +113,7 @@ The moment the project is real. Do it with her, not for her.
 > a drop closes at noon. Not a summary of the architecture. Operational only.
 >
 > Sections:
+>
 > 1. **Is it down?** `/api/health`, the Vercel dashboard, the Supabase dashboard — in the
 >    order to check them, with what each result means.
 > 2. **Sync is not working at a bazaar.** The exact steps for the person holding the
