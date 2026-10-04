@@ -5,6 +5,7 @@
 > **Superseded for process and remaining scope** by the [lean plan](lean-plan.md), approved 2026-09-26 under architecture A. The rest of G1 is a single goal in [next-goal.md](next-goal.md). The text below is history.
 
 Claude executes all lanes while Codex is unavailable (Ethan, 2026-09-26; see [agent-orchestration](agent-orchestration.md)). MP-08n.2/.3, MP-08o.1–.4, MP-06l and MP-04d are accepted **locally**. The pinned `pnpm verify` passes 28 files / 410 tests (re-run by Claude on 2026-09-26). Exact receipts and limits are in [current state](current.md). Next, in order:
+
 1. [MP-06m](MP-06m-plan.md): the probe is done (2026-09-26); a global-only revoke is insufficient. Next is a reviewed 28th-migration hardening plan.
 2. MP-08 closure:
    - `/sign-in` through the BFF;
@@ -22,6 +23,7 @@ G1 and release acceptance remain red. No commit, push, merge, deployment or auto
 > **Codex-only continuation — 2026-09-24:** Ethan reports that Claude is no longer available; use the [Codex-only allocation](agent-orchestration.md) with one independent Codex reviewer for security-sensitive work. MP-08n.2 passes its two-run local injected-bridge criterion with real private GoTrue/PostgREST/PostgreSQL, 24 migrations and zero owned residue; the earlier 503 cause remains unknown. [MP-08n.3](MP-08n3-plan.md) is **unaccepted**: three fresh actual Workerd attempts returned login HTTP 503, and the latest count-only diagnostic saw zero TLS-gateway/provider calls. Do not weaken HTTPS validation or count injected-bridge evidence as runtime networking. A Sol/high read-only review found an open P2: `claimCleanup()` has no runtime caller. The next local bounded slice is the [MP-08o.1 expired-token provider probe](MP-08o-plan.md); fair retries and a scheduled caller depend on its result. No hosted or production acceptance is implied. The historical checkpoint below remains as originally recorded.
 
 > **Checkpoint — 2026-09-24:** MP-08m (local Pages session route composition) is complete. MP-08n is in progress: the private PostgREST smoke passes, and the composed GoTrue/PostgREST lifecycle is flaky (see [MP-08n](MP-08n-plan.md) "Interim results"). Full `pnpm verify` passes 387 tests. The next steps are unchanged, in order:
+>
 > 1. Accept MP-08n.2 on two clean repeats after explaining the flake, then MP-08n.3.
 > 2. MP-06 remaining authority.
 > 3. Hosted spikes on Pages and Workers ([decision register](decision-register.md) DP-14).
@@ -86,11 +88,11 @@ Authoritative root: `C:\Users\ethan\dev\happy-cookie-ops-g0`. Branch: `agent/cod
 
 Read [agent-orchestration.md](agent-orchestration.md) on every resume. Default one worker, maximum two across providers excluding root; a Claude coordinator and its one child use both slots. No full-history forks, recursive delegation or automatic expensive model escalation. Root's configured model is unchanged; cheaper explicit worker models handle bounded analysis/implementation. Keep actual task progress in [task-status.json](task-status.json), not generated historical catalog statuses.
 
-| Assignment | Model / effort | Responsibility | State |
-|---|---|---|---|
-| G1-FEASIBILITY | Codex Terra / medium | Read-only Next static-export blockers and narrow spike boundary | Report received; no source edits |
-| G1-SCHEMA-PREFLIGHT | Claude Sonnet 5 / medium | Read-only migration-history decision tree and first local SQL checks | Completed, root reviewed; one recommendation rejected below |
-| Root integration | Current session | Research, account preflight, plan correction, diagnostic experiment, evidence | Active |
+| Assignment          | Model / effort           | Responsibility                                                                | State                                                       |
+| ------------------- | ------------------------ | ----------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| G1-FEASIBILITY      | Codex Terra / medium     | Read-only Next static-export blockers and narrow spike boundary               | Report received; no source edits                            |
+| G1-SCHEMA-PREFLIGHT | Claude Sonnet 5 / medium | Read-only migration-history decision tree and first local SQL checks          | Completed, root reviewed; one recommendation rejected below |
+| Root integration    | Current session          | Research, account preflight, plan correction, diagnostic experiment, evidence | Active                                                      |
 
 The Claude packet and manual one-shot invocation are in `evidence/G1-claude-schema-prompt.txt` and `evidence/run-G1-claude-review.py`. One-shot invocation is not the future automatic runner. Auth was verified as first-party Pro with no inspected billing/provider override present; this is not a guarantee of remaining quota. On auth/quota/unavailability, stop and transfer the compact packet to one suitable Codex worker after reconciling any effects; permission/safety denials are never bypassed through another provider.
 
