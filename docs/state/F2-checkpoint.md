@@ -1,5 +1,38 @@
 # F2 / MP-26 technical checkpoint — 3 October 2026
 
+## CI formatting continuation — 5 October 2026
+
+Final local formatter: FAIL636 files; first-slice GitHub run37223588999 fails638
+and skips downstream release. Four accepted formatted tests have identical structural
+fingerprints to5101724, including assertions/values. Second slice is flavour/stocktake
+coverage (`1fa65dc`, full precommit81/1487 PASS); recipe-drafts formatting was rejected by the worker's structural comparison
+and restored exactly. Root began an intermediate hook before worker selection finished;
+the final two-file slice is separately checked and verified. No assertion/check weakened.
+Final proof/logs: F2-format-acceptance.json, F2-ci-format-final.log and
+F2-ci-format-slice2-final-commit.log in the private evidence directory.
+
+Resume source5101724, clean tree. First unprotected test-formatting sliced637217
+passes full pinned precommit81/1487, port54, engine, typechecks/lint, targeted
+Prettier and exact-credential/pattern secret scan. No assertion or app change.
+The current formatter inventory is retained privately as F2-ci-format-20261005.log;
+full check remains red. GitHub CI is retriggered by the accepted branch push.
+
+The dedicated deployment token is not saved at its expected DPAPI location;
+GitHub has Access/build secrets but lacks CLOUDFLARE_API_TOKEN. No token was printed
+or new resource created. Use the existing private save helper, then configure the
+approved existing repository secret only after successful scoped credential checks.
+
+[Protected proposal](F2-format-exception-proposal.md) freezes one exact All tools
+formatting candidate:77 changed lines, same structural fingerprint, source unchanged.
+Approval, continuity reversal and actual candidate visual checks remain pending.
+[Count/custody/device steps](F2-count-custody-device-preparation.md) preserve the
+existing editor/checklist. Recipe measures/yields and dated historical opening stock
+remain missing; no eligible stock movement can bypass the existing receipt guard.
+804 financial rows, source/date/repeat assumptions and dummy exclusion are retained.
+Accepted phone/desktop P&L screenshots were reinspected; no new device proof inferred.
+OFFLINE-01 unchanged/failing; real-device/week/custody evidence missing. F2 incomplete,
+F3 closed; both OFFLINE-01 and actual-phone PASS required by20October.
+
 **4October:** [real-data addition](F2-real-data.md) records accepted72 stock definitions,
 13 suppliers/eight quotes,26 library products/seven October prices,one exact recipe
 and runtime/auth/stocktake fixes. No physical counts or historical transactions

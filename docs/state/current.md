@@ -4,6 +4,18 @@ Read this at the start of a session. History: [current-history.md](current-histo
 
 ## Where things stand — 2026-10-05 continuation
 
+- **CI formatting continuation:** first unprotected slice `d637217` passes full
+  pinned verify/precommit (81 files / 1,487 tests), secret scan and targeted
+  formatter checks. No app, protected source or OFFLINE-01 edit. Full formatting
+  remains red; deployment token file and GitHub deployment secret are absent.
+  [Specific first protected proposal](F2-format-exception-proposal.md) awaits
+  approval. [Count/custody/device preparation](F2-count-custody-device-preparation.md)
+  reuses owner controls and the seven-day log. No new imports or hosted mutations.
+  Final local formatting remains FAIL636 files. First-slice GitHub run37223588999
+  fails638/skips release. Second accepted slice formats flavour/stocktake tests;
+  all four changed tests retain their5101724 structural fingerprints. Recipe-draft
+  formatting is held after the worker found a fingerprint change; original retained.
+
 - **Historical financial data applied, dummy workbook excluded:** 722 real sales
   and82 stock-purchase costs (804 lines) read back exactly. Blank dates inherit the
   preceding explicit date and repeated lines count as separate sales by Ethan's

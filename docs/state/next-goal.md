@@ -4,6 +4,15 @@ The approved forward plan is [finish-plan.md](finish-plan.md), section 6. F1 is 
 
 ## Session settings
 
+Latest accepted formatting slices: `d637217`, `1fa65dc`; reuse the existing804 financial rows.
+Continue small unprotected formatting slices with unchanged assertions/checks.
+The exact protected All tools proposal in F2-format-exception-proposal.md requires
+specific approval before source edits. Deployment token save/configuration and
+actual Cine inputs remain pending; use F2-count-custody-device-preparation.md.
+Final local format inventory:636 failing files. Reuse both unprotected test slices;
+recipe-drafts formatting is held after a structural comparison failed. Preserve its
+source and investigate before any later formatting acceptance.
+
 Immediate continuation: reuse the accepted historical import and editable owner
 controls. Human alternate-mailbox/owner app login is confirmed. No dummy workbook
 content is imported; source-date/repeat assumptions are explicitly owner-approved.
