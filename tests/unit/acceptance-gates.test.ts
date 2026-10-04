@@ -1,14 +1,27 @@
 import { describe, expect, it } from 'vitest';
-import { assertRoute, assertRecordedSale, assertDurableSale, assertAcknowledgedSale } from '../fixtures/acceptance';
+import {
+  assertRoute,
+  assertRecordedSale,
+  assertDurableSale,
+  assertAcknowledgedSale
+} from '../fixtures/acceptance';
 import { routeCases } from '../fixtures/route-cases';
-const sale = { clientId: 'synthetic-device:S1:123', saleId: 'S1', total: 100, items: { dcf: 1 }, state: 'pending' };
+const sale = {
+  clientId: 'synthetic-device:S1:123',
+  saleId: 'S1',
+  total: 100,
+  items: { dcf: 1 },
+  state: 'pending'
+};
 describe('release assertions reject false positives', () => {
   it.each(routeCases.filter(([path]) => path !== '/'))('rejects Home for %s', (path, label) => {
     expect(() => assertRoute({ requested: path, actual: '/', labels: ['Home'] }, label)).toThrow();
     expect(() => assertRoute({ requested: path, actual: path, labels: ['Home'] }, label)).toThrow();
   });
   it('accepts the actual requested screen', () => {
-    expect(() => assertRoute({ requested: '/orders', actual: '/orders', labels: ['Orders'] }, 'Orders')).not.toThrow();
+    expect(() =>
+      assertRoute({ requested: '/orders', actual: '/orders', labels: ['Orders'] }, 'Orders')
+    ).not.toThrow();
   });
   it('rejects empty, missing, changed and unacknowledged sales', () => {
     expect(() => assertRecordedSale([])).toThrow();

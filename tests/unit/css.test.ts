@@ -3,7 +3,10 @@ import { s } from '@/lib/css';
 
 describe('s()', () => {
   it('camel-cases plain properties', () => {
-    expect(s('max-width: 460px; padding-top: 8px')).toEqual({ maxWidth: '460px', paddingTop: '8px' });
+    expect(s('max-width: 460px; padding-top: 8px')).toEqual({
+      maxWidth: '460px',
+      paddingTop: '8px'
+    });
   });
 
   it('keeps vendor prefixes in React form', () => {
