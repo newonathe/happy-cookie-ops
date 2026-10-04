@@ -1,14 +1,10 @@
 {
   "status": "passed",
-  "changed_catalog_sections": [
-    "policies"
-  ],
+  "changed_catalog_sections": ["policies"],
   "removed_policy": {
     "cmd": "SELECT",
     "qual": "is_staff()",
-    "roles": [
-      "public"
-    ],
+    "roles": ["public"],
     "tablename": "settings",
     "permissive": "PERMISSIVE",
     "policyname": "settings staff read",
