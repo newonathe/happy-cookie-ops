@@ -270,7 +270,13 @@ describe('the RPC wrappers', () => {
   );
 });
 
-const draw = (over: Partial<DrawFields> = {}): DrawFields => ({ id: ID, memo: 'Rent share', amountCents: 30000, at: AT, ...over });
+const draw = (over: Partial<DrawFields> = {}): DrawFields => ({
+  id: ID,
+  memo: 'Rent share',
+  amountCents: 30000,
+  at: AT,
+  ...over
+});
 
 describe('drawError and recordDraw', () => {
   it('accepts a draw with or without a description', () => {
@@ -294,16 +300,47 @@ describe('drawError and recordDraw', () => {
   it('sends exactly the body and classifies the answer', async () => {
     const rpc = vi.fn(async () => ({ data: [{ client_id: ID, duplicate: true }], error: null }));
     expect(await recordDraw(client(rpc), draw({ memo: ' Rent share ' }))).toBe('saved');
-    expect(rpc).toHaveBeenCalledWith('record_draw', { p_draw: { id: ID, memo: 'Rent share', amount_cents: 30000, at: AT } });
-    expect(await recordDraw(client(async () => ({ data: null, error: { code: '22023' } })), draw())).toBe('refused');
-    expect(await recordDraw(client(async () => ({ data: null, error: { code: '08006' } })), draw())).toBe('offline');
-    expect(await recordDraw(client(async () => Promise.reject(new Error('net'))), draw())).toBe('offline');
-    expect(await recordDraw(client(async () => ({ data: [{ duplicate: 'x' }], error: null })), draw())).toBe('offline');
+    expect(rpc).toHaveBeenCalledWith('record_draw', {
+      p_draw: { id: ID, memo: 'Rent share', amount_cents: 30000, at: AT }
+    });
+    expect(
+      await recordDraw(
+        client(async () => ({ data: null, error: { code: '22023' } })),
+        draw()
+      )
+    ).toBe('refused');
+    expect(
+      await recordDraw(
+        client(async () => ({ data: null, error: { code: '08006' } })),
+        draw()
+      )
+    ).toBe('offline');
+    expect(
+      await recordDraw(
+        client(async () => Promise.reject(new Error('net'))),
+        draw()
+      )
+    ).toBe('offline');
+    expect(
+      await recordDraw(
+        client(async () => ({ data: [{ duplicate: 'x' }], error: null })),
+        draw()
+      )
+    ).toBe('offline');
   });
 
   it('a draw line becomes an engine draw entry, outside the expenses', () => {
-    const e = engineLedger([{ id: 'l:3', kind: 'draw', cat: 'Owner draw', label: 'Rent share', amountCents: 10000, at: 5 }]);
-    expect(e[0]).toEqual({ id: 'l:3', kind: 'draw', at: 5, cat: 'Owner drawings', label: 'Rent share', amount: 100 });
+    const e = engineLedger([
+      { id: 'l:3', kind: 'draw', cat: 'Owner draw', label: 'Rent share', amountCents: 10000, at: 5 }
+    ]);
+    expect(e[0]).toEqual({
+      id: 'l:3',
+      kind: 'draw',
+      at: 5,
+      cat: 'Owner drawings',
+      label: 'Rent share',
+      amount: 100
+    });
   });
 });
 
@@ -326,7 +363,14 @@ describe('unpaidOrders: the tracker of what is still owed', () => {
       [
         ord({ id: 'HC-3', placedAt: NOW - 1 * DAY }),
         ord({ id: 'HC-1', payState: 'claimed', totalCents: 15000, placedAt: NOW - 5 * DAY }),
-        ord({ id: 'HC-2', state: 'Confirmed', payState: 'confirmed', totalCents: 20000, paidCents: 5000, placedAt: NOW - 2 * DAY })
+        ord({
+          id: 'HC-2',
+          state: 'Confirmed',
+          payState: 'confirmed',
+          totalCents: 20000,
+          paidCents: 5000,
+          placedAt: NOW - 2 * DAY
+        })
       ],
       NOW
     );

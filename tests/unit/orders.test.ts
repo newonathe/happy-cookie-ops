@@ -361,7 +361,9 @@ describe('the status page', () => {
   });
 
   it('does not promise an address for a campus pickup', () => {
-    const campus = statusCust(parseOrderStatus({ ...base, pickup_window: 'campus' })!, { allergenNote: '' });
+    const campus = statusCust(parseOrderStatus({ ...base, pickup_window: 'campus' })!, {
+      allergenNote: ''
+    });
     expect(campus.timeline[3]?.sub).toBe('At the campus pickup slot');
     const courier = statusCust(parseOrderStatus(base)!, { allergenNote: '' });
     expect(courier.timeline[3]?.sub).toMatch(/exact address/);

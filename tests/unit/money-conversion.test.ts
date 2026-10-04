@@ -1,10 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  centavosFromDb,
-  centavosToPesos,
-  pesosToCentavos,
-  sumCentavos
-} from '@/lib/money';
+import { centavosFromDb, centavosToPesos, pesosToCentavos, sumCentavos } from '@/lib/money';
 import { PRODUCTS } from '@/store/engine/ops-engine';
 
 /**

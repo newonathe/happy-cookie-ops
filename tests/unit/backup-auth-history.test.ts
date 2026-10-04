@@ -33,12 +33,14 @@ describe('F1 auth-history connection details', () => {
     const secret = 'synthetic-secret-that-must-not-appear';
     let diagnostic = '';
     try {
-      authHistoryEnvironment(cliOutput([
-        'export PGHOST="127.0.0.1"',
-        'export PGPORT="54322"',
-        'export PGUSER="postgres"',
-        `export PGPASSWORD="${secret}"`
-      ]));
+      authHistoryEnvironment(
+        cliOutput([
+          'export PGHOST="127.0.0.1"',
+          'export PGPORT="54322"',
+          'export PGUSER="postgres"',
+          `export PGPASSWORD="${secret}"`
+        ])
+      );
     } catch (error) {
       diagnostic = String(error);
     }
@@ -51,13 +53,15 @@ describe('F1 auth-history connection details', () => {
     const secret = 'synthetic-secret-that-must-not-appear';
     let diagnostic = '';
     try {
-      authHistoryEnvironment(cliOutput([
-        'export PGHOST="127.0.0.1"',
-        'export PGUSER="postgres"',
-        `export PGPASSWORD="${secret}"`,
-        'export PGDATABASE="postgres"',
-        'export PGDATABASE="other"'
-      ]));
+      authHistoryEnvironment(
+        cliOutput([
+          'export PGHOST="127.0.0.1"',
+          'export PGUSER="postgres"',
+          `export PGPASSWORD="${secret}"`,
+          'export PGDATABASE="postgres"',
+          'export PGDATABASE="other"'
+        ])
+      );
     } catch (error) {
       diagnostic = String(error);
     }
@@ -75,18 +79,27 @@ describe('F1 auth-history connection details', () => {
       'export PGDATABASE="postgres"'
     ]);
 
-    expect(() => authHistoryEnvironment(valid.replace('auth.schema_migrations', 'auth.other')))
-      .toThrow('CLI Auth-history exclusion changed');
-    expect(() => authHistoryEnvironment(valid.replace('--exclude-table "auth.schema_migrations"', '')))
-      .toThrow('CLI Auth-history exclusion changed');
+    expect(() =>
+      authHistoryEnvironment(valid.replace('auth.schema_migrations', 'auth.other'))
+    ).toThrow('CLI Auth-history exclusion changed');
+    expect(() =>
+      authHistoryEnvironment(valid.replace('--exclude-table "auth.schema_migrations"', ''))
+    ).toThrow('CLI Auth-history exclusion changed');
   });
 
   it('rejects an extra export instead of silently selecting its last value', () => {
-    expect(() => authHistoryEnvironment(cliOutput([
-      'export PGHOST="127.0.0.1"', 'export PGPORT="54322"',
-      'export PGUSER="postgres"', 'export PGPASSWORD="synthetic-secret"',
-      'export PGDATABASE="postgres"', 'export PGDATABASE="other"'
-    ]))).toThrow('could not be safely resolved');
+    expect(() =>
+      authHistoryEnvironment(
+        cliOutput([
+          'export PGHOST="127.0.0.1"',
+          'export PGPORT="54322"',
+          'export PGUSER="postgres"',
+          'export PGPASSWORD="synthetic-secret"',
+          'export PGDATABASE="postgres"',
+          'export PGDATABASE="other"'
+        ])
+      )
+    ).toThrow('could not be safely resolved');
   });
 
   it('can be imported without starting a backup operation', () => {

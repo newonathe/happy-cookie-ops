@@ -11,7 +11,12 @@ beforeEach(() => {
 
 describe('saved bazaar', () => {
   it('round-trips only the bazaar keys', () => {
-    saveBazaar({ event: { id: EVENT, name: 'Fair' }, sales: [], eventPrices: { dcf: 125 }, orders: [{ name: 'a customer' }] });
+    saveBazaar({
+      event: { id: EVENT, name: 'Fair' },
+      sales: [],
+      eventPrices: { dcf: 125 },
+      orders: [{ name: 'a customer' }]
+    });
     const saved = readBazaar();
     expect(saved).toMatchObject({ event: { id: EVENT }, eventPrices: { dcf: 125 } });
     expect(saved).not.toHaveProperty('orders');

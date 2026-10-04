@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { PRODUCTS, RAW_ORDERS, orderCount, dropCycle, DEFAULT_CFG } from '@/store/engine/ops-engine';
+import {
+  PRODUCTS,
+  RAW_ORDERS,
+  orderCount,
+  dropCycle,
+  DEFAULT_CFG
+} from '@/store/engine/ops-engine';
 
 /**
  * The rules the owner cares about most: what an order costs, how many cookies it is,

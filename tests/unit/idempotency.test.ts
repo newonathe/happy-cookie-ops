@@ -5,7 +5,14 @@ vi.mock('@/lib/device', () => ({ deviceId: () => 'dev1234' }));
 
 describe('normalisePhone', () => {
   it('reads every way one person types their own number as the same number', () => {
-    const forms = ['09171234567', '+639171234567', '0917 123 4567', '0917-123-4567', '639171234567', '9171234567'];
+    const forms = [
+      '09171234567',
+      '+639171234567',
+      '0917 123 4567',
+      '0917-123-4567',
+      '639171234567',
+      '9171234567'
+    ];
     const normalised = new Set(forms.map(normalisePhone));
     expect(normalised).toEqual(new Set(['09171234567']));
   });

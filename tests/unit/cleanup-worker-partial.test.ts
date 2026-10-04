@@ -7,11 +7,16 @@ vi.mock('../../src/lib/auth/persistent-session-authority', () => ({
   })
 }));
 
-import worker, { runScheduledCleanup, ScheduledCleanupError, type CleanupLogEvent }
-  from '../../spikes/cleanup-worker/src/index';
+import worker, {
+  runScheduledCleanup,
+  ScheduledCleanupError,
+  type CleanupLogEvent
+} from '../../spikes/cleanup-worker/src/index';
 
 const key = btoa(String.fromCharCode(...new Uint8Array(32).fill(1)))
-  .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  .replace(/\+/g, '-')
+  .replace(/\//g, '_')
+  .replace(/=+$/, '');
 const env = {
   SUPABASE_URL: 'https://provider.example.test',
   SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_' + 'p'.repeat(32),
@@ -23,14 +28,27 @@ const env = {
 describe('scheduled cleanup partial batch reporting', () => {
   it('preserves aggregate partial outcome and marks the Cron invocation failed', async () => {
     const events: CleanupLogEvent[] = [];
-    const fetchFn = vi.fn(async () => { throw new Error('UNEXPECTED_NETWORK'); }) as typeof globalThis.fetch;
-    await expect(runScheduledCleanup(env, fetchFn, event => events.push(event))).resolves.toEqual({
-      claimed: 2, completed: 1, failed: 1, timedOut: 0
-    });
-    expect(events).toEqual([{
-      event: 'scheduled_cleanup', outcome: 'partial_failure',
-      claimed: 2, completed: 1, failed: 1, timedOut: 0
-    }]);
+    const fetchFn = vi.fn(async () => {
+      throw new Error('UNEXPECTED_NETWORK');
+    }) as typeof globalThis.fetch;
+    await expect(runScheduledCleanup(env, fetchFn, (event) => events.push(event))).resolves.toEqual(
+      {
+        claimed: 2,
+        completed: 1,
+        failed: 1,
+        timedOut: 0
+      }
+    );
+    expect(events).toEqual([
+      {
+        event: 'scheduled_cleanup',
+        outcome: 'partial_failure',
+        claimed: 2,
+        completed: 1,
+        failed: 1,
+        timedOut: 0
+      }
+    ]);
     expect(fetchFn).not.toHaveBeenCalled();
 
     const log = vi.spyOn(console, 'info').mockImplementation(() => undefined);
