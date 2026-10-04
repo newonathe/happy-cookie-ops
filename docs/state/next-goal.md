@@ -4,6 +4,15 @@ The approved forward plan is [finish-plan.md](finish-plan.md), section 6. F1 is 
 
 ## Session settings
 
+Latest pushed source checkpoint: `f88583f`. Fresh local format check FAIL556.
+GitHub37228743055 confirms556 failures and all downstream/release jobs skipped.
+Three additional slices (9fb139c/199f9c6/f88583f) each pass pinned full precommit
+81/1,487, targeted formatting, independent content/AST checks and secret scan.
+Continue authorized bounded runs without repeated approval. Two workers are idle:
+format_slice (evidence/docs) and unit_format (unit tests), pinned Luna/medium.
+The JSON helper's proof directory must get a new unique name before reuse.
+Token creation/save instructions supplied; file still absent, no secret configured.
+
 Latest successive checkpoint: pushed `4694e69`; five accepted slices preserve
 24 JSON reports and 16 Markdown documents. Each pinned full precommit 81/1,487 PASS;
 fresh full formatting FAIL569, down40. Human authorization permits further bounded

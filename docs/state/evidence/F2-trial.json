@@ -733,6 +733,25 @@
   },
   "historicalFinancialContinuation": {
     "ciFormattingContinuation": {
+      "laterBoundedRun": {
+        "acceptedSlices": ["9fb139c", "199f9c6", "f88583f"],
+        "eachPinnedFullPrecommit": "PASS81files/1487tests",
+        "eachTargetedFormatSecretScan": "PASS",
+        "rootIndependentReview": "document content/hierarchy, exact JSON tokens/values and source AST unchanged",
+        "fullFormat": "FAIL556files;53 fewer than609",
+        "githubRun": 37228743055,
+        "githubHead": "f88583f",
+        "githubFormat": "FAIL556files; all downstream jobs including private release skipped",
+        "tokenCreationInstructionsSupplied": true,
+        "tokenDpapiSaved": false,
+        "githubDeploymentSecretConfigured": false,
+        "importsHostedMutationsDeployments": 0,
+        "physicalOrNewVisualEvidence": false,
+        "originalOffline01ProtectedSourcesGates": "unchanged",
+        "moreBoundedRunsAuthorized": true,
+        "trialComplete": false,
+        "f3MayAdvance": false
+      },
       "successiveBoundedRuns": {
         "authorization": "Human reply: Continue additional bounded formatting runs; no repeat confirmation between bounded runs",
         "resume": "754ef09",

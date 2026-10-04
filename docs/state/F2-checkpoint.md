@@ -1,5 +1,26 @@
 # F2 / MP-26 technical checkpoint — 3 October 2026
 
+## Later bounded formatting continuation — 5 October 2026
+
+Additional accepted/pushed: 9fb139c (six guides,220 raw lines), 199f9c6 (six JSON
+reports,350), f88583f (return-path test,55). Each pinned full precommit81/1487,
+targeted formatter/diff checks, secret scan and root independent AST/value review
+PASS. Root's source-review helper had one Windows ESM path setup failure, corrected
+with a file URL; no product repair or assertion change. Fresh full format FAIL556
+(F2-format-token-question-checkpoint.log), down53 cumulatively from609.
+No new visual/device evidence; no visible app flow changed. Original OFFLINE-01,
+protected source,804 imports and release gates unchanged. Fresh GitHub run37228743055
+at f88583f independently fails556 formatting files; all downstream jobs including
+private release are skipped. Private log: F2-github-format-37228743055.log.
+Token absent. Cloudflare official docs verified; separate deployment-token creation
+and hidden DPAPI save instructions supplied. All actual F2 acceptance gaps remain.
+Private proofs: F2-state-md-preview-qMsvX0, json-large-lines-9fb139c-f2batch1,
+F2-format-return-path-proof (2026/10/05), F2-json-independent-9fb139c.json, root
+Markdown/source review helpers and three commit logs. Do not reuse the JSON helper's
+fixed proof folder: choose a new unique folder for every later batch.
+Next: continue small unprotected formatting runs; configure token securely when
+saved; prepare any additional protected exceptions specifically before edits.
+
 ## Successive bounded formatting runs — 5 October 2026
 
 Authorization: Ethan's human reply, "Continue additional bounded formatting runs."

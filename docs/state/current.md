@@ -2,6 +2,20 @@
 
 Read this at the start of a session. History: [current-history.md](current-history.md). Approved forward plan: [finish-plan.md](finish-plan.md). One executable package: [next-goal.md](next-goal.md).
 
+## Latest formatting checkpoint — 5 October 2026
+
+Additional accepted/pushed slices: `9fb139c` (six historical guides), `199f9c6`
+(six acceptance/audit JSON reports), `f88583f` (return-path test). Each full pinned
+precommit passed 81 files / 1,487 tests, with targeted formatter and secret scans
+passing. Root independently verified document structure, exact JSON values/tokens
+and the test's unchanged AST. Fresh full formatting FAIL556, down53 from609.
+The earlier53 files now pass targeted formatting; no release check is suppressed.
+GitHub CI37228743055 at f88583f independently confirms556 formatting failures;
+all downstream jobs including private release were skipped. No green CI claimed. Dedicated token remains unsaved; secure
+Cloudflare creation/save instructions were supplied. Protected proposal and actual
+Cine/device/count/custody/six measured mappings remain open. F2 incomplete/F3 closed.
+Continue further authorized bounded formatting runs; reuse all804 financial rows.
+
 ## Successive formatting runs — 5 October 2026
 
 Ethan authorized additional bounded runs without asking between them. Accepted and
