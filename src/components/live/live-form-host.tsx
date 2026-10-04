@@ -11,6 +11,7 @@ import { StockItemsForm } from '@/components/live/stock-items-form';
 import { StockSuppliersForm } from '@/components/live/stock-suppliers-form';
 import { OrderRulesForm } from '@/components/live/order-rules-form';
 import { inputStyle, labelStyle, primaryButton, secondaryButton, smallLabel } from '@/components/live/form-styles';
+import { RecipeDraftsForm } from '@/components/live/recipe-drafts-form';
 
 /**
  * The live-only owner form host (MP-09 c1c, F3, docs/state/protected-exception.md): the
@@ -42,6 +43,7 @@ export function LiveFormHost({ v }: { v: OpsVals }) {
   if (v.liveBooks) return <BooksForm liveBooks={v.liveBooks} />;
   if (v.liveStockItems) return <StockItemsForm liveStock={v.liveStockItems} />;
   if (v.liveStockSuppliers) return <StockSuppliersForm liveStock={v.liveStockSuppliers} />;
+  if (v.liveRecipeDrafts) return <RecipeDraftsForm liveDrafts={v.liveRecipeDrafts} />;
   if (v.liveLookup) return <LiveLookup v={v} />;
   if (v.liveWaitlist) return <LiveWaitlistForm v={v} />;
   return null;

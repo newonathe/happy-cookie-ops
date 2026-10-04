@@ -146,6 +146,13 @@ export interface LiveShopTexts {
   allergenNote: string;
 }
 
+export interface LiveRecipeDraftEdit {
+  productId: string;
+  yield: number;
+  sourceText: string;
+  expectedUpdatedAt: string | null;
+}
+
 export interface OpsVals {
   appSub: React.ReactNode;
   /**
@@ -260,6 +267,21 @@ export interface OpsVals {
     save: (supplier: LiveStockSupplierEdit) => void;
     back: () => void;
     close: (event?: unknown) => void;
+  } | null;
+  /** Live owner only: original recipe source text, separate from production recipes. */
+  liveRecipeDrafts?: {
+    loading: boolean;
+    loaded: boolean;
+    busy: boolean;
+    error: string | null;
+    selectedName: string | null;
+    rows: Array<{ productId: string; name: string; yield: number; saved: boolean }>;
+    editing: LiveRecipeDraftEdit | null;
+    open: (productId: string) => void;
+    save: (fields: LiveRecipeDraftEdit) => void;
+    back: () => void;
+    reload: () => void;
+    close: () => void;
   } | null;
   /** Live owner only (B4): the boxes and add-ons form (boxes, add-ons, sampler limit, same-day extra). */
   liveOrderExtras?: {

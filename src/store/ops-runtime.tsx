@@ -27,6 +27,7 @@ import type {
   LiveStockItemEdit,
   LiveStockPriceRow,
   LiveStockSupplierEdit,
+  LiveRecipeDraftEdit,
   LivePayFormFields,
   LiveShopTexts,
   OpsVals
@@ -80,6 +81,7 @@ import {
   type Recipe,
   type RecipeClient
 } from '@/lib/data/recipes';
+import { fetchRecipeDrafts, saveRecipeDraft, type RecipeDraft } from '@/lib/data/recipe-drafts';
 import {
   engineInventory,
   fetchStockCatalogue,
@@ -509,6 +511,13 @@ export class OpsRuntime extends OpsProvider {
   /** The stamp of each flavour's saved recipe as its screen last showed it: what an edit is saved against. */
   private recipeBaseStamp: Record<string, string | null> = {};
   private recipeLoadSeq = 0;
+  private recipeDraftRows: RecipeDraft[] | null = null;
+  private recipeDraftLoading = false;
+  private recipeDraftBusy = false;
+  private recipeDraftError: string | null = null;
+  private recipeDraftEditing: LiveRecipeDraftEdit | null = null;
+  private recipeDraftSession = 0;
+  private recipeDraftLoadSeq = 0;
   private localEventExpense: ((label: string, amount: unknown, cat?: string) => void) | null = null;
   private orderFlow?: OrderFlow;
   /** The last fragment this runtime wrote or adopted, so a link pasted into the tab is told apart. */
@@ -1336,6 +1345,7 @@ export class OpsRuntime extends OpsProvider {
       ...(this.state.role !== 'owner' ? { exportNow: () => this.toast('Only the owner can export the books.', 'warn') } : {}),
       liveStockItems: this.liveStockItemsVals(),
       liveStockSuppliers: this.liveStockSuppliersVals(),
+      liveRecipeDrafts: this.liveRecipeDraftsVals(),
       // D4: in live mode the Bazaar list is the owner's bookings, never the ported prototype events.
       events: this.liveBazaarEvents(),
       cust: this.liveStatusCust(this.livePayCust(starved.cust)),
@@ -1867,6 +1877,124 @@ export class OpsRuntime extends OpsProvider {
         this.recipeBaseStamp[p.id] = rows.find((r) => r.productId === p.id)?.updatedAt ?? null;
     this.setState((s) => this.recipesPatch(s as unknown as RecipeState, refresh, first));
     return true;
+  }
+
+  private async loadRecipeDrafts(session = this.recipeDraftSession): Promise<void> {
+    const isOpen = () => (this.state.sheet as { kind?: string } | null)?.kind === 'recipedrafts';
+    if (session !== this.recipeDraftSession || !isOpen()) return;
+    if (this.state.role !== 'owner' || !isLiveMode() || !this.recipeClient) {
+      this.recipeDraftError = 'Recipe drafts are available to the owner in live mode.';
+      this.setState({});
+      return;
+    }
+    const seq = ++this.recipeDraftLoadSeq;
+    this.recipeDraftLoading = true;
+    this.recipeDraftError = null;
+    this.setState({});
+    try {
+      const rows = await fetchRecipeDrafts(this.recipeClient, PRODUCTS.map((product) => product.id));
+      if (session !== this.recipeDraftSession || seq !== this.recipeDraftLoadSeq || !isOpen() || this.state.role !== 'owner') return;
+      this.recipeDraftRows = rows;
+    } catch (error) {
+      if (session !== this.recipeDraftSession || seq !== this.recipeDraftLoadSeq || !isOpen()) return;
+      this.recipeDraftError = error instanceof Error ? error.message : 'Recipe drafts could not be read.';
+    } finally {
+      if (session === this.recipeDraftSession && seq === this.recipeDraftLoadSeq) {
+        this.recipeDraftLoading = false;
+        this.setState({});
+      }
+    }
+  }
+
+  private openRecipeDrafts = (): void => {
+    if (this.state.role !== 'owner' || !isLiveMode()) return;
+    const session = ++this.recipeDraftSession;
+    this.recipeDraftLoadSeq++;
+    this.recipeDraftRows = null;
+    this.recipeDraftEditing = null;
+    this.recipeDraftBusy = false;
+    this.recipeDraftLoading = false;
+    this.recipeDraftError = null;
+    this.sheet('recipedrafts', {});
+    this.afterUpdate(() => void this.loadRecipeDrafts(session));
+  };
+
+  private liveRecipeDraftsVals(): OpsVals['liveRecipeDrafts'] {
+    const sh = this.state.sheet as { kind?: string } | null;
+    if (this.state.role !== 'owner' || !isLiveMode() || sh?.kind !== 'recipedrafts') return null;
+    const session = this.recipeDraftSession;
+    const rows = this.recipeDraftRows;
+    return {
+      loading: this.recipeDraftLoading,
+      loaded: rows !== null,
+      busy: this.recipeDraftBusy,
+      error: this.recipeDraftError,
+      selectedName: this.recipeDraftEditing ? PRODUCTS.find((product) => product.id === this.recipeDraftEditing?.productId)?.name ?? null : null,
+      rows: rows === null ? [] : PRODUCTS.map((product) => {
+        const draft = rows.find((row) => row.productId === product.id);
+        return { productId: product.id, name: product.name, yield: draft?.yield ?? 14, saved: !!draft };
+      }),
+      editing: this.recipeDraftEditing,
+      open: (productId) => {
+        if (session !== this.recipeDraftSession || sh?.kind !== 'recipedrafts' || !rows || this.recipeDraftBusy || !PRODUCTS.some((product) => product.id === productId)) return;
+        const draft = rows.find((row) => row.productId === productId);
+        this.recipeDraftEditing = { productId, yield: draft?.yield ?? 14, sourceText: draft?.sourceText ?? '',
+          expectedUpdatedAt: draft?.updatedAt ?? null };
+        this.recipeDraftError = null;
+        this.setState({});
+      },
+      save: (fields) => void this.saveRecipeDraftForm(fields, session),
+      back: () => {
+        if (session !== this.recipeDraftSession || this.recipeDraftBusy) return;
+        this.recipeDraftEditing = null;
+        this.recipeDraftError = null;
+        this.setState({});
+      },
+      reload: () => void this.loadRecipeDrafts(session),
+      close: () => {
+        if (session !== this.recipeDraftSession) return;
+        this.recipeDraftSession++;
+        this.recipeDraftLoadSeq++;
+        this.recipeDraftEditing = null;
+        this.recipeDraftRows = null;
+        this.recipeDraftLoading = false;
+        this.recipeDraftBusy = false;
+        this.recipeDraftError = null;
+        this.closeSheet();
+      }
+    };
+  }
+
+  private async saveRecipeDraftForm(fields: LiveRecipeDraftEdit, session = this.recipeDraftSession): Promise<void> {
+    const isOpen = () => (this.state.sheet as { kind?: string } | null)?.kind === 'recipedrafts';
+    if (session !== this.recipeDraftSession || this.recipeDraftBusy || this.state.role !== 'owner' || !isLiveMode() || !this.recipeClient ||
+      !this.recipeDraftRows || !this.recipeDraftEditing || fields.productId !== this.recipeDraftEditing.productId ||
+      fields.expectedUpdatedAt !== this.recipeDraftEditing.expectedUpdatedAt) return;
+    const editor = this.recipeDraftEditing;
+    this.recipeDraftBusy = true;
+    this.recipeDraftError = null;
+    this.setState({});
+    const result = await saveRecipeDraft(this.recipeClient, PRODUCTS.map((product) => product.id), fields);
+    if (session !== this.recipeDraftSession) return;
+    if (this.state.role !== 'owner' || !isOpen() || this.recipeDraftEditing !== editor) {
+      this.recipeDraftBusy = false;
+      this.setState({});
+      return;
+    }
+    if (result.outcome === 'saved' && result.updatedAt) {
+      const row: RecipeDraft = { productId: fields.productId, yield: fields.yield,
+        sourceText: fields.sourceText, updatedAt: result.updatedAt };
+      this.recipeDraftRows = [...this.recipeDraftRows.filter((item) => item.productId !== fields.productId), row];
+      this.recipeDraftEditing = null;
+    } else if (result.outcome === 'conflict') {
+      this.recipeDraftError = 'This draft changed elsewhere. Your text is preserved; go back and reload before saving again.';
+    } else {
+      this.recipeDraftError = result.error ?? (result.outcome === 'refused'
+        ? 'The draft was refused. Check the yield and recipe text.'
+        : 'Draft was not saved. Your text is preserved.');
+    }
+    this.recipeDraftBusy = false;
+    this.setState({});
   }
 
   /** The state keys the recipes screen reads: the saved recipe for each flavour, or an empty one, never the prototype's. */
@@ -3143,6 +3271,13 @@ export class OpsRuntime extends OpsProvider {
               },
               {
                 icon: this.IC.cookie,
+                label: 'Recipe drafts',
+                sub: 'Original recipe text and batch yield',
+                badge: null,
+                go: () => void this.openRecipeDrafts()
+              },
+              {
+                icon: this.IC.cookie,
                 label: 'Payment methods',
                 sub: 'GCash, Maya, bank: account numbers and QR codes',
                 badge: null,
@@ -3275,6 +3410,8 @@ export class OpsRuntime extends OpsProvider {
       return { ...sheet, liveForm: true, title: STOCK_COPY.itemsTitle };
     if (this.state.role === 'owner' && sh?.kind === 'stocksuppliers')
       return { ...sheet, liveForm: true, title: STOCK_COPY.suppliersTitle };
+    if (this.state.role === 'owner' && sh?.kind === 'recipedrafts')
+      return { ...sheet, liveForm: true, title: 'Recipe drafts' };
     if (this.state.role !== 'owner' || sh?.kind !== 'flavours')
       return { ...sheet, liveForm: false };
     const row = sh.pid ? this.flavourSync?.current().find((r) => r.id === sh.pid) : undefined;
