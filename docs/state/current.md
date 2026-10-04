@@ -2,6 +2,20 @@
 
 Read this at the start of a session. History: [current-history.md](current-history.md). Approved forward plan: [finish-plan.md](finish-plan.md). One executable package: [next-goal.md](next-goal.md).
 
+## Successive formatting runs — 5 October 2026
+
+Ethan authorized additional bounded runs without asking between them. Accepted and
+pushed: `96c8794`, `dc24c9d`, `aeb4301`, `f9938c2`, `4694e69`. Each full
+pinned precommit passed 81 files / 1,487 tests; targeted formatting and secret scans
+passed. Twenty-four JSON reports retain exact values and literal tokens. Sixteen
+Markdown documents retain content and hierarchy; only source positions and list
+spacing metadata differ. Fresh full formatting remains FAIL: 569 files, down 40
+from 609. No ignore or assertion weakened. Original OFFLINE-01 and protected files
+remain unchanged; the delivery guard also protects historical docs/master-plan files.
+Token instructions and the hidden save helper were provided; token remains unsaved.
+The specific protected proposal and actual Cine/device/count/custody/recipe evidence
+remain pending. F2 incomplete; F3 closed. No new imports or hosted mutations.
+
 ## Where things stand — 2026-10-05 continuation
 
 - **Second bounded formatting run accepted:** `d7e465d`, `3f1b2a1`, `efa89e3`,

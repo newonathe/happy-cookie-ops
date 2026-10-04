@@ -4,6 +4,12 @@ The approved forward plan is [finish-plan.md](finish-plan.md), section 6. F1 is 
 
 ## Session settings
 
+Latest successive checkpoint: pushed `4694e69`; five accepted slices preserve
+24 JSON reports and 16 Markdown documents. Each pinned full precommit 81/1,487 PASS;
+fresh full formatting FAIL569, down40. Human authorization permits further bounded
+runs without asking between runs. Preserve protected sources and all failing gates.
+Dedicated deployment token remains unsaved; use the hidden PowerShell helper.
+
 Latest resumed formatting checkpoint: accepted slices through `b16d8fe`.
 Fresh local formatter FAIL609 files; exact settings/report values and all240
 selected tests retained. Continue another owner-authorized bounded run from the

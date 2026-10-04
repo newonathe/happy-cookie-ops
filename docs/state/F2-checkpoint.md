@@ -1,5 +1,29 @@
 # F2 / MP-26 technical checkpoint — 3 October 2026
 
+## Successive bounded formatting runs — 5 October 2026
+
+Authorization: Ethan's human reply, "Continue additional bounded formatting runs."
+Resume: 754ef09. Accepted/pushed slices:
+
+- 96c8794: 13 evidence reports, 350 changed lines.
+- dc24c9d: five evidence reports, 350 changed lines.
+- aeb4301: nine historical prompt documents, 72 changed lines.
+- f9938c2: six evidence reports, 349 changed lines.
+- 4694e69: two prompts and five historical plans, 288 changed lines.
+
+Each targeted formatter, secret scan and full pinned precommit passed (81 files /
+1,487 tests). Exact JSON tokens and parsed values match; Markdown nodes, hierarchy,
+text, links and code match, omitting only source positions and loose-list spacing.
+Fresh full format check: FAIL569, down40 from609. No failing check weakened.
+Private proof folders: json-small-754ef09, json-small-96c8794, json-small-aeb4301,
+F2-prompts-preview-KVgMCZ, F2-prompts-mp-preview-GyHLyX; root review helpers and
+F2-format-successive-batch.log. Existing visual evidence reused; no new device proof.
+Protected files, original OFFLINE-01 and all804 imported records are unchanged.
+Deployment token save and its GitHub secret remain absent; instructions supplied.
+Cine's actual opening/custody/week/devices and six measured mappings remain open.
+F2 incomplete/F3 closed. Continue further bounded unprotected formatting runs;
+apply no protected source change without its specific approval.
+
 ## Second bounded CI formatting run — 5 October 2026
 
 Ethan explicitly resumed another bounded unprotected-formatting run from95f4522.

@@ -733,6 +733,33 @@
   },
   "historicalFinancialContinuation": {
     "ciFormattingContinuation": {
+      "successiveBoundedRuns": {
+        "authorization": "Human reply: Continue additional bounded formatting runs; no repeat confirmation between bounded runs",
+        "resume": "754ef09",
+        "acceptedSlices": [
+          "96c8794",
+          "dc24c9d",
+          "aeb4301",
+          "f9938c2",
+          "4694e69"
+        ],
+        "eachFullPrecommit": "PASS81files/1487tests; pinned toolchain",
+        "eachTargetedFormatSecretScan": "PASS",
+        "jsonReportFiles": 24,
+        "jsonParsedValuesAndExactTokens": "unchanged",
+        "markdownFiles": 16,
+        "markdownAst": "identical except source positions and loose-list spacing; text, links, code and hierarchy unchanged",
+        "fullFormat": "FAIL569files;40 fewer than609",
+        "protectedFilesOriginalOffline01IgnoresAssertions": "unchanged",
+        "dedicatedDeploymentTokenSaved": false,
+        "tokenInstructions": "Official Cloudflare docs checked; existing hidden-input DPAPI save helper provided",
+        "protectedProposal": "awaiting specific approval; delivery guard also protects historical docs/master-plan",
+        "financialRowsReused": 804,
+        "importsHostedMutationsDeployments": 0,
+        "newPhysicalOrVisualEvidence": false,
+        "trialComplete": false,
+        "f3MayAdvance": false
+      },
       "secondBoundedRun": {
         "authorization": "Human reply: Resume another bounded formatting run",
         "resume": "95f4522",
