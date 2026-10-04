@@ -320,3 +320,23 @@ not claims from API readback. F2 incomplete/F3 closed; preserve all real-week/de
 Private receipts: F2-otp-personal-mailbox-{plan,acceptance,Apply}.json,
 F2-otp-personal-anonymous-check.json and F2-otp-delivery-diagnostic.json. Plan hash
 3cc7f8968ec2221ebe9e70d42d99a903666eb49cc95059e8bbb5009e55365a77.
+
+
+## Historical trial continuation - 5 October
+
+Real workbook only; entire DUMMY workbook excluded.804 financial lines applied
+(722sales/82stock purchases), independent acceptance and exact rollback/readback PASS.
+Ethan approved date carry-forward and genuine repeats;28missing-amount rows and8
+incomplete purchases held. No actual operating-expense source or dated opening count
+exists per Ethan; operational stock and orders remain unchanged, shop closed.
+P&L live-only historical revenue repairc30e3bd has independent money/port acceptance,
+actual804-row UI CSV/source/RPC reconciliation and inspected phone/desktop captures.
+Current partial books do not establish complete profit or physical-device readiness.
+Private manual update772d4a7e passes exact Access/anonymous denial/routes0/preview404.
+Six code/record slices pushed through5f74690; local full verify81files/1487tests PASS.
+Fresh GitHub run37222065820 failsformat:check (640 files); later jobs/deployment
+skipped. Dedicated Workers CI token remains missing; original OFFLINE-01 is unchanged.
+[Full evidence/next actions](F2-real-data.md#historical-financial-import-and-cicd---5-october-continuation).
+Next goal in next-goal.md: finish CI/source protection, historical stock/recipe links,
+actual opening count/custody and Cine's real week/device evidence. F2 incomplete,
+F3 closed; actual-phone and OFFLINE-01 both PASS by20October still required.
