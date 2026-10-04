@@ -181,6 +181,10 @@ interface Acts {
     profit: number;
     refunded: number;
     draw: number;
+    revDrops: number;
+    revBazaar: number;
+    taxSetAside: number;
+    cash: number;
   };
   packOrder: (id: string) => void;
   openBooks: () => Promise<void>;
@@ -246,6 +250,51 @@ describe('E1: the books on screen and their writes (live mode)', () => {
     expect(t.draw).toBe(100);
     // Mutation: reading paid orders under 'Orders' instead of 'Drops' leaves 200 out of revenue.
     // Mutation: counting a draw as an expense moves profit.
+  });
+
+  it('includes historical book revenue without assigning it to a sales channel', async () => {
+    const base = wireBooks();
+    const { runtime } = await mounted(
+      'owner',
+      fresh({
+        books: {
+          ...base,
+          lines: [
+            ...(base.lines as Wire[]),
+            line({
+              id: 'l:historical-current',
+              cat: 'Historical sales',
+              label: 'Imported recent sales',
+              amount_cents: 60000,
+              at: Date.now() - 10 * 86_400_000
+            }),
+            line({
+              id: 'l:historical-old',
+              cat: 'Historical sales',
+              label: 'Imported old sales',
+              amount_cents: 90000,
+              at: Date.now() - 31 * 86_400_000
+            }),
+            line({
+              id: 'l:old-expense',
+              kind: 'expense',
+              cat: 'Old expense',
+              amount_cents: 77700,
+              at: Date.now() - 31 * 86_400_000
+            })
+          ]
+        }
+      })
+    );
+    const totals = acts(runtime).pnlTotals(runtime.state);
+    expect(totals.revDrops).toBe(150); // 200 paid orders less 50 refunded
+    expect(totals.revBazaar).toBe(300);
+    expect(totals.revenue).toBe(1050);
+    expect(totals.totalExp).toBe(125);
+    expect(totals.profit).toBe(925);
+    expect(totals.draw).toBe(100);
+    expect(totals.taxSetAside).toBe(32);
+    expect(totals.cash).toBe(825);
   });
 
   it('the engine’s own count of the open drop’s orders is not added (it would count each paid order twice)', async () => {

@@ -2822,6 +2822,16 @@ export class OpsRuntime extends OpsProvider {
   private installBooksOverrides(): void {
     const eng = this as unknown as {
       orderRevenue: (s: unknown) => number;
+      pnlTotals: (s: unknown) => {
+        revenue: number;
+        profit: number;
+        draw: number;
+        taxRate: number;
+        taxSetAside: number;
+        cash: number;
+        [key: string]: unknown;
+      };
+      ledgerIn: (s: unknown) => Array<{ kind?: string; cat?: string; amount?: number }>;
       exportBooks: () => void;
       recordDraw: (amount: unknown, note: string) => void;
       closeDrop: () => void;
@@ -2848,6 +2858,26 @@ export class OpsRuntime extends OpsProvider {
     };
     // Revenue is each paid order in the books, so the engine's own count of the open drop's orders would count it twice.
     eng.orderRevenue = () => 0;
+    // The ported engine recognizes Drops and Bazaar only. Include other real book revenue without guessing its sales channel.
+    const keepPnlTotals = eng.pnlTotals.bind(this);
+    eng.pnlTotals = (state) => {
+      const totals = keepPnlTotals(state);
+      if (!isLiveMode()) return totals;
+      const rows = eng.ledgerIn(state);
+      const otherRevenue = rows
+        .filter((row) => row.kind === 'revenue' && row.cat !== 'Drops' && row.cat !== 'Bazaar')
+        .reduce((sum, row) => sum + (Number(row.amount) || 0), 0);
+      if (!otherRevenue) return totals;
+      const revenue = totals.revenue + otherRevenue;
+      const profit = totals.profit + otherRevenue;
+      return {
+        ...totals,
+        revenue,
+        profit,
+        taxSetAside: Math.round((revenue * totals.taxRate) / 100),
+        cash: profit - totals.draw
+      };
+    };
     eng.exportBooks = () => void this.liveExport();
   }
 
