@@ -1,16 +1,28 @@
 name: CI
 
-# Runs on pushes to main and on pull requests. Not on every push to every branch: on a
+# Runs on main, the approved trial branch and pull requests: on a
 # private repo the free allowance is 2,000 Actions minutes a month and a full run is
 # roughly 8 of them, so an agent pushing twenty times a day would spend it in a fortnight.
 #
-# Run `pnpm verify` locally instead â€” it is the same gate and it is instant.
+# Run `pnpm verify` locally instead — it is the same gate and it is instant.
 on:
   push:
-    branches: [main]
+    branches: [main, agent/codex/MP-04-g1-feasibility]
     paths-ignore: ['docs/**', '**/*.md']
   pull_request:
   workflow_dispatch:
+    inputs:
+      deploy_trial:
+        description: Deploy the existing private trial after every release gate passes
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   verify:
@@ -154,3 +166,13 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ci-publishable-key
       - run: pnpm lighthouse
+
+  owner-trial:
+    name: Release approved private trial
+    needs: [verify, build, e2e, storybook, visual]
+    if: >-
+      github.ref == 'refs/heads/agent/codex/MP-04-g1-feasibility' &&
+      (github.event_name == 'push' ||
+       (github.event_name == 'workflow_dispatch' && inputs.deploy_trial))
+    uses: ./.github/workflows/owner-trial.yml
+    secrets: inherit
