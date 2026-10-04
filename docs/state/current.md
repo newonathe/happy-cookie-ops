@@ -4,6 +4,14 @@ Read this at the start of a session. History: [current-history.md](current-histo
 
 ## Where things stand — 2026-10-04
 
+- **Editable recipe originals delivered:** [draft editor/evidence](F2-recipe-drafts.md).
+  All seven source recipes and batch sizes editable through All tools -> Recipe drafts.
+  Existing menu/prices/stocktake controls remain available. Code72d7d17 pushed/private
+  versionb29a55bc;53 migrations/38 RLS tables, verify79/1474 and role1945x2 PASS.
+  Phone/desktop save/reload/revert and exact cleanup/Access denial PASS. Six measured
+  production/cost mappings, opening stock and real-device/week gates remain open.
+  Older52/78/1471 and catalogue-only notes below are historical checkpoints.
+
 - **Real catalogue preparation applied:** [owner controls/data evidence](F2-real-data.md).
   72 stock definitions,13 suppliers,eight compatible quotes,26 library products,
   seven confirmed October prices and one exact Apple Pie recipe. All unpublished;

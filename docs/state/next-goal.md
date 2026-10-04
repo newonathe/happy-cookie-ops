@@ -4,7 +4,28 @@ The approved forward plan is [finish-plan.md](finish-plan.md), section 6. F1 is 
 
 ## Session settings
 
-Latest continuation: finish six October recipe weight/yield mappings and full cost
+Current continuation: editable originals are delivered on private72d7d17/version
+b29a55bc;53 migrations. Read F2-recipe-drafts.md first. Earlier fixed-yield requests
+below are superseded: Cine can edit all seven source texts and batch sizes now.
+
+```text
+/goal Continue F2 from72d7d17 and the editable recipe-draft evidence. Do not restart
+setup/audit/imports or require immutable recipe values. Reuse existing owner menu,
+prices, source/production recipe, supplier/stock item and stocktake controls. Finish
+six production ingredient/weight and cost links from the preserved originals without
+guessing conversions; keep batch yields editable. Prepare opening count, allergen
+confirmation, custody/recovery and concrete shop/payment operating steps, then request
+only the remaining specific operating approval. Record Cine's seven actual dates,
+feedback and real iPhone Safari/Chrome/MacBook evidence. F2 incomplete/F3 closed until
+real-week acceptance; unchanged OFFLINE-01 and actual phone must PASS by20October.
+Use pinned headless CLI tools, Codex only, at most two bounded workers; stop after two
+failed repairs on one issue or25turns. Verify/secret-scan/commit/push accepted slices.
+No new resources, wider deployment, jobs, merge or runner without explicit approval.
+Finish with actual gaps and the next continuation goal.
+```
+
+
+Previous catalogue-only continuation (superseded above): finish six October recipe weight/yield mappings and full cost
 references from [F2-real-data.md](F2-real-data.md), then Cine's opening count and actual
 week. Real catalogue import is authorized/applied: do not ask again or recreate
 resources. Keep menu unpublished until allergens confirmed and shop closed until

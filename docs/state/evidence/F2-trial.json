@@ -635,5 +635,73 @@
     "jobsImportsMergeRunner": "inactive/not performed",
     "trialComplete": false,
     "f3MayAdvance": false
+  },
+  "editableRecipesContinuation": {
+    "date": "2026-10-04",
+    "status": "accepted_private_editable_preparation",
+    "backendCommit": "61d3e8e",
+    "frontendCommit": "72d7d176ef7d3ae913b7629f1dc881649295495c",
+    "workerVersion": "b29a55bc-0f7e-4224-8576-453c60ac820f",
+    "authorization": "Existing approved closed-shop private trial plus explicit editable business variables/source-data request",
+    "schema": {
+      "migrations": 53,
+      "publicTables": 38,
+      "allRls": true,
+      "browserMaintain": 0,
+      "newOwnerRpcs": 2
+    },
+    "data": {
+      "originalRecipes": 7,
+      "exactSourceReadback": "PASS",
+      "sixStartingYields": "editable14; not independently measured",
+      "applePieYield": "verified14; editable",
+      "productionCostMappingsStillPending": 6
+    },
+    "verify": {
+      "files": 79,
+      "tests": 1474,
+      "fullCommitHooks": "PASS",
+      "roleCasesPerReset": 1945,
+      "resets": 2,
+      "existingMutationsDetected": 684,
+      "cleanup": "PASS",
+      "secretScan": "PASS"
+    },
+    "review": "Independent Luna backend/source plan ACCEPT; root frontend and all4 draft+2 Access captures inspected",
+    "browser": {
+      "type": "headless Chromium local static Worker against actual hosted DB",
+      "phone": "390x844",
+      "desktop": "1440x900",
+      "editSaveFullReloadRestore": "PASS at both widths",
+      "exactProductionInventoryProductsLedgerCleanup": "PASS",
+      "draftTimestampsAdvanced": true,
+      "ownerGlobalSessionsRevoked": false,
+      "physicalDevice": false,
+      "updatedAppHumanLogin": "not checked"
+    },
+    "privateOrigin": {
+      "freshGateBeforeAfter": "PASS",
+      "canonicalEnabled": true,
+      "previewsEnabled": false,
+      "routes": [],
+      "anonymousAppRealJsSw": "Access302",
+      "versionPreview": 404
+    },
+    "reused": "Verified F1; accepted nonzero CSV/P&L/caption evidence; checklist; original OFFLINE-01 baseline89/1/75 unchanged",
+    "shop": "closed",
+    "publishedProducts": 0,
+    "jobsMergeRunner": "inactive/not performed",
+    "trialComplete": false,
+    "f3MayAdvance": false,
+    "deadline": "Actual-phone and original OFFLINE-01 both PASS by20October",
+    "remaining": [
+      "Six measured production recipe/cost mappings",
+      "Allergens and actual opening count",
+      "Custody/target recovery and specific shop/customer/payment approval",
+      "Cine seven actual dates and acceptance",
+      "Actual iPhone Safari/Chrome and MacBook evidence",
+      "Original OFFLINE-01 PASS"
+    ],
+    "setupFailures": "Separate retained history in F2-recipe-drafts.md/private receipts; product source never changed to satisfy harness selectors"
   }
 }
