@@ -10,7 +10,11 @@ const config = [
   prettier,
   {
     // Exact reviewed literal apostrophes; escaping would only change locked source spelling.
-    files: ['src/components/screens/drops.tsx', 'src/components/screens/shop.tsx', 'src/components/sheets/proof.tsx'],
+    files: [
+      'src/components/screens/drops.tsx',
+      'src/components/screens/shop.tsx',
+      'src/components/sheets/proof.tsx'
+    ],
     rules: { 'react/no-unescaped-entities': 'off' }
   },
   {
@@ -39,7 +43,11 @@ const config = [
     ]
   },
   {
-    files: ['src/components/screens/**/*.tsx', 'src/components/sheets/**/*.tsx', 'src/components/shell/**/*.tsx'],
+    files: [
+      'src/components/screens/**/*.tsx',
+      'src/components/sheets/**/*.tsx',
+      'src/components/shell/**/*.tsx'
+    ],
     rules: {
       // Ported markup: the prototype's own <img> tags and inline styles are the spec.
       '@next/next/no-img-element': 'off',

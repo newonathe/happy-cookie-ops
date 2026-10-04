@@ -11,7 +11,13 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : 'list',
-  use: { baseURL: 'http://localhost:3140', trace: 'retain-on-failure', serviceWorkers: 'block', timezoneId: 'Asia/Manila', reducedMotion: 'reduce' },
+  use: {
+    baseURL: 'http://localhost:3140',
+    trace: 'retain-on-failure',
+    serviceWorkers: 'block',
+    timezoneId: 'Asia/Manila',
+    reducedMotion: 'reduce'
+  },
 
   expect: {
     toHaveScreenshot: {
@@ -27,10 +33,26 @@ export default defineConfig({
   updateSnapshots: 'none',
 
   projects: [
-    { name: 'phone', testIgnore: /(visual|fidelity-evidence)\.spec\.ts/, use: { ...devices['Pixel 7'] } },
-    { name: 'webkit', testIgnore: /(visual|fidelity-evidence)\.spec\.ts/, use: { ...devices['iPhone 13'], defaultBrowserType: 'webkit' } },
-    { name: 'evidence', testMatch: /fidelity-evidence\.spec\.ts/, use: { viewport: { width: 390, height: 844 } } },
-    { name: 'desktop', testIgnore: /(visual|fidelity-evidence)\.spec\.ts/, use: { ...devices['Desktop Chrome'] } },
+    {
+      name: 'phone',
+      testIgnore: /(visual|fidelity-evidence)\.spec\.ts/,
+      use: { ...devices['Pixel 7'] }
+    },
+    {
+      name: 'webkit',
+      testIgnore: /(visual|fidelity-evidence)\.spec\.ts/,
+      use: { ...devices['iPhone 13'], defaultBrowserType: 'webkit' }
+    },
+    {
+      name: 'evidence',
+      testMatch: /fidelity-evidence\.spec\.ts/,
+      use: { viewport: { width: 390, height: 844 } }
+    },
+    {
+      name: 'desktop',
+      testIgnore: /(visual|fidelity-evidence)\.spec\.ts/,
+      use: { ...devices['Desktop Chrome'] }
+    },
     {
       // Its own project so `pnpm test:visual` can run alone, and so the baselines are
       // tied to one viewport. Baselines are only valid for the environment that made
@@ -39,8 +61,16 @@ export default defineConfig({
       testMatch: /visual\.spec\.ts/,
       use: { ...devices['Pixel 7'] }
     },
-    { name: 'visual-tablet', testMatch: /visual\.spec\.ts/, use: { viewport: { width: 834, height: 1112 } } },
-    { name: 'visual-desktop', testMatch: /visual\.spec\.ts/, use: { viewport: { width: 1440, height: 900 } } }
+    {
+      name: 'visual-tablet',
+      testMatch: /visual\.spec\.ts/,
+      use: { viewport: { width: 834, height: 1112 } }
+    },
+    {
+      name: 'visual-desktop',
+      testMatch: /visual\.spec\.ts/,
+      use: { viewport: { width: 1440, height: 900 } }
+    }
   ],
 
   webServer: {
