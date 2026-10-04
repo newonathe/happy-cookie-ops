@@ -196,28 +196,32 @@ describe('MP-09 c1: flavours from the database', () => {
     });
   });
 
-  it('renders every screen with a seventh flavour the engine has no recipe for', async () => {
-    const { runtime } = await mounted();
-    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    try {
-      for (const screen of SCREEN_KEYS) {
-        const probe = new OpsRuntime({});
-        probe.state = { ...runtime.state, screen, device: 'desktop' };
-        const { container, unmount } = render(<AppFrame v={probe.renderVals()} />);
-        expect(container.innerHTML, screen).not.toMatch(/undefined|\bNaN\b|\bInfinity\b/);
-        unmount();
+  it(
+    'renders every screen with a seventh flavour the engine has no recipe for',
+    async () => {
+      const { runtime } = await mounted();
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      try {
+        for (const screen of SCREEN_KEYS) {
+          const probe = new OpsRuntime({});
+          probe.state = { ...runtime.state, screen, device: 'desktop' };
+          const { container, unmount } = render(<AppFrame v={probe.renderVals()} />);
+          expect(container.innerHTML, screen).not.toMatch(/undefined|\bNaN\b|\bInfinity\b/);
+          unmount();
+        }
+        // The runtime that loaded the list, not a fresh probe: a customer page that has read
+        // no menu yet shows no flavours (MP-09 c1b).
+        act(() => runtime.setState({ screen: 'shop', device: 'mobile' }));
+        const text = render(<AppFrame v={runtime.renderVals()} />).container.textContent ?? '';
+        expect(text).toContain('Nutella Cookie Fries');
+        expect(text).toContain('Contains milk, eggs, wheat, soy, tree nuts');
+        expect(errorSpy).not.toHaveBeenCalled();
+      } finally {
+        errorSpy.mockRestore();
       }
-      // The runtime that loaded the list, not a fresh probe: a customer page that has read
-      // no menu yet shows no flavours (MP-09 c1b).
-      act(() => runtime.setState({ screen: 'shop', device: 'mobile' }));
-      const text = render(<AppFrame v={runtime.renderVals()} />).container.textContent ?? '';
-      expect(text).toContain('Nutella Cookie Fries');
-      expect(text).toContain('Contains milk, eggs, wheat, soy, tree nuts');
-      expect(errorSpy).not.toHaveBeenCalled();
-    } finally {
-      errorSpy.mockRestore();
-    }
-  }, RENDER_ALL_TIMEOUT);
+    },
+    RENDER_ALL_TIMEOUT
+  );
 
   it('saves the on-menu switch through the engine action, whole flavour and last updated_at', async () => {
     const { runtime, rpc } = await mounted();
@@ -637,27 +641,31 @@ describe('MP-09 c1b: prices, publishing and the shop menu', () => {
     for (const name of portedNames) expect(shopText(unconfigured)).not.toContain(name);
   });
 
-  it('renders every screen with a one-flavour published menu, and with none', async () => {
-    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    try {
-      for (const rows of [[shopRow(OCTOBER)], []]) {
-        const runtime = customer();
-        await act(async () => {
-          await runtime.loadShopMenu(shopClient(rows).client);
-        });
-        for (const screen of SCREEN_KEYS) {
-          act(() => runtime.setState({ screen, device: 'desktop' }));
-          const { container, unmount } = render(<AppFrame v={runtime.renderVals()} />);
-          expect(container.innerHTML, screen).not.toMatch(/undefined|\bNaN\b|\bInfinity\b/);
-          unmount();
+  it(
+    'renders every screen with a one-flavour published menu, and with none',
+    async () => {
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      try {
+        for (const rows of [[shopRow(OCTOBER)], []]) {
+          const runtime = customer();
+          await act(async () => {
+            await runtime.loadShopMenu(shopClient(rows).client);
+          });
+          for (const screen of SCREEN_KEYS) {
+            act(() => runtime.setState({ screen, device: 'desktop' }));
+            const { container, unmount } = render(<AppFrame v={runtime.renderVals()} />);
+            expect(container.innerHTML, screen).not.toMatch(/undefined|\bNaN\b|\bInfinity\b/);
+            unmount();
+          }
+          cleanup();
         }
-        cleanup();
+        expect(errorSpy).not.toHaveBeenCalled();
+      } finally {
+        errorSpy.mockRestore();
       }
-      expect(errorSpy).not.toHaveBeenCalled();
-    } finally {
-      errorSpy.mockRestore();
-    }
-  }, RENDER_ALL_TIMEOUT);
+    },
+    RENDER_ALL_TIMEOUT
+  );
 
   it('keeps the staff list when the shop read lands after it', async () => {
     const { runtime } = await mounted();

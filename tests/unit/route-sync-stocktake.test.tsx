@@ -2,10 +2,23 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { render } from '@testing-library/react';
 
 const engine = {
-  state: { screen: 'today', role: 'owner', inv: [] as { name: string; cat: string }[], invTab: 'Ingredients', navTick: 0, history: [], stocktake: null as object | null },
-  go: vi.fn((screen: string) => { engine.state.screen = screen; engine.state.navTick += 1; }),
+  state: {
+    screen: 'today',
+    role: 'owner',
+    inv: [] as { name: string; cat: string }[],
+    invTab: 'Ingredients',
+    navTick: 0,
+    history: [],
+    stocktake: null as object | null
+  },
+  go: vi.fn((screen: string) => {
+    engine.state.screen = screen;
+    engine.state.navTick += 1;
+  }),
   setState: vi.fn(),
-  startStocktake: vi.fn(() => { engine.state.stocktake = { counts: {} }; })
+  startStocktake: vi.fn(() => {
+    engine.state.stocktake = { counts: {} };
+  })
 };
 vi.mock('@/store/use-ops', () => ({ useOpsEngine: () => engine, useOpsVals: () => ({}) }));
 
