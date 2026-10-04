@@ -184,3 +184,61 @@ one lifecycle repair owns/cancels its 80 ms timer and passes all 74 focused test
 Independent Sol ACCEPT preserves copy, delay, demo and offline queue. The complete
 precommit retry/publication result is recorded externally. The disabled upload still
 contains frontend 85f6bc6; rebuild the accepted cleanup before enabling its private URL.
+
+## Scoped Access continuation — 4 October 2026
+
+The user confirmed replacement after token disclosure; DPAPI file changed and token
+verification returns200 active. No credential value is recorded. Exact approved-account
+Access apps/org/IdPs return401/code10000, token-detail/account-list403/code9109. The
+user reports both permission rows correct; direct HttpClient agrees, no whitespace
+or malformed-token issue. Organization existence is unknown, not assumed absent.
+No speculative Access write or public entry-point enabling occurred.
+
+Independent eligible work completed: fresh exact privileged-key/QR scan, pinned dry
+run and conditional Sol ACCEPT precede upload of accepted `be1e115` to the SAME
+Worker. New version `3188360e-008e-4772-a3e8-fc3eff5fd5af`; fresh readback remains
+false/false/routes[] and canonical/new-version URLs both404. Latest accepted full
+precommit77/1466, build and actual-hosted-DB/local-browser phone/desktop proof PASS.
+Zero Trust/account-resource inspection is requested to resolve the provider setup
+blocker. Cine access/week/physical-phone evidence and F2/F3 boundaries stay open.
+
+Independent review found verify warning10002: token is not usable until 4 October
+00:00 UTC / 08:00 Manila despite active200. Fix Start Date (no new secret needed)
+or wait until that UTC time, then recheck scoped Access APIs. The user separately
+reports an initial Zero Trust setup screen; that is not the proven cause of401. No
+Access, paid-plan or billing mutation occurred. Corrected before publication.
+
+User subsequently completed Zero Trust onboarding and supplied its dashboard
+screenshot, but past token Start Date is disallowed by UI. User requests pause and
+continuation tomorrow (5 October). Keep the saved replacement token; it becomes
+valid at08:00 Manila4October. No further Access writes or verification loop today.
+Seven updated records remain uncommitted pending final review/scan/full hook.
+Resume from external F2-access-pause-20261004.json and current working diff.
+
+## Latest continuation — 4 October, resumed at user request
+
+The scheduled current-chat follow-up was deleted; no automatic product runner is active.
+The saved replacement token is now usable: token, scoped Access applications, organization
+and identity-provider GETs all return200. The initial future-token warning10002/401
+diagnosis is historical and preserved, not a current credential blocker.
+
+An independently reviewed exact-hostname private gate is created: one approved owner
+email, one-time PIN only, one reusable Allow policy, eight-hour sessions; no wildcard,
+bypass or service-token access. Fresh application/policy/IdP GETs match. The owner
+identity and temporary password remain outside Git; a clipboard handoff helper is prepared
+privately but has not run. No authentication email was sent.
+
+The Worker remains disabled, including preview URLs: pre-enable browser login did not
+reach an email field (initial direct redirect400; relative redirect ends404). A local
+null-array check was corrected without duplicate resource creation; installed Playwright
+import was corrected. These are verification-harness setup failures, not app repairs.
+No Enable stage ran; explicit disabled readback passes after the failed preflight.
+Activation, live anonymous/static/owner-route proof and Cine sign-in remain unverified.
+No further login repair is attempted in this checkpoint. Reuse accepted be1e115,
+caption85f6bc6, uploaded3188360e and all existing local financial/visual evidence.
+
+Next goal: resolve the private-login preflight from its retained HTTP redirect evidence,
+obtain independent activation acceptance, then verify the private origin and hand over
+owner credentials securely. Real-week/customer/payment/shop-opening and custody/recovery
+permissions remain separate. F2 incomplete, F3 closed; actual-phone rehearsal and the
+unchanged failing OFFLINE-01 both must pass by20October. Jobs/imports/merge remain off.

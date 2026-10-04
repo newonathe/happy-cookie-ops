@@ -65,12 +65,45 @@ Next continuation goal: finish F2 trial-target preparation and Cine's actual wee
 
 ## Current continuation — 4 October
 
-Reuse accepted caption commit `85f6bc6` and hosted-preparation evidence. Do not request
-setup/project-reuse/three-quote approval again. Finish the requested Cloudflare Access
-credential/gate, rebuild the accepted reset-timer cleanup into the disabled Worker,
-prove anonymous denial before enabling the private Worker URL, hand
-over/change the owner password privately, and confirm Cine's sign-in. Then obtain the
-separate real-data/payment/customer/shop-opening and backup-custody/recovery decisions;
-begin all seven actual dates and device rehearsal. The uploaded Worker is currently
-unrouted and both URLs return 404. F2 is incomplete/F3 closed; unchanged OFFLINE-01
-and actual-phone rehearsal must both pass by 20 October for the October pilot.
+Reuse accepted85f6bc6, be1e115 and disabled upload3188360e. Token validity and
+scoped Access APIs now pass; no further token change or onboarding request is
+needed. The owner-only email-code gate is created with independently accepted
+scope and fresh application/policy/IdP GETs. Pre-enable browser login ends404;
+retain disabled canonical/preview entry points until verified activation is accepted.
+Resolve the harness preflight from retained HTTP evidence, verify anonymous
+app/static/owner-route denial, then hand over credentials securely and confirm
+Cine sign-in. Real-data/customer/payment/shop-opening and custody/recovery
+permissions remain separate. F2 incomplete/F3 closed; original OFFLINE-01 and
+actual-phone rehearsal both must pass by20October.
+
+Historical diagnosis: before08:00 Manila4October, token verify200 carried future
+warning10002 and Access APIs401. That snapshot is preserved in the receipt; it
+is resolved by current GET200 and was not proof of missing Zero Trust setup.
+
+## Latest continuation — 4 October, resumed at user request
+
+The scheduled current-chat follow-up was deleted; no automatic product runner is active.
+The saved replacement token is now usable: token, scoped Access applications, organization
+and identity-provider GETs all return200. The initial future-token warning10002/401
+diagnosis is historical and preserved, not a current credential blocker.
+
+An independently reviewed exact-hostname private gate is created: one approved owner
+email, one-time PIN only, one reusable Allow policy, eight-hour sessions; no wildcard,
+bypass or service-token access. Fresh application/policy/IdP GETs match. The owner
+identity and temporary password remain outside Git; a clipboard handoff helper is prepared
+privately but has not run. No authentication email was sent.
+
+The Worker remains disabled, including preview URLs: pre-enable browser login did not
+reach an email field (initial direct redirect400; relative redirect ends404). A local
+null-array check was corrected without duplicate resource creation; installed Playwright
+import was corrected. These are verification-harness setup failures, not app repairs.
+No Enable stage ran; explicit disabled readback passes after the failed preflight.
+Activation, live anonymous/static/owner-route proof and Cine sign-in remain unverified.
+No further login repair is attempted in this checkpoint. Reuse accepted be1e115,
+caption85f6bc6, uploaded3188360e and all existing local financial/visual evidence.
+
+Next goal: resolve the private-login preflight from its retained HTTP redirect evidence,
+obtain independent activation acceptance, then verify the private origin and hand over
+owner credentials securely. Real-week/customer/payment/shop-opening and custody/recovery
+permissions remain separate. F2 incomplete, F3 closed; actual-phone rehearsal and the
+unchanged failing OFFLINE-01 both must pass by20October. Jobs/imports/merge remain off.

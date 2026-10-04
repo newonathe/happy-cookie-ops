@@ -5,8 +5,8 @@ Read this at the start of a session. History: [current-history.md](current-histo
 ## Where things stand — 2026-10-04
 
 - **Approved closed-shop hosted preparation is implemented.** Ethan approved free-plan setup and reuse of the empty existing trial project. All 52 migrations apply on PG17.6; the explicitly approved three-place 029 compatibility fix and new 051 maintenance hardening pass. Automated owner sign-in/refresh, active role and anonymous financial denial pass. Six catalogue definitions remain drafts; no orders, fake stock or payment accounts were imported.
-- **The fresh trial Worker is uploaded but unreachable:** version `12ed8ba6-fb61-47ff-822a-6724f982d91a`, zero routes, workers.dev and preview URLs disabled; both GET probes return 404. Current hosting OAuth lacks Access permissions (403); a scoped credential is requested before enabling a private link. Owner credential handoff/change and Cine's human sign-in remain pending.
-- Fresh `pnpm verify`: **77 files / 1,464 tests PASS**. PG15 SQL role suite: **1,922 cases/reset × 2**, 684 regressions detected, rollback/cleanup PASS. Hosted PG17: 94 app function contracts match apart from three expected quoted return-name renderings; all 37 public tables have RLS; browser MAINTAIN is zero across 39 public relations and service authority is preserved. The existing provider RLS event trigger is retained separately. Hosted-target local-browser P&L phone/desktop captures are inspected; this is separate from reachable private-origin or actual-device acceptance.
+- **Private trial access is configured, but its link remains disabled.** Current token and Access API checks pass. The exact-owner email-code policy passes fresh readback; the pre-enable browser login ends404 and remains unverified. Worker3188360e retains disabled canonical/preview URLs; owner human login and private credential handoff/change remain pending.
+- Latest accepted `pnpm verify`: **77 files / 1,466 tests PASS**, zero unhandled errors after the independently accepted reset-timer cleanup. PG15 SQL role suite: **1,922 cases/reset × 2**, 684 regressions detected, rollback/cleanup PASS. Hosted PG17: 94 app function contracts match apart from three expected quoted return-name renderings; all 37 public tables have RLS; browser MAINTAIN is zero across 39 public relations and service authority is preserved. The existing provider RLS event trigger is retained separately. Hosted-target local-browser P&L phone/desktop captures are inspected; this is separate from reachable private-origin or actual-device acceptance.
 
 - **F2 technical work is checkpointed; readiness and real-week acceptance remain incomplete.** [Trial setup proposal](F2-trial-setup.md), [fix list](F2-fix-list.md), [checkpoint](F2-checkpoint.md) and [receipt](evidence/F2-trial.json) separate verified work from remaining browser/owner evidence. MP-26 stays in progress, next-goal stays F2 and F3 is closed.
 - **F1 remains accepted locally, committed and pushed.** Encrypted database dumps and isolated recovery, fixed one-year retention, operational receipts, live health/alerts and the shop privacy notice are implemented; hosted jobs stay inactive.
@@ -41,3 +41,37 @@ Read this at the start of a session. History: [current-history.md](current-histo
 - **Existing carry-overs:** target owner/refresh and PG17 maintenance checks pass; private-origin, human/device and broader session scenarios remain open. `format:check` and WebKit E2E on main are known red; no merge while required checks fail.
 - **Bazaar pilot:** 24–25 October requires OFFLINE-01 and the physical-phone test to pass by **20 October**. Phone-sized Chromium is separate evidence.
 - Cine's C1–C12 answers remain open; Ethan approved the finish-plan defaults on 2026-09-28. No automatic runner, production cutover, hosted resource or deployment is authorized by F1.
+
+Independent review found verify warning10002: token is not usable until 4 October
+00:00 UTC / 08:00 Manila despite active200. Fix Start Date (no new secret needed)
+or wait until that UTC time, then recheck scoped Access APIs. The user separately
+reports an initial Zero Trust setup screen; that is not the proven cause of401. No
+Access, paid-plan or billing mutation occurred. Corrected before publication.
+
+## Latest continuation — 4 October, resumed at user request
+
+The scheduled current-chat follow-up was deleted; no automatic product runner is active.
+The saved replacement token is now usable: token, scoped Access applications, organization
+and identity-provider GETs all return200. The initial future-token warning10002/401
+diagnosis is historical and preserved, not a current credential blocker.
+
+An independently reviewed exact-hostname private gate is created: one approved owner
+email, one-time PIN only, one reusable Allow policy, eight-hour sessions; no wildcard,
+bypass or service-token access. Fresh application/policy/IdP GETs match. The owner
+identity and temporary password remain outside Git; a clipboard handoff helper is prepared
+privately but has not run. No authentication email was sent.
+
+The Worker remains disabled, including preview URLs: pre-enable browser login did not
+reach an email field (initial direct redirect400; relative redirect ends404). A local
+null-array check was corrected without duplicate resource creation; installed Playwright
+import was corrected. These are verification-harness setup failures, not app repairs.
+No Enable stage ran; explicit disabled readback passes after the failed preflight.
+Activation, live anonymous/static/owner-route proof and Cine sign-in remain unverified.
+No further login repair is attempted in this checkpoint. Reuse accepted be1e115,
+caption85f6bc6, uploaded3188360e and all existing local financial/visual evidence.
+
+Next goal: resolve the private-login preflight from its retained HTTP redirect evidence,
+obtain independent activation acceptance, then verify the private origin and hand over
+owner credentials securely. Real-week/customer/payment/shop-opening and custody/recovery
+permissions remain separate. F2 incomplete, F3 closed; actual-phone rehearsal and the
+unchanged failing OFFLINE-01 both must pass by20October. Jobs/imports/merge remain off.
