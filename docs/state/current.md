@@ -4,6 +4,11 @@ Read this at the start of a session. History: [current-history.md](current-histo
 
 ## Where things stand — 2026-10-04
 
+- **Login delivery under investigation:** later OTP emails missing despite correct
+  rule;14:38 receipt reported. Explicitly approved second exact mailbox added to
+  existing private gate; fresh two-email/OTP8h and anonymous denial/preview404 PASS.
+  Actual new-mail receipt/login still pending; admin delivery cause unconfirmed.
+
 - **Editable recipe originals delivered:** [draft editor/evidence](F2-recipe-drafts.md).
   All seven source recipes and batch sizes editable through All tools -> Recipe drafts.
   Existing menu/prices/stocktake controls remain available. Code72d7d17 pushed/private

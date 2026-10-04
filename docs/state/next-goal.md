@@ -4,6 +4,11 @@ The approved forward plan is [finish-plan.md](finish-plan.md), section 6. F1 is 
 
 ## Session settings
 
+Immediate continuation: confirm the approved alternate mailbox actually receives a
+new code/signs in; resolve the admin OTP delivery issue before Cine's real week.
+Two exact emails are now explicitly allowed; do not recreate the gate or reset app
+credentials. Reuse F2-otp-personal receipts/private updated guard; delivery unconfirmed.
+
 Current continuation: editable originals are delivered on private72d7d17/version
 b29a55bc;53 migrations. Read F2-recipe-drafts.md first. Earlier fixed-yield requests
 below are superseded: Cine can edit all seven source texts and batch sizes now.

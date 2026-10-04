@@ -703,5 +703,32 @@
       "Original OFFLINE-01 PASS"
     ],
     "setupFailures": "Separate retained history in F2-recipe-drafts.md/private receipts; product source never changed to satisfy harness selectors"
+  },
+  "otpMailboxContinuation": {
+    "date": "2026-10-04",
+    "status": "approved_gate_change_verified_delivery_pending",
+    "humanAdminDelivery": "Received14:38 Manila; none subsequently including Spam/Trash",
+    "freshOriginalPolicy": "correct/unchanged",
+    "deliveryRootCause": "unconfirmed",
+    "auditLogGet": 403,
+    "humanAuthorization": "Approve adding my personal email",
+    "planSha256": "3cc7f8968ec2221ebe9e70d42d99a903666eb49cc95059e8bbb5009e55365a77",
+    "independentReview": "Luna ACCEPT exact scope/rollback",
+    "applied": "existing sole reusable Allow policy only",
+    "exactMailboxesAllowed": 2,
+    "otpProvider": "unchanged",
+    "sessionDuration": "8h",
+    "policyAppIdpReadback": "PASS",
+    "anonymousAppRealJsSw": "Access denial PASS",
+    "preview": 404,
+    "newResources": 0,
+    "supabaseAccountChanges": 0,
+    "passwordChanges": 0,
+    "deployments": 0,
+    "agentOtpEmailsTriggered": 0,
+    "alternateMailboxCodeAndSignIn": "pending human evidence",
+    "adminMailboxDeliveryRestored": false,
+    "trialComplete": false,
+    "f3MayAdvance": false
   }
 }

@@ -300,3 +300,23 @@ OFFLINE-01 and physical-phone dualPASS by20October still govern the October pilo
 
 See [F2-recipe-drafts.md](F2-recipe-drafts.md). Original text and batch sizes are
 available for editing now; missing measured quantities concern production/costing.
+
+
+## Login-code delivery - 4 October
+
+Owner reports the approved admin mailbox received a code at14:38 Manila but none
+on subsequent requests, including Spam/Trash search. Correct email/OTP/Allow rule
+verified unchanged. Code-entry page is not delivery proof; provider suppression or
+mail delivery failure is unconfirmed. Scoped Access audit-log GET403 blocks inspection.
+Ethan explicitly approved adding a second exact personal mailbox. The independently
+accepted plan was applied only to the existing sole reusable Allow policy, preserving
+the admin mailbox, OTP and8h. Fresh policy/app/IdP GETs match exactly two emails;
+no wildcard/bypass/new provider/project/account/password/deployment change. Private
+guard now reads the exact approval receipt; original single-mailbox helper preserved.
+Fresh headless anonymous app/realJS/SW denial and disabled preview404 PASS. App login
+still uses the existing owner account/password; no agent-triggered OTP email sent.
+New mailbox receipt/sign-in and restoring admin-mail delivery remain human evidence,
+not claims from API readback. F2 incomplete/F3 closed; preserve all real-week/device gates.
+Private receipts: F2-otp-personal-mailbox-{plan,acceptance,Apply}.json,
+F2-otp-personal-anonymous-check.json and F2-otp-delivery-diagnostic.json. Plan hash
+3cc7f8968ec2221ebe9e70d42d99a903666eb49cc95059e8bbb5009e55365a77.
