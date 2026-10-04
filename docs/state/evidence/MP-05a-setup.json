@@ -5,11 +5,7 @@
   },
   "cloudflare_cli_login": "success",
   "credential_storage": "keyring forced; native binding installed through Wrangler",
-  "requested_oauth_scopes": [
-    "account:read",
-    "user:read",
-    "pages:write"
-  ],
+  "requested_oauth_scopes": ["account:read", "user:read", "pages:write"],
   "deployment_performed": false,
   "docker": {
     "state": "startup_check_timed_out"
