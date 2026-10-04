@@ -18,7 +18,13 @@
   },
   "negative_tests": {
     "status": "PASS",
-    "cases": ["wrong key", "tampered ciphertext", "truncated archive", "malformed archive", "non-loopback restore URL"]
+    "cases": [
+      "wrong key",
+      "tampered ciphertext",
+      "truncated archive",
+      "malformed archive",
+      "non-loopback restore URL"
+    ]
   },
   "restore": {
     "status": "UNPROVEN",
@@ -44,7 +50,13 @@
   },
   "boundaries": {
     "included": "database objects and rows from public and auth schemas, plus CLI role dump",
-    "excluded": ["Storage object bytes", "Auth provider configuration and API keys", "Edge Functions", "Realtime settings", "other project configuration"],
+    "excluded": [
+      "Storage object bytes",
+      "Auth provider configuration and API keys",
+      "Edge Functions",
+      "Realtime settings",
+      "other project configuration"
+    ],
     "hosted_writes": false,
     "schedule_activated": false,
     "plaintext_or_key_in_receipt": false

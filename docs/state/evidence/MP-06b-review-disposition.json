@@ -16,10 +16,7 @@
     "permission_denials": [],
     "children": 0,
     "auth": "first-party Pro; see auth evidence",
-    "observed_models": [
-      "claude-haiku-4-5-20251001",
-      "claude-sonnet-5"
-    ]
+    "observed_models": ["claude-haiku-4-5-20251001", "claude-sonnet-5"]
   },
   "accepted": [
     "Explicitly reconcile old authenticated settings grant and DATA/GAPS references in the next migration slice.",
