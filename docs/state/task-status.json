@@ -7,14 +7,14 @@
       "status": "in_progress",
       "approved_finish_plan_name": "F2: owner trial",
       "slices": {
-        "hosted_preparation": "2026-10-04: approved PG17 target52 migrations/owner drafts; accepted be1e115 uploaded3188360e. Current token/scoped Access GETs200; exact-owner OTP/reusable8h gate created and fresh readback PASS. Pre-enable browser login404; canonical/preview URLs remain disabled. Historical warning10002/Access401 resolved; human access/real-week evidence pending.",
+        "hosted_preparation": "2026-10-04: PG17 target52/owner drafts and acceptedfrontendbe1e115/version3188360e. Exact-owner OTP/reusable8h gate freshGETPASS; independent controlled activation ACCEPT, canonical enabled/preview disabled/routes[]. Phone/desktop Access visuals and anon app/realJS/SW denial PASS. Human owner mailbox/dashboard sign-in and secure clipboard handoff PASS; ongoing custody/change and real-week/device evidence pending.",
         "preparation": "2026-10-03: practical seven-day Cine checklist, actual-phone rehearsal and dated fix ledger prepared; concrete local preparation only",
         "local_qa": "Pinned verify77/1466 and G01219/0 PASS; fresh11-step checkout plus owner UI payment/packing/collection/expense, CSV/RPC exact-cent reconciliation and both live P&L viewports PASS; exact cleanup PASS, monotonic sequence retained. Prior full E2E89/1/75 remains FAIL OFFLINE-01; SQL684x2/F1 reused.",
         "real_week": "Not started or accepted: real customer/data/payment/shop-opening scope, backup custody/target recovery, seven recorded dates and Cine feedback remain missing.",
         "physical_phone": "Pending actual-device evidence; 24-25 Oct pilot requires BOTH OFFLINE-01 and real-phone PASS by 20 Oct, otherwise current process and 12-13 Dec fallback",
         "acceptance": "Caption85f6bc6 and PG17/lifecycle cleanup be1e115 accepted/pushed; full precommit77/1466 PASS, latest build and target-backed local-browser captures independently accepted. Conditional Sol disabled-upload requirements fulfilled. F2 incomplete/F3 closed; no jobs/imports/merge/runner.",
         "technical": "Live caption uses existing rolling period; original demo literal/styles/math retained. Six-file patch accepted with fresh live phone/desktop evidence. WebKit emulation diagnosis unchanged; original OFFLINE-01 FAIL.",
-        "target": "Approved PG17 trial target and latest accepted disabled Worker prepared. Token/scoped Access GETs pass; owner-only OTP gate created/readback PASS. Browser pre-enable login404 and private-origin verification remain open; human password handoff and real-data/shop-opening scope pending."
+        "target": "Approved PG17 private trial canonical link now enabled with verified owner-only Access and disabled previews; human owner sign-in/secure handoff PASS, real-data/shop-opening/recovery, ongoing custody/change and real-week/device gates pending."
       },
       "evidence": "docs/state/F2-owner-trial.md; F2-fix-list.md; F2-checkpoint.md; evidence/F2-trial.json; docs/state/F2-trial-setup.md"
     },

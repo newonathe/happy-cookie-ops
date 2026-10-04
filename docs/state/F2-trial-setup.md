@@ -12,15 +12,15 @@ quotation correction and additive 051 maintenance hardening. Owner Auth/profile
 access and six unpublished catalogue/allergen definitions are provisioned. The shop
 is closed; no full seed, stock, orders, expenses or payment accounts were imported.
 Automated owner sign-in/refresh and hosted-target local-browser P&L pass. Credentials
-are owner-only DPAPI outside Git; private handoff/change and Cine's sign-in remain open.
+are owner-only DPAPI outside Git; secure handoff and user-confirmed owner sign-in PASS.
+Ongoing password custody/change and Cine's own sign-in/real-week use remain pending.
 
 Latest static Worker version `3188360e-008e-4772-a3e8-fc3eff5fd5af` contains accepted
-frontend `be1e115`, zero routes and both canonical/version URLs disabled (404). The
-saved scoped credential now passes token and Access application/organization/IdP
-GETs200. The exact-owner email-code gate is created and passes fresh readback;
-pre-enable browser login ends404 and remains unverified, so both Worker URL types
-stay disabled. The build contains only publishable configuration; actual privileged
-key bytes and working payment QR bytes are absent. No usable link yet.
+frontend `be1e115`. The owner-only email-code gate passes fresh readback. The
+private canonical URL is now enabled with zero routes; preview URLs remain disabled.
+Phone/desktop login visuals and anonymous page/real-asset denial pass. Human owner
+mailbox and signed-in dashboard access are confirmed by the user. Privileged keys and
+working payment QR bytes are absent.
 
 Planning assumes iPhone 14 or newer and a MacBook, using Safari and Chrome; exact
 devices and results remain unconfirmed. Real-data/payment/customer/shop-opening
@@ -149,3 +149,45 @@ obtain independent activation acceptance, then verify the private origin and han
 owner credentials securely. Real-week/customer/payment/shop-opening and custody/recovery
 permissions remain separate. F2 incomplete, F3 closed; actual-phone rehearsal and the
 unchanged failing OFFLINE-01 both must pass by20October. Jobs/imports/merge remain off.
+
+## Private-link activation — 4 October
+
+Current private link: https://happy-cookie-owner-trial.admin-kethai.workers.dev
+
+Captured redirects explain the earlier preflight: Access302 returns the exact
+canonical root, which was deliberately disabled404. One evidence-led harness repair
+asserts disabled-origin denial before activation; it does not pretend a login form
+was verified while the origin was off. Fresh gate/policy/OTP GETs and the exact
+Worker version3188360e, disabled/previews-false/routes[] checks precede independently
+accepted controlled activation. No duplicate resource or new deployment was created.
+
+Post-enable PASS: inspected email-code login at phone390x844/desktop1440x900;
+anonymous login, P&L, real emitted JS and SW requests302 to Access; version preview404.
+Fresh state: canonical enabled, previews disabled, zero routes, accepted frontendbe1e115.
+The rollback wrapper disables both entry points on any API/probe failure; none occurred.
+Static config remains disabled-by-default for future uploads. No business/shop-opening
+change, import, payment, job, merge or automatic runner occurred.
+
+Private owner-password clipboard instructions were supplied; owner mailbox/Access/app
+sign-in is awaiting a human reply. No password, email identity or code is in Git.
+No signed-in private-origin acceptance is claimed yet. Existing local financial/visual
+proof is reused unchanged. Next: complete owner sign-in/secure password custody, then
+separate real-trial scope/recovery decisions, actual seven dates and phone rehearsal.
+F2 incomplete/F3 closed; unchanged OFFLINE-01 and physical-phone both PASS by20October
+remain required for the October pilot.
+
+## Human owner sign-in confirmed — 4 October
+
+The user replied “signed in” to the explicit mailbox/Access/app owner-dashboard
+question after secure password handoff. A short helper resolved a displayed path
+that had lost its separator; the password/code was never printed or committed.
+Current clipboard password absence is verified. Fresh read-only target checks show
+shop overrideclosed, zero orders and zero published products. Human dashboard access
+is confirmed; this does not establish Cine actual-week use or physical Safari readiness.
+
+The private-link/access-and-owner-login goal is fulfilled, subject to final record
+review, secret scan and full verification/publication. Next: agree Cine password
+custody/change, permitted real-trial records/customers/payments/shop opening and
+encrypted off-device custody/recovery before real records; record seven actual dates,
+feedback and actual-phone rehearsal. F2 remains incomplete/F3 closed; unchanged
+OFFLINE-01 and physical-phone dualPASS by20October still govern the October pilot.

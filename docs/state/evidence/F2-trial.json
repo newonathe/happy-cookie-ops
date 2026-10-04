@@ -284,7 +284,7 @@
   },
   "privateAccessContinuation": {
     "date": "2026-10-04",
-    "status": "Token and scoped API checks PASS; owner-only Access gate created; Worker remains disabled because pre-enable browser login is unverified",
+    "status": "Private link, anonymous Access gate and human owner dashboard sign-in PASS; closed-shop preparation only",
     "sourceCommit": "be1e115487dae4663129ed19fc9d8848bd3fa57c",
     "replacementCredential": {
       "userConfirmedRotated": true,
@@ -344,8 +344,7 @@
     },
     "setupFailures": "whoami --profile rejected by pinned CLI; account identity instead read via permitted profile token. Read-only Access denial retained; no speculative Access creation or public enabling. Root initially missed verify warning10002; independent review caught future UTC validity and corrected the diagnosis before commit. This is provider/credential setup, not product or OFFLINE-01 repair.",
     "remaining": [
-      "Resolve direct-login preflight with current provider redirect evidence, independently accept safe activation and prove anonymous/static/owner-route denial before human handoff",
-      "Private temporary password handoff/change and Cine human sign-in",
+      "Cine password custody/change and actual week plan before real records",
       "Approve real-data/payment/customer/shop-opening and off-device custody/recovery scope",
       "Seven actual dates and Cine acceptance",
       "Actual-phone plus unchanged OFFLINE-01 PASS by20October"
@@ -363,7 +362,14 @@
       "F2-access-pre-browser.json",
       "F2-access-pre-login-response.html",
       "F2-access-pre-login-corrected.html",
-      "F2-private-gate-Disable-state.json"
+      "F2-private-gate-Disable-state.json",
+      "F2-access-redirect-diagnostic.json",
+      "F2-access-pre-enable-denial.json",
+      "F2-access-post-browser.json",
+      "F2-private-live-state.json",
+      "F2-access-post-phone.png",
+      "F2-access-post-desktop.png",
+      "F2-owner-human-signin.json"
     ],
     "trialComplete": false,
     "f3MayAdvance": false,
@@ -379,20 +385,105 @@
       "sessionDuration": "8h",
       "freshAppPolicyIdpGet": "PASS",
       "wildcardBypassServiceTokens": "none",
-      "anonymousAuthorizedBrowser": "NOT VERIFIED",
-      "workerEnabled": false,
+      "anonymousAuthorizedBrowser": "Anonymous gate PASS; human owner dashboard sign-in confirmed separately",
+      "workerEnabled": true,
       "previewEnabled": false,
-      "independentReview": "Sol ACCEPT Create; Enable NO-GO until scoped live pre-enable/deployment/denial proof",
-      "preEnableBrowser": "FAIL: direct team-domain login first400 invalid redirect; relative redirect change ends404 with no email textbox",
+      "independentReview": "Sol ACCEPT one controlled activation under fresh gate/Worker/pre-denial and immediate rollback conditions; all conditions fulfilled",
+      "preEnableBrowser": "PASS_DISABLED_DENIAL: canonical404 and Access302 exact redirect to disabled origin; login form not expected before activation",
       "repairHistory": "One null-array validation correction passes without duplicate writes; wrong Playwright module corrected to installed @playwright/test; one evidence-led relative redirect repair fails. These are harness setup failures, no product changes or OFFLINE-01 repair",
-      "disabledReadback": "PASS after failed preflight; no Enable executed",
-      "humanLogin": "pending"
+      "disabledReadback": "Historical; fresh live state is enabled=true, previews_enabled=false, routes[], exact accepted3188360e",
+      "humanLogin": "PASS: user replied signed in to explicit owner-dashboard question after email-code and app-password handoff",
+      "previousPreflight": "FAIL: direct team-domain login first400 invalid redirect; relative redirect change ends404 with no email textbox"
     },
     "automation": {
       "userRequestedRemoval": true,
       "deleteStatus": "deleted",
       "id": "resume-happy-cookie-private-trial",
       "automaticProductRunner": false
+    },
+    "activation": {
+      "date": "2026-10-04",
+      "privateUrl": "https://happy-cookie-owner-trial.admin-kethai.workers.dev",
+      "workerVersion": "3188360e-008e-4772-a3e8-fc3eff5fd5af",
+      "frontendSource": "be1e115487dae4663129ed19fc9d8848bd3fa57c",
+      "preEnableDenial": "PASS_DISABLED_DENIAL",
+      "postEnableBrowser": "PASS",
+      "postEnableProbes": [
+        {
+          "viewport": {
+            "width": 390,
+            "height": 844
+          },
+          "status": 200,
+          "accessHost": "lingering-field-353a.cloudflareaccess.com",
+          "image": "F2-access-post-phone.png",
+          "anonymousAppContent": false
+        },
+        {
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "status": 200,
+          "accessHost": "lingering-field-353a.cloudflareaccess.com",
+          "image": "F2-access-post-desktop.png",
+          "anonymousAppContent": false
+        },
+        {
+          "route": "/login/",
+          "status": 302,
+          "accessRedirect": true,
+          "anonymousAppContent": false
+        },
+        {
+          "route": "/profit-and-loss/",
+          "status": 302,
+          "accessRedirect": true,
+          "anonymousAppContent": false
+        },
+        {
+          "route": "/_next/static/9PC3ZriYTYszBT0rTG91_/_buildManifest.js",
+          "status": 302,
+          "accessRedirect": true,
+          "anonymousAppContent": false
+        },
+        {
+          "route": "/sw.js",
+          "status": 302,
+          "accessRedirect": true,
+          "anonymousAppContent": false
+        },
+        {
+          "preview": true,
+          "status": 404
+        }
+      ],
+      "visualInspection": "Root inspected both new email-code login screenshots; phone390x844/desktop1440x900, readable/no clipping",
+      "canonicalEnabled": true,
+      "previewsEnabled": false,
+      "routes": [],
+      "independentActivation": "ACCEPT under strict conditions",
+      "rollback": "Wrapper disables and confirms false/false on API/probe failure; not triggered because all probes PASS",
+      "harnessRepair": "One evidence-led repair replaces impossible pre-enabled-email-form requirement with explicit disabled-origin denial, supported by captured302->404 chain",
+      "userHandoff": "Owner-only DPAPI clipboard helper and short forward-slash PowerShell wrapper; no password/code printed. User signed in; current clipboard password absent verified.",
+      "humanMailboxAndOwnerDashboard": "User-confirmed PASS4October; not a physical-phone or Cine actual-week result",
+      "actualPhone": false
+    },
+    "humanOwnerSignIn": {
+      "humanOwner": true,
+      "userEvidence": "User replied signed in to question explicitly asking that owner dashboard opens after email-code and app sign-in",
+      "cineActualWeek": false,
+      "temporaryPasswordChange": "Separate follow-up custody step; no business access or F2 closure inferred",
+      "status": "PASS_OWNER_SIGNIN_CONFIRMED",
+      "shopClosed": true,
+      "date": "2026-10-04",
+      "credentialHandoff": "Owner-only DPAPI clipboard helper; user confirmed signed in after corrected short command",
+      "publishedProducts": 0,
+      "actualPhone": false,
+      "setupHistory": "First receipt serialization used invalid literal boolean; corrected wrapper. Read-only/clipboard steps had already passed. No product change.",
+      "orders": 0,
+      "currentClipboardPasswordAbsent": true,
+      "passwordPrinted": false
     }
   },
   "hostedPreparation": {
