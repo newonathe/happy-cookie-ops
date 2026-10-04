@@ -18,4 +18,3 @@ Each pair verifies signup, password login, authenticated `/user`, refresh and lo
 - An immediate external check found zero labeled fixture containers, networks or workdirs after the accepted run.
 
 The access JWT is decoded only after the exact token has passed `/user`; this extracts binding identifiers and is not local JWT authentication. Provider behavior is local and pinned, not hosted Supabase/API-gateway proof. The durable repository, database transaction races, cookie authority, role/profile checks, recovery/MFA, browser wiring, hosted behavior and physical Apple acceptance remain open.
-

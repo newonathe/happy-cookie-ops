@@ -5,10 +5,12 @@ Status: **superseded on 2026-09-26** by architecture A (see the [lean plan](lean
 ## Why
 
 The exported `/sign-in` still signs in from the browser with `createClient().auth.signInWithPassword` (`src/app/sign-in/sign-in-form.tsx` L25). That call goes straight to `NEXT_PUBLIC_SUPABASE_URL`.
+
 - On a hosted Pages/Workers deployment, the generated CSP (`connect-src` falls back to `'self'`) blocks it.
 - It also bypasses the BFF session design: an HttpOnly `__Host-hc-session` cookie, with provider tokens kept server-side.
 
 The BFF login route already exists and is tested: `POST /api/v1/session/login` in `src/lib/auth/session-handler.ts`.
+
 - Headers: `x-hc-request: 1`, same origin.
 - Strict body: `{ email, password }`.
 - Responses: 200 with the session and cookie, 401 `unauthenticated`, 429 with `Retry-After`, 503 otherwise.

@@ -39,12 +39,13 @@ no backup, one cleared cache away from losing a year.
 >    which is authoritative when both exist.
 > 3. **Conversion already exists** — `src/lib/money.ts`, tested in
 >    `tests/unit/money-conversion.test.ts`. Use `pesosToCentavos`, `centavosToPesos` and
->    `centavosFromDb` (Postgres returns a `bigint` column as a *string*, and that function
+>    `centavosFromDb` (Postgres returns a `bigint` column as a _string_, and that function
 >    is the boundary for it).
 >
 >    Do not write a second conversion. The rounding is the load-bearing part: `38.44` is
 >    the packaging fee, and `38.44 * 100` in IEEE-754 is 3843.9999999999995 — a truncating
 >    conversion loses a centavo on every box, forever.
+>
 > 4. Product images: the engine's `RES()` resolves `/assets/…`. Postgres stores
 >    `image_path`. Make them agree without changing `RES()`.
 >
@@ -220,7 +221,7 @@ no backup, one cleared cache away from losing a year.
 > **Commit 1 — the import endpoint, dry-run only.**
 >
 > `POST /api/import/books` per `docs/CONTRACTS.md`, with **`dryRun` defaulting to true**.
-> A dry run reads the payload, validates it, reports exactly what it *would* write —
+> A dry run reads the payload, validates it, reports exactly what it _would_ write —
 > counts per table, and every row it would skip with the reason — and writes nothing.
 > Owner only. There is no way to run the destructive path by accident: no default, no
 > falsy check, an explicit `dryRun: false`.

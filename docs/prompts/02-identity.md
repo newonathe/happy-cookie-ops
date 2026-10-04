@@ -3,8 +3,8 @@
 > **Historical context (T-task era, before the 2026-09-08 master plan):** where this page conflicts with [MASTER-PLAN.md](../../MASTER-PLAN.md), [docs/state/current.md](../../docs/state/current.md) or the [decision register](../../docs/state/decision-register.md), those win. Its protection rules still apply unless they say otherwise.
 
 Until the app knows who is holding the phone, every other permission is decoration. The
-prototype's role switcher decides what is *shown*; row-level security decides what can be
-*read*. This phase connects the two.
+prototype's role switcher decides what is _shown_; row-level security decides what can be
+_read_. This phase connects the two.
 
 ---
 
@@ -22,6 +22,7 @@ prototype's role switcher decides what is *shown*; row-level security decides wh
 >
 > Implement `POST /api/staff/invite` exactly as specified in `docs/CONTRACTS.md`.
 > Requirements, all of them load-bearing:
+>
 > - Owner only. Check the caller's role by reading `profiles` with `auth.uid()`. **Never**
 >   from the request body, never from engine state, never from a header. A role that
 >   arrives from the client is an attacker's input.
@@ -40,6 +41,7 @@ prototype's role switcher decides what is *shown*; row-level security decides wh
 > **Commit 2 — the role gate.**
 >
 > Make the app's role come from `profiles` instead of engine state:
+>
 > - the server reads the role once and passes it into `OpsApp`;
 > - the engine's role continues to drive what is shown, so no ported screen changes;
 > - the prototype's manual role switcher keeps working when `NEXT_PUBLIC_HARNESS=1`, and
@@ -84,6 +86,7 @@ prototype's role switcher decides what is *shown*; row-level security decides wh
 > has named its `clientId`.
 >
 > Add to `/api/sync`:
+>
 > 1. **Apply the existing rate limiter.** `src/lib/rate-limit.ts` is written and its
 >    limits are already chosen and commented — `sync:post` is 30/minute, deliberately
 >    generous because a bazaar phone catching up may post several batches. Call
@@ -95,6 +98,7 @@ prototype's role switcher decides what is *shown*; row-level security decides wh
 >    service for one baker is the wrong trade. It also **fails open, loudly**: a limiter
 >    that rejects real customers because its counter table is unreachable has done more
 >    damage than the abuse it was guarding against.
+>
 > 2. **A request size cap** before parsing, not after. The contract caps 200 sales; a
 >    10 MB body should be rejected without being deserialised.
 > 3. **Structured logging** of accepted and rejected **counts** and the device id. Never
