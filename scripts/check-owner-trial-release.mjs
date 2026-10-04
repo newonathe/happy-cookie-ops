@@ -165,7 +165,7 @@ async function assertAnonymousDenied() {
   const index = await readFile('build/pages-spike/public/index.html', 'utf8');
   const jsPath = index.match(/src=["']([^"']+\.js(?:\?[^"']*)?)["']/)?.[1];
   if (!jsPath) fail('Could not identify the emitted application JavaScript');
-  for (const route of ['/', '/books.html', jsPath, '/sw.js']) {
+  for (const route of ['/', '/pnl', jsPath, '/sw.js']) {
     const response = await fetch(new URL(route, origin), {
       redirect: 'manual',
       signal: AbortSignal.timeout(15000)

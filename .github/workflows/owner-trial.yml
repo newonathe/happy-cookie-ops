@@ -1,0 +1,102 @@
+name: Owner trial release
+
+on:
+  workflow_dispatch:
+  workflow_call:
+    secrets:
+      TRIAL_SUPABASE_PUBLISHABLE_KEY:
+        required: true
+      CLOUDFLARE_API_TOKEN:
+        required: true
+      CLOUDFLARE_ACCESS_API_TOKEN:
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: owner-trial-release
+  cancel-in-progress: false
+
+jobs:
+  quality:
+    if: github.ref == 'refs/heads/agent/codex/MP-04-g1-feasibility'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    container:
+      image: mcr.microsoft.com/playwright:v1.63.0-noble
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.12.3
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.20.0
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Require trial build key
+        shell: bash
+        env:
+          TRIAL_KEY: ${{ secrets.TRIAL_SUPABASE_PUBLISHABLE_KEY }}
+        run: test -n "$TRIAL_KEY" || { echo "TRIAL_SUPABASE_PUBLISHABLE_KEY is not configured"; exit 1; }
+      - name: Full release verification
+        run: pnpm verify:release
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://enftprwcsrdbnlplfrwk.supabase.co
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.TRIAL_SUPABASE_PUBLISHABLE_KEY }}
+      - run: pnpm format:check
+      - name: Build private trial assets
+        run: pnpm build:pages:spike
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://enftprwcsrdbnlplfrwk.supabase.co
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.TRIAL_SUPABASE_PUBLISHABLE_KEY }}
+          NEXT_PUBLIC_HARNESS: '0'
+          NEXT_PUBLIC_APP_MODE: live
+      - name: Remove real payment QR images from closed trial assets
+        run: node scripts/preview-placeholder-qr.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: owner-trial-pages-assets
+          path: build/pages-spike/
+          if-no-files-found: error
+          retention-days: 1
+
+  deploy:
+    needs: quality
+    if: github.ref == 'refs/heads/agent/codex/MP-04-g1-feasibility'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.12.3
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.20.0
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - uses: actions/download-artifact@v4
+        with:
+          name: owner-trial-pages-assets
+          path: build/pages-spike/
+      - name: Require configured release secrets
+        shell: bash
+        env:
+          CF_DEPLOY: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ACCESS: ${{ secrets.CLOUDFLARE_ACCESS_API_TOKEN }}
+          CF_EMAIL_HASHES: ${{ vars.TRIAL_ACCESS_EMAIL_SHA256 }}
+          TRIAL_KEY: ${{ secrets.TRIAL_SUPABASE_PUBLISHABLE_KEY }}
+        run: |
+          test -n "$CF_DEPLOY" && test -n "$CF_ACCESS" && test -n "$CF_EMAIL_HASHES" && test -n "$TRIAL_KEY" || { echo "Required trial deployment secrets/variables are not configured"; exit 1; }
+      - name: Guard, deploy, and verify private Worker
+        run: node scripts/check-owner-trial-release.mjs
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCESS_API_TOKEN: ${{ secrets.CLOUDFLARE_ACCESS_API_TOKEN }}
+          TRIAL_ACCESS_EMAIL_SHA256: ${{ vars.TRIAL_ACCESS_EMAIL_SHA256 }}
