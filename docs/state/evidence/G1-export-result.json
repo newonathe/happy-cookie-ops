@@ -3,11 +3,7 @@
   "source_sha": "dc8c8a5781402d910f4784b0890791a1c1d97817",
   "scratch": "C:\\Users\\ethan\\dev\\happy-cookie-G1-export-2m1xjz_9",
   "exit_code": 0,
-  "omitted": [
-    "src/app/api/health/route.ts",
-    "src/app/api/sync/route.ts",
-    "src/middleware.ts"
-  ],
+  "omitted": ["src/app/api/health/route.ts", "src/app/api/sync/route.ts", "src/middleware.ts"],
   "protected_source_files": 55,
   "protected_source_unchanged": true,
   "html": [
