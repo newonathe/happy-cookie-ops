@@ -789,6 +789,9 @@
       "credentials": "Existing public build/Access token configured securely; dedicated Workers token missing",
       "formatCheck": "FAIL642files including54protected",
       "existingRun": 37217614536,
+      "freshRun": 37222065820,
+      "freshFormatFiles": 640,
+      "freshPortEngineTypesLint": "PASS; format failed and later jobs skipped",
       "green": false,
       "deployedByCi": false
     },

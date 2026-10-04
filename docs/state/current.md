@@ -1,8 +1,8 @@
-# Current state â€” Happy Cookie Ops
+# Current state — Happy Cookie Ops
 
 Read this at the start of a session. History: [current-history.md](current-history.md). Approved forward plan: [finish-plan.md](finish-plan.md). One executable package: [next-goal.md](next-goal.md).
 
-## Where things stand â€” 2026-10-05 continuation
+## Where things stand — 2026-10-05 continuation
 
 - **Historical financial data applied, dummy workbook excluded:** 722 real sales
   and82 stock-purchase costs (804 lines) read back exactly. Blank dates inherit the
@@ -17,7 +17,7 @@ Read this at the start of a session. History: [current-history.md](current-histo
   private update; automatic CI release remains blocked.
 - **Private CI/CD approved and prepared:** exact existing-target release guard and
   trusted-branch workflow committed; full gates retained. Current formatting gate
-  fails642 files including54 protected paths. Dedicated Workers deployment token
+  fails640 files in fresh run37222065820; local inventory identified54 protected paths. Dedicated Workers deployment token
   is not configured; original OFFLINE-01 remains failing. No green CI claim.
 
 - **Editable recipe originals delivered:** [draft editor/evidence](F2-recipe-drafts.md).
@@ -39,7 +39,7 @@ Read this at the start of a session. History: [current-history.md](current-histo
 
 - **Approved closed-shop hosted preparation is implemented.** Ethan approved free-plan setup and reuse of the empty existing trial project. All 52 migrations apply on PG17.6; the explicitly approved three-place 029 compatibility fix and new 051 maintenance hardening pass. Automated owner sign-in/refresh, active role and anonymous financial denial pass. The real catalogue above supersedes the initial six drafts; no orders, fake stock or payment accounts were imported.
 - **Private trial link works behind owner-only email-code access:** https://happy-cookie-owner-trial.admin-kethai.workers.dev. Fresh configuration, independently accepted activation, phone/desktop login visuals, anonymous app/real-asset denial and disabled-preview404 checks PASS. Frontend73e556e/version4ecc095c, no routes; prior user-confirmed owner mailbox/dashboard sign-in and secure password handoff PASS. Shop remains closed; current recipe/cost completion, real-week, actual-phone and custody decisions remain pending.
-- Latest accepted `pnpm verify` and full precommit: **78 files / 1,471 tests PASS**. PG15 SQL role suite reused: **1,922 cases/reset Ã— 2**, 684 regressions detected, rollback/cleanup PASS. Hosted PG17: 94 app function contracts match apart from three expected quoted return-name renderings; all 37 public tables have RLS; browser MAINTAIN is zero across 39 public relations and service authority is preserved. The existing provider RLS event trigger is retained separately. Hosted-target local-browser P&L and current catalogue/stocktake phone/desktop captures are inspected; actual-device acceptance remains separate.
+- Latest accepted `pnpm verify` and full precommit: **78 files / 1,471 tests PASS**. PG15 SQL role suite reused: **1,922 cases/reset × 2**, 684 regressions detected, rollback/cleanup PASS. Hosted PG17: 94 app function contracts match apart from three expected quoted return-name renderings; all 37 public tables have RLS; browser MAINTAIN is zero across 39 public relations and service authority is preserved. The existing provider RLS event trigger is retained separately. Hosted-target local-browser P&L and current catalogue/stocktake phone/desktop captures are inspected; actual-device acceptance remains separate.
 
 - **F2 technical work is checkpointed; readiness and real-week acceptance remain incomplete.** [Trial setup proposal](F2-trial-setup.md), [fix list](F2-fix-list.md), [checkpoint](F2-checkpoint.md) and [receipt](evidence/F2-trial.json) separate verified work from remaining browser/owner evidence. MP-26 stays in progress, next-goal stays F2 and F3 is closed.
 - **F1 remains accepted locally, committed and pushed.** Encrypted database dumps and isolated recovery, fixed one-year retention, operational receipts, live health/alerts and the shop privacy notice are implemented; hosted jobs stay inactive.
@@ -47,7 +47,7 @@ Read this at the start of a session. History: [current-history.md](current-histo
 - G0 is done; G1 passed locally and its synthetic hosted preview was published earlier. F1 made no hosted database change or deployment.
 - Protected screens/sheets/shell/engine, applied migrations and port baselines are unchanged in F1. The privacy exception uses the existing live-only footer.
 
-## Latest checkpoint â€” F2 technical renewal (2026-10-03)
+## Latest checkpoint — F2 technical renewal (2026-10-03)
 
 - Fresh pinned `pnpm verify` passes: 77 files / 1,464 tests. The live rolling-period caption now has fresh nonzero UI/CSV and inspected phone/desktop evidence plus independent acceptance; publication authority is the continuation receipt and Git.
 - Full E2E from bdd83f6 reused unchanged: **89 passed / 1 failed / 75 skipped**, exit 1; WebKit OFFLINE-01 fails at offline reload with an internal WebKit error. The suite is **not green**.
@@ -57,13 +57,13 @@ Read this at the start of a session. History: [current-history.md](current-histo
 - Read-only preview probes show an older September 27 release and six missing current RPCs; signup is now disabled but Cine access is unverified. Dedicated Supabase + fresh Workers trial origin proposed; static config prepared locally. Hosted setup and real-trial data/customer/payment scope need approval.
 - Independent coordinator review (Sol/high requested) and port reviews cover their stated scope; root model was not changed. The earlier checkpoint's three-child overlap is preserved in the receipt; this continuation used at most two workers. No hosted writes, jobs, deployment, merge or runner. F1 evidence and the checklist are reused.
 
-## Previous accepted checkpoint â€” F1
+## Previous accepted checkpoint — F1
 
 - `pnpm verify`: **77 files / 1,462 tests**, exit 0; both typechecks and lint pass. Port integrity: 54 files. Engine contract: 49 exports / 21 setting keys / 38 documented engine tables.
 - Final-schema recovery: **61 tables / 236 rows**, counts and deterministic hashes match; **55 FKs** match, validate and have zero orphans. Auth migration history is included. Atomic rollback and exact owned cleanup pass.
-- SQL role suite: **1,922 cases/reset Ã— 2**, matching matrices, **684 regressions detected**. Current SQL/authority/pin/type hashes match the proof. **20 unit mutations** detected, sources restored exactly.
+- SQL role suite: **1,922 cases/reset × 2**, matching matrices, **684 regressions detected**. Current SQL/authority/pin/type hashes match the proof. **20 unit mutations** detected, sources restored exactly.
 - Python guards: **63 pass**. G0 continuity: **1,217 checks, zero failures**; unknown task IDs still rejected. Normal/live builds, Pages/Workers emulator checks and **11 live-checkout steps** pass.
-- Headless Chromium visual QA: **11 screenshots inspected**, phone 390Ã—844 and desktop 1440Ã—900; missing/success/failed health, alert navigation at both widths and privacy. Synthetic success records test rendering only; cleanup passed.
+- Headless Chromium visual QA: **11 screenshots inspected**, phone 390×844 and desktop 1440×900; missing/success/failed health, alert navigation at both widths and privacy. Synthetic success records test rendering only; cleanup passed.
 - Full E2E remains **89 passed / 1 failed / 75 skipped**, exit 1: known WebKit **OFFLINE-01**. Its unchanged demo/offline evidence is reused; the suite is not called green. Physical-phone QA is still pending.
 - Evidence: [acceptance](evidence/F1-acceptance.json), [restore](evidence/F1-backup-20261003.json), [SQL](evidence/F1-operations-sql.json), [checkpoint](F1-checkpoint.md), [operator guide](F1-operations.md). Each code commit's verification hook passed; credential-pattern scan passed before publication.
 
@@ -72,8 +72,8 @@ Read this at the start of a session. History: [current-history.md](current-histo
 - **Hosted operations:** no timer, keep-alive, retention job or backup-health write is activated. Ethan must approve the target, secret custody, off-device destination, archive expiry and failure delivery. Inactive schedule metadata is prepared; local recovery does not establish off-device protection.
 - **F2:** Cine's actual real-week checklist and feedback on an explicitly approved target. Prepared checklists or synthetic tests do not complete that trial.
 - **Existing carry-overs:** target owner/refresh and PG17 maintenance checks pass; private-origin, human/device and broader session scenarios remain open. `format:check` and WebKit E2E on main are known red; no merge while required checks fail.
-- **Bazaar pilot:** 24â€“25 October requires OFFLINE-01 and the physical-phone test to pass by **20 October**. Phone-sized Chromium is separate evidence.
-- Cine's C1â€“C12 answers remain open; Ethan approved the finish-plan defaults on 2026-09-28. No automatic runner, production cutover, hosted resource or deployment is authorized by F1.
+- **Bazaar pilot:** 24–25 October requires OFFLINE-01 and the physical-phone test to pass by **20 October**. Phone-sized Chromium is separate evidence.
+- Cine's C1–C12 answers remain open; Ethan approved the finish-plan defaults on 2026-09-28. No automatic runner, production cutover, hosted resource or deployment is authorized by F1.
 
 Independent review found verify warning10002: token is not usable until 4 October
 00:00 UTC / 08:00 Manila despite active200. Fix Start Date (no new secret needed)
@@ -81,7 +81,7 @@ or wait until that UTC time, then recheck scoped Access APIs. The user separatel
 reports an initial Zero Trust setup screen; that is not the proven cause of401. No
 Access, paid-plan or billing mutation occurred. Corrected before publication.
 
-## Latest continuation â€” 4 October, resumed at user request
+## Latest continuation — 4 October, resumed at user request
 
 The scheduled current-chat follow-up was deleted; no automatic product runner is active.
 The saved replacement token is now usable: token, scoped Access applications, organization

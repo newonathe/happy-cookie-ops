@@ -1,4 +1,4 @@
-# F2 owner controls and real data â€” 4 October 2026
+# F2 owner controls and real data — 4 October 2026
 
 Ethan requested owner editing of flavours/products, monthly menu, prices, recipes and
 stocktake, and population from Cine's supplied files. This authorizes the bounded
