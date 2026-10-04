@@ -1,5 +1,20 @@
 # F2 fix list — updated 2026-10-04
 
+## Real catalogue findings — 4 October
+
+- F2-009: missing/partial recipe prices displayed as zero/final costs and uncounted
+  stock used creation time as count age. Runtime pending labels and matched-price
+  guard independently accepted; regression includes genuine zero quotes, mismatched
+  packs, null/verified counts and unmatched rows. No cost/math/schema change.
+- F2-010: direct stocktake did not initiate a count after real catalogue loading;
+  same-role profile rechecks cleared entered counts. Wait/start-once route and
+  unchanged-role guard fix this; actual role changes still enforced. Focused tests PASS.
+- A local Products header regression used the wrong state field; headless verification
+  caught it before publication. Corrected to dropActive and covered by a real Products
+  screen total/toggle regression. Setup versus product failures retained separately.
+- Accepted data scope and still-required recipe weights/yields, complete cost links,
+  allergens and physical count: [F2-real-data.md](F2-real-data.md). F2 incomplete/F3 closed.
+
 ## Hosted preparation findings — 4 October
 
 - **F2-004, hosted compatibility blocker, resolved:** PG17 rejected the unquoted

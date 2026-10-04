@@ -1298,6 +1298,19 @@ export class OpsRuntime extends OpsProvider {
         this.state.role === 'owner'
           ? this.liveProductRows(starved.productRows ?? [])
           : starved.productRows,
+      ...(this.state.screen === 'products' ? {
+        pageSub: PRODUCTS.length + ' flavours · ' + PRODUCTS.filter(p =>
+          (this.state.dropActive as Record<string, boolean> | undefined)?.[p.id] !== false).length + ' on menu'
+      } : {}),
+      recipe: starved.recipe ? {
+        ...starved.recipe,
+        costText: this.completeRecipeCost(this.state.recipeOpen) ? starved.recipe.costText : 'Cost pending'
+      } : starved.recipe,
+      invRows: (starved.invRows ?? []).map(row => {
+        const item = this.stockCatalogue?.items.find(i => i.name === row.name);
+        return ['Ingredients', 'Packaging'].includes(String(this.state.invTab)) && !item?.lastCounted
+          ? { ...row, sub: 'Opening count pending' } : row;
+      }),
       sheet: this.liveSheet(starved.sheet),
       liveForm: this.liveFormVals(),
       livePay: this.livePayVals(),
@@ -3201,8 +3214,27 @@ export class OpsRuntime extends OpsProvider {
   private liveProductRows(rows: OpsVals['productRows']): OpsVals['productRows'] {
     return rows.map((row, i) => {
       const pid = PRODUCTS[i]?.id;
-      return pid ? { ...row, edit: () => this.openFlavourEditor(pid) } : row;
+      return pid ? { ...row, edit: () => this.openFlavourEditor(pid),
+        costText: this.completeRecipeCost(pid) ? row.costText : 'Cost pending' } : row;
     });
+  }
+
+  /** Partial recipes and missing prices cannot be presented as a complete zero-peso cost. */
+  private completeRecipeCost(pid: unknown): boolean {
+    const recipe = this.recipeRows?.find(row => row.productId === pid);
+    const catalogue = this.stockCatalogue;
+    if (!recipe?.lines.length || !catalogue) return false;
+    const priced = (name: string, unit?: string) => {
+      const item = catalogue.items.find(row => row.active && row.name === name);
+      if (!item || (unit !== undefined && item.unit !== unit)) return false;
+      const paid = (this.state.paid as Record<string, { price: number; qty: number }> | undefined)?.[name];
+      return !!(paid && paid.qty > 0 && paid.price > 0) || catalogue.prices.some(row =>
+        row.active && row.itemName === name && item.packSize !== null && item.packSize > 0 &&
+        row.packLabel === item.packLabel && catalogue.suppliers.some(supplier =>
+          supplier.id === row.supplierId && supplier.active));
+    };
+    return recipe.lines.every(line => priced(line.name, line.unit)) &&
+      ['Box of 6', 'Brand sticker', 'Thank-you card'].every(name => priced(name));
   }
 
   /**

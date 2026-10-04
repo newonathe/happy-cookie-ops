@@ -46,11 +46,14 @@ export function RouteSync({ initialScreen }: { initialScreen: ScreenKey }) {
   const started = useRef(false);
   const initialRouteApplied = useRef(false);
   const stocktakeTick = useRef<number | null>(null);
+  const stocktakeStarted = useRef(false);
   const previousNavigation = useRef<{ screen: ScreenKey; tick: number } | null>(null);
   const popNavigationTick = useRef<number | null>(null);
   const browserIndex = useRef(0);
   const viewScreen = initialScreen === 'stocktake' ? 'inventory' : initialScreen;
   const navTick = Number(engine.state.navTick || 0);
+  const inventory = engine.state.inv as { cat: string }[];
+  const countableItems = inventory.filter((item) => item.cat === engine.state.invTab).length;
 
   useEffect(() => {
     if (started.current) return;
@@ -58,6 +61,17 @@ export function RouteSync({ initialScreen }: { initialScreen: ScreenKey }) {
     if (initialScreen === 'stocktake') stocktakeTick.current = navTick + 1;
     if (engine.state.screen !== viewScreen) engine.go(viewScreen);
   }, [engine, initialScreen, navTick, viewScreen]);
+
+  useEffect(() => {
+    if (
+      initialScreen !== 'stocktake' || stocktakeStarted.current ||
+      engine.state.role !== 'owner' || screen !== 'inventory' || !countableItems ||
+      window.location.pathname !== '/stocktake' || navTick !== stocktakeTick.current
+    ) return;
+    stocktakeStarted.current = true;
+    if (!engine.state.stocktake)
+      (engine as typeof engine & { startStocktake: () => void }).startStocktake();
+  }, [engine, initialScreen, screen, navTick, countableItems]);
 
   useEffect(() => {
     // The engine starts on Home while a direct URL is being adopted. Writing that

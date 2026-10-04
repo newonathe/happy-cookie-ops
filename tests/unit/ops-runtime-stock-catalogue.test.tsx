@@ -211,6 +211,63 @@ describe('A3: the catalogue reaches the ported screens (live mode)', () => {
   });
   afterEach(() => cleanup());
 
+  it('missing recipes and partial ingredient/packaging prices do not claim zero or complete costs', async () => {
+    const { runtime } = await mounted('owner', fresh());
+    const total = runtime.renderVals().productRows.length;
+    act(() => runtime.setState({ screen: 'products', dropActive: { dcf: false } }));
+    expect(runtime.renderVals().pageSub).toBe(total + ' flavours · ' + (total - 1) + ' on menu');
+    act(() => runtime.setState({ dropActive: {} }));
+    expect(runtime.renderVals().pageSub).toBe(total + ' flavours · ' + total + ' on menu');
+    expect(runtime.renderVals().productRows[0].costText).toBe('Cost pending');
+    await act(async () => {
+      await runtime.loadRecipes({ rpc: async () => ({ data: [{ product_id: 'dcf', yield: 12,
+        version: 1, updated_at: STAMP, history: [],
+        lines: [{ name: 'Unsalted butter', qty: 225, unit: 'g' }] }], error: null }) } as never);
+    });
+    // Butter has a real price in the catalogue; missing packing prices still make this incomplete.
+    expect(runtime.renderVals().productRows[0].costText).toBe('Cost pending');
+    act(() => runtime.renderVals().productRows[0].goRecipe());
+    expect(runtime.renderVals().recipe.costText).toBe('Cost pending');
+  });
+
+  it('uncounted catalogue items do not use creation time as a physical count', async () => {
+    const state = fresh();
+    const items = state.data.items as Wire[];
+    items[0].last_counted = null;
+    const { runtime, client } = await mounted('owner', state);
+    expect(runtime.renderVals().invRows.find(row => row.name === items[0].name)?.sub).toBe('Opening count pending');
+    items[0].last_counted = STAMP;
+    await act(async () => { await runtime.loadStockCatalogue(client as never); });
+    expect(runtime.renderVals().invRows.find(row => row.name === items[0].name)?.sub).toContain('counted');
+    act(() => runtime.setState({ inv: [{ name: 'Unmatched ingredient', cat: 'Ingredients', qty: 2,
+      unit: 'g', level: 1, supplier: '', updatedAt: Date.now(), useBy: null }] }));
+    expect(runtime.renderVals().invRows[0].sub).toBe('Opening count pending');
+  });
+
+  it('confirmed zero-price quotes remain a real zero; a mismatched pack is pending', async () => {
+    const state = fresh();
+    const items = state.data.items as Wire[];
+    const prices = state.data.prices as Wire[];
+    const butter = items[0];
+    prices[0].price_cents = 0;
+    prices[1].active = false;
+    for (const [index, name] of ['Box of 6', 'Brand sticker', 'Thank-you card'].entries()) {
+      const item = { ...butter, id: 'pack-' + index, name, category: 'Packaging', unit: 'pcs',
+        pack_size: 1, pack_label: '1 pcs' };
+      if (index === 0) items[1] = item; else items.push(item);
+      prices.push({ ...prices[0], id: 'a3a00000-0000-4000-8000-00000000000' + (index + 4),
+        item_name: name, pack_label: '1 pcs' });
+    }
+    const { runtime, client } = await mounted('owner', state);
+    await act(async () => { await runtime.loadRecipes({ rpc: async () => ({ data: [{
+      product_id: 'dcf', yield: 12, version: 1, updated_at: STAMP, history: [],
+      lines: [{ name: 'Unsalted butter', qty: 225, unit: 'g' }] }], error: null }) } as never); });
+    expect(runtime.renderVals().productRows[0].costText).toBe('₱0.00 cost');
+    prices[0].pack_label = 'Different pack';
+    await act(async () => { await runtime.loadStockCatalogue(client as never); });
+    expect(runtime.renderVals().productRows[0].costText).toBe('Cost pending');
+  });
+
   it('before it is read, no demo supplier or item shows, and the screens still render', () => {
     const ref: { current: OpsRuntime | null } = { current: null };
     render(<OpsRuntime ref={(r) => void (ref.current = r)} />);

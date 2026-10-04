@@ -9,8 +9,8 @@ import type { ScreenKey } from '@/lib/screens';
  */
 const { FakeRuntime } = vi.hoisted(() => ({
   FakeRuntime: class {
-    state = { screen: 'shop' as ScreenKey, cfg: {} };
-    setRole = vi.fn();
+    state = { screen: 'shop' as ScreenKey, role: 'owner' as 'owner' | 'helper', cfg: {} };
+    setRole = vi.fn((role: 'owner' | 'helper') => { this.state.role = role; });
     loadSettings = vi.fn();
     loadFlavours = vi.fn();
     loadShopMenu = vi.fn();
@@ -107,6 +107,20 @@ describe('LiveGate: the flavour list each page loads', () => {
     expect(engine.loadShopMenu).not.toHaveBeenCalled();
     expect(engine.loadShopPayment).toHaveBeenCalledExactlyOnceWith(client);
     expect(engine.loadShopOrders).toHaveBeenCalledExactlyOnceWith(client);
+  });
+
+  it('keeps an active count through a same-role token refresh, but applies a changed role', async () => {
+    engine.state.screen = 'inventory';
+    render(<LiveGate initialScreen="inventory"><div /></LiveGate>);
+    await act(settle);
+    expect(engine.setRole).toHaveBeenCalledTimes(1);
+    await act(async () => { authEvent('TOKEN_REFRESHED'); await settle(); });
+    expect(engine.setRole).toHaveBeenCalledTimes(1);
+    role = 'helper';
+    await act(async () => { authEvent('TOKEN_REFRESHED'); await settle(); });
+    expect(engine.setRole).toHaveBeenCalledTimes(2);
+    expect(engine.state.role).toBe('helper');
+    role = 'owner';
   });
 
   it('with no Supabase configured, a customer page gets an empty menu', async () => {

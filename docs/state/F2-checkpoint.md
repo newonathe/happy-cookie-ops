@@ -1,5 +1,10 @@
 # F2 / MP-26 technical checkpoint — 3 October 2026
 
+**4October:** [real-data addition](F2-real-data.md) records accepted72 stock definitions,
+13 suppliers/eight quotes,26 library products/seven October prices,one exact recipe
+and runtime/auth/stocktake fixes. No physical counts or historical transactions
+imported. Recipe conversions/cost links/allergens and Cine acceptance remain pending.
+
 **F2 remains incomplete; the local caption continuation is accepted.** Real-week acceptance
 and physical-phone evidence remain pending. F3 is closed; next-goal stays F2. Reuse local
 preparation `d34bff9`, [Cine's checklist](F2-owner-trial.md) and verified F1 evidence.

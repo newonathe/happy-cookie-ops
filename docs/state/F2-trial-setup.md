@@ -1,5 +1,11 @@
 # F2 owner-trial target setup — 4 October 2026
 
+**New real-data authorization:** Ethan requested population from Cine's files and
+supplied the October menu/recipes/packaging on4October. The bounded catalogue and
+one fully matched recipe are applied/independently accepted; [scope and held data](F2-real-data.md).
+This supersedes the earlier no-import hold for that scope. Shop remains closed and
+products unpublished. No historical sales/counts, new resources, jobs or merge.
+
 ## Current approval and execution
 
 Ethan approved online test setup, then reuse of **keth-ai's Project**

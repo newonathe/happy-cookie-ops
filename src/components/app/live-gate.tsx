@@ -124,7 +124,9 @@ export function LiveGate({
         lockOut();
         return;
       }
-      engine.setRole(result.role);
+      // The protected engine clears an in-progress stocktake on setRole. A same-role
+      // token refresh or visibility check must not reset the owner's count.
+      if (!verifiedRef.current || engine.state.role !== result.role) engine.setRole(result.role);
       verifiedRef.current = true;
       setVerified(true);
       if (engine instanceof OpsRuntime && result.role !== 'helper') void engine.loadOperationsHealth(supabase);

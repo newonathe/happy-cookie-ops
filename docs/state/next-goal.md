@@ -4,6 +4,13 @@ The approved forward plan is [finish-plan.md](finish-plan.md), section 6. F1 is 
 
 ## Session settings
 
+Latest continuation: finish six October recipe weight/yield mappings and full cost
+references from [F2-real-data.md](F2-real-data.md), then Cine's opening count and actual
+week. Real catalogue import is authorized/applied: do not ask again or recreate
+resources. Keep menu unpublished until allergens confirmed and shop closed until
+separate operating approval. Reuse accepted stocktake/pending-data UI proof. F2
+incomplete/F3 closed; unchanged OFFLINE-01 and actual phone must both PASS by20October.
+
 | Setting | Value |
 | --- | --- |
 | Coordinator and sign-off | Codex `gpt-6-sol` · high |

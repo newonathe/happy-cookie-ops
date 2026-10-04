@@ -4,6 +4,13 @@ Read this at the start of a session. History: [current-history.md](current-histo
 
 ## Where things stand — 2026-10-04
 
+- **Real catalogue preparation applied:** [owner controls/data evidence](F2-real-data.md).
+  72 stock definitions,13 suppliers,eight compatible quotes,26 library products,
+  seven confirmed October prices and one exact Apple Pie recipe. All unpublished;
+  shop closed; no physical counts or historical transactions imported. Six recipe
+  conversions, cost/supplier links and allergens remain open. Older six-draft/no-import
+  descriptions below are historical checkpoints.
+
 - **Approved closed-shop hosted preparation is implemented.** Ethan approved free-plan setup and reuse of the empty existing trial project. All 52 migrations apply on PG17.6; the explicitly approved three-place 029 compatibility fix and new 051 maintenance hardening pass. Automated owner sign-in/refresh, active role and anonymous financial denial pass. Six catalogue definitions remain drafts; no orders, fake stock or payment accounts were imported.
 - **Private trial link now works behind owner-only email-code access:** https://happy-cookie-owner-trial.admin-kethai.workers.dev. Fresh configuration, independently accepted activation, phone/desktop login visuals, anonymous app/real-asset denial and disabled-preview404 checks PASS. Frontendbe1e115/version3188360e, no routes; user-confirmed owner mailbox/dashboard sign-in and secure password handoff PASS. Shop remains closed; real-week, actual-phone and real-data/custody decisions remain pending.
 - Latest accepted `pnpm verify`: **77 files / 1,466 tests PASS**, zero unhandled errors after the independently accepted reset-timer cleanup. PG15 SQL role suite: **1,922 cases/reset × 2**, 684 regressions detected, rollback/cleanup PASS. Hosted PG17: 94 app function contracts match apart from three expected quoted return-name renderings; all 37 public tables have RLS; browser MAINTAIN is zero across 39 public relations and service authority is preserved. The existing provider RLS event trigger is retained separately. Hosted-target local-browser P&L phone/desktop captures are inspected; this is separate from reachable private-origin or actual-device acceptance.

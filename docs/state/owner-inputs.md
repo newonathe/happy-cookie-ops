@@ -2,6 +2,12 @@
 
 Created 2026-09-24. The owner's filled client guide (Section 4, guide L618–1446; see the citation key in the [decision register](decision-register.md)) lists 32 materials. This tracks what has actually reached the project.
 
+**Current4October:** real masterfile received28September; Ethan supplied exact October
+menu/prices, newer recipes and six packaging costs on4October and requested trial
+population. [F2-real-data.md](F2-real-data.md) records accepted imports and remaining
+conversion/count/allergen gaps. The24September table below is historical, not the
+current received-material inventory.
+
 "In workspace" means a copy exists under `C:\Users\ethan\dev` (outside Git where it holds personal data). As of 2026-09-24, only the answers written inside the guide itself are present. No live material has been received. The Business Files folder holds a `[DUMMY VER]` spreadsheet, which is not production data.
 
 **Rules:**
