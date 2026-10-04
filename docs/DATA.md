@@ -165,3 +165,8 @@ Stock is held in the item's own unit — grams, millilitres or pieces — as
 `numeric(12,3)`, and never rounded into whole units. Half a kilo of butter is a real
 quantity, and `amt()` reads 1346 g back as `1.346 kg` because that is how the owner
 shops. Rounding here changes a shopping list.
+
+## Owner recipe source drafts
+
+recipe_drafts stores owner-editable batch yield and original recipe text (including spoon measures, components and optional quantities). RLS enabled; no browser table privileges. get_recipe_drafts/save_recipe_draft are active-owner-only SECURITY DEFINER RPCs with an empty search path, bounded fields and optimistic conflict checks. Drafts never feed production, costing or inventory deduction; those continue to use recipes/recipe_ingredients.
+

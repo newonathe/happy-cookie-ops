@@ -1189,6 +1189,42 @@ export type Database = {
         }
         Relationships: []
       }
+      recipe_drafts: {
+        Row: {
+          product_id: string
+          source_text: string
+          updated_at: string
+          yield_count: number
+        }
+        Insert: {
+          product_id: string
+          source_text: string
+          updated_at?: string
+          yield_count: number
+        }
+        Update: {
+          product_id?: string
+          source_text?: string
+          updated_at?: string
+          yield_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recipe_drafts_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: true
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recipe_drafts_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: true
+            referencedRelation: "shop_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       recipe_ingredients: {
         Row: {
           id: string
@@ -1967,6 +2003,7 @@ export type Database = {
         }[]
       }
       get_production: { Args: { p_drop: number }; Returns: Json }
+      get_recipe_drafts: { Args: never; Returns: Json }
       get_recipes: { Args: never; Returns: Json }
       get_scheduled_events: { Args: never; Returns: Json }
       get_settings: {
@@ -2165,6 +2202,17 @@ export type Database = {
           product_id: string
           updated_at: string
           version: number
+        }[]
+      }
+      save_recipe_draft: {
+        Args: {
+          p_expected_updated_at: string
+          p_product_id: string
+          p_source_text: string
+          p_yield: number
+        }
+        Returns: {
+          updated_at: string
         }[]
       }
       save_scheduled_event: {

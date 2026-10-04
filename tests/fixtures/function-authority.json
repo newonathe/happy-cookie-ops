@@ -1410,6 +1410,36 @@
       "security_definer": true,
       "execute_service_role": true,
       "execute_authenticated": false
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "get_recipe_drafts",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "ffb4a1c3821419289b89e44c8d07bb5e",
+      "identity": "",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "save_recipe_draft",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(updated_at timestamp with time zone)",
+      "body_md5": "6b8d8d12be73c707ef594ca24ef5bf6e",
+      "identity": "p_product_id text, p_yield integer, p_source_text text, p_expected_updated_at timestamp with time zone",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
     }
   ]
 }

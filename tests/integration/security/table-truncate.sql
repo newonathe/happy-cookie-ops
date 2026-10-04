@@ -41,7 +41,7 @@ begin
   foreach relation_name in array (case when only_settings then array['settings'] else array[
     'audit_log','bake_batches','drops','erasure_requests','event_sale_items','event_sales',
     'events','inventory_items','ledger_entries','order_items','orders','products','profiles',
-    'rate_limits','recipe_ingredients','recipes','settings','supplier_prices','suppliers'] end) loop
+    'rate_limits','recipe_drafts','recipe_ingredients','recipes','settings','supplier_prices','suppliers'] end) loop
     begin
       execute format('truncate table public.%I', relation_name);
       raise exception 'forbidden truncate succeeded: % / %', actor, relation_name;
@@ -98,7 +98,7 @@ begin
   end if;
   foreach relation_name in array array['audit_log','bake_batches','drops','erasure_requests',
       'event_sale_items','event_sales','events','inventory_items','ledger_entries','order_items',
-      'orders','products','profiles','rate_limits','recipe_ingredients','recipes','settings',
+      'orders','products','profiles','rate_limits','recipe_drafts','recipe_ingredients','recipes','settings',
       'supplier_prices','suppliers'] loop
     if has_table_privilege('anon', 'public.' || relation_name, 'TRUNCATE')
        or has_table_privilege('authenticated', 'public.' || relation_name, 'TRUNCATE')
@@ -115,7 +115,7 @@ select pg_temp.set_subject(null, 'service_role');
 truncate table public.audit_log, public.bake_batches, public.drops, public.erasure_requests,
   public.event_sale_items, public.event_sales, public.events, public.inventory_items,
   public.ledger_entries, public.order_items, public.orders, public.products, public.profiles,
-  public.rate_limits, public.recipe_ingredients, public.recipes, public.settings,
+  public.rate_limits, public.recipe_drafts, public.recipe_ingredients, public.recipes, public.settings,
   public.supplier_prices, public.suppliers, public.event_expenses, public.order_swaps,
   public.order_extras, public.order_add_ons, public.order_boxes, public.scheduled_events, public.recipe_versions, public.stock_movements, public.production_records, public.stock_cost_corrections, public.books_settings;
 reset role;
@@ -126,17 +126,17 @@ begin
   end if;
   foreach relation_name in array array['audit_log','bake_batches','drops','erasure_requests',
       'event_sale_items','event_sales','events','inventory_items','ledger_entries','order_items',
-      'orders','products','profiles','rate_limits','recipe_ingredients','recipes','settings',
+      'orders','products','profiles','rate_limits','recipe_drafts','recipe_ingredients','recipes','settings',
       'supplier_prices','suppliers'] loop
     execute format('select exists (select 1 from public.%I)', relation_name) into populated;
     if populated then raise exception 'trusted truncate left rows: %', relation_name; end if;
   end loop;
 end $$;
-insert into pg_temp.authority_results values ('table_truncate', 'service_role', 'all_19_tables_emptied');
+insert into pg_temp.authority_results values ('table_truncate', 'service_role', 'all_20_tables_emptied');
 do $$ begin
   if (select jsonb_agg(u order by id) from auth.users u) is distinct from
        (select value from pg_temp.original_users) then raise exception 'auth users changed'; end if;
-  if (select count(*) from pg_temp.authority_results) <> 44 then
+  if (select count(*) from pg_temp.authority_results) <> 46 then
     raise exception 'truncate result count differs';
   end if;
 end $$;

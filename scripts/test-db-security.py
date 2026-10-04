@@ -481,7 +481,7 @@ SUITES = (
     ('order-inserts.sql', ('orders', 'order_items'), 'forbidden order insert succeeded', 12),
     ('legacy-mutations.sql', ('sync_event_sale(jsonb)', 'update_order_state(text,timestamptz,text,text,text)'), 'legacy EXECUTE boundary missing: active_owner / ', 14),
     ('audit-writes.sql', ('audit_staff_insert',), 'forbidden audit mutation succeeded: active_owner / insert', 30),
-    ('table-truncate.sql', ('settings_truncate',), 'forbidden truncate succeeded: anon / settings', 44),
+    ('table-truncate.sql', ('settings_truncate',), 'forbidden truncate succeeded: anon / settings', 46),
     ('settings.sql', ('settings_staff_read',), 'settings visibility differs: active_helper', 84),
     ('profiles.sql', ('current_role_name_missing_active_filter',), 'profile authority differs: inactive_owner_forged_service', 17),
     ('erasure-authority.sql', ('anonymise_customer(text,text)',), 'erasure ACL boundary missing: anon', 12),
@@ -505,6 +505,7 @@ SUITES = (
      'forbidden stock call succeeded', 141),
     ('recipes.sql', ('get_recipes()', 'save_recipe(jsonb,timestamptz)') + tuple(RECIPE_MUTATIONS) + tuple(RECIPE_TABLE_MUTATIONS),
      'forbidden recipe call succeeded', 80),
+    ('recipe-drafts.sql', (), 'draft outcome differs', 21),
     ('stock-ledger.sql', ('record_stock_movement(jsonb)', 'get_last_paid()') + tuple(LEDGER_MUTATIONS) + tuple(LEDGER_TABLE_MUTATIONS),
      'forbidden ledger call succeeded', 87),
     ('production.sql', ('record_production(jsonb)', 'record_pack(text,integer)', 'get_production(integer)', 'record_discard(jsonb)')
@@ -792,7 +793,7 @@ def main():
                 h.fail(filename + ' did not return its complete role matrix')
             results.extend(rows)
             assert_empty()
-        if len(set(results)) != 1922:
+        if len(set(results)) != 1945:
             h.fail('combined role matrix has missing or duplicate cases: %d rows, %d unique (duplicates: %s)' % (len(results), len(set(results)), sorted({r for r in results if results.count(r) > 1})[:5]))
         assert_functions()
         assert_catalog_wide()
@@ -808,7 +809,7 @@ def main():
                 and len(report['regressions_detected']) == 684 and report['sequence_restorations'] == 10
                 and report['upgrade_runs'] == 2 and report['function_guard_runs'] == 4
                 and report['catalog_guard_runs'] == 4 and report['catalog_guard_red_runs'] == 4):
-            report.update(status="passed", cases_per_reset=1922, resets=2, matrix_equal=True, rollback_verified=True,
+            report.update(status="passed", cases_per_reset=1945, resets=2, matrix_equal=True, rollback_verified=True,
                           sql_sha256={name: hashlib.sha256((ROOT / 'tests/integration/security' / name).read_bytes()).hexdigest() for name, _, _, _ in SUITES},
                           harness_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
     except (RuntimeError, OSError, ValueError) as error:
