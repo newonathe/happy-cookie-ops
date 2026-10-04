@@ -31,7 +31,7 @@ assertions intact. Obtain independent port review, continuity proof and headless
 phone/desktop All tools visual inspection, then full verify and secret scan before
 commit/push. No protected edit is authorized by this proposal.
 
-The full formatter currently reports 638 failing files, including the previously
+The formatter at proposal preparation reported 638 failing files, including the previously
 identified 54 protected paths. This first candidate does not grant blanket
 permission for the remainder. Unprotected formatting proceeds in small slices.
 OFFLINE-01 and all release checks remain unchanged and required.

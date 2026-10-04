@@ -1,5 +1,34 @@
 # F2 / MP-26 technical checkpoint — 3 October 2026
 
+## Second bounded CI formatting run — 5 October 2026
+
+Ethan explicitly resumed another bounded unprotected-formatting run from95f4522.
+Five accepted slices: d7e465d (five JSON configs),3f1b2a1 (six source configs),
+efa89e3 (eleven evidence reports),0f07e87 (lint/Playwright configs),b16d8fe (three
+failure-cleanup reports). Commit diffs are232,285,329,238 and292 changed lines.
+Each full pinned precommit81files/1487tests and targeted formatter/secret scan PASS.
+
+JSON settings/evidence preserve exact parsed values; report string/number/punctuation
+tokens are unchanged. Source config ASTs match exactly, including telemetry/privacy,
+formatter exclusions, lint rules, release inclusion and browser assertions/projects.
+Before/after CLI listings match all240 selected browser/visual tests in7files; this
+is test-selection proof, not an E2E execution or a new visual/device acceptance.
+No protected/app-flow/OFFLINE-01, applied SQL, baseline, CI workflow or ignore edit.
+Reuse the already inspected headless phone/desktop visuals for their stated scope.
+
+Fresh full format check FAIL609files, down27 from636. Checkpoint GitHub37224145704
+confirmed636 failures; subsequent config CI also failed formatting. No green release
+or CI deployment claimed. Dedicated deploy-token DPAPI file remains absent. Protected
+All tools proposal still awaits specific approval. Actual stock opening/as-of facts,
+six recipe measures/cost links, custody and real devices/seven dates/Cine acceptance
+remain unresolved;804 financial lines and all source assumptions are preserved.
+
+Private proofs: F2-config-format-proof.json, F2-source-config-format-proof.json,
+F2-quality-config-format-proof.json, F2-evidence-format-root-review{,2}.json,
+F2-quality-test-list-{before,after}.log, F2-ci-format-resume-final.log and five
+commit logs. Full formatter and OFFLINE-01 stay required. F2 incomplete/F3 closed;
+actual-phone and original OFFLINE-01 both PASS by20October remain required.
+
 ## CI formatting continuation — 5 October 2026
 
 Final local formatter: FAIL636 files; first-slice GitHub run37223588999 fails638

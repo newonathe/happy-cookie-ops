@@ -4,6 +4,15 @@ Read this at the start of a session. History: [current-history.md](current-histo
 
 ## Where things stand — 2026-10-05 continuation
 
+- **Second bounded formatting run accepted:** `d7e465d`, `3f1b2a1`, `efa89e3`,
+  `0f07e87`, `b16d8fe`; each full pinned precommit81/1487 PASS. Thirteen config
+  files retain exact parsed values or structural hashes; fourteen JSON reports retain
+  exact values/literal tokens. Playwright's240 selected tests have identical before/
+  after listings. Fresh local formatting FAIL609 (down27 from636); no check suppressed.
+  Protected source/app flows/original OFFLINE-01 unchanged. Private token remains
+  unsaved, protected proposal awaits approval and Cine's device/week/count/custody
+  evidence remains pending. No imports, hosted mutations or deployment in this run.
+
 - **CI formatting continuation:** first unprotected slice `d637217` passes full
   pinned verify/precommit (81 files / 1,487 tests), secret scan and targeted
   formatter checks. No app, protected source or OFFLINE-01 edit. Full formatting

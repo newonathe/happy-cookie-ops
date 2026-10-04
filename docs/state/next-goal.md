@@ -4,6 +4,13 @@ The approved forward plan is [finish-plan.md](finish-plan.md), section 6. F1 is 
 
 ## Session settings
 
+Latest resumed formatting checkpoint: accepted slices through `b16d8fe`.
+Fresh local formatter FAIL609 files; exact settings/report values and all240
+selected tests retained. Continue another owner-authorized bounded run from the
+latest pushed checkpoint; reuse the five slices and existing804 imports. Resolve
+the pending specific All tools proposal and token save before dependent work.
+No broad formatter ignore, test suppression, source-data guessing or setup restart.
+
 Latest accepted formatting slices: `d637217`, `1fa65dc`; reuse the existing804 financial rows.
 Continue small unprotected formatting slices with unchanged assertions/checks.
 The exact protected All tools proposal in F2-format-exception-proposal.md requires
