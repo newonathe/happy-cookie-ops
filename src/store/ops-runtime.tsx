@@ -12,9 +12,30 @@ import {
 } from '@/store/engine/ops-engine';
 import type { EventSale, OpsEngineProps, OpsEngineState, Role } from '@/store/engine/ops-engine';
 import { idb } from '@/lib/offline/idb';
-import { fetchOperationsHealth, healthView, type HealthPhase, type LiveAlert, type OperationsClient, type OperationsHealth } from '@/lib/data/operations-health';
-import { defaultSalesClient, flushQueue, requestBackgroundSync, type FlushResult } from '@/lib/offline/sync';
-import { allSales, clientIdFor, commandKey, enqueueCommand, enqueueVoid, isSaleKey, pendingSales, type CommandKind } from '@/lib/offline/queue';
+import {
+  fetchOperationsHealth,
+  healthView,
+  type HealthPhase,
+  type LiveAlert,
+  type OperationsClient,
+  type OperationsHealth
+} from '@/lib/data/operations-health';
+import {
+  defaultSalesClient,
+  flushQueue,
+  requestBackgroundSync,
+  type FlushResult
+} from '@/lib/offline/sync';
+import {
+  allSales,
+  clientIdFor,
+  commandKey,
+  enqueueCommand,
+  enqueueVoid,
+  isSaleKey,
+  pendingSales,
+  type CommandKind
+} from '@/lib/offline/queue';
 import { clearBazaar, readBazaar, saveBazaar } from '@/lib/offline/bazaar-state';
 import { isEventUuid, startEventOnServer, type EventSalesClient } from '@/lib/data/event-sales';
 import { deviceId } from '@/lib/device';
@@ -41,8 +62,18 @@ import {
 } from '@/lib/data/staff-orders';
 import { messagesFor, statusLink } from '@/lib/orders/messages';
 import { extraDetails, extraRows } from '@/lib/orders/extras-view';
-import { fetchShopStatus, saveShopOverride, type ShopOverride, type ShopStatusClient } from '@/lib/data/shop-status';
-import { fetchOrderRules, orderRulesError, saveOrderRules, type OrderRulesRow } from '@/lib/data/order-rules';
+import {
+  fetchShopStatus,
+  saveShopOverride,
+  type ShopOverride,
+  type ShopStatusClient
+} from '@/lib/data/shop-status';
+import {
+  fetchOrderRules,
+  orderRulesError,
+  saveOrderRules,
+  type OrderRulesRow
+} from '@/lib/data/order-rules';
 import {
   LINE_SEP,
   addOnId,
@@ -96,7 +127,12 @@ import {
   type StockCatalogue,
   type StockClient
 } from '@/lib/data/stock-catalogue';
-import { currentSuppliers, firstSupplierName, fillDemoCatalogue, fillLiveCatalogue } from '@/lib/data/engine-catalogue';
+import {
+  currentSuppliers,
+  firstSupplierName,
+  fillDemoCatalogue,
+  fillLiveCatalogue
+} from '@/lib/data/engine-catalogue';
 import type { SaveOutcome } from '@/lib/data/payments';
 import {
   enginePaid,
@@ -142,7 +178,13 @@ import { OrderFlow } from '@/lib/data/order-flow';
 import { tokenFromHash, type FieldErrors, type OrderClient } from '@/lib/data/orders';
 import { pickupLabel, statusCust } from '@/lib/orders/status-view';
 import { ORDER_COPY } from '@/lib/orders/copy';
-import { manilaMinutes, manilaToday, pickupDates, pickupTimes, waitlistRange } from '@/lib/orders/pickup';
+import {
+  manilaMinutes,
+  manilaToday,
+  pickupDates,
+  pickupTimes,
+  waitlistRange
+} from '@/lib/orders/pickup';
 import { EMPTY_TEXTS, type PaymentClient, type UploadClient } from '@/lib/data/payments';
 import { resolveImagePath } from '@/lib/media/resolve-image';
 import { isLiveMode } from '@/lib/config/app-mode';
@@ -274,7 +316,14 @@ interface BazaarActions {
 
 /** The engine's inventory actions (instance fields the typings do not list), replaced in live mode by A3. */
 interface InvActions {
-  addInv: (cat: string, name: string, qty: unknown, unit: string, level: unknown, supplier: string) => void;
+  addInv: (
+    cat: string,
+    name: string,
+    qty: unknown,
+    unit: string,
+    level: unknown,
+    supplier: string
+  ) => void;
   removeInv: (name: string) => void;
   saveInv: (name: string, qty: unknown) => void;
   adjustInv: (name: string, qty: unknown, dir: number) => void;
@@ -282,8 +331,17 @@ interface InvActions {
   reconcile: () => void;
   countInput: (name: string, v: string) => void;
   startStocktake: () => void;
-  confirmReceive: (e: { preventDefault: () => void; target: unknown }, item: { name: string; supplier: string; key: string; add: number }) => void;
-  addExpense: (cat: string, label: string, amount: unknown, itemName?: string, itemQty?: unknown) => void;
+  confirmReceive: (
+    e: { preventDefault: () => void; target: unknown },
+    item: { name: string; supplier: string; key: string; add: number }
+  ) => void;
+  addExpense: (
+    cat: string,
+    label: string,
+    amount: unknown,
+    itemName?: string,
+    itemQty?: unknown
+  ) => void;
   costPerUnit: (name: string) => number;
 }
 
@@ -298,7 +356,13 @@ interface ProductionState {
   dropNo: number;
   recipeVer: Record<string, number>;
   doughPrep: { pid: string; balls: number } | null;
-  batch: { pid: string; target: number; actual: number; rejects?: number; adj?: Record<string, number> } | null;
+  batch: {
+    pid: string;
+    target: number;
+    actual: number;
+    rejects?: number;
+    adj?: Record<string, number>;
+  } | null;
 }
 
 /** The engine's recipe save (an instance field the typings do not list), replaced in live mode by A4. */
@@ -377,8 +441,18 @@ const EVENT_ATTEMPT = 'hc-event-attempt';
 /** A start that lost its reply is retried under the same event id, so it cannot open a second event. */
 function eventAttemptId(name: string): string {
   try {
-    const saved = JSON.parse(localStorage.getItem(EVENT_ATTEMPT) ?? 'null') as { name?: string; id?: string; at?: number } | null;
-    if (saved && saved.name === name && typeof saved.id === 'string' && Date.now() - (saved.at ?? 0) < 600_000) return saved.id;
+    const saved = JSON.parse(localStorage.getItem(EVENT_ATTEMPT) ?? 'null') as {
+      name?: string;
+      id?: string;
+      at?: number;
+    } | null;
+    if (
+      saved &&
+      saved.name === name &&
+      typeof saved.id === 'string' &&
+      Date.now() - (saved.at ?? 0) < 600_000
+    )
+      return saved.id;
   } catch {
     /* unreadable: start a fresh attempt */
   }
@@ -441,7 +515,10 @@ function writePendingLinks(links: PendingLink[]): void {
 }
 
 function savePendingLink(link: PendingLink): void {
-  writePendingLinks([...readPendingLinks().filter((l) => l.scheduledId !== link.scheduledId), link]);
+  writePendingLinks([
+    ...readPendingLinks().filter((l) => l.scheduledId !== link.scheduledId),
+    link
+  ]);
 }
 
 function clearPendingLink(link: PendingLink): void {
@@ -611,7 +688,10 @@ export class OpsRuntime extends OpsProvider {
     bazaar.setEventStock = (pid, d) => {
       const snapshot = (this.state.event as LiveEvent | null)?.snapshot;
       if (d > 0 && snapshot && !snapshot.includes(pid)) {
-        this.toast("That flavour is not on this event's menu. The menu is fixed when the event starts.", 'warn');
+        this.toast(
+          "That flavour is not on this event's menu. The menu is fixed when the event starts.",
+          'warn'
+        );
         return;
       }
       setEventStock(pid, d);
@@ -636,7 +716,10 @@ export class OpsRuntime extends OpsProvider {
         this.toast('Add a label and an amount.', 'warn');
         return;
       }
-      const category = String(cat || 'Bazaar rent').trim().slice(0, 40) || 'Bazaar rent';
+      const category =
+        String(cat || 'Bazaar rent')
+          .trim()
+          .slice(0, 40) || 'Bazaar rent';
       addEventExpense(text, amount, cat);
       const id = 'expense:' + crypto.randomUUID();
       void this.queueCommand('expense', event.id, id, {
@@ -656,7 +739,9 @@ export class OpsRuntime extends OpsProvider {
       const returned = stockOn(before.eventStock, snapshot);
       // The server closes only when it holds the same float and cash, so a close that overtakes
       // a sale or the stock load is retried instead of being booked as a drawer variance.
-      const floatCents = pesosToCentavos(Number((before.drawer as { float?: unknown } | null)?.float) || 0);
+      const floatCents = pesosToCentavos(
+        Number((before.drawer as { float?: unknown } | null)?.float) || 0
+      );
       const cashCents = (before.sales as EventSale[])
         .filter((sale) => sale.pay === 'Cash')
         .reduce((sum, sale) => sum + pesosToCentavos(sale.total), 0);
@@ -716,7 +801,13 @@ export class OpsRuntime extends OpsProvider {
     inv.logSpoilage = (name, qty, why, pid, kind) => {
       // Dough and baked cookies thrown away are recorded on the database (C2), so the next bake draws on what is really left.
       if (pid && (kind === 'dough' || kind === 'baked'))
-        return void this.liveDiscard(() => keep.logSpoilage(name, qty, why, pid, kind), qty, why, pid, kind);
+        return void this.liveDiscard(
+          () => keep.logSpoilage(name, qty, why, pid, kind),
+          qty,
+          why,
+          pid,
+          kind
+        );
       if (pid && kind) return keep.logSpoilage(name, qty, why, pid, kind);
       void this.liveWaste(name, qty, why);
     };
@@ -741,9 +832,17 @@ export class OpsRuntime extends OpsProvider {
       // The engine refuses a form with no category or amount; a plain expense (wages, transport, ...) moves money only, and is a book entry.
       if (!cat || !amount) return keep.addExpense(cat, label, amount, itemName, itemQty);
       // With a stock item named the form is a delivery: the engine says what is missing (how much came in), and nothing is booked.
-      if (itemName && (!item || qty <= 0)) return keep.addExpense(cat, label, amount, itemName, itemQty);
-      if (!item) return void this.livePlainExpense(() => keep.addExpense(cat, label, amount, itemName, itemQty), cat, label, amount);
-      const supplier = this.stockCatalogue?.suppliers.find((x) => x.id === item.supplierId)?.name ?? '';
+      if (itemName && (!item || qty <= 0))
+        return keep.addExpense(cat, label, amount, itemName, itemQty);
+      if (!item)
+        return void this.livePlainExpense(
+          () => keep.addExpense(cat, label, amount, itemName, itemQty),
+          cat,
+          label,
+          amount
+        );
+      const supplier =
+        this.stockCatalogue?.suppliers.find((x) => x.id === item.supplierId)?.name ?? '';
       void (async () => {
         if (!(await this.liveReceipt(item.name, qty, Number(amount) || 0, supplier))) return;
         this.withoutUndo(() => keep.addExpense(cat, label, amount, itemName, itemQty));
@@ -776,7 +875,8 @@ export class OpsRuntime extends OpsProvider {
       if (flavours.length) Object.assign(fresh, flavourStatePatch(flavours, fresh));
       // The reset starts again from the prototype's six recipes: the owner's are put back.
       for (const p of PRODUCTS)
-        this.recipeBaseStamp[p.id] = this.recipeRows?.find((r) => r.productId === p.id)?.updatedAt ?? null;
+        this.recipeBaseStamp[p.id] =
+          this.recipeRows?.find((r) => r.productId === p.id)?.updatedAt ?? null;
       Object.assign(fresh, this.recipesPatch(fresh as unknown as RecipeState, undefined, true));
       this.setState(fresh);
       clearTimeout(this.resetNoticeTimer);
@@ -861,7 +961,10 @@ export class OpsRuntime extends OpsProvider {
     const unsellable = PRODUCTS.filter((p) => !(p.id in outcome.prices)).length;
     if (unsellable) {
       this.toast(
-        plural(unsellable, 'flavour is', 'flavours are') + ' not on the menu, so ' + (unsellable === 1 ? 'it' : 'they') + ' cannot be sold at this event.',
+        plural(unsellable, 'flavour is', 'flavours are') +
+          ' not on the menu, so ' +
+          (unsellable === 1 ? 'it' : 'they') +
+          ' cannot be sold at this event.',
         'warn'
       );
     }
@@ -1236,31 +1339,95 @@ export class OpsRuntime extends OpsProvider {
 
   /** The inherited screens and badges call this method; demo uses the original implementation. */
   notifs(s: OpsEngineState): LiveAlert[] {
-    if (!isLiveMode()) return (OpsProvider.prototype as unknown as {notifs: (s: OpsEngineState) => LiveAlert[]}).notifs.call(this, s);
+    if (!isLiveMode())
+      return (
+        OpsProvider.prototype as unknown as { notifs: (s: OpsEngineState) => LiveAlert[] }
+      ).notifs.call(this, s);
     const alerts: LiveAlert[] = [];
     const channels = (s.channels ?? {}) as Record<string, boolean>;
-    const add = (channel: string, k: LiveAlert['k'], label: string, sub: string, tone: LiveAlert['tone']) => {
+    const add = (
+      channel: string,
+      k: LiveAlert['k'],
+      label: string,
+      sub: string,
+      tone: LiveAlert['tone']
+    ) => {
       if (channels[channel] === false || (s.role !== 'owner' && k !== 'health')) return;
       if (s.role === 'helper') return;
-      alerts.push({k, label, sub, tone, urgency: tone === 'bad' ? 'Action needed now' : tone === 'warn' ? 'Needs attention soon' : 'Information', go: () => this.go(k)});
+      alerts.push({
+        k,
+        label,
+        sub,
+        tone,
+        urgency:
+          tone === 'bad'
+            ? 'Action needed now'
+            : tone === 'warn'
+              ? 'Needs attention soon'
+              : 'Information',
+        go: () => this.go(k)
+      });
     };
-    const view = healthView(this.operationsHealth, this.operationsPhase, Date.now(), this.operationsQueue < 0 ? -1 : Math.max(this.operationsQueue, s.unsynced), s.online);
-    for (const row of view.healthRows.filter(row => row.bad)) {
-      add(row.label === 'Encrypted database backup' ? 'Backup failure' : 'System error', 'health', String(row.label) + ': ' + String(row.value), 'System health', 'bad');
+    const view = healthView(
+      this.operationsHealth,
+      this.operationsPhase,
+      Date.now(),
+      this.operationsQueue < 0 ? -1 : Math.max(this.operationsQueue, s.unsynced),
+      s.online
+    );
+    for (const row of view.healthRows.filter((row) => row.bad)) {
+      add(
+        row.label === 'Encrypted database backup' ? 'Backup failure' : 'System error',
+        'health',
+        String(row.label) + ': ' + String(row.value),
+        'System health',
+        'bad'
+      );
     }
     if (s.role !== 'owner') return alerts;
     const orders = this.orderSync?.current() ?? [];
-    const newest = orders.filter(o => !['Cancelled', 'No-show', 'Completed'].includes(o.state) && o.placedAt <= Date.now() && Date.now() - o.placedAt <= 86_400_000)
-      .sort((a,b) => b.placedAt - a.placedAt)[0];
+    const newest = orders
+      .filter(
+        (o) =>
+          !['Cancelled', 'No-show', 'Completed'].includes(o.state) &&
+          o.placedAt <= Date.now() &&
+          Date.now() - o.placedAt <= 86_400_000
+      )
+      .sort((a, b) => b.placedAt - a.placedAt)[0];
     if (newest) add('New order', 'orders', 'New order ' + newest.id, newest.name, 'info');
     const today = manilaToday();
-    const pickups = orders.filter(o => o.pickupDate === today && ['Confirmed', 'Preparing', 'Ready'].includes(o.state));
-    if (pickups.length) add('Pickup reminder', 'orders', `${pickups.length} order(s) for pickup today`, 'Fulfilment · ' + today, 'info');
-    const low = this.stockCatalogue?.items.filter(i => i.active && i.onHand < i.parLevel) ?? [];
-    if (low.length) add('Low stock', 'inventory', `${low.length} stock item(s) below reorder level`, low.map(i => i.name).join(', '), 'warn');
+    const pickups = orders.filter(
+      (o) => o.pickupDate === today && ['Confirmed', 'Preparing', 'Ready'].includes(o.state)
+    );
+    if (pickups.length)
+      add(
+        'Pickup reminder',
+        'orders',
+        `${pickups.length} order(s) for pickup today`,
+        'Fulfilment · ' + today,
+        'info'
+      );
+    const low = this.stockCatalogue?.items.filter((i) => i.active && i.onHand < i.parLevel) ?? [];
+    if (low.length)
+      add(
+        'Low stock',
+        'inventory',
+        `${low.length} stock item(s) below reorder level`,
+        low.map((i) => i.name).join(', '),
+        'warn'
+      );
     if (this.stockCatalogue && this.recipeRows && this.orderSync?.loaded) {
-      const plan = (this as unknown as {groceryPlan: (s: OpsEngineState) => Array<{key: string}>}).groceryPlan(s);
-      if (plan.length) add('Grocery shortage', 'grocery', `${plan.length} item(s) on the grocery list`, 'Based on current orders, stock and recipes', 'warn');
+      const plan = (
+        this as unknown as { groceryPlan: (s: OpsEngineState) => Array<{ key: string }> }
+      ).groceryPlan(s);
+      if (plan.length)
+        add(
+          'Grocery shortage',
+          'grocery',
+          `${plan.length} item(s) on the grocery list`,
+          'Based on current orders, stock and recipes',
+          'warn'
+        );
     }
     return alerts;
   }
@@ -1270,8 +1437,14 @@ export class OpsRuntime extends OpsProvider {
     if (HARNESS && !isLiveMode()) return vals;
     const starved = { ...vals, devices: [], roles: [], showPhoneWidths: false } as OpsVals;
     if (!isLiveMode()) return starved;
-    const health = healthView(this.operationsHealth, this.operationsPhase, Date.now(), this.operationsQueue < 0 ? -1 : Math.max(this.operationsQueue, this.state.unsynced), this.state.online);
-    const healthProblems = health.healthRows.filter(row => row.bad).length;
+    const health = healthView(
+      this.operationsHealth,
+      this.operationsPhase,
+      Date.now(),
+      this.operationsQueue < 0 ? -1 : Math.max(this.operationsQueue, this.state.unsynced),
+      this.state.online
+    );
+    const healthProblems = health.healthRows.filter((row) => row.bad).length;
     // Live: the real app, not the review harness. No header row, flow strip or flow bar,
     // and the device frame fills the screen instead of drawing a phone/tablet mock-up (so the
     // mock-up bezel — radius, border, shadow — goes too; background colours are unchanged).
@@ -1299,26 +1472,48 @@ export class OpsRuntime extends OpsProvider {
       rules: this.state.role === 'owner' ? this.liveRules(starved.rules ?? []) : starved.rules,
       // MP-09 c1c: the flavour editor's entry points and form host, live owner only.
       toolGroups: (this.state.role === 'owner'
-          ? this.liveToolGroups(starved.toolGroups ?? [])
-          : starved.toolGroups).map(group => ({...group, items: group.items.map(item =>
-            item.label === 'System health' ? {...item, sub: health.healthTitle, badge: healthProblems || null} :
-            item.label === 'Backups & export' ? {...item, sub: 'Recorded checks and books CSV'} : item)})),
+        ? this.liveToolGroups(starved.toolGroups ?? [])
+        : starved.toolGroups
+      ).map((group) => ({
+        ...group,
+        items: group.items.map((item) =>
+          item.label === 'System health'
+            ? { ...item, sub: health.healthTitle, badge: healthProblems || null }
+            : item.label === 'Backups & export'
+              ? { ...item, sub: 'Recorded checks and books CSV' }
+              : item
+        )
+      })),
       productRows:
         this.state.role === 'owner'
           ? this.liveProductRows(starved.productRows ?? [])
           : starved.productRows,
-      ...(this.state.screen === 'products' ? {
-        pageSub: PRODUCTS.length + ' flavours · ' + PRODUCTS.filter(p =>
-          (this.state.dropActive as Record<string, boolean> | undefined)?.[p.id] !== false).length + ' on menu'
-      } : {}),
-      recipe: starved.recipe ? {
-        ...starved.recipe,
-        costText: this.completeRecipeCost(this.state.recipeOpen) ? starved.recipe.costText : 'Cost pending'
-      } : starved.recipe,
-      invRows: (starved.invRows ?? []).map(row => {
-        const item = this.stockCatalogue?.items.find(i => i.name === row.name);
-        return ['Ingredients', 'Packaging'].includes(String(this.state.invTab)) && !item?.lastCounted
-          ? { ...row, sub: 'Opening count pending' } : row;
+      ...(this.state.screen === 'products'
+        ? {
+            pageSub:
+              PRODUCTS.length +
+              ' flavours · ' +
+              PRODUCTS.filter(
+                (p) =>
+                  (this.state.dropActive as Record<string, boolean> | undefined)?.[p.id] !== false
+              ).length +
+              ' on menu'
+          }
+        : {}),
+      recipe: starved.recipe
+        ? {
+            ...starved.recipe,
+            costText: this.completeRecipeCost(this.state.recipeOpen)
+              ? starved.recipe.costText
+              : 'Cost pending'
+          }
+        : starved.recipe,
+      invRows: (starved.invRows ?? []).map((row) => {
+        const item = this.stockCatalogue?.items.find((i) => i.name === row.name);
+        return ['Ingredients', 'Packaging'].includes(String(this.state.invTab)) &&
+          !item?.lastCounted
+          ? { ...row, sub: 'Opening count pending' }
+          : row;
       }),
       sheet: this.liveSheet(starved.sheet),
       liveForm: this.liveFormVals(),
@@ -1331,18 +1526,40 @@ export class OpsRuntime extends OpsProvider {
       liveScheduled: this.liveScheduledVals(),
       liveBooks: this.liveBooksVals(),
       ...health,
-      system: {...starved.system, ok: health.healthOk, bad: !health.healthOk,
-        label: health.healthTitle, detail: health.healthSub},
+      system: {
+        ...starved.system,
+        ok: health.healthOk,
+        bad: !health.healthOk,
+        label: health.healthTitle,
+        detail: health.healthSub
+      },
       // The database's books are exportable; demo record-group examples are never live evidence.
-      recordGroups: this.state.role === 'owner' && this.booksRows?.lines.length ? [{
-        title: 'Database books', countText: plural(this.booksRows.lines.length, 'record', 'records'),
-        rows: this.booksRows.lines.slice(-10).map(line => ({what: line.label,
-          when: new Date(line.at).toLocaleDateString('en-PH', {timeZone: 'Asia/Manila'}), value: PESO(line.amountCents / 100)}))
-      }] : [],
+      recordGroups:
+        this.state.role === 'owner' && this.booksRows?.lines.length
+          ? [
+              {
+                title: 'Database books',
+                countText: plural(this.booksRows.lines.length, 'record', 'records'),
+                rows: this.booksRows.lines.slice(-10).map((line) => ({
+                  what: line.label,
+                  when: new Date(line.at).toLocaleDateString('en-PH', {
+                    timeZone: 'Asia/Manila'
+                  }),
+                  value: PESO(line.amountCents / 100)
+                }))
+              }
+            ]
+          : [],
       hasRecords: this.state.role === 'owner' && !!this.booksRows?.lines.length,
-      retryBackup: () => { void this.loadOperationsHealth(null); this.toast('Checking recorded results. Backups are run by the operator.', 'warn'); },
-      contactSupport: () => this.toast('Please contact KETH AI support and share the result shown here.', 'warn'),
-      ...(this.state.role !== 'owner' ? { exportNow: () => this.toast('Only the owner can export the books.', 'warn') } : {}),
+      retryBackup: () => {
+        void this.loadOperationsHealth(null);
+        this.toast('Checking recorded results. Backups are run by the operator.', 'warn');
+      },
+      contactSupport: () =>
+        this.toast('Please contact KETH AI support and share the result shown here.', 'warn'),
+      ...(this.state.role !== 'owner'
+        ? { exportNow: () => this.toast('Only the owner can export the books.', 'warn') }
+        : {}),
       liveStockItems: this.liveStockItemsVals(),
       liveStockSuppliers: this.liveStockSuppliersVals(),
       liveRecipeDrafts: this.liveRecipeDraftsVals(),
@@ -1467,7 +1684,8 @@ export class OpsRuntime extends OpsProvider {
       const mode = st === 'auto' ? null : (st as ShopOverride);
       void this.persistOverride(mode).then((ok) => ok && setDropState(st));
     };
-    shop.closeDropEarly = () => void this.persistOverride('closed').then((ok) => ok && closeDropEarly());
+    shop.closeDropEarly = () =>
+      void this.persistOverride('closed').then((ok) => ok && closeDropEarly());
     shop.reopenDrop = () => void this.persistOverride(null).then((ok) => ok && reopenDrop());
     // Extending the closing time also hands the shop back to the window (the ported action clears the hold).
     shop.extendDrop = () => void this.persistOverride(null).then((ok) => ok && extendDrop());
@@ -1478,7 +1696,8 @@ export class OpsRuntime extends OpsProvider {
       const before = (this.state as unknown as { dropNo: number }).dropNo;
       closeDrop();
       this.afterUpdate(() => {
-        if ((this.state as unknown as { dropNo: number }).dropNo !== before) void this.persistOverride(null);
+        if ((this.state as unknown as { dropNo: number }).dropNo !== before)
+          void this.persistOverride(null);
       });
     };
   }
@@ -1537,7 +1756,10 @@ export class OpsRuntime extends OpsProvider {
     };
   }
 
-  private async saveOrderRulesForm(f: LiveOrderRulesFields, expectedUpdatedAt: string | null): Promise<void> {
+  private async saveOrderRulesForm(
+    f: LiveOrderRulesFields,
+    expectedUpdatedAt: string | null
+  ): Promise<void> {
     const fields = {
       unpaid_hold_hours: f.unpaidHoldHours,
       max_unpaid_per_phone: f.maxUnpaidPerPhone,
@@ -1622,14 +1844,18 @@ export class OpsRuntime extends OpsProvider {
     };
   }
 
-  private async saveOrderExtrasForm(f: LiveOrderExtrasFields, expectedUpdatedAt: string | null): Promise<void> {
+  private async saveOrderExtrasForm(
+    f: LiveOrderExtrasFields,
+    expectedUpdatedAt: string | null
+  ): Promise<void> {
     const numbers = [
       f.sameDayPercent,
       f.samplerMaxQty,
       ...f.boxSizes.flatMap((b) => [b.size, b.chargePesos]),
       ...f.addOns.flatMap((a) => [a.pricePesos, a.textMax, a.maxQty])
     ];
-    if (!numbers.every((n) => Number.isFinite(n))) return void this.toast(EXTRAS_COPY.refused, 'warn');
+    if (!numbers.every((n) => Number.isFinite(n)))
+      return void this.toast(EXTRAS_COPY.refused, 'warn');
     const taken = new Set(f.addOns.map((a) => a.id).filter(Boolean));
     const fields: OrderExtrasFields = {
       same_day_enabled: f.sameDayEnabled,
@@ -1797,7 +2023,8 @@ export class OpsRuntime extends OpsProvider {
       if (outcome === 'conflict') {
         this.toast(SCHEDULED_COPY.conflict, 'warn');
         this.forceUpdate();
-      } else this.toast(outcome === 'refused' ? SCHEDULED_COPY.refused : STAFF_COPY.offline, 'warn');
+      } else
+        this.toast(outcome === 'refused' ? SCHEDULED_COPY.refused : STAFF_COPY.offline, 'warn');
       return;
     }
     this.toast(SCHEDULED_COPY.saved);
@@ -1892,12 +2119,23 @@ export class OpsRuntime extends OpsProvider {
     this.recipeDraftError = null;
     this.setState({});
     try {
-      const rows = await fetchRecipeDrafts(this.recipeClient, PRODUCTS.map((product) => product.id));
-      if (session !== this.recipeDraftSession || seq !== this.recipeDraftLoadSeq || !isOpen() || this.state.role !== 'owner') return;
+      const rows = await fetchRecipeDrafts(
+        this.recipeClient,
+        PRODUCTS.map((product) => product.id)
+      );
+      if (
+        session !== this.recipeDraftSession ||
+        seq !== this.recipeDraftLoadSeq ||
+        !isOpen() ||
+        this.state.role !== 'owner'
+      )
+        return;
       this.recipeDraftRows = rows;
     } catch (error) {
-      if (session !== this.recipeDraftSession || seq !== this.recipeDraftLoadSeq || !isOpen()) return;
-      this.recipeDraftError = error instanceof Error ? error.message : 'Recipe drafts could not be read.';
+      if (session !== this.recipeDraftSession || seq !== this.recipeDraftLoadSeq || !isOpen())
+        return;
+      this.recipeDraftError =
+        error instanceof Error ? error.message : 'Recipe drafts could not be read.';
     } finally {
       if (session === this.recipeDraftSession && seq === this.recipeDraftLoadSeq) {
         this.recipeDraftLoading = false;
@@ -1929,17 +2167,39 @@ export class OpsRuntime extends OpsProvider {
       loaded: rows !== null,
       busy: this.recipeDraftBusy,
       error: this.recipeDraftError,
-      selectedName: this.recipeDraftEditing ? PRODUCTS.find((product) => product.id === this.recipeDraftEditing?.productId)?.name ?? null : null,
-      rows: rows === null ? [] : PRODUCTS.map((product) => {
-        const draft = rows.find((row) => row.productId === product.id);
-        return { productId: product.id, name: product.name, yield: draft?.yield ?? 14, saved: !!draft };
-      }),
+      selectedName: this.recipeDraftEditing
+        ? (PRODUCTS.find((product) => product.id === this.recipeDraftEditing?.productId)?.name ??
+          null)
+        : null,
+      rows:
+        rows === null
+          ? []
+          : PRODUCTS.map((product) => {
+              const draft = rows.find((row) => row.productId === product.id);
+              return {
+                productId: product.id,
+                name: product.name,
+                yield: draft?.yield ?? 14,
+                saved: !!draft
+              };
+            }),
       editing: this.recipeDraftEditing,
       open: (productId) => {
-        if (session !== this.recipeDraftSession || sh?.kind !== 'recipedrafts' || !rows || this.recipeDraftBusy || !PRODUCTS.some((product) => product.id === productId)) return;
+        if (
+          session !== this.recipeDraftSession ||
+          sh?.kind !== 'recipedrafts' ||
+          !rows ||
+          this.recipeDraftBusy ||
+          !PRODUCTS.some((product) => product.id === productId)
+        )
+          return;
         const draft = rows.find((row) => row.productId === productId);
-        this.recipeDraftEditing = { productId, yield: draft?.yield ?? 14, sourceText: draft?.sourceText ?? '',
-          expectedUpdatedAt: draft?.updatedAt ?? null };
+        this.recipeDraftEditing = {
+          productId,
+          yield: draft?.yield ?? 14,
+          sourceText: draft?.sourceText ?? '',
+          expectedUpdatedAt: draft?.updatedAt ?? null
+        };
         this.recipeDraftError = null;
         this.setState({});
       },
@@ -1965,16 +2225,32 @@ export class OpsRuntime extends OpsProvider {
     };
   }
 
-  private async saveRecipeDraftForm(fields: LiveRecipeDraftEdit, session = this.recipeDraftSession): Promise<void> {
+  private async saveRecipeDraftForm(
+    fields: LiveRecipeDraftEdit,
+    session = this.recipeDraftSession
+  ): Promise<void> {
     const isOpen = () => (this.state.sheet as { kind?: string } | null)?.kind === 'recipedrafts';
-    if (session !== this.recipeDraftSession || this.recipeDraftBusy || this.state.role !== 'owner' || !isLiveMode() || !this.recipeClient ||
-      !this.recipeDraftRows || !this.recipeDraftEditing || fields.productId !== this.recipeDraftEditing.productId ||
-      fields.expectedUpdatedAt !== this.recipeDraftEditing.expectedUpdatedAt) return;
+    if (
+      session !== this.recipeDraftSession ||
+      this.recipeDraftBusy ||
+      this.state.role !== 'owner' ||
+      !isLiveMode() ||
+      !this.recipeClient ||
+      !this.recipeDraftRows ||
+      !this.recipeDraftEditing ||
+      fields.productId !== this.recipeDraftEditing.productId ||
+      fields.expectedUpdatedAt !== this.recipeDraftEditing.expectedUpdatedAt
+    )
+      return;
     const editor = this.recipeDraftEditing;
     this.recipeDraftBusy = true;
     this.recipeDraftError = null;
     this.setState({});
-    const result = await saveRecipeDraft(this.recipeClient, PRODUCTS.map((product) => product.id), fields);
+    const result = await saveRecipeDraft(
+      this.recipeClient,
+      PRODUCTS.map((product) => product.id),
+      fields
+    );
     if (session !== this.recipeDraftSession) return;
     if (this.state.role !== 'owner' || !isOpen() || this.recipeDraftEditing !== editor) {
       this.recipeDraftBusy = false;
@@ -1982,23 +2258,37 @@ export class OpsRuntime extends OpsProvider {
       return;
     }
     if (result.outcome === 'saved' && result.updatedAt) {
-      const row: RecipeDraft = { productId: fields.productId, yield: fields.yield,
-        sourceText: fields.sourceText, updatedAt: result.updatedAt };
-      this.recipeDraftRows = [...this.recipeDraftRows.filter((item) => item.productId !== fields.productId), row];
+      const row: RecipeDraft = {
+        productId: fields.productId,
+        yield: fields.yield,
+        sourceText: fields.sourceText,
+        updatedAt: result.updatedAt
+      };
+      this.recipeDraftRows = [
+        ...this.recipeDraftRows.filter((item) => item.productId !== fields.productId),
+        row
+      ];
       this.recipeDraftEditing = null;
     } else if (result.outcome === 'conflict') {
-      this.recipeDraftError = 'This draft changed elsewhere. Your text is preserved; go back and reload before saving again.';
+      this.recipeDraftError =
+        'This draft changed elsewhere. Your text is preserved; go back and reload before saving again.';
     } else {
-      this.recipeDraftError = result.error ?? (result.outcome === 'refused'
-        ? 'The draft was refused. Check the yield and recipe text.'
-        : 'Draft was not saved. Your text is preserved.');
+      this.recipeDraftError =
+        result.error ??
+        (result.outcome === 'refused'
+          ? 'The draft was refused. Check the yield and recipe text.'
+          : 'Draft was not saved. Your text is preserved.');
     }
     this.recipeDraftBusy = false;
     this.setState({});
   }
 
   /** The state keys the recipes screen reads: the saved recipe for each flavour, or an empty one, never the prototype's. */
-  private recipesPatch(s: RecipeState, refresh?: string, discardEdits = false): Record<string, unknown> {
+  private recipesPatch(
+    s: RecipeState,
+    refresh?: string,
+    discardEdits = false
+  ): Record<string, unknown> {
     // With no read yet (a helper, or a read that failed) the screens still get empty recipes, never the prototype's.
     const mapped = engineRecipes(
       this.recipeRows ?? [],
@@ -2028,7 +2318,10 @@ export class OpsRuntime extends OpsProvider {
     if (!r) return;
     const blank = r.ing.filter((i) => !String(i[0]).trim()).length;
     if (blank)
-      return void this.toast(plural(blank, 'ingredient still has', 'ingredients still have') + ' no name.', 'warn');
+      return void this.toast(
+        plural(blank, 'ingredient still has', 'ingredients still have') + ' no name.',
+        'warn'
+      );
     if (this.state.role !== 'owner' || !client || !this.recipeRows)
       return void this.toast(STAFF_COPY.offline, 'warn');
     const fields = {
@@ -2041,10 +2334,17 @@ export class OpsRuntime extends OpsProvider {
     const was = this.recipeRows.find((x) => x.productId === pid);
     // Against the stamp this edit was started on, never a newer one read since: if the recipe moved meanwhile, the
     // database says so (a conflict) instead of being overwritten.
-    const { outcome, version, updatedAt } = await saveRecipe(client, fields, this.recipeBaseStamp[pid] ?? null);
+    const { outcome, version, updatedAt } = await saveRecipe(
+      client,
+      fields,
+      this.recipeBaseStamp[pid] ?? null
+    );
     if (outcome === 'saved' && updatedAt) this.recipeBaseStamp[pid] = updatedAt;
     // A saved recipe, or another person's newer one, replaces this edit; a refusal or a lost connection keeps it.
-    const read = await this.loadRecipes(null, outcome === 'saved' || outcome === 'conflict' ? pid : undefined);
+    const read = await this.loadRecipes(
+      null,
+      outcome === 'saved' || outcome === 'conflict' ? pid : undefined
+    );
     if (outcome === 'saved') {
       if (!read && version !== null && updatedAt) {
         // The read after the save failed: the answer to the save is enough to show it saved and to save again.
@@ -2104,7 +2404,9 @@ export class OpsRuntime extends OpsProvider {
     // The database's quantities always win: every change of a quantity is a movement (C1).
     this.setState((s) => ({
       inv: engineInventory(c),
-      supplierOpen: currentSuppliers().some((x) => x.name === s.supplierOpen) ? s.supplierOpen : first
+      supplierOpen: currentSuppliers().some((x) => x.name === s.supplierOpen)
+        ? s.supplierOpen
+        : first
     }));
   }
 
@@ -2217,20 +2519,18 @@ export class OpsRuntime extends OpsProvider {
         active: found.active,
         prices: c.prices
           .filter((p) => p.supplierId === found.id)
-          .map(
-            (p): LiveStockPriceRow => ({
-              id: p.id,
-              itemName: p.itemName,
-              packLabel: p.packLabel,
-              pricePesos: centavosToPesos(p.priceCents),
-              lastBought: p.lastBought,
-              preferred: p.preferred,
-              active: p.active,
-              previousText: p.previousCents.length
-                ? 'Before: ' + p.previousCents.map(pesos).join(', ')
-                : 'First price'
-            })
-          ),
+          .map((p): LiveStockPriceRow => ({
+            id: p.id,
+            itemName: p.itemName,
+            packLabel: p.packLabel,
+            pricePesos: centavosToPesos(p.priceCents),
+            lastBought: p.lastBought,
+            preferred: p.preferred,
+            active: p.active,
+            previousText: p.previousCents.length
+              ? 'Before: ' + p.previousCents.map(pesos).join(', ')
+              : 'First price'
+          })),
         newPriceId: this.stockNewPriceId
       };
     return {
@@ -2277,7 +2577,10 @@ export class OpsRuntime extends OpsProvider {
     const c = this.stockCatalogue;
     const takenPrice = !!c && c.prices.some((p) => p.id === this.stockNewPriceId);
     if (takenPrice) this.stockNewPriceId = crypto.randomUUID();
-    const takenNew = !!c && (c.items.some((i) => i.id === this.stockNewId) || c.suppliers.some((x) => x.id === this.stockNewId));
+    const takenNew =
+      !!c &&
+      (c.items.some((i) => i.id === this.stockNewId) ||
+        c.suppliers.some((x) => x.id === this.stockNewId));
     if (takenNew && outcome === 'conflict') this.stockNewId = crypto.randomUUID();
     if (takenPrice || outcome === 'conflict') this.stockVersion += 1;
     if (outcome === 'conflict') {
@@ -2314,7 +2617,14 @@ export class OpsRuntime extends OpsProvider {
     const client = this.stockClient;
     const c = this.stockCatalogue;
     if (!client || !c) return void this.toast(STAFF_COPY.offline, 'warn');
-    const supplier = { id: f.id, name: f.name, phone: f.phone, notes: f.notes, place: f.place, active: f.active };
+    const supplier = {
+      id: f.id,
+      name: f.name,
+      phone: f.phone,
+      notes: f.notes,
+      place: f.place,
+      active: f.active
+    };
     const problem = supplierError(supplier);
     if (problem) return void this.toast(problem, 'warn');
     if (f.prices.some((r) => !Number.isFinite(r.pricePesos)))
@@ -2354,11 +2664,21 @@ export class OpsRuntime extends OpsProvider {
       wasSupplier.active === supplier.active;
     if (!supplierSame) {
       const outcome = await saveSupplier(client, supplier, wasSupplier?.updatedAt ?? null);
-      if (outcome !== 'saved') return void (await this.finishStockSave(outcome, 'stocksuppliers', STOCK_COPY.refusedSupplier));
+      if (outcome !== 'saved')
+        return void (await this.finishStockSave(
+          outcome,
+          'stocksuppliers',
+          STOCK_COPY.refusedSupplier
+        ));
     }
     for (const job of priceJobs) {
       const outcome = await saveSupplierPrice(client, job.fields, job.stamp);
-      if (outcome !== 'saved') return void (await this.finishStockSave(outcome, 'stocksuppliers', STOCK_COPY.refusedSupplier));
+      if (outcome !== 'saved')
+        return void (await this.finishStockSave(
+          outcome,
+          'stocksuppliers',
+          STOCK_COPY.refusedSupplier
+        ));
     }
     await this.finishStockSave('saved', 'stocksuppliers', STOCK_COPY.refusedSupplier);
   }
@@ -2374,7 +2694,8 @@ export class OpsRuntime extends OpsProvider {
   ): Promise<void> {
     const client = this.stockClient;
     const c = this.stockCatalogue;
-    if (this.state.role !== 'owner' || !client || !c) return void this.toast(STAFF_COPY.offline, 'warn');
+    if (this.state.role !== 'owner' || !client || !c)
+      return void this.toast(STAFF_COPY.offline, 'warn');
     const sup = c.suppliers.find((s) => s.active && s.name === supplier);
     const fields: ItemFields = {
       id: crypto.randomUUID(),
@@ -2392,9 +2713,15 @@ export class OpsRuntime extends OpsProvider {
     if (problem) return void this.toast(problem, 'warn');
     const outcome = await saveStockItem(client, fields, null);
     if (outcome !== 'saved') {
-      return void this.toast(outcome === 'refused' ? STOCK_COPY.refusedItem : STAFF_COPY.offline, 'warn');
+      return void this.toast(
+        outcome === 'refused' ? STOCK_COPY.refusedItem : STAFF_COPY.offline,
+        'warn'
+      );
     }
-    const opening = Number(qty) > 0 ? await this.recordMovement(fields.id, 'opening', Number(qty), null, '', '') : true;
+    const opening =
+      Number(qty) > 0
+        ? await this.recordMovement(fields.id, 'opening', Number(qty), null, '', '')
+        : true;
     await this.loadStockCatalogue(null);
     this.setState({ sheet: null });
     if (opening) this.toast(fields.name + ' added to ' + fields.category + '.');
@@ -2464,7 +2791,10 @@ export class OpsRuntime extends OpsProvider {
     else this.pendingMovements.delete(signature);
     await this.loadStockCatalogue(null);
     if (result.outcome !== 'saved') {
-      this.toast(result.outcome === 'refused' ? STOCK_COPY.movementRefused : STOCK_COPY.movementNotSaved, 'warn');
+      this.toast(
+        result.outcome === 'refused' ? STOCK_COPY.movementRefused : STOCK_COPY.movementNotSaved,
+        'warn'
+      );
       return false;
     }
     return true;
@@ -2486,7 +2816,8 @@ export class OpsRuntime extends OpsProvider {
   private async liveAdjustInv(name: string, qty: unknown, dir: number): Promise<void> {
     const item = this.stockItem(name);
     const n = Math.abs(Number(qty) || 0);
-    if (!n) return void this.toast('Type how much to ' + (dir < 0 ? 'subtract' : 'add') + '.', 'warn');
+    if (!n)
+      return void this.toast('Type how much to ' + (dir < 0 ? 'subtract' : 'add') + '.', 'warn');
     if (!item) return;
     const before = item.onHand;
     if (await this.recordMovement(item.id, 'adjust', dir * n, null, '', STOCK_COPY.adjustReason)) {
@@ -2506,7 +2837,11 @@ export class OpsRuntime extends OpsProvider {
     if (await this.recordMovement(item.id, 'waste', n, null, '', why || 'Spoiled')) {
       this.setState({ sheet: null });
       this.toast(
-        n + ' of ' + name.toLowerCase() + ' written off. About ₱' + cost.toLocaleString('en-PH') +
+        n +
+          ' of ' +
+          name.toLowerCase() +
+          ' written off. About ₱' +
+          cost.toLocaleString('en-PH') +
           ' of stock gone. It was already expensed when you bought it, so profit does not move twice.',
         'warn'
       );
@@ -2514,14 +2849,27 @@ export class OpsRuntime extends OpsProvider {
   }
 
   /** A delivery came in: a receipt movement, with what was paid, which also writes the cost to the books once. */
-  private async liveReceipt(name: string, qty: number, spendPesos: number, supplier: string): Promise<boolean> {
+  private async liveReceipt(
+    name: string,
+    qty: number,
+    spendPesos: number,
+    supplier: string
+  ): Promise<boolean> {
     const item = this.stockItem(name);
     if (!item) {
       await this.loadStockCatalogue(null);
       return false;
     }
-    const cents = Number.isFinite(spendPesos) && spendPesos > 0 ? pesosToCentavos(spendPesos) : null;
-    return this.recordMovement(item.id, 'receipt', qty, cents, supplier === '—' ? '' : supplier, '');
+    const cents =
+      Number.isFinite(spendPesos) && spendPesos > 0 ? pesosToCentavos(spendPesos) : null;
+    return this.recordMovement(
+      item.id,
+      'receipt',
+      qty,
+      cents,
+      supplier === '—' ? '' : supplier,
+      ''
+    );
   }
 
   /**
@@ -2540,7 +2888,10 @@ export class OpsRuntime extends OpsProvider {
       const counted = Number(counts[name]);
       if (!item || !Number.isFinite(counted) || counted < 0) break;
       const before = item.onHand;
-      if (!(await this.recordMovement(item.id, 'count', counted, null, '', '', this.countedAt[name]))) break;
+      if (
+        !(await this.recordMovement(item.id, 'count', counted, null, '', '', this.countedAt[name]))
+      )
+        break;
       saved += 1;
       delete counts[name];
       if (counted !== before) {
@@ -2550,7 +2901,9 @@ export class OpsRuntime extends OpsProvider {
     }
     if (saved < names.length) {
       // Some are not in: what is unsaved stays on the count sheet.
-      this.setState((s) => ({ stocktake: s.stocktake ? { ...(s.stocktake as object), counts } : s.stocktake }));
+      this.setState((s) => ({
+        stocktake: s.stocktake ? { ...(s.stocktake as object), counts } : s.stocktake
+      }));
       this.toast(STOCK_COPY.someSaved(saved, names.length), 'warn');
       return;
     }
@@ -2560,7 +2913,10 @@ export class OpsRuntime extends OpsProvider {
     this.toast(
       corrected === 0
         ? STOCK_COPY.counted(0)
-        : STOCK_COPY.counted(corrected) + (value < 0 ? ' ₱' + shown + ' of stock unaccounted for.' : ' ₱' + shown + ' more than your records said.'),
+        : STOCK_COPY.counted(corrected) +
+            (value < 0
+              ? ' ₱' + shown + ' of stock unaccounted for.'
+              : ' ₱' + shown + ' more than your records said.'),
       corrected === 0 ? 'ok' : 'warn'
     );
   }
@@ -2569,7 +2925,8 @@ export class OpsRuntime extends OpsProvider {
   private async liveRemoveInv(name: string): Promise<void> {
     const client = this.stockClient;
     const item = this.stockCatalogue?.items.find((i) => i.active && i.name === name);
-    if (this.state.role !== 'owner' || !client || !item) return void this.toast(STAFF_COPY.offline, 'warn');
+    if (this.state.role !== 'owner' || !client || !item)
+      return void this.toast(STAFF_COPY.offline, 'warn');
     const outcome = await saveStockItem(
       client,
       {
@@ -2588,7 +2945,10 @@ export class OpsRuntime extends OpsProvider {
     );
     await this.loadStockCatalogue(null);
     if (outcome !== 'saved') {
-      return void this.toast(outcome === 'conflict' ? STOCK_COPY.conflict : STAFF_COPY.offline, 'warn');
+      return void this.toast(
+        outcome === 'conflict' ? STOCK_COPY.conflict : STAFF_COPY.offline,
+        'warn'
+      );
     }
     this.setState({ sheet: null });
     this.toast(name + ' ' + STOCK_COPY.removedNote, 'warn');
@@ -2621,14 +2981,28 @@ export class OpsRuntime extends OpsProvider {
    */
   private applyProduction(rows: Production): void {
     const patch = engineProduction(rows, (pid) => this.flavourName(pid));
-    const prev = this.lastProduction ? engineProduction(this.lastProduction, (pid) => this.flavourName(pid)) : null;
+    const prev = this.lastProduction
+      ? engineProduction(this.lastProduction, (pid) => this.flavourName(pid))
+      : null;
     this.lastProduction = rows;
     this.setState((s: unknown) => {
       if (!prev) return patch;
-      const st = s as { dough: Record<string, number>; baked: Record<string, number>; doughAt: Record<string, number> };
-      const moved = (now: Record<string, number>, was: Record<string, number>, cur: Record<string, number>) => {
+      const st = s as {
+        dough: Record<string, number>;
+        baked: Record<string, number>;
+        doughAt: Record<string, number>;
+      };
+      const moved = (
+        now: Record<string, number>,
+        was: Record<string, number>,
+        cur: Record<string, number>
+      ) => {
         const out: Record<string, number> = {};
-        for (const pid of new Set([...Object.keys(now), ...Object.keys(was), ...Object.keys(cur)])) {
+        for (const pid of new Set([
+          ...Object.keys(now),
+          ...Object.keys(was),
+          ...Object.keys(cur)
+        ])) {
           const n = Math.max(0, (cur[pid] || 0) + (now[pid] || 0) - (was[pid] || 0));
           if (n > 0) out[pid] = n;
         }
@@ -2648,7 +3022,9 @@ export class OpsRuntime extends OpsProvider {
    * Sends one dough mix or batch. Returns the answer when it was recorded (an identical retry counts), else null after telling
    * her why. Nothing is re-read here: the engine's own bookkeeping runs next against the quantities it was shown.
    */
-  private async recordProductionNow(f: Omit<ProductionFields, 'id' | 'at'>): Promise<ProductionResult | null> {
+  private async recordProductionNow(
+    f: Omit<ProductionFields, 'id' | 'at'>
+  ): Promise<ProductionResult | null> {
     const client = this.productionClient;
     if (this.state.role !== 'owner') {
       this.toast(PRODUCTION_COPY.ownerOnly, 'warn');
@@ -2661,8 +3037,21 @@ export class OpsRuntime extends OpsProvider {
     // A second tap while the first is being recorded does nothing: it would be a second record.
     if (this.productionBusy) return null;
     // The same entry repeated after an unconfirmed answer is the same record (same id, same time), never a second one.
-    const signature = JSON.stringify([f.kind, f.productId, f.qty, f.target, f.rejects, Object.entries(f.adj).sort(), f.recipeVersion, f.dropNo]);
-    const fields: ProductionFields = this.pendingProduction.get(signature) ?? { ...f, id: crypto.randomUUID(), at: Date.now() };
+    const signature = JSON.stringify([
+      f.kind,
+      f.productId,
+      f.qty,
+      f.target,
+      f.rejects,
+      Object.entries(f.adj).sort(),
+      f.recipeVersion,
+      f.dropNo
+    ]);
+    const fields: ProductionFields = this.pendingProduction.get(signature) ?? {
+      ...f,
+      id: crypto.randomUUID(),
+      at: Date.now()
+    };
     const problem = productionError(fields);
     if (problem) {
       this.toast(problem, 'warn');
@@ -2681,7 +3070,11 @@ export class OpsRuntime extends OpsProvider {
     if (result.outcome === 'saved') return result;
     if (result.outcome === 'stale') void this.loadRecipes(null);
     this.toast(
-      result.outcome === 'stale' ? PRODUCTION_COPY.stale : result.outcome === 'refused' ? PRODUCTION_COPY.refused : PRODUCTION_COPY.notSaved,
+      result.outcome === 'stale'
+        ? PRODUCTION_COPY.stale
+        : result.outcome === 'refused'
+          ? PRODUCTION_COPY.refused
+          : PRODUCTION_COPY.notSaved,
       'warn'
     );
     return null;
@@ -2692,8 +3085,18 @@ export class OpsRuntime extends OpsProvider {
    * toast) with its own change to the counts undone, then the counts are read back. Anything the engine would refuse (more than is
    * there) is left to it, and nothing is recorded.
    */
-  private async liveDiscard(run: () => void, qty: unknown, why: string, pid: string, kind: 'dough' | 'baked'): Promise<void> {
-    const st = this.state as unknown as { dropNo: number; dough: Record<string, number>; baked: Record<string, number> };
+  private async liveDiscard(
+    run: () => void,
+    qty: unknown,
+    why: string,
+    pid: string,
+    kind: 'dough' | 'baked'
+  ): Promise<void> {
+    const st = this.state as unknown as {
+      dropNo: number;
+      dough: Record<string, number>;
+      baked: Record<string, number>;
+    };
     const n = Number(qty) || 0;
     const have = (kind === 'dough' ? st.dough : st.baked)[pid] || 0;
     if (!n || n > have) return run(); // the engine says what is wrong
@@ -2704,8 +3107,15 @@ export class OpsRuntime extends OpsProvider {
     if (this.discardBusy) return;
     const reason = (why || 'Spoiled').trim().slice(0, 80) || 'Spoiled';
     const signature = JSON.stringify([kind, pid, n, reason, st.dropNo]);
-    const fields: DiscardFields =
-      this.pendingDiscards.get(signature) ?? { id: crypto.randomUUID(), kind, productId: pid, qty: n, reason, dropNo: st.dropNo, at: Date.now() };
+    const fields: DiscardFields = this.pendingDiscards.get(signature) ?? {
+      id: crypto.randomUUID(),
+      kind,
+      productId: pid,
+      qty: n,
+      reason,
+      dropNo: st.dropNo,
+      at: Date.now()
+    };
     const problem = discardError(fields);
     if (problem) return void this.toast(problem, 'warn');
     this.pendingDiscards.set(signature, fields);
@@ -2718,7 +3128,10 @@ export class OpsRuntime extends OpsProvider {
     }
     if (result.outcome !== 'offline') this.pendingDiscards.delete(signature);
     if (result.outcome !== 'saved') {
-      this.toast(result.outcome === 'refused' ? PRODUCTION_COPY.refused : PRODUCTION_COPY.notSaved, 'warn');
+      this.toast(
+        result.outcome === 'refused' ? PRODUCTION_COPY.refused : PRODUCTION_COPY.notSaved,
+        'warn'
+      );
       if (result.outcome === 'refused') await this.refreshProduction();
       return;
     }
@@ -2764,7 +3177,8 @@ export class OpsRuntime extends OpsProvider {
         if (!done) return;
         // The record is in. If the sheet is still open, the engine's own bookkeeping (the sheet, the toast) runs against the
         // quantities it showed; its own change to the dough is undone, because the database's record replaces it below.
-        if ((this.state as unknown as ProductionState).doughPrep?.pid === dp.pid) this.keepBookkeeping(() => keep.confirmDough());
+        if ((this.state as unknown as ProductionState).doughPrep?.pid === dp.pid)
+          this.keepBookkeeping(() => keep.confirmDough());
         else this.toast(PRODUCTION_COPY.recorded);
         await this.refreshProduction();
       })();
@@ -2787,7 +3201,8 @@ export class OpsRuntime extends OpsProvider {
           dropNo: s.dropNo
         });
         if (!done) return;
-        if ((this.state as unknown as ProductionState).batch?.pid === b.pid) this.keepBookkeeping(() => keep.confirmBatch());
+        if ((this.state as unknown as ProductionState).batch?.pid === b.pid)
+          this.keepBookkeeping(() => keep.confirmBatch());
         else this.toast(PRODUCTION_COPY.recorded);
         await this.refreshProduction();
       })();
@@ -2882,20 +3297,34 @@ export class OpsRuntime extends OpsProvider {
   }
 
   /** A plain expense: recorded first (once, however often it is repeated), then the engine's own bookkeeping, then the books are read back. */
-  private async livePlainExpense(run: () => void, cat: string, label: string, amount: unknown): Promise<void> {
+  private async livePlainExpense(
+    run: () => void,
+    cat: string,
+    label: string,
+    amount: unknown
+  ): Promise<void> {
     const client = this.booksClient;
     if (this.state.role !== 'owner') return void this.toast(BOOKS_COPY.ownerOnly, 'warn');
     if (!client) return void this.toast(STAFF_COPY.offline, 'warn');
     const cents = pesosToCentavos(Number(amount));
     const signature = JSON.stringify([cat, label, cents]);
-    const fields: ExpenseFields =
-      this.pendingExpenses.get(signature) ?? { id: crypto.randomUUID(), category: cat, memo: String(label ?? '').slice(0, 120), amountCents: cents, at: Date.now() };
+    const fields: ExpenseFields = this.pendingExpenses.get(signature) ?? {
+      id: crypto.randomUUID(),
+      category: cat,
+      memo: String(label ?? '').slice(0, 120),
+      amountCents: cents,
+      at: Date.now()
+    };
     const problem = expenseError(fields);
     if (problem) return void this.toast(problem, 'warn');
     this.pendingExpenses.set(signature, fields);
     const outcome = await recordExpense(client, fields);
     if (outcome !== 'offline') this.pendingExpenses.delete(signature);
-    if (outcome !== 'saved') return void this.toast(outcome === 'refused' ? BOOKS_COPY.refused : BOOKS_COPY.notSaved, 'warn');
+    if (outcome !== 'saved')
+      return void this.toast(
+        outcome === 'refused' ? BOOKS_COPY.refused : BOOKS_COPY.notSaved,
+        'warn'
+      );
     this.withoutUndo(run);
     await this.loadBooks(null);
   }
@@ -2907,19 +3336,29 @@ export class OpsRuntime extends OpsProvider {
     const cents = pesosToCentavos(Number(amount));
     const memo = String(note ?? '').slice(0, 120);
     const signature = JSON.stringify([memo, cents]);
-    const fields: DrawFields = this.pendingDraws.get(signature) ?? { id: crypto.randomUUID(), memo, amountCents: cents, at: Date.now() };
+    const fields: DrawFields = this.pendingDraws.get(signature) ?? {
+      id: crypto.randomUUID(),
+      memo,
+      amountCents: cents,
+      at: Date.now()
+    };
     const problem = drawError(fields);
     if (problem) return void this.toast(problem, 'warn');
     this.pendingDraws.set(signature, fields);
     const outcome = await recordDraw(client, fields);
     if (outcome !== 'offline') this.pendingDraws.delete(signature);
-    if (outcome !== 'saved') return void this.toast(outcome === 'refused' ? BOOKS_COPY.refused : BOOKS_COPY.notSaved, 'warn');
+    if (outcome !== 'saved')
+      return void this.toast(
+        outcome === 'refused' ? BOOKS_COPY.refused : BOOKS_COPY.notSaved,
+        'warn'
+      );
     this.withoutUndo(run);
     await this.loadBooks(null);
   }
 
   private async openBooks(): Promise<void> {
-    if (!(await this.loadBooks(null)) || !this.booksRows) return void this.toast(STAFF_COPY.offline, 'warn');
+    if (!(await this.loadBooks(null)) || !this.booksRows)
+      return void this.toast(STAFF_COPY.offline, 'warn');
     this.sheet('books', {});
   }
 
@@ -2934,8 +3373,14 @@ export class OpsRuntime extends OpsProvider {
       receipts: books.receipts.map((r) => ({
         movementId: r.movementId,
         label:
-          r.item + ' · ' + r.qty + ' · ₱' + (r.costCents / 100).toLocaleString('en-PH') + (r.supplier ? ' · ' + r.supplier : '') +
-          ' · ' + new Date(r.at).toLocaleDateString('en-PH', { day: 'numeric', month: 'short' })
+          r.item +
+          ' · ' +
+          r.qty +
+          ' · ₱' +
+          (r.costCents / 100).toLocaleString('en-PH') +
+          (r.supplier ? ' · ' + r.supplier : '') +
+          ' · ' +
+          new Date(r.at).toLocaleDateString('en-PH', { day: 'numeric', month: 'short' })
       })),
       setBasis: (b) => void this.liveSetBasis(b),
       correct: (movementId, pesos) => void this.liveCorrect(movementId, pesos),
@@ -2951,13 +3396,20 @@ export class OpsRuntime extends OpsProvider {
     const peso = (cents: number) => '₱' + (cents / 100).toLocaleString('en-PH');
     const { rows, totalCents } = unpaidOrders(orders, Date.now());
     return {
-      summary: rows.length ? BOOKS_COPY.unpaidSummary(rows.length, peso(totalCents)) : BOOKS_COPY.unpaidNone,
+      summary: rows.length
+        ? BOOKS_COPY.unpaidSummary(rows.length, peso(totalCents))
+        : BOOKS_COPY.unpaidNone,
       rows: rows.map((r) => ({
         id: r.id,
         title: r.id + ' · ' + r.name,
         detail:
-          (r.status === 'claimed' ? BOOKS_COPY.unpaidClaimed : r.status === 'balance' ? BOOKS_COPY.unpaidBalance : BOOKS_COPY.unpaidWaiting) +
-          ' · ' + BOOKS_COPY.unpaidDays(r.days),
+          (r.status === 'claimed'
+            ? BOOKS_COPY.unpaidClaimed
+            : r.status === 'balance'
+              ? BOOKS_COPY.unpaidBalance
+              : BOOKS_COPY.unpaidWaiting) +
+          ' · ' +
+          BOOKS_COPY.unpaidDays(r.days),
         amount: peso(r.owedCents)
       }))
     };
@@ -2968,7 +3420,11 @@ export class OpsRuntime extends OpsProvider {
     if (this.state.role !== 'owner') return void this.toast(BOOKS_COPY.ownerOnly, 'warn');
     if (!client) return void this.toast(STAFF_COPY.offline, 'warn');
     const outcome = await saveCostBasis(client, basis);
-    if (outcome !== 'saved') return void this.toast(outcome === 'refused' ? BOOKS_COPY.refused : BOOKS_COPY.notSaved, 'warn');
+    if (outcome !== 'saved')
+      return void this.toast(
+        outcome === 'refused' ? BOOKS_COPY.refused : BOOKS_COPY.notSaved,
+        'warn'
+      );
     await this.loadBooks(null);
     this.toast(BOOKS_COPY.basisSaved(basis));
   }
@@ -2978,17 +3434,26 @@ export class OpsRuntime extends OpsProvider {
     if (this.state.role !== 'owner') return void this.toast(BOOKS_COPY.ownerOnly, 'warn');
     if (!client) return void this.toast(STAFF_COPY.offline, 'warn');
     const value = Number(pesos);
-    if (pesos.trim() === '' || !Number.isFinite(value) || value < 0) return void this.toast(BOOKS_COPY.refused, 'warn');
+    if (pesos.trim() === '' || !Number.isFinite(value) || value < 0)
+      return void this.toast(BOOKS_COPY.refused, 'warn');
     const cents = pesosToCentavos(value);
     const signature = JSON.stringify([movementId, cents]);
-    const fields: CorrectionFields =
-      this.pendingCorrections.get(signature) ?? { id: crypto.randomUUID(), movementId, costCents: cents, at: Date.now() };
+    const fields: CorrectionFields = this.pendingCorrections.get(signature) ?? {
+      id: crypto.randomUUID(),
+      movementId,
+      costCents: cents,
+      at: Date.now()
+    };
     const problem = correctionError(fields);
     if (problem) return void this.toast(problem, 'warn');
     this.pendingCorrections.set(signature, fields);
     const outcome = await recordCostCorrection(client, fields);
     if (outcome !== 'offline') this.pendingCorrections.delete(signature);
-    if (outcome !== 'saved') return void this.toast(outcome === 'refused' ? BOOKS_COPY.refused : BOOKS_COPY.notSaved, 'warn');
+    if (outcome !== 'saved')
+      return void this.toast(
+        outcome === 'refused' ? BOOKS_COPY.refused : BOOKS_COPY.notSaved,
+        'warn'
+      );
     await this.loadBooks(null);
     void this.loadStockCatalogue(null); // what was last paid follows the correction
     this.toast(BOOKS_COPY.corrected);
@@ -3139,7 +3604,10 @@ export class OpsRuntime extends OpsProvider {
       void this.liveOrder((s) => s.setStatus(id, 'No-show'), STAFF_COPY.noShow(this.firstName(id)));
     eng.refundOrder = (id, ref) => {
       const amount = PESO(this.orderPesos(id));
-      void this.liveOrder((s) => s.refund(id, String(ref ?? '').trim()), STAFF_COPY.refunded(amount));
+      void this.liveOrder(
+        (s) => s.refund(id, String(ref ?? '').trim()),
+        STAFF_COPY.refunded(amount)
+      );
     };
     eng.packOrder = (id) => {
       const order = this.orderSync?.find(id);
@@ -3155,19 +3623,30 @@ export class OpsRuntime extends OpsProvider {
         let ranShort = '';
         const client = this.productionClient;
         if (this.state.role === 'owner' && client) {
-          const st = this.state as unknown as { dropNo: number; orders: Array<{ id: string; drop?: number | null }> };
+          const st = this.state as unknown as {
+            dropNo: number;
+            orders: Array<{ id: string; drop?: number | null }>;
+          };
           // An order for another week carries no drop number of ours (-1): its cookies are still taken from what is baked now.
           const orderDrop = st.orders.find((o) => o.id === id)?.drop;
           const dropNo = typeof orderDrop === 'number' && orderDrop >= 0 ? orderDrop : st.dropNo;
           const result = await recordPack(client, id, dropNo);
           if (result.outcome !== 'saved') {
-            this.toast(result.outcome === 'offline' ? PRODUCTION_COPY.packNotSaved : PRODUCTION_COPY.refused, 'warn');
+            this.toast(
+              result.outcome === 'offline' ? PRODUCTION_COPY.packNotSaved : PRODUCTION_COPY.refused,
+              'warn'
+            );
             return;
           }
           if (result.shortfall.length)
-            ranShort = PRODUCTION_COPY.ranShort(result.shortfall.map((x) => x.name.toLowerCase()).join(' and '));
+            ranShort = PRODUCTION_COPY.ranShort(
+              result.shortfall.map((x) => x.name.toLowerCase()).join(' and ')
+            );
         }
-        await this.liveOrder((s) => s.setStatus(id, 'Ready'), STAFF_COPY.packed(this.firstName(id)) + ranShort);
+        await this.liveOrder(
+          (s) => s.setStatus(id, 'Ready'),
+          STAFF_COPY.packed(this.firstName(id)) + ranShort
+        );
         if (this.state.role === 'owner' && client) await this.refreshProduction();
       })();
     };
@@ -3379,27 +3858,46 @@ export class OpsRuntime extends OpsProvider {
   private liveProductRows(rows: OpsVals['productRows']): OpsVals['productRows'] {
     return rows.map((row, i) => {
       const pid = PRODUCTS[i]?.id;
-      return pid ? { ...row, edit: () => this.openFlavourEditor(pid),
-        costText: this.completeRecipeCost(pid) ? row.costText : 'Cost pending' } : row;
+      return pid
+        ? {
+            ...row,
+            edit: () => this.openFlavourEditor(pid),
+            costText: this.completeRecipeCost(pid) ? row.costText : 'Cost pending'
+          }
+        : row;
     });
   }
 
   /** Partial recipes and missing prices cannot be presented as a complete zero-peso cost. */
   private completeRecipeCost(pid: unknown): boolean {
-    const recipe = this.recipeRows?.find(row => row.productId === pid);
+    const recipe = this.recipeRows?.find((row) => row.productId === pid);
     const catalogue = this.stockCatalogue;
     if (!recipe?.lines.length || !catalogue) return false;
     const priced = (name: string, unit?: string) => {
-      const item = catalogue.items.find(row => row.active && row.name === name);
+      const item = catalogue.items.find((row) => row.active && row.name === name);
       if (!item || (unit !== undefined && item.unit !== unit)) return false;
-      const paid = (this.state.paid as Record<string, { price: number; qty: number }> | undefined)?.[name];
-      return !!(paid && paid.qty > 0 && paid.price > 0) || catalogue.prices.some(row =>
-        row.active && row.itemName === name && item.packSize !== null && item.packSize > 0 &&
-        row.packLabel === item.packLabel && catalogue.suppliers.some(supplier =>
-          supplier.id === row.supplierId && supplier.active));
+      const paid = (
+        this.state.paid as Record<string, { price: number; qty: number }> | undefined
+      )?.[name];
+      return (
+        !!(paid && paid.qty > 0 && paid.price > 0) ||
+        catalogue.prices.some(
+          (row) =>
+            row.active &&
+            row.itemName === name &&
+            item.packSize !== null &&
+            item.packSize > 0 &&
+            row.packLabel === item.packLabel &&
+            catalogue.suppliers.some(
+              (supplier) => supplier.id === row.supplierId && supplier.active
+            )
+        )
+      );
     };
-    return recipe.lines.every(line => priced(line.name, line.unit)) &&
-      ['Box of 6', 'Brand sticker', 'Thank-you card'].every(name => priced(name));
+    return (
+      recipe.lines.every((line) => priced(line.name, line.unit)) &&
+      ['Box of 6', 'Brand sticker', 'Thank-you card'].every((name) => priced(name))
+    );
   }
 
   /**
@@ -3421,7 +3919,11 @@ export class OpsRuntime extends OpsProvider {
       return {
         ...sheet,
         liveForm: true,
-        title: sh.isNew ? 'Add a payment method' : method ? 'Edit ' + method.label : 'Payment methods'
+        title: sh.isNew
+          ? 'Add a payment method'
+          : method
+            ? 'Edit ' + method.label
+            : 'Payment methods'
       };
     }
     if (this.state.role === 'owner' && sh?.kind === 'shoptexts')
@@ -3662,7 +4164,10 @@ export class OpsRuntime extends OpsProvider {
     this.setState({ cust: { ...BLANK_CUST, box } });
     this.go('shop');
     const any = Object.keys(box).length > 0;
-    this.toast(any ? 'Same box loaded. Change anything before you check out.' : ORDER_COPY.noMenu, any ? 'ok' : 'warn');
+    this.toast(
+      any ? 'Same box loaded. Change anything before you check out.' : ORDER_COPY.noMenu,
+      any ? 'ok' : 'warn'
+    );
   }
 
   /**
@@ -3700,7 +4205,9 @@ export class OpsRuntime extends OpsProvider {
    */
   private customerSheetKind(): 'liveLookup' | 'liveWaitlist' | null {
     const kind = (this.state.sheet as FlavourSheetState | null)?.kind;
-    return this.onCustomerScreen() && (kind === 'liveLookup' || kind === 'liveWaitlist') ? kind : null;
+    return this.onCustomerScreen() && (kind === 'liveLookup' || kind === 'liveWaitlist')
+      ? kind
+      : null;
   }
 
   private openLookupSheet(): void {
@@ -3709,7 +4216,8 @@ export class OpsRuntime extends OpsProvider {
   }
 
   private openWaitlist(): void {
-    if (this.orderFlow && this.orderFlow.waitlistState !== 'unknown') this.orderFlow.resetWaitlist();
+    if (this.orderFlow && this.orderFlow.waitlistState !== 'unknown')
+      this.orderFlow.resetWaitlist();
     this.sheet('liveWaitlist', {});
   }
 
@@ -3734,7 +4242,9 @@ export class OpsRuntime extends OpsProvider {
     const placed = flow?.placed ?? null;
     const statusUrl = (token: string) => window.location.origin + '/status#t=' + token;
     const x = flow?.extras ?? null;
-    const dates = rules ? pickupDates(rules, Date.now(), x?.sameDay.enabled ? x.sameDay.percent : null) : [];
+    const dates = rules
+      ? pickupDates(rules, Date.now(), x?.sameDay.enabled ? x.sameDay.percent : null)
+      : [];
     const sameDayPicked = dates.some((d) => d.sameDay && d.value === c.pickupDate);
     // What the customer can see right now, kept for `liveSubmit`: a same-day date shown as same-day was agreed to.
     if (flow) flow.renderedSameDay = sameDayPicked ? (c.pickupDate ?? null) : null;
@@ -3743,7 +4253,10 @@ export class OpsRuntime extends OpsProvider {
     const cookieQty = Object.entries(c.box ?? {})
       .filter(([id]) => id !== samplerId)
       .reduce((n, [, qty]) => n + Math.max(0, qty), 0);
-    const boxed = Object.entries(flow?.boxQty ?? {}).reduce((n, [size, qty]) => n + Number(size) * qty, 0);
+    const boxed = Object.entries(flow?.boxQty ?? {}).reduce(
+      (n, [size, qty]) => n + Number(size) * qty,
+      0
+    );
     const money = (cents: number) => PESO(centavosToPesos(centavosFromDb(cents)));
     const extras: NonNullable<OpsVals['liveCheckout']>['extras'] = x
       ? {
@@ -3753,12 +4266,16 @@ export class OpsRuntime extends OpsProvider {
               ? ORDER_COPY.extras.noSlotsToday
               : ORDER_COPY.extras.sameDayNotice(x.sameDay.percent),
           boxes:
-            x.boxes.length && (cookieQty >= x.boxes[0]!.size || Object.keys(flow?.boxQty ?? {}).length > 0)
+            x.boxes.length &&
+            (cookieQty >= x.boxes[0]!.size || Object.keys(flow?.boxQty ?? {}).length > 0)
               ? x.boxes.map((b) => {
                   const qty = flow?.boxQty[b.size] ?? 0;
                   return {
                     size: b.size,
-                    label: ORDER_COPY.extras.boxLabel(b.size, b.chargeCents > 0 ? money(b.chargeCents) : ''),
+                    label: ORDER_COPY.extras.boxLabel(
+                      b.size,
+                      b.chargeCents > 0 ? money(b.chargeCents) : ''
+                    ),
                     qty,
                     max: qty + Math.max(0, Math.floor((cookieQty - boxed) / b.size)),
                     setQty: (n: number) => flow?.setBox(b.size, n)
@@ -3792,7 +4309,9 @@ export class OpsRuntime extends OpsProvider {
           })
         }
       : null;
-    const anyExtras = Object.keys(flow?.boxQty ?? {}).length > 0 || Object.values(flow?.lines ?? {}).some((l) => l.qty > 0);
+    const anyExtras =
+      Object.keys(flow?.boxQty ?? {}).length > 0 ||
+      Object.values(flow?.lines ?? {}).some((l) => l.qty > 0);
     return {
       fields: {
         name: c.name ?? '',
@@ -3909,7 +4428,11 @@ export class OpsRuntime extends OpsProvider {
     if (state === 'loading') return { ...shell, heroTitle: ORDER_COPY.loadingOrder, heroBody: '' };
     if (state === 'error')
       return { ...shell, heroTitle: ORDER_COPY.statusErrorTitle, heroBody: ORDER_COPY.statusError };
-    return { ...shell, heroTitle: ORDER_COPY.statusMissingTitle, heroBody: ORDER_COPY.statusMissing };
+    return {
+      ...shell,
+      heroTitle: ORDER_COPY.statusMissingTitle,
+      heroBody: ORDER_COPY.statusMissing
+    };
   }
 
   /** The shop footer's lines: the owner's own text, or nothing (finding 16). */
@@ -4024,7 +4547,7 @@ export class OpsRuntime extends OpsProvider {
       this.setState({});
       return;
     }
-    this.operationsQueue = queue.filter(row => row.state !== 'sent').length;
+    this.operationsQueue = queue.filter((row) => row.state !== 'sent').length;
     const states = new Map(queue.map((row) => [row.clientId, row.state]));
     this.setState((s) => {
       const sales = (s.sales as EventSale[]).map((sale) => {
@@ -4032,7 +4555,9 @@ export class OpsRuntime extends OpsProvider {
         if (!state) return sale;
         const synced = state === 'sent';
         const failed = state === 'failed';
-        return sale.synced === synced && sale.failed === failed ? sale : { ...sale, synced, failed };
+        return sale.synced === synced && sale.failed === failed
+          ? sale
+          : { ...sale, synced, failed };
       });
       return { sales, unsynced: sales.filter((sale) => !sale.synced).length };
     });
@@ -4054,7 +4579,10 @@ export class OpsRuntime extends OpsProvider {
     const result = await this.flushSales();
     if (result.skipped) {
       this.setState({ syncState: 'partial', syncTried: true });
-      this.toast('Sales are safe on this phone. They will send once it can reach the server.', 'warn');
+      this.toast(
+        'Sales are safe on this phone. They will send once it can reach the server.',
+        'warn'
+      );
       return;
     }
     const sentIds = new Set(result.sent);
@@ -4076,7 +4604,10 @@ export class OpsRuntime extends OpsProvider {
             )
       }));
       if (result.failed.some((f) => f.permanent)) {
-        this.toast('The server refused something it was sent. It is still saved on this phone. Ask Ethan to look at it.', 'warn');
+        this.toast(
+          'The server refused something it was sent. It is still saved on this phone. Ask Ethan to look at it.',
+          'warn'
+        );
         return;
       }
       this.toast(
