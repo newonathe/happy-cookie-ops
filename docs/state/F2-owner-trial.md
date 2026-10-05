@@ -4,6 +4,21 @@ Status: closed-shop test preparation (2026-10-04); no real-week run or Cine feed
 
 Keep customer/staff names, contact details, account numbers, screenshots, raw CSVs, recipes, and private feedback outside Git. Use app record IDs without names and sanitized evidence references here; retain the evidence privately.
 
+## Scope approved on 5 October 2026: closed-shop week
+
+Ethan approved running the week closed-shop. Cine uses menu and flavours, prices, recipes,
+stock and Weekly count, production, waste, expenses, books/P&L/CSV and health every day on
+the private link. The order, payment, packing and collection rows below are filled from a
+few agreed **test orders** placed by Ethan or Cine through that same link, marked as test
+in the log, with no real customer and no real money. Real customer ordering, allergen
+publication and shop opening wait for launch and are not part of this week. Where a line
+below says "real order", read "agreed test order". The destination is the existing private
+trial; no new resource is needed.
+
+Needed to start (about an hour): Cine signs in on her iPhone and MacBook, changes the
+temporary password, and the seven dates are written below. During the week: opening count
+on day 1, and each of the six recipes weighed when it is next baked.
+
 ## Before the week starts
 
 - Ethan's approved real-data destination and approval date: _____________________
@@ -55,6 +70,12 @@ Open alerts, errors, blocked scenarios and fix-list IDs: _______________________
 Cine's overall feedback / remaining concerns (private reference only): ______________________________
 
 ## Physical-phone rehearsal — complete before the 20 October gate
+
+Since 5 October the automated WebKit run of OFFLINE-01 no longer exercises offline
+behaviour (Playwright emulator defect, upstream issue 42775). This rehearsal is the only
+proof for Safari. It must show, on the actual phone: a sale made with no connection, the
+app reopened with no connection and the sale still there, reconnection sending it once,
+and no duplicate at close-out.
 
 Run this on the designated actual phone early enough to fix and repeat failures before 20 Oct. A synthetic or headless run cannot fill this record. Use reserved test stock and an agreed test sale; keep customer data out of the evidence copy.
 

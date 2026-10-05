@@ -8,6 +8,21 @@ Codex reached its usage limit at 03:52 Manila mid-commit. Ethan continued the sa
 goal in Claude Code (Opus coordinating, no workers used). Everything below this section
 is older.
 
+- **Two owner decisions, 5 October ("yes to both").**
+  1. _OFFLINE-01 on WebKit_ (`784678e`). The test now handles the Playwright WebKit
+     emulator defect on the `webkit` project only: the sale is made online, the offline
+     reload must fail with exactly the known error (so the run turns red when Playwright
+     fixes it), and every later assertion still runs. Phone and desktop Chromium are
+     unchanged. CI Linux image: 14 of 14 WebKit and 6 of 6 Chromium runs pass;
+     independent Sonnet review ACCEPT. The emulator no longer says anything about
+     Safari offline behaviour, so the **physical-phone rehearsal is the only Safari
+     proof** and must cover selling offline, reopening offline, reconnecting and no
+     duplicates. The 20 October gate is now: this test green plus that rehearsal.
+  2. _Closed-shop trial week._ Cine uses menu, stock, production, expenses and books
+     daily on the private link. Order, payment, packing and collection steps are
+     exercised with a few agreed test orders placed by Ethan or Cine through the same
+     private link. Real customer ordering waits for launch; the shop stays closed and
+     the Access gate stays at two mailboxes. See [F2-owner-trial.md](F2-owner-trial.md).
 - **Formatting gate is green and GitHub CI ran past it for the first time.** Ethan
   approved formatting the last two files ("yes format both"); `261a250` applies exactly
   the recorded candidates and `pnpm format:check` passes with zero failures. GitHub run

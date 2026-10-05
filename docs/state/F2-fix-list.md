@@ -1,5 +1,15 @@
 # F2 fix list — updated 2026-10-04
 
+## OFFLINE-01 WebKit handling approved — 5 October
+
+- F2-001 resolution for the automated gate: `784678e` handles the Playwright WebKit emulator
+  defect on the `webkit` project only, with owner approval. The known error is required at the
+  offline reload, so the run fails when Playwright fixes it; later assertions still run; Chromium
+  is unchanged. 14 of 14 WebKit and 6 of 6 Chromium runs in the CI Linux image; independent review
+  ACCEPT. A first variant that kept the sale offline on WebKit was rejected after 2 of 10 cold
+  runs timed out at the payment sheet. Safari offline behaviour is now proven only by the
+  physical-phone rehearsal, which is still open.
+
 ## OFFLINE-01 on Linux — 5 October
 
 - F2-001 update: OFFLINE-01 was run alone in the CI Playwright 1.63.0 Linux image. WebKit failed 3 of 3

@@ -4,36 +4,37 @@ The approved forward plan is [finish-plan.md](finish-plan.md), section 6. F1 is 
 
 ## Current goal — after the Claude continuation of 5 October
 
-Latest pushed checkpoint: see `git log`; `261a250` made `format:check` green. GitHub run
-37273965631 passes every required job except browser flows, whose single failure is
-WebKit OFFLINE-01 (89 passed / 1 failed / 75 skipped). The deployment secret is
-configured, so the first fully green run on this branch releases the existing private
-trial automatically. Either agent may continue; when Claude runs it, read
-"Codex Sol/high" as Claude Opus coordinating with at most two pinned Sonnet workers.
+Latest pushed checkpoint: see `git log`. `format:check` is green. OFFLINE-01 handles the
+Playwright WebKit emulator defect on WebKit only (`784678e`, owner-approved), and Ethan
+approved a closed-shop trial week. Check the newest GitHub run and
+`docs/state/current.md` for whether the automatic private-trial release ran. Either agent
+may continue; when Claude runs it, read "Codex Sol/high" as Claude Opus coordinating with
+at most two pinned Sonnet workers.
 
 ```text
 /goal Continue F2 from the latest pushed commit in
 C:\Users\ethan\dev\happy-cookie-ops-g0. Read AGENTS.md, current.md (top section),
-F2-count-custody-device-preparation.md and evidence/F2-offline01-linux-probe.json.
+F2-owner-trial.md and F2-count-custody-device-preparation.md.
 Do not restart setup, reimport the 804 financial rows or reformat evidence receipts.
-1. OFFLINE-01: keep the test unchanged. Check Playwright issue 42775 and whether a
-   release fixes it. If one does, prepare a pinned upgrade (package, lockfile, CI image
-   tag, Dockerfile.visual) with a Docker run of the browser and visual suites, and ask
-   for approval before committing it. Do not skip, retry-mask or rewrite the test. If no
-   fix is released, record that and ask Ethan to choose between waiting and the
-   12-13 December pilot dates.
-2. Cine's inputs: prepare and then record only what people actually supply: opening
-   count, six recipe measurements, allergens, password and backup custody, real iPhone
-   Safari/Chrome and MacBook checks, seven trial dates and her feedback.
-3. Advisory only: the performance-budget job cannot load its page on GitHub
-   (127.0.0.1:3000). Diagnose it if time allows; it does not gate the release.
+1. Check the newest GitHub CI run and the private trial. If the automatic release ran,
+   verify the gate, anonymous denial and version read-only and record it; if a job
+   failed, diagnose from its log before changing anything.
+2. Run Cine's closed-shop week from F2-owner-trial.md: record her sign-in on iPhone and
+   MacBook, password change, seven dates, opening count, the six recipes as she weighs
+   them, agreed test orders, daily log and feedback. Record only what people supply.
+   Fix reproduced defects in small reviewed slices.
+3. Physical-phone rehearsal before 20 October: selling offline, reopening offline,
+   reconnecting once, no duplicates. It is the only Safari proof.
+4. Watch Playwright issue 42775. When a release fixes it the WebKit run of OFFLINE-01
+   turns red: then prepare the pinned upgrade and remove the WebKit branches, with a
+   Docker run of the browser and visual suites, and ask before committing.
 Historical stock reconciliation stays closed until dated counts, units and opening
-balances exist. F2 incomplete and F3 closed until Cine accepts the real week; OFFLINE-01
-and the actual-phone rehearsal must both pass by 20 October. Pinned tools, headless
-command-line Playwright only, at most two bounded workers, stop after two failed
-repairs on one issue or 25 turns. Verify, secret-scan, commit and push accepted slices.
-No new resources, shop opening, production launch, business jobs, merge or automatic
-runner without explicit approval. Finish with actual gaps and the next goal.
+balances exist. F2 incomplete and F3 closed until Cine accepts the week. Pinned tools,
+headless command-line Playwright only, at most two bounded workers, stop after two
+failed repairs on one issue or 25 turns. Verify, secret-scan, commit and push accepted
+slices. No new resources, shop opening, real customers, production launch, business
+jobs, merge or automatic runner without explicit approval. Finish with actual gaps and
+the next goal.
 ```
 
 ## Session settings (Codex runs before the Claude continuation)
