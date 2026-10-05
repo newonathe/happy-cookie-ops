@@ -1,5 +1,5 @@
 {
-  "note": "Every settings key save_setting() validates, from the newest migration that defines save_setting() (20260101002900_settings_preferences.sql since MP-09 b3). Read by tests/unit/settings-parity.test.ts, which checks each row two ways: against the running engine (source 'engine') for keys the engine itself bounds, and against the migration's own VALUES text for every key. A key with source 'sql-only' has no engine-side bound; its bounds are this migration's own documented choice (see the migration's comment).",
+  "note": "Every settings key save_setting() validates, from the newest migration that defines save_setting() (20260101005300_offline_open_hours.sql since slice A2; 20260101002900_settings_preferences.sql before it). Read by tests/unit/settings-parity.test.ts, which checks each row two ways: against the running engine (source 'engine') for keys the engine itself bounds, and against the migration's own VALUES text for every key. A key with source 'sql-only' has no engine-side bound; its bounds are this migration's own documented choice (see the migration's comment).",
   "keys": [
     {
       "key": "capacity",
@@ -238,6 +238,14 @@
       "max": 1,
       "enum": null,
       "source": "sql-only: owner switch, 0 off / 1 on, Cine 2026-09-28 (MP-09 b3)"
+    },
+    {
+      "key": "offlineOpenHours",
+      "column": "int",
+      "min": 1,
+      "max": 72,
+      "enum": null,
+      "source": "sql-only: hours Bazaar Mode may open offline after the last online check, labelled default 48 (A2, Ethan 2026-10-05)"
     }
   ]
 }

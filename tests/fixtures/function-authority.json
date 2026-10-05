@@ -474,7 +474,7 @@
         "search_path=pg_catalog, public, pg_temp"
       ],
       "returns": "TABLE(key text, int_value bigint, text_value text, cents_value bigint, json_value jsonb, is_default boolean)",
-      "body_md5": "24d653b680d5f0a50fc621e6ebc1da11",
+      "body_md5": "15257c62af1b6002eebe036694657b66",
       "identity": "",
       "execute_anon": false,
       "security_definer": false,
@@ -744,7 +744,7 @@
         "search_path=\"\""
       ],
       "returns": "TABLE(key text, updated_at timestamp with time zone)",
-      "body_md5": "0083e32608ec177c7faf69dc2a355254",
+      "body_md5": "93c717f0974f972a0da5b222ae14ae52",
       "identity": "p_key text, p_value jsonb, p_expected_updated_at timestamp with time zone",
       "execute_anon": false,
       "security_definer": true,
@@ -759,7 +759,7 @@
         "search_path=\"\""
       ],
       "returns": "TABLE(key text, int_value bigint, text_value text, cents_value bigint, json_value jsonb, is_default boolean, updated_at timestamp with time zone)",
-      "body_md5": "799d3d984d8132792c9c8f424810669d",
+      "body_md5": "9b05e6a96e69c9a6eb9bddcbd876e35c",
       "identity": "",
       "execute_anon": false,
       "security_definer": true,

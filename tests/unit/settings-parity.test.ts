@@ -27,7 +27,7 @@ const cases = settingsCases.keys as SettingsCase[];
 
 const ENGINE_PATH = path.resolve(__dirname, '../../src/store/engine/ops-engine.js');
 // The newest migration that (re)defines save_setting() is the one in force: b1's
-// 20260101002800 until MP-09 b3's 20260101002900 replaced it. Pinning a file name here
+// 20260101002800, then MP-09 b3's 20260101002900, then slice A2's 20260101005300. Pinning a file name here
 // would let a later redefinition drift while this test kept passing against stale text.
 const MIGRATIONS_DIR = path.resolve(__dirname, '../../supabase/migrations');
 const MIGRATION_PATH = path.join(
@@ -46,13 +46,13 @@ const engineSource = readFileSync(ENGINE_PATH, 'utf8');
 const migrationSource = readFileSync(MIGRATION_PATH, 'utf8');
 
 describe('settings-cases.json completeness', () => {
-  it('has exactly 28 keys, each named once', () => {
-    expect(cases).toHaveLength(28);
-    expect(new Set(cases.map((c) => c.key)).size).toBe(28);
+  it('has exactly 29 keys, each named once', () => {
+    expect(cases).toHaveLength(29);
+    expect(new Set(cases.map((c) => c.key)).size).toBe(29);
   });
 
   it('reads the newest save_setting() definition', () => {
-    expect(path.basename(MIGRATION_PATH)).toBe('20260101002900_settings_preferences.sql');
+    expect(path.basename(MIGRATION_PATH)).toBe('20260101005300_offline_open_hours.sql');
   });
 
   it('gives every numeric or list key a min and max, and every text or channel key an enum', () => {

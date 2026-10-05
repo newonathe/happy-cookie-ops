@@ -44,7 +44,8 @@ export const SETTING_COLUMNS: Readonly<Record<string, SettingColumn>> = {
   channels: 'channels',
   categories: 'list',
   inactiveCats: 'list',
-  helperSeesSales: 'int'
+  helperSeesSales: 'int',
+  offlineOpenHours: 'int'
 };
 
 /** Keys the engine keeps at the top of its state, not inside `cfg`. */
