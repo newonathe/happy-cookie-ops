@@ -66,8 +66,9 @@ async function mounted(
   return { runtime, rpc };
 }
 
-const businessItems = (runtime: OpsRuntime) =>
-  runtime.renderVals().toolGroups.find((g) => g.title === 'Business')?.items ?? [];
+/** The live owner's "Menu and recipes" group in All tools (UX review, proposal 1). */
+const menuItems = (runtime: OpsRuntime) =>
+  runtime.renderVals().toolGroups.find((g) => g.title === 'Menu and recipes')?.items ?? [];
 
 const toastText = (runtime: OpsRuntime) => JSON.stringify(runtime.state.toast ?? null);
 
@@ -92,7 +93,7 @@ describe('MP-09 c1c: the flavour editor and Publish menu', () => {
 
   it('adds "Menu & flavours" for the owner only, and opens the list on tap', async () => {
     const { runtime: owner } = await mounted('owner');
-    const item = businessItems(owner).find((i) => i.label === 'Menu & flavours');
+    const item = menuItems(owner).find((i) => i.label === 'Menu & flavours');
     expect(item).toBeDefined();
     expect(owner.renderVals().liveForm).toBeNull();
     act(() => item!.go());
@@ -103,7 +104,77 @@ describe('MP-09 c1c: the flavour editor and Publish menu', () => {
     expect(vals.liveForm?.editing).toBeNull();
 
     const { runtime: helper } = await mounted('helper');
-    expect(businessItems(helper).find((i) => i.label === 'Menu & flavours')).toBeUndefined();
+    expect(
+      helper
+        .renderVals()
+        .toolGroups.flatMap((g) => g.items)
+        .find((i) => i.label === 'Menu & flavours')
+    ).toBeUndefined();
+  });
+
+  it('groups the four flavour and recipe entries under "Menu and recipes", each once, saying what it is for', async () => {
+    const { runtime } = await mounted('owner');
+    const groups = runtime.renderVals().toolGroups;
+    expect(groups.map((g) => g.title)).toEqual([
+      'Orders',
+      'Kitchen',
+      'Menu and recipes',
+      'Business',
+      'System',
+      'Customer view'
+    ]);
+    expect(menuItems(runtime).map((i) => [i.label, i.sub])).toEqual([
+      ['Menu & flavours', '6 flavours · add, edit and publish'],
+      ['Products', "Each flavour's price and cost, side by side"],
+      ['Recipes', 'Measured ingredients, for cost and stock'],
+      ['Recipe drafts', 'Your original recipe text, as you wrote it']
+    ]);
+    const labels = groups.flatMap((g) => g.items.map((i) => i.label));
+    for (const label of ['Menu & flavours', 'Products', 'Recipes', 'Recipe drafts'])
+      expect(labels.filter((l) => l === label)).toHaveLength(1);
+    // Nothing else moved: the other entries stay where they were.
+    expect(groups.find((g) => g.title === 'Kitchen')?.items.map((i) => i.label)).toEqual([
+      'Bake & dough',
+      'Inventory',
+      'Grocery'
+    ]);
+    expect(
+      groups
+        .find((g) => g.title === 'Business')
+        ?.items.slice(0, 5)
+        .map((i) => i.label)
+    ).toEqual(['Profit & loss', 'Payments', 'Bazaar Mode', 'Suppliers', 'Payment methods']);
+    // The moved entries still open their screens.
+    act(() =>
+      menuItems(runtime)
+        .find((i) => i.label === 'Products')!
+        .go()
+    );
+    expect(runtime.state.screen).toBe('products');
+    act(() =>
+      menuItems(runtime)
+        .find((i) => i.label === 'Recipes')!
+        .go()
+    );
+    expect(runtime.state.screen).toBe('recipes');
+  });
+
+  it('leaves All tools as ported for a helper and in demo mode', async () => {
+    const { runtime: helper } = await mounted('helper');
+    expect(helper.renderVals().toolGroups.some((g) => g.title === 'Menu and recipes')).toBe(false);
+    cleanup();
+    live = false;
+    const ref: { current: OpsRuntime | null } = { current: null };
+    render(<OpsRuntime ref={(r) => void (ref.current = r)} />);
+    act(() => ref.current!.setRole('owner'));
+    const groups = ref.current!.renderVals().toolGroups;
+    expect(groups.some((g) => g.title === 'Menu and recipes')).toBe(false);
+    expect(groups.find((g) => g.title === 'Kitchen')?.items.map((i) => i.label)).toContain(
+      'Recipes'
+    );
+    expect(groups.find((g) => g.title === 'Business')?.items.map((i) => i.label)).toContain(
+      'Products'
+    );
   });
 
   it("the products screen's Edit price opens the live editor for the owner, not the ported sheet", async () => {
@@ -141,7 +212,7 @@ describe('MP-09 c1c: the flavour editor and Publish menu', () => {
       return { data: [{ id: args.p_id, updated_at: '2026-09-28T03:00:00.000Z' }], error: null };
     });
     act(() =>
-      businessItems(runtime)
+      menuItems(runtime)
         .find((i) => i.label === 'Menu & flavours')!
         .go()
     );
@@ -212,7 +283,7 @@ describe('MP-09 c1c: the flavour editor and Publish menu', () => {
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     try {
       act(() =>
-        businessItems(runtime)
+        menuItems(runtime)
           .find((i) => i.label === 'Menu & flavours')!
           .go()
       );

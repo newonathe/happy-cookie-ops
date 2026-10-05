@@ -526,6 +526,15 @@ function clearPendingLink(link: PendingLink): void {
   writePendingLinks(readPendingLinks().filter((l) => l.scheduledId !== link.scheduledId));
 }
 
+/** All tools › Menu and recipes (UX review, proposal 1): what each of the four entries is for. */
+const MENU_TOOLS = {
+  title: 'Menu and recipes',
+  flavours: ' · add, edit and publish',
+  products: "Each flavour's price and cost, side by side",
+  recipes: 'Measured ingredients, for cost and stock',
+  drafts: 'Your original recipe text, as you wrote it'
+} as const;
+
 export class OpsRuntime extends OpsProvider {
   /**
    * Where bazaar sales go. Null uses the signed-in browser client, or nothing at all in a
@@ -3801,30 +3810,47 @@ export class OpsRuntime extends OpsProvider {
     }
   }
 
-  /** "Menu & flavours" in the Business group. No markup edit: All tools already maps `toolGroups`. */
+  /**
+   * The live owner's All tools. No markup edit: All tools already maps `toolGroups`.
+   *
+   * UX review, proposal 1: the four flavour and recipe entries were spread over Kitchen
+   * (Recipes) and Business (Products, Menu & flavours, Recipe drafts). They sit together in
+   * one "Menu and recipes" group after Kitchen, each with a line saying what it is for.
+   */
   private liveToolGroups(groups: OpsVals['toolGroups']): OpsVals['toolGroups'] {
-    return groups.map((g) =>
+    const ported = (label: string) =>
+      groups.flatMap((g) => g.items).find((item) => item.label === label);
+    const products = ported('Products');
+    const recipes = ported('Recipes');
+    const menuGroup: OpsVals['toolGroups'][number] = {
+      title: MENU_TOOLS.title,
+      items: [
+        {
+          icon: this.IC.cookie,
+          label: 'Menu & flavours',
+          sub:
+            plural(this.flavourSync?.current().length ?? 0, 'flavour', 'flavours') +
+            MENU_TOOLS.flavours,
+          badge: null,
+          go: () => this.openFlavourList()
+        },
+        ...(products ? [{ ...products, sub: MENU_TOOLS.products }] : []),
+        ...(recipes ? [{ ...recipes, sub: MENU_TOOLS.recipes }] : []),
+        {
+          icon: this.IC.cookie,
+          label: 'Recipe drafts',
+          sub: MENU_TOOLS.drafts,
+          badge: null,
+          go: () => void this.openRecipeDrafts()
+        }
+      ]
+    };
+    const live = groups.map((g) =>
       g.title === 'Business'
         ? {
             ...g,
             items: [
               ...g.items,
-              {
-                icon: this.IC.cookie,
-                label: 'Menu & flavours',
-                sub:
-                  plural(this.flavourSync?.current().length ?? 0, 'flavour', 'flavours') +
-                  ' · edit, add, publish',
-                badge: null,
-                go: () => this.openFlavourList()
-              },
-              {
-                icon: this.IC.cookie,
-                label: 'Recipe drafts',
-                sub: 'Original recipe text and batch yield',
-                badge: null,
-                go: () => void this.openRecipeDrafts()
-              },
               {
                 icon: this.IC.cookie,
                 label: 'Payment methods',
@@ -3892,6 +3918,14 @@ export class OpsRuntime extends OpsProvider {
           }
         : g
     );
+    const rest = live
+      .map((g) => ({
+        ...g,
+        items: g.items.filter((item) => item !== products && item !== recipes)
+      }))
+      .filter((g) => g.items.length > 0);
+    const at = rest.findIndex((g) => g.title === 'Kitchen') + 1;
+    return [...rest.slice(0, at), menuGroup, ...rest.slice(at)];
   }
 
   /** The products screen's "Edit price" opens the live flavour editor instead of the ported sheet. */
