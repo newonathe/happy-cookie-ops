@@ -16,8 +16,8 @@ at most two pinned Sonnet workers.
 C:\Users\ethan\dev\happy-cookie-ops-g0. Read AGENTS.md, current.md (top section),
 F2-owner-trial.md and F2-count-custody-device-preparation.md.
 Do not restart setup, reimport the 804 financial rows or reformat evidence receipts.
-1. Confirm with Ethan that he can still sign in on the private trial after the first
-   automatic release (Worker eefade3a). Remember every green push to this branch now
+1. Ethan confirmed sign-in on the released trial (Worker eefade3a) on 5 October; Cine's
+   own sign-in is still open. Remember every green push to this branch now
    redeploys it: keep pushes to accepted slices and read each CI run. A transient
    next/font Google-font download failure can fail a build job; re-run that job.
 2. Run Cine's closed-shop week from F2-owner-trial.md: record her sign-in on iPhone and

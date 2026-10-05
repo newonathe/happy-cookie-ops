@@ -14,8 +14,7 @@ is older.
   153 files to the existing Worker as version `eefade3a-24da-4ac6-9bec-fed8b9b3136b`.
   The release script's before-and-after gate checks passed. Independent read-only
   preflight afterwards: PASS. Anonymous requests to `/`, `/pl` and `/sw.js` all return
-  302 to Cloudflare Access. No new resource; shop still closed. A human sign-in on the
-  updated app has not been confirmed yet. Two things were needed first: a re-run of
+  302 to Cloudflare Access. No new resource; shop still closed. Ethan confirmed on 5 October that he signed in on the updated app and the dashboard loads; Cine's sign-in is still separate. Two things were needed first: a re-run of
   the build job after a transient `next/font` Google-font download failure in run
   37276284314, and `80fbcf1`, which trusts the checkout inside the release container
   (Git refused it as "dubious ownership"). The advisory performance-budget job still

@@ -943,7 +943,7 @@
       "releaseScriptGateChecks": "PASS before and after",
       "independentReadOnlyPreflightAfter": "PASS",
       "anonymousRootPnlServiceWorker": "302 to Cloudflare Access",
-      "humanSignInAfterRelease": "not yet confirmed",
+      "humanSignInAfterRelease": "Ethan confirmed 2026-10-05: signed in, dashboard loads; Cine separate",
       "newResources": 0
     },
     "offline01LinuxProbe": "docs/state/evidence/F2-offline01-linux-probe.json",
