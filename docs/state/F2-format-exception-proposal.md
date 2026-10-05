@@ -1,6 +1,8 @@
 # F2 protected formatting proposal — 5 October 2026
 
-Status: **two files await Ethan's specific approval; both sources are unchanged.**
+Status: **approved by Ethan on 2026-10-05 ("yes format both") and applied.** Both files now
+hold exactly the candidate bytes below; `pnpm format:check` passes with zero failures.
+The text below is kept as the record of what was proposed.
 
 ## What changed since the first proposal
 

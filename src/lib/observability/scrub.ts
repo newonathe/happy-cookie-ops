@@ -20,7 +20,12 @@ export function scrubText(input: string): string {
 }
 
 function safeField(key: string, value: unknown): unknown {
-  if (Object.hasOwn(ENUM_VALUES, key) && typeof value === 'string' && ENUM_VALUES[key].includes(value)) return value;
+  if (
+    Object.hasOwn(ENUM_VALUES, key) &&
+    typeof value === 'string' &&
+    ENUM_VALUES[key].includes(value)
+  )
+    return value;
   if (NUMERIC_KEYS.has(key) && typeof value === 'number' && Number.isFinite(value)) return value;
   if (key === 'online' && typeof value === 'boolean') return value;
   return REDACTED;
@@ -34,7 +39,8 @@ export function scrubValue(value: unknown): unknown {
     const out: Record<string, unknown> = {};
     let redacted = 0;
     for (const [key, inner] of Object.entries(value)) {
-      if (Object.hasOwn(ENUM_VALUES, key) || NUMERIC_KEYS.has(key) || key === 'online') out[key] = safeField(key, inner);
+      if (Object.hasOwn(ENUM_VALUES, key) || NUMERIC_KEYS.has(key) || key === 'online')
+        out[key] = safeField(key, inner);
       else redacted++;
     }
     if (redacted) out._redacted = redacted;
@@ -56,8 +62,19 @@ interface ReportLike {
 }
 
 const REPORT_FIELDS = new Set([
-  'message', 'request', 'extra', 'contexts', 'data', 'breadcrumbs', 'exception',
-  'event_id', 'timestamp', 'level', 'platform', 'type', 'environment'
+  'message',
+  'request',
+  'extra',
+  'contexts',
+  'data',
+  'breadcrumbs',
+  'exception',
+  'event_id',
+  'timestamp',
+  'level',
+  'platform',
+  'type',
+  'environment'
 ]);
 
 /** Strip unknown SDK payloads too: tags, URLs, spans and stack locals can contain PII. */
@@ -66,7 +83,8 @@ export function scrubReport<T extends ReportLike>(report: T): T {
     if (!REPORT_FIELDS.has(key)) {
       Reflect.deleteProperty(report, key);
     } else if (key === 'event_id') {
-      if (typeof value !== 'string' || !/^[a-f0-9]{32}$/i.test(value)) Reflect.deleteProperty(report, key);
+      if (typeof value !== 'string' || !/^[a-f0-9]{32}$/i.test(value))
+        Reflect.deleteProperty(report, key);
     } else if (Object.hasOwn(ENUM_VALUES, key) || NUMERIC_KEYS.has(key)) {
       if (safeField(key, value) === REDACTED) Reflect.deleteProperty(report, key);
     }
@@ -77,7 +95,8 @@ export function scrubReport<T extends ReportLike>(report: T): T {
   if (report.data !== undefined) report.data = scrubValue(report.data);
   if (report.request) {
     const path = report.request.url?.split(/[?#]/)[0];
-    report.request = typeof path === 'string' && ENUM_VALUES.route.includes(path) ? { url: path } : {};
+    report.request =
+      typeof path === 'string' && ENUM_VALUES.route.includes(path) ? { url: path } : {};
   }
   if (report.exception) {
     report.exception = { values: report.exception.values?.map(() => ({ value: REDACTED })) };

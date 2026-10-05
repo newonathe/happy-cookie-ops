@@ -627,3 +627,21 @@ This supersedes the single-file candidate in
 was never applied and `src/components/screens/all-tools.tsx` keeps its original
 bytes. `src/lib/observability/scrub.ts` and `tests/e2e/visual.spec.ts` are not
 covered by this exception and remain unformatted pending a specific decision.
+
+## F2 formatting of two do-not-touch files (approved 2026-10-05)
+
+Ethan approved formatting `src/lib/observability/scrub.ts` and
+`tests/e2e/visual.spec.ts` with exactly the candidates in
+[F2-format-exception-proposal.md](F2-format-exception-proposal.md).
+
+| File                             | Before SHA256                                                      | After SHA256                                                       |
+| -------------------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------ |
+| `src/lib/observability/scrub.ts` | `5002535d53a1a66b4f69454a5eaf506a4f9bfd0c10bca147180934151ef7539a` | `c66d870a5073a3e46bb7404acdfd3b6b04de340e7f2ac5363ffe4280d4abe6ca` |
+| `tests/e2e/visual.spec.ts`       | `a920b051111d80eb36e8e5843f8b97a6f9fbeaa5d25a752b883735093137cdb6` | `b5456c105e584e9fbfaf41909121e53b499a91f442b9086586d7a4083a7c9e26` |
+
+Prettier 3.9.6 output only. For both files the repository's structural fingerprint
+(`scripts/port-structure.mjs`) is equal before and after, the comment list is equal and
+the esbuild minified output is byte-identical. No allowlist key, pattern or branch in
+`scrub.ts` changes; no test, project, selector or snapshot name in `visual.spec.ts`
+changes; no baseline image is touched. This approval covers formatting these two files
+once and nothing else.
