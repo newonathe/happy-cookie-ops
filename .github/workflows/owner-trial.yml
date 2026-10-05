@@ -42,11 +42,11 @@ jobs:
         env:
           TRIAL_KEY: ${{ secrets.TRIAL_SUPABASE_PUBLISHABLE_KEY }}
         run: test -n "$TRIAL_KEY" || { echo "TRIAL_SUPABASE_PUBLISHABLE_KEY is not configured"; exit 1; }
+      # Runs against the demo build with no Supabase variables: with them, src/middleware.ts
+      # sends every staff route to /sign-in and the browser and visual suites cannot run.
+      # The trial assets are built with the real configuration in the step after next.
       - name: Full release verification
         run: pnpm verify:release
-        env:
-          NEXT_PUBLIC_SUPABASE_URL: https://enftprwcsrdbnlplfrwk.supabase.co
-          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.TRIAL_SUPABASE_PUBLISHABLE_KEY }}
       - run: pnpm format:check
       - name: Build private trial assets
         run: pnpm build:pages:spike

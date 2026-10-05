@@ -85,10 +85,9 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install --with-deps chromium webkit
       - run: pnpm build
+      # No Supabase variables here. src/middleware.ts redirects every staff route to
+      # /sign-in when they exist at runtime, and these tests drive the demo build.
       - run: pnpm test:e2e
-        env:
-          NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
-          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: local-publishable-key-for-build-only
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
@@ -132,11 +131,9 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
+      # Same as the browser job: baselines were rendered from a build and test run with no
+      # Supabase or harness variables (Dockerfile.visual).
       - run: pnpm test:visual
-        env:
-          NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
-          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ci-publishable-key
-          NEXT_PUBLIC_HARNESS: '0'
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
