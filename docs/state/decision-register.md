@@ -198,6 +198,29 @@ early production project of 28 September (finish-plan F4, step D3)**; one busine
 database. Not changed by it: the pointer lines in `AGENTS.md` and `CLAUDE.md` still name
 finish-plan.md.
 
+**The questions for Cine, answered by Ethan the same day on her behalf.** Each is a
+starting value she can change; she confirms each in a one-time set-up screen. His exact
+words and the packaging costs he gave are kept privately
+(`claude-20261005/owner-answers-20261005.md`), not here.
+
+- Her Ingredient Master price list is current.
+- Seven flavours are on sale at the October prices (listed in
+  [final-plan.md](final-plan.md) section 12).
+- Samplers: "assume all, make editable": 6, 7 and 10 load, each switchable.
+- Packaging: six items with unit costs given; they replace the workbook's where they
+  differ. Her recipe sheet already says which flavour uses which pouch or box, so each
+  recipe keeps its packaging lines (this reverses S3's "without their packaging lines").
+- The "costing container" question is dropped as not understood: a cookie's cost is its
+  ingredients plus its own packaging.
+- Target and margin floor: editable settings.
+- **New requirement: one set-up screen after Cine first signs in, where she sets or
+  confirms everything, with all supplied data already loaded.** Ethan's own test entries
+  are cleared at handover.
+- Reorder levels and "regular" customers: worked out by rule, from research and her own
+  data ([final-plan.md](final-plan.md) section 7, decisions 8 and 9).
+- No session with Cine on the sketches first: "just do everything fast". The wording
+  pass before her week stays.
+
 ## Amended decisions (open — block the listed work)
 
 **DP-02 · Payment timing** — blocks MP-10, MP-12.

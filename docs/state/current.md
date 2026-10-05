@@ -50,8 +50,11 @@ Read this page first in a new session. It is kept short on purpose.
 >   December more likely. Two tracks; unattended runs for interface-only slices.
 > - **On the trial today:** all 53 migrations applied; cost basis "when bought"; 8 of 72
 >   items have any price; a test event has been open since 5 October with no sales.
-> - **Waiting on Ethan:** send Cine the questions by 9 October; add her addresses after
->   A1; close the test event; backup custody; the rehearsal.
+> - **The questions for Cine are answered** (Ethan, 5 October, on her behalf; she confirms
+>   each in a one-time set-up screen, now a slice of the plan). Nothing in the build waits
+>   on her.
+> - **Waiting on Ethan:** add her addresses after A1; close the test event; backup
+>   custody; the rehearsal; approve each import preview.
 
 **Package:** F2, the owner trial. F2 is incomplete, and F3 (launch) stays closed until Cine
 accepts a real week of use.
