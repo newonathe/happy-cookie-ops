@@ -1,6 +1,6 @@
 ---
-name: "source-command-handoff"
-description: "Write a session handoff note before context runs out"
+name: 'source-command-handoff'
+description: 'Write a session handoff note before context runs out'
 ---
 
 # source-command-handoff

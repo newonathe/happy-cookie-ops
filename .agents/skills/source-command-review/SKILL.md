@@ -1,6 +1,6 @@
 ---
-name: "source-command-review"
-description: "Review the working diff as a hostile senior engineer"
+name: 'source-command-review'
+description: 'Review the working diff as a hostile senior engineer'
 ---
 
 # source-command-review
@@ -13,6 +13,7 @@ Review `git diff` (and `git diff --cached`) as if you were the engineer who has 
 maintain this after the author leaves. You did not write it. Be specific and be hard.
 
 Check, in this order:
+
 1. **Correctness** — does it do what the task said? Edge cases: empty, zero, offline,
    two devices, a slow network, a rejected sync.
 2. **The port rules** — any ported markup touched? Any copy changed? Any inline style

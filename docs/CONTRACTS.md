@@ -44,7 +44,11 @@ body; `502` only when nothing at all was accepted.
 
 ```ts
 // 200
-{ deviceId: string; serverHas: number; lastReceivedAt: number | null }
+{
+  deviceId: string;
+  serverHas: number;
+  lastReceivedAt: number | null;
+}
 ```
 
 Lets the phone tell the person holding it whether the server really has the day's takings.
@@ -53,7 +57,11 @@ Never returns sale contents.
 ## `GET /api/health` · **implemented**
 
 ```ts
-{ status: 'ok' | 'degraded'; database: 'ok' | 'unreachable' | 'not-configured'; ms: number }
+{
+  status: 'ok' | 'degraded';
+  database: 'ok' | 'unreachable' | 'not-configured';
+  ms: number;
+}
 ```
 
 `503` when the database is unreachable. Used by the container health check.
@@ -64,17 +72,26 @@ Public. The one endpoint an anonymous customer can write through.
 
 ```ts
 // request
-{ customerName: string        // 1..80
-  phone: string               // 7..20, normalised server-side
-  dropId: string              // uuid
-  items: Record<string, number>
-  notes: string               // 0..280
-  payMethod: string | null }
+{
+  customerName: string; // 1..80
+  phone: string; // 7..20, normalised server-side
+  dropId: string; // uuid
+  items: Record<string, number>;
+  notes: string; // 0..280
+  payMethod: string | null;
+}
 
 // 201
-{ orderId: string; totalPesos: number; pickupAt: string }   // orderId is HC-1042
+{
+  orderId: string;
+  totalPesos: number;
+  pickupAt: string;
+} // orderId is HC-1042
 // 409
-{ error: string; remaining: number }
+{
+  error: string;
+  remaining: number;
+}
 ```
 
 **Invariants.** Prices come from `products`, never from the request — a client-sent price
@@ -137,9 +154,9 @@ what it skipped and why. **A dry-run mode is mandatory**, and must be used first
 
 ## Realtime channels · **T-16**
 
-| Channel | Table | Who |
-| --- | --- | --- |
-| `orders` | `orders` (insert, update) | staff |
+| Channel      | Table                           | Who   |
+| ------------ | ------------------------------- | ----- |
+| `orders`     | `orders` (insert, update)       | staff |
 | `production` | `bake_batches` (insert, update) | staff |
 
 Nothing else is broadcast. The ledger is not realtime — money reads on demand, so a
