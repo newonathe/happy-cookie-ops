@@ -14,6 +14,12 @@ Read this page first in a new session. It is kept short on purpose.
 
 ## Where things stand — 5 October 2026
 
+> **Change of direction, 5 October (Ethan):** Cine's updated workbook, recipe document and
+> flavour photos are the source of truth, and everything must be consolidated and polished
+> **before** her trial starts. The audit, the gaps and ten decisions waiting for his yes are
+> in [sot-consolidation.md](sot-consolidation.md). Nothing has been built or imported for it
+> yet. Her trial week waits for that work.
+
 **Package:** F2, the owner trial. F2 is incomplete, and F3 (launch) stays closed until Cine
 accepts a real week of use.
 

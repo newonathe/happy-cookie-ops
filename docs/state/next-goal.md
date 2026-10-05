@@ -1,5 +1,10 @@
 # Next goal — F2: owner trial
 
+> **Before running the block below:** on 5 October Ethan asked for a consolidation against
+> Cine's source files before the trial. Get his answers to the decisions in
+> [sot-consolidation.md](sot-consolidation.md) first; the next goal is then its section 7,
+> one slice per session, and the trial items below wait for it.
+
 One goal per package, in a fresh conversation opened in the repository root. Paste the
 block below. Where things stand: [current.md](current.md). Earlier goals are in
 [current-history.md](current-history.md).
