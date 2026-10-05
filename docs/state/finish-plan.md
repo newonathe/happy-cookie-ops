@@ -1,5 +1,10 @@
 # Finish plan — from here to Cine running her business in the app (2026-09-28)
 
+> **5 October 2026:** a replacement is proposed in [final-plan.md](final-plan.md), written
+> after Ethan approved the interface rework and added "nothing must be hardcoded". It
+> supersedes this file from the moment Ethan approves its decision 1. Sections 8 (how we
+> build) and 12 (sources) here stay useful as reference either way.
+
 Status: **APPROVED** by Ethan on 2026-09-28. He took every default: F1–F10 as listed in section 11. Cine's C1–C12
 runs on its defaults until she answers; her answer replaces the default when it arrives. Drafted by Claude (Opus 5.5).
 

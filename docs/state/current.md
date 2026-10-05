@@ -10,6 +10,7 @@ Read this page first in a new session. It is kept short on purpose.
 | The detailed F2 log             | [F2-checkpoint.md](F2-checkpoint.md) and [F2-fix-list.md](F2-fix-list.md) |
 | The UX review, done             | [ux-audit.md](ux-audit.md)                                                |
 | Older checkpoints, verbatim     | [current-history.md](current-history.md)                                  |
+| The final plan, awaiting a yes  | [final-plan.md](final-plan.md) (decisions in its section 12)              |
 | The approved plan to the finish | [finish-plan.md](finish-plan.md) and [lean-plan.md](lean-plan.md)         |
 
 ## Where things stand — 5 October 2026
@@ -32,6 +33,15 @@ Read this page first in a new session. It is kept short on purpose.
 > round of research and a single final plan in the next conversation
 > ([next-goal.md](next-goal.md)). The three source files now live in the private
 > `claude-20261005/sot-sources/` folder.
+
+> **The final plan is written (5 October, later):** [final-plan.md](final-plan.md). It is
+> a proposal until Ethan says yes to its section 12 (16 decisions, each with one
+> recommendation). In short: data layer first, then the five-tab interface built beside
+> the ported screens; the 24 to 25 October bazaar on today's Bazaar Mode with releases
+> held after the rehearsal; about 37 slices; Cine's trial estimated for the second half
+> of November. It also closes the audit's open questions (C3, C5, C9, C10), adds nine
+> hard-coded values the first sweep missed, and records the privacy commission's
+> registration rule from its own site. Nothing was built, imported or deployed.
 
 **Package:** F2, the owner trial. F2 is incomplete, and F3 (launch) stays closed until Cine
 accepts a real week of use.
