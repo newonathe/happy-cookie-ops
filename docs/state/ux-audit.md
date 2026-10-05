@@ -1,9 +1,11 @@
 # UX review — 5 October 2026
 
-Status: **findings, proposals and decisions; nothing here is implemented yet.** Ethan asked for this
-review because the app feels "all over the place". Each proposal below needs his yes
-before any work, and the ones marked _protected_ also need the exception process in
-[AGENTS.md](../../AGENTS.md), because they change ported screens, the shell or the engine.
+Status: **proposals 1, 2 and 4 are implemented and on the private trial (5 October).
+Proposal 3 is prepared and waits for Ethan's look. Proposal 5 is not being done.** Ethan
+asked for this review because the app feels "all over the place". The ones marked
+_protected_ need the exception process in [AGENTS.md](../../AGENTS.md), because they change
+ported screens, the shell or the engine. What was built is under
+[Implemented](#implemented-on-5-october) below.
 
 ## How it was done
 
@@ -82,6 +84,74 @@ the rest", adding that the UI and UX feel all over the place.
 Timing, also decided on 5 October: **land these before Cine starts her week.** Her start
 waits for them.
 
-Nothing is implemented yet. The work is the first item of [next-goal.md](next-goal.md), in
-a fresh session, with Docker visual evidence for every changed screen. Every green push
-redeploys the trial.
+## Implemented on 5 October
+
+All three are in the live layer and routing only. No ported screen, sheet, shell file or
+engine line changed, and the demo build and the visual baselines are untouched.
+
+| Proposal | Commit               | What changed                                                                                                                                                                                                                                                                                       |
+| -------- | -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1        | `a12f59f`            | All tools has a "Menu and recipes" group after Kitchen: Menu & flavours, Products, Recipes, Recipe drafts, each with a line saying what it is for. Nothing else moved.                                                                                                                             |
+| 2        | `6fac6ae`, `519cb99` | While no backup job has ever recorded a run, System health says "No backup has run yet", addressed to Ethan, and keeps the four facts. Notifications went from 6 to 2 on the local test data, Home from "4 things need you" to 3, and the badge on All tools is gone. Nothing is shown as healthy. |
+| 4        | `40af151`            | A direct visit to `/order` opens Orders and `/batch` opens the bake plan, replacing the history entry so Back does not return to an empty page.                                                                                                                                                    |
+
+### How proposal 2 keeps a real failure visible
+
+- The quiet state needs a successful read no older than five minutes in which **none** of
+  the four jobs has ever recorded a run. A read that is missing, failed, loading or older
+  than five minutes is never quiet: every check alerts as before.
+- The first recorded run of any job ends it for all four. A failed backup alerts, and so
+  do the three jobs that still have no run. A restore drill that never runs after backups
+  start alerts too.
+- An open, visible page re-reads health every four minutes, so the quiet state does not
+  wear off while the page is open.
+- The protected engine counts its `backup` flag in the All tools badge and in Home's
+  "things need you" line. In live mode that flag now follows the recorded checks. Before,
+  nothing fed it, so the badge showed 1 and Home and Settings said "Last backup failed"
+  even though no backup had ever run.
+
+### Limits Ethan should know
+
+- **The app cannot tell "off" from "on but recording nothing".** When the jobs are
+  switched on, check that the first run appears in System health. Until a run is
+  recorded the screen stays quiet and says "No backup has run yet".
+- **Offline, the alerts come back after five minutes,** because nothing can be re-read. A
+  hidden tab behaves the same until it is shown again. The app claims nothing from an old
+  read.
+- **Home's system card still shows the red triangle,** with "No backup has run yet · A
+  set-up task for Ethan, not for the kitchen." The ported card has only two states, red or
+  a green "System all good", and green would be a false claim. A neutral card needs a
+  protected markup change. Ethan to choose: keep it, or approve that exception.
+
+### Evidence
+
+- `pnpm verify`: 82 files, 1,503 tests (16 new: one per case for never run, one failed,
+  partly run, stale, failed and missing reads, queue and offline, the re-read timer, the
+  grouping and both routes).
+- `pnpm build:pages:spike` passes at `519cb99`.
+- GitHub run 37293717450 at `519cb99`: every required job passed (types, lint and unit
+  tests; visual regression; browser flows; production build; Storybook) and the release
+  job deployed Worker version `723fd8ac`. The advisory performance job still misses its
+  budget, as before. Anonymous requests to the trial still redirect to Cloudflare Access.
+  The changed screens have not been looked at on the trial itself by a person yet.
+- Docker image rebuilt from `40af151`: visual suite 75 of 75 against the existing
+  baselines, none regenerated. Browser flows 90 passed, 75 skipped (the database-backed
+  parity cases, which have no Supabase in the container), none failed.
+- Before and after captures of the signed-in live build, taken inside the same Playwright
+  image against the local database with a throwaway owner that was removed afterwards:
+  Home, Notifications, System health, All tools, `/order` and `/batch` at 390 and 1440
+  wide. Kept privately in `claude-20261005/ux-batch1/`. Local test data only.
+
+### Found while capturing, not changed
+
+| #   | Finding                                                                                                                                                                                                                                     | Where     |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
+| 11  | On a phone the Business cards in All tools run off the right edge. Two descriptions (Books & costs, Stock items) are too long for one line and stretch the whole column. It was there before this batch. Shortening the two lines fixes it. | All tools |
+
+## Proposal 3: prepared, not shipped
+
+The exact change, before and after pictures and the list of what moves off the dock are
+with Ethan. Nothing is committed. If he approves, the slice needs the exception record in
+[protected-exception.md](protected-exception.md), exact reversals in
+`scripts/validate-g0.py`, the port baselines updated in the same commit, an independent
+port audit and tests.

@@ -21,7 +21,7 @@ accepts a real week of use.
 
 - **The product** is built through E1: menu and settings, checkout and owner orders, bazaar
   selling with offline close-out, stock, recipes and production, books, P&L and CSV, backups
-  and health. `pnpm verify` passes 81 files / 1,487 tests.
+  and health. `pnpm verify` passes 82 files / 1,503 tests.
 - **The private trial site** is live for owners only:
   <https://happy-cookie-owner-trial.admin-kethai.workers.dev>. Cloudflare Access sends an
   email code to two approved mailboxes. The shop is closed and the menu is unpublished, so
@@ -32,8 +32,9 @@ accepts a real week of use.
 - **CI/CD is green.** Every required GitHub job passes on
   `agent/codex/MP-04-g1-feasibility`, and a green push to that branch redeploys the private
   trial automatically. Push only accepted work, and read each run. Latest release: GitHub
-  run 37284430841 at `acaad11`, Worker version `2203aad0`, with the bundled fonts; anonymous
-  requests still redirect to Cloudflare Access.
+  run 37293717450 at `519cb99`, Worker version `723fd8ac`, with the first UX review
+  changes; anonymous requests still redirect to Cloudflare Access. A push that changes
+  only documents does not run CI or redeploy.
 
 ### Decisions Ethan made on 5 October
 
@@ -45,15 +46,19 @@ accepts a real week of use.
 - The trial week runs closed-shop, with a few agreed test orders in place of customers.
 - The fonts are bundled in `src/app/fonts`, so a build no longer downloads them.
 - This page and the front door were tidied; older sections moved to the history file.
+- **UX review:** proposals 1, 2 and 4 are built and on the trial (All tools grouping, no
+  alerts for backups that never ran, no empty Order or Production page). Details, limits
+  and evidence: [ux-audit.md](ux-audit.md#implemented-on-5-october).
 
 ### Open items
 
 - **Waiting on Cine:** sign-in on her iPhone and MacBook, a new password, seven trial dates,
   the opening stock count, weights for six recipes, her feedback. Allergens are needed
   before the shop opens, not before the week starts.
-- **Waiting on Ethan:** where the encrypted off-device backup lives and who can restore it;
-  the phone rehearsal before 20 October; his look at the exact phone-dock change when
-  it is prepared. The [UX review](ux-audit.md) changes land before Cine starts her week.
+- **Waiting on Ethan:** his yes or no on the prepared phone-dock change (proposal 3) and
+  on Home's system card; where the encrypted off-device backup lives and who can restore
+  it; the phone rehearsal before 20 October. When backups are switched on, check that the
+  first run appears in System health.
 - **Performance budget (advisory job):** it now measures the real pages and they miss the
   budget (GitHub: performance about 0.58, largest paint 5.8 to 9.4 s, shop page 1.63 MB).
   Nothing was loosened. It does not gate the release.
