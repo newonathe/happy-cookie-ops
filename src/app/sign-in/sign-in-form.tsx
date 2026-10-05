@@ -22,7 +22,10 @@ export function SignInForm() {
     event.preventDefault();
     setBusy(true);
     setError(null);
-    const { error: signInError } = await createClient().auth.signInWithPassword({ email, password });
+    const { error: signInError } = await createClient().auth.signInWithPassword({
+      email,
+      password
+    });
     setBusy(false);
     if (signInError) {
       setError('That email and password do not match an account.');
@@ -66,9 +69,22 @@ export function SignInForm() {
           background: '#FFFFFF'
         }}
       >
-        <img src="/assets/logo-full.png" alt="The Happy Cookie" style={{ height: '40px', width: 'auto', alignSelf: 'flex-start' }} />
+        <img
+          src="/assets/logo-full.png"
+          alt="The Happy Cookie"
+          style={{ height: '40px', width: 'auto', alignSelf: 'flex-start' }}
+        />
         <span style={{ fontSize: '17px', fontWeight: 600, color: '#3A1F14' }}>Sign in</span>
-        <label style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px', fontWeight: 600, color: '#6E574B' }}>
+        <label
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '6px',
+            fontSize: '12px',
+            fontWeight: 600,
+            color: '#6E574B'
+          }}
+        >
           Email
           <input
             type="email"
@@ -79,7 +95,16 @@ export function SignInForm() {
             style={field}
           />
         </label>
-        <label style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px', fontWeight: 600, color: '#6E574B' }}>
+        <label
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '6px',
+            fontSize: '12px',
+            fontWeight: 600,
+            color: '#6E574B'
+          }}
+        >
           Password
           <input
             type="password"
@@ -91,7 +116,9 @@ export function SignInForm() {
           />
         </label>
         {error ? (
-          <span role="alert" style={{ fontSize: '12.5px', color: '#A8231B' }}>{error}</span>
+          <span role="alert" style={{ fontSize: '12.5px', color: '#A8231B' }}>
+            {error}
+          </span>
         ) : null}
         <button
           type="submit"

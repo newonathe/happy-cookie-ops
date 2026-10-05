@@ -10,7 +10,13 @@ import { BooksForm } from '@/components/live/books-form';
 import { StockItemsForm } from '@/components/live/stock-items-form';
 import { StockSuppliersForm } from '@/components/live/stock-suppliers-form';
 import { OrderRulesForm } from '@/components/live/order-rules-form';
-import { inputStyle, labelStyle, primaryButton, secondaryButton, smallLabel } from '@/components/live/form-styles';
+import {
+  inputStyle,
+  labelStyle,
+  primaryButton,
+  secondaryButton,
+  smallLabel
+} from '@/components/live/form-styles';
 import { RecipeDraftsForm } from '@/components/live/recipe-drafts-form';
 
 /**

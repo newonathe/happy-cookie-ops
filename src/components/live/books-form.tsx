@@ -39,9 +39,20 @@ export function BooksForm({ liveBooks }: { liveBooks: LiveBooks }) {
       {unpaid ? (
         <div style={card}>
           <span style={smallLabel}>{C.unpaidTitle}</span>
-          <span style={{ fontSize: '13px', fontWeight: 600, color: '#3A1F14' }}>{unpaid.summary}</span>
+          <span style={{ fontSize: '13px', fontWeight: 600, color: '#3A1F14' }}>
+            {unpaid.summary}
+          </span>
           {unpaid.rows.map((r) => (
-            <div key={r.id} style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', fontSize: '12px', color: '#3A1F14' }}>
+            <div
+              key={r.id}
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                gap: '10px',
+                fontSize: '12px',
+                color: '#3A1F14'
+              }}
+            >
               <span style={{ display: 'flex', flexDirection: 'column' }}>
                 <span style={{ fontWeight: 600 }}>{r.title}</span>
                 <span style={{ color: '#66524A' }}>{r.detail}</span>

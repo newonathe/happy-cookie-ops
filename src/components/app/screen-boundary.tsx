@@ -52,9 +52,17 @@ export class ScreenBoundary extends Component<Props, State> {
         <span style={{ fontSize: '15px', fontWeight: 600, color: '#3A1F14' }}>
           This screen stopped working
         </span>
-        <p style={{ margin: 0, fontSize: '13px', lineHeight: 1.55, color: '#6E574B', maxWidth: '38ch' }}>
-          Nothing was lost — your orders and takings are still saved. Try opening it again,
-          or move on and come back to it.
+        <p
+          style={{
+            margin: 0,
+            fontSize: '13px',
+            lineHeight: 1.55,
+            color: '#6E574B',
+            maxWidth: '38ch'
+          }}
+        >
+          Nothing was lost — your orders and takings are still saved. Try opening it again, or move
+          on and come back to it.
         </p>
         <button
           type="button"

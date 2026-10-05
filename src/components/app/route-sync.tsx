@@ -12,7 +12,11 @@ interface HistoryMarker {
 }
 
 function screenHistory(value: unknown): ScreenKey[] {
-  return Array.isArray(value) ? value.filter((item): item is ScreenKey => typeof item === 'string' && isScreenKey(item)).slice(-64) : [];
+  return Array.isArray(value)
+    ? value
+        .filter((item): item is ScreenKey => typeof item === 'string' && isScreenKey(item))
+        .slice(-64)
+    : [];
 }
 
 function readMarker(value: unknown): HistoryMarker | null {
@@ -20,13 +24,24 @@ function readMarker(value: unknown): HistoryMarker | null {
   const marker = (value as Record<string, unknown>)[HISTORY_KEY];
   if (!marker || typeof marker !== 'object') return null;
   const { index, screens } = marker as Record<string, unknown>;
-  if (typeof index !== 'number' || !Number.isSafeInteger(index) || index < 0 || !Array.isArray(screens) || screens.length > 64 || screens.some((item) => typeof item !== 'string' || !isScreenKey(item))) return null;
+  if (
+    typeof index !== 'number' ||
+    !Number.isSafeInteger(index) ||
+    index < 0 ||
+    !Array.isArray(screens) ||
+    screens.length > 64 ||
+    screens.some((item) => typeof item !== 'string' || !isScreenKey(item))
+  )
+    return null;
   return { index, screens: screens as ScreenKey[] };
 }
 
 function withMarker(marker: HistoryMarker): Record<string, unknown> {
   const current: unknown = window.history.state;
-  const state = current && typeof current === 'object' && !Array.isArray(current) ? current as Record<string, unknown> : {};
+  const state =
+    current && typeof current === 'object' && !Array.isArray(current)
+      ? (current as Record<string, unknown>)
+      : {};
   return { ...state, [HISTORY_KEY]: marker };
 }
 
@@ -64,10 +79,15 @@ export function RouteSync({ initialScreen }: { initialScreen: ScreenKey }) {
 
   useEffect(() => {
     if (
-      initialScreen !== 'stocktake' || stocktakeStarted.current ||
-      engine.state.role !== 'owner' || screen !== 'inventory' || !countableItems ||
-      window.location.pathname !== '/stocktake' || navTick !== stocktakeTick.current
-    ) return;
+      initialScreen !== 'stocktake' ||
+      stocktakeStarted.current ||
+      engine.state.role !== 'owner' ||
+      screen !== 'inventory' ||
+      !countableItems ||
+      window.location.pathname !== '/stocktake' ||
+      navTick !== stocktakeTick.current
+    )
+      return;
     stocktakeStarted.current = true;
     if (!engine.state.stocktake)
       (engine as typeof engine & { startStocktake: () => void }).startStocktake();
@@ -90,22 +110,39 @@ export function RouteSync({ initialScreen }: { initialScreen: ScreenKey }) {
         browserIndex.current = marker.index;
         engine.setState({ history: marker.screens });
       } else {
-        window.history.replaceState(withMarker({ index: 0, screens: screenHistory(engine.state.history) }), '', window.location.href);
+        window.history.replaceState(
+          withMarker({ index: 0, screens: screenHistory(engine.state.history) }),
+          '',
+          window.location.href
+        );
       }
     }
     // Stock counting uses Inventory's existing screen; retain its direct URL
     // until a later in-app navigation changes the engine navigation tick.
-    if (screen === 'inventory' && window.location.pathname === '/stocktake' && navTick === stocktakeTick.current) return;
+    if (
+      screen === 'inventory' &&
+      window.location.pathname === '/stocktake' &&
+      navTick === stocktakeTick.current
+    )
+      return;
     const path = pathForScreen(screen);
     if (window.location.pathname === path) return;
     // Some protected engine actions switch screens without touching navTick
     // (for example, starting a bake batch). They still need a browser entry.
     if (previous && (previous.tick !== navTick || previous.screen !== screen) && !fromPop) {
       const index = browserIndex.current + 1;
-      window.history.pushState(withMarker({ index, screens: screenHistory(engine.state.history) }), '', path);
+      window.history.pushState(
+        withMarker({ index, screens: screenHistory(engine.state.history) }),
+        '',
+        path
+      );
       browserIndex.current = index;
     } else {
-      window.history.replaceState(withMarker({ index: browserIndex.current, screens: screenHistory(engine.state.history) }), '', path);
+      window.history.replaceState(
+        withMarker({ index: browserIndex.current, screens: screenHistory(engine.state.history) }),
+        '',
+        path
+      );
     }
   }, [engine, screen, navTick, viewScreen]);
 
@@ -115,13 +152,24 @@ export function RouteSync({ initialScreen }: { initialScreen: ScreenKey }) {
       const marker = readMarker(window.history.state);
       const priorIndex = browserIndex.current;
       browserIndex.current = marker?.index ?? 0;
-      if (!marker) window.history.replaceState(withMarker({ index: 0, screens: [] }), '', window.location.href);
+      if (!marker)
+        window.history.replaceState(
+          withMarker({ index: 0, screens: [] }),
+          '',
+          window.location.href
+        );
       const nextTick = Number(engine.state.navTick || 0) + 1;
       popNavigationTick.current = nextTick;
       stocktakeTick.current = path === '/stocktake' ? nextTick : null;
       const target = path === '/stocktake' ? 'inventory' : screenForPath(path);
       if (marker) {
-        engine.setState({ screen: target, history: marker.screens, navTick: nextTick, navDir: marker.index < priorIndex ? 'back' : 'fwd', sheet: null });
+        engine.setState({
+          screen: target,
+          history: marker.screens,
+          navTick: nextTick,
+          navDir: marker.index < priorIndex ? 'back' : 'fwd',
+          sheet: null
+        });
       } else {
         engine.go(target);
       }

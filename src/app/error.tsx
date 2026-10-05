@@ -25,9 +25,17 @@ export default function AppError({ error, reset }: { error: Error; reset: () => 
       <span style={{ fontSize: '18px', fontWeight: 600, color: '#3A1F14' }}>
         The app could not start
       </span>
-      <p style={{ margin: 0, maxWidth: '34ch', fontSize: '14px', lineHeight: 1.55, color: '#6E574B' }}>
-        Your saved orders and takings are untouched. Try again, and if it keeps happening,
-        export your books from Settings before clearing anything.
+      <p
+        style={{
+          margin: 0,
+          maxWidth: '34ch',
+          fontSize: '14px',
+          lineHeight: 1.55,
+          color: '#6E574B'
+        }}
+      >
+        Your saved orders and takings are untouched. Try again, and if it keeps happening, export
+        your books from Settings before clearing anything.
       </p>
       <button
         type="button"

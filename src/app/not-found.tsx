@@ -15,7 +15,15 @@ export default function NotFound() {
       }}
     >
       <span style={{ fontSize: '20px', fontWeight: 600 }}>That screen does not exist</span>
-      <p style={{ margin: 0, maxWidth: '320px', fontSize: '14px', lineHeight: 1.55, color: '#6E574B' }}>
+      <p
+        style={{
+          margin: 0,
+          maxWidth: '320px',
+          fontSize: '14px',
+          lineHeight: 1.55,
+          color: '#6E574B'
+        }}
+      >
         Check the link, or go back to the home screen.
       </p>
       <Link

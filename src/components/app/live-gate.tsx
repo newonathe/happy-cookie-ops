@@ -129,7 +129,8 @@ export function LiveGate({
       if (!verifiedRef.current || engine.state.role !== result.role) engine.setRole(result.role);
       verifiedRef.current = true;
       setVerified(true);
-      if (engine instanceof OpsRuntime && result.role !== 'helper') void engine.loadOperationsHealth(supabase);
+      if (engine instanceof OpsRuntime && result.role !== 'helper')
+        void engine.loadOperationsHealth(supabase);
       if (!idleStarted) {
         idleStarted = true;
         // First verified check only: re-checks (token refresh, tab visible again) must not
@@ -185,7 +186,8 @@ export function LiveGate({
         // Customers order all day: read the owner's orders again when the tab comes back.
         if (engine instanceof OpsRuntime) void engine.reloadOrders();
         if (engine instanceof OpsRuntime) void engine.reloadShopStatus();
-        if (verifiedRef.current && engine instanceof OpsRuntime) void engine.loadOperationsHealth(null);
+        if (verifiedRef.current && engine instanceof OpsRuntime)
+          void engine.loadOperationsHealth(null);
       }
     }
     document.addEventListener('visibilitychange', onVisible);

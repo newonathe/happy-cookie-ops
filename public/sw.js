@@ -22,7 +22,9 @@ async function storeShell(cache) {
         const html = await response.clone().text();
         await cache.put(path, response);
         const files = [...new Set(html.match(/\/_next\/static\/[^"'\\)\s]+/g) || [])].slice(0, 200);
-        await Promise.all(files.map((u) => cache.match(u).then((hit) => hit || cache.add(u).catch(() => undefined))));
+        await Promise.all(
+          files.map((u) => cache.match(u).then((hit) => hit || cache.add(u).catch(() => undefined)))
+        );
       } catch (error) {
         /* offline at install: the page is stored when it next loads online */
       }
@@ -31,7 +33,12 @@ async function storeShell(cache) {
 }
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(caches.open(VERSION).then(storeShell).then(() => self.skipWaiting()));
+  event.waitUntil(
+    caches
+      .open(VERSION)
+      .then(storeShell)
+      .then(() => self.skipWaiting())
+  );
 });
 
 self.addEventListener('activate', (event) => {
@@ -52,7 +59,9 @@ self.addEventListener('fetch', (event) => {
   // product photography and QR codes: cache first, they never change
   if (url.pathname.startsWith('/assets/')) {
     event.respondWith(
-      caches.match(request).then((hit) => hit || fetch(request).then((response) => put(request, response)))
+      caches
+        .match(request)
+        .then((hit) => hit || fetch(request).then((response) => put(request, response)))
     );
     return;
   }
@@ -60,7 +69,9 @@ self.addEventListener('fetch', (event) => {
   // hashed build files never change under one URL; the page hands them over once loaded
   if (url.pathname.startsWith('/_next/static/')) {
     event.respondWith(
-      caches.match(request).then((hit) => hit || fetch(request).then((response) => put(request, response)))
+      caches
+        .match(request)
+        .then((hit) => hit || fetch(request).then((response) => put(request, response)))
     );
     return;
   }
@@ -97,8 +108,10 @@ async function wakeClients() {
 function cacheable(raw) {
   try {
     const url = new URL(raw, self.location.origin);
-    return url.origin === self.location.origin &&
-      (url.pathname.startsWith('/_next/static/') || url.pathname.startsWith('/assets/'));
+    return (
+      url.origin === self.location.origin &&
+      (url.pathname.startsWith('/_next/static/') || url.pathname.startsWith('/assets/'))
+    );
   } catch (error) {
     return false;
   }
