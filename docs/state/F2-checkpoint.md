@@ -60,6 +60,12 @@ removes the variables from the `ci.yml` browser and visual steps and from
 committed baselines; no baseline was regenerated. Private logs:
 `F2-ci-preview-linux-{with-env,noenv}.log` and `F2-ci-env-ab.log`.
 
+**First full GitHub run.** After Ethan approved the last two files, `261a250` made
+`format:check` green. Run 37273965631: types/lint/unit, production build, visual
+regression and Storybook pass; browser flows fail only on WebKit OFFLINE-01 (first
+attempt and both retries; 89 / 1 / 75); the advisory Lighthouse job fails to load its
+page; the release job is skipped. This matches the local Linux preview exactly.
+
 **No new visual or device evidence.** No visible flow changed. Private logs, the
 verifier, the slice driver and the two protected candidates are under
 `claude-20261005/` in the existing private evidence directory.

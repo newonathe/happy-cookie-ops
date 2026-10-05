@@ -4,29 +4,29 @@ The approved forward plan is [finish-plan.md](finish-plan.md), section 6. F1 is 
 
 ## Current goal — after the Claude continuation of 5 October
 
-Latest pushed checkpoint: see `git log`; formatting slices end at `dd03072`.
-`format:check` fails on 2 protected files only. The deployment secret is configured.
-A Linux-container preview of the other CI jobs passes except OFFLINE-01, after `655c95c`
-removed test-time Supabase variables that sent every test to the sign-in page.
-OFFLINE-01 failed 3 of 3 times on Linux WebKit as well as on Windows, so expect CI's
-browser job to be red once formatting is green (CI allows two retries). Either agent may continue; when Claude runs it, read
+Latest pushed checkpoint: see `git log`; `261a250` made `format:check` green. GitHub run
+37273965631 passes every required job except browser flows, whose single failure is
+WebKit OFFLINE-01 (89 passed / 1 failed / 75 skipped). The deployment secret is
+configured, so the first fully green run on this branch releases the existing private
+trial automatically. Either agent may continue; when Claude runs it, read
 "Codex Sol/high" as Claude Opus coordinating with at most two pinned Sonnet workers.
 
 ```text
 /goal Continue F2 from the latest pushed commit in
 C:\Users\ethan\dev\happy-cookie-ops-g0. Read AGENTS.md, current.md (top section),
-F2-format-exception-proposal.md and evidence/F2-offline01-linux-probe.json.
+F2-count-custody-device-preparation.md and evidence/F2-offline01-linux-probe.json.
 Do not restart setup, reimport the 804 financial rows or reformat evidence receipts.
-1. If Ethan approved the two-file proposal, apply exactly those candidate bytes to
-   scrub.ts and visual.spec.ts, prove identity, verify, commit and push; otherwise leave
-   them. Then read the first full GitHub CI run past format:check and record every job.
-2. OFFLINE-01: keep the test unchanged. Check Playwright issue 42775 and whether a
-   release fixes it; if so, prepare a pinned upgrade (package, lockfile, CI image tag,
-   Dockerfile.visual) with Docker-rendered visual evidence for approval. Do not skip,
-   retry-mask or rewrite the test.
-3. Prepare Cine's opening count, six recipe measurements and allergens, custody choices,
-   real iPhone Safari/Chrome and MacBook checks and seven trial dates from
-   F2-count-custody-device-preparation.md; record only what people actually supply.
+1. OFFLINE-01: keep the test unchanged. Check Playwright issue 42775 and whether a
+   release fixes it. If one does, prepare a pinned upgrade (package, lockfile, CI image
+   tag, Dockerfile.visual) with a Docker run of the browser and visual suites, and ask
+   for approval before committing it. Do not skip, retry-mask or rewrite the test. If no
+   fix is released, record that and ask Ethan to choose between waiting and the
+   12-13 December pilot dates.
+2. Cine's inputs: prepare and then record only what people actually supply: opening
+   count, six recipe measurements, allergens, password and backup custody, real iPhone
+   Safari/Chrome and MacBook checks, seven trial dates and her feedback.
+3. Advisory only: the performance-budget job cannot load its page on GitHub
+   (127.0.0.1:3000). Diagnose it if time allows; it does not gate the release.
 Historical stock reconciliation stays closed until dated counts, units and opening
 balances exist. F2 incomplete and F3 closed until Cine accepts the real week; OFFLINE-01
 and the actual-phone rehearsal must both pass by 20 October. Pinned tools, headless

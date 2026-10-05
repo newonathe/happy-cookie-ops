@@ -8,7 +8,17 @@ Codex reached its usage limit at 03:52 Manila mid-commit. Ethan continued the sa
 goal in Claude Code (Opus coordinating, no workers used). Everything below this section
 is older.
 
-- **Formatting gate: 536 failing files → 2.** 47 commits, `c8a2805` to `dd03072`, each
+- **Formatting gate is green and GitHub CI ran past it for the first time.** Ethan
+  approved formatting the last two files ("yes format both"); `261a250` applies exactly
+  the recorded candidates and `pnpm format:check` passes with zero failures. GitHub run
+  37273965631 at `261a250`: types/lint/unit **pass**, production build **pass**, visual
+  regression **pass**, Storybook **pass**, browser flows **fail** (89 passed / 1 failed /
+  75 skipped; the one failure is WebKit OFFLINE-01, failing its first attempt and both
+  retries), release **skipped**. The advisory performance-budget job also fails
+  (Lighthouse could not load `http://127.0.0.1:3000/`); it is `continue-on-error` and
+  not required by the release. **OFFLINE-01 is now the only gate between this branch
+  and an automatic private-trial release.**
+- **How the formatting gate got there: 536 failing files → 2 → 0.** First 47 commits, `c8a2805` to `dd03072`, each
   through the pinned pre-commit hook (81 files / 1,487 tests) and the secret scan, all
   pushed. 135 hand-written files were formatted. 132 have a machine proof that only
   formatting changed (same syntax tree, comments and compiled output for code; same
@@ -32,10 +42,11 @@ is older.
 - **52 receipts restored** to their `5101724` bytes (`7e1c669`), as Ethan approved. They
   had been reformatted in the earlier runs, which broke their SHA-256 in
   `G1-evidence-index.json`. Now 769 of 774 indexed receipts match again.
-- **Still failing `format:check`:** `src/lib/observability/scrub.ts` and
-  `tests/e2e/visual.spec.ts`. Both are on the do-not-touch list; an exact two-file
-  proposal in [F2-format-exception-proposal.md](F2-format-exception-proposal.md) awaits
-  Ethan's specific approval. GitHub CI therefore still stops at `format:check`.
+- **The last two files** were `src/lib/observability/scrub.ts` and
+  `tests/e2e/visual.spec.ts`, both on the do-not-touch list. They were formatted only
+  after Ethan's specific approval, recorded in
+  [protected-exception.md](protected-exception.md); structure, comments and compiled
+  output are identical before and after.
 - **Deployment token configured.** Ethan saved a dedicated Workers token. It is active,
   the four read-only Workers calls return 200 and the release script's `--check-only`
   preflight passes with no hosted writes. `CLOUDFLARE_API_TOKEN` was set as a GitHub
@@ -58,8 +69,8 @@ is older.
 - **Linux preview of the CI jobs that have never run on GitHub** (local container,
   source at `497c6b7`, without those variables): browser 89 passed / 1 failed (WebKit
   OFFLINE-01) / 75 skipped, the same as the Windows baseline; visual 75 passed;
-  Storybook builds. Lighthouse and the release job are not covered. This is a preview,
-  not a GitHub result: GitHub still stops at `format:check` on the 2 files.
+  Storybook builds. Lighthouse and the release job are not covered. GitHub run
+  37273965631 later confirmed the browser, visual and Storybook results exactly.
 - **Unchanged:** the 804 imported financial rows, the hosted trial database and the
   private Worker (last recorded version `772d4a7e`; not re-probed), shop closed, no
   deployment, no merge, no jobs, no runner.
