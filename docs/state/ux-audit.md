@@ -115,9 +115,10 @@ engine line changed, and the demo build and the visual baselines are untouched.
 - **The app cannot tell "off" from "on but recording nothing".** When the jobs are
   switched on, check that the first run appears in System health. Until a run is
   recorded the screen stays quiet and says "No backup has run yet".
-- **Offline, the alerts come back after five minutes,** because nothing can be re-read. A
-  hidden tab behaves the same until it is shown again. The app claims nothing from an old
-  read.
+- **Offline, the alerts come back.** "Database connection" alerts at once, and the four
+  job alerts return at the next re-read that fails, within four minutes. A hidden tab
+  keeps its last read for five minutes and then alerts until it is shown again. The app
+  claims nothing from a read it cannot repeat.
 - **Home's system card still shows the red triangle,** with "No backup has run yet · A
   set-up task for Ethan, not for the kitchen." The ported card has only two states, red or
   a green "System all good", and green would be a false claim. A neutral card needs a
