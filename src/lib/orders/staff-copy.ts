@@ -128,7 +128,7 @@ export const RECIPE_COPY = {
 /** PLACEHOLDER wording (A3): the owner's stock catalogue forms. */
 export const STOCK_COPY = {
   itemsTitle: 'Stock items',
-  itemsSub: 'Ingredients and packaging: unit, low-stock level, pack size, supplier',
+  itemsSub: 'Units, low-stock levels, pack sizes, suppliers',
   suppliersTitle: 'Suppliers & prices',
   suppliersSub: 'Who you buy from and what each one charges',
   itemsIntro:
@@ -187,7 +187,7 @@ export const PRODUCTION_COPY = {
 /** PLACEHOLDER wording (E1): the books settings form and what saving changes. */
 export const BOOKS_COPY = {
   title: 'Books & costs',
-  sub: 'How stock is costed, correct a delivery cost, download the books',
+  sub: 'Stock costing, delivery cost fixes, books CSV',
   offline: 'Offline. Changes here will not save until this device is back online.',
   basisTitle: 'When does stock count as a cost?',
   basisNote:

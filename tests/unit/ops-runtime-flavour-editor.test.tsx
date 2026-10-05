@@ -159,6 +159,16 @@ describe('MP-09 c1c: the flavour editor and Publish menu', () => {
     expect(runtime.state.screen).toBe('recipes');
   });
 
+  it('keeps every All tools description short enough for one line on a phone (finding 11)', async () => {
+    const { runtime } = await mounted('owner');
+    const long = runtime
+      .renderVals()
+      .toolGroups.flatMap((g) => g.items)
+      .filter((i) => String(i.sub).length > 50)
+      .map((i) => `${String(i.label)}: ${String(i.sub)}`);
+    expect(long).toEqual([]);
+  });
+
   it('leaves All tools as ported for a helper and in demo mode', async () => {
     const { runtime: helper } = await mounted('helper');
     expect(helper.renderVals().toolGroups.some((g) => g.title === 'Menu and recipes')).toBe(false);

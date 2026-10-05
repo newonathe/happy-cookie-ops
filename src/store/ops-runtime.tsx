@@ -3834,6 +3834,10 @@ export class OpsRuntime extends OpsProvider {
    * UX review, proposal 1: the four flavour and recipe entries were spread over Kitchen
    * (Recipes) and Business (Products, Menu & flavours, Recipe drafts). They sit together in
    * one "Menu and recipes" group after Kitchen, each with a line saying what it is for.
+   *
+   * Keep every description short. The ported card shows it on one line, and a line wider
+   * than the card stretches the whole group past the edge of a phone instead of being cut
+   * (UX review, finding 11). Measured at 360 px wide: about 276 px, roughly 50 characters.
    */
   private liveToolGroups(groups: OpsVals['toolGroups']): OpsVals['toolGroups'] {
     const ported = (label: string) =>
@@ -3872,21 +3876,21 @@ export class OpsRuntime extends OpsProvider {
               {
                 icon: this.IC.cookie,
                 label: 'Payment methods',
-                sub: 'GCash, Maya, bank: account numbers and QR codes',
+                sub: 'GCash, Maya, bank: numbers and QR codes',
                 badge: null,
                 go: () => this.openPayments()
               },
               {
                 icon: this.IC.cookie,
                 label: 'Shop texts',
-                sub: 'The shop footer: registration, TIN, invoice, allergens',
+                sub: 'Shop footer: registration, TIN, invoice, allergens',
                 badge: null,
                 go: () => void this.openShopTexts()
               },
               {
                 icon: this.IC.cookie,
                 label: 'Order rules',
-                sub: 'Pickup days, lead time, unpaid holds and the campus slot',
+                sub: 'Pickup days, lead time, unpaid holds, campus slot',
                 badge: null,
                 go: () => void this.openOrderRules()
               },
@@ -3921,14 +3925,14 @@ export class OpsRuntime extends OpsProvider {
               {
                 icon: this.IC.cookie,
                 label: EXTRAS_COPY.title,
-                sub: 'Box sizes, add-ons, the sampler and the same-day extra',
+                sub: 'Box sizes, add-ons, sampler, same-day extra',
                 badge: null,
                 go: () => void this.openOrderExtras()
               },
               {
                 icon: this.IC.cookie,
                 label: MESSAGE_SHEET.title,
-                sub: 'A status link and a text to copy for each open order',
+                sub: 'A status link and a message for each open order',
                 badge: null,
                 go: () => this.openMessages()
               }
