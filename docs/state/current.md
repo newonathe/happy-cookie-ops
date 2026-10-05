@@ -8,6 +8,19 @@ Codex reached its usage limit at 03:52 Manila mid-commit. Ethan continued the sa
 goal in Claude Code (Opus coordinating, no workers used). Everything below this section
 is older.
 
+- **First automatic private-trial release succeeded.** GitHub run 37278233095 at
+  `80fbcf1`: all five required jobs pass, the release workflow passes its full
+  verification and format check in the container, builds the trial assets and deploys
+  153 files to the existing Worker as version `eefade3a-24da-4ac6-9bec-fed8b9b3136b`.
+  The release script's before-and-after gate checks passed. Independent read-only
+  preflight afterwards: PASS. Anonymous requests to `/`, `/pl` and `/sw.js` all return
+  302 to Cloudflare Access. No new resource; shop still closed. A human sign-in on the
+  updated app has not been confirmed yet. Two things were needed first: a re-run of
+  the build job after a transient `next/font` Google-font download failure in run
+  37276284314, and `80fbcf1`, which trusts the checkout inside the release container
+  (Git refused it as "dubious ownership"). The advisory performance-budget job still
+  fails and does not gate the release. From now on every push to this branch that
+  passes CI redeploys the private trial.
 - **Two owner decisions, 5 October ("yes to both").**
   1. _OFFLINE-01 on WebKit_ (`784678e`). The test now handles the Playwright WebKit
      emulator defect on the `webkit` project only: the sale is made online, the offline

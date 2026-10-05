@@ -60,6 +60,14 @@ removes the variables from the `ci.yml` browser and visual steps and from
 committed baselines; no baseline was regenerated. Private logs:
 `F2-ci-preview-linux-{with-env,noenv}.log` and `F2-ci-env-ab.log`.
 
+**First automatic release.** Run 37276284314 (after `784678e`): browser flows green for
+the first time; production build failed on a transient `next/font` download and passed
+on re-run; the release job then failed at `build:pages:spike` because `git ls-files`
+reported dubious ownership inside the container. `80fbcf1` adds the standard
+`safe.directory` step. Run 37278233095: every required job and both release jobs pass;
+Worker version `eefade3a-24da-4ac6-9bec-fed8b9b3136b`, 153 assets. Post-release
+read-only preflight PASS and anonymous 302 to Access on `/`, `/pl` and `/sw.js`.
+
 **First full GitHub run.** After Ethan approved the last two files, `261a250` made
 `format:check` green. Run 37273965631: types/lint/unit, production build, visual
 regression and Storybook pass; browser flows fail only on WebKit OFFLINE-01 (first

@@ -6,8 +6,8 @@ The approved forward plan is [finish-plan.md](finish-plan.md), section 6. F1 is 
 
 Latest pushed checkpoint: see `git log`. `format:check` is green. OFFLINE-01 handles the
 Playwright WebKit emulator defect on WebKit only (`784678e`, owner-approved), and Ethan
-approved a closed-shop trial week. Check the newest GitHub run and
-`docs/state/current.md` for whether the automatic private-trial release ran. Either agent
+approved a closed-shop trial week. The first automatic private-trial release ran in
+GitHub run 37278233095 (Worker version `eefade3a`); every later green push redeploys it. Either agent
 may continue; when Claude runs it, read "Codex Sol/high" as Claude Opus coordinating with
 at most two pinned Sonnet workers.
 
@@ -16,9 +16,10 @@ at most two pinned Sonnet workers.
 C:\Users\ethan\dev\happy-cookie-ops-g0. Read AGENTS.md, current.md (top section),
 F2-owner-trial.md and F2-count-custody-device-preparation.md.
 Do not restart setup, reimport the 804 financial rows or reformat evidence receipts.
-1. Check the newest GitHub CI run and the private trial. If the automatic release ran,
-   verify the gate, anonymous denial and version read-only and record it; if a job
-   failed, diagnose from its log before changing anything.
+1. Confirm with Ethan that he can still sign in on the private trial after the first
+   automatic release (Worker eefade3a). Remember every green push to this branch now
+   redeploys it: keep pushes to accepted slices and read each CI run. A transient
+   next/font Google-font download failure can fail a build job; re-run that job.
 2. Run Cine's closed-shop week from F2-owner-trial.md: record her sign-in on iPhone and
    MacBook, password change, seven dates, opening count, the six recipes as she weighs
    them, agreed test orders, daily log and feedback. Record only what people supply.

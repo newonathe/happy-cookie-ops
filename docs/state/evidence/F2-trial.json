@@ -935,6 +935,17 @@
       "githubSecret": "CLOUDFLARE_API_TOKEN set 2026-10-05T05:54:27Z",
       "deployed": false
     },
+    "firstAutomaticRelease": {
+      "githubRun": 37278233095,
+      "sourceCommit": "80fbcf1",
+      "workerVersion": "eefade3a-24da-4ac6-9bec-fed8b9b3136b",
+      "assets": 153,
+      "releaseScriptGateChecks": "PASS before and after",
+      "independentReadOnlyPreflightAfter": "PASS",
+      "anonymousRootPnlServiceWorker": "302 to Cloudflare Access",
+      "humanSignInAfterRelease": "not yet confirmed",
+      "newResources": 0
+    },
     "offline01LinuxProbe": "docs/state/evidence/F2-offline01-linux-probe.json",
     "hostedWrites": false,
     "importsReused": 804,
