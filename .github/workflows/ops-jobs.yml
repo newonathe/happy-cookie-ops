@@ -1,0 +1,132 @@
+name: Maintenance jobs
+
+# Weekly backup, daily keep-alive, daily retention (slice A4). WRITTEN AND OFF.
+#
+# Off means off. The gate job reads one repository variable, OPS_JOBS_ENABLED, and no secret;
+# every other job waits on it, so while the variable is unset nothing runs and no secret is
+# read. Only a clear "on" enables; a typo stays off. Ethan sets it after he has chosen where
+# the encrypted archive lives (final-plan.md section 12) and added the secrets listed in
+# docs/state/F1-operations.md, which also lists what must be true before the backup is on.
+#
+# Three things to know before switching it on:
+#   1. A job also runs only from the main branch. A workflow on any other branch could drop
+#      the gate and read the secrets, so the secret-using jobs refuse every other ref. GitHub
+#      starts `schedule` runs only from the default branch anyway; until this file is merged to
+#      main (Ethan's call) it does nothing on a schedule. Better still, keep the OPS secrets in
+#      a GitHub Environment limited to main, if the plan allows it (F1-operations.md).
+#   2. Enabling it is Ethan's approval of the hosted operations: keep-alive and retention pass
+#      --hosted-approved to the project named by the OPS_SUPABASE_URL variable.
+#   3. The backup job reads no secret until its custody step is replaced (see the job).
+#
+# The schedule is in UTC; Manila is UTC+8. Keep the cron lines in step with
+# scripts/ops-jobs.mjs and docs/state/F1-schedule.example.json (a test checks both).
+
+on:
+  workflow_dispatch:
+    inputs:
+      job:
+        description: Which job to run by hand (only while OPS_JOBS_ENABLED is on, from main)
+        type: choice
+        options: [backup, keepalive, retention]
+  schedule:
+    - cron: '0 0 * * 1'
+    - cron: '0 0 * * *'
+    - cron: '0 18 * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ops-jobs
+  cancel-in-progress: false
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      backup: ${{ steps.decide.outputs.backup }}
+      keepalive: ${{ steps.decide.outputs.keepalive }}
+      retention: ${{ steps.decide.outputs.retention }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Decide
+        id: decide
+        run: node scripts/ops-jobs.mjs
+        env:
+          OPS_JOBS_ENABLED: ${{ vars.OPS_JOBS_ENABLED }}
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_SCHEDULE: ${{ github.event.schedule }}
+          REQUESTED_JOB: ${{ inputs.job }}
+
+  backup:
+    needs: gate
+    if: github.ref == 'refs/heads/main' && needs.gate.outputs.backup == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      # Fail closed, and first: no off-device destination is wired, and none is chosen for him,
+      # so this job reads no secret and dumps nothing. To wire custody, add the copy step below,
+      # then delete this step. The other prerequisites are in docs/state/F1-operations.md.
+      - name: Custody is not decided
+        run: |
+          echo "Backup custody is not decided (final-plan.md section 12), so no destination is wired and this job stops before it reads any secret. Wire the copy step and remove this one."
+          exit 1
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.12.3
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.20.0
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # The hosted source is not exercised yet: the local dry run covers the local source only.
+      - name: Link the project, dump, encrypt and verify
+        shell: bash
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.OPS_SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.OPS_SUPABASE_DB_PASSWORD }}
+          F1_BACKUP_KEY: ${{ secrets.OPS_BACKUP_KEY }}
+          F1_BACKUP_SOURCE: linked
+          OPS_PROJECT_REF: ${{ vars.OPS_SUPABASE_PROJECT_REF }}
+        run: |
+          set -euo pipefail
+          archive="$RUNNER_TEMP/weekly-$(date -u +%Y-%m-%d).hco"
+          pnpm exec supabase link --project-ref "$OPS_PROJECT_REF"
+          node scripts/f1-backup.mjs backup --out "$archive"
+          node scripts/f1-backup.mjs verify --in "$archive"
+
+  keepalive:
+    needs: gate
+    if: github.ref == 'refs/heads/main' && needs.gate.outputs.keepalive == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Keep the project awake
+        run: node scripts/f1-operations.mjs keepalive --hosted-approved
+        env:
+          F1_SUPABASE_URL: ${{ vars.OPS_SUPABASE_URL }}
+          F1_SERVICE_KEY: ${{ secrets.OPS_SERVICE_KEY }}
+
+  retention:
+    needs: gate
+    if: github.ref == 'refs/heads/main' && needs.gate.outputs.retention == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Clear personal data past the retention period
+        run: node scripts/f1-operations.mjs retention --hosted-approved
+        env:
+          F1_SUPABASE_URL: ${{ vars.OPS_SUPABASE_URL }}
+          F1_SERVICE_KEY: ${{ secrets.OPS_SERVICE_KEY }}
