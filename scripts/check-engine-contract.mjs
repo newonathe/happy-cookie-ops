@@ -60,10 +60,15 @@ for (const match of engine.matchAll(/(?:^|\n)\s*(?:export\s+)?(?:function|class)
 }
 
 const exportBlock = engine.slice(engine.lastIndexOf('export {'), engine.lastIndexOf('};') + 2);
-const exported = [...exportBlock.matchAll(/[\w$]+/g)].map((m) => m[0]).filter((n) => n !== 'export');
+const exported = [...exportBlock.matchAll(/[\w$]+/g)]
+  .map((m) => m[0])
+  .filter((n) => n !== 'export');
 for (const name of exported) {
   if (!declared.has(name)) {
-    fail('exports', `${name} is exported but never declared — this is a SyntaxError and the app will not boot`);
+    fail(
+      'exports',
+      `${name} is exported but never declared — this is a SyntaxError and the app will not boot`
+    );
   }
 }
 
@@ -87,7 +92,8 @@ for (const match of dts.matchAll(/^export (?:declare )?(?:const|function|class)\
  * everyone's permission to fix the string. So: any string literal sitting near such a
  * claim must actually appear in the prototype.
  */
-const PROVENANCE = /(verbatim from the prototype|quoted from the prototype|the prototype's own string|signed off by the owner|the signed-off wording)/i;
+const PROVENANCE =
+  /(verbatim from the prototype|quoted from the prototype|the prototype's own string|signed off by the owner|the signed-off wording)/i;
 if (prototype) {
   for (const file of walk('src')) {
     if (!/\.(ts|tsx)$/.test(file)) continue;
@@ -116,8 +122,26 @@ if (prototype) {
  * The enum was invented once. Any state literal in SQL or TypeScript must be one the
  * engine actually uses.
  */
-const VALID_STATES = ['Payment review', 'Confirmed', 'Preparing', 'Ready', 'Completed', 'Cancelled', 'No-show'];
-const INVENTED = ['new', 'baking', 'collected', 'cancelled', 'no_show', 'placed', 'noshow', 'ready', 'confirmed'];
+const VALID_STATES = [
+  'Payment review',
+  'Confirmed',
+  'Preparing',
+  'Ready',
+  'Completed',
+  'Cancelled',
+  'No-show'
+];
+const INVENTED = [
+  'new',
+  'baking',
+  'collected',
+  'cancelled',
+  'no_show',
+  'placed',
+  'noshow',
+  'ready',
+  'confirmed'
+];
 for (const file of [...walk('supabase'), ...walk('src/lib'), ...walk('src/app')]) {
   if (!/\.(sql|ts|tsx)$/.test(file)) continue;
   const source = read(file);
@@ -125,7 +149,10 @@ for (const file of [...walk('supabase'), ...walk('src/lib'), ...walk('src/app')]
     if (!/\b(state|status)\b/i.test(line)) return;
     for (const invented of INVENTED) {
       if (new RegExp(`'${invented}'`).test(line) && !VALID_STATES.includes(invented)) {
-        fail('order-states', `${file}:${index + 1} uses '${invented}', which is not an order_state. Valid: ${VALID_STATES.join(', ')}`);
+        fail(
+          'order-states',
+          `${file}:${index + 1} uses '${invented}', which is not an order_state. Valid: ${VALID_STATES.join(', ')}`
+        );
       }
     }
   });
@@ -146,7 +173,10 @@ const settingsSql = existsSync(join(ROOT, 'supabase/migrations/20260101000700_se
   : '';
 for (const key of cfgKeys) {
   if (!settingsSql.includes(`'${key}'`)) {
-    fail('settings', `DEFAULT_CFG.${key} has no row in settings_effective() — it cannot be persisted`);
+    fail(
+      'settings',
+      `DEFAULT_CFG.${key} has no row in settings_effective() — it cannot be persisted`
+    );
   }
 }
 
@@ -182,13 +212,18 @@ for (const table of tables) {
  */
 if (existsSync(join(ROOT, 'supabase/seed.sql'))) {
   const seed = read('supabase/seed.sql');
-  for (const block of seed.matchAll(/insert into (\w+) \(([^)]+)\) values\n([\s\S]*?)(?:\non conflict|;\n)/g)) {
+  for (const block of seed.matchAll(
+    /insert into (\w+) \(([^)]+)\) values\n([\s\S]*?)(?:\non conflict|;\n)/g
+  )) {
     const columns = block[2].split(',').length;
     const rows = block[3].split('\n').filter((l) => l.trim().startsWith('('));
     for (const [offset, row] of rows.entries()) {
       const values = splitTopLevel(row);
       if (values.length !== columns) {
-        fail('seed', `${block[1]} row ${offset + 1}: ${values.length} values for ${columns} columns`);
+        fail(
+          'seed',
+          `${block[1]} row ${offset + 1}: ${values.length} values for ${columns} columns`
+        );
       }
     }
   }
@@ -201,15 +236,23 @@ if (existsSync(join(ROOT, 'supabase/seed.sql'))) {
  */
 for (const file of walk('tests')) {
   if (!/\.(ts|tsx)$/.test(file)) continue;
-  read(file).split('\n').forEach((line, index) => {
-    const compare = line.match(/expect\((.+?)\)\.(?:toBe|toEqual)\((.+?)\)/);
-    if (compare && compare[1].replace(/\s/g, '') === compare[2].replace(/\s/g, '')) {
-      fail('weak-tests', `${file}:${index + 1} tautology — both sides are the same expression`);
-    }
-    if (/\.(toBeTruthy|toBeDefined)\(\)/.test(line) && /\b(amt|PESO|total|price|cents|qty)\b/.test(line)) {
-      fail('weak-tests', `${file}:${index + 1} weak assertion on a money or quantity value — assert the exact string`);
-    }
-  });
+  read(file)
+    .split('\n')
+    .forEach((line, index) => {
+      const compare = line.match(/expect\((.+?)\)\.(?:toBe|toEqual)\((.+?)\)/);
+      if (compare && compare[1].replace(/\s/g, '') === compare[2].replace(/\s/g, '')) {
+        fail('weak-tests', `${file}:${index + 1} tautology — both sides are the same expression`);
+      }
+      if (
+        /\.(toBeTruthy|toBeDefined)\(\)/.test(line) &&
+        /\b(amt|PESO|total|price|cents|qty)\b/.test(line)
+      ) {
+        fail(
+          'weak-tests',
+          `${file}:${index + 1} weak assertion on a money or quantity value — assert the exact string`
+        );
+      }
+    });
 }
 
 /* ---------------------------------------------------------------------- helpers */
@@ -227,7 +270,10 @@ function walk(dir) {
 }
 
 function splitTopLevel(row) {
-  const inner = row.trim().replace(/^\(/, '').replace(/\)[,;]?$/, '');
+  const inner = row
+    .trim()
+    .replace(/^\(/, '')
+    .replace(/\)[,;]?$/, '');
   const out = [];
   let current = '';
   let quoted = false;

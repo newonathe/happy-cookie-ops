@@ -43,14 +43,22 @@ const q = (s) => "'" + String(s).replace(/'/g, "''") + "'";
  * and tests/unit/money-conversion.test.ts is what proves the shared behaviour.
  */
 const cents = (pesos) => Math.round(pesos * 100);
-const slug = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+const slug = (s) =>
+  s
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
 
-const supplierNames = new Set([...SUPPLIERS.map((s) => s.name), ...INVENTORY.map((i) => i.supplier)]);
+const supplierNames = new Set([
+  ...SUPPLIERS.map((s) => s.name),
+  ...INVENTORY.map((i) => i.supplier)
+]);
 const id = {};
 for (const name of supplierNames) id[name] = slug(name);
 
 const out = [];
-const section = (title) => out.push('', `-- ${title} ${'-'.repeat(Math.max(0, 74 - title.length))}`);
+const section = (title) =>
+  out.push('', `-- ${title} ${'-'.repeat(Math.max(0, 74 - title.length))}`);
 
 out.push(
   '-- Seed for local development.',
@@ -80,7 +88,17 @@ out.push(
   PRODUCTS.map(
     (p, i) =>
       '  (' +
-      [q(p.id), q(p.name), q(p.short), cents(p.price), q(p.kind), q(p.tag || ''), q(p.desc), q('/' + p.img), i + 1].join(', ') +
+      [
+        q(p.id),
+        q(p.name),
+        q(p.short),
+        cents(p.price),
+        q(p.kind),
+        q(p.tag || ''),
+        q(p.desc),
+        q('/' + p.img),
+        i + 1
+      ].join(', ') +
       ')'
   ).join(',\n') + '\non conflict (id) do nothing;'
 );
@@ -96,8 +114,12 @@ out.push(
     return (
       '  (' +
       [
-        q(slug(item.name)), q(item.cat), q(item.name), q(item.unit),
-        item.qty, item.level,
+        q(slug(item.name)),
+        q(item.cat),
+        q(item.name),
+        q(item.unit),
+        item.qty,
+        item.level,
         pack == null ? 'null' : pack,
         q(id[item.supplier]),
         useBy == null ? 'null' : useBy,
@@ -115,9 +137,13 @@ for (const supplier of SUPPLIERS) {
     prices.push(
       '  (' +
         [
-          q(id[supplier.name]), q(line.item), q(line.pack), cents(line.price),
+          q(id[supplier.name]),
+          q(line.item),
+          q(line.pack),
+          cents(line.price),
           `'{${(line.prev || []).map(cents).join(',')}}'`,
-          q(line.last || ''), line.preferred ? 'true' : 'false'
+          q(line.last || ''),
+          line.preferred ? 'true' : 'false'
         ].join(', ') +
         ')'
     );
@@ -131,8 +157,9 @@ out.push(prices.join(',\n') + '\non conflict (supplier_id, item_name) do nothing
 section('recipes');
 out.push('insert into recipes (product_id, yield_count) values');
 out.push(
-  Object.entries(RECIPES).map(([pid, r]) => `  (${q(pid)}, ${r.yield})`).join(',\n') +
-    '\non conflict (product_id) do nothing;'
+  Object.entries(RECIPES)
+    .map(([pid, r]) => `  (${q(pid)}, ${r.yield})`)
+    .join(',\n') + '\non conflict (product_id) do nothing;'
 );
 out.push('');
 const ingredients = [];
@@ -151,7 +178,9 @@ out.push('');
 out.push(
   '-- allergens (MP-09 c1)',
   'update products set allergens = v.allergens from (values',
-  Object.entries(ALLERGENS).map(([pid, text]) => `  (${q(pid)}, ${q(text)})`).join(',\n'),
+  Object.entries(ALLERGENS)
+    .map(([pid, text]) => `  (${q(pid)}, ${q(text)})`)
+    .join(',\n'),
   ') as v (id, allergens) where products.id = v.id;',
   ''
 );

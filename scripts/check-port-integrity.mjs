@@ -50,7 +50,10 @@ function fingerprint(source) {
 }
 
 const BANNED = [
-  [/className=/, 'className in ported markup — the prototype used inline styles; see docs/PORTING.md'],
+  [
+    /className=/,
+    'className in ported markup — the prototype used inline styles; see docs/PORTING.md'
+  ],
   [/@apply/, '@apply in ported markup'],
   [/from ['"]clsx['"]|from ['"]classnames['"]/, 'a class-name helper in ported markup']
 ];
@@ -68,8 +71,17 @@ for (const dir of DIRS) {
 if (UPDATE) {
   const files = Object.fromEntries(Object.entries(current).map(([k, v]) => [k, v.print]));
   const previous = JSON.parse(readFileSync(BASELINE, 'utf8'));
-  writeFileSync(BASELINE, JSON.stringify({ ...previous, generated: new Date().toISOString().slice(0, 10), files }, null, 2) + '\n');
-  console.log(`Baseline updated for ${Object.keys(files).length} files. Commit it with the change it approves.`);
+  writeFileSync(
+    BASELINE,
+    JSON.stringify(
+      { ...previous, generated: new Date().toISOString().slice(0, 10), files },
+      null,
+      2
+    ) + '\n'
+  );
+  console.log(
+    `Baseline updated for ${Object.keys(files).length} files. Commit it with the change it approves.`
+  );
   process.exit(0);
 }
 
@@ -110,4 +122,6 @@ if (problems.length) {
   process.exit(1);
 }
 
-console.log(`Port integrity OK — ${Object.keys(current).length} files match the copy/style and AST baselines.`);
+console.log(
+  `Port integrity OK — ${Object.keys(current).length} files match the copy/style and AST baselines.`
+);
