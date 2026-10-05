@@ -41,7 +41,10 @@ describe('scrubValue', () => {
   });
 
   it('redacts a denied key even when its name is buried', () => {
-    const scrubbed = scrubValue({ customerPhone: '09171234567', orderNotes: 'no nuts' }) as Record<string, unknown>;
+    const scrubbed = scrubValue({ customerPhone: '09171234567', orderNotes: 'no nuts' }) as Record<
+      string,
+      unknown
+    >;
     expect(scrubbed).toEqual({ _redacted: 2 });
   });
 
@@ -52,13 +55,20 @@ describe('scrubValue', () => {
 
 describe('scrubReport', () => {
   it('strips a lookup query string, which is where the phone number is', () => {
-    const report = scrubReport({ request: { url: '/api/orders/lookup?id=HC-1042&phone=09171234567' } });
+    const report = scrubReport({
+      request: { url: '/api/orders/lookup?id=HC-1042&phone=09171234567' }
+    });
     expect(report.request?.url).toBe('/api/orders/lookup');
   });
 
   it('drops request headers and cookies entirely', () => {
     const report = scrubReport({
-      request: { url: '/orders', headers: { cookie: 'sb-access-token=abc' }, cookies: { a: 'b' }, data: { phone: '09171234567' } }
+      request: {
+        url: '/orders',
+        headers: { cookie: 'sb-access-token=abc' },
+        cookies: { a: 'b' },
+        data: { phone: '09171234567' }
+      }
     });
     expect(report.request?.headers).toBeUndefined();
     expect(report.request?.cookies).toBeUndefined();
@@ -70,7 +80,9 @@ describe('scrubReport', () => {
       message: 'failed to save order for Maria Santos 09171234567',
       user: { email: 'maria@example.com', id: 'u1' },
       extra: { customerName: 'Maria Santos', phone: '09171234567', items: { dcf: 2 } },
-      breadcrumbs: [{ message: 'POST /api/orders?phone=09171234567', data: { phone: '09171234567' } }],
+      breadcrumbs: [
+        { message: 'POST /api/orders?phone=09171234567', data: { phone: '09171234567' } }
+      ],
       exception: { values: [{ value: 'duplicate phone 09171234567' }] }
     });
     const serialised = JSON.stringify(report);
@@ -80,31 +92,49 @@ describe('scrubReport', () => {
   });
 });
 
-
 describe('reporting-path privacy canaries', () => {
   const canary = 'Synthetic Canary Person sk_test_private_canary_7a9e';
   it('drops unstructured content in reports and standalone breadcrumbs', () => {
     const payload = {
-      message: canary, name: canary, tags: { safe: canary }, transaction: canary,
+      message: canary,
+      name: canary,
+      tags: { safe: canary },
+      transaction: canary,
       request: { url: '/orders/' + canary, headers: { authorization: canary } },
       extra: { screen: canary, route: canary, code: canary, name: canary, stack: canary },
       data: { url: canary, message: canary },
-      exception: { values: [{ value: canary, stacktrace: { frames: [{ vars: { value: canary } }] } }] },
+      exception: {
+        values: [{ value: canary, stacktrace: { frames: [{ vars: { value: canary } }] } }]
+      },
       breadcrumbs: [{ message: canary, category: canary, data: { message: canary } }]
     };
-    expect(JSON.stringify(scrubValue({ [canary]: canary, constructor: canary }))).not.toContain(canary);
+    expect(JSON.stringify(scrubValue({ [canary]: canary, constructor: canary }))).not.toContain(
+      canary
+    );
     expect(JSON.stringify(scrubReport(payload))).not.toContain(canary);
-    expect(JSON.stringify(scrubReport({ message: canary, data: { name: canary }, category: canary }))).not.toContain(canary);
+    expect(
+      JSON.stringify(scrubReport({ message: canary, data: { name: canary }, category: canary }))
+    ).not.toContain(canary);
   });
   it('keeps only validated metadata and rejects secret-shaped diagnostic values', () => {
     expect(scrubValue({ screen: 'bazaar', role: 'owner', count: 2, online: false })).toEqual({
-      screen: 'bazaar', role: 'owner', count: 2, online: false
+      screen: 'bazaar',
+      role: 'owner',
+      count: 2,
+      online: false
     });
     expect(scrubValue({ role: canary, count: canary, code: canary })).toEqual({
-      role: '[redacted]', count: '[redacted]', _redacted: 1
+      role: '[redacted]',
+      count: '[redacted]',
+      _redacted: 1
     });
-    expect(scrubReport({ message: canary, timestamp: 123, event_id: 'a'.repeat(32), type: 'error' })).toEqual({
-      message: '[redacted]', timestamp: 123, event_id: 'a'.repeat(32), type: 'error'
+    expect(
+      scrubReport({ message: canary, timestamp: 123, event_id: 'a'.repeat(32), type: 'error' })
+    ).toEqual({
+      message: '[redacted]',
+      timestamp: 123,
+      event_id: 'a'.repeat(32),
+      type: 'error'
     });
   });
 });
