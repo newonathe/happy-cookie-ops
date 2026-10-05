@@ -54,9 +54,13 @@ plan is built (Ethan, 5 October). F3 (launch) stays closed until Cine accepts a 
   email code to two approved mailboxes. The shop is closed and the menu is unpublished.
 - **On the trial** (read 5 October; migration 54 added 6 October): all 54 migrations applied; 72 stock items, 26
   flavours, 804 historical book lines, no orders.
-- **CI/CD is green.** A green push to `agent/codex/MP-04-g1-feasibility` redeploys the
-  trial; a push that changes only documents does not. Latest release: GitHub run
-  37302318279 at `3bc91dd`, Worker version `43267acc`.
+- **CI/CD:** a green push to `agent/codex/MP-04-g1-feasibility` redeploys the trial; a push
+  that changes only documents does not. The last runs that completed were green (A1 and A2).
+  **The two 6 October pushes (A3 at `79b8e97`, A4 at `851e95e`) did not release:** GitHub could
+  not give their jobs a hosted runner ("not acquired by Runner", runs 37370848143 and
+  37372795892), so the release was skipped, not broken. The trial still runs the A2 build, with
+  no sign-out pill. Re-run the failed jobs (Actions, the run, Re-run) when GitHub has capacity,
+  or push again; check before the rehearsal that the release job passes.
 
 ### Known not to work yet
 
