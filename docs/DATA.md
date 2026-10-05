@@ -169,4 +169,3 @@ shops. Rounding here changes a shopping list.
 ## Owner recipe source drafts
 
 recipe_drafts stores owner-editable batch yield and original recipe text (including spoon measures, components and optional quantities). RLS enabled; no browser table privileges. get_recipe_drafts/save_recipe_draft are active-owner-only SECURITY DEFINER RPCs with an empty search path, bounded fields and optimistic conflict checks. Drafts never feed production, costing or inventory deduction; those continue to use recipes/recipe_ingredients.
-

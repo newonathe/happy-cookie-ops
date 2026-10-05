@@ -6,7 +6,7 @@
 > agent-sized tasks with dependencies, acceptance criteria and an explicit file list, and
 > `/task T-XX` loads one with the right context. This file is the narrative version: the
 > prompts as prose, useful for a session where you want to paste one whole thing, and for
-> understanding *why* the sequence is ordered as it is. The task ids map onto the groups
+> understanding _why_ the sequence is ordered as it is. The task ids map onto the groups
 > below.
 
 The prompts are written to be pasted whole into a fresh session: each one states its own
@@ -152,9 +152,9 @@ every part.
 
 Learned from the port. Each of these produces work you will have to undo:
 
-- *"Clean up the inline styles"* — deletes the signed-off design.
-- *"Refactor the engine into hooks"* — destroys diffability against the prototype and
+- _"Clean up the inline styles"_ — deletes the signed-off design.
+- _"Refactor the engine into hooks"_ — destroys diffability against the prototype and
   risks every business rule at once.
-- *"Improve the copy"* — the copy is the product.
-- *"Add a component library"* — the components exist; they are the prototype's.
-- *"Make it look more modern"* — it looks the way the owner approved.
+- _"Improve the copy"_ — the copy is the product.
+- _"Add a component library"_ — the components exist; they are the prototype's.
+- _"Make it look more modern"_ — it looks the way the owner approved.

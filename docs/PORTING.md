@@ -8,12 +8,12 @@ tell a port artefact from a decision.
 
 ## The four layers
 
-| Prototype | Here | Method |
-| --- | --- | --- |
-| Logic class (4,100 lines) | `src/store/engine/ops-engine.js` | Copied verbatim, four marked edits |
-| Template (2,827 lines) | `app-frame.tsx` + 24 screens + 29 sheets | Mechanical translation, rules below |
-| `renderVals()` return shape | `src/view-models/vals.ts` | Types derived from every read in the template |
-| `<helmet>` CSS | `src/app/globals.css` | Base layer copied; tokens lifted into `@theme` |
+| Prototype                   | Here                                     | Method                                         |
+| --------------------------- | ---------------------------------------- | ---------------------------------------------- |
+| Logic class (4,100 lines)   | `src/store/engine/ops-engine.js`         | Copied verbatim, four marked edits             |
+| Template (2,827 lines)      | `app-frame.tsx` + 24 screens + 29 sheets | Mechanical translation, rules below            |
+| `renderVals()` return shape | `src/view-models/vals.ts`                | Types derived from every read in the template  |
+| `<helmet>` CSS              | `src/app/globals.css`                    | Base layer copied; tokens lifted into `@theme` |
 
 ## The four edits to the engine
 
@@ -36,18 +36,18 @@ without adaptation.
 
 The template was parsed as XML and walked once. The rules were:
 
-| Template | Result |
-| --- | --- |
-| `{{ a.b }}` in text | `{a.b}` |
-| `{{ x }}` as a whole attribute | `{x}` — the raw value, so handlers stay functions |
-| `{{ x }}` inside a string attribute | a template literal |
-| `style="…"` (static) | a React style object, written out property by property |
-| `style="…{{ x }}…"` (dynamic) | `style={s(`…`)}` — see `src/lib/css.ts` |
-| `style-hover` / `style-active` / `style-focus` | `<Pressable hoverStyle activeStyle focusStyle>` |
-| `<sc-if value="{{ c }}">` | `{c ? (<>…</>) : null}` |
-| `<sc-for list="{{ xs }}" as="x">` | `{(xs ?? []).map((x, $index) => …)}` |
-| `hint-*` attributes | dropped — they only mattered while the prototype streamed |
-| `src="assets/…"` | `src="/assets/…"` |
+| Template                                       | Result                                                    |
+| ---------------------------------------------- | --------------------------------------------------------- |
+| `{{ a.b }}` in text                            | `{a.b}`                                                   |
+| `{{ x }}` as a whole attribute                 | `{x}` — the raw value, so handlers stay functions         |
+| `{{ x }}` inside a string attribute            | a template literal                                        |
+| `style="…"` (static)                           | a React style object, written out property by property    |
+| `style="…{{ x }}…"` (dynamic)                  | `style={s(`…`)}` — see `src/lib/css.ts`                   |
+| `style-hover` / `style-active` / `style-focus` | `<Pressable hoverStyle activeStyle focusStyle>`           |
+| `<sc-if value="{{ c }}">`                      | `{c ? (<>…</>) : null}`                                   |
+| `<sc-for list="{{ xs }}" as="x">`              | `{(xs ?? []).map((x, $index) => …)}`                      |
+| `hint-*` attributes                            | dropped — they only mattered while the prototype streamed |
+| `src="assets/…"`                               | `src="/assets/…"`                                         |
 
 Two structural decisions were taken during the walk:
 
@@ -63,7 +63,7 @@ Two structural decisions were taken during the walk:
 
 Converting ~1,400 elements' worth of style objects into utility classes would have meant
 making a judgement call per declaration, on a design that was already signed off. The
-tokens in `@theme` capture the *system* — the palette, the radii, the two eases — so new
+tokens in `@theme` capture the _system_ — the palette, the radii, the two eases — so new
 UI has somewhere to come from. The ported screens keep their literals. That trade is the
 single biggest reason this port is trustworthy.
 

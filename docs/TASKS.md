@@ -11,7 +11,7 @@ board is the map (ids, dependencies, status), that directory is the script. Read
 [`docs/prompts/00-session-protocol.md`](./prompts/00-session-protocol.md) once before your
 first task.
 
-**Each task's *Context* line is the complete file list.** It is there so the agent does not
+**Each task's _Context_ line is the complete file list.** It is there so the agent does not
 explore the repository — that is the single biggest cost in agentic development. Do not add
 files to it out of curiosity.
 
@@ -25,6 +25,7 @@ Status: `○` not started · `◐` in progress · `●` done
 ## Phase 0 — Make the gate work (do this first, in order)
 
 ### T-01 ○ Get it running and prove the port · **C** · ~1 session
+
 **Depends on** nothing.
 **Context** `README.md`, `AGENTS.md`, `docs/PORTING.md`, `package.json`.
 **Do** `pnpm install`; `pnpm db:start`; `pnpm db:reset`; `pnpm verify`; `pnpm test:e2e`.
@@ -34,6 +35,7 @@ Fix failures without touching ported markup or the engine. `chmod +x scripts/*.s
 line it came from before changing anything.
 
 ### T-01b ○ Stand up Supabase locally · **C** · ~half session
+
 **Depends on** T-01.
 **Context** `supabase/config.toml`, `supabase/migrations/`, `supabase/seed.sql`, `docs/DATA.md`.
 **Do** `pnpm db:start`, `pnpm db:reset`. Then verify **by querying, not by reading the SQL**:
@@ -47,6 +49,7 @@ than `products` or `drops` — those two are public because the shop is public; 
 else is a hole.
 
 ### T-02 ○ Generated database types · **X** · ~30 min
+
 **Depends on** T-01b.
 **Context** `src/lib/supabase/client.ts`, `src/lib/supabase/server.ts`, `src/app/api/sync/route.ts`, `supabase/migrations/`.
 **Do** `pnpm db:types`, then type both clients with the `Database` generic and the
@@ -54,6 +57,7 @@ else is a hole.
 **Done when** no `any`, no `!` on `process.env`, `pnpm verify` green.
 
 ### T-03 ○ Commit the lockfile and pin CI · **H** · 10 min
+
 **Do** commit `pnpm-lock.yaml`. CI uses `--frozen-lockfile`; without it every run resolves
 fresh and a transitive break will look like your bug.
 
@@ -62,6 +66,7 @@ fresh and a transitive break will look like your bug.
 ## Phase 1 — Identity, then money can move
 
 ### T-04 ○ Staff accounts and the real role gate · **C** · ~1 session
+
 **Depends on** T-02.
 **Context** `src/middleware.ts`, `src/app/sign-in/`, `supabase/migrations/20260101000000_init.sql`, `docs/DATA.md`, `src/store/ops-runtime.tsx`.
 **Do** Owner-only staff management: list `profiles`, invite a helper or support account,
@@ -72,6 +77,7 @@ Zod, an `audit_log` row for every role change. Then make the app's role come fro
 **Do not** restyle the Settings screen to fit the new panel. Extend it.
 
 ### T-05 ◐ Harden /api/sync · **C** · ~half session
+
 **Partly built.** The limiter exists (`src/lib/rate-limit.ts`, limits already chosen). The
 size cap, the structured logging and `GET /api/sync/status` do not.
 **Depends on** T-02. **Read `docs/OFFLINE.md` first — its rules are not negotiable.**
@@ -87,6 +93,7 @@ numbers), and `GET /api/sync/status`.
 entry and one audit row exist.
 
 ### T-06 ○ Cross-model review of Phase 1 · **X** · 30 min
+
 **Depends on** T-04, T-05.
 **Do** In Codex, with only the diff in context, run the `/review` checklist from
 `.claude/commands/review.md` and the `security-reviewer` checks. Resolve every blocker.
@@ -96,6 +103,7 @@ entry and one audit row exist.
 ## Phase 2 — Tests before the migration (this is what makes the migration safe)
 
 ### T-07 ○ Money and rounding · **X** · ~half session
+
 **Depends on** T-01.
 **Context** `tests/unit/money.test.ts`, `src/store/engine/ops-engine.js` (read only), `docs/reference/spec/03-business-rules.md`.
 **Do** Extend the money tests: box pricing, the packaging fee, discounts, refunds,
@@ -103,6 +111,7 @@ change due, and the peso↔centavo boundary. Test through the engine's public su
 **Done when** every money path named in the business-rules spec has a test.
 
 ### T-08 ○ Engine rules that have no tests · **X** · ~2 sessions, split by rule
+
 **Depends on** T-07.
 **Context** `docs/reference/spec/03-business-rules.md`, `src/store/engine/ops-engine.js` (read only), `tests/unit/`.
 **Do** Tests for spoilage, the stock-count reconciliation, no-shows, overage, the closeout,
@@ -113,6 +122,7 @@ through `renderVals()`.
 finding, not a task.
 
 ### T-09 ○ Offline queue under real failure · **C** · ~half session
+
 **Depends on** T-05.
 **Context** `src/lib/offline/`, `tests/e2e/bazaar-offline.spec.ts`, `public/sw.js`, `docs/OFFLINE.md`.
 **Do** e2e coverage for: sale while offline then reload; server accepts some and rejects
@@ -127,6 +137,7 @@ One table at a time. **The app must work after every task.** Keep the local stor
 read cache until T-14.
 
 ### T-10 ○ Catalogue and prices · **C** · ~1 session
+
 **Depends on** T-02, T-07.
 **Context** `src/store/engine/ops-engine.js` (PRODUCTS, SEED_PRICES), `supabase/seed.sql`, `src/components/app/ops-app.tsx`, `src/lib/supabase/server.ts`.
 **Do** Load the catalogue in a server component, pass it into `OpsApp` as an initial prop.
@@ -140,6 +151,7 @@ tested (`tests/unit/money-conversion.test.ts`). Postgres returns `bigint` as a s
 **Done when** prices come from Postgres, the screens are pixel-identical, port integrity green.
 
 ### T-11 ○ Orders and order items · **C** · ~2 sessions
+
 **Depends on** T-10.
 **Context** `docs/CONTRACTS.md`, `docs/DATA.md`, `supabase/migrations/20260101000000_init.sql`, the engine's order methods.
 **Do** Reads via server components, writes via route handlers with Zod. Enforce capacity
@@ -152,6 +164,7 @@ wording at all: the prototype's shop clamps the quantity picker, so a customer n
 that refusal. The API does need one. Ask the owner for the sentence; do not write one and
 do not delete the placeholder comment until she has given it to you.
 **Also** two things `docs/GAPS.md` flags that belong here, not in a later task:
+
 - **an idempotency key on `POST /api/orders`** (§1.3) — `orderKey()` in
   `src/lib/idempotency.ts` is written and tested; wire it as the unique constraint.
 - **a shared capacity fixture** (§4.2) — one test asserting `drop_remaining()` and the
@@ -168,6 +181,7 @@ refusal, proven by a test; a repeated checkout request creates one order; and th
 fixture passes against both implementations.
 
 ### T-12 ○ Ledger and expenses · **C** · ~1 session
+
 **Depends on** T-11.
 **Context** `docs/DATA.md`, `supabase/migrations/20260101000000_init.sql`, the engine's ledger methods.
 **Do** Append-only: a correction is a new signed row, never an update or delete. Every
@@ -176,6 +190,7 @@ write records who and when.
 forged role in the client payload.
 
 ### T-13 ○ Stock, recipes, suppliers, grocery list · **X** · ~1 session
+
 **Depends on** T-10.
 **Context** the engine's inventory methods, `supabase/seed.sql`, `docs/DATA.md`.
 **Do** Move inventory, recipes and suppliers to Postgres. The grocery list stays derived —
@@ -183,6 +198,7 @@ do not persist it. Preserve par-level logic and the exact `amt` / `amtExact` phr
 **Done when** the grocery list is byte-identical to the prototype's for the seeded stock.
 
 ### T-14 ○ Retire localStorage, migrate the live books · **C** + **H** · ~1 session
+
 **Depends on** T-11, T-12, T-13.
 **Context** the engine's `persist` / `loadState`, the Settings export, `docs/TECH-DEBT.md`.
 **Do** Remove the `localStorage` persistence path, keep the Settings export as a manual
@@ -197,6 +213,7 @@ deleted. **H must run this one against the owner's actual device.**
 ## Phase 4 — Quality, then polish
 
 ### T-15 ○ Accessibility pass · **C** · ~1 session · needs `HC_ALLOW_PORTED_EDITS=1`
+
 **Depends on** T-01. Tech debt item 5.
 **Context** `eslint.config.mjs`, `src/components/screens/`, `src/components/sheets/`.
 **Do** Every interactive element keyboard-reachable and labelled; `<div onClick>` becomes
@@ -207,6 +224,7 @@ and `node scripts/check-port-integrity.mjs --update` is committed with an explan
 **Constraint** No layout, spacing, colour or copy change. Semantics only.
 
 ### T-16 ○ Two devices at once · **C** · ~1 session
+
 **Depends on** T-11.
 **Context** `src/components/app/offline-bridge.tsx`, `src/store/ops-runtime.tsx`, `docs/ARCHITECTURE.md`.
 **Do** Supabase Realtime on `orders` and `bake_batches` only. Reconcile into engine state
@@ -215,6 +233,7 @@ without clobbering a local edit in progress; never re-fire a toast for this devi
 a half-typed order survives an incoming change.
 
 ### T-16b ◐ Observability — switch it on · **H** · 15 min
+
 **Depends on** T-01. `docs/GAPS.md` §2.3.
 **Already built.** Sentry across all three runtimes, the PII scrubber with tests, and the
 uptime cron. Read `docs/OBSERVABILITY.md` before changing any of it — three Sentry
@@ -226,6 +245,7 @@ payload, and stopping the app opens a GitHub issue within fifteen minutes.
 **Do not** add new error boundaries or a second reporter. Both exist.
 
 ### T-17 ◐ Error reporting — verify it, do not build it · **X** · ~20 min
+
 **Depends on** T-16b (the DSN). `docs/OBSERVABILITY.md` first.
 **Already built.** Sentry across all three runtimes (`instrumentation-client.ts`,
 `sentry.server.config.ts`, `sentry.edge.config.ts`) plus `onRequestError` for server
@@ -242,6 +262,7 @@ the allowlist in `scrub.ts` by one key, with a test. Never loosen it wholesale.
 "fix" them back.
 
 ### T-18 ○ Performance on the real device · **X** · ~half session
+
 **Depends on** T-11.
 **Context** `docs/ARCHITECTURE.md` (rendering section), `next.config.ts`.
 **Do** Lighthouse on `/` and `/shop` on a throttled mobile profile. Report the numbers
@@ -250,6 +271,7 @@ before proposing anything.
 only what the numbers justify — the rendering section explains why memoising was rejected.
 
 ### T-18b ◐ Visual regression — generate the baselines · **X** · ~30 min
+
 **Depends on** T-01. `docs/GAPS.md` §3.4.
 **Already built.** `tests/e2e/visual.spec.ts`, the `visual` Playwright project, and the
 containerised CI job. The clock is frozen rather than masked, for a reason the file states.
@@ -260,6 +282,7 @@ the CI runner on font hinting alone, every run, forever.
 unmodified tree passes.
 
 ### T-18c ○ Provision staging · **H** · 20 min
+
 **Depends on** T-01. Blocks T-14.
 **Already written.** `docs/STAGING.md` is the full checklist, including the RLS query to
 run against the remote project specifically and the five-minute smoke test.
@@ -271,6 +294,7 @@ every table in the staging project.
 nowhere to fail safely.
 
 ### T-19 ○ Backups and the pre-bazaar ritual · **H** · 1 hour
+
 **Depends on** T-14. Do the backup half **before** T-14, not after — the migration is when
 data is most at risk (`docs/GAPS.md` §2.4, §3.1).
 **Context** `docs/DEPLOY.md`.
@@ -283,11 +307,11 @@ in aeroplane mode, with a real test sale. Write down what was wrong.
 
 Things that will look like good ideas and are not. Each destroys value that is already paid for.
 
-| Idea | Why not |
-| --- | --- |
-| Convert the ported inline styles to Tailwind classes | Deletes a signed-off design, one judgement call at a time. `docs/PORTING.md`. |
-| Refactor `ops-engine.js` into hooks | Risks every business rule at once and ends diffability against the prototype. |
-| Improve the copy | The copy is the product. It was written for one person to read with dough on her hands. |
-| Add a component library | The components exist. They are the prototype's. |
-| Regenerate the screens from the prototype | The hand work since the port — `Pressable`, the split files, `RouteSync`, `OfflineBridge` — would be lost. |
-| Server-render the screens | Deliberate. `docs/ARCHITECTURE.md` explains the trade. |
+| Idea                                                 | Why not                                                                                                    |
+| ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| Convert the ported inline styles to Tailwind classes | Deletes a signed-off design, one judgement call at a time. `docs/PORTING.md`.                              |
+| Refactor `ops-engine.js` into hooks                  | Risks every business rule at once and ends diffability against the prototype.                              |
+| Improve the copy                                     | The copy is the product. It was written for one person to read with dough on her hands.                    |
+| Add a component library                              | The components exist. They are the prototype's.                                                            |
+| Regenerate the screens from the prototype            | The hand work since the port — `Pressable`, the split files, `RouteSync`, `OfflineBridge` — would be lost. |
+| Server-render the screens                            | Deliberate. `docs/ARCHITECTURE.md` explains the trade.                                                     |

@@ -25,14 +25,14 @@ Check in this order. Stop at the first that explains it.
 > **The URLs are in [`docs/ENVIRONMENTS.md`](./ENVIRONMENTS.md).** Fill that in once and
 > every command below is copy-paste.
 
-| Check | Result | Means |
-| --- | --- | --- |
-| `curl https://<app>/api/health` | `{"status":"ok"}` | The app is fine. The problem is her device or her network. |
-| | `{"status":"degraded","database":"unreachable"}` | App up, Supabase down → §2 |
-| | `{"database":"not-configured"}` | No env vars. Expected before T-04; a misconfigured deploy after. |
-| | timeout / 502 | The deploy is broken → §3 |
-| Vercel dashboard → Deployments | latest is red | A bad deploy → §3 |
-| Supabase dashboard → Project | **Paused** | Free-tier inactivity → §2 |
+| Check                           | Result                                           | Means                                                            |
+| ------------------------------- | ------------------------------------------------ | ---------------------------------------------------------------- |
+| `curl https://<app>/api/health` | `{"status":"ok"}`                                | The app is fine. The problem is her device or her network.       |
+|                                 | `{"status":"degraded","database":"unreachable"}` | App up, Supabase down → §2                                       |
+|                                 | `{"database":"not-configured"}`                  | No env vars. Expected before T-04; a misconfigured deploy after. |
+|                                 | timeout / 502                                    | The deploy is broken → §3                                        |
+| Vercel dashboard → Deployments  | latest is red                                    | A bad deploy → §3                                                |
+| Supabase dashboard → Project    | **Paused**                                       | Free-tier inactivity → §2                                        |
 
 ## 2. The database is unreachable
 
@@ -88,13 +88,13 @@ Correct it in the app — the state machine allows it. Two things to explain:
 
 ## 6. Someone cannot sign in
 
-| Cause | Check |
-| --- | --- |
-| No auth configured yet | Expected before T-04 |
-| Wrong password | Password reset from the sign-in screen |
-| Redirect loop | Supabase → Authentication → URL Configuration. The deploy URL must be in the allowlist. This looks exactly like a code bug and is not. |
-| Account never invited | `profiles` has no row → invite them (Settings, owner only) |
-| Right password, wrong role | `profiles.role`. The UI hides money; RLS refuses it. Both need the role to be right. |
+| Cause                      | Check                                                                                                                                  |
+| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| No auth configured yet     | Expected before T-04                                                                                                                   |
+| Wrong password             | Password reset from the sign-in screen                                                                                                 |
+| Redirect loop              | Supabase → Authentication → URL Configuration. The deploy URL must be in the allowlist. This looks exactly like a code bug and is not. |
+| Account never invited      | `profiles` has no row → invite them (Settings, owner only)                                                                             |
+| Right password, wrong role | `profiles.role`. The UI hides money; RLS refuses it. Both need the role to be right.                                                   |
 
 ## 7. Restore from backup
 

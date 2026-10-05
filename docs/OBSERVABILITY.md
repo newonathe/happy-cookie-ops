@@ -14,14 +14,14 @@ leaves unless it has been explicitly allowed to.
 
 ## What is set up
 
-| Layer | What | Where |
-| --- | --- | --- |
-| Client errors | Sentry, via the boundaries that already exist | `instrumentation-client.ts` |
-| Server errors | Sentry `onRequestError` — server components and route handlers | `instrumentation.ts` |
-| Edge errors | Sentry, for `src/middleware.ts` | `sentry.edge.config.ts` |
-| Scrubbing | Deny-by-default redaction | `src/lib/observability/scrub.ts` |
-| Liveness | `GET /api/health`, checked every 15 minutes | `.github/workflows/uptime.yml` |
-| Sync visibility | Accepted/rejected counts, never contents | `src/app/api/sync/route.ts` |
+| Layer           | What                                                           | Where                            |
+| --------------- | -------------------------------------------------------------- | -------------------------------- |
+| Client errors   | Sentry, via the boundaries that already exist                  | `instrumentation-client.ts`      |
+| Server errors   | Sentry `onRequestError` — server components and route handlers | `instrumentation.ts`             |
+| Edge errors     | Sentry, for `src/middleware.ts`                                | `sentry.edge.config.ts`          |
+| Scrubbing       | Deny-by-default redaction                                      | `src/lib/observability/scrub.ts` |
+| Liveness        | `GET /api/health`, checked every 15 minutes                    | `.github/workflows/uptime.yml`   |
+| Sync visibility | Accepted/rejected counts, never contents                       | `src/app/api/sync/route.ts`      |
 
 Sentry is **off** unless `NEXT_PUBLIC_SENTRY_DSN` is set. Local development reports
 nothing, which is correct — a shared project full of your own typos is noise.
@@ -34,7 +34,7 @@ and each is marked in the config so nobody "fixes" it back.
 **`sendDefaultPii: false`.** The guide says true. It attaches request headers and the
 client IP. Headers carry the session cookie.
 
-**No session replay, at any sample rate.** Replay records the DOM. The DOM *is* the
+**No session replay, at any sample rate.** Replay records the DOM. The DOM _is_ the
 customer list, the order notes and the day's takings. There is no sample rate at which
 recording her screen is acceptable.
 
@@ -59,7 +59,7 @@ Deny-by-default in three passes:
    `+639171234567`, `0917 123 4567`), email addresses, and long digit runs that look like
    a GCash reference.
 
-That third pass is the one that earns its keep. Error *messages* carry payloads far more
+That third pass is the one that earns its keep. Error _messages_ carry payloads far more
 often than people expect: a failed insert will quote the row back at you, complete with the
 phone number in the unique-constraint violation.
 
@@ -100,7 +100,7 @@ sales queue in IndexedDB and retry, so an outage does not lose money.
   something to look at, not something to learn from.
 - **No log aggregation.** Vercel's own logs cover it at this size.
 - **No read auditing.** `audit_log` records writes. If a helper account is compromised
-  there is no record of what was *looked* at — noted in `docs/GAPS.md` §2.5, not worth
+  there is no record of what was _looked_ at — noted in `docs/GAPS.md` §2.5, not worth
   building yet.
 - **No alerting beyond the GitHub issue.** Add a notification on the `outage` label if
   you want it on a phone.

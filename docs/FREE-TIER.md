@@ -8,15 +8,15 @@ and the two places where "free" has a condition attached that matters for a real
 
 ## What the app needs
 
-| Service | Plan | Fits? | The catch |
-| --- | --- | --- | --- |
-| Vercel | Hobby | yes | Commercial-use clause — see below |
-| Supabase | Free | yes | **Pauses after 7 days idle** — see below |
-| GitHub Actions | Free | yes, with care | Billed per minute; the budget is real |
-| Sentry | Developer | yes | 5k errors/month, one project |
-| Lighthouse CI | free storage | yes | Reports expire; fine, they are advisory |
-| Dependabot | free | yes | — |
-| SMS (Semaphore) | **paid** | **no** | The one thing to leave switched off |
+| Service         | Plan         | Fits?          | The catch                                |
+| --------------- | ------------ | -------------- | ---------------------------------------- |
+| Vercel          | Hobby        | yes            | Commercial-use clause — see below        |
+| Supabase        | Free         | yes            | **Pauses after 7 days idle** — see below |
+| GitHub Actions  | Free         | yes, with care | Billed per minute; the budget is real    |
+| Sentry          | Developer    | yes            | 5k errors/month, one project             |
+| Lighthouse CI   | free storage | yes            | Reports expire; fine, they are advisory  |
+| Dependabot      | free         | yes            | —                                        |
+| SMS (Semaphore) | **paid**     | **no**         | The one thing to leave switched off      |
 
 ## The two catches worth knowing before you deploy
 
@@ -65,12 +65,12 @@ except for the deploy step itself.
 2,000 minutes a month on a private repository. GitHub bills whole minutes with a
 one-minute minimum per run, which is what catches people:
 
-| | Runs/month | Billed minutes |
-| --- | --- | --- |
-| Hourly uptime check | 720 | ~720 |
-| CI on main + PRs (~8 min a run) | ~100 | ~800 |
-| Visual regression (containerised) | included above | — |
-| **Total** | | **~1,520 of 2,000** |
+|                                   | Runs/month     | Billed minutes      |
+| --------------------------------- | -------------- | ------------------- |
+| Hourly uptime check               | 720            | ~720                |
+| CI on main + PRs (~8 min a run)   | ~100           | ~800                |
+| Visual regression (containerised) | included above | —                   |
+| **Total**                         |                | **~1,520 of 2,000** |
 
 Comfortable. The version originally written here was not: a 15-minute cron is 2,880
 billed minutes on its own, which exhausts the allowance around day 20 — **and then CI

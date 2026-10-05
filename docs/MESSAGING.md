@@ -16,11 +16,11 @@ the pickup window closes.
 
 ## Why Semaphore
 
-| | Semaphore | Twilio |
-| --- | --- | --- |
-| Philippine local numbers | Priced for the market | International rates |
-| Sender name | Registered alphanumeric sender | Available, more setup |
-| Account | Local, no international billing | Card in USD |
+|                          | Semaphore                       | Twilio                |
+| ------------------------ | ------------------------------- | --------------------- |
+| Philippine local numbers | Priced for the market           | International rates   |
+| Sender name              | Registered alphanumeric sender  | Available, more setup |
+| Account                  | Local, no international billing | Card in USD           |
 
 The business has exactly one market. Twilio is the better product and the wrong tool here.
 The provider sits behind `MessageProvider` in `src/lib/messaging/types.ts`, so this
@@ -32,7 +32,7 @@ decision is one class, not an integration.
 logs at warn level with the recipient redacted and reports `sent: false`.
 
 That is deliberate on two counts. Every code path around messaging can be built and tested
-before the owner has agreed to pay for a single text — and the stub is *honest* about being
+before the owner has agreed to pay for a single text — and the stub is _honest_ about being
 a stub, so nobody mistakes a full log for a working integration.
 
 To switch it on:
