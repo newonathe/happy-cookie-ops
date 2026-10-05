@@ -49,7 +49,7 @@
     "test:live:checkout": "node scripts/test-live-checkout.mjs"
   },
   "dependencies": {
-    "next": "16.3.3",
+    "next": "16.3.8",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "@supabase/ssr": "0.7.0",
@@ -65,7 +65,7 @@
     "tailwindcss": "4.3.3",
     "@tailwindcss/postcss": "4.3.3",
     "eslint": "9.39.5",
-    "eslint-config-next": "16.3.3",
+    "eslint-config-next": "16.3.8",
     "@eslint/eslintrc": "3.3.7",
     "eslint-plugin-jsx-a11y": "6.10.2",
     "eslint-config-prettier": "10.1.8",
