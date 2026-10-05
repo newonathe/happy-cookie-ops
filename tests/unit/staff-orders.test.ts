@@ -183,7 +183,12 @@ describe('the pickup week', () => {
   it('an order nobody closed in a past week does not make that week the current one', () => {
     const list = [
       // Last week: an unpaid order that lapsed and a packed order never tapped collected.
-      order({ id: 'old1', pickup_date: '2026-09-28', state: 'Payment review', pay_state: 'unpaid' }),
+      order({
+        id: 'old1',
+        pickup_date: '2026-09-28',
+        state: 'Payment review',
+        pay_state: 'unpaid'
+      }),
       order({ id: 'old2', pickup_date: '2026-10-01', state: 'Ready' }),
       order({ id: 'now1', pickup_date: '2026-10-05' }),
       order({ id: 'now2', pickup_date: '2026-10-08' })
@@ -198,7 +203,9 @@ describe('the pickup week', () => {
   it('a Thursday order this week keeps the week even when its Monday pickups have passed', () => {
     const list = [order({ id: 'thu', pickup_date: '2026-10-08' })];
     expect(currentWeek(list, '2026-10-08')).toBe('2026-10-05');
-    expect(currentWeek(list, '2026-10-09')).toBe('2026-10-09'.replace('2026-10-09', weekKey('2026-10-09'))); // Friday: nothing left to pick up
+    expect(currentWeek(list, '2026-10-09')).toBe(
+      '2026-10-09'.replace('2026-10-09', weekKey('2026-10-09'))
+    ); // Friday: nothing left to pick up
   });
 
   it('manilaToday is the business clock, eight hours ahead of UTC', () => {
