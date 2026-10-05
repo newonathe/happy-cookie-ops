@@ -42,6 +42,8 @@ async function rpc(target, name, args, fetcher) {
     throw new Error('Operation connection failed.');
   }
   if (!response.ok) throw new Error('Operation was refused (HTTP ' + response.status + ').');
+  // A void function (record_operations_run) is answered 204 No Content with an empty body.
+  if (response.status === 204) return null;
   try {
     return await response.json();
   } catch {

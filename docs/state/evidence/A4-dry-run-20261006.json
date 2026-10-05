@@ -1,0 +1,29 @@
+{
+  "date": "2026-10-06",
+  "slice": "A4 local dry run (final-plan.md section 9)",
+  "scope": "local project and a disposable local container only; nothing hosted; no --hosted-approved; OPS_JOBS_ENABLED not set",
+  "backupAndRestore": "docs/state/evidence/F1-backup-20261006.json: encrypted local backup authenticated after write; restored into a disposable public.ecr.aws/supabase/postgres:15.8.1.085 container; 62 tables, row counts and SHA-256 match, 56 foreign keys validated, 0 orphans, atomic rollback and wrong-port refusal verified; container removed",
+  "keepalive": {
+    "before": "FAILED locally: record_operations_run returns void, PostgREST answers 204 with no body, the runner read it as JSON, recorded a success and then a failed run, exit 1",
+    "after": "success (scripts/f1-operations.mjs treats 204 as an empty result; tests/unit/operations-runner.test.ts)"
+  },
+  "retention": {
+    "result": "success",
+    "retainDays": 365
+  },
+  "hostedTargetWithoutApproval": "refused before any request",
+  "healthReadOut": {
+    "backup": null,
+    "restore": null,
+    "keepalive": "success",
+    "retention": "success"
+  },
+  "notExercised": [
+    "hosted source for the backup job (supabase link and the dump through it)",
+    "any off-device copy: custody is not decided",
+    "the GitHub schedule (runs only from the default branch)"
+  ],
+  "hostedWrites": false,
+  "scheduleActivated": false,
+  "keyOrPiiInReceipt": false
+}

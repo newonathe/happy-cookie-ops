@@ -1,0 +1,1213 @@
+{
+  "date": "2026-10-06",
+  "scope": "slice A4 local dry run: encrypted local database backup, verification and isolated restore drill (nothing hosted)",
+  "backup": {
+    "status": "PASS",
+    "cipher": "AES-256-GCM",
+    "archiveSha256": "78b8ee811cf8e15649223f2b6651a57d1f882bdf785b2c4239d821397ce6503b",
+    "authenticatedAfterWrite": true,
+    "offDeviceCopy": false,
+    "healthReported": false
+  },
+  "restore": {
+    "status": "PASS",
+    "image": "public.ecr.aws/supabase/postgres:15.8.1.085",
+    "includedSchemas": [
+      "public",
+      "auth",
+      "hco_private"
+    ],
+    "sourceTables": {
+      "auth.audit_log_entries": {
+        "rows": 97,
+        "sha256": "77eff3586a4793d53a8a6fcdbe1f9c7a2286ec6231369919ed360e7043609e82"
+      },
+      "auth.custom_oauth_providers": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "auth.flow_state": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "auth.identities": {
+        "rows": 1,
+        "sha256": "d15ca5ba0c079c71b39dbd03d9219706a48d153d16dfb7c23a26b1ae2ae3cf6b"
+      },
+      "auth.instances": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "auth.mfa_amr_claims": {
+        "rows": 1,
+        "sha256": "f874f2a9019ebb87bff7c1c125d774656bfe964eae1c03b109f5ee1d630e5d05"
+      },
+      "auth.mfa_challenges": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "auth.mfa_factors": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "auth.oauth_authorizations": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "auth.oauth_client_states": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "auth.oauth_clients": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "auth.oauth_consents": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "auth.one_time_tokens": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "auth.refresh_tokens": {
+        "rows": 1,
+        "sha256": "413ebdadb2e49c0d985b78193ca84120f50b47c70ab03624a920414120ac9f9d"
+      },
+      "auth.saml_providers": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "auth.saml_relay_states": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "auth.schema_migrations": {
+        "rows": 77,
+        "sha256": "4cba395b23f594ab23ff1367e4d13e00383ecb88570c7f0d032cd4afea8cc4c2"
+      },
+      "auth.sessions": {
+        "rows": 1,
+        "sha256": "bb355e427d2b9e3b968ba56264f843ab8ae3e2c1c5708d26a4b2fcfe685cee6b"
+      },
+      "auth.sso_domains": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "auth.sso_providers": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "auth.users": {
+        "rows": 1,
+        "sha256": "8cc130e087d042e70b29ec98787d1aa29f8af7985ad214ba4b0002bfa39f2672"
+      },
+      "auth.webauthn_challenges": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "auth.webauthn_credentials": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "hco_private.bff_sessions": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "public.audit_log": {
+        "rows": 9,
+        "sha256": "bb134ab2643f1bcde93f6b7a4f8ecfabfe63aec6c4b3b9159847eabdb5308bd8"
+      },
+      "public.bake_batches": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "public.books_settings": {
+        "rows": 1,
+        "sha256": "79e3c72aeb9bfe2591ad0377c789ba01a0a72d6cd55a6b46bf043749240c0482"
+      },
+      "public.drops": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "public.erasure_requests": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "public.event_expenses": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "public.event_sale_items": {
+        "rows": 5,
+        "sha256": "750599a815a2a089ab3fe00944dc1eb0f34679432e66ef7e6d184c2472f0f9d4"
+      },
+      "public.event_sale_voids": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "public.event_sales": {
+        "rows": 5,
+        "sha256": "2d78e2746ca5fd60f98460f4855c577f69a06a4efda4f0ca578afef6778c4f1f"
+      },
+      "public.events": {
+        "rows": 2,
+        "sha256": "2e92cfe5398e1851ef91489829ebad01e1e75c48355b00f4912394fc573e13df"
+      },
+      "public.inventory_items": {
+        "rows": 30,
+        "sha256": "33c831aa2eb1920073f216a70b9b54c6617fef53c833d8d8fc1e9f2eaeab82bc"
+      },
+      "public.ledger_entries": {
+        "rows": 5,
+        "sha256": "056dafef44f74a5d93bf0f2a96ab4c50752ba6ea6fe1b7cfd30a2ffcfcf159d8"
+      },
+      "public.operations_runs": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "public.order_add_ons": {
+        "rows": 2,
+        "sha256": "b479fa8c31c202646a177ca2c23441ed34ac884fbb6669addab57b9f39a8fbed"
+      },
+      "public.order_boxes": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "public.order_extras": {
+        "rows": 1,
+        "sha256": "ef0e17945001a85104e050be2fdfa0a8dd316fa3c8906054d56f3f6e62ede9f2"
+      },
+      "public.order_items": {
+        "rows": 2,
+        "sha256": "d213c506d1ddadf820f6ead5e333a27f39121e8506ec37cdb370bb60b935ea6c"
+      },
+      "public.order_rules": {
+        "rows": 1,
+        "sha256": "b907b7a6755513662a72a2d08b008413630dac6b5143088ac367ed972b647c34"
+      },
+      "public.order_swaps": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "public.orders": {
+        "rows": 2,
+        "sha256": "bee9f59240d020625c6f2e2893160df483ee1745c36445b86739bfc2e4ebeb75"
+      },
+      "public.payment_methods": {
+        "rows": 1,
+        "sha256": "c0f66af7c0968a7a14272892b6e40cd6aed1c6028be012f17a23b67d2d29a166"
+      },
+      "public.production_records": {
+        "rows": 6,
+        "sha256": "b40c93ff8df6293d51638caab88618afa8f46a0d4e6823f71d544e5d9258d577"
+      },
+      "public.products": {
+        "rows": 6,
+        "sha256": "b1a6c1a33710487615c61c59f1429fb1bb68bf7041d7067db8c9a39b0d3b1d40"
+      },
+      "public.profiles": {
+        "rows": 1,
+        "sha256": "ea17e17cacc87214cfbdaa76b7360ce15c7195560bf0e9a1269a4af101dc7881"
+      },
+      "public.rate_limits": {
+        "rows": 1,
+        "sha256": "1b3ac7b0d31d7e04f4c62325af6368c9dda2b95a206e834aeb94efdd0fe89b34"
+      },
+      "public.recipe_drafts": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "public.recipe_ingredients": {
+        "rows": 51,
+        "sha256": "b25947fac863c9382124fddafb8c845cd68780e06b39f3150532c0c38522510b"
+      },
+      "public.recipe_versions": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "public.recipes": {
+        "rows": 6,
+        "sha256": "b4d87c0e8381441b7cec72d33bd316cb70cfe3fdb8aa31db39a3bf25707929db"
+      },
+      "public.scheduled_events": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "public.settings": {
+        "rows": 7,
+        "sha256": "f11c433a188c358b456cc74b60ac348b4c91af9b75342ae57f31309076572573"
+      },
+      "public.shop_state": {
+        "rows": 1,
+        "sha256": "5fd1ff36b7183496e9e52222998ce31932ef23e454bc9cb3af74bcf027d65313"
+      },
+      "public.shop_texts": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "public.stock_cost_corrections": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "public.stock_movements": {
+        "rows": 10,
+        "sha256": "6c0a0a7117d1d3599204945449c237d5ef213db7db209f7682e782c1da9ac1e8"
+      },
+      "public.supplier_prices": {
+        "rows": 30,
+        "sha256": "4a7e1b421741fbaf34542f8295db12efe09610f68e3bbe833b533aa675a4a5c7"
+      },
+      "public.suppliers": {
+        "rows": 10,
+        "sha256": "d780e1fc9e2b4269a0bf63ad991f51c200831a957a3374ee4261b811c6b66774"
+      },
+      "public.waitlist_entries": {
+        "rows": 1,
+        "sha256": "09c1e77127162a29b5a039e0f93be9738120bd573febeb51afd0954e17a25874"
+      }
+    },
+    "sourceForeignKeys": [
+      {
+        "table": "auth.identities",
+        "constraint": "identities_user_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "auth.mfa_amr_claims",
+        "constraint": "mfa_amr_claims_session_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "auth.mfa_challenges",
+        "constraint": "mfa_challenges_auth_factor_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "auth.mfa_factors",
+        "constraint": "mfa_factors_user_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "auth.oauth_authorizations",
+        "constraint": "oauth_authorizations_client_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "auth.oauth_authorizations",
+        "constraint": "oauth_authorizations_user_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "auth.oauth_consents",
+        "constraint": "oauth_consents_client_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "auth.oauth_consents",
+        "constraint": "oauth_consents_user_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "auth.one_time_tokens",
+        "constraint": "one_time_tokens_user_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "auth.refresh_tokens",
+        "constraint": "refresh_tokens_session_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "auth.saml_providers",
+        "constraint": "saml_providers_sso_provider_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "auth.saml_relay_states",
+        "constraint": "saml_relay_states_flow_state_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "auth.saml_relay_states",
+        "constraint": "saml_relay_states_sso_provider_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "auth.sessions",
+        "constraint": "sessions_oauth_client_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "auth.sessions",
+        "constraint": "sessions_user_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "auth.sso_domains",
+        "constraint": "sso_domains_sso_provider_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "auth.webauthn_challenges",
+        "constraint": "webauthn_challenges_user_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "auth.webauthn_credentials",
+        "constraint": "webauthn_credentials_user_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.audit_log",
+        "constraint": "audit_log_actor_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.bake_batches",
+        "constraint": "bake_batches_drop_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.bake_batches",
+        "constraint": "bake_batches_product_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.event_expenses",
+        "constraint": "event_expenses_event_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.event_expenses",
+        "constraint": "event_expenses_ledger_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.event_sale_items",
+        "constraint": "event_sale_items_product_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.event_sale_items",
+        "constraint": "event_sale_items_sale_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.event_sales",
+        "constraint": "event_sales_event_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.event_sales",
+        "constraint": "event_sales_ledger_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.inventory_items",
+        "constraint": "inventory_items_supplier_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.ledger_entries",
+        "constraint": "ledger_entries_created_by_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.ledger_entries",
+        "constraint": "ledger_entries_order_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.order_add_ons",
+        "constraint": "order_add_ons_order_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.order_boxes",
+        "constraint": "order_boxes_order_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.order_extras",
+        "constraint": "order_extras_sampler_product_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.order_items",
+        "constraint": "order_items_order_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.order_items",
+        "constraint": "order_items_product_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.order_swaps",
+        "constraint": "order_swaps_from_product_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.order_swaps",
+        "constraint": "order_swaps_order_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.order_swaps",
+        "constraint": "order_swaps_to_product_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.orders",
+        "constraint": "orders_drop_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.production_records",
+        "constraint": "production_records_created_by_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.production_records",
+        "constraint": "production_records_product_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.profiles",
+        "constraint": "profiles_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.recipe_drafts",
+        "constraint": "recipe_drafts_product_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.recipe_ingredients",
+        "constraint": "recipe_ingredients_product_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.recipe_versions",
+        "constraint": "recipe_versions_product_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.recipes",
+        "constraint": "recipes_product_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.scheduled_events",
+        "constraint": "scheduled_events_event_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.settings",
+        "constraint": "settings_updated_by_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.stock_cost_corrections",
+        "constraint": "stock_cost_corrections_created_by_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.stock_cost_corrections",
+        "constraint": "stock_cost_corrections_ledger_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.stock_cost_corrections",
+        "constraint": "stock_cost_corrections_movement_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.stock_movements",
+        "constraint": "stock_movements_created_by_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.stock_movements",
+        "constraint": "stock_movements_item_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.stock_movements",
+        "constraint": "stock_movements_ledger_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.stock_movements",
+        "constraint": "stock_movements_production_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.supplier_prices",
+        "constraint": "supplier_prices_supplier_id_fkey",
+        "orphans": 0,
+        "validated": true
+      }
+    ],
+    "targetComparison": "PASS",
+    "atomicRollbackVerified": true,
+    "wrongPortPreservedTarget": true,
+    "restoreSqlAttempted": true,
+    "restoreSqlApplied": true,
+    "targetTables": {
+      "auth.audit_log_entries": {
+        "rows": 97,
+        "sha256": "77eff3586a4793d53a8a6fcdbe1f9c7a2286ec6231369919ed360e7043609e82"
+      },
+      "auth.custom_oauth_providers": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "auth.flow_state": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "auth.identities": {
+        "rows": 1,
+        "sha256": "d15ca5ba0c079c71b39dbd03d9219706a48d153d16dfb7c23a26b1ae2ae3cf6b"
+      },
+      "auth.instances": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "auth.mfa_amr_claims": {
+        "rows": 1,
+        "sha256": "f874f2a9019ebb87bff7c1c125d774656bfe964eae1c03b109f5ee1d630e5d05"
+      },
+      "auth.mfa_challenges": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "auth.mfa_factors": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "auth.oauth_authorizations": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "auth.oauth_client_states": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "auth.oauth_clients": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "auth.oauth_consents": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "auth.one_time_tokens": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "auth.refresh_tokens": {
+        "rows": 1,
+        "sha256": "413ebdadb2e49c0d985b78193ca84120f50b47c70ab03624a920414120ac9f9d"
+      },
+      "auth.saml_providers": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "auth.saml_relay_states": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "auth.schema_migrations": {
+        "rows": 77,
+        "sha256": "4cba395b23f594ab23ff1367e4d13e00383ecb88570c7f0d032cd4afea8cc4c2"
+      },
+      "auth.sessions": {
+        "rows": 1,
+        "sha256": "bb355e427d2b9e3b968ba56264f843ab8ae3e2c1c5708d26a4b2fcfe685cee6b"
+      },
+      "auth.sso_domains": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "auth.sso_providers": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "auth.users": {
+        "rows": 1,
+        "sha256": "8cc130e087d042e70b29ec98787d1aa29f8af7985ad214ba4b0002bfa39f2672"
+      },
+      "auth.webauthn_challenges": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "auth.webauthn_credentials": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "hco_private.bff_sessions": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "public.audit_log": {
+        "rows": 9,
+        "sha256": "bb134ab2643f1bcde93f6b7a4f8ecfabfe63aec6c4b3b9159847eabdb5308bd8"
+      },
+      "public.bake_batches": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "public.books_settings": {
+        "rows": 1,
+        "sha256": "79e3c72aeb9bfe2591ad0377c789ba01a0a72d6cd55a6b46bf043749240c0482"
+      },
+      "public.drops": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "public.erasure_requests": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "public.event_expenses": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "public.event_sale_items": {
+        "rows": 5,
+        "sha256": "750599a815a2a089ab3fe00944dc1eb0f34679432e66ef7e6d184c2472f0f9d4"
+      },
+      "public.event_sale_voids": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "public.event_sales": {
+        "rows": 5,
+        "sha256": "2d78e2746ca5fd60f98460f4855c577f69a06a4efda4f0ca578afef6778c4f1f"
+      },
+      "public.events": {
+        "rows": 2,
+        "sha256": "2e92cfe5398e1851ef91489829ebad01e1e75c48355b00f4912394fc573e13df"
+      },
+      "public.inventory_items": {
+        "rows": 30,
+        "sha256": "33c831aa2eb1920073f216a70b9b54c6617fef53c833d8d8fc1e9f2eaeab82bc"
+      },
+      "public.ledger_entries": {
+        "rows": 5,
+        "sha256": "056dafef44f74a5d93bf0f2a96ab4c50752ba6ea6fe1b7cfd30a2ffcfcf159d8"
+      },
+      "public.operations_runs": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "public.order_add_ons": {
+        "rows": 2,
+        "sha256": "b479fa8c31c202646a177ca2c23441ed34ac884fbb6669addab57b9f39a8fbed"
+      },
+      "public.order_boxes": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "public.order_extras": {
+        "rows": 1,
+        "sha256": "ef0e17945001a85104e050be2fdfa0a8dd316fa3c8906054d56f3f6e62ede9f2"
+      },
+      "public.order_items": {
+        "rows": 2,
+        "sha256": "d213c506d1ddadf820f6ead5e333a27f39121e8506ec37cdb370bb60b935ea6c"
+      },
+      "public.order_rules": {
+        "rows": 1,
+        "sha256": "b907b7a6755513662a72a2d08b008413630dac6b5143088ac367ed972b647c34"
+      },
+      "public.order_swaps": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "public.orders": {
+        "rows": 2,
+        "sha256": "bee9f59240d020625c6f2e2893160df483ee1745c36445b86739bfc2e4ebeb75"
+      },
+      "public.payment_methods": {
+        "rows": 1,
+        "sha256": "c0f66af7c0968a7a14272892b6e40cd6aed1c6028be012f17a23b67d2d29a166"
+      },
+      "public.production_records": {
+        "rows": 6,
+        "sha256": "b40c93ff8df6293d51638caab88618afa8f46a0d4e6823f71d544e5d9258d577"
+      },
+      "public.products": {
+        "rows": 6,
+        "sha256": "b1a6c1a33710487615c61c59f1429fb1bb68bf7041d7067db8c9a39b0d3b1d40"
+      },
+      "public.profiles": {
+        "rows": 1,
+        "sha256": "ea17e17cacc87214cfbdaa76b7360ce15c7195560bf0e9a1269a4af101dc7881"
+      },
+      "public.rate_limits": {
+        "rows": 1,
+        "sha256": "1b3ac7b0d31d7e04f4c62325af6368c9dda2b95a206e834aeb94efdd0fe89b34"
+      },
+      "public.recipe_drafts": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "public.recipe_ingredients": {
+        "rows": 51,
+        "sha256": "b25947fac863c9382124fddafb8c845cd68780e06b39f3150532c0c38522510b"
+      },
+      "public.recipe_versions": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "public.recipes": {
+        "rows": 6,
+        "sha256": "b4d87c0e8381441b7cec72d33bd316cb70cfe3fdb8aa31db39a3bf25707929db"
+      },
+      "public.scheduled_events": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "public.settings": {
+        "rows": 7,
+        "sha256": "f11c433a188c358b456cc74b60ac348b4c91af9b75342ae57f31309076572573"
+      },
+      "public.shop_state": {
+        "rows": 1,
+        "sha256": "5fd1ff36b7183496e9e52222998ce31932ef23e454bc9cb3af74bcf027d65313"
+      },
+      "public.shop_texts": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "public.stock_cost_corrections": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "public.stock_movements": {
+        "rows": 10,
+        "sha256": "6c0a0a7117d1d3599204945449c237d5ef213db7db209f7682e782c1da9ac1e8"
+      },
+      "public.supplier_prices": {
+        "rows": 30,
+        "sha256": "4a7e1b421741fbaf34542f8295db12efe09610f68e3bbe833b533aa675a4a5c7"
+      },
+      "public.suppliers": {
+        "rows": 10,
+        "sha256": "d780e1fc9e2b4269a0bf63ad991f51c200831a957a3374ee4261b811c6b66774"
+      },
+      "public.waitlist_entries": {
+        "rows": 1,
+        "sha256": "09c1e77127162a29b5a039e0f93be9738120bd573febeb51afd0954e17a25874"
+      }
+    },
+    "targetForeignKeys": [
+      {
+        "table": "auth.identities",
+        "constraint": "identities_user_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "auth.mfa_amr_claims",
+        "constraint": "mfa_amr_claims_session_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "auth.mfa_challenges",
+        "constraint": "mfa_challenges_auth_factor_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "auth.mfa_factors",
+        "constraint": "mfa_factors_user_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "auth.oauth_authorizations",
+        "constraint": "oauth_authorizations_client_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "auth.oauth_authorizations",
+        "constraint": "oauth_authorizations_user_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "auth.oauth_consents",
+        "constraint": "oauth_consents_client_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "auth.oauth_consents",
+        "constraint": "oauth_consents_user_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "auth.one_time_tokens",
+        "constraint": "one_time_tokens_user_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "auth.refresh_tokens",
+        "constraint": "refresh_tokens_session_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "auth.saml_providers",
+        "constraint": "saml_providers_sso_provider_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "auth.saml_relay_states",
+        "constraint": "saml_relay_states_flow_state_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "auth.saml_relay_states",
+        "constraint": "saml_relay_states_sso_provider_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "auth.sessions",
+        "constraint": "sessions_oauth_client_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "auth.sessions",
+        "constraint": "sessions_user_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "auth.sso_domains",
+        "constraint": "sso_domains_sso_provider_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "auth.webauthn_challenges",
+        "constraint": "webauthn_challenges_user_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "auth.webauthn_credentials",
+        "constraint": "webauthn_credentials_user_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.audit_log",
+        "constraint": "audit_log_actor_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.bake_batches",
+        "constraint": "bake_batches_drop_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.bake_batches",
+        "constraint": "bake_batches_product_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.event_expenses",
+        "constraint": "event_expenses_event_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.event_expenses",
+        "constraint": "event_expenses_ledger_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.event_sale_items",
+        "constraint": "event_sale_items_product_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.event_sale_items",
+        "constraint": "event_sale_items_sale_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.event_sales",
+        "constraint": "event_sales_event_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.event_sales",
+        "constraint": "event_sales_ledger_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.inventory_items",
+        "constraint": "inventory_items_supplier_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.ledger_entries",
+        "constraint": "ledger_entries_created_by_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.ledger_entries",
+        "constraint": "ledger_entries_order_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.order_add_ons",
+        "constraint": "order_add_ons_order_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.order_boxes",
+        "constraint": "order_boxes_order_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.order_extras",
+        "constraint": "order_extras_sampler_product_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.order_items",
+        "constraint": "order_items_order_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.order_items",
+        "constraint": "order_items_product_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.order_swaps",
+        "constraint": "order_swaps_from_product_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.order_swaps",
+        "constraint": "order_swaps_order_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.order_swaps",
+        "constraint": "order_swaps_to_product_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.orders",
+        "constraint": "orders_drop_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.production_records",
+        "constraint": "production_records_created_by_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.production_records",
+        "constraint": "production_records_product_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.profiles",
+        "constraint": "profiles_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.recipe_drafts",
+        "constraint": "recipe_drafts_product_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.recipe_ingredients",
+        "constraint": "recipe_ingredients_product_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.recipe_versions",
+        "constraint": "recipe_versions_product_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.recipes",
+        "constraint": "recipes_product_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.scheduled_events",
+        "constraint": "scheduled_events_event_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.settings",
+        "constraint": "settings_updated_by_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.stock_cost_corrections",
+        "constraint": "stock_cost_corrections_created_by_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.stock_cost_corrections",
+        "constraint": "stock_cost_corrections_ledger_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.stock_cost_corrections",
+        "constraint": "stock_cost_corrections_movement_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.stock_movements",
+        "constraint": "stock_movements_created_by_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.stock_movements",
+        "constraint": "stock_movements_item_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.stock_movements",
+        "constraint": "stock_movements_ledger_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.stock_movements",
+        "constraint": "stock_movements_production_id_fkey",
+        "orphans": 0,
+        "validated": true
+      },
+      {
+        "table": "public.supplier_prices",
+        "constraint": "supplier_prices_supplier_id_fkey",
+        "orphans": 0,
+        "validated": true
+      }
+    ],
+    "tableCount": 62,
+    "sourceHasNonemptyAppData": true,
+    "targetHasNonemptyAppData": true,
+    "rowCountsAndSha256Match": true,
+    "foreignKeyCount": 56,
+    "allForeignKeysValidated": true,
+    "orphanCount": 0
+  },
+  "hostedWrites": false,
+  "scheduleActivated": false,
+  "storageObjectBytesIncluded": false,
+  "keyOrPiiInReceipt": false
+}

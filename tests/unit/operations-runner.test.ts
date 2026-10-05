@@ -37,6 +37,29 @@ describe('F1 operator commands are local until explicit hosted approval', () => 
     expect(fetcher.mock.calls[1]![0]).toContain('record_operations_run');
     expect(JSON.parse(fetcher.mock.calls[1]![1].body).p_status).toBe('success');
   });
+  it('keepalive succeeds when PostgREST answers the void report with 204 and no body, and records no failure after it', async () => {
+    // record_operations_run returns void: a real PostgREST replies 204 No Content with an empty
+    // body, and reading it as JSON throws. Found by the A4 local dry run.
+    const fetcher = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ checked_at: new Date().toISOString(), jobs: {} })
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 204,
+        json: async () => {
+          throw new SyntaxError('Unexpected end of JSON input');
+        }
+      });
+    await expect(
+      runOperation('keepalive', { url: 'http://127.0.0.1:54321', key: 'local', fetcher })
+    ).resolves.toEqual({ job: 'keepalive', status: 'success' });
+    expect(fetcher).toHaveBeenCalledTimes(2);
+    expect(JSON.parse(fetcher.mock.calls[1]![1].body).p_status).toBe('success');
+  });
   it('a failed provider reply stays failed and cannot leak provider credentials in its error', async () => {
     const fetcher = vi.fn().mockResolvedValue({
       ok: false,
