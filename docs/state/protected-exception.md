@@ -320,6 +320,7 @@ uploaded image is never deleted when the owner cancels or replaces it (orphans s
 picked a method the owner then turned off can still submit its label (B1's `place_order` must check the method is
 offered). Otherwise clean: both protected edits reverse to the exact delivery bytes, demo rendering is unchanged, the
 resolver cannot leave `url(...)`, and the upload name never comes from the file.
+
 # MP-10 a / B2: the live checkout slot — APPLIED (2026-09-29, finish-plan slice B2, app half)
 
 Status: APPLIED under decision D4 (Ethan, 2026-09-28: the checkout may have guarded, live-only insertion points; the
