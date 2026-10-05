@@ -58,7 +58,8 @@ export function salePayload(sale: SaleToSend): Json {
 }
 
 /** `permanent`: the server understood and refused, so retrying the same body cannot help. */
-export type SendOutcome = { ok: true; duplicate: boolean } | { ok: false; error: string; permanent: boolean };
+export type SendOutcome =
+  { ok: true; duplicate: boolean } | { ok: false; error: string; permanent: boolean };
 
 const REFUSED = new Set(['22023', '23505', '42501', '55000', 'P0002']);
 const refused = (error: { code?: string; message?: string }): SendOutcome => ({
@@ -81,7 +82,9 @@ export async function sendSale(client: EventSalesClient, sale: SaleToSend): Prom
     const { data, error } = await client.rpc('record_event_sale', { p_sale: salePayload(sale) });
     if (error) return refused(error);
     const row = (data ?? []).find((r) => r.client_id === sale.clientId);
-    return row ? { ok: true, duplicate: row.duplicate } : { ok: false, error: 'not acknowledged', permanent: false };
+    return row
+      ? { ok: true, duplicate: row.duplicate }
+      : { ok: false, error: 'not acknowledged', permanent: false };
   } catch (error) {
     return unreachable(error);
   }
@@ -98,7 +101,9 @@ export async function sendVoid(
     });
     if (error) return refused(error);
     const row = (data ?? []).find((r) => r.client_id === saleClientId);
-    return row ? { ok: true, duplicate: row.duplicate } : { ok: false, error: 'not acknowledged', permanent: false };
+    return row
+      ? { ok: true, duplicate: row.duplicate }
+      : { ok: false, error: 'not acknowledged', permanent: false };
   } catch (error) {
     return unreachable(error);
   }
@@ -140,14 +145,21 @@ export async function startEventOnServer(
   }
 }
 
-export type CommandToSend = { kind: 'open' | 'expense' | 'close'; eventId: string; payload: Record<string, unknown> };
+export type CommandToSend = {
+  kind: 'open' | 'expense' | 'close';
+  eventId: string;
+  payload: Record<string, unknown>;
+};
 
 /**
  * Stock loaded, an expense, the close. Each is acknowledged only when the reply names what
  * was sent: the event for `open` and `close` (a close also has to come back closed), the
  * client id for an expense.
  */
-export async function sendCommand(client: EventSalesClient, command: CommandToSend): Promise<SendOutcome> {
+export async function sendCommand(
+  client: EventSalesClient,
+  command: CommandToSend
+): Promise<SendOutcome> {
   const { kind, eventId, payload } = command;
   const p = payload as Record<string, Json | undefined>;
   try {
@@ -155,7 +167,9 @@ export async function sendCommand(client: EventSalesClient, command: CommandToSe
       const { data, error } = await client.rpc('add_event_expense', { p_expense: payload as Json });
       if (error) return refused(error);
       const row = (data ?? []).find((r) => r.client_id === p.clientId);
-      return row ? { ok: true, duplicate: row.duplicate } : { ok: false, error: 'not acknowledged', permanent: false };
+      return row
+        ? { ok: true, duplicate: row.duplicate }
+        : { ok: false, error: 'not acknowledged', permanent: false };
     }
     if (kind === 'open') {
       const { data, error } = await client.rpc('load_event_stock', {
@@ -165,12 +179,16 @@ export async function sendCommand(client: EventSalesClient, command: CommandToSe
       });
       if (error) return refused(error);
       const row = (data ?? []).find((r) => r.event_id === eventId);
-      return row ? { ok: true, duplicate: false } : { ok: false, error: 'not acknowledged', permanent: false };
+      return row
+        ? { ok: true, duplicate: false }
+        : { ok: false, error: 'not acknowledged', permanent: false };
     }
     const { data, error } = await client.rpc('close_event', { p_close: payload as Json });
     if (error) return refused(error);
     const row = (data ?? []).find((r) => r.event_id === eventId);
-    return row?.closed ? { ok: true, duplicate: false } : { ok: false, error: 'not acknowledged', permanent: false };
+    return row?.closed
+      ? { ok: true, duplicate: false }
+      : { ok: false, error: 'not acknowledged', permanent: false };
   } catch (error) {
     return unreachable(error);
   }

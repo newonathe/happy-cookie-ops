@@ -20,7 +20,10 @@ export class AuthTransportError extends Error {
 
 /** Exact pinned-provider 403 bad_jwt on local logout; it never proves expiry or revocation. */
 export class AuthLogoutAccessTokenRejectedError extends AuthTransportError {
-  constructor() { super(); this.name = 'AuthLogoutAccessTokenRejectedError'; }
+  constructor() {
+    super();
+    this.name = 'AuthLogoutAccessTokenRejectedError';
+  }
 }
 
 function fail(): never {
@@ -81,20 +84,32 @@ export interface VerifiedProviderBinding {
 /** Read claims only after /user has authenticated this exact access token. */
 function sessionClaims(accessToken: string): VerifiedProviderBinding {
   const parts = accessToken.split('.');
-  if (parts.length !== 3 || parts.some(part => !JWT_PART.test(part))) fail();
+  if (parts.length !== 3 || parts.some((part) => !JWT_PART.test(part))) fail();
   try {
     const encoded = parts[1];
     if (encoded.length > 8192 || encoded.length % 4 === 1) fail();
-    const bytes = Uint8Array.from(atob(encoded.replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0));
-    const canonical = btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    const bytes = Uint8Array.from(atob(encoded.replace(/-/g, '+').replace(/_/g, '/')), (c) =>
+      c.charCodeAt(0)
+    );
+    const canonical = btoa(String.fromCharCode(...bytes))
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/, '');
     if (canonical !== encoded) fail();
     const payload: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
     if (payload === null || typeof payload !== 'object' || Array.isArray(payload)) fail();
     const claims = payload as Record<string, unknown>;
-    if (typeof claims.sub !== 'string' || !UUID_PATTERN.test(claims.sub) ||
-        typeof claims.session_id !== 'string' || !UUID_PATTERN.test(claims.session_id)) fail();
+    if (
+      typeof claims.sub !== 'string' ||
+      !UUID_PATTERN.test(claims.sub) ||
+      typeof claims.session_id !== 'string' ||
+      !UUID_PATTERN.test(claims.session_id)
+    )
+      fail();
     return { userId: claims.sub, providerSessionId: claims.session_id };
-  } catch { fail(); }
+  } catch {
+    fail();
+  }
 }
 
 function validateConfig(config: SupabaseAuthTransportConfig): {
@@ -162,7 +177,10 @@ async function doFetch(
   } catch {
     return fail();
   }
-  if (signal.aborted) { cancelBestEffort(response); fail(); }
+  if (signal.aborted) {
+    cancelBestEffort(response);
+    fail();
+  }
   return response;
 }
 
@@ -231,8 +249,11 @@ export function createSupabaseAuthTransport(config: SupabaseAuthTransportConfig)
       const parsed = await readJson(response, providerErrorSchema, signal);
       if (signal.aborted) fail();
       const code = providerErrorCode(parsed, response.status);
-      if ((response.status === 401 && (code === 'bad_jwt' || code === 'session_not_found')) ||
-          (response.status === 403 && code === 'session_not_found')) return null;
+      if (
+        (response.status === 401 && (code === 'bad_jwt' || code === 'session_not_found')) ||
+        (response.status === 403 && code === 'session_not_found')
+      )
+        return null;
       fail();
     }
     cancelBestEffort(response);
@@ -260,10 +281,18 @@ export function createSupabaseAuthTransport(config: SupabaseAuthTransportConfig)
 
     user: getUser,
 
-    async verifyBinding(result: AuthTokenResult, signal: AbortSignal): Promise<VerifiedProviderBinding | null> {
-      if (result === null || typeof result !== 'object' ||
-          typeof result.accessToken !== 'string' || typeof result.userId !== 'string' ||
-          !UUID_PATTERN.test(result.userId)) fail();
+    async verifyBinding(
+      result: AuthTokenResult,
+      signal: AbortSignal
+    ): Promise<VerifiedProviderBinding | null> {
+      if (
+        result === null ||
+        typeof result !== 'object' ||
+        typeof result.accessToken !== 'string' ||
+        typeof result.userId !== 'string' ||
+        !UUID_PATTERN.test(result.userId)
+      )
+        fail();
       const user = await getUser(result.accessToken, signal);
       if (user === null) return null;
       if (signal.aborted) fail();
@@ -286,8 +315,18 @@ export function createSupabaseAuthTransport(config: SupabaseAuthTransportConfig)
       if (response.status === 403) {
         const parsed = await readJson(response, providerErrorSchema, signal);
         if (signal.aborted) fail();
-        if (typeof parsed.code === 'number' && parsed.code === 403 && providerErrorCode(parsed, response.status) === 'session_not_found') return;
-        if (typeof parsed.code === 'number' && parsed.code === 403 && providerErrorCode(parsed, response.status) === 'bad_jwt') throw new AuthLogoutAccessTokenRejectedError();
+        if (
+          typeof parsed.code === 'number' &&
+          parsed.code === 403 &&
+          providerErrorCode(parsed, response.status) === 'session_not_found'
+        )
+          return;
+        if (
+          typeof parsed.code === 'number' &&
+          parsed.code === 403 &&
+          providerErrorCode(parsed, response.status) === 'bad_jwt'
+        )
+          throw new AuthLogoutAccessTokenRejectedError();
       }
       cancelBestEffort(response);
       fail();

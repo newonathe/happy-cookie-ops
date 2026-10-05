@@ -262,10 +262,12 @@ async function handleRefresh(
     const checked = checkRecord(raw, stamp, null);
     if (checked === 'malformed' || checked === 'expired')
       throw new HandlerError('dependency_unavailable', 503);
-    if (checked.profile.id !== session.profile.id ||
-        checked.sessionId !== session.sessionId ||
-        checked.csrfToken !== session.csrfToken ||
-        checked.expiresAt !== session.expiresAt)
+    if (
+      checked.profile.id !== session.profile.id ||
+      checked.sessionId !== session.sessionId ||
+      checked.csrfToken !== session.csrfToken ||
+      checked.expiresAt !== session.expiresAt
+    )
       throw new HandlerError('dependency_unavailable', 503);
     return successResponse(checked);
   });
@@ -304,7 +306,8 @@ export async function handleSessionRequest(
   const clock = options.now ?? (() => Math.floor(Date.now() / 1000));
   const now = () => {
     const value = clock();
-    if (!Number.isSafeInteger(value) || value < 0) throw new HandlerError('dependency_unavailable', 503);
+    if (!Number.isSafeInteger(value) || value < 0)
+      throw new HandlerError('dependency_unavailable', 503);
     return value;
   };
 
@@ -333,7 +336,11 @@ export async function handleSessionRequest(
       return errorResponse(err.status, err.code, err.status === 405 ? { Allow: allow } : undefined);
     }
     if (err instanceof HandlerError) {
-      return errorResponse(err.status, err.code, err.status === 429 ? { 'Retry-After': '60' } : undefined);
+      return errorResponse(
+        err.status,
+        err.code,
+        err.status === 429 ? { 'Retry-After': '60' } : undefined
+      );
     }
     return errorResponse(503, 'dependency_unavailable');
   }

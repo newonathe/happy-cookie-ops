@@ -102,8 +102,14 @@ export async function readBoundedJson<T>(
   if (request.body === null || request.bodyUsed) fail('bad_request');
 
   let reader: ReadableStreamDefaultReader<Uint8Array>;
-  try { reader = request.body.getReader(); } catch { return fail('bad_request'); }
-  const cancel = () => { void reader.cancel().catch(() => undefined); };
+  try {
+    reader = request.body.getReader();
+  } catch {
+    return fail('bad_request');
+  }
+  const cancel = () => {
+    void reader.cancel().catch(() => undefined);
+  };
   signal?.addEventListener('abort', cancel, { once: true });
   if (signal?.aborted) cancel();
   const chunks: Uint8Array[] = [];

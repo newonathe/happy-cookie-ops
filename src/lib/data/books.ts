@@ -116,7 +116,12 @@ export function engineLedger(lines: readonly BookLine[]) {
     id: l.id,
     kind: l.kind,
     at: l.at,
-    cat: l.kind === 'revenue' && l.cat === 'Orders' ? 'Drops' : l.kind === 'draw' ? 'Owner drawings' : l.cat,
+    cat:
+      l.kind === 'revenue' && l.cat === 'Orders'
+        ? 'Drops'
+        : l.kind === 'draw'
+          ? 'Owner drawings'
+          : l.cat,
     label: l.label,
     amount: centavosToPesos(l.amountCents)
   }));
@@ -319,7 +324,13 @@ export function unpaidOrders(orders: readonly UnpaidSource[], now: number): Unpa
     if (!status) continue;
     const owedCents = o.totalCents - (status === 'balance' ? paid : 0);
     if (owedCents <= 0) continue;
-    rows.push({ id: o.id, name: o.name, owedCents, status, days: Math.max(0, Math.floor((now - o.placedAt) / 86_400_000)) });
+    rows.push({
+      id: o.id,
+      name: o.name,
+      owedCents,
+      status,
+      days: Math.max(0, Math.floor((now - o.placedAt) / 86_400_000))
+    });
   }
   rows.sort((a, b) => b.days - a.days || a.id.localeCompare(b.id));
   return { rows, totalCents: rows.reduce((n, r) => n + r.owedCents, 0) };
