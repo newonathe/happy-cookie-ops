@@ -4,7 +4,7 @@ Read this page first in a new session. It is kept short on purpose.
 
 | If you need                                        | Read                                                                                                                                                     |
 | -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| The goal to run next                               | [next-goal.md](next-goal.md) (A1, then A2)                                                                                                               |
+| The goal to run next                               | [next-goal.md](next-goal.md) (A2)                                                                                                                        |
 | The plan, approved 5 October                       | [final-plan.md](final-plan.md), version 2                                                                                                                |
 | The rules every agent follows                      | [AGENTS.md](../../AGENTS.md)                                                                                                                             |
 | Ethan's and Cine's decisions                       | [decision-register.md](decision-register.md)                                                                                                             |
@@ -16,10 +16,10 @@ Read this page first in a new session. It is kept short on purpose.
 
 ## Where things stand — 6 October 2026
 
-**The plan is approved and nothing of it is built yet.** Ethan approved
+**The plan is approved; slice A1 of it is built.** Ethan approved
 [final-plan.md](final-plan.md), version 2, on 5 October after a re-audit, a debate and
 wider research. It replaces finish-plan.md as the forward plan. The next step is slice
-A1, then A2.
+A2.
 
 **Package:** F2, the owner trial, stays open but does not start until everything in the
 plan is built (Ethan, 5 October). F3 (launch) stays closed until Cine accepts a real week.
@@ -46,7 +46,6 @@ Found by reading code or the trial, not by running. Each has a slice in the plan
 | What                                                                                                                   | Slice  |
 | ---------------------------------------------------------------------------------------------------------------------- | ------ |
 | **The live app signs the owner out when opened or reloaded with no signal.** The October bazaar is unsafe until fixed. | A2     |
-| The release check allows exactly two addresses, so Cine cannot be added.                                               | A1     |
 | No backup, restore drill, retention or keep-alive job is scheduled.                                                    | A4     |
 | Nothing tests the live app; the browser suites run the demo build.                                                     | B1     |
 | Values from the prototype still show in the live app (pickups, greeting, Settings rows, shop tagline).                 | B2     |
@@ -74,8 +73,10 @@ All in [decision-register.md](decision-register.md), the section for 5 October.
 
 ### Waiting on Ethan
 
-- After A1 is released: add Cine's two addresses to Cloudflare Access and the approved
-  list together, set the session to one week, invite her.
+- A1 is built (the release check takes two to six addresses; Cine is not added yet). Add her
+  two addresses to Cloudflare Access and the approved-digest variable in one sitting, or the
+  next deploy fails. Set the session to one week: that deploy then fails once and prints the
+  value; put it in `ALLOWED_SESSION_DURATIONS`, push, then invite her.
 - Close the test event left open on the trial since 5 October.
 - Decide where the encrypted backup lives and who can restore it; switch the jobs on.
 - The phone rehearsal by **20 October** ([final-plan.md](final-plan.md) section 11.1).

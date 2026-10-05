@@ -15,6 +15,23 @@ export const TARGET = Object.freeze({
   branch: 'refs/heads/agent/codex/MP-04-g1-feasibility'
 });
 
+// How many owner mailboxes the Access policy may admit, and so how many approved SHA-256
+// digests the release must see: two to six, the bounds of slice A1 (final-plan.md section 9).
+// The floor keeps both owners; the ceiling keeps the trial private. Changing either is a
+// decision to record, never a quiet edit, because this check decides who can sign in.
+export const APPROVED_EMAIL_MIN = 2;
+export const APPROVED_EMAIL_MAX = 6;
+
+// Access session lengths the release accepts, for the application and for its policy.
+// Add a value only after reading it back from the live policy: Cloudflare does not publish
+// the string its API returns, and a guess fails the release or admits a longer session.
+// When Ethan sets "1 week" in the dashboard, the next failed release prints the value it
+// found; put exactly that string in the second entry below and delete the comment marks.
+export const ALLOWED_SESSION_DURATIONS = Object.freeze([
+  '8h'
+  // , 'FILL FROM THE POLICY: the value reported after choosing "1 week" (final-plan.md section 12)'
+]);
+
 const api = 'https://api.cloudflare.com/client/v4';
 const hash = (s) => createHash('sha256').update(s.trim().toLowerCase()).digest('hex');
 const fail = (message) => {
@@ -35,7 +52,10 @@ export function validateGate({
     fail('Access application identity/domain/type mismatch');
   if (accountSubdomain?.subdomain !== TARGET.accountSubdomain)
     fail('Cloudflare account workers.dev subdomain mismatch');
-  if (app?.session_duration !== '8h') fail('Access application session must be 8h');
+  if (!ALLOWED_SESSION_DURATIONS.includes(app?.session_duration))
+    fail(
+      `Access application session must be one of ${ALLOWED_SESSION_DURATIONS.join(', ')} (found ${JSON.stringify(app?.session_duration)})`
+    );
   if (
     !Array.isArray(providers) ||
     !Array.isArray(app.allowed_idps) ||
@@ -52,17 +72,15 @@ export function validateGate({
   if (!Array.isArray(policies) || policies.length !== 1 || policies[0]?.id !== TARGET.policy)
     fail('Expected exactly one application policy');
   const [p] = policies;
-  if (
-    p?.decision !== 'allow' ||
-    p?.session_duration !== '8h' ||
-    p?.exclude?.length ||
-    p?.require?.length
-  )
-    fail('Policy must be an 8h allow policy without exclude/require selectors');
+  if (p?.decision !== 'allow' || p?.exclude?.length || p?.require?.length)
+    fail('Policy must be an allow policy without exclude/require selectors');
+  if (!ALLOWED_SESSION_DURATIONS.includes(p?.session_duration))
+    fail(
+      `Access policy session must be one of ${ALLOWED_SESSION_DURATIONS.join(', ')} (found ${JSON.stringify(p?.session_duration)})`
+    );
   const selectors = p?.include;
   if (
     !Array.isArray(selectors) ||
-    selectors.length !== 2 ||
     selectors.some(
       (s) =>
         Object.keys(s).length !== 1 ||
@@ -70,18 +88,27 @@ export function validateGate({
         typeof s.email?.email !== 'string'
     )
   )
-    fail('Policy must contain exactly two email selectors');
-  const actual = selectors.map((s) => hash(s.email.email)).sort();
+    fail('Policy include rules must be single email selectors');
+  const bounds = `between ${APPROVED_EMAIL_MIN} and ${APPROVED_EMAIL_MAX}`;
+  if (selectors.length < APPROVED_EMAIL_MIN || selectors.length > APPROVED_EMAIL_MAX)
+    fail(`Policy must contain ${bounds} email selectors (found ${selectors.length})`);
+  const actual = selectors.map((s) => hash(s.email.email));
+  if (new Set(actual).size !== actual.length) fail('Policy contains a duplicate email selector');
   const expected = String(emailHashes ?? '')
     .split(',')
     .map((s) => s.trim().toLowerCase())
-    .filter(Boolean)
-    .sort();
+    .filter(Boolean);
   if (
-    expected.length !== 2 ||
+    expected.length < APPROVED_EMAIL_MIN ||
+    expected.length > APPROVED_EMAIL_MAX ||
+    new Set(expected).size !== expected.length
+  )
+    fail(`Approved SHA-256 digest list must contain ${bounds} unique digests`);
+  const approved = new Set(expected);
+  if (
     expected.some((s) => !/^[a-f0-9]{64}$/.test(s)) ||
-    new Set(actual).size !== 2 ||
-    actual.some((s, i) => s !== expected[i])
+    actual.length !== expected.length ||
+    actual.some((s) => !approved.has(s))
   )
     fail('Policy email selectors do not match the approved SHA-256 digests');
   if (
