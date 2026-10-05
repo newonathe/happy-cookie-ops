@@ -214,7 +214,10 @@ try {
     await sized.waitForSelector('[data-screen-label="Customer shop"]', { timeout: 15000 });
     await sized.waitForTimeout(300);
     const layout = await sized.evaluate(() => ({
-      harnessText: /Interactive prototype|Free roam|mock data|Back to ops|Preview · customer view/.test(document.body.innerText),
+      harnessText:
+        /Interactive prototype|Free roam|mock data|Back to ops|Preview · customer view/.test(
+          document.body.innerText
+        ),
       scrollWidth: document.documentElement.scrollWidth,
       innerWidth: window.innerWidth
     }));
