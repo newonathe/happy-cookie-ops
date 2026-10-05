@@ -25,9 +25,10 @@ stay outside Git.
   One function works out what an ingredient costs, and it never answers zero for
   "unknown".
 - **Nothing hard-coded** is a rule with two tests behind it (section 4), not a promise.
-- **About 37 slices.** At the pace so far (one to two a day when attended) that is 19 to
-  37 working days; plan on about 28. Cine's trial would then start in the second half of
-  November. This is an estimate, not a commitment.
+- **About 37 slices, which split into about 50 sessions.** At the pace so far (one to two
+  sessions a day when attended) that is 25 to 50 working days from 6 October: the switch
+  to the new interface lands between late November and mid-December, and Cine's trial
+  follows it. Plan on early December. This is an estimate, not a commitment.
 - **Research changed four things** (section 2): leading tools do not carry stall stock
   from day to day, so that design is ours; they have no per-order packaging, so that is
   ours too; a cash difference is recorded as a difference, never as sales; and the
@@ -38,8 +39,11 @@ stay outside Git.
 Method: each claim was fetched in this session from the product's own help centre,
 documentation or standard. "Summary" means a search result's summary of the primary page
 was read but the page itself was not opened. Nothing was signed into; no demo was
-operated. **No hands-on use happened in either pass**: the public demos found need an
-account or cookie consent.
+operated. **No hands-on use happened in either pass, and none was attempted in this
+one**: the goal asked for it "where possible" and the time went to primary documents
+instead. The only site operated in a browser was the privacy commission's, to read
+pages it refuses to plain fetches; its registration system's cookie banner was not
+accepted.
 
 ### 2.1 What was verified
 
@@ -72,6 +76,11 @@ account or cookie consent.
 | "Use three to five tabs" (Apple).                                               | Not re-fetched: Apple's pages need a script-running browser. The 44-point target figure is likewise **unverified this session**.                      | The plan uses WCAG's 24-pixel floor as the rule and 44 pixels as the target for selling tiles and the tab bar, stated as our choice.                                                                     |
 | Castiron dropped as closed.                                                     | Only secondary pages (competitors' blogs) say so. **Unverified**; it stays dropped.                                                                   | None.                                                                                                                                                                                                    |
 | meez claims taken from a listing.                                               | Costing behaviour verified in meez's help centre. Version history, allergens and pictures were **not** re-verified.                                   | Those features are built because Cine asked for them (comments 52, 82), not because meez has them.                                                                                                       |
+
+A likely reason the leaders have no "day stock" (not verified here): their stock is one
+running count, kept apart from the cash session. That suggests the simplest form of D10
+to try first: one stock pool for the event, loaded from baked stock, with each day being
+a cash session plus an optional leftover count.
 
 ### 2.3 Customer records and privacy in the Philippines
 
@@ -305,6 +314,11 @@ browser at 360, 768 and 1,440 wide.
 
 D1 and D2 may run in this window. They do not touch selling.
 
+A5 is the one item here that could touch the selling device's path. A search of the
+sign-in and offline code found no check tying sign-out to the queue, but the path was
+not read in full. If the fix would need ported shell or screen markup, or anything in
+the offline queue itself, it stops and comes back to Ethan instead of being built.
+
 ### Stage 1: the data layer (to about 30 October, around the bazaar)
 
 D1, D2, D3, D4, D5, D6, D7, D8 in that order, then D9's imports one at a time as Ethan
@@ -334,22 +348,46 @@ approves each preview. D10 and D11 follow the bazaar.
 | U16 | Wording pass with Cine on every label.                                                                                                                                     | S         | all screens |
 | U17 | Switch: the new frame is the live app; the ported one remains the demo.                                                                                                    | S         | all         |
 
-Count: 5 before the rehearsal, 11 data, about 21 interface slices that split into about
-30 sessions.
+Tests and evidence for each interface slice, beyond the general rule above:
+
+| #   | Its own tests and evidence                                                                                                                                                                 |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| U0a | The demo build is byte-unchanged: port integrity, the validator and the 75 visual baselines pass untouched. With the build setting off, the live app is the ported one.                    |
+| U0b | Stories for each shared piece; the empty-shop and two-shops harness fails when a literal is planted (one mutation check).                                                                  |
+| U1  | Home's figures equal the books and the orders for the same period; a month with no target shows no bar.                                                                                    |
+| U2  | Every status change the ported Orders screen can make, made from the new one, with the same database result; filters against a seeded set.                                                 |
+| U3  | Placing an order as an existing customer shows nothing about them; a customer page totals equal their orders; an erased customer disappears from list and page.                            |
+| U4  | Each of the six forms saves the same payload as today (existing tests re-pointed).                                                                                                         |
+| U5  | A bake recorded here deducts and costs as D3 defines; a shortfall is shown, not hidden.                                                                                                    |
+| U6  | An incomplete cost shows what is missing, never a number; a picture over the size limit is resized before upload; the picture can be chosen without dragging; a new version keeps the old. |
+| U7  | Receive, count and waste write the same movements as today; Out, Low, Good follow her level, in words.                                                                                     |
+| U8  | The total equals the sum of the rows at the best price per unit; "I bought these" records one delivery per item.                                                                           |
+| U9  | A price saved here is the one the cost function reads.                                                                                                                                     |
+| U10 | P&L totals equal `get_books`; Sales totals reconcile to the P&L for the same period; the CSV prints Manila dates.                                                                          |
+| U11 | A helper cannot open it; a setting saved here changes the sentence or number it feeds (two-shops test).                                                                                    |
+| U12 | The shop, checkout, status and lookup at 320, 768, 1,024 and 1,440 wide with no sideways scroll; the live shop page measured against the performance budget.                               |
+| U13 | OFFLINE-01 and new offline tests across a day boundary; no sale lost or doubled on reconnect; a full run on the selling iPhone; close-out for exact, over and short.                       |
+| U14 | A new build reaches a device that had the old one; old cached files are removed; the prompt never appears while a sale is open or queued; a run on the iPhone.                             |
+| U15 | The Lighthouse figures for the live shop page before and after; the visual suite unchanged.                                                                                                |
+| U16 | Her signed-off word list, kept privately; a test that no label outside the copy files reaches a screen.                                                                                    |
+| U17 | The whole browser suite on the new frame; the demo build and its baselines unchanged; the old live routes redirect.                                                                        |
+
+Count: 5 slices before the rehearsal (about 4 sessions), 11 data slices (about 17
+sessions), about 21 interface slices (about 30 sessions): about 50 sessions in all.
 
 ## 9. Dates
 
-| When                               | What                                                                                                                                                                     |
-| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 6 to 9 October                     | A1, A2, A4, A5; A3 written. D1 and D2 start.                                                                                                                             |
-| By 12 October                      | Ethan adds Cine's two addresses to Cloudflare Access and invites her; she signs in on her iPhone and her MacBook. Ethan decides backup custody and switches the jobs on. |
-| 13 to 19 October                   | The phone rehearsal (section 9.1), on the phone that will sell. Aim for 17 October to leave room for one fix and a repeat.                                               |
-| **20 October**                     | The gate. Passed: the release hold goes on and the bazaar uses the app. Not passed: she sells as she does today and 12 to 13 December becomes the pilot.                 |
-| 24 to 25 October                   | The bazaar, on today's Bazaar Mode, with a paper tally as backup. A CSV download at the end of each day.                                                                 |
-| 26 October                         | Hold off. Review what happened; D10 and D11 are shaped by it.                                                                                                            |
-| To mid-November                    | Stage 2.                                                                                                                                                                 |
-| Second half of November (estimate) | Wording pass, then Cine's trial week.                                                                                                                                    |
-| 12 to 13 December                  | The second bazaar: the first on bazaar days, if D10 and U13 are done and rehearsed.                                                                                      |
+| When                             | What                                                                                                                                                                     |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 6 to 9 October                   | A1, A2, A4, A5; A3 written. D1 and D2 start.                                                                                                                             |
+| By 12 October                    | Ethan adds Cine's two addresses to Cloudflare Access and invites her; she signs in on her iPhone and her MacBook. Ethan decides backup custody and switches the jobs on. |
+| 13 to 19 October                 | The phone rehearsal (section 9.1), on the phone that will sell. Aim for 17 October to leave room for one fix and a repeat.                                               |
+| **20 October**                   | The gate. Passed: the release hold goes on and the bazaar uses the app. Not passed: she sells as she does today and 12 to 13 December becomes the pilot.                 |
+| 24 to 25 October                 | The bazaar, on today's Bazaar Mode, with a paper tally as backup. A CSV download at the end of each day.                                                                 |
+| 26 October                       | Hold off. Review what happened; D10 and D11 are shaped by it.                                                                                                            |
+| To late November or mid-December | Stage 2, about 30 sessions.                                                                                                                                              |
+| Early December (estimate)        | Wording pass, then Cine's trial week.                                                                                                                                    |
+| 12 to 13 December                | The second bazaar. It runs on bazaar days only if D10 and U13 are done and rehearsed by then; otherwise on today's Bazaar Mode again.                                    |
 
 ### 9.1 The phone rehearsal: what it must prove
 
@@ -397,24 +435,25 @@ real customers, no production project and no merge to `main`, until Ethan says s
 
 Each has one recommendation. **"Yes" approves it.**
 
-| #   | Decision                | Recommendation                                                                                                                                                                                  |
-| --- | ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | The plan                | Adopt this page as the single forward plan in place of finish-plan.md, and let the pointer lines in AGENTS.md and CLAUDE.md that name finish-plan.md name this page instead.                    |
-| 2   | Nothing hard-coded      | Adopt the rule, the short allowed list and the two tests in section 4.1.                                                                                                                        |
-| 3   | The data model          | Section 5 as written: links by identity, one cost function that never answers zero, packaging rules as records, customers, bazaar days.                                                         |
-| 4   | Cost                    | A shortfall is costed as if the stock had been there, and flagged. Cost follows what the recipe needed; deduction stays rounded.                                                                |
-| 5   | Cash over or short      | After the October bazaar, a cash difference at close-out is its own line in the books, not a sale.                                                                                              |
-| 6   | Customers               | Build the record of section 5 with counted labels whose thresholds Cine sets, and one retention period she sets (starting at the 24 months already approved).                                   |
-| 7   | The interface           | The five tabs and screens of section 7, in a new folder named by business area, with All tools retired from the live app.                                                                       |
-| 8   | Accessibility           | The floor in section 4.4.                                                                                                                                                                       |
-| 9   | Before the bazaar       | Do A1 to A5 now. Do **not** change the service worker or Bazaar Mode before 25 October. Hold releases to the trial from the day the rehearsal passes until 26 October.                          |
-| 10  | Bazaar records          | The October bazaar's sales are recorded in the trial database as real figures. Backups are on before 24 October; if they are not, she downloads the CSV each evening and keeps the paper tally. |
-| 11  | Offline update          | Fix it after the bazaar and before the trial (U14), with an "update ready" prompt that never interrupts a sale.                                                                                 |
-| 12  | Her data                | Each import in D9 runs on the trial only after you approve its preview.                                                                                                                         |
-| 13  | Order and dates         | Sections 8 and 9. Cine's trial follows the switch (U17) and the wording pass; second half of November is the estimate.                                                                          |
-| 14  | What stays out          | Section 10.                                                                                                                                                                                     |
-| 15  | Framework patch         | Apply the patch release now (A2).                                                                                                                                                               |
-| 16  | Error reporting, uptime | Leave both off for the trial and decide them before the shop opens: each needs a hosted setting.                                                                                                |
+| #   | Decision                | Recommendation                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| --- | ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | The plan                | Adopt this page as the single forward plan in place of finish-plan.md, and let the pointer lines in AGENTS.md and CLAUDE.md that name finish-plan.md name this page instead.                                                                                                                                                                                                                                                           |
+| 2   | Nothing hard-coded      | Adopt the rule, the short allowed list and the two tests in section 4.1.                                                                                                                                                                                                                                                                                                                                                               |
+| 3   | The data model          | Section 5 as written: links by identity, one cost function that never answers zero, packaging rules as records, customers, bazaar days.                                                                                                                                                                                                                                                                                                |
+| 4   | Cost                    | A shortfall is costed as if the stock had been there, and flagged. Cost follows what the recipe needed; deduction stays rounded.                                                                                                                                                                                                                                                                                                       |
+| 5   | Cash over or short      | After the October bazaar, a cash difference at close-out is its own line in the books, not a sale.                                                                                                                                                                                                                                                                                                                                     |
+| 6   | Customers               | Build the record of section 5 with counted labels whose thresholds Cine sets, and one retention period she sets (starting at the 24 months already approved).                                                                                                                                                                                                                                                                          |
+| 7   | The interface           | The five tabs and screens of section 7, in a new folder named by business area, with All tools retired from the live app.                                                                                                                                                                                                                                                                                                              |
+| 8   | Accessibility           | The floor in section 4.4.                                                                                                                                                                                                                                                                                                                                                                                                              |
+| 9   | Before the bazaar       | Do A1 to A5 now. Do **not** change the service worker or Bazaar Mode before 25 October. Hold releases to the trial from the day the rehearsal passes until 26 October.                                                                                                                                                                                                                                                                 |
+| 10  | Bazaar records          | The October bazaar's sales are recorded in the trial database as real figures. Backups are on before 24 October; if they are not, she downloads the CSV each evening and keeps the paper tally. **This replaces the early production project approved on 28 September (finish-plan F4, step D3): no production project is created for the pilot,** because the trial already holds her 804 real lines and sits behind the access gate. |
+| 11  | Offline update          | Fix it after the bazaar and before the trial (U14), with an "update ready" prompt that never interrupts a sale.                                                                                                                                                                                                                                                                                                                        |
+| 12  | Her data                | Each import in D9 runs on the trial only after you approve its preview.                                                                                                                                                                                                                                                                                                                                                                |
+| 13  | Order and dates         | Sections 8 and 9. Cine's trial follows the switch (U17) and the wording pass: between late November and mid-December, with early December the working estimate.                                                                                                                                                                                                                                                                        |
+| 14  | What stays out          | Section 10.                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| 15  | Framework patch         | Apply the patch release now (A2).                                                                                                                                                                                                                                                                                                                                                                                                      |
+| 16  | Error reporting, uptime | Leave both off for the trial and decide them before the shop opens: each needs a hosted setting.                                                                                                                                                                                                                                                                                                                                       |
+| 17  | Cost basis              | The books count ingredient cost **when used**, as decided on 27 September and confirmed by Cine (DP-04). The database's own default is "when bought" and the trial's setting has not been read: check it, and set it to "when used", before 24 October.                                                                                                                                                                                |
 
 ### What only you can do
 
@@ -429,6 +468,10 @@ Each has one recommendation. **"Yes" approves it.**
    5 October changes there.
 6. **Carry the questions to Cine** (below), opening with a recap of the last
    conversation.
+7. **Check the cost basis on the trial** (Money, books settings) before 24 October: it
+   decides how the bazaar's profit reads. Until D3 lands, "when used" under-counts any
+   ingredient used with no costed delivery on record, so read the bazaar's profit with
+   that in mind.
 
 ### Questions for Cine, in one message
 

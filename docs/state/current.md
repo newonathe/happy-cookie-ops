@@ -35,11 +35,11 @@ Read this page first in a new session. It is kept short on purpose.
 > `claude-20261005/sot-sources/` folder.
 
 > **The final plan is written (5 October, later):** [final-plan.md](final-plan.md). It is
-> a proposal until Ethan says yes to its section 12 (16 decisions, each with one
+> a proposal until Ethan says yes to its section 12 (17 decisions, each with one
 > recommendation). In short: data layer first, then the five-tab interface built beside
 > the ported screens; the 24 to 25 October bazaar on today's Bazaar Mode with releases
-> held after the rehearsal; about 37 slices; Cine's trial estimated for the second half
-> of November. It also closes the audit's open questions (C3, C5, C9, C10), adds nine
+> held after the rehearsal; about 37 slices in about 50 sessions; Cine's trial estimated for early December
+> (late November to mid-December). It also closes the audit's open questions (C3, C5, C9, C10), adds nine
 > hard-coded values the first sweep missed, and records the privacy commission's
 > registration rule from its own site. Nothing was built, imported or deployed.
 
