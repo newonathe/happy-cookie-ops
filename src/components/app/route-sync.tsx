@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { isLiveMode } from '@/lib/config/app-mode';
 import { useOpsEngine, useOpsVals } from '@/store/use-ops';
 import { isScreenKey, pathForScreen, screenForPath, type ScreenKey } from '@/lib/screens';
 
@@ -46,6 +47,24 @@ function withMarker(marker: HistoryMarker): Record<string, unknown> {
 }
 
 /**
+ * The screen a direct visit adopts. Stock counting renders inside Inventory.
+ *
+ * UX review, proposal 4: live mode keeps no open order or batch across a page load, so a
+ * direct visit to /order or /batch showed a title over an empty page. It opens the list the
+ * screen belongs to instead. Demo mode restores the saved books and is left as it was.
+ */
+export function landingScreen(
+  initialScreen: ScreenKey,
+  state: { orderId?: unknown; batch?: unknown }
+): ScreenKey {
+  if (initialScreen === 'stocktake') return 'inventory';
+  if (!isLiveMode()) return initialScreen;
+  if (initialScreen === 'order' && !state.orderId) return 'orders';
+  if (initialScreen === 'batch' && !state.batch) return 'bake';
+  return initialScreen;
+}
+
+/**
  * Keeps the address bar and the engine's screen in step.
  *
  * The prototype navigated in state only. Deep links, the back button and a reloaded
@@ -65,7 +84,8 @@ export function RouteSync({ initialScreen }: { initialScreen: ScreenKey }) {
   const previousNavigation = useRef<{ screen: ScreenKey; tick: number } | null>(null);
   const popNavigationTick = useRef<number | null>(null);
   const browserIndex = useRef(0);
-  const viewScreen = initialScreen === 'stocktake' ? 'inventory' : initialScreen;
+  // Decided once, at the page load: opening an order later must not change where this visit landed.
+  const [viewScreen] = useState(() => landingScreen(initialScreen, engine.state));
   const navTick = Number(engine.state.navTick || 0);
   const inventory = engine.state.inv as { cat: string }[];
   const countableItems = inventory.filter((item) => item.cat === engine.state.invTab).length;
