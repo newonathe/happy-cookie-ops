@@ -43,6 +43,22 @@ test('OFFLINE-01 one real sale survives reload and requires its acknowledgment',
   page,
   context
 }, info) => {
+  // Playwright's WebKit build fails every service-worker-fulfilled request while the context
+  // is emulated offline: microsoft/playwright#42775, open, reproduced upstream on macOS and
+  // here on Windows and Linux with 1.63.0. Depending on what is already cached, that breaks
+  // either the payment sheet or the reload. It is an emulator defect; real Safari is proven
+  // by the physical-phone rehearsal, never by this run. Owner-approved on 2026-10-05, for
+  // the webkit project only:
+  //   - the sale is made online, because offline emulation is unusable there;
+  //   - the offline reload must fail with exactly the known error, so this run turns red
+  //     when Playwright fixes the defect (then delete the WebKit branches);
+  //   - every later assertion still runs: the sale survives a reload unchanged and is
+  //     marked sent only after its own clientId is acknowledged.
+  // Not covered on WebKit: selling while offline, a sale held pending across an offline
+  // period, the service worker serving the app on an offline reload, booting offline, and
+  // the browser's own reconnect event (it is dispatched by hand below). Chromium (phone,
+  // desktop) covers all of these here.
+  const emulatorOfflineDefect = info.project.name === 'webkit';
   await page.addInitScript((eventId) => {
     if (!localStorage.getItem('hc-ops-state-v1'))
       localStorage.setItem(
@@ -71,7 +87,7 @@ test('OFFLINE-01 one real sale survives reload and requires its acknowledgment',
     .first()
     .click();
   await requireScreen(page, 'Bazaar Mode');
-  await context.setOffline(true);
+  if (!emulatorOfflineDefect) await context.setOffline(true);
   await page
     .getByRole('button', { name: /Double Choco/ })
     .first()
@@ -100,11 +116,26 @@ test('OFFLINE-01 one real sale survives reload and requires its acknowledgment',
     body: JSON.stringify(before),
     contentType: 'application/json'
   });
-  await page.reload();
+  if (emulatorOfflineDefect) {
+    const url = page.url();
+    await context.setOffline(true);
+    await expect(page.reload()).rejects.toThrow(/WebKit encountered an internal error/);
+    info.annotations.push({
+      type: 'issue',
+      description: 'https://github.com/microsoft/playwright/issues/42775'
+    });
+    await context.setOffline(false);
+    await page.goto(url);
+  } else {
+    await page.reload();
+  }
   await waitForHydration(page);
   assertDurableSale(before, await readSales(page));
   await installSaleClient(page);
   await context.setOffline(false);
+  // The stand-in client is installed after the reload, so the reconnect is what sends the
+  // sale. WebKit is already online here, so raise the reconnect event the app listens for.
+  if (emulatorOfflineDefect) await page.evaluate(() => window.dispatchEvent(new Event('online')));
   await expect.poll(async () => (await readSales(page))[0]?.state).toBe('sent');
   const accepted = await page.evaluate(
     () => (window as unknown as { __hcAcked: string[] }).__hcAcked
