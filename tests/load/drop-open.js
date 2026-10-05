@@ -28,10 +28,10 @@ export const options = {
       executor: 'ramping-vus',
       startVUs: 0,
       stages: [
-        { duration: '10s', target: 5 },   // stragglers from the last drop
-        { duration: '5s', target: 40 },   // the drop opens
-        { duration: '60s', target: 40 },  // the rush
-        { duration: '30s', target: 8 },   // the tail
+        { duration: '10s', target: 5 }, // stragglers from the last drop
+        { duration: '5s', target: 40 }, // the drop opens
+        { duration: '60s', target: 40 }, // the rush
+        { duration: '30s', target: 8 }, // the tail
         { duration: '10s', target: 0 }
       ],
       gracefulRampDown: '10s'
@@ -55,7 +55,8 @@ function basket() {
   const count = 1 + Math.floor(Math.random() * 3);
   const items = {};
   for (let i = 0; i < count; i++) {
-    items[PRODUCTS[Math.floor(Math.random() * PRODUCTS.length)]] = 1 + Math.floor(Math.random() * 2);
+    items[PRODUCTS[Math.floor(Math.random() * PRODUCTS.length)]] =
+      1 + Math.floor(Math.random() * 2);
   }
   return items;
 }
