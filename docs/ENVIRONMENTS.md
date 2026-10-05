@@ -17,15 +17,15 @@ this holds only the addresses.
 
 ## Production
 
-| | Value |
-| --- | --- |
-| App URL | `https://________________` |
-| Vercel project | `________________` |
-| Vercel team slug | `________________` |
-| Supabase project ref | `________________` |
-| Supabase region | `________________` |
-| Sentry project | `________________` |
-| Health check | `https://________________/api/health` |
+|                      | Value                                 |
+| -------------------- | ------------------------------------- |
+| App URL              | `https://________________`            |
+| Vercel project       | `________________`                    |
+| Vercel team slug     | `________________`                    |
+| Supabase project ref | `________________`                    |
+| Supabase region      | `________________`                    |
+| Sentry project       | `________________`                    |
+| Health check         | `https://________________/api/health` |
 
 Dashboards:
 
@@ -41,10 +41,10 @@ without it the health check silently passes against nothing.
 
 Set up per `docs/STAGING.md`. **Required before T-14.**
 
-| | Value |
-| --- | --- |
-| Preview URL pattern | `https://________________-________.vercel.app` |
-| Supabase project ref | `________________` |
+|                      | Value                                          |
+| -------------------- | ---------------------------------------------- |
+| Preview URL pattern  | `https://________________-________.vercel.app` |
+| Supabase project ref | `________________`                             |
 
 Redirect allowlist to add in the staging Supabase project (Authentication → URL
 Configuration) — get this wrong and every preview deploy shows a sign-in loop that looks
@@ -56,12 +56,12 @@ https://*-________________.vercel.app/**
 
 ## Local
 
-| | Value |
-| --- | --- |
-| App | `http://127.0.0.1:3000` |
-| Supabase API | `http://127.0.0.1:54321` |
-| Supabase Studio | `http://127.0.0.1:54323` |
-| Database | `postgresql://postgres:postgres@127.0.0.1:54322/postgres` |
+|                 | Value                                                     |
+| --------------- | --------------------------------------------------------- |
+| App             | `http://127.0.0.1:3000`                                   |
+| Supabase API    | `http://127.0.0.1:54321`                                  |
+| Supabase Studio | `http://127.0.0.1:54323`                                  |
+| Database        | `postgresql://postgres:postgres@127.0.0.1:54322/postgres` |
 
 Those are Supabase's defaults; `pnpm db:start` prints the real ones, and the anon key with
 them.
@@ -76,20 +76,20 @@ places real orders.
 psql "$STAGING_DB_URL" -c "select id, opens_at from drops order by opens_at desc limit 1;"
 ```
 
-| | Value |
-| --- | --- |
+|                 | Value              |
+| --------------- | ------------------ |
 | Staging drop id | `________________` |
 
 ## Who has access
 
 Fill in so nobody has to guess who to ask.
 
-| Service | Account holder |
-| --- | --- |
-| Vercel | `________________` |
-| Supabase | `________________` |
-| Sentry | `________________` |
-| GitHub | `________________` |
+| Service        | Account holder     |
+| -------------- | ------------------ |
+| Vercel         | `________________` |
+| Supabase       | `________________` |
+| Sentry         | `________________` |
+| GitHub         | `________________` |
 | Domain, if any | `________________` |
 
 ## When this changes
