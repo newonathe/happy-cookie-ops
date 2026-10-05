@@ -19,9 +19,11 @@ F2-owner-trial.md, F2-count-custody-device-preparation.md and ux-audit.md.
 Do not restart setup, reimport the 804 financial rows or reformat evidence receipts.
 Every green push to this branch redeploys the private trial: push only accepted work
 and read each CI run.
-1. UX review: apply only the items in ux-audit.md that Ethan has marked approved. Each
-   change to a protected screen, sheet, shell or engine file needs his specific yes, the
-   exception record, validator reversals, a port audit and Docker visual evidence.
+1. UX review: implement proposals 1 and 4 in ux-audit.md (unprotected), with tests and
+   Docker visual evidence. For proposal 3 (phone dock), prepare the exact before and
+   after and show Ethan before it ships; it needs the protected-exception record,
+   validator reversals and a port audit. Proposal 2 waits for his explicit yes;
+   proposal 5 is not being done. Land these before Cine starts her week or hold them.
 2. Cine's closed-shop week: record her sign-in on iPhone and MacBook, password change,
    seven dates, opening count, the six recipes as she weighs them, agreed test orders,
    the daily log and her feedback. Record only what people supply. Fix reproduced

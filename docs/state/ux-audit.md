@@ -1,6 +1,6 @@
 # UX review — 5 October 2026
 
-Status: **findings and proposals; nothing here is implemented.** Ethan asked for this
+Status: **findings, proposals and decisions; nothing here is implemented yet.** Ethan asked for this
 review because the app feels "all over the place". Each proposal below needs his yes
 before any work, and the ones marked _protected_ also need the exception process in
 [AGENTS.md](../../AGENTS.md), because they change ported screens, the shell or the engine.
@@ -68,10 +68,18 @@ layout. They are larger design changes and are better decided with Cine after he
 
 ## Decisions
 
-| Proposal | Ethan's decision |
-| -------- | ---------------- |
-| 1        |                  |
-| 2        |                  |
-| 3        |                  |
-| 4        |                  |
-| 5        |                  |
+Ethan, 5 October 2026, after reading the summary of this review: "do what u recommend for
+the rest", adding that the UI and UX feel all over the place.
+
+| Proposal | Decision                                                                                                                                                                |
+| -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1        | **Go.** Recommended, unprotected.                                                                                                                                       |
+| 2        | **Open.** Recommended, but it changes a safety message from F1, so it waits for Ethan's explicit yes to this item.                                                      |
+| 3        | **Go in principle.** Recommended. The shell change is protected: show Ethan the exact before and after, then follow the exception process, before it reaches the trial. |
+| 4        | **Go.** Recommended, unprotected.                                                                                                                                       |
+| 5        | **Not now.** Not recommended: a protected layout change for a subtle effect. Revisit with the larger design questions after Cine's week.                                |
+
+Nothing is implemented yet. The work is the first item of [next-goal.md](next-goal.md), in
+a fresh session, with Docker visual evidence for every changed screen. Every green push
+redeploys the trial, so these changes should land before Cine starts her week or be held
+until it ends.
