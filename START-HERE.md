@@ -1,5 +1,7 @@
 # Start here
 
+> **Historical page from September 2026.** It describes how the project was first handed over. For where things stand today, start at [README.md](README.md).
+
 > **Superseded starting sequence:** Start with [MASTER-PLAN.md](MASTER-PLAN.md) and its MP-00 prompt. The original prompt below is retained as historical context; it is not the current production-readiness or deployment instruction.
 
 The first prompt. Copy the block below **whole** into a fresh Claude Code session opened

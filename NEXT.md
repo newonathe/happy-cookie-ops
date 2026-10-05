@@ -1,5 +1,7 @@
 # What happens next
 
+> **Historical page from September 2026.** It describes how the project was first handed over. For where things stand today, start at [README.md](README.md).
+
 > **Current sequence:** [MASTER-PLAN.md](MASTER-PLAN.md) and [the audited backlog](docs/master-plan/07-build-backlog.md) supersede the sequence below. Current data is fabricated demo data; there is no live-book migration requirement.
 
 One page, in order. `docs/TASKS.md` is the full board with dependencies and acceptance

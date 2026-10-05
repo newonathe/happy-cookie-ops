@@ -1,97 +1,108 @@
 # The Happy Cookie Ops
 
-> **Build planning:** [MASTER-PLAN.md](MASTER-PLAN.md) is the current central plan. It contains the source/UI audit, free-host architecture, security and offline contracts, ordered tasks, evidence and Codex/Claude templates. This repository is an audited prototype port, not yet a verified production product.
-
 Production, ordering and bookkeeping for a one-person cookie business, built for a phone
 held in one hand in a kitchen.
 
 Next.js 16 (App Router) · React 19 · TypeScript strict · Tailwind v4 · Supabase · installable PWA
 
----
-
-> **Taking this over?** Read [`HANDOFF.md`](./HANDOFF.md), then paste the prompt in
-> [`START-HERE.md`](./START-HERE.md).
->
-> **Want the sequence and what is left?** [`NEXT.md`](./NEXT.md) — one page, in order.
-
 ## Start here
+
+| You want to know                    | Open                                                                           |
+| ----------------------------------- | ------------------------------------------------------------------------------ |
+| Where the project stands today      | [`docs/state/current.md`](./docs/state/current.md)                             |
+| What to work on next                | [`docs/state/next-goal.md`](./docs/state/next-goal.md)                         |
+| The rules for changing anything     | [`AGENTS.md`](./AGENTS.md) (Claude Code also reads [`CLAUDE.md`](./CLAUDE.md)) |
+| What Cine does in her trial week    | [`docs/state/F2-owner-trial.md`](./docs/state/F2-owner-trial.md)               |
+| What the screens look like          | [`docs/SCREENS.md`](./docs/SCREENS.md)                                         |
+| Why the app is shaped the way it is | [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md)                               |
+
+Those six pages are enough to get oriented. Everything else is reference or history.
+
+## The one rule
+
+The prototype in `docs/reference/prototype.dc.html` is the specification. Its copy, numbers
+and spacing were reviewed against how the business actually runs, and the screens reproduce
+it exactly. Changing how a screen looks or reads is a decision for the owner, recorded in
+[`docs/state/protected-exception.md`](./docs/state/protected-exception.md). Read
+[`docs/PORTING.md`](./docs/PORTING.md) before touching a screen.
+
+## Run it
+
+Use the pinned Node 24.20.0 and pnpm 9.12.3 ([`docs/state/toolchain.md`](./docs/state/toolchain.md)).
 
 ```bash
 pnpm install
 cp .env.example .env.local     # fill in the two NEXT_PUBLIC_ values
-pnpm db:start                  # local Postgres + auth on :54321 (needs Docker)
+pnpm db:start                  # local Postgres and auth on :54321 (needs Docker)
 pnpm db:reset                  # applies migrations and seeds the catalogue
 pnpm dev                       # http://localhost:3000
 ```
 
-The app runs without Supabase too — the engine keeps its books in `localStorage`, which
-is how the prototype worked and how the owner is using it today. Sign-in and the sale
-sync endpoint are the only parts that need the database.
-
-## Layout
-
-| Path                                 | What lives there                                                                                            |
-| ------------------------------------ | ----------------------------------------------------------------------------------------------------------- |
-| `src/app`                            | One route per screen. Each page mounts the same client app with a different `initialScreen`.                |
-| `src/store/engine/ops-engine.js`     | The domain engine, ported verbatim from the prototype. Every business rule is here.                         |
-| `src/store/ops-runtime.tsx`          | The engine with bazaar sync replaced by the real IndexedDB queue.                                           |
-| `src/view-models/vals.ts`            | The typed contract between the engine and the UI. 1,278 lines, and worth reading.                           |
-| `src/components/shell/app-frame.tsx` | The frame: device harness, header, dock, toast.                                                             |
-| `src/components/screens`             | 24 screen components.                                                                                       |
-| `src/components/sheets`              | 29 bottom sheets.                                                                                           |
-| `src/lib/offline`                    | The sale queue, its IndexedDB store and the flush.                                                          |
-| `src/components/app`                 | Routing sync, the offline bridge and the per-screen error boundary.                                         |
-| `supabase/migrations`                | Schema, row-level security and the idempotent sale intake.                                                  |
-| `docs`                               | Everything below, plus the prototype itself and the original spec.                                          |
-| `.claude/`                           | Hooks that block edits to ported files, plus `/task`, `/review`, `/verify`, `/handoff` and three subagents. |
-| `.codex/`                            | The same guardrails for Codex: a read-only review profile and the shared hooks.                             |
-| `scripts/`                           | The port-integrity gate and its baseline.                                                                   |
-
-## Documents
-
-| Read this                                          | When                                                                                       |
-| -------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| [`AGENTS.md`](./AGENTS.md)                         | **First.** Binding rules and commands for any coding agent — Claude Code, Codex, anything. |
-| [`docs/WORKFLOW.md`](./docs/WORKFLOW.md)           | How you, Claude Code and Codex divide the work without stepping on each other.             |
-| [`docs/prompts/`](./docs/prompts/README.md)        | **Every prompt, start to finish.** Paste from here.                                        |
-| [`docs/TASKS.md`](./docs/TASKS.md)                 | The remaining work, decomposed into agent-sized tasks with acceptance criteria.            |
-| [`docs/CONTRACTS.md`](./docs/CONTRACTS.md)         | API contracts, so two agents can build both sides at once.                                 |
-| [`CLAUDE.md`](./CLAUDE.md)                         | Claude Code's copy of the rules in AGENTS.md.                                              |
-| [`docs/CODEX.md`](./docs/CODEX.md)                 | Running Codex here — the review profile, and working alongside Claude Code.                |
-| [`docs/PORTING.md`](./docs/PORTING.md)             | Before you touch anything under `screens`, `sheets` or the engine.                         |
-| [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md)   | To understand why the app is shaped like this.                                             |
-| [`docs/OFFLINE.md`](./docs/OFFLINE.md)             | Before changing bazaar mode or the sync.                                                   |
-| [`docs/DATA.md`](./docs/DATA.md)                   | Schema, roles and what each policy protects.                                               |
-| [`docs/PROMPTS.md`](./docs/PROMPTS.md)             | The sequenced Claude Code prompts for the remaining work.                                  |
-| [`docs/BUILD-LOG.md`](./docs/BUILD-LOG.md)         | What was decided during the port, and what was found out the hard way.                     |
-| [`docs/ENVIRONMENTS.md`](./docs/ENVIRONMENTS.md)   | Real URLs, project refs, who has access. Fill in as you deploy.                            |
-| [`docs/RUNBOOK.md`](./docs/RUNBOOK.md)             | Incident response. Read the first line to her before anything else.                        |
-| [`docs/SCREENS.md`](./docs/SCREENS.md)             | 91 screenshots of every screen, state and role. Look here before changing a screen.        |
-| [`docs/FREE-TIER.md`](./docs/FREE-TIER.md)         | Zero-cost hosting, the Actions budget, and what not to switch on.                          |
-| [`docs/TESTING.md`](./docs/TESTING.md)             | The seven test layers, and the sharp edges in visual and parity testing.                   |
-| [`docs/OBSERVABILITY.md`](./docs/OBSERVABILITY.md) | Error reporting, the scrubber, and three Sentry defaults we inverted.                      |
-| [`docs/STAGING.md`](./docs/STAGING.md)             | The second environment, and the deploy order.                                              |
-| [`docs/MESSAGING.md`](./docs/MESSAGING.md)         | The one SMS template, and what the owner must agree to.                                    |
-| [`docs/GAPS.md`](./docs/GAPS.md)                   | What the system lacks beyond design, what each gap costs, and what not to build.           |
-| [`docs/TECH-DEBT.md`](./docs/TECH-DEBT.md)         | The known compromises, each with the cost of leaving it.                                   |
-| [`docs/DEPLOY.md`](./docs/DEPLOY.md)               | Getting it onto a phone and into production.                                               |
-
-## Commands
+Without the two Supabase values the app runs as the demo, with its books in the browser.
 
 ```bash
-pnpm dev          pnpm build        pnpm start
-pnpm typecheck    pnpm lint         pnpm format
-pnpm test         pnpm test:e2e     pnpm storybook
-pnpm verify       # port integrity + typecheck + lint + unit — the gate CI runs
-pnpm verify:port  # proves the ported markup and copy are unchanged
-pnpm verify:engine # proves the repo's claims about the engine are true
-pnpm test:visual  # layout regression — the hole verify:port cannot see
-pnpm db:reset     pnpm db:types
+pnpm verify        # the gate: port integrity, engine contract, types, lint, unit tests
+pnpm format:check  # formatting; also runs in CI
+pnpm test:e2e      # browser flows
+pnpm test:visual   # layout regression (Docker only, see docs/TESTING.md)
+pnpm build
 ```
 
-## The one rule
+## Map of the repository
 
-The prototype in `docs/reference/prototype.dc.html` is the specification. Its copy, its
-numbers, its spacing and its wording were reviewed against how the business actually
-runs. This codebase reproduces it exactly. If something looks like it could be tidier,
-read `docs/PORTING.md` before tidying it.
+| Path                             | What lives there                                                                          |
+| -------------------------------- | ----------------------------------------------------------------------------------------- |
+| `src/app`                        | One route per screen, the global stylesheet and the bundled fonts.                        |
+| `src/components/screens`         | The 24 screens, ported from the prototype. Protected.                                     |
+| `src/components/sheets`          | The 29 bottom sheets. Protected.                                                          |
+| `src/components/shell`           | The frame around every screen: top bar, sidebar, dock, toast. Protected.                  |
+| `src/components/live`            | Forms that exist only in the real app: checkout, flavour editor, books, recipe drafts.    |
+| `src/store/engine/ops-engine.js` | The business rules, ported verbatim from the prototype. Protected.                        |
+| `src/store/ops-runtime.tsx`      | The live layer on top of the engine: real data, sign-in, offline queue.                   |
+| `src/view-models/vals.ts`        | The typed contract between the engine and the screens.                                    |
+| `src/lib`                        | Data access, offline queue, auth, rules, messaging, error reporting.                      |
+| `supabase/migrations`            | The database: schema, row-level security and server functions. Never edit an applied one. |
+| `tests`                          | Unit, browser, visual, database and release checks.                                       |
+| `scripts`                        | The gates (`check-port-integrity`, `validate-g0`), builds and release checks.             |
+| `spikes`                         | Hosting configuration for the Cloudflare trial and earlier experiments.                   |
+| `.github/workflows`              | CI, and the release of the private trial.                                                 |
+| `docs`                           | Guides (below), the prototype, and the project record under `docs/state`.                 |
+
+## Guides
+
+| Read this                                          | When                                                   |
+| -------------------------------------------------- | ------------------------------------------------------ |
+| [`docs/PORTING.md`](./docs/PORTING.md)             | Before touching a screen, a sheet or the engine.       |
+| [`docs/OFFLINE.md`](./docs/OFFLINE.md)             | Before changing bazaar mode or the sync.               |
+| [`docs/DATA.md`](./docs/DATA.md)                   | Schema, roles and what each policy protects.           |
+| [`docs/CONTRACTS.md`](./docs/CONTRACTS.md)         | API contracts.                                         |
+| [`docs/TESTING.md`](./docs/TESTING.md)             | The test layers and the sharp edges in visual testing. |
+| [`docs/ENVIRONMENTS.md`](./docs/ENVIRONMENTS.md)   | URLs, project references and who has access.           |
+| [`docs/RUNBOOK.md`](./docs/RUNBOOK.md)             | Incident response.                                     |
+| [`docs/OBSERVABILITY.md`](./docs/OBSERVABILITY.md) | Error reporting and the scrubber.                      |
+| [`docs/MESSAGING.md`](./docs/MESSAGING.md)         | Anything sent to a customer.                           |
+| [`docs/FREE-TIER.md`](./docs/FREE-TIER.md)         | Zero-cost hosting and the Actions budget.              |
+| [`docs/GAPS.md`](./docs/GAPS.md)                   | What the system lacks, and what not to build.          |
+| [`docs/TECH-DEBT.md`](./docs/TECH-DEBT.md)         | The known compromises and the cost of leaving each.    |
+
+## The project record
+
+`docs/state` holds the plans, decisions and evidence. Day to day you need three pages:
+`current.md`, `next-goal.md` and `decision-register.md`. The rest is kept as a record:
+
+- `current-history.md`: every earlier checkpoint.
+- `F1-*`, `F2-*`, `G1-*`, `MP-*`: plans and logs for each package.
+- `evidence/`: receipts written by tools. They are hash-indexed, so never reformat them.
+
+## Planning background and history
+
+[`MASTER-PLAN.md`](./MASTER-PLAN.md) is the audited plan and task catalogue from September 2026. `AGENTS.md` still names it as the authority wherever an older document disagrees with
+it. Day-to-day work follows `docs/state/lean-plan.md`, `finish-plan.md` and `next-goal.md`.
+
+These pages describe how the project was first handed over. They are kept because other
+records link to them, and they are not needed for current work:
+[`START-HERE.md`](./START-HERE.md), [`HANDOFF.md`](./HANDOFF.md), [`NEXT.md`](./NEXT.md),
+[`docs/TASKS.md`](./docs/TASKS.md), [`docs/WORKFLOW.md`](./docs/WORKFLOW.md),
+[`docs/PROMPTS.md`](./docs/PROMPTS.md), [`docs/prompts/`](./docs/prompts/README.md),
+[`docs/BUILD-LOG.md`](./docs/BUILD-LOG.md), [`docs/CODEX.md`](./docs/CODEX.md),
+[`docs/STAGING.md`](./docs/STAGING.md) and [`docs/DEPLOY.md`](./docs/DEPLOY.md).

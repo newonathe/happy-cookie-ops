@@ -1,268 +1,65 @@
 # Current state — Happy Cookie Ops
 
-Read this at the start of a session. History: [current-history.md](current-history.md). Approved forward plan: [finish-plan.md](finish-plan.md). One executable package: [next-goal.md](next-goal.md).
+Read this page first in a new session. It is kept short on purpose.
 
-## Claude continuation — 5 October 2026 (latest)
+| If you need                      | Read                                                                      |
+| -------------------------------- | ------------------------------------------------------------------------- |
+| The one goal to run next         | [next-goal.md](next-goal.md)                                              |
+| The rules every agent follows    | [AGENTS.md](../../AGENTS.md)                                              |
+| Cine's trial checklist           | [F2-owner-trial.md](F2-owner-trial.md)                                    |
+| The detailed F2 log              | [F2-checkpoint.md](F2-checkpoint.md) and [F2-fix-list.md](F2-fix-list.md) |
+| The UX review awaiting decisions | [ux-audit.md](ux-audit.md)                                                |
+| Older checkpoints, verbatim      | [current-history.md](current-history.md)                                  |
+| The approved plan to the finish  | [finish-plan.md](finish-plan.md) and [lean-plan.md](lean-plan.md)         |
 
-Codex reached its usage limit at 03:52 Manila mid-commit. Ethan continued the same F2
-goal in Claude Code (Opus coordinating, no workers used). Everything below this section
-is older.
+## Where things stand — 5 October 2026
 
-- **First automatic private-trial release succeeded.** GitHub run 37278233095 at
-  `80fbcf1`: all five required jobs pass, the release workflow passes its full
-  verification and format check in the container, builds the trial assets and deploys
-  153 files to the existing Worker as version `eefade3a-24da-4ac6-9bec-fed8b9b3136b`.
-  The release script's before-and-after gate checks passed. Independent read-only
-  preflight afterwards: PASS. Anonymous requests to `/`, `/pl` and `/sw.js` all return
-  302 to Cloudflare Access. No new resource; shop still closed. Ethan confirmed on 5 October that he signed in on the updated app and the dashboard loads; Cine's sign-in is still separate. Two things were needed first: a re-run of
-  the build job after a transient `next/font` Google-font download failure in run
-  37276284314, and `80fbcf1`, which trusts the checkout inside the release container
-  (Git refused it as "dubious ownership"). The advisory performance-budget job still
-  fails and does not gate the release. From now on every push to this branch that
-  passes CI redeploys the private trial.
-- **Two owner decisions, 5 October ("yes to both").**
-  1. _OFFLINE-01 on WebKit_ (`784678e`). The test now handles the Playwright WebKit
-     emulator defect on the `webkit` project only: the sale is made online, the offline
-     reload must fail with exactly the known error (so the run turns red when Playwright
-     fixes it), and every later assertion still runs. Phone and desktop Chromium are
-     unchanged. CI Linux image: 14 of 14 WebKit and 6 of 6 Chromium runs pass;
-     independent Sonnet review ACCEPT. The emulator no longer says anything about
-     Safari offline behaviour, so the **physical-phone rehearsal is the only Safari
-     proof** and must cover selling offline, reopening offline, reconnecting and no
-     duplicates. The 20 October gate is now: this test green plus that rehearsal.
-  2. _Closed-shop trial week._ Cine uses menu, stock, production, expenses and books
-     daily on the private link. Order, payment, packing and collection steps are
-     exercised with a few agreed test orders placed by Ethan or Cine through the same
-     private link. Real customer ordering waits for launch; the shop stays closed and
-     the Access gate stays at two mailboxes. See [F2-owner-trial.md](F2-owner-trial.md).
-- **Formatting gate is green and GitHub CI ran past it for the first time.** Ethan
-  approved formatting the last two files ("yes format both"); `261a250` applies exactly
-  the recorded candidates and `pnpm format:check` passes with zero failures. GitHub run
-  37273965631 at `261a250`: types/lint/unit **pass**, production build **pass**, visual
-  regression **pass**, Storybook **pass**, browser flows **fail** (89 passed / 1 failed /
-  75 skipped; the one failure is WebKit OFFLINE-01, failing its first attempt and both
-  retries), release **skipped**. The advisory performance-budget job also fails
-  (Lighthouse could not load `http://127.0.0.1:3000/`); it is `continue-on-error` and
-  not required by the release. **OFFLINE-01 is now the only gate between this branch
-  and an automatic private-trial release.**
-- **How the formatting gate got there: 536 failing files → 2 → 0.** First 47 commits, `c8a2805` to `dd03072`, each
-  through the pinned pre-commit hook (81 files / 1,487 tests) and the secret scan, all
-  pushed. 135 hand-written files were formatted. 132 have a machine proof that only
-  formatting changed (same syntax tree, comments and compiled output for code; same
-  tokens for JSON; same document tree for Markdown). Three were handled individually:
-  `tests/types/database-contracts.ts` gained a `prettier-ignore` comment (syntax tree
-  still identical, all ten `@ts-expect-error` directives in place), `src/app/globals.css`
-  was proven with a separate value normaliser, and `docs/ENVIRONMENTS.md` was committed
-  despite one secret-scan pattern hit, which is the published local Supabase default
-  connection string. Details: [F2-checkpoint.md](F2-checkpoint.md).
-- **Checks after the run:** `git diff 497c6b7 HEAD` over every do-not-touch path is
-  empty. `python scripts/validate-g0.py` passes 1,221 checks with zero failures.
-  GitHub run 37271292933 at `dd03072` independently reports exactly the 2 files below
-  and skips every later job.
-- **Two Prettier scope decisions, both approved by Ethan on 5 October:**
-  1. byte-locked delivery paths (`src/components/{screens,sheets,shell}/`,
-     `docs/master-plan/`), recorded in [protected-exception.md](protected-exception.md);
-  2. recorded evidence and script-maintained baselines (`docs/state/evidence/`, the two
-     evidence index files, `tests/fixtures/g0-demo-state.json`,
-     `tests/fixtures/function-authority.json`).
-     No protected file, receipt or fixture was edited.
-- **52 receipts restored** to their `5101724` bytes (`7e1c669`), as Ethan approved. They
-  had been reformatted in the earlier runs, which broke their SHA-256 in
-  `G1-evidence-index.json`. Now 769 of 774 indexed receipts match again.
-- **The last two files** were `src/lib/observability/scrub.ts` and
-  `tests/e2e/visual.spec.ts`, both on the do-not-touch list. They were formatted only
-  after Ethan's specific approval, recorded in
-  [protected-exception.md](protected-exception.md); structure, comments and compiled
-  output are identical before and after.
-- **Deployment token configured.** Ethan saved a dedicated Workers token. It is active,
-  the four read-only Workers calls return 200 and the release script's `--check-only`
-  preflight passes with no hosted writes. `CLOUDFLARE_API_TOKEN` was set as a GitHub
-  Actions secret at 05:54 UTC. Nothing was deployed. Codex's private
-  `configure-cloudflare-deploy.ps1` omits `TRIAL_ACCESS_EMAIL_SHA256` and fails its own
-  preflight; it was not used.
-- **OFFLINE-01 also fails on Linux.** In `mcr.microsoft.com/playwright:v1.63.0-noble`
-  (the CI image), WebKit failed 3 of 3 runs and phone Chromium passed 3 of 3. Upstream
-  Playwright issue 42775 is open, labelled v1.64 and reproduced on macOS; 1.63.0 is still
-  the latest release. Zero of three local WebKit attempts passed; CI allows two retries
-  per test, so expect the CI browser job to fail once formatting is green, which keeps
-  the automatic release blocked. The test is unchanged. Receipt:
-  [F2-offline01-linux-probe.json](evidence/F2-offline01-linux-probe.json).
-- **CI workflow defect found and fixed (`655c95c`).** The browser and visual steps in
-  `ci.yml`, and `verify:release` in `owner-trial.yml`, set Supabase variables at test
-  time. `src/middleware.ts` then redirects every staff route to `/sign-in`, so the
-  demo-fixture suites could never pass there. In the CI Linux image only 12 browser
-  tests passed with the variables; a one-test A/B confirms the cause. The variables are
-  removed from those three steps; no test, project or gate is removed.
-- **Linux preview of the CI jobs that have never run on GitHub** (local container,
-  source at `497c6b7`, without those variables): browser 89 passed / 1 failed (WebKit
-  OFFLINE-01) / 75 skipped, the same as the Windows baseline; visual 75 passed;
-  Storybook builds. Lighthouse and the release job are not covered. GitHub run
-  37273965631 later confirmed the browser, visual and Storybook results exactly.
-- **Unchanged:** the 804 imported financial rows, the hosted trial database and the
-  private Worker (last recorded version `772d4a7e`; not re-probed), shop closed, no
-  deployment, no merge, no jobs, no runner.
-- **Not eligible:** historical stock reconciliation (counts undated, opening balances and
-  units missing). **Waiting on people:** six recipe measurements, allergens, Cine's
-  opening count, password and backup custody, real iPhone Safari/Chrome and MacBook
-  checks, seven trial dates. F2 incomplete; F3 closed. OFFLINE-01 and the actual-phone
-  rehearsal must both pass by 20 October.
+**Package:** F2, the owner trial. F2 is incomplete, and F3 (launch) stays closed until Cine
+accepts a real week of use.
 
-## Earlier formatting checkpoint — 5 October 2026 (Codex)
+### What exists and works
 
-Additional accepted/pushed slices: `9fb139c` (six historical guides), `199f9c6`
-(six acceptance/audit JSON reports), `f88583f` (return-path test). Each full pinned
-precommit passed 81 files / 1,487 tests, with targeted formatter and secret scans
-passing. Root independently verified document structure, exact JSON values/tokens
-and the test's unchanged AST. Fresh full formatting FAIL556, down53 from609.
-The earlier53 files now pass targeted formatting; no release check is suppressed.
-GitHub CI37228743055 at f88583f independently confirms556 formatting failures;
-all downstream jobs including private release were skipped. No green CI claimed. Dedicated token remains unsaved; secure
-Cloudflare creation/save instructions were supplied. Protected proposal and actual
-Cine/device/count/custody/six measured mappings remain open. F2 incomplete/F3 closed.
-Continue further authorized bounded formatting runs; reuse all804 financial rows.
+- **The product** is built through E1: menu and settings, checkout and owner orders, bazaar
+  selling with offline close-out, stock, recipes and production, books, P&L and CSV, backups
+  and health. `pnpm verify` passes 81 files / 1,487 tests.
+- **The private trial site** is live for owners only:
+  <https://happy-cookie-owner-trial.admin-kethai.workers.dev>. Cloudflare Access sends an
+  email code to two approved mailboxes. The shop is closed and the menu is unpublished, so
+  no customer can reach it. Ethan confirmed sign-in on 5 October.
+- **Real data in the trial:** 72 stock items, 13 suppliers, 26 flavours (7 on the October
+  menu), seven editable source recipes, and 804 historical financial lines (722 sales, 82
+  stock purchases). No stock count, operating expense or order was invented.
+- **CI/CD is green.** Every required GitHub job passes on
+  `agent/codex/MP-04-g1-feasibility`, and a green push to that branch redeploys the private
+  trial automatically. Push only accepted work, and read each run.
 
-## Successive formatting runs — 5 October 2026
+### Decisions Ethan made on 5 October
 
-Ethan authorized additional bounded runs without asking between them. Accepted and
-pushed: `96c8794`, `dc24c9d`, `aeb4301`, `f9938c2`, `4694e69`. Each full
-pinned precommit passed 81 files / 1,487 tests; targeted formatting and secret scans
-passed. Twenty-four JSON reports retain exact values and literal tokens. Sixteen
-Markdown documents retain content and hierarchy; only source positions and list
-spacing metadata differ. Fresh full formatting remains FAIL: 569 files, down 40
-from 609. No ignore or assertion weakened. Original OFFLINE-01 and protected files
-remain unchanged; the delivery guard also protects historical docs/master-plan files.
-Token instructions and the hidden save helper were provided; token remains unsaved.
-The specific protected proposal and actual Cine/device/count/custody/recipe evidence
-remain pending. F2 incomplete; F3 closed. No new imports or hosted mutations.
+- Prettier skips the byte-locked delivery paths and the recorded evidence; 52 reformatted
+  receipts were restored. `scrub.ts` and `visual.spec.ts` were formatted once with his
+  approval. Details: [protected-exception.md](protected-exception.md).
+- OFFLINE-01 handles the Playwright WebKit emulator defect on WebKit only. The
+  physical-phone rehearsal is therefore the only proof of offline selling in Safari.
+- The trial week runs closed-shop, with a few agreed test orders in place of customers.
+- The fonts are bundled in `src/app/fonts`, so a build no longer downloads them.
+- This page and the front door were tidied; older sections moved to the history file.
 
-## Where things stand — 2026-10-05 continuation
+### Open items
 
-- **Second bounded formatting run accepted:** `d7e465d`, `3f1b2a1`, `efa89e3`,
-  `0f07e87`, `b16d8fe`; each full pinned precommit81/1487 PASS. Thirteen config
-  files retain exact parsed values or structural hashes; fourteen JSON reports retain
-  exact values/literal tokens. Playwright's240 selected tests have identical before/
-  after listings. Fresh local formatting FAIL609 (down27 from636); no check suppressed.
-  Protected source/app flows/original OFFLINE-01 unchanged. Private token remains
-  unsaved, protected proposal awaits approval and Cine's device/week/count/custody
-  evidence remains pending. No imports, hosted mutations or deployment in this run.
+- **Waiting on Cine:** sign-in on her iPhone and MacBook, a new password, seven trial dates,
+  the opening stock count, weights for six recipes, her feedback. Allergens are needed
+  before the shop opens, not before the week starts.
+- **Waiting on Ethan:** where the encrypted off-device backup lives and who can restore it;
+  the phone rehearsal before 20 October; choices in the [UX review](ux-audit.md).
+- **Performance budget (advisory job):** it now measures the real pages and they miss the
+  budget (GitHub: performance about 0.58, largest paint 5.8 to 9.4 s, shop page 1.63 MB).
+  Nothing was loosened. It does not gate the release.
+- **Playwright issue 42775:** when a release fixes it, the WebKit run of OFFLINE-01 turns red
+  on purpose. Upgrade then and delete the WebKit branches in the test.
+- **Not eligible:** historical stock reconciliation. The counts are undated and opening
+  balances and units are missing.
 
-- **CI formatting continuation:** first unprotected slice `d637217` passes full
-  pinned verify/precommit (81 files / 1,487 tests), secret scan and targeted
-  formatter checks. No app, protected source or OFFLINE-01 edit. Full formatting
-  remains red; deployment token file and GitHub deployment secret are absent.
-  [Specific first protected proposal](F2-format-exception-proposal.md) awaits
-  approval. [Count/custody/device preparation](F2-count-custody-device-preparation.md)
-  reuses owner controls and the seven-day log. No new imports or hosted mutations.
-  Final local formatting remains FAIL636 files. First-slice GitHub run37223588999
-  fails638/skips release. Second accepted slice formats flavour/stocktake tests;
-  all four changed tests retain their5101724 structural fingerprints. Recipe-draft
-  formatting is held after the worker found a fingerprint change; original retained.
+### Dates
 
-- **Historical financial data applied, dummy workbook excluded:** 722 real sales
-  and82 stock-purchase costs (804 lines) read back exactly. Blank dates inherit the
-  preceding explicit date and repeated lines count as separate sales by Ethan's
-  explicit instruction. No stock count/stock-out or operating expenses invented.
-  [Current import, P&L and CI evidence](F2-real-data.md#historical-financial-import-and-cicd---5-october-continuation).
-- **Human login confirmed:** Ethan reports alternate-mailbox code and existing
-  owner app sign-in worked. Admin OTP delivery remains intermittent; Cine sign-in
-  and real-week acceptance remain separate.
-- **P&L correction published:** frontendc30e3bd/private version772d4a7e; current
-  gate/anonymous denial, routes0 and disabled-preview404 PASS. Manual approved
-  private update; automatic CI release remains blocked.
-- **Private CI/CD approved and prepared:** exact existing-target release guard and
-  trusted-branch workflow committed; full gates retained. Current formatting gate
-  fails640 files in fresh run37222065820; local inventory identified54 protected paths. Dedicated Workers deployment token
-  is not configured; original OFFLINE-01 remains failing. No green CI claim.
-
-- **Editable recipe originals delivered:** [draft editor/evidence](F2-recipe-drafts.md).
-  All seven source recipes and batch sizes editable through All tools -> Recipe drafts.
-  Existing menu/prices/stocktake controls remain available. Code72d7d17 pushed/private
-  versionb29a55bc;53 migrations/38 RLS tables, verify79/1474 and role1945x2 PASS.
-  Phone/desktop save/reload/revert and exact cleanup/Access denial PASS. Six measured
-  production/cost mappings, opening stock and real-device/week gates remain open.
-  Older52/78/1471 and catalogue-only notes below are historical checkpoints.
-
-- **Real catalogue preparation applied:** [owner controls/data evidence](F2-real-data.md).
-  72 stock definitions,13 suppliers,eight compatible quotes,26 library products,
-  seven confirmed October prices and one exact Apple Pie recipe. All unpublished;
-  shop closed; no physical counts imported. Historical financial subset is now applied. Six recipe
-  conversions, cost/supplier links and allergens remain open. Older six-draft/no-import
-  descriptions below are historical checkpoints. Accepted code73e556e is pushed and
-  published on the existing private trial as version4ecc095c; fresh Access/anonymous
-  app-assets denial and disabled-preview checks PASS.
-
-- **Approved closed-shop hosted preparation is implemented.** Ethan approved free-plan setup and reuse of the empty existing trial project. All 52 migrations apply on PG17.6; the explicitly approved three-place 029 compatibility fix and new 051 maintenance hardening pass. Automated owner sign-in/refresh, active role and anonymous financial denial pass. The real catalogue above supersedes the initial six drafts; no orders, fake stock or payment accounts were imported.
-- **Private trial link works behind owner-only email-code access:** https://happy-cookie-owner-trial.admin-kethai.workers.dev. Fresh configuration, independently accepted activation, phone/desktop login visuals, anonymous app/real-asset denial and disabled-preview404 checks PASS. Frontend73e556e/version4ecc095c, no routes; prior user-confirmed owner mailbox/dashboard sign-in and secure password handoff PASS. Shop remains closed; current recipe/cost completion, real-week, actual-phone and custody decisions remain pending.
-- Latest accepted `pnpm verify` and full precommit: **78 files / 1,471 tests PASS**. PG15 SQL role suite reused: **1,922 cases/reset × 2**, 684 regressions detected, rollback/cleanup PASS. Hosted PG17: 94 app function contracts match apart from three expected quoted return-name renderings; all 37 public tables have RLS; browser MAINTAIN is zero across 39 public relations and service authority is preserved. The existing provider RLS event trigger is retained separately. Hosted-target local-browser P&L and current catalogue/stocktake phone/desktop captures are inspected; actual-device acceptance remains separate.
-
-- **F2 technical work is checkpointed; readiness and real-week acceptance remain incomplete.** [Trial setup proposal](F2-trial-setup.md), [fix list](F2-fix-list.md), [checkpoint](F2-checkpoint.md) and [receipt](evidence/F2-trial.json) separate verified work from remaining browser/owner evidence. MP-26 stays in progress, next-goal stays F2 and F3 is closed.
-- **F1 remains accepted locally, committed and pushed.** Encrypted database dumps and isolated recovery, fixed one-year retention, operational receipts, live health/alerts and the shop privacy notice are implemented; hosted jobs stay inactive.
-- Product slices through **E1** are complete locally: menu/settings, checkout and owner orders, bazaars/offline close-out, stock/recipes/production, books/P&L and CSV. The detailed checkpoints remain in history.
-- G0 is done; G1 passed locally and its synthetic hosted preview was published earlier. F1 made no hosted database change or deployment.
-- Protected screens/sheets/shell/engine, applied migrations and port baselines are unchanged in F1. The privacy exception uses the existing live-only footer.
-
-## Latest checkpoint — F2 technical renewal (2026-10-03)
-
-- Fresh pinned `pnpm verify` passes: 77 files / 1,464 tests. The live rolling-period caption now has fresh nonzero UI/CSV and inspected phone/desktop evidence plus independent acceptance; publication authority is the continuation receipt and Git.
-- Full E2E from bdd83f6 reused unchanged: **89 passed / 1 failed / 75 skipped**, exit 1; WebKit OFFLINE-01 fails at offline reload with an internal WebKit error. The suite is **not green**.
-- Minimal cached/controlled SW reproduces WebKit's offline-emulation error; Chromium passes and both return 200 from SW when the origin is stopped. Strong evidence of a Playwright/WebKit emulation defect; original OFFLINE-01 stays unchanged/failing. No application/offline fix is justified.
-- Live P&L caption patch uses the actual rolling period and retains demo styles/literal. Unit/port review and 1,219 G0 checks pass. Two new demo phone/desktop captures inspected; prior 47 captures reused. Fresh live phone/desktop P&L and books captures are inspected and accepted in the continuation.
-- Nine nonzero SQL workflow suites pass twice on disposable databases: 684 assertions per run, rollback/cleanup pass. Continuation repairs the external harness preflight and exact cleanup. Fresh customer/owner UI workflows and CSV-to-RPC/P&L reconciliation pass; touched settings and packing stock restore, synthetic data is removed, and monotonic sequence advancement is retained. Earlier failed setup attempts remain in the receipt.
-- Read-only preview probes show an older September 27 release and six missing current RPCs; signup is now disabled but Cine access is unverified. Dedicated Supabase + fresh Workers trial origin proposed; static config prepared locally. Hosted setup and real-trial data/customer/payment scope need approval.
-- Independent coordinator review (Sol/high requested) and port reviews cover their stated scope; root model was not changed. The earlier checkpoint's three-child overlap is preserved in the receipt; this continuation used at most two workers. No hosted writes, jobs, deployment, merge or runner. F1 evidence and the checklist are reused.
-
-## Previous accepted checkpoint — F1
-
-- `pnpm verify`: **77 files / 1,462 tests**, exit 0; both typechecks and lint pass. Port integrity: 54 files. Engine contract: 49 exports / 21 setting keys / 38 documented engine tables.
-- Final-schema recovery: **61 tables / 236 rows**, counts and deterministic hashes match; **55 FKs** match, validate and have zero orphans. Auth migration history is included. Atomic rollback and exact owned cleanup pass.
-- SQL role suite: **1,922 cases/reset × 2**, matching matrices, **684 regressions detected**. Current SQL/authority/pin/type hashes match the proof. **20 unit mutations** detected, sources restored exactly.
-- Python guards: **63 pass**. G0 continuity: **1,217 checks, zero failures**; unknown task IDs still rejected. Normal/live builds, Pages/Workers emulator checks and **11 live-checkout steps** pass.
-- Headless Chromium visual QA: **11 screenshots inspected**, phone 390×844 and desktop 1440×900; missing/success/failed health, alert navigation at both widths and privacy. Synthetic success records test rendering only; cleanup passed.
-- Full E2E remains **89 passed / 1 failed / 75 skipped**, exit 1: known WebKit **OFFLINE-01**. Its unchanged demo/offline evidence is reused; the suite is not called green. Physical-phone QA is still pending.
-- Evidence: [acceptance](evidence/F1-acceptance.json), [restore](evidence/F1-backup-20261003.json), [SQL](evidence/F1-operations-sql.json), [checkpoint](F1-checkpoint.md), [operator guide](F1-operations.md). Each code commit's verification hook passed; credential-pattern scan passed before publication.
-
-## Waiting on
-
-- **Hosted operations:** no timer, keep-alive, retention job or backup-health write is activated. Ethan must approve the target, secret custody, off-device destination, archive expiry and failure delivery. Inactive schedule metadata is prepared; local recovery does not establish off-device protection.
-- **F2:** Cine's actual real-week checklist and feedback on an explicitly approved target. Prepared checklists or synthetic tests do not complete that trial.
-- **Existing carry-overs:** target owner/refresh and PG17 maintenance checks pass; private-origin, human/device and broader session scenarios remain open. `format:check` and WebKit E2E on main are known red; no merge while required checks fail.
-- **Bazaar pilot:** 24–25 October requires OFFLINE-01 and the physical-phone test to pass by **20 October**. Phone-sized Chromium is separate evidence.
-- Cine's C1–C12 answers remain open; Ethan approved the finish-plan defaults on 2026-09-28. No automatic runner, production cutover, hosted resource or deployment is authorized by F1.
-
-Independent review found verify warning10002: token is not usable until 4 October
-00:00 UTC / 08:00 Manila despite active200. Fix Start Date (no new secret needed)
-or wait until that UTC time, then recheck scoped Access APIs. The user separately
-reports an initial Zero Trust setup screen; that is not the proven cause of401. No
-Access, paid-plan or billing mutation occurred. Corrected before publication.
-
-## Latest continuation — 4 October, resumed at user request
-
-The scheduled current-chat follow-up was deleted; no automatic product runner is active.
-The saved replacement token is now usable: token, scoped Access applications, organization
-and identity-provider GETs all return200. The initial future-token warning10002/401
-diagnosis is historical and preserved, not a current credential blocker.
-
-An independently reviewed exact-hostname private gate is created: one approved owner
-email, one-time PIN only, one reusable Allow policy, eight-hour sessions; no wildcard,
-bypass or service-token access. Fresh application/policy/IdP GETs match. The owner
-identity and temporary password remain outside Git; a clipboard handoff helper is prepared
-privately but has not run. No authentication email was sent.
-
-The Worker remains disabled, including preview URLs: pre-enable browser login did not
-reach an email field (initial direct redirect400; relative redirect ends404). A local
-null-array check was corrected without duplicate resource creation; installed Playwright
-import was corrected. These are verification-harness setup failures, not app repairs.
-No Enable stage ran; explicit disabled readback passes after the failed preflight.
-Activation, live anonymous/static/owner-route proof and Cine sign-in remain unverified.
-No further login repair is attempted in this checkpoint. Reuse accepted be1e115,
-caption85f6bc6, uploaded3188360e and all existing local financial/visual evidence.
-
-Next goal: resolve the private-login preflight from its retained HTTP redirect evidence,
-obtain independent activation acceptance, then verify the private origin and hand over
-owner credentials securely. Real-week/customer/payment/shop-opening and custody/recovery
-permissions remain separate. F2 incomplete, F3 closed; actual-phone rehearsal and the
-unchanged failing OFFLINE-01 both must pass by20October. Jobs/imports/merge remain off.
-
-Latest activation details and pending human proof: [checkpoint](F2-checkpoint.md).
-
-User-confirmed owner sign-in and current clipboard cleanup PASS; read-only shopclosed, orders0/published0 checks PASS. Physical-device and real-week gates remain open.
+The bazaar pilot is 24 to 25 October if the phone rehearsal passes by **20 October**;
+otherwise 12 to 13 December.

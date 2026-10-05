@@ -1,5 +1,7 @@
 # Handoff
 
+> **Historical page from September 2026.** It describes how the project was first handed over. For where things stand today, start at [README.md](README.md).
+
 > **Current handoff:** Read [MASTER-PLAN.md](MASTER-PLAN.md), [audit evidence](docs/master-plan/00-audit-evidence.md) and [generated task prompts](docs/master-plan/prompts/README.md). The older readiness claims below must be checked against that audit. Product build is currently blocked; runner work is deferred.
 
 Everything you need to take this over. Read this page, then run the starter prompt in
