@@ -22,9 +22,11 @@ import {
   offlineBazaarRole,
   rememberCheck
 } from '@/lib/auth/offline-trust';
+import type { LocalSale } from '@/lib/auth/sign-out-guard';
 import { OpsRuntime } from '@/store/ops-runtime';
 import type { Role } from '@/store/engine/ops-engine';
 import { OfflineHold } from './offline-hold';
+import { SignOutControl } from './sign-out-control';
 
 /** How long one identity check may take before the gate treats the server as unreachable. */
 export const CHECK_TIMEOUT_MS = 8_000;
@@ -131,7 +133,8 @@ export function LiveGate({
   const actions = useRef({
     firstCheck: () => undefined as void,
     retry: () => undefined as void,
-    signIn: () => undefined as void
+    signIn: () => undefined as void,
+    signOut: () => undefined as void
   });
 
   useEffect(() => {
@@ -448,6 +451,8 @@ export function LiveGate({
     actions.current.firstCheck = () => void verify(true);
     actions.current.retry = () => void verify(false);
     actions.current.signIn = () => window.location.assign(signInPath());
+    // A3: the deliberate sign-out (`SignOutControl`) is this same lock-out.
+    actions.current.signOut = () => lockOut();
 
     const {
       data: { subscription }
@@ -503,7 +508,32 @@ export function LiveGate({
   const view = (hold: React.ReactNode) =>
     typeof children === 'function' ? children({ landing, hold }) : (hold ?? children);
 
-  if (!needsGate || access === 'verified') return <>{view(null)}</>;
+  // A3: the deliberate sign-out. Never over the Bazaar screen or an open sheet or the Quick add
+  // layer (a stray tap while a sale is being taken), never when there is no session to sign out.
+  const sheetOpen = Boolean(engine.state.sheet) || Boolean(engine.state.quick);
+  const signOut =
+    needsGate &&
+    screen !== BAZAAR &&
+    !sheetOpen &&
+    (access === 'verified' || (access === 'waiting' && hasStoredSession())) ? (
+      <SignOutControl
+        flush={() =>
+          engine instanceof OpsRuntime ? Promise.resolve(engine.flushSales()) : Promise.resolve()
+        }
+        onSignOut={() => actions.current.signOut()}
+        local={() => (engine.state.sales as LocalSale[] | undefined) ?? []}
+        offline={access !== 'verified' || navigator.onLine === false}
+        eventOpen={holdsOpenEvent}
+      />
+    ) : null;
+
+  if (!needsGate || access === 'verified')
+    return (
+      <>
+        {view(null)}
+        {signOut}
+      </>
+    );
   if (access === 'bazaar') {
     // Books, P&L, orders, stock and settings stay closed until a check passes: only the
     // bazaar screen, with at most one of its own sheets over it, is drawn.
@@ -517,7 +547,12 @@ export function LiveGate({
     return <>{view(open ? null : <OfflineHold kind="elsewhere" onAction={back} />)}</>;
   }
   if (access === 'waiting')
-    return <OfflineHold kind="waiting" onAction={() => actions.current.retry()} />;
+    return (
+      <>
+        <OfflineHold kind="waiting" onAction={() => actions.current.retry()} />
+        {signOut}
+      </>
+    );
   if (access === 'signin')
     return <OfflineHold kind="signin" onAction={() => actions.current.signIn()} />;
   return null;

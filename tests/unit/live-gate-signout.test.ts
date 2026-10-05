@@ -72,3 +72,45 @@ describe('signOutAndRedirect: the offline sale queue survives sign-out', () => {
     expect(replace).toHaveBeenCalledWith(expect.stringContaining('/sign-in'));
   });
 });
+
+/**
+ * Slice A3: supabase-js puts no time limit on its logout call, and a hung call used to leave
+ * the session on the phone. Past SIGN_OUT_LIMIT_MS the cookies are cleared by hand, and cleared
+ * again if the call settles late (it can write a refreshed session back before it removes it).
+ */
+describe('signOutLocal: a logout call that hangs', () => {
+  const cookie = 'sb-local-auth-token=x; path=/';
+  const gone = 'sb-local-auth-token=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
+
+  afterEach(() => {
+    vi.useRealTimers();
+    document.cookie = gone;
+  });
+
+  it('clears the session by hand after the limit, and again when the call finally settles', async () => {
+    vi.useFakeTimers();
+    document.cookie = cookie;
+    let settle: () => void = () => undefined;
+    const supabase = {
+      auth: {
+        signOut: vi.fn(
+          () => new Promise<{ error: null }>((resolve) => (settle = () => resolve({ error: null })))
+        )
+      }
+    } as unknown as SupabaseClient<Database>;
+    const { signOutLocal, SIGN_OUT_LIMIT_MS } = await import('@/lib/auth/live-gate');
+
+    const done = signOutLocal(supabase);
+    await vi.advanceTimersByTimeAsync(SIGN_OUT_LIMIT_MS - 1);
+    expect(document.cookie).toContain('sb-local-auth-token');
+    await vi.advanceTimersByTimeAsync(2);
+    await done;
+    expect(document.cookie).not.toContain('sb-local-auth-token');
+
+    // The late call wrote a refreshed session back before it settled.
+    document.cookie = cookie;
+    settle();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(document.cookie).not.toContain('sb-local-auth-token');
+  });
+});

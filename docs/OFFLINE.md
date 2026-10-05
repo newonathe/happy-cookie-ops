@@ -89,6 +89,23 @@ did not. Now:
 - **Storage.** When the selling phone starts an event the app asks the browser to keep its
   storage. The browser may say no; nothing depends on the answer.
 
+### Signing out on purpose (slice A3, 6 October 2026)
+
+The live app has one deliberate sign-out: a small "Sign out" pill above the dock, bottom left.
+It always asks first. If the phone still holds sales or event changes the server has not
+acknowledged, the question becomes "Sales are still on this phone" with the count and three
+buttons: **Send now** (the app's own send; signs out when nothing is left), **Sign out
+anyway** (never blocked; the rows stay on the phone and go up after the next sign-in) and
+**Keep selling**. It never touches the queue. The count is the queue's unsent rows plus any
+sale on screen that never reached the queue; if it cannot be read the question says so
+without a number.
+
+It is not shown on the Bazaar screen, over any sheet or the Quick add layer, on customer
+pages, or when no session is stored. With no signal it says she cannot sign back in until
+the signal is back. The sign-out is the live gate's own lock-out, so the app is hidden at
+once; a logout call that never answers is given five seconds and then the session is cleared
+by hand. Automatic sign-outs (a denial, idle time) are unchanged apart from that bound.
+
 Not proven by tests on a computer, and left to the phone rehearsal: Safari serving the app
 after a full close from the Home Screen, an overnight gap, and the radio actually off.
 

@@ -5,6 +5,9 @@ import { clearStoredBooks } from '@/lib/data/live-state';
 import { clearIdleSpent, clearRememberedCheck } from '@/lib/auth/offline-trust';
 import { clearStallCopy } from '@/lib/offline/stall-copy';
 
+/** How long the logout call may take before the session is cleared by hand. */
+export const SIGN_OUT_LIMIT_MS = 5_000;
+
 const ROLES: readonly Role[] = ['owner', 'helper', 'support'];
 
 function isRole(value: string): value is Role {
@@ -136,11 +139,27 @@ export async function signOutLocal(supabase: SupabaseClient<Database>): Promise<
   clearStoredBooks();
   clearRememberedCheck();
   clearStallCopy();
+  // supabase-js puts no time limit on its logout call, and dead stall Wi-Fi still reports
+  // online: unbounded, a sign-out could wait for ever with the session still on the phone. Past
+  // the limit it is treated like a failed call (the cookies are cleared by hand). The call is
+  // still running, and may write a refreshed session back before it removes it, so the cookies
+  // are cleared again whenever it settles. That is safe: signing in again needs a page load,
+  // which ends this call.
+  let timer: ReturnType<typeof setTimeout> | undefined;
   try {
-    const { error } = await supabase.auth.signOut({ scope: 'local' });
-    if (error) clearSessionCookies();
+    const slow = new Promise<'slow'>((resolve) => {
+      timer = setTimeout(() => resolve('slow'), SIGN_OUT_LIMIT_MS);
+    });
+    const call = supabase.auth.signOut({ scope: 'local' });
+    const result = await Promise.race([call, slow]);
+    if (result === 'slow') {
+      clearSessionCookies();
+      void call.then(clearSessionCookies, clearSessionCookies);
+    } else if (result.error) clearSessionCookies();
   } catch {
     clearSessionCookies();
+  } finally {
+    clearTimeout(timer);
   }
   clearIdleSpent();
 }
