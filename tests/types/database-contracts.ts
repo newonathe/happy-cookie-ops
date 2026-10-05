@@ -5,16 +5,31 @@ import type { createClient as serverFactory } from '@/lib/supabase/server';
 import type { createServiceClient } from '@/lib/supabase/service';
 
 type Assert<T extends true> = T;
-export type NoTableWildcard = Assert<string extends keyof Database['public']['Tables'] ? false : true>;
-export type NoFunctionWildcard = Assert<string extends keyof Database['public']['Functions'] ? false : true>;
+export type NoTableWildcard = Assert<
+  string extends keyof Database['public']['Tables'] ? false : true
+>;
+export type NoFunctionWildcard = Assert<
+  string extends keyof Database['public']['Functions'] ? false : true
+>;
 export type ProductIdIsText = Assert<Tables<'products'>['id'] extends string ? true : false>;
-export type ProfileActiveIsBoolean = Assert<Tables<'profiles'>['active'] extends boolean ? true : false>;
-export const defaultInactiveProfile: TablesInsert<'profiles'> = { id: 'type-only', display_name: 'Type fixture' };
+export type ProfileActiveIsBoolean = Assert<
+  Tables<'profiles'>['active'] extends boolean ? true : false
+>;
+export const defaultInactiveProfile: TablesInsert<'profiles'> = {
+  id: 'type-only',
+  display_name: 'Type fixture'
+};
+// Keep the next statement on one line: its directive covers only the line below it.
+// prettier-ignore
 // @ts-expect-error The stored activity gate is a boolean, never a truthy string.
 export const invalidProfileActive: TablesInsert<'profiles'> = { id: 'type-only', display_name: 'Type fixture', active: 'true' };
 // @ts-expect-error A persisted profile row must always carry a non-null activity flag.
 export const nullProfileActive: Tables<'profiles'>['active'] = null;
-export type RateLimitHasReset = Assert<Database['public']['Functions']['consume_rate_limit']['Returns'][number]['reset_at'] extends string ? true : false>;
+export type RateLimitHasReset = Assert<
+  Database['public']['Functions']['consume_rate_limit']['Returns'][number]['reset_at'] extends string
+    ? true
+    : false
+>;
 
 export function checkDatabaseContracts(
   service: ReturnType<typeof createServiceClient>,
