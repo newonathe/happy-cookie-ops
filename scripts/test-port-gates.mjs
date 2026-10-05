@@ -9,7 +9,10 @@ const root = fileURLToPath(new URL('..', import.meta.url));
 const scratch = mkdtempSync(join(tmpdir(), 'happy-cookie-port-probes-'));
 for (const dir of protectedDirs) cpSync(join(root, dir), join(scratch, dir), { recursive: true });
 mkdirSync(join(scratch, 'scripts'));
-cpSync(join(root, 'scripts/port-structure-baseline.json'), join(scratch, 'scripts/port-structure-baseline.json'));
+cpSync(
+  join(root, 'scripts/port-structure-baseline.json'),
+  join(scratch, 'scripts/port-structure-baseline.json')
+);
 assert.deepEqual(checkStructure(scratch), []);
 const rel = 'src/components/sheets/add-inv.tsx';
 const file = join(scratch, rel);
@@ -26,13 +29,21 @@ for (const [name, before, after] of probes) {
   let mutated = source.replace(before, after);
   if (name === 'structure') mutated = mutated.replace('</form>', '</section>');
   writeFileSync(file, mutated);
-  assert(checkStructure(scratch).some((problem) => problem.startsWith(rel)), name + ' mutation escaped');
+  assert(
+    checkStructure(scratch).some((problem) => problem.startsWith(rel)),
+    name + ' mutation escaped'
+  );
   writeFileSync(file, source);
   console.log('PASS detected ' + name);
 }
-assert.equal(structuralHash('const a = { x: "hello" };'), structuralHash("// comment\nconst a={x:'hello'};"));
+assert.equal(
+  structuralHash('const a = { x: "hello" };'),
+  structuralHash("// comment\nconst a={x:'hello'};")
+);
 assert.notEqual(structuralHash('const a = 1;'), structuralHash('let a = 1;'));
 assert.throws(() => structuralHash('const a = ;'), /invalid syntax/);
 console.log('PASS declaration mutability and invalid-syntax probes');
 assert.deepEqual(checkStructure(scratch), []);
-console.log('PASS formatting-only change; authoritative source never mutated. Disposable probes: ' + scratch);
+console.log(
+  'PASS formatting-only change; authoritative source never mutated. Disposable probes: ' + scratch
+);
