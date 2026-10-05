@@ -28,18 +28,19 @@ Ethan reported on 2026-09-24 that the Claude subscription was no longer availabl
 ## Allocation — 2026-09-24 (superseded by the current rules above)
 
 Set by Ethan on 2026-09-24, with sources checked that day:
+
 - OpenAI now recommends **GPT-6 Sol** for complex coding and agentic workflows and **GPT-6 Luna** for focused, repeatable tasks. GPT-5.6 Sol/Terra/Luna remain only during the rollout, and `gpt-5.5` retires on 2026-10-14. ([Codex models](https://learn.chatgpt.com/docs/models))
 - In both tools a subagent without an explicit model **inherits the parent's model**. ([Codex subagents](https://learn.chatgpt.com/docs/agent-configuration/subagents), [Claude subagents](https://code.claude.com/docs/en/sub-agents)) Unpinned Opus-inherited Explore agents exhausted Claude's weekly quota on 2026-09-24.
 
 Everything else in this policy still holds: at most two active workers across both providers, one writer per file, explicit models, no paid/API fallback, and bounded prompt packets.
 
-| Role | Claude | Codex |
-|---|---|---|
-| Orchestrator: plan, decide, integrate, final review | Opus 5.5 | GPT-6 Astra if included in the plan, else GPT-6 Sol (xhigh) |
-| Hard or security worker: auth, RLS, money, offline, CSP | Sonnet 5, high | GPT-6 Sol, high |
-| Routine worker: mechanical edits, extraction, citation checks | Haiku 4.5 (read/extract), Sonnet 5 medium (edits) | GPT-6 Luna, medium |
-| Owns (sole writer) | Governance and narrative in `docs/state/*`, decision register, owner packet/inputs, research/ADRs, `.claude`/`.codex`/`.agents` definitions, `.github/*`, env templates, `spikes/pages/_headers` | `src/**`, `spikes/pages/functions/**`, new `supabase/migrations/*`, `tests/**`, `scripts/**` fixtures, Docker/SQL runs, evidence receipts, `task-status.json` slice status |
-| Reviews the other's work | Codex diffs touching auth, RLS, SQL, money or offline (Sonnet high, then Opus sign-off) | Claude config/code diffs (read-only `review` profile, Sol) |
+| Role                                                          | Claude                                                                                                                                                                                           | Codex                                                                                                                                                                      |
+| ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Orchestrator: plan, decide, integrate, final review           | Opus 5.5                                                                                                                                                                                         | GPT-6 Astra if included in the plan, else GPT-6 Sol (xhigh)                                                                                                                |
+| Hard or security worker: auth, RLS, money, offline, CSP       | Sonnet 5, high                                                                                                                                                                                   | GPT-6 Sol, high                                                                                                                                                            |
+| Routine worker: mechanical edits, extraction, citation checks | Haiku 4.5 (read/extract), Sonnet 5 medium (edits)                                                                                                                                                | GPT-6 Luna, medium                                                                                                                                                         |
+| Owns (sole writer)                                            | Governance and narrative in `docs/state/*`, decision register, owner packet/inputs, research/ADRs, `.claude`/`.codex`/`.agents` definitions, `.github/*`, env templates, `spikes/pages/_headers` | `src/**`, `spikes/pages/functions/**`, new `supabase/migrations/*`, `tests/**`, `scripts/**` fixtures, Docker/SQL runs, evidence receipts, `task-status.json` slice status |
+| Reviews the other's work                                      | Codex diffs touching auth, RLS, SQL, money or offline (Sonnet high, then Opus sign-off)                                                                                                          | Claude config/code diffs (read-only `review` profile, Sol)                                                                                                                 |
 
 - **Handoff:** through `docs/state` only (checkpoint template). When the reviewing side is out of quota, the review is **queued, not skipped**. Nothing is committed or merged without it and without Ethan's approval.
 - **Pinned agent models:**
@@ -55,12 +56,12 @@ Owner preference reaffirmed 2026-09-10: for MP-05.b and future goals, proactivel
 
 One worker is the default. At most two active workers across Codex and Claude combined, alongside root. Count a Claude coordinator and its child as two workers; do not run another Codex worker during that arrangement. Independent useful work must justify delegation; do not create agents merely to exercise both providers.
 
-| Work | Codex default | Claude default |
-| --- | --- | --- |
-| Narrow extraction, documentation, repeatable lookup | Luna / medium | Haiku, ordinary effort |
-| Bounded implementation, test execution, diagnosis | Terra / medium | Sonnet / medium |
-| Demonstrably difficult logic or security, money, auth, offline review | Sol / high | Sonnet / high first |
-| Unresolved cross-system decisions | Root; Astra only where needed | Escalate after recording the unresolved issue and checking subscription availability |
+| Work                                                                  | Codex default                 | Claude default                                                                       |
+| --------------------------------------------------------------------- | ----------------------------- | ------------------------------------------------------------------------------------ |
+| Narrow extraction, documentation, repeatable lookup                   | Luna / medium                 | Haiku, ordinary effort                                                               |
+| Bounded implementation, test execution, diagnosis                     | Terra / medium                | Sonnet / medium                                                                      |
+| Demonstrably difficult logic or security, money, auth, offline review | Sol / high                    | Sonnet / high first                                                                  |
+| Unresolved cross-system decisions                                     | Root; Astra only where needed | Escalate after recording the unresolved issue and checking subscription availability |
 
 Choose explicit models and supported effort; never inherit Astra into routine workers. No default Max/Ultra. Small tasks stay local when delegation costs more than doing them. Prefer deterministic tools for inventories, hashes, tests and transformations. These assignments are judgments, not guarantees of equivalent performance or exact subscription savings.
 

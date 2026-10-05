@@ -400,14 +400,12 @@ encrypted off-device custody/recovery before real records; record seven actual d
 feedback and actual-phone rehearsal. F2 remains incomplete/F3 closed; unchanged
 OFFLINE-01 and physical-phone dualPASS by20October still govern the October pilot.
 
-
 ## Editable source recipes - 4 October continuation
 
 2026-10-04: saved editable source recipe drafts delivered. All seven October originals retain teaspoons/pinches/components/optional notes; batch14 is editable, six provisional and Apple verified. New052 owner-only table/two RPCs applied to existing private trial;53 migrations/38 RLS tables/browser MAINTAIN0. Verify/full precommit79/1474; role1945x2/684 regressions/cleanupPASS. Independent backend/source-plan ACCEPT and root frontend review; four headless phone/desktop captures inspected, live save/reload/revertPASS and exact production/stock/ledger cleanupPASS. Code61d3e8e/72d7d17 pushed; private versionb29a55bc. Fresh owner gate/anonymous app-assets denial/preview404PASS. F2 incomplete/F3 closed; actual-phone/OFFLINE-01 dualPASS by20October remains.
 
 See [F2-recipe-drafts.md](F2-recipe-drafts.md). Original text and batch sizes are
 available for editing now; missing measured quantities concern production/costing.
-
 
 ## Login-code delivery - 4 October
 
@@ -427,7 +425,6 @@ not claims from API readback. F2 incomplete/F3 closed; preserve all real-week/de
 Private receipts: F2-otp-personal-mailbox-{plan,acceptance,Apply}.json,
 F2-otp-personal-anonymous-check.json and F2-otp-delivery-diagnostic.json. Plan hash
 3cc7f8968ec2221ebe9e70d42d99a903666eb49cc95059e8bbb5009e55365a77.
-
 
 ## Historical trial continuation - 5 October
 
