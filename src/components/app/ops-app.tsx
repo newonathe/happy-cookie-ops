@@ -53,10 +53,15 @@ export function OpsApp({ initialScreen }: { initialScreen: ScreenKey }) {
   return (
     <OpsRuntime>
       <LiveGate initialScreen={initialScreen}>
-        <RouteSync initialScreen={initialScreen} />
-        <LiveOrderRoute />
-        <OfflineBridge />
-        <Frame />
+        {/* A2: an offline open lands on Bazaar Mode, and a refused screen replaces only the frame. */}
+        {({ landing, hold }) => (
+          <>
+            <RouteSync initialScreen={landing} />
+            <LiveOrderRoute />
+            <OfflineBridge />
+            {hold ?? <Frame />}
+          </>
+        )}
       </LiveGate>
     </OpsRuntime>
   );

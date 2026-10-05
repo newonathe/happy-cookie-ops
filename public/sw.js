@@ -5,8 +5,10 @@
  * itself: the page owns the session, so the page sends. Nothing here caches customer
  * or money data.
  */
-const VERSION = 'hc-ops-v2';
-const SHELL = ['/', '/bazaar', '/manifest.webmanifest'];
+const VERSION = 'hc-ops-v3';
+// '/sign-in' is stored so a signed-out phone with no signal gets the real sign-in page, not
+// the app shell answering for it (which denies, redirects to sign-in, and so on without end).
+const SHELL = ['/', '/bazaar', '/sign-in', '/manifest.webmanifest'];
 
 /*
  * Stores the page shell and every build file it names. A redirected answer (the sign-in page
@@ -81,7 +83,10 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(request)
         .then((response) => put(request, response))
-        .catch(() => caches.match(request).then((hit) => hit || caches.match('/')))
+        // ignoreSearch: '/sign-in?next=…' is the stored '/sign-in'
+        .catch(() =>
+          caches.match(request, { ignoreSearch: true }).then((hit) => hit || caches.match('/'))
+        )
     );
   }
 });

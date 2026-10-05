@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { returnPathFromSearch } from '@/lib/auth/return-path';
+import { clearIdleSpent } from '@/lib/auth/offline-trust';
 
 /**
  * Staff sign-in. Styled from the prototype's own control vocabulary — the same 44px
@@ -31,6 +32,8 @@ export function SignInForm() {
       setError('That email and password do not match an account.');
       return;
     }
+    // A2: a session just signed in cannot have spent its idle time.
+    clearIdleSpent();
     router.replace(next);
   }
 

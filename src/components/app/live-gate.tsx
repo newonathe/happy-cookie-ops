@@ -6,9 +6,51 @@ import { hasSupabaseConfig } from '@/lib/supabase/config';
 import { isLiveMode } from '@/lib/config/app-mode';
 import { useOpsEngine, useOpsVals } from '@/store/use-ops';
 import { CUSTOMER_SCREENS, type ScreenKey } from '@/lib/screens';
-import { checkStaffProfile, signOutAndRedirect } from '@/lib/auth/live-gate';
-import { idleMinutesFor, startIdleSignOut } from '@/lib/auth/idle-signout';
+import {
+  checkStaffProfile,
+  hasStoredSession,
+  signOutAndRedirect,
+  signOutLocal,
+  type ProfileCheck
+} from '@/lib/auth/live-gate';
+import { ACTIVITY_EVENTS, idleMinutesFor, startIdleSignOut } from '@/lib/auth/idle-signout';
+import {
+  checkStillFresh,
+  holdsOpenEvent,
+  idleWasSpent,
+  markIdleSpent,
+  offlineBazaarRole,
+  rememberCheck
+} from '@/lib/auth/offline-trust';
 import { OpsRuntime } from '@/store/ops-runtime';
+import type { Role } from '@/store/engine/ops-engine';
+import { OfflineHold } from './offline-hold';
+
+/** How long one identity check may take before the gate treats the server as unreachable. */
+export const CHECK_TIMEOUT_MS = 8_000;
+/** How often the check is tried again while the server has not answered. */
+export const RECHECK_MS = 60_000;
+/** How long an overdue idle sign-out waits for the queued sales to send first. */
+export const FLUSH_BEFORE_SIGN_OUT_MS = 15_000;
+
+const BAZAAR: ScreenKey = 'bazaar';
+/** The sheets Bazaar Mode itself opens: take payment, an event expense, the close-out. */
+export const BAZAAR_SHEETS: readonly string[] = ['pay', 'evExp', 'closeout'];
+
+/**
+ * closed    nothing decided yet on this page load: nothing renders.
+ * verified  the server passed the identity check: the whole app.
+ * bazaar    the server could not be reached and `offlineBazaarRole()` allows it: Bazaar Mode only.
+ * waiting   the server could not be reached and this phone may not open offline: a notice.
+ * signin    signed out with the sign-in page out of reach: a notice, no redirect.
+ */
+type Access = 'closed' | 'verified' | 'bazaar' | 'waiting' | 'signin';
+
+/** `landing`: the screen this page load opens on. `hold`: shown in place of the frame, or null. */
+export interface GateView {
+  landing: ScreenKey;
+  hold: React.ReactNode;
+}
 
 /**
  * The live-mode session gate.
@@ -39,13 +81,31 @@ import { OpsRuntime } from '@/store/ops-runtime';
  * make every live-mode customer page (e.g. `/shop`) gate on that transient `'today'` on its
  * very first render — and since `RouteSync` is one of this component's own gated children,
  * it would never mount to correct it: a permanent deadlock, not just a flash.
+ *
+ * Slice A2 (the bazaar phone with no signal). A first check the server never answers is no
+ * longer a sign-out: that stopped a stall selling for no security reason, and sent it to a
+ * sign-in page it could not load. Instead, inside the bounds of `src/lib/auth/offline-trust.ts`,
+ * Bazaar Mode alone opens; every other screen and sheet is replaced by a notice. Outside those
+ * bounds the app stays closed behind a notice. In both cases the full check runs again when the
+ * phone reconnects, when the tab comes back and once a minute, and a definite denial still
+ * signs out. "No signal" means the check came back `unknown`, never `navigator.onLine`: a
+ * stall's dead Wi-Fi reports online.
+ *
+ * Idle time is still charged. With an event open and the server out of reach the idle
+ * sign-out is put off, not cancelled. When the idle time runs out the app narrows to Bazaar
+ * Mode alone and the expiry is marked on the phone; no tap and no reload undoes it. The first
+ * check the server answers sends the queued sales and signs out, as idle always did.
+ *
+ * `children` may be a function: it is given the landing screen (so `RouteSync` does not move
+ * an offline open back to Home) and the notice to draw instead of the frame, which keeps
+ * `RouteSync` and `OfflineBridge` mounted while a screen is refused.
  */
 export function LiveGate({
   initialScreen,
   children
 }: {
   initialScreen: ScreenKey;
-  children: React.ReactNode;
+  children: React.ReactNode | ((view: GateView) => React.ReactNode);
 }) {
   useOpsVals();
   const engine = useOpsEngine();
@@ -64,19 +124,25 @@ export function LiveGate({
   const configured = hasSupabaseConfig();
   const needsGate = live && !CUSTOMER_SCREENS.includes(screen);
 
-  const [verified, setVerified] = useState(false);
-  const verifiedRef = useRef(false);
-  const runFirstCheck = useRef<() => void>(() => undefined);
+  const [access, setAccessState] = useState<Access>('closed');
+  const accessRef = useRef<Access>('closed');
+  // Decided once an offline open happens and never moved back: `RouteSync` reads it on mount.
+  const [landing, setLanding] = useState<ScreenKey>(initialScreen);
+  const actions = useRef({
+    firstCheck: () => undefined as void,
+    retry: () => undefined as void,
+    signIn: () => undefined as void
+  });
 
   useEffect(() => {
     if (!live) return;
+    const signInPath = () => '/sign-in?next=' + encodeURIComponent(window.location.pathname);
     if (!configured) {
       // A live build with no Supabase URL/key: there is nothing to verify against, and
       // `createClient()` would throw — which used to take the public shop down with it.
       // Customer screens need no check, so they render. A staff screen can never be
       // verified, so it stays closed and goes to sign-in, like a failed first check.
-      runFirstCheck.current = () =>
-        window.location.replace('/sign-in?next=' + encodeURIComponent(window.location.pathname));
+      actions.current.firstCheck = () => window.location.replace(signInPath());
       // Nothing to read the payment methods from either (MP-09 c2): the checkout shows none.
       if (engine instanceof OpsRuntime) void engine.loadShopPayment(null);
       // Nothing to read the published menu from: the shop shows no flavours (MP-09 c1b).
@@ -85,10 +151,23 @@ export function LiveGate({
       return;
     }
     let cancelled = false;
-    let idleStarted = false;
+    let leaving = false;
+    let settingsStarted = false;
+    let settingsLoaded = false;
     let flavoursStarted = false;
-    let stopIdle = () => undefined as void;
+    let idleRunning = false;
+    // The role idle time is measured for: the verified one, or the remembered one offline.
+    let idleRole: Role | null = null;
+    let stopIdleTimer = () => undefined as void;
+    let recheck: ReturnType<typeof setInterval> | undefined;
+    let outstanding = 0;
+    let lastActivity = Date.now();
     const supabase = createClient();
+    const setAccess = (next: Access) => {
+      accessRef.current = next;
+      setAccessState(next);
+    };
+    const cfg = () => engine.state.cfg as Record<string, unknown> | undefined;
     // MP-09 c2: the payment methods and shop texts, read on every live page, signed in or not.
     if (engine instanceof OpsRuntime) void engine.loadShopPayment(supabase);
     // B2: the pickup rules, the checkout, "Find my order" and the waiting list, on every live page.
@@ -100,47 +179,207 @@ export function LiveGate({
     if (CUSTOMER_SCREENS.includes(initialScreen) && engine instanceof OpsRuntime)
       void engine.loadShopMenu(supabase);
 
+    const idleSpent = (role: Role) =>
+      Date.now() - lastActivity >= idleMinutesFor(role, cfg()) * 60_000;
+    const active = () => {
+      // A tap after the idle time already ran out does not bring the session back. When the
+      // page was frozen (a locked phone) the tap can land before the overdue timer does: the
+      // idle path runs here and now, so the whole app is not left open for another idle period.
+      // Never once this page has signed out: the mark would outlive the sign-out that clears
+      // it and sign the next session out again.
+      if (!cancelled && idleRole && idleSpent(idleRole)) {
+        const current = accessRef.current;
+        if (current === 'verified') onIdle();
+        else if (current === 'bazaar' || current === 'waiting') markIdleSpent();
+      }
+      lastActivity = Date.now();
+    };
+    ACTIVITY_EVENTS.forEach((name) => window.addEventListener(name, active, { passive: true }));
+
+    function stopIdle() {
+      idleRunning = false;
+      stopIdleTimer();
+    }
+    function stopRecheck() {
+      clearInterval(recheck);
+      recheck = undefined;
+    }
+    function startRecheck() {
+      recheck ??= setInterval(() => {
+        if (!outstanding) void verify(false);
+      }, RECHECK_MS);
+    }
+
+    /**
+     * A definite denial. The sale queue is never touched. With no network, or when this is
+     * already the app shell answering for `/sign-in` (the service worker's fallback), a
+     * redirect would only load this shell again and deny again, without end: the notice is
+     * shown in place and the redirect waits for the phone to come back online.
+     */
     function lockOut() {
       if (cancelled) return;
       cancelled = true;
-      verifiedRef.current = false;
-      setVerified(false);
       stopIdle();
-      void signOutAndRedirect(supabase, window.location.pathname);
+      stopRecheck();
+      const path = window.location.pathname || '/';
+      if (navigator.onLine === false || path.startsWith('/sign-in')) {
+        setAccess('signin');
+        void signOutLocal(supabase);
+        return;
+      }
+      setAccess('closed');
+      void signOutAndRedirect(supabase, path);
     }
 
-    async function verify(isFirstCheck: boolean) {
-      if (cancelled) return;
-      const result = await checkStaffProfile(supabase);
+    /**
+     * The idle sign-out once the server can be reached again: the sales the phone is holding
+     * are sent first (the session they need is about to go), for a bounded time, then it
+     * signs out. A sale that does not make it stays queued and is sent after the next sign-in.
+     */
+    function signOutAfterFlush() {
+      if (cancelled || leaving) return;
+      markIdleSpent();
+      // Nothing of an open event to send: sign out at once, as idle always did.
+      if (!holdsOpenEvent()) {
+        lockOut();
+        return;
+      }
+      leaving = true;
+      // While the queue is being sent, only Bazaar Mode is on screen.
+      narrow();
+      const sent =
+        engine instanceof OpsRuntime
+          ? Promise.resolve(engine.flushSales()).catch(() => undefined)
+          : Promise.resolve();
+      const limit = new Promise<void>((resolve) => setTimeout(resolve, FLUSH_BEFORE_SIGN_OUT_MS));
+      void Promise.race([sent, limit]).then(lockOut);
+    }
+
+    /**
+     * The first check of this page load got no answer from the server. Bazaar Mode opens only
+     * inside the offline bounds and only with a session still stored on this phone; a phone
+     * that was signed out has none, and `checkStaffProfile` denies it without the network.
+     */
+    function holdOffline() {
+      const role = hasStoredSession() ? offlineBazaarRole() : null;
+      if (role) {
+        idleRole = role;
+        if (engine instanceof OpsRuntime) engine.restoreStallCopy();
+        if (engine.state.role !== role) engine.setRole(role);
+        if (engine.state.screen !== BAZAAR) engine.go(BAZAAR);
+        setLanding(BAZAAR);
+        setAccess('bazaar');
+      } else {
+        setAccess('waiting');
+      }
+      startRecheck();
+    }
+
+    /**
+     * The idle time ran out with an event open. Signing out with no signal would end selling,
+     * so the session is kept, but from here on it counts as expired: the app narrows to Bazaar
+     * Mode alone (past the offline hours, or with no open event, to the notice), no tap or
+     * reload widens it again (the mark is kept on the phone), and the first check the server
+     * answers sends the queue and signs out. It runs before the server is asked, never after:
+     * a check can take seconds to fail on a dead connection, and nothing wider may stay on
+     * screen while it does.
+     */
+    function narrow() {
+      markIdleSpent();
+      stopIdle();
+      if (holdsOpenEvent() && checkStillFresh()) {
+        if (engine.state.screen !== BAZAAR) engine.go(BAZAAR);
+        setLanding(BAZAAR);
+        setAccess('bazaar');
+      } else {
+        setAccess('waiting');
+      }
+      startRecheck();
+    }
+
+    function startIdle(role: Role) {
+      stopIdle();
+      idleRole = role;
+      idleRunning = true;
+      stopIdleTimer = startIdleSignOut(
+        role,
+        () => onIdle(),
+        () => idleMinutesFor(role, cfg())
+      );
+    }
+
+    /**
+     * Idle sign-out, except at a stall with no signal: signing out there ends selling until
+     * she can reach a sign-in page. With an event open the app narrows at once (`narrow`),
+     * then the server is asked: reachable, it signs out as before after sending what is
+     * queued; out of reach, the sign-out waits, re-checked once a minute.
+     */
+    function onIdle() {
+      if (!holdsOpenEvent()) {
+        lockOut();
+        return;
+      }
+      narrow();
+      void limited(probe()).then((result) => {
+        if (cancelled || !result) return;
+        if (result.status === 'denied') lockOut();
+        else if (result.status === 'ok') signOutAfterFlush();
+      });
+    }
+
+    function apply(result: ProfileCheck, isFirstCheck: boolean) {
       if (cancelled) return;
       if (result.status === 'unknown') {
-        // Only fail closed when nothing has been verified yet in this session — a
-        // transient/offline failure on a later re-check must not sign out a till that
-        // was already legitimately signed in (see checkStaffProfile's doc comment).
-        if (isFirstCheck && !verifiedRef.current) lockOut();
+        // Not evidence of anything (see checkStaffProfile's doc comment). A session already
+        // verified on this page load is left as it is. Bazaar-only access (an offline open, or
+        // a session whose idle time ran out) ends when the offline hours do.
+        if (isFirstCheck && accessRef.current === 'closed') holdOffline();
+        else if (accessRef.current === 'bazaar' && !checkStillFresh()) setAccess('waiting');
         return;
       }
       if (result.status === 'denied') {
         lockOut();
         return;
       }
+      const role = result.role;
+      // The server answers again and the idle time ran out while it could not: the sign-out
+      // that was put off happens now. Nothing is opened first.
+      if (idleWasSpent() || idleSpent(role)) {
+        signOutAfterFlush();
+        return;
+      }
       // The protected engine clears an in-progress stocktake on setRole. A same-role
       // token refresh or visibility check must not reset the owner's count.
-      if (!verifiedRef.current || engine.state.role !== result.role) engine.setRole(result.role);
-      verifiedRef.current = true;
-      setVerified(true);
-      if (engine instanceof OpsRuntime && result.role !== 'helper')
+      if (accessRef.current !== 'verified' || engine.state.role !== role) engine.setRole(role);
+      rememberCheck(role);
+      stopRecheck();
+      // Reopening after a spell with no server: send what the phone is holding now. On a dead
+      // connection that comes back no `online` event fires, so nothing else would until the
+      // next sale.
+      const reopened = accessRef.current === 'bazaar' || accessRef.current === 'waiting';
+      setAccess('verified');
+      if (reopened && engine instanceof OpsRuntime)
+        void Promise.resolve(engine.flushSales()).catch(() => undefined);
+      // Only once the owner's settings are in: before that `cfg` holds the engine's defaults,
+      // and saving those would replace her discounts and float on the phone.
+      const keepStallCopy = () => {
+        if (!cancelled && settingsLoaded && engine instanceof OpsRuntime) engine.saveStallCopy();
+      };
+      if (engine instanceof OpsRuntime && role !== 'helper')
         void engine.loadOperationsHealth(supabase);
-      if (!idleStarted) {
-        idleStarted = true;
+      if (!settingsStarted) {
+        settingsStarted = true;
         // First verified check only: re-checks (token refresh, tab visible again) must not
         // reload settings over an edit that is still waiting to save (MP-09 b2).
-        const role = result.role;
-        if (engine instanceof OpsRuntime) void engine.loadSettings(supabase, role);
-        stopIdle = startIdleSignOut(role, lockOut, () =>
-          idleMinutesFor(role, engine.state.cfg as Record<string, unknown> | undefined)
-        );
+        if (engine instanceof OpsRuntime)
+          void Promise.resolve(engine.loadSettings(supabase, role)).then((loaded) => {
+            settingsLoaded = loaded === true;
+            keepStallCopy();
+          });
+      } else {
+        keepStallCopy();
       }
+      if (!idleRunning) startIdle(role);
       // The full flavour list only on a staff screen: a signed-in owner on /shop sees what
       // customers see (the published menu), not flavours that are on the form but unpublished.
       if (
@@ -150,7 +389,7 @@ export function LiveGate({
       ) {
         flavoursStarted = true;
         // B3: the owner's orders, once the flavour list is in (the screens need every ordered flavour).
-        const owner = result.role === 'owner';
+        const owner = role === 'owner';
         // D4: the owner's upcoming bazaars, for the Bazaar screen's list.
         if (owner && !cancelled) void engine.loadScheduledEvents(supabase);
         if (owner && !cancelled) void engine.loadStockCatalogue(supabase);
@@ -160,6 +399,7 @@ export function LiveGate({
         if (owner && !cancelled) void engine.loadBooks(supabase);
         // Only after the flavour list was read: an order for a flavour outside the ported list would crash the screens.
         void Promise.resolve(engine.loadFlavours(supabase)).then((loaded) => {
+          keepStallCopy();
           if (owner && !cancelled && loaded !== false) void engine.loadOrders(supabase);
           // A4: the owner's recipes, for the flavours the list just brought in.
           if (owner && !cancelled && loaded !== false) void engine.loadRecipes(supabase);
@@ -167,7 +407,47 @@ export function LiveGate({
       }
     }
 
-    runFirstCheck.current = () => void verify(true);
+    /** Counted, so the once-a-minute re-check never stacks behind a request that is still out. */
+    function probe(): Promise<ProfileCheck> {
+      outstanding += 1;
+      return checkStaffProfile(supabase).finally(() => {
+        outstanding -= 1;
+      });
+    }
+
+    /**
+     * supabase-js puts no time limit on a request, so on a weak signal a check could leave a
+     * blank page (or a growing pile of requests) for as long as the radio keeps trying. Null
+     * means the limit passed: the server counts as unreachable for now.
+     */
+    async function limited(pending: Promise<ProfileCheck>): Promise<ProfileCheck | null> {
+      let timer: ReturnType<typeof setTimeout> | undefined;
+      const slow = new Promise<null>((resolve) => {
+        timer = setTimeout(() => resolve(null), CHECK_TIMEOUT_MS);
+      });
+      const answer = await Promise.race([pending, slow]);
+      clearTimeout(timer);
+      return answer;
+    }
+
+    async function verify(isFirstCheck: boolean) {
+      if (cancelled) return;
+      const pending = probe();
+      const answer = await limited(pending);
+      if (answer) {
+        apply(answer, isFirstCheck);
+        return;
+      }
+      apply({ status: 'unknown' }, isFirstCheck);
+      // The answer, if it still comes, is applied as a re-check.
+      void pending.then((late) => {
+        if (late.status !== 'unknown') apply(late, false);
+      });
+    }
+
+    actions.current.firstCheck = () => void verify(true);
+    actions.current.retry = () => void verify(false);
+    actions.current.signIn = () => window.location.assign(signInPath());
 
     const {
       data: { subscription }
@@ -181,34 +461,64 @@ export function LiveGate({
         // A customer page has no staff session to re-check: verifying it finds none, and would sign the anonymous
         // customer "out" to /sign-in the moment they come back to the tab (say, from paying in their bank app).
         // A signed-in owner passing through a customer page (the shop preview) is still re-checked.
-        if (verifiedRef.current || !CUSTOMER_SCREENS.includes(engine.state.screen as ScreenKey))
+        // A phone that slept past the idle time: the idle path runs before anything else can.
+        if (accessRef.current === 'verified' && idleRole && idleSpent(idleRole)) onIdle();
+        else if (
+          accessRef.current !== 'closed' ||
+          !CUSTOMER_SCREENS.includes(engine.state.screen as ScreenKey)
+        )
           void verify(false);
         // Customers order all day: read the owner's orders again when the tab comes back.
         if (engine instanceof OpsRuntime) void engine.reloadOrders();
         if (engine instanceof OpsRuntime) void engine.reloadShopStatus();
-        if (verifiedRef.current && engine instanceof OpsRuntime)
+        if (accessRef.current === 'verified' && engine instanceof OpsRuntime)
           void engine.loadOperationsHealth(null);
       }
     }
     document.addEventListener('visibilitychange', onVisible);
 
+    // Back online: the full check runs at once, whatever this page load had decided.
+    function onOnline() {
+      if (accessRef.current === 'signin') window.location.replace(signInPath());
+      else if (accessRef.current !== 'closed') void verify(false);
+    }
+    window.addEventListener('online', onOnline);
+
     return () => {
       cancelled = true;
       subscription.unsubscribe();
       document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('online', onOnline);
+      ACTIVITY_EVENTS.forEach((name) => window.removeEventListener(name, active));
+      stopRecheck();
       stopIdle();
     };
   }, [live, configured, engine, initialScreen]);
 
-  // `verified` (state), not `verifiedRef.current`: reading a ref during render is not
-  // safe, and the two are always set together (see `lockOut`/`verify` above), so this is
-  // the same value without the render-time ref read.
-  const needsFirstCheck = needsGate && !verified;
+  const needsFirstCheck = needsGate && access === 'closed';
   useEffect(() => {
-    if (needsFirstCheck) runFirstCheck.current();
+    if (needsFirstCheck) actions.current.firstCheck();
   }, [needsFirstCheck]);
 
-  if (!needsGate) return <>{children}</>;
-  if (!verified) return null;
-  return <>{children}</>;
+  const view = (hold: React.ReactNode) =>
+    typeof children === 'function' ? children({ landing, hold }) : (hold ?? children);
+
+  if (!needsGate || access === 'verified') return <>{view(null)}</>;
+  if (access === 'bazaar') {
+    // Books, P&L, orders, stock and settings stay closed until a check passes: only the
+    // bazaar screen, with at most one of its own sheets over it, is drawn.
+    const sheet = (engine.state.sheet as { kind?: string } | null)?.kind;
+    const open =
+      screen === BAZAAR && !engine.state.quick && (!sheet || BAZAAR_SHEETS.includes(sheet));
+    const back = () => {
+      engine.setState({ sheet: null, quick: false });
+      engine.go(BAZAAR);
+    };
+    return <>{view(open ? null : <OfflineHold kind="elsewhere" onAction={back} />)}</>;
+  }
+  if (access === 'waiting')
+    return <OfflineHold kind="waiting" onAction={() => actions.current.retry()} />;
+  if (access === 'signin')
+    return <OfflineHold kind="signin" onAction={() => actions.current.signIn()} />;
+  return null;
 }

@@ -14,6 +14,7 @@ const { FakeRuntime } = vi.hoisted(() => ({
       this.state.role = role;
     });
     loadSettings = vi.fn();
+    saveStallCopy = vi.fn();
     loadFlavours = vi.fn();
     loadShopMenu = vi.fn();
     loadShopPayment = vi.fn();
@@ -44,6 +45,7 @@ vi.mock('@/lib/auth/live-gate', () => ({
   signOutAndRedirect: vi.fn()
 }));
 vi.mock('@/lib/auth/idle-signout', () => ({
+  ACTIVITY_EVENTS: [],
   idleMinutesFor: () => 60,
   startIdleSignOut: () => () => undefined
 }));

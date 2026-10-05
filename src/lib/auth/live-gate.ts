@@ -2,6 +2,8 @@ import { isAuthRetryableFetchError, type SupabaseClient } from '@supabase/supaba
 import type { Database } from '@/lib/types/database';
 import type { Role } from '@/store/engine/ops-engine';
 import { clearStoredBooks } from '@/lib/data/live-state';
+import { clearIdleSpent, clearRememberedCheck } from '@/lib/auth/offline-trust';
+import { clearStallCopy } from '@/lib/offline/stall-copy';
 
 const ROLES: readonly Role[] = ['owner', 'helper', 'support'];
 
@@ -94,6 +96,18 @@ function clearSessionCookies(): void {
 }
 
 /**
+ * True when a Supabase session is still stored on this device. It says nothing about whether
+ * the session is valid (only the server can), so it never opens anything by itself: the live
+ * gate requires it, on top of the offline bounds, before Bazaar Mode opens with no signal (A2).
+ */
+export function hasStoredSession(): boolean {
+  if (typeof document === 'undefined') return false;
+  return document.cookie
+    .split(';')
+    .some((pair) => SESSION_COOKIE.test(pair.split('=')[0]?.trim() ?? ''));
+}
+
+/**
  * The one lock-out path, shared by an invalid/expired profile check and idle sign-out.
  *
  * `scope: 'local'` only (never the default 'global'): a bazaar phone signing itself out
@@ -111,13 +125,31 @@ function clearSessionCookies(): void {
  *
  * `clearStoredBooks()` runs first, and independently of the sign-out call's outcome, so a
  * shared device loses the live `hc-ops-state-v1` residue even if `signOut` hangs or fails.
+ *
+ * Slice A2: the remembered check (`src/lib/auth/offline-trust.ts`) and the stall copy are
+ * cleared here too, before anything that can fail, so no lock-out path leaves a phone able to
+ * open Bazaar Mode offline afterwards. The running event (`hc-live-bazaar`) and the queue stay.
+ * The idle mark is the one thing cleared last, once the session is gone: cleared first, a
+ * reload while `signOut` hangs on a weak signal would find a session and no mark.
  */
+export async function signOutLocal(supabase: SupabaseClient<Database>): Promise<void> {
+  clearStoredBooks();
+  clearRememberedCheck();
+  clearStallCopy();
+  try {
+    const { error } = await supabase.auth.signOut({ scope: 'local' });
+    if (error) clearSessionCookies();
+  } catch {
+    clearSessionCookies();
+  }
+  clearIdleSpent();
+}
+
+/** `signOutLocal`, then the sign-in page. The gate skips the redirect when that page cannot load. */
 export async function signOutAndRedirect(
   supabase: SupabaseClient<Database>,
   nextPath: string
 ): Promise<void> {
-  clearStoredBooks();
-  const { error } = await supabase.auth.signOut({ scope: 'local' });
-  if (error) clearSessionCookies();
+  await signOutLocal(supabase);
   window.location.replace('/sign-in?next=' + encodeURIComponent(nextPath));
 }

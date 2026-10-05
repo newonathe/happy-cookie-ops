@@ -39,6 +39,8 @@ import {
   type CommandKind
 } from '@/lib/offline/queue';
 import { clearBazaar, readBazaar, saveBazaar } from '@/lib/offline/bazaar-state';
+import { readStallCopy, saveStallCopy } from '@/lib/offline/stall-copy';
+import { requestPersistentStorage } from '@/lib/offline/persist';
 import { isEventUuid, startEventOnServer, type EventSalesClient } from '@/lib/data/event-sales';
 import { deviceId } from '@/lib/device';
 import { plural } from '@/store/engine/ops-engine';
@@ -219,6 +221,12 @@ import {
   IDLE_SETTING_KEYS,
   idleMinutesFor
 } from '@/lib/auth/idle-signout';
+import {
+  OFFLINE_OPEN_HOURS_MAX,
+  OFFLINE_OPEN_HOURS_MIN,
+  OFFLINE_OPEN_SETTING_KEY,
+  offlineOpenHoursFor
+} from '@/lib/auth/offline-trust';
 
 /**
  * The engine, with the one simulated behaviour replaced by the real one.
@@ -977,6 +985,8 @@ export class OpsRuntime extends OpsProvider {
       return;
     }
     clearEventAttempt();
+    // A2: this phone now holds the day's sales, so ask the browser not to evict its storage.
+    void requestPersistentStorage();
     begin(ev);
     const unsellable = PRODUCTS.filter((p) => !(p.id in outcome.prices)).length;
     if (unsellable) {
@@ -1132,6 +1142,30 @@ export class OpsRuntime extends OpsProvider {
       toast: (message, tone) => this.toast(message, tone)
     });
     return this.flavourSync.load();
+  }
+
+  /**
+   * A2: keeps on the phone what Bazaar Mode needs after a reload with no signal (the flavour
+   * list and five settings, `src/lib/offline/stall-copy.ts`). Called by the live gate after
+   * each passed check, once the settings and flavours are in.
+   */
+  saveStallCopy(): void {
+    if (!isLiveMode()) return;
+    saveStallCopy(this.state.cfg, this.flavourSync?.current() ?? []);
+  }
+
+  /** A2: puts that copy back, on a page load the server could not be reached for. */
+  restoreStallCopy(): void {
+    if (!isLiveMode()) return;
+    const copy = readStallCopy();
+    if (!copy) return;
+    if (copy.flavours.length && !this.flavourSync) {
+      const { list, allergens } = engineCatalogue(copy.flavours);
+      const onMenu = Object.fromEntries(copy.flavours.map((f) => [f.id, f.active]));
+      replaceFlavours(list, allergens);
+      this.setState((s) => catalogueStatePatch(list, onMenu, s));
+    }
+    this.setState((s) => ({ cfg: { ...(s.cfg as Record<string, unknown>), ...copy.cfg } }));
   }
 
   /**
@@ -1709,7 +1743,27 @@ export class OpsRuntime extends OpsProvider {
           1
         )
     };
-    return [...rules, ...idle, helperTotals];
+    // A2: how long Bazaar Mode may open with no signal after this phone's last online check.
+    const hours = offlineOpenHoursFor(cfg);
+    const clampHours = (n: number) =>
+      Math.min(OFFLINE_OPEN_HOURS_MAX, Math.max(OFFLINE_OPEN_HOURS_MIN, n));
+    const offlineOpen = {
+      k: OFFLINE_OPEN_SETTING_KEY,
+      label: 'Bazaar Mode opens offline for',
+      value: hours,
+      valueText: plural(hours, 'hour', 'hours'),
+      note: 'With no signal, a phone holding a running event still opens Bazaar Mode for this long after its last online check. 1 to 72 hours.',
+      down: () => this.setCfg(OFFLINE_OPEN_SETTING_KEY, clampHours(hours - 1)),
+      up: () => this.setCfg(OFFLINE_OPEN_SETTING_KEY, clampHours(hours + 1)),
+      set: (e?: unknown) =>
+        this.numCfg(
+          OFFLINE_OPEN_SETTING_KEY,
+          (e as { target?: { value?: unknown } } | undefined)?.target?.value,
+          OFFLINE_OPEN_HOURS_MIN,
+          OFFLINE_OPEN_HOURS_MAX
+        )
+    };
+    return [...rules, ...idle, offlineOpen, helperTotals];
   }
 
   // ------------------------------------------------------------------ B3: the shop's open state

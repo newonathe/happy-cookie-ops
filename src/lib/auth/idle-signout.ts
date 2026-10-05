@@ -42,7 +42,8 @@ export function idleMinutesFor(role: Role, cfg: Record<string, unknown> | undefi
   return Math.min(IDLE_MINUTES_MAX, Math.max(IDLE_MINUTES_MIN, Math.round(raw)));
 }
 
-const ACTIVITY_EVENTS = ['pointerdown', 'keydown', 'wheel', 'touchstart'] as const;
+/** What counts as activity. Exported so the live gate charges idle time by the same events (A2). */
+export const ACTIVITY_EVENTS = ['pointerdown', 'keydown', 'wheel', 'touchstart'] as const;
 
 /**
  * Starts a role-scoped idle timer and calls `onIdle` once, after `minutes()` of no user
