@@ -1,8 +1,40 @@
 # Next goal — F2: owner trial
 
-The approved forward plan is [finish-plan.md](finish-plan.md), section 6. F1 is accepted locally; hosted jobs remain inactive. Start one new conversation in `C:/Users/ethan/dev/happy-cookie-ops-g0` and paste the goal below. Codex only; no Claude or paid API fallback.
+The approved forward plan is [finish-plan.md](finish-plan.md), section 6. F1 is accepted locally; hosted jobs remain inactive. Start one new conversation in `C:/Users/ethan/dev/happy-cookie-ops-g0` and paste the goal below. Codex ran F2 until 5 October, then Claude continued it (see the next section); no paid API fallback.
 
-## Session settings
+## Current goal — after the Claude continuation of 5 October
+
+Latest pushed checkpoint: see `git log`; formatting slices end at `dd03072`.
+`format:check` fails on 2 protected files only. The deployment secret is configured.
+OFFLINE-01 failed 3 of 3 times on Linux WebKit as well as on Windows, so expect CI's
+browser job to be red once formatting is green (CI allows two retries). Either agent may continue; when Claude runs it, read
+"Codex Sol/high" as Claude Opus coordinating with at most two pinned Sonnet workers.
+
+```text
+/goal Continue F2 from the latest pushed commit in
+C:\Users\ethan\dev\happy-cookie-ops-g0. Read AGENTS.md, current.md (top section),
+F2-format-exception-proposal.md and evidence/F2-offline01-linux-probe.json.
+Do not restart setup, reimport the 804 financial rows or reformat evidence receipts.
+1. If Ethan approved the two-file proposal, apply exactly those candidate bytes to
+   scrub.ts and visual.spec.ts, prove identity, verify, commit and push; otherwise leave
+   them. Then read the first full GitHub CI run past format:check and record every job.
+2. OFFLINE-01: keep the test unchanged. Check Playwright issue 42775 and whether a
+   release fixes it; if so, prepare a pinned upgrade (package, lockfile, CI image tag,
+   Dockerfile.visual) with Docker-rendered visual evidence for approval. Do not skip,
+   retry-mask or rewrite the test.
+3. Prepare Cine's opening count, six recipe measurements and allergens, custody choices,
+   real iPhone Safari/Chrome and MacBook checks and seven trial dates from
+   F2-count-custody-device-preparation.md; record only what people actually supply.
+Historical stock reconciliation stays closed until dated counts, units and opening
+balances exist. F2 incomplete and F3 closed until Cine accepts the real week; OFFLINE-01
+and the actual-phone rehearsal must both pass by 20 October. Pinned tools, headless
+command-line Playwright only, at most two bounded workers, stop after two failed
+repairs on one issue or 25 turns. Verify, secret-scan, commit and push accepted slices.
+No new resources, shop opening, production launch, business jobs, merge or automatic
+runner without explicit approval. Finish with actual gaps and the next goal.
+```
+
+## Session settings (Codex runs before the Claude continuation)
 
 Latest pushed source checkpoint: `f88583f`. Fresh local format check FAIL556.
 GitHub37228743055 confirms556 failures and all downstream/release jobs skipped.

@@ -1,0 +1,42 @@
+{
+  "date": "2026-10-05",
+  "package": "F2",
+  "historicalTask": "MP-26",
+  "purpose": "Learn whether OFFLINE-01 fails on Linux WebKit, the environment GitHub CI uses, before relying on CI going green after formatting.",
+  "sourceCommit": "497c6b74797901e05e6a77d9d5b422b909d9b603",
+  "environment": {
+    "image": "happy-cookie-offline-probe:497c6b7, built from the unchanged Dockerfile.visual",
+    "baseImage": "mcr.microsoft.com/playwright:v1.63.0-noble",
+    "host": "Docker 29.8.0 on Windows, WSL2 kernel 6.6.87.2",
+    "node": "24.20.0",
+    "playwright": "1.63.0"
+  },
+  "command": "pnpm exec playwright test bazaar-offline.spec.ts --project=webkit --project=phone --repeat-each=3 --reporter=list",
+  "retries": 0,
+  "result": {
+    "exitCode": 1,
+    "phoneChromium": { "passed": 3, "failed": 0 },
+    "webkit": { "passed": 0, "failed": 3 },
+    "webkitFailures": [
+      "page.reload: WebKit encountered an internal error (bazaar-offline.spec.ts:103), twice",
+      "Test timeout of 30000ms at the Cash button click (bazaar-offline.spec.ts:80), once"
+    ]
+  },
+  "upstream": {
+    "issue": "https://github.com/microsoft/playwright/issues/42775",
+    "checkedAt": "2026-10-05",
+    "state": "open",
+    "label": "v1.64",
+    "note": "Reproduced on macOS on tip-of-tree per the issue thread; latest published release is v1.63.0 (2026-09-04)."
+  },
+  "conclusion": "OFFLINE-01 fails on Linux WebKit as well as Windows WebKit under Playwright 1.63.0. The CI Browser flows job and the owner-trial release job that depends on it will fail after format:check passes. No test, application, service-worker or queue source was changed.",
+  "limits": [
+    "Local container, not a GitHub-hosted runner.",
+    "One timeout failure differs from the known reload error and was not investigated.",
+    "Does not establish actual Safari or installed-PWA behaviour; the physical-phone rehearsal remains separate."
+  ],
+  "privateLog": "claude-20261005/F2-offline01-linux-probe.log in the private evidence directory",
+  "privateLogSha256": "e9cf1fc5907c1d5c5eb74e81b5831dab10399e4ce709528c682f57b6c5fe2172",
+  "offline01Changed": false,
+  "pilotGateWaived": false
+}

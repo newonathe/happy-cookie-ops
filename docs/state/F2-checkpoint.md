@@ -1,5 +1,59 @@
 # F2 / MP-26 technical checkpoint — 3 October 2026
 
+## Claude continuation — 5 October 2026 (latest)
+
+Summary and open items: [current.md](current.md), top section. Detail kept here.
+
+**Handover.** Codex's last commit `497c6b7` had passed its hook but was unpushed; it was
+pushed first. Three accepted Codex slices after `f88583f` (`186c76c`, `16abdb5`,
+`497c6b7`) were not yet in these records. Fresh count at `497c6b7`: 536 failing files.
+
+**Why slices alone could not finish.** Of the 536, 121 sat in byte-locked delivery paths
+that `scripts/validate-g0.py` holds to delivered bytes, and 278 were evidence receipts,
+index files and script-maintained fixtures (about 489,000 changed lines if reformatted).
+Ethan approved excluding both groups from Prettier; `c8a2805` and `90f3a7d`.
+
+**Method for the 135 formatted files.** Slices of at most 400 changed lines; eight single
+files larger than that were committed alone (the largest are `src/view-models/vals.ts`
+at 3,305 lines and `src/store/ops-runtime.tsx` at 919). Per file, before commit:
+TypeScript syntax-tree fingerprint (same shape as `scripts/port-structure.mjs`),
+comment list and esbuild minified output for code; value and literal-token equality for
+JSON; Prettier's Markdown tree for documents; then `prettier --check`,
+`git diff --check`, the existing private secret scan and the pre-commit `pnpm verify`.
+
+**Relaxations that were needed, all benign and named in the commit bodies.**
+
+- Redundant parentheses, quoted-versus-bare property names and regex flag order
+  (`/x/gmi` → `/x/gim`) in 21 code files; compiled output identical.
+- `ops-runtime.tsx` needed two Prettier passes; Prettier is not idempotent on it.
+- Five Markdown files: YAML front-matter quote style (three command skills), layout of
+  fenced code in `docs/CONTRACTS.md`, and double spaces collapsed in
+  `owner-decision-packet.md`.
+- `src/app/globals.css`: hex colours lowercased and `.5` written `0.5`; identical after
+  normalising those and whitespace.
+- `tests/types/database-contracts.ts`: formatting moved a statement away from its
+  `@ts-expect-error` and the hook failed. One `// prettier-ignore` and an explanatory
+  comment were added; this is the only non-formatting line change in the run.
+- `docs/ENVIRONMENTS.md` trips the secret scan's connection-string pattern. The match is
+  the Supabase CLI's published local default on `127.0.0.1:54322`, unchanged; no private
+  credential or owner identity is present. Committed alone with that note (`9a02e62`).
+
+**Restore.** `7e1c669` returns 52 receipts to their `5101724` bytes. `F2-trial.json` was
+not restored because it carries real checkpoint updates. `G1-evidence-index.json` lists
+939 files; 855 match their recorded SHA-256. The 84 that differ are 5 receipts and 79
+living source and document files that have changed since G1, including files formatted
+in this run. No gate reads that index.
+
+**Deployment token and OFFLINE-01.** See current.md. Probe: image
+`happy-cookie-offline-probe:497c6b7` built from `Dockerfile.visual`, Docker 29.8 on
+WSL2, Node 24.20.0, Playwright 1.63.0, `bazaar-offline.spec.ts`, projects `webkit` and
+`phone`, `--repeat-each=3`, no retries. Two WebKit runs failed at the offline
+`page.reload()` with the known internal error; one timed out earlier at the Cash button.
+
+**No new visual or device evidence.** No visible flow changed. Private logs, the
+verifier, the slice driver and the two protected candidates are under
+`claude-20261005/` in the existing private evidence directory.
+
 ## Later bounded formatting continuation — 5 October 2026
 
 Additional accepted/pushed: 9fb139c (six guides,220 raw lines), 199f9c6 (six JSON

@@ -1,5 +1,16 @@
 # F2 fix list — updated 2026-10-04
 
+## OFFLINE-01 on Linux — 5 October
+
+- F2-001 update: OFFLINE-01 was run alone in the CI Playwright 1.63.0 Linux image. WebKit failed 3 of 3
+  (two at the offline reload with the known internal error, one timeout at the Cash button); phone
+  Chromium passed 3 of 3. Upstream issue 42775 is open and labelled v1.64. The failure is therefore not
+  Windows-specific and will fail the CI browser job. Test, app, service worker and queue unchanged; the
+  pilot gate is not waived. Receipt: [F2-offline01-linux-probe.json](evidence/F2-offline01-linux-probe.json).
+- Setup note, not a product defect: the private `configure-cloudflare-deploy.ps1` helper omits
+  `TRIAL_ACCESS_EMAIL_SHA256`, so its preflight fails even with a valid token. The token was validated
+  and the GitHub secret set with a separate private script that supplies it.
+
 ## Real catalogue findings — 4 October
 
 - F2-009: missing/partial recipe prices displayed as zero/final costs and uncounted

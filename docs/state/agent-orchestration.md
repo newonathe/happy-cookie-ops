@@ -17,6 +17,8 @@ Ethan approved the [lean plan](lean-plan.md) on 2026-09-26. The next goal is in 
 
 Availability on 2026-09-26: Codex is unavailable, so Claude is doing all of the work (Ethan: "treat it as you doing all of the work").
 
+Availability on 2026-10-05: Codex reached its usage limit during F2, and Ethan continued the same goal in Claude Code. Where a goal says "Codex Sol/high", read it as Claude Opus coordinating with at most two pinned Sonnet workers. Codex had coordinated F2 from 2026-10-03 to 2026-10-05.
+
 ## History — policy as of 2026-09-09 to 2026-09-26 (superseded)
 
 The owner reauthorized Claude and asked for economical delegation across both subscriptions. This policy persisted through compaction and continuation, and supplemented MASTER-PLAN.md without activating the future automatic runner.

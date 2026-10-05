@@ -2,7 +2,63 @@
 
 Read this at the start of a session. History: [current-history.md](current-history.md). Approved forward plan: [finish-plan.md](finish-plan.md). One executable package: [next-goal.md](next-goal.md).
 
-## Latest formatting checkpoint — 5 October 2026
+## Claude continuation — 5 October 2026 (latest)
+
+Codex reached its usage limit at 03:52 Manila mid-commit. Ethan continued the same F2
+goal in Claude Code (Opus coordinating, no workers used). Everything below this section
+is older.
+
+- **Formatting gate: 536 failing files → 2.** 47 commits, `c8a2805` to `dd03072`, each
+  through the pinned pre-commit hook (81 files / 1,487 tests) and the secret scan, all
+  pushed. 135 hand-written files were formatted. 132 have a machine proof that only
+  formatting changed (same syntax tree, comments and compiled output for code; same
+  tokens for JSON; same document tree for Markdown). Three were handled individually:
+  `tests/types/database-contracts.ts` gained a `prettier-ignore` comment (syntax tree
+  still identical, all ten `@ts-expect-error` directives in place), `src/app/globals.css`
+  was proven with a separate value normaliser, and `docs/ENVIRONMENTS.md` was committed
+  despite one secret-scan pattern hit, which is the published local Supabase default
+  connection string. Details: [F2-checkpoint.md](F2-checkpoint.md).
+- **Checks after the run:** `git diff 497c6b7 HEAD` over every do-not-touch path is
+  empty. `python scripts/validate-g0.py` passes 1,221 checks with zero failures.
+  GitHub run 37271292933 at `dd03072` independently reports exactly the 2 files below
+  and skips every later job.
+- **Two Prettier scope decisions, both approved by Ethan on 5 October:**
+  1. byte-locked delivery paths (`src/components/{screens,sheets,shell}/`,
+     `docs/master-plan/`), recorded in [protected-exception.md](protected-exception.md);
+  2. recorded evidence and script-maintained baselines (`docs/state/evidence/`, the two
+     evidence index files, `tests/fixtures/g0-demo-state.json`,
+     `tests/fixtures/function-authority.json`).
+     No protected file, receipt or fixture was edited.
+- **52 receipts restored** to their `5101724` bytes (`7e1c669`), as Ethan approved. They
+  had been reformatted in the earlier runs, which broke their SHA-256 in
+  `G1-evidence-index.json`. Now 769 of 774 indexed receipts match again.
+- **Still failing `format:check`:** `src/lib/observability/scrub.ts` and
+  `tests/e2e/visual.spec.ts`. Both are on the do-not-touch list; an exact two-file
+  proposal in [F2-format-exception-proposal.md](F2-format-exception-proposal.md) awaits
+  Ethan's specific approval. GitHub CI therefore still stops at `format:check`.
+- **Deployment token configured.** Ethan saved a dedicated Workers token. It is active,
+  the four read-only Workers calls return 200 and the release script's `--check-only`
+  preflight passes with no hosted writes. `CLOUDFLARE_API_TOKEN` was set as a GitHub
+  Actions secret at 05:54 UTC. Nothing was deployed. Codex's private
+  `configure-cloudflare-deploy.ps1` omits `TRIAL_ACCESS_EMAIL_SHA256` and fails its own
+  preflight; it was not used.
+- **OFFLINE-01 also fails on Linux.** In `mcr.microsoft.com/playwright:v1.63.0-noble`
+  (the CI image), WebKit failed 3 of 3 runs and phone Chromium passed 3 of 3. Upstream
+  Playwright issue 42775 is open, labelled v1.64 and reproduced on macOS; 1.63.0 is still
+  the latest release. Zero of three local WebKit attempts passed; CI allows two retries
+  per test, so expect the CI browser job to fail once formatting is green, which keeps
+  the automatic release blocked. The test is unchanged. Receipt:
+  [F2-offline01-linux-probe.json](evidence/F2-offline01-linux-probe.json).
+- **Unchanged:** the 804 imported financial rows, the hosted trial database and the
+  private Worker (last recorded version `772d4a7e`; not re-probed), shop closed, no
+  deployment, no merge, no jobs, no runner.
+- **Not eligible:** historical stock reconciliation (counts undated, opening balances and
+  units missing). **Waiting on people:** six recipe measurements, allergens, Cine's
+  opening count, password and backup custody, real iPhone Safari/Chrome and MacBook
+  checks, seven trial dates. F2 incomplete; F3 closed. OFFLINE-01 and the actual-phone
+  rehearsal must both pass by 20 October.
+
+## Earlier formatting checkpoint — 5 October 2026 (Codex)
 
 Additional accepted/pushed slices: `9fb139c` (six historical guides), `199f9c6`
 (six acceptance/audit JSON reports), `f88583f` (return-path test). Each full pinned

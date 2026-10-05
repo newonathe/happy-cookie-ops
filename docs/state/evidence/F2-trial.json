@@ -903,5 +903,42 @@
     "f3MayAdvance": false,
     "jobsMergeRunner": "inactive/not performed",
     "deadline": "Actual phone and unchanged OFFLINE-01 both PASS by20October"
+  },
+  "claudeContinuation": {
+    "date": "2026-10-05",
+    "coordinator": "Claude Code (Opus), continuing the Codex goal after its usage limit; no workers used",
+    "commits": {
+      "first": "c8a2805",
+      "last": "dd03072",
+      "count": 47,
+      "eachPinnedFullPrecommit": "PASS 81 files / 1487 tests"
+    },
+    "formatCheck": {
+      "before": 536,
+      "after": 2,
+      "remaining": [
+        "src/lib/observability/scrub.ts",
+        "tests/e2e/visual.spec.ts"
+      ]
+    },
+    "prettierScopeApprovals": [
+      "byte-locked delivery paths (c8a2805)",
+      "evidence receipts, index files, two script-maintained fixtures (90f3a7d)"
+    ],
+    "receiptsRestored": {
+      "commit": "7e1c669",
+      "count": 52,
+      "g1IndexReceiptsMatching": "769 of 774"
+    },
+    "deploymentToken": {
+      "validatedReadOnly": true,
+      "githubSecret": "CLOUDFLARE_API_TOKEN set 2026-10-05T05:54:27Z",
+      "deployed": false
+    },
+    "offline01LinuxProbe": "docs/state/evidence/F2-offline01-linux-probe.json",
+    "hostedWrites": false,
+    "importsReused": 804,
+    "trialComplete": false,
+    "f3MayAdvance": false
   }
 }
