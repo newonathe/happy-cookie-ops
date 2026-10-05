@@ -756,3 +756,27 @@ Home card (then uncommitted):
 - Notes, not defects: the dock label does not truncate, so its fit on narrow phones is
   proven by the Docker captures in [ux-audit.md](ux-audit.md) rather than by markup; and a
   job that builds with `NEXT_PUBLIC_APP_MODE=live` renders the label, which is intended.
+
+## Live screen slot in the frame (approved 2026-10-05, not built yet)
+
+Ethan approved this on 5 October 2026 when asked how redesigned screens should enter the
+app's frame ("One guarded slot"), and again by approving
+[final-plan.md](final-plan.md), version 2. It is recorded here before it is built so the
+slice that builds it (B1) has its limits in writing.
+
+- **What is approved:** one guarded block in `src/components/shell/app-frame.tsx`, beside
+  the screen list, that draws a live-only screen host in place of a ported screen. It is
+  modelled on the form slot already there (`bareFrame && sheet.liveForm`, the F3 exception
+  of 28 September).
+- **Limits:** live mode only, behind a value that only `OpsRuntime.renderVals()` sets
+  after its live-mode check; no copy, colour or class name added to the ported file; the
+  demo build renders exactly as before; no other ported file is edited for it.
+- **What it is for:** a redesigned screen replaces the old one under the same screen key,
+  and views that have no key of their own (Customers, Sales) are carried under an
+  existing key, so the engine's screen list and `tests/unit/screens.test.ts` stay as they
+  are.
+- **Required when it is built:** the exact inserted bytes recorded here; a reversal in
+  `scripts/validate-g0.py`; `node scripts/check-port-integrity.mjs --update` and the
+  structure baseline in the same commit; an independent port audit; the Docker visual
+  suite unchanged, none regenerated.
+- **Not approved by this:** any other edit to ported screens, sheets, shell or the engine.

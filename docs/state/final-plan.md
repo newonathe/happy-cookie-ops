@@ -1,88 +1,143 @@
-# Final plan — data first, then the five-tab interface (5 October 2026)
+# Final plan, version 2 — bazaar safety first, then one screen at a time (5 October 2026)
 
-Status: **proposed. Nothing is built, imported or deployed by this document.** It becomes
-the single forward plan, replacing [finish-plan.md](finish-plan.md) from here on, when
-Ethan says yes to decision 1 in section 12. Until then no build goal runs.
+Status: **approved by Ethan on 5 October 2026**, with the five answers in section 1.
+This is the forward plan. It replaces the first version of this page (commits `331dde1`,
+`846acea`) and, from here on, [finish-plan.md](finish-plan.md), whose sections 8 (how we
+build) and 12 (sources) stay as reference. Nothing was built, imported or deployed in
+writing it. The hosted trial was read twice, read-only, for counts and settings.
 
-Ethan asked for this on 5 October after approving the rework ("yes to all, do what u
-recommend") and adding "nothing must be hardcoded". It rests on four pages that stay as
-the record of what was found: [sot-consolidation.md](sot-consolidation.md) (her data),
+It rests on four pages that remain the record of what was found:
+[sot-consolidation.md](sot-consolidation.md) (her data),
 [product-research.md](product-research.md) (first research pass),
 [system-audit.md](system-audit.md) (defects) and [ux-audit.md](ux-audit.md) (interface).
-This page holds counts and decisions only. Recipes, customer rows and email addresses
-stay outside Git.
+Counts and decisions only: recipes, customer rows and email addresses stay outside Git.
 
-## 1. The plan in short
+Why a second version the same day: Ethan asked for a re-audit, a real debate, wider
+research and a full replan, with this bar: fast to finish; complete, functional, secure,
+easy to reach and navigate, organised and targeted, efficient, precise, accurate, fast
+and scalable.
 
-- **Three stages.** Before the bazaar: only what Cine's access, the phone rehearsal and
-  safe data need. Then the data layer, with no new screen. Then the new interface, tab by
-  tab, with Bazaar selling rebuilt last.
-- **The 24 to 25 October bazaar runs on today's Bazaar Mode.** Nothing in its selling or
-  close-out path changes before it. Releases to the trial site are held from the day the
-  rehearsal passes until 26 October.
-- **One record of each thing.** Recipes and supplier prices point at stock items by
-  identity, not by typed name. Customers, bazaar days and packaging rules become records.
-  One function works out what an ingredient costs, and it never answers zero for
-  "unknown".
-- **Nothing hard-coded** is a rule with two tests behind it (section 4), not a promise.
-- **About 37 slices, which split into about 50 sessions.** At the pace so far (one to two
-  sessions a day when attended) that is 25 to 50 working days from 6 October: the switch
-  to the new interface lands between late November and mid-December, and Cine's trial
-  follows it. Plan on early December. This is an estimate, not a commitment.
-- **Research changed four things** (section 2): leading tools do not carry stall stock
-  from day to day, so that design is ours; they have no per-order packaging, so that is
-  ours too; a cash difference is recorded as a difference, never as sales; and the
-  privacy commission expects a small filing even from a business that need not register.
+## 1. What Ethan decided on 5 October
 
-## 2. Research, second pass
+1. **Cine starts after everything is built**, not on a partial app. The order of work
+   in section 9 therefore optimises for the earliest finish of the whole, and the trial
+   database may change at any time before her week.
+2. **Bazaar: build the bounded offline-open fix (A2)** with a security review, and
+   lengthen the trial's access session from 8 hours to 7 days.
+3. **Pace: two tracks and unattended runs** for interface-only slices. Database, money,
+   sign-in and offline slices stay attended and independently reviewed.
+4. **New screens are drawn through one guarded slot in the locked frame file**, live
+   mode only, modelled on the form slot approved on 28 September
+   (`src/components/shell/app-frame.tsx:553`). The demo build stays pixel-identical. It is
+   recorded as a protected exception, reversed in the validator and independently
+   audited. **Approving this plan approves that one protected edit.**
+5. **The hosted trial may be read, read-only.** Done twice, counts and settings only:
 
-Method: each claim was fetched in this session from the product's own help centre,
-documentation or standard. "Summary" means a search result's summary of the primary page
-was read but the page itself was not opened. Nothing was signed into; no demo was
-operated. **No hands-on use happened in either pass, and none was attempted in this
-one**: the goal asked for it "where possible" and the time went to primary documents
-instead. The only site operated in a browser was the privacy commission's, to read
-pages it refuses to plain fetches; its registration system's cookie banner was not
-accepted.
+| Read from the trial               | Finding                                                                                                                                                                                                                                                                                                                                    |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Migrations applied                | All 53, including the newest. No drift from the repository.                                                                                                                                                                                                                                                                                |
+| Cost basis                        | **"When bought"**, though "when used" was decided (DP-04). Changed in B3 with a cutover rule, not before: with no costed delivery, "when used" would cost every use at zero.                                                                                                                                                               |
+| Prices the cost function can read | **8 of 72 items** have a supplier quote; **0** costed deliveries; **0** measured recipe versions. Today almost every cost per cookie is unknown. Confirms B3 and B4 come first.                                                                                                                                                            |
+| Orders, events, book lines        | 0 orders, 804 book lines, and **1 event left open since 5 October with no sales**: close it before the rehearsal.                                                                                                                                                                                                                          |
+| Security advisor                  | Two public views run with the owner's rights (deliberate: `20260101002200`); 21 tables with rules on and no policy (deliberate: reached only through functions); a provider helper `rls_auto_enable()` that is an event trigger and so cannot be called through the API (informational); leaked-password protection off (security gate 1). |
 
-### 2.1 What was verified
+## 2. The plan in short
 
-| Topic                     | Finding                                                                                                                                                                                                                                                                                                                         | Source (class)                                                |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
-| Selling by day            | Loyverse: a shift opens with "the opening cash amount"; the expected cash is "calculated from cash sales, refunds, and pay in/pay out operations"; closing takes the counted amount and shows the difference. The page does not mention stock at all.                                                                           | Loyverse help (fetched)                                       |
-| Selling by day            | Shopify POS: a register session is "a record of all cash activity and payments during specified intervals, including the starting float, any cash added or removed, and the final count". No inventory, no multi-day guidance.                                                                                                  | Shopify help (fetched)                                        |
-| Selling by day            | Square: a cash drawer session shows starting cash, cash sales, refunds, paid in and out, and the expected amount; ending records the actual amount. Odoo: opening and closing control with a counted amount, and a session can be kept open.                                                                                    | Square help, Odoo docs (summary)                              |
-| Offline sales             | Square: pending offline payments "will expire after 72 hours"; signing out of or deleting the app with payments pending means they "will be permanently lost".                                                                                                                                                                  | Square help (fetched)                                         |
-| Offline storage on iPhone | Safari deletes a site's script-writable storage "after seven days of Safari use without user interaction on the site". "Web applications added to the home screen are not part of Safari and thus have their own counter".                                                                                                      | WebKit blog, 2020 (fetched)                                   |
-| Offline app updates       | A service worker counts as updated when it is "byte-different"; a new one waits "until the existing service worker is no longer controlling clients"; `skipWaiting()` means the new worker "is likely controlling pages that were loaded with an older version". Recommended: versioned caches, old ones deleted on activation. | web.dev (fetched)                                             |
-| Offline app updates       | Tell the user a new version is ready and reload when they accept; "you may want to auto-save or persist transient state before triggering the reload".                                                                                                                                                                          | Chrome Workbox docs (fetched)                                 |
-| Recipe cost and packaging | Craftybase: "add each packaging item as an ingredient… Set the quantity to the amount you use per unit". For packaging shared by an order, "divide it across your average order size"; its "model connects materials to manufacture runs, not to individual sales orders".                                                      | Craftybase blog (fetched)                                     |
-| Incomplete cost           | meez shows "Cost not set yet" or a dash when an ingredient has no purchase cost, a duplicate name, no quantity or no unit conversion. It never shows a number for a recipe it cannot cost.                                                                                                                                      | meez help centre (fetched)                                    |
-| Pre-order drops           | Hotplate: "Choose when orders open, set pickup windows, control inventory"; "Items reserve in-cart with a timer and customers can join a waitlist"; "Auto generated prep lists and order tickets for every drop". It charges a fee per order and texts customers.                                                               | Hotplate product page (fetched)                               |
-| Customer records          | Square: a profile is created by hand, or automatically when a card payment carries a name and no profile matches. The page does not list the fields or how duplicates merge.                                                                                                                                                    | Square help (fetched)                                         |
-| Plain words               | "The design should speak the users' language. Use words, phrases, and concepts familiar to the user, rather than internal jargon." Also: users "should not have to wonder whether different words, situations, or actions mean the same thing."                                                                                 | Nielsen Norman Group (fetched; replaces the secondary source) |
-| Accessibility             | WCAG 2.2, level AA: text contrast 4.5:1; controls and graphics 3:1; colour never the only signal; targets at least 24 by 24 CSS pixels; anything done by dragging can be done another way; content reflows without two-way scrolling; text resizes to 200%; a focused control is never fully hidden.                            | W3C WCAG 2.2 (fetched)                                        |
-| Privacy registration      | See 2.3.                                                                                                                                                                                                                                                                                                                        | National Privacy Commission (read in the browser)             |
+- **The old plan was too slow, in the wrong order, and missed the most dangerous
+  defect.** The October bazaar is not safe as built (section 3).
+- **New strategy:** make the bazaar safe; put five visible tabs on the existing frame
+  through data, with one guarded slot for new screens and no second frame; make every
+  number true; then replace screens one at a time, her two top areas (Stock, Recipes
+  with cost) first. No big switch at the end.
+- **Cine starts once everything is built** (Ethan's answer). With two tracks and
+  unattended interface slices, that is mid-November at the earliest and early December
+  more likely.
+- **Each quality Ethan named gets a measurable bar** (section 10), so "complete" is tested.
 
-### 2.2 What it changes
+## 3. The debate
 
-| First pass said                                                                 | Second pass                                                                                                                                           | Effect on the plan                                                                                                                                                                                       |
-| ------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| "A bazaar has days; each day is opened with its stock and closed with a count." | The leaders open and close a day by **cash** only. None of the four documents carries leftover stock to the next day.                                 | Keep the open, sell, close shape for cash. Day stock is our own design, taken from how she works: what is left at close is counted and becomes the next day's opening stock, plus anything newly loaded. |
-| Close-out books extra cash as a sale (audit C7).                                | Every tool reports a difference between expected and counted cash, as its own figure.                                                                 | Book it as "Cash over or short", its own line, not revenue. After the October bazaar.                                                                                                                    |
-| Packaging: "one box rule".                                                      | Craftybase has no per-order packaging; it spreads shared packaging over an average order. Her own sheet prices packaging per box.                     | Packaging rules per container (each box size, bag, pouch, bazaar sale) as her records. Stock is deducted by the real order; the cost per cookie shown uses the container she chooses.                    |
-| A cost figure with a "complete" check.                                          | meez refuses to show a number for an incomplete recipe and names what is missing.                                                                     | The cost function answers "unknown" with the missing ingredients, never zero.                                                                                                                            |
-| The app's offline queue "follows the same store-and-forward idea".              | True, and so do its hazards: signing out or clearing the app loses pending sales; Safari can clear storage for a site that is not on the home screen. | Rehearsal checklist items; sign-out is refused while sales are queued (check, then fix if missing).                                                                                                      |
-| "Use three to five tabs" (Apple).                                               | Not re-fetched: Apple's pages need a script-running browser. The 44-point target figure is likewise **unverified this session**.                      | The plan uses WCAG's 24-pixel floor as the rule and 44 pixels as the target for selling tiles and the tab bar, stated as our choice.                                                                     |
-| Castiron dropped as closed.                                                     | Only secondary pages (competitors' blogs) say so. **Unverified**; it stays dropped.                                                                   | None.                                                                                                                                                                                                    |
-| meez claims taken from a listing.                                               | Costing behaviour verified in meez's help centre. Version history, allergens and pictures were **not** re-verified.                                   | Those features are built because Cine asked for them (comments 52, 82), not because meez has them.                                                                                                       |
+Three voices: my re-reading, an opposing reviewer (a separate model told to attack both
+plans), and the advisor. Rulings only; evidence in brackets.
 
-A likely reason the leaders have no "day stock" (not verified here): their stock is one
-running count, kept apart from the cash session. That suggests the simplest form of D10
-to try first: one stock pool for the event, loaded from baked stock, with each day being
-a cash session plus an optional leftover count.
+### 3.1 Against the first version of this plan
 
-### 2.3 Customer records and privacy in the Philippines
+| Objection                                                                                                                                                                                                                                                                       | Ruling                                                                                                                 |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| **Bazaar lock-out.** In live mode, opening or reloading with no signal fails the first identity check and signs her out; she cannot sign in offline. Sixty idle minutes does the same. [`src/components/app/live-gate.tsx:116-121, 140-142`; `src/lib/auth/idle-signout.ts:19`] | **Accepted; the plan missed it.** Queued sales and the running event survive, so it costs selling, not data. Slice A2. |
+| Nothing tests the live app: browser and visual suites build without the database, where the sign-in gate is off. [`live-gate.tsx:65`; `tests/e2e/bazaar-offline.spec.ts:11-16`]                                                                                                 | **Accepted.** Live-mode smoke suite in B1.                                                                             |
+| Cine sees nothing for 50 sessions; her top ask, "Inventory tracking and P&L", sits in the middle. [`product-research.md:51`]                                                                                                                                                    | **Accepted for the order.** The trial stays after everything (Ethan).                                                  |
+| One switch at the end; a new frame as a late, undersized unknown. New screens have no route key. [`tests/unit/screens.test.ts:9-11`; `route-sync.tsx:28-37`]                                                                                                                    | **Accepted.** No big switch. Replaced screens reuse existing keys.                                                     |
+| The accuracy check would fail on missing prices: purchases are in the books only, about 8 quotes exist, a stock item has no price field. [`20260101000000_init.sql:79-89`]                                                                                                      | **Accepted.** Her price list gets a home and loads first.                                                              |
+| "Last delivery price" is not how the trade costs stock.                                                                                                                                                                                                                         | **Accepted.** Weighted average cost (section 7).                                                                       |
+| Every page, the shop included, loads the whole staff app. [`src/app/shop/page.tsx`]                                                                                                                                                                                             | **Accepted**, scheduled before the shop opens.                                                                         |
+| 17 decisions, heavy ceremony per slice.                                                                                                                                                                                                                                         | **Accepted.** Four decisions; baselines batched per stage.                                                             |
+
+### 3.2 Against the first re-strategy
+
+| Objection                                                                                                                                    | Ruling                                                                                                                                                       |
+| -------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| A new frame cannot cheaply host old screens: the old frame owns 29 sheets, the toast, Quick add. [`app-frame.tsx:290-307, 349-552, 601-672`] | **Accepted.** Regroup the existing dock and sidebar through data, as the live layer already does [`ops-runtime.tsx:3977-4001`].                              |
+| Per-slice database changes collide with a trial database migrated by hand while she uses it. [`F2-trial-setup.md:104-107`]                   | **Accepted.** One database window before her week; none during it.                                                                                           |
+| Light customer pages early do nothing for a closed shop.                                                                                     | **Accepted.** Before the shop opens.                                                                                                                         |
+| Cut the packaging rules.                                                                                                                     | **Rejected.** Packaging names sit inside two database functions; "nothing hard-coded" is Ethan's rule.                                                       |
+| Build multi-business support now, for scale.                                                                                                 | **Rejected.** With nothing hard-coded, a second business is a second database and deployment: stronger isolation, no code. Tables are single-business today. |
+
+## 4. Research
+
+Read from each product's own pages or the named study unless marked "summary".
+
+### 4.1 How the most-used tools are built
+
+| Tool (its own claim of scale)                                               | What it does that matters here                                                                                                                                                                         | Adopt                                                                                              |
+| --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------- |
+| **Odoo** (ERP)                                                              | "Every stock operation is a move from one location to another." Costing: standard price, average cost or FIFO (summary). A bill of materials lists components per quantity produced.                   | Stock changes are moves between places: supplier, pantry, baked, stall, customer, waste.           |
+| **ERPNext** (ERP)                                                           | Immutable ledger: a cancellation "adds opposite rows"; silent edits "make the audit trail impossible to trust".                                                                                        | Already the app's rule; keep it for everything new. Stamp the cost on each movement when written.  |
+| **Craftybase** (makers)                                                     | Weighted average cost for all stock and cost of goods, "the most commonly used in manufacturing" (summary of its help page). Packaging is a recipe line; order-level packaging is spread, not tracked. | Weighted average cost. Packaging rules per container are our own design.                           |
+| **Katana** (small manufacturers)                                            | Stock shown as "in stock", "committed" and "arriving"; make-to-order and make-to-stock; reorder points.                                                                                                | Stock rows read Have, Needed this week, To buy.                                                    |
+| **Cybake** (bakery ERP)                                                     | "Pulls your ingredient costs directly from your purchasing data straight into your recipe costings"; allergens worked out from the recipe's ingredients.                                               | Cost follows purchases. Allergens roll up from ingredients, before the shop opens.                 |
+| **meez** (recipes)                                                          | Shows "Cost not set yet" or a dash for a recipe it cannot cost.                                                                                                                                        | Unknown is never shown as zero.                                                                    |
+| **Loyverse** (point of sale; "350,000+ active merchants", "170+ countries") | A shift opens with cash and closes with a count and a difference. "Production" raises the product's stock and lowers the ingredients'; a sale lowers only the product. Records sales offline.          | A bazaar day is a cash session. Baked cookies are one stock count the stall sells from.            |
+| **Square**                                                                  | Offline payments expire after 72 hours; signing out or deleting the app loses pending ones.                                                                                                            | Warn before sign-out with sales queued; rehearse it.                                               |
+| **Shopify POS**                                                             | A register session is the float, cash added or removed, and the final count. Version 10: more cart lines in view, a prominent checkout button with the total, key tools "one tap away" (summary).      | Selling screen: tiles, running sale always visible, one large payment button.                      |
+| **Hotplate** (pre-order drops)                                              | "Choose when orders open, set pickup windows, control inventory"; items reserve in-cart; waitlist; prep lists per drop.                                                                                | "This week's orders" framing; all built already.                                                   |
+| **Peddlr** (Philippines; about 1 million merchants, summary)                | Free, phone-first, sales, stock and expenses, works with no signal.                                                                                                                                    | The local bar: offline by default, plain, quick.                                                   |
+| **Bakesy** (home bakers, summary)                                           | Order forms, orders with paid or balance, invoices, availability.                                                                                                                                      | Nothing found covers drops, stock, costed recipes, stall selling and books together. Build stands. |
+
+### 4.2 UI/UX research and case studies
+
+| Finding                                                                                                                                                                                                       | Source                             | What it decides                                                                          |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------- | ---------------------------------------------------------------------------------------- |
+| Hidden navigation, 179 participants, 6 sites: "more than 20% drop in discoverability"; 15% slower on phones, at least 39% slower on desktop; rated 21% harder.                                                | Nielsen Norman Group               | All tools as a catch-all goes. Five visible tabs.                                        |
+| Tab bars suit "relatively few navigation options"; more than 5 will not fit at a good touch size. Material: "three to five destinations", every item labelled, 1 to 2 words. Apple: tabs navigate, never act. | NN/g; Material Design 3; Apple HIG | Five labelled tabs; actions live on screens.                                             |
+| Progressive disclosure improves learnability, efficiency and error rate; beyond 2 levels "users often get lost".                                                                                              | NN/g                               | Tab, then sub-tab, then the record. No third level of menus.                             |
+| Complex applications: "reduce clutter without reducing capability"; show secondary information "without leaving the primary screen"; make critical things stand out.                                          | NN/g, 8 guidelines                 | List beside detail on wide screens; status on the row.                                   |
+| "Speak the users' language"; users "should not have to wonder whether different words… mean the same thing".                                                                                                  | NN/g heuristics                    | Wording pass with Cine; one name per thing.                                              |
+| 1,333 observations: 49% one-handed, 36% cradled, 15% two-handed.                                                                                                                                              | Hoober, UXmatters                  | Tabs and the main button at the bottom, in thumb reach.                                  |
+| Bigger and nearer targets are faster with fewer errors. Apple: 44 by 44 points by default. WCAG 2.2 AA: at least 24 by 24; contrast 4.5:1; colour never the only signal.                                      | NN/g on Fitts's law; Apple; W3C    | 44-point targets for tabs, tiles and main buttons; status as a word plus colour.         |
+| Response limits: 0.1 s feels instant, 1 s keeps the flow of thought, 10 s loses attention.                                                                                                                    | NN/g                               | A sale tile responds at once from the phone; a screen change inside a second.            |
+| Vodafone test: "A 31% improvement in LCP led to 8% more sales". Good: largest paint 2.5 s, tap response 200 ms, layout shift 0.1.                                                                             | web.dev                            | The customer shop gets a speed budget and its own light pages.                           |
+| Checkout: 18% abandon when an account is required, 17% when it is too long, 12% when they cannot see the total up front. Ideal: 12 to 14 form elements; average 23.                                           | Baymard Institute                  | No account; total always visible (fixes audit C8); field count checked against her form. |
+| SAP Fiori: role-based, adaptive, simple, coherent, delightful (summary).                                                                                                                                      | SAP                                | Owner and helper views; one list, one page, one form.                                    |
+
+### 4.3 Engineering, speed and scale
+
+| Finding                                                                                                                                                            | Source                    | What it decides                                                             |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------- | --------------------------------------------------------------------------- |
+| Replace gradually; one-cut replacements "go down in flames most of the time".                                                                                      | Fowler                    | No big switch.                                                              |
+| Security-rule helpers wrapped in a `select` run once per statement, not per row; index every column a rule filters on; name the role.                              | Supabase docs             | One small migration: all 23 rules call the helper unwrapped today.          |
+| Lazy loading cuts "the amount of JavaScript needed to render a route".                                                                                             | Next.js docs              | Customer routes without the staff app; a tab's code loads when opened.      |
+| "Requests to static assets are free and unlimited."                                                                                                                | Cloudflare docs           | Customer traffic costs nothing at the edge; the database is the only limit. |
+| A free database project pauses after a week without enough activity; restorable for a year.                                                                        | Supabase docs             | The keep-alive job matters (A4).                                            |
+| iPhone storage can be cleared for a site left unused; a Home Screen web app has its own counter and can be granted persistent storage.                             | WebKit                    | The selling phone installs the app; the app asks for persistent storage.    |
+| A seller on its own site publishes name, address, phone and email, shows prices, issues an invoice or receipt per sale. No exemption found in the text read.       | RA 11967 (lawphil)        | Shop settings before opening; a question for Cine's adviser.                |
+| Privacy registration: mandatory only at 250 staff, 1,000 sensitive records, risky processing or a government body; otherwise register or file a sworn declaration. | Privacy commission's site | Cine's question.                                                            |
+
+Where the code stands on scale (read): orders read is capped at 500 rows and 60 days, books at 400 days; the catalogue, recipes and flavours reads are whole-table; uploads are not resized; no polling beyond a 4-minute health check.
+
+Not done: no comparator was operated hands-on. Cine using her own screens is the better
+instrument, and this plan brings it forward.
+
+### 4.4 Customer records and privacy in the Philippines
 
 Read on the National Privacy Commission's own site on 5 October 2026 (its FAQ and its
 exemption guidelines; the circular's PDF could not be read by the tools here, so the
@@ -112,15 +167,24 @@ What this means for the app, as engineering, not legal advice:
 - The duties that apply at any size stay in the plan: say what is kept and why, keep it
   only as long as needed, correct or delete on request.
 
-### 2.4 Not verified, and not relied on
+### 4.5 Not verified, and not relied on
 
-- Apple's tab bar and touch target figures (not re-fetched).
-- Shopify POS's definitions of opening and closing discrepancy and its plan requirement;
-  Square's cash drawer steps; Odoo's "keep session open" (summaries only).
-- Castiron's closure (secondary sources).
-- Any claim about how many businesses use any tool.
+- **No comparator was operated hands-on**, in any round.
+- "Summary" in the tables above means a search result's summary of the primary page was
+  read, not the page: Odoo's costing methods, Craftybase's weighted average cost, Shopify
+  POS version 10, SAP Fiori's principles, Peddlr and Bakesy.
+- The privacy commission's circular itself (a PDF) could not be read; its FAQ and
+  exemption pages were.
+- Castiron's closure rests on secondary pages; it stays dropped.
+- No claim is made about market share. Figures of scale are each product's own.
+- The exact value Cloudflare's API uses for a one-week session was not found in its
+  documentation; slice A1 reads it from the policy.
 
-## 3. The audit's open questions, closed by reading code
+## 5. What the code says
+
+Read, not run, unless a line says otherwise.
+
+### 5.1 The audit's open questions
 
 | #   | Question                                          | Answer                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | Evidence                                                                                                                                         |
 | --- | ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -130,7 +194,7 @@ What this means for the app, as engineering, not legal advice:
 | C9  | Is only one bazaar-sale booking path reachable?   | **Yes.** The first function had its permission removed from every browser role and never regranted; the second was replaced under the same name by the third, which is the only one the app calls. The old `/api/sync` route appears only in archived test scripts.                                                                                                                                                                                                                                                                                                                                                                                                                                | `20260101001500_legacy_mutation_authority.sql:3`; `20260101004700_production.sql:449`, `:626-627`; `src/lib/data/event-sales.ts:82`              |
 | C10 | Which live paths use the device's own midnight?   | The owner's drop window (opens, closes, "closing tonight") and relative dates still come from the engine, which uses the device's local midnight; nothing in the live layer replaces it. Customers' pickup dates and the server use Manila time. On a phone set to Manila time the two agree; on any other time zone the owner's screens shift. "Today in Manila" is defined twice.                                                                                                                                                                                                                                                                                                                | `ops-engine.js:35`, `:52-66`, `:3932`; no override in `ops-runtime.tsx`; `src/lib/orders/pickup.ts:90`; `src/lib/data/staff-orders.ts:248`       |
 
-### 3.1 Hard-coded values the first sweep missed
+### 5.2 Hard-coded values the first sweep missed
 
 | #   | What is fixed                                                                                                                                                                        | Where                                                                                               | Class                  |
 | --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------- | ---------------------- |
@@ -146,11 +210,28 @@ What this means for the app, as engineering, not legal advice:
 
 This sweep covered the live layer, the data files, the service worker, the release check
 and the SQL named above. It did not read every line of the 53 migrations or the 4,786-line
-runtime; the two tests in section 4 exist because a sweep cannot prove absence.
+runtime; the two tests in section 6 exist because a sweep cannot prove absence.
 
-## 4. Rules for everything built from here
+### 5.3 Found in the second round
 
-### 4.1 Nothing hard-coded
+| #   | Finding                                                                                                                                                                                                                                                                                                       | Where                                                                                                                       | Goes to       |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- | ------------- |
+| N1  | **Offline open signs her out.** The first identity check of a page load fails closed when it cannot reach the server, and the lock-out path signs out and sends her to a sign-in page she cannot use offline. Idle sign-out after 60 minutes takes the same path. Deliberate when written; wrong for a stall. | `src/components/app/live-gate.tsx:116-121, 140-142`; `src/lib/auth/live-gate.ts:115-123`; `src/lib/auth/idle-signout.ts:19` | A2            |
+| N2  | Queued sales and the running event survive that lock-out: the queue is in the phone's database and the event has its own saved copy.                                                                                                                                                                          | `live-gate.ts:101-104`; `src/lib/offline/bazaar-state.ts`                                                                   | —             |
+| N3  | Nothing checks for queued sales before sign-out.                                                                                                                                                                                                                                                              | `live-gate.ts:115-123`                                                                                                      | A3            |
+| N4  | No test runs the live app: the browser suites build without the database, where the gate is off.                                                                                                                                                                                                              | `live-gate.tsx:65`; `tests/e2e/bazaar-offline.spec.ts:11-16`                                                                | B1            |
+| N5  | The frame picks each screen by key and owns 29 sheets, the toast and Quick add; the screen list must equal the engine's.                                                                                                                                                                                      | `src/components/shell/app-frame.tsx:308-331, 349-552`; `tests/unit/screens.test.ts:9-11`                                    | B1 (the slot) |
+| N6  | Every route, the shop included, renders the whole staff app.                                                                                                                                                                                                                                                  | `src/app/shop/page.tsx`; `src/components/app/ops-app.tsx:53-62`                                                             | Stage C       |
+| N7  | A stock item has no price field. On the trial: 8 of 72 items have a quote, no costed delivery, no measured recipe version.                                                                                                                                                                                    | `supabase/migrations/20260101000000_init.sql:79-89`; trial read                                                             | B3, B4        |
+| N8  | The service worker has no update handling.                                                                                                                                                                                                                                                                    | `public/sw.js:8, 41-51`; `src/components/app/offline-bridge.tsx:43`                                                         | Stage C       |
+| N9  | All 23 security rules call their helper unwrapped. Located by a search pass, not re-read.                                                                                                                                                                                                                     | for example `20260101000000_init.sql:287, 311`                                                                              | B3            |
+| N10 | Reads without a limit: the stock catalogue, recipes and flavours. Orders are capped at 500 rows and 60 days. Located by a search pass, not re-read.                                                                                                                                                           | `20260101004300_stock_catalogue.sql:37`; `20260101004400_recipes.sql:39`; `20260101003700_staff_orders.sql:97`              | Stage C       |
+| N11 | More business values as settings defaults: tax rate, float, two discounts, grocery budget, packaging fee, flat box price, an order window of Monday to Thursday, most cookies per order, expense categories, and a fourth statement of the retention period. Located by a search pass, not re-read.           | `20260101002900_settings_preferences.sql:52-80, 160-161`                                                                    | B2 (marker)   |
+| N12 | Uploaded pictures are stored as chosen, with no resizing.                                                                                                                                                                                                                                                     | `src/lib/media/resolve-image.ts`                                                                                            | Stage C       |
+
+## 6. Rules for everything built from here
+
+### 6.1 Nothing hard-coded
 
 **The rule.** No file of the new interface and no new SQL contains a fact about her
 business: a price, quantity, percentage, day, time or limit; the name of a person,
@@ -177,18 +258,18 @@ Those come from her records or her settings.
 Plus one static check: files of the new interface may not import the engine's constants
 or read the view fields listed as hard-coded in the audit (H1 to H9).
 
-### 4.2 One record of each thing
+### 6.2 One record of each thing
 
 A screen never keeps its own copy of a name or a price. It shows the record. A request
 for a new feature is answered by adding a field or a filter to the record it is about,
 not a screen.
 
-### 4.3 One list, one page, one form
+### 6.3 One list, one page, one form
 
 Every list: title and actions, a search box, filter chips, rows with a status in words
 and colour. Every record opens the same kind of page. Every edit uses the same sheet.
 
-### 4.4 Accessibility floor (WCAG 2.2 AA where it applies)
+### 6.4 Accessibility floor (WCAG 2.2 AA where it applies)
 
 - Text contrast at least 4.5:1, controls and status colours 3:1, checked against the
   theme's existing tokens. No new colour values.
@@ -201,76 +282,67 @@ and colour. Every record opens the same kind of page. Every edit uses the same s
 - Checked by an automated accessibility scan in the browser tests for each new screen,
   plus a keyboard pass on desktop.
 
-### 4.5 Her words
+### 6.5 Her words
 
 No label ships to her trial before the wording pass (R4). The 14 things she did not
 understand in July are the first list.
 
-### 4.6 What does not change
+### 6.6 What does not change
 
 The ported screens, sheets, shell and engine stay locked as the demo build. Applied
 migrations are never edited. Capacity stays one rule in two runtimes. Money is centavos
 in the database. Every write carries a client id. Every SQL, money, sign-in or offline
 change gets one independent review by a different model.
 
-## 5. Data model: one record of each thing
+One approved exception to the locked files: a guarded, live-only screen slot in the
+frame (decision 4 in section 1). It is recorded in
+[protected-exception.md](protected-exception.md) and built in slice B1.
+
+## 7. Architecture and data model
+
+1. **Stock is moves between places**, append-only, corrected by an opposite entry.
+   Baked cookies and dough are counts moved by bake, pack, bin, load to stall, return.
+2. **Weighted average cost**, updated at each costed delivery, with her usual price as
+   the fallback, then the best quote per unit, else **unknown**. The cost is stamped on
+   each use when written, so a later delivery never changes a past month.
+3. **One cost function, one clock, one packaging rule table**; nothing named in code.
+4. **Lists are paged and filtered in the database**; totals are worked out there too.
+5. **One business per database.** No multi-business columns.
+6. **Customer pages are their own light routes**; staff tabs load on demand.
+7. **Ported screens stay locked as the demo.** One guarded, live-only slot in the frame
+   draws a new screen in place of the old one, and carries Customers and Sales as views
+   under existing keys, so the engine's screen list is untouched. A redesigned screen replaces the old one
+   under the same key, live mode only.
+
+### 7.1 One record of each thing
 
 "Today" is what the migrations define. Exact columns are settled in each slice after
 reading the table; this is the shape.
 
-| Record              | Today                                                                                                                      | Change                                                                                                                                                                                                                                                                                                         |
-| ------------------- | -------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Flavour**         | `products`, with publishing, picture, allergens, price. 26 in the trial, two duplicate pairs.                              | No new table. Duplicates are merged by switching one off and pointing its history at the other; nothing is deleted. An order line keeps the flavour's name as it was when ordered (L4).                                                                                                                        |
-| **Recipe**          | `recipes`, `recipe_versions`, `recipe_drafts`. A line names its ingredient as text (L1).                                   | Each line points at a stock item. Saving refuses a name that is not an item and offers to create it. A line may carry a section label ("dough", "filling"); no nested recipes. No packaging lines. A production record points at the recipe version it used (L5).                                              |
-| **Ingredient**      | `inventory_items` (ingredients and packaging), `stock_movements`, `stock_cost_corrections`.                                | One spelling of each unit. A switch for things she does not buy (her eggs and oats), so they are neither costed nor counted. Her reorder level drives Out, Low, Good.                                                                                                                                          |
-| **Supplier price**  | `suppliers`, `supplier_prices`. A price names its item as text (L2); a delivery's supplier is free text.                   | A price points at its item and carries its own pack size. The best buy is the lowest price **per unit**. A delivery points at a supplier when one is chosen.                                                                                                                                                   |
-| **Ingredient cost** | Worked out in the engine and again in SQL, with different fallbacks.                                                       | One database function: the last costed delivery; if none, the best supplier price per unit; if none, **unknown**, never zero. A recipe's cost answers with the amount, whether it is complete, and what is missing. Production costs what the recipe needed, including any shortfall, and flags the shortfall. |
-| **Packaging rule**  | Names and quantities written into two database functions (H12).                                                            | New record: for each container (each box size, a bag, a pouch, a bazaar sale) the stock items and quantities it uses. Packing an order and recording a bazaar sale read it. The cost per cookie uses the container she picks; until she picks, it shows ingredients only and says so.                          |
-| **Customer**        | None. An order holds a name, a phone number and an Instagram handle (L3).                                                  | New record, keyed by the normalised mobile number: name, handle, email, notes, tags. An order points at its customer; placing an order finds or creates one and shows nothing back to the person ordering. Labels (new, returning, regular, not seen lately) are counted, with her thresholds as settings.     |
-| **Order**           | `orders`, `order_items`, `order_add_ons`, `order_boxes`, `order_swaps`, `order_rules`, `order_extras`, `waitlist_entries`. | Gains the link to its customer. Otherwise unchanged.                                                                                                                                                                                                                                                           |
-| **Sale**            | Three places: paid orders, bazaar sales (`event_sales`), and the 804 imported lines (`ledger_entries`).                    | No new table. One read function returns every sale in one shape (date, source, customer, order number, payment method, flavour, amount) with filters. Money › Sales and the P&L drill-down both read it.                                                                                                       |
-| **Bazaar**          | `scheduled_events` (the booking), `events` (the running event), `event_sales`, `event_expenses`.                           | The booking gains organiser, contact, status and notes, and is added from the Bazaar screen.                                                                                                                                                                                                                   |
-| **Bazaar day**      | None. An event is one sitting; its stock is typed in (L6).                                                                 | New record per day of an event: opened with a float and a stock load taken from baked stock; closed with a cash count and a leftover count. Leftovers open the next day or return to baked stock. Each sale belongs to a day. A cash difference is its own line in the books. **After 25 October.**            |
-| **Settings**        | `settings`, `order_rules`, `order_extras`, `shop_texts`, `shop_state`, `payment_methods`, `books_settings`.                | Adds: her monthly target and week target; her margin floor; the shop's name and how customers should reach her (for every sentence that now says "Cine"); one retention period used by the notice, the job and the database; the privacy text; the label thresholds; the costing container.                    |
-| **Clock**           | Manila time in five files; device time in the engine.                                                                      | One module and one database function. New screens use only those.                                                                                                                                                                                                                                              |
+| Record              | Today                                                                                                                      | Change                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Flavour**         | `products`, with publishing, picture, allergens, price. 26 in the trial, two duplicate pairs.                              | No new table. Duplicates are merged by switching one off and pointing its history at the other; nothing is deleted. An order line keeps the flavour's name as it was when ordered (L4).                                                                                                                                                                                                                                                                        |
+| **Recipe**          | `recipes`, `recipe_versions`, `recipe_drafts`. A line names its ingredient as text (L1).                                   | Each line points at a stock item. Saving refuses a name that is not an item and offers to create it. A line may carry a section label ("dough", "filling"); no nested recipes. No packaging lines. A production record points at the recipe version it used (L5).                                                                                                                                                                                              |
+| **Ingredient**      | `inventory_items` (ingredients and packaging), `stock_movements`, `stock_cost_corrections`.                                | One spelling of each unit. A switch for things she does not buy (her eggs and oats), so they are neither costed nor counted. Her reorder level drives Out, Low, Good. Her usual price and pack for each item, dated (her Ingredient Master), because an item has no price field today.                                                                                                                                                                         |
+| **Supplier price**  | `suppliers`, `supplier_prices`. A price names its item as text (L2); a delivery's supplier is free text.                   | A price points at its item and carries its own pack size. The best buy is the lowest price **per unit**. A delivery points at a supplier when one is chosen.                                                                                                                                                                                                                                                                                                   |
+| **Ingredient cost** | Worked out in the engine and again in SQL, with different fallbacks.                                                       | One database function: the weighted average cost of what is on hand, updated at each costed delivery; if none, her usual price for the item; if none, the best supplier price per unit; if none, **unknown**, never zero. The cost is stamped on each use when it is written. A recipe's cost answers with the amount, whether it is complete, and what is missing. Production costs what the recipe needed, including any shortfall, and flags the shortfall. |
+| **Packaging rule**  | Names and quantities written into two database functions (H12).                                                            | New record: for each container (each box size, a bag, a pouch, a bazaar sale) the stock items and quantities it uses. Packing an order and recording a bazaar sale read it. The cost per cookie uses the container she picks; until she picks, it shows ingredients only and says so.                                                                                                                                                                          |
+| **Customer**        | None. An order holds a name, a phone number and an Instagram handle (L3).                                                  | New record, keyed by the normalised mobile number: name, handle, email, notes, tags. An order points at its customer; placing an order finds or creates one and shows nothing back to the person ordering. Labels (new, returning, regular, not seen lately) are counted, with her thresholds as settings.                                                                                                                                                     |
+| **Order**           | `orders`, `order_items`, `order_add_ons`, `order_boxes`, `order_swaps`, `order_rules`, `order_extras`, `waitlist_entries`. | Gains the link to its customer. Otherwise unchanged.                                                                                                                                                                                                                                                                                                                                                                                                           |
+| **Sale**            | Three places: paid orders, bazaar sales (`event_sales`), and the 804 imported lines (`ledger_entries`).                    | No new table. One read function returns every sale in one shape (date, source, customer, order number, payment method, flavour, amount) with filters. Money › Sales and the P&L drill-down both read it.                                                                                                                                                                                                                                                       |
+| **Bazaar**          | `scheduled_events` (the booking), `events` (the running event), `event_sales`, `event_expenses`.                           | The booking gains organiser, contact, status and notes, and is added from the Bazaar screen.                                                                                                                                                                                                                                                                                                                                                                   |
+| **Bazaar day**      | None. An event is one sitting; its stock is typed in (L6).                                                                 | New record per day of an event: a cash session opened with a float and closed with a count. The stall sells from one stock count per event, loaded from baked stock; leftovers return to it at the end. Each sale belongs to a day. A cash difference is its own line in the books. **After 25 October.**                                                                                                                                                      |
+| **Settings**        | `settings`, `order_rules`, `order_extras`, `shop_texts`, `shop_state`, `payment_methods`, `books_settings`.                | Adds: her monthly target and week target; her margin floor; the shop's name and how customers should reach her (for every sentence that now says "Cine"); one retention period used by the notice, the job and the database; the privacy text; the label thresholds; the costing container.                                                                                                                                                                    |
+| **Clock**           | Manila time in five files; device time in the engine.                                                                      | One module and one database function. New screens use only those.                                                                                                                                                                                                                                                                                                                                                                                              |
 
-## 6. Before any new screen: the data layer
+## 8. The interface
 
-These are fixed first because every new screen would otherwise inherit them. None adds a
-screen. Slices D10 and D11 touch bazaar close-out and wait until after 25 October.
-
-| #   | Slice                       | What it fixes                                                                                                                                                                                                                               | Size | Tests and evidence                                                                                                                         |
-| --- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| D1  | One business clock          | C10, C2 (the CSV prints Manila dates), H19. One "today" definition.                                                                                                                                                                         | S    | Unit tests at 23:59 and 00:01 Manila with the device in another zone; CSV date test.                                                       |
-| D2  | Links by identity           | L1, L2. Recipe lines and supplier prices point at items; unknown names are refused; existing rows are matched by exact name and the unmatched are reported, not guessed.                                                                    | M    | SQL role suite; a test that a misspelt ingredient cannot be saved; a count of unmatched rows printed. Review.                              |
-| D3  | One cost function           | C3, C5, H8. Per-unit best buy; "unknown" never zero; shortfall costed and flagged. C4 decided with it: cost follows what the recipe needed, deduction stays rounded.                                                                        | L    | Money tests: small pack against large pack; unknown ingredient; use before any delivery; half batch; shortfall. SQL role suite. Review.    |
-| D4  | Packaging rules             | H7, H12, H13. The rule table; packing and bazaar sales read it; nothing named in code.                                                                                                                                                      | M    | SQL role suite; tests for each box size, loose cookies and a bazaar sale; the empty-shop test (no rule, no deduction, a visible warning).  |
-| D5  | Settings she is missing     | Targets, margin floor, shop name and contact line (H14), one retention period (H15), privacy text (H16), label thresholds, the "default, not confirmed" marker (H17).                                                                       | M    | SQL role suite; a test that each sentence takes its names from settings; the two-shops test on customer copy.                              |
-| D6  | Customers                   | L3. The record, the order link, find-or-create on ordering, existing orders linked by phone, retention and erasure covering the customer.                                                                                                   | L    | SQL role suite; a test that ordering reveals nothing about an existing customer; retention and erasure tests. Security and privacy review. |
-| D7  | Sales in one shape          | The read function with filters.                                                                                                                                                                                                             | M    | Totals reconcile to the books for the same period; filter tests.                                                                           |
-| D8  | Home's numbers              | H1, H2, C1. Pickups, month to date against "last 30 days", target progress and the "needs you" list, all from records.                                                                                                                      | M    | Unit and SQL tests; the empty-shop test.                                                                                                   |
-| D9  | Her data, loaded            | S3 to S7, S9 to S11: 23 recipes as version 1 "to confirm" without packaging lines; the flavour list; 15 photos resized; 31 newer sales; two bookings; name mapping; packaging costs; 43 customers. Each is a private script with a preview. | L    | Each import prints counts before and after and a hash of its input; **each runs on the trial only after Ethan approves its preview.**      |
-| D10 | Bazaar days and baked stock | L6 and the days record. After 25 October.                                                                                                                                                                                                   | L    | SQL role suite; offline tests across a day boundary; phone test. Review.                                                                   |
-| D11 | Cash over or short          | C7. After 25 October.                                                                                                                                                                                                                       | S    | Close-out tests for exact, over and short.                                                                                                 |
-
-Not in this list, on purpose: C6 (the 200 limit's wording) and C8 (a same-day total shown
-before ordering) are interface items; C11 (decimal sums) has no failing case and is left.
-
-## 7. The interface: five tabs, every screen
-
-Built new, in a folder named by business area (`src/features/home`, `sell`, `make`,
-`stock`, `money`, `account`, `customer`, and `shell`), chosen in live mode by
-`src/components/app/ops-app.tsx`, which is not a protected file. No ported file is
-edited. The ported app stays the demo build and keeps its gates.
-
-How the new screens get their data is the one real unknown. Today the live data sits
-inside `OpsRuntime`, wired to the engine's state. Slice U0 proves the route out of it: a
-small live store that the new frame reads directly, starting with read-only data. If U0
-shows this needs more than a session, the plan pauses there for a decision.
-
-Phone: a bottom bar with the five tabs. Tablet and desktop: the same five as a sidebar
-with sub-tabs listed, and list beside detail. The account button (top right) holds
-settings, people, system health, backups and sign-out; the bell holds alerts.
+Five tabs, labelled, at the bottom on a phone and as a sidebar on wider screens: Home,
+Sell (Orders, Bazaar, Customers, Shop), Make (Bake plan, Recipes), Stock (Inventory,
+Grocery, Suppliers), Money (P&L, Sales, Expenses). Account and alerts at the top right.
+Rules: everything within two taps
+of a tab; one main action per screen, at the bottom; status in words and colour on every
+row; one list, one page, one form; her words.
 
 | Tab       | Sub-tab   | Screens                                                                                                                                                                                                                                           | Kind                 |
 | --------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------- |
@@ -293,227 +365,193 @@ settings, people, system health, backups and sign-out; the bell holds alerts.
 Leaving the live app: All tools, the Form queue entry, the prototype's helper names, and
 the "Your business" grid on Home.
 
-## 8. Order of slices
+## 9. Order of work
 
-Sizes: **S** under half a session, **M** one session (at most about 400 changed lines),
-**L** two or three sessions, split before starting. Every slice ends with `pnpm verify`
-pasted, a commit and a push. SQL, money, sign-in and offline slices add the SQL role
-suite and one independent review. Interface slices add the empty-shop and two-shops
-tests, an accessibility scan, new visual baselines made in Docker, and a look in the
-browser at 360, 768 and 1,440 wide.
+S under half a session, M one, L two to three.
 
-### Stage 0: before the rehearsal (now to 19 October)
+**Stage A — bazaar safety and access (to the 20 October rehearsal)**
 
-| #   | Slice                                                                                                                                         | Size | Evidence                                                                                |
-| --- | --------------------------------------------------------------------------------------------------------------------------------------------- | ---- | --------------------------------------------------------------------------------------- |
-| A1  | The release check accepts two to six approved addresses instead of exactly two (H11, S3). **First build goal.**                               | S    | Unit tests for 2, 3, 4, a mismatch, a duplicate and 7; the deploy job green.            |
-| A2  | Framework patch release (D1).                                                                                                                 | S    | `pnpm audit` before and after; browser tests; visual suite in Docker unchanged.         |
-| A3  | The backup, restore-drill, retention and keep-alive schedule, written and switched off (S1). Ethan switches it on after the custody decision. | M    | A dry run against the local database; the first real run seen in System health (Ethan). |
-| A4  | A release hold: one repository setting that makes the trial deploy job skip.                                                                  | S    | A push with the hold on does not deploy; with it off it does.                           |
-| A5  | Sign-out is refused while sales are queued, if it is not already. Read first; fix only if missing.                                            | S    | Offline test: queue a sale, try to sign out.                                            |
+| #   | Slice                                                                                                                                                                                                                                                                                                    | Size | Proof                                                                                       |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------- |
+| A1  | Release check accepts two to six approved addresses and the access session length Ethan chooses.                                                                                                                                                                                                         | S    | Unit tests; deploy green.                                                                   |
+| A2  | Offline open on a trusted phone. Bounds: Bazaar Mode only; only while this phone holds an event the server opened; only within a set number of hours of a successful online check; re-checked on reconnect; idle sign-out does not fire offline with an event open; no loop to an uncached sign-in page. | M    | A live-mode test that fails first: sell, offline, reload, sell, reconnect. Security review. |
+| A3  | Sign-out warns when sales are queued. Release hold switch. Framework patch. Persistent-storage request.                                                                                                                                                                                                  | S    | Tests; hold on means no deploy.                                                             |
+| A4  | Backup, restore-drill, retention and keep-alive schedule, written and off.                                                                                                                                                                                                                               | M    | Local dry run.                                                                              |
 
-D1 and D2 may run in this window. They do not touch selling.
+Fallback if A2 slips: owner idle sign-out at 480 minutes (an existing setting), app
+opened online at the stall and never closed, installed on the Home Screen, paper tally.
 
-A5 is the one item here that could touch the selling device's path. A search of the
-sign-in and offline code found no check tying sign-out to the queue, but the path was
-not read in full. If the fix would need ported shell or screen markup, or anything in
-the offline queue itself, it stops and comes back to Ethan instead of being built.
+**Stage B — foundations and her two top areas** (database track attended; B1, B2, B5,
+B6 on the interface track)
 
-### Stage 1: the data layer (to about 30 October, around the bazaar)
+| #   | Slice                                                                                                                                                                                                                                                                                                    | Size | Proof                                                                                   |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | --------------------------------------------------------------------------------------- |
+| B1  | The permanent pieces only: the guarded screen slot (protected exception, port audit); five labelled tabs in the dock and sidebar through data, with all 33 All tools entries and 25 routes mapped to one; a live-mode smoke suite run locally against the local database (CI has none), evidence pasted. | M    | Function checklist with none unmapped; demo build and baselines unchanged.              |
+| B2  | Nothing fake on screen (H1 to H6, H14, C1), one Manila clock (C10, C2); empty-shop and two-shops tests.                                                                                                                                                                                                  | M    | Two-shops test.                                                                         |
+| B3  | Database window: links by identity; her usual price per item; weighted average cost stamped on each use; shortfall costed; packaging rules; security rules wrapped and indexed.                                                                                                                          | L    | SQL role suite; money tests; independent review.                                        |
+| B4  | Her data, each import previewed and approved: prices, recipes, flavours, photos, newer sales, bookings, packaging costs.                                                                                                                                                                                 | L    | Counts and hashes; **her 23 costing rows reproduced**, ingredients against ingredients. |
+| B5  | New Stock: Inventory and Grocery (Have, Needed, To buy; Out, Low, Good).                                                                                                                                                                                                                                 | L    | Same movements as today; accessibility scan.                                            |
+| B6  | New Recipes: picture grid and flavour page with cost, margin, stock state, versions.                                                                                                                                                                                                                     | L    | An incomplete cost names what is missing.                                               |
+| B7  | Targets and margin floor as settings; target bar on Home. Wording pass with Cine. Security gate 1.                                                                                                                                                                                                       | M    | Her word list; findings fixed or recorded.                                              |
 
-D1, D2, D3, D4, D5, D6, D7, D8 in that order, then D9's imports one at a time as Ethan
-approves each preview. D10 and D11 follow the bazaar.
+**Stage C — the rest, all before her week** (the last line, gate 2's adviser items, can
+finish before the shop opens)
 
-### Stage 2: the interface (from about 26 October)
+New Money and Home; Orders; light customer pages with the speed budget, total always
+visible; customers and privacy text; sales in one paged list; bazaar tiles and day
+sessions on baked stock; cash over or short; allergens from ingredients; offline update
+prompt; uploads resized; account pages; scale test; security gate 2 (fake-order limit,
+RA 11967 details, privacy filing answered).
 
-| #   | Slice                                                                                                                                                                      | Size      | Depends on  |
-| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- | ----------- |
-| U0a | The new frame behind a build setting: five tabs, sub-tabs, account, bell; the small live store; empty screens.                                                             | M         | —           |
-| U0b | The shared pieces: list, record page, edit sheet, status badge, money text; the two tests; the accessibility scan.                                                         | M         | U0a         |
-| U1  | Home.                                                                                                                                                                      | M         | D8          |
-| U2  | Sell › Orders: list, then order page.                                                                                                                                      | M + S     | U0b         |
-| U3  | Sell › Customers: list and page.                                                                                                                                           | M         | D6          |
-| U4  | Sell › Shop: the existing forms in one place.                                                                                                                              | M         | U0b         |
-| U5  | Make › Bake plan.                                                                                                                                                          | M         | D3          |
-| U6  | Make › Recipes: grid; flavour page; edit and versions; picture drop with resizing.                                                                                         | L (4)     | D2, D3, D4  |
-| U7  | Stock › Inventory: list and item page; receive, count, waste.                                                                                                              | M + M     | D2          |
-| U8  | Stock › Grocery.                                                                                                                                                           | M         | D3          |
-| U9  | Stock › Suppliers.                                                                                                                                                         | S         | D2          |
-| U10 | Money: P&L; Sales; Expenses.                                                                                                                                               | M + M + S | D7          |
-| U11 | Account: settings, people, health, backups, alerts.                                                                                                                        | M         | D5          |
-| U12 | Customer pages on every screen size.                                                                                                                                       | M + M     | D5          |
-| U13 | Sell › Bazaar: bookings; day set-up; selling tiles; close the day.                                                                                                         | L (4)     | D10, D11    |
-| U14 | Offline update: a version stamped at build, the whole app stored for offline, old copies removed, "update ready" asked for and never applied during a sale (S2, H10, H18). | M         | U13         |
-| U15 | Measure the live shop page and resize the two logo files (performance P1, P3).                                                                                             | S         | U12         |
-| U16 | Wording pass with Cine on every label.                                                                                                                                     | S         | all screens |
-| U17 | Switch: the new frame is the live app; the ported one remains the demo.                                                                                                    | S         | all         |
+## 10. The bar for each quality
 
-Tests and evidence for each interface slice, beyond the general rule above:
+| Quality            | Measured by                                                                                                                                                |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Complete           | The function checklist: every old entry and route mapped; the 14 launch capabilities of `finish-plan.md` section 1 each exercised by the live smoke suite. |
+| Functional         | `pnpm verify`; SQL role suite; browser suite; live smoke suite; Cine's week.                                                                               |
+| Accurate, precise  | Her 23 costing rows; P&L equals the books equals the sales list; money as whole centavos; cost stamped at write.                                           |
+| Secure             | Independent review of every database, money, sign-in and offline change; gate 1 before her week; gate 2 before opening; no secret in the browser.          |
+| Easy to reach      | Installs to the Home Screen; one sign-in; stays signed in within her own setting; bazaar opens offline.                                                    |
+| Easy to navigate   | Five visible labelled tabs; any function within two taps of a tab; no hidden catch-all.                                                                    |
+| Fast               | Customer shop: largest paint within 2.5 s, tap response within 200 ms on the CI phone profile. Sale tile responds at once. Staff screen change within 1 s. |
+| Scalable           | Seeded with ten times five years of her volume: lists still open within 1 s, pages of 50, every list query on an index.                                    |
+| Accessible         | The WCAG 2.2 AA items in section 6.4, scanned per new screen.                                                                                              |
+| Nothing hard-coded | Empty-shop and two-shops tests in `pnpm verify`.                                                                                                           |
 
-| #   | Its own tests and evidence                                                                                                                                                                 |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| U0a | The demo build is byte-unchanged: port integrity, the validator and the 75 visual baselines pass untouched. With the build setting off, the live app is the ported one.                    |
-| U0b | Stories for each shared piece; the empty-shop and two-shops harness fails when a literal is planted (one mutation check).                                                                  |
-| U1  | Home's figures equal the books and the orders for the same period; a month with no target shows no bar.                                                                                    |
-| U2  | Every status change the ported Orders screen can make, made from the new one, with the same database result; filters against a seeded set.                                                 |
-| U3  | Placing an order as an existing customer shows nothing about them; a customer page totals equal their orders; an erased customer disappears from list and page.                            |
-| U4  | Each of the six forms saves the same payload as today (existing tests re-pointed).                                                                                                         |
-| U5  | A bake recorded here deducts and costs as D3 defines; a shortfall is shown, not hidden.                                                                                                    |
-| U6  | An incomplete cost shows what is missing, never a number; a picture over the size limit is resized before upload; the picture can be chosen without dragging; a new version keeps the old. |
-| U7  | Receive, count and waste write the same movements as today; Out, Low, Good follow her level, in words.                                                                                     |
-| U8  | The total equals the sum of the rows at the best price per unit; "I bought these" records one delivery per item.                                                                           |
-| U9  | A price saved here is the one the cost function reads.                                                                                                                                     |
-| U10 | P&L totals equal `get_books`; Sales totals reconcile to the P&L for the same period; the CSV prints Manila dates.                                                                          |
-| U11 | A helper cannot open it; a setting saved here changes the sentence or number it feeds (two-shops test).                                                                                    |
-| U12 | The shop, checkout, status and lookup at 320, 768, 1,024 and 1,440 wide with no sideways scroll; the live shop page measured against the performance budget.                               |
-| U13 | OFFLINE-01 and new offline tests across a day boundary; no sale lost or doubled on reconnect; a full run on the selling iPhone; close-out for exact, over and short.                       |
-| U14 | A new build reaches a device that had the old one; old cached files are removed; the prompt never appears while a sale is open or queued; a run on the iPhone.                             |
-| U15 | The Lighthouse figures for the live shop page before and after; the visual suite unchanged.                                                                                                |
-| U16 | Her signed-off word list, kept privately; a test that no label outside the copy files reaches a screen.                                                                                    |
-| U17 | The whole browser suite on the new frame; the demo build and its baselines unchanged; the old live routes redirect.                                                                        |
+## 11. Critical path and dates
 
-Count: 5 slices before the rehearsal (about 4 sessions), 11 data slices (about 17
-sessions), about 21 interface slices (about 30 sessions): about 50 sessions in all.
+A1 → Ethan adds Cine → A2 → rehearsal 17 to 19 October → gate 20 October → bazaar 24 to
+25 October. Releases held from the rehearsal to 26 October; stages B and C build locally
+and ship after.
 
-## 9. Dates
+Two tracks. The **database track** is serial and attended: B3, B4, then customers, sales,
+bazaar days, cash over or short, allergens (about 14 sessions); it waits on Cine's
+answers and Ethan's preview approvals. The **interface track** runs beside it, unattended
+where a slice touches no database, money, sign-in or offline code (about 24 sessions).
 
-| When                             | What                                                                                                                                                                     |
-| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 6 to 9 October                   | A1, A2, A4, A5; A3 written. D1 and D2 start.                                                                                                                             |
-| By 12 October                    | Ethan adds Cine's two addresses to Cloudflare Access and invites her; she signs in on her iPhone and her MacBook. Ethan decides backup custody and switches the jobs on. |
-| 13 to 19 October                 | The phone rehearsal (section 9.1), on the phone that will sell. Aim for 17 October to leave room for one fix and a repeat.                                               |
-| **20 October**                   | The gate. Passed: the release hold goes on and the bazaar uses the app. Not passed: she sells as she does today and 12 to 13 December becomes the pilot.                 |
-| 24 to 25 October                 | The bazaar, on today's Bazaar Mode, with a paper tally as backup. A CSV download at the end of each day.                                                                 |
-| 26 October                       | Hold off. Review what happened; D10 and D11 are shaped by it.                                                                                                            |
-| To late November or mid-December | Stage 2, about 30 sessions.                                                                                                                                              |
-| Early December (estimate)        | Wording pass, then Cine's trial week.                                                                                                                                    |
-| 12 to 13 December                | The second bazaar. It runs on bazaar days only if D10 and U13 are done and rehearsed by then; otherwise on today's Bazaar Mode again.                                    |
+Rules for the two tracks. An unattended slice commits to its own worktree branch and
+never pushes to the working branch, because every green push there redeploys the trial;
+an attended session reviews and merges it. `src/store/ops-runtime.tsx` and
+`src/lib/types/database.ts` belong to the database track: interface slices add new files
+only, or queue their runtime change behind it.
 
-### 9.1 The phone rehearsal: what it must prove
+B3 carries a cutover rule for cost: stock bought before the opening count is already an
+expense in the 804 historical lines, so "when used" starts from a cutover date, with
+opening stock valued from her price list but not expensed a second time.
 
-On the iPhone that will sell, with the app added to the home screen, signed in as her:
+| Stage | Sessions | Likely done                                            |
+| ----- | -------- | ------------------------------------------------------ |
+| A     | 4 to 5   | 16 October                                             |
+| B     | 14 to 18 | First half of November                                 |
+| C     | about 20 | Mid-November at the earliest; early December likely    |
+| Trial | —        | The week after the wording pass. **Cine starts then.** |
 
-1. Open Bazaar Mode with signal, then switch to aeroplane mode. Sell 20 mixed sales, a
-   free sample and a void. Close the app fully and reopen it offline: the sales are
-   still there.
-2. Leave the phone offline overnight. Reopen: the app opens and the sales are there.
-3. Reconnect. Every sale arrives once; the totals match the paper tally.
-4. **The sign-in clock.** The trial's access gate lasts 8 hours and the app has its own
-   idle sign-out. Find out what she sees on the second morning, offline and then
-   online, and whether she can get an email code at the stall. If the gate asks for a
-   code while sales are queued, confirm nothing is lost.
-5. Try to sign out with sales queued: it must refuse or warn.
-6. Run the close-out and compare with the tally.
-7. Check the extra tap to reach Bazaar Mode from the phone dock is acceptable.
+The 12 to 13 December bazaar uses the new bazaar screens only if they are rehearsed on
+the phone by 8 December; otherwise today's Bazaar Mode with A2.
+
+### 11.1 The phone rehearsal: what it must prove
+
+On the iPhone that will sell, signed in as her, **with the app added to the Home
+Screen** and the leftover test event on the trial closed first:
+
+1. Open Bazaar Mode with signal, start the event, then switch to aeroplane mode. Sell 20
+   mixed sales, a free sample and a void.
+2. **Close the app fully and reopen it offline.** With A2 it opens into Bazaar Mode and
+   the sales are there. Without A2 this step signs her out: that is the failure A2 fixes.
+3. Leave the phone untouched for more than an hour, offline, then sell again.
+4. Leave it offline overnight. Reopen: the app opens and the sales are there.
+5. Reconnect. Every sale arrives once; the totals match a paper tally. The identity
+   check runs again by itself.
+6. **The sign-in clock.** Note what she sees on the second morning, offline and then
+   online, and whether she can receive an email code at the stall if asked.
+7. Try to sign out with sales queued: it must warn.
+8. Run the close-out and compare with the tally.
+9. Confirm the taps needed to reach Bazaar Mode from the phone's tabs are acceptable.
 
 Anything that fails is fixed and the whole list is run again before 20 October.
 
-## 10. What stays out
+## 12. What only Ethan can do
+
+Add Cine's two addresses to Cloudflare Access and the approved list, and invite her
+(after A1). Decide backup custody and switch the jobs on. Run the phone rehearsal by
+20 October. Set and lift the release hold. Approve each import preview. **Send Cine the
+questions by 9 October** (flavours on sale, sampler sizes, packaging per container and
+its costs, her price list confirmed, target, margin floor, reorder levels, missing
+photos, the privacy filing, an hour for wording): B3 and B4 wait on them.
+
+Also his: change the trial's access session to one week in the Cloudflare dashboard when
+A1 is released; close the test event left open on the trial since 5 October before the
+rehearsal; switch on leaked-password protection if the hosting plan allows it. The
+message to Cine also books **one hour to react to the sketches and the words before the
+Stock and Recipes screens are built**, since she will not use the app until the end.
+
+Carried over because it is new: the October bazaar's sales go into the trial database
+(no early production project).
+
+### Questions for Cine, in one message, sent by 9 October
+
+The message opens with a recap of the last conversation.
+
+| #   | Question                                                                                                                                                                                         | Until she answers                                                |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------- |
+| Q1  | Is your Ingredient Master price list current? It becomes each item's usual price.                                                                                                                | Costs show as unknown.                                           |
+| Q2  | Which of the 13 flavours are on sale now, and is "Cornflake" Cereal Milk?                                                                                                                        | The seven on the October menu.                                   |
+| Q3  | Which sampler sizes and prices are current: 6, 7 or 10?                                                                                                                                          | None is offered.                                                 |
+| Q4  | For each box size, the bag and the pouch: what packaging goes in, and what does each piece cost?                                                                                                 | No packaging is deducted or costed, and the screen says so.      |
+| Q5  | Which container should "cost per cookie" assume?                                                                                                                                                 | Ingredients only, labelled as such.                              |
+| Q6  | Your monthly sales target, and is 65% still the lowest margin you accept?                                                                                                                        | No target bar; no margin warning.                                |
+| Q7  | The reorder level for each ingredient, and the day of the opening count.                                                                                                                         | No Low state; Out only.                                          |
+| Q8  | When is a customer "regular", and after how long "not seen lately"?                                                                                                                              | Labels are not shown.                                            |
+| Q9  | The Gooey Nutella photo and an exported Red Velvet Cheesecake photo; allergens per ingredient or per flavour.                                                                                    | No picture; allergens blank (needed before the shop opens).      |
+| Q10 | With your adviser: the privacy commission's sworn declaration or voluntary registration; and the business name, address, phone and email the shop page must show, with a receipt for every sale. | Nothing changes in the app; settled before real customers.       |
+| Q11 | **One hour this month to react to the sketches and the words** before the Stock and Recipes screens are built, and seven dates for the trial week.                                               | The screens are built on Ethan's approval of the sketches alone. |
+
+## 13. What stays out
 
 Paid texting, loyalty points, cards on file, wholesale and consignment, the Google Form
 bridge, nested recipes, owner-entered orders, payment-proof upload, email alerts, a
-labour-cost view, a second selling device, scoring or ranking of customers beyond the
-counted labels, historical stock reconciliation, splitting the customer pages' script
-(performance P5), a reskin, and the automatic runner. The shop stays closed, with no
-real customers, no production project and no merge to `main`, until Ethan says so.
+labour-cost view, a second selling device, scoring or ranking of customers beyond counted
+labels, historical stock reconciliation, support for more than one business in one
+database, a reskin, and the automatic runner. Unattended runs are allowed for
+interface-only slices and nothing else. The shop stays closed, with no real customers, no
+production project and no merge to `main`, until Ethan says so.
 
-## 11. Risks
+## 14. Risks
 
-| Risk                                                              | What limits it                                                                                                             |
-| ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| A release reaches her phone between the rehearsal and the bazaar. | The release hold (A4), on from the day the rehearsal passes.                                                               |
-| The access gate or idle sign-out locks her out at the stall.      | Rehearsal step 4, before the gate date.                                                                                    |
-| The trial database holds real bazaar sales with no backup.        | Backups on before 24 October (A3); a CSV download each evening either way; the paper tally.                                |
-| The new frame cannot read live data without the engine.           | U0a proves it first and stops for a decision if it cannot.                                                                 |
-| The estimate slips.                                               | Nothing is promised to Cine until U17 is done. The December bazaar can run on today's Bazaar Mode again.                   |
-| A value slips in hard-coded.                                      | The empty-shop and two-shops tests in `pnpm verify`.                                                                       |
-| Imports guess at names or units.                                  | Every import previews; unmatched rows are reported; she corrects in the app.                                               |
-| The customer record raises her privacy duties.                    | A small record, counted labels, one retention period, erasure, her own notice text; the registration question goes to her. |
-| Two interfaces to keep alive.                                     | The ported one is frozen as the demo; only the new one changes.                                                            |
+| Risk                                                              | What limits it                                                                                                  |
+| ----------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| A2 changes sign-in a fortnight before the bazaar.                 | Tight bounds, a test that fails first, an independent security review, and the no-code fallback in section 9.   |
+| A release reaches the selling phone between rehearsal and bazaar. | The release hold (A3), on from the day the rehearsal passes.                                                    |
+| An unattended slice redeploys the trial.                          | It commits to its own branch; only an attended session merges into the working branch.                          |
+| Two tracks edit the same file.                                    | The runtime and the database types belong to the database track.                                                |
+| The slot is a protected edit.                                     | One guarded block, live mode only; exception record, validator reversal, port audit, unchanged baselines.       |
+| Cine gives no feedback until the end.                             | The one-hour sketches-and-words session before B5 and B6; the wording pass before her week.                     |
+| Costs double-count stock already expensed.                        | The cutover rule in B3.                                                                                         |
+| The estimate slips.                                               | Nothing is promised to Cine until the wording pass. The December bazaar can run on today's Bazaar Mode with A2. |
+| A value slips in hard-coded.                                      | The empty-shop and two-shops tests in `pnpm verify`.                                                            |
+| The trial holds real bazaar sales with no backup.                 | Backups on before 24 October (A4); a CSV download each evening either way; the paper tally.                     |
 
-## 12. Decisions for Ethan
+## 15. Actual gaps
 
-Each has one recommendation. **"Yes" approves it.**
+- **No comparator was operated hands-on.**
+- **The code findings were read, not run.** N1 and the cost defects have no failing test
+  yet: A2 and B3 write them first.
+- **Three findings were located by a search pass and not re-read** (N9, N10, N11).
+- **The guarded slot is designed, not built.** B1 proves it against the port gates.
+- **The session and date estimates are estimates.** The interface slices are larger than
+  any slice built so far.
+- **No real iPhone has run the app.** The rehearsal is the first time.
+- **The pointer lines in `AGENTS.md` and `CLAUDE.md` still name finish-plan.md.** They are
+  rule files checked by the validator; changing them is Ethan's call.
+- **Migrations reach the trial by hand.** This plan does not automate that.
+- **Cine has not seen the sketches.**
 
-| #   | Decision                | Recommendation                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| --- | ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | The plan                | Adopt this page as the single forward plan in place of finish-plan.md, and let the pointer lines in AGENTS.md and CLAUDE.md that name finish-plan.md name this page instead.                                                                                                                                                                                                                                                           |
-| 2   | Nothing hard-coded      | Adopt the rule, the short allowed list and the two tests in section 4.1.                                                                                                                                                                                                                                                                                                                                                               |
-| 3   | The data model          | Section 5 as written: links by identity, one cost function that never answers zero, packaging rules as records, customers, bazaar days.                                                                                                                                                                                                                                                                                                |
-| 4   | Cost                    | A shortfall is costed as if the stock had been there, and flagged. Cost follows what the recipe needed; deduction stays rounded.                                                                                                                                                                                                                                                                                                       |
-| 5   | Cash over or short      | After the October bazaar, a cash difference at close-out is its own line in the books, not a sale.                                                                                                                                                                                                                                                                                                                                     |
-| 6   | Customers               | Build the record of section 5 with counted labels whose thresholds Cine sets, and one retention period she sets (starting at the 24 months already approved).                                                                                                                                                                                                                                                                          |
-| 7   | The interface           | The five tabs and screens of section 7, in a new folder named by business area, with All tools retired from the live app.                                                                                                                                                                                                                                                                                                              |
-| 8   | Accessibility           | The floor in section 4.4.                                                                                                                                                                                                                                                                                                                                                                                                              |
-| 9   | Before the bazaar       | Do A1 to A5 now. Do **not** change the service worker or Bazaar Mode before 25 October. Hold releases to the trial from the day the rehearsal passes until 26 October.                                                                                                                                                                                                                                                                 |
-| 10  | Bazaar records          | The October bazaar's sales are recorded in the trial database as real figures. Backups are on before 24 October; if they are not, she downloads the CSV each evening and keeps the paper tally. **This replaces the early production project approved on 28 September (finish-plan F4, step D3): no production project is created for the pilot,** because the trial already holds her 804 real lines and sits behind the access gate. |
-| 11  | Offline update          | Fix it after the bazaar and before the trial (U14), with an "update ready" prompt that never interrupts a sale.                                                                                                                                                                                                                                                                                                                        |
-| 12  | Her data                | Each import in D9 runs on the trial only after you approve its preview.                                                                                                                                                                                                                                                                                                                                                                |
-| 13  | Order and dates         | Sections 8 and 9. Cine's trial follows the switch (U17) and the wording pass: between late November and mid-December, with early December the working estimate.                                                                                                                                                                                                                                                                        |
-| 14  | What stays out          | Section 10.                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| 15  | Framework patch         | Apply the patch release now (A2).                                                                                                                                                                                                                                                                                                                                                                                                      |
-| 16  | Error reporting, uptime | Leave both off for the trial and decide them before the shop opens: each needs a hosted setting.                                                                                                                                                                                                                                                                                                                                       |
-| 17  | Cost basis              | The books count ingredient cost **when used**, as decided on 27 September and confirmed by Cine (DP-04). The database's own default is "when bought" and the trial's setting has not been read: check it, and set it to "when used", before 24 October.                                                                                                                                                                                |
+## 16. First build goals
 
-### What only you can do
+A1, then A2, in [next-goal.md](next-goal.md). A1 unblocks Cine's access. A2 is the
+bazaar's safety and carries an independent security review.
 
-1. **Cine's access.** After A1 is released: add her two addresses to the Cloudflare
-   Access policy, add their digests to the release check's approved list, and invite her
-   as owner. Agents do not create accounts.
-2. **Backups.** Decide where the encrypted copy lives and who can restore it; add the
-   secrets; switch the jobs on; check the first run appears in System health.
-3. **The phone rehearsal**, by 20 October, with the list in section 9.1.
-4. **The release hold:** on when the rehearsal passes, off on 26 October.
-5. **Look at the trial yourself** after each release; nobody has yet looked at the
-   5 October changes there.
-6. **Carry the questions to Cine** (below), opening with a recap of the last
-   conversation.
-7. **Check the cost basis on the trial** (Money, books settings) before 24 October: it
-   decides how the bazaar's profit reads. Until D3 lands, "when used" under-counts any
-   ingredient used with no costed delivery on record, so read the bazaar's profit with
-   that in mind.
-
-### Questions for Cine, in one message
-
-| #   | Question                                                                                                                           | Until she answers                                                     |
-| --- | ---------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
-| Q1  | Which of the 13 flavours are on sale now, and is "Cornflake" Cereal Milk?                                                          | The seven on the October menu.                                        |
-| Q2  | Which sampler sizes and prices are current: 6, 7 or 10?                                                                            | None is offered.                                                      |
-| Q3  | For each box size, the bag and the pouch: what packaging goes in, and what does each piece cost?                                   | No packaging is deducted or costed, and the screen says so.           |
-| Q4  | Which container should "cost per cookie" assume?                                                                                   | Ingredients only, labelled as such.                                   |
-| Q5  | Your monthly sales target, and is 65% still the lowest margin you accept?                                                          | No target bar; no margin warning.                                     |
-| Q6  | When is a customer "regular", and after how long "not seen lately"?                                                                | Labels are not shown.                                                 |
-| Q7  | The reorder level for each ingredient, and the day of the opening count.                                                           | No Low state; Out only.                                               |
-| Q8  | The Gooey Nutella photo and an exported Red Velvet Cheesecake photo; allergens per flavour.                                        | No picture; allergens blank (needed before the shop opens).           |
-| Q9  | With your adviser: will you file the privacy commission's sworn declaration (Annex 1 of Circular 2022-04) or register voluntarily? | Nothing changes in the app; it must be settled before real customers. |
-| Q10 | An hour to go through every label together, and seven dates for the trial week.                                                    | The trial does not start.                                             |
-
-## 13. Actual gaps in this plan
-
-- **No hands-on use of any comparator.** Both research passes are desk research.
-- **The registration circular's own text was not read**, only the Commission's summary
-  of it on its FAQ and exemption pages. Apple's guidelines were not re-fetched.
-- **The code findings were read, not run.** C3's three defects and C5 have no failing
-  test yet; D3 writes them first.
-- **The hosted trial was not read**: its cost basis, its settings and its data are
-  unknown here. The hard-coded sweep did not cover every line of the migrations or the
-  runtime.
-- **How the new frame reads live data is unproven** until U0a.
-- **Who applies migrations to the trial database**, and when, was not traced. The release
-  job deploys the site only, as far as the workflow files show.
-- **The day-two sign-in behaviour at the stall is unknown** until the rehearsal.
-- **No real iPhone has run the app.**
-- **The sizes are estimates** from the pace of earlier slices, which were smaller in
-  interface terms than these.
-- **Cine has not seen the wireframes.** Ethan approved the shape; her wording pass is
-  the first time she reacts to it.
-
-## 14. First build goal
-
-A1, in [next-goal.md](next-goal.md). It is first because Cine's access, and so the
-rehearsal on her phone, waits on it.
-
-## 15. Sources
+## 17. Sources
 
 Fetched and read on 5 October 2026 unless marked.
 
@@ -532,5 +570,28 @@ Fetched and read on 5 October 2026 unless marked.
 - [Nielsen Norman Group: 10 usability heuristics](https://www.nngroup.com/articles/ten-usability-heuristics/)
 - [W3C: Web Content Accessibility Guidelines 2.2](https://www.w3.org/TR/WCAG22/)
 - [National Privacy Commission: FAQs on registration](https://privacy.gov.ph/pips-and-pics/faqs/), [guidelines on exemption from registration](https://privacy.gov.ph/pips-and-pics/exemption/) and [advisories and circulars](https://privacy.gov.ph/pips-and-pics/advisories-circulars/) (read in the browser; the site refuses plain fetches)
-- Code and SQL: the file and line references in section 3.
+- Code and SQL: the file and line references in section 5.
 - Cine's sources and her 115 comments: private, as listed in [sot-consolidation.md](sot-consolidation.md).
+
+Added in version 2, fetched and read on 5 October 2026 unless marked:
+
+- [Nielsen Norman Group: hamburger menus and hidden navigation](https://www.nngroup.com/articles/hamburger-menus/), [mobile navigation patterns](https://www.nngroup.com/articles/mobile-navigation-patterns/), [progressive disclosure](https://www.nngroup.com/articles/progressive-disclosure/), [8 guidelines for complex applications](https://www.nngroup.com/articles/complex-application-design/), [response-time limits](https://www.nngroup.com/articles/response-times-3-important-limits/), [Fitts's law](https://www.nngroup.com/articles/fitts-law/)
+- [Baymard Institute: cart abandonment statistics](https://baymard.com/lists/cart-abandonment-rate)
+- [UXmatters: how do users really hold mobile devices](https://www.uxmatters.com/mt/archives/2013/02/how-do-users-really-hold-mobile-devices.php)
+- [web.dev: Vodafone case study](https://web.dev/case-studies/vodafone) and [Web Vitals](https://web.dev/articles/vitals)
+- [Material Design 3: navigation bar](https://m3.material.io/components/navigation-bar/guidelines), [Apple: tab bars](https://developer.apple.com/design/human-interface-guidelines/tab-bars) and [accessibility](https://developer.apple.com/design/human-interface-guidelines/accessibility) (read in the browser)
+- [Odoo: inventory management](https://www.odoo.com/documentation/19.0/applications/inventory_and_mrp/inventory/warehouses_storage/inventory_management.html) and [bills of materials](https://www.odoo.com/documentation/19.0/applications/inventory_and_mrp/manufacturing/basic_setup/bill_configuration.html); [inventory valuation](https://www.odoo.com/documentation/19.0/applications/inventory_and_mrp/inventory/product_management/inventory_valuation/using_inventory_valuation.html) (summary)
+- [ERPNext: immutable ledger](https://docs.frappe.io/erpnext/user/manual/en/immutable-ledger-in-erpnext)
+- [Craftybase: which costing method it uses](https://help.craftybase.com/article/812-does-craftybase-use-lifo-fifo-or-weighted-average-cost) (summary)
+- [Katana: features](https://katanamrp.com/features/)
+- [Cybake: recipe management and costing](https://cybake.com/bakery-software/production/recipe-management-costing/)
+- [Loyverse: how to work with production](https://help.loyverse.com/help/how-work-production) and [home page](https://loyverse.com/)
+- [Peddlr](https://www.peddlr.io/) and [Bakesy](https://www.bakesy.app/) (summaries)
+- [Shopify: POS design update](https://www.shopify.com/blog/shopify-pos-design-update) (summary); [SAP Fiori design principles](https://www.sap.com/design-system/fiori-design-ios/discover/sap-design-system/vision-and-mission/sap-fiori-design-principles) (summary)
+- [Martin Fowler: Strangler Fig](https://martinfowler.com/bliki/StranglerFigApplication.html)
+- [Supabase: row level security](https://supabase.com/docs/guides/database/postgres/row-level-security) and [free project pausing](https://supabase.com/docs/guides/platform/free-project-pausing)
+- [Cloudflare: static assets billing and limitations](https://developers.cloudflare.com/workers/static-assets/billing-and-limitations/) and [Access session management](https://developers.cloudflare.com/cloudflare-one/access-controls/access-settings/session-management/)
+- [Next.js: lazy loading](https://nextjs.org/docs/app/guides/lazy-loading)
+- [WebKit: updates to storage policy](https://webkit.org/blog/14403/updates-to-storage-policy/)
+- [Republic Act No. 11967, Internet Transactions Act](https://www.lawphil.net/statutes/repacts/ra2023/ra_11967_2023.html)
+- The hosted trial, read-only, counts and settings only (5 October 2026).

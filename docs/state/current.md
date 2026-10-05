@@ -2,16 +2,16 @@
 
 Read this page first in a new session. It is kept short on purpose.
 
-| If you need                     | Read                                                                      |
-| ------------------------------- | ------------------------------------------------------------------------- |
-| The one goal to run next        | [next-goal.md](next-goal.md)                                              |
-| The rules every agent follows   | [AGENTS.md](../../AGENTS.md)                                              |
-| Cine's trial checklist          | [F2-owner-trial.md](F2-owner-trial.md)                                    |
-| The detailed F2 log             | [F2-checkpoint.md](F2-checkpoint.md) and [F2-fix-list.md](F2-fix-list.md) |
-| The UX review, done             | [ux-audit.md](ux-audit.md)                                                |
-| Older checkpoints, verbatim     | [current-history.md](current-history.md)                                  |
-| The final plan, awaiting a yes  | [final-plan.md](final-plan.md) (decisions in its section 12)              |
-| The approved plan to the finish | [finish-plan.md](finish-plan.md) and [lean-plan.md](lean-plan.md)         |
+| If you need                   | Read                                                                        |
+| ----------------------------- | --------------------------------------------------------------------------- |
+| The one goal to run next      | [next-goal.md](next-goal.md)                                                |
+| The rules every agent follows | [AGENTS.md](../../AGENTS.md)                                                |
+| Cine's trial checklist        | [F2-owner-trial.md](F2-owner-trial.md)                                      |
+| The detailed F2 log           | [F2-checkpoint.md](F2-checkpoint.md) and [F2-fix-list.md](F2-fix-list.md)   |
+| The UX review, done           | [ux-audit.md](ux-audit.md)                                                  |
+| Older checkpoints, verbatim   | [current-history.md](current-history.md)                                    |
+| The plan, approved 5 October  | [final-plan.md](final-plan.md) (version 2)                                  |
+| How we build, and older plans | [finish-plan.md](finish-plan.md) section 8 and [lean-plan.md](lean-plan.md) |
 
 ## Where things stand — 5 October 2026
 
@@ -34,14 +34,24 @@ Read this page first in a new session. It is kept short on purpose.
 > ([next-goal.md](next-goal.md)). The three source files now live in the private
 > `claude-20261005/sot-sources/` folder.
 
-> **The final plan is written (5 October, later):** [final-plan.md](final-plan.md). It is
-> a proposal until Ethan says yes to its section 12 (17 decisions, each with one
-> recommendation). In short: data layer first, then the five-tab interface built beside
-> the ported screens; the 24 to 25 October bazaar on today's Bazaar Mode with releases
-> held after the rehearsal; about 37 slices in about 50 sessions; Cine's trial estimated for early December
-> (late November to mid-December). It also closes the audit's open questions (C3, C5, C9, C10), adds nine
-> hard-coded values the first sweep missed, and records the privacy commission's
-> registration rule from its own site. Nothing was built, imported or deployed.
+> **The plan is approved (5 October, later): [final-plan.md](final-plan.md), version 2.**
+> Ethan asked for a re-audit, a debate and wider research, answered five questions and
+> approved the result. It replaces the first version written the same day and, from here
+> on, finish-plan.md. Nothing was built, imported or deployed; the hosted trial was read
+> twice, read-only.
+>
+> - **The October bazaar is not safe as built:** in the live app, opening or reloading
+>   with no signal signs Cine out and she cannot sign in offline (read, not run). Slice
+>   A2 fixes it, bounded and security-reviewed, before the 20 October rehearsal.
+> - **Order:** A (bazaar safety and her access), then B (five tabs on the existing frame,
+>   one guarded slot for new screens, true numbers, her prices and recipes, weighted
+>   average cost, new Stock and Recipes), then C (everything else).
+> - **Cine starts after everything is built:** mid-November at the earliest, early
+>   December more likely. Two tracks; unattended runs for interface-only slices.
+> - **On the trial today:** all 53 migrations applied; cost basis "when bought"; 8 of 72
+>   items have any price; a test event has been open since 5 October with no sales.
+> - **Waiting on Ethan:** send Cine the questions by 9 October; add her addresses after
+>   A1; close the test event; backup custody; the rehearsal.
 
 **Package:** F2, the owner trial. F2 is incomplete, and F3 (launch) stays closed until Cine
 accepts a real week of use.

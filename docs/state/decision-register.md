@@ -176,6 +176,28 @@ He also set the order of work: a whole-system audit first
 ([system-audit.md](system-audit.md)), then, in the next conversation, a fresh round of
 research and one final plan before any building.
 
+### The replan he approved later on 5 October
+
+Shown the first final plan, Ethan asked for a re-audit, a debate, wider research and a
+full replan, and set the bar: fast to finish; complete, functional, secure, easy to reach
+and navigate, organised and targeted, efficient, precise, accurate, fast and scalable.
+Asked five questions, he chose as below and then approved the plan
+([final-plan.md](final-plan.md), version 2).
+
+| #   | Question                        | His answer                                                                                                                                                                                              |
+| --- | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | When Cine starts                | **After everything is built.** Not on a partial app.                                                                                                                                                    |
+| 2   | The bazaar's offline lock-out   | **Fix it, bounded** (slice A2, with an independent security review), and lengthen the trial's access session from 8 hours to 7 days.                                                                    |
+| 3   | Pace                            | **Two tracks, and unattended runs for interface-only slices.** Database, money, sign-in and offline slices stay attended and reviewed. The automatic runner stays off. This narrows F7 of 28 September. |
+| 4   | Reading the hosted trial        | **Yes, read-only**: settings, the migration list and the security advisor; no customer rows, no writes.                                                                                                 |
+| 5   | How new screens enter the frame | **One guarded, live-only slot in the locked frame file**, as a protected exception ([protected-exception.md](protected-exception.md)).                                                                  |
+
+Carried by the plan and approved with it: weighted average cost with the cost stamped on
+each use; the October bazaar's sales recorded in the trial database, **replacing the
+early production project of 28 September (finish-plan F4, step D3)**; one business per
+database. Not changed by it: the pointer lines in `AGENTS.md` and `CLAUDE.md` still name
+finish-plan.md.
+
 ## Amended decisions (open — block the listed work)
 
 **DP-02 · Payment timing** — blocks MP-10, MP-12.
