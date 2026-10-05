@@ -645,3 +645,45 @@ the esbuild minified output is byte-identical. No allowlist key, pattern or bran
 `scrub.ts` changes; no test, project, selector or snapshot name in `visual.spec.ts`
 changes; no baseline image is touched. This approval covers formatting these two files
 once and nothing else.
+
+## UX review proposal 3: labelled phone dock (approved 2026-10-05)
+
+Ethan approved the phone-dock change after seeing the exact before and after pictures and
+the list of what leaves the dock. His words, 5 October: "yes to all three, do what u
+recommend" (the dock, Home's system card and finding 11 in
+[ux-audit.md](ux-audit.md)). Live mode only (`NEXT_PUBLIC_APP_MODE=live`); demo, dev, CI
+and the visual baselines render exactly as before.
+
+Exact edit in `src/components/shell/app-frame.tsx`: one guarded block inserted in the dock
+button, between the icon and the active mark. It reuses `bareFrame`, already read by this
+file, and prints the label the button already carries in `aria-label` and `title`. No
+literal copy, no new colour.
+
+```
+{bareFrame ? (
+  <>
+    <span style={{ position: 'relative', fontSize: '10px', fontWeight: '600', lineHeight: '1', whiteSpace: 'nowrap' }}>{d.label}</span>
+  </>
+) : null}
+```
+
+- **Baselines:** `scripts/port-baseline.json` for this file goes from 144 styles and 244
+  elements to 145 and 245; copy hash and copy count are unchanged. Its AST hash changes in
+  `scripts/port-structure-baseline.json`. Both were written by the tools
+  (`check-port-integrity.mjs --update`, `port-structure.mjs --write-baseline`) in the same
+  commit. No other file's entry changed.
+- **Reversal:** `DOCK_LABEL_REVERSALS` in `scripts/validate-g0.py` removes the block and
+  restores the two counts, each exactly once. It runs before the live-frame and flavour
+  reversals, because they expect the block as it was.
+- **How the edit was made:** by a script, because the `PreToolUse` hook blocks tool edits
+  to ported markup. This record and the commit message are the trace, as for MP-09 c.
+- **Not markup, in `src/store/ops-runtime.tsx` (`liveDock`):** the live owner's dock lists
+  Home, Orders, Bake, Inventory and All tools; the dock marks All tools while a screen
+  reached through it is open; Sales log gets a receipt icon in the sidebar and a new entry
+  in All tools. A helper keeps Home, Sales log and Bazaar and support keeps All tools,
+  now labelled.
+- **Trade-off Ethan accepted:** Sales log, P&L, Grocery and Bazaar Mode are one tap further
+  away on a phone, and the Grocery count is no longer on the dock.
+- **Evidence:** `tests/unit/ops-runtime-live-dock.test.tsx` (owner, helper, support and
+  demo); Docker captures and the independent port audit are recorded in
+  [ux-audit.md](ux-audit.md).

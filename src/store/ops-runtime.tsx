@@ -536,6 +536,14 @@ const MENU_TOOLS = {
   drafts: 'Your original recipe text, as you wrote it'
 } as const;
 
+/** UX review, proposal 3: the live owner's phone dock, in order. Everything else is under All tools. */
+const DOCK_LABELS = ['Home', 'Orders', 'Bake', 'Inventory', 'All tools'];
+/** Screens with no dock entry of their own that belong to one; any other is reached through All tools. */
+const DOCK_PARENT: Record<string, string> = { order: 'Orders', batch: 'Bake' };
+/** A receipt, so Sales log no longer shares the peso icon with P&L. */
+const SALES_LOG_ICON =
+  'M6.5 4.5h11v15l-2.2-1.5-1.7 1.5-1.6-1.5-1.6 1.5-1.7-1.5-2.2 1.5zM9.5 9h5M9.5 12.5h5';
+
 export class OpsRuntime extends OpsProvider {
   /**
    * Where bazaar sales go. Null uses the signed-in browser client, or nothing at all in a
@@ -1531,6 +1539,7 @@ export class OpsRuntime extends OpsProvider {
               : item
         )
       })),
+      ...this.liveDock(starved),
       // Home's grid and the Settings row word the engine's `backup` flag; say what was recorded instead.
       launcher: (starved.launcher ?? []).map((group) => ({
         ...group,
@@ -3873,6 +3882,14 @@ export class OpsRuntime extends OpsProvider {
             ...g,
             items: [
               ...g.items,
+              // Off the phone dock since proposal 3, so it needs an entry here.
+              {
+                icon: SALES_LOG_ICON,
+                label: 'Sales log',
+                sub: 'Every sale recorded',
+                badge: null,
+                go: () => this.go('sales')
+              },
               {
                 icon: this.IC.cookie,
                 label: 'Payment methods',
@@ -3948,6 +3965,46 @@ export class OpsRuntime extends OpsProvider {
       .filter((g) => g.items.length > 0);
     const at = rest.findIndex((g) => g.title === 'Kitchen') + 1;
     return [...rest.slice(0, at), menuGroup, ...rest.slice(at)];
+  }
+
+  /**
+   * UX review, proposal 3. The live owner's phone dock shows five labelled destinations
+   * instead of nine unlabelled icons; Sales log, Grocery, Bazaar and P&L are under All tools,
+   * and the dock marks All tools while one of those screens is open. A helper's or
+   * support's dock keeps its own, shorter list. The visible label is one guarded line of
+   * shell markup (protected exception); everything else is here.
+   */
+  private liveDock(vals: OpsVals): Pick<OpsVals, 'dockNav' | 'dockPillStyle' | 'railNav'> {
+    const salesIcon = <T extends { label: unknown; icon: string }>(item: T): T =>
+      item.label === 'Sales log' ? { ...item, icon: SALES_LOG_ICON } : item;
+    const railNav = (vals.railNav ?? []).map(salesIcon);
+    if (this.state.role !== 'owner')
+      return {
+        railNav,
+        dockNav: (vals.dockNav ?? []).map(salesIcon),
+        dockPillStyle: vals.dockPillStyle
+      };
+    const shown = DOCK_LABELS.flatMap((label) =>
+      (vals.dockNav ?? []).filter((item) => item.label === label)
+    );
+    const marked = shown.some((item) => item.active)
+      ? null
+      : (DOCK_PARENT[String(this.state.screen)] ?? 'All tools');
+    const dockNav = shown.map((item) => (item.label === marked ? { ...item, active: true } : item));
+    const at = dockNav.findIndex((item) => item.active);
+    return {
+      railNav,
+      dockNav,
+      // The engine's own pill style, recomputed for this list.
+      dockPillStyle:
+        'position: absolute; top: 6px; bottom: 6px; left: 6px; width: calc((100% - 12px) / ' +
+        Math.max(1, dockNav.length) +
+        '); border-radius: 16px; background: #FDEDE5; transform: translate3d(' +
+        (at < 0 ? 0 : at * 100) +
+        '%, 0, 0); opacity: ' +
+        (at < 0 ? '0' : '1') +
+        '; transition: transform .3s cubic-bezier(.34,1.08,.4,1), opacity .18s ease; pointer-events: none'
+    };
   }
 
   /** The products screen's "Edit price" opens the live flavour editor instead of the ported sheet. */

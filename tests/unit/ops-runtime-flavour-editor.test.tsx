@@ -141,9 +141,16 @@ describe('MP-09 c1c: the flavour editor and Publish menu', () => {
     expect(
       groups
         .find((g) => g.title === 'Business')
-        ?.items.slice(0, 5)
+        ?.items.slice(0, 6)
         .map((i) => i.label)
-    ).toEqual(['Profit & loss', 'Payments', 'Bazaar Mode', 'Suppliers', 'Payment methods']);
+    ).toEqual([
+      'Profit & loss',
+      'Payments',
+      'Bazaar Mode',
+      'Suppliers',
+      'Sales log',
+      'Payment methods'
+    ]);
     // The moved entries still open their screens.
     act(() =>
       menuItems(runtime)

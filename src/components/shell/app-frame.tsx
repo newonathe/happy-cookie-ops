@@ -581,6 +581,11 @@ export function AppFrame({ v }: { v: OpsVals }) {
                                 </>
                               ) : null}
                             </span>
+                            {bareFrame ? (
+                              <>
+                                <span style={{ position: 'relative', fontSize: '10px', fontWeight: '600', lineHeight: '1', whiteSpace: 'nowrap' }}>{d.label}</span>
+                              </>
+                            ) : null}
                             {d.active ? (
                               <>
                                 <span style={{ position: 'relative', width: '14px', height: '3px', borderRadius: '999px', background: '#E75F23', animation: 'hcFade .3s ease-out' }} />

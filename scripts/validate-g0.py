@@ -81,7 +81,7 @@ LIVE_FRAME_REVERSALS = {
     # "generated" is one shared field: each later approved edit that reruns --update moves
     # this tuple's left side to that day's date, still reversing to the true original.
     'scripts/port-baseline.json': [
-        (b'"generated": "2026-09-29",', b'"generated": "2026-09-04",'),
+        (b'"generated": "2026-10-05",', b'"generated": "2026-09-04",'),
         (b'"copyCount": 15,\n      "styles": 144,', b'"copyCount": 15,\n      "styles": 146,'),
     ],
 }
@@ -171,6 +171,19 @@ PNL_CAPTION_REVERSALS = {
          'Profit · August 2026'.encode()),
     ],
 }
+# UX review proposal 3 (Ethan, 2026-10-05; docs/state/protected-exception.md): one guarded, live-only label
+# under each phone-dock icon. Reversed FIRST: it turns today's app-frame baseline block back into the one
+# LIVE_FRAME_REVERSALS and FLAVOUR_REVERSALS then expect.
+DOCK_LABEL_REVERSALS = {
+    'src/components/shell/app-frame.tsx': [
+        (b"                            {bareFrame ? (\n                              <>\n                                <span style={{ position: 'relative', fontSize: '10px', fontWeight: '600', lineHeight: '1', whiteSpace: 'nowrap' }}>{d.label}</span>\n                              </>\n                            ) : null}\n",
+         b""),
+    ],
+    'scripts/port-baseline.json': [
+        (b'"copyCount": 15,\n      "styles": 145,\n      "dynamicStyles": 10,\n      "elements": 245',
+         b'"copyCount": 15,\n      "styles": 144,\n      "dynamicStyles": 10,\n      "elements": 244'),
+    ],
+}
 changes = []
 for entry in load(EVIDENCE / 'delivery-manifest.json'):
     rel = entry['path']
@@ -198,6 +211,9 @@ for entry in load(EVIDENCE / 'delivery-manifest.json'):
             guard = guards[file.stem]
             check('approved_guard_once:' + rel, data.count(guard) == 1)
             data = re.sub(re.escape(guard) + rb'\r?\n', b'', data, count=1)
+        for index, (edited, original) in enumerate(DOCK_LABEL_REVERSALS.get(rel, [])):
+            check(f'approved_dock_label_once:{rel}:{index}', data.count(edited) == 1)
+            data = data.replace(edited, original, 1)
         for index, (edited, original) in enumerate(LIVE_FRAME_REVERSALS.get(rel, [])):
             check(f'approved_live_frame_once:{rel}:{index}', data.count(edited) == 1)
             data = data.replace(edited, original, 1)
