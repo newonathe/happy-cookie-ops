@@ -49,6 +49,17 @@ is older.
   per test, so expect the CI browser job to fail once formatting is green, which keeps
   the automatic release blocked. The test is unchanged. Receipt:
   [F2-offline01-linux-probe.json](evidence/F2-offline01-linux-probe.json).
+- **CI workflow defect found and fixed (`655c95c`).** The browser and visual steps in
+  `ci.yml`, and `verify:release` in `owner-trial.yml`, set Supabase variables at test
+  time. `src/middleware.ts` then redirects every staff route to `/sign-in`, so the
+  demo-fixture suites could never pass there. In the CI Linux image only 12 browser
+  tests passed with the variables; a one-test A/B confirms the cause. The variables are
+  removed from those three steps; no test, project or gate is removed.
+- **Linux preview of the CI jobs that have never run on GitHub** (local container,
+  source at `497c6b7`, without those variables): browser 89 passed / 1 failed (WebKit
+  OFFLINE-01) / 75 skipped, the same as the Windows baseline; visual 75 passed;
+  Storybook builds. Lighthouse and the release job are not covered. This is a preview,
+  not a GitHub result: GitHub still stops at `format:check` on the 2 files.
 - **Unchanged:** the 804 imported financial rows, the hosted trial database and the
   private Worker (last recorded version `772d4a7e`; not re-probed), shop closed, no
   deployment, no merge, no jobs, no runner.

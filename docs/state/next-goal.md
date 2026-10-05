@@ -6,6 +6,8 @@ The approved forward plan is [finish-plan.md](finish-plan.md), section 6. F1 is 
 
 Latest pushed checkpoint: see `git log`; formatting slices end at `dd03072`.
 `format:check` fails on 2 protected files only. The deployment secret is configured.
+A Linux-container preview of the other CI jobs passes except OFFLINE-01, after `655c95c`
+removed test-time Supabase variables that sent every test to the sign-in page.
 OFFLINE-01 failed 3 of 3 times on Linux WebKit as well as on Windows, so expect CI's
 browser job to be red once formatting is green (CI allows two retries). Either agent may continue; when Claude runs it, read
 "Codex Sol/high" as Claude Opus coordinating with at most two pinned Sonnet workers.

@@ -7,6 +7,11 @@
   Chromium passed 3 of 3. Upstream issue 42775 is open and labelled v1.64. The failure is therefore not
   Windows-specific and will fail the CI browser job. Test, app, service worker and queue unchanged; the
   pilot gate is not waived. Receipt: [F2-offline01-linux-probe.json](evidence/F2-offline01-linux-probe.json).
+- F2-011, CI configuration defect, fixed in `655c95c`: test-time Supabase variables in the browser,
+  visual and release-verification steps made the middleware redirect every staff route to sign-in.
+  Reproduced in the CI Linux image (12 browser tests passed with them; 89 passed / 1 failed / 75
+  skipped without). Not an app defect; no test or gate removed. GitHub confirmation is pending
+  because CI still stops at `format:check`.
 - Setup note, not a product defect: the private `configure-cloudflare-deploy.ps1` helper omits
   `TRIAL_ACCESS_EMAIL_SHA256`, so its preflight fails even with a valid token. The token was validated
   and the GitHub secret set with a separate private script that supplies it.

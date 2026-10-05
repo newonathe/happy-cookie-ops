@@ -50,6 +50,16 @@ WSL2, Node 24.20.0, Playwright 1.63.0, `bazaar-offline.spec.ts`, projects `webki
 `phone`, `--repeat-each=3`, no retries. Two WebKit runs failed at the offline
 `page.reload()` with the known internal error; one timed out earlier at the Cash button.
 
+**CI preview and workflow fix.** First preview, with the variables the workflows set on
+their test steps: 12 browser tests passed in 20.9 minutes and the rest timed out on the
+sign-in page. A/B on `navigation-history.spec.ts`, phone project, same image: 2 passed
+without the variables, 2 failed with them. Second preview without them: browser 89 / 1 /
+75 in 1.0 minute, visual 75 passed in 45 seconds, `build-storybook` exit 0. `655c95c`
+removes the variables from the `ci.yml` browser and visual steps and from
+`verify:release` in `owner-trial.yml`. The visual result is Docker-rendered against the
+committed baselines; no baseline was regenerated. Private logs:
+`F2-ci-preview-linux-{with-env,noenv}.log` and `F2-ci-env-ab.log`.
+
 **No new visual or device evidence.** No visible flow changed. Private logs, the
 verifier, the slice driver and the two protected candidates are under
 `claude-20261005/` in the existing private evidence directory.
