@@ -8,7 +8,7 @@ const meta = {
     docs: {
       description: {
         component:
-          'Carries the prototype\'s hover, press and focus values as style objects. Every ' +
+          "Carries the prototype's hover, press and focus values as style objects. Every " +
           'interactive element in the ported screens is one of these.'
       }
     }

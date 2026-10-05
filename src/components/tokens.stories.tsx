@@ -54,15 +54,46 @@ function Palette() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '26px', padding: '8px' }}>
       {GROUPS.map((group) => (
         <section key={group.name} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          <span style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#8A7062' }}>
+          <span
+            style={{
+              fontSize: '12px',
+              fontWeight: 700,
+              letterSpacing: '0.06em',
+              textTransform: 'uppercase',
+              color: '#8A7062'
+            }}
+          >
             {group.name}
           </span>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(148px, 1fr))', gap: '10px' }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(148px, 1fr))',
+              gap: '10px'
+            }}
+          >
             {group.tokens.map(([name, hex]) => (
               <div key={name} style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <div style={{ height: '56px', borderRadius: '12px', background: hex, border: '1px solid rgba(58,31,20,0.08)' }} />
-                <span style={{ fontSize: '12.5px', fontWeight: 600, color: '#3A1F14' }}>{name}</span>
-                <span style={{ fontSize: '11.5px', color: '#8A7062', fontVariantNumeric: 'tabular-nums' }}>{hex}</span>
+                <div
+                  style={{
+                    height: '56px',
+                    borderRadius: '12px',
+                    background: hex,
+                    border: '1px solid rgba(58,31,20,0.08)'
+                  }}
+                />
+                <span style={{ fontSize: '12.5px', fontWeight: 600, color: '#3A1F14' }}>
+                  {name}
+                </span>
+                <span
+                  style={{
+                    fontSize: '11.5px',
+                    color: '#8A7062',
+                    fontVariantNumeric: 'tabular-nums'
+                  }}
+                >
+                  {hex}
+                </span>
               </div>
             ))}
           </div>
@@ -72,6 +103,10 @@ function Palette() {
   );
 }
 
-const meta = { title: 'Foundations/Colour', component: Palette, parameters: { layout: 'padded' } } satisfies Meta<typeof Palette>;
+const meta = {
+  title: 'Foundations/Colour',
+  component: Palette,
+  parameters: { layout: 'padded' }
+} satisfies Meta<typeof Palette>;
 export default meta;
 export const Colour: StoryObj<typeof meta> = {};

@@ -43,13 +43,11 @@ export function Pressable({
   // Wraps the caller's own handler, if any, then applies the state change. Not memoised:
   // `rest` is a fresh object on every render, so a useCallback keyed on it would rebuild
   // these anyway while costing a dependency-array bug surface.
-  const on =
-    (name: string, fn: () => void) =>
-    (event: { [k: string]: unknown }) => {
-      const handler = rest[name];
-      if (typeof handler === 'function') (handler as (e: unknown) => void)(event);
-      fn();
-    };
+  const on = (name: string, fn: () => void) => (event: { [k: string]: unknown }) => {
+    const handler = rest[name];
+    if (typeof handler === 'function') (handler as (e: unknown) => void)(event);
+    fn();
+  };
 
   const merged: CSSProperties = {
     ...style,
