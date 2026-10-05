@@ -12,7 +12,7 @@ const worker = {
   async fetch(request: Request, env: Env, context: ExecutionContext): Promise<Response> {
     const pathname = new URL(request.url).pathname;
     if (pathname === '/api' || pathname.startsWith('/api/')) {
-      return handleApiRequest(request, { env, waitUntil: task => context.waitUntil(task) });
+      return handleApiRequest(request, { env, waitUntil: (task) => context.waitUntil(task) });
     }
     return env.ASSETS.fetch(request);
   }

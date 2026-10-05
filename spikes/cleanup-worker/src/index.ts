@@ -13,7 +13,11 @@ export interface CleanupCounts {
 
 export type CleanupLogEvent =
   | ({ event: 'scheduled_cleanup'; outcome: 'success' | 'partial_failure' } & CleanupCounts)
-  | { event: 'scheduled_cleanup'; outcome: 'failure'; errorClass: 'configuration' | 'dependency' | 'deadline' };
+  | {
+      event: 'scheduled_cleanup';
+      outcome: 'failure';
+      errorClass: 'configuration' | 'dependency' | 'deadline';
+    };
 
 type ErrorClass = Extract<CleanupLogEvent, { outcome: 'failure' }>['errorClass'];
 
@@ -30,7 +34,9 @@ const publishableKey = /^sb_publishable_[A-Za-z0-9_-]{1,200}$/;
 const maxSubrequests = 40; // Leave headroom below the free Worker limit of 50.
 const wallTimeMs = 24_500; // The authority also enforces its own 25-second limit.
 
-function invalid(): never { throw new ScheduledCleanupError('configuration'); }
+function invalid(): never {
+  throw new ScheduledCleanupError('configuration');
+}
 
 function required(env: Record<string, unknown>, name: string): string {
   const value = env[name];
@@ -39,7 +45,11 @@ function required(env: Record<string, unknown>, name: string): string {
 
 function providerOrigin(value: string): string {
   let url: URL;
-  try { url = new URL(value); } catch { return invalid(); }
+  try {
+    url = new URL(value);
+  } catch {
+    return invalid();
+  }
   if (url.protocol !== 'https:' || url.origin !== value || url.username || url.password) invalid();
   return value;
 }
@@ -50,8 +60,12 @@ async function compose(env: Record<string, unknown>, fetchFn: typeof globalThis.
     const origin = providerOrigin(required(env, 'SUPABASE_URL'));
     const publicKey = required(env, 'SUPABASE_PUBLISHABLE_KEY');
     const serviceKey = required(env, 'SUPABASE_SERVICE_KEY');
-    if (!publishableKey.test(publicKey) || !secretKey.test(serviceKey) ||
-        required(env, 'SUPABASE_SERVICE_KEY_KIND') !== 'sb_secret') invalid();
+    if (
+      !publishableKey.test(publicKey) ||
+      !secretKey.test(serviceKey) ||
+      required(env, 'SUPABASE_SERVICE_KEY_KIND') !== 'sb_secret'
+    )
+      invalid();
     const cryptoConfig: unknown = JSON.parse(required(env, 'SESSION_CRYPTO_CONFIG_JSON'));
     const crypto = await createSessionCrypto(cryptoConfig);
     let subrequests = 0;
@@ -59,12 +73,26 @@ async function compose(env: Record<string, unknown>, fetchFn: typeof globalThis.
       if (++subrequests > maxSubrequests) throw new ScheduledCleanupError('dependency');
       return fetchFn(input, init);
     };
-    const auth = createSupabaseAuthTransport({ origin, publishableKey: publicKey, fetch: limitedFetch });
-    const rpc = createPagesServiceRpc({ origin, serviceKey, keyKind: 'sb_secret', fetch: limitedFetch });
+    const auth = createSupabaseAuthTransport({
+      origin,
+      publishableKey: publicKey,
+      fetch: limitedFetch
+    });
+    const rpc = createPagesServiceRpc({
+      origin,
+      serviceKey,
+      keyKind: 'sb_secret',
+      fetch: limitedFetch
+    });
     return createPersistentSessionAuthority({
-      rpc, auth, crypto, rateRules: pagesSessionRateRules,
+      rpc,
+      auth,
+      crypto,
+      rateRules: pagesSessionRateRules,
       trustedCallerId: () => null,
-      deferRecovery: () => { throw new ScheduledCleanupError('dependency'); }
+      deferRecovery: () => {
+        throw new ScheduledCleanupError('dependency');
+      }
     });
   } catch {
     invalid();
@@ -86,18 +114,26 @@ export async function runScheduledCleanup(
     }, wallTimeMs);
   });
   const report = (event: CleanupLogEvent) => {
-    try { log?.(event); } catch { /* Logging cannot change cleanup state. */ }
+    try {
+      log?.(event);
+    } catch {
+      /* Logging cannot change cleanup state. */
+    }
   };
   try {
     const result = await Promise.race([
       (async () => (await compose(env, fetchFn)).claimCleanup(3, controller.signal))(),
       deadline
     ]);
-    report({ event: 'scheduled_cleanup', outcome: result.failed > 0 ? 'partial_failure' : 'success', ...result });
+    report({
+      event: 'scheduled_cleanup',
+      outcome: result.failed > 0 ? 'partial_failure' : 'success',
+      ...result
+    });
     return result;
   } catch (error) {
-    const safe = error instanceof ScheduledCleanupError
-      ? error : new ScheduledCleanupError('dependency');
+    const safe =
+      error instanceof ScheduledCleanupError ? error : new ScheduledCleanupError('dependency');
     report({ event: 'scheduled_cleanup', outcome: 'failure', errorClass: safe.errorClass });
     throw safe;
   } finally {
@@ -108,7 +144,9 @@ export async function runScheduledCleanup(
 
 const worker = {
   async scheduled(_event: unknown, env: Record<string, unknown>): Promise<void> {
-    const result = await runScheduledCleanup(env, globalThis.fetch, event => console.info(JSON.stringify(event)));
+    const result = await runScheduledCleanup(env, globalThis.fetch, (event) =>
+      console.info(JSON.stringify(event))
+    );
     if (result.failed > 0) throw new ScheduledCleanupError('dependency');
   }
 };

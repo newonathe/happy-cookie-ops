@@ -62,7 +62,7 @@ export async function handleApiRequest(
     const response = await handlePagesSessionRequest({
       request,
       env: context?.env ?? {},
-      waitUntil: task => context?.waitUntil(task)
+      waitUntil: (task) => context?.waitUntil(task)
     });
     return withSecurityHeaders(response);
   }

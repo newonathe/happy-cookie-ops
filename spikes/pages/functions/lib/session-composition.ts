@@ -27,8 +27,12 @@ function exactOrigin(value: unknown, allowLoopback: boolean): string {
   const url = new URL(value);
   if (url.origin !== value) throw new Error('invalid_configuration');
   if (url.protocol === 'https:') return value;
-  if (allowLoopback && url.protocol === 'http:' &&
-      ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname)) return value;
+  if (
+    allowLoopback &&
+    url.protocol === 'http:' &&
+    ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname)
+  )
+    return value;
   throw new Error('invalid_configuration');
 }
 
@@ -41,8 +45,12 @@ function requiredString(env: PagesSessionEnv, name: string): string {
 function callerId(context: PagesSessionContext, appOrigin: string): string {
   const configuredLocal = context.env.HCO_LOCAL_TRUSTED_CALLER_ID;
   if (configuredLocal !== undefined) {
-    if (!appOrigin.startsWith('http://') || typeof configuredLocal !== 'string' ||
-        !localCaller.test(configuredLocal)) throw new Error('invalid_configuration');
+    if (
+      !appOrigin.startsWith('http://') ||
+      typeof configuredLocal !== 'string' ||
+      !localCaller.test(configuredLocal)
+    )
+      throw new Error('invalid_configuration');
     return configuredLocal;
   }
 
@@ -78,17 +86,33 @@ export async function handlePagesSessionRequest(
     const publishableKey = requiredString(context.env, 'SUPABASE_PUBLISHABLE_KEY');
     const serviceKey = requiredString(context.env, 'SUPABASE_SERVICE_KEY');
     const keyKind = requiredString(context.env, 'SUPABASE_SERVICE_KEY_KIND');
-    if (keyKind !== 'sb_secret' && keyKind !== 'legacy_jwt') throw new Error('invalid_configuration');
-    if (keyKind === 'legacy_jwt' && !appOrigin.startsWith('http://')) throw new Error('invalid_configuration');
+    if (keyKind !== 'sb_secret' && keyKind !== 'legacy_jwt')
+      throw new Error('invalid_configuration');
+    if (keyKind === 'legacy_jwt' && !appOrigin.startsWith('http://'))
+      throw new Error('invalid_configuration');
     const caller = callerId(context, appOrigin);
-    const cryptoConfig = JSON.parse(requiredString(context.env, 'SESSION_CRYPTO_CONFIG_JSON')) as unknown;
+    const cryptoConfig = JSON.parse(
+      requiredString(context.env, 'SESSION_CRYPTO_CONFIG_JSON')
+    ) as unknown;
     const crypto = await createSessionCrypto(cryptoConfig);
-    const auth = createSupabaseAuthTransport({ origin: supabaseOrigin, publishableKey, fetch: fetchFn });
-    const rpc = createPagesServiceRpc({ origin: supabaseOrigin, serviceKey, keyKind, fetch: fetchFn });
+    const auth = createSupabaseAuthTransport({
+      origin: supabaseOrigin,
+      publishableKey,
+      fetch: fetchFn
+    });
+    const rpc = createPagesServiceRpc({
+      origin: supabaseOrigin,
+      serviceKey,
+      keyKind,
+      fetch: fetchFn
+    });
     const authority = createPersistentSessionAuthority({
-      rpc, auth, crypto, rateRules,
+      rpc,
+      auth,
+      crypto,
+      rateRules,
       trustedCallerId: () => caller,
-      deferRecovery: task => context.waitUntil(task)
+      deferRecovery: (task) => context.waitUntil(task)
     });
     return await handleSessionRequest(context.request, { origin: appOrigin, authority });
   } catch {
