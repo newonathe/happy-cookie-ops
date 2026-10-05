@@ -164,10 +164,9 @@ do what u recommend."**
 
 **R1 ends "the prototype is the specification" for the live app.** The ported screens,
 sheets, shell and engine stay protected and unchanged as the demo build; the live app no
-longer has to look like them. This conflicts with the "UI/UX remains locked" sentence in
-the planning-authority line of `AGENTS.md` and `CLAUDE.md`, which has not been edited
-(it is checked byte for byte and Ethan is asked before it changes). The proposed wording is
-in [next-goal.md](next-goal.md).
+longer has to look like them. The planning-authority line of `AGENTS.md` and `CLAUDE.md` said "UI/UX remains locked";
+Ethan approved its rewording the same day ("yes, approve the AGENTS.md wording change")
+and both files now say so, byte for byte the same.
 
 During the audit he added a rule: **"nothing must be hardcoded."** Every number, name and
 sentence about the business comes from her data or her settings; the hard-coded values

@@ -29,14 +29,10 @@ document in C:\Users\ethan\dev\Happy Cookie Ops - Business Files\03 Walkthroughs
 Spreadsheets. Print counts only for customer sheets; keep recipes, customer rows and
 emails out of Git.
 
-1. Rule conflict to settle first. AGENTS.md and CLAUDE.md both say "UI/UX remains
-   locked". Ethan's decision R1 ends that for the live app only. Ask Ethan to approve
-   replacing, in both files, byte for byte the same, the words
-   "UI/UX remains locked;" with
-   "the ported screens, sheets, shell and engine remain locked as the demo build, and
-   since 2026-10-05 the live app's interface is rebuilt beside them
-   (docs/state/product-research.md);"
-   and do not edit either file without his yes (scripts/validate-g0.py compares them).
+1. Rule change already made: on 5 October Ethan approved, and both AGENTS.md and
+   CLAUDE.md now say, that the ported screens, sheets, shell and engine remain locked
+   as the demo build while the live app's interface is rebuilt beside them. The
+   protected paths themselves are unchanged; do not edit them.
 2. Research again, wider and hands-on where possible: sign-up-free demos, help centres,
    documentation and engineering posts for the tools named in product-research.md and
    any better comparators; verify each claim against a primary source; mark the rest.

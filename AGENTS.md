@@ -1,6 +1,6 @@
 # AGENTS.md
 
-> **Current planning authority (2026-09-08):** Read [MASTER-PLAN.md](MASTER-PLAN.md) first. Its audited findings, task catalog and decision gates supersede conflicting readiness claims and old T-task ordering. UI/UX remains locked; current records are demo fixtures; launch has one offline sales device. The 2026-09-08 user request authorizes local G0 implementation (MP-00 through MP-03). Read [current state](docs/state/current.md) for actual progress; later product packages and the automatic runner remain deferred. All protection and verification rules below remain in force.
+> **Current planning authority (2026-09-08):** Read [MASTER-PLAN.md](MASTER-PLAN.md) first. Its audited findings, task catalog and decision gates supersede conflicting readiness claims and old T-task ordering. The ported screens, sheets, shell and engine remain locked as the demo build, and since 2026-10-05 the live app's interface is rebuilt beside them (docs/state/product-research.md); current records are demo fixtures; launch has one offline sales device. The 2026-09-08 user request authorizes local G0 implementation (MP-00 through MP-03). Read [current state](docs/state/current.md) for actual progress; later product packages and the automatic runner remain deferred. All protection and verification rules below remain in force.
 
 Operating instructions for coding agents in this repository. This file is the single source
 of rules: Codex and other tools read it directly, and `CLAUDE.md` imports it (`@AGENTS.md`)
