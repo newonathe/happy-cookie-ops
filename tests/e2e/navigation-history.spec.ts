@@ -37,11 +37,18 @@ test('browser Back and Forward retain the current runtime and route content', as
   await expect(page).toHaveURL('/');
   await requireScreen(page, 'Home');
 
-  expect(await page.evaluate(() => window.__hcOps === (window as Window & { __hcRuntimeBefore?: unknown }).__hcRuntimeBefore)).toBe(true);
+  expect(
+    await page.evaluate(
+      () =>
+        window.__hcOps === (window as Window & { __hcRuntimeBefore?: unknown }).__hcRuntimeBefore
+    )
+  ).toBe(true);
   expect(errors).toEqual([]);
 });
 
-test('bake action without a navigation tick retains the Bake plan browser entry', async ({ page }) => {
+test('bake action without a navigation tick retains the Bake plan browser entry', async ({
+  page
+}) => {
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto('/bake');
