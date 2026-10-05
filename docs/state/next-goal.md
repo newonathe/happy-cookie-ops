@@ -91,16 +91,16 @@ accepted slices after verify/secret scan; no new resources/jobs/runner/merge or 
 deployment without explicit approval. Finish with actual evidence and next goal.
 ```
 
-| Setting | Value |
-| --- | --- |
-| Coordinator and sign-off | Codex `gpt-6-sol` · high |
-| Bounded implementation workers | Codex `gpt-6-luna` · medium; at most two active workers |
-| Independent review | Sol/high for Luna changes involving SQL, auth, money or offline; Luna/medium for bounded root changes; port auditor for protected contracts |
-| Plan mode | Off after a short initial plan; the approved goal authorizes local work |
-| Permissions | Current session permissions; hosted writes, resources, deployment and merge need Ethan's explicit approval |
-| Browser QA | Headless command-line Playwright only; never Browser/Chrome-control plugins |
-| Toolchain | Node 24.20.0 / pnpm 9.12.3, pinned tools on PATH; `pnpm.cmd` on Windows |
-| Stop budget | Two failed fixes or 25 turns; checkpoint and stop at the boundary |
+| Setting                        | Value                                                                                                                                       |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| Coordinator and sign-off       | Codex `gpt-6-sol` · high                                                                                                                    |
+| Bounded implementation workers | Codex `gpt-6-luna` · medium; at most two active workers                                                                                     |
+| Independent review             | Sol/high for Luna changes involving SQL, auth, money or offline; Luna/medium for bounded root changes; port auditor for protected contracts |
+| Plan mode                      | Off after a short initial plan; the approved goal authorizes local work                                                                     |
+| Permissions                    | Current session permissions; hosted writes, resources, deployment and merge need Ethan's explicit approval                                  |
+| Browser QA                     | Headless command-line Playwright only; never Browser/Chrome-control plugins                                                                 |
+| Toolchain                      | Node 24.20.0 / pnpm 9.12.3, pinned tools on PATH; `pnpm.cmd` on Windows                                                                     |
+| Stop budget                    | Two failed fixes or 25 turns; checkpoint and stop at the boundary                                                                           |
 
 Read `AGENTS.md`, `docs/state/current.md`, `finish-plan.md` sections 6 and 10, `F1-operations.md`, and `evidence/F1-acceptance.json`. Reuse verified F1 evidence; do not restart the repository audit. Record the trial package under historical `MP-26` in task-status.json and identify its approved finish-plan name as F2.
 
