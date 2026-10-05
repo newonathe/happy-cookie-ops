@@ -114,17 +114,26 @@ const when = (value: string) =>
     minute: '2-digit'
   }).format(new Date(value));
 
-/** Shown only while `setupPending` (below) holds and nothing else is wrong. Addressed to the operator, not the owner. */
+/**
+ * Shown only while `setupPending` (below) holds and nothing else is wrong. Addressed to the
+ * operator, not the owner. It says what was observed (no run recorded), because the app
+ * cannot tell "not switched on" from "switched on, but nothing has recorded a run".
+ */
 export const SETUP_PENDING_COPY = {
-  title: 'Backups are not set up yet',
-  sub: 'A set-up task for Ethan: the four checks below have not been switched on, so the data is not backed up yet. Nothing for you to do.',
-  home: 'A set-up task for Ethan. Nothing for you to do.'
+  title: 'No backup has run yet',
+  sub: 'A set-up task for Ethan, not for the kitchen: none of the four checks below has recorded a run, so the data is not backed up yet. Once they are switched on, their first run must show up here.',
+  home: 'A set-up task for Ethan, not for the kitchen.'
 } as const;
+
+/** A health read is trusted for this long; older than this, nothing is claimed from it. */
+export const HEALTH_FRESH_MS = 5 * 60_000;
+/** How often an open, visible page re-reads health. Must stay under `HEALTH_FRESH_MS`. */
+export const HEALTH_REFRESH_MS = 4 * 60_000;
 
 /**
  * No green claim on a missing read, failed job or stale result. These are technical status records, not customer data.
  *
- * `setupPending` (UX review, proposal 2): the backup jobs have not been switched on. It is a
+ * `setupPending` (UX review, proposal 2): the backup jobs have not started. It is a
  * positive finding, never a default: a current, successful read in which no job has ever
  * recorded a run. Then the four job rows keep their facts but stop raising alerts; the
  * headline still is not "Healthy". A missing, failed or stale read is never this state, and
@@ -144,7 +153,7 @@ export function healthView(
     phase === 'ready' &&
     data !== null &&
     now >= Date.parse(data.checked_at) - 60_000 &&
-    now - Date.parse(data.checked_at) <= 5 * 60_000;
+    now - Date.parse(data.checked_at) <= HEALTH_FRESH_MS;
   const setupPending = fresh && jobs.every(([key]) => data.jobs[key].last_run === null);
   const rows: OpsVals['healthRows'] = [
     {

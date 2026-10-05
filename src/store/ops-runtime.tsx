@@ -15,6 +15,7 @@ import { idb } from '@/lib/offline/idb';
 import {
   fetchOperationsHealth,
   healthView,
+  HEALTH_REFRESH_MS,
   SETUP_PENDING_COPY,
   type HealthPhase,
   type LiveAlert,
@@ -548,6 +549,7 @@ export class OpsRuntime extends OpsProvider {
 
   private stopViewportTracking?: () => void;
   private resetNoticeTimer?: ReturnType<typeof setTimeout>;
+  private healthTimer?: ReturnType<typeof setInterval>;
   private settingsSync?: SettingsSync;
   private flavourSync?: FlavourSync;
   private paymentSync?: PaymentSync;
@@ -1304,6 +1306,8 @@ export class OpsRuntime extends OpsProvider {
   componentWillUnmount(): void {
     clearTimeout(this.resetNoticeTimer);
     this.resetNoticeTimer = undefined;
+    clearInterval(this.healthTimer);
+    this.healthTimer = undefined;
     super.componentWillUnmount?.();
     this.stopViewportTracking?.();
     this.settingsSync?.dispose();
@@ -1328,6 +1332,7 @@ export class OpsRuntime extends OpsProvider {
     const use = client ?? this.operationsClient;
     if (!use) return false;
     this.operationsClient = use;
+    this.keepHealthFresh();
     const seq = ++this.operationsLoadSeq;
     try {
       if (!idb.supported()) throw new Error('Queue storage unavailable');
@@ -1345,6 +1350,19 @@ export class OpsRuntime extends OpsProvider {
       this.setState({});
       return false;
     }
+  }
+
+  /**
+   * A health read is trusted for five minutes (`healthView`). Re-read it while the page is
+   * visible, so a screen left open does not drift into "could not verify" and bring back
+   * alerts the last read had cleared. A hidden page waits for the gate's visibility
+   * re-check. Offline nothing can be re-read, so the alerts do return after five minutes.
+   */
+  private keepHealthFresh(): void {
+    if (this.healthTimer) return;
+    this.healthTimer = setInterval(() => {
+      if (document.visibilityState === 'visible') void this.loadOperationsHealth(null);
+    }, HEALTH_REFRESH_MS);
   }
 
   /** The recorded checks as System health shows them, for the state given. */

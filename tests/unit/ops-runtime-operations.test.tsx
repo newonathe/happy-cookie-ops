@@ -124,25 +124,25 @@ describe('F1 live health and alerts', () => {
     expect(runtime.notifs(runtime.state)).toEqual([]);
     expect(vals.notifications).toEqual([]);
     expect(screen.getAllByText('Not yet recorded — activation pending')).toHaveLength(4);
-    expect(screen.getByText('Backups are not set up yet')).toBeTruthy();
+    expect(screen.getByText('No backup has run yet')).toBeTruthy();
     expect(screen.queryByText('Healthy')).toBeNull();
     expect(vals.healthOk).toBe(false);
     expect(vals.healthRows.some((row) => row.bad)).toBe(false);
     expect(vals.system).toMatchObject({
       ok: false,
       bad: true,
-      label: 'Backups are not set up yet',
-      detail: 'A set-up task for Ethan. Nothing for you to do.'
+      label: 'No backup has run yet',
+      detail: 'A set-up task for Ethan, not for the kitchen.'
     });
     expect(item(vals, 'System health')).toMatchObject({
-      sub: 'Backups are not set up yet',
+      sub: 'No backup has run yet',
       badge: null
     });
     expect(runtime.state.backup).toBe('ok');
     expect(moreBadge(vals)).toBe(0);
     const launcher = vals.launcher.flatMap((group) => group.items);
     expect(launcher.find((row) => row.label === 'System health')?.sub).toBe(
-      'Backups are not set up yet'
+      'No backup has run yet'
     );
     expect(launcher.find((row) => row.label === 'Backups & export')?.sub).toBe(
       'Recorded checks and books CSV'
@@ -151,7 +151,7 @@ describe('F1 live health and alerts', () => {
       vals.settingsGroups
         .flatMap((group) => group.rows)
         .find((row) => row.label === 'Backups and export')?.value
-    ).toBe('Backups are not set up yet');
+    ).toBe('No backup has run yet');
 
     // The first recorded run ends the quiet state: a failure alerts, and so do the jobs still missing.
     rpc.mockResolvedValue(
@@ -182,6 +182,54 @@ describe('F1 live health and alerts', () => {
     await act(async () => void (await runtime.loadOperationsHealth(null)));
     expect(runtime.notifs(runtime.state).length).toBeGreaterThan(0);
     expect(runtime.state.backup).toBe('failed');
+  });
+  it('an open page re-reads health before the read goes stale, so the quiet state does not wear off', async () => {
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval', 'Date'] });
+    try {
+      const runtime = mount();
+      const missing = { last_run: null, last_success: null };
+      const rpc = vi.fn(async () => ({
+        data: {
+          checked_at: new Date().toISOString(),
+          jobs: { backup: missing, restore: missing, retention: missing, keepalive: missing }
+        },
+        error: null
+      }));
+      const client = { rpc } as unknown as OperationsClient;
+      await act(async () => void (await runtime.loadOperationsHealth(client)));
+      expect(rpc).toHaveBeenCalledTimes(1);
+      expect(runtime.notifs(runtime.state)).toEqual([]);
+
+      // Seven minutes with the page open: re-read at four minutes, so it is still current.
+      await act(async () => void (await vi.advanceTimersByTimeAsync(7 * 60_000)));
+      expect(rpc).toHaveBeenCalledTimes(2);
+      act(() => runtime.setState({}));
+      expect(runtime.notifs(runtime.state)).toEqual([]);
+      expect(runtime.state.backup).toBe('ok');
+      expect(runtime.renderVals().healthTitle).toBe('No backup has run yet');
+
+      // A hidden page does not re-read. Once its last read is older than five minutes the
+      // app claims nothing from it: every check alerts again until the next successful read.
+      const visibility = vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('hidden');
+      await act(async () => void (await vi.advanceTimersByTimeAsync(10 * 60_000)));
+      expect(rpc).toHaveBeenCalledTimes(2);
+      act(() => runtime.setState({}));
+      expect(runtime.notifs(runtime.state).map((alert) => alert.label)).toContain(
+        'Encrypted database backup: Not yet recorded — activation pending'
+      );
+      expect(runtime.state.backup).toBe('failed');
+      visibility.mockReturnValue('visible');
+      await act(async () => void (await runtime.loadOperationsHealth(null)));
+      expect(runtime.notifs(runtime.state)).toEqual([]);
+
+      // Leaving the app stops the re-reads.
+      cleanup();
+      const calls = rpc.mock.calls.length;
+      await vi.advanceTimersByTimeAsync(20 * 60_000);
+      expect(rpc).toHaveBeenCalledTimes(calls);
+    } finally {
+      vi.useRealTimers();
+    }
   });
   it('a healthy record clears the engine backup flag, and going offline raises it again', async () => {
     const runtime = mount();
