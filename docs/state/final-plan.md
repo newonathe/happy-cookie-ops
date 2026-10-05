@@ -404,8 +404,52 @@ row; one list, one page, one form; her words.
 | Account   |           | Settings (targets, margin floor, shop name, retention, sign-out timer); people and what each can see; system health; backups and export; alerts.                                                                                                  | Regroup              |
 | Customer  |           | Shop, checkout, order status, find my order, waitlist, on a phone, a tablet and a desktop.                                                                                                                                                        | Redesign             |
 
-Leaving the live app: All tools, the Form queue entry, the prototype's helper names, and
+Leaving the live app (see 8.1 for the only two functions not carried over): All tools, the Form queue entry, the prototype's helper names, and
 the "Your business" grid on Home.
+
+### 8.1 One home for everything that exists today
+
+Ethan, 5 October: the software is feature-heavy and every feature stays, but it must
+feel consolidated, organised, complete, easy to navigate and not redundant. So nothing
+is removed; each function gets **exactly one home**, and the same thing is never offered
+under two names. The live app has 33 All tools entries, 25 routes and 29 sheets today.
+They become 13 places under five tabs, plus Account and the bell.
+
+| Home              | Holds, from today's All tools entries                                                                                                                                                         | What stops being duplicated                                                    |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| Home              | (the Home screen; this week's orders, from Drops)                                                                                                                                             | The "Your business" grid that repeated the menu.                               |
+| Sell › Orders     | Orders & payments; **Payments** (a "to check" filter, not a second screen); **Customer messages** (on the order's page)                                                                       | Two places to tick an order paid.                                              |
+| Sell › Bazaar     | Bazaar Mode; **Bazaar events**                                                                                                                                                                | Bookings edited away from the bazaar.                                          |
+| Sell › Customers  | Customers & waitlist (the waiting list is a filter)                                                                                                                                           | —                                                                              |
+| Sell › Shop       | Shop status; **Order rules**; **Boxes & add-ons**; **Payment methods**; **Shop texts**; Drops (open, close, sold out); Preview shop, Preview checkout and Preview order status as one Preview | Three preview entries; shop set-up spread over two groups.                     |
+| Make › Bake plan  | Bake & dough (with production)                                                                                                                                                                | —                                                                              |
+| Make › Recipes    | **Recipes; Recipe drafts; Products; Menu & flavours**                                                                                                                                         | Four entries for one thing. On sale or off sale is switched in one place only. |
+| Stock › Inventory | Inventory; **Stock items** (edited on the item's page); the weekly count                                                                                                                      | A separate form to edit what the list already shows.                           |
+| Stock › Grocery   | Grocery                                                                                                                                                                                       | —                                                                              |
+| Stock › Suppliers | **Suppliers; Suppliers & prices**                                                                                                                                                             | Two entries for one thing.                                                     |
+| Money › P&L       | Profit & loss                                                                                                                                                                                 | —                                                                              |
+| Money › Sales     | Sales log                                                                                                                                                                                     | A sales list and a P&L drill-down that read different sources: both read one.  |
+| Money › Expenses  | Books & costs                                                                                                                                                                                 | —                                                                              |
+| Account           | Settings; **System health; Backups & export** as one "System and backups"                                                                                                                     | Two entries for one thing.                                                     |
+| The bell          | Notifications                                                                                                                                                                                 | —                                                                              |
+
+Routes follow their function: the Order detail, Payments, Production, Stock count and
+Products addresses open the home above and keep working. The 29 sheets stay as the
+actions of the record they belong to (receive, count, waste, refund, swap, close-out and
+the rest).
+
+**Two things are not carried over, and only these:** All tools itself, which the tabs
+replace; and **Form queue**, the entry for the Google Form bridge that was cut on
+28 September and never built, so it has nothing behind it.
+
+How "not redundant" is kept true:
+
+- A thing can be **shown** in a second place but is **changed** in one. The Shop page
+  lists what is on sale and links to the flavour; the switch lives on the flavour.
+- A number shown in two places reads from one source (the cost function, the sales read).
+- One name per thing, settled in the wording pass.
+- Slice B1 carries this table as a test: every one of the 33 entries and 25 routes has
+  a home, and none has two.
 
 ## 9. Order of work
 
@@ -426,15 +470,15 @@ opened online at the stall and never closed, installed on the Home Screen, paper
 **Stage B — foundations and her two top areas** (database track attended; B1, B2, B5,
 B6 on the interface track)
 
-| #   | Slice                                                                                                                                                                                                                                                                                                    | Size | Proof                                                                                   |
-| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | --------------------------------------------------------------------------------------- |
-| B1  | The permanent pieces only: the guarded screen slot (protected exception, port audit); five labelled tabs in the dock and sidebar through data, with all 33 All tools entries and 25 routes mapped to one; a live-mode smoke suite run locally against the local database (CI has none), evidence pasted. | M    | Function checklist with none unmapped; demo build and baselines unchanged.              |
-| B2  | Nothing fake on screen (H1 to H6, H14, C1), one Manila clock (C10, C2); empty-shop and two-shops tests.                                                                                                                                                                                                  | M    | Two-shops test.                                                                         |
-| B3  | Database window: links by identity; her usual price per item; weighted average cost stamped on each use; shortfall costed; packaging rules; security rules wrapped and indexed.                                                                                                                          | L    | SQL role suite; money tests; independent review.                                        |
-| B4  | Her data, each import previewed and approved: prices, recipes, flavours, photos, newer sales, bookings, packaging costs.                                                                                                                                                                                 | L    | Counts and hashes; **her 23 costing rows reproduced**, ingredients against ingredients. |
-| B5  | New Stock: Inventory and Grocery (Have, Needed, To buy; Out, Low, Good).                                                                                                                                                                                                                                 | L    | Same movements as today; accessibility scan.                                            |
-| B6  | New Recipes: picture grid and flavour page with cost, margin, stock state, versions.                                                                                                                                                                                                                     | L    | An incomplete cost names what is missing.                                               |
-| B7  | Targets and margin floor as settings; target bar on Home. Wording pass with Cine. Security gate 1.                                                                                                                                                                                                       | M    | Her word list; findings fixed or recorded.                                              |
+| #   | Slice                                                                                                                                                                                                                                                                                                    | Size | Proof                                                                                                                          |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------ |
+| B1  | The permanent pieces only: the guarded screen slot (protected exception, port audit); five labelled tabs in the dock and sidebar through data, with all 33 All tools entries and 25 routes mapped to one; a live-mode smoke suite run locally against the local database (CI has none), evidence pasted. | M    | The function map of section 8.1 as a test, with nothing unmapped and nothing mapped twice; demo build and baselines unchanged. |
+| B2  | Nothing fake on screen (H1 to H6, H14, C1), one Manila clock (C10, C2); empty-shop and two-shops tests.                                                                                                                                                                                                  | M    | Two-shops test.                                                                                                                |
+| B3  | Database window: links by identity; her usual price per item; weighted average cost stamped on each use; shortfall costed; packaging rules; security rules wrapped and indexed.                                                                                                                          | L    | SQL role suite; money tests; independent review.                                                                               |
+| B4  | Her data, each import previewed and approved: prices, recipes, flavours, photos, newer sales, bookings, packaging costs.                                                                                                                                                                                 | L    | Counts and hashes; **her 23 costing rows reproduced**, ingredients against ingredients.                                        |
+| B5  | New Stock: Inventory and Grocery (Have, Needed, To buy; Out, Low, Good).                                                                                                                                                                                                                                 | L    | Same movements as today; accessibility scan.                                                                                   |
+| B6  | New Recipes: picture grid and flavour page with cost, margin, stock state, versions.                                                                                                                                                                                                                     | L    | An incomplete cost names what is missing.                                                                                      |
+| B7  | Targets and margin floor as settings; target bar on Home. Wording pass with Cine. Security gate 1.                                                                                                                                                                                                       | M    | Her word list; findings fixed or recorded.                                                                                     |
 
 **Stage C — the rest, all before her week** (the last line, gate 2's adviser items, can
 finish before the shop opens)

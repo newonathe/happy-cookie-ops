@@ -218,6 +218,11 @@ words and the packaging costs he gave are kept privately
   are cleared at handover.
 - Reorder levels and "regular" customers: worked out by rule, from research and her own
   data ([final-plan.md](final-plan.md) section 7, decisions 8 and 9).
+- **Everything that can change is hers to change**, on sale or off sale included; the
+  inventory is [final-plan.md](final-plan.md) section 6.7.
+- **Every feature stays, each with exactly one home, nothing offered twice**; the map of
+  today's 33 entries and 25 routes onto 13 places is section 8.1. Not carried over: All
+  tools itself and the Form queue entry, which has nothing behind it.
 - No session with Cine on the sketches first: "just do everything fast". The wording
   pass before her week stays.
 
