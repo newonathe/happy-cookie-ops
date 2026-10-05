@@ -344,7 +344,15 @@ describe('recordDiscard', () => {
     const rpc = vi.fn(async () => ({ data: [{ record_id: ID, duplicate: true }], error: null }));
     const r = await recordDiscard(client(rpc), dis({ reason: ' Spoiled ' }));
     expect(rpc).toHaveBeenCalledWith('record_discard', {
-      p_rec: { id: ID, kind: 'dough', product_id: 'dcf', qty: 2, reason: 'Spoiled', drop_no: 5, at: AT }
+      p_rec: {
+        id: ID,
+        kind: 'dough',
+        product_id: 'dcf',
+        qty: 2,
+        reason: 'Spoiled',
+        drop_no: 5,
+        at: AT
+      }
     });
     expect(r).toEqual({ outcome: 'saved', duplicate: true });
   });
@@ -354,10 +362,34 @@ describe('recordDiscard', () => {
     ['23505', 'refused'],
     ['42501', 'refused'],
     ['08006', 'offline']
-  ])('an error %s is %s; a thrown request and an unreadable answer are offline', async (code, outcome) => {
-    expect((await recordDiscard(client(async () => ({ data: null, error: { code } })), dis())).outcome).toBe(outcome);
-    expect((await recordDiscard(client(async () => Promise.reject(new Error('net'))), dis())).outcome).toBe('offline');
-    expect((await recordDiscard(client(async () => ({ data: [{ duplicate: 'x' }], error: null })), dis())).outcome).toBe('offline');
-    // Mutation: treating a refusal as offline keeps a refused id alive for a retry.
-  });
+  ])(
+    'an error %s is %s; a thrown request and an unreadable answer are offline',
+    async (code, outcome) => {
+      expect(
+        (
+          await recordDiscard(
+            client(async () => ({ data: null, error: { code } })),
+            dis()
+          )
+        ).outcome
+      ).toBe(outcome);
+      expect(
+        (
+          await recordDiscard(
+            client(async () => Promise.reject(new Error('net'))),
+            dis()
+          )
+        ).outcome
+      ).toBe('offline');
+      expect(
+        (
+          await recordDiscard(
+            client(async () => ({ data: [{ duplicate: 'x' }], error: null })),
+            dis()
+          )
+        ).outcome
+      ).toBe('offline');
+      // Mutation: treating a refusal as offline keeps a refused id alive for a retry.
+    }
+  );
 });
