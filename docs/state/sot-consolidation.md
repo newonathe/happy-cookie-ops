@@ -224,6 +224,37 @@ days. That is past the 20 October gate, so S1 decides what the October bazaar ru
 - "Start clean, no history" was reversed on 5 October for sales and purchase costs. S6
   continues that; S7 now extends it to the order-form customers.
 
+## 11. Third pass, late on 5 October: the same three sources, supplied again
+
+Ethan supplied the workbook, the recipe document (now named "Flavor Recipes and Prices")
+and the picture folder (as a zip) again and asked for an audit. They were compared with
+the copies audited above. Counts only; costs, recipes and customer rows stay private.
+
+| Check                                         | Result                                                                                                                                  |
+| --------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| Workbook, every cell of all 17 sheets         | **Identical**: no value and no formula differs. The file's bytes differ only because it was exported again (SHA-256 `3be4b054…c3ed8f`). |
+| Recipe document, all 368 paragraphs, 6 tables | **Identical text.** Only the file name changed (SHA-256 `cbe3a4ea…da3d71`).                                                             |
+| Picture folder, all 28 files                  | **Identical**, byte for byte: 15 finished PNGs, 12 layered Photoshop files, 1 zip of raw photos.                                        |
+
+So sections 1 to 4 above stand unchanged. Checked in addition this time:
+
+- **Her costing can be reproduced from her own price list.** Of 321 recipe lines, 3
+  ingredient lines name something not in the Ingredient Master (oats, sea salt, a sauce
+  tub) and 2 have a unit that does not match. Recomputing each recipe's ingredient cost
+  from the master's unit costs gives her sheet's figure for 18 of 23 flavours, and for
+  **all seven flavours on sale**. This is the accuracy test of slice B4, dry-run.
+- **Packaging lines are the weak part of the recipes.** Every flavour has one or two, but
+  their units are inconsistent (pieces, bags, grams) and two flavours carry packaging
+  totals far out of line with the rest. The six packaging costs Ethan gave on 5 October
+  replace the workbook's, and Cine confirms each flavour's packaging in set-up.
+- **Pictures:** all seven flavours on sale have a finished picture. The 15 PNGs are 0.8
+  to 18.2 MB and from 1,080 by 1,080 up to 4,284 by 5,712 pixels; the app's upload limit
+  is 2 MB, so each is resized on the way in. Two flavours still have no finished picture
+  (Gooey Nutella; Red Velvet Cheesecake has only a Photoshop file).
+- **Sales:** 781 rows over eight calendar months (March to early October), with the
+  monthly totals and cookie counts now worked out privately. They are the basis for
+  showing Cine her own best month beside the target field in set-up.
+
 ## Sources for section 6
 
 - [Square: Customer Directory](https://squareup.com/help/us/en/article/5498-customer-directory)

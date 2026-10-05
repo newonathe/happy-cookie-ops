@@ -301,6 +301,35 @@ One approved exception to the locked files: a guarded, live-only screen slot in 
 frame (decision 4 in section 1). It is recorded in
 [protected-exception.md](protected-exception.md) and built in slice B1.
 
+### 6.7 Everything that can change is hers to change
+
+Ethan, 5 October: "Everything that you think is a variable and might change must be
+editable and configurable", and on sale or off sale is Cine's switch. This is the
+inventory the build is checked against. "Today" means a form or setting for it exists in
+the live app now; each is re-checked in slice B2, and anything found fixed in code is
+moved to a setting there.
+
+| Thing                       | What she can change                                                                                                                                                             | Today                                           | Arrives in                                                    |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- | ------------------------------------------------------------- |
+| Flavours                    | Add, rename, describe, picture, allergens, price, permanent or rotating, **on sale or off sale**, retire.                                                                       | Yes (flavour editor and publish).               | B6 moves it into the flavour page as one switch and a filter. |
+| Recipes                     | Ingredient lines, quantities, units, yield, versions, the flavour's own packaging lines.                                                                                        | Yes, except packaging lines.                    | B3, B6                                                        |
+| Ingredients and packaging   | Name, unit, pack, **usual price**, supplier, shelf life, a level that overrides the Low rule, "I do not buy this", switch off.                                                  | Yes, except usual price and the two switches.   | B3, B5                                                        |
+| Suppliers and their prices  | Add, edit, switch off; each price with its own pack.                                                                                                                            | Yes.                                            | B3 (pack per price)                                           |
+| Boxes, samplers, add-ons    | Box sizes and charges; **each sampler size, its price, on or off**; add-ons with prices and options; the same-day charge.                                                       | Yes; samplers as a list is new.                 | B3, B4                                                        |
+| Order rules                 | When orders open and close, pickup days and hours, the campus slot, lead days, the weekly limit, how long an unpaid order is held, the limit per phone, most cookies per order. | Yes.                                            | —                                                             |
+| Payment methods, shop texts | Each method, its details and picture, on or off; every sentence the shop shows.                                                                                                 | Yes.                                            | —                                                             |
+| Shop details                | Business name, address, phone, email, how customers should reach her, the privacy text, how long customer details are kept, the time zone.                                      | No: written into code in several places.        | B2, set-up                                                    |
+| Money                       | Expense categories, cost basis, **monthly and weekly target, lowest acceptable margin**, tax set-aside, discounts, float, grocery budget.                                       | Stored as settings; targets and margin are new. | B2, B7                                                        |
+| Stock and customer rules    | Days of stock cover; when a customer is Returning, Regular, Not seen lately.                                                                                                    | No.                                             | B5, stage C                                                   |
+| Bazaars                     | Bookings and their details; stock, prices and float for a day; expenses.                                                                                                        | Yes; days are new.                              | Stage C                                                       |
+| People and access           | Whether helpers see sale totals; minutes before sign-out per role; shop open or closed now.                                                                                     | Yes.                                            | —                                                             |
+
+**Deliberately fixed, and why:** the steps an order moves through (awaiting payment, paid,
+ready, collected, and the three endings), because the database's safety rules are built
+on them; the allowed range of each setting (a hold of 1 to 168 hours), so a typing slip
+cannot break ordering; who may do what (owner, helper, support); and the app's own name.
+If Cine needs one of these changed, that is a change request, not a setting.
+
 ## 7. Architecture and data model
 
 1. **Stock is moves between places**, append-only, corrected by an opposite entry.
