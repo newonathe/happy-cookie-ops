@@ -88,8 +88,8 @@ Later on 5 October, asked three things after the first batch shipped (the dock; 
 system card: "Keep the red one, or approve that exception?"; finding 11), Ethan answered:
 "yes to all three, do what u recommend". The dock and finding 11 were clear. For the card,
 Claude read the yes as approval of the neutral card, because his proposal 2 decision was to
-remove the red alerts from Cine's Home; the record says how to undo it if he meant
-otherwise.
+remove the red alerts from Cine's Home. Asked to confirm after it shipped, Ethan answered
+the same day: "keep it neutral, leave finding 12 for now".
 
 ## Implemented on 5 October
 
@@ -187,7 +187,7 @@ the demo build and the visual baselines are untouched.
 
 ### Found while capturing
 
-| #   | Finding                                                                                                                                                                                                                      | Where     | State                  |
-| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- | ---------------------- |
-| 11  | On a phone the Business cards in All tools ran off the right edge, because long descriptions stretched the column.                                                                                                           | All tools | Fixed, `7035937`       |
-| 12  | A signed-in helper is greeted with the prototype helper's name ("Good morning, Kristian.") and sees the prototype's "You are seeing what a helper sees" note, whatever their own profile name is. Only owners use the trial. | Home      | Not changed; to decide |
+| #   | Finding                                                                                                                                                                                                                      | Where     | State                           |
+| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- | ------------------------------- |
+| 11  | On a phone the Business cards in All tools ran off the right edge, because long descriptions stretched the column.                                                                                                           | All tools | Fixed, `7035937`                |
+| 12  | A signed-in helper is greeted with the prototype helper's name ("Good morning, Kristian.") and sees the prototype's "You are seeing what a helper sees" note, whatever their own profile name is. Only owners use the trial. | Home      | Left for now (Ethan, 5 October) |

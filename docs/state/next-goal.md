@@ -20,9 +20,10 @@ Do not restart setup, reimport the 804 financial rows or reformat evidence recei
 Every green push to this branch redeploys the private trial: push only accepted work
 and read each CI run. Run pnpm build:pages:spike before every push.
 1. UX review. Proposals 1 to 4, the neutral Home card and finding 11 are on the trial.
-   Proposal 5 is not being done. Open: Ethan's own look at the changed screens on the
-   trial, and finding 12 (a helper is greeted by the prototype helper's name) if he
-   wants it fixed. Change nothing else in the UI without his answer.
+   Proposal 5 is not being done. Ethan confirmed the neutral Home card and left
+   finding 12 (a helper is greeted by the prototype helper's name) for now. Open: his
+   own look at the changed screens on the trial. Change nothing else in the UI without
+   his answer.
 2. Cine's closed-shop week: record her sign-in on iPhone and MacBook, password change,
    seven dates, opening count, the six recipes as she weighs them, agreed test orders,
    the daily log and her feedback. Record only what people supply. Fix reproduced

@@ -695,8 +695,8 @@ no backup job has ever recorded a run, green would be a false claim and red put 
 alert in front of Cine for a set-up task that is Ethan's. Asked "Keep the red one, or
 approve that exception?", Ethan answered on 5 October: "yes to all three, do what u
 recommend". Claude read that as approval of the neutral card, because his proposal 2
-decision was to remove the red alerts from Cine's Home. If he meant "keep the red one",
-remove the block below and `system.pending` in `OpsRuntime.renderVals()`.
+decision was to remove the red alerts from Cine's Home. Ethan confirmed it after it
+shipped, the same day: "keep it neutral".
 
 Exact edit in `src/components/screens/home.tsx`: one block inserted between the red branch
 and the Review button. It renders only when `system.pending` is set, which only the live
