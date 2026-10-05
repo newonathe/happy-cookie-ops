@@ -15,6 +15,7 @@ import { idb } from '@/lib/offline/idb';
 import {
   fetchOperationsHealth,
   healthView,
+  SETUP_PENDING_COPY,
   type HealthPhase,
   type LiveAlert,
   type OperationsClient,
@@ -1337,6 +1338,37 @@ export class OpsRuntime extends OpsProvider {
     }
   }
 
+  /** The recorded checks as System health shows them, for the state given. */
+  private liveHealth(s: OpsEngineState) {
+    return healthView(
+      this.operationsHealth,
+      this.operationsPhase,
+      Date.now(),
+      this.operationsQueue < 0 ? -1 : Math.max(this.operationsQueue, s.unsynced),
+      s.online
+    );
+  }
+
+  /**
+   * Live only. The protected engine adds `backup` to the All tools badge and to Home's
+   * "things need you" line, and nothing else feeds that flag in live mode, so it stayed
+   * 'failed' whatever the recorded checks said. Keep it in step with them: 'failed' while
+   * any health row is raising an alert. The device's own queue is left out when the engine
+   * already counts it through `unsynced`. The wording the flag also drives ("Healthy",
+   * "Backed up") is replaced in `renderVals`, so 'ok' here never becomes a green claim.
+   */
+  componentDidUpdate(...args: Parameters<NonNullable<OpsProvider['componentDidUpdate']>>): void {
+    super.componentDidUpdate?.(...args);
+    if (!isLiveMode()) return;
+    const s = this.state;
+    const backup = this.liveHealth(s).healthRows.some(
+      (row) => row.bad && (row.label !== 'Bazaar sync' || !(s.unsynced > 0))
+    )
+      ? 'failed'
+      : 'ok';
+    if (s.backup !== backup) this.setState({ backup });
+  }
+
   /** The inherited screens and badges call this method; demo uses the original implementation. */
   notifs(s: OpsEngineState): LiveAlert[] {
     if (!isLiveMode())
@@ -1368,14 +1400,8 @@ export class OpsRuntime extends OpsProvider {
         go: () => this.go(k)
       });
     };
-    const view = healthView(
-      this.operationsHealth,
-      this.operationsPhase,
-      Date.now(),
-      this.operationsQueue < 0 ? -1 : Math.max(this.operationsQueue, s.unsynced),
-      s.online
-    );
-    for (const row of view.healthRows.filter((row) => row.bad)) {
+    // Checks that were never switched on are not `bad` (see `healthView`), so they raise nothing here.
+    for (const row of this.liveHealth(s).healthRows.filter((row) => row.bad)) {
       add(
         row.label === 'Encrypted database backup' ? 'Backup failure' : 'System error',
         'health',
@@ -1437,13 +1463,7 @@ export class OpsRuntime extends OpsProvider {
     if (HARNESS && !isLiveMode()) return vals;
     const starved = { ...vals, devices: [], roles: [], showPhoneWidths: false } as OpsVals;
     if (!isLiveMode()) return starved;
-    const health = healthView(
-      this.operationsHealth,
-      this.operationsPhase,
-      Date.now(),
-      this.operationsQueue < 0 ? -1 : Math.max(this.operationsQueue, this.state.unsynced),
-      this.state.online
-    );
+    const { setupPending, ...health } = this.liveHealth(this.state);
     const healthProblems = health.healthRows.filter((row) => row.bad).length;
     // Live: the real app, not the review harness. No header row, flow strip or flow bar,
     // and the device frame fills the screen instead of drawing a phone/tablet mock-up (so the
@@ -1482,6 +1502,23 @@ export class OpsRuntime extends OpsProvider {
             : item.label === 'Backups & export'
               ? { ...item, sub: 'Recorded checks and books CSV' }
               : item
+        )
+      })),
+      // Home's grid and the Settings row word the engine's `backup` flag; say what was recorded instead.
+      launcher: (starved.launcher ?? []).map((group) => ({
+        ...group,
+        items: group.items.map((item) =>
+          item.label === 'System health'
+            ? { ...item, sub: health.healthTitle }
+            : item.label === 'Backups & export'
+              ? { ...item, sub: 'Recorded checks and books CSV' }
+              : item
+        )
+      })),
+      settingsGroups: (starved.settingsGroups ?? []).map((group) => ({
+        ...group,
+        rows: group.rows.map((row) =>
+          row.label === 'Backups and export' ? { ...row, value: health.healthTitle } : row
         )
       })),
       productRows:
@@ -1531,7 +1568,10 @@ export class OpsRuntime extends OpsProvider {
         ok: health.healthOk,
         bad: !health.healthOk,
         label: health.healthTitle,
-        detail: health.healthSub
+        detail:
+          setupPending && health.healthTitle === SETUP_PENDING_COPY.title
+            ? SETUP_PENDING_COPY.home
+            : health.healthSub
       },
       // The database's books are exportable; demo record-group examples are never live evidence.
       recordGroups:

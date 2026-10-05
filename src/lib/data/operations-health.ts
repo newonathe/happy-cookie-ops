@@ -114,19 +114,38 @@ const when = (value: string) =>
     minute: '2-digit'
   }).format(new Date(value));
 
-/** No green claim on a missing read, failed job or stale result. These are technical status records, not customer data. */
+/** Shown only while `setupPending` (below) holds and nothing else is wrong. Addressed to the operator, not the owner. */
+export const SETUP_PENDING_COPY = {
+  title: 'Backups are not set up yet',
+  sub: 'A set-up task for Ethan: the four checks below have not been switched on, so the data is not backed up yet. Nothing for you to do.',
+  home: 'A set-up task for Ethan. Nothing for you to do.'
+} as const;
+
+/**
+ * No green claim on a missing read, failed job or stale result. These are technical status records, not customer data.
+ *
+ * `setupPending` (UX review, proposal 2): the backup jobs have not been switched on. It is a
+ * positive finding, never a default: a current, successful read in which no job has ever
+ * recorded a run. Then the four job rows keep their facts but stop raising alerts; the
+ * headline still is not "Healthy". A missing, failed or stale read is never this state, and
+ * the first recorded run of any job ends it, so a job that then fails, goes stale or never
+ * runs alerts as before.
+ */
 export function healthView(
   data: OperationsHealth | null,
   phase: HealthPhase,
   now: number,
   pending: number,
   online: boolean
-): Pick<OpsVals, 'healthRows' | 'healthOk' | 'healthTitle' | 'healthSub'> {
+): Pick<OpsVals, 'healthRows' | 'healthOk' | 'healthTitle' | 'healthSub'> & {
+  setupPending: boolean;
+} {
   const fresh =
     phase === 'ready' &&
     data !== null &&
     now >= Date.parse(data.checked_at) - 60_000 &&
     now - Date.parse(data.checked_at) <= 5 * 60_000;
+  const setupPending = fresh && jobs.every(([key]) => data.jobs[key].last_run === null);
   const rows: OpsVals['healthRows'] = [
     {
       label: 'Database connection',
@@ -168,7 +187,7 @@ export function healthView(
         (latest?.status === 'failed' && success
           ? ' Last success: ' + when(success.completed_at) + '.'
           : ''),
-      bad: !good,
+      bad: !good && !setupPending,
       good,
       retry: false
     });
@@ -194,14 +213,24 @@ export function healthView(
     good: false,
     retry: false
   });
-  const ok = rows.every((row) => !row.bad);
+  const clear = rows.every((row) => !row.bad);
+  const ok = clear && !setupPending;
   return {
     healthRows: rows,
     healthOk: ok,
     healthTitle:
-      phase === 'loading' ? 'Checking system health' : ok ? 'Healthy' : 'Needs attention',
+      phase === 'loading'
+        ? 'Checking system health'
+        : ok
+          ? 'Healthy'
+          : clear
+            ? SETUP_PENDING_COPY.title
+            : 'Needs attention',
     healthSub: ok
       ? 'Recorded backup, restore, retention and activity checks are current.'
-      : 'Check the results below. Missing or old results do not prove the data is protected.'
+      : clear
+        ? SETUP_PENDING_COPY.sub
+        : 'Check the results below. Missing or old results do not prove the data is protected.',
+    setupPending
   };
 }

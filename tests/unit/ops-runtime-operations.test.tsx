@@ -73,16 +73,21 @@ describe('F1 live health and alerts', () => {
   it('preserves dismissed alerts across successful health refreshes until explicitly restored', async () => {
     const runtime = mount();
     const missing = { last_run: null, last_success: null };
+    const failed = {
+      last_run: { status: 'failed', completed_at: new Date().toISOString(), archive_sha256: null },
+      last_success: null
+    };
     const client = {
       rpc: vi.fn().mockResolvedValue({
         data: {
           checked_at: new Date().toISOString(),
-          jobs: { backup: missing, restore: missing, retention: missing, keepalive: missing }
+          jobs: { backup: failed, restore: missing, retention: missing, keepalive: missing }
         },
         error: null
       })
     } as unknown as OperationsClient;
     await act(async () => void (await runtime.loadOperationsHealth(client)));
+    expect(runtime.renderVals().notifications).toHaveLength(4);
     act(() => runtime.renderVals().clearNotifs());
     expect(runtime.renderVals().notifications).toEqual([]);
     const dismissed = runtime.state.notifRead;
@@ -91,6 +96,114 @@ describe('F1 live health and alerts', () => {
     expect(runtime.renderVals().notifications).toEqual([]);
     act(() => runtime.renderVals().restoreNotifs());
     expect(runtime.renderVals().notifications.length).toBeGreaterThan(0);
+  });
+  it('backups never switched on: facts stay in System health, no alert or badge, and no green claim', async () => {
+    const runtime = mount();
+    const missing = { last_run: null, last_success: null };
+    const answer = (backup: unknown) => ({
+      data: {
+        checked_at: new Date().toISOString(),
+        jobs: { backup, restore: missing, retention: missing, keepalive: missing }
+      },
+      error: null
+    });
+    const rpc = vi.fn().mockResolvedValue(answer(missing));
+    const client = { rpc } as unknown as OperationsClient;
+    const item = (vals: ReturnType<OpsRuntime['renderVals']>, label: string) =>
+      vals.toolGroups.flatMap((group) => group.items).find((row) => row.label === label);
+    const moreBadge = (vals: ReturnType<OpsRuntime['renderVals']>) =>
+      vals.dockNav.find((row) => row.label === 'All tools')?.badge;
+    // Before any read the app cannot tell "not set up" from "not reachable": it still alerts.
+    expect(runtime.notifs(runtime.state).map((alert) => alert.label)).toContain(
+      'Encrypted database backup: Not yet recorded — activation pending'
+    );
+    expect(moreBadge(runtime.renderVals())).toBe(1);
+
+    await act(async () => void (await runtime.loadOperationsHealth(client)));
+    let vals = runtime.renderVals();
+    expect(runtime.notifs(runtime.state)).toEqual([]);
+    expect(vals.notifications).toEqual([]);
+    expect(screen.getAllByText('Not yet recorded — activation pending')).toHaveLength(4);
+    expect(screen.getByText('Backups are not set up yet')).toBeTruthy();
+    expect(screen.queryByText('Healthy')).toBeNull();
+    expect(vals.healthOk).toBe(false);
+    expect(vals.healthRows.some((row) => row.bad)).toBe(false);
+    expect(vals.system).toMatchObject({
+      ok: false,
+      bad: true,
+      label: 'Backups are not set up yet',
+      detail: 'A set-up task for Ethan. Nothing for you to do.'
+    });
+    expect(item(vals, 'System health')).toMatchObject({
+      sub: 'Backups are not set up yet',
+      badge: null
+    });
+    expect(runtime.state.backup).toBe('ok');
+    expect(moreBadge(vals)).toBe(0);
+    const launcher = vals.launcher.flatMap((group) => group.items);
+    expect(launcher.find((row) => row.label === 'System health')?.sub).toBe(
+      'Backups are not set up yet'
+    );
+    expect(launcher.find((row) => row.label === 'Backups & export')?.sub).toBe(
+      'Recorded checks and books CSV'
+    );
+    expect(
+      vals.settingsGroups
+        .flatMap((group) => group.rows)
+        .find((row) => row.label === 'Backups and export')?.value
+    ).toBe('Backups are not set up yet');
+
+    // The first recorded run ends the quiet state: a failure alerts, and so do the jobs still missing.
+    rpc.mockResolvedValue(
+      answer({
+        last_run: {
+          status: 'failed',
+          completed_at: new Date().toISOString(),
+          archive_sha256: null
+        },
+        last_success: null
+      })
+    );
+    await act(async () => void (await runtime.loadOperationsHealth(null)));
+    vals = runtime.renderVals();
+    expect(vals.notifications.map((row) => row.label)).toEqual([
+      expect.stringMatching(/^Encrypted database backup: Failed /),
+      'Restore drill: Not yet recorded — activation pending',
+      'Customer data retention: Not yet recorded — activation pending',
+      'Keep-alive: Not yet recorded — activation pending'
+    ]);
+    expect(vals.system).toMatchObject({ bad: true, label: 'Needs attention' });
+    expect(item(vals, 'System health')?.badge).toBe(4);
+    expect(runtime.state.backup).toBe('failed');
+    expect(moreBadge(vals)).toBe(1);
+
+    // A failed read is never the quiet state either.
+    rpc.mockResolvedValue({ data: null, error: { code: 'x' } });
+    await act(async () => void (await runtime.loadOperationsHealth(null)));
+    expect(runtime.notifs(runtime.state).length).toBeGreaterThan(0);
+    expect(runtime.state.backup).toBe('failed');
+  });
+  it('a healthy record clears the engine backup flag, and going offline raises it again', async () => {
+    const runtime = mount();
+    const client = {
+      rpc: vi.fn().mockResolvedValue({ data: wire(), error: null })
+    } as unknown as OperationsClient;
+    const moreBadge = () =>
+      runtime.renderVals().dockNav.find((row) => row.label === 'All tools')?.badge;
+    await act(async () => void (await runtime.loadOperationsHealth(client)));
+    expect(runtime.state.backup).toBe('ok');
+    expect(moreBadge()).toBe(0);
+    act(() => runtime.setState({ online: false }));
+    expect(runtime.state.backup).toBe('failed');
+    act(() => runtime.setState({ online: true, unsynced: 1 }));
+    expect(runtime.state.backup).toBe('ok');
+    expect(moreBadge()).toBe(1);
+  });
+  it('demo mode leaves the engine backup flag alone', () => {
+    live = false;
+    const runtime = mount();
+    act(() => runtime.setState({ unsynced: 0 }));
+    expect(runtime.state.backup).toBe('failed');
   });
   it('still syncs a durably saved command when its health refresh fails, and distinguishes sync failure', async () => {
     const runtime = mount();
