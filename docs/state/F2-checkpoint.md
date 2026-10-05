@@ -60,6 +60,19 @@ removes the variables from the `ci.yml` browser and visual steps and from
 committed baselines; no baseline was regenerated. Private logs:
 `F2-ci-preview-linux-{with-env,noenv}.log` and `F2-ci-env-ab.log`.
 
+**Later on 5 October: fonts, performance job, docs and UX review.** `cbcef45` bundles Onest
+(seven subset files, byte-identical to the downloaded ones; build passes with networking off,
+75 visual tests pass, browser suite 90 passed / 75 skipped in the CI Linux image). That commit
+alone failed the release job: the trial build's immutable-cache check rejected the new font
+file names (run 37283936813, nothing deployed). `acaad11` teaches the check the two hashed
+patterns, with tests; run 37284430841 is green and deployed Worker version
+`2203aad0-25f5-4fd8-8602-cdeece628858`. Lesson recorded in next-goal.md: run
+`pnpm build:pages:spike` before pushing. `22b6736` makes the advisory Lighthouse job load the
+real pages (localhost, no Supabase variables, reports kept as a private artifact); it now
+fails its unchanged budget with real numbers. `db537a7` tidies the front pages and adds
+[ux-audit.md](ux-audit.md); the glass and transition styles were measured as present in the
+live build.
+
 **First automatic release.** Run 37276284314 (after `784678e`): browser flows green for
 the first time; production build failed on a transient `next/font` download and passed
 on re-run; the release job then failed at `build:pages:spike` because `git ls-files`

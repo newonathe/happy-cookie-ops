@@ -19,11 +19,13 @@ F2-owner-trial.md, F2-count-custody-device-preparation.md and ux-audit.md.
 Do not restart setup, reimport the 804 financial rows or reformat evidence receipts.
 Every green push to this branch redeploys the private trial: push only accepted work
 and read each CI run.
-1. UX review: implement proposals 1 and 4 in ux-audit.md (unprotected), with tests and
-   Docker visual evidence. For proposal 3 (phone dock), prepare the exact before and
-   after and show Ethan before it ships; it needs the protected-exception record,
-   validator reversals and a port audit. Proposal 2 waits for his explicit yes;
-   proposal 5 is not being done. Land these before Cine starts her week or hold them.
+1. UX review, first and before Cine starts her week: implement proposals 1, 2 and 4 in
+   ux-audit.md (unprotected live layer and routing), with tests and Docker visual
+   evidence. Proposal 2 must keep the backup facts visible to Ethan in System health
+   and must not hide a real failure once backups are switched on. For proposal 3
+   (phone dock), prepare the exact before and after and show Ethan before it ships;
+   it needs the protected-exception record, validator reversals and a port audit.
+   Proposal 5 is not being done. Run pnpm build:pages:spike before every push.
 2. Cine's closed-shop week: record her sign-in on iPhone and MacBook, password change,
    seven dates, opening count, the six recipes as she weighs them, agreed test orders,
    the daily log and her feedback. Record only what people supply. Fix reproduced

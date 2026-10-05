@@ -31,7 +31,9 @@ accepts a real week of use.
   stock purchases). No stock count, operating expense or order was invented.
 - **CI/CD is green.** Every required GitHub job passes on
   `agent/codex/MP-04-g1-feasibility`, and a green push to that branch redeploys the private
-  trial automatically. Push only accepted work, and read each run.
+  trial automatically. Push only accepted work, and read each run. Latest release: GitHub
+  run 37284430841 at `acaad11`, Worker version `2203aad0`, with the bundled fonts; anonymous
+  requests still redirect to Cloudflare Access.
 
 ### Decisions Ethan made on 5 October
 
@@ -50,7 +52,8 @@ accepts a real week of use.
   the opening stock count, weights for six recipes, her feedback. Allergens are needed
   before the shop opens, not before the week starts.
 - **Waiting on Ethan:** where the encrypted off-device backup lives and who can restore it;
-  the phone rehearsal before 20 October; choices in the [UX review](ux-audit.md).
+  the phone rehearsal before 20 October; his look at the exact phone-dock change when
+  it is prepared. The [UX review](ux-audit.md) changes land before Cine starts her week.
 - **Performance budget (advisory job):** it now measures the real pages and they miss the
   budget (GitHub: performance about 0.58, largest paint 5.8 to 9.4 s, shop page 1.63 MB).
   Nothing was loosened. It does not gate the release.

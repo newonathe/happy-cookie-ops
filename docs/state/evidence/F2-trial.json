@@ -946,6 +946,13 @@
       "humanSignInAfterRelease": "Ethan confirmed 2026-10-05: signed in, dashboard loads; Cine separate",
       "newResources": 0
     },
+    "laterRelease": {
+      "githubRun": 37284430841,
+      "sourceCommit": "acaad11",
+      "workerVersion": "2203aad0-25f5-4fd8-8602-cdeece628858",
+      "change": "bundled fonts; cache-policy check updated for hashed font names",
+      "anonymousRootPnlServiceWorker": "302 to Cloudflare Access"
+    },
     "offline01LinuxProbe": "docs/state/evidence/F2-offline01-linux-probe.json",
     "hostedWrites": false,
     "importsReused": 804,
