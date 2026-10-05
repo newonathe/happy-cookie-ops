@@ -172,7 +172,10 @@ which was dropped, and can be hidden.
 
 ## 8. Decisions for Ethan
 
-Each has one recommendation. "Yes" approves it.
+Each has one recommendation. "Yes" approves it. **S1, S2 and S12 are replaced by R1 to R8
+in [product-research.md](product-research.md) section 11**, written after Ethan asked the
+same day for the whole interface to be reworked; sections 7 and 9 here are superseded by
+its sections 8 to 10. The data decisions (S3 to S11, S13, S14) stand.
 
 | #   | Decision                        | Recommendation                                                                                                                                                                                                                          |
 | --- | ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

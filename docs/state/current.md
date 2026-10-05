@@ -19,6 +19,12 @@ Read this page first in a new session. It is kept short on purpose.
 > **before** her trial starts. The audit, the gaps and ten decisions waiting for his yes are
 > in [sot-consolidation.md](sot-consolidation.md). Nothing has been built or imported for it
 > yet. Her trial week waits for that work.
+>
+> Later the same day he asked for the interface and experience to be reworked as a whole,
+> with research into the leading tools. That research, a proposed five-tab shape, the way
+> to build it without editing ported files, and eight decisions are in
+> [product-research.md](product-research.md). Wireframes are in the private
+> `claude-20261005/rework/` folder. Nothing is built.
 
 **Package:** F2, the owner trial. F2 is incomplete, and F3 (launch) stays closed until Cine
 accepts a real week of use.
