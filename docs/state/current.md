@@ -4,7 +4,7 @@ Read this page first in a new session. It is kept short on purpose.
 
 | If you need                                        | Read                                                                                                                                                     |
 | -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| The goal to run next                               | [next-goal.md](next-goal.md) (A2)                                                                                                                        |
+| The goal to run next                               | [next-goal.md](next-goal.md) (A3)                                                                                                                        |
 | The plan, approved 5 October                       | [final-plan.md](final-plan.md), version 2                                                                                                                |
 | The rules every agent follows                      | [AGENTS.md](../../AGENTS.md)                                                                                                                             |
 | Ethan's and Cine's decisions                       | [decision-register.md](decision-register.md)                                                                                                             |
@@ -16,10 +16,16 @@ Read this page first in a new session. It is kept short on purpose.
 
 ## Where things stand — 6 October 2026
 
-**The plan is approved; slice A1 of it is built.** Ethan approved
+**The plan is approved; slices A1 and A2 of it are built.** Ethan approved
 [final-plan.md](final-plan.md), version 2, on 5 October after a re-audit, a debate and
 wider research. It replaces finish-plan.md as the forward plan. The next step is slice
-A2.
+A3.
+
+**A2, 6 October:** the bazaar phone opens and reloads with no signal. Bazaar Mode alone
+opens, only while the phone holds a running event, only within her offline hours (48 by
+default) of its last online check; what happens is in [OFFLINE.md](../OFFLINE.md). Reviewed
+independently and checked in the browser on a computer. The phone rehearsal still has to
+prove it in Safari, from the Home Screen, overnight and with the radio off.
 
 **Package:** F2, the owner trial, stays open but does not start until everything in the
 plan is built (Ethan, 5 October). F3 (launch) stays closed until Cine accepts a real week.
@@ -28,7 +34,7 @@ plan is built (Ethan, 5 October). F3 (launch) stays closed until Cine accepts a 
 
 - **The product** is built through E1: menu and settings, checkout and owner orders,
   bazaar selling with offline close-out, stock, recipes and production, books, P&L and
-  CSV, backups and health. `pnpm verify` passes 83 files / 1,512 tests; the planning
+  CSV, backups and health. `pnpm verify` passes 85 files / 1,572 tests; the planning
   validator passes 1,225 checks.
 - **The private trial site** is live for owners only:
   <https://happy-cookie-owner-trial.admin-kethai.workers.dev>. Cloudflare Access sends an
@@ -43,15 +49,15 @@ plan is built (Ethan, 5 October). F3 (launch) stays closed until Cine accepts a 
 
 Found by reading code or the trial, not by running. Each has a slice in the plan.
 
-| What                                                                                                                   | Slice  |
-| ---------------------------------------------------------------------------------------------------------------------- | ------ |
-| **The live app signs the owner out when opened or reloaded with no signal.** The October bazaar is unsafe until fixed. | A2     |
-| No backup, restore drill, retention or keep-alive job is scheduled.                                                    | A4     |
-| Nothing tests the live app; the browser suites run the demo build.                                                     | B1     |
-| Values from the prototype still show in the live app (pickups, greeting, Settings rows, shop tagline).                 | B2     |
-| Almost every cost per cookie is unknown: 8 of 72 items have a price, no costed delivery, no measured recipe.           | B3, B4 |
-| The trial's cost basis is "when bought"; "when used" was decided.                                                      | B3     |
-| Every page, the shop included, loads the whole staff app.                                                              | C8     |
+| What                                                                                                         | Slice  |
+| ------------------------------------------------------------------------------------------------------------ | ------ |
+| Signing out does not warn when sales are still queued on the phone.                                          | A3     |
+| No backup, restore drill, retention or keep-alive job is scheduled.                                          | A4     |
+| Nothing tests the live app; the browser suites run the demo build.                                           | B1     |
+| Values from the prototype still show in the live app (pickups, greeting, Settings rows, shop tagline).       | B2     |
+| Almost every cost per cookie is unknown: 8 of 72 items have a price, no costed delivery, no measured recipe. | B3, B4 |
+| The trial's cost basis is "when bought"; "when used" was decided.                                            | B3     |
+| Every page, the shop included, loads the whole staff app.                                                    | C8     |
 
 ### Decisions in force
 
@@ -77,6 +83,12 @@ All in [decision-register.md](decision-register.md), the section for 5 October.
   two addresses to Cloudflare Access and the approved-digest variable in one sitting, or the
   next deploy fails. Set the session to one week: that deploy then fails once and prints the
   value; put it in `ALLOWED_SESSION_DURATIONS`, push, then invite her.
+- **Apply migration `20260101005300_offline_open_hours.sql` to the trial before the
+  rehearsal.** No workflow applies migrations. Until then the trial has 53 of 54, offline
+  open uses the 48-hour default, and the new Settings row cannot save.
+- For bazaar days, set the owner's idle time to 480 minutes (Settings). When idle time runs
+  out with no signal the app keeps selling, then signs out at the first answer from the
+  server; a long idle time keeps that from happening mid-bazaar.
 - Close the test event left open on the trial since 5 October.
 - Decide where the encrypted backup lives and who can restore it; switch the jobs on.
 - The phone rehearsal by **20 October** ([final-plan.md](final-plan.md) section 11.1).

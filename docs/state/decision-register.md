@@ -226,6 +226,17 @@ words and the packaging costs he gave are kept privately
 - No session with Cine on the sketches first: "just do everything fast". The wording
   pass before her week stays.
 
+### Slice A2, 6 October 2026: labelled defaults, not decisions
+
+Answer 2 above approved a bounded fix. Building it needed three values nobody had chosen.
+Each is a starting value Ethan or Cine can change; none is her decision yet.
+
+| Value                                     | Default                                                                                           | Why this value                                                                                                                     | Where it changes                                                       |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| Hours Bazaar Mode may open with no signal | 48, from 1 to 72                                                                                  | Covers a two-day bazaar with no signal after the first morning. 72 is the longest a lost phone could keep opening that one screen. | Settings, "Bazaar Mode opens offline for" (`offlineOpenHours`)         |
+| Idle time running out at a stall          | The app narrows to Bazaar Mode; the first answer from the server sends the queue, then signs out. | Idle sign-out was the only limit on a signed-in phone. Putting it off keeps her selling; cancelling it would remove the limit.     | Her idle minutes (existing setting). 480 is suggested for bazaar days. |
+| Sheets open in Bazaar Mode offline        | Take payment, event expense, close-out                                                            | They are the sheets Bazaar Mode itself opens.                                                                                      | Code (`BAZAAR_SHEETS`)                                                 |
+
 ## Amended decisions (open — block the listed work)
 
 **DP-02 · Payment timing** — blocks MP-10, MP-12.

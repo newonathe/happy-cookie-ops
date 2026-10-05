@@ -52,6 +52,46 @@ till button ─► engine.recordSale()            in memory, instantly
   flushes from the service worker, then messages any open client.
 - Neither available (older iOS): the next open of the app flushes. The queue is patient.
 
+## Opening and reloading with no signal (slice A2, 6 October 2026)
+
+This section is current. It describes the live app, where the owner is signed in.
+
+Before A2, opening or reloading the live app with no signal signed her out and sent her to a
+sign-in page the phone could not load. The queue and the event survived; her ability to sell
+did not. Now:
+
+- **Bazaar Mode alone opens.** When the identity check gets no answer from the server, the
+  app opens Bazaar Mode and nothing else. Any other screen or sheet is replaced by a notice
+  with one button, "Back to Bazaar Mode". "No answer" means the check failed to reach the
+  server or took longer than eight seconds; a stall's dead Wi-Fi counts, whatever the phone
+  says about being online.
+- **Only inside three bounds** (`src/lib/auth/offline-trust.ts`): the phone holds an event
+  the server opened that is not closed; a session is still stored on the phone; and the last
+  check the server passed on this phone is within the owner's hours. The hours are her
+  setting `offlineOpenHours` (Settings, "Bazaar Mode opens offline for"), 1 to 72, 48 until
+  she changes it. Outside the bounds the app shows a "No signal" notice and opens by itself
+  when the server answers.
+- **What the phone remembers** of that check is a role and a time (`hc-live-check`). Never a
+  token or a password. It also keeps a copy of the flavour list and five settings
+  (`hc-live-stall`: the two quick discounts, the cash float, the helper-totals switch and
+  the hours), because the live app otherwise has neither after a reload.
+- **Reconnecting.** The full check runs when the phone comes back online, when the app comes
+  back to the front, and once a minute while the server has not answered. A pass reopens the
+  whole app and sends the queue. A definite denial signs out as before. No lock-out touches
+  the sale queue or the running event.
+- **Idle time is still charged.** With an event open and no server, the idle sign-out is put
+  off, not cancelled. When the idle time runs out the app narrows to Bazaar Mode, and that
+  is marked on the phone so a tap or a reload does not undo it. The first check the server
+  answers sends the queued sales and then signs out. For a bazaar day, set the owner's idle
+  time to 480 minutes so a quiet hour does not end in a sign-in at the first bar of signal.
+- **No redirect loop.** A signed-out phone with no network shows "Sign in when you have
+  signal" in place. The sign-in page is also stored by the service worker.
+- **Storage.** When the selling phone starts an event the app asks the browser to keep its
+  storage. The browser may say no; nothing depends on the answer.
+
+Not proven by tests on a computer, and left to the phone rehearsal: Safari serving the app
+after a full close from the Home Screen, an overnight gap, and the radio actually off.
+
 ## Testing it
 
 ```bash
