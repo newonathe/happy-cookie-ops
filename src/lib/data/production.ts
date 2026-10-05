@@ -172,7 +172,8 @@ const CONTROL_CHARS = /[\u0000-\u001f\u007f-\u009f]/;
 
 /** The same bounds `record_discard` enforces. Null means the discard is acceptable. */
 export function discardError(f: DiscardFields): string | null {
-  if (!UUID.test(f.id) || f.productId === '') return 'This change has no id yet. Reload and try again.';
+  if (!UUID.test(f.id) || f.productId === '')
+    return 'This change has no id yet. Reload and try again.';
   if (f.kind !== 'dough' && f.kind !== 'baked') return 'That is not dough or baked cookies.';
   if (!whole(f.qty, 1, 10000)) return 'Enter a whole number from 1 to 10000.';
   const reason = f.reason.trim();
@@ -190,7 +191,10 @@ export interface DiscardResult {
 }
 
 /** Sends one discard. `saved` includes an identical retry (answered, never applied twice). */
-export async function recordDiscard(client: ProductionClient, f: DiscardFields): Promise<DiscardResult> {
+export async function recordDiscard(
+  client: ProductionClient,
+  f: DiscardFields
+): Promise<DiscardResult> {
   try {
     const { data, error } = await client.rpc('record_discard', {
       p_rec: {
@@ -206,7 +210,9 @@ export async function recordDiscard(client: ProductionClient, f: DiscardFields):
     if (error) {
       const code = error.code ?? '';
       return {
-        outcome: ['22023', '23505', '42501', 'P0002', '23503'].includes(code) ? 'refused' : 'offline',
+        outcome: ['22023', '23505', '42501', 'P0002', '23503'].includes(code)
+          ? 'refused'
+          : 'offline',
         duplicate: false
       };
     }

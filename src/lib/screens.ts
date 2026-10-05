@@ -5,10 +5,31 @@
  * tests/unit/screens.test.ts fails if the two ever drift apart.
  */
 export const SCREEN_KEYS = [
-  'today', 'sales', 'orders', 'order', 'lookup', 'reconcile', 'bake', 'batch',
-  'inventory', 'stocktake', 'more', 'grocery', 'bazaar', 'pnl', 'formqueue',
-  'health', 'products', 'notifications', 'shop', 'checkout', 'status', 'recipes',
-  'drops', 'suppliers', 'settings'
+  'today',
+  'sales',
+  'orders',
+  'order',
+  'lookup',
+  'reconcile',
+  'bake',
+  'batch',
+  'inventory',
+  'stocktake',
+  'more',
+  'grocery',
+  'bazaar',
+  'pnl',
+  'formqueue',
+  'health',
+  'products',
+  'notifications',
+  'shop',
+  'checkout',
+  'status',
+  'recipes',
+  'drops',
+  'suppliers',
+  'settings'
 ] as const;
 
 export type ScreenKey = (typeof SCREEN_KEYS)[number];

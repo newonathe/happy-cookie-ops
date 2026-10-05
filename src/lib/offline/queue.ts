@@ -108,7 +108,9 @@ export async function enqueueVoid(saleClientId: string, at = Date.now()): Promis
   return row;
 }
 
-export async function enqueueCommand(command: Omit<QueuedCommand, 'state' | 'attempts' | 'lastError'>): Promise<QueuedCommand> {
+export async function enqueueCommand(
+  command: Omit<QueuedCommand, 'state' | 'attempts' | 'lastError'>
+): Promise<QueuedCommand> {
   const existing = await idb.get<QueuedCommand>(command.clientId);
   if (existing) return existing;
   const row: QueuedCommand = { ...command, state: 'pending', attempts: 0, lastError: null };

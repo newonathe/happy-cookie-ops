@@ -1,6 +1,12 @@
 import { markFailed, markSent, pendingSales, pruneSent, isCommandRow, isVoidRow } from './queue';
 import type { QueuedCommand, QueuedSale, QueueRow } from './queue';
-import { isEventUuid, sendCommand, sendSale, sendVoid, type EventSalesClient } from '@/lib/data/event-sales';
+import {
+  isEventUuid,
+  sendCommand,
+  sendSale,
+  sendVoid,
+  type EventSalesClient
+} from '@/lib/data/event-sales';
 import { createClient } from '@/lib/supabase/client';
 import { hasSupabaseConfig } from '@/lib/supabase/config';
 
@@ -63,7 +69,8 @@ async function flushOnce(client: EventSalesClient | null): Promise<FlushResult> 
   const failed: FlushResult['failed'] = [];
   // Sales first, then voids, stock, expenses, and the close last: whatever is still on the phone
   // reaches the server before the event is closed on it.
-  const rank = (row: QueueRow) => (isVoidRow(row) ? 1 : isCommandRow(row) ? { open: 2, expense: 3, close: 4 }[row.kind] : 0);
+  const rank = (row: QueueRow) =>
+    isVoidRow(row) ? 1 : isCommandRow(row) ? { open: 2, expense: 3, close: 4 }[row.kind] : 0;
   const ordered: QueueRow[] = [...pending].sort((a, b) => rank(a) - rank(b) || a.at - b.at);
   for (const row of ordered) {
     const outcome = isVoidRow(row)
@@ -76,14 +83,22 @@ async function flushOnce(client: EventSalesClient | null): Promise<FlushResult> 
       sent.push(row.clientId);
     } else {
       await markFailed(row.clientId, outcome.error);
-      failed.push({ clientId: row.clientId, error: outcome.error, permanent: outcome.permanent === true });
+      failed.push({
+        clientId: row.clientId,
+        error: outcome.error,
+        permanent: outcome.permanent === true
+      });
     }
   }
   await pruneSent();
   return { sent, failed, skipped: false };
 }
 
-const NO_EVENT = { ok: false as const, error: 'no server event: start the event while online', permanent: false };
+const NO_EVENT = {
+  ok: false as const,
+  error: 'no server event: start the event while online',
+  permanent: false
+};
 
 async function sendOneSale(target: EventSalesClient, row: QueuedSale) {
   if (!isEventUuid(row.eventId)) return NO_EVENT;

@@ -115,7 +115,9 @@ export const EXTRAS_COPY = {
 /** PLACEHOLDER wording (A4): saving a recipe in live mode. */
 export const RECIPE_COPY = {
   saved: (version: number) =>
-    'Saved as Version ' + version + '. The version before it is kept for anything already baked on it.',
+    'Saved as Version ' +
+    version +
+    '. The version before it is kept for anything already baked on it.',
   created: 'Saved as Version 1.',
   unchanged: 'Nothing changed, so there is no new version.',
   conflict: 'Someone else changed this recipe just now. Showing their version.',
@@ -157,7 +159,9 @@ export const STOCK_COPY = {
   received: (name: string, qty: string, spend: string) =>
     qty + ' of ' + name + ' in stock.' + (spend ? ' ' + spend + ' logged under your costs.' : ''),
   counted: (n: number) =>
-    n === 0 ? 'Count matched your records. Nothing to correct.' : (n === 1 ? '1 item' : n + ' items') + ' corrected.',
+    n === 0
+      ? 'Count matched your records. Nothing to correct.'
+      : (n === 1 ? '1 item' : n + ' items') + ' corrected.',
   adjustReason: 'Adjusted on the Inventory screen',
   openingNote: 'added with its opening quantity.',
   removedNote: 'switched off. Past records keep their history.'
@@ -168,12 +172,15 @@ export const PRODUCTION_COPY = {
   ownerOnly: 'Only Cine can record baking, dough and packing.',
   notSaved:
     'Not confirmed: the connection dropped, so this may or may not have been recorded. Check the stock, then repeat it exactly: the database will not count the same entry twice.',
-  refused: 'That could not be recorded. Check the numbers, and that this flavour has a saved recipe.',
+  refused:
+    'That could not be recorded. Check the numbers, and that this flavour has a saved recipe.',
   stale:
     'The recipe changed since this screen was opened. The recipes were read again: check the amounts and confirm once more.',
-  packNotSaved: 'The packaging could not be recorded, so the order was not marked packed. Try again.',
+  packNotSaved:
+    'The packaging could not be recorded, so the order was not marked packed. Try again.',
   discardWhole: 'Enter a whole number of dough balls or cookies.',
-  recorded: 'Recorded. The screen you were on had already moved on, so check the stock and the batch list.',
+  recorded:
+    'Recorded. The screen you were on had already moved on, so check the stock and the batch list.',
   ranShort: (names: string) => ' Ran short of ' + names + ': logged.'
 } as const;
 
@@ -187,10 +194,12 @@ export const BOOKS_COPY = {
     'Bought: each delivery is a cost the day you buy it. Used: stock is a cost when it goes into a batch, a mix, a pack or a sale, at the price you last paid.',
   bought: 'When bought',
   used: 'When used',
-  basisSaved: (b: string) => 'Stock now counts as a cost ' + (b === 'used' ? 'when it is used.' : 'when it is bought.'),
+  basisSaved: (b: string) =>
+    'Stock now counts as a cost ' + (b === 'used' ? 'when it is used.' : 'when it is bought.'),
   unpaidTitle: 'Waiting on payment',
   unpaidNone: 'Nobody owes you anything right now.',
-  unpaidSummary: (n: number, total: string) => (n === 1 ? '1 order' : n + ' orders') + ' · ' + total + ' still to come in',
+  unpaidSummary: (n: number, total: string) =>
+    (n === 1 ? '1 order' : n + ' orders') + ' · ' + total + ' still to come in',
   unpaidClaimed: 'says they paid: check it',
   unpaidBalance: 'balance owed',
   unpaidWaiting: 'no payment yet',
@@ -204,15 +213,22 @@ export const BOOKS_COPY = {
   noReceipts: 'No costed deliveries in the last 90 days.',
   corrected: 'Cost corrected. The books show the difference.',
   downloadTitle: 'Download the books',
-  downloadNote: 'Every line of the books for the last 13 months as a spreadsheet (CSV), with how stock is costed.',
+  downloadNote:
+    'Every line of the books for the last 13 months as a spreadsheet (CSV), with how stock is costed.',
   download: 'Download CSV',
   downloaded: 'Downloaded: the books as a spreadsheet. Nothing is locked in here.',
-  downloadBlocked: 'This device would not let the file download. Try again from a normal browser tab.',
+  downloadBlocked:
+    'This device would not let the file download. Try again from a normal browser tab.',
   notSaved:
     'Not confirmed: the connection dropped, so this may or may not have been recorded. Check the books, then repeat it exactly: the database will not count the same entry twice.',
-  refused: 'That could not be recorded. Check the amount, the category and that the delivery was costed.',
+  refused:
+    'That could not be recorded. Check the amount, the category and that the delivery was costed.',
   dropClosed: (n: string, next: string) =>
-    'Drop ' + n + ' closed. Its paid orders are already in your P&L. Drop ' + next + ' is open for orders.',
+    'Drop ' +
+    n +
+    ' closed. Its paid orders are already in your P&L. Drop ' +
+    next +
+    ' is open for orders.',
   ownerOnly: 'Only Cine can change the books.'
 } as const;
 
