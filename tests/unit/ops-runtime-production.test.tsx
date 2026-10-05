@@ -180,12 +180,19 @@ const startBatch = (r: OpsRuntime, over: Wire = {}) =>
 
 describe('C2: baking, mixing dough and packing record on the database (live mode)', () => {
   beforeEach(() => {
+    // The fixtures' pickup dates are fixed, and "this week" is worked out from today: without a fixed
+    // clock the suite passes only until the first fixture date is in the past (it failed on 6 October).
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-10-05T02:00:00Z')); // 10:00 in Manila, the fixtures' own Monday
     live = true;
     store.clear();
     localStorage.clear();
     flush.result = { sent: [], failed: [], skipped: false };
   });
-  afterEach(() => cleanup());
+  afterEach(() => {
+    cleanup();
+    vi.useRealTimers();
+  });
 
   it('confirming a batch sends one record with what was baked, the recipe version on screen and the week; then the screens show what the database holds', async () => {
     const f = fresh();
