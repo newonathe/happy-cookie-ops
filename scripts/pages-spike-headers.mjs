@@ -111,7 +111,11 @@ export async function generatePagesHeaders(publicOutput, templatePath, { supabas
         const fingerprinted =
           /^chunks\/(?:[^/]+\/)*[^/]+[-.][a-f0-9]{16}\.js$/.test(relative) ||
           /^css\/[a-f0-9]{16}\.css$/.test(relative) ||
-          /^media\/[a-f0-9]{16}-s(?:\.p)?\.woff2$/.test(relative) ||
+          // next/font output: 16-hex content hash, then optional "-s" (size-adjusted
+          // fallback) and ".p" (preloaded).
+          /^media\/[a-f0-9]{16}(?:-s)?(?:\.p)?\.woff2$/.test(relative) ||
+          // A font referenced from a stylesheet: Next appends an 8-hex content hash.
+          /^media\/[a-z0-9-]+\.[a-f0-9]{8}\.woff2$/.test(relative) ||
           Boolean(manifest && indexHtml.includes(manifest[1]));
         if (!fingerprinted)
           throw new Error(

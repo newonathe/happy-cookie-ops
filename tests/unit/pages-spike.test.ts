@@ -93,6 +93,28 @@ describe('Pages static header preflight', () => {
       expect(result.csp).toContain(`'sha256-${hash}'`);
       await writeFile(path.join(output, '_next', 'static', 'chunks', 'checkoutpanel2026.js'), '');
       await expect(generatePagesHeaders(output, template)).rejects.toThrow(/non-fingerprinted/);
+      await rm(path.join(output, '_next', 'static', 'chunks', 'checkoutpanel2026.js'));
+
+      // Bundled fonts (src/app/fonts): every emitted name carries a content hash.
+      const media = path.join(output, '_next', 'static', 'media');
+      await mkdir(media, { recursive: true });
+      for (const name of [
+        '0123456789abcdef-s.p.woff2',
+        '0123456789abcdef.p.woff2',
+        '0123456789abcdef.woff2',
+        'onest-latin-ext.c1b02c1a.woff2'
+      ])
+        await writeFile(path.join(media, name), '');
+      await expect(generatePagesHeaders(output, template)).resolves.toBeDefined();
+      for (const name of [
+        'onest-latin.woff2',
+        'onest-latin.c1b02c.woff2',
+        '0123456789abcde.woff2'
+      ]) {
+        await writeFile(path.join(media, name), '');
+        await expect(generatePagesHeaders(output, template)).rejects.toThrow(/non-fingerprinted/);
+        await rm(path.join(media, name));
+      }
     } finally {
       await rm(root, { recursive: true, force: true });
     }
