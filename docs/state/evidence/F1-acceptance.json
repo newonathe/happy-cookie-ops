@@ -57,7 +57,10 @@
   },
   "visual": {
     "browser": "headless Chromium",
-    "viewports": ["390x844", "1440x900"],
+    "viewports": [
+      "390x844",
+      "1440x900"
+    ],
     "screenshots": 11,
     "allScreenshotsInspected": true,
     "checks": [

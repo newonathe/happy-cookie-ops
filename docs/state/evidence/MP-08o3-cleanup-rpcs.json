@@ -1,15 +1,1 @@
-{
-  "absence_completed_once": true,
-  "commercial_rows": 0,
-  "concurrent_rotation_cas": true,
-  "managed_auth_schema_unchanged": true,
-  "migration_count": 26,
-  "opaque_envelope_not_returned": true,
-  "present_and_wrong_user_auth_rows_retained": true,
-  "private_network": true,
-  "published_host_ports": 0,
-  "role_denials": 4,
-  "rotation_cas": true,
-  "status": "PASS",
-  "wrong_user_binding_flagged": true
-}
+{"absence_completed_once": true, "commercial_rows": 0, "concurrent_rotation_cas": true, "managed_auth_schema_unchanged": true, "migration_count": 26, "opaque_envelope_not_returned": true, "present_and_wrong_user_auth_rows_retained": true, "private_network": true, "published_host_ports": 0, "role_denials": 4, "rotation_cas": true, "status": "PASS", "wrong_user_binding_flagged": true}

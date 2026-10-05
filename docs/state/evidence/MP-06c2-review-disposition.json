@@ -8,7 +8,10 @@
     "requested_turns": 6,
     "permission_denials": [],
     "children": 0,
-    "models_observed": ["claude-haiku-4-5-20251001", "claude-sonnet-5"],
+    "models_observed": [
+      "claude-haiku-4-5-20251001",
+      "claude-sonnet-5"
+    ],
     "auth": "first-party Pro",
     "verdict": "No blocking issues conditional on root execution"
   },

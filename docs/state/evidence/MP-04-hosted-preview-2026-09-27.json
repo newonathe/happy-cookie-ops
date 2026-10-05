@@ -36,7 +36,9 @@
     "jsErrors": [],
     "allowed": 200,
     "blocked": "blocked",
-    "violations": ["connect-src https://example.com/"]
+    "violations": [
+      "connect-src https://example.com/"
+    ]
   },
   "auth": {
     "disable_signup": false,

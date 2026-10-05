@@ -8,11 +8,7 @@
     "path": "/cdn-cgi/local/scheduled?format=json",
     "http_status": 500,
     "body": { "outcome": "exception", "noRetry": false },
-    "allowlisted_log": {
-      "event": "scheduled_cleanup",
-      "outcome": "failure",
-      "errorClass": "configuration"
-    }
+    "allowlisted_log": { "event": "scheduled_cleanup", "outcome": "failure", "errorClass": "configuration" }
   },
   "ordinary_http_request": {
     "path": "/",

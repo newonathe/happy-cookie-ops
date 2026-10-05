@@ -2,7 +2,9 @@
   "status": "passed",
   "baseline": "MP-06b1-schema-inventory.json",
   "current": "MP-06c1-schema-inventory.json",
-  "changed_sections": ["table_grants"],
+  "changed_sections": [
+    "table_grants"
+  ],
   "removed_grants": [
     {
       "grantee": "anon",

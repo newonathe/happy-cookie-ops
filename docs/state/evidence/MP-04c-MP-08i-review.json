@@ -1,7 +1,10 @@
 {
   "reviewer": "Codex gpt-5.6-terra high",
   "mode": "bounded read-only",
-  "scope": ["MP-08i Auth fixture and transport", "MP-04c Pages builder"],
+  "scope": [
+    "MP-08i Auth fixture and transport",
+    "MP-04c Pages builder"
+  ],
   "initial_findings": [
     {
       "severity": "P2",

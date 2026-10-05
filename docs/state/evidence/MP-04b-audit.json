@@ -165,11 +165,15 @@
       "findings": [
         {
           "version": "0.0.33",
-          "paths": [". > @lhci/cli@0.15.1 > inquirer@6.5.2 > external-editor@3.1.0 > tmp@0.0.33"]
+          "paths": [
+            ". > @lhci/cli@0.15.1 > inquirer@6.5.2 > external-editor@3.1.0 > tmp@0.0.33"
+          ]
         },
         {
           "version": "0.1.0",
-          "paths": [". > @lhci/cli@0.15.1 > tmp@0.1.0"]
+          "paths": [
+            ". > @lhci/cli@0.15.1 > tmp@0.1.0"
+          ]
         }
       ],
       "found_by": null,
@@ -182,7 +186,9 @@
       "reported_by": null,
       "title": "tmp allows arbitrary temporary file / directory write via symbolic link `dir` parameter",
       "metadata": null,
-      "cves": ["CVE-2025-54798"],
+      "cves": [
+        "CVE-2025-54798"
+      ],
       "access": "public",
       "severity": "low",
       "module_name": "tmp",
@@ -195,7 +201,9 @@
         "score": 2.5,
         "vectorString": "CVSS:3.1/AV:L/AC:H/PR:L/UI:N/S:U/C:N/I:L/A:N"
       },
-      "cwe": ["CWE-59"],
+      "cwe": [
+        "CWE-59"
+      ],
       "url": "https://github.com/advisories/GHSA-52f5-9888-hmc6"
     },
     "1112030": {
@@ -218,7 +226,9 @@
       "reported_by": null,
       "title": "Elliptic Uses a Cryptographic Primitive with a Risky Implementation",
       "metadata": null,
-      "cves": ["CVE-2025-14505"],
+      "cves": [
+        "CVE-2025-14505"
+      ],
       "access": "public",
       "severity": "low",
       "module_name": "elliptic",
@@ -231,14 +241,18 @@
         "score": 5.6,
         "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:L/A:L"
       },
-      "cwe": ["CWE-1240"],
+      "cwe": [
+        "CWE-1240"
+      ],
       "url": "https://github.com/advisories/GHSA-848j-6mx2-7j84"
     },
     "1119441": {
       "findings": [
         {
           "version": "8.3.2",
-          "paths": [". > @lhci/cli@0.15.1 > uuid@8.3.2"]
+          "paths": [
+            ". > @lhci/cli@0.15.1 > uuid@8.3.2"
+          ]
         }
       ],
       "found_by": null,
@@ -251,7 +265,9 @@
       "reported_by": null,
       "title": "uuid: Missing buffer bounds check in v3/v5/v6 when buf is provided",
       "metadata": null,
-      "cves": ["CVE-2026-41907"],
+      "cves": [
+        "CVE-2026-41907"
+      ],
       "access": "public",
       "severity": "moderate",
       "module_name": "uuid",
@@ -264,18 +280,25 @@
         "score": 7.5,
         "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N"
       },
-      "cwe": ["CWE-787", "CWE-1285"],
+      "cwe": [
+        "CWE-787",
+        "CWE-1285"
+      ],
       "url": "https://github.com/advisories/GHSA-w5hq-g745-h8pq"
     },
     "1120654": {
       "findings": [
         {
           "version": "0.0.33",
-          "paths": [". > @lhci/cli@0.15.1 > inquirer@6.5.2 > external-editor@3.1.0 > tmp@0.0.33"]
+          "paths": [
+            ". > @lhci/cli@0.15.1 > inquirer@6.5.2 > external-editor@3.1.0 > tmp@0.0.33"
+          ]
         },
         {
           "version": "0.1.0",
-          "paths": [". > @lhci/cli@0.15.1 > tmp@0.1.0"]
+          "paths": [
+            ". > @lhci/cli@0.15.1 > tmp@0.1.0"
+          ]
         }
       ],
       "found_by": null,
@@ -288,7 +311,9 @@
       "reported_by": null,
       "title": "tmp has Path Traversal via unsanitized prefix/postfix that enables directory escape",
       "metadata": null,
-      "cves": ["CVE-2026-44705"],
+      "cves": [
+        "CVE-2026-44705"
+      ],
       "access": "public",
       "severity": "high",
       "module_name": "tmp",
@@ -301,14 +326,18 @@
         "score": 0,
         "vectorString": null
       },
-      "cwe": ["CWE-22"],
+      "cwe": [
+        "CWE-22"
+      ],
       "url": "https://github.com/advisories/GHSA-ph9p-34f9-6g65"
     },
     "1138808": {
       "findings": [
         {
           "version": "2.0.2",
-          "paths": [". > @storybook/nextjs@10.2.10 > image-size@2.0.2"]
+          "paths": [
+            ". > @storybook/nextjs@10.2.10 > image-size@2.0.2"
+          ]
         }
       ],
       "found_by": null,
@@ -321,7 +350,9 @@
       "reported_by": null,
       "title": "image-size: ICNS parser allows denial of service through an infinite loop",
       "metadata": null,
-      "cves": ["CVE-2025-71330"],
+      "cves": [
+        "CVE-2025-71330"
+      ],
       "access": "public",
       "severity": "high",
       "module_name": "image-size",
@@ -334,14 +365,18 @@
         "score": 7.5,
         "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
       },
-      "cwe": ["CWE-835"],
+      "cwe": [
+        "CWE-835"
+      ],
       "url": "https://github.com/advisories/GHSA-w3rx-r6r6-pgpr"
     },
     "1138809": {
       "findings": [
         {
           "version": "2.0.2",
-          "paths": [". > @storybook/nextjs@10.2.10 > image-size@2.0.2"]
+          "paths": [
+            ". > @storybook/nextjs@10.2.10 > image-size@2.0.2"
+          ]
         }
       ],
       "found_by": null,
@@ -354,7 +389,9 @@
       "reported_by": null,
       "title": "image-size: JXL and HEIF parsers allow denial of service through infinite loops",
       "metadata": null,
-      "cves": ["CVE-2025-71329"],
+      "cves": [
+        "CVE-2025-71329"
+      ],
       "access": "public",
       "severity": "high",
       "module_name": "image-size",
@@ -367,7 +404,9 @@
         "score": 7.5,
         "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
       },
-      "cwe": ["CWE-835"],
+      "cwe": [
+        "CWE-835"
+      ],
       "url": "https://github.com/advisories/GHSA-5p2g-fcmc-qvqq"
     },
     "1139346": {
@@ -390,7 +429,9 @@
       "reported_by": null,
       "title": "extract-zip unvalidated symlink path traversal",
       "metadata": null,
-      "cves": ["CVE-2026-56876"],
+      "cves": [
+        "CVE-2026-56876"
+      ],
       "access": "public",
       "severity": "high",
       "module_name": "extract-zip",
@@ -403,7 +444,9 @@
         "score": 8.1,
         "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:N"
       },
-      "cwe": ["CWE-22"],
+      "cwe": [
+        "CWE-22"
+      ],
       "url": "https://github.com/advisories/GHSA-jmr9-qjv8-65gv"
     },
     "1158506": {
@@ -426,7 +469,9 @@
       "reported_by": null,
       "title": "qs array-limit bypass via bracket-key comma parsing",
       "metadata": null,
-      "cves": ["CVE-2026-82562"],
+      "cves": [
+        "CVE-2026-82562"
+      ],
       "access": "public",
       "severity": "moderate",
       "module_name": "qs",
@@ -439,7 +484,9 @@
         "score": 3.7,
         "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:L"
       },
-      "cwe": ["CWE-770"],
+      "cwe": [
+        "CWE-770"
+      ],
       "url": "https://github.com/advisories/GHSA-x5fp-wj9c-mxmx"
     },
     "1158507": {
@@ -462,7 +509,9 @@
       "reported_by": null,
       "title": "qs: Denial of Service via Attacker Controlled isBuffer",
       "metadata": null,
-      "cves": ["CVE-2026-82417"],
+      "cves": [
+        "CVE-2026-82417"
+      ],
       "access": "public",
       "severity": "moderate",
       "module_name": "qs",
@@ -475,14 +524,19 @@
         "score": 5.3,
         "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:L"
       },
-      "cwe": ["CWE-248", "CWE-703"],
+      "cwe": [
+        "CWE-248",
+        "CWE-703"
+      ],
       "url": "https://github.com/advisories/GHSA-4mjr-xmp4-gh2g"
     },
     "1193683": {
       "findings": [
         {
           "version": "3.2.7",
-          "paths": [". > vitest@3.2.7"]
+          "paths": [
+            ". > vitest@3.2.7"
+          ]
         }
       ],
       "found_by": null,
@@ -495,7 +549,9 @@
       "reported_by": null,
       "title": "Vitest: Path Traversal / Arbitrary File Read via @vitest/mocker Redirect Mock",
       "metadata": null,
-      "cves": ["CVE-2026-84373"],
+      "cves": [
+        "CVE-2026-84373"
+      ],
       "access": "public",
       "severity": "moderate",
       "module_name": "vitest",
@@ -508,14 +564,18 @@
         "score": 5.9,
         "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:N/A:N"
       },
-      "cwe": ["CWE-22"],
+      "cwe": [
+        "CWE-22"
+      ],
       "url": "https://github.com/advisories/GHSA-82fw-gwwq-j7x9"
     },
     "1193684": {
       "findings": [
         {
           "version": "3.2.7",
-          "paths": [". > vitest@3.2.7 > @vitest/mocker@3.2.7"]
+          "paths": [
+            ". > vitest@3.2.7 > @vitest/mocker@3.2.7"
+          ]
         }
       ],
       "found_by": null,
@@ -528,7 +588,9 @@
       "reported_by": null,
       "title": "Vitest: Path Traversal / Arbitrary File Read via @vitest/mocker Redirect Mock",
       "metadata": null,
-      "cves": ["CVE-2026-84373"],
+      "cves": [
+        "CVE-2026-84373"
+      ],
       "access": "public",
       "severity": "moderate",
       "module_name": "@vitest/mocker",
@@ -541,7 +603,9 @@
         "score": 5.9,
         "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:N/A:N"
       },
-      "cwe": ["CWE-22"],
+      "cwe": [
+        "CWE-22"
+      ],
       "url": "https://github.com/advisories/GHSA-82fw-gwwq-j7x9"
     },
     "1193685": {
@@ -564,7 +628,9 @@
       "reported_by": null,
       "title": "extract-zip allows arbitrary file writes through symlink archive entries",
       "metadata": null,
-      "cves": ["CVE-2026-19693"],
+      "cves": [
+        "CVE-2026-19693"
+      ],
       "access": "public",
       "severity": "high",
       "module_name": "extract-zip",
@@ -577,14 +643,18 @@
         "score": 8.1,
         "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:N/I:H/A:H"
       },
-      "cwe": ["CWE-22"],
+      "cwe": [
+        "CWE-22"
+      ],
       "url": "https://github.com/advisories/GHSA-7pqw-9j4j-h8q3"
     },
     "1193725": {
       "findings": [
         {
           "version": "0.35.2",
-          "paths": [". > wrangler@4.130.0 > miniflare@5.20260908.0-alpha > sharp@0.35.2"]
+          "paths": [
+            ". > wrangler@4.130.0 > miniflare@5.20260908.0-alpha > sharp@0.35.2"
+          ]
         }
       ],
       "found_by": null,
@@ -610,7 +680,9 @@
         "score": 0,
         "vectorString": null
       },
-      "cwe": ["CWE-122"],
+      "cwe": [
+        "CWE-122"
+      ],
       "url": "https://github.com/advisories/GHSA-rgj7-g3m4-5g8c"
     }
   },
