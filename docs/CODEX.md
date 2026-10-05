@@ -46,12 +46,12 @@ The full prompt for every task is in `docs/prompts/`. Paste it verbatim, wrapped
 preamble and postamble from `docs/prompts/00-session-protocol.md`. If you are working from
 the task board instead, paste the task block from `docs/TASKS.md` and add this:
 
-> `AGENTS.md` is binding. Read only the files in the task's *Context* line — do not
+> `AGENTS.md` is binding. Read only the files in the task's _Context_ line — do not
 > explore the repository. State your plan and the test you will write before you write
 > code, and tell me anything in the task that is ambiguous or wrong. Do not agree with me
 > by default. When you are done, run `pnpm verify` and paste the real output.
 
-The *Context* line is not a suggestion. Unbounded exploration is the largest avoidable
+The _Context_ line is not a suggestion. Unbounded exploration is the largest avoidable
 cost in agentic development, and this repository is 153 files.
 
 ## Running alongside Claude Code

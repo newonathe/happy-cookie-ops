@@ -14,13 +14,13 @@ Supabase, real offline mode, full tooling.
 
 ## What the prototype actually was
 
-| Part | Size |
-| --- | --- |
-| Template | 2,827 lines — 1,443 elements, 310 conditionals, 95 loops |
-| Logic class | 4,100 lines — ~90 methods, 84 keys of state |
-| `<helmet>` CSS | 60 lines: resets, six keyframes, one font |
-| Screens | 24 rendered branches (25 screen keys — `stocktake` renders inside inventory) |
-| Sheets | 29 bottom sheets |
+| Part           | Size                                                                         |
+| -------------- | ---------------------------------------------------------------------------- |
+| Template       | 2,827 lines — 1,443 elements, 310 conditionals, 95 loops                     |
+| Logic class    | 4,100 lines — ~90 methods, 84 keys of state                                  |
+| `<helmet>` CSS | 60 lines: resets, six keyframes, one font                                    |
+| Screens        | 24 rendered branches (25 screen keys — `stocktake` renders inside inventory) |
+| Sheets         | 29 bottom sheets                                                             |
 
 The critical property: the template read values from one `renderVals()` object and never
 computed anything itself. That is what made a mechanical port possible at all.
@@ -39,7 +39,7 @@ each screen and each sheet became its own file, and values are passed as one `v`
 
 **Inline styles stayed inline.** The tempting move — convert ~1,400 elements to Tailwind
 classes — would have meant a judgement call per declaration on a design already approved.
-Instead the *system* was lifted into `@theme` (palette, radii, shadows, two eases) so new
+Instead the _system_ was lifted into `@theme` (palette, radii, shadows, two eases) so new
 UI has a source, and the ported literals were left alone. This is the decision most
 likely to be questioned, and it is the reason the port can be trusted.
 
@@ -191,8 +191,8 @@ difference: two states were missing entirely.
 `'Payment review'` is where every order starts — placed, awaiting proof of payment. The
 schema had no state for it, so the default was `'new'`, which corresponds to nothing.
 
-`'No-show'` is worse. It carries a rule with money on both sides: *"Nobody came. They stay
-paid and the cookies go back into stock."* It appears in the engine's `RECOGNISED` list, so
+`'No-show'` is worse. It carries a rule with money on both sides: _"Nobody came. They stay
+paid and the cookies go back into stock."_ It appears in the engine's `RECOGNISED` list, so
 a no-show is **recognised revenue**. A schema that cannot represent it cannot hold the
 books, and the P&L would have been wrong by the value of every uncollected box.
 
@@ -227,16 +227,16 @@ restate a list that already exists in code.
 A fourth audit pass, run because the previous three had each found this same class one
 layer deeper, found the worst instance.
 
-`capacityRefusal()` in `src/lib/rules/capacity.ts` returned *"This drop is full. Join the
-next one — it opens Monday."* and *"Only N boxes left in this drop. Adjust your order to
-continue."* Above them, a comment: **"Quoted from the prototype, which is the signed-off
+`capacityRefusal()` in `src/lib/rules/capacity.ts` returned _"This drop is full. Join the
+next one — it opens Monday."_ and _"Only N boxes left in this drop. Adjust your order to
+continue."_ Above them, a comment: **"Quoted from the prototype, which is the signed-off
 wording — do not paraphrase it."**
 
 Neither string exists anywhere in the prototype. Both were written here.
 
 This is worse than the seed or the enum, and the reason is the comment rather than the
 copy. The invented strings alone would have been a bug someone eventually noticed. The
-comment manufactured *authority* for them: it told every future reader that the owner had
+comment manufactured _authority_ for them: it told every future reader that the owner had
 approved these words, so the correct response to disliking them was to leave them alone.
 A fabrication that instructs people not to question it does not get found.
 
@@ -250,10 +250,10 @@ It had propagated, as this class does:
   exist, failing, and then writing one. Under an instruction to quote, an agent's
   invention arrives labelled as a quotation.
 
-**What the prototype actually has**, from `custSubmit`: *"Ordering closed while you were
-filling this in. Nothing was charged — the next drop opens Monday 9:00 AM."* That is now
+**What the prototype actually has**, from `custSubmit`: _"Ordering closed while you were
+filling this in. Nothing was charged — the next drop opens Monday 9:00 AM."_ That is now
 `DROP_CLOSED_MESSAGE`, and it is better than what was invented for a reason worth noticing
-— it leads with *nothing was charged*, which is the customer's actual first fear. The
+— it leads with _nothing was charged_, which is the customer's actual first fear. The
 invention led with the refusal.
 
 For the partial-capacity case the prototype has **no** wording, and the reason is
@@ -273,7 +273,7 @@ approval. Making one falsely is worse than writing bad copy, because it removes 
 permission to fix it.
 
 Also corrected in the same pass: `ROLES` in `ops-engine.d.ts` declared four of nine
-fields and had `screens` wrong — it is `string[] | null`, and `null` means *every* screen,
+fields and had `screens` wrong — it is `string[] | null`, and `null` means _every_ screen,
 not none. `cashup`, `home` and `more` were missing, and all three are permission-relevant,
 so T-04 would have been built against an incomplete picture of the role model.
 
@@ -312,15 +312,15 @@ plausible. Plausibility is exactly what careful reading accepts.
 So the pass ended by converting itself into `scripts/check-engine-contract.mjs`, wired
 into `pnpm verify`, pre-commit and CI. It checks seven things mechanically:
 
-| Check | Catches |
-| --- | --- |
-| exports | `export { X }` for an undeclared X — a SyntaxError; the app would not boot |
-| declarations | a `.d.ts` declaring an export the engine does not provide |
+| Check          | Catches                                                                                |
+| -------------- | -------------------------------------------------------------------------------------- |
+| exports        | `export { X }` for an undeclared X — a SyntaxError; the app would not boot             |
+| declarations   | a `.d.ts` declaring an export the engine does not provide                              |
 | **provenance** | **a string claiming to be "verbatim from the prototype" that is not in the prototype** |
-| order-states | a state literal the engine never uses |
-| settings | a `DEFAULT_CFG` key with nowhere to persist |
-| seed | a generated row whose value count no longer matches its columns |
-| weak-tests | a tautology, or a loose assertion on a money value |
+| order-states   | a state literal the engine never uses                                                  |
+| settings       | a `DEFAULT_CFG` key with nowhere to persist                                            |
+| seed           | a generated row whose value count no longer matches its columns                        |
+| weak-tests     | a tautology, or a loose assertion on a money value                                     |
 
 The third row is the one that matters. It would have caught the invented refusal copy
 immediately, and it is the only one of the five fabrications that had actively defended
@@ -344,7 +344,7 @@ them, including the 24 that work entirely from `localStorage`.
 The failure mode is what makes it bad rather than merely wrong: you push to Vercel, get a
 wall of server errors, and have no way to distinguish a missing environment variable from
 a broken build. The natural next move is to start configuring Supabase — which is the
-opposite of the intended path, because the app is *designed* to run without it at this
+opposite of the intended path, because the app is _designed_ to run without it at this
 stage.
 
 Now `src/lib/supabase/config.ts`: `hasSupabaseConfig()` lets the middleware run

@@ -17,22 +17,22 @@ Current implementation progress: [G0 current state](docs/state/current.md). The 
 
 ## Read in this order
 
-| Need | Authoritative document |
-|---|---|
-| What was inspected, what actually passed, limits of evidence | [00 Audit evidence](docs/master-plan/00-audit-evidence.md) |
-| Every page, sheet, setting and state; design conflicts | [01 Feature and state audit](docs/master-plan/01-feature-and-state-audit.md) |
-| Existing engine, database and queue defects | [02 Data and offline audit](docs/master-plan/02-data-engine-and-offline-audit.md) |
-| Threats, authorization, privacy and operational exposure | [03 Security audit](docs/master-plan/03-security-and-operations-audit.md) |
-| Chosen stack, free limits, boundaries, speed, Apple support | [04 Architecture](docs/master-plan/04-architecture.md) |
-| How the entire ERP manual applies and what is excluded | [05 Manual crosswalk](docs/master-plan/05-manual-crosswalk.md) |
-| Exact business invariants, schema, APIs and transaction rules | [06 Domain contracts](docs/master-plan/06-domain-contracts.md) |
-| Ordered work packages, file ownership, checks and rollback | [07 Build backlog](docs/master-plan/07-build-backlog.md) and [machine-readable catalog](docs/master-plan/tasks.json) |
-| Tests, setup, release gates, recovery and daily operations | [08 Validation and operations](docs/master-plan/08-validation-and-operations.md) |
-| Codex/Claude prompts, memory, Git, model selection, quota resumption | [09 Agent operating system](docs/master-plan/09-agent-operating-system.md) |
-| Research sources, competing options, owner decisions | [10 Decisions and sources](docs/master-plan/10-decisions-and-sources.md) |
-| Every prioritized finding mapped to work and tests | [11 Traceability](docs/master-plan/11-traceability.md) |
-| Planning checks, source preservation and final failing application baseline | [12 Plan validation](docs/master-plan/12-plan-validation.md) |
-| Reusable starting files | [Template index](docs/master-plan/templates/README.md) |
+| Need                                                                                                | Authoritative document                                                                                                                                         |
+| --------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| What was inspected, what actually passed, limits of evidence                                        | [00 Audit evidence](docs/master-plan/00-audit-evidence.md)                                                                                                     |
+| Every page, sheet, setting and state; design conflicts                                              | [01 Feature and state audit](docs/master-plan/01-feature-and-state-audit.md)                                                                                   |
+| Existing engine, database and queue defects                                                         | [02 Data and offline audit](docs/master-plan/02-data-engine-and-offline-audit.md)                                                                              |
+| Threats, authorization, privacy and operational exposure                                            | [03 Security audit](docs/master-plan/03-security-and-operations-audit.md)                                                                                      |
+| Chosen stack, free limits, boundaries, speed, Apple support                                         | [04 Architecture](docs/master-plan/04-architecture.md)                                                                                                         |
+| How the entire ERP manual applies and what is excluded                                              | [05 Manual crosswalk](docs/master-plan/05-manual-crosswalk.md)                                                                                                 |
+| Exact business invariants, schema, APIs and transaction rules                                       | [06 Domain contracts](docs/master-plan/06-domain-contracts.md)                                                                                                 |
+| Ordered work packages, file ownership, checks and rollback                                          | [07 Build backlog](docs/master-plan/07-build-backlog.md) and [machine-readable catalog](docs/master-plan/tasks.json)                                           |
+| Tests, setup, release gates, recovery and daily operations                                          | [08 Validation and operations](docs/master-plan/08-validation-and-operations.md)                                                                               |
+| Codex/Claude prompts, memory, Git, model selection, quota resumption                                | [09 Agent operating system](docs/master-plan/09-agent-operating-system.md)                                                                                     |
+| Research sources, competing options, owner decisions                                                | [10 Decisions and sources](docs/master-plan/10-decisions-and-sources.md)                                                                                       |
+| Every prioritized finding mapped to work and tests                                                  | [11 Traceability](docs/master-plan/11-traceability.md)                                                                                                         |
+| Planning checks, source preservation and final failing application baseline                         | [12 Plan validation](docs/master-plan/12-plan-validation.md)                                                                                                   |
+| Reusable starting files                                                                             | [Template index](docs/master-plan/templates/README.md)                                                                                                         |
 | Owner decisions, open owner questions and owner-supplied materials (amends DP-00…DP-10; 2026-09-24) | [Decision register](docs/state/decision-register.md), [owner decision packet](docs/state/owner-decision-packet.md), [owner inputs](docs/state/owner-inputs.md) |
 
 ## Current assessment
@@ -45,15 +45,15 @@ CLI browser capture covered 26 routes at four profiles. All returned HTTP 200, b
 
 ## Delivery gates
 
-| Gate | Work | Exit evidence |
-|---|---|---|
-| G0 — reproducible baseline | MP-00–MP-03 | Versioned source, lockfile, compatible tools, green verification/build, complete design baseline |
-| G1 — safe platform | MP-04–MP-08 | Free-host spike; deterministic fresh database; denied unauthorized SQL/API actions; authenticated role bootstrap |
-| G2 — online business | MP-09–MP-17 | Real catalog → checkout → payment review → bake → collection → reconciled reports; uploads and inventory transactions |
-| G3 — durable bazaar | MP-18–MP-21 | One-device allocation; local transaction before success; crash/replay/void/closeout reconciliation; real iPhone offline tests |
-| G4 — operationally ready | MP-22–MP-26 | Privacy and backup restore; recovery, performance, security, accessibility and owner UAT evidence |
-| G5 — controlled launch | MP-27–MP-28 | Clean bootstrap; legal/accounting applicability recorded; rollback rehearsal; owner release decision; hypercare exit |
-| GA — automation, later | AR-00–AR-06 | Runner simulator, permissions, crash/quota recovery and no-extra-spend proof before activation |
+| Gate                       | Work        | Exit evidence                                                                                                                 |
+| -------------------------- | ----------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| G0 — reproducible baseline | MP-00–MP-03 | Versioned source, lockfile, compatible tools, green verification/build, complete design baseline                              |
+| G1 — safe platform         | MP-04–MP-08 | Free-host spike; deterministic fresh database; denied unauthorized SQL/API actions; authenticated role bootstrap              |
+| G2 — online business       | MP-09–MP-17 | Real catalog → checkout → payment review → bake → collection → reconciled reports; uploads and inventory transactions         |
+| G3 — durable bazaar        | MP-18–MP-21 | One-device allocation; local transaction before success; crash/replay/void/closeout reconciliation; real iPhone offline tests |
+| G4 — operationally ready   | MP-22–MP-26 | Privacy and backup restore; recovery, performance, security, accessibility and owner UAT evidence                             |
+| G5 — controlled launch     | MP-27–MP-28 | Clean bootstrap; legal/accounting applicability recorded; rollback rehearsal; owner release decision; hypercare exit          |
+| GA — automation, later     | AR-00–AR-06 | Runner simulator, permissions, crash/quota recovery and no-extra-spend proof before activation                                |
 
 Gate groups describe outcomes; the exact dependency graph in `tasks.json` controls scheduling. A task may be designed while a dependency is incomplete, but cannot be marked executable or verified until its prerequisites are satisfied. Every large package must be split into small owned implementation slices before coding. No package is a request for a single massive patch.
 

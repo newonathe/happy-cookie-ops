@@ -14,16 +14,16 @@ Status: `○` not started · `◐` built, needs switching on or verifying · `�
 Do these before an agent touches anything. Each one is a prerequisite for work that comes
 later, and each is faster than explaining it to an agent.
 
-| | Task | Time | Why now |
-| --- | --- | --- | --- |
-| 1 | `git init`, commit, push to a **private** repo | 5 min | Nothing an agent does is revertable until this exists |
-| 2 | `pnpm install` → `pnpm verify` | 10 min | **The one thing nothing has verified.** Six audit passes found everything reading can find; this finds the rest |
-| 3 | Deploy to Vercel — `docs/DEPLOY.md` §1 | 10 min | 24 of 25 screens work with no backend. A real URL you can watch |
-| 3b | **Fill in `docs/ENVIRONMENTS.md`** | 5 min | Every runbook command becomes copy-paste. Skip it and the first incident starts with a scavenger hunt |
-| 4 | Sentry project + DSN, `PRODUCTION_URL` variable | 15 min | Reporting is written and switched off until you do |
-| 5 | Visual baselines in Docker — `docs/TESTING.md` | 15 min | Until these exist, layout regressions are invisible |
-| 6 | Second Supabase project for staging — `docs/STAGING.md` | 20 min | **Blocks T-14.** That migration can destroy a year of her books and has nowhere to fail safely |
-| 7 | Enable Supabase backups, restore one into a scratch project | 15 min | An untested backup is a belief |
+|     | Task                                                        | Time   | Why now                                                                                                         |
+| --- | ----------------------------------------------------------- | ------ | --------------------------------------------------------------------------------------------------------------- |
+| 1   | `git init`, commit, push to a **private** repo              | 5 min  | Nothing an agent does is revertable until this exists                                                           |
+| 2   | `pnpm install` → `pnpm verify`                              | 10 min | **The one thing nothing has verified.** Six audit passes found everything reading can find; this finds the rest |
+| 3   | Deploy to Vercel — `docs/DEPLOY.md` §1                      | 10 min | 24 of 25 screens work with no backend. A real URL you can watch                                                 |
+| 3b  | **Fill in `docs/ENVIRONMENTS.md`**                          | 5 min  | Every runbook command becomes copy-paste. Skip it and the first incident starts with a scavenger hunt           |
+| 4   | Sentry project + DSN, `PRODUCTION_URL` variable             | 15 min | Reporting is written and switched off until you do                                                              |
+| 5   | Visual baselines in Docker — `docs/TESTING.md`              | 15 min | Until these exist, layout regressions are invisible                                                             |
+| 6   | Second Supabase project for staging — `docs/STAGING.md`     | 20 min | **Blocks T-14.** That migration can destroy a year of her books and has nowhere to fail safely                  |
+| 7   | Enable Supabase backups, restore one into a scratch project | 15 min | An untested backup is a belief                                                                                  |
 
 Step 2 is the one that matters. Everything below assumes it passed.
 
@@ -33,42 +33,47 @@ Dependencies are real. Two tasks touching `ops-engine.js` or the same migration 
 sequential no matter how much you want them not to be.
 
 ### Phase 0 — make the gate work
-| | Task | Who |
-| --- | --- | --- |
-| T-01 ○ | Get it running, prove the port | Claude Code |
-| T-01b ○ | Local Supabase, verify RLS by querying | Claude Code |
-| T-02 ○ | Generated database types, remove every `any` | Codex |
+
+|         | Task                                         | Who         |
+| ------- | -------------------------------------------- | ----------- |
+| T-01 ○  | Get it running, prove the port               | Claude Code |
+| T-01b ○ | Local Supabase, verify RLS by querying       | Claude Code |
+| T-02 ○  | Generated database types, remove every `any` | Codex       |
 
 ### Phase 1 — identity, before money moves
-| | Task | Who |
-| --- | --- | --- |
-| T-04 ○ | Staff accounts, real role gate from `profiles` | Claude Code |
-| T-05 ◐ | Harden `/api/sync` — the limiter exists; add the size cap, logging and `/status` | Claude Code |
-| T-06 ○ | Cross-model review of the phase | Codex, read-only |
-| T-16b ◐ | Observability — switch it on | you |
-| T-17 ◐ | Verify reporting scrubs PII. Do not rebuild it | Codex |
+
+|         | Task                                                                             | Who              |
+| ------- | -------------------------------------------------------------------------------- | ---------------- |
+| T-04 ○  | Staff accounts, real role gate from `profiles`                                   | Claude Code      |
+| T-05 ◐  | Harden `/api/sync` — the limiter exists; add the size cap, logging and `/status` | Claude Code      |
+| T-06 ○  | Cross-model review of the phase                                                  | Codex, read-only |
+| T-16b ◐ | Observability — switch it on                                                     | you              |
+| T-17 ◐  | Verify reporting scrubs PII. Do not rebuild it                                   | Codex            |
 
 ### Phase 2 — the test net, before the migration
-| | Task | Who |
-| --- | --- | --- |
-| T-07 ○ | Money and rounding, every path in the rules spec | Codex |
-| T-08 ○ | The six untested engine rules, one commit each | Codex |
-| T-09 ○ | Offline queue under real failure, seven cases | Claude Code |
-| T-18b ◐ | Generate visual baselines | Codex |
+
+|         | Task                                             | Who         |
+| ------- | ------------------------------------------------ | ----------- |
+| T-07 ○  | Money and rounding, every path in the rules spec | Codex       |
+| T-08 ○  | The six untested engine rules, one commit each   | Codex       |
+| T-09 ○  | Offline queue under real failure, seven cases    | Claude Code |
+| T-18b ◐ | Generate visual baselines                        | Codex       |
 
 **Do not skip to phase 3.** This net is the only thing that will tell you the migration
 broke a rule she depends on.
 
 ### Phase 3 — the actual remaining build
-| | Task | Who |
-| --- | --- | --- |
-| T-10 ○ | Catalogue and prices. Use `src/lib/money.ts` | Claude Code |
-| T-11 ○ | Orders — the big one, two sessions | Claude Code |
-| T-12 ○ | Ledger, append-only | Claude Code |
-| T-13 ○ | Stock, recipes, suppliers | Codex |
-| T-14 ○ | **Retire localStorage. Supervised.** | Claude Code **+ you** |
+
+|        | Task                                         | Who                   |
+| ------ | -------------------------------------------- | --------------------- |
+| T-10 ○ | Catalogue and prices. Use `src/lib/money.ts` | Claude Code           |
+| T-11 ○ | Orders — the big one, two sessions           | Claude Code           |
+| T-12 ○ | Ledger, append-only                          | Claude Code           |
+| T-13 ○ | Stock, recipes, suppliers                    | Codex                 |
+| T-14 ○ | **Retire localStorage. Supervised.**         | Claude Code **+ you** |
 
 ### Phase 4 — quality
+
 T-15 (accessibility, the only task allowed to edit ported markup), T-16 (realtime),
 T-18 (performance, measure first), T-19 (the pre-bazaar ritual on her actual phone).
 
@@ -83,6 +88,7 @@ T-13 are green and staging exists. Do not let an agent run it unattended.
 Not defects — decisions and unbuilt work. `docs/GAPS.md` has the full register.
 
 **Needs her, not code**
+
 - The **SMS bill** (§2.1). The only paid dependency. The code ships with an honest stub.
 - **`taxRate` is 3 and nothing consumes it** (§1.4). Whether it applies to gross or margin
   is a question for her bookkeeper. Her P&L is currently pre-tax and does not say so.
@@ -93,6 +99,7 @@ Not defects — decisions and unbuilt work. `docs/GAPS.md` has the full register
   recipe editing all have UI and no path behind them.
 
 **Needs a decision from you**
+
 - **Vercel Hobby prohibits commercial use** and this app takes money. Deploy on Hobby now;
   decide before it is her only till. The `Dockerfile` is the exit.
 - **Supabase free projects pause after 7 days idle** and her business is weekly. The hourly
@@ -102,6 +109,7 @@ Not defects — decisions and unbuilt work. `docs/GAPS.md` has the full register
   acceptable. Hers to answer.
 
 **Known unbuilt, ranked**
+
 1. The books are not in Postgres (§1.1). Everything else is downstream.
 2. ~80 engine methods have no unit test (§3.5). T-07 and T-08.
 3. No transactional messaging (§2.1). One SMS template is worth it; an email system is not.

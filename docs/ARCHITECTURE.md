@@ -63,7 +63,7 @@ future screen renders hundreds of rows, memoise that screen — not the frame.
   `helper` sees production and stock, `support` sees orders. Policies are in
   `supabase/migrations/20260101000000_init.sql` and explained in `docs/DATA.md`.
 - The ledger is append-only, even for the owner. Corrections are new rows.
-- A customer order can be looked up only with the order id *and* the phone number, via a
+- A customer order can be looked up only with the order id _and_ the phone number, via a
   `security definer` function, so order numbers cannot be walked.
 - The service-role key is server-only and is never referenced from a `'use client'` file.
 

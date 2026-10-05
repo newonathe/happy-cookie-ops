@@ -30,51 +30,51 @@ sync endpoint are the only parts that need the database.
 
 ## Layout
 
-| Path | What lives there |
-| --- | --- |
-| `src/app` | One route per screen. Each page mounts the same client app with a different `initialScreen`. |
-| `src/store/engine/ops-engine.js` | The domain engine, ported verbatim from the prototype. Every business rule is here. |
-| `src/store/ops-runtime.tsx` | The engine with bazaar sync replaced by the real IndexedDB queue. |
-| `src/view-models/vals.ts` | The typed contract between the engine and the UI. 1,278 lines, and worth reading. |
-| `src/components/shell/app-frame.tsx` | The frame: device harness, header, dock, toast. |
-| `src/components/screens` | 24 screen components. |
-| `src/components/sheets` | 29 bottom sheets. |
-| `src/lib/offline` | The sale queue, its IndexedDB store and the flush. |
-| `src/components/app` | Routing sync, the offline bridge and the per-screen error boundary. |
-| `supabase/migrations` | Schema, row-level security and the idempotent sale intake. |
-| `docs` | Everything below, plus the prototype itself and the original spec. |
-| `.claude/` | Hooks that block edits to ported files, plus `/task`, `/review`, `/verify`, `/handoff` and three subagents. |
-| `.codex/` | The same guardrails for Codex: a read-only review profile and the shared hooks. |
-| `scripts/` | The port-integrity gate and its baseline. |
+| Path                                 | What lives there                                                                                            |
+| ------------------------------------ | ----------------------------------------------------------------------------------------------------------- |
+| `src/app`                            | One route per screen. Each page mounts the same client app with a different `initialScreen`.                |
+| `src/store/engine/ops-engine.js`     | The domain engine, ported verbatim from the prototype. Every business rule is here.                         |
+| `src/store/ops-runtime.tsx`          | The engine with bazaar sync replaced by the real IndexedDB queue.                                           |
+| `src/view-models/vals.ts`            | The typed contract between the engine and the UI. 1,278 lines, and worth reading.                           |
+| `src/components/shell/app-frame.tsx` | The frame: device harness, header, dock, toast.                                                             |
+| `src/components/screens`             | 24 screen components.                                                                                       |
+| `src/components/sheets`              | 29 bottom sheets.                                                                                           |
+| `src/lib/offline`                    | The sale queue, its IndexedDB store and the flush.                                                          |
+| `src/components/app`                 | Routing sync, the offline bridge and the per-screen error boundary.                                         |
+| `supabase/migrations`                | Schema, row-level security and the idempotent sale intake.                                                  |
+| `docs`                               | Everything below, plus the prototype itself and the original spec.                                          |
+| `.claude/`                           | Hooks that block edits to ported files, plus `/task`, `/review`, `/verify`, `/handoff` and three subagents. |
+| `.codex/`                            | The same guardrails for Codex: a read-only review profile and the shared hooks.                             |
+| `scripts/`                           | The port-integrity gate and its baseline.                                                                   |
 
 ## Documents
 
-| Read this | When |
-| --- | --- |
-| [`AGENTS.md`](./AGENTS.md) | **First.** Binding rules and commands for any coding agent — Claude Code, Codex, anything. |
-| [`docs/WORKFLOW.md`](./docs/WORKFLOW.md) | How you, Claude Code and Codex divide the work without stepping on each other. |
-| [`docs/prompts/`](./docs/prompts/README.md) | **Every prompt, start to finish.** Paste from here. |
-| [`docs/TASKS.md`](./docs/TASKS.md) | The remaining work, decomposed into agent-sized tasks with acceptance criteria. |
-| [`docs/CONTRACTS.md`](./docs/CONTRACTS.md) | API contracts, so two agents can build both sides at once. |
-| [`CLAUDE.md`](./CLAUDE.md) | Claude Code's copy of the rules in AGENTS.md. |
-| [`docs/CODEX.md`](./docs/CODEX.md) | Running Codex here — the review profile, and working alongside Claude Code. |
-| [`docs/PORTING.md`](./docs/PORTING.md) | Before you touch anything under `screens`, `sheets` or the engine. |
-| [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) | To understand why the app is shaped like this. |
-| [`docs/OFFLINE.md`](./docs/OFFLINE.md) | Before changing bazaar mode or the sync. |
-| [`docs/DATA.md`](./docs/DATA.md) | Schema, roles and what each policy protects. |
-| [`docs/PROMPTS.md`](./docs/PROMPTS.md) | The sequenced Claude Code prompts for the remaining work. |
-| [`docs/BUILD-LOG.md`](./docs/BUILD-LOG.md) | What was decided during the port, and what was found out the hard way. |
-| [`docs/ENVIRONMENTS.md`](./docs/ENVIRONMENTS.md) | Real URLs, project refs, who has access. Fill in as you deploy. |
-| [`docs/RUNBOOK.md`](./docs/RUNBOOK.md) | Incident response. Read the first line to her before anything else. |
-| [`docs/SCREENS.md`](./docs/SCREENS.md) | 91 screenshots of every screen, state and role. Look here before changing a screen. |
-| [`docs/FREE-TIER.md`](./docs/FREE-TIER.md) | Zero-cost hosting, the Actions budget, and what not to switch on. |
-| [`docs/TESTING.md`](./docs/TESTING.md) | The seven test layers, and the sharp edges in visual and parity testing. |
-| [`docs/OBSERVABILITY.md`](./docs/OBSERVABILITY.md) | Error reporting, the scrubber, and three Sentry defaults we inverted. |
-| [`docs/STAGING.md`](./docs/STAGING.md) | The second environment, and the deploy order. |
-| [`docs/MESSAGING.md`](./docs/MESSAGING.md) | The one SMS template, and what the owner must agree to. |
-| [`docs/GAPS.md`](./docs/GAPS.md) | What the system lacks beyond design, what each gap costs, and what not to build. |
-| [`docs/TECH-DEBT.md`](./docs/TECH-DEBT.md) | The known compromises, each with the cost of leaving it. |
-| [`docs/DEPLOY.md`](./docs/DEPLOY.md) | Getting it onto a phone and into production. |
+| Read this                                          | When                                                                                       |
+| -------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| [`AGENTS.md`](./AGENTS.md)                         | **First.** Binding rules and commands for any coding agent — Claude Code, Codex, anything. |
+| [`docs/WORKFLOW.md`](./docs/WORKFLOW.md)           | How you, Claude Code and Codex divide the work without stepping on each other.             |
+| [`docs/prompts/`](./docs/prompts/README.md)        | **Every prompt, start to finish.** Paste from here.                                        |
+| [`docs/TASKS.md`](./docs/TASKS.md)                 | The remaining work, decomposed into agent-sized tasks with acceptance criteria.            |
+| [`docs/CONTRACTS.md`](./docs/CONTRACTS.md)         | API contracts, so two agents can build both sides at once.                                 |
+| [`CLAUDE.md`](./CLAUDE.md)                         | Claude Code's copy of the rules in AGENTS.md.                                              |
+| [`docs/CODEX.md`](./docs/CODEX.md)                 | Running Codex here — the review profile, and working alongside Claude Code.                |
+| [`docs/PORTING.md`](./docs/PORTING.md)             | Before you touch anything under `screens`, `sheets` or the engine.                         |
+| [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md)   | To understand why the app is shaped like this.                                             |
+| [`docs/OFFLINE.md`](./docs/OFFLINE.md)             | Before changing bazaar mode or the sync.                                                   |
+| [`docs/DATA.md`](./docs/DATA.md)                   | Schema, roles and what each policy protects.                                               |
+| [`docs/PROMPTS.md`](./docs/PROMPTS.md)             | The sequenced Claude Code prompts for the remaining work.                                  |
+| [`docs/BUILD-LOG.md`](./docs/BUILD-LOG.md)         | What was decided during the port, and what was found out the hard way.                     |
+| [`docs/ENVIRONMENTS.md`](./docs/ENVIRONMENTS.md)   | Real URLs, project refs, who has access. Fill in as you deploy.                            |
+| [`docs/RUNBOOK.md`](./docs/RUNBOOK.md)             | Incident response. Read the first line to her before anything else.                        |
+| [`docs/SCREENS.md`](./docs/SCREENS.md)             | 91 screenshots of every screen, state and role. Look here before changing a screen.        |
+| [`docs/FREE-TIER.md`](./docs/FREE-TIER.md)         | Zero-cost hosting, the Actions budget, and what not to switch on.                          |
+| [`docs/TESTING.md`](./docs/TESTING.md)             | The seven test layers, and the sharp edges in visual and parity testing.                   |
+| [`docs/OBSERVABILITY.md`](./docs/OBSERVABILITY.md) | Error reporting, the scrubber, and three Sentry defaults we inverted.                      |
+| [`docs/STAGING.md`](./docs/STAGING.md)             | The second environment, and the deploy order.                                              |
+| [`docs/MESSAGING.md`](./docs/MESSAGING.md)         | The one SMS template, and what the owner must agree to.                                    |
+| [`docs/GAPS.md`](./docs/GAPS.md)                   | What the system lacks beyond design, what each gap costs, and what not to build.           |
+| [`docs/TECH-DEBT.md`](./docs/TECH-DEBT.md)         | The known compromises, each with the cost of leaving it.                                   |
+| [`docs/DEPLOY.md`](./docs/DEPLOY.md)               | Getting it onto a phone and into production.                                               |
 
 ## Commands
 
