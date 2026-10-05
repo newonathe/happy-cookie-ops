@@ -605,3 +605,24 @@ No other applied-migration amendment is authorized by this exception.
 PG17's separately reproduced browser `MAINTAIN` grant is corrected in the new
 051 migration, with effective-permission, service-parity and rolled-back red/
 future-table probes. That additive correction does not extend this exception.
+
+## F2 formatter scope for byte-locked delivery paths (approved 2026-10-05)
+
+Ethan approved excluding the byte-locked delivery paths from Prettier instead of
+reformatting them: `src/components/screens/`, `src/components/sheets/`,
+`src/components/shell/` and `docs/master-plan/`. This follows the existing
+exclusions for `docs/reference/` and `src/store/engine/ops-engine.js`.
+
+At `497c6b7` these paths held 121 of the 536 `format:check` failures (54 ported
+markup files and 67 master-plan files). `scripts/validate-g0.py` holds every one of
+them to its delivered bytes, and `scripts/check-port-integrity.mjs` additionally
+guards the ported markup, so formatting them would need one hash-guarded reversal
+per file. No protected file is edited by this exception: the only change is four
+`.prettierignore` entries. Port integrity, the delivery-byte guard, structural
+baselines and every other release check are unchanged.
+
+This supersedes the single-file candidate in
+[F2-format-exception-proposal.md](F2-format-exception-proposal.md); that candidate
+was never applied and `src/components/screens/all-tools.tsx` keeps its original
+bytes. `src/lib/observability/scrub.ts` and `tests/e2e/visual.spec.ts` are not
+covered by this exception and remain unformatted pending a specific decision.
