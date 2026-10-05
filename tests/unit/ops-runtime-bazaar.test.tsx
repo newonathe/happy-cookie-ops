@@ -271,16 +271,24 @@ describe('sale flags follow the queue (live)', () => {
       { id: 'S1', at: 100 }
     ]);
     // The engine calls every sale recorded while online "synced"; the queue knows better.
-    act(() => runtime.setState({ ...state, sales: state.sales.map((s) => ({ ...s, synced: true })) }));
+    act(() =>
+      runtime.setState({ ...state, sales: state.sales.map((s) => ({ ...s, synced: true })) })
+    );
     store.set('dev1:S1:100', row('S1', 100, 'sent'));
     store.set('dev1:S2:200', row('S2', 200, 'pending'));
-    const { client } = rpcThatStarts(() => ({ data: null, error: { code: '22023', message: 'refused' } }));
+    const { client } = rpcThatStarts(() => ({
+      data: null,
+      error: { code: '22023', message: 'refused' }
+    }));
     bazaar(runtime).saleClient = client;
     await act(async () => {
       await (runtime as unknown as { flushSales: () => Promise<unknown> }).flushSales();
     });
     const flags = Object.fromEntries(
-      (runtime.state.sales as Array<{ id: string; synced: boolean; failed: boolean }>).map((s) => [s.id, [s.synced, s.failed]])
+      (runtime.state.sales as Array<{ id: string; synced: boolean; failed: boolean }>).map((s) => [
+        s.id,
+        [s.synced, s.failed]
+      ])
     );
     expect(flags).toEqual({ S1: [true, false], S2: [false, true] });
     expect(runtime.state.unsynced).toBe(1);
@@ -298,9 +306,17 @@ describe('the close-out (live)', () => {
   }
   const co = (runtime: OpsRuntime) => runtime as unknown as Closeout;
   const ack = (name: string, args: Record<string, unknown>) => {
-    if (name === 'add_event_expense') return { data: [{ client_id: (args.p_expense as { clientId: string }).clientId, duplicate: false }], error: null };
+    if (name === 'add_event_expense')
+      return {
+        data: [{ client_id: (args.p_expense as { clientId: string }).clientId, duplicate: false }],
+        error: null
+      };
     if (name === 'load_event_stock') return { data: [{ event_id: args.p_event }], error: null };
-    if (name === 'close_event') return { data: [{ event_id: (args.p_close as { eventId: string }).eventId, closed: true }], error: null };
+    if (name === 'close_event')
+      return {
+        data: [{ event_id: (args.p_close as { eventId: string }).eventId, closed: true }],
+        error: null
+      };
     return { data: [], error: null };
   };
   function withEvent(stage: string, extra: Record<string, unknown> = {}) {
@@ -335,7 +351,9 @@ describe('the close-out (live)', () => {
     act(() => co(runtime).openSelling());
     await settle();
     expect(runtime.state.event).toMatchObject({ stage: 'selling' });
-    expect(sent(rpc, 'load_event_stock')).toEqual([{ p_event: EVENT, p_loaded: { dcf: 5 }, p_float_cents: 100000 }]);
+    expect(sent(rpc, 'load_event_stock')).toEqual([
+      { p_event: EVENT, p_loaded: { dcf: 5 }, p_float_cents: 100000 }
+    ]);
     expect(store.get('open:' + EVENT)).toMatchObject({ kind: 'open', state: 'sent' });
   });
 
@@ -348,7 +366,20 @@ describe('the close-out (live)', () => {
 
   it('sends the float and the cash the phone took, so the server can check it holds the same', async () => {
     const sale = (id: string, pay: string, total: number) => ({
-      id, pay, total, at: 1, items: { dcf: 1 }, gross: total, discount: 0, ref: '', clerk: 'Owner', tendered: 0, change: 0, synced: true, failed: false, ledgerId: null
+      id,
+      pay,
+      total,
+      at: 1,
+      items: { dcf: 1 },
+      gross: total,
+      discount: 0,
+      ref: '',
+      clerk: 'Owner',
+      tendered: 0,
+      change: 0,
+      synced: true,
+      failed: false,
+      ledgerId: null
     });
     const { runtime, rpc } = withEvent('selling', {
       drawer: { float: 500, counted: '900' },
@@ -357,7 +388,10 @@ describe('the close-out (live)', () => {
     });
     act(() => co(runtime).closeEvent());
     await settle();
-    expect(sent(rpc, 'close_event')[0]!.p_close).toMatchObject({ floatCents: 50000, cashCents: 12550 });
+    expect(sent(rpc, 'close_event')[0]!.p_close).toMatchObject({
+      floatCents: 50000,
+      cashCents: 12550
+    });
   });
 
   it('queues nothing when opening the table is refused (no cookies loaded)', async () => {
@@ -373,20 +407,27 @@ describe('the close-out (live)', () => {
     act(() => co(runtime).addEventExpense('Table rent', '1500', 'Bazaar rent'));
     await settle();
     const [call] = sent(rpc, 'add_event_expense');
-    expect(call!.p_expense).toMatchObject({ eventId: EVENT, label: 'Table rent', category: 'Bazaar rent', amountCents: 150000 });
+    expect(call!.p_expense).toMatchObject({
+      eventId: EVENT,
+      label: 'Table rent',
+      category: 'Bazaar rent',
+      amountCents: 150000
+    });
     expect((call!.p_expense as { clientId: string }).clientId).toMatch(/^expense:/);
   });
 
-  it.each([['blank label', '  ', '1500'], ['zero amount', 'Rent', '0'], ['negative amount', 'Rent', '-5'], ['not a number', 'Rent', 'abc']])(
-    'refuses an expense with a %s and queues nothing',
-    async (_name, label, amount) => {
-      const { runtime, rpc } = withEvent('selling');
-      act(() => co(runtime).addEventExpense(label, amount, 'Bazaar rent'));
-      await settle();
-      expect(rpc).not.toHaveBeenCalled();
-      expect(store.size).toBe(0);
-    }
-  );
+  it.each([
+    ['blank label', '  ', '1500'],
+    ['zero amount', 'Rent', '0'],
+    ['negative amount', 'Rent', '-5'],
+    ['not a number', 'Rent', 'abc']
+  ])('refuses an expense with a %s and queues nothing', async (_name, label, amount) => {
+    const { runtime, rpc } = withEvent('selling');
+    act(() => co(runtime).addEventExpense(label, amount, 'Bazaar rent'));
+    await settle();
+    expect(rpc).not.toHaveBeenCalled();
+    expect(store.size).toBe(0);
+  });
 
   it('queues the close with the count in centavos and only the menu flavours returned', async () => {
     const { runtime, rpc } = withEvent('selling', {
@@ -398,7 +439,13 @@ describe('the close-out (live)', () => {
     await settle();
     expect(runtime.state.event).toMatchObject({ stage: 'closed' });
     const [call] = sent(rpc, 'close_event');
-    expect(call!.p_close).toMatchObject({ eventId: EVENT, countedCents: 150000, returned: { dcf: 2 }, floatCents: 100000, cashCents: 0 });
+    expect(call!.p_close).toMatchObject({
+      eventId: EVENT,
+      countedCents: 150000,
+      returned: { dcf: 2 },
+      floatCents: 100000,
+      cashCents: 0
+    });
     expect(typeof (call!.p_close as { at: number }).at).toBe('number');
   });
 
@@ -406,17 +453,24 @@ describe('the close-out (live)', () => {
     const a = withEvent('selling', { drawer: { float: 1000, counted: '' }, unsynced: 0 });
     act(() => co(a.runtime).closeEvent());
     await settle();
-    expect((sent(a.rpc, 'close_event')[0]!.p_close as { countedCents: unknown }).countedCents).toBeNull();
+    expect(
+      (sent(a.rpc, 'close_event')[0]!.p_close as { countedCents: unknown }).countedCents
+    ).toBeNull();
     cleanup();
     store.clear();
     const b = withEvent('selling', { drawer: { float: 1000, counted: '-40' }, unsynced: 0 });
     act(() => co(b.runtime).closeEvent());
     await settle();
-    expect((sent(b.rpc, 'close_event')[0]!.p_close as { countedCents: unknown }).countedCents).toBeNull();
+    expect(
+      (sent(b.rpc, 'close_event')[0]!.p_close as { countedCents: unknown }).countedCents
+    ).toBeNull();
   });
 
   it('queues no close while sales are still waiting to sync (the engine refuses)', async () => {
-    const { runtime, rpc } = withEvent('selling', { drawer: { float: 1000, counted: '1500' }, unsynced: 2 });
+    const { runtime, rpc } = withEvent('selling', {
+      drawer: { float: 1000, counted: '1500' },
+      unsynced: 2
+    });
     act(() => co(runtime).closeEvent());
     await settle();
     expect(runtime.state.event).toMatchObject({ stage: 'selling' });
@@ -434,7 +488,14 @@ describe('the close-out (live)', () => {
   it('demo mode keeps the prototype: nothing is queued', async () => {
     live = false;
     const runtime = mounted();
-    act(() => runtime.setState({ event: { name: 'Fair', stage: 'selling' }, drawer: { float: 1000, counted: '' }, unsynced: 0, eventStock: { dcf: 1 } }));
+    act(() =>
+      runtime.setState({
+        event: { name: 'Fair', stage: 'selling' },
+        drawer: { float: 1000, counted: '' },
+        unsynced: 0,
+        eventStock: { dcf: 1 }
+      })
+    );
     act(() => co(runtime).closeEvent());
     act(() => co(runtime).addEventExpense('Rent', '100', 'Bazaar rent'));
     await settle();

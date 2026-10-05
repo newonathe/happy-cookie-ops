@@ -131,13 +131,19 @@ describe('MP-09 c2: the live checkout and footer', () => {
     const forbidden = /0962|5341|cash on pickup|Bank transfer to/;
     const unread = await mounted('owner', { info: info() }, false);
     expect(unread.runtime.renderVals().cust.noQr).toBe(false);
-    expect(render(<CheckoutScreen v={unread.runtime.renderVals()} />).container.textContent).not.toMatch(forbidden);
+    expect(
+      render(<CheckoutScreen v={unread.runtime.renderVals()} />).container.textContent
+    ).not.toMatch(forbidden);
     cleanup();
     const failed = await mounted('owner', { info: 'fail' });
-    expect(render(<CheckoutScreen v={failed.runtime.renderVals()} />).container.textContent).not.toMatch(forbidden);
+    expect(
+      render(<CheckoutScreen v={failed.runtime.renderVals()} />).container.textContent
+    ).not.toMatch(forbidden);
     cleanup();
     const ok = await mounted('owner', { info: info() });
-    expect(render(<CheckoutScreen v={ok.runtime.renderVals()} />).container.textContent).not.toMatch(forbidden);
+    expect(
+      render(<CheckoutScreen v={ok.runtime.renderVals()} />).container.textContent
+    ).not.toMatch(forbidden);
     // Mutation: leaving the engine's noQr note in place brings back the placeholder bank number and cash line.
   });
 
@@ -145,9 +151,9 @@ describe('MP-09 c2: the live checkout and footer', () => {
     live = false;
     const ref: { current: OpsRuntime | null } = { current: null };
     render(<OpsRuntime ref={(r) => void (ref.current = r)} />);
-    expect(render(<CheckoutScreen v={ref.current!.renderVals()} />).container.textContent).toContain(
-      'Bank transfer to 0962 962 5341'
-    );
+    expect(
+      render(<CheckoutScreen v={ref.current!.renderVals()} />).container.textContent
+    ).toContain('Bank transfer to 0962 962 5341');
   });
 
   it('shows the methods the database returned, in its order, as the engine’s pay accounts', async () => {

@@ -142,7 +142,8 @@ function fakeClient(f: Fake) {
     if (name === 'get_production')
       return { data: { batches: [], dough: [], baked: [], shortfalls: [] }, error: null };
     if (name === 'get_recipes') return { data: [], error: null };
-    if (name === 'get_staff_orders') return { data: f.orders ?? [order(), unpaidRaw()], error: null };
+    if (name === 'get_staff_orders')
+      return { data: f.orders ?? [order(), unpaidRaw()], error: null };
     if (
       [
         'record_expense',
@@ -400,11 +401,19 @@ describe('E1: the books on screen and their writes (live mode)', () => {
     const { runtime } = await mounted('owner', fresh());
     act(() => runtime.setState({ orders: [] } as never));
     const said: string[] = [];
-    const spy = vi.spyOn(runtime as unknown as { toast: (m: string) => void }, 'toast').mockImplementation((m) => void said.push(m));
+    const spy = vi
+      .spyOn(runtime as unknown as { toast: (m: string) => void }, 'toast')
+      .mockImplementation((m) => void said.push(m));
     act(() => (runtime as unknown as { closeDrop: () => void }).closeDrop());
     await settle();
     spy.mockRestore();
-    expect(said.some((m) => /^Drop \d+ closed\. Its paid orders are already in your P&L\. Drop \d+ is open for orders\.$/.test(m))).toBe(true);
+    expect(
+      said.some((m) =>
+        /^Drop \d+ closed\. Its paid orders are already in your P&L\. Drop \d+ is open for orders\.$/.test(
+          m
+        )
+      )
+    ).toBe(true);
     expect(said.some((m) => m.includes('closed at'))).toBe(false);
     // Mutation: leaving the engine's toast says "closed at ₱0 and booked into your P&L".
   });
@@ -476,7 +485,12 @@ describe('E1: the books on screen and their writes (live mode)', () => {
     const u = runtime.renderVals().liveBooks?.unpaid;
     expect(u?.summary).toBe(BOOKS_COPY.unpaidSummary(1, '₱150'));
     expect(u?.rows).toEqual([
-      { id: 'HC-1002', title: 'HC-1002 · Ben Diaz', detail: BOOKS_COPY.unpaidWaiting + ' · ' + BOOKS_COPY.unpaidDays(3), amount: '₱150' }
+      {
+        id: 'HC-1002',
+        title: 'HC-1002 · Ben Diaz',
+        detail: BOOKS_COPY.unpaidWaiting + ' · ' + BOOKS_COPY.unpaidDays(3),
+        amount: '₱150'
+      }
     ]);
     // Mutation: counting the paid order too puts HC-1001 on the tracker.
   });

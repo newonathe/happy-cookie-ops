@@ -23,14 +23,17 @@ const createClient = vi.fn();
 const getUser = vi.fn(async () => ({ data: { user: null }, error: null }));
 const authSignOut = vi.fn(async () => ({ error: null }));
 vi.mock('@/lib/supabase/client', () => ({
-  createClient: () => (createClient(), {
-    auth: {
-      getUser,
-      signOut: authSignOut,
-      onAuthStateChange: () => ({ data: { subscription: { unsubscribe: vi.fn() } } })
-    },
-    from: vi.fn()
-  })
+  createClient: () => (
+    createClient(),
+    {
+      auth: {
+        getUser,
+        signOut: authSignOut,
+        onAuthStateChange: () => ({ data: { subscription: { unsubscribe: vi.fn() } } })
+      },
+      from: vi.fn()
+    }
+  )
 }));
 
 import { LiveGate } from '@/components/app/live-gate';
@@ -173,4 +176,3 @@ describe('LiveGate — an anonymous customer returning to the tab', () => {
     await waitFor(() => expect(getUser).toHaveBeenCalled());
   });
 });
-

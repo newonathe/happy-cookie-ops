@@ -199,7 +199,12 @@ describe('B2: the live checkout', () => {
       await ref.current!.loadShopOrders(fake.client);
     });
     act(() => ref.current!.renderVals().cust.submit());
-    expect(String((ref.current!.state.toast as { msg?: string } | null)?.msg ?? JSON.stringify(ref.current!.state.toast))).toMatch(/still need filling in/);
+    expect(
+      String(
+        (ref.current!.state.toast as { msg?: string } | null)?.msg ??
+          JSON.stringify(ref.current!.state.toast)
+      )
+    ).toMatch(/still need filling in/);
     expect(fake.rpc).not.toHaveBeenCalled();
     // Mutation: applying the live overrides outside the live-mode branch of the constructor breaks this.
   });
@@ -325,7 +330,9 @@ describe('B2: the live checkout', () => {
     let n = 0;
     const { runtime, calls } = await mounted({
       place_order: () =>
-        ++n === 1 ? new Promise<Reply>((resolve) => (release = resolve)) : { data: [PLACED], error: null }
+        ++n === 1
+          ? new Promise<Reply>((resolve) => (release = resolve))
+          : { data: [PLACED], error: null }
     });
     await fillForm(runtime);
     await act(async () => {
@@ -336,14 +343,18 @@ describe('B2: the live checkout', () => {
     expect(runtime.renderVals().liveCheckout!.frozen).toBe(false);
     custSet(runtime, 'pickupTime', '16:00');
     expect((runtime.state.cust as { pickupTime: string }).pickupTime).toBe('10:30');
-    act(() => (runtime as unknown as { custAdd: (p: string, d: number) => void }).custAdd('dcf', 1));
+    act(() =>
+      (runtime as unknown as { custAdd: (p: string, d: number) => void }).custAdd('dcf', 1)
+    );
     expect((runtime.state.cust as { box: Record<string, number> }).box).toEqual({ dcf: 2 });
     // The reply is lost: unsettled and frozen, and still the same body on "Try again".
     await act(async () => release(new TypeError('offline') as unknown as Reply));
     await flush();
     expect(runtime.renderVals().liveCheckout!.frozen).toBe(true);
     custSet(runtime, 'name', 'Changed');
-    act(() => (runtime as unknown as { custAdd: (p: string, d: number) => void }).custAdd('dcf', 1));
+    act(() =>
+      (runtime as unknown as { custAdd: (p: string, d: number) => void }).custAdd('dcf', 1)
+    );
     expect((runtime.state.cust as { name: string }).name).toBe('Ana');
     expect((runtime.state.cust as { box: Record<string, number> }).box).toEqual({ dcf: 2 });
     await submit(runtime);
@@ -352,7 +363,9 @@ describe('B2: the live checkout', () => {
     // Placed: the box stays put too, and the panel says when the pickup is.
     const placed = runtime.renderVals().liveCheckout!.placed!;
     expect(placed.pickupText).toBe('Thu, Oct 8 · 10:30 AM');
-    act(() => (runtime as unknown as { custAdd: (p: string, d: number) => void }).custAdd('dcf', 1));
+    act(() =>
+      (runtime as unknown as { custAdd: (p: string, d: number) => void }).custAdd('dcf', 1)
+    );
     expect((runtime.state.cust as { box: Record<string, number> }).box).toEqual({ dcf: 2 });
     expect(render(<CheckoutScreen v={runtime.renderVals()} />).container.textContent).toContain(
       'Pickup Thu, Oct 8 · 10:30 AM'
@@ -519,26 +532,36 @@ describe('B2: the status page', () => {
     const TOKEN_B = 'c'.repeat(64);
     const { runtime, calls } = await mounted({}, 'status');
     await act(async () => {
-      await (runtime as unknown as { orderFlow: { loadStatus: (t: string) => Promise<void> } }).orderFlow.loadStatus(TOKEN);
+      await (
+        runtime as unknown as { orderFlow: { loadStatus: (t: string) => Promise<void> } }
+      ).orderFlow.loadStatus(TOKEN);
     });
     act(() => runtime.syncStatusRoute());
     expect(window.location.hash).toBe('#t=' + TOKEN);
     // A lookup for another order right after this runtime wrote the first link: the lookup wins.
     const TOKEN_A2 = 'f'.repeat(64);
     await act(async () => {
-      await (runtime as unknown as { orderFlow: { loadStatus: (t: string) => Promise<void> } }).orderFlow.loadStatus(TOKEN_A2);
+      await (
+        runtime as unknown as { orderFlow: { loadStatus: (t: string) => Promise<void> } }
+      ).orderFlow.loadStatus(TOKEN_A2);
     });
     act(() => runtime.syncStatusRoute());
     expect(window.location.hash).toBe('#t=' + TOKEN_A2);
     window.history.replaceState(null, '', '/status#t=' + TOKEN_B);
     await act(async () => runtime.syncStatusRoute());
     await flush();
-    expect(calls.filter((c) => c.name === 'order_status').map((c) => c.args.p_token)).toEqual([TOKEN, TOKEN_A2, TOKEN_B]);
+    expect(calls.filter((c) => c.name === 'order_status').map((c) => c.args.p_token)).toEqual([
+      TOKEN,
+      TOKEN_A2,
+      TOKEN_B
+    ]);
     expect(window.location.hash).toBe('#t=' + TOKEN_B);
     // A lookup for another order wins over the address bar it leaves behind.
     const TOKEN_C = 'd'.repeat(64);
     await act(async () => {
-      await (runtime as unknown as { orderFlow: { loadStatus: (t: string) => Promise<void> } }).orderFlow.loadStatus(TOKEN_C);
+      await (
+        runtime as unknown as { orderFlow: { loadStatus: (t: string) => Promise<void> } }
+      ).orderFlow.loadStatus(TOKEN_C);
     });
     act(() => runtime.syncStatusRoute());
     expect(window.location.hash).toBe('#t=' + TOKEN_C);
@@ -551,13 +574,24 @@ describe('B2: the status page', () => {
     const { runtime } = await mounted(
       {
         order_status: () =>
-          ++n === 1 ? { data: STATUS, error: null } : new Promise<Reply>((resolve) => (release = resolve))
+          ++n === 1
+            ? { data: STATUS, error: null }
+            : new Promise<Reply>((resolve) => (release = resolve))
       },
       'status'
     );
-    await act(async () => (runtime as unknown as { orderFlow: { loadStatus: (t: string) => Promise<void> } }).orderFlow.loadStatus(TOKEN));
+    await act(async () =>
+      (
+        runtime as unknown as { orderFlow: { loadStatus: (t: string) => Promise<void> } }
+      ).orderFlow.loadStatus(TOKEN)
+    );
     expect(runtime.renderVals().cust.orderNo).toBe('HC-1001');
-    await act(async () => void (runtime as unknown as { orderFlow: { loadStatus: (t: string) => Promise<void> } }).orderFlow.loadStatus('e'.repeat(64)));
+    await act(
+      async () =>
+        void (
+          runtime as unknown as { orderFlow: { loadStatus: (t: string) => Promise<void> } }
+        ).orderFlow.loadStatus('e'.repeat(64))
+    );
     expect(runtime.renderVals().cust.orderNo).toBe('—');
     expect(runtime.renderVals().cust.heroTitle).toBe('Loading your order…');
     await act(async () => release({ data: STATUS, error: null }));
@@ -704,7 +738,9 @@ describe('B2: find my order and the waiting list', () => {
     expect(runtime.renderVals().liveWaitlist!.state).toBe('unknown');
     await act(async () => runtime.renderVals().liveWaitlist!.join({ ...fields, name: 'Other' }));
     await flush();
-    const bodies = calls.filter((c) => c.name === 'join_waitlist').map((c) => c.args.p_entry as Record<string, unknown>);
+    const bodies = calls
+      .filter((c) => c.name === 'join_waitlist')
+      .map((c) => c.args.p_entry as Record<string, unknown>);
     expect(bodies).toHaveLength(2);
     expect(bodies[1]).toEqual(bodies[0]);
     expect(runtime.renderVals().liveWaitlist!.state).toBe('done');
@@ -715,7 +751,9 @@ describe('B2: find my order and the waiting list', () => {
     const { runtime, calls } = await mounted(
       {
         join_waitlist: () =>
-          ++n === 1 ? new TypeError('offline') : { data: [{ waitlist_id: 'w', replayed: true }], error: null }
+          ++n === 1
+            ? new TypeError('offline')
+            : { data: [{ waitlist_id: 'w', replayed: true }], error: null }
       },
       'shop'
     );
@@ -779,7 +817,10 @@ describe('B3: the /lookup screen (the second guarded slot)', () => {
   });
 
   it('a miss stays on the screen and says so', async () => {
-    const { runtime } = await mounted({ find_order: () => ({ data: null, error: null }) }, 'lookup');
+    const { runtime } = await mounted(
+      { find_order: () => ({ data: null, error: null }) },
+      'lookup'
+    );
     await act(async () => runtime.renderVals().liveLookup!.run('HC-1001', '0917 123 4567'));
     await flush();
     expect(runtime.state.screen).toBe('lookup');
