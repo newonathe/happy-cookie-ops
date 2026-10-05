@@ -1,15 +1,18 @@
-# Next goals — A3 (sign-out warning, release hold, framework patch)
+# Next goals — A4 (backup, restore drill, retention and keep-alive schedule, written and off)
 
 One goal per package, each in a fresh conversation opened in the repository root. Paste
 one block. Where things stand: [current.md](current.md). The plan these come from:
 [final-plan.md](final-plan.md), version 2, section 9, stage A. Earlier goals are in
 [current-history.md](current-history.md).
 
-A1 (the release check) and A2 (the bazaar phone opens offline) are done. A3 is approved
-with the plan on 5 October 2026. It touches sign-out and the release workflow, so it is
-attended, not one of the interface-only slices that may run unattended.
+A1 (the release check), A2 (the bazaar phone opens offline) and A3 (sign-out warning, release
+hold, framework patch) are done. A4 is approved with the plan on 5 October 2026. It writes
+jobs that stay off and runs them only against the local database, so it needs no hosted
+resource; switching them on is Ethan's (backup custody, secrets, the variable). It touches
+secret handling, so it is attended, not one of the interface-only slices that may run
+unattended.
 
-## A3 — warn before sign-out with sales queued; a release hold; the framework patch
+## A4 — the maintenance jobs, written and off, with a local dry run
 
 | Setting         | Value                                                                                         |
 | --------------- | --------------------------------------------------------------------------------------------- |
@@ -17,49 +20,51 @@ attended, not one of the interface-only slices that may run unattended.
 | Plan mode       | On: three short parts, state the files and the test for each                                  |
 | Permission mode | Auto                                                                                          |
 | Review          | The `security-reviewer` agent on a different model, before commit; fix every P0 to P2 finding |
-| Browser QA      | Yes for part 1: the live build against the local database, in the browser pane                |
-| Tools           | Node 24.20.0 and pnpm 9.12.3 from `happy-cookie-tools`; local Supabase                        |
+| Browser QA      | No: no interface changes                                                                      |
+| Tools           | Node 24.20.0 and pnpm 9.12.3 from `happy-cookie-tools`; local Supabase; Docker                |
 | Stop            | Evidence printed and pushed; 25 turns; two failed fix attempts                                |
 
 ```text
-/goal Slice A3 of docs/state/final-plan.md (version 2) for The Happy Cookie Ops in
+/goal Slice A4 of docs/state/final-plan.md (version 2) for The Happy Cookie Ops in
 C:\Users\ethan\dev\happy-cookie-ops-g0. Three small parts, one commit each. The phone
-rehearsal is by 20 October; the bazaar is 24 to 25 October.
+rehearsal is by 20 October; the bazaar is 24 to 25 October; the trial database holds real
+bazaar sales from then, with no backup until these jobs are on (final-plan.md section 14).
 
-Read first: AGENTS.md, docs/state/current.md, docs/state/final-plan.md sections 5.3 (N3),
-9, 11.1 and 14, docs/OFFLINE.md (the A2 section), src/components/app/live-gate.tsx,
-src/lib/auth/live-gate.ts, src/lib/offline/queue.ts, .github/workflows/owner-trial.yml,
-scripts/check-owner-trial-release.mjs and their tests. Protected files (screens, sheets,
-shell, engine) are not to be edited: if a part seems to need one, stop and say so.
+Read first: AGENTS.md, docs/state/current.md, docs/state/final-plan.md sections 9 (A4),
+12 and 14, docs/state/F1-operations.md, docs/state/F1-schedule.example.json,
+scripts/f1-backup.mjs, scripts/f1-operations.mjs, their tests (scripts/test-f1-backup.mjs
+and the unit tests that name them), .github/workflows/uptime.yml and
+.github/workflows/owner-trial.yml (the release hold, A3, is the model for "off"). Protected
+files are not to be edited: if a part seems to need one, stop and say so.
 
-1. Sign-out warns when sales are queued (N3). Find every way a person signs out on
-   purpose in the live app. Before it signs out, count the rows the phone still holds
-   (pendingSales). If there are any, say how many and offer "Send now" and "Sign out
-   anyway"; never block sign-out and never touch the queue. The automatic paths (a
-   denial, idle) stay as A2 left them. Write the test first. Rehearsal step 7 depends on it.
-2. Release hold switch. One repository variable, read by the owner-trial workflow before
-   the deploy step: when it is on, a green push builds and tests but does not deploy, and
-   the run says why in one line. Unit test the decision; "hold on means no deploy" is the
-   proof. Ethan sets and lifts it; do not set it.
-3. Framework patch. Move Next.js to the newest 16.3.x patch only (no minor or major),
-   read its release notes for anything touching the static export or the service worker,
-   run pnpm verify and pnpm test:e2e, and rebuild the live export once.
-
-The persistent-storage request named in the plan's A3 row was built in A2: leave it out.
+1. The schedule, written and off. One workflow, .github/workflows/ops-jobs.yml, with the
+   three jobs of F1-schedule.example.json: weekly backup, daily keep-alive, daily retention.
+   Every job is gated on one repository variable (OPS_JOBS_ENABLED) that is not set, and
+   reads no secret and calls no hosted API when it is off; the run says why in one line.
+   The backup job names no destination (custody is undecided): it must fail closed with a
+   clear message until Ethan names one, never write to a default. Hosted calls keep the
+   --hosted-approved flag. Write the tests first: off means no job step runs and no secret
+   is read, proven from the workflow text as the release-hold test does.
+2. A local dry run against the local database only: backup, verify, the isolated restore
+   drill (the disposable container the F1 doc requires), keep-alive and retention, with the
+   counts and hashes recorded in docs/state/evidence. Use throwaway keys generated for the
+   run and never print them. Nothing hosted, no --hosted-approved.
+3. Say what Ethan does to switch them on, in docs/state/F1-operations.md and current.md:
+   where the encrypted archive lives, who can restore it, the secrets to add, the
+   variable to set, and what a failed job looks like. Do not set the variable.
 
 Review: run the security-reviewer agent on a different model before committing part 1 and
-fix every P0 to P2 finding. Check part 1 in the browser pane on the live build against
-the local database: sell with the database proxy stopped, try to sign out, see the count,
-send, sign out.
+again before part 2; fix every P0 to P2 finding (key handling, logs, the fail-closed
+default, anything that could reach a hosted project).
 
 Update docs/state/current.md (five lines) and docs/state/task-status.json (one note, by
-string insertion), and replace this block with slice A4.
+string insertion), and replace this block with slice B1.
 
-Evidence to print: each failing test before and passing after; the reviewer's verdict; the
-pnpm verify summary in a clean shell; the browser check, step by step; the three commit
+Evidence to print: each failing test before and passing after; the reviewers' verdicts; the
+pnpm verify summary in a clean shell; the dry run, step by step, with counts; the commit
 hashes and the pushed branch.
 
-No new resources, shop opening, real customers, production launch, merge or automatic
-runner. Do not set the release hold. Stop after 25 turns or two failed fix attempts and
-report the actual obstacle.
+No new resources, hosted calls, shop opening, real customers, production launch, merge or
+automatic runner. Do not set the variable. Stop after 25 turns or two failed fix attempts
+and report the actual obstacle.
 ```

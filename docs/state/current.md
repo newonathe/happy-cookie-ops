@@ -4,7 +4,7 @@ Read this page first in a new session. It is kept short on purpose.
 
 | If you need                                        | Read                                                                                                                                                     |
 | -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| The goal to run next                               | [next-goal.md](next-goal.md) (A3)                                                                                                                        |
+| The goal to run next                               | [next-goal.md](next-goal.md) (A4)                                                                                                                        |
 | The plan, approved 5 October                       | [final-plan.md](final-plan.md), version 2                                                                                                                |
 | The rules every agent follows                      | [AGENTS.md](../../AGENTS.md)                                                                                                                             |
 | Ethan's and Cine's decisions                       | [decision-register.md](decision-register.md)                                                                                                             |
@@ -16,16 +16,23 @@ Read this page first in a new session. It is kept short on purpose.
 
 ## Where things stand — 6 October 2026
 
-**The plan is approved; slices A1 and A2 of it are built.** Ethan approved
+**The plan is approved; slices A1, A2 and A3 of it are built.** Ethan approved
 [final-plan.md](final-plan.md), version 2, on 5 October after a re-audit, a debate and
 wider research. It replaces finish-plan.md as the forward plan. The next step is slice
-A3.
+A4.
 
 **A2, 6 October:** the bazaar phone opens and reloads with no signal. Bazaar Mode alone
 opens, only while the phone holds a running event, only within her offline hours (48 by
 default) of its last online check; what happens is in [OFFLINE.md](../OFFLINE.md). Reviewed
 independently and checked in the browser on a computer. The phone rehearsal still has to
 prove it in Safari, from the Home Screen, overnight and with the radio off.
+
+**A3, 6 October:** the live app now has one deliberate sign-out, a small pill above the
+dock. It always asks first; with sales still on the phone it says how many and offers Send now,
+Sign out anyway and Keep selling, and never touches the queue ([OFFLINE.md](../OFFLINE.md)).
+`RELEASE_HOLD`, a repository variable, stops the trial deploy while it is on (below). Next.js is
+16.3.8. Checked in the browser on the live build against the local database; two independent
+reviews. Step 7 of the phone rehearsal can now be run.
 
 **Package:** F2, the owner trial, stays open but does not start until everything in the
 plan is built (Ethan, 5 October). F3 (launch) stays closed until Cine accepts a real week.
@@ -34,12 +41,12 @@ plan is built (Ethan, 5 October). F3 (launch) stays closed until Cine accepts a 
 
 - **The product** is built through E1: menu and settings, checkout and owner orders,
   bazaar selling with offline close-out, stock, recipes and production, books, P&L and
-  CSV, backups and health. `pnpm verify` passes 85 files / 1,572 tests; the planning
+  CSV, backups and health. `pnpm verify` passes 89 files / 1,637 tests; the planning
   validator passes 1,225 checks.
 - **The private trial site** is live for owners only:
   <https://happy-cookie-owner-trial.admin-kethai.workers.dev>. Cloudflare Access sends an
   email code to two approved mailboxes. The shop is closed and the menu is unpublished.
-- **On the trial** (read-only, 5 October): all 53 migrations applied; 72 stock items, 26
+- **On the trial** (read 5 October; migration 54 added 6 October): all 54 migrations applied; 72 stock items, 26
   flavours, 804 historical book lines, no orders.
 - **CI/CD is green.** A green push to `agent/codex/MP-04-g1-feasibility` redeploys the
   trial; a push that changes only documents does not. Latest release: GitHub run
@@ -51,7 +58,6 @@ Found by reading code or the trial, not by running. Each has a slice in the plan
 
 | What                                                                                                         | Slice  |
 | ------------------------------------------------------------------------------------------------------------ | ------ |
-| Signing out does not warn when sales are still queued on the phone.                                          | A3     |
 | No backup, restore drill, retention or keep-alive job is scheduled.                                          | A4     |
 | Nothing tests the live app; the browser suites run the demo build.                                           | B1     |
 | Values from the prototype still show in the live app (pickups, greeting, Settings rows, shop tagline).       | B2     |
@@ -83,14 +89,17 @@ All in [decision-register.md](decision-register.md), the section for 5 October.
   two addresses to Cloudflare Access and the approved-digest variable in one sitting, or the
   next deploy fails. Set the session to one week: that deploy then fails once and prints the
   value; put it in `ALLOWED_SESSION_DURATIONS`, push, then invite her.
-- **Apply migration `20260101005300_offline_open_hours.sql` to the trial before the
-  rehearsal.** No workflow applies migrations. Until then the trial has 53 of 54, offline
-  open uses the 48-hour default, and the new Settings row cannot save.
-- For bazaar days, set the owner's idle time to 480 minutes (Settings). When idle time runs
-  out with no signal the app keeps selling, then signs out at the first answer from the
-  server; a long idle time keeps that from happening mid-bazaar.
-- Close the test event left open on the trial since 5 October.
+- Done on the trial on 6 October, at Ethan's instruction, through the database connector:
+  migration `20260101005300_offline_open_hours.sql` applied (54 of 54; the three function
+  bodies match the committed hashes); the test event of 5 October closed through
+  `close_event` (no sales, no stock, nothing booked); the owner's idle time set to 480
+  minutes through `save_setting`. Put the idle time back to 60 in Settings after the bazaar
+  if wanted. No workflow applies migrations: the next one is again a step by hand.
 - Decide where the encrypted backup lives and who can restore it; switch the jobs on.
+- **The release hold** is built and not set. To stop deploys (rehearsal to 26 October): GitHub,
+  the repository's Settings, Secrets and variables, Actions, Variables, add `RELEASE_HOLD` =
+  `true`. A push then builds and tests but does not deploy, and the run says so. Delete it or
+  set it to `false` to lift. Any value that is not clearly "off" holds.
 - The phone rehearsal by **20 October** ([final-plan.md](final-plan.md) section 11.1).
 - Approve each import preview.
 - Say whether the pointer lines in `AGENTS.md` and `CLAUDE.md` may be updated (below).
