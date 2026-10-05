@@ -2,15 +2,15 @@
 
 Read this page first in a new session. It is kept short on purpose.
 
-| If you need                      | Read                                                                      |
-| -------------------------------- | ------------------------------------------------------------------------- |
-| The one goal to run next         | [next-goal.md](next-goal.md)                                              |
-| The rules every agent follows    | [AGENTS.md](../../AGENTS.md)                                              |
-| Cine's trial checklist           | [F2-owner-trial.md](F2-owner-trial.md)                                    |
-| The detailed F2 log              | [F2-checkpoint.md](F2-checkpoint.md) and [F2-fix-list.md](F2-fix-list.md) |
-| The UX review awaiting decisions | [ux-audit.md](ux-audit.md)                                                |
-| Older checkpoints, verbatim      | [current-history.md](current-history.md)                                  |
-| The approved plan to the finish  | [finish-plan.md](finish-plan.md) and [lean-plan.md](lean-plan.md)         |
+| If you need                     | Read                                                                      |
+| ------------------------------- | ------------------------------------------------------------------------- |
+| The one goal to run next        | [next-goal.md](next-goal.md)                                              |
+| The rules every agent follows   | [AGENTS.md](../../AGENTS.md)                                              |
+| Cine's trial checklist          | [F2-owner-trial.md](F2-owner-trial.md)                                    |
+| The detailed F2 log             | [F2-checkpoint.md](F2-checkpoint.md) and [F2-fix-list.md](F2-fix-list.md) |
+| The UX review, done             | [ux-audit.md](ux-audit.md)                                                |
+| Older checkpoints, verbatim     | [current-history.md](current-history.md)                                  |
+| The approved plan to the finish | [finish-plan.md](finish-plan.md) and [lean-plan.md](lean-plan.md)         |
 
 ## Where things stand — 5 October 2026
 
@@ -25,6 +25,13 @@ Read this page first in a new session. It is kept short on purpose.
 > to build it without editing ported files, and eight decisions are in
 > [product-research.md](product-research.md). Wireframes are in the private
 > `claude-20261005/rework/` folder. Nothing is built.
+>
+> Ethan approved both plans on 5 October ("yes to all, do what u recommend"), added
+> "nothing must be hardcoded", and asked for a whole-system audit, now in
+> [system-audit.md](system-audit.md) (findings only, nothing fixed), followed by one more
+> round of research and a single final plan in the next conversation
+> ([next-goal.md](next-goal.md)). The three source files now live in the private
+> `claude-20261005/sot-sources/` folder.
 
 **Package:** F2, the owner trial. F2 is incomplete, and F3 (launch) stays closed until Cine
 accepts a real week of use.

@@ -169,6 +169,10 @@ the planning-authority line of `AGENTS.md` and `CLAUDE.md`, which has not been e
 (it is checked byte for byte and Ethan is asked before it changes). The proposed wording is
 in [next-goal.md](next-goal.md).
 
+During the audit he added a rule: **"nothing must be hardcoded."** Every number, name and
+sentence about the business comes from her data or her settings; the hard-coded values
+found are listed in [system-audit.md](system-audit.md) section 2.
+
 He also set the order of work: a whole-system audit first
 ([system-audit.md](system-audit.md)), then, in the next conversation, a fresh round of
 research and one final plan before any building.
