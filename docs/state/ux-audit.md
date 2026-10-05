@@ -1,11 +1,11 @@
 # UX review — 5 October 2026
 
-Status: **proposals 1, 2 and 4 are implemented and on the private trial (5 October).
-Proposal 3 is prepared and waits for Ethan's look. Proposal 5 is not being done.** Ethan
-asked for this review because the app feels "all over the place". The ones marked
-_protected_ need the exception process in [AGENTS.md](../../AGENTS.md), because they change
-ported screens, the shell or the engine. What was built is under
-[Implemented](#implemented-on-5-october) below.
+Status: **proposals 1 to 4 are implemented and on the private trial (5 October), with the
+neutral Home card and finding 11. Proposal 5 is not being done.** Ethan asked for this
+review because the app feels "all over the place". The ones marked _protected_ went
+through the exception process in [AGENTS.md](../../AGENTS.md), because they change ported
+screens or the shell. What was built is under [Implemented](#implemented-on-5-october)
+below.
 
 ## How it was done
 
@@ -77,23 +77,35 @@ the rest", adding that the UI and UX feel all over the place.
 | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 1        | **Go.** Recommended, unprotected.                                                                                                                                           |
 | 2        | **Go.** Ethan gave his explicit yes on 5 October ("yes to both"). Keep the facts visible to him in System health; remove the red alerts from Cine's Home and Notifications. |
-| 3        | **Go in principle.** Recommended. The shell change is protected: show Ethan the exact before and after, then follow the exception process, before it reaches the trial.     |
+| 3        | **Go.** Ethan saw the exact before and after and what leaves the dock, and approved on 5 October ("yes to all three, do what u recommend").                                 |
 | 4        | **Go.** Recommended, unprotected.                                                                                                                                           |
 | 5        | **Not now.** Not recommended: a protected layout change for a subtle effect. Revisit with the larger design questions after Cine's week.                                    |
 
 Timing, also decided on 5 October: **land these before Cine starts her week.** Her start
 waits for them.
 
+Later on 5 October, asked three things after the first batch shipped (the dock; Home's
+system card: "Keep the red one, or approve that exception?"; finding 11), Ethan answered:
+"yes to all three, do what u recommend". The dock and finding 11 were clear. For the card,
+Claude read the yes as approval of the neutral card, because his proposal 2 decision was to
+remove the red alerts from Cine's Home; the record says how to undo it if he meant
+otherwise.
+
 ## Implemented on 5 October
 
-All three are in the live layer and routing only. No ported screen, sheet, shell file or
-engine line changed, and the demo build and the visual baselines are untouched.
+Proposals 1, 2 and 4 and finding 11 are in the live layer and routing only. The dock and
+the Home card each needed one guarded edit to ported markup, approved by Ethan and
+recorded in [protected-exception.md](protected-exception.md). The engine is unchanged, and
+the demo build and the visual baselines are untouched.
 
-| Proposal | Commit               | What changed                                                                                                                                                                                                                                                                                       |
-| -------- | -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1        | `a12f59f`            | All tools has a "Menu and recipes" group after Kitchen: Menu & flavours, Products, Recipes, Recipe drafts, each with a line saying what it is for. Nothing else moved.                                                                                                                             |
-| 2        | `6fac6ae`, `519cb99` | While no backup job has ever recorded a run, System health says "No backup has run yet", addressed to Ethan, and keeps the four facts. Notifications went from 6 to 2 on the local test data, Home from "4 things need you" to 3, and the badge on All tools is gone. Nothing is shown as healthy. |
-| 4        | `40af151`            | A direct visit to `/order` opens Orders and `/batch` opens the bake plan, replacing the history entry so Back does not return to an empty page.                                                                                                                                                    |
+| Proposal   | Commit               | What changed                                                                                                                                                                                                                                                                                                        |
+| ---------- | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1          | `a12f59f`            | All tools has a "Menu and recipes" group after Kitchen: Menu & flavours, Products, Recipes, Recipe drafts, each with a line saying what it is for. Nothing else moved.                                                                                                                                              |
+| 2          | `6fac6ae`, `519cb99` | While no backup job has ever recorded a run, System health says "No backup has run yet", addressed to Ethan, and keeps the four facts. Notifications went from 6 to 2 on the local test data, Home from "4 things need you" to 3, and the badge on All tools is gone. Nothing is shown as healthy.                  |
+| 4          | `40af151`            | A direct visit to `/order` opens Orders and `/batch` opens the bake plan, replacing the history entry so Back does not return to an empty page.                                                                                                                                                                     |
+| 3          | `410ac1e`            | The owner's phone dock shows five labelled destinations (Home, Orders, Bake, Inventory, All tools) instead of nine unlabelled icons, and marks All tools while a screen reached through it is open. Sales log has its own receipt icon and an entry in All tools. _Protected:_ one guarded label line in the shell. |
+| 2, card    | `3bc91dd`            | Home's system card is neutral (grey info icon) while no backup has run and nothing else is wrong. Any real problem keeps it red; it is never green while a backup is missing. _Protected:_ one guarded block in the Home screen.                                                                                    |
+| Finding 11 | `7035937`            | Seven All tools descriptions shortened so the cards stay inside the screen down to 360 px wide.                                                                                                                                                                                                                     |
 
 ### How proposal 2 keeps a real failure visible
 
@@ -119,10 +131,15 @@ engine line changed, and the demo build and the visual baselines are untouched.
   job alerts return at the next re-read that fails, within four minutes. A hidden tab
   keeps its last read for five minutes and then alerts until it is shown again. The app
   claims nothing from a read it cannot repeat.
-- **Home's system card still shows the red triangle,** with "No backup has run yet · A
-  set-up task for Ethan, not for the kitchen." The ported card has only two states, red or
-  a green "System all good", and green would be a false claim. A neutral card needs a
-  protected markup change. Ethan to choose: keep it, or approve that exception.
+- **Home's system card is neutral only in the quiet state.** It reads "No backup has run
+  yet · A set-up task for Ethan, not for the kitchen." A queued sale or an offline device
+  turns it red even then.
+- **On a phone, four screens are one tap further away:** Sales log, P&L, Grocery and
+  Bazaar Mode are now under All tools, and the Grocery count is no longer on the dock
+  (Home still shows "items short"). Bazaar Mode is the path for the phone rehearsal and
+  the bazaar: check during the rehearsal that the extra tap is acceptable.
+- **A helper's dock** keeps Home, Sales log and Bazaar, now labelled; support keeps All
+  tools.
 
 ### Evidence
 
@@ -143,16 +160,34 @@ engine line changed, and the demo build and the visual baselines are untouched.
   Home, Notifications, System health, All tools, `/order` and `/batch` at 390 and 1440
   wide. Kept privately in `claude-20261005/ux-batch1/`. Local test data only.
 
-### Found while capturing, not changed
+### Second batch evidence (dock, Home card, finding 11)
 
-| #   | Finding                                                                                                                                                                                                                                     | Where     |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
-| 11  | On a phone the Business cards in All tools run off the right edge. Two descriptions (Books & costs, Stock items) are too long for one line and stretch the whole column. It was there before this batch. Shortening the two lines fixes it. | All tools |
+- `pnpm verify`: 83 files, 1,512 tests. `pnpm build:pages:spike` passes at `3bc91dd`.
+- Planning-continuity validator: 1,225 checks, 0 failures, with both protected edits
+  registered as exact reversals. Port integrity: 54 files match; only the two edited
+  files' baseline entries changed.
+- Independent port audit (Sonnet): pass, no blocker. Recorded with both exception records
+  in [protected-exception.md](protected-exception.md).
+- Docker image rebuilt from `3bc91dd`: visual suite 75 of 75 against the existing
+  baselines, none regenerated, so the demo build is pixel-unchanged by the two protected
+  edits. Browser flows 90 passed, 75 skipped (database-backed cases with no database in
+  the container), none failed.
+- Signed-in live captures in the same image, local test data, owner at 360, 375, 390 and
+  1440 wide and helper at 360, 375 and 390:
+  - All tools cards end exactly at the screen edge at all three phone widths (they ran to
+    423 px before) and no description is cut.
+  - Every dock label fits its slot; the tightest is "Inventory", 51 px in a 64 px slot at
+    360 wide. The helper's three labels fit too.
+  - Home shows the neutral card; the sidebar at 1440 shows the receipt icon.
+- GitHub run 37302318279 at `3bc91dd`: every required job passed and the release job deployed
+  Worker version `43267acc`. The advisory performance job still misses its budget.
+  Anonymous requests still redirect to Cloudflare Access. No person has looked at the
+  changed screens on the trial itself yet.
+- Private evidence: `claude-20261005/ux-batch1/` and `claude-20261005/ux-batch2/`.
 
-## Proposal 3: prepared, not shipped
+### Found while capturing
 
-The exact change, before and after pictures and the list of what moves off the dock are
-with Ethan. Nothing is committed. If he approves, the slice needs the exception record in
-[protected-exception.md](protected-exception.md), exact reversals in
-`scripts/validate-g0.py`, the port baselines updated in the same commit, an independent
-port audit and tests.
+| #   | Finding                                                                                                                                                                                                                      | Where     | State                  |
+| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- | ---------------------- |
+| 11  | On a phone the Business cards in All tools ran off the right edge, because long descriptions stretched the column.                                                                                                           | All tools | Fixed, `7035937`       |
+| 12  | A signed-in helper is greeted with the prototype helper's name ("Good morning, Kristian.") and sees the prototype's "You are seeing what a helper sees" note, whatever their own profile name is. Only owners use the trial. | Home      | Not changed; to decide |

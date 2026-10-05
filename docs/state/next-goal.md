@@ -19,16 +19,10 @@ F2-owner-trial.md, F2-count-custody-device-preparation.md and ux-audit.md.
 Do not restart setup, reimport the 804 financial rows or reformat evidence receipts.
 Every green push to this branch redeploys the private trial: push only accepted work
 and read each CI run. Run pnpm build:pages:spike before every push.
-1. UX review. Proposals 1, 2 and 4 are on the trial. Only on Ethan's recorded answer:
-   a. Proposal 3 (phone dock): apply the prepared candidate (private
-      claude-20261005/ux-batch1/proposal-3-dock.patch) with the protected-exception
-      record, exact reversals in scripts/validate-g0.py, port baselines in the same
-      commit, an independent port audit, tests and Docker captures.
-   b. Home's system card while no backup has run: keep the red triangle, or a neutral
-      card through the same exception process.
-   c. Finding 11 (All tools cards run off the right edge on a phone): shorten the two
-      long descriptions if he wants it.
-   Do none of these without his answer. Proposal 5 is not being done.
+1. UX review. Proposals 1 to 4, the neutral Home card and finding 11 are on the trial.
+   Proposal 5 is not being done. Open: Ethan's own look at the changed screens on the
+   trial, and finding 12 (a helper is greeted by the prototype helper's name) if he
+   wants it fixed. Change nothing else in the UI without his answer.
 2. Cine's closed-shop week: record her sign-in on iPhone and MacBook, password change,
    seven dates, opening count, the six recipes as she weighs them, agreed test orders,
    the daily log and her feedback. Record only what people supply. Fix reproduced
