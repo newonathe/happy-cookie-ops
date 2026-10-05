@@ -191,3 +191,44 @@ the demo build and the visual baselines are untouched.
 | --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- | ------------------------------- |
 | 11  | On a phone the Business cards in All tools ran off the right edge, because long descriptions stretched the column.                                                                                                           | All tools | Fixed, `7035937`                |
 | 12  | A signed-in helper is greeted with the prototype helper's name ("Good morning, Kristian.") and sees the prototype's "You are seeing what a helper sees" note, whatever their own profile name is. Only owners use the trial. | Home      | Left for now (Ethan, 5 October) |
+
+## Performance scope (finding 10), 5 October
+
+Scoped only; nothing is changed. Sources: the Lighthouse reports of GitHub run 37302318279
+and the files of the live bundle built at `3bc91dd`.
+
+### What was measured, and what was not
+
+- The CI job measures the **demo** build, not the trial. Its largest paint is the
+  prototype's "Interactive prototype · owner view · mock data" header, which the live app
+  does not render. So the 5.8 to 9.4 s figures are for the demo harness.
+- On that throttled profile (1.6 Mbps, 4x slower processor) first paint is 0.8 to 1.1 s
+  and the page is usable when everything has downloaded: Home 7.3 s (1,101 KB), shop
+  9.4 s (1,596 KB), Bazaar 5.8 s (834 KB). Blocking time is 0.8 to 2.2 s.
+- **Nobody has measured the live build or the trial.** The customer shop page, signed
+  out, on the hosted site is the number that matters and it does not exist yet.
+
+### Where the weight is
+
+| What                               | Size                                  | Note                                                                                                                                                                  |
+| ---------------------------------- | ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `logo-full.png`                    | 373 KB, 3,931 x 1,983 px              | Shown 56 px tall on the shop and on sign-in.                                                                                                                          |
+| `mark-solid.png`                   | 324 KB, 3,039 x 2,727 px              | Shown 28 to 78 px tall; also the browser and home-screen icon on every page.                                                                                          |
+| Six ported flavour photos          | 57 to 62 KB each, about 170 px square | PNG photographs.                                                                                                                                                      |
+| Scripts on every app page          | 1,543 KB, 414 KB compressed, 12 files | The engine and all 24 screens are one 655 KB file (153 KB compressed). A customer on the shop downloads the whole staff app, the database client and error reporting. |
+| Owner-uploaded photos and QR codes | up to 2 MB each                       | `uploadShopImage` stores the file as chosen, with no resizing, and the shop serves it as stored.                                                                      |
+
+After the first visit the service worker serves scripts and `/assets/` from its cache, so
+this mostly costs a customer's first visit and each device's first load.
+
+### Proposed slices, in order of value for effort
+
+| #   | Slice                                                                                                                            | Expected effect                                                                                        | Touches                                                                                                                        | Size                                                     |
+| --- | -------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------- |
+| P1  | Measure the live shop page: run the same Lighthouse profile against the static live bundle, signed out.                          | A true baseline; the budget then means something.                                                      | CI and config only.                                                                                                            | Small                                                    |
+| P2  | Resize owner uploads in the browser before upload (for example longest side 1,200 px, WebP) and keep the 2 MB cap as a backstop. | Prevents a 2 MB photo per flavour on the shop; the largest real risk once Cine uploads her own photos. | Unprotected live layer.                                                                                                        | Small                                                    |
+| P3  | Replace the two logo files with correctly sized versions at the same paths, and point the page icon at a small icon file.        | About 370 KB less on the shop and 320 KB less on the order-status page.                                | The image files are delivery assets (not ported markup); needs Ethan's yes and a Docker visual run to prove no visible change. | Small                                                    |
+| P4  | Re-encode the six ported flavour photos at the same paths.                                                                       | About 250 KB less on the demo shop; less on the live shop as Cine replaces them.                       | Same as P3.                                                                                                                    | Small                                                    |
+| P5  | Split the script: customer pages without the staff screens, staff screens loaded when opened, error reporting loaded late.       | The only item that reduces the 414 KB of script and the blocking time. Size of the gain not estimated. | The protected shell imports all 24 screens, so it needs a protected exception, and it changes how the app loads.               | Large; after launch unless P1 shows the shop is too slow |
+
+Not proposed: loosening the budget.

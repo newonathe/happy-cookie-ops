@@ -62,9 +62,16 @@ accepts a real week of use.
   encrypted off-device backup lives and who can restore it; the phone rehearsal before
   20 October (Bazaar Mode is now under All tools on a phone). When backups are switched
   on, check that the first run appears in System health.
-- **Performance budget (advisory job):** it now measures the real pages and they miss the
-  budget (GitHub: performance about 0.58, largest paint 5.8 to 9.4 s, shop page 1.63 MB).
-  Nothing was loosened. It does not gate the release.
+- **Performance budget (advisory job):** it measures the demo build's pages and they miss
+  the budget (largest paint 5.8 to 9.4 s, shop page 1.6 MB). The live shop page has not
+  been measured. Scoped on 5 October, nothing changed:
+  [ux-audit.md](ux-audit.md#performance-scope-finding-10-5-october). It does not gate the
+  release.
+- **Fake orders, to decide before the shop opens:** the public checkout has no per-caller
+  rate limit by design (decision D1, 28 September): an unpaid order holds slots for 24
+  hours and a phone number may have two open unpaid orders. About nine made-up numbers
+  could still fill a 200-cookie week until Cine cancels them. The options recorded then
+  were a cap on how much of a week unpaid orders may hold, or a limit per pickup week.
 - **Playwright issue 42775:** when a release fixes it, the WebKit run of OFFLINE-01 turns red
   on purpose. Upgrade then and delete the WebKit branches in the test.
 - **Not eligible:** historical stock reconciliation. The counts are undated and opening
