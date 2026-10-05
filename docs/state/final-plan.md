@@ -1,6 +1,9 @@
 # Final plan, version 2 — bazaar safety first, then one screen at a time (5 October 2026)
 
-Status: **approved by Ethan on 5 October 2026**, with the five answers in section 1.
+Status: **approved by Ethan on 5 October 2026**, with his five answers in section 1 and,
+later the same day, his answers to the questions for Cine (section 12), the rule that
+everything variable is editable (6.7) and the rule that every function has one home
+(8.1). Audited for consistency on 6 October.
 This is the forward plan. It replaces the first version of this page (commits `331dde1`,
 `846acea`) and, from here on, [finish-plan.md](finish-plan.md), whose sections 8 (how we
 build) and 12 (sources) stay as reference. Nothing was built, imported or deployed in
@@ -70,7 +73,7 @@ plans), and the advisor. Rulings only; evidence in brackets.
 | The accuracy check would fail on missing prices: purchases are in the books only, about 8 quotes exist, a stock item has no price field. [`20260101000000_init.sql:79-89`]                                                                                                      | **Accepted.** Her price list gets a home and loads first.                                                              |
 | "Last delivery price" is not how the trade costs stock.                                                                                                                                                                                                                         | **Accepted.** Weighted average cost (section 7).                                                                       |
 | Every page, the shop included, loads the whole staff app. [`src/app/shop/page.tsx`]                                                                                                                                                                                             | **Accepted**, scheduled before the shop opens.                                                                         |
-| 17 decisions, heavy ceremony per slice.                                                                                                                                                                                                                                         | **Accepted.** Four decisions; baselines batched per stage.                                                             |
+| 17 decisions, heavy ceremony per slice.                                                                                                                                                                                                                                         | **Accepted.** Five decisions; baselines batched per stage.                                                             |
 
 ### 3.2 Against the first re-strategy
 
@@ -344,8 +347,7 @@ If Cine needs one of these changed, that is a change request, not a setting.
 6. **Customer pages are their own light routes**; staff tabs load on demand.
 7. **Ported screens stay locked as the demo.** One guarded, live-only slot in the frame
    draws a new screen in place of the old one, and carries Customers and Sales as views
-   under existing keys, so the engine's screen list is untouched. A redesigned screen replaces the old one
-   under the same key, live mode only.
+   under existing keys, so the engine's screen list is untouched.
 8. **Stock states are worked out, not typed in.** Needed is what this week's orders
    require, from the recipes; with no orders yet, her usual week's use; before any
    history, one batch of each flavour on sale. Out is none left. Low is some left but
@@ -365,7 +367,7 @@ reading the table; this is the shape.
 | ------------------- | -------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **Flavour**         | `products`, with publishing, picture, allergens, price. 26 in the trial, two duplicate pairs.                              | No new table. Duplicates are merged by switching one off and pointing its history at the other; nothing is deleted. An order line keeps the flavour's name as it was when ordered (L4).                                                                                                                                                                                                                                                                                              |
 | **Recipe**          | `recipes`, `recipe_versions`, `recipe_drafts`. A line names its ingredient as text (L1).                                   | Each line points at a stock item. Saving refuses a name that is not an item and offers to create it. A line may carry a section label ("dough", "filling"); no nested recipes. Her packaging lines are kept as the recipe's packaging section (this reverses S3's "without their packaging lines"). A production record points at the recipe version it used (L5).                                                                                                                   |
-| **Ingredient**      | `inventory_items` (ingredients and packaging), `stock_movements`, `stock_cost_corrections`.                                | One spelling of each unit. A switch for things she does not buy (her eggs and oats), so they are neither costed nor counted. Her reorder level drives Out, Low, Good. Her usual price and pack for each item, dated (her Ingredient Master), because an item has no price field today.                                                                                                                                                                                               |
+| **Ingredient**      | `inventory_items` (ingredients and packaging), `stock_movements`, `stock_cost_corrections`.                                | One spelling of each unit. A switch for things she does not buy (her eggs and oats), so they are neither costed nor counted. Out, Low and Good are worked out (decision 8 above); a level she types for an item overrides the rule. Her usual price and pack for each item, dated (her Ingredient Master), because an item has no price field today.                                                                                                                                 |
 | **Supplier price**  | `suppliers`, `supplier_prices`. A price names its item as text (L2); a delivery's supplier is free text.                   | A price points at its item and carries its own pack size. The best buy is the lowest price **per unit**. A delivery points at a supplier when one is chosen.                                                                                                                                                                                                                                                                                                                         |
 | **Ingredient cost** | Worked out in the engine and again in SQL, with different fallbacks.                                                       | One database function: the weighted average cost of what is on hand, updated at each costed delivery; if none, her usual price for the item; if none, the best supplier price per unit; if none, **unknown**, never zero. The cost is stamped on each use when it is written. A recipe's cost answers with the amount, whether it is complete, and what is missing. Production costs what the recipe needed, including any shortfall, and flags the shortfall.                       |
 | **Packaging rule**  | Names and quantities written into two database functions (H12).                                                            | Two parts, both her records, as her workbook already has them. **Per cookie:** each recipe keeps its own packaging lines (her sheet gives every flavour one or two: a pouch or its own box, and a sticker), so a cookie's cost is its ingredients plus its own packaging. **Per order:** a rule for each container (each box size, a bag, a bazaar sale) listing the items it uses. Packing an order and recording a bazaar sale read both. There is no "costing container" setting. |
@@ -391,8 +393,8 @@ row; one list, one page, one form; her words.
 | **Home**  | This week | Target bar (month and week, "cookies still to sell"); this week's orders: open or closed, sold against the limit; "Needs you" (payments to check, items low, bazaar soon); what to bake next.                                                     | New                  |
 | **Sell**  | Orders    | Orders list (search; chips for status, payment, date, flavour). Order page: paid tick, pack, collect, swap, cancel, messages, its customer.                                                                                                       | Redesign, same logic |
 |           | Bazaar    | Bookings list and "Add a bazaar". Set up a day: stock from baked stock, prices, float. Selling: large tiles, the running sale, free sample, offline state always visible. Close the day: cash and leftovers. Event summary.                       | Redesign and new     |
-|           | Customers | Customers list (search; chips for label, last order, flavour). Customer page: orders, flavours, spend, notes, tags.                                                                                                                               | New                  |
-|           | Shop      | What customers see, in one place: menu on sale, open or closed, order rules, boxes and add-ons, payment methods, shop texts, waitlist, preview.                                                                                                   | Regroup              |
+|           | Customers | Customers list (search; chips for label, last order, flavour, waiting list). Customer page: orders, flavours, spend, notes, tags.                                                                                                                 | New                  |
+|           | Shop      | What customers see, in one place: what is on sale (shown here, switched on the flavour), open or closed, order rules, boxes and add-ons, payment methods, shop texts, preview.                                                                    | Regroup              |
 | **Make**  | Bake plan | What to mix and bake for this week's orders; record dough, a bake, binned dough; shortfalls.                                                                                                                                                      | Same logic           |
 |           | Recipes   | Picture grid (on sale, all, cannot make now). Flavour page: picture (drop or choose), price, cost, margin against her floor, allergens, ingredients each marked Good, Low or Out, versions, her original recipe text. Edit recipe. Add a flavour. | New                  |
 | **Stock** | Inventory | Items list with Out, Low, Good; item page with movements; receive a delivery; weekly count; waste.                                                                                                                                                | Redesign             |
@@ -401,11 +403,12 @@ row; one list, one page, one form; her words.
 | **Money** | P&L       | Period picker; revenue, cost, expenses, profit; tap a number to see its records; CSV.                                                                                                                                                             | Same logic           |
 |           | Sales     | Every sale, one list (chips for source, payment, date, flavour, customer).                                                                                                                                                                        | New                  |
 |           | Expenses  | Record an expense or a draw; her categories; correct a delivery's cost.                                                                                                                                                                           | Same logic           |
-| Account   |           | Settings (targets, margin floor, shop name, retention, sign-out timer); people and what each can see; system health; backups and export; alerts.                                                                                                  | Regroup              |
+| Account   |           | Settings (targets, margin floor, shop details, retention, sign-out timer) and the set-up screen; people and what each can see; system and backups. Alerts are behind the bell.                                                                    | Regroup              |
 | Customer  |           | Shop, checkout, order status, find my order, waitlist, on a phone, a tablet and a desktop.                                                                                                                                                        | Redesign             |
 
-Leaving the live app (see 8.1 for the only two functions not carried over): All tools, the Form queue entry, the prototype's helper names, and
-the "Your business" grid on Home.
+Leaving the live app: All tools and the Form queue entry (the only two functions not
+carried over, see 8.1), the prototype's helper names, and the "Your business" grid on
+Home.
 
 ### 8.1 One home for everything that exists today
 
@@ -478,18 +481,26 @@ B6 on the interface track)
 | B4  | Her data, each import previewed and approved: prices, recipes, flavours, photos, newer sales, bookings, packaging costs.                                                                                                                                                                                 | L    | Counts and hashes; **her 23 costing rows reproduced**, ingredients against ingredients.                                        |
 | B5  | New Stock: Inventory and Grocery (Have, Needed, To buy; Out, Low, Good).                                                                                                                                                                                                                                 | L    | Same movements as today; accessibility scan.                                                                                   |
 | B6  | New Recipes: picture grid and flavour page with cost, margin, stock state, versions.                                                                                                                                                                                                                     | L    | An incomplete cost names what is missing.                                                                                      |
-| B7  | Targets and margin floor as settings; target bar on Home. Wording pass with Cine. Security gate 1.                                                                                                                                                                                                       | M    | Her word list; findings fixed or recorded.                                                                                     |
+| B7  | Targets and margin floor as settings. Security gate 1: an independent review of the database rules, the hosted advisor read again, a dependency audit.                                                                                                                                                   | M    | Findings fixed or recorded.                                                                                                    |
 
-**Stage C — the rest, all before her week** (the last line, gate 2's adviser items, can
-finish before the shop opens)
+**Stage C — the rest, all before her week**
 
-New Money and Home; Orders; light customer pages with the speed budget, total always
-visible; customers and privacy text; sales in one paged list; bazaar tiles and day
-sessions on baked stock; cash over or short; allergens from ingredients; offline update
-prompt; uploads resized; account pages; scale test; security gate 2 (fake-order limit,
-RA 11967 details, privacy filing answered).
+| #   | Slice                                                                                                                                 | Size           | Proof                                                                                                                                |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| C1  | Orders: the list with filters, then the order page (paid tick, pack, collect, swap, cancel, messages).                                | M + S          | Every status change gives the same database result as today; filters against a seeded set.                                           |
+| C2  | Money: P&L and Expenses in the new layout; every sale in one paged list from one read function.                                       | M + M + M      | P&L equals the books; the sales list reconciles to the P&L for the same period; the CSV prints Manila dates.                         |
+| C3  | Home: this week's orders, the target bar, "needs you", what to bake next.                                                             | M              | Figures equal the books and the orders; no target means no bar.                                                                      |
+| C4  | Bake plan and Suppliers in the new layout.                                                                                            | M              | The same records as today.                                                                                                           |
+| C5  | Customers: the record, the order link, find-or-create on ordering, list and page, retention, erasure, the privacy text.               | L              | Ordering reveals nothing about an existing customer; an erased customer is gone from list and page. Security and privacy review.     |
+| C6  | Shop set-up in one place; Account (settings, people, system and backups).                                                             | M              | Each form saves the same payload as today; a helper cannot open Account.                                                             |
+| C7  | Bazaar: bookings on the Bazaar screen, stock loaded from baked stock, day sessions, selling tiles, close the day, cash over or short. | L (4 sessions) | Offline tests across a day boundary; no sale lost or doubled; a full run on the selling iPhone; close-out for exact, over and short. |
+| C8  | Light customer pages (shop, checkout, order status, find my order, waiting list) on every screen size, with the total always visible. | M + M          | 320 to 1,440 wide with no sideways scroll; largest paint within 2.5 s on the CI phone profile.                                       |
+| C9  | Offline update prompt; uploads resized; allergens rolled up from ingredients.                                                         | M + S + M      | A new build reaches a device that had the old one; the prompt never appears during a sale.                                           |
+| C10 | Scale test and security gate 2 (a limit on fake orders, the published business details, the privacy filing answered).                 | M              | Section 10's scale bar; findings fixed or recorded. The adviser items may finish before the shop opens.                              |
+| C11 | The set-up screen and handover (below).                                                                                               | L              | Every item pre-filled; resumable; the reset leaves no test record.                                                                   |
+| C12 | Wording pass with Cine on every label.                                                                                                | S              | Her signed word list, kept privately.                                                                                                |
 
-**The set-up screen and handover** (stage C, last, size L). After the owner signs in for
+**The set-up screen and handover (C11).** After the owner signs in for
 the first time she sees one set-up screen. Everything Ethan supplied is already loaded,
 so each item is shown filled in, marked "from your workbook", "default" or "needs you",
 and she confirms or edits it: shop details and contact (name, address, phone, email),
@@ -504,18 +515,18 @@ expenses) for removal after a preview, so Cine meets it fresh.
 
 ## 10. The bar for each quality
 
-| Quality            | Measured by                                                                                                                                                |
-| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Complete           | The function checklist: every old entry and route mapped; the 14 launch capabilities of `finish-plan.md` section 1 each exercised by the live smoke suite. |
-| Functional         | `pnpm verify`; SQL role suite; browser suite; live smoke suite; Cine's week.                                                                               |
-| Accurate, precise  | Her 23 costing rows; P&L equals the books equals the sales list; money as whole centavos; cost stamped at write.                                           |
-| Secure             | Independent review of every database, money, sign-in and offline change; gate 1 before her week; gate 2 before opening; no secret in the browser.          |
-| Easy to reach      | Installs to the Home Screen; one sign-in; stays signed in within her own setting; bazaar opens offline.                                                    |
-| Easy to navigate   | Five visible labelled tabs; any function within two taps of a tab; no hidden catch-all.                                                                    |
-| Fast               | Customer shop: largest paint within 2.5 s, tap response within 200 ms on the CI phone profile. Sale tile responds at once. Staff screen change within 1 s. |
-| Scalable           | Seeded with ten times five years of her volume: lists still open within 1 s, pages of 50, every list query on an index.                                    |
-| Accessible         | The WCAG 2.2 AA items in section 6.4, scanned per new screen.                                                                                              |
-| Nothing hard-coded | Empty-shop and two-shops tests in `pnpm verify`.                                                                                                           |
+| Quality            | Measured by                                                                                                                                                                                                                   |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Complete           | The function map of section 8.1 and the inventory of section 6.7: every old entry and route mapped, every variable editable; the 14 launch capabilities of `finish-plan.md` section 1 each exercised by the live smoke suite. |
+| Functional         | `pnpm verify`; SQL role suite; browser suite; live smoke suite; Cine's week.                                                                                                                                                  |
+| Accurate, precise  | Her 23 costing rows; P&L equals the books equals the sales list; money as whole centavos; cost stamped at write.                                                                                                              |
+| Secure             | Independent review of every database, money, sign-in and offline change; gate 1 after stage B; gate 2 before her week, its adviser items before the shop opens; no secret in the browser.                                     |
+| Easy to reach      | Installs to the Home Screen; one sign-in; stays signed in within her own setting; bazaar opens offline.                                                                                                                       |
+| Easy to navigate   | Five visible labelled tabs; any function within two taps of a tab; no hidden catch-all.                                                                                                                                       |
+| Fast               | Customer shop: largest paint within 2.5 s, tap response within 200 ms on the CI phone profile. Sale tile responds at once. Staff screen change within 1 s.                                                                    |
+| Scalable           | Seeded with ten times five years of her volume: lists still open within 1 s, pages of 50, every list query on an index.                                                                                                       |
+| Accessible         | The WCAG 2.2 AA items in section 6.4, scanned per new screen.                                                                                                                                                                 |
+| Nothing hard-coded | Empty-shop and two-shops tests in `pnpm verify`.                                                                                                                                                                              |
 
 ## 11. Critical path and dates
 
@@ -542,7 +553,7 @@ opening stock valued from her price list but not expensed a second time.
 | ----- | -------- | ------------------------------------------------------ |
 | A     | 4 to 5   | 16 October                                             |
 | B     | 14 to 18 | First half of November                                 |
-| C     | about 20 | Mid-November at the earliest; early December likely    |
+| C     | about 22 | Mid-November at the earliest; early December likely    |
 | Trial | —        | The week after the wording pass. **Cine starts then.** |
 
 The 12 to 13 December bazaar uses the new bazaar screens only if they are rehearsed on

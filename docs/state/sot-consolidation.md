@@ -1,5 +1,10 @@
 # Source-of-truth consolidation — audit and plan (5 October 2026, second pass)
 
+> **The plan is now [final-plan.md](final-plan.md), version 2.** The audit of her sources here stands
+> (sections 1 to 4 and 11). Superseded there: S1, S2 and S12; section 6's label wording (now counted labels
+> with her own thresholds); sections 7 and 9; and one part of S3, because recipes now keep their packaging
+> lines. Ethan answered the open questions on Cine's behalf on 5 October (the plan's section 12).
+
 Status: **audit done line by line; nothing built or imported. Ethan approved the decisions
 on 5 October ("yes to all, do what u recommend"); the build waits for the final plan he
 asked for next.** On 5 October Ethan supplied Cine's updated workbook, her recipe document and

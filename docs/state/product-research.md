@@ -1,5 +1,11 @@
 # Product research and rework proposal (5 October 2026)
 
+> **Read with [final-plan.md](final-plan.md), version 2, which Ethan approved later the same day.** The
+> findings and sources here stand. Three things are superseded there: section 10 (a new frame chosen in
+> `ops-app.tsx`, no ported file edited) became five tabs on the existing frame plus one guarded screen slot;
+> sections 9 and 10's order and the "about five weeks" estimate became the plan's stages A to C; and the
+> comparator list was widened and re-verified in the plan's section 4.
+
 Status: **research and proposal only. No code changed. Ethan approved section 11 on
 5 October ("yes to all, do what u recommend") and asked for a system audit, then one more
 round of research and a final plan before building.** On 5 October Ethan said the interface, the experience and "everything" need

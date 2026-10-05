@@ -1,5 +1,9 @@
 # F2 owner trial — one real week
 
+> **6 October 2026:** the week does not start until everything in [final-plan.md](final-plan.md), version 2,
+> is built (Ethan, 5 October). Before it, Cine confirms her values in the one-time set-up screen and goes
+> through the wording pass. The checklist below is unchanged and is used then.
+
 Status: closed-shop test preparation (2026-10-04); no real-week run or Cine feedback is recorded here. Ethan approved the existing empty trial database, owner setup and fresh free-plan private hosting. The database and automated owner checks pass; the fresh Worker is deliberately unreachable pending the private Access gate. The old reachable preview remains demo-only. Before real records, agree customer/data/payment scope, shop opening, backup custody/recovery and seven dates. This checklist alone does not authorize those later actions.
 
 Keep customer/staff names, contact details, account numbers, screenshots, raw CSVs, recipes, and private feedback outside Git. Use app record IDs without names and sanitized evidence references here; retain the evidence privately.

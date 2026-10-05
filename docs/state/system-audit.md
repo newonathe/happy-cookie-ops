@@ -1,5 +1,12 @@
 # Whole-system audit (5 October 2026)
 
+> **Closed and corrected later the same day in [final-plan.md](final-plan.md), version 2, section 5.** C3 is
+> partly wrong as written here (prototype prices cannot reach the live figure and supplier prices do feed it;
+> the real defects are a best buy chosen by pack price and zeros outside the Products rows). C5 is confirmed.
+> C9 is closed: binned dough does reduce the balance, and one bazaar-sale path is reachable. C10 is confirmed.
+> Twenty-one more findings are listed there (H12 to H20, N1 to N12), the most serious being that an offline
+> page load signs the owner out. Each finding's slice is in the plan's section 9.
+
 Status: **findings only. Nothing was fixed in this pass.** Ethan asked for one last audit
 of the whole system for interface, computation, dependency, interconnection, system and
 accuracy errors before the final plan, and added during it: **"nothing must be hardcoded."**

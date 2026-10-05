@@ -97,7 +97,7 @@ pnpm build
 ## Planning background and history
 
 [`MASTER-PLAN.md`](./MASTER-PLAN.md) is the audited plan and task catalogue from September 2026. `AGENTS.md` still names it as the authority wherever an older document disagrees with
-it. Day-to-day work follows `docs/state/lean-plan.md`, `finish-plan.md` and `next-goal.md`.
+it. Day-to-day work follows `docs/state/final-plan.md` (the approved plan, version 2), `lean-plan.md` (how we work) and `next-goal.md`.
 
 These pages describe how the project was first handed over. They are kept because other
 records link to them, and they are not needed for current work:

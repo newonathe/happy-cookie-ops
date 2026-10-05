@@ -17,6 +17,13 @@ Ethan approved the [lean plan](lean-plan.md) on 2026-09-26. The next goal is in 
 
 Availability on 2026-09-26: Codex is unavailable, so Claude is doing all of the work (Ethan: "treat it as you doing all of the work").
 
+**Added 2026-10-05 (Ethan, [decision-register.md](decision-register.md), the replan):**
+
+7. **Two tracks.** A database track (migrations, money, sign-in, offline) and an interface track may run side by side. Never two database slices at once. `src/store/ops-runtime.tsx` and `src/lib/types/database.ts` belong to the database track; an interface slice adds new files only, or queues its runtime change behind it.
+8. **Unattended runs are allowed for interface-only slices and nothing else.** An unattended slice commits to its own worktree branch and never pushes to the working branch, because a green push there redeploys the trial. An attended session reviews and merges it. The automatic runner stays off.
+9. **The hosted trial may be read, read-only:** settings, the migration list and the security advisor. No customer rows, no writes.
+10. **Releases are held** from the day the phone rehearsal passes until 26 October (the switch is slice A3).
+
 Availability on 2026-10-05: Codex reached its usage limit during F2, and Ethan continued the same goal in Claude Code. Where a goal says "Codex Sol/high", read it as Claude Opus coordinating with at most two pinned Sonnet workers. Codex had coordinated F2 from 2026-10-03 to 2026-10-05.
 
 ## History — policy as of 2026-09-09 to 2026-09-26 (superseded)
