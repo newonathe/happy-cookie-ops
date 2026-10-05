@@ -360,8 +360,7 @@ describe('B3: customer messages', () => {
 
   const businessItems = (r: OpsRuntime) =>
     r.renderVals().toolGroups.find((g) => g.title === 'Business')?.items ?? [];
-  const entry = (r: OpsRuntime) =>
-    businessItems(r).find((i) => i.label === 'Customer messages');
+  const entry = (r: OpsRuntime) => businessItems(r).find((i) => i.label === 'Customer messages');
 
   it('the owner has the entry; opening it lists a status link and text per open order', async () => {
     const f = fake([raw(), unpaid(), raw({ id: 'HC-1009', state: 'Completed' })]);
@@ -434,7 +433,10 @@ describe('B3: the order detail’s status link and the ported screens fed from t
     expect(od.link).toBe(`${window.location.origin}/status#t=${TOKEN}`);
     expect(String(od.link)).not.toContain('happycookie.ph');
     const write = vi.fn(async () => undefined);
-    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: write } });
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText: write }
+    });
     await act(async () => od.copyLink());
     expect(write).toHaveBeenCalledWith(od.link);
     // Mutation: leaving the ported values sends Cine a dead link and a toast that copied nothing.
@@ -447,7 +449,10 @@ describe('B3: the order detail’s status link and the ported screens fed from t
     const od = runtime.renderVals().od!;
     expect(od.link).toBe('');
     const write = vi.fn(async () => undefined);
-    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: write } });
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText: write }
+    });
     await act(async () => od.copyLink());
     expect(write).not.toHaveBeenCalled();
     expect(toasts(runtime)).toContain('no status link');
@@ -463,7 +468,9 @@ describe('B3: the order detail’s status link and the ported screens fed from t
           { product_id: 'wcb', qty: 1, unit_price_cents: 10000, unavailable: true },
           { product_id: 'rvc', qty: 1, unit_price_cents: 20000, unavailable: false }
         ],
-        swaps: [{ from: 'hc', to: 'rvc', qty: 1, delta_cents: 10000, at: '2026-09-29T03:00:00.000Z' }]
+        swaps: [
+          { from: 'hc', to: 'rvc', qty: 1, delta_cents: 10000, at: '2026-09-29T03:00:00.000Z' }
+        ]
       }),
       raw({ id: 'HC-2002', state: 'Cancelled', pay_state: 'refunded', refund_ref: 'GC-9' }),
       unpaid({ id: 'HC-2003' })

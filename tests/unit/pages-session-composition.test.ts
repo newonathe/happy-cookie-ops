@@ -1,12 +1,18 @@
 // @vitest-environment node
 import { describe, expect, it, vi } from 'vitest';
-import { handlePagesSessionRequest, pagesSessionRateRules } from '../../spikes/pages/functions/lib/session-composition';
+import {
+  handlePagesSessionRequest,
+  pagesSessionRateRules
+} from '../../spikes/pages/functions/lib/session-composition';
 import { handleApiRequest } from '../../spikes/pages/functions/api/[[path]]';
 
 const origin = 'http://127.0.0.1:8788';
 const userId = '00000000-0000-4000-8000-000000000001';
 const providerId = '00000000-0000-4000-8000-000000000002';
-const key = btoa(String.fromCharCode(...new Uint8Array(32).fill(1))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+const key = btoa(String.fromCharCode(...new Uint8Array(32).fill(1)))
+  .replace(/\+/g, '-')
+  .replace(/\//g, '_')
+  .replace(/=+$/, '');
 const localEnv = {
   APP_ORIGIN: origin,
   SUPABASE_URL: 'https://provider.example.test',
@@ -45,7 +51,8 @@ describe('Pages session composition', () => {
 
   it('fails closed without secret bindings and does not echo a request canary', async () => {
     const request = sessionRequest('/api/v1/session/login', {
-      method: 'POST', headers: { origin, 'x-hc-request': '1', 'content-type': 'application/json' },
+      method: 'POST',
+      headers: { origin, 'x-hc-request': '1', 'content-type': 'application/json' },
       body: JSON.stringify({ email: 'person@example.test', password: 'PASSWORD_CANARY' })
     });
     const response = await handleApiRequest(request);
@@ -58,13 +65,17 @@ describe('Pages session composition', () => {
   it('uses only the fixed local caller and never forwarded headers', async () => {
     const calls: Request[] = [];
     const fetchFn = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
-      const request = new Request(input, init); calls.push(request);
+      const request = new Request(input, init);
+      calls.push(request);
       return allowRpc(request);
     }) as typeof globalThis.fetch;
     const request = sessionRequest('/api/v1/session', {
       headers: { 'x-hc-request': '1', 'x-forwarded-for': '1.2.3.4', 'x-real-ip': '5.6.7.8' }
     });
-    const response = await handlePagesSessionRequest({ request, env: localEnv, waitUntil: () => undefined }, fetchFn);
+    const response = await handlePagesSessionRequest(
+      { request, env: localEnv, waitUntil: () => undefined },
+      fetchFn
+    );
     expect(response.status).toBe(401);
     expect(response.headers.get('set-cookie')).toContain('Max-Age=0');
     expect(calls).toHaveLength(1);
@@ -74,13 +85,22 @@ describe('Pages session composition', () => {
   });
 
   it('rejects spoofed edge headers without Cloudflare request metadata', async () => {
-    const fetchFn = vi.fn(async () => allowRpc(new Request('https://provider.example.test/rest/v1/rpc/consume_rate_limit'))) as typeof globalThis.fetch;
+    const fetchFn = vi.fn(async () =>
+      allowRpc(new Request('https://provider.example.test/rest/v1/rpc/consume_rate_limit'))
+    ) as typeof globalThis.fetch;
     const env: Record<string, unknown> = { ...localEnv };
     delete env.HCO_LOCAL_TRUSTED_CALLER_ID;
     const request = sessionRequest('/api/v1/session', {
-      headers: { 'x-hc-request': '1', 'cf-connecting-ip': '203.0.113.7', 'x-forwarded-for': '8.8.8.8' }
+      headers: {
+        'x-hc-request': '1',
+        'cf-connecting-ip': '203.0.113.7',
+        'x-forwarded-for': '8.8.8.8'
+      }
     });
-    const response = await handlePagesSessionRequest({ request, env, waitUntil: () => undefined }, fetchFn);
+    const response = await handlePagesSessionRequest(
+      { request, env, waitUntil: () => undefined },
+      fetchFn
+    );
     expect(response.status).toBe(503);
     expect(fetchFn).not.toHaveBeenCalled();
   });
@@ -88,73 +108,124 @@ describe('Pages session composition', () => {
   it('uses Cloudflare request metadata with its single edge IP, ignoring forwarded chains', async () => {
     const calls: Request[] = [];
     const fetchFn = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
-      const outgoing = new Request(input, init); calls.push(outgoing); return allowRpc(outgoing);
+      const outgoing = new Request(input, init);
+      calls.push(outgoing);
+      return allowRpc(outgoing);
     }) as typeof globalThis.fetch;
     const env: Record<string, unknown> = { ...localEnv };
     delete env.HCO_LOCAL_TRUSTED_CALLER_ID;
     const request = new Request('https://app.example.test/api/v1/session', {
-      headers: { 'x-hc-request': '1', 'cf-connecting-ip': '203.0.113.7', 'x-forwarded-for': '8.8.8.8' }
+      headers: {
+        'x-hc-request': '1',
+        'cf-connecting-ip': '203.0.113.7',
+        'x-forwarded-for': '8.8.8.8'
+      }
     });
     Object.defineProperty(request, 'cf', { value: { asn: 64500 } });
-    const response = await handlePagesSessionRequest({ request, env: { ...env, APP_ORIGIN: 'https://app.example.test' },
-      waitUntil: () => undefined }, fetchFn);
+    const response = await handlePagesSessionRequest(
+      {
+        request,
+        env: { ...env, APP_ORIGIN: 'https://app.example.test' },
+        waitUntil: () => undefined
+      },
+      fetchFn
+    );
     expect(response.status).toBe(401);
     expect(await calls[0]?.json()).toMatchObject({ p_key: 'auth:session:edge:203.0.113.7' });
   });
 
   it('keeps configured origin and local-only legacy credentials fail closed', async () => {
     const foreign = { ...localEnv, APP_ORIGIN: 'https://other.example.test' };
-    const fetchFn = vi.fn(async () => { throw new Error('FETCH_CANARY'); }) as typeof globalThis.fetch;
-    const response = await handlePagesSessionRequest({ request: sessionRequest(), env: foreign, waitUntil: () => undefined }, fetchFn);
+    const fetchFn = vi.fn(async () => {
+      throw new Error('FETCH_CANARY');
+    }) as typeof globalThis.fetch;
+    const response = await handlePagesSessionRequest(
+      { request: sessionRequest(), env: foreign, waitUntil: () => undefined },
+      fetchFn
+    );
     expect(response.status).toBe(503);
     expect(await response.text()).not.toContain('CANARY');
-    const legacy = { ...localEnv, APP_ORIGIN: 'https://app.example.test', SUPABASE_SERVICE_KEY_KIND: 'legacy_jwt' };
-    const legacyResponse = await handlePagesSessionRequest({ request: sessionRequest(), env: legacy, waitUntil: () => undefined }, fetchFn);
+    const legacy = {
+      ...localEnv,
+      APP_ORIGIN: 'https://app.example.test',
+      SUPABASE_SERVICE_KEY_KIND: 'legacy_jwt'
+    };
+    const legacyResponse = await handlePagesSessionRequest(
+      { request: sessionRequest(), env: legacy, waitUntil: () => undefined },
+      fetchFn
+    );
     expect(legacyResponse.status).toBe(503);
     expect(fetchFn).not.toHaveBeenCalled();
   });
 
   it('uses the established login limit and explicit read/refresh/logout rules', () => {
-    expect(pagesSessionRateRules.login).toEqual({ key: 'auth:signin', limit: 10, windowSeconds: 900 });
-    expect(pagesSessionRateRules.session).toEqual({ key: 'auth:session', limit: 60, windowSeconds: 60 });
+    expect(pagesSessionRateRules.login).toEqual({
+      key: 'auth:signin',
+      limit: 10,
+      windowSeconds: 900
+    });
+    expect(pagesSessionRateRules.session).toEqual({
+      key: 'auth:session',
+      limit: 60,
+      windowSeconds: 60
+    });
     expect(pagesSessionRateRules.refresh.limit).toBe(12);
     expect(pagesSessionRateRules.logout.limit).toBe(12);
   });
 
   it('dispatches a real synthetic provider login without leaking provider tokens', async () => {
     const jwtPayload = btoa(JSON.stringify({ sub: userId, session_id: providerId }))
-      .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/, '');
     const access = `a.${jwtPayload}.b`;
     const calls: Request[] = [];
     const fetchFn = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
-      const request = new Request(input, init); calls.push(request);
+      const request = new Request(input, init);
+      calls.push(request);
       const url = new URL(request.url);
       if (url.pathname.endsWith('/consume_rate_limit')) return allowRpc(request);
-      if (url.pathname.endsWith('/auth/v1/token')) return Response.json({
-        access_token: access, refresh_token: 'REFRESH_CANARY', token_type: 'bearer',
-        expires_in: 3600, user: { id: userId }
-      });
+      if (url.pathname.endsWith('/auth/v1/token'))
+        return Response.json({
+          access_token: access,
+          refresh_token: 'REFRESH_CANARY',
+          token_type: 'bearer',
+          expires_in: 3600,
+          user: { id: userId }
+        });
       if (url.pathname.endsWith('/auth/v1/user')) return Response.json({ id: userId });
       if (url.pathname.endsWith('/bff_session_create')) {
-        const args = await request.json() as { p_csrf_token: string };
-        return Response.json([{ p_role: 'owner', p_csrf_token_out: args.p_csrf_token,
-          p_expires_at: Math.floor(Date.now() / 1000) + 3600 }]);
+        const args = (await request.json()) as { p_csrf_token: string };
+        return Response.json([
+          {
+            p_role: 'owner',
+            p_csrf_token_out: args.p_csrf_token,
+            p_expires_at: Math.floor(Date.now() / 1000) + 3600
+          }
+        ]);
       }
       throw new Error('UNEXPECTED_CALL_CANARY');
     }) as typeof globalThis.fetch;
     const request = sessionRequest('/api/v1/session/login', {
-      method: 'POST', headers: { origin, 'x-hc-request': '1', 'content-type': 'application/json' },
+      method: 'POST',
+      headers: { origin, 'x-hc-request': '1', 'content-type': 'application/json' },
       body: JSON.stringify({ email: 'person@example.test', password: 'PASSWORD_CANARY' })
     });
-    const response = await handlePagesSessionRequest({ request, env: localEnv, waitUntil: () => undefined }, fetchFn);
+    const response = await handlePagesSessionRequest(
+      { request, env: localEnv, waitUntil: () => undefined },
+      fetchFn
+    );
     expect(response.status).toBe(200);
     expect(response.headers.get('set-cookie')).toContain('__Host-hc-session=');
     expect(response.headers.get('set-cookie')).toContain('HttpOnly');
     const body = await response.text();
     expect(body).toContain('"role":"owner"');
     expect(body).not.toMatch(/CANARY|Bearer|refresh_token|access_token/);
-    expect(calls.map(call => new URL(call.url).pathname)).toEqual([
-      '/rest/v1/rpc/consume_rate_limit', '/auth/v1/token', '/auth/v1/user', '/rest/v1/rpc/bff_session_create'
+    expect(calls.map((call) => new URL(call.url).pathname)).toEqual([
+      '/rest/v1/rpc/consume_rate_limit',
+      '/auth/v1/token',
+      '/auth/v1/user',
+      '/rest/v1/rpc/bff_session_create'
     ]);
   });
 
@@ -163,23 +234,40 @@ describe('Pages session composition', () => {
     const paths: string[] = [];
     const fetchFn = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const outgoing = new Request(input, init);
-      const path = new URL(outgoing.url).pathname; paths.push(path);
+      const path = new URL(outgoing.url).pathname;
+      paths.push(path);
       if (path.endsWith('/consume_rate_limit')) return allowRpc(outgoing);
-      if (path.endsWith('/auth/v1/token')) return Response.json({
-        access_token: 'ACCESS_CANARY', refresh_token: 'REFRESH_CANARY', token_type: 'bearer',
-        expires_in: 3600, user: { id: userId }
-      });
-      if (path.endsWith('/auth/v1/user')) return Response.json(
-        { code: 403, error_code: 'session_not_found', msg: 'gone' }, { status: 403 });
+      if (path.endsWith('/auth/v1/token'))
+        return Response.json({
+          access_token: 'ACCESS_CANARY',
+          refresh_token: 'REFRESH_CANARY',
+          token_type: 'bearer',
+          expires_in: 3600,
+          user: { id: userId }
+        });
+      if (path.endsWith('/auth/v1/user'))
+        return Response.json(
+          { code: 403, error_code: 'session_not_found', msg: 'gone' },
+          { status: 403 }
+        );
       if (path.endsWith('/auth/v1/logout')) return new Response(null, { status: 204 });
       throw new Error('UNEXPECTED_CALL_CANARY');
     }) as typeof globalThis.fetch;
     const request = sessionRequest('/api/v1/session/login', {
-      method: 'POST', headers: { origin, 'x-hc-request': '1', 'content-type': 'application/json' },
+      method: 'POST',
+      headers: { origin, 'x-hc-request': '1', 'content-type': 'application/json' },
       body: JSON.stringify({ email: 'person@example.test', password: 'PASSWORD_CANARY' })
     });
-    const response = await handlePagesSessionRequest({ request, env: localEnv,
-      waitUntil: task => { tasks.push(task); } }, fetchFn);
+    const response = await handlePagesSessionRequest(
+      {
+        request,
+        env: localEnv,
+        waitUntil: (task) => {
+          tasks.push(task);
+        }
+      },
+      fetchFn
+    );
     expect(response.status).toBe(401);
     expect(tasks).toHaveLength(1);
     await Promise.all(tasks);

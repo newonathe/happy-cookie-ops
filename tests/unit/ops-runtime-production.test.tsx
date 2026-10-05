@@ -113,7 +113,8 @@ function fakeClient(f: Fake) {
     if (name === 'get_recipes') return { data: [], error: null };
     if (name === 'get_staff_orders') return { data: f.orders, error: null };
     if (name === 'record_production') return f.answers.shift() ?? saved();
-    if (name === 'record_discard') return { data: [{ record_id: 'd', duplicate: false }], error: null };
+    if (name === 'record_discard')
+      return { data: [{ record_id: 'd', duplicate: false }], error: null };
     if (name === 'record_pack')
       return (
         f.packAnswers.shift() ?? {
@@ -155,7 +156,10 @@ async function mounted(role: Role, f: Fake, load = true) {
     await runtime.loadRecipes(c.client as never);
   });
   // The recipes screen's own state: yield 12 for this flavour, and the version the screen is on.
-  const cur = runtime.state as unknown as { recipes: Record<string, unknown>; recipeVer: Record<string, number> };
+  const cur = runtime.state as unknown as {
+    recipes: Record<string, unknown>;
+    recipeVer: Record<string, number>;
+  };
   act(() =>
     runtime.setState({
       recipes: { ...cur.recipes, [PID]: { yield: 12, ing: [['Bread flour', 300, 'g']] } },
@@ -441,15 +445,28 @@ describe('C2: baking, mixing dough and packing record on the database (live mode
   });
 
   it('what changed only on the screen is kept when the database is read again: binned dough, cookies taken to the stall', async () => {
-    const f = fresh({ production: wireProduction({ dough: [{ product_id: PID, balls: 6, at: 7000 }], baked: [{ product_id: PID, qty: 30 }] }) });
+    const f = fresh({
+      production: wireProduction({
+        dough: [{ product_id: PID, balls: 6, at: 7000 }],
+        baked: [{ product_id: PID, qty: 30 }]
+      })
+    });
     const { runtime } = await mounted('owner', f);
-    const s = () => runtime.state as unknown as { dough: Record<string, number>; baked: Record<string, number>; doughAt: Record<string, number> };
+    const s = () =>
+      runtime.state as unknown as {
+        dough: Record<string, number>;
+        baked: Record<string, number>;
+        doughAt: Record<string, number>;
+      };
     expect(s().dough[PID]).toBe(6);
     expect(s().baked[PID]).toBe(30);
     // She bins 2 dough and takes 20 cookies to the stall: only the screen knows.
     act(() => runtime.setState({ dough: { [PID]: 4 }, baked: { [PID]: 10 } } as never));
     // The database then shows 7 more baked (a batch) and the same dough.
-    f.production = wireProduction({ dough: [{ product_id: PID, balls: 6, at: 7000 }], baked: [{ product_id: PID, qty: 37 }] });
+    f.production = wireProduction({
+      dough: [{ product_id: PID, balls: 6, at: 7000 }],
+      baked: [{ product_id: PID, qty: 37 }]
+    });
     await act(async () => void (await runtime.loadProduction(null)));
     expect(s().dough[PID]).toBe(4);
     expect(s().baked[PID]).toBe(17);
@@ -465,7 +482,9 @@ describe('C2: baking, mixing dough and packing record on the database (live mode
   it('an order for another week is packed against this week’s baked count, not refused', async () => {
     const f = fresh({ orders: [order(), order({ id: 'HC-2002', pickup_date: '2027-03-01' })] });
     const { runtime, rpc } = await mounted('owner', f);
-    const other = (runtime.state.orders as Array<{ id: string; drop?: number }>).find((o) => o.id === 'HC-2002');
+    const other = (runtime.state.orders as Array<{ id: string; drop?: number }>).find(
+      (o) => o.id === 'HC-2002'
+    );
     expect(other?.drop).toBe(-1);
     act(() => acts(runtime).packOrder('HC-2002'));
     await settle();
@@ -474,15 +493,26 @@ describe('C2: baking, mixing dough and packing record on the database (live mode
   });
 
   it('binning dough is recorded on the database first, then the counts are read back once (not taken off twice)', async () => {
-    const f = fresh({ production: wireProduction({ dough: [{ product_id: PID, balls: 6, at: 7000 }] }) });
+    const f = fresh({
+      production: wireProduction({ dough: [{ product_id: PID, balls: 6, at: 7000 }] })
+    });
     const { runtime, rpc } = await mounted('owner', f);
     f.production = wireProduction({ dough: [{ product_id: PID, balls: 4, at: 7000 }] }); // the database's answer after the record
     act(() => acts(runtime).logSpoilage('Dough', 2, 'Went off', PID, 'dough'));
     await settle();
     const sent = called(rpc, 'record_discard');
     expect(sent).toHaveLength(1);
-    expect(sent[0]![1].p_rec).toMatchObject({ kind: 'dough', product_id: PID, qty: 2, reason: 'Went off', drop_no: 5 });
-    const s = runtime.state as unknown as { dough: Record<string, number>; spoilage: Array<{ qty: number }> };
+    expect(sent[0]![1].p_rec).toMatchObject({
+      kind: 'dough',
+      product_id: PID,
+      qty: 2,
+      reason: 'Went off',
+      drop_no: 5
+    });
+    const s = runtime.state as unknown as {
+      dough: Record<string, number>;
+      spoilage: Array<{ qty: number }>;
+    };
     expect(s.dough[PID]).toBe(4); // 6 - 2, once: the engine's own -2 is undone before the database's -2 is read back
     expect(s.spoilage).toHaveLength(1); // the waste record still gets its line
     // Mutation: not undoing the engine's own change makes it 2 (taken off twice).
@@ -501,17 +531,26 @@ describe('C2: baking, mixing dough and packing record on the database (live mode
     expect(msg(runtime)).toBe(PRODUCTION_COPY.discardWhole);
     act(() => acts(runtime).logSpoilage('Cookie', 2, '', PID, 'baked'));
     await settle();
-    expect(called(rpc, 'record_discard')[0]![1].p_rec).toMatchObject({ kind: 'baked', qty: 2, reason: 'Spoiled' });
+    expect(called(rpc, 'record_discard')[0]![1].p_rec).toMatchObject({
+      kind: 'baked',
+      qty: 2,
+      reason: 'Spoiled'
+    });
     // Mutation: sending a count the engine would refuse records waste the screen never showed.
   });
 
   it('a lost reply keeps the binned dough on screen and repeating it sends the same id and time', async () => {
-    const f = fresh({ production: wireProduction({ dough: [{ product_id: PID, balls: 6, at: 7000 }] }) });
+    const f = fresh({
+      production: wireProduction({ dough: [{ product_id: PID, balls: 6, at: 7000 }] })
+    });
     const { runtime, rpc } = await mounted('owner', f);
-    const answers: Array<{ data: unknown; error: unknown }> = [{ data: null, error: { code: '08006' } }];
+    const answers: Array<{ data: unknown; error: unknown }> = [
+      { data: null, error: { code: '08006' } }
+    ];
     const inner = rpc.getMockImplementation()!;
     rpc.mockImplementation(async (name: string) => {
-      if (name === 'record_discard') return answers.shift() ?? { data: [{ record_id: 'd', duplicate: false }], error: null };
+      if (name === 'record_discard')
+        return answers.shift() ?? { data: [{ record_id: 'd', duplicate: false }], error: null };
       return inner(name);
     });
     act(() => acts(runtime).logSpoilage('Dough', 2, 'x', PID, 'dough'));

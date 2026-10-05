@@ -198,7 +198,9 @@ describe('B3: the shop’s open state from the server (live mode)', () => {
     const runtime = await mounted('owner', f);
     act(() =>
       runtime.setState({
-        orders: [{ id: 'x', name: 'A B', status: 'Confirmed', items: { wcb: 1 }, priced: { wcb: 100 } }]
+        orders: [
+          { id: 'x', name: 'A B', status: 'Confirmed', items: { wcb: 1 }, priced: { wcb: 100 } }
+        ]
       })
     );
     act(() => shop(runtime).closeDrop()); // refused: an order is unfinished
