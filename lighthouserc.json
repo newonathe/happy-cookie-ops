@@ -2,9 +2,9 @@
   "ci": {
     "collect": {
       "url": [
-        "http://127.0.0.1:3000/",
-        "http://127.0.0.1:3000/shop",
-        "http://127.0.0.1:3000/bazaar"
+        "http://localhost:3000/",
+        "http://localhost:3000/shop",
+        "http://localhost:3000/bazaar"
       ],
       "startServerCommand": "pnpm start",
       "startServerReadyPattern": "Ready in",
@@ -80,7 +80,8 @@
       }
     },
     "upload": {
-      "target": "temporary-public-storage"
+      "target": "filesystem",
+      "outputDir": ".lighthouseci/reports"
     }
   }
 }

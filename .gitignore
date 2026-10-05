@@ -24,3 +24,6 @@ __pycache__/
 # Cine's raw Apps Script copies: they hold the live form ID and the business email
 # (E1, docs/state/apps-script-audit.md). The audit is the committed record.
 Appscript/
+
+# Lighthouse CI working files and reports (pnpm lighthouse)
+.lighthouseci/

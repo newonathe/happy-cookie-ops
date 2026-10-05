@@ -158,11 +158,20 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      # Built without Supabase variables so the measured pages are the app itself: with them
+      # the middleware redirects / and /bazaar to /sign-in. lighthouserc.json uses
+      # "localhost" because the standalone server binds the name localhost, which is the
+      # IPv6 loopback on the runner; 127.0.0.1 is refused.
       - run: pnpm build
-        env:
-          NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
-          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ci-publishable-key
       - run: pnpm lighthouse
+      # Reports stay in this private run; they are not sent to public storage.
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lighthouse-reports
+          path: .lighthouseci/
+          include-hidden-files: true
+          retention-days: 7
 
   owner-trial:
     name: Release approved private trial
