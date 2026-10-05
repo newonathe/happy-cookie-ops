@@ -13,7 +13,9 @@ describe('the quarantined sync endpoint', () => {
   });
 
   it('returns a non-cacheable unavailable response to an ordinary request', async () => {
-    const response = await unavailable(new Request('http://localhost/api/sync', { method: 'POST', body: '{"sales":[]}' }));
+    const response = await unavailable(
+      new Request('http://localhost/api/sync', { method: 'POST', body: '{"sales":[]}' })
+    );
 
     expect(response.status).toBe(503);
     expect(response.headers.get('Cache-Control')).toBe('no-store');
@@ -42,10 +44,14 @@ describe('the quarantined sync endpoint', () => {
   });
 
   it('returns unavailable even when constructing a server client would throw', async () => {
-    const createClient = vi.fn(() => { throw new Error('server client must not be constructed'); });
+    const createClient = vi.fn(() => {
+      throw new Error('server client must not be constructed');
+    });
     vi.doMock('@/lib/supabase/server', () => ({ createClient }));
 
-    const response = await unavailable(new Request('http://localhost/api/sync', { method: 'POST' }));
+    const response = await unavailable(
+      new Request('http://localhost/api/sync', { method: 'POST' })
+    );
     expect(response.status).toBe(503);
     expect(createClient).not.toHaveBeenCalled();
   });
