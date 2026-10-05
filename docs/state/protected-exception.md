@@ -685,8 +685,8 @@ literal copy, no new colour.
 - **Trade-off Ethan accepted:** Sales log, P&L, Grocery and Bazaar Mode are one tap further
   away on a phone, and the Grocery count is no longer on the dock.
 - **Evidence:** `tests/unit/ops-runtime-live-dock.test.tsx` (owner, helper, support and
-  demo); Docker captures and the independent port audit are recorded in
-  [ux-audit.md](ux-audit.md).
+  demo); the Docker captures are recorded in [ux-audit.md](ux-audit.md) and the independent
+  port audit is below.
 
 ## UX review proposal 2: neutral Home system card (approved 2026-10-05)
 
