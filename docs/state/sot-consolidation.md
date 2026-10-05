@@ -1,7 +1,8 @@
 # Source-of-truth consolidation — audit and plan (5 October 2026, second pass)
 
-Status: **audit done line by line; nothing built or imported. Waiting for Ethan's yes on
-section 8.** On 5 October Ethan supplied Cine's updated workbook, her recipe document and
+Status: **audit done line by line; nothing built or imported. Ethan approved the decisions
+on 5 October ("yes to all, do what u recommend"); the build waits for the final plan he
+asked for next.** On 5 October Ethan supplied Cine's updated workbook, her recipe document and
 her flavour photos, named them the main source of truth, and said to consolidate everything
 and finish it **before** the trial starts. A second message the same day added: audit every
 line; migrate everything applicable and interconnect it; make bazaar bookings easy to add
@@ -22,8 +23,9 @@ folder (`sot-audit.json`, `sot-deep-audit.json`).
 | Photo folder                | 28 files, 561 MB: 15 finished PNGs, 9 layered Photoshop files, 1 zip of 5 raw photos.              |
 | Two sign-in emails for Cine | Recorded privately. Neither is on the trial's allow-list today.                                    |
 
-The three sources sit in `docs/`, excluded from Git locally. They should move to the
-private folder.
+The three sources were moved out of the repository on 5 October (S14, approved) to the
+private `claude-20261005/sot-sources/` folder; all 30 files were hash-checked before and
+after the move.
 
 ## 2. Line-by-line findings
 

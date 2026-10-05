@@ -1,7 +1,8 @@
 # Product research and rework proposal (5 October 2026)
 
-Status: **research and proposal only. No code changed. Waiting for Ethan's yes on
-section 11.** On 5 October Ethan said the interface, the experience and "everything" need
+Status: **research and proposal only. No code changed. Ethan approved section 11 on
+5 October ("yes to all, do what u recommend") and asked for a system audit, then one more
+round of research and a final plan before building.** On 5 October Ethan said the interface, the experience and "everything" need
 rework, not only the data, and asked for a deep, methodical research pass on the most
 widely used software of this kind: their interface, their features, how they are built,
 and how they fold every business need into one product. This page is that research and

@@ -149,6 +149,30 @@ decision by Ethan and, where it adds UI, a locked-UI exception. None is decided:
 - The Apps Script (six files, sent by Ethan 2026-09-28, kept out of git): analysed in
   [apps-script-audit.md](apps-script-audit.md), with decisions E1–E4 for Ethan.
 
+## Ethan's direction of 5 October 2026: source of truth and interface rework
+
+Ethan supplied Cine's updated workbook, recipe document and flavour photos as the main
+source of truth, asked for everything to be consolidated and polished before her trial,
+then asked for the whole interface and experience to be reworked on the strength of
+research into leading tools. Shown the plan and the sketches, he answered: **"yes to all,
+do what u recommend."**
+
+| Approved            | What it is                                                                                                                                                                                                                                                           | Where                                                  |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| R1 to R8            | A new live interface built beside the ported screens (five tabs: Home, Sell, Make, Stock, Money); keep the brand; a wording pass with Cine; her weekly target on Home; the October bazaar on today's Bazaar Mode; the trial after the rework.                        | [product-research.md](product-research.md) section 11  |
+| S3 to S11, S13, S14 | Import the workbook recipes, reconcile the flavour list, attach photos, append newer sales, a small customer database with a 24-month rule, bazaar bookings, stock name mapping, packaging costs; Ethan grants Cine's access; the source files leave the repository. | [sot-consolidation.md](sot-consolidation.md) section 8 |
+
+**R1 ends "the prototype is the specification" for the live app.** The ported screens,
+sheets, shell and engine stay protected and unchanged as the demo build; the live app no
+longer has to look like them. This conflicts with the "UI/UX remains locked" sentence in
+the planning-authority line of `AGENTS.md` and `CLAUDE.md`, which has not been edited
+(it is checked byte for byte and Ethan is asked before it changes). The proposed wording is
+in [next-goal.md](next-goal.md).
+
+He also set the order of work: a whole-system audit first
+([system-audit.md](system-audit.md)), then, in the next conversation, a fresh round of
+research and one final plan before any building.
+
 ## Amended decisions (open — block the listed work)
 
 **DP-02 · Payment timing** — blocks MP-10, MP-12.
