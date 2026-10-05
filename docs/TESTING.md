@@ -2,18 +2,18 @@
 
 Current authority: MASTER-PLAN.md and docs/state/current.md. A passing source gate does not mean the product is ready.
 
-| Gate | Command | Meaning |
-| --- | --- | --- |
-| Commit | `pnpm verify` | Original port fingerprints, AST integrity, engine contract, strict application and E2E types, lint, unit tests |
-| Production compilation | `pnpm build` | Actual pinned Next build; no ignored errors |
-| Gate mutation probes | `pnpm test:port-gates` | Disposable mutations of style values, handlers, copy, structure and relationships must fail; declaration mutability and invalid syntax also checked |
-| Browser journeys | `pnpm test:e2e` | Phone Chromium, desktop Chromium and emulated iPhone WebKit; run build first |
-| Focused G0 journeys | `pnpm test:g0:journeys` | Direct routes plus one nonzero durable-sale journey |
-| Runtime acknowledgment | `pnpm test:release:offline` | Actual runtime must not mark an unsent sale synced without its acknowledgment |
-| Diagnostic guards | `pnpm test:g0:evidence` | Five approved sheet guards still render valid data |
-| Docker visuals | `pnpm test:visual` | Existing approved screenshots must match; missing screenshots fail |
-| Whole release | `pnpm verify:release` | Source, build, actual acknowledgment regression, journeys and visuals; expected red until downstream product work |
-| Planning continuity | `python scripts/validate-g0.py` | Historical catalog/schema/DAG/generator and protected delivery hashes, separately from application readiness |
+| Gate                   | Command                         | Meaning                                                                                                                                             |
+| ---------------------- | ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Commit                 | `pnpm verify`                   | Original port fingerprints, AST integrity, engine contract, strict application and E2E types, lint, unit tests                                      |
+| Production compilation | `pnpm build`                    | Actual pinned Next build; no ignored errors                                                                                                         |
+| Gate mutation probes   | `pnpm test:port-gates`          | Disposable mutations of style values, handlers, copy, structure and relationships must fail; declaration mutability and invalid syntax also checked |
+| Browser journeys       | `pnpm test:e2e`                 | Phone Chromium, desktop Chromium and emulated iPhone WebKit; run build first                                                                        |
+| Focused G0 journeys    | `pnpm test:g0:journeys`         | Direct routes plus one nonzero durable-sale journey                                                                                                 |
+| Runtime acknowledgment | `pnpm test:release:offline`     | Actual runtime must not mark an unsent sale synced without its acknowledgment                                                                       |
+| Diagnostic guards      | `pnpm test:g0:evidence`         | Five approved sheet guards still render valid data                                                                                                  |
+| Docker visuals         | `pnpm test:visual`              | Existing approved screenshots must match; missing screenshots fail                                                                                  |
+| Whole release          | `pnpm verify:release`           | Source, build, actual acknowledgment regression, journeys and visuals; expected red until downstream product work                                   |
+| Planning continuity    | `python scripts/validate-g0.py` | Historical catalog/schema/DAG/generator and protected delivery hashes, separately from application readiness                                        |
 
 The browser server is the production standalone build on localhost:3140. Tests never reuse an unrelated server. Service workers are blocked except the explicit offline case. Windows verification uses headless command-line Playwright; no embedded Browser/Chrome plugin.
 

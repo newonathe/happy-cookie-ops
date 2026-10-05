@@ -14,14 +14,14 @@ conflicts with another agent's branch.
 Every unit of work goes through the same five steps. Skipping step 2 is what produces the
 rewrites.
 
-| Step | Who | Output |
-| --- | --- | --- |
-| **Research** | an agent, in a subagent or a throwaway session | a summary of the relevant files. Nothing written. |
-| **Plan** | Claude Code, in plan mode | files to touch, the test to write, the risks, the ambiguities. **You approve.** |
-| **Implement** | Claude Code or Codex | one task, one branch, a small diff |
-| **Verify** | the agent, mechanically | `pnpm verify` output pasted, not summarised |
-| **Review** | the *other* model, fresh context | findings tagged blocker / should-fix / nit |
-| **Ship** | you | read the diff, merge |
+| Step          | Who                                            | Output                                                                          |
+| ------------- | ---------------------------------------------- | ------------------------------------------------------------------------------- |
+| **Research**  | an agent, in a subagent or a throwaway session | a summary of the relevant files. Nothing written.                               |
+| **Plan**      | Claude Code, in plan mode                      | files to touch, the test to write, the risks, the ambiguities. **You approve.** |
+| **Implement** | Claude Code or Codex                           | one task, one branch, a small diff                                              |
+| **Verify**    | the agent, mechanically                        | `pnpm verify` output pasted, not summarised                                     |
+| **Review**    | the _other_ model, fresh context               | findings tagged blocker / should-fix / nit                                      |
+| **Ship**      | you                                            | read the diff, merge                                                            |
 
 Research in a subagent rather than the main session keeps the main context clean — the
 summary comes back, the forty files it read do not.
@@ -30,16 +30,16 @@ summary comes back, the forty files it read do not.
 
 They are not interchangeable, and using the wrong one is the most common waste.
 
-| Work | Give it to | Why |
-| --- | --- | --- |
-| Understanding an unfamiliar area before changing it | Claude Code | Best at holding a whole subsystem and finding the file that actually matters |
-| Planning a multi-file change or a migration | Claude Code | Produces a sequence you can argue with before any code exists |
-| Multi-file refactors, the Postgres migration (T-10…T-14) | Claude Code | Keeps coherence across files that must change together |
-| Writing tests around existing behaviour | Codex | Fast, and stays close to the patterns already in the repo |
-| Filling in a well-specified module from a contract | Codex | The spec does the thinking; you are buying throughput |
-| Mechanical work across many files (types, imports, renames) | Codex | Cheaper per file, and the diff is easy to scan |
-| Reviewing the other one's diff | the opposite model | A second model with no memory of writing it catches what the author rationalised |
-| Product decisions, merges, anything about the owner's business | **you** | Neither of them knows what the bakery needs |
+| Work                                                           | Give it to         | Why                                                                              |
+| -------------------------------------------------------------- | ------------------ | -------------------------------------------------------------------------------- |
+| Understanding an unfamiliar area before changing it            | Claude Code        | Best at holding a whole subsystem and finding the file that actually matters     |
+| Planning a multi-file change or a migration                    | Claude Code        | Produces a sequence you can argue with before any code exists                    |
+| Multi-file refactors, the Postgres migration (T-10…T-14)       | Claude Code        | Keeps coherence across files that must change together                           |
+| Writing tests around existing behaviour                        | Codex              | Fast, and stays close to the patterns already in the repo                        |
+| Filling in a well-specified module from a contract             | Codex              | The spec does the thinking; you are buying throughput                            |
+| Mechanical work across many files (types, imports, renames)    | Codex              | Cheaper per file, and the diff is easy to scan                                   |
+| Reviewing the other one's diff                                 | the opposite model | A second model with no memory of writing it catches what the author rationalised |
+| Product decisions, merges, anything about the owner's business | **you**            | Neither of them knows what the bakery needs                                      |
 
 **Cross-review is the highest-leverage habit here.** Claude implements, Codex reviews;
 Codex implements, Claude reviews. Same-model review is worth much less — it agrees with
@@ -57,7 +57,7 @@ Agent output quality degrades long before the context window is full.
 - **Rewind rather than correct.** If an attempt goes wrong, rewind to before it and
   re-prompt with what you learned. Leaving the failed attempt plus your correction in the
   context teaches the agent the wrong pattern and doubles the tokens.
-- **Name the files.** `docs/TASKS.md` gives every task a *Context* line for this reason.
+- **Name the files.** `docs/TASKS.md` gives every task a _Context_ line for this reason.
   An agent told which five files to read costs a fraction of one told to "look around".
 - **`/handoff` before you run out.** It writes what was learned into `docs/SESSIONS.md`
   so the next session starts informed instead of archaeological.
@@ -99,9 +99,9 @@ is not decoration:
 
 Three follow-ups that pay for themselves:
 
-- *"What did you not do that I asked for?"* — surfaces silently dropped requirements.
-- *"What is the weakest part of this change?"* — the answer is usually the part to test.
-- *"If this breaks in production in a month, what breaks?"* — better than any checklist.
+- _"What did you not do that I asked for?"_ — surfaces silently dropped requirements.
+- _"What is the weakest part of this change?"_ — the answer is usually the part to test.
+- _"If this breaks in production in a month, what breaks?"_ — better than any checklist.
 
 Treat an agent that has never pushed back as a warning sign, not a good employee.
 
