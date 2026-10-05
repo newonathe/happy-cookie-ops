@@ -6,7 +6,7 @@
 
 The SQL is assembled in a private temporary directory, encrypted with AES-256-GCM using a random 96-bit IV, and authenticated before reporting success. The 32-byte key is supplied only through `F1_BACKUP_KEY` as 64 hex characters. Generate it with a cryptographically secure random generator, save it directly into the owner's password manager, and do not put it in a shell command, repository, backup filename, or output log. Keep a separately controlled recovery copy of the key. An encrypted file without its key cannot be restored.
 
-Choose an existing protected directory outside this repository for ciphertext. The command requires the parent directory to exist, resolves symlinked parents, rejects paths inside the repository (including dot-dot-prefixed filenames), accepts a path on another drive only when its existing parent resolves outside the repository, and applies an owner-only Windows ACL to the archive. Keep one copy on the workstation and copy the encrypted archive to an off-device location controlled by the owner. Do not upload plaintext SQL. Off-device custody is not configured yet, and backup archive expiry has not been decided; do not prune archives automatically. There is no timer or runner enabled by this change; the weekly reminder and run remain manual until separately authorized.
+Choose an existing protected directory outside this repository for ciphertext. The command requires the parent directory to exist, resolves symlinked parents, rejects paths inside the repository (including dot-dot-prefixed filenames), accepts a path on another drive only when its existing parent resolves outside the repository, and applies an owner-only Windows ACL to the archive. Keep one copy on the workstation and copy the encrypted archive to an off-device location controlled by the owner. Do not upload plaintext SQL. Off-device custody is not configured yet, and backup archive expiry has not been decided; do not prune archives automatically. No timer or runner is enabled: the schedule is written and off (last section), so the weekly run stays manual until Ethan switches it on.
 
 PowerShell example (set the key from the password manager without echoing it):
 
@@ -43,7 +43,7 @@ node scripts/f1-operations.mjs retention
 Remove-Item Env:F1_SERVICE_KEY
 ```
 
-The local runner rejects hosted targets unless `--hosted-approved` is present. Add it to the selected command only after Ethan approves that hosted operation, for example `node scripts/f1-operations.mjs keepalive --hosted-approved`. `docs/state/F1-schedule.example.json` is inactive draft metadata; no timer or scheduler consumes it.
+The local runner rejects hosted targets unless `--hosted-approved` is present. Add it to the selected command only after Ethan approves that hosted operation, for example `node scripts/f1-operations.mjs keepalive --hosted-approved`. `docs/state/F1-schedule.example.json` is the written schedule; `.github/workflows/ops-jobs.yml` carries it, off (last section).
 
 ## Restore procedure and current evidence boundary
 
@@ -91,6 +91,27 @@ node --input-type=module -e "import { reportOperation } from './scripts/f1-opera
 node --input-type=module -e "import { reportOperation } from './scripts/f1-operations.mjs'; await reportOperation('restore','success','<same-archive-sha256>',{runId:'<new-stable-uuid>',now:()=>new Date('<original-completion-ISO>'),hostedApproved:true});"
 ```
 
-Use `'failed'` in place of `'success'` for a failed run; a failed run may use a null archive hash. Do not execute these examples now. Hosted status writes and schedule activation remain unauthorized; the schedule example is draft metadata with no timer consumer.
+Use `'failed'` in place of `'success'` for a failed run; a failed run may use a null archive hash. Do not execute these examples now. Hosted status writes and schedule activation remain unauthorized; the schedule is written in `.github/workflows/ops-jobs.yml` and stays off.
 
 References: [Supabase CLI backup and restore](https://supabase.com/docs/guides/platform/migrating-within-supabase/backup-restore), [Supabase database backups](https://supabase.com/docs/guides/platform/backups). Supabase documents separate role/schema/data dumps and states that database backups do not contain Storage object bytes.
+
+## The maintenance jobs: written and off (slice A4, 6 October 2026)
+
+`.github/workflows/ops-jobs.yml` holds the three jobs of [F1-schedule.example.json](F1-schedule.example.json): the weekly backup (Monday 08:00 Manila), the daily keep-alive (08:00) and the daily retention run (02:00). **It is off.** A first job reads one repository variable, `OPS_JOBS_ENABLED`, and no secret; every other job waits on it, so while it is unset nothing runs and no secret is read. Only a clear "on" (`true`, `1`, `on`, `yes`) enables it; a typo stays off. The three jobs also run only from the `main` branch. `scripts/ops-jobs.mjs` makes the decision and `tests/unit/ops-jobs.test.ts` proves it from the workflow text, including against an ungated extra job, a widened condition, a bracket-style secret and a step that may fail open.
+
+**What Ethan does to switch on keep-alive and retention:**
+
+1. **Add the secret and variable** (repository Settings, Secrets and variables, Actions): the secret `OPS_SERVICE_KEY` (prefer a modern `sb_secret_` key) and the variable `OPS_SUPABASE_URL` (the trial's `https://<ref>.supabase.co` origin; the runner refuses any other host). If the repository's plan allows it, create a GitHub Environment limited to `main` and keep the secret there: a repository secret can be read by any workflow file pushed to any branch, and the `main` rule in this workflow cannot stop that.
+2. **Schedules only fire from the default branch.** The file does nothing on a schedule until it is merged to `main`, which is your call. A manual run (Actions, Maintenance jobs, Run workflow, pick a job) works from `main` only.
+3. **Set `OPS_JOBS_ENABLED` to `true`.** This is also your approval of the hosted operations: keep-alive and retention pass `--hosted-approved` to the project in `OPS_SUPABASE_URL`. One switch enables all three jobs, so retention (which clears personal data older than 365 days) comes on with the others. Delete the variable or set it to `false` to stop everything.
+
+**The backup needs more, and is blocked until it has it.** The backup job stops at its first step ("Custody is not decided") before it reads any secret or dumps anything. To wire it:
+
+- **Custody (yours):** where the encrypted archive lives and who can restore it. Add the copy step, then delete the failing step. Nothing is chosen for you.
+- **The dump's version.** `scripts/f1-backup.mjs` dumps the auth history with `pg_dump` from the pinned `15.8.1.085` image, and `current-history.md` records the hosted project as Postgres 17. `pg_dump` refuses a newer server, so the job would fail even with custody wired. The image must follow the server's major version, and that needs one hosted dry run to prove (not made: no hosted call in this slice).
+- **Credentials.** The job as written links the project with `supabase link`, which needs an account-wide Supabase access token. Prefer dumping with the project's database URL and password (`--db-url`) so no account-wide token sits in Actions; that is a small change to `f1-backup.mjs`, also to be proven on the hosted dry run. Add `OPS_BACKUP_KEY` (64 hex characters from your password manager; it is the only way to read an archive) and `OPS_SUPABASE_PROJECT_REF`.
+- **One hosted dry run by hand**, reading what it prints, before the schedule is trusted. Until a backup is copied off-device and a restore drill passes on a hosted archive, backup health stays unconfirmed.
+
+A job that fails shows as a red run in the Actions tab; the in-app System health card reads the last recorded run of each job.
+
+**What the 6 October dry run proved, and what it did not** ([receipt](evidence/A4-dry-run-20261006.json), [restore evidence](evidence/F1-backup-20261006.json)). Against the local project and a disposable local container only: an encrypted backup, its verification, a restore into a fresh `15.8.1.085` container (62 tables, row counts and SHA-256 match, 56 foreign keys validated, no orphans), keep-alive and retention. The dry run found a real defect, now fixed with a test: the keep-alive job recorded a success and then a failure, and exited with an error, because the database answers its report with an empty `204`; against the trial it would have failed every day. **Not exercised:** the backup job's hosted source, any off-device copy, and the GitHub schedule.

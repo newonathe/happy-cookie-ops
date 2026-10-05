@@ -4,7 +4,7 @@ Read this page first in a new session. It is kept short on purpose.
 
 | If you need                                        | Read                                                                                                                                                     |
 | -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| The goal to run next                               | [next-goal.md](next-goal.md) (A4)                                                                                                                        |
+| The goal to run next                               | [next-goal.md](next-goal.md) (B1)                                                                                                                        |
 | The plan, approved 5 October                       | [final-plan.md](final-plan.md), version 2                                                                                                                |
 | The rules every agent follows                      | [AGENTS.md](../../AGENTS.md)                                                                                                                             |
 | Ethan's and Cine's decisions                       | [decision-register.md](decision-register.md)                                                                                                             |
@@ -16,10 +16,10 @@ Read this page first in a new session. It is kept short on purpose.
 
 ## Where things stand — 6 October 2026
 
-**The plan is approved; slices A1, A2 and A3 of it are built.** Ethan approved
+**The plan is approved; stage A of it (slices A1 to A4) is built.** Ethan approved
 [final-plan.md](final-plan.md), version 2, on 5 October after a re-audit, a debate and
 wider research. It replaces finish-plan.md as the forward plan. The next step is slice
-A4.
+B1.
 
 **A2, 6 October:** the bazaar phone opens and reloads with no signal. Bazaar Mode alone
 opens, only while the phone holds a running event, only within her offline hours (48 by
@@ -34,6 +34,12 @@ Sign out anyway and Keep selling, and never touches the queue ([OFFLINE.md](../O
 16.3.8. Checked in the browser on the live build against the local database; two independent
 reviews. Step 7 of the phone rehearsal can now be run.
 
+**A4, 6 October:** the weekly backup, daily keep-alive and daily retention jobs are written and
+off (`.github/workflows/ops-jobs.yml`, variable `OPS_JOBS_ENABLED`, not set); the backup is also
+blocked on custody and a Postgres 17 dump ([F1-operations.md](F1-operations.md), last section).
+The local dry run restored a real dump into a fresh container with matching hashes and found a
+keep-alive defect, fixed.
+
 **Package:** F2, the owner trial, stays open but does not start until everything in the
 plan is built (Ethan, 5 October). F3 (launch) stays closed until Cine accepts a real week.
 
@@ -41,7 +47,7 @@ plan is built (Ethan, 5 October). F3 (launch) stays closed until Cine accepts a 
 
 - **The product** is built through E1: menu and settings, checkout and owner orders,
   bazaar selling with offline close-out, stock, recipes and production, books, P&L and
-  CSV, backups and health. `pnpm verify` passes 89 files / 1,637 tests; the planning
+  CSV, backups and health. `pnpm verify` passes 90 files / 1,673 tests; the planning
   validator passes 1,225 checks.
 - **The private trial site** is live for owners only:
   <https://happy-cookie-owner-trial.admin-kethai.workers.dev>. Cloudflare Access sends an
@@ -58,7 +64,7 @@ Found by reading code or the trial, not by running. Each has a slice in the plan
 
 | What                                                                                                         | Slice  |
 | ------------------------------------------------------------------------------------------------------------ | ------ |
-| No backup, restore drill, retention or keep-alive job is scheduled.                                          | A4     |
+| The backup, retention and keep-alive jobs are written but off: nothing is backed up yet.                     | Ethan  |
 | Nothing tests the live app; the browser suites run the demo build.                                           | B1     |
 | Values from the prototype still show in the live app (pickups, greeting, Settings rows, shop tagline).       | B2     |
 | Almost every cost per cookie is unknown: 8 of 72 items have a price, no costed delivery, no measured recipe. | B3, B4 |
@@ -95,7 +101,10 @@ All in [decision-register.md](decision-register.md), the section for 5 October.
   `close_event` (no sales, no stock, nothing booked); the owner's idle time set to 480
   minutes through `save_setting`. Put the idle time back to 60 in Settings after the bazaar
   if wanted. No workflow applies migrations: the next one is again a step by hand.
-- Decide where the encrypted backup lives and who can restore it; switch the jobs on.
+- Decide where the encrypted backup lives and who can restore it, then switch the jobs on
+  (steps and prerequisites in [F1-operations.md](F1-operations.md), last section). They only run
+  from `main`, so that needs a merge, your call. Until then nothing is backed up: download the
+  CSV each evening of the bazaar and keep the paper tally.
 - **The release hold** is built and not set. To stop deploys (rehearsal to 26 October): GitHub,
   the repository's Settings, Secrets and variables, Actions, Variables, add `RELEASE_HOLD` =
   `true`. A push then builds and tests but does not deploy, and the run says so. Delete it or
