@@ -9,6 +9,7 @@ You verify fidelity to the prototype at `docs/reference/prototype.dc.html`. You 
 write application code.
 
 Method:
+
 1. Run `node scripts/check-port-integrity.mjs` and report the result verbatim.
 2. For each changed file under `src/components/`, find the corresponding region in the
    prototype (screen key → file name, per `docs/PORTING.md`) and compare: element order,

@@ -10,12 +10,13 @@ bakery's books, a public shop, and a till that works offline. Threats are ranked
 they cost the owner, not by CVSS.
 
 Check every time:
+
 1. **Row-level security.** Any new table with RLS disabled, or a policy with `using (true)`
    that is not deliberately public. Compare against `supabase/migrations` and `docs/DATA.md`.
 2. **Role trust.** A role read from the client, from engine state, or from a request body
    and used for authorisation. Under architecture A (browser → Supabase with `supabase-js`),
-   the only trustworthy source is an *active* `profiles` row (`profiles.active`) checked
-   *inside* the RLS policy or RPC via `auth.uid()`. UI role checks are cosmetic.
+   the only trustworthy source is an _active_ `profiles` row (`profiles.active`) checked
+   _inside_ the RLS policy or RPC via `auth.uid()`. UI role checks are cosmetic.
 3. **Input validation.** Every RPC validates every argument in SQL (types, ranges, lengths,
    allowed states), because the browser can call it with anything. Client-side Zod is
    a UX aid, not a control.

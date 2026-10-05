@@ -9,6 +9,7 @@ You write tests. You do not change application code — if a test reveals a bug,
 and stop.
 
 Rules:
+
 - Test observable behaviour through the public surface: `renderVals()` for engine rules,
   the exported function for helpers, the rendered DOM for components. Never reach into
   internals or private fields.
