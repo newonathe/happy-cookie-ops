@@ -78,19 +78,32 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.sha }}
+      # The release hold (slice A3): Ethan sets the repository variable RELEASE_HOLD to stop
+      # deploys, for example between the phone rehearsal and the bazaar. While it is on, the
+      # quality job above still builds and tests; every step below is skipped and the run says why.
+      - name: Release hold
+        id: hold
+        run: node scripts/release-hold.mjs
+        env:
+          RELEASE_HOLD: ${{ vars.RELEASE_HOLD }}
       - uses: pnpm/action-setup@v4
+        if: steps.hold.outputs.deploy == 'true'
         with:
           version: 9.12.3
       - uses: actions/setup-node@v4
+        if: steps.hold.outputs.deploy == 'true'
         with:
           node-version: 24.20.0
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+        if: steps.hold.outputs.deploy == 'true'
       - uses: actions/download-artifact@v4
+        if: steps.hold.outputs.deploy == 'true'
         with:
           name: owner-trial-pages-assets
           path: build/pages-spike/
       - name: Require configured release secrets
+        if: steps.hold.outputs.deploy == 'true'
         shell: bash
         env:
           CF_DEPLOY: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -100,6 +113,7 @@ jobs:
         run: |
           test -n "$CF_DEPLOY" && test -n "$CF_ACCESS" && test -n "$CF_EMAIL_HASHES" && test -n "$TRIAL_KEY" || { echo "Required trial deployment secrets/variables are not configured"; exit 1; }
       - name: Guard, deploy, and verify private Worker
+        if: steps.hold.outputs.deploy == 'true'
         run: node scripts/check-owner-trial-release.mjs
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
