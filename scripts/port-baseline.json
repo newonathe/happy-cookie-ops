@@ -61,9 +61,9 @@
     "src/components/screens/home.tsx": {
       "copy": "13063131",
       "copyCount": 4,
-      "styles": 103,
+      "styles": 107,
       "dynamicStyles": 7,
-      "elements": 131
+      "elements": 137
     },
     "src/components/screens/inventory.tsx": {
       "copy": "df5969fc",

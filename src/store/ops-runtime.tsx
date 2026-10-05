@@ -1500,6 +1500,7 @@ export class OpsRuntime extends OpsProvider {
     if (!isLiveMode()) return starved;
     const { setupPending, ...health } = this.liveHealth(this.state);
     const healthProblems = health.healthRows.filter((row) => row.bad).length;
+    const quietSetup = setupPending && healthProblems === 0;
     // Live: the real app, not the review harness. No header row, flow strip or flow bar,
     // and the device frame fills the screen instead of drawing a phone/tablet mock-up (so the
     // mock-up bezel — radius, border, shadow — goes too; background colours are unchanged).
@@ -1599,15 +1600,14 @@ export class OpsRuntime extends OpsProvider {
       liveScheduled: this.liveScheduledVals(),
       liveBooks: this.liveBooksVals(),
       ...health,
+      // Home's card: green, red, or neutral while no backup has run and nothing else is wrong.
       system: {
         ...starved.system,
         ok: health.healthOk,
-        bad: !health.healthOk,
+        bad: !health.healthOk && !quietSetup,
+        pending: quietSetup,
         label: health.healthTitle,
-        detail:
-          setupPending && health.healthTitle === SETUP_PENDING_COPY.title
-            ? SETUP_PENDING_COPY.home
-            : health.healthSub
+        detail: quietSetup ? SETUP_PENDING_COPY.home : health.healthSub
       },
       // The database's books are exportable; demo record-group examples are never live evidence.
       recordGroups:

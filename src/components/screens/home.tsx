@@ -246,6 +246,19 @@ export function HomeScreen({ v }: { v: OpsVals }) {
                         </span>
                       </>
                     ) : null}
+                    {system.pending ? (
+                      <>
+                        <span style={{ width: '38px', height: '38px', borderRadius: '10px', background: '#F3EFEC', display: 'grid', placeItems: 'center', flexShrink: '0' }}>
+                          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#6E574B" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                            <path d={ic.info} />
+                          </svg>
+                        </span>
+                        <span style={{ flex: '1', minWidth: '0', display: 'flex', flexDirection: 'column' }}>
+                          <span style={{ fontSize: '14px', fontWeight: '600' }}>{system.label}</span>
+                          <span style={{ fontSize: '12px', color: '#66524A', lineHeight: '1.4' }}>{system.detail}</span>
+                        </span>
+                      </>
+                    ) : null}
                     <Pressable as="button" onClick={system.go} style={{ flexShrink: '0', height: '38px', padding: '0 14px', border: '1px solid #E7E1DC', background: '#FFFFFF', borderRadius: '10px', fontSize: '12px', fontWeight: '600', transition: 'transform .16s cubic-bezier(.2,.8,.2,1)' }} activeStyle={{ transform: 'scale(.97)' }}>
                       Review
                     </Pressable>

@@ -184,6 +184,30 @@ DOCK_LABEL_REVERSALS = {
          b'"copyCount": 15,\n      "styles": 144,\n      "dynamicStyles": 10,\n      "elements": 244'),
     ],
 }
+# UX review proposal 2, Home's system card (Ethan, 2026-10-05; docs/state/protected-exception.md): one
+# inserted, live-only neutral branch for "no backup has run yet". home.tsx has no other reversal.
+HOME_CARD_REVERSALS = {
+    'src/components/screens/home.tsx': [
+        (b'                    {system.pending ? (\n'
+         b'                      <>\n'
+         b"                        <span style={{ width: '38px', height: '38px', borderRadius: '10px', background: '#F3EFEC', display: 'grid', placeItems: 'center', flexShrink: '0' }}>\n"
+         b'                          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#6E574B" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">\n'
+         b'                            <path d={ic.info} />\n'
+         b'                          </svg>\n'
+         b'                        </span>\n'
+         b"                        <span style={{ flex: '1', minWidth: '0', display: 'flex', flexDirection: 'column' }}>\n"
+         b"                          <span style={{ fontSize: '14px', fontWeight: '600' }}>{system.label}</span>\n"
+         b"                          <span style={{ fontSize: '12px', color: '#66524A', lineHeight: '1.4' }}>{system.detail}</span>\n"
+         b'                        </span>\n'
+         b'                      </>\n'
+         b'                    ) : null}\n',
+         b""),
+    ],
+    'scripts/port-baseline.json': [
+        (b'"copy": "13063131",\n      "copyCount": 4,\n      "styles": 107,\n      "dynamicStyles": 7,\n      "elements": 137',
+         b'"copy": "13063131",\n      "copyCount": 4,\n      "styles": 103,\n      "dynamicStyles": 7,\n      "elements": 131'),
+    ],
+}
 changes = []
 for entry in load(EVIDENCE / 'delivery-manifest.json'):
     rel = entry['path']
@@ -211,6 +235,9 @@ for entry in load(EVIDENCE / 'delivery-manifest.json'):
             guard = guards[file.stem]
             check('approved_guard_once:' + rel, data.count(guard) == 1)
             data = re.sub(re.escape(guard) + rb'\r?\n', b'', data, count=1)
+        for index, (edited, original) in enumerate(HOME_CARD_REVERSALS.get(rel, [])):
+            check(f'approved_home_card_once:{rel}:{index}', data.count(edited) == 1)
+            data = data.replace(edited, original, 1)
         for index, (edited, original) in enumerate(DOCK_LABEL_REVERSALS.get(rel, [])):
             check(f'approved_dock_label_once:{rel}:{index}', data.count(edited) == 1)
             data = data.replace(edited, original, 1)

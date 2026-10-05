@@ -20,6 +20,7 @@ vi.mock('@/lib/offline/idb', () => ({
 import { OpsRuntime } from '@/store/ops-runtime';
 import { useOpsVals } from '@/store/use-ops';
 import { SystemHealthScreen } from '@/components/screens/system-health';
+import { HomeScreen } from '@/components/screens/home';
 import { NotificationsScreen } from '@/components/screens/notifications';
 import { LiveShopFooter } from '@/components/live/live-shop-footer';
 import type { OperationsClient } from '@/lib/data/operations-health';
@@ -130,7 +131,8 @@ describe('F1 live health and alerts', () => {
     expect(vals.healthRows.some((row) => row.bad)).toBe(false);
     expect(vals.system).toMatchObject({
       ok: false,
-      bad: true,
+      bad: false,
+      pending: true,
       label: 'No backup has run yet',
       detail: 'A set-up task for Ethan, not for the kitchen.'
     });
@@ -172,7 +174,12 @@ describe('F1 live health and alerts', () => {
       'Customer data retention: Not yet recorded — activation pending',
       'Keep-alive: Not yet recorded — activation pending'
     ]);
-    expect(vals.system).toMatchObject({ bad: true, label: 'Needs attention' });
+    expect(vals.system).toMatchObject({
+      ok: false,
+      bad: true,
+      pending: false,
+      label: 'Needs attention'
+    });
     expect(item(vals, 'System health')?.badge).toBe(4);
     expect(runtime.state.backup).toBe('failed');
     expect(moreBadge(vals)).toBe(1);
@@ -230,6 +237,84 @@ describe('F1 live health and alerts', () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+  it('Home shows a neutral system card only while no backup has run and nothing else is wrong', async () => {
+    const ref = createRef<OpsRuntime>();
+    function Home() {
+      return <HomeScreen v={useOpsVals()} />;
+    }
+    render(
+      <OpsRuntime ref={ref}>
+        <Home />
+      </OpsRuntime>
+    );
+    const runtime = ref.current!;
+    const red = () => document.querySelector('[style*="rgb(252, 236, 234)"]');
+    const missing = { last_run: null, last_success: null };
+    const answer = (backup: unknown) => ({
+      data: {
+        checked_at: new Date().toISOString(),
+        jobs: { backup, restore: missing, retention: missing, keepalive: missing }
+      },
+      error: null
+    });
+    const rpc = vi.fn().mockResolvedValue(answer(missing));
+    // Before any read: red, as before.
+    expect(runtime.renderVals().system).toMatchObject({ ok: false, bad: true, pending: false });
+    expect(red()).not.toBeNull();
+
+    await act(
+      async () => void (await runtime.loadOperationsHealth({ rpc } as unknown as OperationsClient))
+    );
+    // The card: its label sits right above the one-line detail. (Home's grid repeats the label.)
+    expect(
+      screen.getByText('A set-up task for Ethan, not for the kitchen.').previousElementSibling
+        ?.textContent
+    ).toBe('No backup has run yet');
+    expect(red()).toBeNull();
+    expect(screen.queryByText('System all good')).toBeNull();
+    expect(screen.getByRole('button', { name: 'Review' })).toBeTruthy();
+
+    // Anything else wrong turns it red again, even though no backup has run: a queued sale, being offline.
+    act(() => runtime.setState({ unsynced: 1 }));
+    expect(runtime.renderVals().system).toMatchObject({ ok: false, bad: true, pending: false });
+    expect(red()).not.toBeNull();
+    act(() => runtime.setState({ unsynced: 0, online: false }));
+    expect(runtime.renderVals().system).toMatchObject({ ok: false, bad: true, pending: false });
+    act(() => runtime.setState({ online: true }));
+    expect(red()).toBeNull();
+
+    // A failed job, then a failed read: red.
+    rpc.mockResolvedValue(
+      answer({
+        last_run: {
+          status: 'failed',
+          completed_at: new Date().toISOString(),
+          archive_sha256: null
+        },
+        last_success: null
+      })
+    );
+    await act(async () => void (await runtime.loadOperationsHealth(null)));
+    expect(runtime.renderVals().system).toMatchObject({ ok: false, bad: true, pending: false });
+    expect(red()).not.toBeNull();
+    rpc.mockResolvedValue({ data: null, error: { code: 'x' } });
+    await act(async () => void (await runtime.loadOperationsHealth(null)));
+    expect(runtime.renderVals().system).toMatchObject({ ok: false, bad: true, pending: false });
+
+    // Healthy records: green, never neutral.
+    rpc.mockResolvedValue({ data: wire(), error: null });
+    await act(async () => void (await runtime.loadOperationsHealth(null)));
+    expect(runtime.renderVals().system).toMatchObject({ ok: true, bad: false, pending: false });
+    expect(screen.getByText('System all good')).toBeTruthy();
+    expect(red()).toBeNull();
+  });
+  it('demo mode keeps the ported two-state system card', () => {
+    live = false;
+    const runtime = mount();
+    const system = runtime.renderVals().system;
+    expect(system.pending).toBeUndefined();
+    expect(Boolean(system.ok)).not.toBe(Boolean(system.bad));
   });
   it('a healthy record clears the engine backup flag, and going offline raises it again', async () => {
     const runtime = mount();

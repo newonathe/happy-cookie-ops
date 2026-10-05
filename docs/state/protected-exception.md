@@ -687,3 +687,72 @@ literal copy, no new colour.
 - **Evidence:** `tests/unit/ops-runtime-live-dock.test.tsx` (owner, helper, support and
   demo); Docker captures and the independent port audit are recorded in
   [ux-audit.md](ux-audit.md).
+
+## UX review proposal 2: neutral Home system card (approved 2026-10-05)
+
+The ported Home card has two states: a green "System all good" or a red triangle. While
+no backup job has ever recorded a run, green would be a false claim and red put a daily
+alert in front of Cine for a set-up task that is Ethan's. Asked "Keep the red one, or
+approve that exception?", Ethan answered on 5 October: "yes to all three, do what u
+recommend". Claude read that as approval of the neutral card, because his proposal 2
+decision was to remove the red alerts from Cine's Home. If he meant "keep the red one",
+remove the block below and `system.pending` in `OpsRuntime.renderVals()`.
+
+Exact edit in `src/components/screens/home.tsx`: one block inserted between the red branch
+and the Review button. It renders only when `system.pending` is set, which only the live
+runtime does. No literal copy: it prints `system.label` and `system.detail`. Both colours
+(`#F3EFEC`, `#6E574B`) and the info icon are already used by this screen or the engine.
+
+```
+{system.pending ? (
+  <>
+    <span style={{ width: '38px', height: '38px', borderRadius: '10px', background: '#F3EFEC', display: 'grid', placeItems: 'center', flexShrink: '0' }}>
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#6E574B" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+        <path d={ic.info} />
+      </svg>
+    </span>
+    <span style={{ flex: '1', minWidth: '0', display: 'flex', flexDirection: 'column' }}>
+      <span style={{ fontSize: '14px', fontWeight: '600' }}>{system.label}</span>
+      <span style={{ fontSize: '12px', color: '#66524A', lineHeight: '1.4' }}>{system.detail}</span>
+    </span>
+  </>
+) : null}
+```
+
+- **When it shows:** `system.pending` is true only while a current, successful health read
+  shows that no job has ever recorded a run **and** no health row is raising an alert.
+  Then `ok` and `bad` are both false. A failed job, a stale or failed read, a queued sale
+  or an offline device makes the card red as before; healthy records make it green. The
+  card is never green while a backup is missing.
+- **Baselines:** `scripts/port-baseline.json` for this file goes from 103 styles and 131
+  elements to 107 and 137; copy hash and copy count are unchanged. Its AST hash changes in
+  `scripts/port-structure-baseline.json`. Both written by the tools in the same commit.
+- **Reversal:** `HOME_CARD_REVERSALS` in `scripts/validate-g0.py` removes the block and
+  restores the two counts, each exactly once.
+- **Type:** `system.pending?: boolean` in `src/view-models/vals.ts`, optional and live
+  only; the engine does not produce it.
+- **How the edit was made:** by a script, because the `PreToolUse` hook blocks tool edits
+  to ported markup.
+- **Evidence:** `tests/unit/ops-runtime-operations.test.tsx` renders Home through each
+  state (before a read, quiet, queue, offline, failed job, failed read, healthy) and
+  checks demo keeps the two-state card.
+
+### Independent port audit of both edits (Sonnet `port-auditor`, 2026-10-05)
+
+Verdict: pass, no blocker. One read-only pass over the dock label (commit `410ac1e`) and the
+Home card (then uncommitted):
+
+- Since `a5ea477` the only changes under `screens/`, `sheets/`, `shell/` and the engine are
+  the two inserted blocks; `ops-engine.js` has no diff.
+- Neither block can render in demo mode: `bareFrame` and `system.pending` are set only in
+  `OpsRuntime.renderVals()` after its live-mode check, and the engine sets neither. `ok`,
+  `bad` and `pending` are mutually exclusive.
+- No literal copy, new colour or class name; every style value already occurs in the same
+  file.
+- Both reversals match the inserted bytes and run in the right order. Validator: 1,225
+  checks, 0 failures. Port integrity: 54 files match. Only the two files' baseline entries
+  and the shared `generated` date changed.
+- Both records match the code.
+- Notes, not defects: the dock label does not truncate, so its fit on narrow phones is
+  proven by the Docker captures in [ux-audit.md](ux-audit.md) rather than by markup; and a
+  job that builds with `NEXT_PUBLIC_APP_MODE=live` renders the label, which is intended.

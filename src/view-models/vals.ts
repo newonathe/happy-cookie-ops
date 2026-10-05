@@ -1641,6 +1641,8 @@ export interface OpsVals {
     go: (event?: unknown) => void;
     label: React.ReactNode;
     ok: unknown;
+    /** Live only (UX review, proposal 2): no backup job has recorded a run and nothing else is wrong. Neither ok nor bad. */
+    pending?: boolean;
   };
   tendered: string | number;
   tiltRef: (event?: unknown) => void;
