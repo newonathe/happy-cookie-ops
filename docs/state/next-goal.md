@@ -1,4 +1,4 @@
-# Next goals — the Bazaar signal fix, then B2
+# Next goal — B2
 
 One goal per package, each in a fresh conversation opened in the repository root. Paste
 one block. Where things stand: [current.md](current.md). The plan these come from:
@@ -6,57 +6,11 @@ one block. Where things stand: [current.md](current.md). The plan these come fro
 [current-history.md](current-history.md).
 
 B1 is built (6 October): the guarded screen slot, the function map and its test, the five
-tabs with sub-tabs on the live owner's dock and sidebar, and the live smoke suite. That suite
-found one defect that is not B1's and matters for the bazaar. It goes first, because the
-phone rehearsal is by 20 October.
+tabs with sub-tabs on the live owner's dock and sidebar, and the live smoke suite. The defect
+that suite found (signal returning mid-sale sent the app to Home) was fixed the same day; its
+goal block is in Git history and its result in [current.md](current.md).
 
-## 1. Keep the selling screen when signal returns (before the rehearsal)
-
-| Setting         | Value                                                                                        |
-| --------------- | -------------------------------------------------------------------------------------------- |
-| Model, effort   | Claude Opus, high: a sign-in and offline change, small, with a failing test first            |
-| Plan mode       | On: say the exact condition before touching the gate                                         |
-| Permission mode | Auto after the plan is accepted                                                              |
-| Review          | `security-reviewer` on a different model, before committing; fix every P0 to P2 finding      |
-| Browser QA      | The live smoke suite (`pnpm test:live:smoke`), whose known-defect line must become an assert |
-| Tools           | Node 24.20.0 and pnpm 9.12.3 from `happy-cookie-tools`; local Supabase                       |
-| Stop            | Evidence printed and pushed; 15 turns; two failed fix attempts                               |
-
-```text
-/goal Fix one defect in The Happy Cookie Ops (C:\Users\ethan\dev\happy-cookie-ops-g0) before
-the 20 October phone rehearsal. Found on 6 October by scripts/test-live-smoke.mjs, which
-prints it as "KNOWN DEFECT". It predates B1: the gate and the engine were not changed there.
-
-Read first: AGENTS.md, docs/state/current.md, docs/OFFLINE.md, src/components/app/live-gate.tsx
-(holdOffline, narrow, apply), tests/unit/live-gate-offline.test.tsx, and `setRole` in
-src/store/engine/ops-engine.js (locked: read only).
-
-The defect: the owner is selling in Bazaar Mode; the phone reloads with no signal, so the gate
-opens Bazaar Mode alone; signal returns; the app jumps to Home and closes any open sheet (for
-example the payment sheet). The event is still selling and no sale is lost. Cause, by reading:
-`apply()` calls `engine.setRole(role)` whenever access was not 'verified', and the engine's
-setRole clears the sheet and goes home, although holdOffline already set the same role.
-
-Wanted: when the first answered check after an offline open confirms the same role, on Bazaar
-Mode with an event open, selling carries on: same screen, same sheet, the queue sent, access
-verified. A different role, a denial and the put-off idle sign-out behave exactly as now.
-Nothing wider may open offline.
-
-1. Write the failing test first (real OpsApp and OpsRuntime, faked client, as the file does).
-2. Fix it in live-gate.tsx only. No locked file changes.
-3. Turn the smoke suite's known-defect line into an assertion and run the suite; paste it.
-4. security-reviewer (a different model) before committing; fix every P0 to P2 finding.
-
-Update docs/OFFLINE.md, docs/state/current.md (the "Known not to work yet" row) and
-docs/state/task-status.json (one note, by string insertion). Evidence to print: the test
-failing then passing, the reviewer's verdict, the pnpm verify summary, the smoke-suite
-output, the commit hash and the pushed branch.
-
-No new resources, merge, production launch or automatic runner. Do not set the release hold.
-Stop after 15 turns or two failed fix attempts and report the actual obstacle.
-```
-
-## 2. B2 — nothing fake on screen, one Manila clock
+## B2 — nothing fake on screen, one Manila clock
 
 | Setting         | Value                                                                                               |
 | --------------- | --------------------------------------------------------------------------------------------------- |

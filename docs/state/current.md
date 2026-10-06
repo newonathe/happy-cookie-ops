@@ -4,7 +4,7 @@ Read this page first in a new session. It is kept short on purpose.
 
 | If you need                                        | Read                                                                                                                                                     |
 | -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| The goal to run next                               | [next-goal.md](next-goal.md) (the Bazaar signal fix first, then B2)                                                                                      |
+| The goal to run next                               | [next-goal.md](next-goal.md) (slice B2)                                                                                                                  |
 | The plan, approved 5 October                       | [final-plan.md](final-plan.md), version 2                                                                                                                |
 | The rules every agent follows                      | [AGENTS.md](../../AGENTS.md)                                                                                                                             |
 | Ethan's and Cine's decisions                       | [decision-register.md](decision-register.md)                                                                                                             |
@@ -18,8 +18,8 @@ Read this page first in a new session. It is kept short on purpose.
 
 **The plan is approved; stage A (A1 to A4) and slice B1 are built.** Ethan approved
 [final-plan.md](final-plan.md), version 2, on 5 October after a re-audit, a debate and
-wider research. It replaces finish-plan.md as the forward plan. The next step is a small
-Bazaar fix found by B1 (below), then slice B2.
+wider research. It replaces finish-plan.md as the forward plan. The Bazaar defect B1 found is
+fixed (below). The next step is slice B2.
 
 **A2, 6 October:** the bazaar phone opens and reloads with no signal. Bazaar Mode alone
 opens, only while the phone holds a running event, only within her offline hours (48 by
@@ -50,6 +50,13 @@ and opens everything, then sells at a bazaar with the network off. Helpers, supp
 and Bazaar Mode with an event open are unchanged. Port audit and two security reviews: no P0
 to P2 left open.
 
+**The Bazaar signal fix, 6 October:** when signal returns after the phone reopened offline on
+the selling screen, the sale in hand carries on: same screen, same payment sheet, the queue
+sent, the whole app open again. Before, the app went to Home and closed the sheet. The change
+is in the sign-in gate only (`src/components/app/live-gate.tsx`); what it leaves alone is in
+[OFFLINE.md](../OFFLINE.md). The smoke suite now fails if it comes back. Commit `1746d2a`,
+reviewed independently; a green run of that push releases it to the trial.
+
 **Package:** F2, the owner trial, stays open but does not start until everything in the
 plan is built (Ethan, 5 October). F3 (launch) stays closed until Cine accepts a real week.
 
@@ -57,7 +64,7 @@ plan is built (Ethan, 5 October). F3 (launch) stays closed until Cine accepts a 
 
 - **The product** is built through E1: menu and settings, checkout and owner orders,
   bazaar selling with offline close-out, stock, recipes and production, books, P&L and
-  CSV, backups and health. `pnpm verify` passes 93 files / 1,702 tests; the planning
+  CSV, backups and health. `pnpm verify` passes 93 files / 1,706 tests; the planning
   validator passes 1,228 checks.
 - **The private trial site** is live for owners only:
   <https://happy-cookie-owner-trial.admin-kethai.workers.dev>. Cloudflare Access sends an
@@ -81,7 +88,6 @@ Found by reading code or the trial, not by running. Each has a slice in the plan
 | What                                                                                                         | Slice  |
 | ------------------------------------------------------------------------------------------------------------ | ------ |
 | The backup, retention and keep-alive jobs are written but off: nothing is backed up yet.                     | Ethan  |
-| When signal returns after the bazaar phone reopened offline, the app leaves the selling screen for Home.     | Next   |
 | Account has no button of its own: it is a chip on Home's strip. Customers and Expenses open a sheet.         | C6, C5 |
 | Values from the prototype still show in the live app (pickups, greeting, Settings rows, shop tagline).       | B2     |
 | Almost every cost per cookie is unknown: 8 of 72 items have a price, no costed delivery, no measured recipe. | B3, B4 |
