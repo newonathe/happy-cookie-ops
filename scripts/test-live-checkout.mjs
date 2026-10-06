@@ -13,38 +13,12 @@
  * The service-role key seeds the world (a published flavour, an active payment method, an ordering window that is
  * open now in Asia/Manila) and reads the resulting rows back. It is used against a local address only.
  */
-import { createServer } from 'node:net';
-import { readFile, readdir, realpath } from 'node:fs/promises';
-import { spawn, spawnSync } from 'node:child_process';
-import { fileURLToPath } from 'node:url';
-import path from 'node:path';
 import { chromium } from '@playwright/test';
 import { createClient } from '@supabase/supabase-js';
+import { assert, localStack, serveLiveBuild } from './lib/live-stack.mjs';
 
-const root = await realpath(path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'));
-const output = path.join(root, 'build', 'pages-spike', 'public');
-const config = path.join(root, 'spikes', 'pages', 'wrangler.jsonc');
-const wrangler = path.join(root, 'node_modules', 'wrangler', 'bin', 'wrangler.js');
+const { url, service } = localStack();
 
-const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const publishable = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-const service = process.env.SUPABASE_SERVICE_ROLE_KEY;
-if (!url || !publishable || !service) {
-  console.error(
-    'Set NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY and SUPABASE_SERVICE_ROLE_KEY (see the header of this file).'
-  );
-  process.exit(2);
-}
-if (!['127.0.0.1', 'localhost', '[::1]'].includes(new URL(url).hostname)) {
-  console.error(
-    'Refusing to run: the service-role key is used against a local Supabase address only.'
-  );
-  process.exit(2);
-}
-
-function assert(condition, message) {
-  if (!condition) throw new Error(message);
-}
 const steps = [];
 async function step(name, run) {
   const started = Date.now();
@@ -54,91 +28,7 @@ async function step(name, run) {
 }
 
 // ---------------------------------------------------------------- build and serve
-console.log('Building the live static export against the local stack…');
-const build = spawnSync(process.execPath, [path.join(root, 'scripts', 'build-pages-spike.mjs')], {
-  cwd: root,
-  env: process.env,
-  stdio: ['ignore', 'ignore', 'inherit']
-});
-assert(build.status === 0, 'build:pages:spike failed.');
-
-const port = await new Promise((resolve, reject) => {
-  const server = createServer();
-  server.once('error', reject);
-  server.listen(0, '127.0.0.1', () => {
-    const address = server.address();
-    if (!address || typeof address === 'string')
-      return reject(new Error('Could not reserve a local port.'));
-    server.close((error) => (error ? reject(error) : resolve(address.port)));
-  });
-});
-const base = `http://127.0.0.1:${port}`;
-// The emulator gets no secrets: the browser bundle carries the publishable key, the server needs none.
-const allowedEnv = [
-  'APPDATA',
-  'COMSPEC',
-  'LOCALAPPDATA',
-  'PATH',
-  'PATHEXT',
-  'SYSTEMROOT',
-  'TEMP',
-  'TMP',
-  'USERPROFILE',
-  'WINDIR'
-];
-const localEnv = Object.fromEntries(
-  allowedEnv.flatMap((key) => (process.env[key] === undefined ? [] : [[key, process.env[key]]]))
-);
-const state = path.join(root, 'build', 'pages-spike', 'wrangler-state');
-assert(
-  !(await readdir(path.dirname(config))).some(
-    (name) => name.startsWith('.dev.vars') || name.startsWith('.env')
-  ),
-  'Local fixture directory must contain no environment files.'
-);
-const child = spawn(
-  process.execPath,
-  [
-    wrangler,
-    'pages',
-    'dev',
-    output,
-    '--ip',
-    '127.0.0.1',
-    '--port',
-    String(port),
-    '--persist-to',
-    state,
-    '--log-level',
-    'error'
-  ],
-  {
-    cwd: path.dirname(config),
-    stdio: ['ignore', 'pipe', 'pipe'],
-    env: {
-      ...localEnv,
-      CLOUDFLARE_LOAD_DEV_VARS_FROM_DOT_ENV: 'false',
-      CI: '1',
-      NO_PROXY: '127.0.0.1,localhost',
-      WRANGLER_SEND_METRICS: 'false'
-    }
-  }
-);
-let logs = '';
-child.stdout.on('data', (chunk) => (logs += chunk));
-child.stderr.on('data', (chunk) => (logs += chunk));
-async function ready() {
-  const deadline = Date.now() + 30_000;
-  while (Date.now() < deadline) {
-    if (child.exitCode !== null) throw new Error(`Emulator exited early: ${logs.slice(-500)}`);
-    try {
-      const response = await fetch(`${base}/api/v1/health`, { signal: AbortSignal.timeout(1000) });
-      if (response.status === 200) return;
-    } catch {}
-    await new Promise((resolve) => setTimeout(resolve, 250));
-  }
-  throw new Error(`Wrangler Pages emulator did not become ready. ${logs.slice(-500)}`);
-}
+const { base, stop, reused } = await serveLiveBuild();
 
 // ---------------------------------------------------------------- the world, set through the service role
 const admin = createClient(url, service, {
@@ -163,6 +53,19 @@ async function seedWorld() {
       { key: 'closeM', int_value: 59 },
       { key: 'extendH', int_value: 0 }
     ])
+  );
+  // The pickup rules the first steps assume (the database defaults). The last step of an
+  // earlier run widens them, so without this a second run needed `pnpm db:reset` first.
+  ok(
+    'order rules',
+    await admin
+      .from('order_rules')
+      .update({ pickup_days: [1, 4], pickup_from_hour: 9, pickup_cutoff_hour: 17 })
+      .eq('id', true)
+  );
+  ok(
+    'order extras',
+    await admin.from('order_extras').update({ same_day_enabled: false }).eq('id', true)
   );
   ok(
     'publish flavour',
@@ -192,7 +95,6 @@ async function seedWorld() {
 let browser;
 let failure;
 try {
-  await ready();
   const flavour = await seedWorld();
   browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({
@@ -568,16 +470,13 @@ try {
   failure = error;
 } finally {
   await browser?.close();
-  if (child.exitCode === null && child.pid) {
-    if (process.platform === 'win32')
-      spawnSync('taskkill', ['/pid', String(child.pid), '/t', '/f'], { stdio: 'ignore' });
-    else child.kill('SIGTERM');
-  }
+  stop();
 }
 if (failure) {
   console.error(`\nFAILED after ${steps.length} step(s): ${failure.message}`);
   process.exit(1);
 }
 console.log(
-  `\nLive checkout happy path passed: ${steps.length} steps against ${new URL(url).origin}.`
+  `\nLive checkout happy path passed: ${steps.length} steps against ${new URL(url).origin}.` +
+    (reused ? ' REUSED BUILD: not evidence for the current tree.' : '')
 );

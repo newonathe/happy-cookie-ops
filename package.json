@@ -46,7 +46,8 @@
     "build:pages:spike": "node scripts/build-pages-spike.mjs",
     "test:pages:spike": "node scripts/test-pages-spike.mjs",
     "test:workers:spike": "node scripts/test-workers-web-spike.mjs",
-    "test:live:checkout": "node scripts/test-live-checkout.mjs"
+    "test:live:checkout": "node scripts/test-live-checkout.mjs",
+    "test:live:smoke": "node scripts/test-live-smoke.mjs"
   },
   "dependencies": {
     "next": "16.3.8",
