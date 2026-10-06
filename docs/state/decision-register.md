@@ -257,6 +257,28 @@ The approved plan said "no strip at all on Bazaar"; the fifth row narrows that, 
 no strip there Bazaar events had no way in. With an event on the phone, at any stage, Bazaar
 Mode is exactly as before. One line in `liveTabs` (`src/store/ops-runtime.tsx`) reverses it.
 
+### Slice B2, 6 October 2026: nothing fake on screen
+
+Asked in plan mode, before any code was written:
+
+| Decided                                                                                                                                                                          | By    |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- |
+| The shop tagline gets one guarded, live-only insertion in the locked `shop.tsx`, under the D4 approval of 28 September ([protected-exception.md](protected-exception.md), last). | Ethan |
+| The bazaar clerk name is fixed now, before the bazaar: each sale records the signed-in person's own name, not "Cine" or "Kristian".                                              | Ethan |
+| B2 builds only the four shop details the findings need. Address, phone, email, privacy text, retention period and the time zone as a setting wait for C5 and the set-up screen.  | Ethan |
+
+**Defaults, not decisions.** Each is a starting value Cine confirms or changes in the wording
+pass or the set-up screen; none is hers yet.
+
+| Value                                               | Default                                                                                                    | Why this value                                                                                                    | Where it changes                            |
+| --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| Shop name, owner's name, contact line, shop tagline | Empty. Sentences then name nobody ("We will confirm your payment.", "Only the owner can…"), no tagline.    | Any filled-in default would be an invention, or the prototype's value, shown as hers.                             | Sell, Shop, Shop texts, "Shop details"      |
+| The person named when no name is known              | The role word: "Owner", "Helper", "Support".                                                               | A phone that has never read the profile (first offline open after the update) must still record something true.   | Her profile's display name (database)       |
+| "Pickups" on Home                                   | Orders with pickup date today on the shop's clock, in Confirmed, Preparing or Ready; "—" until orders load | The same rule the pickup alert already used.                                                                      | Code (`pickupsToday`)                       |
+| "Profit this month" on Home                         | The shop's calendar month to date. The P&L screen still says and shows "Last 30 days".                     | The label is locked; making the figure match it was the only fix through the view model. C3 redesigns Home.       | Code (`monthTotals`)                        |
+| What "Who can see what" says each role can open     | Owner: everything. Helper: Home, the sales log and Bazaar Mode. Support: system health and notifications.  | What the live app actually lets each role open today. The prototype's text promised helpers orders and inventory. | Code (`STAFF_ACCESS`); fixed by design, 6.7 |
+| "Default, not confirmed yet."                       | Shown on a rules-sheet setting until she saves it once.                                                    | Final plan 6.1 and N11: a database default must not read as her decision.                                         | Saving the setting removes it               |
+
 ## Amended decisions (open — block the listed work)
 
 **DP-02 · Payment timing** — blocks MP-10, MP-12.

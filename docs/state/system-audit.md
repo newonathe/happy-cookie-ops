@@ -141,3 +141,63 @@ Already recorded: [ux-audit.md](ux-audit.md) findings 1 to 12 and
 - The 248 places that divide or multiply by 100 were not each read; the conversion file
   and the main paths were.
 - Items marked Unverified above.
+
+## 9. What slice B2 did with these findings (6 October 2026)
+
+The rows above are left as they were found. Evidence for every line here is a test in
+`pnpm verify` unless it says otherwise; the two tests that hold the whole of it are in
+`tests/unit/no-prototype-values.test.tsx` (an empty shop, and two shops that share nothing).
+
+| #   | Now                                                                                                                                                                                                            | Held by                                                   |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| H1  | **Closed.** "Pickups" counts today's pickups on the shop's clock; "—" until orders are read.                                                                                                                   | `ops-runtime-names`, `no-prototype-values`                |
+| H2  | **Closed.** The three launcher lines come from the P&L's own period, the flavour list and the supplier list.                                                                                                   | the same                                                  |
+| H3  | **Closed.** Payment methods and collection options are read from her records and open her forms; the people count is from profiles; the form-bridge row is gone.                                               | the same                                                  |
+| H4  | **Closed, the bazaar included.** The greeting, the account chip and the name on each sale are the signed-in person's own. No name known means the role word.                                                   | the same, and the smoke suite reads `event_sales.clerk`   |
+| H5  | **Closed.** Her own tagline, or none, through one guarded edit to the locked shop screen ([protected-exception.md](protected-exception.md), last section).                                                     | the same                                                  |
+| H6  | **Closed.** "Who can see what" lists the active profiles. What each role can open is worded for the live app.                                                                                                  | `ops-runtime-names`                                       |
+| H14 | **Closed.** No sentence names the owner or the shop; each asks `src/lib/orders/identity.ts`, which holds her shop details or neutral wording.                                                                  | `ops-runtime-names`                                       |
+| C1  | **Closed by the figure.** "Profit this month" is the shop's calendar month to date. The label is locked; the P&L still shows the last 30 days, and says so.                                                    | `ops-runtime-names`                                       |
+| C2  | **Closed.** The books CSV, rows and file name, is on the shop's clock.                                                                                                                                         | `books.test.ts`                                           |
+| C10 | **Partly closed.** One module (`src/lib/time/business-clock.ts`) and one function (`public.business_clock()`) define the day, week and month; nothing else in `src/` may name the zone. What is left is below. | `business-clock.test.ts`, the role suite's fixture replay |
+| N11 | **Closed for the rules sheet.** A setting never saved says "Default, not confirmed yet."                                                                                                                       | `ops-runtime-names`                                       |
+
+**Found on the way and fixed:** the Settings row for payment rules opened the prototype's
+payment channels (a name and two masked numbers); the helper's refusal toast, the "only the
+owner" screen and three staff toasts named the owner; an empty menu showed the engine's six flavours; the pricing sheet's example named three ported flavours and crashed on a menu
+without them; "Preview checkout" filled the box with the same three; the set-up note named
+the operator; the lookup field's hint was a prototype order number; the privacy line named
+the shop.
+
+**Recorded, not fixed here:**
+
+| #   | What                                                                                                                                                                                                                                | Goes to               |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------- |
+| R1  | C10, the rest: the engine's ordering window, "closing tonight" and its own date wording read the device clock. On a phone set to Manila they agree with the server. They cannot change without an engine edit.                      | The screens' redesign |
+| R2  | `place_order`, `get_shop_status` and `join_waitlist` still write the Manila date inline. Applied migrations are not edited.                                                                                                         | B3                    |
+| R3  | Bazaar Mode's payment sheet offers a fixed list of wallets (GCash, Maya, GoTyme), written in the engine, and the ported Payments screen names two of them. Bazaar Mode was not changed before the bazaar beyond the name on a sale. | C7, C1 (orders)       |
+| R4  | An empty menu cannot get its first flavour: the editor refuses to add to a list that has never loaded with a row in it (the guard that stops "Publish" emptying the shop). The trial has 26 flavours, so nobody meets it.           | B6                    |
+| R5  | The engine cannot draw a shop with no flavour at all (it reads the first one on every render). Live mode answers that one read with a blank entry; the list itself stays empty. A workaround in the subclass, not a fix.            | The screens' redesign |
+| R6  | The shop heading "This week's drop", the logo and its alt text are as ported.                                                                                                                                                       | C8                    |
+| R7  | The privacy paragraph's own wording, who hosts the data and the one-year retention figure are still text in the footer (H15, H16).                                                                                                  | C5                    |
+| R8  | Address, phone, email and the time zone are not settings yet (Ethan, 6 October: only the four the findings need).                                                                                                                   | C5, C11               |
+| R9  | Packaging item names in the completeness check and two database functions (H12, H13).                                                                                                                                               | B3                    |
+| R10 | `tests/integration/security/test_function_authority.py` is run by nothing: its pinned count had drifted from 94 to 96 before this slice (now 99, correct). The database-side check of the same list did run throughout.             | B7                    |
+
+**R12, to C3.** Home says "Drop 32": the drop number starts from the engine's own, and baked
+stock is counted for that number. It is a counter the owner never set. Found when the smoke
+suite ran on a freshly reset database: its seeded batch carried no drop number and the Bazaar
+table had nothing to load (fixed in the suite, not in the app).
+
+**R11, to B6.** For the moment before the flavour list arrives on a staff page, and for as
+long as it cannot be read, the screens show the six flavours the engine holds, as they did
+before B2. Emptying the list there was tried and withdrawn the same day: the smoke suite showed
+it takes the whole app down, because batches and baked stock already on the phone name
+flavours and the engine cannot draw a name it does not hold. Only an answered, empty menu is
+shown as empty. It closes when the new Recipes screens stop reading the engine's list.
+
+**Section 6.7 re-check.** Every row marked "Today: yes" has a form in the live app that offers
+something to change; the smoke suite opens each and fails if one does not: Menu & flavours,
+Recipe drafts, Stock items, Suppliers & prices, Boxes & add-ons, Order rules, Payment methods,
+Shop texts, Bazaar events, Shop status, Books & costs, and the rules sheet behind Settings.
+"Shop details" moved from "No" to a form for its first four fields (R8 has the rest).
