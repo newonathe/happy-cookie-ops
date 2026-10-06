@@ -34,7 +34,8 @@ ORDER_MIGRATIONS = [ROOT / 'supabase/migrations/20260101003500_place_order.sql',
                     ROOT / 'supabase/migrations/20260101005400_business_clock_shop_identity.sql',
                     ROOT / 'supabase/migrations/20260101005500_identity_links.sql',
                     ROOT / 'supabase/migrations/20260101005600_item_costs.sql',
-                    ROOT / 'supabase/migrations/20260101005700_clock_policies.sql']
+                    ROOT / 'supabase/migrations/20260101005700_clock_policies.sql',
+                    ROOT / 'supabase/migrations/20260101005800_batch_correction.sql']
 _OUT = 'order outcome differs: anon / '
 _CHK = 'order check differs: anon / '
 _LOOK = 'lookup check differs: anon / '
@@ -514,6 +515,71 @@ COST_MUTATIONS = {
                                           "where v_basis = 'used' and m.kind in ('use', 'waste') and m.at >= p_from"),
                                          _CSC + 'cost_b3_is_never_a_line'),
 }
+# B3a: batch corrections (batch-correction.sql), acting on the last migration that defines each function. The money cases are worked by
+# hand in the suite. Not mutation-tested (one session cannot observe a lock): the two advisory locks of record_batch_correction.
+_BCO = 'correction outcome differs: active_owner / '
+_BCC = 'correction check differs: active_owner / '
+_BCB = 'record_batch_correction'
+BATCH_CORRECTION_MUTATIONS = {
+    'rule_corr_keys': (_BCB, 'rule', 'corr-keys', _BCO + 'corr_keys_extra / '),
+    'rule_corr_id': (_BCB, 'rule', 'corr-id', _BCO + 'corr_id_bad / '),
+    'rule_corr_qty': (_BCB, 'rule', 'corr-qty', _BCO + 'corr_qty_over / '),
+    'rule_corr_rejects': (_BCB, 'rule', 'corr-rejects', _BCO + 'corr_rejects_over / '),
+    'rule_corr_reason': (_BCB, 'rule', 'corr-reason', _BCO + 'corr_reason_blank / '),
+    'rule_corr_at': (_BCB, 'rule', 'corr-at', _BCO + 'corr_at_future / '),
+    'rule_corr_replay_conflict': (_BCB, 'rule', 'corr-replay-conflict', _BCO + 'corr_replay_other_body / '),
+    'rule_corr_batch_missing': (_BCB, 'rule', 'corr-batch-missing', _BCO + 'corr_batch_missing / '),
+    'rule_corr_no_change': (_BCB, 'rule', 'corr-no-change', _BCO + 'corr_no_change / '),
+    'rule_corr_baked_negative': (_BCB, 'rule', 'corr-baked-negative', _BCO + 'corr_down_below_packed / '),
+    'text_corr_delta_from_effective': (_BCB, 'text',
+        ('select v_batch.qty + coalesce(sum(c.qty_delta), 0), v_batch.rejects + coalesce(sum(c.rejects_delta), 0) into v_eff_q, v_eff_r',
+         'select v_batch.qty + 0 * coalesce(sum(c.qty_delta), 0), v_batch.rejects + 0 * coalesce(sum(c.rejects_delta), 0) into v_eff_q, v_eff_r'),
+        _BCC + 'corr_down_effective'),
+    'text_corr_opposite_entry': (_BCB, 'text', ('v_batch.id, v_qty::integer - v_eff_q, v_rej::integer - v_eff_r);', 'v_batch.id, v_eff_q - v_qty::integer, v_rej::integer - v_eff_r);'),
+        _BCC + 'corr_up_writes_one_row'),
+    'text_corr_copies_the_drop': (_BCB, 'text', ('v_batch.recipe_version, v_batch.drop_no, v_at,', 'v_batch.recipe_version, 0, v_at,'),
+        _BCC + 'corr_up_writes_one_row'),
+    'text_corr_audit_row': (_BCB, 'text', ("'production.batch_correction', 'production_records'", "'production.batch_corrected', 'production_records'"),
+        _BCC + 'corr_up_one_audit_row'),
+    'text_corr_replay_returns_effective': (_BCB, 'text',
+        ('select b.qty + coalesce(sum(c.qty_delta), 0)::integer, b.rejects + coalesce(sum(c.rejects_delta), 0)::integer into v_eff_q, v_eff_r',
+         'select b.qty + 0 * coalesce(sum(c.qty_delta), 0)::integer, b.rejects + 0 * coalesce(sum(c.rejects_delta), 0)::integer into v_eff_q, v_eff_r'),
+        _BCC + 'corr_replay_is_duplicate'),
+    'text_corr_balance_counts_packed': (_BCB, 'text',
+        ('select -oi.qty from public.production_records r join public.order_items oi on oi.order_id = r.ref',
+         'select 0 from public.production_records r join public.order_items oi on oi.order_id = r.ref'),
+        _BCO + 'corr_down_below_packed / '),
+    'text_corr_balance_counts_discards': (_BCB, 'text',
+        ("where r.kind = 'discard_baked' and r.product_id = v_batch.product_id", "where r.kind = 'discard_baked' and false and r.product_id = v_batch.product_id"),
+        _BCO + 'corr_down_below_discarded / '),
+    'text_corr_balance_counts_corrections': (_BCB, 'text',
+        ("where r.kind = 'batch_correction' and r.product_id = v_batch.product_id", "where r.kind = 'batch_correction' and false and r.product_id = v_batch.product_id"),
+        _BCO + 'corr_down_below_discarded / '),
+    'text_corr_up_never_refused': (_BCB, 'text',
+        ('v_bad := v_qty < v_eff_q and v_have + (v_qty - v_eff_q) < 0;', 'v_bad := v_have + (v_qty - v_eff_q) < 0;'),
+        _BCO + 'corr_up_when_negative_ok / '),
+    'text_corr_effective_qty': ('get_production', 'text', ("'qty', b.qty + b.dq", "'qty', b.qty"), _BCC + 'corr_up_batch_list'),
+    'text_corr_effective_rejects': ('get_production', 'text', ("'rejects', b.rejects + b.dr", "'rejects', b.rejects"), _BCC + 'corr_down_effective'),
+    'text_corr_corrected_flag': ('get_production', 'text', ("'corrected', b.n_corr > 0", "'corrected', false"), _BCC + 'corr_up_batch_list'),
+    'text_corr_baked_read': ('get_production', 'text', ('select r.product_id, r.qty_delta from', 'select r.product_id, 0 from'), _BCC + 'corr_baked_follows'),
+    'text_corr_discard_balance': ('record_discard', 'text', ('select r.qty_delta from public.production_records r', 'select 0 from public.production_records r'),
+        _BCO + 'corr_disc_after_down / '),
+    'text_corr_per_cookie_effective': ('get_production', 'text', ('round(c.cost / (b.qty + b.dq), 4)', 'round(c.cost / b.qty, 4)'), _BCC + 'corr_up_cost'),
+    'text_corr_per_cookie_zero': ('get_production', 'text', ('case when b.qty + b.dq > 0 then', 'case when true then'), 'division by zero'),
+    'text_corr_cost_counts_the_short': ('get_production', 'text', ('(-m.qty_delta + m.short_qty) * m.unit_cost', '-m.qty_delta * m.unit_cost'),
+        _BCC + 'corr_cost_counts_the_short'),
+    'text_corr_cost_dough_counts_the_short': ('get_production', 'text', ('(m.short_qty - m.qty_delta) * m.unit_cost', '-m.qty_delta * m.unit_cost'),
+        _BCC + 'corr_cost_dough_counts_the_short'),
+    'text_corr_cost_adds_the_dough': ('get_production', 'text', ('own.cents + b.dough_used * case', 'own.cents + 0 * case'), _BCC + 'corr_d_cost_draws_dough'),
+    'text_corr_cost_dough_precedes': ('get_production', 'text', ('d.at <= b.at) dough', 'true) dough'), _BCC + 'corr_cost_dough_after_batch'),
+    'text_corr_cost_null_when_unknown': ('get_production', 'text',
+        ('case when own.n_costed > 0 or (b.dough_used > 0 and dough.n_costed > 0) then', 'case when true then'), _BCC + 'corr_cost_dough_after_batch'),
+    'text_corr_complete_unpriced': ('get_production', 'text', ('not own.unpriced and not own.why', 'not own.why'), _BCC + 'corr_cost_uncosted_movement'),
+    'text_corr_complete_why': ('get_production', 'text', ('not own.unpriced and not own.why', 'not own.unpriced'), _BCC + 'corr_cost_line_not_a_stock_item'),
+    'text_corr_complete_dough_why': ('get_production', 'text', ('not dough.unpriced and not dough.why', 'not dough.unpriced'), _BCC + 'corr_cost_dough_line_not_costed'),
+    'text_corr_complete_dough_record': ('get_production', 'text', ('dough.n > 0 and dough.balls > 0 and ', ''), _BCC + 'corr_cost_dough_after_batch'),
+    'text_corr_complete_legacy_short': ('get_production', 'text', ('jsonb_array_length(b.short) > count(*) filter (where m.short_qty > 0)', "exists (select 1 from jsonb_array_elements(b.short) e where e ? 'why')"), _BCC + 'corr_cost_legacy_short_not_complete'),
+}
 OPERATIONS_MUTATIONS = {
     'rule_ops_service': ('record_operations_run', 'rule', 'run-service', 'operations denial differs: record_anon / 00000'),
     'rule_ops_time': ('record_operations_run', 'rule', 'run-time', 'future run time accepted'),
@@ -527,7 +593,7 @@ OPERATIONS_MUTATIONS = {
 
 def order_mutant(name):
     """The migration's one function, changed in exactly one place, as SQL to run inside the suite."""
-    function, kind, argument, _ = (ORDER_MUTATIONS | LOOKUP_MUTATIONS | STAFF_MUTATIONS | SHOP_MUTATIONS | EXTRAS_MUTATIONS | SCHEDULED_MUTATIONS | STOCK_MUTATIONS | RECIPE_MUTATIONS | LEDGER_MUTATIONS | PRODUCTION_MUTATIONS | BOOKS_MUTATIONS | OPERATIONS_MUTATIONS | IDENTITY_RULES | LINK_MUTATIONS | COST_MUTATIONS)[name]
+    function, kind, argument, _ = (ORDER_MUTATIONS | LOOKUP_MUTATIONS | STAFF_MUTATIONS | SHOP_MUTATIONS | EXTRAS_MUTATIONS | SCHEDULED_MUTATIONS | STOCK_MUTATIONS | RECIPE_MUTATIONS | LEDGER_MUTATIONS | PRODUCTION_MUTATIONS | BOOKS_MUTATIONS | OPERATIONS_MUTATIONS | IDENTITY_RULES | LINK_MUTATIONS | COST_MUTATIONS | BATCH_CORRECTION_MUTATIONS)[name]
     marker = 'create or replace function public.' + function + '('
     text = [m.read_text(encoding='utf-8') for m in ORDER_MIGRATIONS if marker in m.read_text(encoding='utf-8')][-1]
     start = text.index('create or replace function public.' + function + '(')
@@ -623,6 +689,7 @@ SUITES = (
                   + tuple(BOOKS_MUTATIONS) + tuple(BOOKS_TABLE_MUTATIONS), 'forbidden books call succeeded', 107),
     ('item-costs.sql', ('save_item_price(jsonb)', 'get_item_costs()', 'get_recipe_costs()') + tuple(COST_MUTATIONS),
      'forbidden cost call succeeded', 172),
+    ('batch-correction.sql', ('record_batch_correction(jsonb)',) + tuple(BATCH_CORRECTION_MUTATIONS), 'forbidden correction call succeeded', 110),
     ('operations.sql', tuple(OPERATIONS_MUTATIONS), 'forbidden operations call succeeded', 14),
     ('bazaar-closeout.sql', ('event_summary(uuid)', 'load_event_stock(uuid,jsonb,bigint)', 'add_event_expense(jsonb)', 'close_event(jsonb)'), 'forbidden closeout call succeeded', 80),
     ('shop-identity.sql', ('save_shop_identity(jsonb,timestamptz)', 'business_clock(timestamptz)') + tuple(IDENTITY_MUTATIONS) + tuple(IDENTITY_RULES),
@@ -805,6 +872,9 @@ def main():
                     elif signature in BOOKS_TABLE_MUTATIONS:
                         unsafe, expected_error = BOOKS_TABLE_MUTATIONS[signature]
                         broken = sql.replace('begin;', 'begin;' + chr(10) + unsafe, 1)
+                if filename == 'batch-correction.sql' and signature in BATCH_CORRECTION_MUTATIONS:
+                    broken = sql.replace('begin;', 'begin;' + chr(10) + order_mutant(signature), 1)
+                    expected_error = BATCH_CORRECTION_MUTATIONS[signature][3]
                 if filename == 'item-costs.sql' and signature in COST_MUTATIONS:
                     broken = sql.replace('begin;', 'begin;' + chr(10) + order_mutant(signature), 1)
                     expected_error = COST_MUTATIONS[signature][3]
@@ -922,7 +992,7 @@ def main():
                 h.fail(filename + ' did not return its complete role matrix')
             results.extend(rows)
             assert_empty()
-        if len(set(results)) != 2346:
+        if len(set(results)) != 2456:
             h.fail('combined role matrix has missing or duplicate cases: %d rows, %d unique (duplicates: %s)' % (len(results), len(set(results)), sorted({r for r in results if results.count(r) > 1})[:5]))
         assert_functions()
         assert_catalog_wide()
@@ -935,10 +1005,10 @@ def main():
     try:
         code = h.main(after_reset=check)
         if (code == 0 and len(report["runs"]) == 2 and report["runs"][0] == report["runs"][1]
-                and len(report['regressions_detected']) == 782 and report['sequence_restorations'] == 10
+                and len(report['regressions_detected']) == 856 and report['sequence_restorations'] == 10
                 and report['upgrade_runs'] == 2 and report['function_guard_runs'] == 4
                 and report['catalog_guard_runs'] == 4 and report['catalog_guard_red_runs'] == 4):
-            report.update(status="passed", cases_per_reset=2346, resets=2, matrix_equal=True, rollback_verified=True,
+            report.update(status="passed", cases_per_reset=2456, resets=2, matrix_equal=True, rollback_verified=True,
                           sql_sha256={name: hashlib.sha256((ROOT / 'tests/integration/security' / name).read_bytes()).hexdigest() for name, _, _, _ in SUITES},
                           harness_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
     except (RuntimeError, OSError, ValueError) as error:

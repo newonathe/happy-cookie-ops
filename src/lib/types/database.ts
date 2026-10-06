@@ -1074,6 +1074,7 @@ export type Database = {
       production_records: {
         Row: {
           at: string
+          corrects: string | null
           created_by: string | null
           dough_used: number
           drop_no: number
@@ -1082,15 +1083,18 @@ export type Database = {
           payload_hash: string
           product_id: string | null
           qty: number
+          qty_delta: number | null
           received_at: string
           recipe_version: number | null
           ref: string
           rejects: number
+          rejects_delta: number | null
           short: Json
           target: number | null
         }
         Insert: {
           at: string
+          corrects?: string | null
           created_by?: string | null
           dough_used?: number
           drop_no?: number
@@ -1099,15 +1103,18 @@ export type Database = {
           payload_hash: string
           product_id?: string | null
           qty: number
+          qty_delta?: number | null
           received_at?: string
           recipe_version?: number | null
           ref?: string
           rejects?: number
+          rejects_delta?: number | null
           short?: Json
           target?: number | null
         }
         Update: {
           at?: string
+          corrects?: string | null
           created_by?: string | null
           dough_used?: number
           drop_no?: number
@@ -1116,14 +1123,23 @@ export type Database = {
           payload_hash?: string
           product_id?: string | null
           qty?: number
+          qty_delta?: number | null
           received_at?: string
           recipe_version?: number | null
           ref?: string
           rejects?: number
+          rejects_delta?: number | null
           short?: Json
           target?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "production_records_corrects_fkey"
+            columns: ["corrects"]
+            isOneToOne: false
+            referencedRelation: "production_records"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "production_records_created_by_fkey"
             columns: ["created_by"]
@@ -2241,6 +2257,15 @@ export type Database = {
         }[]
       }
       receipt_cost: { Args: { p_movement: string }; Returns: number }
+      record_batch_correction: {
+        Args: { p_corr: Json }
+        Returns: {
+          duplicate: boolean
+          qty: number
+          record_id: string
+          rejects: number
+        }[]
+      }
       record_cost_correction: {
         Args: { p_corr: Json }
         Returns: {
