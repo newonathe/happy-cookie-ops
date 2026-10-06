@@ -18,8 +18,21 @@ insert into public.profiles(id, role, display_name, active) values
   ('a4c00000-0000-4000-8000-000000000004', 'owner', 'Recipe inactive owner', false);
 insert into public.products(id, name, short_name, price_cents, kind) values
   ('a4p1', 'A4 cookie one', 'A4-1', 100, 'cookie'),
-  ('a4p2', 'A4 cookie two', 'A4-2', 100, 'cookie');
+  ('a4p2', 'A4 cookie two', 'A4-2', 100, 'cookie'),
+  ('a4p3', 'A4 cookie three', 'A4-3', 100, 'cookie');
 insert into public.inventory_items(id, name, unit) values ('a4i-flour', 'A4 Flour', 'g'), ('a4i-milk', 'A4 Milk', 'ml');
+-- B3a: a recipe line must now name a stock item, so every name the cases below save has one (81 lines: the case over the size limit must be refused by the size rule alone).
+insert into public.inventory_items(id, name, unit) values ('a4i-eggs', 'Eggs', 'pcs'), ('a4i-x', 'x', 'g'), ('a4i-y', 'y', 'pcs');
+-- Names the line rules must be the ONLY thing to refuse (so neutralising a rule is seen): a blank, an over-long and a control-character
+-- name, and an item stocked in kilos, written as the fixture owner (the stock RPC would refuse the first three).
+insert into public.inventory_items(id, name, unit) values ('a4i-blank', '', 'g'), ('a4i-long', repeat('n', 81), 'g'),
+  ('a4i-control', 'a' || chr(7), 'g'), ('a4i-kilo', 'A4 Kilo', 'kg');
+-- Two stock items whose names differ only by case and spaces (the stock RPC refuses that; a line naming one is ambiguous).
+insert into public.inventory_items(id, name, unit) values ('a4i-twin-a', 'A4 Twin', 'g'), ('a4i-twin-b', ' a4 twin ', 'g');
+-- A recipe saved before lines had to be stock items, written as the fixture owner: its one line names no stock item.
+insert into public.recipes(product_id, yield_count) values ('a4p3', 10);
+insert into public.recipe_ingredients(product_id, item_name, qty, unit, position) values ('a4p3', 'A4 Legacy', 5, 'g', 0);
+insert into public.inventory_items(id, name, unit) select 'a4i-line-' || i, 'A4 line ' || i, 'g' from generate_series(1, 81) i;
 
 create function pg_temp.set_subject(n integer, claim_role text default 'authenticated') returns void
 language plpgsql security invoker as $$
@@ -65,6 +78,15 @@ create function pg_temp.line(n text, q numeric, u text) returns jsonb language s
   select jsonb_build_object('name', n, 'qty', q, 'unit', u) $$;
 create function pg_temp.row_of(p text) returns jsonb language sql stable as $$
   select x from jsonb_array_elements(public.get_recipes()) x where x ->> 'product_id' = p $$;
+-- The version rows of one flavour (the recipe_versions table has no API grant, so these read it as the fixture owner).
+create function pg_temp.version_numbers(p text) returns jsonb language sql stable security definer as $$
+  select coalesce(jsonb_agg(v.version order by v.version), '[]'::jsonb) from public.recipe_versions v where v.product_id = p $$;
+create function pg_temp.snapshot(p text, n integer) returns jsonb language sql stable security definer as $$
+  select jsonb_build_object('yield', v.yield_count, 'lines', v.lines) from public.recipe_versions v where v.product_id = p and v.version = n $$;
+-- What a read shows of the current version, in the shape a snapshot is kept in (no item id).
+create function pg_temp.current_shape(p text) returns jsonb language sql stable as $$
+  select jsonb_build_object('yield', (pg_temp.row_of(p) ->> 'yield')::int,
+    'lines', coalesce((select jsonb_agg(l - 'item_id' order by ord) from jsonb_array_elements(pg_temp.row_of(p) -> 'lines') with ordinality t(l, ord)), '[]'::jsonb)) $$;
 create function pg_temp.stamp(p text) returns timestamptz language sql stable as $$
   select (pg_temp.row_of(p) ->> 'updated_at')::timestamptz $$;
 create function pg_temp.save(actor text, op text, body jsonb, stamp timestamptz, wanted text) returns void
@@ -113,9 +135,15 @@ begin
     (r ->> 'yield')::int = 24 and (r ->> 'version')::int = 1 and r -> 'history' = '[]'::jsonb
     and jsonb_array_length(r -> 'lines') = 3 and r -> 'lines' -> 0 ->> 'name' = 'A4 Flour'
     and (r -> 'lines' -> 2 ->> 'qty')::numeric = 120.5 and r -> 'lines' -> 1 ->> 'name' = 'Eggs');
+  perform pg_temp.assert_ok(a, 'recipe_lines_carry_item_id',
+    (select array_agg(l ->> 'item_id' order by ord) from jsonb_array_elements(r -> 'lines') with ordinality t(l, ord)) = array['a4i-flour', 'a4i-eggs', 'a4i-milk']);
+  -- every version is kept from the first, the current one included
+  perform pg_temp.assert_ok(a, 'recipe_first_version_snapshot',
+    pg_temp.version_numbers('a4p1') = '[1]'::jsonb and pg_temp.snapshot('a4p1', 1) = pg_temp.current_shape('a4p1'));
   s1 := pg_temp.stamp('a4p1');
   perform pg_temp.save(a, 'recipe_create_replay', pg_temp.rec('a4p1'), null, '00000');
-  perform pg_temp.assert_ok(a, 'recipe_replay_no_new_version', (pg_temp.row_of('a4p1') ->> 'version')::int = 1);
+  perform pg_temp.assert_ok(a, 'recipe_replay_no_new_version',
+    (pg_temp.row_of('a4p1') ->> 'version')::int = 1 and pg_temp.version_numbers('a4p1') = '[1]'::jsonb);
   perform pg_temp.save(a, 'recipe_replay_other_body', pg_temp.rec('a4p1', '{"yield": 12}'), null, 'P0002');
   perform pg_temp.save(a, 'recipe_create_with_stamp_unknown', pg_temp.rec('a4p2'), s1, 'P0002');
 
@@ -145,10 +173,20 @@ begin
   perform pg_temp.save(a, 'line_qty_negative', pg_temp.rec('a4p2', jsonb_build_object('lines', jsonb_build_array(pg_temp.line('x', -1, 'g')))), pg_temp.stamp('a4p2'), '22023');
   perform pg_temp.save(a, 'line_qty_decimals', pg_temp.rec('a4p2', jsonb_build_object('lines', jsonb_build_array(pg_temp.line('x', 1.2345, 'g')))), pg_temp.stamp('a4p2'), '22023');
   perform pg_temp.save(a, 'line_qty_huge', pg_temp.rec('a4p2', jsonb_build_object('lines', jsonb_build_array(pg_temp.line('x', 1000000, 'g')))), pg_temp.stamp('a4p2'), '22023');
-  perform pg_temp.save(a, 'line_unit_kg', pg_temp.rec('a4p2', jsonb_build_object('lines', jsonb_build_array(pg_temp.line('x', 1, 'kg')))), pg_temp.stamp('a4p2'), '22023');
+  perform pg_temp.save(a, 'line_unit_kg', pg_temp.rec('a4p2', jsonb_build_object('lines', jsonb_build_array(pg_temp.line('A4 Kilo', 1, 'kg')))), pg_temp.stamp('a4p2'), '22023');
   perform pg_temp.save(a, 'line_duplicate', pg_temp.rec('a4p2', jsonb_build_object('lines', jsonb_build_array(pg_temp.line('x', 1, 'g'), pg_temp.line(' x ', 2, 'g')))), pg_temp.stamp('a4p2'), '22023');
+  perform pg_temp.save(a, 'line_duplicate_ignores_case', pg_temp.rec('a4p2', jsonb_build_object('lines', jsonb_build_array(pg_temp.line('A4 Flour', 1, 'g'), pg_temp.line(' a4 FLOUR ', 2, 'g')))), pg_temp.stamp('a4p2'), '22023');
   perform pg_temp.save(a, 'line_unit_mismatch', pg_temp.rec('a4p2', jsonb_build_object('lines', jsonb_build_array(pg_temp.line('A4 Flour', 1, 'ml')))), pg_temp.stamp('a4p2'), '22023');
   perform pg_temp.save(a, 'line_unit_mismatch_ignores_case', pg_temp.rec('a4p2', jsonb_build_object('lines', jsonb_build_array(pg_temp.line('a4 flour', 1, 'ml')))), pg_temp.stamp('a4p2'), '22023');
+  perform pg_temp.save(a, 'line_item_unknown', pg_temp.rec('a4p2', jsonb_build_object('lines', jsonb_build_array(pg_temp.line('A4 Nothing', 1, 'g')))), pg_temp.stamp('a4p2'), '22023');
+  perform pg_temp.save(a, 'line_item_unknown_among_known', pg_temp.rec('a4p2', jsonb_build_object('lines', jsonb_build_array(
+    pg_temp.line('A4 Flour', 1, 'g'), pg_temp.line('A4 Nothing', 1, 'g')))), pg_temp.stamp('a4p2'), '22023');
+  perform pg_temp.save(a, 'line_item_several_match', pg_temp.rec('a4p2', jsonb_build_object('lines', jsonb_build_array(pg_temp.line('A4 Twin', 1, 'g')))), pg_temp.stamp('a4p2'), '22023');
+  perform pg_temp.assert_ok(a, 'line_item_unknown_changed_nothing',
+    pg_temp.version_numbers('a4p2') = '[1, 2]'::jsonb and jsonb_array_length(pg_temp.row_of('a4p2') -> 'lines') = 0);
+  perform pg_temp.save(a, 'line_item_name_case_and_space_ok', pg_temp.rec('a4p2', jsonb_build_object('lines', jsonb_build_array(pg_temp.line('  a4 FLOUR ', 1, 'g')))), pg_temp.stamp('a4p2'), '00000');
+  perform pg_temp.assert_ok(a, 'line_item_name_resolved_to_one_item',
+    pg_temp.row_of('a4p2') -> 'lines' -> 0 ->> 'item_id' = 'a4i-flour' and pg_temp.row_of('a4p2') -> 'lines' -> 0 ->> 'name' = 'a4 FLOUR');
   perform pg_temp.save(a, 'line_smallest_and_largest_ok', pg_temp.rec('a4p2', jsonb_build_object('lines', jsonb_build_array(pg_temp.line('x', 0.001, 'g'), pg_temp.line('y', 999999, 'pcs')))), pg_temp.stamp('a4p2'), '00000');
 
   -- a change with the stamp it read is a new version, and the old one is kept
@@ -160,24 +198,45 @@ begin
     and jsonb_array_length(r -> 'history') = 1 and (r -> 'history' -> 0 ->> 'version')::int = 1
     and (r -> 'history' -> 0 ->> 'yield')::int = 24 and jsonb_array_length(r -> 'history' -> 0 -> 'lines') = 3
     and (r -> 'history' -> 0 -> 'lines' -> 2 ->> 'qty')::numeric = 120.5);
+  -- the history is what it was: the replaced versions only, never the current one, each line exactly name, qty and unit
+  perform pg_temp.assert_ok(a, 'recipe_history_leaves_out_the_current_version',
+    not exists (select 1 from jsonb_array_elements(r -> 'history') h where (h ->> 'version')::int = (r ->> 'version')::int)
+    and not exists (select 1 from jsonb_array_elements(r -> 'history' -> 0 -> 'lines') l where (select count(*) from jsonb_object_keys(l)) <> 3));
+  perform pg_temp.assert_ok(a, 'recipe_both_versions_have_a_snapshot',
+    pg_temp.version_numbers('a4p1') = '[1, 2]'::jsonb and pg_temp.snapshot('a4p1', 2) = pg_temp.current_shape('a4p1')
+    and pg_temp.snapshot('a4p1', 1) -> 'yield' = '24'::jsonb);
   perform pg_temp.save(a, 'recipe_change_stale', pg_temp.rec('a4p1', '{"yield": 1}'), s1 - interval '1 minute', 'P0002');
   perform pg_temp.save(a, 'recipe_noop_same_version', pg_temp.rec('a4p1', jsonb_build_object('yield', 12, 'lines', jsonb_build_array(
     pg_temp.line('A4 Flour', 500.000, 'g'), pg_temp.line('Eggs', 3, 'pcs')))), pg_temp.stamp('a4p1'), '00000');
-  perform pg_temp.assert_ok(a, 'recipe_noop_made_no_version', (pg_temp.row_of('a4p1') ->> 'version')::int = 2);
+  perform pg_temp.assert_ok(a, 'recipe_noop_made_no_version',
+    (pg_temp.row_of('a4p1') ->> 'version')::int = 2 and pg_temp.version_numbers('a4p1') = '[1, 2]'::jsonb);
   perform pg_temp.save(a, 'recipe_yield_only_change', pg_temp.rec('a4p1', jsonb_build_object('yield', 13, 'lines', jsonb_build_array(
     pg_temp.line('A4 Flour', 500, 'g'), pg_temp.line('Eggs', 3, 'pcs')))), pg_temp.stamp('a4p1'), '00000');
   perform pg_temp.assert_ok(a, 'recipe_version_three_two_kept',
     (pg_temp.row_of('a4p1') ->> 'version')::int = 3
-    and (select array_agg((h ->> 'version')::int order by (h ->> 'version')::int) from jsonb_array_elements(pg_temp.row_of('a4p1') -> 'history') h) = array[1, 2]);
+    and (select array_agg((h ->> 'version')::int order by (h ->> 'version')::int) from jsonb_array_elements(pg_temp.row_of('a4p1') -> 'history') h) = array[1, 2]
+    and pg_temp.version_numbers('a4p1') = '[1, 2, 3]'::jsonb and pg_temp.snapshot('a4p1', 3) = pg_temp.current_shape('a4p1'));
   perform pg_temp.save(a, 'recipe_order_kept', pg_temp.rec('a4p1', jsonb_build_object('yield', 13, 'lines', jsonb_build_array(
     pg_temp.line('Eggs', 3, 'pcs'), pg_temp.line('A4 Flour', 500, 'g')))), pg_temp.stamp('a4p1'), '00000');
   perform pg_temp.assert_ok(a, 'recipe_reordered_lines_stored_in_order',
     pg_temp.row_of('a4p1') -> 'lines' -> 0 ->> 'name' = 'Eggs' and pg_temp.row_of('a4p1') -> 'lines' -> 1 ->> 'name' = 'A4 Flour');
+
+  -- a recipe saved before lines had to be stock items: the same save again is still answered (no new version), but changing it
+  -- is held to the rule
+  perform pg_temp.save(a, 'legacy_retry_answered', pg_temp.rec('a4p3', jsonb_build_object('yield', 10, 'lines', jsonb_build_array(pg_temp.line('A4 Legacy', 5, 'g')))), null, '00000');
+  perform pg_temp.save(a, 'legacy_retry_with_stamp_answered', pg_temp.rec('a4p3', jsonb_build_object('yield', 10, 'lines', jsonb_build_array(pg_temp.line('A4 Legacy', 5, 'g')))), pg_temp.stamp('a4p3'), '00000');
+  perform pg_temp.assert_ok(a, 'legacy_retry_made_no_version',
+    (pg_temp.row_of('a4p3') ->> 'version')::int = 1 and pg_temp.version_numbers('a4p3') = '[]'::jsonb
+    and pg_temp.row_of('a4p3') -> 'lines' -> 0 -> 'item_id' = 'null'::jsonb);
+  perform pg_temp.save(a, 'legacy_yield_change_refused', pg_temp.rec('a4p3', jsonb_build_object('yield', 12, 'lines', jsonb_build_array(pg_temp.line('A4 Legacy', 5, 'g')))), pg_temp.stamp('a4p3'), '22023');
+  perform pg_temp.assert_ok(a, 'legacy_refusal_changed_nothing',
+    (pg_temp.row_of('a4p3') ->> 'version')::int = 1 and (pg_temp.row_of('a4p3') ->> 'yield')::int = 10 and pg_temp.version_numbers('a4p3') = '[]'::jsonb);
 end $$;
 
 grant execute on function
   pg_temp.set_subject(integer, text), pg_temp.expect(text, text, text, text), pg_temp.assert_ok(text, text, boolean),
   pg_temp.rec(text, jsonb, text[]), pg_temp.line(text, numeric, text), pg_temp.row_of(text), pg_temp.stamp(text),
+  pg_temp.version_numbers(text), pg_temp.snapshot(text, integer), pg_temp.current_shape(text),
   pg_temp.save(text, text, jsonb, timestamptz, text),
   pg_temp.assert_acl(), pg_temp.assert_table(text), pg_temp.assert_refused(text), pg_temp.phase_owner(text)
   to anon, authenticated, service_role;

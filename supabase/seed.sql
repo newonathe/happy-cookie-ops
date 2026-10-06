@@ -171,3 +171,6 @@ update products set allergens = v.allergens from (values
   ('rvc', 'milk, eggs, wheat, soy'),
   ('nch', 'milk, eggs, wheat, soy, tree nuts')
 ) as v (id, allergens) where products.id = v.id;
+
+-- links by identity (B3a)
+select public.apply_identity_links(public.preview_identity_links() -> 'counts');

@@ -31,7 +31,8 @@ ORDER_MIGRATIONS = [ROOT / 'supabase/migrations/20260101003500_place_order.sql',
                     ROOT / 'supabase/migrations/20260101004800_production_discard.sql',
                     ROOT / 'supabase/migrations/20260101004900_books.sql',
                     ROOT / 'supabase/migrations/20260101005000_operations.sql',
-                    ROOT / 'supabase/migrations/20260101005400_business_clock_shop_identity.sql']
+                    ROOT / 'supabase/migrations/20260101005400_business_clock_shop_identity.sql',
+                    ROOT / 'supabase/migrations/20260101005500_identity_links.sql']
 _OUT = 'order outcome differs: anon / '
 _CHK = 'order check differs: anon / '
 _LOOK = 'lookup check differs: anon / '
@@ -272,6 +273,11 @@ STOCK_MUTATIONS = {
     'rule_price_cents': ('save_supplier_price', 'rule', 'price-cents', _ST + 'price_cents_negative / '),
     'rule_price_supplier': ('save_supplier_price', 'rule', 'price-supplier', _ST + 'price_supplier_unknown / '),
     'rule_price_item': ('save_supplier_price', 'rule', 'price-item', _ST + 'price_item_unknown / '),
+    'rule_price_pack_size': ('save_supplier_price', 'rule', 'price-pack-size', _ST + 'price_pack_size_zero / '),
+    'text_price_repoint_clears_size': ('save_supplier_price', 'text',
+                                       ('when v_has_pack then v_pack when v_item_id is distinct from p.item_id then null else p.pack_size end',
+                                        'when v_has_pack then v_pack else p.pack_size end'),
+                                       _STC + 'price_repoint_clears_size'),
     'rule_price_duplicate': ('save_supplier_price', 'rule', 'price-duplicate', _ST + 'price_duplicate / '),
     'rule_price_create_stamp': ('save_supplier_price', 'rule', 'price-create-stamp', _ST + 'price_create_with_stamp_unknown / '),
     'rule_price_replay': ('save_supplier_price', 'rule', 'price-replay', _ST + 'price_create_replay / '),
@@ -296,6 +302,7 @@ RECIPE_MUTATIONS = {
     'rule_line_unit': ('save_recipe', 'rule', 'line-unit', _RC + 'line_unit_kg / '),
     'rule_line_duplicate': ('save_recipe', 'rule', 'line-duplicate', _RC + 'line_duplicate / '),
     'rule_line_unit_match': ('save_recipe', 'rule', 'line-unit-match', _RC + 'line_unit_mismatch / '),
+    'rule_line_item_unknown': ('save_recipe', 'rule', 'line-item-unknown', _RC + 'line_item_unknown / '),
     'rule_recipe_product': ('save_recipe', 'rule', 'recipe-product', _RC + 'recipe_product_unknown / '),
     'rule_recipe_create_stamp': ('save_recipe', 'rule', 'recipe-create-stamp', _RC + 'recipe_create_with_stamp_unknown / '),
     'rule_recipe_noop': ('save_recipe', 'rule', 'recipe-noop', _RC + 'recipe_create_replay / '),
@@ -303,6 +310,17 @@ RECIPE_MUTATIONS = {
 }
 RECIPE_TABLE_MUTATIONS = {
     'recipes_table_update': ('grant update on public.recipes to anon;', 'recipe outcome differs: anon / recipes_update / '),
+}
+
+# B3a: links by identity (identity-links.sql), acting on the last migration that defines each function. The operator
+# (postgres) runs both functions; the cases name that actor.
+_LK = 'link outcome differs: operator / '
+LINK_MUTATIONS = {
+    'rule_link_expected': ('apply_identity_links', 'rule', 'link-expected', _LK + 'link_expected_null / '),
+    'rule_link_count_changed': ('apply_identity_links', 'rule', 'link-count-changed', _LK + 'link_apply_stale / '),
+    'text_link_validates_only_when_clean': ('apply_identity_links', 'text',
+                                            (" and jsonb_array_length(v_post -> 'production' -> 'missing_version') = 0 then", " then"),
+                                            'violates foreign key constraint'),
 }
 
 # C1: the stock ledger (stock-ledger.sql), acting on the last migration that defines each function.
@@ -453,7 +471,7 @@ OPERATIONS_MUTATIONS = {
 
 def order_mutant(name):
     """The migration's one function, changed in exactly one place, as SQL to run inside the suite."""
-    function, kind, argument, _ = (ORDER_MUTATIONS | LOOKUP_MUTATIONS | STAFF_MUTATIONS | SHOP_MUTATIONS | EXTRAS_MUTATIONS | SCHEDULED_MUTATIONS | STOCK_MUTATIONS | RECIPE_MUTATIONS | LEDGER_MUTATIONS | PRODUCTION_MUTATIONS | BOOKS_MUTATIONS | OPERATIONS_MUTATIONS | IDENTITY_RULES)[name]
+    function, kind, argument, _ = (ORDER_MUTATIONS | LOOKUP_MUTATIONS | STAFF_MUTATIONS | SHOP_MUTATIONS | EXTRAS_MUTATIONS | SCHEDULED_MUTATIONS | STOCK_MUTATIONS | RECIPE_MUTATIONS | LEDGER_MUTATIONS | PRODUCTION_MUTATIONS | BOOKS_MUTATIONS | OPERATIONS_MUTATIONS | IDENTITY_RULES | LINK_MUTATIONS)[name]
     marker = 'create or replace function public.' + function + '('
     text = [m.read_text(encoding='utf-8') for m in ORDER_MIGRATIONS if marker in m.read_text(encoding='utf-8')][-1]
     start = text.index('create or replace function public.' + function + '(')
@@ -521,14 +539,15 @@ SUITES = (
                              + tuple(SCHEDULED_MUTATIONS) + tuple(SCHEDULED_TABLE_MUTATIONS), 'forbidden scheduled call succeeded', 69),
     ('stock-catalogue.sql', ('get_stock_catalogue()', 'save_supplier(jsonb,timestamptz)', 'save_stock_item(jsonb,timestamptz)',
                              'save_supplier_price(jsonb,timestamptz)') + tuple(STOCK_MUTATIONS) + tuple(STOCK_TABLE_MUTATIONS),
-     'forbidden stock call succeeded', 141),
+     'forbidden stock call succeeded', 172),
     ('recipes.sql', ('get_recipes()', 'save_recipe(jsonb,timestamptz)') + tuple(RECIPE_MUTATIONS) + tuple(RECIPE_TABLE_MUTATIONS),
-     'forbidden recipe call succeeded', 80),
+     'forbidden recipe call succeeded', 96),
+    ('identity-links.sql', ('preview_identity_links()', 'apply_identity_links(jsonb)') + tuple(LINK_MUTATIONS), 'forbidden link call succeeded', 53),
     ('recipe-drafts.sql', (), 'draft outcome differs', 21),
     ('stock-ledger.sql', ('record_stock_movement(jsonb)', 'get_last_paid()') + tuple(LEDGER_MUTATIONS) + tuple(LEDGER_TABLE_MUTATIONS),
      'forbidden ledger call succeeded', 87),
     ('production.sql', ('record_production(jsonb)', 'record_pack(text,integer)', 'get_production(integer)', 'record_discard(jsonb)')
-                       + tuple(PRODUCTION_MUTATIONS) + tuple(PRODUCTION_TABLE_MUTATIONS), 'forbidden production call succeeded', 112),
+                       + tuple(PRODUCTION_MUTATIONS) + tuple(PRODUCTION_TABLE_MUTATIONS), 'forbidden production call succeeded', 129),
     ('books.sql', ('get_books(timestamptz,timestamptz)', 'record_expense(jsonb)', 'record_cost_correction(jsonb)', 'set_cost_basis(text)', 'record_draw(jsonb)')
                   + tuple(BOOKS_MUTATIONS) + tuple(BOOKS_TABLE_MUTATIONS), 'forbidden books call succeeded', 101),
     ('operations.sql', tuple(OPERATIONS_MUTATIONS), 'forbidden operations call succeeded', 14),
@@ -712,6 +731,9 @@ def main():
                     elif signature in BOOKS_TABLE_MUTATIONS:
                         unsafe, expected_error = BOOKS_TABLE_MUTATIONS[signature]
                         broken = sql.replace('begin;', 'begin;' + chr(10) + unsafe, 1)
+                if filename == 'identity-links.sql' and signature in LINK_MUTATIONS:
+                    broken = sql.replace('begin;', 'begin;' + chr(10) + order_mutant(signature), 1)
+                    expected_error = LINK_MUTATIONS[signature][3]
                 if filename == 'operations.sql':
                     broken = sql.replace('begin;', 'begin;' + chr(10) + order_mutant(signature), 1)
                     expected_error = OPERATIONS_MUTATIONS[signature][3]
@@ -820,7 +842,7 @@ def main():
                 h.fail(filename + ' did not return its complete role matrix')
             results.extend(rows)
             assert_empty()
-        if len(set(results)) != 2008:
+        if len(set(results)) != 2125:
             h.fail('combined role matrix has missing or duplicate cases: %d rows, %d unique (duplicates: %s)' % (len(results), len(set(results)), sorted({r for r in results if results.count(r) > 1})[:5]))
         assert_functions()
         assert_catalog_wide()
@@ -833,10 +855,10 @@ def main():
     try:
         code = h.main(after_reset=check)
         if (code == 0 and len(report["runs"]) == 2 and report["runs"][0] == report["runs"][1]
-                and len(report['regressions_detected']) == 702 and report['sequence_restorations'] == 10
+                and len(report['regressions_detected']) == 718 and report['sequence_restorations'] == 10
                 and report['upgrade_runs'] == 2 and report['function_guard_runs'] == 4
                 and report['catalog_guard_runs'] == 4 and report['catalog_guard_red_runs'] == 4):
-            report.update(status="passed", cases_per_reset=2008, resets=2, matrix_equal=True, rollback_verified=True,
+            report.update(status="passed", cases_per_reset=2125, resets=2, matrix_equal=True, rollback_verified=True,
                           sql_sha256={name: hashlib.sha256((ROOT / 'tests/integration/security' / name).read_bytes()).hexdigest() for name, _, _, _ in SUITES},
                           harness_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
     except (RuntimeError, OSError, ValueError) as error:

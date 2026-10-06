@@ -41,6 +41,9 @@ insert into public.recipe_ingredients(product_id, item_name, qty, unit, position
   ('c2p1', 'C2 Flour', 300, 'g', 0), ('c2p1', 'C2 Butter', 100, 'g', 1), ('c2p1', 'C2 Egg', 1, 'pcs', 2),
   ('c2p2', 'C2 Flour', 100, 'g', 0), ('c2p2', 'C2 Ghost', 10, 'g', 1), ('c2p2', 'C2 Off', 20, 'g', 2),
   ('c2p4', 'C2 Yolk', 9, 'pcs', 0), ('c2p4', 'C2 Milk', 100, 'ml', 1);
+-- The fixture wrote the recipes directly, so it gives them their version rows (and item links) the way the operator does: a batch
+-- is refused unless the version it was made on has its row.
+select public.apply_identity_links(public.preview_identity_links() -> 'counts');
 insert into public.orders(id, customer_name, phone) values
   ('C2-ORD-1', 'Pack Me', '09170000001'), ('C2-ORD-EMPTY', 'Nothing', '09170000002');
 insert into public.order_items(order_id, product_id, qty, unit_price_cents) values ('C2-ORD-1', 'c2p1', 13, 10000);
@@ -88,6 +91,25 @@ create function pg_temp.use_reason(item text) returns text language sql stable s
   select reason from public.stock_movements where item_id = item and kind = 'use' order by at, id limit 1 $$;
 create function pg_temp.records(k text) returns bigint language sql stable security definer as $$
   select count(*) from public.production_records where kind = k $$;
+
+-- Pins for a bazaar sale's packaging (B3a): exactly what record_event_sale does to stock today, so a later migration can prove it
+-- changed nothing. The movements of one sale are read by production_id (the sale's id); the row id must be
+-- md5(sale_id || ':' || seq || ':' || item_id) with seq 1 for the pouches and 2 for the bag.
+create function pg_temp.sale_id(client text) returns uuid language sql stable security definer as $$
+  select id from public.event_sales where client_id = client $$;
+create function pg_temp.sale_moves(client text) returns jsonb language sql stable security definer as $$
+  select coalesce(jsonb_agg(jsonb_build_object('item', m.item_id, 'kind', m.kind, 'delta', m.qty_delta::text, 'reason', m.reason,
+           'id_ok', m.id = md5(m.production_id::text || ':' || (case m.item_id when 'c2i-pouch' then 1 else 2 end)::text || ':' || m.item_id)::uuid)
+           order by m.item_id), '[]'::jsonb)
+    from public.stock_movements m where m.production_id = pg_temp.sale_id(client) $$;
+create function pg_temp.sale_short(client text) returns jsonb language sql stable security definer as $$
+  select r.short from public.production_records r where r.id = pg_temp.sale_id(client) and r.kind = 'sale' $$;
+create function pg_temp.sale_short_text(client text) returns text language sql stable security definer as $$
+  select r.short::text from public.production_records r where r.id = pg_temp.sale_id(client) and r.kind = 'sale' $$;
+create function pg_temp.sale_qty(client text) returns integer language sql stable security definer as $$
+  select r.qty from public.production_records r where r.id = pg_temp.sale_id(client) and r.kind = 'sale' $$;
+create function pg_temp.set_active(item text, flag boolean) returns void language sql volatile security definer as $$
+  update public.inventory_items set active = flag where id = item $$;
 
 create function pg_temp.pid(n integer) returns text language sql immutable as $$
   select 'c2a00000-0000-4000-8000-' || lpad(n::text, 12, '0') $$;
@@ -225,6 +247,13 @@ begin
   -- a bazaar sale uses a pouch per cookie and a bag per customer, on its first insert only
   perform pg_temp.expect(a, 'sale_records', 'select * from public.record_event_sale(pg_temp.sale(''devP:S1:1'', 3))', '00000');
   perform pg_temp.assert_ok(a, 'sale_uses_packaging', pg_temp.on_hand('c2i-pouch') = 6 and pg_temp.on_hand('c2i-bag') = 4);
+  -- situation (a), pinned: enough pouches and bags on hand. Two use movements on the sale's own id, nothing short.
+  perform pg_temp.assert_ok(a, 'sale_pin_enough_movements',
+    pg_temp.sale_moves('devP:S1:1') = jsonb_build_array(
+      jsonb_build_object('item', 'c2i-bag', 'kind', 'use', 'delta', '-1.000', 'reason', 'Bazaar sale', 'id_ok', true),
+      jsonb_build_object('item', 'c2i-pouch', 'kind', 'use', 'delta', '-3.000', 'reason', 'Bazaar sale', 'id_ok', true)));
+  perform pg_temp.assert_ok(a, 'sale_pin_enough_short', pg_temp.sale_short('devP:S1:1') = '[]'::jsonb and pg_temp.sale_short_text('devP:S1:1') = '[]');
+  perform pg_temp.assert_ok(a, 'sale_pin_enough_record', pg_temp.sale_qty('devP:S1:1') = 3);
   perform pg_temp.expect(a, 'sale_replayed', 'select * from public.record_event_sale(pg_temp.sale(''devP:S1:1'', 3))', '00000');
   perform pg_temp.assert_ok(a, 'sale_replay_uses_nothing_more', pg_temp.on_hand('c2i-pouch') = 6 and pg_temp.on_hand('c2i-bag') = 4 and pg_temp.records('sale') = 1);
   perform pg_temp.expect(a, 'sale_void_first', 'select * from public.void_event_sale(pg_temp.void(''devP:S2:1''))', '00000');
@@ -280,6 +309,44 @@ begin
   perform pg_temp.assert_ok(a, 'prod_discard_reduces_dough', r.used_dough = 2);
 end $$;
 
+-- A bazaar sale's packaging when stock is short or missing (pinned as it is today). Runs after phase_owner: the pouches are at 6
+-- and the bags at 4 here.
+create function pg_temp.phase_bazaar_pin(a text) returns void language plpgsql security invoker as $$
+begin
+  perform pg_temp.assert_ok(a, 'sale_pin_start_state', pg_temp.on_hand('c2i-pouch') = 6 and pg_temp.on_hand('c2i-bag') = 4);
+  -- (b) fewer pouches than cookies: 8 cookies, 6 pouches. What is there is taken (a movement of -6) and the rest is the shortfall;
+  -- the bag is taken as usual.
+  perform pg_temp.expect(a, 'sale_pin_short_sale', 'select * from public.record_event_sale(pg_temp.sale(''devP:S3:1'', 8))', '00000');
+  perform pg_temp.assert_ok(a, 'sale_pin_short_movements',
+    pg_temp.sale_moves('devP:S3:1') = jsonb_build_array(
+      jsonb_build_object('item', 'c2i-bag', 'kind', 'use', 'delta', '-1.000', 'reason', 'Bazaar sale', 'id_ok', true),
+      jsonb_build_object('item', 'c2i-pouch', 'kind', 'use', 'delta', '-6.000', 'reason', 'Bazaar sale', 'id_ok', true)));
+  perform pg_temp.assert_ok(a, 'sale_pin_short_stock', pg_temp.on_hand('c2i-pouch') = 0 and pg_temp.on_hand('c2i-bag') = 3);
+  perform pg_temp.assert_ok(a, 'sale_pin_short_short',
+    pg_temp.sale_short('devP:S3:1') = '[{"name": "Single cookie pouch", "by": 2, "unit": "pcs"}]'::jsonb
+    and pg_temp.sale_short_text('devP:S3:1') = '[{"by": 2.0, "name": "Single cookie pouch", "unit": "pcs"}]');
+  -- (b2) no pouches left at all: no pouch movement is written (nothing could be taken), the whole count is the shortfall
+  perform pg_temp.expect(a, 'sale_pin_empty_sale', 'select * from public.record_event_sale(pg_temp.sale(''devP:S4:1'', 4))', '00000');
+  perform pg_temp.assert_ok(a, 'sale_pin_empty_movements',
+    pg_temp.sale_moves('devP:S4:1') = jsonb_build_array(
+      jsonb_build_object('item', 'c2i-bag', 'kind', 'use', 'delta', '-1.000', 'reason', 'Bazaar sale', 'id_ok', true)));
+  perform pg_temp.assert_ok(a, 'sale_pin_empty_stock', pg_temp.on_hand('c2i-pouch') = 0 and pg_temp.on_hand('c2i-bag') = 2);
+  perform pg_temp.assert_ok(a, 'sale_pin_empty_short',
+    pg_temp.sale_short('devP:S4:1') = '[{"name": "Single cookie pouch", "by": 4, "unit": "pcs"}]'::jsonb
+    and pg_temp.sale_short_text('devP:S4:1') = '[{"by": 4.0, "name": "Single cookie pouch", "unit": "pcs"}]');
+  -- (c) no active item with either name: nothing is written to stock and both are shortfalls (the stock is not touched)
+  perform pg_temp.set_active('c2i-pouch', false);
+  perform pg_temp.set_active('c2i-bag', false);
+  perform pg_temp.expect(a, 'sale_pin_absent_sale', 'select * from public.record_event_sale(pg_temp.sale(''devP:S5:1'', 2))', '00000');
+  perform pg_temp.assert_ok(a, 'sale_pin_absent_movements', pg_temp.sale_moves('devP:S5:1') = '[]'::jsonb);
+  perform pg_temp.assert_ok(a, 'sale_pin_absent_stock', pg_temp.on_hand('c2i-pouch') = 0 and pg_temp.on_hand('c2i-bag') = 2);
+  perform pg_temp.assert_ok(a, 'sale_pin_absent_short',
+    pg_temp.sale_short('devP:S5:1') = '[{"name": "Single cookie pouch", "by": 2, "unit": "pcs"}, {"name": "Paper bag", "by": 1, "unit": "pcs"}]'::jsonb
+    and pg_temp.sale_short_text('devP:S5:1') =
+      '[{"by": 2.0, "name": "Single cookie pouch", "unit": "pcs"}, {"by": 1.0, "name": "Paper bag", "unit": "pcs"}]');
+  perform pg_temp.assert_ok(a, 'sale_pin_absent_record', pg_temp.sale_qty('devP:S5:1') = 2);
+end $$;
+
 create function pg_temp.sale(client text, cookies integer) returns jsonb
 language sql stable security invoker as $$
   select jsonb_build_object('clientId', client, 'deviceId', 'devP', 'eventId', 'c2e0c105-0000-4000-8000-000000000001',
@@ -296,7 +363,8 @@ grant execute on function
   pg_temp.set_subject(integer, text), pg_temp.expect(text, text, text, text), pg_temp.assert_ok(text, text, boolean),
   pg_temp.pr(integer, text, text, numeric, jsonb, text[]), pg_temp.rec(text, text, jsonb, text), pg_temp.dr(integer, text, text, numeric, jsonb, text[]), pg_temp.dis(text, text, jsonb, text),
   pg_temp.sale(text, integer), pg_temp.void(text),
-  pg_temp.assert_acl(), pg_temp.assert_table(text), pg_temp.assert_refused(text), pg_temp.phase_owner(text)
+  pg_temp.sale_id(text), pg_temp.sale_moves(text), pg_temp.sale_short(text), pg_temp.sale_short_text(text), pg_temp.sale_qty(text), pg_temp.set_active(text, boolean),
+  pg_temp.assert_acl(), pg_temp.assert_table(text), pg_temp.assert_refused(text), pg_temp.phase_owner(text), pg_temp.phase_bazaar_pin(text)
   to anon, authenticated, service_role;
 
 -- ================================================================ the run
@@ -320,6 +388,7 @@ select pg_temp.assert_refused('inactive_owner');
 select pg_temp.set_subject(1);
 select pg_temp.assert_table('active_owner');
 select pg_temp.phase_owner('active_owner');
+select pg_temp.phase_bazaar_pin('active_owner');
 reset role;
 
 select 'SEC_RESULT|' || operation || '|' || actor || '|' || outcome

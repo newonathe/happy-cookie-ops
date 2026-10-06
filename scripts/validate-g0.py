@@ -85,6 +85,13 @@ LIVE_FRAME_REVERSALS = {
         (b'"copyCount": 15,\n      "styles": 144,', b'"copyCount": 15,\n      "styles": 146,'),
     ],
 }
+# B3a identity links (final-plan.md version 2, 2026-10-06): the apply step gen-seed.mjs appends after the allergen block, so
+# a fresh `pnpm db:reset` links the seeded recipe lines and supplier prices to their stock items. Reversed FIRST.
+IDENTITY_SEED_REVERSALS = {
+    'supabase/seed.sql': [
+        (b"\n-- links by identity (B3a)\nselect public.apply_identity_links(public.preview_identity_links() -> 'counts');\n", b''),
+    ],
+}
 # MP-09 c engine exception (approved 2026-09-27, applied in MP-09 c1; docs/state/protected-exception.md):
 # the flavour-list swap inserted into the engine, and the allergen block appended to the generated seed.
 FLAVOUR_REVERSALS = {
@@ -279,6 +286,9 @@ for entry in load(EVIDENCE / 'delivery-manifest.json'):
             data = data.replace(edited, original, 1)
         for index, (edited, original) in enumerate(LIVE_FRAME_REVERSALS.get(rel, [])):
             check(f'approved_live_frame_once:{rel}:{index}', data.count(edited) == 1)
+            data = data.replace(edited, original, 1)
+        for index, (edited, original) in enumerate(IDENTITY_SEED_REVERSALS.get(rel, [])):
+            check(f'approved_identity_seed_once:{rel}:{index}', data.count(edited) == 1)
             data = data.replace(edited, original, 1)
         for index, (edited, original) in enumerate(FLAVOUR_REVERSALS.get(rel, [])):
             check(f'approved_flavour_exception_once:{rel}:{index}', data.count(edited) == 1)

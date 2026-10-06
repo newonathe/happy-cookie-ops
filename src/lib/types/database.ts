@@ -1091,6 +1091,13 @@ export type Database = {
             referencedRelation: "shop_products"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "production_records_recipe_version_fk"
+            columns: ["product_id", "recipe_version"]
+            isOneToOne: false
+            referencedRelation: "recipe_versions"
+            referencedColumns: ["product_id", "version"]
+          },
         ]
       }
       products: {
@@ -1228,6 +1235,7 @@ export type Database = {
       recipe_ingredients: {
         Row: {
           id: string
+          item_id: string | null
           item_name: string
           position: number
           product_id: string
@@ -1236,6 +1244,7 @@ export type Database = {
         }
         Insert: {
           id?: string
+          item_id?: string | null
           item_name: string
           position?: number
           product_id: string
@@ -1244,6 +1253,7 @@ export type Database = {
         }
         Update: {
           id?: string
+          item_id?: string | null
           item_name?: string
           position?: number
           product_id?: string
@@ -1251,6 +1261,13 @@ export type Database = {
           unit?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "recipe_ingredients_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_items"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "recipe_ingredients_product_id_fkey"
             columns: ["product_id"]
@@ -1613,9 +1630,11 @@ export type Database = {
         Row: {
           active: boolean
           id: string
+          item_id: string | null
           item_name: string
           last_bought: string
           pack_label: string
+          pack_size: number | null
           preferred: boolean
           previous_cents: number[]
           price_cents: number
@@ -1625,9 +1644,11 @@ export type Database = {
         Insert: {
           active?: boolean
           id?: string
+          item_id?: string | null
           item_name: string
           last_bought?: string
           pack_label: string
+          pack_size?: number | null
           preferred?: boolean
           previous_cents?: number[]
           price_cents: number
@@ -1637,9 +1658,11 @@ export type Database = {
         Update: {
           active?: boolean
           id?: string
+          item_id?: string | null
           item_name?: string
           last_bought?: string
           pack_label?: string
+          pack_size?: number | null
           preferred?: boolean
           previous_cents?: number[]
           price_cents?: number
@@ -1647,6 +1670,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "supplier_prices_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_items"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "supplier_prices_supplier_id_fkey"
             columns: ["supplier_id"]
@@ -1800,6 +1830,7 @@ export type Database = {
         Args: { p_note?: string; p_phone: string }
         Returns: number
       }
+      apply_identity_links: { Args: { p_expected: Json }; Returns: Json }
       bff_session_acquire_refresh: {
         Args: { p_session_hash: string }
         Returns: {
@@ -2118,6 +2149,7 @@ export type Database = {
           total_cents: number
         }[]
       }
+      preview_identity_links: { Args: never; Returns: Json }
       prune_personal_data: { Args: { p_retain_days?: number }; Returns: number }
       prune_rate_limits: { Args: never; Returns: number }
       publish_flavours: {

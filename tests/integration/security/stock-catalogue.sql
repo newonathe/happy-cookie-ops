@@ -265,6 +265,62 @@ begin
   perform pg_temp.save(a, 'item_rename_unreferenced_ok', 'save_stock_item',
     pg_temp.itm(3, '{"name": "A3 packaging renamed", "category": "Packaging", "unit": "pcs", "pack_size": null, "supplier_id": null, "use_by_days": null}'),
     pg_temp.stamp('items', pg_temp.iid(3)), '00000');
+
+  -- B3a: a price links to its stock item by id and may state the size of this supplier's pack (in the item's unit).
+  -- The key is optional: the eight keys of before still save; pack_size, when sent, is a number or null, above 0 and bounded.
+  perform pg_temp.save(a, 'price_pack_size_zero', 'save_supplier_price', pg_temp.prn(10, '{"item_name": "A3 item 6", "pack_size": 0}'), null, '22023');
+  perform pg_temp.save(a, 'price_pack_size_negative', 'save_supplier_price', pg_temp.prn(10, '{"item_name": "A3 item 6", "pack_size": -5}'), null, '22023');
+  perform pg_temp.save(a, 'price_pack_size_huge', 'save_supplier_price', pg_temp.prn(10, '{"item_name": "A3 item 6", "pack_size": 1000000000}'), null, '22023');
+  perform pg_temp.save(a, 'price_pack_size_decimals', 'save_supplier_price', pg_temp.prn(10, '{"item_name": "A3 item 6", "pack_size": 1.2345}'), null, '22023');
+  perform pg_temp.save(a, 'price_pack_size_type', 'save_supplier_price', pg_temp.prn(10, '{"item_name": "A3 item 6", "pack_size": "5"}'), null, '22023');
+  perform pg_temp.save(a, 'price_pack_size_just_over', 'save_supplier_price', pg_temp.prn(10, '{"item_name": "A3 item 6", "pack_size": 999999999.001}'), null, '22023');
+  perform pg_temp.save(a, 'price_with_pack_size_ok', 'save_supplier_price', pg_temp.prn(10, '{"item_name": "A3 item 6", "pack_size": 500.5}'), null, '00000');
+  r := pg_temp.row_of('prices', pg_temp.pid(10));
+  perform pg_temp.assert_ok(a, 'price_pack_size_stored', (r ->> 'pack_size')::numeric = 500.5 and jsonb_typeof(r -> 'pack_size') = 'number');
+  perform pg_temp.assert_ok(a, 'price_item_id_stored', r ->> 'item_id' = pg_temp.iid(6));
+  -- a pack size of null, and no key at all, both store no size; a price made before this still reads item_id and a null size
+  perform pg_temp.save(a, 'price_pack_size_null_ok', 'save_supplier_price', pg_temp.prc(11, '{"item_name": "A3 item 6", "pack_size": null}'), null, '00000');
+  perform pg_temp.save(a, 'price_without_pack_size_key_ok', 'save_supplier_price', pg_temp.prc(12, '{"item_name": "A3 packaging renamed"}'), null, '00000');
+  perform pg_temp.assert_ok(a, 'price_no_size_is_null',
+    pg_temp.row_of('prices', pg_temp.pid(11)) -> 'pack_size' = 'null'::jsonb and pg_temp.row_of('prices', pg_temp.pid(12)) -> 'pack_size' = 'null'::jsonb
+    and pg_temp.row_of('prices', pg_temp.pid(12)) ->> 'item_id' = pg_temp.iid(3)
+    and pg_temp.row_of('prices', pg_temp.pid(1)) ->> 'item_id' = pg_temp.iid(1) and pg_temp.row_of('prices', pg_temp.pid(1)) -> 'pack_size' = 'null'::jsonb);
+  perform pg_temp.save(a, 'price_pack_size_largest_ok', 'save_supplier_price', pg_temp.prc(11, '{"item_name": "A3 item 6", "pack_size": 999999999}'),
+    pg_temp.stamp('prices', pg_temp.pid(11)), '00000');
+  -- a lost reply on a create: the same body is answered; the key counts only when it was sent
+  perform pg_temp.save(a, 'price_replay_with_pack_size', 'save_supplier_price', pg_temp.prn(10, '{"item_name": "A3 item 6", "pack_size": 500.5}'), null, '00000');
+  perform pg_temp.save(a, 'price_replay_other_pack_size', 'save_supplier_price', pg_temp.prn(10, '{"item_name": "A3 item 6", "pack_size": 400}'), null, 'P0002');
+  perform pg_temp.save(a, 'price_replay_without_key_ok', 'save_supplier_price', pg_temp.prn(10, '{"item_name": "A3 item 6"}'), null, '00000');
+  perform pg_temp.assert_ok(a, 'price_replay_changed_nothing', (pg_temp.row_of('prices', pg_temp.pid(10)) ->> 'pack_size')::numeric = 500.5);
+  -- an update without the key leaves the stored size; with a number it changes; with null it clears
+  perform pg_temp.save(a, 'price_update_without_key', 'save_supplier_price', pg_temp.prn(10, '{"item_name": "A3 item 6", "price_cents": 12500}'),
+    pg_temp.stamp('prices', pg_temp.pid(10)), '00000');
+  perform pg_temp.assert_ok(a, 'price_update_without_key_keeps_size',
+    (pg_temp.row_of('prices', pg_temp.pid(10)) ->> 'pack_size')::numeric = 500.5 and (pg_temp.row_of('prices', pg_temp.pid(10)) ->> 'price_cents')::bigint = 12500);
+  perform pg_temp.save(a, 'price_update_pack_size', 'save_supplier_price', pg_temp.prn(10, '{"item_name": "A3 item 6", "price_cents": 12500, "pack_size": 750}'),
+    pg_temp.stamp('prices', pg_temp.pid(10)), '00000');
+  perform pg_temp.assert_ok(a, 'price_update_pack_size_changed', (pg_temp.row_of('prices', pg_temp.pid(10)) ->> 'pack_size')::numeric = 750);
+  perform pg_temp.save(a, 'price_update_pack_size_null', 'save_supplier_price', pg_temp.prn(10, '{"item_name": "A3 item 6", "price_cents": 12500, "pack_size": null}'),
+    pg_temp.stamp('prices', pg_temp.pid(10)), '00000');
+  perform pg_temp.assert_ok(a, 'price_update_pack_size_cleared', pg_temp.row_of('prices', pg_temp.pid(10)) -> 'pack_size' = 'null'::jsonb);
+  -- the item id follows the item the price now names
+  perform pg_temp.save(a, 'price_update_item_name', 'save_supplier_price', pg_temp.prn(10, '{"item_name": "A3 packaging renamed", "price_cents": 12500}'),
+    pg_temp.stamp('prices', pg_temp.pid(10)), '00000');
+  perform pg_temp.assert_ok(a, 'price_item_id_follows_item', pg_temp.row_of('prices', pg_temp.pid(10)) ->> 'item_id' = pg_temp.iid(3));
+  -- a size belongs to one item's unit: an edit that keeps the item keeps the size, one that points the price at another item clears it
+  perform pg_temp.save(a, 'price_hold_size', 'save_supplier_price', pg_temp.prn(10, '{"item_name": "A3 packaging renamed", "price_cents": 12500, "pack_size": 40}'),
+    pg_temp.stamp('prices', pg_temp.pid(10)), '00000');
+  perform pg_temp.save(a, 'price_edit_same_item_without_key', 'save_supplier_price', pg_temp.prn(10, '{"item_name": "A3 packaging renamed", "price_cents": 12600}'),
+    pg_temp.stamp('prices', pg_temp.pid(10)), '00000');
+  perform pg_temp.assert_ok(a, 'price_edit_same_item_keeps_size',
+    (pg_temp.row_of('prices', pg_temp.pid(10)) ->> 'pack_size')::numeric = 40 and (pg_temp.row_of('prices', pg_temp.pid(10)) ->> 'price_cents')::bigint = 12600);
+  perform pg_temp.save(a, 'price_repoint_without_key', 'save_supplier_price', pg_temp.prn(10, '{"item_name": "A3 item 6", "price_cents": 12600}'),
+    pg_temp.stamp('prices', pg_temp.pid(10)), '00000');
+  perform pg_temp.assert_ok(a, 'price_repoint_clears_size',
+    pg_temp.row_of('prices', pg_temp.pid(10)) -> 'pack_size' = 'null'::jsonb and pg_temp.row_of('prices', pg_temp.pid(10)) ->> 'item_id' = pg_temp.iid(6));
+  perform pg_temp.assert_ok(a, 'catalogue_prices_carry_item_id_and_pack_size',
+    not exists (select 1 from jsonb_array_elements(public.get_stock_catalogue() -> 'prices') p where not (p ? 'item_id') or not (p ? 'pack_size'))
+    and jsonb_array_length(public.get_stock_catalogue() -> 'prices') = 5);
 end $$;
 
 grant execute on function
