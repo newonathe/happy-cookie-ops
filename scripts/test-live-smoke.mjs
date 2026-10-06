@@ -7,6 +7,11 @@
  * every tab, sub-tab and entry of the function map, every route by its address, and one Bazaar
  * sale online, two with no network (one of them after a reload), all three in the database once.
  *
+ * Slice B2 added: no prototype value on any page it visits (`PROTOTYPE`, below); the signed-in
+ * person's own name on Home and on every sale, the offline ones included; the owner's shop
+ * details saved through the form and shown to a signed-out customer; and a control in every
+ * form that section 6.7 of the plan says exists today.
+ *
  * It is run by hand, never in CI: CI has no database. Run `pnpm db:reset` first for a clean
  * stack, then, in one shell (the keys stay in the environment, never in a file):
  *   eval "$(pnpm exec supabase status -o env)"
@@ -22,7 +27,7 @@
  *   - one `production_records` batch row, written directly so the stall has baked stock: no
  *     ingredients are taken for it;
  *   - one event, left open, and its three sales. Repeated runs add one open event each.
- * It deletes nothing but the account it made.
+ * It deletes nothing but the account it made and the shop details it saved.
  */
 import { randomBytes, randomUUID } from 'node:crypto';
 import { chromium } from '@playwright/test';
@@ -74,6 +79,43 @@ const SCREEN_LABEL = {
 const ROUTES = PLACES.flatMap((place) => place.routes);
 const pathOf = (route) => (route === 'today' ? '/' : '/' + route);
 const FLAVOUR = 'dcf';
+const BATCH_REF = 'B1 smoke suite';
+const OWNER_NAME = 'Smoke Owner Reyes';
+const DETAILS = { name: 'Smoke Test Bakes', tagline: 'Checked by the smoke suite, 137 ways.' };
+
+// Values of the prototype that must be on no live page (audit H1 to H6, H14, and the ported
+// payment channels). The local seed holds none of them as a real record; two that it does
+// make true (its six flavours are four permanent and two rotating, and it has eight
+// suppliers) are left to the unit test tests/unit/no-prototype-values.test.tsx, which has the
+// full list, built from the engine itself, and shops of its own.
+const PROTOTYPE = [
+  'Cine',
+  'Kristian',
+  'Francine',
+  'Cervo',
+  'Misty',
+  'Proof required',
+  'Courier pickup',
+  '2 temporary',
+  'Google Form bridge',
+  '4 classics',
+  '0917 ••• 4421',
+  'Happy Cookie order'
+];
+// A form from the plan's inventory (section 6.7, "Today: yes") must offer something to change.
+const FORMS_OF_6_7 = [
+  'Menu & flavours',
+  'Recipe drafts',
+  'Stock items',
+  'Suppliers & prices',
+  'Boxes & add-ons',
+  'Order rules',
+  'Payment methods',
+  'Shop texts',
+  'Bazaar events',
+  'Shop status',
+  'Books & costs'
+];
 
 // ---------------------------------------------------------------- the world, set through the service role
 const owner = { email: `b1-smoke-${randomUUID().slice(0, 8)}@example.test`, id: null };
@@ -92,7 +134,7 @@ async function seedWorld() {
     'owner profile',
     await admin
       .from('profiles')
-      .upsert({ id: owner.id, role: 'owner', display_name: 'B1 smoke owner', active: true })
+      .upsert({ id: owner.id, role: 'owner', display_name: OWNER_NAME, active: true })
   );
   ok(
     'publish flavour',
@@ -105,7 +147,7 @@ async function seedWorld() {
       id: randomUUID(),
       kind: 'batch',
       product_id: FLAVOUR,
-      ref: 'B1 smoke suite',
+      ref: BATCH_REF,
       qty: 12,
       target: 12,
       recipe_version: 1,
@@ -120,6 +162,11 @@ async function seedWorld() {
     .single();
   assert(!error && data, `flavour row: ${error?.message}`);
   return data;
+}
+
+async function removeDetails() {
+  const { error } = await admin.from('shop_identity').delete().eq('id', true);
+  if (error) console.log(`  note: the smoke shop details were not removed (${error.message}).`);
 }
 
 async function removeOwner() {
@@ -196,11 +243,24 @@ try {
     const text = await target.locator('body').innerText();
     const bad = text.match(/\b(undefined|NaN)\b/);
     assert(!bad, `${where}: "${bad?.[0]}" is on screen.`);
+    const spoken = await target.evaluate(() =>
+      [...document.querySelectorAll('[aria-label], [title], [alt], [placeholder]')]
+        .flatMap((el) =>
+          ['aria-label', 'title', 'alt', 'placeholder'].map((a) => el.getAttribute(a))
+        )
+        .filter(Boolean)
+        .join(' | ')
+    );
+    const fake = PROTOTYPE.find((term) => (text + ' | ' + spoken).includes(term));
+    assert(!fake, `${where}: the prototype's "${fake}" is on screen.`);
+    scanned += 1;
     const csp = await target.evaluate(() => window.__csp);
     assert(csp.length === 0, `${where}: CSP violations ${JSON.stringify(csp)}`);
     assert(problems.length === 0, `${where}: ${JSON.stringify(problems)}`);
     return shown.getAttribute('data-screen-label');
   };
+  let scanned = 0;
+  const formsSeen = new Set();
   // Several sheets read from the database before they open and again once open. Wait for
   // the sheet itself, let its reads finish, then require content in it: a blank sheet, or
   // one that turns to "undefined" a moment after opening, must not pass.
@@ -217,6 +277,18 @@ try {
     assert(text.length >= 12, `${at}: the sheet is empty ("${text}").`);
     const bad = text.match(/\b(undefined|NaN)\b/);
     assert(!bad, `${at}: "${bad?.[0]}" is in the sheet.`);
+    const form = FORMS_OF_6_7.find((label) => at.endsWith(label));
+    if (form) {
+      // Something to change, besides the way out.
+      const controls = await sheet.evaluate(
+        (el) =>
+          [...el.querySelectorAll('input, select, textarea, button')].filter(
+            (c) => (c.getAttribute('aria-label') || c.textContent || '').trim() !== 'Close'
+          ).length
+      );
+      assert(controls > 0, `${at}: the form offers nothing to change.`);
+      formsSeen.add(form);
+    }
   };
   const closeSheet = async (target) => {
     await target.getByRole('button', { name: 'Close', exact: true }).first().click();
@@ -245,6 +317,8 @@ try {
       'The signed-in role is not the owner.'
     );
     await check(page, 'Home after sign-in', 'Home');
+    // The name comes from the profile, a moment after the gate opens.
+    await page.getByRole('heading', { name: new RegExp(', ' + OWNER_NAME + '\\.$') }).waitFor();
   });
 
   await step(
@@ -287,7 +361,7 @@ try {
         await chip(page, 'places', place.label).click();
         if (!place.screen) {
           // No screen of its own yet: the chip opens its one entry, a sheet.
-          await sheetShown(page, where);
+          await sheetShown(page, `${where} › ${place.entries[0].label}`);
           await check(page, where);
           await closeSheet(page);
           visited += 1;
@@ -323,8 +397,38 @@ try {
       }
       await page.getByRole('button', { name: 'Notifications', exact: true }).click();
       await check(page, 'the bell', 'Notifications');
+      const missing = FORMS_OF_6_7.filter((label) => !formsSeen.has(label));
+      assert(missing.length === 0, `Forms of section 6.7 not found: ${missing.join(', ')}.`);
     }
   );
+
+  await step('the owner saves her shop details, and a signed-out customer sees them', async () => {
+    await page.getByRole('button', { name: 'Sell', exact: true }).click();
+    await chip(page, 'places', 'Shop').click();
+    await chip(page, 'entries', 'Shop texts').click();
+    await sheetShown(page, 'Shop texts');
+    // Nothing is filled in for her: the four fields start empty.
+    for (const name of ['shopName', 'ownerName', 'contactLine', 'tagline'])
+      assert(
+        (await page.locator(`input[name="${name}"]`).inputValue()) === '',
+        `${name} is pre-filled.`
+      );
+    await page.locator('input[name="shopName"]').fill(DETAILS.name);
+    await page.locator('input[name="tagline"]').fill(DETAILS.tagline);
+    await page.getByRole('button', { name: 'Save shop details', exact: true }).click();
+    await assertEventually(async () => {
+      const { data } = await admin.from('shop_identity').select('shop_name, tagline').maybeSingle();
+      return data?.shop_name === DETAILS.name && data?.tagline === DETAILS.tagline;
+    }, 'the shop details in the database');
+    await closeSheet(page);
+    const visitor = await browser.newContext({ viewport: { width: 390, height: 844 } });
+    const shop = await visitor.newPage();
+    await shop.goto(`${base}/shop`, { waitUntil: 'networkidle' });
+    await shop.getByText(DETAILS.tagline, { exact: true }).waitFor();
+    const said = await shop.locator('body').innerText();
+    assert(!said.includes('4 classics'), 'The customer shop still shows the ported tagline.');
+    await visitor.close();
+  });
 
   await step(`all ${ROUTES.length} routes open by address on a phone`, async () => {
     assert(ROUTES.length === 25, `${ROUTES.length} routes in the map, wanted 25.`);
@@ -362,7 +466,7 @@ try {
   const salesInDb = async (eventId) => {
     const { data, error } = await admin
       .from('event_sales')
-      .select('client_id, total_cents')
+      .select('client_id, total_cents, clerk')
       .eq('event_id', eventId);
     assert(!error, `event_sales: ${error?.message}`);
     return data;
@@ -381,6 +485,15 @@ try {
   await step(
     'Bazaar Mode: an event opens on the server, the table is loaded, one sale goes through',
     async () => {
+      // The app counts as baked what was baked for its current drop. The seeded batch is given
+      // that number here: on a freshly reset database nothing else carries it, and the table
+      // would have nothing to load.
+      const dropNo = await page.evaluate(() => window.__hcOps.state.dropNo);
+      const stamped = await admin
+        .from('production_records')
+        .update({ drop_no: dropNo })
+        .eq('ref', BATCH_REF);
+      assert(!stamped.error, `baked stock drop: ${stamped.error?.message}`);
       await page.goto(`${base}/bazaar`, { waitUntil: 'networkidle' });
       await check(page, 'Bazaar bookings', 'Bazaar Mode');
       await page.getByText('Start without a booking').click();
@@ -445,6 +558,11 @@ try {
         rows.every((r) => Number(r.total_cents) === cents),
         `${when}: sale totals differ from the menu price: ${JSON.stringify(rows)}`
       );
+      // Two of the three were rung up with no network, one of those after a reload.
+      assert(
+        rows.every((r) => r.clerk === OWNER_NAME),
+        `${when}: a sale was not recorded under the signed-in name: ${rows.map((r) => r.clerk)}`
+      );
     };
     // A sale sent twice under a new id would arrive late: give every retry timer time to run,
     // then reload online, which sends whatever the phone still thinks is unsent.
@@ -487,6 +605,10 @@ try {
         `${offlineNoise} failed requests while offline, as expected.`
     );
     console.log('      when signal returned the selling screen and the payment sheet stayed open.');
+    console.log(
+      `      ${scanned} page checks found no prototype value; all three sales carry the ` +
+        `signed-in name; ${formsSeen.size} forms of section 6.7 offer a control.`
+    );
   });
 } catch (error) {
   failure = error;
@@ -496,6 +618,7 @@ try {
   await removeOwner().catch((error) =>
     console.log(`  note: account removal threw: ${error.message}`)
   );
+  await removeDetails().catch(() => {});
   await browser?.close().catch(() => {});
   stop();
 }
