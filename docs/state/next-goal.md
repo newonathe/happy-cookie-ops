@@ -1,70 +1,109 @@
-# Next goals — B1 (the permanent pieces of the new interface)
+# Next goals — the Bazaar signal fix, then B2
 
 One goal per package, each in a fresh conversation opened in the repository root. Paste
 one block. Where things stand: [current.md](current.md). The plan these come from:
-[final-plan.md](final-plan.md), version 2, section 9, stage B, and section 8 (the
-interface). Earlier goals are in [current-history.md](current-history.md).
+[final-plan.md](final-plan.md), version 2, section 9, stage B. Earlier goals are in
+[current-history.md](current-history.md).
 
-Stage A (bazaar safety and access) is built: A1 the release check, A2 the bazaar phone
-opens offline, A3 the sign-out warning, release hold and framework patch, A4 the
-maintenance jobs written and off. B1 is the first slice of stage B and the first that edits
-a locked file, through one approved, guarded exception, so it is attended and not one of the
-interface-only slices that may run unattended until the exception and its port audit are
-recorded and green.
+B1 is built (6 October): the guarded screen slot, the function map and its test, the five
+tabs with sub-tabs on the live owner's dock and sidebar, and the live smoke suite. That suite
+found one defect that is not B1's and matters for the bazaar. It goes first, because the
+phone rehearsal is by 20 October.
 
-## B1 — the guarded screen slot, the five tabs and the live smoke suite
+## 1. Keep the selling screen when signal returns (before the rehearsal)
 
-| Setting         | Value                                                                                                                 |
-| --------------- | --------------------------------------------------------------------------------------------------------------------- |
-| Model, effort   | Claude Opus, high to plan and sign off; Sonnet, high to build. A locked-file edit deserves the stronger model to plan |
-| Plan mode       | On: the slot is a protected edit, so state the exact block, the exception record and the audit before writing         |
-| Permission mode | Auto after the plan is accepted                                                                                       |
-| Review          | The `port-auditor` agent on the slot, and `security-reviewer` on a different model; fix every P0 to P2 finding        |
-| Browser QA      | Yes: the live build against the local database, phone width and desktop, in the browser pane                          |
-| Tools           | Node 24.20.0 and pnpm 9.12.3 from `happy-cookie-tools`; local Supabase                                                |
-| Stop            | Evidence printed and pushed; 25 turns; two failed fix attempts                                                        |
+| Setting         | Value                                                                                        |
+| --------------- | -------------------------------------------------------------------------------------------- |
+| Model, effort   | Claude Opus, high: a sign-in and offline change, small, with a failing test first            |
+| Plan mode       | On: say the exact condition before touching the gate                                         |
+| Permission mode | Auto after the plan is accepted                                                              |
+| Review          | `security-reviewer` on a different model, before committing; fix every P0 to P2 finding      |
+| Browser QA      | The live smoke suite (`pnpm test:live:smoke`), whose known-defect line must become an assert |
+| Tools           | Node 24.20.0 and pnpm 9.12.3 from `happy-cookie-tools`; local Supabase                       |
+| Stop            | Evidence printed and pushed; 15 turns; two failed fix attempts                               |
 
 ```text
-/goal Slice B1 of docs/state/final-plan.md (version 2) for The Happy Cookie Ops in
-C:\Users\ethan\dev\happy-cookie-ops-g0. Three parts, one commit each. Stage A is built;
-this is the first slice of stage B. The phone rehearsal is by 20 October and the bazaar is
-24 to 25 October: B1 must not change what Bazaar Mode does on the phone, and it must not
-reach the trial while the release hold is on.
+/goal Fix one defect in The Happy Cookie Ops (C:\Users\ethan\dev\happy-cookie-ops-g0) before
+the 20 October phone rehearsal. Found on 6 October by scripts/test-live-smoke.mjs, which
+prints it as "KNOWN DEFECT". It predates B1: the gate and the engine were not changed there.
 
-Read first: AGENTS.md, docs/state/current.md, docs/state/final-plan.md sections 1 (decisions
-4 and 7), 6.7, 8 and 8.1, 9 (B1) and 14, docs/state/protected-exception.md,
-docs/state/product-research.md, docs/state/ux-audit.md, src/components/shell/app-frame.tsx
-(the frame, read-only until part 1), tests/unit/screens.test.ts and
-tests/unit/ops-runtime-live-dock.test.tsx. Find what already exists before building:
-the live phone dock already shows five labelled destinations for the owner, so do only what
-is missing, and say what you found.
+Read first: AGENTS.md, docs/state/current.md, docs/OFFLINE.md, src/components/app/live-gate.tsx
+(holdOffline, narrow, apply), tests/unit/live-gate-offline.test.tsx, and `setRole` in
+src/store/engine/ops-engine.js (locked: read only).
 
-1. The guarded, live-only screen slot. One block in the locked frame file that draws a new
-   screen in place of the old one in live mode only, modelled on the form slot approved on
-   28 September. Write the exception into docs/state/protected-exception.md first (the exact
-   block, why, how the validator reverses it), then make the edit, then update the port
-   baseline only with `node scripts/check-port-integrity.mjs --update` in the same commit.
-   Proof: the demo build, `pnpm verify:port` and the ten visual baselines are unchanged;
-   a test shows the slot draws nothing in demo mode and nothing until a screen is registered.
-2. The function map of section 8.1 as a test: all 33 All tools entries and 25 routes mapped
-   to exactly one of the five tabs, nothing unmapped and nothing mapped twice. Dock and
-   sidebar labels come from data. Write the test first.
-3. A live-mode smoke suite, run locally against the local database (CI has none): sign in
-   as the local owner, visit every mapped route, no console error, no "undefined" or "NaN"
-   on screen, offline Bazaar Mode still sells. Paste its output. Do not add it to CI.
+The defect: the owner is selling in Bazaar Mode; the phone reloads with no signal, so the gate
+opens Bazaar Mode alone; signal returns; the app jumps to Home and closes any open sheet (for
+example the payment sheet). The event is still selling and no sale is lost. Cause, by reading:
+`apply()` calls `engine.setRole(role)` whenever access was not 'verified', and the engine's
+setRole clears the sheet and goes home, although holdOffline already set the same role.
 
-Review: run port-auditor on part 1 and security-reviewer (a different model) on parts 1 and
-3 before committing; fix every P0 to P2 finding. Check the result in the browser pane at
-phone width and desktop: the demo build looks identical, the live build reaches every tab.
+Wanted: when the first answered check after an offline open confirms the same role, on Bazaar
+Mode with an event open, selling carries on: same screen, same sheet, the queue sent, access
+verified. A different role, a denial and the put-off idle sign-out behave exactly as now.
+Nothing wider may open offline.
+
+1. Write the failing test first (real OpsApp and OpsRuntime, faked client, as the file does).
+2. Fix it in live-gate.tsx only. No locked file changes.
+3. Turn the smoke suite's known-defect line into an assertion and run the suite; paste it.
+4. security-reviewer (a different model) before committing; fix every P0 to P2 finding.
+
+Update docs/OFFLINE.md, docs/state/current.md (the "Known not to work yet" row) and
+docs/state/task-status.json (one note, by string insertion). Evidence to print: the test
+failing then passing, the reviewer's verdict, the pnpm verify summary, the smoke-suite
+output, the commit hash and the pushed branch.
+
+No new resources, merge, production launch or automatic runner. Do not set the release hold.
+Stop after 15 turns or two failed fix attempts and report the actual obstacle.
+```
+
+## 2. B2 — nothing fake on screen, one Manila clock
+
+| Setting         | Value                                                                                               |
+| --------------- | --------------------------------------------------------------------------------------------------- |
+| Model, effort   | Claude Opus, high to plan and sign off; Sonnet, high to build                                       |
+| Plan mode       | On: list each value and where it will come from before writing                                      |
+| Permission mode | Auto after the plan is accepted                                                                     |
+| Review          | `security-reviewer` on a different model if a migration or a setting's access changes; else none    |
+| Browser QA      | Yes: the live build against the local database, phone width and desktop, and `pnpm test:live:smoke` |
+| Tools           | Node 24.20.0 and pnpm 9.12.3 from `happy-cookie-tools`; local Supabase                              |
+| Stop            | Evidence printed and pushed; 25 turns; two failed fix attempts                                      |
+
+```text
+/goal Slice B2 of docs/state/final-plan.md (version 2) for The Happy Cookie Ops in
+C:\Users\ethan\dev\happy-cookie-ops-g0: nothing fake on screen, and one Manila clock. B1 is
+built. The bazaar is 24 to 25 October: B2 must not change what Bazaar Mode does on the phone,
+and it must not reach the trial while the release hold is on.
+
+Read first: AGENTS.md, docs/state/current.md, docs/state/final-plan.md sections 5.1 (C1, C2,
+C10), 5.2 (H1 to H6, H14), 6.1, 6.7 and 9 (B2), docs/state/system-audit.md for each finding's
+file and line, docs/state/protected-exception.md, src/lib/nav/function-map.ts and
+scripts/test-live-smoke.mjs. Find what already exists before building, and say what you found.
+
+1. Nothing fake on screen: for H1 to H6, H14 and C1, every prototype value still shown in the
+   live app (pickups, the greeting, Settings rows, the shop tagline, the owner's and the shop's
+   names inside sentences) comes from a setting, a record, or is not shown. Locked files stay
+   locked: change what the view model gives them. A value with no source yet becomes a setting
+   with a labelled default, recorded in the decision register as a default, not a decision.
+2. One Manila clock (C10, C2): one module and one database function for "today" and "this
+   week" in Asia/Manila; the live layer uses only those. Tests pin the clock.
+3. Two tests in pnpm verify, written first: an empty shop (no flavours, orders, stock or
+   settings beyond defaults) shows no prototype value anywhere; two shops with different
+   settings show each its own values and nothing of the other's.
+4. Re-check the inventory in section 6.7: for each row marked "Today: yes", confirm the form
+   exists in the live app; move anything found fixed in code to a setting, or record it.
+
+Review: security-reviewer (a different model) if any migration, RPC or setting's access
+changes; fix every P0 to P2 finding. Run pnpm test:live:smoke and paste it. Check in the
+browser pane at phone width and desktop: no prototype value on any tab.
 
 Update docs/state/current.md (five lines) and docs/state/task-status.json (one note, by
-string insertion), and replace this block with slice B2.
+string insertion), and replace this block with slice B3.
 
-Evidence to print: each failing test before and passing after; the reviewers' verdicts; the
-pnpm verify summary in a clean shell; the smoke-suite output; the browser check, step by
-step; the commit hashes and the pushed branch.
+Evidence to print: each failing test before and passing after; the reviewer's verdict if one
+ran; the pnpm verify summary in a clean shell; the smoke-suite output; the browser check, step
+by step; the commit hashes and the pushed branch.
 
-No new resources, shop opening, real customers, production launch, merge or automatic
-runner. Do not set the release hold. Stop after 25 turns or two failed fix attempts and
-report the actual obstacle.
+No new resources, shop opening, real customers, production launch, merge or automatic runner.
+Do not set the release hold. Stop after 25 turns or two failed fix attempts and report the
+actual obstacle.
 ```

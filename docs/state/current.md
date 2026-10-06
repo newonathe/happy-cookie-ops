@@ -4,7 +4,7 @@ Read this page first in a new session. It is kept short on purpose.
 
 | If you need                                        | Read                                                                                                                                                     |
 | -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| The goal to run next                               | [next-goal.md](next-goal.md) (B1)                                                                                                                        |
+| The goal to run next                               | [next-goal.md](next-goal.md) (the Bazaar signal fix first, then B2)                                                                                      |
 | The plan, approved 5 October                       | [final-plan.md](final-plan.md), version 2                                                                                                                |
 | The rules every agent follows                      | [AGENTS.md](../../AGENTS.md)                                                                                                                             |
 | Ethan's and Cine's decisions                       | [decision-register.md](decision-register.md)                                                                                                             |
@@ -16,10 +16,10 @@ Read this page first in a new session. It is kept short on purpose.
 
 ## Where things stand — 6 October 2026
 
-**The plan is approved; stage A of it (slices A1 to A4) is built.** Ethan approved
+**The plan is approved; stage A (A1 to A4) and slice B1 are built.** Ethan approved
 [final-plan.md](final-plan.md), version 2, on 5 October after a re-audit, a debate and
-wider research. It replaces finish-plan.md as the forward plan. The next step is slice
-B1.
+wider research. It replaces finish-plan.md as the forward plan. The next step is a small
+Bazaar fix found by B1 (below), then slice B2.
 
 **A2, 6 October:** the bazaar phone opens and reloads with no signal. Bazaar Mode alone
 opens, only while the phone holds a running event, only within her offline hours (48 by
@@ -40,6 +40,16 @@ blocked on custody and a Postgres 17 dump ([F1-operations.md](F1-operations.md),
 The local dry run restored a real dump into a fresh container with matching hashes and found a
 keep-alive defect, fixed.
 
+**B1, 6 October:** the live owner's dock and sidebar are Home, Sell, Make, Stock, Money, with a
+sub-tab strip above each screen (Ethan chose "Rename now, with sub-tabs" that day). Every All
+tools entry and every route has exactly one home, kept as data and a test
+(`src/lib/nav/function-map.ts`). New screens enter through one guarded, live-only slot in the
+locked frame ([protected-exception.md](protected-exception.md), last section); none is
+registered yet. `pnpm test:live:smoke` signs in on the live build against the local database
+and opens everything, then sells at a bazaar with the network off. Helpers, support, the demo
+and Bazaar Mode with an event open are unchanged. Port audit and two security reviews: no P0
+to P2 left open.
+
 **Package:** F2, the owner trial, stays open but does not start until everything in the
 plan is built (Ethan, 5 October). F3 (launch) stays closed until Cine accepts a real week.
 
@@ -47,8 +57,8 @@ plan is built (Ethan, 5 October). F3 (launch) stays closed until Cine accepts a 
 
 - **The product** is built through E1: menu and settings, checkout and owner orders,
   bazaar selling with offline close-out, stock, recipes and production, books, P&L and
-  CSV, backups and health. `pnpm verify` passes 90 files / 1,673 tests; the planning
-  validator passes 1,225 checks.
+  CSV, backups and health. `pnpm verify` passes 93 files / 1,702 tests; the planning
+  validator passes 1,228 checks.
 - **The private trial site** is live for owners only:
   <https://happy-cookie-owner-trial.admin-kethai.workers.dev>. Cloudflare Access sends an
   email code to two approved mailboxes. The shop is closed and the menu is unpublished.
@@ -56,11 +66,12 @@ plan is built (Ethan, 5 October). F3 (launch) stays closed until Cine accepts a 
   flavours, 804 historical book lines, no orders.
 - **CI/CD:** a green push to `agent/codex/MP-04-g1-feasibility` redeploys the trial; a push
   that changes only documents does not. The last runs that completed were green (A1 and A2).
-  **The two 6 October pushes (A3 at `79b8e97`, A4 at `851e95e`) did not release:** GitHub could
-  not give their jobs a hosted runner ("not acquired by Runner", runs 37370848143 and
-  37372795892), so the release was skipped, not broken. The trial still runs the A2 build, with
-  no sign-out pill. Re-run the failed jobs (Actions, the run, Re-run) when GitHub has capacity,
-  or push again; check before the rehearsal that the release job passes.
+  **The two early 6 October pushes (A3 at `79b8e97`, A4 at `851e95e`) did not release:** GitHub
+  could not give their jobs a hosted runner (runs 37370848143 and 37372795892). **B1 was pushed
+  later that day at `23e02b3`** (run 37424595177, in progress when this was written). The
+  release hold is not set, so if that run is green the trial moves from the A2 build straight
+  to A3, A4 and B1: the sign-out pill and the five tabs arrive together. Check the run, and
+  open the trial once, before the rehearsal.
 
 ### Known not to work yet
 
@@ -69,7 +80,8 @@ Found by reading code or the trial, not by running. Each has a slice in the plan
 | What                                                                                                         | Slice  |
 | ------------------------------------------------------------------------------------------------------------ | ------ |
 | The backup, retention and keep-alive jobs are written but off: nothing is backed up yet.                     | Ethan  |
-| Nothing tests the live app; the browser suites run the demo build.                                           | B1     |
+| When signal returns after the bazaar phone reopened offline, the app leaves the selling screen for Home.     | Next   |
+| Account has no button of its own: it is a chip on Home's strip. Customers and Expenses open a sheet.         | C6, C5 |
 | Values from the prototype still show in the live app (pickups, greeting, Settings rows, shop tagline).       | B2     |
 | Almost every cost per cookie is unknown: 8 of 72 items have a price, no costed delivery, no measured recipe. | B3, B4 |
 | The trial's cost basis is "when bought"; "when used" was decided.                                            | B3     |
@@ -83,8 +95,10 @@ All in [decision-register.md](decision-register.md), the section for 5 October.
   plus A2, recorded in the trial database; no early production project.
 - Two tracks, and unattended runs for interface-only slices only. The automatic runner
   stays off.
-- New screens enter through one guarded, live-only slot in the locked frame file. Every
-  other locked file stays locked.
+- New screens enter through one guarded, live-only slot in the locked frame file (built in
+  B1). Every other locked file stays locked.
+- The five tabs are on the owner's dock and sidebar now, with sub-tabs, not after the first
+  redesigned screen (Ethan, 6 October). All tools keeps its address; nothing links to it.
 - Nothing is hard-coded; everything that can change is Cine's to change; every function
   has exactly one home.
 - The questions for Cine are answered, by Ethan on her behalf. She confirms each value

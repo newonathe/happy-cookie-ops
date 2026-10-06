@@ -237,6 +237,26 @@ Each is a starting value Ethan or Cine can change; none is her decision yet.
 | Idle time running out at a stall          | The app narrows to Bazaar Mode; the first answer from the server sends the queue, then signs out. | Idle sign-out was the only limit on a signed-in phone. Putting it off keeps her selling; cancelling it would remove the limit.     | Her idle minutes (existing setting). 480 is suggested for bazaar days. |
 | Sheets open in Bazaar Mode offline        | Take payment, event expense, close-out                                                            | They are the sheets Bazaar Mode itself opens.                                                                                      | Code (`BAZAAR_SHEETS`)                                                 |
 
+### Slice B1, 6 October 2026: the five tabs go on now, with sub-tabs
+
+Asked what the owner's dock and sidebar should show after B1 (which registers no new screen),
+Ethan chose **"Rename now, with sub-tabs"** over keeping the 5 October dock (Home, Orders,
+Bake, Inventory, All tools) until the first redesigned screen. This supersedes the dock of
+UX review proposal 3; its label line in the frame stays.
+
+| Decided                                                                                                       | By                |
+| ------------------------------------------------------------------------------------------------------------- | ----------------- |
+| Dock and sidebar: Home, Sell, Make, Stock, Money. A sub-tab strip, drawn through the screen slot, above each. | Ethan             |
+| Account sits on Home's strip until the locked top bar has a button for it (C6).                               | Claude, a default |
+| Customers and Expenses, which have no screen yet, open their one sheet from the strip (C5, C2).               | Claude, a default |
+| The sidebar shows the five tabs only; its locked markup cannot indent sub-tabs.                               | Claude, a default |
+| The strip shows on the Bazaar screen only while no event is on the phone, so Bazaar events stays reachable.   | Claude, a default |
+| The count All tools carried on the dock (backup flag, unsent sales) is on Home.                               | Claude, a default |
+
+The approved plan said "no strip at all on Bazaar"; the fifth row narrows that, because with
+no strip there Bazaar events had no way in. With an event on the phone, at any stage, Bazaar
+Mode is exactly as before. One line in `liveTabs` (`src/store/ops-runtime.tsx`) reverses it.
+
 ## Amended decisions (open — block the listed work)
 
 **DP-02 · Payment timing** — blocks MP-10, MP-12.
