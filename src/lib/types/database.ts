@@ -446,6 +446,8 @@ export type Database = {
       inventory_items: {
         Row: {
           active: boolean
+          avg_cost: number | null
+          avg_cost_at: string | null
           category: string
           id: string
           last_counted: string | null
@@ -461,6 +463,8 @@ export type Database = {
         }
         Insert: {
           active?: boolean
+          avg_cost?: number | null
+          avg_cost_at?: string | null
           category?: string
           id: string
           last_counted?: string | null
@@ -476,6 +480,8 @@ export type Database = {
         }
         Update: {
           active?: boolean
+          avg_cost?: number | null
+          avg_cost_at?: string | null
           category?: string
           id?: string
           last_counted?: string | null
@@ -495,6 +501,54 @@ export type Database = {
             columns: ["supplier_id"]
             isOneToOne: false
             referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      item_prices: {
+        Row: {
+          as_of: string
+          created_by: string | null
+          id: string
+          item_id: string
+          pack_size: number
+          payload_hash: string
+          price_cents: number
+          received_at: string
+        }
+        Insert: {
+          as_of: string
+          created_by?: string | null
+          id: string
+          item_id: string
+          pack_size: number
+          payload_hash: string
+          price_cents: number
+          received_at?: string
+        }
+        Update: {
+          as_of?: string
+          created_by?: string | null
+          id?: string
+          item_id?: string
+          pack_size?: number
+          payload_hash?: string
+          price_cents?: number
+          received_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "item_prices_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "item_prices_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_items"
             referencedColumns: ["id"]
           },
         ]
@@ -1501,6 +1555,7 @@ export type Database = {
           movement_id: string
           payload_hash: string
           received_at: string
+          used_cents: number
         }
         Insert: {
           at: string
@@ -1511,6 +1566,7 @@ export type Database = {
           movement_id: string
           payload_hash: string
           received_at?: string
+          used_cents?: number
         }
         Update: {
           at?: string
@@ -1521,6 +1577,7 @@ export type Database = {
           movement_id?: string
           payload_hash?: string
           received_at?: string
+          used_cents?: number
         }
         Relationships: [
           {
@@ -1550,6 +1607,7 @@ export type Database = {
         Row: {
           at: string
           cost_cents: number | null
+          cost_source: string | null
           counted: number | null
           created_by: string | null
           id: string
@@ -1561,11 +1619,15 @@ export type Database = {
           qty_delta: number
           reason: string
           received_at: string
+          seq: number
+          short_qty: number
           supplier: string
+          unit_cost: number | null
         }
         Insert: {
           at: string
           cost_cents?: number | null
+          cost_source?: string | null
           counted?: number | null
           created_by?: string | null
           id: string
@@ -1577,11 +1639,15 @@ export type Database = {
           qty_delta: number
           reason?: string
           received_at?: string
+          seq?: never
+          short_qty?: number
           supplier?: string
+          unit_cost?: number | null
         }
         Update: {
           at?: string
           cost_cents?: number | null
+          cost_source?: string | null
           counted?: number | null
           created_by?: string | null
           id?: string
@@ -1593,7 +1659,10 @@ export type Database = {
           qty_delta?: number
           reason?: string
           received_at?: string
+          seq?: never
+          short_qty?: number
           supplier?: string
+          unit_cost?: number | null
         }
         Relationships: [
           {
@@ -2024,6 +2093,7 @@ export type Database = {
           updated_at: string
         }[]
       }
+      get_item_costs: { Args: never; Returns: Json }
       get_last_paid: { Args: never; Returns: Json }
       get_operating_settings: {
         Args: never
@@ -2068,6 +2138,7 @@ export type Database = {
         }[]
       }
       get_production: { Args: { p_drop: number }; Returns: Json }
+      get_recipe_costs: { Args: never; Returns: Json }
       get_recipe_drafts: { Args: never; Returns: Json }
       get_recipes: { Args: never; Returns: Json }
       get_scheduled_events: { Args: never; Returns: Json }
@@ -2092,6 +2163,13 @@ export type Database = {
       get_stock_catalogue: { Args: never; Returns: Json }
       is_owner: { Args: never; Returns: boolean }
       is_staff: { Args: never; Returns: boolean }
+      item_unit_cost: {
+        Args: { p_item: string }
+        Returns: {
+          source: string
+          unit_cost: number
+        }[]
+      }
       join_waitlist: {
         Args: { p_entry: Json }
         Returns: {
@@ -2114,6 +2192,7 @@ export type Database = {
           opened_at: string
         }[]
       }
+      lock_stock_item_ids: { Args: { p_ids: string[] }; Returns: undefined }
       lock_stock_items: { Args: { p_names: string[] }; Returns: undefined }
       lookup_order: {
         Args: { p_order_id: string; p_phone: string }
@@ -2242,6 +2321,13 @@ export type Database = {
         Returns: {
           id: string
           updated_at: string
+        }[]
+      }
+      save_item_price: {
+        Args: { p_price: Json }
+        Returns: {
+          duplicate: boolean
+          price_id: string
         }[]
       }
       save_order_extras: {
@@ -2501,7 +2587,6 @@ export type Database = {
           sale_id: string
         }[]
       }
-      unit_price_at: { Args: { p_at: string; p_item: string }; Returns: number }
       update_order_state: {
         Args: {
           p_order_id: string
@@ -2521,6 +2606,18 @@ export type Database = {
         Args: {
           p_at: string
           p_name: string
+          p_prod: string
+          p_qty: number
+          p_reason: string
+          p_seq: number
+        }
+        Returns: number
+      }
+      use_stock_item: {
+        Args: {
+          p_at: string
+          p_cost_short: boolean
+          p_item: string
           p_prod: string
           p_qty: number
           p_reason: string

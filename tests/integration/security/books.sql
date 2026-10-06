@@ -15,9 +15,11 @@ insert into public.profiles(id, role, display_name, active) values
   ('c3c00000-0000-4000-8000-000000000002', 'helper', 'Books helper', true),
   ('c3c00000-0000-4000-8000-000000000003', 'support', 'Books support', true),
   ('c3c00000-0000-4000-8000-000000000004', 'owner', 'Books inactive owner', false);
-insert into public.inventory_items(id, name, unit, category, active, on_hand) values
-  ('c3i-flour', 'C3 Flour', 'g', 'Ingredients', true, 1000),
-  ('c3i-box', 'C3 Box', 'pcs', 'Packaging', true, 10);
+-- The flour's quantity and average are what the movements below leave: 10 - 10 + 1000 - 200 - 50 + 500 - 100 = 1150 g, and the second
+-- delivery moved the average to (750 x 10 + 7500) / 1250 = 12 centavos a gram.
+insert into public.inventory_items(id, name, unit, category, active, on_hand, avg_cost, avg_cost_at) values
+  ('c3i-flour', 'C3 Flour', 'g', 'Ingredients', true, 1150, 12, now() - interval '3 days'),
+  ('c3i-box', 'C3 Box', 'pcs', 'Packaging', true, 10, null, null);
 -- Orders: two paid (one refunded), one unpaid.
 insert into public.orders(id, customer_name, phone, paid_cents, pay_state, paid_at, refunded_at) values
   ('c3-o1', 'Paid Payer', '09170000001', 20000, 'confirmed', now() - interval '5 days', null),
@@ -29,15 +31,17 @@ insert into public.ledger_entries(id, kind, category, memo, amount_cents, occurr
   ('c3a00000-0000-4000-8000-0000000000a2', 'cost', 'Ingredients', 'C3 Flour', -7500, now() - interval '3 days'),
   ('c3a00000-0000-4000-8000-0000000000a3', 'sale', 'Bazaar', 'Stall sale', 30000, now() - interval '3 days'),
   ('c3a00000-0000-4000-8000-0000000000a4', 'cost', 'Bazaar rent', 'Stall rent', -3000, now() - interval '3 days');
--- Stock: a receipt of 1000 g for 100 pesos, 200 g used, 50 g wasted, a receipt of 500 g for 75 pesos, 100 g used.
-insert into public.stock_movements(id, item_id, kind, qty_delta, cost_cents, supplier, reason, at, ledger_id, payload_hash) values
-  ('c3b00000-0000-4000-8000-0000000000b1', 'c3i-flour', 'receipt', 1000, 10000, 'Landers', '', now() - interval '10 days', 'c3a00000-0000-4000-8000-0000000000a1', repeat('1', 64)),
-  ('c3b00000-0000-4000-8000-0000000000b2', 'c3i-flour', 'use', -200, null, '', 'Baked', now() - interval '5 days', null, repeat('2', 64)),
-  ('c3b00000-0000-4000-8000-0000000000b3', 'c3i-flour', 'waste', -50, null, '', 'Dropped', now() - interval '4 days', null, repeat('3', 64)),
-  ('c3b00000-0000-4000-8000-0000000000b4', 'c3i-flour', 'receipt', 500, 7500, 'Landers', '', now() - interval '3 days', 'c3a00000-0000-4000-8000-0000000000a2', repeat('4', 64)),
-  ('c3b00000-0000-4000-8000-0000000000b5', 'c3i-flour', 'use', -100, null, '', 'Baked', now() - interval '2 days', null, repeat('5', 64)),
-  -- 10 g used before any delivery was costed: no price yet, so it costs nothing (a later delivery never reprices it)
-  ('c3b00000-0000-4000-8000-0000000000b0', 'c3i-flour', 'use', -10, null, '', 'Baked', now() - interval '11 days', null, repeat('0', 64));
+-- Stock, inserted in time order (the movement order follows the time) with the stamps the cost rules write: 10 g in and 10 g used before any
+-- delivery was costed (that use has no cost), a receipt of 1000 g for 100 pesos, 200 g used and 50 g wasted at 10 c/g, a receipt of 500 g for
+-- 75 pesos (the average becomes 12), 100 g used at 12.
+insert into public.stock_movements(id, item_id, kind, qty_delta, cost_cents, supplier, reason, at, ledger_id, payload_hash, unit_cost, cost_source) values
+  ('c3b00000-0000-4000-8000-0000000000b9', 'c3i-flour', 'opening', 10, null, '', '', now() - interval '12 days', null, repeat('9', 64), null, null),
+  ('c3b00000-0000-4000-8000-0000000000b0', 'c3i-flour', 'use', -10, null, '', 'Baked', now() - interval '11 days', null, repeat('0', 64), null, null),
+  ('c3b00000-0000-4000-8000-0000000000b1', 'c3i-flour', 'receipt', 1000, 10000, 'Landers', '', now() - interval '10 days', 'c3a00000-0000-4000-8000-0000000000a1', repeat('1', 64), null, null),
+  ('c3b00000-0000-4000-8000-0000000000b2', 'c3i-flour', 'use', -200, null, '', 'Baked', now() - interval '5 days', null, repeat('2', 64), 10, 'average'),
+  ('c3b00000-0000-4000-8000-0000000000b3', 'c3i-flour', 'waste', -50, null, '', 'Dropped', now() - interval '4 days', null, repeat('3', 64), 10, 'average'),
+  ('c3b00000-0000-4000-8000-0000000000b4', 'c3i-flour', 'receipt', 500, 7500, 'Landers', '', now() - interval '3 days', 'c3a00000-0000-4000-8000-0000000000a2', repeat('4', 64), null, null),
+  ('c3b00000-0000-4000-8000-0000000000b5', 'c3i-flour', 'use', -100, null, '', 'Baked', now() - interval '2 days', null, repeat('5', 64), 12, 'average');
 
 create function pg_temp.set_subject(n integer, claim_role text default 'authenticated') returns void
 language plpgsql security invoker as $$
@@ -123,6 +127,8 @@ language plpgsql security invoker as $$
 begin
   perform pg_temp.expect(actor, op, format('select * from public.record_cost_correction(%L::jsonb)', body::text), wanted);
 end $$;
+create function pg_temp.flour_avg() returns numeric language sql stable security definer as $$
+  select avg_cost from public.inventory_items where id = 'c3i-flour' $$;
 create function pg_temp.paid(item text) returns jsonb language sql stable as $$
   select x from jsonb_array_elements(public.get_last_paid()) x where x ->> 'item_name' = item $$;
 
@@ -134,7 +140,7 @@ begin
       raise exception 'forbidden books call succeeded: anon / %', f;
     end if;
   end loop;
-  foreach f in array array['receipt_cost(uuid)', 'unit_price_at(text,timestamptz)', 'orders_books_stamp()'] loop
+  foreach f in array array['receipt_cost(uuid)', 'item_unit_cost(text)', 'orders_books_stamp()'] loop
     if has_function_privilege('anon', 'public.' || f, 'EXECUTE') or has_function_privilege('authenticated', 'public.' || f, 'EXECUTE') then
       raise exception 'forbidden books call succeeded: an API role / %', f;
     end if;
@@ -174,6 +180,8 @@ begin
   perform pg_temp.assert_ok(a, 'books_refunds', pg_temp.sumk(j, 'refund') = 5000);
   perform pg_temp.assert_ok(a, 'books_bought_expenses', pg_temp.sumk(j, 'expense') = 20500 and j ->> 'basis' = 'bought');
   perform pg_temp.assert_ok(a, 'books_receipts_to_correct', jsonb_array_length(j -> 'receipts') = 2);
+  -- bought: nothing is listed as uncosted (stock used is not a cost on this basis)
+  perform pg_temp.assert_ok(a, 'books_bought_has_no_uncosted', j -> 'uncosted' = '[]'::jsonb);
   -- the period ends before its upper bound: an order paid exactly then is in the next period
   perform pg_temp.assert_ok(a, 'books_period_upper_bound_exclusive',
     pg_temp.sumk(public.get_books(now() - interval '30 days', pg_temp.paid_at_o1()), 'revenue') = 5000
@@ -214,10 +222,18 @@ begin
   -- the cost basis
   perform pg_temp.expect(a, 'basis_bad', 'select public.set_cost_basis(''sometimes'')', '22023');
   perform pg_temp.expect(a, 'basis_used', 'select public.set_cost_basis(''used'')', '00000');
-  -- used: receipts are not costs; the stock used and wasted is, at the price of the latest receipt up to then (10 c/g, then 15 c/g)
+  -- used: receipts are not costs; the stock used and wasted is, at the cost stamped on it when it was written. Was: the price of the latest
+  -- receipt up to then (10 c/g, then 15 c/g) = 3000 + 50000 + 2000 + 500 + 1500. Now: 200 g and 50 g at 10, 100 g at the average 12 = 1200,
+  -- and the 10 g used before any costed delivery has no cost, so it is listed as uncosted and is not a line (never a zero line).
   j := pg_temp.books();
   perform pg_temp.assert_ok(a, 'used_excludes_receipts_and_prices_use',
-    j ->> 'basis' = 'used' and pg_temp.sumk(j, 'expense') = 3000 + 50000 + 2000 + 500 + 1500 and pg_temp.sumk(j, 'draw') = 30000);
+    j ->> 'basis' = 'used' and pg_temp.sumk(j, 'expense') = 3000 + 50000 + 2000 + 500 + 1200 and pg_temp.sumk(j, 'draw') = 30000);
+  perform pg_temp.assert_ok(a, 'used_lists_the_uncosted_use',
+    jsonb_array_length(j -> 'uncosted') = 1 and j -> 'uncosted' -> 0 ->> 'item' = 'C3 Flour' and (j -> 'uncosted' -> 0 ->> 'qty')::numeric = 10
+    and j -> 'uncosted' -> 0 ->> 'unit' = 'g' and j -> 'uncosted' -> 0 ->> 'kind' = 'use'
+    and not exists (select 1 from jsonb_array_elements(j -> 'lines') l where l ->> 'id' = 'm:c3b00000-0000-4000-8000-0000000000b0'));
+  perform pg_temp.assert_ok(a, 'used_lines_carry_short_qty',
+    not exists (select 1 from jsonb_array_elements(j -> 'lines') l where not (l ? 'short_qty')));
   perform pg_temp.assert_ok(a, 'used_keeps_revenue', pg_temp.sumk(j, 'revenue') = 55000 and pg_temp.sumk(j, 'refund') = 5000);
   perform pg_temp.expect(a, 'basis_bought', 'select public.set_cost_basis(''bought'')', '00000');
 
@@ -243,12 +259,25 @@ begin
   perform pg_temp.assert_ok(a, 'cor_second_correction_builds_on_the_first', pg_temp.sumk(pg_temp.books(), 'expense') = 68000);
   -- used again, with the corrected prices (9 c/g, then 12 c/g): the correcting entries are not costs of their own
   perform pg_temp.expect(a, 'basis_used_again', 'select public.set_cost_basis(''used'')', '00000');
-  perform pg_temp.assert_ok(a, 'used_reads_corrected_prices', pg_temp.sumk(pg_temp.books(), 'expense') = 3000 + 50000 + 1800 + 450 + 1200);
+  -- Was: the corrected prices (9 c/g, then 12 c/g) re-priced the uses = 3000 + 50000 + 1800 + 450 + 1200. Now a stamp is never changed: the
+  -- uses stay 2000 + 500 + 1200, and each correction adds the share of its change that belongs to stock already used. 1150 g are on hand:
+  -- the first correction (-1000) leaves 0.69 of the delivery on hand (1150/1250 x 750/800 x 800/1000), so -690 goes to the average and
+  -- -1000 + 690 = -310 is cost already used; the second (-1500) leaves 0.92 (1150/1250): -1380 to the average, -1500 + 1380 = -120.
+  perform pg_temp.assert_ok(a, 'used_reads_corrected_prices', pg_temp.sumk(pg_temp.books(), 'expense') = 3000 + 50000 + 2000 + 500 + 1200 - 310 - 120);
+  perform pg_temp.assert_ok(a, 'cor_moves_the_average', pg_temp.flour_avg() = 10.2);
+  -- the correction lines are dated when the corrections were made (both sent now), not when the deliveries were
+  perform pg_temp.assert_ok(a, 'cor_used_lines_are_dated_at_the_correction',
+    (select count(*) from jsonb_array_elements(pg_temp.books() -> 'lines') l where l ->> 'id' like 'c:%' and l ->> 'kind' = 'expense') = 2
+    and (select sum((l ->> 'amount_cents')::bigint) from jsonb_array_elements(pg_temp.books() -> 'lines') l where l ->> 'id' like 'c:%') = -430
+    and not exists (select 1 from jsonb_array_elements(pg_temp.books() -> 'lines') l
+                     where l ->> 'id' like 'c:%' and (l ->> 'at')::bigint <> (extract(epoch from now()) * 1000)::bigint));
 
   -- the latest correction is the one saved last, whatever time the phone sent with it (a retried older one)
   perform pg_temp.cor(a, 'cor_older_time_still_latest', pg_temp.co(3, 'c3b00000-0000-4000-8000-0000000000b4', 5500,
     jsonb_build_object('at', ((extract(epoch from now()) - 86400) * 1000)::bigint)), '00000');
   perform pg_temp.assert_ok(a, 'cor_latest_is_the_one_saved_last', (pg_temp.paid('C3 Flour') ->> 'cost_cents')::bigint = 5500);
+  -- 5500 against 6000 is -500, 0.92 of it on hand: -460 to the average (10.2 - 460 / 1150 = 9.8) and -40 cost already used
+  perform pg_temp.assert_ok(a, 'cor_third_correction_moves_the_average', pg_temp.flour_avg() = 9.8);
 
   -- the trigger stamps when an order is paid and refunded
   perform pg_temp.assert_ok(a, 'trigger_stamps_paid_at', pg_temp.stamp_paid());
@@ -259,7 +288,7 @@ grant execute on function
   pg_temp.paid_at_o1(), pg_temp.stamp_paid(), pg_temp.stamp_refund(), pg_temp.books(), pg_temp.sumk(jsonb, text), pg_temp.eid(integer),
   pg_temp.ex(integer, text, text, numeric, jsonb, text[]), pg_temp.exp(text, text, jsonb, text),
   pg_temp.dw(integer, text, numeric, jsonb, text[]), pg_temp.draw(text, text, jsonb, text),
-  pg_temp.co(integer, text, numeric, jsonb, text[]), pg_temp.cor(text, text, jsonb, text), pg_temp.paid(text),
+  pg_temp.co(integer, text, numeric, jsonb, text[]), pg_temp.cor(text, text, jsonb, text), pg_temp.paid(text), pg_temp.flour_avg(),
   pg_temp.set_subject(integer, text), pg_temp.expect(text, text, text, text), pg_temp.assert_ok(text, text, boolean),
   pg_temp.assert_acl(), pg_temp.assert_table(text), pg_temp.assert_refused(text), pg_temp.phase_owner(text)
   to anon, authenticated, service_role;

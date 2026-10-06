@@ -1,5 +1,5 @@
 {
-  "scope": "Reviewed local function-authority drift baseline through B3a (preview_identity_links and apply_identity_links added with no API grant; save_recipe, get_recipes, save_supplier_price and get_stock_catalogue redefined for item ids, pack sizes and complete recipe versions); earlier: B2 database half (business_clock, get_shop_identity, save_shop_identity added); earlier: C2 (record_production, record_pack, get_production, use_stock, lock_stock_items, record_sale_packaging added; record_event_sale redefined to use packaging); earlier: Reviewed local function-authority drift baseline through B4a (get_order_extras, save_order_extras, get_shop_extras added; place_order, order_status, get_staff_orders, anonymise_customer, prune_personal_data redefined for boxes, add-ons and the same-day surcharge); earlier: B2 database half (get_shop_order_rules, find_order added); B1 (place_order, order_status, join_waitlist, order_holds_capacity, get_order_rules, save_order_rules added; anonymise_customer and prune_personal_data recreated for the new personal data); A2 (payment_methods, shop_texts, get_shop_payment_info added); load_event_stock/add_event_expense/close_event/event_summary added (D2); D1: start_event/set_event_device/record_event_sale/void_event_sale added (D1); MP-09 c1b: publish_flavours added (MP-09 c1b); get_flavours/save_flavour added (MP-09 c1); settings_effective gained three idle-minute defaults, get_settings/save_setting/get_operating_settings added; MP-09 b3 recreated settings_effective/get_settings/get_operating_settings with json_value and replaced save_setting; full capability/domain and hosted acceptance remain open; F1: record_operations_run and get_operations_health added, prune_personal_data redefined for the fixed 365-day retention window",
+  "scope": "Reviewed local function-authority drift baseline through B3a cost core (item_unit_cost, use_stock_item, lock_stock_item_ids internal with no API grant; save_item_price, get_item_costs, get_recipe_costs added; unit_price_at removed; use_stock, record_stock_movement, record_production, record_cost_correction, get_books redefined); earlier: B3a identity links (preview_identity_links and apply_identity_links added with no API grant; save_recipe, get_recipes, save_supplier_price and get_stock_catalogue redefined for item ids, pack sizes and complete recipe versions); earlier: B2 database half (business_clock, get_shop_identity, save_shop_identity added); earlier: C2 (record_production, record_pack, get_production, use_stock, lock_stock_items, record_sale_packaging added; record_event_sale redefined to use packaging); earlier: Reviewed local function-authority drift baseline through B4a (get_order_extras, save_order_extras, get_shop_extras added; place_order, order_status, get_staff_orders, anonymise_customer, prune_personal_data redefined for boxes, add-ons and the same-day surcharge); earlier: B2 database half (get_shop_order_rules, find_order added); B1 (place_order, order_status, join_waitlist, order_holds_capacity, get_order_rules, save_order_rules added; anonymise_customer and prune_personal_data recreated for the new personal data); A2 (payment_methods, shop_texts, get_shop_payment_info added); load_event_stock/add_event_expense/close_event/event_summary added (D2); D1: start_event/set_event_device/record_event_sale/void_event_sale added (D1); MP-09 c1b: publish_flavours added (MP-09 c1b); get_flavours/save_flavour added (MP-09 c1); settings_effective gained three idle-minute defaults, get_settings/save_setting/get_operating_settings added; MP-09 b3 recreated settings_effective/get_settings/get_operating_settings with json_value and replaced save_setting; full capability/domain and hosted acceptance remain open; F1: record_operations_run and get_operations_health added, prune_personal_data redefined for the fixed 365-day retention window",
   "functions": [
     {
       "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
@@ -1149,7 +1149,7 @@
         "search_path=\"\""
       ],
       "returns": "TABLE(item_id text, on_hand numeric, duplicate boolean)",
-      "body_md5": "7d313a5ee07f16d1891675898b629729",
+      "body_md5": "e48774626dfee4d6775735812dc56646",
       "identity": "p_movement jsonb",
       "execute_anon": false,
       "security_definer": true,
@@ -1209,7 +1209,7 @@
         "search_path=\"\""
       ],
       "returns": "TABLE(record_id uuid, duplicate boolean, used_dough integer, shortfall jsonb)",
-      "body_md5": "ac23910d160889d99931d19a70029664",
+      "body_md5": "ab47fb77672c481610ef2ce657074f02",
       "identity": "p_rec jsonb",
       "execute_anon": false,
       "security_definer": true,
@@ -1232,18 +1232,108 @@
       "execute_authenticated": false
     },
     {
-      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "acl": "{postgres=X/postgres}",
       "name": "use_stock",
       "owner": "postgres",
       "config": [
         "search_path=\"\""
       ],
       "returns": "numeric",
-      "body_md5": "68d62ace16ccc7a16d13994cc1c22045",
+      "body_md5": "2962e6c93673d8cabda52326a8116ca5",
       "identity": "p_prod uuid, p_seq integer, p_name text, p_qty numeric, p_reason text, p_at timestamp with time zone",
       "execute_anon": false,
       "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "get_item_costs",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "4862bc2b2e1775a0f8d503407ced5d7f",
+      "identity": "",
+      "execute_anon": false,
+      "security_definer": true,
       "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "get_recipe_costs",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "fdcd6fb3fadb2acd43948505e593c7c9",
+      "identity": "",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "item_unit_cost",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(unit_cost numeric, source text)",
+      "body_md5": "d12a9813debe3be161532a3d8669bfde",
+      "identity": "p_item text",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "lock_stock_item_ids",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "void",
+      "body_md5": "016eee8cabb7b0ab5091c99d45251ab8",
+      "identity": "p_ids text[]",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "save_item_price",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(price_id uuid, duplicate boolean)",
+      "body_md5": "ad4afc7e3c84cadc337de64960f44e48",
+      "identity": "p_price jsonb",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "use_stock_item",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "numeric",
+      "body_md5": "a95262d391d72b3478180668871dbd4e",
+      "identity": "p_prod uuid, p_seq integer, p_item text, p_qty numeric, p_reason text, p_at timestamp with time zone, p_cost_short boolean",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
       "execute_authenticated": false
     },
     {
@@ -1299,7 +1389,7 @@
         "search_path=\"\""
       ],
       "returns": "jsonb",
-      "body_md5": "c49838fcffeb977ece3220ba2603d638",
+      "body_md5": "3ac316579a621c00ecdd9648867692fa",
       "identity": "p_from timestamp with time zone, p_to timestamp with time zone",
       "execute_anon": false,
       "security_definer": true,
@@ -1344,7 +1434,7 @@
         "search_path=\"\""
       ],
       "returns": "TABLE(correction_id uuid, duplicate boolean)",
-      "body_md5": "c540f1e4d2c5be277a923c4f572247b4",
+      "body_md5": "948a11553b541f24de9b65179e10589f",
       "identity": "p_corr jsonb",
       "execute_anon": false,
       "security_definer": true,
@@ -1380,21 +1470,6 @@
       "security_definer": true,
       "execute_service_role": true,
       "execute_authenticated": true
-    },
-    {
-      "acl": "{postgres=X/postgres,service_role=X/postgres}",
-      "name": "unit_price_at",
-      "owner": "postgres",
-      "config": [
-        "search_path=\"\""
-      ],
-      "returns": "numeric",
-      "body_md5": "579afb26a993eef158a2a77ae617f6ff",
-      "identity": "p_item text, p_at timestamp with time zone",
-      "execute_anon": false,
-      "security_definer": true,
-      "execute_service_role": true,
-      "execute_authenticated": false
     },
     {
       "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",

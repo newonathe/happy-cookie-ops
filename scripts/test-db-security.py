@@ -32,7 +32,8 @@ ORDER_MIGRATIONS = [ROOT / 'supabase/migrations/20260101003500_place_order.sql',
                     ROOT / 'supabase/migrations/20260101004900_books.sql',
                     ROOT / 'supabase/migrations/20260101005000_operations.sql',
                     ROOT / 'supabase/migrations/20260101005400_business_clock_shop_identity.sql',
-                    ROOT / 'supabase/migrations/20260101005500_identity_links.sql']
+                    ROOT / 'supabase/migrations/20260101005500_identity_links.sql',
+                    ROOT / 'supabase/migrations/20260101005600_item_costs.sql']
 _OUT = 'order outcome differs: anon / '
 _CHK = 'order check differs: anon / '
 _LOOK = 'lookup check differs: anon / '
@@ -375,7 +376,7 @@ PRODUCTION_MUTATIONS = {
     'text_sale_packaging_voided': ('record_event_sale', 'text',
                                    ('if v_voided is null then -- rule:sale-packaging-live', 'if true then -- rule:sale-packaging-live'),
                                    _PDC + 'sale_voided_uses_nothing'),
-    'text_use_never_more': ('use_stock', 'text', ('v_take := least(p_qty, v_item.on_hand);', 'v_take := p_qty;'),
+    'text_use_never_more': ('use_stock_item', 'text', ('least(p_qty, v_item.on_hand)', 'p_qty'),
                             _PDC + 'prod_batch_takes_what_is_there'),
     'text_dough_first': ('record_production', 'text', ('v_used := least(greatest(v_bal, 0), v_qty)::integer;', 'v_used := 0;'),
                          _PDC + 'prod_batch_uses_dough_first'),
@@ -398,6 +399,7 @@ PRODUCTION_MUTATIONS = {
                                 _PDC + 'get_production_dough_after_discard'),
     'text_discard_baked_read': ('get_production', 'text', ("select r.product_id, -r.qty from public.production_records r where r.kind = 'discard_baked'", "select r.product_id, 0 from public.production_records r where r.kind = 'discard_baked'"),
                                 _PDC + 'get_production_baked_after_discard'),
+    'text_use_stock_never_costs_the_short': ('use_stock', 'text', ('p_at, false)', 'p_at, true)'), _PDC + 'sale_pin_empty_movements'),
     'text_pack_once': ('record_pack', 'text', ("v_id := md5('pack:' || p_order)::uuid;", 'v_id := gen_random_uuid();'),
                        _PDC + 'pack_twice_takes_nothing_more'),
     'text_pack_boxes': ('record_pack', 'text', ('v_boxes := v_count / 6;', 'v_boxes := v_count / 12;'),
@@ -442,7 +444,7 @@ BOOKS_MUTATIONS = {
                                     _BKC + 'books_bought_expenses'),
     'text_last_paid_corrected': ('get_last_paid', 'text', ('public.receipt_cost(m.id) as cost_cents', 'm.cost_cents as cost_cents'),
                                  _BKC + 'last_paid_uses_the_corrected_cost'),
-    'text_price_latest_receipt': ('unit_price_at', 'text', ('and r.at <= p_at', "and r.at <= p_at - interval '100 years'"),
+    'text_price_latest_receipt': ('get_books', 'text', ('round((-m.qty_delta + m.short_qty) * m.unit_cost)', 'round((-m.qty_delta + m.short_qty) * 10)'),
                                   _BKC + 'used_excludes_receipts_and_prices_use'),
     'text_correction_saved_order': ('receipt_cost', 'text', ('order by c.received_at desc, c.id desc limit 1', 'order by c.at desc, c.received_at desc limit 1'),
                                     _BKC + 'cor_latest_is_the_one_saved_last'),
@@ -458,6 +460,59 @@ BOOKS_MUTATIONS = {
 BOOKS_TABLE_MUTATIONS = {
     'settings_table_select': ('grant select on public.books_settings to anon;', 'books outcome differs: anon / settings_select / '),
 }
+# B3a: the cost core (item-costs.sql), acting on the last migration that defines each function. The money cases are worked by hand in the suite.
+_CS = 'item cost outcome differs: active_owner / '
+_CSC = 'item cost check differs: active_owner / '
+COST_MUTATIONS = {
+    'rule_itemprice_keys': ('save_item_price', 'rule', 'itemprice-keys', _CS + 'ip_keys_missing / '),
+    'rule_itemprice_id': ('save_item_price', 'rule', 'itemprice-id', _CS + 'ip_id_bad / '),
+    'rule_itemprice_cents': ('save_item_price', 'rule', 'itemprice-cents', _CS + 'ip_cents_zero / '),
+    'rule_itemprice_pack': ('save_item_price', 'rule', 'itemprice-pack', _CS + 'ip_pack_zero / '),
+    'rule_itemprice_date': ('save_item_price', 'rule', 'itemprice-date', _CS + 'ip_date_format / '),
+    'rule_itemprice_future': ('save_item_price', 'rule', 'itemprice-future', _CS + 'ip_date_future / '),
+    'rule_itemprice_replay_conflict': ('save_item_price', 'rule', 'itemprice-replay-conflict', _CS + 'ip_replay_other_body / '),
+    'rule_itemprice_item_missing': ('save_item_price', 'rule', 'itemprice-item-missing', _CS + 'ip_item_missing / '),
+    'text_cost_average_formula': ('record_stock_movement', 'text',
+                                  ('v_avg := (v_item.on_hand * v_base + v_cost) / (v_item.on_hand + v_qty);', 'v_avg := v_cost / v_qty;'),
+                                  _CSC + 'cost_a_stamps'),
+    'text_cost_average_first': ('item_unit_cost', 'text', ("'average'::text as src, 1 as ord", "'average'::text as src, 4 as ord"),
+                                _CSC + 'cost_order_average_first'),
+    'text_cost_usual_before_supplier': ('item_unit_cost', 'text', ("'usual'::text, 2", "'usual'::text, 4"),
+                                        _CSC + 'cost_order_usual_before_supplier'),
+    'text_cost_correction_share': ('record_cost_correction', 'text', ('v_f := least(1, greatest(0, v_f * v_h_after / v_h_before));', 'v_f := v_f;'),
+                                   _CSC + 'cost_d_average_and_used'),
+    'text_cost_used_line_counts_the_short': ('get_books', 'text',
+                                             ('round((-m.qty_delta + m.short_qty) * m.unit_cost)', 'round(-m.qty_delta * m.unit_cost)'),
+                                             _CSC + 'cost_c_line'),
+    'text_cost_correction_counts_only_use_waste': ('record_cost_correction', 'text',
+                                                   ('if v_mv.qty_delta < 0 then', "if v_mv.kind in ('use', 'waste') and v_mv.qty_delta < 0 then"),
+                                                   _CSC + 'cost_g1_count_scales_the_share'),
+    'text_cost_correction_f_starts_at_one': ('record_cost_correction', 'text', ('v_f numeric := 1;', 'v_f numeric := 0;'),
+                                             _CSC + 'cost_d_average_and_used'),
+    'text_cost_correction_applied_order': ('record_cost_correction', 'text',
+                                           ('m.seq > v_m.seq order by m.seq desc', 'm.at > v_m.at order by m.at desc'),
+                                           _CSC + 'cost_h5_applied_order_not_dated_order'),
+    'text_cost_correction_drops_a_dead_average': ('record_cost_correction', 'text', ('if v_new_avg > 0 then', 'if true then'),
+                                                  _CS + 'h1_correct / 23514'),
+    'text_cost_correction_nothing_on_hand': ('record_cost_correction', 'text',
+                                             ('v_stock.on_hand > 0 and v_stock.avg_cost is not null', 'v_stock.avg_cost is not null'),
+                                             _CS + 'h2_correct / 22012'),
+    'text_cost_correction_no_average': ('record_cost_correction', 'text',
+                                        ('v_stock.on_hand > 0 and v_stock.avg_cost is not null', 'v_stock.on_hand > 0'),
+                                        _CSC + 'cost_h3_no_average_all_used'),
+    'text_cost_uncosted_production_arm': ('get_books', 'text', ("(e.value ? 'why')", 'false'),
+                                          _CSC + 'cost_u_uncosted_lists_the_lines_not_taken'),
+    'text_cost_waste_is_stamped': ('record_stock_movement', 'text',
+                                   ("if v_kind = 'waste' then\n    select c.unit_cost, c.source into v_ucost, v_usrc",
+                                    "if false then\n    select c.unit_cost, c.source into v_ucost, v_usrc"),
+                                   _CSC + 'cost_e_stamps'),
+    'text_cost_base_falls_back_to_usual': ('record_stock_movement', 'text', ('if v_base is null and v_item.on_hand > 0 then', 'if false then'),
+                                           _CSC + 'cost_b4_first_costed_delivery'),
+    'text_cost_uncosted_is_not_a_line': ('get_books', 'text',
+                                         ("where v_basis = 'used' and m.kind in ('use', 'waste') and m.unit_cost is not null and m.at >= p_from",
+                                          "where v_basis = 'used' and m.kind in ('use', 'waste') and m.at >= p_from"),
+                                         _CSC + 'cost_b3_is_never_a_line'),
+}
 OPERATIONS_MUTATIONS = {
     'rule_ops_service': ('record_operations_run', 'rule', 'run-service', 'operations denial differs: record_anon / 00000'),
     'rule_ops_time': ('record_operations_run', 'rule', 'run-time', 'future run time accepted'),
@@ -471,7 +526,7 @@ OPERATIONS_MUTATIONS = {
 
 def order_mutant(name):
     """The migration's one function, changed in exactly one place, as SQL to run inside the suite."""
-    function, kind, argument, _ = (ORDER_MUTATIONS | LOOKUP_MUTATIONS | STAFF_MUTATIONS | SHOP_MUTATIONS | EXTRAS_MUTATIONS | SCHEDULED_MUTATIONS | STOCK_MUTATIONS | RECIPE_MUTATIONS | LEDGER_MUTATIONS | PRODUCTION_MUTATIONS | BOOKS_MUTATIONS | OPERATIONS_MUTATIONS | IDENTITY_RULES | LINK_MUTATIONS)[name]
+    function, kind, argument, _ = (ORDER_MUTATIONS | LOOKUP_MUTATIONS | STAFF_MUTATIONS | SHOP_MUTATIONS | EXTRAS_MUTATIONS | SCHEDULED_MUTATIONS | STOCK_MUTATIONS | RECIPE_MUTATIONS | LEDGER_MUTATIONS | PRODUCTION_MUTATIONS | BOOKS_MUTATIONS | OPERATIONS_MUTATIONS | IDENTITY_RULES | LINK_MUTATIONS | COST_MUTATIONS)[name]
     marker = 'create or replace function public.' + function + '('
     text = [m.read_text(encoding='utf-8') for m in ORDER_MIGRATIONS if marker in m.read_text(encoding='utf-8')][-1]
     start = text.index('create or replace function public.' + function + '(')
@@ -549,7 +604,9 @@ SUITES = (
     ('production.sql', ('record_production(jsonb)', 'record_pack(text,integer)', 'get_production(integer)', 'record_discard(jsonb)')
                        + tuple(PRODUCTION_MUTATIONS) + tuple(PRODUCTION_TABLE_MUTATIONS), 'forbidden production call succeeded', 129),
     ('books.sql', ('get_books(timestamptz,timestamptz)', 'record_expense(jsonb)', 'record_cost_correction(jsonb)', 'set_cost_basis(text)', 'record_draw(jsonb)')
-                  + tuple(BOOKS_MUTATIONS) + tuple(BOOKS_TABLE_MUTATIONS), 'forbidden books call succeeded', 101),
+                  + tuple(BOOKS_MUTATIONS) + tuple(BOOKS_TABLE_MUTATIONS), 'forbidden books call succeeded', 107),
+    ('item-costs.sql', ('save_item_price(jsonb)', 'get_item_costs()', 'get_recipe_costs()') + tuple(COST_MUTATIONS),
+     'forbidden cost call succeeded', 172),
     ('operations.sql', tuple(OPERATIONS_MUTATIONS), 'forbidden operations call succeeded', 14),
     ('bazaar-closeout.sql', ('event_summary(uuid)', 'load_event_stock(uuid,jsonb,bigint)', 'add_event_expense(jsonb)', 'close_event(jsonb)'), 'forbidden closeout call succeeded', 80),
     ('shop-identity.sql', ('save_shop_identity(jsonb,timestamptz)', 'business_clock(timestamptz)') + tuple(IDENTITY_MUTATIONS) + tuple(IDENTITY_RULES),
@@ -590,7 +647,7 @@ PAYMENT_MUTATIONS = {
 REPORT = ROOT / "docs/state/evidence/MP-06l-security.json"
 EMPTY_FIXTURES = 'select ' + ' and '.join(
     'not exists(select 1 from public.' + table + ')'
-    for table in ('orders', 'order_items', 'products', 'drops', 'settings', 'rate_limits', 'profiles', 'audit_log', 'ledger_entries', 'event_sales', 'event_sale_items', 'inventory_items', 'bake_batches', 'recipes', 'recipe_ingredients', 'suppliers', 'supplier_prices', 'events', 'erasure_requests', 'payment_methods', 'shop_texts', 'shop_identity', 'waitlist_entries', 'order_add_ons', 'order_boxes', 'scheduled_events', 'recipe_versions', 'stock_movements')) + " and not exists(select 1 from auth.users) and to_regnamespace('mp06f_probe') is null and to_regnamespace('mp06g_probe') is null and to_regclass('public.mp06g_future') is null and to_regclass('public.mp06g_future_id_seq') is null;"
+    for table in ('orders', 'order_items', 'products', 'drops', 'settings', 'rate_limits', 'profiles', 'audit_log', 'ledger_entries', 'event_sales', 'event_sale_items', 'inventory_items', 'bake_batches', 'recipes', 'recipe_ingredients', 'suppliers', 'supplier_prices', 'events', 'erasure_requests', 'payment_methods', 'shop_texts', 'shop_identity', 'waitlist_entries', 'order_add_ons', 'order_boxes', 'scheduled_events', 'recipe_versions', 'stock_movements', 'item_prices')) + " and not exists(select 1 from auth.users) and to_regnamespace('mp06f_probe') is null and to_regnamespace('mp06g_probe') is null and to_regclass('public.mp06g_future') is null and to_regclass('public.mp06g_future_id_seq') is null;"
 
 
 def main():
@@ -731,6 +788,9 @@ def main():
                     elif signature in BOOKS_TABLE_MUTATIONS:
                         unsafe, expected_error = BOOKS_TABLE_MUTATIONS[signature]
                         broken = sql.replace('begin;', 'begin;' + chr(10) + unsafe, 1)
+                if filename == 'item-costs.sql' and signature in COST_MUTATIONS:
+                    broken = sql.replace('begin;', 'begin;' + chr(10) + order_mutant(signature), 1)
+                    expected_error = COST_MUTATIONS[signature][3]
                 if filename == 'identity-links.sql' and signature in LINK_MUTATIONS:
                     broken = sql.replace('begin;', 'begin;' + chr(10) + order_mutant(signature), 1)
                     expected_error = LINK_MUTATIONS[signature][3]
@@ -842,7 +902,7 @@ def main():
                 h.fail(filename + ' did not return its complete role matrix')
             results.extend(rows)
             assert_empty()
-        if len(set(results)) != 2125:
+        if len(set(results)) != 2303:
             h.fail('combined role matrix has missing or duplicate cases: %d rows, %d unique (duplicates: %s)' % (len(results), len(set(results)), sorted({r for r in results if results.count(r) > 1})[:5]))
         assert_functions()
         assert_catalog_wide()
@@ -855,10 +915,10 @@ def main():
     try:
         code = h.main(after_reset=check)
         if (code == 0 and len(report["runs"]) == 2 and report["runs"][0] == report["runs"][1]
-                and len(report['regressions_detected']) == 718 and report['sequence_restorations'] == 10
+                and len(report['regressions_detected']) == 772 and report['sequence_restorations'] == 10
                 and report['upgrade_runs'] == 2 and report['function_guard_runs'] == 4
                 and report['catalog_guard_runs'] == 4 and report['catalog_guard_red_runs'] == 4):
-            report.update(status="passed", cases_per_reset=2125, resets=2, matrix_equal=True, rollback_verified=True,
+            report.update(status="passed", cases_per_reset=2303, resets=2, matrix_equal=True, rollback_verified=True,
                           sql_sha256={name: hashlib.sha256((ROOT / 'tests/integration/security' / name).read_bytes()).hexdigest() for name, _, _, _ in SUITES},
                           harness_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
     except (RuntimeError, OSError, ValueError) as error:
