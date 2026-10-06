@@ -63,7 +63,8 @@ the signed-in person's own name greets them and is on every bazaar sale (Ethan c
 that before the bazaar; it was "Cine" or "Kristian"), and the owner sets her shop's name, her
 own name, how to reach her and the shop tagline under Shop texts, all empty until she does.
 One Manila clock: one module and one database function; the books CSV is on it. What it left
-open is in [system-audit.md](system-audit.md), section 9. Migration 55 is not on the trial yet.
+open is in [system-audit.md](system-audit.md), section 9. Migration 55 went onto the trial the
+same day, at Ethan's instruction ("migrate everything").
 
 **Package:** F2, the owner trial, stays open but does not start until everything in the
 plan is built (Ethan, 5 October). F3 (launch) stays closed until Cine accepts a real week.
@@ -77,8 +78,8 @@ plan is built (Ethan, 5 October). F3 (launch) stays closed until Cine accepts a 
 - **The private trial site** is live for owners only:
   <https://happy-cookie-owner-trial.admin-kethai.workers.dev>. Cloudflare Access sends an
   email code to two approved mailboxes. The shop is closed and the menu is unpublished.
-- **On the trial** (read 5 October; migration 54 added 6 October): 54 of the 55 migrations applied
-  (the 55th is B2's, below); 72 stock items, 26 flavours, 804 historical book lines, no orders.
+- **On the trial** (read 5 October; migrations 54 and 55 added 6 October): all 55 migrations
+  applied; 72 stock items, 26 flavours, 804 historical book lines, no orders.
 - **CI/CD:** a green push to `agent/codex/MP-04-g1-feasibility` redeploys the trial; a push
   that changes only documents does not. The last runs that completed were green (A1 and A2).
   **The two early 6 October pushes (A3 at `79b8e97`, A4 at `851e95e`) did not release:** GitHub
@@ -136,14 +137,15 @@ All in [decision-register.md](decision-register.md), the section for 5 October.
   `close_event` (no sales, no stock, nothing booked); the owner's idle time set to 480
   minutes through `save_setting`. Put the idle time back to 60 in Settings after the bazaar
   if wanted. No workflow applies migrations: the next one is again a step by hand.
-- **Migration 55** (`20260101005400_business_clock_shop_identity.sql`, slice B2) is not on the
-  trial. The app works without it: the Shop details fields show and cannot save, sentences
-  name nobody and the shop has no tagline. Say the word and it is applied the way 54 was, or
-  apply it by hand; the function hashes to check against are in
-  `tests/fixtures/function-authority.json`. Do it before the rehearsal, not after. Until
-  then every page load logs one 404 for `get_shop_identity` in the browser console: expected,
-  harmless, and checked locally in a browser with the two functions dropped (greeting and
-  sale name from the profile, Save shop details off with its notice, nothing else changes).
+- Done on the trial on 6 October, at Ethan's instruction ("migrate everything"), through the
+  database connector: migration `20260101005400_business_clock_shop_identity.sql` applied (55
+  of 55; it was the only one pending; its history row renamed to the repository's version
+  number). Read back: the three function bodies match the committed hashes, grants are as
+  pinned (`business_clock` has no browser grant, anyone reads `get_shop_identity`, only a
+  signed-in owner saves), the table has row security on, no policy, no API grant and no row,
+  and the clock answers the shared cases. The security advisor shows the new objects only in
+  the classes it already reports by design. Shop details now save; they are empty until set
+  (Sell, Shop, Shop texts).
 - **Display names.** From this deploy the app greets each person, and records each bazaar
   sale, under their profile's `display_name`. No form edits it yet (C6). Check yours, Cine's
   and each helper's before 20 October: Supabase dashboard, Table editor, `profiles`, or say
