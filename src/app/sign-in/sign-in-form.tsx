@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { returnPathFromSearch } from '@/lib/auth/return-path';
 import { clearIdleSpent } from '@/lib/auth/offline-trust';
+import { clearStaffName } from '@/lib/auth/staff-name';
 
 /**
  * Staff sign-in. Styled from the prototype's own control vocabulary — the same 44px
@@ -34,6 +35,8 @@ export function SignInForm() {
     }
     // A2: a session just signed in cannot have spent its idle time.
     clearIdleSpent();
+    // B2: nor is it the person this phone last remembered. Their name is read from the profile.
+    clearStaffName();
     router.replace(next);
   }
 

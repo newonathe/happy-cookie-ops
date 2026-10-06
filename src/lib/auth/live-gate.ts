@@ -3,6 +3,7 @@ import type { Database } from '@/lib/types/database';
 import type { Role } from '@/store/engine/ops-engine';
 import { clearStoredBooks } from '@/lib/data/live-state';
 import { clearIdleSpent, clearRememberedCheck } from '@/lib/auth/offline-trust';
+import { clearStaffName } from '@/lib/auth/staff-name';
 import { clearStallCopy } from '@/lib/offline/stall-copy';
 
 /** How long the logout call may take before the session is cleared by hand. */
@@ -138,6 +139,8 @@ export function hasStoredSession(): boolean {
 export async function signOutLocal(supabase: SupabaseClient<Database>): Promise<void> {
   clearStoredBooks();
   clearRememberedCheck();
+  // B2: the next person to sign in on this phone never sells under this one's name.
+  clearStaffName();
   clearStallCopy();
   // supabase-js puts no time limit on its logout call, and dead stall Wi-Fi still reports
   // online: unbounded, a sign-out could wait for ever with the session still on the phone. Past

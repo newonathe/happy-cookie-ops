@@ -188,6 +188,8 @@ export function LiveGate({
     const cfg = () => engine.state.cfg as Record<string, unknown> | undefined;
     // MP-09 c2: the payment methods and shop texts, read on every live page, signed in or not.
     if (engine instanceof OpsRuntime) void engine.loadShopPayment(supabase);
+    // Slice B2: the shop's own name, contact line and tagline, on every live page.
+    if (engine instanceof OpsRuntime) void engine.loadShopIdentity(supabase);
     // B2: the pickup rules, the checkout, "Find my order" and the waiting list, on every live page.
     if (engine instanceof OpsRuntime) void engine.loadShopOrders(supabase);
     // B3: the owner's ordering window and "close now" switch, so every page says open or closed as the server does.
@@ -284,6 +286,8 @@ export function LiveGate({
         idleRole = role;
         offlineRole = role;
         if (engine instanceof OpsRuntime) engine.restoreStallCopy();
+        // Slice B2: and the name this phone remembered for that role, for the sales it rings up.
+        if (engine instanceof OpsRuntime) engine.restoreStaffName(role);
         if (engine.state.role !== role) engine.setRole(role);
         if (engine.state.screen !== BAZAAR) engine.go(BAZAAR);
         setLanding(BAZAAR);
@@ -399,6 +403,11 @@ export function LiveGate({
       };
       if (engine instanceof OpsRuntime && role !== 'helper')
         void engine.loadOperationsHealth(supabase);
+      // Slice B2: the signed-in person's own name (the greeting, and who rang a sale up). Asked
+      // again at each later check until one read has answered: a stall on weak signal must not
+      // spend the day selling as "Helper" because the first try was lost.
+      if (engine instanceof OpsRuntime && engine.staffNameRole !== role)
+        void engine.loadStaffName(supabase, role);
       if (!settingsStarted) {
         settingsStarted = true;
         // First verified check only: re-checks (token refresh, tab visible again) must not

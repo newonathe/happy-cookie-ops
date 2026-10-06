@@ -140,6 +140,13 @@ export interface LiveScheduledRow {
   started: boolean;
 }
 
+export interface LiveShopIdentity {
+  shopName: string;
+  ownerName: string;
+  contactLine: string;
+  tagline: string;
+}
+
 export interface LiveShopTexts {
   registrationBadge: string;
   tinLine: string;
@@ -343,6 +350,11 @@ export interface OpsVals {
     online: boolean;
     texts: LiveShopTexts;
     save: (texts: LiveShopTexts) => void;
+    /** B2: the shop's own name, the owner's name, how to reach her and the shop tagline. */
+    identity: LiveShopIdentity;
+    /** False while the database cannot be read for them: the fields then show but cannot save. */
+    identityReady: boolean;
+    saveIdentity: (identity: LiveShopIdentity) => void;
     close: (event?: unknown) => void;
   } | null;
   /**
@@ -350,6 +362,10 @@ export interface OpsVals {
    * owner's own text; an empty string means the footer prints nothing for it.
    */
   shopFooter?: { badge: string; tin: string; invoice: string; allergens: string };
+  /** Live mode only (B2): the owner's own shop name, for the privacy line; '' means "this shop". */
+  shopName?: string;
+  /** Live mode only (B2, audit H5): the owner's own line under the shop heading; '' prints nothing. */
+  shopTagline?: string;
   /**
    * Live mode only (B2): the customer's checkout, "Find my order" and waiting list. Each is null
    * unless it is on screen, and undefined in demo, so the ported screens are unchanged.

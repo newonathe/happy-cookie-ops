@@ -1,5 +1,6 @@
 import type { OrderStatusView } from '@/lib/data/orders';
 import { ORDER_COPY } from '@/lib/orders/copy';
+import { contactOr, ownerOr, withContact } from '@/lib/orders/identity';
 import { clockLabel } from '@/lib/orders/pickup';
 import { formatManila } from '@/lib/time/business-clock';
 
@@ -11,7 +12,8 @@ import { formatManila } from '@/lib/time/business-clock';
  * are still true (the titles and bodies below that are not in `ORDER_COPY`). The ported "We have your
  * order and your payment proof" is not true here (an order is placed unpaid and proof stays in the
  * DMs), so the received state says something else. Every new line is in `ORDER_COPY.status`, marked
- * PLACEHOLDER until Cine words it.
+ * PLACEHOLDER until the owner words it. Where a ported sentence named her, it now asks
+ * `identity.ts` for her own name and contact line, or says it without one (audit H14).
  */
 export interface StatusCust {
   heroTitle: string;
@@ -92,14 +94,13 @@ export function statusCust(
     heroBody = S.cancelledBody;
   } else if (st === 'No-show') {
     heroTitle = 'You missed your slot';
-    heroBody =
-      'Nobody collected during your window. Message Cine on Instagram and she will sort out a new slot.';
+    heroBody = withContact('Nobody collected during your window.');
   } else if (st === 'Ready') {
     heroTitle = 'Your box is ready';
     heroBody = S.readyBody;
   } else if (st === 'Completed') {
     heroTitle = 'Collected — thank you';
-    heroBody = 'Enjoy them. If something was not right, message Cine and she will make it good.';
+    heroBody = withContact('Enjoy them.');
   } else {
     heroTitle = 'Payment confirmed';
     heroBody = 'Payment verified. Your cookies are in this weekend’s bake.';
@@ -115,7 +116,11 @@ export function statusCust(
           step('Order received', S.stepReceived, true, false),
           step(
             reached(0) ? 'Payment confirmed' : 'Payment',
-            reached(0) ? 'Confirmed by Cine' : lapsed ? S.stepLapsed : S.stepWaiting,
+            reached(0)
+              ? 'Confirmed by ' + ownerOr('the shop')
+              : lapsed
+                ? S.stepLapsed
+                : S.stepWaiting,
             reached(0),
             !reached(0) && !lapsed
           ),
@@ -134,7 +139,7 @@ export function statusCust(
           step(
             st === 'No-show' ? 'Missed collection' : 'Collected',
             st === 'No-show'
-              ? 'Message Cine for a new slot'
+              ? contactOr('Ask for a new slot')
               : reached(3)
                 ? 'Thank you'
                 : 'During your window',

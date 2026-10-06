@@ -6,11 +6,16 @@ import {
   DEFAULT_CFG,
   OpsProvider,
   PESO,
+  PESO2,
   PRODUCTS,
+  ROLES,
   replaceFlavours,
   replacePayAccounts
 } from '@/store/engine/ops-engine';
+import * as engineModule from '@/store/engine/ops-engine';
 import type { EventSale, OpsEngineProps, OpsEngineState, Role } from '@/store/engine/ops-engine';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import type { Database } from '@/lib/types/database';
 import { idb } from '@/lib/offline/idb';
 import {
   fetchOperationsHealth,
@@ -61,6 +66,7 @@ import { PaymentSync } from '@/lib/data/payment-sync';
 import {
   EXTRAS_KEY,
   StaffOrderSync,
+  type StaffOrder,
   type StaffOrderClient,
   type StaffOutcome
 } from '@/lib/data/staff-orders';
@@ -189,7 +195,18 @@ import {
   pickupTimes,
   waitlistRange
 } from '@/lib/orders/pickup';
-import { formatManila } from '@/lib/time/business-clock';
+import { formatManila, manilaHour, manilaMidnight, monthStart } from '@/lib/time/business-clock';
+import {
+  EMPTY_IDENTITY,
+  fetchShopIdentity,
+  identityFieldError,
+  saveShopIdentity,
+  type IdentityClient,
+  type IdentityFields,
+  type ShopIdentity
+} from '@/lib/data/shop-identity';
+import { ownerOr, setIdentityWords, withContact } from '@/lib/orders/identity';
+import { ROLE_WORD, cleanStaffName, readStaffName, rememberStaffName } from '@/lib/auth/staff-name';
 import { EMPTY_TEXTS, type PaymentClient, type UploadClient } from '@/lib/data/payments';
 import { resolveImagePath } from '@/lib/media/resolve-image';
 import { isLiveMode } from '@/lib/config/app-mode';
@@ -229,7 +246,8 @@ import {
   OFFLINE_OPEN_HOURS_MAX,
   OFFLINE_OPEN_HOURS_MIN,
   OFFLINE_OPEN_SETTING_KEY,
-  offlineOpenHoursFor
+  offlineOpenHoursFor,
+  readRememberedCheck
 } from '@/lib/auth/offline-trust';
 
 /**
@@ -271,8 +289,95 @@ type FlavourSheetState = {
   updatedAt?: string | null;
 };
 
+/** The ported people, kept so a demo runtime built after a live one shows them again. */
+const PORTED_ROLES = (Object.keys(ROLE_WORD) as Role[]).map((role) => ({
+  role,
+  label: ROLES[role].label,
+  who: ROLES[role].who
+}));
+function restorePortedRoles(): void {
+  for (const ported of PORTED_ROLES) {
+    ROLES[ported.role].label = ported.label;
+    ROLES[ported.role].who = ported.who;
+  }
+}
+
+type StaffClient = Pick<SupabaseClient<Database>, 'from' | 'auth'>;
+
+/**
+ * The engine reads `PRODUCTS[0]` on every render (Home's picture, a best-seller pick), so it
+ * cannot draw a shop that has no flavour yet. In live mode an empty list answers that one read
+ * with this blank entry, through the array's prototype: its length stays 0, so every list,
+ * count and loop over the menu is still empty. A list with flavours in it is not affected.
+ */
+const NO_FLAVOUR = Object.freeze({
+  id: '',
+  name: '',
+  short: '',
+  price: 0,
+  img: '',
+  kind: 'Permanent',
+  tag: '',
+  desc: ''
+});
+function letTheMenuBeEmpty(): void {
+  if (Object.getPrototypeOf(PRODUCTS) !== Array.prototype) return;
+  Object.setPrototypeOf(
+    PRODUCTS,
+    Object.create(Array.prototype, {
+      0: {
+        get: () => NO_FLAVOUR,
+        // Writing the first flavour makes it the list's own entry, as on any array.
+        set(this: unknown[], value: unknown) {
+          Object.defineProperty(this, 0, {
+            value,
+            writable: true,
+            enumerable: true,
+            configurable: true
+          });
+        }
+      }
+    })
+  );
+}
+
+/** Engine actions the live runtime replaces or calls: instance fields of the ported class. */
+type PortedActions = {
+  priceOf: (pid: string, priced?: Record<string, number> | null) => number;
+  previewCheckout: () => void;
+  previewStatus: () => void;
+  denyHelper: (what: string) => void;
+  custRequestCancel: () => void;
+  custTotal: () => number;
+  flatBox: () => number;
+  packFee: () => number;
+  cogsMult: () => number;
+  ingCost: (pid: string) => number;
+};
+
+/** What each role can open in the live app: fixed by design (final-plan.md, section 6.7). */
+const STAFF_ACCESS: Record<Role, { can: string; extra: string }> = {
+  owner: { can: 'Everything, including P&L, costs and margins', extra: '' },
+  helper: {
+    can: 'Home, the sales log and Bazaar Mode',
+    extra: 'No costs, expenses or profit anywhere in the app'
+  },
+  support: {
+    can: 'System health and notifications',
+    extra: 'No customer or financial browsing'
+  }
+};
+
+/** The engine's ledger window (`periodFrom`): what the P&L screen itself says it covers. */
+const PNL_PERIOD = 'Last 30 days';
+/** ISO weekday (Monday = 1) to the word Settings shows for a pickup day. */
+const PICKUP_DAY = ['', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+/** N11 (final-plan.md, 6.1): shown on a setting until the owner saves it once. */
+const DEFAULT_NOTE = 'Default, not confirmed yet.';
+
 const IDLE_ROWS: Array<{ role: Role; label: string }> = [
-  { role: 'owner', label: 'Sign Cine out after' },
+  // The owner's row is worded with her own name once she has set it (`liveRules`).
+  { role: 'owner', label: 'Sign the owner out after' },
   { role: 'support', label: 'Sign support out after' },
   { role: 'helper', label: 'Sign helpers out after' }
 ];
@@ -660,11 +765,50 @@ export class OpsRuntime extends OpsProvider {
       })().catch(() => undefined);
     };
     if (!isLiveMode()) {
+      restorePortedRoles();
       fillDemoCatalogue();
       return;
     }
     // MP-09 c2: live mode never shows the ported demo payment accounts, not even before the read.
     replacePayAccounts([]);
+    // B2: nor the prototype's people. Each role is its own word until the signed-in person's
+    // name is read from their profile (`loadStaffName`), or put back from this phone on a
+    // reopen with no signal (`restoreStaffName`). Sentences start with no owner or shop name.
+    for (const role of Object.keys(ROLE_WORD) as Role[]) this.nameRole(role, '');
+    setIdentityWords(null);
+    letTheMenuBeEmpty();
+    // The engine names three ported flavours in code (a pricing sample, the checkout preview)
+    // and one person in two toasts. With the owner's own menu those ids may not exist.
+    const ported = this as unknown as PortedActions;
+    const { priceOf } = ported;
+    ported.priceOf = (pid, priced) =>
+      PRODUCTS.some((p) => p.id === pid) || priced?.[pid] != null ? priceOf(pid, priced) : 0;
+    ported.previewCheckout = () => {
+      const s = this.state as { cust?: { box?: Record<string, number> }; dropActive?: object };
+      const onMenu = PRODUCTS.filter(
+        (p) => (s.dropActive as Record<string, boolean> | undefined)?.[p.id] !== false
+      ).slice(0, 3);
+      if (ported.custTotal() === 0 && onMenu.length)
+        this.setState({
+          cust: { ...s.cust, box: Object.fromEntries(onMenu.map((p) => [p.id, 2])) }
+        } as never);
+      this.go('checkout');
+    };
+    // The ported preview opens the newest order and throws when there is none.
+    const { previewStatus } = ported;
+    ported.previewStatus = () => {
+      const s = this.state as { cust?: { orderNo?: string }; orders?: unknown[] };
+      if (s.cust?.orderNo || s.orders?.length) previewStatus();
+      else this.go('status');
+    };
+    ported.denyHelper = (what) =>
+      this.toast('Only ' + ownerOr('the owner') + ' can ' + what + '.', 'warn');
+    // The ported request changed the prototype's local order and promised a refund by name.
+    // A live order is on the server and nothing here cancels it, so it says only that.
+    ported.custRequestCancel = () => {
+      this.closeSheet();
+      this.toast(withContact('An order cannot be cancelled from this page.'), 'warn');
+    };
     this.installOrderOverrides();
     this.installShopOverrides();
     // B4b: an order's total is what the server charged: its flavours at the prices it was sold at, plus the
@@ -1142,7 +1286,22 @@ export class OpsRuntime extends OpsProvider {
       online: () => this.state.online && (typeof navigator === 'undefined' || navigator.onLine),
       toast: (message, tone) => this.toast(message, tone)
     });
-    return this.flavourSync.load();
+    // B2: a shop whose menu is empty shows no flavour, not the engine's six ported ones. Only
+    // on an answered, empty read: then no record can name a flavour. While the read is out, or
+    // after it fails, the list in hand stays, because batches, baked stock and a running event
+    // name flavours and the engine cannot draw a name it does not hold (system-audit.md, R11).
+    const sync = this.flavourSync;
+    return sync.load().then((loaded) => {
+      if (loaded) return true;
+      if (!sync.readEmpty) return false;
+      // Never under a running event: a stall keeps the list it is selling from, whatever a
+      // read says. (A menu cannot be empty while an event names its flavours; this is the belt.)
+      const event = this.state.event as { stage?: string } | null | undefined;
+      if (event && event.stage !== 'closed') return true;
+      replaceFlavours([], {});
+      this.setState((s) => catalogueStatePatch([], {}, s));
+      return true;
+    });
   }
 
   /**
@@ -1167,6 +1326,316 @@ export class OpsRuntime extends OpsProvider {
       this.setState((s) => catalogueStatePatch(list, onMenu, s));
     }
     this.setState((s) => ({ cfg: { ...(s.cfg as Record<string, unknown>), ...copy.cfg } }));
+  }
+
+  // ------------------------------------------------------------------ B2: names and the shop's identity
+
+  /** The name each role is shown and recorded under in live mode; '' means the role word. */
+  private staffNames: Partial<Record<Role, string>> = {};
+  /**
+   * The role a profile read has answered for on this page load, or null. The gate asks again
+   * until it matches the verified role (a failed first try, or a role that changed since).
+   */
+  staffNameRole: Role | null = null;
+  get staffNameRead(): boolean {
+    return this.staffNameRole !== null;
+  }
+  /** The owner's read of every active staff profile (null until read, and for other roles). */
+  private staffRows: Array<{ name: string; role: Role }> | null = null;
+  private identity: ShopIdentity = EMPTY_IDENTITY;
+  /** False until `get_shop_identity()` has answered: a database without it cannot be saved to. */
+  private identityReady = false;
+  private identityClient: IdentityClient | null = null;
+
+  /**
+   * Sets what the engine calls a role, in place: the greeting, the account chip, "Rung up by"
+   * and the `clerk` on every bazaar sale all read `ROLES[role].label`. No engine edit: the
+   * object is one of its exports.
+   */
+  private nameRole(role: Role, name: string): void {
+    this.staffNames[role] = name;
+    ROLES[role].label = name || ROLE_WORD[role];
+    ROLES[role].who = name ? name + ' · ' + ROLE_WORD[role].toLowerCase() : ROLE_WORD[role];
+  }
+
+  /**
+   * A2 and B2: on a page load the server could not be reached for, the stall reopens under the
+   * name this phone remembered for the role it reopens as, so its sales still say who rang them
+   * up. Only there: an online load waits for the profile, because the person signing in may
+   * not be the one the phone remembers.
+   */
+  restoreStaffName(role: Role): void {
+    if (!isLiveMode()) return;
+    const remembered = readStaffName();
+    if (remembered?.role !== role) return;
+    this.nameRole(role, remembered.name);
+    this.forceUpdate();
+  }
+
+  /**
+   * Every live page reads the shop's own name, the owner's name, how to reach her and the
+   * tagline (`get_shop_identity()`, anon may execute it). Nothing read, a failed read, or a
+   * database that does not have the function yet all mean the same thing on screen: neutral
+   * wording and no tagline. Never a prototype value, and never an error.
+   */
+  async loadShopIdentity(client: IdentityClient | null): Promise<boolean> {
+    if (!isLiveMode() || !client) return false;
+    this.identityClient = client;
+    const read = await fetchShopIdentity(client);
+    this.identityReady = read.status === 'ok';
+    this.identity = read.status === 'ok' ? read.identity : EMPTY_IDENTITY;
+    setIdentityWords(read.status === 'ok' ? read.identity : null);
+    this.forceUpdate();
+    return read.status === 'ok';
+  }
+
+  /**
+   * The signed-in person's own name, from their profile (RLS lets everyone read their own row,
+   * and the owner every staff row, which is also the "Who can see what" list). Called by the
+   * gate after a verified check, never awaited by it. The name is cleaned to what a sale may
+   * carry and remembered on the phone for an offline reopen. A failed read changes nothing.
+   */
+  async loadStaffName(client: StaffClient | null, role: Role): Promise<boolean> {
+    if (!isLiveMode() || !client) return false;
+    try {
+      const { data: auth } = await client.auth.getSession();
+      const uid = auth.session?.user.id;
+      if (!uid) return false;
+      const { data, error } = await client
+        .from('profiles')
+        .select('id, display_name, role, active');
+      if (error || !data) return false;
+      // Signing out clears the remembered check first, and the gate remembers it before it
+      // calls this: a read that lands after a sign-out is dropped, not written back.
+      if (readRememberedCheck()?.role !== role) return false;
+      const name = cleanStaffName(data.find((row) => row.id === uid)?.display_name);
+      this.staffNameRole = role;
+      this.nameRole(role, name);
+      rememberStaffName(role, name);
+      this.staffRows =
+        role === 'owner'
+          ? data
+              .filter((row) => row.active && Object.hasOwn(ROLE_WORD, row.role))
+              .map((row) => ({ name: cleanStaffName(row.display_name), role: row.role as Role }))
+          : null;
+      this.forceUpdate();
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  private async saveIdentityForm(fields: IdentityFields): Promise<void> {
+    const client = this.identityClient;
+    if (!client || !this.identityReady) {
+      this.toast('Shop details cannot be saved here yet.', 'warn');
+      return;
+    }
+    const trimmed: IdentityFields = {
+      shopName: fields.shopName.trim(),
+      ownerName: fields.ownerName.trim(),
+      contactLine: fields.contactLine.trim(),
+      tagline: fields.tagline.trim()
+    };
+    const problem = identityFieldError(trimmed);
+    if (problem) {
+      this.toast(problem, 'warn');
+      return;
+    }
+    const result = await saveShopIdentity(client, trimmed, this.identity.updatedAt);
+    if (result.status === 'saved' || result.status === 'conflict') {
+      await this.loadShopIdentity(client);
+      if (result.status === 'saved') this.toast('Shop details saved.');
+      else this.toast('These were changed somewhere else. Check them and save again.', 'warn');
+      return;
+    }
+    this.toast(
+      result.status === 'offline' ? STAFF_COPY.offline : 'Those shop details were not accepted.',
+      'warn'
+    );
+  }
+
+  /** The orders being picked up today, on the shop's clock: the alert and Home's count. */
+  private pickupsToday(): StaffOrder[] {
+    const today = manilaToday();
+    return (this.orderSync?.current() ?? []).filter(
+      (o) => o.pickupDate === today && ['Confirmed', 'Preparing', 'Ready'].includes(o.state)
+    );
+  }
+
+  /**
+   * Audit C1: Home says "Profit this month" (ported, locked) over the engine's rolling 30
+   * days. In live mode the figure is the shop's calendar month to date, so the label is true.
+   * The engine's own sum is reused with its period start swapped for the call.
+   */
+  private monthTotals(s: OpsEngineState) {
+    const period = this as unknown as { periodFrom: (s: OpsEngineState) => number };
+    const ported = period.periodFrom;
+    const from = manilaMidnight(monthStart(manilaToday(Number(s.now))));
+    period.periodFrom = () => from;
+    try {
+      return this.pnlTotals(s) as { profit: number; revenue: number; totalExp: number };
+    } finally {
+      period.periodFrom = ported;
+    }
+  }
+
+  /** The engine's pricing example, worked on the owner's own menu (two each of her first three). */
+  private pricePreview(preview: OpsVals['priceModePreview']): OpsVals['priceModePreview'] {
+    if (!preview) return preview;
+    const e = this as unknown as PortedActions;
+    const sample = PRODUCTS.slice(0, 3) as Array<{ id: string; short: string }>;
+    const sum = sample.reduce((t, p) => t + e.priceOf(p.id) * 2, 0);
+    const mode = String((preview as { mode?: unknown }).mode ?? '');
+    const total =
+      mode === 'Flat price per box'
+        ? e.flatBox()
+        : mode === 'Menu prices + packaging fee'
+          ? sum + e.packFee()
+          : mode === 'Cookie cost × multiplier + packaging'
+            ? Math.round(
+                sample.reduce((t, p) => t + e.ingCost(p.id) * 2, 0) * e.cogsMult() + e.packFee()
+              )
+            : sum;
+    return {
+      ...preview,
+      items: sample.length ? sample.map((p) => '2 ' + p.short).join(' · ') : 'No flavours yet',
+      total: PESO2(total)
+    };
+  }
+
+  /** Home and Settings in live mode: every value a record or a setting, or not shown (H1 to H6). */
+  private liveFacts(starved: OpsVals): Partial<OpsVals> {
+    const s = this.state;
+    const role = s.role as Role;
+    const name = this.staffNames[role] ?? '';
+    const hour = manilaHour(Number(s.now));
+    const owner = ownerOr('the owner');
+    const flavours = { permanent: 0, rotating: 0 };
+    for (const p of PRODUCTS as Array<{ kind?: string }>)
+      if (p.kind === 'Rotating') flavours.rotating += 1;
+      else flavours.permanent += 1;
+    const suppliers = this.stockCatalogue?.suppliers.filter((sup) => sup.active).length;
+    const methods = this.paymentSync?.info?.methods.length;
+    const rules = this.orderFlow?.rules;
+    const staff = this.staffRows;
+    const count = (r: Role) => staff?.filter((row) => row.role === r).length ?? 0;
+    // The engine's own tone table: in its values, though not in the typed view model.
+    const tones =
+      (starved as { tone?: Record<string, { bg: string; fg: string; br: string }> }).tone ?? {};
+    const person = (row: { name: string; role: Role }) => {
+      const tone = tones[row.role === 'owner' ? 'brand' : row.role === 'helper' ? 'info' : 'mute'];
+      return {
+        name: row.name || ROLE_WORD[row.role],
+        role: ROLE_WORD[row.role],
+        can: STAFF_ACCESS[row.role].can,
+        extra: STAFF_ACCESS[row.role].extra,
+        bg: tone?.bg ?? '',
+        fg: tone?.fg ?? '',
+        br: tone?.br ?? ''
+      };
+    };
+    const month = starved.money ? this.monthTotals(s) : null;
+    const launcherSub = (label: unknown, sub: unknown): unknown =>
+      label === 'Profit & loss'
+        ? PNL_PERIOD
+        : label === 'Products'
+          ? PRODUCTS.length
+            ? flavours.permanent + ' permanent, ' + flavours.rotating + ' rotating'
+            : 'No flavours yet'
+          : label === 'Suppliers'
+            ? suppliers === undefined
+              ? ''
+              : suppliers + ' saved'
+            : label === 'Recipes' && !PRODUCTS.length
+              ? 'No flavours yet'
+              : sub;
+    const settingsRow = <T extends { label: unknown; value: unknown; go: unknown }>(row: T): T =>
+      row.label === 'Payment methods and proof rule'
+        ? {
+            ...row,
+            value: methods === undefined ? '' : plural(methods, 'method', 'methods') + ' on',
+            go: () => this.openPayments()
+          }
+        : row.label === 'Collection options'
+          ? {
+              ...row,
+              value: rules ? rules.pickupDays.map((d) => PICKUP_DAY[d]).join(', ') + ' pickup' : '',
+              go: () => void this.openOrderRules()
+            }
+          : row.label === 'Who can see what'
+            ? {
+                ...row,
+                value: staff
+                  ? [
+                      plural(count('owner'), 'owner', 'owners'),
+                      plural(count('helper'), 'helper', 'helpers')
+                    ].join(', ')
+                  : ''
+              }
+            : row.label === 'Technical support access'
+              ? {
+                  ...row,
+                  value: staff
+                    ? staff
+                        .filter((r) => r.role === 'support')
+                        .map((r) => r.name || ROLE_WORD.support)
+                        .join(', ') || 'None'
+                    : ''
+                }
+              : row.label === 'Recipes and versions' && !PRODUCTS.length
+                ? { ...row, value: 'None yet' }
+                : row;
+    return {
+      greeting:
+        (hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening') +
+        (name ? ', ' + name : '') +
+        '.',
+      todayDate:
+        formatManila(Number(s.now), { weekday: 'long' }) +
+        ', ' +
+        formatManila(Number(s.now), { day: 'numeric' }) +
+        ' ' +
+        formatManila(Number(s.now), { month: 'short' }),
+      ...(role === 'support'
+        ? {}
+        : {
+            deniedTitle: 'Only ' + owner + ' can open this',
+            deniedText:
+              'This screen holds costs, expenses or settings. Ask ' +
+              owner +
+              ' if you need something from it.'
+          }),
+      statusStrip: (starved.statusStrip ?? []).map((cell) =>
+        cell.label === 'Pickups'
+          ? { ...cell, value: this.orderSync?.loaded ? String(this.pickupsToday().length) : '—' }
+          : cell
+      ),
+      money:
+        starved.money && month
+          ? {
+              ...starved.money,
+              profitNum: this.num(month.profit, '₱'),
+              revenueText: PESO(month.revenue),
+              expenseText: PESO(month.totalExp)
+            }
+          : starved.money,
+      launcher: (starved.launcher ?? []).map((group) => ({
+        ...group,
+        items: group.items.map((item) => ({ ...item, sub: launcherSub(item.label, item.sub) }))
+      })) as OpsVals['launcher'],
+      settingsGroups: (starved.settingsGroups ?? []).map((group) => ({
+        ...group,
+        rows: group.rows.filter((row) => row.label !== 'Google Form bridge').map(settingsRow)
+      })),
+      // The ported sheets behind those rows: never the prototype's accounts or people.
+      payChannels: [],
+      users: (staff ?? []).map(person) as OpsVals['users'],
+      shopTagline: this.identity.tagline,
+      shopName: this.identity.shopName,
+      // The pricing sheet's worked example: her own first three flavours, not three ported ones.
+      priceModePreview: this.pricePreview(starved.priceModePreview)
+    };
   }
 
   /**
@@ -1439,6 +1908,51 @@ export class OpsRuntime extends OpsProvider {
     if (s.backup !== backup) this.setState({ backup });
   }
 
+  /**
+   * The engine works out the open recipe on every render and needs a flavour to do it. With no
+   * flavour at all (an empty menu), it is given the blank one for the call, and the recipe it
+   * returns says so instead of showing a version, a yield and a cost nobody entered.
+   */
+  recipeVals(s: OpsEngineState, isDesktop: boolean, isTablet: boolean): Record<string, unknown> {
+    const ported = (
+      OpsProvider.prototype as unknown as {
+        recipeVals: (s: OpsEngineState, d: boolean, t: boolean) => Record<string, unknown>;
+      }
+    ).recipeVals;
+    if (!isLiveMode() || PRODUCTS.some((p) => p.id === s.recipeOpen))
+      return ported.call(this, s, isDesktop, isTablet);
+    // The engine's by-id table: one of its exports, though not in its type file.
+    const flavours = (engineModule as unknown as { P: Record<string, unknown> }).P;
+    const blank = { yield: 1, ing: [] };
+    flavours[''] = NO_FLAVOUR;
+    try {
+      const vals = ported.call(
+        this,
+        {
+          ...s,
+          recipeOpen: '',
+          recipes: { ...(s.recipes as object), '': blank },
+          recipeBase: { ...(s.recipeBase as object), '': blank },
+          recipeVer: { ...(s.recipeVer as object), '': 1 }
+        } as OpsEngineState,
+        isDesktop,
+        isTablet
+      );
+      return {
+        ...vals,
+        recipe: {
+          ...(vals.recipe as object),
+          version: '',
+          yieldText: 'No flavours yet',
+          costText: '',
+          perBall: ''
+        }
+      };
+    } finally {
+      delete flavours[''];
+    }
+  }
+
   /** The inherited screens and badges call this method; demo uses the original implementation. */
   notifs(s: OpsEngineState): LiveAlert[] {
     if (!isLiveMode())
@@ -1492,9 +2006,7 @@ export class OpsRuntime extends OpsProvider {
       .sort((a, b) => b.placedAt - a.placedAt)[0];
     if (newest) add('New order', 'orders', 'New order ' + newest.id, newest.name, 'info');
     const today = manilaToday();
-    const pickups = orders.filter(
-      (o) => o.pickupDate === today && ['Confirmed', 'Preparing', 'Ready'].includes(o.state)
-    );
+    const pickups = this.pickupsToday();
     if (pickups.length)
       add(
         'Pickup reminder',
@@ -1563,8 +2075,10 @@ export class OpsRuntime extends OpsProvider {
             .flatMap((group) => group.items)
             .map(healthTool)
         : null;
+    const facts = this.liveFacts(starved);
     return {
       ...starved,
+      ...facts,
       bareFrame: true,
       showFlowStrip: false,
       flow: null,
@@ -1584,7 +2098,7 @@ export class OpsRuntime extends OpsProvider {
           })),
       ...this.liveDock(starved, ownerTools),
       // Home's grid and the Settings row word the engine's `backup` flag; say what was recorded instead.
-      launcher: (starved.launcher ?? []).map((group) => ({
+      launcher: (facts.launcher ?? []).map((group) => ({
         ...group,
         items: group.items.map((item) =>
           item.label === 'System health'
@@ -1594,7 +2108,7 @@ export class OpsRuntime extends OpsProvider {
               : item
         )
       })),
-      settingsGroups: (starved.settingsGroups ?? []).map((group) => ({
+      settingsGroups: (facts.settingsGroups ?? []).map((group) => ({
         ...group,
         rows: group.rows.map((row) =>
           row.label === 'Backups and export' ? { ...row, value: health.healthTitle } : row
@@ -1718,7 +2232,7 @@ export class OpsRuntime extends OpsProvider {
       const minutes = idleMinutesFor(role, cfg);
       return {
         k,
-        label,
+        label: role === 'owner' ? 'Sign ' + ownerOr('the owner') + ' out after' : label,
         value: minutes,
         valueText: plural(minutes, 'minute', 'minutes') + ' idle',
         note: 'With no taps for this long, the device signs out. 15 minutes to 8 hours.',
@@ -1770,7 +2284,12 @@ export class OpsRuntime extends OpsProvider {
           OFFLINE_OPEN_HOURS_MAX
         )
     };
-    return [...rules, ...idle, offlineOpen, helperTotals];
+    // N11: a value she has never saved is the database's default, and says so until she does.
+    return [...rules, ...idle, offlineOpen, helperTotals].map((row) =>
+      this.settingsSync?.isDefault(String((row as { k?: unknown }).k))
+        ? { ...row, note: DEFAULT_NOTE + ' ' + String(row.note ?? '') }
+        : row
+    );
   }
 
   // ------------------------------------------------------------------ B3: the shop's open state
@@ -3954,14 +4473,14 @@ export class OpsRuntime extends OpsProvider {
               {
                 icon: this.IC.cookie,
                 label: 'Payment methods',
-                sub: 'GCash, Maya, bank: numbers and QR codes',
+                sub: 'Each way to pay: numbers and QR codes',
                 badge: null,
                 go: () => this.openPayments()
               },
               {
                 icon: this.IC.cookie,
                 label: 'Shop texts',
-                sub: 'Shop footer: registration, TIN, invoice, allergens',
+                sub: 'Shop name, contact line, tagline and footer',
                 badge: null,
                 go: () => void this.openShopTexts()
               },
@@ -4850,6 +5369,14 @@ export class OpsRuntime extends OpsProvider {
         allergenNote: texts.allergen_note
       },
       save: (t: LiveShopTexts) => void this.saveTextsForm(t, sh.updatedAt ?? null),
+      identity: {
+        shopName: this.identity.shopName,
+        ownerName: this.identity.ownerName,
+        contactLine: this.identity.contactLine,
+        tagline: this.identity.tagline
+      },
+      identityReady: this.identityReady,
+      saveIdentity: (fields: IdentityFields) => void this.saveIdentityForm(fields),
       close: () => this.closeSheet()
     };
   }

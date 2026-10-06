@@ -108,6 +108,12 @@ export class SettingsSync {
     return true;
   }
 
+  /** True for a key that was read and has never been saved: its value is the database's default. */
+  isDefault(key: string): boolean {
+    const saved = this.saved.get(key);
+    return !!saved && saved.updatedAt === null;
+  }
+
   /** Called after any engine action that may have changed the setting `key`. */
   queue(key: string): void {
     if (!(key in SETTING_COLUMNS)) return;

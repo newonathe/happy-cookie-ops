@@ -1,6 +1,6 @@
 /**
  * Every sentence the owner's order screens say that the ported prototype did not (B3): the
- * toasts for the paid tick, packing, swaps and refunds, and the texts Cine copies to a customer.
+ * toasts for the paid tick, packing, swaps and refunds, and the texts the owner copies to a customer.
  * One place, so she can sign each one off.
  *
  * PLACEHOLDER — every line below needs the owner's wording (listed in docs/state/current.md).
@@ -8,6 +8,8 @@
  * sentences. They are plain and short on purpose: a plausible invention nobody reviewed is
  * worse than a stiff line she can see and replace.
  */
+import { ownerOr } from '@/lib/orders/identity';
+
 export const STAFF_COPY = {
   offline: 'Offline. That did not save.',
   conflict: 'Someone else changed this order just now. Showing their version.',
@@ -149,7 +151,9 @@ export const STOCK_COPY = {
     'Enter the price for one pack of the size set on the item under Stock items. Two suppliers selling one item in different pack sizes are not supported yet.',
   movementNotSaved:
     'Not confirmed: the connection dropped, so that stock change may or may not have gone through. Check the quantity, then repeat it exactly: the database will not count the same entry twice.',
-  ownerOnly: 'Only Cine can change stock.',
+  get ownerOnly(): string {
+    return 'Only ' + ownerOr('the owner') + ' can change stock.';
+  },
   someSaved: (saved: number, total: number) =>
     saved + ' of ' + total + ' counts saved. The rest are still on the count sheet.',
   itemAddedNoOpening:
@@ -169,7 +173,9 @@ export const STOCK_COPY = {
 
 /** PLACEHOLDER wording (C2): mixing dough, baking and packing take stock off on the database. */
 export const PRODUCTION_COPY = {
-  ownerOnly: 'Only Cine can record baking, dough and packing.',
+  get ownerOnly(): string {
+    return 'Only ' + ownerOr('the owner') + ' can record baking, dough and packing.';
+  },
   notSaved:
     'Not confirmed: the connection dropped, so this may or may not have been recorded. Check the stock, then repeat it exactly: the database will not count the same entry twice.',
   refused:
@@ -229,7 +235,9 @@ export const BOOKS_COPY = {
     ' closed. Its paid orders are already in your P&L. Drop ' +
     next +
     ' is open for orders.',
-  ownerOnly: 'Only Cine can change the books.'
+  get ownerOnly(): string {
+    return 'Only ' + ownerOr('the owner') + ' can change the books.';
+  }
 } as const;
 
 export const SCHEDULED_COPY = {

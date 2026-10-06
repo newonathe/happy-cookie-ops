@@ -120,8 +120,8 @@ const when = (value: string) =>
  */
 export const SETUP_PENDING_COPY = {
   title: 'No backup has run yet',
-  sub: 'A set-up task for Ethan, not for the kitchen: none of the four checks below has recorded a run, so the data is not backed up yet. Once they are switched on, their first run must show up here.',
-  home: 'A set-up task for Ethan, not for the kitchen.'
+  sub: 'A set-up task for the operator, not for the kitchen: none of the four checks below has recorded a run, so the data is not backed up yet. Once they are switched on, their first run must show up here.',
+  home: 'A set-up task for the operator, not for the kitchen.'
 } as const;
 
 /** A health read is trusted for this long; older than this, nothing is claimed from it. */

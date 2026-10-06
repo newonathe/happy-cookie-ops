@@ -99,8 +99,12 @@ describe('signOutLocal: a logout call that hangs', () => {
       }
     } as unknown as SupabaseClient<Database>;
     const { signOutLocal, SIGN_OUT_LIMIT_MS } = await import('@/lib/auth/live-gate');
+    // B2: the name this phone remembered for its sales goes at once, before anything that can
+    // hang, so the next person to sign in never sells under it.
+    window.localStorage.setItem('hc-live-staff-name', '{"role":"helper","name":"Tomas"}');
 
     const done = signOutLocal(supabase);
+    expect(window.localStorage.getItem('hc-live-staff-name')).toBeNull();
     await vi.advanceTimersByTimeAsync(SIGN_OUT_LIMIT_MS - 1);
     expect(document.cookie).toContain('sb-local-auth-token');
     await vi.advanceTimersByTimeAsync(2);

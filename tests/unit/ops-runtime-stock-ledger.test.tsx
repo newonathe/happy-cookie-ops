@@ -446,7 +446,8 @@ describe('C1: the ported stock actions record movements (live mode)', () => {
     const h = await mounted('helper', fresh());
     act(() => acts(h.runtime).adjustInv('Unsalted butter', 5, 1));
     await settle();
-    expect(msg(h.runtime)).toContain('Only Cine');
+    // No name is set in this shop, so the sentence names nobody (audit H14).
+    expect(msg(h.runtime)).toBe('Only the owner can change stock.');
     cleanup();
   });
 

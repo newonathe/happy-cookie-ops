@@ -126,7 +126,10 @@ describe('B3: the shop’s open state from the server (live mode)', () => {
     render(<OpsRuntime ref={(r) => void (ref.current = r)} />);
     const runtime = ref.current!;
     act(() => runtime.setRole('owner'));
-    (runtime as unknown as { settingsSync: unknown }).settingsSync = { dispose: () => undefined };
+    (runtime as unknown as { settingsSync: unknown }).settingsSync = {
+      dispose: () => undefined,
+      isDefault: () => false
+    };
     const f = fake({ status: status({ override: 'closed' }) });
     await act(async () => {
       await runtime.loadShopStatus(f.client);

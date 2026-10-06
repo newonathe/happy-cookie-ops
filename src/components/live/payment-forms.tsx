@@ -214,6 +214,78 @@ export function ShopTextsForm({ liveTexts }: { liveTexts: LiveTexts }) {
       <input name={name} defaultValue={value} maxLength={max} style={inputStyle} />
     </label>
   );
+  // B2: how the shop names itself. Saved on its own, so the footer lines below are untouched.
+  const onIdentity = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    liveTexts.saveIdentity({
+      shopName: fieldValue(form, 'shopName'),
+      ownerName: fieldValue(form, 'ownerName'),
+      contactLine: fieldValue(form, 'contactLine'),
+      tagline: fieldValue(form, 'tagline')
+    });
+  };
+  const own = (name: string, label: string, value: string, max: number) => (
+    <label style={labelStyle}>
+      <span style={smallLabel}>{label}</span>
+      <input name={name} defaultValue={value} maxLength={max} style={inputStyle} />
+      {value === '' ? (
+        <span style={{ fontSize: '11px', color: '#66524A' }}>
+          Not set: the app uses neutral wording.
+        </span>
+      ) : null}
+    </label>
+  );
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+      <form
+        // Remount when a save or a reload brings new values: the inputs are uncontrolled.
+        key={Object.values(liveTexts.identity).join('\u0000')}
+        onSubmit={onIdentity}
+        style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}
+      >
+        <span style={{ fontSize: '13px', fontWeight: '600' }}>Shop details</span>
+        <span style={{ fontSize: '11px', color: '#66524A' }}>
+          How the shop names itself in the app and to customers. Nothing is filled in for you: an
+          empty line means the app says it without a name.
+        </span>
+        {own('shopName', 'Shop name', liveTexts.identity.shopName, 60)}
+        {own(
+          'ownerName',
+          'Your name, as customers and helpers read it',
+          liveTexts.identity.ownerName,
+          40
+        )}
+        {own(
+          'contactLine',
+          'How to reach you: one full sentence, added to messages such as “This order is cancelled.”',
+          liveTexts.identity.contactLine,
+          160
+        )}
+        {own('tagline', 'The line under the shop heading', liveTexts.identity.tagline, 120)}
+        {!liveTexts.identityReady ? (
+          <span style={{ fontSize: '12px', color: '#A8231B' }}>
+            Shop details cannot be saved here yet.
+          </span>
+        ) : null}
+        <button type="submit" disabled={!liveTexts.identityReady} style={primaryButton}>
+          Save shop details
+        </button>
+      </form>
+      <ShopFooterForm liveTexts={liveTexts} onSubmit={onSubmit} field={field} />
+    </div>
+  );
+}
+
+function ShopFooterForm({
+  liveTexts,
+  onSubmit,
+  field
+}: {
+  liveTexts: LiveTexts;
+  onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
+  field: (name: string, label: string, value: string, max: number) => React.ReactNode;
+}) {
   return (
     <form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
       {!liveTexts.online ? (

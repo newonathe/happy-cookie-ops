@@ -135,7 +135,7 @@ describe('F1 live health and alerts', () => {
       bad: false,
       pending: true,
       label: 'No backup has run yet',
-      detail: 'A set-up task for Ethan, not for the kitchen.'
+      detail: 'A set-up task for the operator, not for the kitchen.'
     });
     expect(item(vals, 'System health')).toMatchObject({
       sub: 'No backup has run yet',
@@ -269,8 +269,8 @@ describe('F1 live health and alerts', () => {
     );
     // The card: its label sits right above the one-line detail. (Home's grid repeats the label.)
     expect(
-      screen.getByText('A set-up task for Ethan, not for the kitchen.').previousElementSibling
-        ?.textContent
+      screen.getByText('A set-up task for the operator, not for the kitchen.')
+        .previousElementSibling?.textContent
     ).toBe('No backup has run yet');
     expect(red()).toBeNull();
     expect(screen.queryByText('System all good')).toBeNull();
@@ -373,7 +373,8 @@ describe('F1 live health and alerts', () => {
     });
     expect(toast).toHaveBeenCalledWith(expect.stringContaining('Please contact'), 'warn');
     expect(toast).not.toHaveBeenCalledWith(expect.stringContaining('Message sent'));
-    expect(screen.getByText(/Privacy: The Happy Cookie/)).toBeTruthy();
+    // No shop name is set here, so the privacy line names none (slice B2).
+    expect(screen.getByText(/Privacy: This shop uses your name/)).toBeTruthy();
   });
   it('loads real status and a failed subsequent request removes the healthy headline', async () => {
     const runtime = mount();

@@ -1,8 +1,12 @@
 import { DROP_CLOSED_MESSAGE } from '@/lib/rules/capacity';
+import { ownerOr, withContact } from '@/lib/orders/identity';
 
 /**
  * Every sentence the live checkout, lookup, waitlist and status page say that the ported
- * prototype did not. One place, so Cine can sign each one off.
+ * prototype did not. One place, so the owner can sign each one off.
+ *
+ * No line names the owner or the shop (audit H14): the few that say who acts or how to reach
+ * the shop are getters that ask `identity.ts`, which holds her own words or neutral ones.
  *
  * SIGNED OFF: `closed` (`DROP_CLOSED_MESSAGE`, verbatim from the prototype) and the ported
  * sentences the status page keeps (they are reused in `status-view.ts`, not copied here).
@@ -53,10 +57,15 @@ export const ORDER_COPY = {
   status: {
     receivedHeld: (method: string, when: string): string =>
       `We have your order. Send payment with ${method}; the order is held until ${when}.`,
-    receivedNoHold: 'We have your order. Cine will confirm your payment.',
-    lapsed:
-      'This order was not paid in time, so its slots were released. Message Cine on Instagram if you still want it.',
-    cancelledBody: 'This order is cancelled. Message Cine on Instagram if you have any questions.',
+    get receivedNoHold(): string {
+      return 'We have your order. ' + ownerOr('We') + ' will confirm your payment.';
+    },
+    get lapsed(): string {
+      return withContact('This order was not paid in time, so its slots were released.');
+    },
+    get cancelledBody(): string {
+      return withContact('This order is cancelled.');
+    },
     readyBody: 'Packed and waiting for your pickup window.',
     stepReceived: 'We have your order',
     stepWaiting: 'Waiting for your payment',
@@ -65,14 +74,17 @@ export const ORDER_COPY = {
     stepReady: 'Ready for your pickup window',
     stepAddress: 'We send the exact address the morning of your slot',
     stepCampus: 'At the campus pickup slot'
-  } as const,
-  lookupMiss:
-    'Nothing matches that. Check the number, or message Cine on Instagram and she will look it up.',
+  },
+  get lookupMiss(): string {
+    return withContact('Nothing matches that. Check the number.');
+  },
   lookupError: 'We could not look that up. Check your connection and try again.',
   statusError: 'We could not load your order. Check your connection and reload.',
   statusMissing:
     'We could not find that order. Use "Find my order" with your order number and mobile number.',
-  waitlistDone: 'You are on the waiting list. Cine will message you.',
+  get waitlistDone(): string {
+    return 'You are on the waiting list. ' + ownerOr('We') + ' will message you.';
+  },
   needName: 'We need a name for the box.',
   needIg: 'Add your Instagram handle, like @yourhandle.',
   badIg: 'That Instagram handle does not look right.',
@@ -83,7 +95,9 @@ export const ORDER_COPY = {
   needItems: 'Pick at least one cookie.',
   payHelp:
     'Pick how you will pay. You pay after you place the order, to the account you pick; there is nothing to attach here.',
-  noMethods: 'No payment method is set up yet. Message Cine on Instagram to order.',
+  get noMethods(): string {
+    return withContact('No payment method is set up yet.');
+  },
   noDates: 'There are no pickup dates open right now.',
   qrNote: 'Scan this to pay after you place your order.',
   pickupLine: (when: string): string => `Pickup ${when}`,

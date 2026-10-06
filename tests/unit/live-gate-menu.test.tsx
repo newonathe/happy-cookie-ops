@@ -18,6 +18,8 @@ const { FakeRuntime } = vi.hoisted(() => ({
     loadFlavours = vi.fn();
     loadShopMenu = vi.fn();
     loadShopPayment = vi.fn();
+    loadShopIdentity = vi.fn();
+    loadStaffName = vi.fn();
     loadShopOrders = vi.fn();
     loadOrders = vi.fn();
     reloadOrders = vi.fn();

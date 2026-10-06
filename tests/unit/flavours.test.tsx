@@ -297,6 +297,34 @@ describe('MP-09 c1: flavours from the database', () => {
     expect(rpc).toHaveBeenCalledTimes(1);
   });
 
+  it('shows an empty menu as empty, never as the ported six; a failed read changes nothing (B2)', async () => {
+    const ref: { current: OpsRuntime | null } = { current: null };
+    render(<OpsRuntime ref={(r) => void (ref.current = r)} />);
+    const runtime = ref.current!;
+    expect(PRODUCTS.length).toBe(6); // what the engine holds before any read
+    let answer!: (value: { data: unknown; error: unknown }) => void;
+    const rpc = vi.fn(() => new Promise((resolve) => void (answer = resolve)));
+    let read!: Promise<boolean>;
+    act(() => void (read = runtime.loadFlavours({ rpc } as unknown as FlavoursClient)));
+    // While the read is out, and after it fails, the list in hand stays: other records
+    // already on the phone name flavours, and the engine cannot draw a name it does not hold.
+    expect(PRODUCTS.length).toBe(6);
+    await act(async () => {
+      answer({ data: null, error: { code: '', message: 'network' } });
+      expect(await read).toBe(false); // failed: the gate reads no orders
+    });
+    expect(PRODUCTS.length).toBe(6);
+    // An answered, empty menu is not a failure: it shows no flavour, and the rest still loads.
+    const empty = vi.fn(async () => ({ data: [], error: null }));
+    await act(async () => {
+      expect(await runtime.loadFlavours({ rpc: empty } as unknown as FlavoursClient)).toBe(true);
+    });
+    expect(PRODUCTS).toEqual([]);
+    expect(Object.keys(onMenu(runtime))).toEqual([]);
+    // Mutation: leaving the engine's list in place shows six flavours the shop never entered.
+    // Mutation: clearing on a failed read crashes every screen that lists a batch already loaded.
+  });
+
   it('keeps the loaded flavours state through the live Settings reset', async () => {
     const { runtime } = await mounted();
     act(() => runtime.resetData());

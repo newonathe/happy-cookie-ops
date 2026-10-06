@@ -87,6 +87,8 @@ const till = () => net.engine as Till;
 
 const LOADERS = [
   'loadShopPayment',
+  'loadShopIdentity',
+  'loadStaffName',
   'loadShopOrders',
   'loadShopStatus',
   'loadShopMenu',

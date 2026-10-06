@@ -75,6 +75,18 @@ did not. Now:
   token or a password. It also keeps a copy of the flavour list and five settings
   (`hc-live-stall`: the two quick discounts, the cash float, the helper-totals switch and
   the hours), because the live app otherwise has neither after a reload.
+- **Who rang a sale up** (slice B2, 6 October 2026). Each sale carries the signed-in person's
+  own name, from their profile, in place of the prototype's "Cine" and "Kristian". The phone
+  remembers that name and its role under one more key (`hc-live-staff-name`), so a stall that
+  reopens with no signal still records it; the two keys above keep their shape. Until a name
+  is known the role word is used ("Owner", "Helper"). The name is cleaned to what
+  `record_event_sale` accepts (plain text, 40 characters at most), so it can never make the
+  server refuse a sale. A sale already queued keeps the name it was made with. The next
+  person on the phone never sells under the last one's name: signing out removes it, with
+  the remembered check; so does every sign-in, because people also leave by closing the tab;
+  only the reopen with no signal puts it back, and an online load waits for the profile
+  (asked again at each check until it answers); a profile read that lands after a sign-out
+  is dropped.
 - **Reconnecting.** The full check runs when the phone comes back online, when the app comes
   back to the front, and once a minute while the server has not answered. A pass reopens the
   whole app and sends the queue. A definite denial signs out as before. No lock-out touches

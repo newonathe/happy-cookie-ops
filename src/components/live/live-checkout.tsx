@@ -572,7 +572,7 @@ export function LiveLookup({ v }: { v: OpsVals }) {
         <input
           value={orderNo}
           onChange={(e) => setOrderNo(e.target.value)}
-          placeholder="HC-1042"
+          placeholder="Order number"
           style={inputStyle}
         />
       </label>

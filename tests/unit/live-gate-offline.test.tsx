@@ -115,6 +115,8 @@ const sheetKind = () => (till().state.sheet as { kind?: string } | null)?.kind;
 /** Reads from the server that this test does not exercise: each answers "nothing read". */
 const LOADERS = [
   'loadShopPayment',
+  'loadShopIdentity',
+  'loadStaffName',
   'loadShopOrders',
   'loadShopStatus',
   'loadShopMenu',

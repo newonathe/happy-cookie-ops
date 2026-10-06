@@ -308,15 +308,24 @@ export class FlavourSync {
     return [...this.rows.values()];
   }
 
+  /** True when the last read was answered and held no flavour: an empty menu, not a failed read. */
+  readEmpty = false;
+
   /** False if the read failed or returned nothing; the engine keeps its list. */
   async load(): Promise<boolean> {
     let rows: FlavourRow[];
+    this.readEmpty = false;
     try {
       rows = await fetchFlavours(this.client);
     } catch {
       return false;
     }
-    if (!rows.length) return false;
+    if (!rows.length) {
+      // Answered, with nothing in it. Still not `loaded`: publishing or adding from an empty
+      // cache stays refused (the c1c review's P0), but the screens may say "no flavours".
+      this.readEmpty = true;
+      return false;
+    }
     this.rows.clear();
     for (const row of rows) this.rows.set(row.id, row);
     this.loaded = true;

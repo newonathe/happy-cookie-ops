@@ -1,3 +1,4 @@
+import { yourOrder } from '@/lib/orders/identity';
 import type { MessageKind } from './types';
 
 /**
@@ -12,7 +13,7 @@ import type { MessageKind } from './types';
  */
 const TEMPLATES: Record<MessageKind, (vars: Record<string, string>) => string> = {
   pickup_ready: (v) =>
-    `Hi ${v.name}! Your Happy Cookie order ${v.orderId} is ready. ` +
+    `Hi ${v.name}! ${yourOrder()} ${v.orderId} is ready. ` +
     `Pick up ${v.window} at ${v.place}. Reply here if you need another time.`
 };
 
