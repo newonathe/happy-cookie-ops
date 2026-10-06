@@ -30,7 +30,8 @@ ORDER_MIGRATIONS = [ROOT / 'supabase/migrations/20260101003500_place_order.sql',
                     ROOT / 'supabase/migrations/20260101004700_production.sql',
                     ROOT / 'supabase/migrations/20260101004800_production_discard.sql',
                     ROOT / 'supabase/migrations/20260101004900_books.sql',
-                    ROOT / 'supabase/migrations/20260101005000_operations.sql']
+                    ROOT / 'supabase/migrations/20260101005000_operations.sql',
+                    ROOT / 'supabase/migrations/20260101005400_business_clock_shop_identity.sql']
 _OUT = 'order outcome differs: anon / '
 _CHK = 'order check differs: anon / '
 _LOOK = 'lookup check differs: anon / '
@@ -452,7 +453,7 @@ OPERATIONS_MUTATIONS = {
 
 def order_mutant(name):
     """The migration's one function, changed in exactly one place, as SQL to run inside the suite."""
-    function, kind, argument, _ = (ORDER_MUTATIONS | LOOKUP_MUTATIONS | STAFF_MUTATIONS | SHOP_MUTATIONS | EXTRAS_MUTATIONS | SCHEDULED_MUTATIONS | STOCK_MUTATIONS | RECIPE_MUTATIONS | LEDGER_MUTATIONS | PRODUCTION_MUTATIONS | BOOKS_MUTATIONS | OPERATIONS_MUTATIONS)[name]
+    function, kind, argument, _ = (ORDER_MUTATIONS | LOOKUP_MUTATIONS | STAFF_MUTATIONS | SHOP_MUTATIONS | EXTRAS_MUTATIONS | SCHEDULED_MUTATIONS | STOCK_MUTATIONS | RECIPE_MUTATIONS | LEDGER_MUTATIONS | PRODUCTION_MUTATIONS | BOOKS_MUTATIONS | OPERATIONS_MUTATIONS | IDENTITY_RULES)[name]
     marker = 'create or replace function public.' + function + '('
     text = [m.read_text(encoding='utf-8') for m in ORDER_MIGRATIONS if marker in m.read_text(encoding='utf-8')][-1]
     start = text.index('create or replace function public.' + function + '(')
@@ -469,6 +470,24 @@ def order_mutant(name):
     return block
 
 
+# B2: shop identity and the business clock. The ACL mutants are the generic grant-to-anon ones; this
+# one restores a raw table grant plus a policy, which the helper's table read must catch.
+IDENTITY_MUTATIONS = {
+    'identity_table_raw_write': ("grant select, insert, update, delete on public.shop_identity to authenticated; create policy \"leak\" on public.shop_identity for all to authenticated using (true) with check (true);",
+                                 'forbidden identity call succeeded: active_helper / identity_table_select'),
+}
+# The tagged refusals of save_shop_identity. `identity-object` carries no tag: a null or non-object
+# input would still be refused by the keys rule or by jsonb_object_keys, so no case could tell.
+IDENTITY_RULES = {
+    'rule_identity_owner': ('save_shop_identity', 'rule', 'identity-owner', 'forbidden identity call succeeded: active_helper / save_shop_identity'),
+    'rule_identity_keys': ('save_shop_identity', 'rule', 'identity-keys', 'forbidden identity call succeeded: active_owner / identity_save_unknown_key'),
+    'rule_identity_types': ('save_shop_identity', 'rule', 'identity-types', 'forbidden identity call succeeded: active_owner / identity_save_number'),
+    'rule_identity_length': ('save_shop_identity', 'rule', 'identity-length', 'identity outcome differs: active_owner / identity_save_shop_name_long / 23514'),
+    'rule_identity_control': ('save_shop_identity', 'rule', 'identity-control', 'identity outcome differs: active_owner / identity_save_control_tab / 23514'),
+    'rule_identity_stale': ('save_shop_identity', 'rule', 'identity-stale', 'forbidden identity call succeeded: active_owner / identity_save_stale_without_row'),
+}
+IDENTITY_ROWS = 63
+CLOCK_CASES = (ROOT / 'tests/fixtures/clock-cases.json').read_text(encoding='utf-8')
 SUITES = (
     ('public-catalog.sql', ('catalog_raw_read','catalog_view_update'), 'catalog boundary', 41),
     ('private-role-authority.sql', ('private_orders_select','private_stock_update'), 'private authority', 103),
@@ -514,6 +533,8 @@ SUITES = (
                   + tuple(BOOKS_MUTATIONS) + tuple(BOOKS_TABLE_MUTATIONS), 'forbidden books call succeeded', 101),
     ('operations.sql', tuple(OPERATIONS_MUTATIONS), 'forbidden operations call succeeded', 14),
     ('bazaar-closeout.sql', ('event_summary(uuid)', 'load_event_stock(uuid,jsonb,bigint)', 'add_event_expense(jsonb)', 'close_event(jsonb)'), 'forbidden closeout call succeeded', 80),
+    ('shop-identity.sql', ('save_shop_identity(jsonb,timestamptz)', 'business_clock(timestamptz)') + tuple(IDENTITY_MUTATIONS) + tuple(IDENTITY_RULES),
+     'forbidden identity call succeeded', IDENTITY_ROWS),
 )
 CATALOG_GUARD_SQL = """
 select json_build_object(
@@ -550,7 +571,7 @@ PAYMENT_MUTATIONS = {
 REPORT = ROOT / "docs/state/evidence/MP-06l-security.json"
 EMPTY_FIXTURES = 'select ' + ' and '.join(
     'not exists(select 1 from public.' + table + ')'
-    for table in ('orders', 'order_items', 'products', 'drops', 'settings', 'rate_limits', 'profiles', 'audit_log', 'ledger_entries', 'event_sales', 'event_sale_items', 'inventory_items', 'bake_batches', 'recipes', 'recipe_ingredients', 'suppliers', 'supplier_prices', 'events', 'erasure_requests', 'payment_methods', 'shop_texts', 'waitlist_entries', 'order_add_ons', 'order_boxes', 'scheduled_events', 'recipe_versions', 'stock_movements')) + " and not exists(select 1 from auth.users) and to_regnamespace('mp06f_probe') is null and to_regnamespace('mp06g_probe') is null and to_regclass('public.mp06g_future') is null and to_regclass('public.mp06g_future_id_seq') is null;"
+    for table in ('orders', 'order_items', 'products', 'drops', 'settings', 'rate_limits', 'profiles', 'audit_log', 'ledger_entries', 'event_sales', 'event_sale_items', 'inventory_items', 'bake_batches', 'recipes', 'recipe_ingredients', 'suppliers', 'supplier_prices', 'events', 'erasure_requests', 'payment_methods', 'shop_texts', 'shop_identity', 'waitlist_entries', 'order_add_ons', 'order_boxes', 'scheduled_events', 'recipe_versions', 'stock_movements')) + " and not exists(select 1 from auth.users) and to_regnamespace('mp06f_probe') is null and to_regnamespace('mp06g_probe') is null and to_regclass('public.mp06g_future') is null and to_regclass('public.mp06g_future_id_seq') is null;"
 
 
 def main():
@@ -621,7 +642,7 @@ def main():
         results = []
         for filename, signatures, forbidden, expected in SUITES:
             raw_sql = (ROOT / 'tests/integration/security' / filename).read_text(encoding='utf-8')
-            sql = raw_sql.replace('__FUTURE_RED_GRANT__', '').replace('__PRIVATE_RED_POLICY__', '').replace('__PRIVATE_RED_UPDATE_POLICY__', '').replace('__CATALOG_RED_POLICY__', '').replace('__CATALOG_RED_VIEW_GRANT__', '')
+            sql = raw_sql.replace('__FUTURE_RED_GRANT__', '').replace('__PRIVATE_RED_POLICY__', '').replace('__PRIVATE_RED_UPDATE_POLICY__', '').replace('__CATALOG_RED_POLICY__', '').replace('__CATALOG_RED_VIEW_GRANT__', '').replace('__CLOCK_CASES__', json.dumps(json.loads(CLOCK_CASES)).replace("'", "''"))
             for signature in signatures:
                 # Failed psql closes the connection and rolls back synthetic grant/data.
                 table_test = filename == 'order-inserts.sql'
@@ -707,6 +728,12 @@ def main():
                 if filename == 'payment-methods.sql' and signature in PAYMENT_MUTATIONS:
                     unsafe, expected_error = PAYMENT_MUTATIONS[signature]
                     broken = sql.replace('begin;', 'begin;' + chr(10) + unsafe, 1)
+                if filename == 'shop-identity.sql' and signature in IDENTITY_MUTATIONS:
+                    unsafe, expected_error = IDENTITY_MUTATIONS[signature]
+                    broken = sql.replace('begin;', 'begin;' + chr(10) + unsafe, 1)
+                if filename == 'shop-identity.sql' and signature in IDENTITY_RULES:
+                    broken = sql.replace('begin;', 'begin;' + chr(10) + order_mutant(signature), 1)
+                    expected_error = IDENTITY_RULES[signature][3]
                 if filename == 'profiles.sql':
                     # Restore only the missing active filter, within the failing transaction.
                     unsafe = "create or replace function public.current_role_name() returns public.app_role language sql stable security definer set search_path='' as $$ select p.role from public.profiles p where p.id=auth.uid() $$;"
@@ -793,7 +820,7 @@ def main():
                 h.fail(filename + ' did not return its complete role matrix')
             results.extend(rows)
             assert_empty()
-        if len(set(results)) != 1945:
+        if len(set(results)) != 2008:
             h.fail('combined role matrix has missing or duplicate cases: %d rows, %d unique (duplicates: %s)' % (len(results), len(set(results)), sorted({r for r in results if results.count(r) > 1})[:5]))
         assert_functions()
         assert_catalog_wide()
@@ -806,10 +833,10 @@ def main():
     try:
         code = h.main(after_reset=check)
         if (code == 0 and len(report["runs"]) == 2 and report["runs"][0] == report["runs"][1]
-                and len(report['regressions_detected']) == 684 and report['sequence_restorations'] == 10
+                and len(report['regressions_detected']) == 702 and report['sequence_restorations'] == 10
                 and report['upgrade_runs'] == 2 and report['function_guard_runs'] == 4
                 and report['catalog_guard_runs'] == 4 and report['catalog_guard_red_runs'] == 4):
-            report.update(status="passed", cases_per_reset=1945, resets=2, matrix_equal=True, rollback_verified=True,
+            report.update(status="passed", cases_per_reset=2008, resets=2, matrix_equal=True, rollback_verified=True,
                           sql_sha256={name: hashlib.sha256((ROOT / 'tests/integration/security' / name).read_bytes()).hexdigest() for name, _, _, _ in SUITES},
                           harness_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
     except (RuntimeError, OSError, ValueError) as error:

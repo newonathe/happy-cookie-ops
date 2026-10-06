@@ -55,6 +55,7 @@
     "20260101005000_operations.sql": "74d5c9ab19cc93cffb2a170eddb53d419216ce5965d1b8419f89db1920d9183c",
     "20260101005100_pg17_maintenance_authority.sql": "c2e7dcb4b970231e38c1e614398e7daf60200ad21bac8ce2b757a5955061cf35",
     "20260101005200_recipe_drafts.sql": "8449445b5a057d8e7a988562a121c2e640ca90381502b7fca9e65fdc0c8001e5",
-    "20260101005300_offline_open_hours.sql": "4236c4257289dbcaa1ffaab24decfb51bcbeafc1a3a84ff4fe9d3932b093993e"
+    "20260101005300_offline_open_hours.sql": "4236c4257289dbcaa1ffaab24decfb51bcbeafc1a3a84ff4fe9d3932b093993e",
+    "20260101005400_business_clock_shop_identity.sql": "5bfc5b4607c7b5d525b8dbb321005fb57d0ee002d6b737a9bb635c091d8c500e"
   }
 }

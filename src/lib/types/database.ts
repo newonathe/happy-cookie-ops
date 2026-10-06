@@ -1402,6 +1402,33 @@ export type Database = {
         }
         Relationships: []
       }
+      shop_identity: {
+        Row: {
+          contact_line: string
+          id: boolean
+          owner_name: string
+          shop_name: string
+          tagline: string
+          updated_at: string
+        }
+        Insert: {
+          contact_line?: string
+          id?: boolean
+          owner_name?: string
+          shop_name?: string
+          tagline?: string
+          updated_at?: string
+        }
+        Update: {
+          contact_line?: string
+          id?: boolean
+          owner_name?: string
+          shop_name?: string
+          tagline?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       shop_state: {
         Row: {
           id: boolean
@@ -1875,6 +1902,13 @@ export type Database = {
           p_saved_credentials_version: number
         }[]
       }
+      business_clock: {
+        Args: { p_at?: string }
+        Returns: {
+          today: string
+          week_start: string
+        }[]
+      }
       capacity_allows: {
         Args: { p_capacity: number; p_committed: number; p_requested: number }
         Returns: boolean
@@ -2019,6 +2053,7 @@ export type Database = {
         }[]
       }
       get_shop_extras: { Args: never; Returns: Json }
+      get_shop_identity: { Args: never; Returns: Json }
       get_shop_order_rules: { Args: never; Returns: Json }
       get_shop_payment_info: { Args: never; Returns: Json }
       get_shop_status: { Args: never; Returns: Json }
@@ -2226,6 +2261,12 @@ export type Database = {
         Args: { p_expected_updated_at: string; p_key: string; p_value: Json }
         Returns: {
           key: string
+          updated_at: string
+        }[]
+      }
+      save_shop_identity: {
+        Args: { p_expected_updated_at: string; p_identity: Json }
+        Returns: {
           updated_at: string
         }[]
       }
