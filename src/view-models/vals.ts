@@ -5,6 +5,7 @@
  * with the engine change that produces it — see docs/PORTING.md.
  */
 import type * as React from 'react';
+import type { ScreenKey } from '@/lib/screens';
 
 /** Every field the live flavour editor's form submits (MP-09 c1c), pesos not centavos. */
 export interface LiveFlavourFormFields {
@@ -160,6 +161,13 @@ export interface OpsVals {
    * full-screen with no review harness. Undefined everywhere else, so demo is unchanged.
    */
   bareFrame?: boolean;
+  /**
+   * Set only by OpsRuntime in live mode: what the frame's live-only screen slot draws (B1,
+   * docs/state/protected-exception.md). `screen` names the key whose registered screen
+   * replaces the ported one. Null when there is nothing to draw; undefined everywhere
+   * else, so demo is unchanged.
+   */
+  liveScreen?: { screen: ScreenKey | null } | null;
   /**
    * Set only by OpsRuntime in live mode, owner only: content for the live-only form host
    * that later owner forms plug into (F3, docs/state/protected-exception.md). Shown when

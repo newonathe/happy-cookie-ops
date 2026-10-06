@@ -757,12 +757,13 @@ Home card (then uncommitted):
   proven by the Docker captures in [ux-audit.md](ux-audit.md) rather than by markup; and a
   job that builds with `NEXT_PUBLIC_APP_MODE=live` renders the label, which is intended.
 
-## Live screen slot in the frame (approved 2026-10-05, not built yet)
+## Live screen slot in the frame (approved 2026-10-05, APPLIED 2026-10-06 in slice B1)
 
 Ethan approved this on 5 October 2026 when asked how redesigned screens should enter the
 app's frame ("One guarded slot"), and again by approving
-[final-plan.md](final-plan.md), version 2. It is recorded here before it is built so the
-slice that builds it (B1) has its limits in writing.
+[final-plan.md](final-plan.md), version 2. It was recorded here before it was built so the
+slice that builds it (B1) had its limits in writing. The limits are below, unchanged; what
+was applied follows them.
 
 - **What is approved:** one guarded block in `src/components/shell/app-frame.tsx`, beside
   the screen list, that draws a live-only screen host in place of a ported screen. It is
@@ -780,3 +781,71 @@ slice that builds it (B1) has its limits in writing.
   structure baseline in the same commit; an independent port audit; the Docker visual
   suite unchanged, none regenerated.
 - **Not approved by this:** any other edit to ported screens, sheets, shell or the engine.
+
+### Applied in B1 (2026-10-06)
+
+Live mode only (`NEXT_PUBLIC_APP_MODE=live`); demo, dev, CI and the visual baselines render
+exactly as before (`tests/unit/ops-runtime-live-screen.test.tsx` pins demo mode).
+
+**Protected markup touched, `src/components/shell/app-frame.tsx`:** one import and one
+`bareFrame`-guarded line, placed after the ported "denied" block and before the first
+ported screen line, so whatever the host draws sits where a screen sits:
+
+```
+import { LiveFormHost } from '@/components/live/live-form-host';
+import { LiveScreenHost } from '@/components/live/live-screen-host';
+…
+                  ) : null}
+                  {bareFrame && v.liveScreen ? <LiveScreenHost v={v} /> : null}
+                  {screens.today ? <HomeScreen v={v} /> : null}
+```
+
+- **No copy, colour, class name or style object** is added, and the destructured list is
+  not touched: the line reads `v.liveScreen` directly.
+- **Why there and not beside the form slot:** `FLAVOUR_REVERSALS` matches the
+  `isEditPrice` line and the form-slot line as one pair, and a screen belongs in the page
+  area, not in the sheet.
+- **"In place of" is done in data, not markup.** `OpsRuntime.renderVals()` (subclass, after
+  its live-mode check) sets `liveScreen` and turns the ported screen's own flag off
+  (`screens[key] = false`) only when a screen is registered for the current key **and the
+  engine does not deny the screen to the role**. With nothing registered `liveScreen` is
+  null and the frame renders the ported screen through its own unchanged line.
+- **The registry** (`src/components/live/live-screens.ts`, unprotected) ships empty. A
+  later slice registers a redesigned screen there; that needs no further protected edit.
+- **Baselines:** `scripts/port-baseline.json` for this file goes from 245 elements to 246;
+  styles, copy hash and copy count are unchanged. Its AST hash changes in
+  `scripts/port-structure-baseline.json`. Both written by the tools
+  (`check-port-integrity.mjs --update`, `port-structure.mjs --write-baseline`) in the same
+  commit. No other file's entry changed.
+- **Reversal:** `SCREEN_SLOT_REVERSALS` in `scripts/validate-g0.py` removes the import and
+  the line and restores the count, each exactly once. It runs **first**, before the home
+  card, dock label, live-frame and flavour reversals, because the dock-label reversal
+  expects 245 elements. The shared `"generated"` date tuple in `LIVE_FRAME_REVERSALS` moves
+  to the day `--update` ran.
+- **How the edit was made:** by a script, because the `PreToolUse` hook blocks tool edits
+  to ported markup. This record and the commit message are the trace, as for MP-09 c.
+- **Evidence:** `tests/unit/ops-runtime-live-screen.test.tsx`: nothing registered in
+  shipped code; live mode with nothing registered renders the ported screen and nothing
+  through the slot; a screen registered inside the test renders in place of the ported one
+  under the same key and only that key; a role the engine denies gets nothing through the
+  slot; demo mode never reaches it.
+
+**Independent port audit (Sonnet `port-auditor`, 2026-10-06; the builder was Opus): PASS
+with notes, no P0 to P2.** Read-only, on the uncommitted change:
+
+- The `app-frame.tsx` diff is the two recorded lines and nothing else: no copy, colour,
+  class name or style object, and the destructured list untouched. No other protected file
+  changed.
+- Demo mode cannot reach the slot: `bareFrame` and `liveScreen` are set only after the two
+  non-live returns of `OpsRuntime.renderVals()`, and the engine sets neither.
+- Applying `SCREEN_SLOT_REVERSALS` to the new bytes reproduces the previous commit's
+  `app-frame.tsx` byte for byte (sha256 `5d0c27f4586d…`) and the baseline's 245; each left
+  side occurs once; the loop runs it first; the moved `"generated"` tuple matches.
+- Both baselines changed only where recorded; port integrity OK (54 files). This record
+  matches the code.
+- **P3, fixed:** the "ships with no screen registered" test checked seven keys; it now
+  checks every screen key.
+- **P3, recorded for the slice that redesigns Stock:** `stocktake` is a key with no screen
+  file (it renders inside inventory), so a screen registered under `inventory` does not
+  replace the count view, and one registered under `stocktake` replaces nothing. That slice
+  decides which key carries the count.

@@ -81,7 +81,7 @@ LIVE_FRAME_REVERSALS = {
     # "generated" is one shared field: each later approved edit that reruns --update moves
     # this tuple's left side to that day's date, still reversing to the true original.
     'scripts/port-baseline.json': [
-        (b'"generated": "2026-10-05",', b'"generated": "2026-09-04",'),
+        (b'"generated": "2026-10-06",', b'"generated": "2026-09-04",'),
         (b'"copyCount": 15,\n      "styles": 144,', b'"copyCount": 15,\n      "styles": 146,'),
     ],
 }
@@ -208,6 +208,20 @@ HOME_CARD_REVERSALS = {
          b'"copy": "13063131",\n      "copyCount": 4,\n      "styles": 103,\n      "dynamicStyles": 7,\n      "elements": 131'),
     ],
 }
+# B1 live screen slot (Ethan, 2026-10-05, applied 2026-10-06; docs/state/protected-exception.md): one import
+# and one guarded line that draws a registered live-only screen in place of the ported one. Reversed FIRST:
+# DOCK_LABEL_REVERSALS expects this file's baseline block at 245 elements.
+SCREEN_SLOT_REVERSALS = {
+    'src/components/shell/app-frame.tsx': [
+        (b"import { LiveFormHost } from '@/components/live/live-form-host';\nimport { LiveScreenHost } from '@/components/live/live-screen-host';\n",
+         b"import { LiveFormHost } from '@/components/live/live-form-host';\n"),
+        (b"                  {bareFrame && v.liveScreen ? <LiveScreenHost v={v} /> : null}\n", b""),
+    ],
+    'scripts/port-baseline.json': [
+        (b'"copyCount": 15,\n      "styles": 145,\n      "dynamicStyles": 10,\n      "elements": 246',
+         b'"copyCount": 15,\n      "styles": 145,\n      "dynamicStyles": 10,\n      "elements": 245'),
+    ],
+}
 changes = []
 for entry in load(EVIDENCE / 'delivery-manifest.json'):
     rel = entry['path']
@@ -235,6 +249,9 @@ for entry in load(EVIDENCE / 'delivery-manifest.json'):
             guard = guards[file.stem]
             check('approved_guard_once:' + rel, data.count(guard) == 1)
             data = re.sub(re.escape(guard) + rb'\r?\n', b'', data, count=1)
+        for index, (edited, original) in enumerate(SCREEN_SLOT_REVERSALS.get(rel, [])):
+            check(f'approved_screen_slot_once:{rel}:{index}', data.count(edited) == 1)
+            data = data.replace(edited, original, 1)
         for index, (edited, original) in enumerate(HOME_CARD_REVERSALS.get(rel, [])):
             check(f'approved_home_card_once:{rel}:{index}', data.count(edited) == 1)
             data = data.replace(edited, original, 1)

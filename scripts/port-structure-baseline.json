@@ -55,6 +55,6 @@
     "src/components/sheets/swap.tsx": "a4c44926d78975e607603035c27076698113eedda6f670b35b282565bd7692bd",
     "src/components/sheets/users.tsx": "284dcb941a7ae4cde6904c239bbe053a5b85ebb9aa10a43b947ccfc91cc651ac",
     "src/components/sheets/why.tsx": "1ca5bb132b4f36484e2b6559297bf1ae44b0b90c188d9c9d4fa5f775f31d3846",
-    "src/components/shell/app-frame.tsx": "eae25eb344462f9e3a6d273f38fcf10e604aaa5014c3c02f80292a02540f94cd"
+    "src/components/shell/app-frame.tsx": "f3f33b2f286af1b5ddc1307de5203624b77eaba22f2070dec2331fba5c40d89b"
   }
 }

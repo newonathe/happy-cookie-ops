@@ -58,6 +58,7 @@ import { DropStateSheet } from '@/components/sheets/drop-state';
 import { PricingSheet } from '@/components/sheets/pricing';
 import { EditPriceSheet } from '@/components/sheets/edit-price';
 import { LiveFormHost } from '@/components/live/live-form-host';
+import { LiveScreenHost } from '@/components/live/live-screen-host';
 
 /**
  * The application frame, ported 1:1 from the prototype template.
@@ -305,6 +306,7 @@ export function AppFrame({ v }: { v: OpsVals }) {
                       </div>
                     </>
                   ) : null}
+                  {bareFrame && v.liveScreen ? <LiveScreenHost v={v} /> : null}
                   {screens.today ? <HomeScreen v={v} /> : null}
                   {screens.sales ? <SalesLogScreen v={v} /> : null}
                   {screens.orders ? <OrdersScreen v={v} /> : null}

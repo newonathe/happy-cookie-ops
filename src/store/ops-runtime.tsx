@@ -214,6 +214,7 @@ import {
   type ShopFlavourRow
 } from '@/lib/data/flavours';
 import { CUSTOMER_SCREENS, type ScreenKey } from '@/lib/screens';
+import { liveScreenFor } from '@/components/live/live-screens';
 import { helperMoneyView } from '@/lib/auth/helper-money';
 import {
   IDLE_MINUTES_MAX,
@@ -1624,6 +1625,7 @@ export class OpsRuntime extends OpsProvider {
           : row;
       }),
       sheet: this.liveSheet(starved.sheet),
+      ...this.liveScreenVals(starved),
       liveForm: this.liveFormVals(),
       livePay: this.livePayVals(),
       liveTexts: this.liveTextsVals(),
@@ -4105,6 +4107,18 @@ export class OpsRuntime extends OpsProvider {
       recipe.lines.every((line) => priced(line.name, line.unit)) &&
       ['Box of 6', 'Brand sticker', 'Thank-you card'].every((name) => priced(name))
     );
+  }
+
+  /**
+   * The frame's live-only screen slot (B1, docs/state/protected-exception.md). When a
+   * redesigned screen is registered for the open key, the slot draws it and the ported
+   * screen's own flag goes off, so the two never render together. Never for a screen the
+   * engine denies to the role: the registered screen must not be a way round `canSee`.
+   */
+  private liveScreenVals(vals: OpsVals): Pick<OpsVals, 'liveScreen' | 'screens'> {
+    const key = this.state.screen as ScreenKey;
+    if (vals.denied || !liveScreenFor(key)) return { liveScreen: null, screens: vals.screens };
+    return { liveScreen: { screen: key }, screens: { ...vals.screens, [key]: false } };
   }
 
   /**
