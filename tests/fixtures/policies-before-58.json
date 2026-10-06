@@ -1,0 +1,365 @@
+{
+  "comment": "Every row-security policy in force before migration 20260101005700 (public schema, plus the four `shop media owner` policies this repo created on storage.objects), captured from pg_policies after `supabase db reset` at migration 57 with search_path \"$user\", public, extensions. Migration 58 restates the helper calls wrapped; tests/integration/security/policies.sql holds the database to these texts with each wrapper reduced back to the bare call. A policy added later must be added here.",
+  "policies": [
+    {
+      "schemaname": "public",
+      "tablename": "audit_log",
+      "policyname": "audit owner read",
+      "cmd": "SELECT",
+      "roles": ["public"],
+      "qual": "is_owner()",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "bake_batches",
+      "policyname": "batches staff all",
+      "cmd": "ALL",
+      "roles": ["public"],
+      "qual": "is_owner()",
+      "with_check": "is_owner()"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "drops",
+      "policyname": "drops owner write",
+      "cmd": "ALL",
+      "roles": ["public"],
+      "qual": "is_owner()",
+      "with_check": "is_owner()"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "drops",
+      "policyname": "drops public read",
+      "cmd": "SELECT",
+      "roles": ["public"],
+      "qual": "is_owner()",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "erasure_requests",
+      "policyname": "erasure requests owner only",
+      "cmd": "ALL",
+      "roles": ["public"],
+      "qual": "is_owner()",
+      "with_check": "is_owner()"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "event_sale_items",
+      "policyname": "sale items staff insert",
+      "cmd": "INSERT",
+      "roles": ["public"],
+      "qual": null,
+      "with_check": "is_owner()"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "event_sale_items",
+      "policyname": "sale items staff read",
+      "cmd": "SELECT",
+      "roles": ["public"],
+      "qual": "is_owner()",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "event_sales",
+      "policyname": "sales staff insert",
+      "cmd": "INSERT",
+      "roles": ["public"],
+      "qual": null,
+      "with_check": "is_owner()"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "event_sales",
+      "policyname": "sales staff read",
+      "cmd": "SELECT",
+      "roles": ["public"],
+      "qual": "is_owner()",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "events",
+      "policyname": "events owner write",
+      "cmd": "ALL",
+      "roles": ["public"],
+      "qual": "is_owner()",
+      "with_check": "is_owner()"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "events",
+      "policyname": "events staff read",
+      "cmd": "SELECT",
+      "roles": ["public"],
+      "qual": "is_owner()",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "inventory_items",
+      "policyname": "stock owner insert",
+      "cmd": "INSERT",
+      "roles": ["public"],
+      "qual": null,
+      "with_check": "is_owner()"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "inventory_items",
+      "policyname": "stock staff read",
+      "cmd": "SELECT",
+      "roles": ["public"],
+      "qual": "is_owner()",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "inventory_items",
+      "policyname": "stock staff write",
+      "cmd": "UPDATE",
+      "roles": ["public"],
+      "qual": "is_owner()",
+      "with_check": "is_owner()"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "ledger_entries",
+      "policyname": "ledger owner insert",
+      "cmd": "INSERT",
+      "roles": ["public"],
+      "qual": null,
+      "with_check": "is_owner()"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "ledger_entries",
+      "policyname": "ledger owner read",
+      "cmd": "SELECT",
+      "roles": ["public"],
+      "qual": "is_owner()",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "order_items",
+      "policyname": "order items public insert",
+      "cmd": "INSERT",
+      "roles": ["public"],
+      "qual": null,
+      "with_check": "true"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "order_items",
+      "policyname": "order items staff read",
+      "cmd": "SELECT",
+      "roles": ["public"],
+      "qual": "is_owner()",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "order_items",
+      "policyname": "order items staff write",
+      "cmd": "UPDATE",
+      "roles": ["public"],
+      "qual": "is_owner()",
+      "with_check": "is_owner()"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "orders",
+      "policyname": "orders public insert",
+      "cmd": "INSERT",
+      "roles": ["public"],
+      "qual": null,
+      "with_check": "((state = 'Payment review'::order_state) AND (pay_state = ANY (ARRAY['unpaid'::pay_state, 'claimed'::pay_state])))"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "orders",
+      "policyname": "orders staff read",
+      "cmd": "SELECT",
+      "roles": ["public"],
+      "qual": "is_owner()",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "orders",
+      "policyname": "orders staff write",
+      "cmd": "UPDATE",
+      "roles": ["public"],
+      "qual": "is_owner()",
+      "with_check": "is_owner()"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "products",
+      "policyname": "catalogue owner write",
+      "cmd": "ALL",
+      "roles": ["public"],
+      "qual": "is_owner()",
+      "with_check": "is_owner()"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "products",
+      "policyname": "catalogue public read",
+      "cmd": "SELECT",
+      "roles": ["public"],
+      "qual": "is_owner()",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "profiles",
+      "policyname": "own profile",
+      "cmd": "SELECT",
+      "roles": ["public"],
+      "qual": "(id = auth.uid())",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "profiles",
+      "policyname": "owner reads staff",
+      "cmd": "SELECT",
+      "roles": ["public"],
+      "qual": "is_owner()",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "profiles",
+      "policyname": "owner writes staff",
+      "cmd": "ALL",
+      "roles": ["public"],
+      "qual": "is_owner()",
+      "with_check": "is_owner()"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "recipe_ingredients",
+      "policyname": "recipe items owner write",
+      "cmd": "ALL",
+      "roles": ["public"],
+      "qual": "is_owner()",
+      "with_check": "is_owner()"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "recipe_ingredients",
+      "policyname": "recipe items staff read",
+      "cmd": "SELECT",
+      "roles": ["public"],
+      "qual": "is_owner()",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "recipes",
+      "policyname": "recipes owner write",
+      "cmd": "ALL",
+      "roles": ["public"],
+      "qual": "is_owner()",
+      "with_check": "is_owner()"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "recipes",
+      "policyname": "recipes staff read",
+      "cmd": "SELECT",
+      "roles": ["public"],
+      "qual": "is_owner()",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "settings",
+      "policyname": "settings owner write",
+      "cmd": "ALL",
+      "roles": ["public"],
+      "qual": "is_owner()",
+      "with_check": "is_owner()"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "supplier_prices",
+      "policyname": "supplier prices owner write",
+      "cmd": "ALL",
+      "roles": ["public"],
+      "qual": "is_owner()",
+      "with_check": "is_owner()"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "supplier_prices",
+      "policyname": "supplier prices staff read",
+      "cmd": "SELECT",
+      "roles": ["public"],
+      "qual": "is_owner()",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "suppliers",
+      "policyname": "suppliers owner write",
+      "cmd": "ALL",
+      "roles": ["public"],
+      "qual": "is_owner()",
+      "with_check": "is_owner()"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "suppliers",
+      "policyname": "suppliers staff read",
+      "cmd": "SELECT",
+      "roles": ["public"],
+      "qual": "is_owner()",
+      "with_check": null
+    },
+    {
+      "schemaname": "storage",
+      "tablename": "objects",
+      "policyname": "shop media owner delete",
+      "cmd": "DELETE",
+      "roles": ["authenticated"],
+      "qual": "((bucket_id = 'shop-media'::text) AND is_owner())",
+      "with_check": null
+    },
+    {
+      "schemaname": "storage",
+      "tablename": "objects",
+      "policyname": "shop media owner insert",
+      "cmd": "INSERT",
+      "roles": ["authenticated"],
+      "qual": null,
+      "with_check": "((bucket_id = 'shop-media'::text) AND is_owner() AND (name ~ '^(qr|flavours)/[A-Za-z0-9_-]{1,64}\\.(png|jpg|jpeg|webp)$'::text))"
+    },
+    {
+      "schemaname": "storage",
+      "tablename": "objects",
+      "policyname": "shop media owner select",
+      "cmd": "SELECT",
+      "roles": ["authenticated"],
+      "qual": "((bucket_id = 'shop-media'::text) AND is_owner())",
+      "with_check": null
+    },
+    {
+      "schemaname": "storage",
+      "tablename": "objects",
+      "policyname": "shop media owner update",
+      "cmd": "UPDATE",
+      "roles": ["authenticated"],
+      "qual": "((bucket_id = 'shop-media'::text) AND is_owner())",
+      "with_check": "((bucket_id = 'shop-media'::text) AND is_owner() AND (name ~ '^(qr|flavours)/[A-Za-z0-9_-]{1,64}\\.(png|jpg|jpeg|webp)$'::text))"
+    }
+  ]
+}

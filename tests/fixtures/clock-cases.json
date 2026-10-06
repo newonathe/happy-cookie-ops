@@ -1,53 +1,61 @@
 {
-  "comment": "One rule, two runtimes: src/lib/time/business-clock.ts and public.business_clock() must both give these answers. `at` is an instant; the dates are the shop's (Manila) day, the Monday of its week and the first of its month.",
+  "comment": "One rule, two runtimes: src/lib/time/business-clock.ts and public.business_clock() must both give these answers. `at` is an instant; the dates are the shop's (Manila) day, the Monday of its week, the first of its month and, for the database only, `localTime`: the shop's wall clock at that instant, written as Postgres prints a timestamp (the app's module ignores it).",
   "cases": [
     {
       "at": "2026-10-06T15:59:59Z",
       "today": "2026-10-06",
       "weekStart": "2026-10-05",
-      "monthStart": "2026-10-01"
+      "monthStart": "2026-10-01",
+      "localTime": "2026-10-06 23:59:59"
     },
     {
       "at": "2026-10-06T16:30:00Z",
       "today": "2026-10-07",
       "weekStart": "2026-10-05",
-      "monthStart": "2026-10-01"
+      "monthStart": "2026-10-01",
+      "localTime": "2026-10-07 00:30:00"
     },
     {
       "at": "2026-10-11T15:59:59Z",
       "today": "2026-10-11",
       "weekStart": "2026-10-05",
-      "monthStart": "2026-10-01"
+      "monthStart": "2026-10-01",
+      "localTime": "2026-10-11 23:59:59"
     },
     {
       "at": "2026-10-11T16:00:00Z",
       "today": "2026-10-12",
       "weekStart": "2026-10-12",
-      "monthStart": "2026-10-01"
+      "monthStart": "2026-10-01",
+      "localTime": "2026-10-12 00:00:00"
     },
     {
       "at": "2026-09-30T16:00:00Z",
       "today": "2026-10-01",
       "weekStart": "2026-09-28",
-      "monthStart": "2026-10-01"
+      "monthStart": "2026-10-01",
+      "localTime": "2026-10-01 00:00:00"
     },
     {
       "at": "2026-12-31T16:00:00Z",
       "today": "2027-01-01",
       "weekStart": "2026-12-28",
-      "monthStart": "2027-01-01"
+      "monthStart": "2027-01-01",
+      "localTime": "2027-01-01 00:00:00"
     },
     {
       "at": "2026-03-01T00:00:00Z",
       "today": "2026-03-01",
       "weekStart": "2026-02-23",
-      "monthStart": "2026-03-01"
+      "monthStart": "2026-03-01",
+      "localTime": "2026-03-01 08:00:00"
     },
     {
       "at": "2026-01-04T16:00:00Z",
       "today": "2026-01-05",
       "weekStart": "2026-01-05",
-      "monthStart": "2026-01-01"
+      "monthStart": "2026-01-01",
+      "localTime": "2026-01-05 00:00:00"
     }
   ]
 }

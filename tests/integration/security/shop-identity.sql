@@ -5,7 +5,7 @@
 -- not even hold EXECUTE, exactly four string keys, trimmed and bounded text, no control
 -- characters, a stale stamp refused. The table has no API grant for anyone, the owner included.
 -- business_clock() is for other SQL functions: neither anon nor authenticated may execute it, and
--- it must give the answers in tests/fixtures/clock-cases.json (the harness replaces
+-- it must give the answers (day, week and the shop's wall clock) in tests/fixtures/clock-cases.json (the harness replaces
 -- __CLOCK_CASES__ with that file, so the app's clock and this one share one list of cases).
 begin;
 create temporary table authority_results (operation text, actor text, outcome text);
@@ -204,10 +204,14 @@ begin
 
   -- tests/fixtures/clock-cases.json, replaced in by the harness.
   for c in select value from jsonb_array_elements(('__CLOCK_CASES__'::jsonb) -> 'cases') loop
-    select b.today, b.week_start into r from public.business_clock((c ->> 'at')::timestamptz) b;
+    select b.today, b.week_start, b.local_time into r from public.business_clock((c ->> 'at')::timestamptz) b;
     if r.today::text is distinct from (c ->> 'today') or r.week_start::text is distinct from (c ->> 'weekStart') then
       raise exception 'business clock differs: % gave % / %, wanted % / %',
         c ->> 'at', r.today, r.week_start, c ->> 'today', c ->> 'weekStart';
+    end if;
+    -- B3a: the shop's wall clock at that instant; place_order reads the time of day from it.
+    if r.local_time::text is distinct from (c ->> 'localTime') then
+      raise exception 'business clock local time differs: % gave %, wanted %', c ->> 'at', r.local_time, c ->> 'localTime';
     end if;
     n := n + 1;
   end loop;
@@ -220,6 +224,15 @@ begin
     raise exception 'business clock default instant differs';
   end if;
   insert into pg_temp.authority_results values ('business_clock', 'default_instant', 'now_in_manila');
+  if (select b.local_time from public.business_clock() b) is distinct from (now() at time zone 'Asia/Manila') then
+    raise exception 'business clock default local time differs';
+  end if;
+  -- Midnight is the one place the date and the hour move together; Sunday to Monday moves the week.
+  if (select count(*) from jsonb_array_elements(('__CLOCK_CASES__'::jsonb) -> 'cases') k
+       where k.value ->> 'localTime' like '% 23:59:59' or k.value ->> 'localTime' like '% 00:00:00') < 4 then
+    raise exception 'business clock fixture lacks midnight boundary cases';
+  end if;
+  insert into pg_temp.authority_results values ('business_clock', 'local_time', 'cases_and_default_match');
 end $$;
 
 set local role anon;

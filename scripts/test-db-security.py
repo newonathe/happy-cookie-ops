@@ -33,7 +33,8 @@ ORDER_MIGRATIONS = [ROOT / 'supabase/migrations/20260101003500_place_order.sql',
                     ROOT / 'supabase/migrations/20260101005000_operations.sql',
                     ROOT / 'supabase/migrations/20260101005400_business_clock_shop_identity.sql',
                     ROOT / 'supabase/migrations/20260101005500_identity_links.sql',
-                    ROOT / 'supabase/migrations/20260101005600_item_costs.sql']
+                    ROOT / 'supabase/migrations/20260101005600_item_costs.sql',
+                    ROOT / 'supabase/migrations/20260101005700_clock_policies.sql']
 _OUT = 'order outcome differs: anon / '
 _CHK = 'order check differs: anon / '
 _LOOK = 'lookup check differs: anon / '
@@ -559,8 +560,23 @@ IDENTITY_RULES = {
     'rule_identity_control': ('save_shop_identity', 'rule', 'identity-control', 'identity outcome differs: active_owner / identity_save_control_tab / 23514'),
     'rule_identity_stale': ('save_shop_identity', 'rule', 'identity-stale', 'forbidden identity call succeeded: active_owner / identity_save_stale_without_row'),
 }
-IDENTITY_ROWS = 63
+IDENTITY_ROWS = 64
 CLOCK_CASES = (ROOT / 'tests/fixtures/clock-cases.json').read_text(encoding='utf-8')
+# B3a: every policy calls its helper wrapped. policies.sql compares the database with this list (the policies as they were
+# before migration 58, helper calls bare); each mutant restates one policy and the suite must fail with its message.
+POLICIES_BEFORE = (ROOT / 'tests/fixtures/policies-before-58.json').read_text(encoding='utf-8')
+POLICY_MUTATIONS = {
+    'policy_bare_owner': ("alter policy \"orders staff read\" on public.orders using (public.is_owner());",
+                          'policy helper call is not wrapped: orders / orders staff read'),
+    'policy_bare_uid': ("alter policy \"own profile\" on public.profiles using (id = auth.uid());",
+                        'policy helper call is not wrapped: profiles / own profile'),
+    'policy_bare_storage': ("alter policy \"shop media owner select\" on storage.objects using (bucket_id = 'shop-media' and public.is_owner());",
+                            'policy helper call is not wrapped: objects / shop media owner select'),
+    'policy_text_changed': ("alter policy \"orders staff read\" on public.orders using ((select public.is_owner()) or true);",
+                            'policy text differs: orders / orders staff read'),
+    'policy_added': ("create policy \"leak\" on public.settings for select using (true);",
+                     'policy count differs'),
+}
 SUITES = (
     ('public-catalog.sql', ('catalog_raw_read','catalog_view_update'), 'catalog boundary', 41),
     ('private-role-authority.sql', ('private_orders_select','private_stock_update'), 'private authority', 103),
@@ -611,6 +627,7 @@ SUITES = (
     ('bazaar-closeout.sql', ('event_summary(uuid)', 'load_event_stock(uuid,jsonb,bigint)', 'add_event_expense(jsonb)', 'close_event(jsonb)'), 'forbidden closeout call succeeded', 80),
     ('shop-identity.sql', ('save_shop_identity(jsonb,timestamptz)', 'business_clock(timestamptz)') + tuple(IDENTITY_MUTATIONS) + tuple(IDENTITY_RULES),
      'forbidden identity call succeeded', IDENTITY_ROWS),
+    ('policies.sql', tuple(POLICY_MUTATIONS), 'policy', 42),
 )
 CATALOG_GUARD_SQL = """
 select json_build_object(
@@ -718,7 +735,7 @@ def main():
         results = []
         for filename, signatures, forbidden, expected in SUITES:
             raw_sql = (ROOT / 'tests/integration/security' / filename).read_text(encoding='utf-8')
-            sql = raw_sql.replace('__FUTURE_RED_GRANT__', '').replace('__PRIVATE_RED_POLICY__', '').replace('__PRIVATE_RED_UPDATE_POLICY__', '').replace('__CATALOG_RED_POLICY__', '').replace('__CATALOG_RED_VIEW_GRANT__', '').replace('__CLOCK_CASES__', json.dumps(json.loads(CLOCK_CASES)).replace("'", "''"))
+            sql = raw_sql.replace('__FUTURE_RED_GRANT__', '').replace('__PRIVATE_RED_POLICY__', '').replace('__PRIVATE_RED_UPDATE_POLICY__', '').replace('__CATALOG_RED_POLICY__', '').replace('__CATALOG_RED_VIEW_GRANT__', '').replace('__CLOCK_CASES__', json.dumps(json.loads(CLOCK_CASES)).replace("'", "''")).replace('__POLICIES_BEFORE__', json.dumps(json.loads(POLICIES_BEFORE)).replace("'", "''"))
             for signature in signatures:
                 # Failed psql closes the connection and rolls back synthetic grant/data.
                 table_test = filename == 'order-inserts.sql'
@@ -816,6 +833,9 @@ def main():
                 if filename == 'shop-identity.sql' and signature in IDENTITY_RULES:
                     broken = sql.replace('begin;', 'begin;' + chr(10) + order_mutant(signature), 1)
                     expected_error = IDENTITY_RULES[signature][3]
+                if filename == 'policies.sql':
+                    unsafe, expected_error = POLICY_MUTATIONS[signature]
+                    broken = sql.replace('begin;', 'begin;' + chr(10) + unsafe, 1)
                 if filename == 'profiles.sql':
                     # Restore only the missing active filter, within the failing transaction.
                     unsafe = "create or replace function public.current_role_name() returns public.app_role language sql stable security definer set search_path='' as $$ select p.role from public.profiles p where p.id=auth.uid() $$;"
@@ -902,7 +922,7 @@ def main():
                 h.fail(filename + ' did not return its complete role matrix')
             results.extend(rows)
             assert_empty()
-        if len(set(results)) != 2303:
+        if len(set(results)) != 2346:
             h.fail('combined role matrix has missing or duplicate cases: %d rows, %d unique (duplicates: %s)' % (len(results), len(set(results)), sorted({r for r in results if results.count(r) > 1})[:5]))
         assert_functions()
         assert_catalog_wide()
@@ -915,10 +935,10 @@ def main():
     try:
         code = h.main(after_reset=check)
         if (code == 0 and len(report["runs"]) == 2 and report["runs"][0] == report["runs"][1]
-                and len(report['regressions_detected']) == 772 and report['sequence_restorations'] == 10
+                and len(report['regressions_detected']) == 782 and report['sequence_restorations'] == 10
                 and report['upgrade_runs'] == 2 and report['function_guard_runs'] == 4
                 and report['catalog_guard_runs'] == 4 and report['catalog_guard_red_runs'] == 4):
-            report.update(status="passed", cases_per_reset=2303, resets=2, matrix_equal=True, rollback_verified=True,
+            report.update(status="passed", cases_per_reset=2346, resets=2, matrix_equal=True, rollback_verified=True,
                           sql_sha256={name: hashlib.sha256((ROOT / 'tests/integration/security' / name).read_bytes()).hexdigest() for name, _, _, _ in SUITES},
                           harness_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
     except (RuntimeError, OSError, ValueError) as error:

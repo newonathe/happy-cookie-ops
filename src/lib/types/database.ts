@@ -2005,6 +2005,7 @@ export type Database = {
       business_clock: {
         Args: { p_at?: string }
         Returns: {
+          local_time: string
           today: string
           week_start: string
         }[]
