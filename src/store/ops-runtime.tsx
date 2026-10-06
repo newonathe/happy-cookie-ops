@@ -4024,6 +4024,15 @@ export class OpsRuntime extends OpsProvider {
   }
 
   /**
+   * Every All tools entry the live owner has, the engine's 21 and the live 12, in one list.
+   * The function map (src/lib/nav/function-map.ts) is checked against it, so an entry
+   * added here with no home in the map fails tests/unit/function-map.test.tsx.
+   */
+  liveToolEntries(): OpsVals['toolGroups'][number]['items'] {
+    return this.liveToolGroups(super.renderVals().toolGroups ?? []).flatMap((g) => g.items);
+  }
+
+  /**
    * UX review, proposal 3. The live owner's phone dock shows five labelled destinations
    * instead of nine unlabelled icons; Sales log, Grocery, Bazaar and P&L are under All tools,
    * and the dock marks All tools while one of those screens is open. A helper's or
