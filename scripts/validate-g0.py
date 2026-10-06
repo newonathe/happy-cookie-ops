@@ -222,6 +222,22 @@ SCREEN_SLOT_REVERSALS = {
          b'"copyCount": 15,\n      "styles": 145,\n      "dynamicStyles": 10,\n      "elements": 245'),
     ],
 }
+# Slice B2, audit H5 (Ethan, 2026-10-06, under the D4 shop-text approval of 2026-09-28;
+# docs/state/protected-exception.md): one guarded, live-only branch. Live prints the owner's own
+# tagline, or nothing when she has set none; the ported span stays verbatim as the demo branch.
+# Reversed FIRST: FLAVOUR_REVERSALS expects this file's baseline block at 49 styles and 65 elements.
+SHOP_TAGLINE_REVERSALS = {
+    'src/components/screens/shop.tsx': [
+        (b"          {bareFrame ? (\n            v.shopTagline ? <span style={{ maxWidth: '34ch', fontSize: '14px', lineHeight: '1.45', color: '#6E574B', textWrap: 'pretty' }}>{v.shopTagline}</span> : null\n          ) : (\n          <span style={{ maxWidth: '34ch', fontSize: '14px', lineHeight: '1.45', color: '#6E574B', textWrap: 'pretty' }}>\n            4 classics",
+         b"          <span style={{ maxWidth: '34ch', fontSize: '14px', lineHeight: '1.45', color: '#6E574B', textWrap: 'pretty' }}>\n            4 classics"),
+        (b"baked fresh this weekend.\n          </span>\n          )}\n",
+         b"baked fresh this weekend.\n          </span>\n"),
+    ],
+    'scripts/port-baseline.json': [
+        (b'"src/components/screens/shop.tsx": {\n      "copy": "b9ed733a",\n      "copyCount": 6,\n      "styles": 50,\n      "dynamicStyles": 6,\n      "elements": 66\n    }',
+         b'"src/components/screens/shop.tsx": {\n      "copy": "b9ed733a",\n      "copyCount": 6,\n      "styles": 49,\n      "dynamicStyles": 6,\n      "elements": 65\n    }'),
+    ],
+}
 changes = []
 for entry in load(EVIDENCE / 'delivery-manifest.json'):
     rel = entry['path']
@@ -249,6 +265,9 @@ for entry in load(EVIDENCE / 'delivery-manifest.json'):
             guard = guards[file.stem]
             check('approved_guard_once:' + rel, data.count(guard) == 1)
             data = re.sub(re.escape(guard) + rb'\r?\n', b'', data, count=1)
+        for index, (edited, original) in enumerate(SHOP_TAGLINE_REVERSALS.get(rel, [])):
+            check(f'approved_shop_tagline_once:{rel}:{index}', data.count(edited) == 1)
+            data = data.replace(edited, original, 1)
         for index, (edited, original) in enumerate(SCREEN_SLOT_REVERSALS.get(rel, [])):
             check(f'approved_screen_slot_once:{rel}:{index}', data.count(edited) == 1)
             data = data.replace(edited, original, 1)

@@ -152,9 +152,9 @@
     "src/components/screens/shop.tsx": {
       "copy": "b9ed733a",
       "copyCount": 6,
-      "styles": 49,
+      "styles": 50,
       "dynamicStyles": 6,
-      "elements": 65
+      "elements": 66
     },
     "src/components/screens/suppliers.tsx": {
       "copy": "f10261dc",

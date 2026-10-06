@@ -44,9 +44,13 @@ export function ShopScreen({ v }: { v: OpsVals }) {
           <h1 style={{ margin: '0', fontSize: '28px', fontWeight: '700', letterSpacing: '-.8px', lineHeight: '1.1' }}>
             This week's drop
           </h1>
+          {bareFrame ? (
+            v.shopTagline ? <span style={{ maxWidth: '34ch', fontSize: '14px', lineHeight: '1.45', color: '#6E574B', textWrap: 'pretty' }}>{v.shopTagline}</span> : null
+          ) : (
           <span style={{ maxWidth: '34ch', fontSize: '14px', lineHeight: '1.45', color: '#6E574B', textWrap: 'pretty' }}>
             4 classics + 2 rotating flavours, baked fresh this weekend.
           </span>
+          )}
         </div>
         <div style={s(`display: flex; flex-direction: column; gap: 3px; border-radius: 14px; padding: 12px 14px; background: ${dropBannerBg}; border: 1px solid ${dropBannerBr}`)}>
           <span style={s(`font-size: 14px; font-weight: 700; color: ${dropBannerFg}`)}>{dropBannerTitle}</span>

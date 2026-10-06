@@ -862,3 +862,73 @@ with notes, no P0 to P2.** Read-only, on the uncommitted change:
   file (it renders inside inventory), so a screen registered under `inventory` does not
   replace the count view, and one registered under `stocktake` replaces nothing. That slice
   decides which key carries the count.
+
+## Shop tagline: one guarded, live-only branch (approved and applied 2026-10-06, slice B2)
+
+Audit finding H5: the customer shop printed "4 classics + 2 rotating flavours, baked fresh
+this weekend." whatever the menu was. The sentence is literal text in
+`src/components/screens/shop.tsx`, so the view model could not reach it. Asked in plan mode on
+6 October how B2 should handle it, Ethan chose "Guarded insertion": one live-only guard under
+his D4 approval of 28 September (shop texts come from the view model). Live mode only
+(`NEXT_PUBLIC_APP_MODE=live`); demo, dev, CI and the visual baselines render exactly as before.
+
+Exact edit, around the tagline span only. The ported span and its sentence stay verbatim as
+the demo branch; the live branch repeats the same style object and prints `v.shopTagline`,
+or nothing when the owner has set none:
+
+```
+          {bareFrame ? (
+            v.shopTagline ? <span style={{ maxWidth: '34ch', fontSize: '14px', lineHeight: '1.45', color: '#6E574B', textWrap: 'pretty' }}>{v.shopTagline}</span> : null
+          ) : (
+          <span style={{ maxWidth: '34ch', fontSize: '14px', lineHeight: '1.45', color: '#6E574B', textWrap: 'pretty' }}>
+            4 classics + 2 rotating flavours, baked fresh this weekend.
+          </span>
+          )}
+```
+
+- **No copy, colour or class name added.** `bareFrame` was already read by this file; the
+  destructured list is not touched (the line reads `v.shopTagline` directly). The first form
+  tried, with the sentence as a string inside one span, dropped the file's copy count from 6
+  to 5; it was discarded for this one, which leaves the signed-off copy as JSX text.
+- **Where the value comes from:** `OpsRuntime.renderVals()` sets `shopTagline` only after its
+  live-mode check, from the owner's `tagline` in `shop_identity` (`get_shop_identity()`,
+  migration 20260101005400, edited under Shop texts). It starts empty and has no default.
+- **Baselines:** `scripts/port-baseline.json` for this file goes from 49 styles and 65
+  elements to 50 and 66; copy hash and copy count are unchanged. Its AST hash changes in
+  `scripts/port-structure-baseline.json`. Both written by the tools
+  (`check-port-integrity.mjs --update`, `port-structure.mjs --write-baseline`) in the same
+  commit. No other file's entry changed.
+- **Reversal:** `SHOP_TAGLINE_REVERSALS` in `scripts/validate-g0.py` removes the branch and
+  restores the two counts, each exactly once. It runs first, because `FLAVOUR_REVERSALS`
+  expects this file's baseline block at 49 and 65. Validator: 1,231 checks, 0 failures.
+- **How the edit was made:** by a script, because the `PreToolUse` hook blocks tool edits to
+  ported markup. This record and the commit message are the trace.
+- **Not covered:** the heading above it ("This week's drop") and the logo, which stay as
+  ported; any other edit to a ported file.
+- **Evidence:** `tests/unit/ops-runtime-names.test.tsx` (the tagline is the owner's, empty by
+  default, and empty again after a failed read) and `tests/unit/no-prototype-values.test.tsx`
+  (the ported sentence is on no live page).
+- **Layout, live only:** with no tagline set the span is not drawn, so the space between the
+  heading and the open or closed banner is one 8-pixel gap and one line of text shorter than
+  in the demo. Intended: an empty line there would be a blank the owner cannot explain.
+
+**Independent port audit (Sonnet `port-auditor`, 2026-10-06; the builder was Opus): PASS
+with notes, no P0 to P2.** Read-only, on the uncommitted change:
+
+- The `shop.tsx` diff is 4 insertions and no deletions; the ported span, its sentence and its
+  indentation are untouched inside the demo branch; the live span repeats the style object
+  verbatim; no copy, colour, class name or destructuring change. No other protected file
+  changed: the engine and its type file have no diff, and no existing migration is modified.
+- Demo mode cannot reach the branch: `shopTagline` is set in one place, called once, after
+  both non-live returns of `OpsRuntime.renderVals()`; the engine sets neither it nor
+  `bareFrame`. The demo DOM is identical, so the Docker baselines, which render with
+  `bareFrame` unset, cannot be affected.
+- Applying `SHOP_TAGLINE_REVERSALS` reproduces the previous `shop.tsx` and
+  `port-baseline.json` byte for byte; each edited side occurs once; the loop runs it first.
+  Both baselines changed only this file's entry. Validator: 1,231 checks, 0 failures. Port
+  integrity OK (54 files). This record matches the code.
+- **P3, fixed:** the empty-tagline spacing was not recorded (the layout line above), and this
+  paragraph was still a placeholder.
+
+**Docker visual suite, 2026-10-06:** image built from this tree (`Dockerfile.visual`),
+`pnpm test:visual`: 75 passed on phone, tablet and desktop. No baseline regenerated.
