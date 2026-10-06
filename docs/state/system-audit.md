@@ -210,3 +210,36 @@ something to change; the smoke suite opens each and fails if one does not: Menu 
 Recipe drafts, Stock items, Suppliers & prices, Boxes & add-ons, Order rules, Payment methods,
 Shop texts, Bazaar events, Shop status, Books & costs, and the rules sheet behind Settings.
 "Shop details" moved from "No" to a form for its first four fields (R8 has the rest).
+
+## 10. What slice B3a did with these findings (7 October 2026)
+
+Database only: migrations 56 to 59, none on the trial, no client code changed. Evidence for
+every line is the SQL role suite (`python scripts/test-db-security.py`, 2,456 cases a reset)
+unless it says otherwise.
+
+| #   | Now                                                                                                                                                                                                                                                                                    | Held by                                                  |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| L1  | **Closed in the database.** A recipe line carries its stock item's id; saving refuses a name that is not exactly one stock item. Rows written before are linked only by `apply_identity_links`, after `preview_identity_links`; no match and several matches are listed, never linked. | `identity-links.sql`, `recipes.sql`                      |
+| L2  | **Closed for the price.** A supplier price carries its item's id and its own pack size. A delivery's supplier is still free text (the receive form, B5).                                                                                                                               | `identity-links.sql`, `stock-catalogue.sql`              |
+| L5  | **Closed.** Every recipe version is kept, and a dough or batch record must name one.                                                                                                                                                                                                   | `identity-links.sql`                                     |
+| N7  | **Closed in the database.** Her usual price and pack per item, dated, append-only (`save_item_price`). No screen edits it yet (B5).                                                                                                                                                    | `item-costs.sql`                                         |
+| C3  | **Half closed.** One database cost function: the weighted average, else her usual price, else the best quote per unit of its own pack, else unknown. The screens still use the engine's path until B3b.                                                                                | `item-costs.sql` (eight money cases worked by hand)      |
+| C5  | **Closed in the database.** A shortfall is kept on the movement and costed; a use with no known cost is listed as uncosted, never summed as zero; a later delivery or correction never changes a stamped use.                                                                          | `item-costs.sql`, `books.sql`                            |
+| R2  | **Closed.** `place_order` and `join_waitlist` take the day from `business_clock()`. `get_shop_status` never named the zone: the audit counted three, there were two.                                                                                                                   | `tests/unit/clock-continuity.test.ts`                    |
+| N9  | **Closed.** 38 of the 40 policies in force called a helper, all bare (the audit said 23); each is wrapped. None filters on a column, so no index was owed.                                                                                                                             | `policies.sql`, `tests/fixtures/policies-before-58.json` |
+| R14 | **Closed in the database.** `record_batch_correction` writes an opposite entry; the batch row is never edited; it moves no ingredients, dough or books. The button waits for the Make screens.                                                                                         | `batch-correction.sql`                                   |
+
+**Left for B3b:** H12, H13 and R9 (packaging item names in two functions and the completeness
+check); the screens reading the database's cost (the other half of C3); the cost basis moving
+to "when used" (it was held back from B3a so that it ships with the screen that shows
+uncosted uses, or profit would be overstated in silence).
+
+**Found on the way, recorded, not fixed:**
+
+| #   | What                                                                                                                                                                                                                                                      | Goes to     |
+| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| R15 | A delivery typed with the wrong quantity cannot be undone. Under a running average the wrong price per unit lingers until the stock is used; under the old rule the next delivery replaced it. It needs an "undo this delivery" action: Ethan's decision. | Ethan, B3b  |
+| R16 | Stock lost at a count or by an adjustment is never a cost on the "when used" basis (only uses and waste are). As before B3a.                                                                                                                              | C2 (Money)  |
+| R17 | `scripts/prepare-historical-ledger.mjs` writes movements directly: anything it loads carries no stamp and moves no average.                                                                                                                               | B4          |
+| R18 | A recipe line whose unit differs from its item's, or that names no single stock item, takes no stock when baked (it took by name before). It is listed in the preview, on the record and in the books' uncosted list.                                     | B4 (import) |
+| R19 | The order suite's same-day case can fail when the role suite runs across midnight on the shop's clock. A rerun passes.                                                                                                                                    | B7          |

@@ -4,7 +4,7 @@ Read this page first in a new session. It is kept short on purpose.
 
 | If you need                                        | Read                                                                                                                                                     |
 | -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| The goal to run next                               | [next-goal.md](next-goal.md) (slice B3)                                                                                                                  |
+| The goal to run next                               | [next-goal.md](next-goal.md) (slice B3b)                                                                                                                 |
 | The plan, approved 5 October                       | [final-plan.md](final-plan.md), version 2                                                                                                                |
 | The rules every agent follows                      | [AGENTS.md](../../AGENTS.md)                                                                                                                             |
 | Ethan's and Cine's decisions                       | [decision-register.md](decision-register.md)                                                                                                             |
@@ -14,12 +14,18 @@ Read this page first in a new session. It is kept short on purpose.
 | Cine's trial checklist                             | [F2-owner-trial.md](F2-owner-trial.md)                                                                                                                   |
 | Older checkpoints, verbatim                        | [current-history.md](current-history.md)                                                                                                                 |
 
-## Where things stand — 6 October 2026
+## Where things stand — 7 October 2026
 
-**The plan is approved; stage A (A1 to A4) and slices B1 and B2 are built.** Ethan approved
+**The plan is approved; stage A (A1 to A4) and slices B1, B2 and B3a are built.** Ethan approved
 [final-plan.md](final-plan.md), version 2, on 5 October after a re-audit, a debate and
 wider research. It replaces finish-plan.md as the forward plan. The Bazaar defect B1 found is
-fixed (below). The next step is slice B3.
+fixed (below). The next step is slice B3b.
+
+**B3a, 7 October:** the database half of B3, four migrations (56 to 59), **none on the trial**.
+Recipe lines and supplier prices point at their stock item by id, after a step that is previewed
+and counted; one cost function (average, else her usual price, else best quote per unit, else
+unknown) stamps every use; a shortfall is costed; a recorded batch can be corrected. No client
+code changed. What it did with each finding: [system-audit.md](system-audit.md), section 10.
 
 **A2, 6 October:** the bazaar phone opens and reloads with no signal. Bazaar Mode alone
 opens, only while the phone holds a running event, only within her offline hours (48 by
@@ -73,13 +79,14 @@ plan is built (Ethan, 5 October). F3 (launch) stays closed until Cine accepts a 
 
 - **The product** is built through E1: menu and settings, checkout and owner orders,
   bazaar selling with offline close-out, stock, recipes and production, books, P&L and
-  CSV, backups and health. `pnpm verify` passes 97 files / 1,806 tests; the planning
-  validator passes 1,231 checks; the database role suite passes 2,008 cases a reset.
+  CSV, backups and health. `pnpm verify` passes 98 files / 1,813 tests; the planning
+  validator passes 1,232 checks; the database role suite passes 2,456 cases a reset.
 - **The private trial site** is live for owners only:
   <https://happy-cookie-owner-trial.admin-kethai.workers.dev>. Cloudflare Access sends an
   email code to two approved mailboxes. The shop is closed and the menu is unpublished.
-- **On the trial** (read 5 October; migrations 54 and 55 added 6 October): all 55 migrations
-  applied; 72 stock items, 26 flavours, 804 historical book lines, no orders.
+- **On the trial** (read 5 October; migrations 54 and 55 added 6 October): 55 of the
+  repository's 59 migrations applied (56 to 59 wait for Ethan, below); 72 stock items, 26
+  flavours, 804 historical book lines, no orders.
 - **CI/CD:** a green push to `agent/codex/MP-04-g1-feasibility` redeploys the trial; a push
   that changes only documents does not. The last runs that completed were green (A1 and A2).
   **The two early 6 October pushes (A3 at `79b8e97`, A4 at `851e95e`) did not release:** GitHub
@@ -101,8 +108,11 @@ Found by reading code or the trial, not by running. Each has a slice in the plan
 | Until the flavour list arrives, or if it cannot be read, staff screens show the engine's six flavours.       | B6     |
 | Bazaar Mode offers a fixed list of wallets; Home's "Drop 32" starts from the engine's number.                | C7, C3 |
 | An empty menu cannot get its first flavour (the trial has 26, so nobody meets it).                           | B6     |
-| Almost every cost per cookie is unknown: 8 of 72 items have a price, no costed delivery, no measured recipe. | B3, B4 |
-| The trial's cost basis is "when bought"; "when used" was decided.                                            | B3     |
+| Almost every cost per cookie is unknown: 8 of 72 items have a price, no costed delivery, no measured recipe. | B4     |
+| The screens still work out cost in the engine; the database's one cost function is not shown anywhere yet.   | B3b    |
+| The cost basis is "when bought"; "when used" was decided. It moves with the screen that shows uncosted uses. | B3b    |
+| Packaging item names are still written in `record_pack`, `record_sale_packaging` and the completeness check. | B3b    |
+| A mistyped delivery quantity cannot be undone, and under a running average it lingers. Needs a decision.     | Ethan  |
 | Every page, the shop included, loads the whole staff app.                                                    | C8     |
 
 ### Decisions in force
@@ -127,6 +137,19 @@ All in [decision-register.md](decision-register.md), the section for 5 October.
 
 ### Waiting on Ethan
 
+- **Migrations 56 to 59 (B3a) are not on the trial, and nothing in the bazaar needs them.**
+  Recommended: not before 27 October. When you say so, in one quiet sitting and in this order,
+  each file as one transaction: (1) read the owner and grants of `business_clock`, `place_order`
+  and `join_waitlist`, and the 40 policies against `tests/fixtures/policies-before-58.json`;
+  (2) apply 56; (3) run `select public.preview_identity_links();`, read what is unmatched or
+  ambiguous, then `select public.apply_identity_links('<its counts>');`; (4) apply 57, which
+  refuses to run until step 3 is done; (5) apply 58 and 59, then read the three functions'
+  owner again. A recipe line still listed as unmatched takes no stock when baked: fix it in
+  Recipes before baking. `python scripts/test-b3a-upgrade.py` rehearses steps 2 to 4 on the
+  local database.
+- **Decide, for B3b:** whether today's packaging rule (a pouch per cookie, a bag per bazaar
+  sale) is entered by hand or seeded as an unconfirmed default; when her per-cookie packaging
+  lines may reach the trial; and how a mistyped delivery quantity is undone.
 - A1 is built (the release check takes two to six addresses; Cine is not added yet). Add her
   two addresses to Cloudflare Access and the approved-digest variable in one sitting, or the
   next deploy fails. Set the session to one week: that deploy then fails once and prints the

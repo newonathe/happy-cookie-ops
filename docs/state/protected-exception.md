@@ -932,3 +932,24 @@ with notes, no P0 to P2.** Read-only, on the uncommitted change:
 
 **Docker visual suite, 2026-10-06:** image built from this tree (`Dockerfile.visual`),
 `pnpm test:visual`: 75 passed on phone, tablet and desktop. No baseline regenerated.
+
+## The generated seed ends with the identity-link step (approved 2026-10-06, applied in slice B3a)
+
+`supabase/seed.sql` inserts recipe lines and supplier prices by name. From migration
+`20260101005500` they must be linked to their stock item, so the generator
+(`scripts/gen-seed.mjs`) appends one statement after everything else, and the seed was
+regenerated, not hand-edited. Ethan approved it as part of the B3 plan on 6 October ("the
+generator ends the seed with the apply step, then `pnpm db:seed:gen`").
+
+Exact bytes added at the end of the seed:
+
+```
+
+-- links by identity (B3a)
+select public.apply_identity_links(public.preview_identity_links() -> 'counts');
+```
+
+`scripts/validate-g0.py` reverses exactly that block before checking the seed's original
+delivery bytes (`IDENTITY_SEED_REVERSALS`, applied first). The generator's header comment and
+one section rule were also put back to the committed seed's text, so a regeneration now differs
+from the reviewed seed by this block only. No row of the seed changed.

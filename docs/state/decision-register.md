@@ -285,6 +285,28 @@ pass or the set-up screen; none is hers yet.
 | What "Who can see what" says each role can open     | Owner: everything. Helper: Home, the sales log and Bazaar Mode. Support: system health and notifications.  | What the live app actually lets each role open today. The prototype's text promised helpers orders and inventory. | Code (`STAFF_ACCESS`); fixed by design, 6.7 |
 | "Default, not confirmed yet."                       | Shown on a rules-sheet setting until she saves it once.                                                    | Final plan 6.1 and N11: a database default must not read as her decision.                                         | Saving the setting removes it               |
 
+### Slice B3a, 7 October 2026: the database window
+
+Ethan approved the slice's plan on 6 October, which split B3 in two (B3a database, B3b
+packaging and the screens) and said no B3 migration goes on the trial before 27 October unless
+he says otherwise.
+
+**Defaults, not decisions.** Chosen by the builder to finish the slice; each is Ethan's or
+Cine's to change.
+
+| Rule                                                      | Default                                                                                                                                             | Why                                                                                                 |
+| --------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| Stock on hand with no cost when a costed delivery arrives | Valued at her usual price, else the best quote per unit, else the delivery's own price.                                                             | The average needs a value for what is already there; this is the same order the cost function uses. |
+| A count or an adjustment                                  | Leaves the average alone.                                                                                                                           | Neither says what anything cost.                                                                    |
+| Nothing on hand                                           | The last average stands until the next costed delivery.                                                                                             | A shortfall still needs a cost.                                                                     |
+| A corrected delivery                                      | The share still on hand moves the average; the share already used is one cost line on the day of the correction. Uses already stamped never change. | A closed month must not move.                                                                       |
+| A supplier price with no pack size                        | Gives no cost. A pack size is never copied from the item.                                                                                           | A copied size is a guess.                                                                           |
+| A recipe line that is not exactly one stock item          | Saving is refused. A line saved before, still unlinked, takes no stock when baked and is listed.                                                    | Final plan 7.1: links are by identity, never guessed.                                               |
+| Correcting a batch                                        | Moves no ingredients, no dough and no books. Refused only when it lowers the count and the baked balance would go below zero.                       | The goal's stated default; raising a count must stay possible when packing has run ahead.           |
+| The cost basis                                            | Still "when bought". It moves to "when used" (DP-04) in B3b, with the screen that shows uncosted uses.                                              | Flipping it before the app can show what has no cost would overstate profit in silence.             |
+
+**Open, Ethan's:** how a mistyped delivery quantity is undone ([system-audit.md](system-audit.md), R15).
+
 ## Amended decisions (open — block the listed work)
 
 **DP-02 · Payment timing** — blocks MP-10, MP-12.
