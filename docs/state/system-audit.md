@@ -184,6 +184,10 @@ the shop.
 | R9  | Packaging item names in the completeness check and two database functions (H12, H13).                                                                                                                                               | B3                    |
 | R10 | `tests/integration/security/test_function_authority.py` is run by nothing: its pinned count had drifted from 94 to 96 before this slice (now 99, correct). The database-side check of the same list did run throughout.             | B7                    |
 
+**R13, to C6.** The name the app greets a person by, and records on each bazaar sale, is
+their profile's display name. Nothing in the app edits it: "Who can see what" only lists it.
+Until Account has a people form it is set in the database.
+
 **R12, to C3.** Home says "Drop 32": the drop number starts from the engine's own, and baked
 stock is counted for that number. It is a counter the owner never set. Found when the smoke
 suite ran on a freshly reset database: its seeded batch carried no drop number and the Bazaar

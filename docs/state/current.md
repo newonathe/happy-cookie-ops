@@ -140,7 +140,14 @@ All in [decision-register.md](decision-register.md), the section for 5 October.
   trial. The app works without it: the Shop details fields show and cannot save, sentences
   name nobody and the shop has no tagline. Say the word and it is applied the way 54 was, or
   apply it by hand; the function hashes to check against are in
-  `tests/fixtures/function-authority.json`. Do it before the rehearsal, not after.
+  `tests/fixtures/function-authority.json`. Do it before the rehearsal, not after. Until
+  then every page load logs one 404 for `get_shop_identity` in the browser console: expected,
+  harmless, and checked locally in a browser with the two functions dropped (greeting and
+  sale name from the profile, Save shop details off with its notice, nothing else changes).
+- **Display names.** From this deploy the app greets each person, and records each bazaar
+  sale, under their profile's `display_name`. No form edits it yet (C6). Check yours, Cine's
+  and each helper's before 20 October: Supabase dashboard, Table editor, `profiles`, or say
+  the word and it is done through the connector. The trial's profiles were not read.
 - **The rehearsal gains one step** (B2): with the radio off, reload, sell, and read the name
   under "Rung up by" on the payment sheet. It must be the signed-in person's name, the same
   as with signal. Each helper's profile needs the display name they want on their sales.
