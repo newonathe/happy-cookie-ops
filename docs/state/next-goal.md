@@ -52,11 +52,21 @@ directly. Find what already exists before building, and say what you found.
    completeness check. A bazaar sale must take the same stock as today for today's rule.
 6. The three functions that still inline the Manila date call public.business_clock(). The 23
    security rules call their helper wrapped, with the indexes they need.
+7. Correct a recorded batch (Ethan, 6 October: yes). Today a batch's count and rejects are
+   set before it is recorded and can never be changed; a count recorded too low cannot be
+   raised, and too high can only be written off as waste. Add an owner action, reached from
+   the batch's own record, that writes an opposite entry: the batch row is never edited. The
+   baked count, the "yield against plan" record and the batch's cost per cookie follow the
+   correction. Default to state in the plan, not a decision: a correction takes and returns no
+   ingredients or dough, because those left stock when the dough was mixed; say so if the
+   records show otherwise. It needs a reason, and it is refused once it would make the baked
+   count negative.
 
 Tests first, in the SQL role suite and pnpm verify: money cases worked by hand (average
-across two deliveries, a use before any costed delivery, a shortfall, a correction), each
-refusal as a rule mutation, and the bazaar sale's stock effect before and after. No prototype
-value may come back: tests/unit/no-prototype-values.test.tsx stays green.
+across two deliveries, a use before any costed delivery, a shortfall, a correction), a batch
+corrected up and corrected down, each refusal as a rule mutation, and the bazaar sale's stock
+effect before and after. No prototype value may come back:
+tests/unit/no-prototype-values.test.tsx stays green.
 
 Update docs/state/current.md (five lines) and docs/state/task-status.json (one note, by
 string insertion), and replace this block with slice B4.

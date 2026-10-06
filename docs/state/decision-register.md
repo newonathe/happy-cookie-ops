@@ -267,6 +267,12 @@ Asked in plan mode, before any code was written:
 | The bazaar clerk name is fixed now, before the bazaar: each sale records the signed-in person's own name, not "Cine" or "Kristian".                                              | Ethan |
 | B2 builds only the four shop details the findings need. Address, phone, email, privacy text, retention period and the time zone as a setting wait for C5 and the set-up screen.  | Ethan |
 
+Later the same day, after an audit of three features he asked about (adding a flavour, its
+recipe linked to stock, and the cookies a batch gave): **a recorded batch can be corrected**,
+by an opposite entry that leaves the batch row as written. Ethan: "sure". It joins slice B3
+(item 7 of its goal). The other two exist today; their weak spots (recipe lines linked by
+name, an empty menu's first flavour) already had slices, B3 and B6.
+
 **Defaults, not decisions.** Each is a starting value Cine confirms or changes in the wording
 pass or the set-up screen; none is hers yet.
 

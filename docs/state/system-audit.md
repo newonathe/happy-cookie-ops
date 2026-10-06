@@ -184,6 +184,11 @@ the shop.
 | R9  | Packaging item names in the completeness check and two database functions (H12, H13).                                                                                                                                               | B3                    |
 | R10 | `tests/integration/security/test_function_authority.py` is run by nothing: its pinned count had drifted from 94 to 96 before this slice (now 99, correct). The database-side check of the same list did run throughout.             | B7                    |
 
+**R14, to B3 (Ethan approved it on 6 October).** A recorded batch cannot be changed: its
+count and rejects are set before recording, and afterwards cookies can only be written off.
+A count recorded too low cannot be raised. Read in `record_production` and the batch screen,
+not run.
+
 **R13, to C6.** The name the app greets a person by, and records on each bazaar sale, is
 their profile's display name. Nothing in the app edits it: "Who can see what" only lists it.
 Until Account has a people form it is set in the database.
