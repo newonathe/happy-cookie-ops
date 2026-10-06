@@ -4,9 +4,13 @@
  * enforces, so a date offered here is a date the server accepts. Nothing is hard-coded: a failed
  * read shows no dates rather than Monday and Thursday.
  *
- * The business clock is Asia/Manila (no daylight saving), never the customer's device clock:
- * `place_order` counts lead days from the Manila date.
+ * The business clock (`src/lib/time/business-clock.ts`), never the customer's device clock:
+ * `place_order` counts lead days from the shop's date.
  */
+import { manilaToday } from '@/lib/time/business-clock';
+
+export { manilaMinutes, manilaToday } from '@/lib/time/business-clock';
+
 export interface ShopOrderRules {
   /** ISO weekdays: Monday = 1 ... Sunday = 7. */
   pickupDays: number[];
@@ -79,18 +83,6 @@ export function parseShopOrderRules(json: unknown): ShopOrderRules | null {
   };
 }
 
-const MANILA_DAY = new Intl.DateTimeFormat('en-CA', {
-  timeZone: 'Asia/Manila',
-  year: 'numeric',
-  month: '2-digit',
-  day: '2-digit'
-});
-
-/** Today's date on the business clock, as YYYY-MM-DD. */
-export function manilaToday(now: Date | number = Date.now()): string {
-  return MANILA_DAY.format(now);
-}
-
 function addDays(ymd: string, days: number): Date {
   const [y, m, d] = ymd.split('-').map(Number) as [number, number, number];
   return new Date(Date.UTC(y, m - 1, d + days));
@@ -144,12 +136,6 @@ export function pickupDates(
 export function clockLabel(hhmm: string): string {
   const [h, m] = hhmm.split(':').map(Number) as [number, number];
   return (h % 12 || 12) + ':' + String(m).padStart(2, '0') + ' ' + (h < 12 ? 'AM' : 'PM');
-}
-
-/** Minutes since midnight on the business clock (Asia/Manila). */
-export function manilaMinutes(now: Date | number = Date.now()): number {
-  const t = new Date((typeof now === 'number' ? now : now.getTime()) + 8 * 3_600_000);
-  return t.getUTCHours() * 60 + t.getUTCMinutes();
 }
 
 /**

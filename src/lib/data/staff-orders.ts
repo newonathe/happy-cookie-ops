@@ -2,6 +2,9 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@/lib/types/database';
 import { centavosFromDb, centavosToPesos } from '@/lib/money';
 import { STAFF_COPY } from '@/lib/orders/staff-copy';
+import { manilaToday, weekStart } from '@/lib/time/business-clock';
+
+export { manilaToday } from '@/lib/time/business-clock';
 
 /**
  * The owner's side of an order (B3, migration 20260101003700). `get_staff_orders()` is the one
@@ -235,19 +238,10 @@ export function dayKey(pickupDate: string | null, pickupDays: readonly number[])
   return sorted.indexOf(ISO_DOW(pickupDate)) > 0 ? 'sun' : 'sat';
 }
 
-/** The Monday of the week a pickup date falls in, as YYYY-MM-DD (UTC arithmetic on a plain date). */
-export function weekKey(pickupDate: string): string {
-  const d = new Date(`${pickupDate}T00:00:00Z`);
-  d.setUTCDate(d.getUTCDate() - ((d.getUTCDay() || 7) - 1));
-  return d.toISOString().slice(0, 10);
-}
+/** The Monday of the week a pickup date falls in, as YYYY-MM-DD: the business clock's week. */
+export const weekKey = weekStart;
 
 const OPEN_STATES: readonly StaffState[] = ['Payment review', 'Confirmed', 'Preparing', 'Ready'];
-
-/** Today's date on the business clock (Asia/Manila, UTC+8, no daylight saving), as YYYY-MM-DD. */
-export function manilaToday(now: number = Date.now()): string {
-  return new Date(now + 8 * 3_600_000).toISOString().slice(0, 10);
-}
 
 /**
  * The pickup week the owner is working on: the earliest week that has an open order to pick up

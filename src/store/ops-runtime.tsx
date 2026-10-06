@@ -189,6 +189,7 @@ import {
   pickupTimes,
   waitlistRange
 } from '@/lib/orders/pickup';
+import { formatManila } from '@/lib/time/business-clock';
 import { EMPTY_TEXTS, type PaymentClient, type UploadClient } from '@/lib/data/payments';
 import { resolveImagePath } from '@/lib/media/resolve-image';
 import { isLiveMode } from '@/lib/config/app-mode';
@@ -1660,9 +1661,7 @@ export class OpsRuntime extends OpsProvider {
                 countText: plural(this.booksRows.lines.length, 'record', 'records'),
                 rows: this.booksRows.lines.slice(-10).map((line) => ({
                   what: line.label,
-                  when: new Date(line.at).toLocaleDateString('en-PH', {
-                    timeZone: 'Asia/Manila'
-                  }),
+                  when: formatManila(line.at, {}, 'en-PH'),
                   value: PESO(line.amountCents / 100)
                 }))
               }
@@ -3518,7 +3517,7 @@ export class OpsRuntime extends OpsProvider {
           (r.costCents / 100).toLocaleString('en-PH') +
           (r.supplier ? ' · ' + r.supplier : '') +
           ' · ' +
-          new Date(r.at).toLocaleDateString('en-PH', { day: 'numeric', month: 'short' })
+          formatManila(r.at, { day: 'numeric', month: 'short' }, 'en-PH')
       })),
       setBasis: (b) => void this.liveSetBasis(b),
       correct: (movementId, pesos) => void this.liveCorrect(movementId, pesos),
@@ -3613,7 +3612,7 @@ export class OpsRuntime extends OpsProvider {
       const blob = new Blob([booksCsv(books)], { type: 'text/csv' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = 'happy-cookie-books-' + new Date().toISOString().slice(0, 10) + '.csv';
+      a.download = 'happy-cookie-books-' + manilaToday() + '.csv';
       a.click();
       setTimeout(() => URL.revokeObjectURL(a.href), 4000);
       this.toast(BOOKS_COPY.downloaded);

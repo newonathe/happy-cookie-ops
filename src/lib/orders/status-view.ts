@@ -1,6 +1,7 @@
 import type { OrderStatusView } from '@/lib/data/orders';
 import { ORDER_COPY } from '@/lib/orders/copy';
 import { clockLabel } from '@/lib/orders/pickup';
+import { formatManila } from '@/lib/time/business-clock';
 
 /**
  * The `cust` values the ported order-status screen reads, built from `order_status()` instead of the
@@ -39,8 +40,7 @@ function whenText(iso: string | null): string {
   if (!iso) return '';
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return '';
-  return d.toLocaleString('en-US', {
-    timeZone: 'Asia/Manila',
+  return formatManila(d, {
     weekday: 'short',
     month: 'short',
     day: 'numeric',

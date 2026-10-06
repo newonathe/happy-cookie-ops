@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database, Json } from '@/lib/types/database';
 import { centavosToPesos } from '@/lib/money';
+import { manilaStamp } from '@/lib/time/business-clock';
 
 /**
  * The owner's books (E1; `get_books` / `record_expense` / `record_cost_correction` / `set_cost_basis`, migration 20260101004900).
@@ -128,9 +129,8 @@ export function engineLedger(lines: readonly BookLine[]) {
 }
 
 const esc = (v: unknown): string => '"' + String(v ?? '').replace(/"/g, '""') + '"';
-const isoMinute = (ms: number): string => new Date(ms).toISOString().slice(0, 16).replace('T', ' ');
 
-/** The books as a spreadsheet: one row per line, oldest first, amounts in pesos (a refund and an expense are costs to the business). */
+/** The books as a spreadsheet: one row per line, oldest first, dated on the shop's clock, amounts in pesos (a refund and an expense are costs to the business). */
 export function booksCsv(books: Books): string {
   const rows = [
     ['Date', 'Type', 'Category', 'Description', 'Amount (pesos)', 'Cost basis'].join(',')
@@ -138,7 +138,7 @@ export function booksCsv(books: Books): string {
   for (const l of [...books.lines].sort((a, b) => a.at - b.at || a.id.localeCompare(b.id)))
     rows.push(
       [
-        esc(isoMinute(l.at)),
+        esc(manilaStamp(l.at)),
         esc(l.kind),
         esc(l.cat),
         esc(l.label),

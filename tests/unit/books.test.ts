@@ -154,9 +154,16 @@ describe('engineLedger and booksCsv', () => {
     expect(rows).toHaveLength(6);
     expect(rows[1]).toContain('"expense","Ingredients","Used: ""Flour"", fine",12.50,"used"'); // quotes are doubled, a comma stays inside its quotes
     expect(rows[5]).toContain('"expense","Ingredients","Correction",-10.00');
-    expect(rows[3]?.split(',')[0]).toBe('"1970-01-01 00:00"');
+    expect(rows[3]?.split(',')[0]).toBe('"1970-01-01 08:00"'); // the shop's clock, not UTC
     // Mutation: not doubling the quotes breaks the row for a description with a quote in it.
     // Mutation: sorting newest first reverses the file.
+  });
+
+  it('dates each row on the shop’s clock: a 6 am sale is on that morning’s date (audit C2)', () => {
+    const first = books.lines[0]!;
+    const early = { ...books, lines: [{ ...first, at: Date.parse('2026-10-05T22:00:00Z') }] };
+    expect(booksCsv(early).split('\n')[1]?.split(',')[0]).toBe('"2026-10-06 06:00"');
+    // Mutation: printing the UTC time puts the sale on 5 October at 22:00.
   });
 });
 
