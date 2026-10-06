@@ -74,9 +74,11 @@ C:\Users\ethan\dev\happy-cookie-ops-g0: nothing fake on screen, and one Manila c
 built. The bazaar is 24 to 25 October: B2 must not change what Bazaar Mode does on the phone,
 and it must not reach the trial while the release hold is on.
 
-Read first: AGENTS.md, docs/state/current.md, docs/state/final-plan.md sections 5.1 (C1, C2,
-C10), 5.2 (H1 to H6, H14), 6.1, 6.7 and 9 (B2), docs/state/system-audit.md for each finding's
-file and line, docs/state/protected-exception.md, src/lib/nav/function-map.ts and
+Read first: AGENTS.md, docs/state/current.md, docs/state/final-plan.md sections 5.1 (C10),
+5.2, 6.1, 6.7 and 9 (B2), and docs/state/system-audit.md for findings H1 to H6, H14, C1, C2 and
+C10 with each one's file and line. (C1 and C2 here are the audit's findings, "Profit this
+month" and the CSV's UTC dates, not the stage C slices of the same names in the plan.) Also
+docs/state/protected-exception.md, src/lib/nav/function-map.ts and
 scripts/test-live-smoke.mjs. Find what already exists before building, and say what you found.
 
 1. Nothing fake on screen: for H1 to H6, H14 and C1, every prototype value still shown in the

@@ -68,10 +68,11 @@ plan is built (Ethan, 5 October). F3 (launch) stays closed until Cine accepts a 
   that changes only documents does not. The last runs that completed were green (A1 and A2).
   **The two early 6 October pushes (A3 at `79b8e97`, A4 at `851e95e`) did not release:** GitHub
   could not give their jobs a hosted runner (runs 37370848143 and 37372795892). **B1 was pushed
-  later that day at `23e02b3`** (run 37424595177, in progress when this was written). The
-  release hold is not set, so if that run is green the trial moves from the A2 build straight
-  to A3, A4 and B1: the sign-out pill and the five tabs arrive together. Check the run, and
-  open the trial once, before the rehearsal.
+  later that day at `23e02b3`, and that run released** (run 37424595177: unit, visual
+  regression, browser flows, build and Storybook green; the trial's quality and deploy jobs
+  green). The trial moved from the A2 build straight to A3, A4 and B1: the sign-out pill and
+  the five tabs arrived together. The performance-budget job is red, as it was on the last
+  green run (slice C8). Open the trial once before the rehearsal.
 
 ### Known not to work yet
 
