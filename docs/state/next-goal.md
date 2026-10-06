@@ -25,57 +25,49 @@ in [current.md](current.md).
 ```text
 /goal Slice B3 of docs/state/final-plan.md (version 2) for The Happy Cookie Ops in
 C:\Users\ethan\dev\happy-cookie-ops-g0: the database window. One cost per ingredient, stamped
-when used, and records linked by identity, not by name. B1 and B2 are built. The bazaar is 24
-to 25 October and runs on the trial: record_event_sale, the sale queue and Bazaar Mode must
-give the same results as today, and no migration is applied to the trial without Ethan's word.
+when used, and records linked by identity, not by name. The bazaar is 24 to 25 October and
+runs on the trial: record_event_sale, the sale queue and Bazaar Mode must give the same
+results as today, and no migration goes on the trial without Ethan's word.
 
-Read first: AGENTS.md, docs/state/current.md, docs/state/final-plan.md sections 5.1 (C3, C5),
-5.2 (H12, H13, H19), 5.3 (N7, N9), 6.1, 7 and 7.1 (Recipe, Ingredient, Supplier price,
-Ingredient cost, Packaging rule) and 9 (B3), and docs/state/system-audit.md for findings C3,
-C5, L1, L2, L5, H12 and H13 only, each with its file and line (grep those rows; do not read
-the whole file), and its section 9 for what B2 left open. Read the migrations it names
-directly. Find what already exists before building, and say what you found.
+Read first: AGENTS.md, docs/state/current.md, final-plan.md sections 5.1 (C3, C5), 5.2 (H12,
+H13), 5.3 (N7, N9), 6.1, 7, 7.1 and 9 (B3), and in docs/state/system-audit.md only the rows
+C3, C5, L1, L2, L5, H12, H13 and section 9 (grep them; do not read the file). Read the
+migrations they name. Say what already exists before building.
 
-1. Links by identity: a recipe line points at a stock item, a supplier price points at its
-   item and carries its own pack size, a production record points at the recipe version it
-   used. Existing rows are matched by name in a previewed, counted step; an unmatched row is
-   listed, never guessed.
-2. Her usual price and pack per stock item, dated, as a field she can edit.
+1. Links by identity: a recipe line points at a stock item, a supplier price at its item with
+   its own pack size, a production record at the recipe version it used. Existing rows are
+   matched by name in a previewed, counted step; an unmatched row is listed, never guessed.
+2. Her usual price and pack per stock item, dated, editable.
 3. One database cost function: the weighted average of what is on hand, updated at each
-   costed delivery; else her usual price; else the best supplier price per unit; else
-   unknown, never zero. The cost is stamped on each use when written. A recipe's cost answers
-   with the amount, whether it is complete, and what is missing. The engine's own cost path is
-   fed from it in live mode, so the screens and the books cannot disagree.
-4. A production shortfall is costed and flagged. The cost basis is "when used", as decided.
+   costed delivery; else her usual price; else the best supplier price per unit; else unknown,
+   never zero. The cost is stamped on each use. A recipe's cost answers with the amount,
+   whether it is complete, and what is missing. Live mode feeds the engine's cost path from
+   it, so screens and books cannot disagree.
+4. A production shortfall is costed and flagged. Cost basis "when used", as decided.
 5. Packaging as records: per-cookie lines on each recipe and a rule per order container,
-   replacing the item names written into record_pack, record_sale_packaging and the
-   completeness check. A bazaar sale must take the same stock as today for today's rule.
-6. The three functions that still inline the Manila date call public.business_clock(). The 23
+   replacing the item names in record_pack, record_sale_packaging and the completeness check.
+   A bazaar sale takes the same stock as today for today's rule.
+6. The three functions that inline the Manila date call public.business_clock(). The 23
    security rules call their helper wrapped, with the indexes they need.
-7. Correct a recorded batch (Ethan, 6 October: yes). Today a batch's count and rejects are
-   set before it is recorded and can never be changed; a count recorded too low cannot be
-   raised, and too high can only be written off as waste. Add an owner action, reached from
-   the batch's own record, that writes an opposite entry: the batch row is never edited. The
-   baked count, the "yield against plan" record and the batch's cost per cookie follow the
-   correction. Default to state in the plan, not a decision: a correction takes and returns no
-   ingredients or dough, because those left stock when the dough was mixed; say so if the
-   records show otherwise. It needs a reason, and it is refused once it would make the baked
-   count negative.
+7. Correct a recorded batch (Ethan, 6 October). An owner action on the batch's record writes
+   an opposite entry; the batch row is never edited. The baked count, the yield record and
+   the cost per cookie follow. Default to state in the plan: it moves no ingredients or dough.
+   It needs a reason and is refused if the baked count would go negative.
 
-Tests first, in the SQL role suite and pnpm verify: money cases worked by hand (average
-across two deliveries, a use before any costed delivery, a shortfall, a correction), a batch
-corrected up and corrected down, each refusal as a rule mutation, and the bazaar sale's stock
-effect before and after. No prototype value may come back:
-tests/unit/no-prototype-values.test.tsx stays green.
+Tests first, in the SQL role suite and pnpm verify: money cases worked by hand (average over
+two deliveries, a use before any costed delivery, a shortfall, a correction), a batch
+corrected up and down, each refusal as a rule mutation, the bazaar sale's stock effect before
+and after. tests/unit/no-prototype-values.test.tsx stays green.
 
-Update docs/state/current.md (five lines) and docs/state/task-status.json (one note, by
-string insertion), and replace this block with slice B4.
+Plan and sign off in this session; build with at most two Sonnet subagents. Review:
+security-reviewer on a different model for every migration; fix every P0 to P2. Split into
+B3a and B3b if it outgrows one session.
 
-Evidence to print: each failing test before and passing after; the reviewer's verdict; the
-role-suite summary; the pnpm verify summary in a clean shell; the smoke-suite output; the
-commit hashes and the pushed branch.
+Update docs/state/current.md (five lines) and task-status.json (one note, by string
+insertion); replace this block with slice B4. Print: each failing test before and passing
+after, the reviewer's verdict, the role-suite and pnpm verify summaries, the smoke-suite
+output, the commit hashes and the pushed branch.
 
-No new resources, shop opening, real customers, production launch, merge or automatic runner.
-Do not set the release hold. Stop after 25 turns or two failed fix attempts and report the
-actual obstacle.
+No new resources, shop opening, real customers, launch, merge or automatic runner. Do not set
+the release hold. Stop after 25 turns or two failed fix attempts and report the obstacle.
 ```
