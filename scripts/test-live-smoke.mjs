@@ -377,7 +377,6 @@ try {
     await page.waitForFunction((n) => (window.__hcOps.state.sales ?? []).length === n, wanted);
   };
   let eventId = '';
-  let screenAfterSignal = '';
 
   await step(
     'Bazaar Mode: an event opens on the server, the table is loaded, one sale goes through',
@@ -425,6 +424,14 @@ try {
   });
 
   await step('back online, all three sales are in the database, each once', async () => {
+    // The next customer, mid-payment when the signal returns: a cookie in the cart and the
+    // payment sheet open, not paid.
+    await page
+      .getByRole('button', { name: new RegExp(flavour.short_name) })
+      .first()
+      .click();
+    await page.getByRole('button', { name: 'Charge', exact: true }).click();
+    await page.waitForFunction(() => window.__hcOps.state.sheet?.kind === 'pay');
     await context.setOffline(false);
     offline = false;
     // Stands in for the browser's own event, which headless Chromium does not always fire.
@@ -443,10 +450,19 @@ try {
     // then reload online, which sends whatever the phone still thinks is unsent.
     await page.waitForTimeout(5000);
     await settled('after the queue was sent');
-    // Where the app is once signal is back. On 6 October it had left the selling screen for
-    // Home (the sign-in gate re-applies the role, and the engine's setRole goes home). That
-    // is the gate's behaviour, not this slice's: it is reported below, not hidden.
-    screenAfterSignal = await page.evaluate(() => window.__hcOps.state.screen);
+    // Where the app is once signal is back: still selling, the payment sheet still open. (On
+    // 6 October the sign-in gate re-applied the role here, and the engine's setRole closed
+    // the sheet and went Home.) The reload below drops the unpaid cart.
+    const after = await page.evaluate(() => ({
+      screen: window.__hcOps.state.screen,
+      sheet: window.__hcOps.state.sheet?.kind ?? null
+    }));
+    assert(
+      after.screen === 'bazaar' && after.sheet === 'pay',
+      `When signal returned after the offline reload the app left the sale in hand: ` +
+        `screen "${after.screen}", sheet "${after.sheet}".`
+    );
+    await check(page, 'Bazaar, signal back mid-payment', 'Bazaar Mode');
     await page.goto(`${base}/bazaar`, { waitUntil: 'networkidle' });
     await page.locator('[data-screen-label="Bazaar Mode"]').waitFor();
     await page.waitForTimeout(4000);
@@ -470,12 +486,7 @@ try {
       `      ${visited} places and entries opened; ${ROUTES.length} routes at two widths; ` +
         `${offlineNoise} failed requests while offline, as expected.`
     );
-    console.log(
-      screenAfterSignal === 'bazaar'
-        ? '      when signal returned the selling screen stayed open.'
-        : `      KNOWN DEFECT, not this slice's: when signal returned after the offline reload the app ` +
-            `left the selling screen for "${screenAfterSignal}". The event and all sales were kept.`
-    );
+    console.log('      when signal returned the selling screen and the payment sheet stayed open.');
   });
 } catch (error) {
   failure = error;

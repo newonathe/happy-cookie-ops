@@ -79,6 +79,13 @@ did not. Now:
   back to the front, and once a minute while the server has not answered. A pass reopens the
   whole app and sends the queue. A definite denial signs out as before. No lock-out touches
   the sale queue or the running event.
+- **Signal back mid-sale** (fixed 6 October 2026). When that pass confirms the role Bazaar
+  Mode was opened offline as, an event is still open and the selling screen is what is on
+  screen, nothing moves: the same screen, the same sheet (a payment half taken stays open),
+  the cart as it was. Before the fix the app went to Home and closed the sheet. In every
+  other case the app opens from the role's home as before: a different role than the phone
+  remembered, the "Only Bazaar Mode works without signal" notice on screen, or the "No
+  signal" notice. The put-off idle sign-out below is unchanged.
 - **Idle time is still charged.** With an event open and no server, the idle sign-out is put
   off, not cancelled. When the idle time runs out the app narrows to Bazaar Mode, and that
   is marked on the phone so a tap or a reload does not undo it. The first check the server

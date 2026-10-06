@@ -39,6 +39,12 @@ const BAZAAR: ScreenKey = 'bazaar';
 /** The sheets Bazaar Mode itself opens: take payment, an event expense, the close-out. */
 export const BAZAAR_SHEETS: readonly string[] = ['pay', 'evExp', 'closeout'];
 
+/** All that Bazaar-only access draws: the bazaar screen, with at most one of its own sheets over it. */
+function showsBazaarAlone(screen: ScreenKey, state: Readonly<Record<string, unknown>>): boolean {
+  const sheet = (state.sheet as { kind?: string } | null)?.kind;
+  return screen === BAZAAR && !state.quick && (!sheet || BAZAAR_SHEETS.includes(sheet));
+}
+
 /**
  * closed    nothing decided yet on this page load: nothing renders.
  * verified  the server passed the identity check: the whole app.
@@ -97,6 +103,12 @@ export interface GateView {
  * sign-out is put off, not cancelled. When the idle time runs out the app narrows to Bazaar
  * Mode alone and the expiry is marked on the phone; no tap and no reload undoes it. The first
  * check the server answers sends the queued sales and signs out, as idle always did.
+ *
+ * Signal back mid-sale (6 October 2026). When the first check the server answers confirms the
+ * role Bazaar Mode was opened offline as, with an event open and the selling screen drawn, the
+ * screen and its sheet are left as they are: the queue is sent and the whole app is open again,
+ * but nobody is moved to Home with a payment half taken. A different role, a denial and the
+ * put-off idle sign-out are unchanged.
  *
  * `children` may be a function: it is given the landing screen (so `RouteSync` does not move
  * an offline open back to Home) and the notice to draw instead of the frame, which keeps
@@ -161,6 +173,9 @@ export function LiveGate({
     let idleRunning = false;
     // The role idle time is measured for: the verified one, or the remembered one offline.
     let idleRole: Role | null = null;
+    // The role `holdOffline` opened Bazaar Mode as on this page load, until a check passes or
+    // the idle time runs out. Never set by `narrow`, which reaches the same access another way.
+    let offlineRole: Role | null = null;
     let stopIdleTimer = () => undefined as void;
     let recheck: ReturnType<typeof setInterval> | undefined;
     let outstanding = 0;
@@ -267,6 +282,7 @@ export function LiveGate({
       const role = hasStoredSession() ? offlineBazaarRole() : null;
       if (role) {
         idleRole = role;
+        offlineRole = role;
         if (engine instanceof OpsRuntime) engine.restoreStallCopy();
         if (engine.state.role !== role) engine.setRole(role);
         if (engine.state.screen !== BAZAAR) engine.go(BAZAAR);
@@ -290,6 +306,7 @@ export function LiveGate({
     function narrow() {
       markIdleSpent();
       stopIdle();
+      offlineRole = null;
       if (holdsOpenEvent() && checkStillFresh()) {
         if (engine.state.screen !== BAZAAR) engine.go(BAZAAR);
         setLanding(BAZAAR);
@@ -351,9 +368,21 @@ export function LiveGate({
         signOutAfterFlush();
         return;
       }
+      // Signal back at the stall. Bazaar Mode was opened offline as this same role, an event is
+      // still open and the selling screen is what is drawn: the sale in hand carries on. The
+      // protected engine's setRole would close the payment sheet and go home, to apply a role
+      // the engine already holds. In every other case the role is applied as before.
+      const sellingOn =
+        offlineRole === role &&
+        accessRef.current === 'bazaar' &&
+        engine.state.role === role &&
+        holdsOpenEvent() &&
+        showsBazaarAlone(engine.state.screen as ScreenKey, engine.state);
+      offlineRole = null;
       // The protected engine clears an in-progress stocktake on setRole. A same-role
       // token refresh or visibility check must not reset the owner's count.
-      if (accessRef.current !== 'verified' || engine.state.role !== role) engine.setRole(role);
+      if (!sellingOn && (accessRef.current !== 'verified' || engine.state.role !== role))
+        engine.setRole(role);
       rememberCheck(role);
       stopRecheck();
       // Reopening after a spell with no server: send what the phone is holding now. On a dead
@@ -537,9 +566,7 @@ export function LiveGate({
   if (access === 'bazaar') {
     // Books, P&L, orders, stock and settings stay closed until a check passes: only the
     // bazaar screen, with at most one of its own sheets over it, is drawn.
-    const sheet = (engine.state.sheet as { kind?: string } | null)?.kind;
-    const open =
-      screen === BAZAAR && !engine.state.quick && (!sheet || BAZAAR_SHEETS.includes(sheet));
+    const open = showsBazaarAlone(screen, engine.state);
     const back = () => {
       engine.setState({ sheet: null, quick: false });
       engine.go(BAZAAR);

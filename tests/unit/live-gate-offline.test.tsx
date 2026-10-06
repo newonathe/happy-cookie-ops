@@ -110,6 +110,7 @@ interface Till {
   flushSales: () => Promise<unknown>;
 }
 const till = () => net.engine as Till;
+const sheetKind = () => (till().state.sheet as { kind?: string } | null)?.kind;
 
 /** Reads from the server that this test does not exercise: each answers "nothing read". */
 const LOADERS = [
@@ -306,6 +307,90 @@ describe('the bazaar phone with no signal (A2)', () => {
     await tick();
     expect(screen.queryByTestId('frame')).toBeNull();
     expect(screen.getByText('No signal')).toBeInTheDocument();
+  });
+
+  it('signal back on the selling screen: the sale in hand carries on, same screen, same payment sheet', async () => {
+    seedEvent();
+    seedCheck(Date.now() - HOUR);
+    await signal(false);
+    render(<OpsApp initialScreen="today" />);
+    await tick();
+    expect(screen.getByTestId('frame')).toHaveTextContent('bazaar');
+    const two = till();
+    act(() => two.setState({ cart: { dcf: 1 } }));
+    act(() => two.recordSale('Cash'));
+    await tick();
+    expect(queued('pending')).toHaveLength(1);
+    // The next customer: cookies in the cart, the payment sheet open, not paid yet.
+    act(() => two.setState({ cart: { dcf: 2 } }));
+    act(() => two.sheet('pay'));
+    expect(sheetKind()).toBe('pay');
+
+    await signal(true);
+    await tick();
+    expect(screen.getByTestId('frame')).toHaveTextContent('bazaar');
+    expect(sheetKind()).toBe('pay');
+    expect(two.state.cart).toEqual({ dcf: 2 });
+    expect(sales()).toHaveLength(1); // the queue was sent
+    expect(queued('pending')).toHaveLength(0);
+    expect(net.signOuts).toBe(0);
+    expect(replace).not.toHaveBeenCalled();
+    // And the check did pass: the rest of the app is open again.
+    act(() => two.go('pnl'));
+    expect(screen.getByTestId('frame')).toHaveTextContent('pnl');
+  });
+
+  it('signal back with a different role than the phone remembered: that role is applied from its home, as before', async () => {
+    seedEvent();
+    seedCheck(Date.now() - HOUR, 'helper');
+    await signal(false);
+    render(<OpsApp initialScreen="today" />);
+    await tick();
+    expect(screen.getByTestId('frame')).toHaveTextContent('bazaar');
+    const two = till();
+    expect(two.state.role).toBe('helper');
+    act(() => two.setState({ cart: { dcf: 1 } }));
+    act(() => two.sheet('pay'));
+
+    await signal(true); // the server says owner
+    await tick();
+    expect(two.state.role).toBe('owner');
+    expect(screen.getByTestId('frame')).toHaveTextContent('today');
+    expect(sheetKind()).toBeUndefined();
+    expect(net.signOuts).toBe(0);
+  });
+
+  it('signal back while the "Only Bazaar Mode" notice is up: the app opens from Home, as before', async () => {
+    seedEvent();
+    seedCheck(Date.now() - HOUR);
+    await signal(false);
+    render(<OpsApp initialScreen="today" />);
+    await tick();
+    act(() => till().go('pnl'));
+    expect(screen.getByText('Only Bazaar Mode works without signal')).toBeInTheDocument();
+
+    await signal(true);
+    await tick();
+    expect(screen.getByTestId('frame')).toHaveTextContent('today');
+    expect(net.signOuts).toBe(0);
+  });
+
+  it('signal back after the event was closed on the phone: nothing is selling, so the app opens from Home, as before', async () => {
+    seedEvent();
+    seedCheck(Date.now() - HOUR);
+    await signal(false);
+    render(<OpsApp initialScreen="today" />);
+    await tick();
+    const two = till();
+    act(() => two.setState({ event: { ...two.state.event, stage: 'closed' } }));
+    await tick();
+    expect(JSON.parse(localStorage.getItem('hc-live-bazaar')!).event.stage).toBe('closed');
+    expect(screen.getByTestId('frame')).toHaveTextContent('bazaar');
+
+    await signal(true);
+    await tick();
+    expect(screen.getByTestId('frame')).toHaveTextContent('today');
+    expect(net.signOuts).toBe(0);
   });
 
   it.each([
