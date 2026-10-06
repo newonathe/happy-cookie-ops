@@ -88,8 +88,8 @@ async function mounted(role: Role, f: ReturnType<typeof fake>) {
 const entry = (r: OpsRuntime) =>
   r
     .renderVals()
-    .toolGroups.find((g) => g.title === 'Business')
-    ?.items.find((i) => i.label === 'Boxes & add-ons');
+    .toolGroups.flatMap((g) => g.items)
+    .find((i) => i.label === 'Boxes & add-ons');
 const open = async (r: OpsRuntime) => {
   await act(async () => entry(r)!.go());
   await settle();

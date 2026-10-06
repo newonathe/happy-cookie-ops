@@ -47,10 +47,11 @@ describe('B1: the guarded, live-only screen slot', () => {
     for (const key of SCREEN_KEYS) expect([key, liveScreenFor(key)]).toEqual([key, undefined]);
   });
 
-  it('draws nothing in live mode until a screen is registered: the ported screen renders', () => {
+  it('draws no screen in live mode until one is registered: the ported screen renders', () => {
     const runtime = mount();
     act(() => runtime.go('orders'));
-    expect(runtime.renderVals().liveScreen).toBeNull();
+    // Since part 2c the slot carries the owner's sub-tab strip; it still names no screen.
+    expect(runtime.renderVals().liveScreen?.screen).toBeNull();
     expect(runtime.renderVals().screens.orders).toBe(true);
     expect(ported('Orders')).toBeTruthy();
     expect(drawn()).toBeNull();
@@ -61,13 +62,13 @@ describe('B1: the guarded, live-only screen slot', () => {
     const runtime = mount();
     act(() => runtime.go('orders'));
     expect(runtime.state.screen).toBe('orders');
-    expect(runtime.renderVals().liveScreen).toEqual({ screen: 'orders' });
+    expect(runtime.renderVals().liveScreen?.screen).toBe('orders');
     expect(runtime.renderVals().screens.orders).toBe(false);
     expect(screen.getByText('The redesigned orders screen')).toBeTruthy();
     expect(ported('Orders')).toBeNull();
     // Only that key is replaced: every other screen is still the ported one.
     act(() => runtime.go('bake'));
-    expect(runtime.renderVals().liveScreen).toBeNull();
+    expect(runtime.renderVals().liveScreen?.screen).toBeNull();
     expect(ported('Bake plan')).toBeTruthy();
     expect(drawn()).toBeNull();
     // Unregistering gives the ported screen back.

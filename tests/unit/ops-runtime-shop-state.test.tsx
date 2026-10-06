@@ -257,8 +257,8 @@ describe('B3: the order rules form', () => {
   const entry = (r: OpsRuntime) =>
     r
       .renderVals()
-      .toolGroups.find((g) => g.title === 'Business')
-      ?.items.find((i) => i.label === 'Order rules');
+      .toolGroups.flatMap((g) => g.items)
+      .find((i) => i.label === 'Order rules');
 
   it('opens on the rules as read, and saves the nine keys against the stamp it read', async () => {
     const f = fake();

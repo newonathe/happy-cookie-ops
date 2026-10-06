@@ -845,6 +845,19 @@ with notes, no P0 to P2.** Read-only, on the uncommitted change:
   matches the code.
 - **P3, fixed:** the "ships with no screen registered" test checked seven keys; it now
   checks every screen key.
+- **Amended in part 2c, the same day (no protected file touched):** the slot also carries
+  the live owner's sub-tab strip. Asked what the dock should show after B1, Ethan chose on
+  6 October: "Rename now, with sub-tabs", the option worded "Dock becomes the five tabs and
+  a sub-tab strip is drawn through the slot around the ported screens". So `liveScreen` is
+  now `{ screen, tabs }`: with no screen registered the slot draws the strip above the
+  ported screen, which still renders through its own unchanged frame line. The strip is
+  data from `src/lib/nav/function-map.ts`, drawn by `src/components/ui/sub-tabs.tsx`
+  (unprotected, existing colours only). It is never drawn in demo mode, for a helper or
+  support, on a customer page, on a denied screen, in the engine's focus mode, or on the
+  Bazaar screen once an event is on the phone. `tests/unit/ops-runtime-live-dock.test.tsx`
+  pins each of those; the slot test's "nothing registered" case now asserts that the slot
+  names no screen rather than that it draws nothing. The frame bytes and both baselines
+  are exactly as audited above.
 - **P3, recorded for the slice that redesigns Stock:** `stocktake` is a key with no screen
   file (it renders inside inventory), so a screen registered under `inventory` does not
   replace the count view, and one registered under `stocktake` replaces nothing. That slice

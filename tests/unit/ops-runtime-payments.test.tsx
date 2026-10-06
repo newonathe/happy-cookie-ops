@@ -87,7 +87,7 @@ const custSet = (runtime: OpsRuntime, key: string, value: string) =>
 const labels = (runtime: OpsRuntime) =>
   (runtime.renderVals().cust.methods ?? []).map((m) => m.label);
 const businessItems = (runtime: OpsRuntime) =>
-  runtime.renderVals().toolGroups.find((g) => g.title === 'Business')?.items ?? [];
+  runtime.renderVals().toolGroups.flatMap((g) => g.items);
 
 describe('MP-09 c2: the live checkout and footer', () => {
   beforeEach(() => {

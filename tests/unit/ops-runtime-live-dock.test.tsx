@@ -1,5 +1,5 @@
 import { act } from 'react';
-import { cleanup, render, screen, within } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 let live = true;
@@ -7,13 +7,17 @@ vi.mock('@/lib/config/app-mode', () => ({ isLiveMode: () => live }));
 
 import { OpsRuntime } from '@/store/ops-runtime';
 import { OpsProvider } from '@/store/engine/ops-engine';
+import type { OpsEngineState } from '@/store/engine/ops-engine';
 import { useOpsVals } from '@/store/use-ops';
 import { AppFrame } from '@/components/shell/app-frame';
+import { SCREEN_KEYS } from '@/lib/screens';
+import { PLACES, TABS, placeOfRoute, tabOfRoute } from '@/lib/nav/function-map';
+import { clearBazaar, readBazaar } from '@/lib/offline/bazaar-state';
 
 function Frame() {
   return <AppFrame v={useOpsVals()} />;
 }
-function mount(role: 'owner' | 'helper' | 'support' = 'owner') {
+function mount(role: 'owner' | 'helper' | 'support' = 'owner', device = 'mobile') {
   const ref: { current: OpsRuntime | null } = { current: null };
   render(
     <OpsRuntime ref={(r) => void (ref.current = r)}>
@@ -22,103 +26,320 @@ function mount(role: 'owner' | 'helper' | 'support' = 'owner') {
   );
   const runtime = ref.current!;
   act(() => runtime.setRole(role));
-  act(() => runtime.setState({ device: 'mobile' }));
+  act(() => runtime.setState({ device }));
   return runtime;
 }
+const TAB_LABELS = ['Home', 'Sell', 'Make', 'Stock', 'Money'];
 const dock = (runtime: OpsRuntime) => runtime.renderVals().dockNav;
 const labels = (runtime: OpsRuntime) => dock(runtime).map((item) => item.label);
 const marked = (runtime: OpsRuntime) =>
   dock(runtime)
     .filter((item) => item.active)
     .map((item) => item.label);
+const strip = (runtime: OpsRuntime) => runtime.renderVals().liveScreen?.tabs ?? null;
+const places = (runtime: OpsRuntime) => (strip(runtime)?.places ?? []).map((item) => item.label);
+const entries = (runtime: OpsRuntime) => (strip(runtime)?.entries ?? []).map((item) => item.label);
+const open = (items: Array<{ label: string; active: boolean }> | undefined) =>
+  (items ?? []).filter((item) => item.active).map((item) => item.label);
+const row = (kind: 'places' | 'entries') => document.querySelector(`[data-sub-tabs="${kind}"]`);
 
 afterEach(() => {
   cleanup();
+  clearBazaar();
+  localStorage.clear();
   live = true;
 });
 
-describe('UX review proposal 3: the live phone dock', () => {
-  it('shows the owner five labelled destinations, in order, with their badges', () => {
+describe('B1: the five tabs on the live owner’s dock and sidebar', () => {
+  it('shows Home, Sell, Make, Stock, Money, labelled, with the engine’s own icons', () => {
     const runtime = mount();
-    expect(labels(runtime)).toEqual(['Home', 'Orders', 'Bake', 'Inventory', 'All tools']);
+    expect(labels(runtime)).toEqual(TAB_LABELS);
     const ported = OpsProvider.prototype.renderVals.call(runtime).dockNav;
-    for (const item of dock(runtime)) {
-      const original = ported.find((row: { label: unknown }) => row.label === item.label);
-      expect(item.badge).toBe(original?.badge);
-      expect(item.icon).toBe(original?.icon);
-    }
+    const icon = (label: string) =>
+      ported.find((item: { label: unknown }) => item.label === label)?.icon;
+    expect(dock(runtime).map((item) => item.icon)).toEqual(
+      ['Home', 'Orders', 'Bake', 'Inventory', 'P&L'].map(icon)
+    );
     expect(String(runtime.renderVals().dockPillStyle)).toContain('calc((100% - 12px) / 5)');
-    // The labels are on screen, one per destination, inside the dock buttons.
-    for (const label of ['Home', 'Orders', 'Bake', 'Inventory', 'All tools']) {
+    for (const label of TAB_LABELS) {
       const button = screen.getByRole('button', { name: label });
       expect(within(button).getByText(label)).toBeTruthy();
     }
-    expect(screen.queryByRole('button', { name: 'Sales log' })).toBeNull();
+    // The old destinations and the catch-all are off the dock.
+    for (const gone of ['Orders', 'Bake', 'Inventory', 'All tools', 'Sales log'])
+      expect(dock(runtime).some((item) => item.label === gone)).toBe(false);
   });
 
-  it('marks the destination a screen belongs to, and All tools for everything reached through it', () => {
+  it('opens each tab on its first place', () => {
     const runtime = mount();
-    expect(marked(runtime)).toEqual(['Home']);
-    for (const [screenKey, label] of [
-      ['orders', 'Orders'],
-      ['order', 'Orders'],
-      ['bake', 'Bake'],
-      ['batch', 'Bake'],
-      ['inventory', 'Inventory'],
-      ['more', 'All tools'],
-      ['sales', 'All tools'],
-      ['grocery', 'All tools'],
-      ['bazaar', 'All tools'],
-      ['pnl', 'All tools'],
-      ['products', 'All tools'],
-      ['health', 'All tools']
-    ] as const) {
-      act(() => runtime.go(screenKey));
-      expect([screenKey, ...marked(runtime)]).toEqual([screenKey, label]);
-      const at = ['Home', 'Orders', 'Bake', 'Inventory', 'All tools'].indexOf(label);
+    for (const tab of TABS) {
+      act(() =>
+        dock(runtime)
+          .find((item) => item.label === tab.label)!
+          .go()
+      );
+      expect([tab.label, runtime.state.screen]).toEqual([tab.label, tab.screen]);
+      expect(marked(runtime)).toEqual([tab.label]);
+    }
+  });
+
+  it('marks the tab every route belongs to, Home for Account, and none outside the tabs', () => {
+    const runtime = mount();
+    for (const route of SCREEN_KEYS) {
+      act(() => runtime.go(route));
+      const tab = tabOfRoute(route);
+      const wanted =
+        placeOfRoute(route)?.home === 'account'
+          ? 'Home'
+          : (TABS.find((item) => item.id === tab)?.label ?? null);
+      expect([route, ...marked(runtime)]).toEqual(wanted ? [route, wanted] : [route]);
+      const at = wanted ? TAB_LABELS.indexOf(wanted) : -1;
       expect(String(runtime.renderVals().dockPillStyle)).toContain(
-        `translate3d(${at * 100}%, 0, 0); opacity: 1`
+        at < 0 ? 'opacity: 0' : `translate3d(${at * 100}%, 0, 0); opacity: 1`
+      );
+      expect(String(runtime.renderVals().railPillStyle)).toContain(
+        at < 0 ? 'opacity: 0' : `translate3d(0, ${at * 44}px, 0); opacity: 1`
       );
     }
   });
 
-  it('keeps Sales log, Grocery, Bazaar and P&L one tap away in All tools', () => {
+  it('gives the sidebar the same five', () => {
+    const runtime = mount('owner', 'desktop');
+    expect(runtime.renderVals().railNav.map((item) => item.label)).toEqual(TAB_LABELS);
+    expect(runtime.renderVals().railNav.map((item) => item.icon)).toEqual(
+      dock(runtime).map((item) => item.icon)
+    );
+    act(() => runtime.renderVals().railNav[3]!.go());
+    expect(runtime.state.screen).toBe('inventory');
+  });
+
+  it('carries the Orders and Grocery counts on their tabs and their sub-tabs', () => {
     const runtime = mount();
-    const tools = runtime.renderVals().toolGroups.flatMap((group) => group.items);
-    for (const label of ['Sales log', 'Grocery', 'Bazaar Mode', 'Profit & loss'])
-      expect(tools.filter((item) => item.label === label)).toHaveLength(1);
-    act(() => tools.find((item) => item.label === 'Sales log')!.go());
+    const ported = OpsProvider.prototype.renderVals.call(runtime).dockNav;
+    const count = (label: string) =>
+      Number(ported.find((item: { label: unknown }) => item.label === label)?.badge) || 0;
+    const tab = (label: string) =>
+      Number(dock(runtime).find((item) => item.label === label)?.badge) || 0;
+    expect(tab('Sell')).toBe(count('Orders'));
+    expect(tab('Stock')).toBe(count('Grocery'));
+    // What All tools carried (the backup flag, unsent sales) is on Home, where Account sits.
+    expect(tab('Home')).toBe(count('All tools'));
+  });
+});
+
+describe('B1: the sub-tab strip, drawn through the screen slot', () => {
+  it('lists the places of the open tab and marks the open one', () => {
+    const runtime = mount();
+    act(() => runtime.go('orders'));
+    expect(places(runtime)).toEqual(['Orders', 'Bazaar', 'Customers', 'Shop']);
+    expect(open(strip(runtime)?.places)).toEqual(['Orders']);
+    expect(entries(runtime)).toEqual(['Orders & payments', 'Payments', 'Customer messages']);
+    expect(open(strip(runtime)?.entries)).toEqual(['Orders & payments']);
+    // On screen, above the ported Orders screen, which still renders.
+    const first = row('places')!;
+    expect(within(first as HTMLElement).getAllByRole('button')).toHaveLength(4);
+    expect(
+      within(first as HTMLElement)
+        .getByRole('button', { name: 'Orders' })
+        .getAttribute('aria-current')
+    ).toBe('page');
+    expect(document.querySelector('[data-screen-label="Orders"]')).toBeTruthy();
+    expect(runtime.renderVals().screens.orders).toBe(true);
+    expect(runtime.renderVals().liveScreen?.screen).toBeNull();
+  });
+
+  it('opens a place’s other entries from the second row', () => {
+    const runtime = mount();
+    act(() => runtime.go('orders'));
+    fireEvent.click(
+      within(row('entries') as HTMLElement).getByRole('button', { name: 'Payments' })
+    );
+    expect(runtime.state.screen).toBe('reconcile');
+    expect(open(strip(runtime)?.places)).toEqual(['Orders']);
+    expect(open(strip(runtime)?.entries)).toEqual(['Payments']);
+    expect(marked(runtime)).toEqual(['Sell']);
+    // The order page belongs to Orders too; no entry is marked on it.
+    act(() => runtime.go('order'));
+    expect(open(strip(runtime)?.places)).toEqual(['Orders']);
+    expect(open(strip(runtime)?.entries)).toEqual([]);
+  });
+
+  it('opens Shop on Drops with its nine entries, and Customers on its one sheet', () => {
+    const runtime = mount();
+    act(() => runtime.go('orders'));
+    act(() =>
+      strip(runtime)!
+        .places.find((item) => item.label === 'Shop')!
+        .go()
+    );
+    expect(runtime.state.screen).toBe('drops');
+    expect(open(strip(runtime)?.places)).toEqual(['Shop']);
+    expect(entries(runtime)).toHaveLength(9);
+    expect(open(strip(runtime)?.entries)).toEqual(['Drops']);
+    act(() =>
+      strip(runtime)!
+        .places.find((item) => item.label === 'Customers')!
+        .go()
+    );
+    expect(runtime.state.screen).toBe('drops');
+    expect((runtime.state.sheet as { kind?: string } | null)?.kind).toBe('customers');
+  });
+
+  it('puts Account on Home’s strip until the top bar has a button for it', () => {
+    const runtime = mount();
+    expect(places(runtime)).toEqual(['This week', 'Account']);
+    expect(open(strip(runtime)?.places)).toEqual(['This week']);
+    expect(entries(runtime)).toEqual([]);
+    act(() =>
+      strip(runtime)!
+        .places.find((item) => item.label === 'Account')!
+        .go()
+    );
+    expect(runtime.state.screen).toBe('settings');
+    expect(marked(runtime)).toEqual(['Home']);
+    expect(open(strip(runtime)?.places)).toEqual(['Account']);
+    expect(entries(runtime)).toEqual(['Settings', 'System health', 'Backups & export']);
+    act(() =>
+      strip(runtime)!
+        .entries.find((item) => item.label === 'System health')!
+        .go()
+    );
+    expect(runtime.state.screen).toBe('health');
+    // Two entries open this screen; only the first is marked.
+    expect(open(strip(runtime)?.entries)).toEqual(['System health']);
+  });
+
+  it('offers every entry that has a home under a tab or Account exactly once', () => {
+    const runtime = mount();
+    const offered: string[] = [];
+    for (const place of PLACES.filter((p) => !['bell', 'customer', 'retired'].includes(p.home))) {
+      if (place.screen) {
+        act(() => runtime.go(place.screen!));
+        expect([place.id, open(strip(runtime)?.places)]).toEqual([place.id, [place.label]]);
+        if (place.entries.length > 1) offered.push(...entries(runtime));
+        else offered.push(...place.entries.map((entry) => entry.label));
+      } else {
+        // No screen yet: its chip is its one entry.
+        act(() => runtime.go(TABS.find((tab) => tab.id === place.home)!.screen));
+        expect(places(runtime)).toContain(place.label);
+        offered.push(place.entries[0]!.label);
+      }
+    }
+    const wanted = PLACES.filter((p) => !['bell', 'customer', 'retired'].includes(p.home)).flatMap(
+      (place) => place.entries.map((entry) => entry.label)
+    );
+    expect([...offered].sort()).toEqual([...wanted].sort());
+    expect(new Set(offered).size).toBe(offered.length);
+    expect(offered).toHaveLength(31);
+    // The other two: Notifications is behind the bell, Form queue is retired.
+    const all = runtime.liveToolEntries().map((item) => String(item.label));
+    expect(all.filter((label) => !offered.includes(label)).sort()).toEqual([
+      'Form queue',
+      'Notifications'
+    ]);
+  });
+
+  it('draws nothing on Bazaar Mode once an event is on the phone, at any stage', () => {
+    const runtime = mount();
+    act(() => runtime.go('bazaar'));
+    // No event yet: the bookings list, with the way to Bazaar events.
+    expect(entries(runtime)).toEqual(['Bazaar Mode', 'Bazaar events']);
+    for (const stage of ['stock', 'selling', 'closed']) {
+      act(() =>
+        runtime.setState({ event: { name: 'Fair', stage } as OpsEngineState['event'], sales: [] })
+      );
+      expect([stage, runtime.renderVals().liveScreen]).toEqual([stage, null]);
+      expect([stage, row('places')]).toEqual([stage, null]);
+    }
+    expect(marked(runtime)).toEqual(['Sell']);
+  });
+
+  it('draws nothing on Bazaar Mode on a phone that reopens with a saved event', () => {
+    // What the gate opens offline: the saved event is back before the first tap.
+    localStorage.setItem(
+      'hc-live-bazaar',
+      JSON.stringify({
+        event: { id: 'd1e0c105-0000-4000-8000-0000000000e1', name: 'Fair', stage: 'selling' },
+        sales: []
+      })
+    );
+    expect(readBazaar()).toBeTruthy();
+    const runtime = mount();
+    act(() => runtime.go('bazaar'));
+    expect(runtime.state.event).toMatchObject({ stage: 'selling' });
+    expect(runtime.renderVals().liveScreen).toBeNull();
+    expect(row('places')).toBeNull();
+  });
+
+  it('draws nothing where there is no tab: the bell, All tools, customer pages, a count', () => {
+    const runtime = mount();
+    for (const route of ['notifications', 'more', 'formqueue', 'shop', 'checkout'] as const) {
+      act(() => runtime.go(route));
+      expect([route, runtime.renderVals().liveScreen]).toEqual([route, null]);
+    }
+    act(() => runtime.go('inventory'));
+    expect(strip(runtime)).toBeTruthy();
+    act(() => (runtime as unknown as { startStocktake: () => void }).startStocktake());
+    // Focus mode: the engine hides its own top bar, dock and sidebar too.
+    expect(runtime.renderVals().showTopBar).toBe(false);
+    expect(runtime.renderVals().liveScreen).toBeNull();
+  });
+
+  it('keeps All tools working by address, grouped by home, without Form queue', () => {
+    const runtime = mount();
+    act(() => runtime.go('more'));
+    const groups = runtime.renderVals().toolGroups;
+    const shown = groups.flatMap((group) => group.items.map((item) => String(item.label)));
+    expect(shown).toHaveLength(32);
+    expect(new Set(shown).size).toBe(32);
+    expect(shown).not.toContain('Form queue');
+    expect(groups.map((group) => group.title)).toEqual([
+      'Sell · Orders',
+      'Sell · Bazaar',
+      'Sell · Customers',
+      'Sell · Shop',
+      'Make · Bake plan',
+      'Make · Recipes',
+      'Stock · Inventory',
+      'Stock · Grocery',
+      'Stock · Suppliers',
+      'Money · P&L',
+      'Money · Sales',
+      'Money · Expenses',
+      'Account',
+      'Notifications'
+    ]);
+    act(() =>
+      groups
+        .flatMap((group) => group.items)
+        .find((item) => item.label === 'Sales log')!
+        .go()
+    );
     expect(runtime.state.screen).toBe('sales');
   });
+});
 
-  it('gives Sales log its own icon, in All tools and in the tablet and desktop sidebar', () => {
-    const runtime = mount();
-    const vals = runtime.renderVals();
-    const rail = (label: string) => vals.railNav.find((item) => item.label === label)?.icon;
-    expect(rail('Sales log')).toBeTruthy();
-    expect(rail('Sales log')).not.toBe(rail('P&L'));
-    expect(vals.railNav.map((item) => item.label)).toEqual(
-      OpsProvider.prototype.renderVals
-        .call(runtime)
-        .railNav.map((item: { label: unknown }) => item.label)
-    );
-    expect(
-      vals.toolGroups.flatMap((group) => group.items).find((item) => item.label === 'Sales log')
-        ?.icon
-    ).toBe(rail('Sales log'));
-  });
-
-  it('leaves a helper and support their own short docks, labelled', () => {
+describe('B1: who keeps what they had', () => {
+  it('leaves a helper and support their own short docks, labelled, with no strip', () => {
     const helper = mount('helper');
     expect(labels(helper)).toEqual(['Home', 'Sales log', 'Bazaar']);
     expect(String(helper.renderVals().dockPillStyle)).toContain('calc((100% - 12px) / 3)');
     expect(within(screen.getByRole('button', { name: 'Bazaar' })).getByText('Bazaar')).toBeTruthy();
+    for (const route of ['today', 'sales', 'bazaar', 'orders'] as const) {
+      act(() => helper.go(route));
+      expect([route, helper.renderVals().liveScreen]).toEqual([route, null]);
+    }
     cleanup();
     const support = mount('support');
     expect(labels(support)).toEqual(['All tools']);
+    expect(support.renderVals().liveScreen).toBeNull();
+    // Support's All tools is the engine's own short list, not the owner's index.
+    expect(
+      support.renderVals().toolGroups.flatMap((group) => group.items.map((item) => item.label))
+    ).toEqual(['Notifications', 'System health', 'Backups & export']);
   });
 
-  it('demo mode keeps the ported dock: nine icons, no visible labels, the engine’s icons', () => {
+  it('demo mode keeps the ported dock: nine icons, no visible labels, no strip', () => {
     live = false;
     const runtime = mount();
     const ported = OpsProvider.prototype.renderVals.call(runtime);
@@ -128,9 +349,12 @@ describe('UX review proposal 3: the live phone dock', () => {
     );
     expect(vals.dockNav).toHaveLength(9);
     expect(vals.dockPillStyle).toBe(ported.dockPillStyle);
-    expect(vals.railNav.map((item) => item.icon)).toEqual(
-      ported.railNav.map((item: { icon: unknown }) => item.icon)
+    expect(vals.railPillStyle).toBe(ported.railPillStyle);
+    expect(vals.railNav.map((item) => [item.label, item.icon])).toEqual(
+      ported.railNav.map((item: { label: unknown; icon: unknown }) => [item.label, item.icon])
     );
+    expect(vals.liveScreen).toBeUndefined();
+    expect(row('places')).toBeNull();
     const home = screen.getByRole('button', { name: 'Home' });
     expect(within(home).queryByText('Home')).toBeNull();
   });

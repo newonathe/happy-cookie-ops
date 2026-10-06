@@ -215,6 +215,8 @@ import {
 } from '@/lib/data/flavours';
 import { CUSTOMER_SCREENS, type ScreenKey } from '@/lib/screens';
 import { liveScreenFor } from '@/components/live/live-screens';
+import { PLACES, TABS, placeOfRoute, placesOf, tabOf, type Place } from '@/lib/nav/function-map';
+import type { LiveTabs } from '@/view-models/vals';
 import { helperMoneyView } from '@/lib/auth/helper-money';
 import {
   IDLE_MINUTES_MAX,
@@ -545,10 +547,7 @@ const MENU_TOOLS = {
   drafts: 'Your original recipe text, as you wrote it'
 } as const;
 
-/** UX review, proposal 3: the live owner's phone dock, in order. Everything else is under All tools. */
-const DOCK_LABELS = ['Home', 'Orders', 'Bake', 'Inventory', 'All tools'];
-/** Screens with no dock entry of their own that belong to one; any other is reached through All tools. */
-const DOCK_PARENT: Record<string, string> = { order: 'Orders', batch: 'Bake' };
+type ToolItem = OpsVals['toolGroups'][number]['items'][number];
 /** A receipt, so Sales log no longer shares the peso icon with P&L. */
 const SALES_LOG_ICON =
   'M6.5 4.5h11v15l-2.2-1.5-1.7 1.5-1.6-1.5-1.6 1.5-1.7-1.5-2.2 1.5zM9.5 9h5M9.5 12.5h5';
@@ -1550,6 +1549,19 @@ export class OpsRuntime extends OpsProvider {
     const barHeight = Number.isFinite(profit)
       ? Math.max(6, Math.round((profit / Math.max(1, profit)) * 100))
       : 6;
+    const healthTool = (item: ToolItem): ToolItem =>
+      item.label === 'System health'
+        ? { ...item, sub: health.healthTitle, badge: healthProblems || null }
+        : item.label === 'Backups & export'
+          ? { ...item, sub: 'Recorded checks and books CSV' }
+          : item;
+    // MP-09 c1c: the flavour editor's entry points and form host, live owner only.
+    const ownerTools =
+      this.state.role === 'owner'
+        ? this.liveToolGroups(starved.toolGroups ?? [])
+            .flatMap((group) => group.items)
+            .map(healthTool)
+        : null;
     return {
       ...starved,
       bareFrame: true,
@@ -1561,21 +1573,15 @@ export class OpsRuntime extends OpsProvider {
         (this.state.device === 'desktop' ? '#F6F4F2' : '#FFFFFF'),
       plTrend: trend.filter((row) => row.now).map((row) => ({ ...row, v: barHeight })),
       rules: this.state.role === 'owner' ? this.liveRules(starved.rules ?? []) : starved.rules,
-      // MP-09 c1c: the flavour editor's entry points and form host, live owner only.
-      toolGroups: (this.state.role === 'owner'
-        ? this.liveToolGroups(starved.toolGroups ?? [])
-        : starved.toolGroups
-      ).map((group) => ({
-        ...group,
-        items: group.items.map((item) =>
-          item.label === 'System health'
-            ? { ...item, sub: health.healthTitle, badge: healthProblems || null }
-            : item.label === 'Backups & export'
-              ? { ...item, sub: 'Recorded checks and books CSV' }
-              : item
-        )
-      })),
-      ...this.liveDock(starved),
+      // B1: the owner's All tools is one entry list, each under its one home; the dock, the
+      // sidebar and the sub-tab strip are read from the same list and the function map.
+      toolGroups: ownerTools
+        ? this.liveToolIndex(ownerTools)
+        : (starved.toolGroups ?? []).map((group) => ({
+            ...group,
+            items: group.items.map(healthTool)
+          })),
+      ...this.liveDock(starved, ownerTools),
       // Home's grid and the Settings row word the engine's `backup` flag; say what was recorded instead.
       launcher: (starved.launcher ?? []).map((group) => ({
         ...group,
@@ -1625,7 +1631,7 @@ export class OpsRuntime extends OpsProvider {
           : row;
       }),
       sheet: this.liveSheet(starved.sheet),
-      ...this.liveScreenVals(starved),
+      ...this.liveScreenVals(starved, ownerTools),
       liveForm: this.liveFormVals(),
       livePay: this.livePayVals(),
       liveTexts: this.liveTextsVals(),
@@ -4033,42 +4039,149 @@ export class OpsRuntime extends OpsProvider {
   }
 
   /**
-   * UX review, proposal 3. The live owner's phone dock shows five labelled destinations
-   * instead of nine unlabelled icons; Sales log, Grocery, Bazaar and P&L are under All tools,
-   * and the dock marks All tools while one of those screens is open. A helper's or
-   * support's dock keeps its own, shorter list. The visible label is one guarded line of
-   * shell markup (protected exception); everything else is here.
+   * All tools for the live owner, kept for its address only (nothing links to it since B1):
+   * every entry under its one home, in the map's order, the retired entry left out.
    */
-  private liveDock(vals: OpsVals): Pick<OpsVals, 'dockNav' | 'dockPillStyle' | 'railNav'> {
+  private liveToolIndex(tools: ToolItem[]): OpsVals['toolGroups'] {
+    return PLACES.filter((place) => place.home !== 'retired')
+      .map((place) => {
+        const tab = tabOf(place.home);
+        return {
+          title: tab ? tab.label + ' · ' + place.label : place.label,
+          items: place.entries.flatMap((entry) =>
+            tools.filter((tool) => tool.label === entry.label)
+          )
+        };
+      })
+      .filter((group) => group.items.length > 0);
+  }
+
+  /** The tab a place is shown under. Account has no button of its own yet, so it sits on Home. */
+  private liveTabOf(place: Place | undefined) {
+    if (!place) return undefined;
+    return tabOf(place.home) ?? (place.home === 'account' ? TABS[0] : undefined);
+  }
+
+  /** The count the engine shows on its own nav item for a screen (orders to check, items to buy). */
+  private navCount(vals: OpsVals, screen: ScreenKey | null): number {
+    const item = (vals.dockNav ?? []).find((nav) => (nav as { key?: unknown }).key === screen);
+    return Number(item?.badge) || 0;
+  }
+
+  /**
+   * B1 (final-plan.md section 8). The live owner's phone dock and the sidebar show the five
+   * tabs of the function map, each opening its first place and marked while any screen of
+   * its places is open. A helper's or support's dock keeps its own, shorter list. The
+   * visible label is one guarded line of shell markup (protected exception, UX review
+   * proposal 3); everything else is here and in src/lib/nav/function-map.ts.
+   */
+  private liveDock(
+    vals: OpsVals,
+    tools: ToolItem[] | null
+  ): Pick<OpsVals, 'dockNav' | 'dockPillStyle' | 'railNav' | 'railPillStyle'> {
     const salesIcon = <T extends { label: unknown; icon: string }>(item: T): T =>
       item.label === 'Sales log' ? { ...item, icon: SALES_LOG_ICON } : item;
-    const railNav = (vals.railNav ?? []).map(salesIcon);
-    if (this.state.role !== 'owner')
+    if (!tools)
       return {
-        railNav,
+        railNav: (vals.railNav ?? []).map(salesIcon),
+        railPillStyle: vals.railPillStyle,
         dockNav: (vals.dockNav ?? []).map(salesIcon),
         dockPillStyle: vals.dockPillStyle
       };
-    const shown = DOCK_LABELS.flatMap((label) =>
-      (vals.dockNav ?? []).filter((item) => item.label === label)
-    );
-    const marked = shown.some((item) => item.active)
-      ? null
-      : (DOCK_PARENT[String(this.state.screen)] ?? 'All tools');
-    const dockNav = shown.map((item) => (item.label === marked ? { ...item, active: true } : item));
-    const at = dockNav.findIndex((item) => item.active);
+    const here = this.liveTabOf(placeOfRoute(String(this.state.screen)))?.id;
+    const icon = (screen: ScreenKey) =>
+      (vals.dockNav ?? []).find((nav) => (nav as { key?: unknown }).key === screen)?.icon ?? '';
+    const nav = TABS.map((tab) => ({
+      key: tab.id,
+      icon: icon(tab.screen),
+      label: tab.label,
+      badge:
+        placesOf(tab.id).reduce((sum, place) => sum + this.navCount(vals, place.screen), 0) +
+        // What All tools carried on the dock (the backup flag, unsent sales), with Account.
+        (tab.id === 'home' ? this.navCount(vals, 'more') : 0),
+      active: tab.id === here,
+      go: () => this.go(tab.screen)
+    }));
+    const at = nav.findIndex((item) => item.active);
+    // The engine's own pill styles, recomputed for this list.
     return {
-      railNav,
-      dockNav,
-      // The engine's own pill style, recomputed for this list.
+      dockNav: nav,
+      railNav: nav,
       dockPillStyle:
         'position: absolute; top: 6px; bottom: 6px; left: 6px; width: calc((100% - 12px) / ' +
-        Math.max(1, dockNav.length) +
+        nav.length +
         '); border-radius: 16px; background: #FDEDE5; transform: translate3d(' +
         (at < 0 ? 0 : at * 100) +
         '%, 0, 0); opacity: ' +
         (at < 0 ? '0' : '1') +
+        '; transition: transform .3s cubic-bezier(.34,1.08,.4,1), opacity .18s ease; pointer-events: none',
+      railPillStyle:
+        'position: absolute; left: 0; right: 0; top: 0; height: 42px; border-radius: 10px; background: #FDEDE5; box-shadow: inset 3px 0 0 #E75F23; transform: translate3d(0, ' +
+        (at < 0 ? 0 : at * 44) +
+        'px, 0); opacity: ' +
+        (at < 0 ? '0' : '1') +
         '; transition: transform .3s cubic-bezier(.34,1.08,.4,1), opacity .18s ease; pointer-events: none'
+    };
+  }
+
+  /**
+   * The owner's sub-tab strip: the places of the open tab, and the open place's entries
+   * when it holds more than one. Null where there is no tab to show (the bell, customer
+   * pages, the retired addresses), on a screen the role is denied, and in the engine's
+   * focus mode (selling, a batch, a count), where the top bar is hidden too.
+   *
+   * Bazaar Mode is left exactly as it was once an event is on this phone, at any stage:
+   * the strip shows above the bookings list only, which is where Bazaar events is reached.
+   * The saved copy counts too (`readBazaar`), so a phone the gate has opened offline on
+   * Bazaar Mode alone shows no strip even before the engine has put the event back.
+   */
+  private liveTabs(vals: OpsVals, tools: ToolItem[]): LiveTabs | null {
+    const screen = String(this.state.screen);
+    const place = placeOfRoute(screen);
+    const tab = this.liveTabOf(place);
+    if (!place || !tab || vals.denied || !vals.showTopBar) return null;
+    if (screen === 'bazaar' && (this.state.event || readBazaar())) return null;
+    const tool = (label: string | undefined) => tools.find((item) => item.label === label);
+    const row = [
+      ...placesOf(tab.id),
+      ...(tab.id === 'home' ? PLACES.filter((item) => item.home === 'account') : [])
+    ];
+    const opened = place.entries.find((entry) => entry.screen === screen);
+    return {
+      label: tab.label,
+      places: row.map((item) => {
+        const target = item.screen;
+        const own = tool(item.entries[0]?.label);
+        return {
+          id: item.id,
+          label: item.label,
+          active: item.id === place.id,
+          badge:
+            item.home === 'account'
+              ? this.navCount(vals, 'more') || null
+              : this.navCount(vals, target) || null,
+          // A place with no screen of its own yet opens its one entry.
+          go: target ? () => this.go(target) : () => own?.go()
+        };
+      }),
+      placeLabel: place.label,
+      entries:
+        place.entries.length > 1
+          ? place.entries.flatMap((entry) => {
+              const item = tool(entry.label);
+              return item
+                ? [
+                    {
+                      id: entry.label,
+                      label: entry.label,
+                      active: entry === opened,
+                      badge: item.badge || null,
+                      go: () => item.go()
+                    }
+                  ]
+                : [];
+            })
+          : []
     };
   }
 
@@ -4123,11 +4236,19 @@ export class OpsRuntime extends OpsProvider {
    * redesigned screen is registered for the open key, the slot draws it and the ported
    * screen's own flag goes off, so the two never render together. Never for a screen the
    * engine denies to the role: the registered screen must not be a way round `canSee`.
+   * The same slot carries the owner's sub-tab strip (`liveTabs`), above either screen.
    */
-  private liveScreenVals(vals: OpsVals): Pick<OpsVals, 'liveScreen' | 'screens'> {
+  private liveScreenVals(
+    vals: OpsVals,
+    tools: ToolItem[] | null
+  ): Pick<OpsVals, 'liveScreen' | 'screens'> {
     const key = this.state.screen as ScreenKey;
-    if (vals.denied || !liveScreenFor(key)) return { liveScreen: null, screens: vals.screens };
-    return { liveScreen: { screen: key }, screens: { ...vals.screens, [key]: false } };
+    const replaced = !vals.denied && !!liveScreenFor(key);
+    const tabs = tools ? this.liveTabs(vals, tools) : null;
+    return {
+      liveScreen: replaced || tabs ? { screen: replaced ? key : null, tabs } : null,
+      screens: replaced ? { ...vals.screens, [key]: false } : vals.screens
+    };
   }
 
   /**

@@ -168,7 +168,8 @@ export const PLACES: readonly Place[] = [
     entries: [
       { label: 'Settings', screen: 'settings' },
       { label: 'System health', screen: 'health' },
-      { label: 'Backups & export' }
+      // Opens the same screen as System health until they are one entry (section 8.1).
+      { label: 'Backups & export', screen: 'health' }
     ],
     routes: ['settings', 'health']
   },

@@ -112,8 +112,9 @@ describe('F1 live health and alerts', () => {
     const client = { rpc } as unknown as OperationsClient;
     const item = (vals: ReturnType<OpsRuntime['renderVals']>, label: string) =>
       vals.toolGroups.flatMap((group) => group.items).find((row) => row.label === label);
+    // B1: the count All tools carried on the dock is on Home, where Account sits.
     const moreBadge = (vals: ReturnType<OpsRuntime['renderVals']>) =>
-      vals.dockNav.find((row) => row.label === 'All tools')?.badge;
+      vals.dockNav.find((row) => row.label === 'Home')?.badge;
     // Before any read the app cannot tell "not set up" from "not reachable": it still alerts.
     expect(runtime.notifs(runtime.state).map((alert) => alert.label)).toContain(
       'Encrypted database backup: Not yet recorded — activation pending'
@@ -321,8 +322,7 @@ describe('F1 live health and alerts', () => {
     const client = {
       rpc: vi.fn().mockResolvedValue({ data: wire(), error: null })
     } as unknown as OperationsClient;
-    const moreBadge = () =>
-      runtime.renderVals().dockNav.find((row) => row.label === 'All tools')?.badge;
+    const moreBadge = () => runtime.renderVals().dockNav.find((row) => row.label === 'Home')?.badge;
     await act(async () => void (await runtime.loadOperationsHealth(client)));
     expect(runtime.state.backup).toBe('ok');
     expect(moreBadge()).toBe(0);

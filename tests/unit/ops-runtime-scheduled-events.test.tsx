@@ -118,8 +118,8 @@ const events = (r: OpsRuntime) =>
 const entry = (r: OpsRuntime) =>
   r
     .renderVals()
-    .toolGroups.find((g) => g.title === 'Business')
-    ?.items.find((i) => i.label === 'Bazaar events');
+    .toolGroups.flatMap((g) => g.items)
+    .find((i) => i.label === 'Bazaar events');
 
 describe('D4: the Bazaar screen lists the owner’s bookings (live mode)', () => {
   beforeEach(() => {

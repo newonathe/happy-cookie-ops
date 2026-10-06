@@ -154,6 +154,26 @@ export interface LiveRecipeDraftEdit {
   expectedUpdatedAt: string | null;
 }
 
+/** One chip of the live owner's sub-tab strip (B1). */
+export interface LiveTabItem {
+  id: string;
+  label: string;
+  active: boolean;
+  badge: React.ReactNode | null;
+  go: () => void;
+}
+
+/**
+ * The live owner's sub-tab strip (B1, src/lib/nav/function-map.ts): the places of the
+ * open tab, and the open place's entries when it holds more than one.
+ */
+export interface LiveTabs {
+  label: string;
+  places: LiveTabItem[];
+  placeLabel: string;
+  entries: LiveTabItem[];
+}
+
 export interface OpsVals {
   appSub: React.ReactNode;
   /**
@@ -164,10 +184,11 @@ export interface OpsVals {
   /**
    * Set only by OpsRuntime in live mode: what the frame's live-only screen slot draws (B1,
    * docs/state/protected-exception.md). `screen` names the key whose registered screen
-   * replaces the ported one. Null when there is nothing to draw; undefined everywhere
-   * else, so demo is unchanged.
+   * replaces the ported one; `tabs` is the owner's sub-tab strip, drawn above whichever
+   * screen is open. Null when there is nothing to draw; undefined everywhere else, so
+   * demo is unchanged.
    */
-  liveScreen?: { screen: ScreenKey | null } | null;
+  liveScreen?: { screen: ScreenKey | null; tabs: LiveTabs | null } | null;
   /**
    * Set only by OpsRuntime in live mode, owner only: content for the live-only form host
    * that later owner forms plug into (F3, docs/state/protected-exception.md). Shown when

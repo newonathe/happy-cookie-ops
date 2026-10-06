@@ -358,8 +358,7 @@ describe('B3: customer messages', () => {
     vi.useRealTimers();
   });
 
-  const businessItems = (r: OpsRuntime) =>
-    r.renderVals().toolGroups.find((g) => g.title === 'Business')?.items ?? [];
+  const businessItems = (r: OpsRuntime) => r.renderVals().toolGroups.flatMap((g) => g.items);
   const entry = (r: OpsRuntime) => businessItems(r).find((i) => i.label === 'Customer messages');
 
   it('the owner has the entry; opening it lists a status link and text per open order', async () => {

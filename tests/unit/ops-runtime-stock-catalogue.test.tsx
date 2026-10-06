@@ -183,8 +183,8 @@ async function mounted(role: Role, state: Fake) {
 const entry = (r: OpsRuntime, label: string) =>
   r
     .renderVals()
-    .toolGroups.find((g) => g.title === 'Business')
-    ?.items.find((i) => i.label === label);
+    .toolGroups.flatMap((g) => g.items)
+    .find((i) => i.label === label);
 const inv = (r: OpsRuntime) =>
   r.state.inv as Array<{ name: string; cat: string; qty: number; level: number; supplier: string }>;
 const tabs = (r: OpsRuntime) =>

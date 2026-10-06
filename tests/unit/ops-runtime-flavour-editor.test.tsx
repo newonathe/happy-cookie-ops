@@ -66,9 +66,9 @@ async function mounted(
   return { runtime, rpc };
 }
 
-/** The live owner's "Menu and recipes" group in All tools (UX review, proposal 1). */
+/** The live owner's Recipes place (final-plan.md section 8.1): the four flavour and recipe entries. */
 const menuItems = (runtime: OpsRuntime) =>
-  runtime.renderVals().toolGroups.find((g) => g.title === 'Menu and recipes')?.items ?? [];
+  runtime.renderVals().toolGroups.find((g) => g.title === 'Make · Recipes')?.items ?? [];
 
 const toastText = (runtime: OpsRuntime) => JSON.stringify(runtime.state.toast ?? null);
 
@@ -112,44 +112,25 @@ describe('MP-09 c1c: the flavour editor and Publish menu', () => {
     ).toBeUndefined();
   });
 
-  it('groups the four flavour and recipe entries under "Menu and recipes", each once, saying what it is for', async () => {
+  it('keeps the four flavour and recipe entries together under Make, Recipes, each once, saying what it is for', async () => {
     const { runtime } = await mounted('owner');
     const groups = runtime.renderVals().toolGroups;
-    expect(groups.map((g) => g.title)).toEqual([
-      'Orders',
-      'Kitchen',
-      'Menu and recipes',
-      'Business',
-      'System',
-      'Customer view'
-    ]);
     expect(menuItems(runtime).map((i) => [i.label, i.sub])).toEqual([
-      ['Menu & flavours', '6 flavours · add, edit and publish'],
-      ['Products', "Each flavour's price and cost, side by side"],
       ['Recipes', 'Measured ingredients, for cost and stock'],
+      ['Products', "Each flavour's price and cost, side by side"],
+      ['Menu & flavours', '6 flavours · add, edit and publish'],
       ['Recipe drafts', 'Your original recipe text, as you wrote it']
     ]);
     const labels = groups.flatMap((g) => g.items.map((i) => i.label));
     for (const label of ['Menu & flavours', 'Products', 'Recipes', 'Recipe drafts'])
       expect(labels.filter((l) => l === label)).toHaveLength(1);
-    // Nothing else moved: the other entries stay where they were.
-    expect(groups.find((g) => g.title === 'Kitchen')?.items.map((i) => i.label)).toEqual([
-      'Bake & dough',
-      'Inventory',
-      'Grocery'
-    ]);
-    expect(
-      groups
-        .find((g) => g.title === 'Business')
-        ?.items.slice(0, 6)
-        .map((i) => i.label)
-    ).toEqual([
-      'Profit & loss',
-      'Payments',
-      'Bazaar Mode',
-      'Suppliers',
-      'Sales log',
-      'Payment methods'
+    // The same four are the Recipes place's second row on the strip.
+    act(() => runtime.go('recipes'));
+    expect(runtime.renderVals().liveScreen?.tabs?.entries.map((i) => i.label)).toEqual([
+      'Recipes',
+      'Products',
+      'Menu & flavours',
+      'Recipe drafts'
     ]);
     // The moved entries still open their screens.
     act(() =>
@@ -178,14 +159,14 @@ describe('MP-09 c1c: the flavour editor and Publish menu', () => {
 
   it('leaves All tools as ported for a helper and in demo mode', async () => {
     const { runtime: helper } = await mounted('helper');
-    expect(helper.renderVals().toolGroups.some((g) => g.title === 'Menu and recipes')).toBe(false);
+    expect(helper.renderVals().toolGroups.some((g) => g.title === 'Make · Recipes')).toBe(false);
     cleanup();
     live = false;
     const ref: { current: OpsRuntime | null } = { current: null };
     render(<OpsRuntime ref={(r) => void (ref.current = r)} />);
     act(() => ref.current!.setRole('owner'));
     const groups = ref.current!.renderVals().toolGroups;
-    expect(groups.some((g) => g.title === 'Menu and recipes')).toBe(false);
+    expect(groups.some((g) => g.title === 'Make · Recipes')).toBe(false);
     expect(groups.find((g) => g.title === 'Kitchen')?.items.map((i) => i.label)).toContain(
       'Recipes'
     );
