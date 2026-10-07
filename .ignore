@@ -1,0 +1,7 @@
+# ripgrep reads this file (Claude Code's Grep and Glob use ripgrep); git does not.
+# Generated receipts and the lockfile flood search results without answering code questions.
+# They stay in git and stay readable: name the path explicitly or use `rg --no-ignore`.
+docs/state/evidence/
+docs/master-plan/evidence/
+tests/visual/__screenshots__/
+pnpm-lock.yaml
