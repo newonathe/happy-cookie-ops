@@ -143,20 +143,12 @@ All in [decision-register.md](decision-register.md), the section for 5 October.
   set it to `false` to lift. Any value that is not clearly "off" holds.
 - The phone rehearsal by **20 October** ([final-plan.md](final-plan.md) section 11.1).
 - Approve each import preview.
-- Say whether the pointer lines in `AGENTS.md` and `CLAUDE.md` may be updated (below).
 
 ### Waiting on Cine
 
 Nothing blocks the build. Still open: whether "Cornflake" is Cereal Milk; allergens;
 her adviser's view on the privacy filing and on receipts; later, the wording pass, the
 set-up screen and seven dates for her week.
-
-### Stale lines in the rule files, left for Ethan's yes
-
-- `AGENTS.md` line 90 says the next goal is drawn from finish-plan.md. It is drawn from
-  final-plan.md.
-- `AGENTS.md` line 129 forbids the in-app browser. Ethan lifted that on 29 September;
-  the line was never changed.
 
 ### Smaller open items
 

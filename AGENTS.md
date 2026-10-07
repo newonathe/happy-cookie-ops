@@ -1,6 +1,6 @@
 # AGENTS.md
 
-> **Current planning authority (2026-09-08):** Read [MASTER-PLAN.md](MASTER-PLAN.md) first. Its audited findings, task catalog and decision gates supersede conflicting readiness claims and old T-task ordering. The ported screens, sheets, shell and engine remain locked as the demo build, and since 2026-10-05 the live app's interface is rebuilt beside them (docs/state/product-research.md); current records are demo fixtures; launch has one offline sales device. The 2026-09-08 user request authorizes local G0 implementation (MP-00 through MP-03). Read [current state](docs/state/current.md) for actual progress; later product packages and the automatic runner remain deferred. All protection and verification rules below remain in force.
+> **Current planning authority (2026-10-07):** Read [current state](docs/state/current.md) first, then [the next goal](docs/state/next-goal.md). The approved plan is [final-plan.md](docs/state/final-plan.md), version 2 (5 October): open only the section a goal names. MASTER-PLAN.md, G1-plan.md, finish-plan.md and the MP-* files are history. The ported screens, sheets, shell and engine stay locked as the demo build; the live interface is rebuilt beside them. All protection and verification rules below remain in force.
 
 Operating instructions for coding agents in this repository. This file is the single source
 of rules: Codex and other tools read it directly, and `CLAUDE.md` imports it (`@AGENTS.md`)
@@ -58,19 +58,17 @@ If a task seems to require one of these, stop and say so before writing code.
 
 ## Where things go
 
-| Change                                | File                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Business rule                         | `src/store/engine/ops-engine.js` or a subclass, plus a test in `tests/unit`                                                                                                                                                                                                                                                                                                                                                                                             |
-| New screen                            | `src/components/screens/` + a route + a key in `src/lib/screens.ts`                                                                                                                                                                                                                                                                                                                                                                                                     |
-| Shared control                        | `src/components/ui/` with a Storybook story                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| Server behaviour                      | Architecture A (2026-09-26): a Postgres RPC in a **new** migration (`SECURITY DEFINER`, `search_path=''`, in-function role check, explicit grants), called from the browser with `supabase-js`. RLS is the security boundary. The Pages BFF (`spikes/pages`, `spikes/cleanup-worker`, `src/lib/auth/session-*`, `persistent-session-authority`, `session-crypto`, `supabase-auth-transport`) is archived: do not extend it. `src/app/api/*` serves only the Vercel demo |
-| Schema                                | a new file in `supabase/migrations/`                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| Offline behaviour                     | `src/lib/offline/` — read `docs/OFFLINE.md` first                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| Anything visual                       | Check `docs/SCREENS.md` first — the screenshot is the answer key                                                                                                                                                                                                                                                                                                                                                                                                        |
-| Rate limit on a public RPC            | Inside the RPC: call `consume_rate_limit` (service_role-only; reachable from a `SECURITY DEFINER` function owned by `postgres`). `src/lib/rate-limit.ts` and `src/lib/idempotency.ts` are legacy with no production callers: they fail open and trust `X-Forwarded-For`. Do not extend them                                                                                                                                                                             |
-| A business rule the owner must decide | [docs/state/decision-register.md](docs/state/decision-register.md). The prototype and specs are evidence, not decisions                                                                                                                                                                                                                                                                                                                                                 |
-| Anything sent to a customer           | `src/lib/messaging/` — read `docs/MESSAGING.md`; it costs her money                                                                                                                                                                                                                                                                                                                                                                                                     |
-| Error reporting                       | Already wired. Widen `scrub.ts` if a report lacks something, with a test                                                                                                                                                                                                                                                                                                                                                                                                |
+- **Business rule:** `src/store/engine/ops-engine.js` or a subclass, plus a test in `tests/unit`
+- **New screen:** `src/components/screens/` + a route + a key in `src/lib/screens.ts`
+- **Shared control:** `src/components/ui/` with a Storybook story
+- **Server behaviour:** Architecture A (2026-09-26): a Postgres RPC in a **new** migration (`SECURITY DEFINER`, `search_path=''`, in-function role check, explicit grants), called from the browser with `supabase-js`. RLS is the security boundary. The Pages BFF (`spikes/pages`, `spikes/cleanup-worker`, `src/lib/auth/session-*`, `persistent-session-authority`, `session-crypto`, `supabase-auth-transport`) is archived: do not extend it. `src/app/api/*` serves only the Vercel demo
+- **Schema:** a new file in `supabase/migrations/`
+- **Offline behaviour:** `src/lib/offline/` — read `docs/OFFLINE.md` first
+- **Anything visual:** Check `docs/SCREENS.md` first — the screenshot is the answer key
+- **Rate limit on a public RPC:** Inside the RPC: call `consume_rate_limit` (service_role-only; reachable from a `SECURITY DEFINER` function owned by `postgres`). `src/lib/rate-limit.ts` and `src/lib/idempotency.ts` are legacy with no production callers: they fail open and trust `X-Forwarded-For`. Do not extend them
+- **A business rule the owner must decide:** [docs/state/decision-register.md](docs/state/decision-register.md). The prototype and specs are evidence, not decisions
+- **Anything sent to a customer:** `src/lib/messaging/` — read `docs/MESSAGING.md`; it costs her money
+- **Error reporting:** Already wired. Widen `scrub.ts` if a report lacks something, with a test
 
 ## Conventions
 
@@ -87,7 +85,7 @@ If a task seems to require one of these, stop and say so before writing code.
 ## Working agreement
 
 1. **Read before writing.** How we work: `docs/state/lean-plan.md`. What to do next:
-   `docs/state/next-goal.md` (drawn from `docs/state/finish-plan.md`). Status: `docs/state/current.md` (short) and `docs/state/task-status.json`.
+   `docs/state/next-goal.md` (drawn from `docs/state/final-plan.md`). Status: `docs/state/current.md` (short) and `docs/state/task-status.json`.
    Find code with the codebase-memory-mcp tools (`search_graph`, `get_code_snippet`,
    `trace_path`) before opening whole files; read SQL migrations directly (partial parse). Planned scope: `docs/master-plan/tasks.json` and its generated
    prompts. `docs/TASKS.md`, `docs/prompts/` and `docs/WORKFLOW.md` are the historical T-task
@@ -122,14 +120,28 @@ If a task seems to require one of these, stop and say so before writing code.
 - `src/view-models/vals.ts` is generated-shaped: it mirrors what `renderVals()` returns.
   Widen a type only alongside the engine change that produces it.
 
-## Current G0 execution and preview authorization
+## Token efficiency
 
-The owner's later 2026-09-08 message also authorizes publishing this work to a private GitHub repository and preparing a Vercel development preview so they can follow progress. This is demo-only development visibility; no production credentials, real transactions, paid plan upgrade, or runner activation is authorized. See docs/state/current.md for evidence and remaining limits. Record implementation status in docs/state/task-status.json; generated historical tasks.json and prompts retain planned status.
+Every session pays for what it loads. Same quality, less reading:
 
-On this Windows installation, use headless command-line Playwright only. Never invoke the in-app Browser or Chrome-control plugins until the owner confirms the Codex GPU crash has been fixed.
+1. **Load order:** `docs/state/current.md`, then `docs/state/next-goal.md`, then only the files the goal names.
+   Never open `final-plan.md`, `decision-register.md` or `current-history.md` whole: search for the section.
+2. **Search before reading:** codebase-memory-mcp or a bounded search first; read files over ~300 lines by range.
+   Evidence receipts and the lockfile are left out of search by `.ignore`; open them by path only when a goal names them.
+3. **Deterministic tools first:** tests, validators, `git`, hashes and search before a model call or a subagent.
+4. **Delegate only bounded work:** pinned model (Haiku to search, Sonnet to build or review), a prompt that names
+   the files, the question and the stop condition, and a result under ~200 words. At most two workers.
+5. **Long output to a file:** run builds and suites with output redirected; print only the summary lines.
+6. **Results live in the commit:** no new evidence files. When a slice closes, move its narrative from `current.md`
+   to `current-history.md` the same day. `pnpm verify` enforces the budgets (`scripts/check-context-budget.mjs`).
+7. **One conversation per slice,** `/clear` between slices.
+8. **Every final report ends with "Token notes":** what was loaded and not needed, and what to skip next time.
+
+## Authorization
+
+Finish the product under [final-plan.md](docs/state/final-plan.md), version 2, one `/goal` per slice from
+[next-goal.md](docs/state/next-goal.md). The automatic runner, production deployment, merging to `main` and any
+hosted resource still need Ethan's explicit approval. Earlier authorizations (G0, the Vercel preview, the Windows
+browser restriction lifted 29 September, MP-05.a) are in [rules-history.md](docs/state/rules-history.md).
 
 Shared worker policy: read [docs/state/agent-orchestration.md](docs/state/agent-orchestration.md) before delegation. It governs the combined Codex/Claude limit, explicit models, bounded prompts and review rules for this conversation.
-
-Current authorization (2026-09-26): finish the product under the approved [lean plan](docs/state/lean-plan.md) and architecture A, one `/goal` per package from [next-goal.md](docs/state/next-goal.md). G1-plan.md and the MP-*-plan files are history. Preserve all protected-source rules. The automatic runner, production deployment and any hosted resource still need Ethan's explicit approval.
-
-MP-05.a approval: the owner confirmed no database/SQL history and approved the two delimiter corrections in supabase/migrations/20260101000000_init.sql plus disposable local bootstrap checks. The continuity validator reverses only those exact delimiters before checking original delivery bytes. All other migration/source protection remains in force.

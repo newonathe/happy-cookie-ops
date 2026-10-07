@@ -11,7 +11,7 @@ const count = (dir) => readdirSync(dir).length;
 
 // Loaded by every Claude Code session (CLAUDE.md imports AGENTS.md) and read first by every goal.
 const FILE_LIMITS = {
-  'AGENTS.md + CLAUDE.md': [['AGENTS.md', 'CLAUDE.md'], 20_500],
+  'AGENTS.md + CLAUDE.md': [['AGENTS.md', 'CLAUDE.md'], 16_000],
   'docs/state/current.md': [['docs/state/current.md'], 14_000],
   'docs/state/next-goal.md': [['docs/state/next-goal.md'], 6_000]
 };

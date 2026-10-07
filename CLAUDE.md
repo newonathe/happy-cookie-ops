@@ -1,6 +1,6 @@
 # Working in this repository (Claude Code)
 
-> **Current planning authority (2026-09-08):** Read [MASTER-PLAN.md](MASTER-PLAN.md) first. Its audited findings, task catalog and decision gates supersede conflicting readiness claims and old T-task ordering. The ported screens, sheets, shell and engine remain locked as the demo build, and since 2026-10-05 the live app's interface is rebuilt beside them (docs/state/product-research.md); current records are demo fixtures; launch has one offline sales device. The 2026-09-08 user request authorizes local G0 implementation (MP-00 through MP-03). Read [current state](docs/state/current.md) for actual progress; later product packages and the automatic runner remain deferred. All protection and verification rules below remain in force.
+> **Current planning authority (2026-10-07):** Read [current state](docs/state/current.md) first, then [the next goal](docs/state/next-goal.md). The approved plan is [final-plan.md](docs/state/final-plan.md), version 2 (5 October): open only the section a goal names. MASTER-PLAN.md, G1-plan.md, finish-plan.md and the MP-* files are history. The ported screens, sheets, shell and engine stay locked as the demo build; the live interface is rebuilt beside them. All protection and verification rules below remain in force.
 
 @AGENTS.md
 
@@ -12,6 +12,7 @@
   - `PreToolUse` blocks writes to ported markup, the engine and existing migrations.
   - `PostToolUse` runs `prettier --write` on every edited file. Afterwards, check `git diff --stat` yourself for formatting churn outside your change.
   - `Stop` re-checks port integrity. When TypeScript changed, it also runs `tsc --noEmit` once per turn, blocking once per distinct error set (F6, `docs/state/finish-plan.md`).
+- **Cloud sessions:** a `SessionStart` hook (`.claude/hooks/cloud-setup.sh`) installs Node 24.20.0 and the dependencies, so `pnpm` and the git hooks work without setup turns.
 - **Start here:** open Claude Code in this folder, so the hooks, agents and `.mcp.json` load. Approve the `codebase-memory-mcp` server once.
 - **Work loop:** use one `/goal` per package, taken from `docs/state/next-goal.md`, in a fresh conversation with auto mode on.
   - Use Opus to plan and sign off; do the building in a Sonnet session or with Sonnet subagents.
