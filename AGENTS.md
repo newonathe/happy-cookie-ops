@@ -135,7 +135,8 @@ Every session pays for what it loads. Same quality, less reading:
 6. **Results live in the commit:** no new evidence files. When a slice closes, move its narrative from `current.md`
    to `current-history.md` the same day. `pnpm verify` enforces the budgets (`scripts/check-context-budget.mjs`).
 7. **One conversation per slice,** `/clear` between slices.
-8. **Every final report ends with "Token notes":** what was loaded and not needed, and what to skip next time.
+8. **Every final report ends with "Token notes"** (what was loaded and not needed, what to skip next time)
+   **and "Next":** the ready-to-paste prompt or `/goal` block for the next step, naming its model and the files to read.
 
 ## Authorization
 
