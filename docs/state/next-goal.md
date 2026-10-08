@@ -62,7 +62,7 @@ security-reviewer on a different model for migration 61 and the runtime diff; po
 confirms the locked screens are untouched. Fix every P0 to P2.
 
 Update docs/state/current.md (five lines) and task-status.json (one note, by string
-insertion); replace this block with slice B4 from final-plan.md. Print: each failing test
+insertion); replace this block with slice B4 from final-plan.md, and carry into B4 the B3b-1 review's residual: save_recipe should refuse an ingredient line (including one sent without `kind`) whose item is on any packaging rule, so a bake and a pack cannot both take it. Print: each failing test
 before and passing after, the reviewers' verdicts, the role-suite and pnpm verify summaries,
 the smoke-suite output, the commit hashes and the pushed branch.
 
