@@ -52,14 +52,22 @@ with tempfile.TemporaryDirectory() as t:
     workbook(p)
     prices, recipes, rep = imp.build(p, {'Plain': 'Plain Cookie'}, ['Pouch'], '2026-10-01')
     names = [x['item'] for x in prices]
-    check(names == ['Flour', 'Milk', 'Pouch'], 'prices: only rows with a usable unit, pack and price')
+    check(names == ['Flour', 'Milk', 'Pouch', 'Odd bag'], 'prices: rows with a usable unit, pack and price (bags count as pieces)')
     check(prices[0]['price_cents'] == 6000 and prices[0]['pack_size'] == 1000.0 and prices[0]['unit'] == 'g', 'prices: centavos, pack and unit mapped')
-    check({x['item'] for x in rep['unmatched']['prices']} == {'Odd bag', 'Label'}, 'prices: unit bags and the blank row are listed, not imported')
-    check([x['flavour'] for x in recipes] == ['Plain Cookie'], 'recipes: only a flavour whose every line matches is kept, renamed by the map')
+    check({x['item'] for x in rep['unmatched']['prices']} == {'Label'}, 'prices: the blank row is listed, not imported')
+    check([x['flavour'] for x in recipes] == ['Plain Cookie', 'Odd'], 'recipes: a flavour with every line matched is kept, renamed by the map')
     pl = [l for l in recipes[0]['lines'] if l['kind'] == 'packaging']
-    check(len(pl) == 1 and pl[0]['qty'] == 1.0 and pl[0]['unit'] == 'pcs', 'recipes: packaging per batch becomes per cookie (10 / 10 = 1)')
+    check(len(pl) == 1 and pl[0]['qty'] == 1.0 and pl[0]['unit'] == 'pcs', 'recipes: packaging near the cookies per batch is 1 per cookie')
     flavs = {x['flavour'] for x in rep['unmatched']['recipes']}
-    check(flavs == {'Broken', 'Odd'}, 'recipes: a missing item and a non-clean per-cookie quantity are listed whole')
+    check(flavs == {'Broken'}, 'recipes: a line with no item at all holds the recipe back, listed whole')
+    check([f['flavour'] for f in rep['for_cine']] == ['Odd'] and 'Odd' in [r['flavour'] for r in recipes],
+          'packaging far from 1 per cookie (7 for 3) goes to Cine, not into the recipe')
+    cat = {'flour': [['Flour', 'g']], 'milk': [['Milk', 'ml']], 'pouch': [['Pouch', 'pcs']]}
+    _, r2, rep2 = imp.build(p, None, ['Pouch'], '2026-10-01', cat, {'Sea salt': {'price': 88.25, 'pack': 110, 'unit': 'g'}})
+    check({c['name'] for c in rep2['items_to_create']} >= {'Sea salt'},
+          'a stated price for an item the app lacks proposes creating it')
+    sea = [c for c in rep2['items_to_create'] if c['name'].lower() == 'sea salt'][0]
+    check(sea['price']['price_cents'] == 8825 and sea['price']['pack_size'] == 110.0, 'the stated price is carried, not invented')
     check(rep['counts']['costing_reproduced'] == 2 and rep['counts']['costing_total'] == 3, 'costing: ingredients against ingredients, 2 of 3 reproduced')
     check(any(x['flavour'] == 'Broken' for x in rep['unmatched']['costing']), 'costing: the one that does not reproduce is named')
     check(rep['proposed_packaging_items'] == ['Pouch'], 'packaging is proposed, not assumed')
