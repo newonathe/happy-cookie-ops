@@ -27,3 +27,7 @@ Appscript/
 
 # Lighthouse CI working files and reports (pnpm lighthouse)
 .lighthouseci/
+
+# Per-machine Claude Code files: personal permissions and agent worktrees
+.claude/settings.local.json
+.claude/worktrees/

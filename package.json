@@ -27,7 +27,8 @@
     "db:types": "python scripts/generate-db-types.py --write",
     "db:types:check": "python scripts/generate-db-types.py --check",
     "prepare": "husky",
-    "verify": "pnpm verify:port && pnpm verify:engine && pnpm typecheck && pnpm typecheck:e2e && pnpm lint && pnpm test",
+    "verify": "pnpm verify:context && pnpm verify:port && pnpm verify:engine && pnpm typecheck && pnpm typecheck:e2e && pnpm lint && pnpm test",
+    "verify:context": "node scripts/check-context-budget.mjs",
     "verify:port": "node scripts/check-port-integrity.mjs",
     "verify:port:update": "node scripts/check-port-integrity.mjs --update",
     "verify:all": "bash scripts/verify.sh",
@@ -73,7 +74,7 @@
     "prettier": "3.9.6",
     "husky": "9.1.7",
     "lint-staged": "16.4.0",
-    "vitest": "3.2.7",
+    "vitest": "4.1.11",
     "@vitejs/plugin-react": "5.2.0",
     "jsdom": "26.1.0",
     "@testing-library/react": "16.3.3",
@@ -96,7 +97,18 @@
   },
   "pnpm": {
     "overrides": {
-      "miniflare>sharp": "0.35.4"
+      "miniflare>sharp": "0.35.5",
+      "sharp": "0.35.5",
+      "undici@>=7.0.0 <7.29.1": "7.29.1",
+      "brace-expansion@<1.1.20": "1.1.20",
+      "brace-expansion@>=4.0.0 <5.0.11": "5.0.11",
+      "tmp@<0.2.7": "0.2.7",
+      "image-size@>=0.6.3 <=2.0.2": "2.0.3",
+      "source-map-js@<1.2.2": "1.2.2",
+      "basic-ftp@<=6.2.0": "6.2.1",
+      "compression@<1.8.2": "1.8.2",
+      "proxy-addr@<2.0.8": "2.0.8",
+      "webpack-dev-middleware@<7.4.6": "7.4.6"
     },
     "onlyBuiltDependencies": [
       "@sentry/cli",

@@ -672,6 +672,8 @@ export class OpsRuntime extends OpsProvider {
   private stopViewportTracking?: () => void;
   private resetNoticeTimer?: ReturnType<typeof setTimeout>;
   private healthTimer?: ReturnType<typeof setInterval>;
+  /** Async work that finishes after unmount must not toast or set state: its timer would outlive the tree. */
+  private unmounted = false;
   private settingsSync?: SettingsSync;
   private flavourSync?: FlavourSync;
   private paymentSync?: PaymentSync;
@@ -1789,6 +1791,8 @@ export class OpsRuntime extends OpsProvider {
    * `super.componentDidMount()`, which would call the protected `loadState()`.
    */
   componentDidMount(): void {
+    // StrictMode unmounts and remounts the same instance in development.
+    this.unmounted = false;
     if (isLiveMode()) {
       clearStoredBooks();
       const bazaar = readBazaar();
@@ -1816,6 +1820,7 @@ export class OpsRuntime extends OpsProvider {
   }
 
   componentWillUnmount(): void {
+    this.unmounted = true;
     clearTimeout(this.resetNoticeTimer);
     this.resetNoticeTimer = undefined;
     clearInterval(this.healthTimer);
@@ -5446,6 +5451,7 @@ export class OpsRuntime extends OpsProvider {
       return;
     }
     const queued = await pendingSales();
+    if (this.unmounted) return;
     const pending = queued.length || this.state.sales.filter((sale) => !sale.synced).length;
     if (!pending) {
       this.toast('Nothing waiting to sync.');
@@ -5454,6 +5460,7 @@ export class OpsRuntime extends OpsProvider {
 
     this.setState({ syncState: 'syncing' });
     const result = await this.flushSales();
+    if (this.unmounted) return;
     if (result.skipped) {
       this.setState({ syncState: 'partial', syncTried: true });
       this.toast(
@@ -5468,6 +5475,7 @@ export class OpsRuntime extends OpsProvider {
 
     if (failed) {
       await requestBackgroundSync();
+      if (this.unmounted) return;
       this.setState((s) => ({
         syncState: 'partial',
         syncTried: true,

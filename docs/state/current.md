@@ -27,50 +27,7 @@ and counted; one cost function (average, else her usual price, else best quote p
 unknown) stamps every use; a shortfall is costed; a recorded batch can be corrected. No client
 code changed. What it did with each finding: [system-audit.md](system-audit.md), section 10.
 
-**A2, 6 October:** the bazaar phone opens and reloads with no signal. Bazaar Mode alone
-opens, only while the phone holds a running event, only within her offline hours (48 by
-default) of its last online check; what happens is in [OFFLINE.md](../OFFLINE.md). Reviewed
-independently and checked in the browser on a computer. The phone rehearsal still has to
-prove it in Safari, from the Home Screen, overnight and with the radio off.
-
-**A3, 6 October:** the live app now has one deliberate sign-out, a small pill above the
-dock. It always asks first; with sales still on the phone it says how many and offers Send now,
-Sign out anyway and Keep selling, and never touches the queue ([OFFLINE.md](../OFFLINE.md)).
-`RELEASE_HOLD`, a repository variable, stops the trial deploy while it is on (below). Next.js is
-16.3.8. Checked in the browser on the live build against the local database; two independent
-reviews. Step 7 of the phone rehearsal can now be run.
-
-**A4, 6 October:** the weekly backup, daily keep-alive and daily retention jobs are written and
-off (`.github/workflows/ops-jobs.yml`, variable `OPS_JOBS_ENABLED`, not set); the backup is also
-blocked on custody and a Postgres 17 dump ([F1-operations.md](F1-operations.md), last section).
-The local dry run restored a real dump into a fresh container with matching hashes and found a
-keep-alive defect, fixed.
-
-**B1, 6 October:** the live owner's dock and sidebar are Home, Sell, Make, Stock, Money, with a
-sub-tab strip above each screen (Ethan chose "Rename now, with sub-tabs" that day). Every All
-tools entry and every route has exactly one home, kept as data and a test
-(`src/lib/nav/function-map.ts`). New screens enter through one guarded, live-only slot in the
-locked frame ([protected-exception.md](protected-exception.md), last section); none is
-registered yet. `pnpm test:live:smoke` signs in on the live build against the local database
-and opens everything, then sells at a bazaar with the network off. Helpers, support, the demo
-and Bazaar Mode with an event open are unchanged. Port audit and two security reviews: no P0
-to P2 left open.
-
-**The Bazaar signal fix, 6 October:** when signal returns after the phone reopened offline on
-the selling screen, the sale in hand carries on: same screen, same payment sheet, the queue
-sent, the whole app open again. Before, the app went to Home and closed the sheet. The change
-is in the sign-in gate only (`src/components/app/live-gate.tsx`); what it leaves alone is in
-[OFFLINE.md](../OFFLINE.md). The smoke suite now fails if it comes back. Commit `1746d2a`,
-reviewed independently; a green run of that push releases it to the trial.
-
-**B2, 6 October:** no value of the prototype is left on a live page, and two tests in
-`pnpm verify` hold that (an empty shop; two shops that share nothing). Names come from records:
-the signed-in person's own name greets them and is on every bazaar sale (Ethan chose to fix
-that before the bazaar; it was "Cine" or "Kristian"), and the owner sets her shop's name, her
-own name, how to reach her and the shop tagline under Shop texts, all empty until she does.
-One Manila clock: one module and one database function; the books CSV is on it. What it left
-open is in [system-audit.md](system-audit.md), section 9. Migration 55 went onto the trial the
-same day, at Ethan's instruction ("migrate everything").
+Stage A and slices B1 and B2, as each was recorded when it closed, are in [current-history.md](current-history.md), the section moved on 7 October.
 
 **Package:** F2, the owner trial, stays open but does not start until everything in the
 plan is built (Ethan, 5 October). F3 (launch) stays closed until Cine accepts a real week.
@@ -186,20 +143,12 @@ All in [decision-register.md](decision-register.md), the section for 5 October.
   set it to `false` to lift. Any value that is not clearly "off" holds.
 - The phone rehearsal by **20 October** ([final-plan.md](final-plan.md) section 11.1).
 - Approve each import preview.
-- Say whether the pointer lines in `AGENTS.md` and `CLAUDE.md` may be updated (below).
 
 ### Waiting on Cine
 
 Nothing blocks the build. Still open: whether "Cornflake" is Cereal Milk; allergens;
 her adviser's view on the privacy filing and on receipts; later, the wording pass, the
 set-up screen and seven dates for her week.
-
-### Stale lines in the rule files, left for Ethan's yes
-
-- `AGENTS.md` line 90 says the next goal is drawn from finish-plan.md. It is drawn from
-  final-plan.md.
-- `AGENTS.md` line 129 forbids the in-app browser. Ethan lifted that on 29 September;
-  the line was never changed.
 
 ### Smaller open items
 

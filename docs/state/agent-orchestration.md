@@ -24,6 +24,8 @@ Availability on 2026-09-26: Codex is unavailable, so Claude is doing all of the 
 9. **The hosted trial may be read, read-only:** settings, the migration list and the security advisor. No customer rows, no writes.
 10. **Releases are held** from the day the phone rehearsal passes until 26 October (the switch is slice A3).
 
+11. **Escalation (Ethan, 2026-10-08).** Escalate to a stronger model only when all three hold: two evidence-led attempts at the same problem failed; the cause is a reasoning or security-judgment limit, not a missing upstream fix, a denied permission, an owner decision, a broken tool or a quota or auth failure (report those and stop); and no deterministic tool (tests, grep, validators, `pnpm audit`) can settle it. Go one rung at a time: Sonnet high, then Opus high; Opus xhigh is architecture only and needs Ethan's approval. Before spawning, state what failed twice, why that rung and not the one below, and the stop condition. Pin every model and effort; at most two workers. Afterwards say whether it resolved the problem; if not, stop and report rather than climb. Do not spawn to look thorough.
+
 Availability on 2026-10-05: Codex reached its usage limit during F2, and Ethan continued the same goal in Claude Code. Where a goal says "Codex Sol/high", read it as Claude Opus coordinating with at most two pinned Sonnet workers. Codex had coordinated F2 from 2026-10-03 to 2026-10-05.
 
 ## History — policy as of 2026-09-09 to 2026-09-26 (superseded)

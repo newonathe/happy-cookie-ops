@@ -22,7 +22,14 @@ The shim invokes actual pnpm 9.12.3, avoiding a newer global dispatcher warning 
 
 Reviewed lifecycle packages: Sentry CLI optional binary/checksummed download, esbuild platform binary, unrs-resolver native optional fallback, core-js-pure notice, and Husky hooks. Package allowlist is explicit. Pre-commit now runs complete `pnpm verify` instead of automatically formatting protected files. No hook bypass.
 
-Final advisory report: 5 high, 3 moderate, 3 low, 0 critical; two Storybook-related high findings removed. Full paths and fixed/no-fix metadata are in [audit JSON](evidence/dependency-audit-final.json). Remaining transitive toolchain findings are unresolved, not proof of reachable application exploits; no force-fix. License evidence is indexed under `docs/state/evidence/`.
+Final advisory report: 5 high, 3 moderate, 3 low, 0 critical; two Storybook-related high findings removed. Full paths and fixed/no-fix metadata are in [audit JSON](evidence/dependency-audit-final.json). Remaining transitive toolchain findings are unresolved, not proof of reachable application exploits; no force-fix.
+
+Dependency security slice (8 October 2026): vitest 3.2.7 to 4.1.11 and `pnpm.overrides` fixed all 3 critical and 18 of 21 high advisories (tinypool, proxy-addr, sharp, undici, brace-expansion, tmp, image-size, source-map-js, basic-ftp, compression, webpack-dev-middleware). `tsconfig.json` `types` gained `"node"`, because vitest 4 no longer pulls node typings in transitively. `pnpm audit --audit-level high` still reports 3, all dev tooling, none with a patched release (the audit lists `<0.0.0`), so none is suppressed with `ignoreGhsas`:
+
+- `extract-zip` (GHSA-7pqw-9j4j-h8q3, GHSA-jmr9-qjv8-65gv), via `@lhci/cli` > lighthouse > puppeteer-core. It only unpacks the browser build Puppeteer downloads; no untrusted archive reaches it.
+- `braces` (GHSA-vfj7-8cjw-p6xm), via micromatch in Storybook and `eslint-config-next`. Denial of service on deeply nested glob patterns, run on our own source files only.
+
+None ships to production or touches auth, money or the offline queue. Revisit when upstream ships a fix, or when `@lhci/cli`, Storybook or `eslint-config-next` release a version without them. If a gate ever requires a clean audit, add the three IDs to `pnpm.auditConfig.ignoreGhsas` with this entry as the reason. License evidence is indexed under `docs/state/evidence/`.
 
 Current planning validation needs jsonschema 4.26.0. Historical audit dependencies contain a Python 3.12 native wheel incompatible with current Python 3.14. Wheel-only current dependencies are isolated in `happy-cookie-tools\python-libs-314`; set `G0_PYTHON_LIBS` there before `python scripts/validate-g0.py`. Historical validator/results were not changed.
 
