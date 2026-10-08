@@ -1,5 +1,5 @@
 {
-  "scope": "Reviewed local function-authority drift baseline through B3a batch correction (record_batch_correction added; record_discard and get_production redefined for corrections and batch cost); earlier: B3a clock (business_clock gains local_time; place_order and join_waitlist read the day from it) and wrapped policies (no function added); earlier: B3a cost core (item_unit_cost, use_stock_item, lock_stock_item_ids internal with no API grant; save_item_price, get_item_costs, get_recipe_costs added; unit_price_at removed; use_stock, record_stock_movement, record_production, record_cost_correction, get_books redefined); earlier: B3a identity links (preview_identity_links and apply_identity_links added with no API grant; save_recipe, get_recipes, save_supplier_price and get_stock_catalogue redefined for item ids, pack sizes and complete recipe versions); earlier: B2 database half (business_clock, get_shop_identity, save_shop_identity added); earlier: C2 (record_production, record_pack, get_production, use_stock, lock_stock_items, record_sale_packaging added; record_event_sale redefined to use packaging); earlier: Reviewed local function-authority drift baseline through B4a (get_order_extras, save_order_extras, get_shop_extras added; place_order, order_status, get_staff_orders, anonymise_customer, prune_personal_data redefined for boxes, add-ons and the same-day surcharge); earlier: B2 database half (get_shop_order_rules, find_order added); B1 (place_order, order_status, join_waitlist, order_holds_capacity, get_order_rules, save_order_rules added; anonymise_customer and prune_personal_data recreated for the new personal data); A2 (payment_methods, shop_texts, get_shop_payment_info added); load_event_stock/add_event_expense/close_event/event_summary added (D2); D1: start_event/set_event_device/record_event_sale/void_event_sale added (D1); MP-09 c1b: publish_flavours added (MP-09 c1b); get_flavours/save_flavour added (MP-09 c1); settings_effective gained three idle-minute defaults, get_settings/save_setting/get_operating_settings added; MP-09 b3 recreated settings_effective/get_settings/get_operating_settings with json_value and replaced save_setting; full capability/domain and hosted acceptance remain open; F1: record_operations_run and get_operations_health added, prune_personal_data redefined for the fixed 365-day retention window",
+  "scope": "Reviewed local function-authority drift baseline through B3b-1 packaging rules (save_packaging_rule and get_packaging_rules owner-only; write_packaging_rule and apply_packaging_rule internal with no API grant; record_pack, record_sale_packaging, record_production, save_recipe, get_recipes and get_recipe_costs redefined; record_event_sale untouched); earlier: B3a batch correction (record_batch_correction added; record_discard and get_production redefined for corrections and batch cost); earlier: B3a clock (business_clock gains local_time; place_order and join_waitlist read the day from it) and wrapped policies (no function added); earlier: B3a cost core (item_unit_cost, use_stock_item, lock_stock_item_ids internal with no API grant; save_item_price, get_item_costs, get_recipe_costs added; unit_price_at removed; use_stock, record_stock_movement, record_production, record_cost_correction, get_books redefined); earlier: B3a identity links (preview_identity_links and apply_identity_links added with no API grant; save_recipe, get_recipes, save_supplier_price and get_stock_catalogue redefined for item ids, pack sizes and complete recipe versions); earlier: B2 database half (business_clock, get_shop_identity, save_shop_identity added); earlier: C2 (record_production, record_pack, get_production, use_stock, lock_stock_items, record_sale_packaging added; record_event_sale redefined to use packaging); earlier: Reviewed local function-authority drift baseline through B4a (get_order_extras, save_order_extras, get_shop_extras added; place_order, order_status, get_staff_orders, anonymise_customer, prune_personal_data redefined for boxes, add-ons and the same-day surcharge); earlier: B2 database half (get_shop_order_rules, find_order added); B1 (place_order, order_status, join_waitlist, order_holds_capacity, get_order_rules, save_order_rules added; anonymise_customer and prune_personal_data recreated for the new personal data); A2 (payment_methods, shop_texts, get_shop_payment_info added); load_event_stock/add_event_expense/close_event/event_summary added (D2); D1: start_event/set_event_device/record_event_sale/void_event_sale added (D1); MP-09 c1b: publish_flavours added (MP-09 c1b); get_flavours/save_flavour added (MP-09 c1); settings_effective gained three idle-minute defaults, get_settings/save_setting/get_operating_settings added; MP-09 b3 recreated settings_effective/get_settings/get_operating_settings with json_value and replaced save_setting; full capability/domain and hosted acceptance remain open; F1: record_operations_run and get_operations_health added, prune_personal_data redefined for the fixed 365-day retention window",
   "functions": [
     {
       "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
@@ -783,6 +783,21 @@
     },
     {
       "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "get_packaging_rules",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "29f91e2ce36ef22e17d311eb4081fc57",
+      "identity": "",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
       "name": "get_flavours",
       "owner": "postgres",
       "config": [
@@ -828,6 +843,21 @@
     },
     {
       "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "save_packaging_rule",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "d822344fa3ebc34d10b0b2232493a747",
+      "identity": "p_rule jsonb",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
       "name": "publish_flavours",
       "owner": "postgres",
       "config": [
@@ -855,6 +885,21 @@
       "security_definer": true,
       "execute_service_role": true,
       "execute_authenticated": true
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "write_packaging_rule",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "b605a10ef909cf8c9095e2f880b8ac64",
+      "identity": "p_rule jsonb",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
     },
     {
       "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
@@ -1104,7 +1149,7 @@
         "search_path=\"\""
       ],
       "returns": "jsonb",
-      "body_md5": "cbe51e7b51ea84b1483b34f13d9aa97e",
+      "body_md5": "63c290925cd97486fd96c47e029f44fd",
       "identity": "",
       "execute_anon": false,
       "security_definer": true,
@@ -1119,7 +1164,7 @@
         "search_path=\"\""
       ],
       "returns": "TABLE(product_id text, version integer, updated_at timestamp with time zone)",
-      "body_md5": "bbf8c610afefade7e89904c91e9971c5",
+      "body_md5": "023e7c8046973ffc93a14ca795606db2",
       "identity": "p_recipe jsonb, p_expected_updated_at timestamp with time zone",
       "execute_anon": false,
       "security_definer": true,
@@ -1194,7 +1239,7 @@
         "search_path=\"\""
       ],
       "returns": "TABLE(record_id uuid, duplicate boolean, shortfall jsonb)",
-      "body_md5": "1a731b5c10c2c565dc7680a973ead457",
+      "body_md5": "1bef8800dbf5df8485244375f19bbbe3",
       "identity": "p_order text, p_drop integer",
       "execute_anon": false,
       "security_definer": true,
@@ -1209,7 +1254,7 @@
         "search_path=\"\""
       ],
       "returns": "TABLE(record_id uuid, duplicate boolean, used_dough integer, shortfall jsonb)",
-      "body_md5": "ab47fb77672c481610ef2ce657074f02",
+      "body_md5": "666c7497fe0198440b6bc125aa59a1f6",
       "identity": "p_rec jsonb",
       "execute_anon": false,
       "security_definer": true,
@@ -1217,18 +1262,18 @@
       "execute_authenticated": true
     },
     {
-      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "acl": "{postgres=X/postgres}",
       "name": "record_sale_packaging",
       "owner": "postgres",
       "config": [
         "search_path=\"\""
       ],
       "returns": "void",
-      "body_md5": "ed099ea02c79d4fe9c1d0c8c13dc9c97",
+      "body_md5": "e422b7c526ca90ae3961bfad0ed9c859",
       "identity": "p_sale uuid, p_cookies integer, p_at timestamp with time zone",
       "execute_anon": false,
       "security_definer": true,
-      "execute_service_role": true,
+      "execute_service_role": false,
       "execute_authenticated": false
     },
     {
@@ -1269,7 +1314,7 @@
         "search_path=\"\""
       ],
       "returns": "jsonb",
-      "body_md5": "fdcd6fb3fadb2acd43948505e593c7c9",
+      "body_md5": "25d9b131cee7296ec4d1b319519443a1",
       "identity": "",
       "execute_anon": false,
       "security_definer": true,
@@ -1361,6 +1406,21 @@
       "returns": "jsonb",
       "body_md5": "2f657c14a980a47141aeca96d1cc7658",
       "identity": "p_expected jsonb",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "apply_packaging_rule",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "bb9090f5ce4aa51489b8460a5a54c9da",
+      "identity": "p_rule jsonb",
       "execute_anon": false,
       "security_definer": true,
       "execute_service_role": false,

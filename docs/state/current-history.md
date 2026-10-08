@@ -5,6 +5,16 @@ is in [current.md](current.md). Sections were moved here from `current.md` on 20
 again, with the earlier goals from `next-goal.md`, on 2026-10-05, and again on 2026-10-06. Add nothing here by hand;
 move a checkpoint here when it leaves `current.md`.
 
+# Moved from current.md on 2026-10-08
+
+The closed-slice paragraph of "Where things stand", verbatim.
+
+**B3a, 7 October:** the database half of B3, four migrations (56 to 59), **none on the trial**.
+Recipe lines and supplier prices point at their stock item by id, after a step that is previewed
+and counted; one cost function (average, else her usual price, else best quote per unit, else
+unknown) stamps every use; a shortfall is costed; a recorded batch can be corrected. No client
+code changed. What it did with each finding: [system-audit.md](system-audit.md), section 10.
+
 # Moved from current.md on 2026-10-07
 
 The closed-slice paragraphs of "Where things stand", verbatim.

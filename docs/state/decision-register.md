@@ -305,7 +305,31 @@ Cine's to change.
 | Correcting a batch                                        | Moves no ingredients, no dough and no books. Refused only when it lowers the count and the baked balance would go below zero.                       | The goal's stated default; raising a count must stay possible when packing has run ahead.           |
 | The cost basis                                            | Still "when bought". It moves to "when used" (DP-04) in B3b, with the screen that shows uncosted uses.                                              | Flipping it before the app can show what has no cost would overstate profit in silence.             |
 
-**Open, Ethan's:** how a mistyped delivery quantity is undone ([system-audit.md](system-audit.md), R15).
+**Open, Ethan's:** how a mistyped delivery quantity is undone ([system-audit.md](system-audit.md), R15). Decided 8 October, below.
+
+### Slice B3b-1, 8 October 2026: packaging as records
+
+Ethan decided (a), (b) and (c) on 8 October, in plan mode, and approved the split of B3b into B3b-1
+(the database, migration 60) and B3b-2 (the runtime, migration 61 and the books flip to "when used").
+No migration goes on the trial without his word.
+
+| Question                                                | Decision                                                                                                                                                                                                                                                                                                                                                                          |
+| ------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| (a) How today's packaging rule gets in                  | By hand, scripted. No item name appears in any migration or function. One upgrade step (`scripts/packaging-rule-today.sql`) enters the rule as data, in the same sitting as migration 60, rehearsed locally. Until it runs, a pack or bazaar sale takes no packaging and records a flagged shortfall (`why: no packaging rule`), never a silent zero.                             |
+| (b) When her per-cookie packaging lines reach the trial | After 26 October, with B4, once migrations 56 to 60 are applied. In the same sitting the per-cookie pouch leaves the bazaar-sale rule (the builder found the loose rule takes it per cookie too, so it leaves that rule as well). The save actions refuse an item that is both a recipe packaging line and a per-cookie container line; a loose-cookie line counts as per cookie. |
+| (c) A mistyped delivery quantity (R15)                  | Undo while untouched: write an opposite receipt, reverse its book line and back it out of the average exactly. Refused once any of that item has been used or wasted since the delivery. Built in B5 with the receive form.                                                                                                                                                       |
+| The split                                               | B3b-1 database first, then B3b-2 runtime and the books. B3b-2 sets the cost basis to "when used" with the screen that shows uncosted uses.                                                                                                                                                                                                                                        |
+
+**Defaults, not decisions.** Chosen by the builder; each is Ethan's or Cine's to change.
+
+| Rule                                                           | Default                                                                                                                                | Why                                                                       |
+| -------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| A thank-you card in an order                                   | Once per order. Before: once per box, at least one.                                                                                    | The plan's one deliberate change; the order is the thing the card is for. |
+| A container with no rule (a box size, loose cookies, an order) | Takes nothing and is flagged. There is no way yet to say "nothing on purpose".                                                         | Silence and "not entered yet" must not look the same.                     |
+| Cookies not in a box                                           | Loose. More boxed than the order holds leaves loose at 0; each box still takes its own packaging.                                      | Packing goes by the order's boxes, not by a fixed six.                    |
+| Packaging cost per cookie                                      | 0 when a recipe has no packaging lines; unknown when it has some and none has a cost. A line with no cost makes the recipe incomplete. | Unknown is never shown as 0; having nothing to cost is a fact.            |
+| A set (the sampler) when packing                               | Counts as one cookie, as before. A sampler-only order is still packable.                                                               | Carried over unchanged; a container of its own for sets is a later rule.  |
+| Recipe packaging lines at a bake                               | Never taken. Taken when the cookie is packed or sold.                                                                                  | A quantity per cookie belongs to the cookie leaving, not to the batch.    |
 
 ## Amended decisions (open — block the listed work)
 
