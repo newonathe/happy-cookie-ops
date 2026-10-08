@@ -63,6 +63,32 @@ def read(path):
     return master, recipes, dash
 
 
+MONTHS = {m: i for i, m in enumerate(['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'], start=1)}
+
+
+def bookings(path, year=2026):
+    """The Bazaars sheet: a row with a date becomes a scheduled event. The year is a stated rule, not read from the sheet. Rent is only what a
+    note states ("rate 25k"); an event she has not accepted is kept but inactive with no rent. A date that is not 'Mon D - D' is listed."""
+    import re
+    wb = openpyxl.load_workbook(path, data_only=True)
+    out, listed = [], []
+    for n, r in enumerate(wb['Bazaars'].iter_rows(min_row=2, max_col=7, values_only=True), start=2):
+        org, when, event, place, replied, _email, note = r
+        if when is None:
+            continue
+        m = re.fullmatch(r'\s*([A-Za-z]{3})[a-z]*\.?\s+(\d{1,2})\s*-\s*(\d{1,2})\s*', str(when))
+        if not m or m.group(1).lower() not in MONTHS or int(m.group(3)) < int(m.group(2)):
+            listed.append(dict(row=n, why='date not in the form "Mon D - D": ' + str(when)))
+            continue
+        mo = MONTHS[m.group(1).lower()]
+        rate = re.search(r'rate\s+(\d+(?:\.\d+)?)\s*k', str(note or ''), re.I)
+        accepted = bool(replied) and str(note or '').lower().startswith('accepted')
+        out.append(dict(name=(str(event).strip() if event else str(org).strip())[:80], starts_on='%d-%02d-%02d' % (year, mo, int(m.group(2))),
+                        ends_on='%d-%02d-%02d' % (year, mo, int(m.group(3))), place=(str(place).strip() if place else '')[:80],
+                        rent_cents=int(Decimal(rate.group(1)) * 1000 * 100) if rate and accepted else 0, active=accepted, source='Bazaars!A%d' % n))
+    return out, listed
+
+
 def build(path, flavour_map=None, packaging_items=None, as_of='1970-01-01', catalogue=None, item_prices=None, spare_tolerance=2):
     master, recipes, dash = read(path)
     item_prices = {norm(k): v for k, v in (item_prices or {}).items()}
@@ -206,6 +232,9 @@ def main(argv=None):
     out.mkdir(parents=True, exist_ok=True)
     (out / 'prices.json').write_text(json.dumps(prices, indent=1, ensure_ascii=False))
     (out / 'recipes.json').write_text(json.dumps(recipes, indent=1, ensure_ascii=False))
+    bk, bk_listed = bookings(a.workbook)
+    (out / 'bookings.json').write_text(json.dumps(bk, indent=1, ensure_ascii=False))
+    report['bookings'] = dict(count=len(bk), listed=bk_listed, hash=sha(bk))
     report['hashes'] = dict(source=hashlib.sha256(Path(a.workbook).read_bytes()).hexdigest(), prices=sha(prices), recipes=sha(recipes))
     (out / 'report.json').write_text(json.dumps(report, indent=1, ensure_ascii=False))
     print(json.dumps(dict(counts=report['counts'], hashes=report['hashes']), indent=1))

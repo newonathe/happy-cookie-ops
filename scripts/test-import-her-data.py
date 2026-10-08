@@ -38,6 +38,12 @@ def workbook(path):
     d.append(['Plain', 10, 100, 43])
     d.append(['Broken', 10, 100, 7])
     d.append(['Odd', 3, 100, 8.1])
+    b = wb.create_sheet('Bazaars')
+    b.append(['Organizer', 'Event Date', 'Event Name', 'Location', 'Replied?', 'Email', 'Notes'])
+    b.append(['Org One', 'Dec 12-13', 'Holiday Fair', 'Hall A', True, None, 'Accepted - rate 25k'])
+    b.append(['Org Two', 'Nov 25-30', None, 'Hall B', False, None, None])
+    b.append(['Org Three', 'soon', None, None, False, None, None])
+    b.append(['Org Four', None, None, None, False, None, None])
     wb.save(path)
 
 
@@ -74,5 +80,10 @@ with tempfile.TemporaryDirectory() as t:
     a = imp.sha(prices)
     check(a == imp.sha(json.loads(json.dumps(prices))), 'the payload hash is stable')
     imp.main(['--workbook', str(p), '--out', str(Path(t) / 'o'), '--as-of', '2026-10-01'])
-    check({f.name for f in (Path(t) / 'o').iterdir()} == {'prices.json', 'recipes.json', 'report.json'}, 'writes only its three files')
+    check({f.name for f in (Path(t) / 'o').iterdir()} == {'prices.json', 'recipes.json', 'bookings.json', 'report.json'}, 'writes only its four files')
+    bk, listed = imp.bookings(p)
+    check([(b['name'], b['starts_on'], b['ends_on'], b['rent_cents'], b['active']) for b in bk] ==
+          [('Holiday Fair', '2026-12-12', '2026-12-13', 2500000, True), ('Org Two', '2026-11-25', '2026-11-30', 0, False)],
+          'bookings: dates with the stated year, rent only when accepted and stated, unaccepted kept inactive')
+    check(len(listed) == 1 and listed[0]['row'] == 4, 'bookings: a date that is not Mon D - D is listed, not guessed')
 print('import-her-data: all passed')
