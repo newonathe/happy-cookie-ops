@@ -139,6 +139,15 @@ create function pg_temp.recipe_line_kinds(pid text) returns text language sql st
   select string_agg(i.item_name || ':' || i.kind, ',' order by i.position) from public.recipe_ingredients i where i.product_id = pid $$;
 create function pg_temp.cost(pid text) returns jsonb language sql stable security definer as $$
   select x from jsonb_array_elements(public.get_recipe_costs()) x where x ->> 'product_id' = pid $$;
+-- B3b-2: what the books list as uncosted for a production line that could not be taken, read as the owner (get_books is the owner's).
+create function pg_temp.pack_id(ord text) returns uuid language sql immutable as $$
+  select md5('pack:' || ord)::uuid $$;
+create function pg_temp.rec_ms(rid uuid) returns bigint language sql stable security definer as $$
+  select (extract(epoch from r.at) * 1000)::bigint from public.production_records r where r.id = rid $$;
+create function pg_temp.unc_row(uid text, p_from timestamptz, p_to timestamptz) returns jsonb language sql stable as $$
+  select u from jsonb_array_elements(public.get_books(p_from, p_to) -> 'uncosted') u where u ->> 'id' = uid $$;
+create function pg_temp.unc_made(p_from timestamptz, p_to timestamptz) returns bigint language sql stable as $$
+  select count(*) from jsonb_array_elements(public.get_books(p_from, p_to) -> 'uncosted') u where u ->> 'id' like 'p:%' $$;
 
 -- A rule payload: the container, its box size (null unless a box) and its lines. A line is [item, qty, per].
 create function pg_temp.rule(c text, s integer, variadic ls jsonb[] default '{}') returns jsonb language sql stable as $$
@@ -316,6 +325,14 @@ begin
   perform pg_temp.assert_ok(a, 'pack_box_without_a_rule_is_flagged',
     r.shortfall @> '[{"name": "Box of 12", "by": 1, "unit": "box", "why": "no packaging rule"}]'::jsonb and jsonb_array_length(r.shortfall) = 2);
   perform pg_temp.assert_ok(a, 'pack_one_movement_per_item', pg_temp.pack_moves('PK-ORD-1') = 6);
+  -- the books list the box that took nothing, with its why, as stock used with no cost (the default basis is used); the sticker that was only
+  -- short is a movement of its own, not a second line here
+  perform pg_temp.assert_ok(a, 'books_pack_no_rule_is_uncosted',
+    pg_temp.unc_row('p:' || pg_temp.pack_id('PK-ORD-1')::text || ':1', now() - interval '1 day', now() + interval '1 day') =
+      jsonb_build_object('id', 'p:' || pg_temp.pack_id('PK-ORD-1')::text || ':1', 'kind', 'use', 'item', 'Box of 12', 'qty', 1, 'unit', 'box',
+                         'at', pg_temp.rec_ms(pg_temp.pack_id('PK-ORD-1')), 'why', 'no packaging rule'));
+  perform pg_temp.assert_ok(a, 'books_pack_short_without_why_is_not_a_production_line',
+    pg_temp.unc_row('p:' || pg_temp.pack_id('PK-ORD-1')::text || ':0', now() - interval '1 day', now() + interval '1 day') is null);
   select * into r from public.record_pack('PK-ORD-1', 5);
   perform pg_temp.assert_ok(a, 'pk_pack_twice_takes_nothing_more',
     r.duplicate and pg_temp.on_hand('pki-box') = 9 and pg_temp.on_hand('pki-wrap') = 8 and pg_temp.records('pack') = 1 and jsonb_array_length(r.shortfall) = 2);
@@ -330,6 +347,17 @@ begin
   perform pg_temp.assert_ok(a, 'sale_without_rule_flagged',
     pg_temp.sale_short('devK:S1:1') = '[{"name": "Bazaar sale", "by": 1, "unit": "sale", "why": "no packaging rule"}]'::jsonb
     and pg_temp.on_hand('pki-pouch') = 5 and pg_temp.on_hand('pki-bag') = 10);
+  perform pg_temp.assert_ok(a, 'books_sale_no_rule_is_uncosted',
+    pg_temp.unc_row('p:' || pg_temp.sale_id('devK:S1:1')::text || ':0', now() - interval '1 day', now() + interval '1 day') =
+      jsonb_build_object('id', 'p:' || pg_temp.sale_id('devK:S1:1')::text || ':0', 'kind', 'use', 'item', 'Bazaar sale', 'qty', 1, 'unit', 'sale',
+                         'at', pg_temp.rec_ms(pg_temp.sale_id('devK:S1:1')), 'why', 'no packaging rule'));
+  -- the period applies to these lines as it does to the others: from is inclusive, to is exclusive (the pack was written at now())
+  perform pg_temp.assert_ok(a, 'books_pack_and_sale_follow_the_period',
+    pg_temp.unc_made(now() + interval '1 hour', now() + interval '2 hours') = 0
+    and pg_temp.unc_made(now() - interval '2 days', now() - interval '1 day') = 0
+    and pg_temp.unc_made(now() - interval '1 day', now() + interval '1 day') = 2
+    and pg_temp.unc_row('p:' || pg_temp.pack_id('PK-ORD-1')::text || ':1', now() - interval '1 day', now()) is null
+    and pg_temp.unc_row('p:' || pg_temp.pack_id('PK-ORD-1')::text || ':1', now(), now() + interval '1 day') is not null);
   perform pg_temp.assert_ok(a, 'sale_without_rule_takes_recipe_packaging',
     pg_temp.on_hand('pki-wrap') = 6 and pg_temp.on_hand('pki-label') = 86 and pg_temp.sale_moves('devK:S1:1') =
       '[{"item": "pki-label", "delta": "-2.000"}, {"item": "pki-wrap", "delta": "-2.000"}]'::jsonb);
@@ -454,6 +482,7 @@ grant execute on function
   pg_temp.on_hand(text), pg_temp.records(text), pg_temp.pack_moves(text),
   pg_temp.sale_id(text), pg_temp.sale_moves(text), pg_temp.seq_ok(text, text, integer), pg_temp.sale_short(text), pg_temp.rule_lines(text, integer), pg_temp.rule_count(), pg_temp.audit_rows(),
   pg_temp.recipe_line_kinds(text), pg_temp.cost(text),
+  pg_temp.pack_id(text), pg_temp.rec_ms(uuid), pg_temp.unc_row(text, timestamptz, timestamptz), pg_temp.unc_made(timestamptz, timestamptz),
   pg_temp.rule(text, integer, jsonb[]), pg_temp.ln(text, numeric, text), pg_temp.byname(text, numeric, text), pg_temp.sv(text, text, jsonb, text),
   pg_temp.ap(text, text, jsonb, text), pg_temp.rc(text, text, jsonb, timestamptz, text), pg_temp.sale(text, integer), pg_temp.pid(integer),
   pg_temp.pr(integer, text, text, numeric, jsonb),

@@ -151,6 +151,9 @@ function fakeClient(state: Fake) {
         state.movement ?? { data: [{ item_id: 'x', on_hand: 0, duplicate: false }], error: null }
       );
     if (name === 'get_last_paid') return { data: state.lastPaid ?? [], error: null };
+    // A database before B3b has no cost functions: the engine's own cost path stands.
+    if (name === 'get_item_costs' || name === 'get_recipe_costs')
+      return { data: null, error: { code: 'PGRST202' }, status: 404 };
     return { data: null, error: null };
   });
   return { rpc, client: { rpc } };

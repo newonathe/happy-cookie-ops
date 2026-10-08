@@ -36,7 +36,8 @@ ORDER_MIGRATIONS = [ROOT / 'supabase/migrations/20260101003500_place_order.sql',
                     ROOT / 'supabase/migrations/20260101005600_item_costs.sql',
                     ROOT / 'supabase/migrations/20260101005700_clock_policies.sql',
                     ROOT / 'supabase/migrations/20260101005800_batch_correction.sql',
-                    ROOT / 'supabase/migrations/20260101005900_packaging_rules.sql']
+                    ROOT / 'supabase/migrations/20260101005900_packaging_rules.sql',
+                    ROOT / 'supabase/migrations/20260101006000_books_used.sql']
 _OUT = 'order outcome differs: anon / '
 _CHK = 'order check differs: anon / '
 _LOOK = 'lookup check differs: anon / '
@@ -478,6 +479,17 @@ PACKAGING_MUTATIONS = {
                                             _PKC + 'active_owner / cost_unknown_packaging_is_null_not_zero'),
     'text_cost_incomplete_packaging': ('get_recipe_costs', 'text', ("'complete', t.ing_n > 0 and t.miss = 0", "'complete', t.ing_n > 0"),
                                        _PKC + 'active_owner / cost_packaging_without_a_cost_is_incomplete'),
+    # B3b-2 (migration 61): get_books lists a pack and a bazaar sale that took nothing, with its why, beside the dough and batch lines.
+    'text_books_uncosted_pack_arm': ('get_books', 'text', ("r.kind in ('dough', 'batch', 'pack', 'sale')", "r.kind in ('dough', 'batch', 'sale')"),
+                                     _PKC + 'active_owner / books_pack_no_rule_is_uncosted'),
+    'text_books_uncosted_sale_arm': ('get_books', 'text', ("r.kind in ('dough', 'batch', 'pack', 'sale')", "r.kind in ('dough', 'batch', 'pack')"),
+                                     _PKC + 'active_owner / books_sale_no_rule_is_uncosted'),
+    'text_books_uncosted_needs_a_why': ('get_books', 'text', ("(e.value ? 'why')", 'true'),
+                                        _PKC + 'active_owner / books_pack_short_without_why_is_not_a_production_line'),
+    'text_books_uncosted_made_upper_bound': ('get_books', 'text', ("(e.value ? 'why') and r.at >= p_from and r.at < p_to", "(e.value ? 'why') and r.at >= p_from and r.at <= p_to"),
+                                             _PKC + 'active_owner / books_pack_and_sale_follow_the_period'),
+    'text_books_uncosted_made_lower_bound': ('get_books', 'text', ("(e.value ? 'why') and r.at >= p_from", "(e.value ? 'why') and r.at > p_from"),
+                                             _PKC + 'active_owner / books_pack_and_sale_follow_the_period'),
 }
 PACKAGING_TABLE_MUTATIONS = {
     'rules_table_select': ('grant select on public.packaging_rules to anon;', 'packaging outcome differs: anon / rules_select / '),
@@ -531,6 +543,9 @@ BOOKS_MUTATIONS = {
 }
 BOOKS_TABLE_MUTATIONS = {
     'settings_table_select': ('grant select on public.books_settings to anon;', 'books outcome differs: anon / settings_select / '),
+    # B3b-2 (migration 61, DP-04): a fresh database counts stock when it is used.
+    'basis_row_is_bought': ("update public.books_settings set cost_basis = 'bought' where id;", _BKC + 'books_default_basis_is_used'),
+    'basis_default_is_bought': ("alter table public.books_settings alter column cost_basis set default 'bought';", _BKC + 'books_column_default_is_used'),
 }
 # B3a: the cost core (item-costs.sql), acting on the last migration that defines each function. The money cases are worked by hand in the suite.
 _CS = 'item cost outcome differs: active_owner / '
@@ -756,12 +771,12 @@ SUITES = (
     ('production.sql', ('record_production(jsonb)', 'record_pack(text,integer)', 'get_production(integer)', 'record_discard(jsonb)')
                        + tuple(PRODUCTION_MUTATIONS) + tuple(PRODUCTION_TABLE_MUTATIONS), 'forbidden production call succeeded', 129),
     ('books.sql', ('get_books(timestamptz,timestamptz)', 'record_expense(jsonb)', 'record_cost_correction(jsonb)', 'set_cost_basis(text)', 'record_draw(jsonb)')
-                  + tuple(BOOKS_MUTATIONS) + tuple(BOOKS_TABLE_MUTATIONS), 'forbidden books call succeeded', 107),
+                  + tuple(BOOKS_MUTATIONS) + tuple(BOOKS_TABLE_MUTATIONS), 'forbidden books call succeeded', 110),
     ('item-costs.sql', ('save_item_price(jsonb)', 'get_item_costs()', 'get_recipe_costs()') + tuple(COST_MUTATIONS),
      'forbidden cost call succeeded', 172),
     ('batch-correction.sql', ('record_batch_correction(jsonb)',) + tuple(BATCH_CORRECTION_MUTATIONS), 'forbidden correction call succeeded', 110),
     ('packaging.sql', ('get_packaging_rules()', 'save_packaging_rule(jsonb)', 'write_packaging_rule(jsonb)', 'apply_packaging_rule(jsonb)')
-                      + tuple(PACKAGING_MUTATIONS) + tuple(PACKAGING_TABLE_MUTATIONS), 'forbidden packaging call succeeded', 137),
+                      + tuple(PACKAGING_MUTATIONS) + tuple(PACKAGING_TABLE_MUTATIONS), 'forbidden packaging call succeeded', 141),
     ('operations.sql', tuple(OPERATIONS_MUTATIONS), 'forbidden operations call succeeded', 14),
     ('bazaar-closeout.sql', ('event_summary(uuid)', 'load_event_stock(uuid,jsonb,bigint)', 'add_event_expense(jsonb)', 'close_event(jsonb)'), 'forbidden closeout call succeeded', 80),
     ('shop-identity.sql', ('save_shop_identity(jsonb,timestamptz)', 'business_clock(timestamptz)') + tuple(IDENTITY_MUTATIONS) + tuple(IDENTITY_RULES),
@@ -1071,7 +1086,7 @@ def main():
                 h.fail(filename + ' did not return its complete role matrix')
             results.extend(rows)
             assert_empty()
-        if len(set(results)) != 2593:
+        if len(set(results)) != 2600:
             h.fail('combined role matrix has missing or duplicate cases: %d rows, %d unique (duplicates: %s)' % (len(results), len(set(results)), sorted({r for r in results if results.count(r) > 1})[:5]))
         assert_functions()
         assert_catalog_wide()
@@ -1084,10 +1099,10 @@ def main():
     try:
         code = h.main(after_reset=check)
         if (code == 0 and len(report["runs"]) == 2 and report["runs"][0] == report["runs"][1]
-                and len(report['regressions_detected']) == 940 and report['sequence_restorations'] == 10
+                and len(report['regressions_detected']) == 954 and report['sequence_restorations'] == 10
                 and report['upgrade_runs'] == 2 and report['function_guard_runs'] == 4
                 and report['catalog_guard_runs'] == 4 and report['catalog_guard_red_runs'] == 4):
-            report.update(status="passed", cases_per_reset=2593, resets=2, matrix_equal=True, rollback_verified=True,
+            report.update(status="passed", cases_per_reset=2600, resets=2, matrix_equal=True, rollback_verified=True,
                           sql_sha256={name: hashlib.sha256((ROOT / 'tests/integration/security' / name).read_bytes()).hexdigest() for name, _, _, _ in SUITES},
                           harness_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
     except (RuntimeError, OSError, ValueError) as error:

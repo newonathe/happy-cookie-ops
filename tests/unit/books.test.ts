@@ -105,6 +105,37 @@ describe('parseBooks', () => {
       expect(parseBooks(bad as never)).toBeNull();
   });
 
+  it('B3b-2: reads the uncosted list (stock used or wasted with no cost); absent is an empty list; a malformed row is dropped, not the read', () => {
+    expect(parseBooks(WIRE)?.uncosted).toEqual([]);
+    const uncosted = [
+      { id: 'm:1', kind: 'use', item: 'Eggs', qty: 12, unit: 'pcs', at: 5000 },
+      { id: 'p:9:0', kind: 'use', item: 'Miso', qty: 2.5, unit: 'g', at: 4000, why: 'no cost' },
+      { id: 'm:2', kind: 'waste', item: 'Flour', qty: 100, unit: 'g', at: 3000 }
+    ];
+    expect(parseBooks({ ...WIRE, uncosted })?.uncosted).toEqual([
+      { id: 'm:1', kind: 'use', item: 'Eggs', qty: 12, unit: 'pcs', at: 5000 },
+      { id: 'p:9:0', kind: 'use', item: 'Miso', qty: 2.5, unit: 'g', at: 4000, why: 'no cost' },
+      { id: 'm:2', kind: 'waste', item: 'Flour', qty: 100, unit: 'g', at: 3000 }
+    ]);
+    const mixed = parseBooks({
+      ...WIRE,
+      uncosted: [
+        uncosted[0],
+        { ...uncosted[0], id: 7 },
+        { ...uncosted[0], kind: 'sale' },
+        { ...uncosted[0], qty: 'many' },
+        { ...uncosted[0], at: null },
+        { ...uncosted[0], why: 5 },
+        'x',
+        uncosted[2]
+      ]
+    });
+    expect(mixed?.uncosted.map((u) => u.id)).toEqual(['m:1', 'm:2']);
+    expect(mixed?.lines).toHaveLength(5);
+    // An uncosted that is not a list is no uncosted list, not a failed read of the books.
+    expect(parseBooks({ ...WIRE, uncosted: 'x' })?.uncosted).toEqual([]);
+  });
+
   it('fetchBooks asks for the period and throws on an error or an answer it cannot read', async () => {
     const rpc = vi.fn(async () => ({ data: WIRE, error: null }));
     expect((await fetchBooks(client(rpc), AT, AT + 1000)).lines).toHaveLength(5);

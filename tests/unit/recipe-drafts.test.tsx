@@ -176,6 +176,9 @@ describe('original recipe drafts', () => {
     });
     const rpc = vi.fn((name: string) => {
       if (name === 'get_recipes') return Promise.resolve({ data: [], error: null });
+      // The cost reads that follow a recipe read are not draft reads.
+      if (name === 'get_item_costs' || name === 'get_recipe_costs')
+        return Promise.resolve({ data: null, error: { code: 'PGRST202' } });
       if (name === 'save_recipe_draft') return saving;
       const call = ++read;
       return call === 1

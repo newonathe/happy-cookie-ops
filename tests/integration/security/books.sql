@@ -92,6 +92,14 @@ begin
   return ok;
 end $$;
 
+-- B3b-2: the basis a fresh database starts on, read as the fixture owner (an API role cannot read the settings table).
+create function pg_temp.basis_row() returns text language sql stable security definer as $$
+  select cost_basis from public.books_settings where id $$;
+create function pg_temp.basis_default() returns text language sql stable security definer as $$
+  select pg_get_expr(d.adbin, d.adrelid) from pg_attrdef d
+    join pg_attribute a on a.attrelid = d.adrelid and a.attnum = d.adnum
+   where d.adrelid = 'public.books_settings'::regclass and a.attname = 'cost_basis' $$;
+
 create function pg_temp.paid_at_o1() returns timestamptz language sql stable security definer as $$
   select paid_at from public.orders where id = 'c3-o1' $$;
 create function pg_temp.books() returns jsonb language sql stable as $$
@@ -173,6 +181,12 @@ begin
   -- the period
   perform pg_temp.expect(a, 'books_period_reversed', 'select public.get_books(now(), now() - interval ''1 day'')', '22023');
   perform pg_temp.expect(a, 'books_period_too_long', 'select public.get_books(now() - interval ''500 days'', now())', '22023');
+
+  -- a fresh database counts stock when it is used (DP-04): the first read says so, and so does the row and the column default; the cases below
+  -- on the bought basis choose it
+  perform pg_temp.assert_ok(a, 'books_default_basis_is_used', pg_temp.books() ->> 'basis' = 'used' and pg_temp.basis_row() = 'used');
+  perform pg_temp.assert_ok(a, 'books_column_default_is_used', pg_temp.basis_default() = '''used''::text');
+  perform pg_temp.expect(a, 'basis_bought_to_start', 'select public.set_cost_basis(''bought'')', '00000');
 
   -- bought: revenue is when an order was paid (less refunds) and stall sales; costs are each receipt and the event cost
   j := pg_temp.books();
@@ -285,7 +299,7 @@ begin
 end $$;
 
 grant execute on function
-  pg_temp.paid_at_o1(), pg_temp.stamp_paid(), pg_temp.stamp_refund(), pg_temp.books(), pg_temp.sumk(jsonb, text), pg_temp.eid(integer),
+  pg_temp.basis_row(), pg_temp.basis_default(),   pg_temp.paid_at_o1(), pg_temp.stamp_paid(), pg_temp.stamp_refund(), pg_temp.books(), pg_temp.sumk(jsonb, text), pg_temp.eid(integer),
   pg_temp.ex(integer, text, text, numeric, jsonb, text[]), pg_temp.exp(text, text, jsonb, text),
   pg_temp.dw(integer, text, numeric, jsonb, text[]), pg_temp.draw(text, text, jsonb, text),
   pg_temp.co(integer, text, numeric, jsonb, text[]), pg_temp.cor(text, text, jsonb, text), pg_temp.paid(text), pg_temp.flour_avg(),

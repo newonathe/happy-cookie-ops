@@ -206,8 +206,8 @@ end $$;
 create function pg_temp.phase_owner(a text) returns void language plpgsql security invoker as $$
 declare r record; j jsonb; n bigint;
 begin
-  -- the books still default to bought (the flip to used ships with the screen that shows the uncosted list); these cases need used
-  perform pg_temp.assert_ok(a, 'cost_default_basis_is_bought', public.get_books(now() - interval '1 day', now()) ->> 'basis' = 'bought');
+  -- the books default to used (migration 61, DP-04: the screens show the uncosted list); these cases choose it all the same
+  perform pg_temp.assert_ok(a, 'cost_default_basis_is_used', public.get_books(now() - interval '1 day', now()) ->> 'basis' = 'used');
   perform pg_temp.expect(a, 'cost_choose_used', 'select public.set_cost_basis(''used'')', '00000');
 
   -- A, two deliveries: 1000 g for 400 pesos (40 c/g), 400 g used at 40 = 16000; 600 g for 300 pesos with 600 g on hand: the average
