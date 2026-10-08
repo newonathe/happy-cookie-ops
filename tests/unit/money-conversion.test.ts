@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { centavosFromDb, centavosToPesos, pesosToCentavos, sumCentavos } from '@/lib/money';
+import {
+  centavosFromDb,
+  centavosToPesos,
+  costCentavosToPesos,
+  pesosToCentavos,
+  sumCentavos
+} from '@/lib/money';
 import { PRODUCTS } from '@/store/engine/ops-engine';
 
 /**
@@ -67,5 +73,14 @@ describe('sumCentavos', () => {
 
   it('is zero for an empty day', () => {
     expect(sumCentavos([])).toBe(0);
+  });
+});
+
+describe('costCentavosToPesos', () => {
+  it('converts a fractional cost rate, the one place the database cost reads cross', () => {
+    expect(costCentavosToPesos(1234.5678)).toBeCloseTo(12.345678, 9);
+    expect(costCentavosToPesos('0.42')).toBeCloseTo(0.0042, 9);
+    expect(costCentavosToPesos(null)).toBeNull();
+    expect(costCentavosToPesos(Number.NaN)).toBeNull();
   });
 });

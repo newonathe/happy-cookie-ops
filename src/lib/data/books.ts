@@ -34,9 +34,23 @@ export interface ReceiptRow {
   at: number;
 }
 
+/** Stock used or wasted whose cost is not known (never a zero line in the books): a movement, or a production line that could not be taken. */
+export interface UncostedRow {
+  id: string;
+  kind: 'use' | 'waste';
+  item: string;
+  qty: number;
+  unit: string;
+  /** Epoch milliseconds. */
+  at: number;
+  why?: string;
+}
+
 export interface Books {
   basis: CostBasis;
   lines: BookLine[];
+  /** Empty when the answer has none (a database before B3b, or the "bought" basis). */
+  uncosted: UncostedRow[];
   receipts: ReceiptRow[];
 }
 
@@ -89,7 +103,37 @@ export function parseBooks(json: Json | null | undefined): Books | null {
       at: r.at
     });
   }
-  return { basis: json.basis, lines, receipts };
+  return { basis: json.basis, lines, uncosted: parseUncosted(json.uncosted), receipts };
+}
+
+/** A row that cannot be read is left out, not the whole answer: the list is a notice, never part of a total. */
+function parseUncosted(json: unknown): UncostedRow[] {
+  if (!Array.isArray(json)) return [];
+  const rows: UncostedRow[] = [];
+  for (const u of json) {
+    if (
+      !isObj(u) ||
+      typeof u.id !== 'string' ||
+      (u.kind !== 'use' && u.kind !== 'waste') ||
+      typeof u.item !== 'string' ||
+      typeof u.qty !== 'number' ||
+      !Number.isFinite(u.qty) ||
+      typeof u.unit !== 'string' ||
+      typeof u.at !== 'number' ||
+      (u.why !== undefined && typeof u.why !== 'string')
+    )
+      continue;
+    rows.push({
+      id: u.id,
+      kind: u.kind,
+      item: u.item,
+      qty: u.qty,
+      unit: u.unit,
+      at: u.at,
+      ...(u.why !== undefined ? { why: u.why } : {})
+    });
+  }
+  return rows;
 }
 
 export async function fetchBooks(

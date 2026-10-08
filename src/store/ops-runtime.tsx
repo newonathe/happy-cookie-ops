@@ -112,8 +112,16 @@ import {
   STAFF_COPY,
   PRODUCTION_COPY,
   BOOKS_COPY,
+  COST_COPY,
   STOCK_COPY
 } from '@/lib/orders/staff-copy';
+import {
+  fetchItemCosts,
+  fetchRecipeCosts,
+  type CostsClient,
+  type ItemCosts,
+  type RecipeCost
+} from '@/lib/data/costs';
 import {
   engineRecipes,
   fetchRecipes,
@@ -354,6 +362,21 @@ type PortedActions = {
   cogsMult: () => number;
   ingCost: (pid: string) => number;
 };
+
+/**
+ * The engine's cost path (instance fields the typings do not list). In live mode, for the owner, they answer from the database's
+ * cost (`get_item_costs`, `get_recipe_costs`): NaN when it is not known, so that a figure no one handled shows up as NaN in a
+ * test, never as a silent 0. `packCostPerCookie` takes a flavour here (the engine's takes none).
+ */
+type CostActions = {
+  costPerUnit: (name: string) => number;
+  ingCost: (pid: string) => number;
+  packCostPerCookie: (pid?: string) => number;
+  unitCost: (pid: string) => number;
+};
+
+/** What the last read of the database's costs came to: not asked yet, no such functions (migration 55), failed, or read. */
+type CostReads = 'unread' | 'missing' | 'failed' | 'ok';
 
 /** What each role can open in the live app: fixed by design (final-plan.md, section 6.7). */
 const STAFF_ACCESS: Record<Role, { can: string; extra: string }> = {
@@ -724,6 +747,15 @@ export class OpsRuntime extends OpsProvider {
   /** The stamp of each flavour's saved recipe as its screen last showed it: what an edit is saved against. */
   private recipeBaseStamp: Record<string, string | null> = {};
   private recipeLoadSeq = 0;
+  /** B3b-2: the database's cost of each item and recipe (owner only), what the last read came to, and the read in flight. */
+  private costReads: CostReads = 'unread';
+  private itemCosts: ItemCosts | null = null;
+  private recipeCosts: ReadonlyMap<string, RecipeCost> = new Map();
+  private costLoadSeq = 0;
+  /** The engine's own cost path, kept when the overrides were installed: a database before B3b still costs with it. */
+  private engineCost: CostActions | null = null;
+  /** While set, the item names the engine's packaging cost asks for are written here (see `completeRecipeCost`). */
+  private capturePackNames: string[] | null = null;
   private recipeDraftRows: RecipeDraft[] | null = null;
   private recipeDraftLoading = false;
   private recipeDraftBusy = false;
@@ -820,6 +852,8 @@ export class OpsRuntime extends OpsProvider {
     totals.boxTotal = (items, priced) =>
       Object.keys(items).reduce((t, k) => t + totals.priceOf(k, priced) * (items[k] ?? 0), 0) +
       Number(priced?.[EXTRAS_KEY] ?? 0);
+    // B3b-2: the cost of a cookie, an item and a recipe is the database's (`loadCosts`), not the engine's own sum.
+    this.installCostOverrides();
     // B2: a live checkout places real orders; the engine's local order list plays no part. The
     // form fields still live in `state.cust`, so the ported setters and reset actions are kept.
     this.custSubmit = () => {
@@ -983,7 +1017,10 @@ export class OpsRuntime extends OpsProvider {
           pid,
           kind
         );
-      if (pid && kind) return keep.logSpoilage(name, qty, why, pid, kind);
+      if (pid && kind) {
+        keep.logSpoilage(name, qty, why, pid, kind);
+        return this.unknownDiscardCost();
+      }
       void this.liveWaste(name, qty, why);
     };
     inv.confirmReceive = (e, item) => {
@@ -1489,20 +1526,20 @@ export class OpsRuntime extends OpsProvider {
     const sample = PRODUCTS.slice(0, 3) as Array<{ id: string; short: string }>;
     const sum = sample.reduce((t, p) => t + e.priceOf(p.id) * 2, 0);
     const mode = String((preview as { mode?: unknown }).mode ?? '');
+    // The cost of the sample: unknown when any of the three is, and then the example says so instead of a total.
+    const cost = sample.reduce((t, p) => t + e.ingCost(p.id) * 2, 0);
     const total =
       mode === 'Flat price per box'
         ? e.flatBox()
         : mode === 'Menu prices + packaging fee'
           ? sum + e.packFee()
           : mode === 'Cookie cost × multiplier + packaging'
-            ? Math.round(
-                sample.reduce((t, p) => t + e.ingCost(p.id) * 2, 0) * e.cogsMult() + e.packFee()
-              )
+            ? Math.round(cost * e.cogsMult() + e.packFee())
             : sum;
     return {
       ...preview,
       items: sample.length ? sample.map((p) => '2 ' + p.short).join(' · ') : 'No flavours yet',
-      total: PESO2(total)
+      total: Number.isFinite(total) ? PESO2(total) : COST_COPY.pending
     };
   }
 
@@ -2138,11 +2175,13 @@ export class OpsRuntime extends OpsProvider {
       recipe: starved.recipe
         ? {
             ...starved.recipe,
-            costText: this.completeRecipeCost(this.state.recipeOpen)
+            costText: this.costKnown(this.state.recipeOpen)
               ? starved.recipe.costText
-              : 'Cost pending'
+              : COST_COPY.pending
           }
         : starved.recipe,
+      pl: this.livePnl(starved.pl),
+      bzCloseout: this.liveCloseout(starved.bzCloseout),
       invRows: (starved.invRows ?? []).map((row) => {
         const item = this.stockCatalogue?.items.find((i) => i.name === row.name);
         return ['Ingredients', 'Packaging'].includes(String(this.state.invTab)) &&
@@ -2764,6 +2803,7 @@ export class OpsRuntime extends OpsProvider {
       if (first || !dirty[p.id] || p.id === refresh)
         this.recipeBaseStamp[p.id] = rows.find((r) => r.productId === p.id)?.updatedAt ?? null;
     this.setState((s) => this.recipesPatch(s as unknown as RecipeState, refresh, first));
+    void this.loadCosts(); // a saved recipe changes what a cookie costs; a slow answer never holds this read up
     return true;
   }
 
@@ -3050,7 +3090,87 @@ export class OpsRuntime extends OpsProvider {
     } catch {
       /* the catalogue's own best-buy prices stand in */
     }
+    void this.loadCosts(); // a stock movement or a price changes what an item and a cookie cost
     return true;
+  }
+
+  // ------------------------------------------------------------------ B3b-2: what things cost
+
+  /**
+   * Reads the database's cost of every item and recipe (owner only: it refuses anyone else), after anything that changes a cost: a
+   * stock movement, a delivery, a price, a saved recipe, production. If either function is missing (a database before B3b) the
+   * whole read is `missing` and the engine's own path stands. A failed read is not kept as a cost: it is unknown. Never throws.
+   */
+  async loadCosts(): Promise<void> {
+    const use = (this.stockClient ?? this.recipeClient) as CostsClient | null;
+    if (!isLiveMode() || !use || this.state.role !== 'owner') return;
+    const seq = (this.costLoadSeq += 1);
+    const [items, recipes] = await Promise.all([fetchItemCosts(use), fetchRecipeCosts(use)]);
+    // A newer read started meanwhile: it will apply, an older answer must not bring back an older cost.
+    if (seq !== this.costLoadSeq) return;
+    if (items.status === 'ok' && recipes.status === 'ok') {
+      this.costReads = 'ok';
+      this.itemCosts = items;
+      this.recipeCosts = recipes.byProduct;
+    } else {
+      this.costReads =
+        items.status === 'missing' || recipes.status === 'missing' ? 'missing' : 'failed';
+      this.itemCosts = null;
+      this.recipeCosts = new Map();
+    }
+    this.setState({});
+  }
+
+  /** Whether a cost is the database's: the owner, once a cost function exists. Anyone else, or an older database, keeps the engine's own path. */
+  private costsFromDatabase(): boolean {
+    return this.state.role === 'owner' && this.costReads !== 'missing';
+  }
+
+  /** A recipe's cost row, only when it is known: complete and not being edited (the database costs the saved recipe). */
+  private knownRecipeCost(pid: string | undefined): RecipeCost | null {
+    if (this.costReads !== 'ok' || !pid) return null;
+    if ((this.state.recipeDirty as Record<string, boolean> | undefined)?.[pid]) return null;
+    const row = this.recipeCosts.get(pid);
+    // The cost is of one saved version; once the recipe has moved on it is not this recipe's cost until the read catches up.
+    const saved = this.recipeRows?.find((r) => r.productId === pid)?.version;
+    return row?.complete && saved !== undefined && row.version === saved ? row : null;
+  }
+
+  private installCostOverrides(): void {
+    const e = this as unknown as CostActions;
+    const keep = {
+      costPerUnit: e.costPerUnit,
+      ingCost: e.ingCost,
+      packCostPerCookie: e.packCostPerCookie,
+      unitCost: e.unitCost
+    };
+    this.engineCost = keep;
+    e.costPerUnit = (name) => {
+      this.capturePackNames?.push(name);
+      if (!this.costsFromDatabase()) return keep.costPerUnit(name);
+      const cost = this.costReads === 'ok' ? this.itemCosts?.byName.get(name) : null;
+      return cost ?? NaN;
+    };
+    e.ingCost = (pid) =>
+      this.costsFromDatabase()
+        ? (this.knownRecipeCost(pid)?.ingredientPerCookie ?? NaN)
+        : keep.ingCost(pid);
+    // The engine's takes no flavour and spreads three named items over six; the database costs each recipe's own packaging lines.
+    e.packCostPerCookie = (pid) =>
+      this.costsFromDatabase()
+        ? (this.knownRecipeCost(pid)?.packagingPerCookie ?? NaN)
+        : keep.packCostPerCookie();
+    e.unitCost = (pid) => {
+      if (!this.costsFromDatabase()) return keep.unitCost(pid);
+      const perCookie = this.knownRecipeCost(pid)?.perCookie;
+      return perCookie == null ? NaN : Math.round(perCookie * 100) / 100;
+    };
+  }
+
+  /** A flavour's cost per cookie in pesos, or null when it is not known. */
+  private cookieCost(pid: string): number | null {
+    const cost = (this as unknown as CostActions).unitCost(pid);
+    return Number.isFinite(cost) ? cost : null;
   }
 
   /**
@@ -3494,16 +3614,28 @@ export class OpsRuntime extends OpsProvider {
     const n = Number(qty) || 0;
     if (!n) return void this.toast('Enter how much went to waste.', 'warn');
     if (!item) return;
-    const cost = Math.round(n * (this as unknown as InvActions).costPerUnit(name));
+    const perUnit = (this as unknown as InvActions).costPerUnit(name);
+    const cost = Number.isFinite(perUnit) ? Math.round(n * perUnit) : null;
     if (await this.recordMovement(item.id, 'waste', n, null, '', why || 'Spoiled')) {
       this.setState({ sheet: null });
+      // On the "when used" basis the waste is a cost in the books the day it happens (or listed as not costed); on the "bought"
+      // basis it was expensed when bought. Until the books are read, which basis it is is not known, so neither is said.
+      const basis = this.booksRows?.basis;
+      const effect =
+        basis === undefined
+          ? ''
+          : basis === 'bought'
+            ? ' ' + COST_COPY.wasteBought
+            : ' ' + (cost === null ? COST_COPY.wasteUsedPending : COST_COPY.wasteUsed);
       this.toast(
         n +
           ' of ' +
           name.toLowerCase() +
-          ' written off. About ₱' +
-          cost.toLocaleString('en-PH') +
-          ' of stock gone. It was already expensed when you bought it, so profit does not move twice.',
+          ' written off. ' +
+          (cost === null
+            ? COST_COPY.wastePending
+            : 'About ₱' + cost.toLocaleString('en-PH') + ' of stock gone.') +
+          effect,
         'warn'
       );
     } else this.setState({ sheet: null });
@@ -3543,6 +3675,7 @@ export class OpsRuntime extends OpsProvider {
     const names = Object.keys(counts).filter((n) => counts[n] !== undefined && counts[n] !== '');
     let corrected = 0;
     let value = 0;
+    let valued = true; // false once a corrected item has no known cost: the total would be a part of the truth
     let saved = 0;
     for (const name of names) {
       const item = this.stockItem(name);
@@ -3557,7 +3690,9 @@ export class OpsRuntime extends OpsProvider {
       delete counts[name];
       if (counted !== before) {
         corrected += 1;
-        value += (counted - before) * (this as unknown as InvActions).costPerUnit(name);
+        const perUnit = (this as unknown as InvActions).costPerUnit(name);
+        if (Number.isFinite(perUnit)) value += (counted - before) * perUnit;
+        else valued = false;
       }
     }
     if (saved < names.length) {
@@ -3575,9 +3710,11 @@ export class OpsRuntime extends OpsProvider {
       corrected === 0
         ? STOCK_COPY.counted(0)
         : STOCK_COPY.counted(corrected) +
-            (value < 0
-              ? ' ₱' + shown + ' of stock unaccounted for.'
-              : ' ₱' + shown + ' more than your records said.'),
+            (!valued
+              ? COST_COPY.stocktakePending
+              : value < 0
+                ? ' ₱' + shown + ' of stock unaccounted for.'
+                : ' ₱' + shown + ' more than your records said.'),
       corrected === 0 ? 'ok' : 'warn'
     );
   }
@@ -3797,7 +3934,32 @@ export class OpsRuntime extends OpsProvider {
       return;
     }
     this.keepBookkeeping(run);
+    this.unknownDiscardCost();
     await this.refreshProduction();
+  }
+
+  /**
+   * The engine's waste record and toast work out the cost of the cookies or dough themselves. When that cost is not known (NaN) the
+   * entry keeps no cost at all (null, never NaN or 0) and the toast says so. A functional update, so it lands after the engine's own.
+   */
+  private unknownDiscardCost(): void {
+    this.setState((s) => {
+      const spoilage = (s.spoilage as Array<{ cost: number | null }>) ?? [];
+      const toast = s.toast as { msg?: string } | null;
+      return {
+        spoilage: spoilage.map((x) =>
+          x.cost === null || Number.isFinite(x.cost) ? x : { ...x, cost: null }
+        ),
+        ...(toast?.msg?.includes('NaN')
+          ? {
+              toast: {
+                ...toast,
+                msg: toast.msg.replace(/₱NaN of [a-z ]+ gone/, COST_COPY.pending.toLowerCase())
+              }
+            }
+          : {})
+      } as never;
+    });
   }
 
   /** What the database holds now, for the screens (after every production action, whatever happened). */
@@ -4042,6 +4204,19 @@ export class OpsRuntime extends OpsProvider {
           (r.supplier ? ' · ' + r.supplier : '') +
           ' · ' +
           formatManila(r.at, { day: 'numeric', month: 'short' }, 'en-PH')
+      })),
+      uncosted: books.uncosted.map((u) => ({
+        id: u.id,
+        item: u.item,
+        detail:
+          (u.kind === 'waste' ? BOOKS_COPY.uncostedWaste : BOOKS_COPY.uncostedUse) +
+          ' · ' +
+          u.qty +
+          ' ' +
+          u.unit +
+          (u.why ? ' · ' + u.why : '') +
+          ' · ' +
+          formatManila(u.at, { day: 'numeric', month: 'short' }, 'en-PH')
       })),
       setBasis: (b) => void this.liveSetBasis(b),
       correct: (movementId, pesos) => void this.liveCorrect(movementId, pesos),
@@ -4716,14 +4891,61 @@ export class OpsRuntime extends OpsProvider {
         ? {
             ...row,
             edit: () => this.openFlavourEditor(pid),
-            costText: this.completeRecipeCost(pid) ? row.costText : 'Cost pending'
+            costText: this.costKnown(pid) ? row.costText : COST_COPY.pending
           }
         : row;
     });
   }
 
+  /** Whether a flavour's cost per cookie is known and may be shown as a figure (not while it is being edited, not part of it). */
+  private costKnown(pid: unknown): boolean {
+    return this.completeRecipeCost(pid) && this.cookieCost(String(pid)) !== null;
+  }
+
+  /**
+   * P&L margins: a flavour whose cost is unknown shows "Cost pending" instead of a margin built from a part cost. The caption says
+   * how many uses of stock the books could not cost (on the "when used" basis), within the period it covers.
+   */
+  private livePnl(pl: OpsVals['pl']): OpsVals['pl'] {
+    if (!pl || this.state.role !== 'owner') return pl;
+    const uncosted = this.booksRows?.uncosted ?? [];
+    const period = this as unknown as { periodFrom: (s: OpsEngineState) => number };
+    const from = period.periodFrom(this.state as unknown as OpsEngineState);
+    const count = uncosted.filter((u) => u.at >= from && u.at <= Number(this.state.now)).length;
+    return {
+      ...pl,
+      periodText: pl.periodText + (count > 0 ? COST_COPY.notCosted(count) : ''),
+      marginRows: (pl.marginRows ?? []).map((row) => {
+        const pid = PRODUCTS.find((p) => p.short === row.name)?.id;
+        if (!pid || this.cookieCost(pid) !== null) return row;
+        return {
+          ...row,
+          eachText: COST_COPY.pending,
+          madeText: COST_COPY.pending,
+          pctText: '—',
+          barStyle: 'width:4%'
+        };
+      })
+    };
+  }
+
+  /** The bazaar close-out: cost of goods and profit read "Cost pending" when any flavour sold has no cost, and that is not a loss. */
+  private liveCloseout(closeout: OpsVals['bzCloseout']): OpsVals['bzCloseout'] {
+    if (!closeout || this.state.role !== 'owner') return closeout;
+    const unknown = (this.state.sales as EventSale[]).some((sale) =>
+      Object.keys(sale.items).some((k) => (sale.items[k] ?? 0) > 0 && this.cookieCost(k) === null)
+    );
+    return unknown
+      ? { ...closeout, cogs: COST_COPY.pending, profit: COST_COPY.pending, profitOk: true }
+      : closeout;
+  }
+
   /** Partial recipes and missing prices cannot be presented as a complete zero-peso cost. */
   private completeRecipeCost(pid: unknown): boolean {
+    if (this.costsFromDatabase()) {
+      const row = this.recipeCosts.get(String(pid));
+      return this.costReads === 'ok' && !!row && row.complete && row.perCookie !== null;
+    }
     const recipe = this.recipeRows?.find((row) => row.productId === pid);
     const catalogue = this.stockCatalogue;
     if (!recipe?.lines.length || !catalogue) return false;
@@ -4748,9 +4970,18 @@ export class OpsRuntime extends OpsProvider {
         )
       );
     };
+    // A database before B3b: every line is priced, and so is every item the engine's packaging cost asks for (found by running it, not by name).
+    const names: string[] = [];
+    this.capturePackNames = names;
+    try {
+      this.engineCost?.packCostPerCookie();
+    } finally {
+      this.capturePackNames = null;
+    }
     return (
       recipe.lines.every((line) => priced(line.name, line.unit)) &&
-      ['Box of 6', 'Brand sticker', 'Thank-you card'].every((name) => priced(name))
+      names.length > 0 &&
+      names.every((name) => priced(name))
     );
   }
 

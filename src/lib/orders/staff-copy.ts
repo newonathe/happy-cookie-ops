@@ -171,6 +171,17 @@ export const STOCK_COPY = {
   removedNote: 'switched off. Past records keep their history.'
 } as const;
 
+/** B3b-2: the words for a cost the database does not know yet, and for waste on either cost basis. */
+export const COST_COPY = {
+  pending: 'Cost pending',
+  wastePending: 'Cost pending for this item.',
+  wasteBought: 'It was already expensed when you bought it, so profit does not move twice.',
+  wasteUsed: 'It is a cost in the books the day it was wasted.',
+  wasteUsedPending: 'It is listed under Not costed yet in your books until the item has a cost.',
+  stocktakePending: ' Their value is pending: some of these items have no cost yet.',
+  notCosted: (n: number) => ' · ' + (n === 1 ? '1 use' : n + ' uses') + ' not costed'
+} as const;
+
 /** PLACEHOLDER wording (C2): mixing dough, baking and packing take stock off on the database. */
 export const PRODUCTION_COPY = {
   get ownerOnly(): string {
@@ -217,6 +228,11 @@ export const BOOKS_COPY = {
   newCost: 'What it really cost (pesos)',
   correct: 'Correct the cost',
   noReceipts: 'No costed deliveries in the last 90 days.',
+  uncostedTitle: 'Not costed yet',
+  uncostedNote:
+    'Stock used or wasted while the item had no cost. It is not in your costs until the item has a price.',
+  uncostedUse: 'Used',
+  uncostedWaste: 'Wasted',
   corrected: 'Cost corrected. The books show the difference.',
   downloadTitle: 'Download the books',
   downloadNote:

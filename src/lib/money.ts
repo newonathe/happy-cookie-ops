@@ -65,3 +65,16 @@ export function centavosToDb(centavos: Centavos): number {
 export function sumCentavos(values: Centavos[]): Centavos {
   return values.reduce((total, value) => total + centavosToDb(value), 0);
 }
+
+/**
+ * A cost rate or a cost per unit from the database's cost reads (`get_item_costs`, `get_recipe_costs`), in pesos. These are
+ * `numeric` centavos with up to six decimals (a gram of butter costs a fraction of a centavo), so `centavosToPesos`, which demands
+ * whole centavos, does not fit; this is the only place a fractional cost is converted. An unknown (null, absent, not a number,
+ * not finite) is null, never 0.
+ */
+export function costCentavosToPesos(value: number | string | null | undefined): number | null {
+  if (value == null) return null;
+  if (typeof value === 'string' && value.trim() === '') return null;
+  const centavos = typeof value === 'string' ? Number(value) : value;
+  return Number.isFinite(centavos) ? centavos / 100 : null;
+}
