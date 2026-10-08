@@ -4,7 +4,7 @@ Read this page first in a new session. It is kept short on purpose.
 
 | If you need                                        | Read                                                                                                                                                     |
 | -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| The goal to run next                               | [next-goal.md](next-goal.md) (slice B3b)                                                                                                                 |
+| The goal to run next                               | [next-goal.md](next-goal.md) (slice B3b-2)                                                                                                               |
 | The plan, approved 5 October                       | [final-plan.md](final-plan.md), version 2                                                                                                                |
 | The rules every agent follows                      | [AGENTS.md](../../AGENTS.md)                                                                                                                             |
 | Ethan's and Cine's decisions                       | [decision-register.md](decision-register.md)                                                                                                             |
@@ -16,16 +16,16 @@ Read this page first in a new session. It is kept short on purpose.
 
 ## Where things stand — 7 October 2026
 
-**The plan is approved; stage A (A1 to A4) and slices B1, B2 and B3a are built.** Ethan approved
+**The plan is approved; stage A (A1 to A4) and slices B1, B2, B3a and B3b-1 are built.** Ethan approved
 [final-plan.md](final-plan.md), version 2, on 5 October after a re-audit, a debate and
 wider research. It replaces finish-plan.md as the forward plan. The Bazaar defect B1 found is
-fixed (below). The next step is slice B3b.
+fixed (below). The next step is slice B3b-2 (runtime and the books).
 
-**B3a, 7 October:** the database half of B3, four migrations (56 to 59), **none on the trial**.
-Recipe lines and supplier prices point at their stock item by id, after a step that is previewed
-and counted; one cost function (average, else her usual price, else best quote per unit, else
-unknown) stamps every use; a shortfall is costed; a recorded batch can be corrected. No client
-code changed. What it did with each finding: [system-audit.md](system-audit.md), section 10.
+**B3b-1, 8 October:** the database half of B3b, migration 60 (`20260101005900_packaging_rules.sql`), **not on
+the trial**. Packaging is records: a recipe line is an ingredient or packaging (per cookie, never taken at a
+bake), and a rule per container (each box size, loose, order, bazaar sale) lists the items. `record_pack` and
+`record_sale_packaging` read them and no item name is left in SQL; until today's rule is entered they take no
+packaging and say so. `get_recipe_costs` adds packaging per cookie. `record_event_sale` is untouched.
 
 Stage A and slices B1 and B2, as each was recorded when it closed, are in [current-history.md](current-history.md), the section moved on 7 October.
 
@@ -66,9 +66,9 @@ Found by reading code or the trial, not by running. Each has a slice in the plan
 | Bazaar Mode offers a fixed list of wallets; Home's "Drop 32" starts from the engine's number.                | C7, C3 |
 | An empty menu cannot get its first flavour (the trial has 26, so nobody meets it).                           | B6     |
 | Almost every cost per cookie is unknown: 8 of 72 items have a price, no costed delivery, no measured recipe. | B4     |
-| The screens still work out cost in the engine; the database's one cost function is not shown anywhere yet.   | B3b    |
-| The cost basis is "when bought"; "when used" was decided. It moves with the screen that shows uncosted uses. | B3b    |
-| Packaging item names are still written in `record_pack`, `record_sale_packaging` and the completeness check. | B3b    |
+| The screens still work out cost in the engine; the database's one cost function is not shown anywhere yet.   | B3b-2  |
+| The cost basis is "when bought"; "when used" was decided. It moves with the screen that shows uncosted uses. | B3b-2  |
+| The runtime's completeness check still names three packaging items (the database no longer does).            | B3b-2  |
 | A mistyped delivery quantity cannot be undone, and under a running average it lingers. Needs a decision.     | Ethan  |
 | Every page, the shop included, loads the whole staff app.                                                    | C8     |
 
@@ -94,19 +94,21 @@ All in [decision-register.md](decision-register.md), the section for 5 October.
 
 ### Waiting on Ethan
 
-- **Migrations 56 to 59 (B3a) are not on the trial, and nothing in the bazaar needs them.**
+- **Migrations 56 to 60 (B3a, B3b-1) are not on the trial, and nothing in the bazaar needs them.**
   Recommended: not before 27 October. When you say so, in one quiet sitting and in this order,
   each file as one transaction: (1) read the owner and grants of `business_clock`, `place_order`
   and `join_waitlist`, and the 40 policies against `tests/fixtures/policies-before-58.json`;
   (2) apply 56; (3) run `select public.preview_identity_links();`, read what is unmatched or
   ambiguous, then `select public.apply_identity_links('<its counts>');`; (4) apply 57, which
   refuses to run until step 3 is done; (5) apply 58 and 59, then read the three functions'
-  owner again. A recipe line still listed as unmatched takes no stock when baked: fix it in
-  Recipes before baking. `python scripts/test-b3a-upgrade.py` rehearses steps 2 to 4 on the
+  owner again; (6) apply 60, then run `scripts/packaging-rule-today.sql` (one call, today's packaging as data;
+  a name that is not exactly one stock item is listed and nothing is written). Until it runs, a pack or bazaar
+  sale takes no packaging and is flagged. A recipe line still listed as unmatched takes no stock when baked: fix it in
+  Recipes before baking. `python scripts/test-b3a-upgrade.py` rehearses steps 2 to 6 on the
   local database.
-- **Decide, for B3b:** whether today's packaging rule (a pouch per cookie, a bag per bazaar
-  sale) is entered by hand or seeded as an unconfirmed default; when her per-cookie packaging
-  lines may reach the trial; and how a mistyped delivery quantity is undone.
+- **Decided 8 October (B3b):** today's packaging rule is entered by hand through that script; her per-cookie
+  packaging lines reach the trial after 26 October with B4, once 56 to 60 are applied, and the pouch leaves the
+  bazaar-sale and loose rules in the same sitting; undoing an untouched delivery is built in B5 with the receive form.
 - A1 is built (the release check takes two to six addresses; Cine is not added yet). Add her
   two addresses to Cloudflare Access and the approved-digest variable in one sitting, or the
   next deploy fails. Set the session to one week: that deploy then fails once and prints the

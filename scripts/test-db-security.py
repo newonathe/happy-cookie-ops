@@ -35,7 +35,8 @@ ORDER_MIGRATIONS = [ROOT / 'supabase/migrations/20260101003500_place_order.sql',
                     ROOT / 'supabase/migrations/20260101005500_identity_links.sql',
                     ROOT / 'supabase/migrations/20260101005600_item_costs.sql',
                     ROOT / 'supabase/migrations/20260101005700_clock_policies.sql',
-                    ROOT / 'supabase/migrations/20260101005800_batch_correction.sql']
+                    ROOT / 'supabase/migrations/20260101005800_batch_correction.sql',
+                    ROOT / 'supabase/migrations/20260101005900_packaging_rules.sql']
 _OUT = 'order outcome differs: anon / '
 _CHK = 'order check differs: anon / '
 _LOOK = 'lookup check differs: anon / '
@@ -401,16 +402,85 @@ PRODUCTION_MUTATIONS = {
                                 _PDC + 'get_production_dough_after_discard'),
     'text_discard_baked_read': ('get_production', 'text', ("select r.product_id, -r.qty from public.production_records r where r.kind = 'discard_baked'", "select r.product_id, 0 from public.production_records r where r.kind = 'discard_baked'"),
                                 _PDC + 'get_production_baked_after_discard'),
-    'text_use_stock_never_costs_the_short': ('use_stock', 'text', ('p_at, false)', 'p_at, true)'), _PDC + 'sale_pin_empty_movements'),
+    'text_sale_never_costs_the_short': ('record_sale_packaging', 'text', ("'Bazaar sale', p_at, false)", "'Bazaar sale', p_at, true)"), _PDC + 'sale_pin_empty_movements'),
     'text_pack_once': ('record_pack', 'text', ("v_id := md5('pack:' || p_order)::uuid;", 'v_id := gen_random_uuid();'),
                        _PDC + 'pack_twice_takes_nothing_more'),
-    'text_pack_boxes': ('record_pack', 'text', ('v_boxes := v_count / 6;', 'v_boxes := v_count / 12;'),
-                        _PDC + 'pack_takes_the_packaging'),
     'text_baked_minus_packed': ('get_production', 'text', ('select oi.product_id, -oi.qty from public.production_records r', 'select oi.product_id, 0 from public.production_records r'),
                                 _PDC + 'get_production_baked_not_packed'),
 }
 PRODUCTION_TABLE_MUTATIONS = {
     'records_table_select': ('grant select on public.production_records to anon;', 'production outcome differs: anon / records_select / '),
+}
+
+
+# B3b-1: packaging as records (packaging.sql), acting on migration 60. The rule mutants neutralise one tagged refusal; the text
+# mutants restate one line of the plan. Each expected text is the first case of the suite that must then fail.
+_PK = 'packaging outcome differs: '
+_PKC = 'packaging check differs: '
+PACKAGING_MUTATIONS = {
+    'rule_packrule_keys': ('write_packaging_rule', 'rule', 'packrule-keys', _PK + 'active_owner / rule_keys_missing / '),
+    'rule_packrule_container': ('write_packaging_rule', 'rule', 'packrule-container', _PK + 'active_owner / rule_container_bad / '),
+    'rule_packrule_box_size': ('write_packaging_rule', 'rule', 'packrule-box-size', _PK + 'active_owner / rule_box_size_missing / '),
+    'rule_packrule_lines_max': ('write_packaging_rule', 'rule', 'packrule-lines-max', _PK + 'active_owner / rule_lines_max / '),
+    'rule_packrule_item_missing': ('write_packaging_rule', 'rule', 'packrule-item-missing', _PK + 'active_owner / rule_item_missing / '),
+    'rule_packrule_qty': ('write_packaging_rule', 'rule', 'packrule-qty', _PK + 'operator / apply_validates_like_save / '),
+    'rule_packrule_per': ('write_packaging_rule', 'rule', 'packrule-per', _PK + 'active_owner / rule_per_bad / '),
+    'rule_packrule_dup': ('write_packaging_rule', 'rule', 'packrule-dup', _PK + 'active_owner / rule_item_twice / '),
+    'rule_packrule_double': ('write_packaging_rule', 'rule', 'packrule-double', _PK + 'active_owner / rule_double_take_cookie / '),
+    'rule_packrule_double_order': ('write_packaging_rule', 'rule', 'packrule-double-order', _PK + 'active_owner / rule_double_take_order_vs_loose / '),
+    'rule_packrule_name_keys': ('apply_packaging_rule', 'rule', 'packrule-name-keys', _PK + 'operator / apply_keys_extra / '),
+    'rule_packrule_apply_dup': ('apply_packaging_rule', 'rule', 'packrule-apply-dup', _PK + 'operator / apply_container_twice / '),
+    'rule_packrule_name': ('apply_packaging_rule', 'rule', 'packrule-name', _PK + 'operator / apply_name_several / '),
+    'rule_recipe_kind': ('save_recipe', 'rule', 'recipe-kind', _PK + 'active_owner / recipe_kind_bad / '),
+    'rule_recipe_pack_double': ('save_recipe', 'rule', 'recipe-pack-double', _PK + 'active_owner / recipe_pack_double / '),
+    'rule_pack_no_loose_rule': ('record_pack', 'rule', 'pack-no-loose-rule', _PKC + 'active_owner / pack_flags_loose_without_a_rule'),
+    'rule_pack_no_order_rule': ('record_pack', 'rule', 'pack-no-order-rule', _PKC + 'active_owner / pack_flags_order_without_a_rule'),
+    'rule_sale_no_rule': ('record_sale_packaging', 'rule', 'sale-no-rule', _PKC + 'active_owner / sale_without_rule_flagged'),
+    'text_pack_loose_is_the_rest': ('record_pack', 'text', ('v_loose := greatest(v_count - v_boxed, 0);', 'v_loose := v_count;'),
+                                    _PKC + 'active_owner / pack_takes_by_the_boxes'),
+    'text_pack_box_per_cookie': ('record_pack', 'text', ("when 'cookie' then bx.size * bx.n else bx.n end", "when 'cookie' then bx.n else bx.n end"),
+                                 _PKC + 'active_owner / pack_per_cookie_lines_count_the_cookies'),
+    'text_pack_order_per_cookie': ('record_pack', 'text', ("case r.per when 'cookie' then v_count else 1 end", "case r.per when 'cookie' then 1 else 1 end"),
+                                   _PKC + 'active_owner / pack_per_cookie_lines_count_the_cookies'),
+    'text_pack_recipe_lines_per_cookie': ('record_pack', 'text', ('select 4, 0, l.position, l.item_id, l.qty * oi.q', 'select 4, 0, l.position, l.item_id, l.qty'),
+                                          _PKC + 'active_owner / pack_takes_the_recipe_packaging'),
+    'text_pack_flags_box_without_rule': ('record_pack', 'text',
+                                         ("where not exists (select 1 from public.packaging_rules r where r.container = 'box' and r.box_size = bx.size)",
+                                          "where false and not exists (select 1 from public.packaging_rules r where r.container = 'box' and r.box_size = bx.size)"),
+                                         _PKC + 'active_owner / pack_box_without_a_rule_is_flagged'),
+    'text_pack_never_costs_the_short': ('record_pack', 'text', ("'Packed order ' || p_order, v_at, false)", "'Packed order ' || p_order, v_at, true)"),
+                                        _PKC + 'active_owner / pack_all_loose'),
+    'text_sale_in_position_order': ('record_sale_packaging', 'text', ('row_number() over (order by x.src, x.pos, x.item_id)', 'row_number() over (order by x.src, x.pos desc, x.item_id)'),
+                                    _PKC + 'active_owner / sale_with_rule_keeps_the_movement_ids'),
+    'text_sale_per_cookie': ('record_sale_packaging', 'text', ("r.qty * case r.per when 'cookie' then p_cookies else 1 end", 'r.qty * 1'),
+                             _PKC + 'active_owner / sale_with_rule_takes_in_order'),
+    'text_sale_recipe_lines_per_cookie': ('record_sale_packaging', 'text', ('select 2, l.position, l.item_id, l.qty * si.q', 'select 2, l.position, l.item_id, l.qty'),
+                                          _PKC + 'active_owner / sale_without_rule_takes_recipe_packaging'),
+    'text_bake_skips_packaging': ('record_production', 'text', ("where i.product_id = v_pid and i.kind = 'ingredient' order by i.position, i.id loop", 'where i.product_id = v_pid order by i.position, i.id loop'),
+                                  _PKC + 'active_owner / bake_skips_packaging'),
+    'text_bake_adj_ingredients_only': ('record_production', 'text', ("where i.product_id = v_pid and i.kind = 'ingredient' and i.item_name = k));", 'where i.product_id = v_pid and i.item_name = k));'),
+                                       _PK + 'active_owner / bake_adj_names_a_packaging_line / '),
+    'text_recipe_pack_double_loose': ('save_recipe', 'text', ("(r.per = 'cookie' or r.container = 'loose')", "r.per = 'cookie'"),
+                                      _PK + 'active_owner / recipe_pack_double_loose_container / '),
+    'text_recipes_read_the_kind': ('get_recipes', 'text', ("'item_id', i.item_id, 'kind', i.kind)", "'item_id', i.item_id, 'kind', 'ingredient')"),
+                                   _PKC + 'active_owner / get_recipes_lines_have_a_kind'),
+    'text_recipe_stores_the_kind': ('save_recipe', 'text', ("|| case when l ->> 'kind' = 'packaging' then jsonb_build_object('kind', 'packaging') else '{}'::jsonb end", "|| '{}'::jsonb"),
+                                    _PK + 'active_owner / recipe_pack_double / '),
+    'text_recipe_noop_sees_the_kind': ('save_recipe', 'text', ("|| case when i.kind = 'packaging' then jsonb_build_object('kind', 'packaging') else '{}'::jsonb end", "|| '{}'::jsonb"),
+                                       _PKC + 'active_owner / recipe_same_again_made_no_version'),
+    'text_cost_adds_the_packaging': ('get_recipe_costs', 'text', ('t.batch / r.yield_count + coalesce(t.pack, 0)', 't.batch / r.yield_count'),
+                                     _PKC + 'active_owner / cost_per_cookie_adds_both'),
+    'text_cost_packaging_alone_is_unknown': ('get_recipe_costs', 'text', ("'per_cookie_cents', round(t.batch / r.yield_count + coalesce(t.pack, 0), 4)", "'per_cookie_cents', round(coalesce(t.batch, 0) / r.yield_count + coalesce(t.pack, 0), 4)"),
+                                             _PKC + 'active_owner / cost_packaging_alone_is_not_a_cookie_cost'),
+    'text_cost_batch_is_ingredients': ('get_recipe_costs', 'text', ("sum(l.cents) filter (where l.kind = 'ingredient') as batch", 'sum(l.cents) as batch'),
+                                       _PKC + 'active_owner / cost_batch_is_the_ingredients_only'),
+    'text_cost_unknown_packaging_is_null': ('get_recipe_costs', 'text', ('case when t.pack_n = 0 then 0 else round(t.pack, 4) end', 'coalesce(round(t.pack, 4), 0)'),
+                                            _PKC + 'active_owner / cost_unknown_packaging_is_null_not_zero'),
+    'text_cost_incomplete_packaging': ('get_recipe_costs', 'text', ("'complete', t.ing_n > 0 and t.miss = 0", "'complete', t.ing_n > 0"),
+                                       _PKC + 'active_owner / cost_packaging_without_a_cost_is_incomplete'),
+}
+PACKAGING_TABLE_MUTATIONS = {
+    'rules_table_select': ('grant select on public.packaging_rules to anon;', 'packaging outcome differs: anon / rules_select / '),
 }
 
 
@@ -593,7 +663,7 @@ OPERATIONS_MUTATIONS = {
 
 def order_mutant(name):
     """The migration's one function, changed in exactly one place, as SQL to run inside the suite."""
-    function, kind, argument, _ = (ORDER_MUTATIONS | LOOKUP_MUTATIONS | STAFF_MUTATIONS | SHOP_MUTATIONS | EXTRAS_MUTATIONS | SCHEDULED_MUTATIONS | STOCK_MUTATIONS | RECIPE_MUTATIONS | LEDGER_MUTATIONS | PRODUCTION_MUTATIONS | BOOKS_MUTATIONS | OPERATIONS_MUTATIONS | IDENTITY_RULES | LINK_MUTATIONS | COST_MUTATIONS | BATCH_CORRECTION_MUTATIONS)[name]
+    function, kind, argument, _ = (ORDER_MUTATIONS | LOOKUP_MUTATIONS | STAFF_MUTATIONS | SHOP_MUTATIONS | EXTRAS_MUTATIONS | SCHEDULED_MUTATIONS | STOCK_MUTATIONS | RECIPE_MUTATIONS | LEDGER_MUTATIONS | PRODUCTION_MUTATIONS | BOOKS_MUTATIONS | OPERATIONS_MUTATIONS | IDENTITY_RULES | LINK_MUTATIONS | COST_MUTATIONS | BATCH_CORRECTION_MUTATIONS | PACKAGING_MUTATIONS)[name]
     marker = 'create or replace function public.' + function + '('
     text = [m.read_text(encoding='utf-8') for m in ORDER_MIGRATIONS if marker in m.read_text(encoding='utf-8')][-1]
     start = text.index('create or replace function public.' + function + '(')
@@ -690,6 +760,8 @@ SUITES = (
     ('item-costs.sql', ('save_item_price(jsonb)', 'get_item_costs()', 'get_recipe_costs()') + tuple(COST_MUTATIONS),
      'forbidden cost call succeeded', 172),
     ('batch-correction.sql', ('record_batch_correction(jsonb)',) + tuple(BATCH_CORRECTION_MUTATIONS), 'forbidden correction call succeeded', 110),
+    ('packaging.sql', ('get_packaging_rules()', 'save_packaging_rule(jsonb)', 'write_packaging_rule(jsonb)', 'apply_packaging_rule(jsonb)')
+                      + tuple(PACKAGING_MUTATIONS) + tuple(PACKAGING_TABLE_MUTATIONS), 'forbidden packaging call succeeded', 137),
     ('operations.sql', tuple(OPERATIONS_MUTATIONS), 'forbidden operations call succeeded', 14),
     ('bazaar-closeout.sql', ('event_summary(uuid)', 'load_event_stock(uuid,jsonb,bigint)', 'add_event_expense(jsonb)', 'close_event(jsonb)'), 'forbidden closeout call succeeded', 80),
     ('shop-identity.sql', ('save_shop_identity(jsonb,timestamptz)', 'business_clock(timestamptz)') + tuple(IDENTITY_MUTATIONS) + tuple(IDENTITY_RULES),
@@ -731,7 +803,7 @@ PAYMENT_MUTATIONS = {
 REPORT = ROOT / "docs/state/evidence/MP-06l-security.json"
 EMPTY_FIXTURES = 'select ' + ' and '.join(
     'not exists(select 1 from public.' + table + ')'
-    for table in ('orders', 'order_items', 'products', 'drops', 'settings', 'rate_limits', 'profiles', 'audit_log', 'ledger_entries', 'event_sales', 'event_sale_items', 'inventory_items', 'bake_batches', 'recipes', 'recipe_ingredients', 'suppliers', 'supplier_prices', 'events', 'erasure_requests', 'payment_methods', 'shop_texts', 'shop_identity', 'waitlist_entries', 'order_add_ons', 'order_boxes', 'scheduled_events', 'recipe_versions', 'stock_movements', 'item_prices')) + " and not exists(select 1 from auth.users) and to_regnamespace('mp06f_probe') is null and to_regnamespace('mp06g_probe') is null and to_regclass('public.mp06g_future') is null and to_regclass('public.mp06g_future_id_seq') is null;"
+    for table in ('orders', 'order_items', 'products', 'drops', 'settings', 'rate_limits', 'profiles', 'audit_log', 'ledger_entries', 'event_sales', 'event_sale_items', 'inventory_items', 'packaging_rules', 'bake_batches', 'recipes', 'recipe_ingredients', 'suppliers', 'supplier_prices', 'events', 'erasure_requests', 'payment_methods', 'shop_texts', 'shop_identity', 'waitlist_entries', 'order_add_ons', 'order_boxes', 'scheduled_events', 'recipe_versions', 'stock_movements', 'item_prices')) + " and not exists(select 1 from auth.users) and to_regnamespace('mp06f_probe') is null and to_regnamespace('mp06g_probe') is null and to_regclass('public.mp06g_future') is null and to_regclass('public.mp06g_future_id_seq') is null;"
 
 
 def main():
@@ -875,6 +947,13 @@ def main():
                 if filename == 'batch-correction.sql' and signature in BATCH_CORRECTION_MUTATIONS:
                     broken = sql.replace('begin;', 'begin;' + chr(10) + order_mutant(signature), 1)
                     expected_error = BATCH_CORRECTION_MUTATIONS[signature][3]
+                if filename == 'packaging.sql':
+                    if signature in PACKAGING_MUTATIONS:
+                        broken = sql.replace('begin;', 'begin;' + chr(10) + order_mutant(signature), 1)
+                        expected_error = PACKAGING_MUTATIONS[signature][3]
+                    elif signature in PACKAGING_TABLE_MUTATIONS:
+                        unsafe, expected_error = PACKAGING_TABLE_MUTATIONS[signature]
+                        broken = sql.replace('begin;', 'begin;' + chr(10) + unsafe, 1)
                 if filename == 'item-costs.sql' and signature in COST_MUTATIONS:
                     broken = sql.replace('begin;', 'begin;' + chr(10) + order_mutant(signature), 1)
                     expected_error = COST_MUTATIONS[signature][3]
@@ -992,7 +1071,7 @@ def main():
                 h.fail(filename + ' did not return its complete role matrix')
             results.extend(rows)
             assert_empty()
-        if len(set(results)) != 2456:
+        if len(set(results)) != 2593:
             h.fail('combined role matrix has missing or duplicate cases: %d rows, %d unique (duplicates: %s)' % (len(results), len(set(results)), sorted({r for r in results if results.count(r) > 1})[:5]))
         assert_functions()
         assert_catalog_wide()
@@ -1005,10 +1084,10 @@ def main():
     try:
         code = h.main(after_reset=check)
         if (code == 0 and len(report["runs"]) == 2 and report["runs"][0] == report["runs"][1]
-                and len(report['regressions_detected']) == 856 and report['sequence_restorations'] == 10
+                and len(report['regressions_detected']) == 940 and report['sequence_restorations'] == 10
                 and report['upgrade_runs'] == 2 and report['function_guard_runs'] == 4
                 and report['catalog_guard_runs'] == 4 and report['catalog_guard_red_runs'] == 4):
-            report.update(status="passed", cases_per_reset=2456, resets=2, matrix_equal=True, rollback_verified=True,
+            report.update(status="passed", cases_per_reset=2593, resets=2, matrix_equal=True, rollback_verified=True,
                           sql_sha256={name: hashlib.sha256((ROOT / 'tests/integration/security' / name).read_bytes()).hexdigest() for name, _, _, _ in SUITES},
                           harness_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
     except (RuntimeError, OSError, ValueError) as error:

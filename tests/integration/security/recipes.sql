@@ -83,10 +83,10 @@ create function pg_temp.version_numbers(p text) returns jsonb language sql stabl
   select coalesce(jsonb_agg(v.version order by v.version), '[]'::jsonb) from public.recipe_versions v where v.product_id = p $$;
 create function pg_temp.snapshot(p text, n integer) returns jsonb language sql stable security definer as $$
   select jsonb_build_object('yield', v.yield_count, 'lines', v.lines) from public.recipe_versions v where v.product_id = p and v.version = n $$;
--- What a read shows of the current version, in the shape a snapshot is kept in (no item id).
+-- What a read shows of the current version, in the shape a snapshot is kept in (no item id; the kind only on a packaging line, B3b).
 create function pg_temp.current_shape(p text) returns jsonb language sql stable as $$
   select jsonb_build_object('yield', (pg_temp.row_of(p) ->> 'yield')::int,
-    'lines', coalesce((select jsonb_agg(l - 'item_id' order by ord) from jsonb_array_elements(pg_temp.row_of(p) -> 'lines') with ordinality t(l, ord)), '[]'::jsonb)) $$;
+    'lines', coalesce((select jsonb_agg((l - 'item_id') - case when l ->> 'kind' = 'ingredient' then 'kind' else '' end order by ord) from jsonb_array_elements(pg_temp.row_of(p) -> 'lines') with ordinality t(l, ord)), '[]'::jsonb)) $$;
 create function pg_temp.stamp(p text) returns timestamptz language sql stable as $$
   select (pg_temp.row_of(p) ->> 'updated_at')::timestamptz $$;
 create function pg_temp.save(actor text, op text, body jsonb, stamp timestamptz, wanted text) returns void
