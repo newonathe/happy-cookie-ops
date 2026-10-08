@@ -42,9 +42,10 @@ insert into public.inventory_items(id, name, unit, category, active, on_hand) va
   ('pki-twin1', 'PK Twin', 'pcs', 'Packaging', true, 1),
   ('pki-twin2', 'pk twin', 'pcs', 'Packaging', true, 1),
   ('pki-off', 'PK Off', 'pcs', 'Packaging', false, 50);
--- Eight more so there are 21 distinct, real items for the line-count case (a duplicate or a missing item would mask it).
+-- Eleven more so there are 21 distinct, real items that no recipe takes as an ingredient, for the line-count case (a duplicate, a missing
+-- item or an ingredient would be refused for that reason and mask it).
 insert into public.inventory_items(id, name, unit, category, active, on_hand)
-select 'pki-fill' || i, 'PK Fill ' || i, 'pcs', 'Packaging', true, 30 from generate_series(1, 8) i;
+select 'pki-fill' || i, 'PK Fill ' || i, 'pcs', 'Packaging', true, 30 from generate_series(1, 11) i;
 -- What things cost, so the worked recipes below have a known answer: flour 1 c/g, sugar 0.5 c/g, wrap 2.5 c, label 1.2 c. The tag has
 -- no price at all.
 insert into public.item_prices(id, item_id, price_cents, pack_size, as_of, payload_hash) values
@@ -247,6 +248,8 @@ begin
   perform pg_temp.ap(a, 'apply_empty_list', '[]'::jsonb, '22023');
   perform pg_temp.ap(a, 'apply_keys_missing', jsonb_build_object('container', 'order', 'lines', '[]'::jsonb), '22023');
   perform pg_temp.ap(a, 'apply_validates_like_save', pg_temp.rule('order', null, pg_temp.byname('PK Card', 0, 'container')), '22023');
+  -- B4a: flour is an ingredient of a recipe (a bake takes it), so a rule may not take it either, by name as by id
+  perform pg_temp.ap(a, 'packrule_ingredient_refused_apply', pg_temp.rule('order', null, pg_temp.byname('PK Flour', 1, 'container')), '22023');
   perform pg_temp.assert_ok(a, 'apply_refusals_changed_nothing', pg_temp.rule_count() = 0 and pg_temp.audit_rows() = 0);
   -- the names are found ignoring case and surrounding spaces; the rules are written by id, all three containers in one call
   perform pg_temp.ap(a, 'apply_three_containers_at_once', jsonb_build_array(
@@ -288,7 +291,9 @@ begin
   perform pg_temp.sv(a, 'rule_box_size_on_order', pg_temp.rule('order', 6, pg_temp.ln('pki-card', 1, 'container')), '22023');
   perform pg_temp.sv(a, 'rule_lines_max',
     pg_temp.rule('order', null, variadic (select array_agg(pg_temp.ln(x.id, 1, 'container') order by x.id)
-                                            from (select id from public.inventory_items where id like 'pki-%' order by id limit 21) x)), '22023');
+                                            from (select id from public.inventory_items
+                                                   where id like 'pki-%' and id not in (select item_id from public.recipe_ingredients where kind = 'ingredient' and item_id is not null)
+                                                   order by id limit 21) x)), '22023');
   perform pg_temp.sv(a, 'rule_item_missing', pg_temp.rule('order', null, pg_temp.ln('pki-ghost', 1, 'container')), '22023');
   perform pg_temp.sv(a, 'rule_qty_zero', pg_temp.rule('order', null, pg_temp.ln('pki-card', 0, 'container')), '22023');
   perform pg_temp.sv(a, 'rule_qty_negative', pg_temp.rule('order', null, pg_temp.ln('pki-card', -1, 'container')), '22023');
@@ -303,6 +308,13 @@ begin
   perform pg_temp.sv(a, 'rule_double_take_loose', pg_temp.rule('loose', null, pg_temp.ln('pki-wrap', 1, 'container')), '22023');
   -- the same guard between containers: the pouch is taken per cookie by the loose rule, so the order may not take it per cookie too
   perform pg_temp.sv(a, 'rule_double_take_order_vs_loose', pg_temp.rule('order', null, pg_temp.ln('pki-pouch', 1, 'cookie')), '22023');
+  -- B4a (the B4a-1 review): the double-take guard against an INGREDIENT. A bake takes an ingredient of a recipe, so no rule may take that
+  -- item too (a pack would take it again): per container or per cookie, in any container. The tag is a packaging line of one recipe
+  -- and an ingredient of another: still refused. The wrap and the label, which are packaging lines only, are not ingredients.
+  perform pg_temp.sv(a, 'packrule_ingredient_refused', pg_temp.rule('order', null, pg_temp.ln('pki-flour', 1, 'container')), '22023');
+  perform pg_temp.sv(a, 'packrule_ingredient_refused_per_cookie', pg_temp.rule('box', 8, pg_temp.ln('pki-sugar', 1, 'cookie')), '22023');
+  perform pg_temp.sv(a, 'packrule_ingredient_refused_loose', pg_temp.rule('loose', null, pg_temp.ln('pki-flour', 1, 'cookie')), '22023');
+  perform pg_temp.sv(a, 'packrule_ingredient_refused_also_a_packaging_line', pg_temp.rule('order', null, pg_temp.ln('pki-card', 1, 'container'), pg_temp.ln('pki-tag', 1, 'container')), '22023');
   perform pg_temp.assert_ok(a, 'rule_refusals_changed_nothing',
     pg_temp.rule_count() = 5 and pg_temp.audit_rows() = 5 and pg_temp.on_hand('pki-card') = 10);
 

@@ -38,7 +38,8 @@ ORDER_MIGRATIONS = [ROOT / 'supabase/migrations/20260101003500_place_order.sql',
                     ROOT / 'supabase/migrations/20260101005800_batch_correction.sql',
                     ROOT / 'supabase/migrations/20260101005900_packaging_rules.sql',
                     ROOT / 'supabase/migrations/20260101006000_books_used.sql',
-                    ROOT / 'supabase/migrations/20260101006100_cost_cutover.sql']
+                    ROOT / 'supabase/migrations/20260101006100_cost_cutover.sql',
+                    ROOT / 'supabase/migrations/20260101006200_cost_cutover_fix.sql']
 _OUT = 'order outcome differs: anon / '
 _CHK = 'order check differs: anon / '
 _LOOK = 'lookup check differs: anon / '
@@ -429,6 +430,7 @@ PACKAGING_MUTATIONS = {
     'rule_packrule_per': ('write_packaging_rule', 'rule', 'packrule-per', _PK + 'active_owner / rule_per_bad / '),
     'rule_packrule_dup': ('write_packaging_rule', 'rule', 'packrule-dup', _PK + 'active_owner / rule_item_twice / '),
     'rule_packrule_double': ('write_packaging_rule', 'rule', 'packrule-double', _PK + 'active_owner / rule_double_take_cookie / '),
+    'rule_packrule_ingredient': ('write_packaging_rule', 'rule', 'packrule-ingredient', _PK + 'operator / packrule_ingredient_refused_apply / '),
     'rule_packrule_double_order': ('write_packaging_rule', 'rule', 'packrule-double-order', _PK + 'active_owner / rule_double_take_order_vs_loose / '),
     'rule_packrule_name_keys': ('apply_packaging_rule', 'rule', 'packrule-name-keys', _PK + 'operator / apply_keys_extra / '),
     'rule_packrule_apply_dup': ('apply_packaging_rule', 'rule', 'packrule-apply-dup', _PK + 'operator / apply_container_twice / '),
@@ -561,10 +563,35 @@ COST_CUTOVER_MUTATIONS = {
     'rule_cutover_changed': ('apply_cost_cutover', 'rule', 'cutover-changed', _CU + 'operator / cutover_changed_after_preview / '),
     'rule_basis_needs_cutover': ('set_cost_basis', 'rule', 'basis-needs-cutover', _CU + 'active_owner / basis_needs_cutover / '),
     'rule_recipe_ingredient_on_rule': ('save_recipe', 'rule', 'recipe-ingredient-on-rule', _CU + 'active_owner / recipe_ingredient_on_rule / '),
-    'text_cutover_use_bound': ('get_books', 'text', ("and m.at >= v_cut\n      union all\n      select 'c:'", "\n      union all\n      select 'c:'"),
+    # B4a-2: the unvalued refusal, the instant and the creation order the apply takes, and the side of each row (by order of writing, not date).
+    'rule_cutover_unvalued': ('apply_cost_cutover', 'rule', 'cutover-unvalued', _CU + 'operator / cutover_unvalued_refused / '),
+    'text_cutover_clock': ('apply_cost_cutover', 'text', ('v_at := clock_timestamp();', 'v_at := now();'), _CUC + 'operator / cutover_apply_sets_used'),
+    'text_cutover_cut_seq': ('apply_cost_cutover', 'text', ('select coalesce(max(m.seq), 0) into v_cut_seq from public.stock_movements m;', 'select 0 into v_cut_seq;'),
+                             _CUC + 'operator / cutover_apply_records_the_sequence'),
+    'text_cutover_cut_corr_seq': ('apply_cost_cutover', 'text', ('select coalesce(max(c.seq), 0) into v_cut_cseq from public.stock_cost_corrections c;', 'select 0 into v_cut_cseq;'),
+                                  _CUC + 'operator / cutover_apply_records_the_sequence'),
+    'text_cutover_use_bound': ('get_books', 'text', ("and m.seq > v_cut_seq\n      union all\n      select 'c:'", "\n      union all\n      select 'c:'"),
                                _CUC + 'active_owner / books_before_cutover_is_bought'),
+    'text_cutover_use_by_date': ('get_books', 'text', ("and m.seq > v_cut_seq\n      union all\n      select 'c:'", "and m.at >= v_cut\n      union all\n      select 'c:'"),
+                                 _CUC + 'active_owner / late_use_before_cutover_date'),
+    'text_cutover_correction_bound': ('get_books', 'text', (" and c.seq > v_cut_cseq\n      union all\n      select 'k:opening'", "\n      union all\n      select 'k:opening'"),
+                                      _CUC + 'active_owner / books_before_cutover_is_bought'),
+    'text_cutover_correction_by_date': ('get_books', 'text', (" and c.seq > v_cut_cseq\n      union all\n      select 'k:opening'", " and c.at >= v_cut\n      union all\n      select 'k:opening'"),
+                                        _CUC + 'active_owner / late_correction_counted_once'),
     'text_cutover_opening_sign': ('get_books', 'text', ('-k.total_cents', 'k.total_cents'), _CUC + 'active_owner / books_opening_credit_once'),
-    'text_cutover_purchase_before': ('get_books', 'text', ('or l.occurred_at < v_cut', 'or false'), _CUC + 'active_owner / books_before_cutover_is_bought'),
+    'text_cutover_receipt_side': ('get_books', 'text', ('then not exists (select 1 from public.stock_movements m where m.ledger_id = l.id and m.seq > v_cut_seq)', 'then false'),
+                                  _CUC + 'active_owner / books_before_cutover_is_bought'),
+    'text_cutover_receipt_by_date': ('get_books', 'text', ('where m.ledger_id = l.id and m.seq > v_cut_seq)', 'where m.ledger_id = l.id and m.at >= v_cut)'),
+                                     _CUC + 'active_owner / late_delivery_after_cutover'),
+    'text_cutover_correction_line_side': ('get_books', 'text', ('then not exists (select 1 from public.stock_cost_corrections c where c.ledger_id = l.id and c.seq > v_cut_cseq)', 'then true'),
+                                          _CUC + 'active_owner / late_correction_counted_once'),
+    'text_cutover_correction_line_by_date': ('get_books', 'text', ('where c.ledger_id = l.id and c.seq > v_cut_cseq)', 'where c.ledger_id = l.id and c.at >= v_cut)'),
+                                             _CUC + 'active_owner / late_correction_counted_once'),
+    'text_cutover_uncosted_bound': ('get_books', 'text', ("and m.seq > v_cut_seq\n      union all\n      select 'p:'", "\n      union all\n      select 'p:'"),
+                                    _CUC + 'active_owner / books_uncosted_only_after_cutover'),
+    'text_cutover_uncosted_by_date': ('get_books', 'text', ("and m.seq > v_cut_seq\n      union all\n      select 'p:'", "and m.at >= v_cut\n      union all\n      select 'p:'"),
+                                      _CUC + 'active_owner / late_uncosted_use_is_listed'),
+    'text_cutover_production_bound': ('get_books', 'text', (' and r.at < p_to and r.at >= v_cut', ' and r.at < p_to'), _CUC + 'active_owner / books_uncosted_only_after_cutover'),
 }
 COST_CUTOVER_TABLE_MUTATIONS = {
     'cutover_table_select': ('grant select on public.cost_cutover to anon;', _CU + 'anon / cutover_select / '),
@@ -798,9 +825,9 @@ SUITES = (
      'forbidden cost call succeeded', 172),
     ('batch-correction.sql', ('record_batch_correction(jsonb)',) + tuple(BATCH_CORRECTION_MUTATIONS), 'forbidden correction call succeeded', 110),
     ('packaging.sql', ('get_packaging_rules()', 'save_packaging_rule(jsonb)', 'write_packaging_rule(jsonb)', 'apply_packaging_rule(jsonb)')
-                      + tuple(PACKAGING_MUTATIONS) + tuple(PACKAGING_TABLE_MUTATIONS), 'forbidden packaging call succeeded', 141),
+                      + tuple(PACKAGING_MUTATIONS) + tuple(PACKAGING_TABLE_MUTATIONS), 'forbidden packaging call succeeded', 146),
     ('cutover.sql', ('preview_cost_cutover()', 'apply_cost_cutover(jsonb)') + tuple(COST_CUTOVER_MUTATIONS) + tuple(COST_CUTOVER_TABLE_MUTATIONS),
-     'forbidden cutover call succeeded', 80),
+     'forbidden cutover call succeeded', 96),
     ('operations.sql', tuple(OPERATIONS_MUTATIONS), 'forbidden operations call succeeded', 14),
     ('bazaar-closeout.sql', ('event_summary(uuid)', 'load_event_stock(uuid,jsonb,bigint)', 'add_event_expense(jsonb)', 'close_event(jsonb)'), 'forbidden closeout call succeeded', 80),
     ('shop-identity.sql', ('save_shop_identity(jsonb,timestamptz)', 'business_clock(timestamptz)') + tuple(IDENTITY_MUTATIONS) + tuple(IDENTITY_RULES),
@@ -848,7 +875,7 @@ EMPTY_FIXTURES = 'select ' + ' and '.join(
 def main():
     if len(sys.argv) != 1:
         h.fail("security fixture accepts no URLs, project refs or arguments")
-    report = {"status": "failed", "scope": "Local SQL-role containment and erasure authority/effects; not JWT/API, hosted erasure or full MP-06 acceptance", "runs": [], "regressions_detected": [], "upgrade_runs": 0, "legacy_regression_diagnostics": [], "sequence_restorations": 0, "function_guard_runs": 0, "catalog_guard_runs": 0, "catalog_guard_red_runs": 0}
+    report = {"status": "failed", "scope": "Local SQL-role containment and erasure authority/effects; not JWT/API, hosted erasure or full MP-06 acceptance", "runs": [], "regressions_detected": [], "upgrade_runs": 0, "legacy_regression_diagnostics": [], "sequence_restorations": 0, "function_guard_runs": 0, "pair_guard_runs": 0, "catalog_guard_runs": 0, "catalog_guard_red_runs": 0}
 
     def check(db_id, workdir, password, fixture_report):
         def assert_functions():
@@ -903,6 +930,37 @@ def main():
                 if json.loads(h.psql(db_id, workdir, state_sql)) != before:
                     h.fail('owned audit sequence restoration failed')
                 report['sequence_restorations'] += 1
+        assert_empty()
+        def assert_pair_guard():
+            # B4a-2 (P2): migration 63 stops, listing the pairs, when a packaging rule already takes an item that a recipe takes as an ingredient.
+            # The guard is the migration's first `do` block; it runs here on its own over a rolled-back fixture, once with no pair (a packaging
+            # line may share its item with a rule) and once with a pair.
+            text = (ROOT / 'supabase/migrations/20260101006200_cost_cutover_fix.sql').read_text(encoding='utf-8')
+            start = text.index('do $$')
+            guard = text[start:text.index('end $$;', start) + len('end $$;')]
+            fixture = (
+                "insert into public.products(id, name, short_name, price_cents, kind) values ('pgp1', 'PG cookie', 'PG-1', 100, 'cookie');\n"
+                "insert into public.inventory_items(id, name, unit, category, active, on_hand) values ('pgi-a', 'PG A', 'g', 'Ingredients', true, 1), ('pgi-b', 'PG B', 'pcs', 'Packaging', true, 1);\n"
+                "insert into public.recipes(product_id, yield_count) values ('pgp1', 1);\n"
+                "insert into public.recipe_ingredients(product_id, item_name, qty, unit, position, item_id, kind) values "
+                "('pgp1', 'PG A', 1, 'g', 0, 'pgi-a', 'ingredient'), ('pgp1', 'PG B', 1, 'pcs', 1, 'pgi-b', 'packaging');\n"
+                "insert into public.packaging_rules(container, item_id, qty, per, position) values ('order', 'pgi-b', 1, 'container', 1);\n")
+            green = 'begin;\n' + fixture + guard + "\nselect 'PAIR_GUARD_PASSED';\nrollback;"
+            if 'PAIR_GUARD_PASSED' not in h.psql(db_id, workdir, green):
+                h.fail('pair guard stopped a database with no rule/ingredient pair')
+            red = ('begin;\n' + fixture
+                   + "insert into public.packaging_rules(container, item_id, qty, per, position) values ('loose', 'pgi-a', 1, 'cookie', 1);\n"
+                   + guard + "\nselect 'PAIR_GUARD_PASSED';\nrollback;")
+            try:
+                out = h.psql(db_id, workdir, red)
+            except RuntimeError as error:
+                message = str(error)
+                if 'an item that a recipe takes as an ingredient' not in message or 'recipe pgp1' not in message or 'item pgi-a' not in message or 'pgi-b' in message:
+                    h.fail('pair guard stopped without listing exactly the pair: ' + message[:300])
+            else:
+                h.fail('pair guard let a rule/ingredient pair through: ' + out[:200])
+            report['pair_guard_runs'] += 1
+        assert_pair_guard()
         assert_empty()
         upgrade = (ROOT / 'tests/integration/security/profile-upgrade.sql').read_text(encoding='utf-8')
         migration = (ROOT / 'supabase/migrations/20260101001100_active_profile_authority.sql').read_text(encoding='utf-8')
@@ -1117,7 +1175,7 @@ def main():
                 h.fail(filename + ' did not return its complete role matrix')
             results.extend(rows)
             assert_empty()
-        if len(set(results)) != 2680:
+        if len(set(results)) != 2701:
             h.fail('combined role matrix has missing or duplicate cases: %d rows, %d unique (duplicates: %s)' % (len(results), len(set(results)), sorted({r for r in results if results.count(r) > 1})[:5]))
         assert_functions()
         assert_catalog_wide()
@@ -1130,10 +1188,10 @@ def main():
     try:
         code = h.main(after_reset=check)
         if (code == 0 and len(report["runs"]) == 2 and report["runs"][0] == report["runs"][1]
-                and len(report['regressions_detected']) == 976 and report['sequence_restorations'] == 10
-                and report['upgrade_runs'] == 2 and report['function_guard_runs'] == 4
+                and len(report['regressions_detected']) == 1004 and report['sequence_restorations'] == 10
+                and report['upgrade_runs'] == 2 and report['pair_guard_runs'] == 2 and report['function_guard_runs'] == 4
                 and report['catalog_guard_runs'] == 4 and report['catalog_guard_red_runs'] == 4):
-            report.update(status="passed", cases_per_reset=2680, resets=2, matrix_equal=True, rollback_verified=True,
+            report.update(status="passed", cases_per_reset=2701, resets=2, matrix_equal=True, rollback_verified=True,
                           sql_sha256={name: hashlib.sha256((ROOT / 'tests/integration/security' / name).read_bytes()).hexdigest() for name, _, _, _ in SUITES},
                           harness_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
     except (RuntimeError, OSError, ValueError) as error:

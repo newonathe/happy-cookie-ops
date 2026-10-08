@@ -137,6 +137,8 @@ export type Database = {
         Row: {
           at: string
           created_by: string | null
+          cut_corr_seq: number
+          cut_seq: number
           id: boolean
           items: Json
           payload_hash: string
@@ -145,6 +147,8 @@ export type Database = {
         Insert: {
           at: string
           created_by?: string | null
+          cut_corr_seq: number
+          cut_seq: number
           id?: boolean
           items: Json
           payload_hash: string
@@ -153,6 +157,8 @@ export type Database = {
         Update: {
           at?: string
           created_by?: string | null
+          cut_corr_seq?: number
+          cut_seq?: number
           id?: boolean
           items?: Json
           payload_hash?: string
@@ -1655,6 +1661,7 @@ export type Database = {
           movement_id: string
           payload_hash: string
           received_at: string
+          seq: number
           used_cents: number
         }
         Insert: {
@@ -1666,6 +1673,7 @@ export type Database = {
           movement_id: string
           payload_hash: string
           received_at?: string
+          seq?: never
           used_cents?: number
         }
         Update: {
@@ -1677,6 +1685,7 @@ export type Database = {
           movement_id?: string
           payload_hash?: string
           received_at?: string
+          seq?: never
           used_cents?: number
         }
         Relationships: [

@@ -10,28 +10,41 @@
 -- supabase/migrations/20260101006100_cost_cutover.sql in turn (scripts/test-db-security.py, COST_CUTOVER_MUTATIONS) and requires the named
 -- case here to fail. Outcome messages carry no quote character: the harness redacts quoted literals.
 --
--- The money, worked by hand. T is the transaction's now(), which is also the cutover instant (the apply runs in this transaction).
+-- The money, worked by hand. T is the cutover instant: the apply takes it with clock_timestamp() once the stock locks are held, so it is
+-- NOT the transaction's now(); everything below is dated from pg_temp.used_from(). Which side of the cutover a row is on is the order it
+-- was written in, never its date: a stock movement or a correction written after the apply is after the cutover (stock_movements.seq and
+-- stock_cost_corrections.seq above the cut_seq / cut_corr_seq the apply stored), whatever date the phone gave it.
 -- Stock at the cutover (the made-up items below):
 --   CC Flour   2000 g, usual price 1200 c per 1000 g = 1.2 c/g           -> 2000 x 1.2 = 2400
 --   CC Sugar    500 g, usual price  500 c per 1000 g = 0.5 c/g           ->  500 x 0.5 =  250
 --   CC Butter   300 g, average 3 c/g (her usual price, 2 c/g, is not used while an average exists) -> 300 x 3 = 900
 --   CC Old       10 pcs, switched off, usual price 1000 c per 100 pcs = 10 c/pc -> 10 x 10 = 100 (an item switched off still has stock)
---   CC Spice     40 g, no price and no average: listed as unvalued, valued at nothing
+--   CC Spice     40 g, no price and no average: listed as unvalued, valued at nothing, and the cutover is REFUSED while it is on hand;
+--                it is used up (0 g) before the apply, so the credit is made of four items
 --   CC Empty      0 g, priced: not listed (nothing on hand); CC Card 0 pcs, no price: not listed
---   total 2400 + 250 + 900 + 100 = 3650; 5 items on hand, 4 valued, 1 unvalued.
+--   total 2400 + 250 + 900 + 100 = 3650 at the first preview; 5 items on hand, 4 valued, 1 unvalued.
 -- A delivery of 10 g of sugar lands between the first preview and the apply (so the apply must be refused): sugar 510 g x 0.5 = 255,
--- total 2400 + 255 + 900 + 100 = 3655, and 3655 is what the cutover credits.
+-- total 2400 + 255 + 900 + 100 = 3655, and 3655 is what the cutover credits (4 items on hand, 4 valued, none unvalued).
 -- The books, all in the period [T - 10 days, T + 1 day) unless said:
 --   before the cutover:  a purchase with no stock movement  50000 (T - 3 days)
 --                        a purchase that took flour in      30000 (T - 2 days; its receipt is linked to it)
 --                        flour used 100 g at 1.2 = 120 (T - 1 day) and a correction worth 900 (T - 1 day): neither is an expense (the cutover
 --                        carries the stock they came out of in the opening credit)
---   from the cutover:    a purchase that took flour in      40000 (exactly T, linked to its receipt): NOT an expense, its use is
---                        flour used 200 g at 1.5 = 300 (exactly T); rent with no stock movement 7000 (T + 1 hour); a correction worth 400
---                        (T + 1 hour)
+--   after the cutover (written after the apply): a purchase that took flour in 40000 (exactly T, linked to its receipt): NOT an expense, its
+--                        use is; flour used 200 g at 1.5 = 300 (exactly T); rent with no stock movement 7000 (T + 1 hour, written before:
+--                        a line with no movement is an expense on either side); a correction worth 400 (T + 1 hour)
 --   the opening credit:  -3655 at T - 1 millisecond.
 -- On the used basis the expense for the whole period is 50000 + 30000 - 3655 + 7000 + 300 + 400 = 84045. On the bought basis (no cutover
 -- yet, or the owner chooses it) every purchase is an expense and no use is: 50000 + 30000 + 40000 + 7000 = 127000.
+-- Written after the apply with dates that disagree with it (the second half of the suite), whole span [T - 10 days, T + 2 days):
+--   a delivery of 1000 g for 30000 dated T - 1 hour: NOT an expense (it was not in the opening credit), and 100 g of it used at
+--   T + 2 hours at 30 c/g is: 3000
+--   flour used 100 g at 1.2 dated T - 1 hour, written after the apply: an expense, 120 (its stock WAS in the opening credit and the use
+--   was not counted before it), and the opening credit stays -3655
+--   flour used 50 g at 2 c/g dated T + 1 day: 100; a delivery of 200 g for 9000 dated T + 1 day: not an expense
+--   a correction dated T - 30 minutes to the delivery from before the cutover (cost 30000 -> 31000, 600 of it already used): its ledger line
+--   (1000) is NOT an expense and the correction's 600 is: counted once
+--   84045 + 3000 + 120 + 100 + 600 = 87865.
 begin;
 create temporary table authority_results (operation text, actor text, outcome text);
 grant insert on authority_results to anon, authenticated, service_role;
@@ -68,22 +81,22 @@ insert into public.item_prices(id, item_id, price_cents, pack_size, as_of, paylo
 -- A packaging rule takes the card (per container), so the card may not be an ingredient of a recipe.
 insert into public.packaging_rules(container, item_id, qty, per, position) values ('order', 'cci-card', 1, 'container', 1);
 
--- The books fixture (on_hand is left as it is: the rows are history, not movements the items above were counted from).
+-- The books fixture (on_hand is left as it is: the rows are history, not movements the items above were counted from). These are the rows
+-- written BEFORE the apply; the rows the cutover plan calls "from the cutover" are written after it (pg_temp.after_rows).
 insert into public.ledger_entries(id, kind, category, memo, amount_cents, occurred_at) values
   (pg_temp.uid('1', 1), 'cost', 'Ingredients', 'CC historic purchase', -50000, now() - interval '3 days'),
   (pg_temp.uid('1', 2), 'cost', 'Ingredients', 'CC flour delivery before', -30000, now() - interval '2 days'),
-  (pg_temp.uid('1', 3), 'cost', 'Ingredients', 'CC flour delivery after', -40000, now()),
   (pg_temp.uid('1', 4), 'cost', 'Rent', 'CC rent after', -7000, now() + interval '1 hour');
 insert into public.stock_movements(id, item_id, kind, qty_delta, cost_cents, supplier, reason, at, ledger_id, payload_hash, unit_cost, cost_source) values
   (pg_temp.uid('2', 1), 'cci-flour', 'use', -100, null, '', 'Baked', now() - interval '1 day', null, repeat('1', 64), 1.2, 'usual'),
   (pg_temp.uid('2', 2), 'cci-flour', 'receipt', 1000, 30000, 'CC Mill', '', now() - interval '2 days', pg_temp.uid('1', 2), repeat('2', 64), null, null),
-  (pg_temp.uid('2', 3), 'cci-flour', 'receipt', 500, 40000, 'CC Mill', '', now(), pg_temp.uid('1', 3), repeat('3', 64), null, null),
-  (pg_temp.uid('2', 4), 'cci-flour', 'use', -200, null, '', 'Baked', now(), null, repeat('4', 64), 1.5, 'average'),
-  (pg_temp.uid('2', 5), 'cci-spice', 'use', -5, null, '', 'Baked', now() - interval '1 day', null, repeat('5', 64), null, null),
-  (pg_temp.uid('2', 6), 'cci-spice', 'use', -5, null, '', 'Baked', now(), null, repeat('6', 64), null, null);
+  (pg_temp.uid('2', 5), 'cci-spice', 'use', -5, null, '', 'Baked', now() - interval '1 day', null, repeat('5', 64), null, null);
 insert into public.stock_cost_corrections(id, movement_id, cost_cents, ledger_id, at, payload_hash, used_cents) values
-  (pg_temp.uid('3', 1), pg_temp.uid('2', 2), 31000, null, now() - interval '1 day', repeat('7', 64), 900),
-  (pg_temp.uid('3', 2), pg_temp.uid('2', 3), 40400, null, now() + interval '1 hour', repeat('8', 64), 400);
+  (pg_temp.uid('3', 1), pg_temp.uid('2', 2), 31000, null, now() - interval '1 day', repeat('7', 64), 900);
+-- A bake line that took nothing, a day before the cutover, with its why: the books list it as uncosted only from the cutover, so it must
+-- not be listed (the `r.at >= cutover` side of the production arm).
+insert into public.production_records(id, kind, product_id, qty, short, at, payload_hash) values
+  (pg_temp.uid('4', 1), 'batch', 'ccp1', 12, '[{"name": "CC Flour", "by": 500, "unit": "g", "why": "no cost"}]'::jsonb, now() - interval '1 day', repeat('c', 64));
 
 create function pg_temp.set_subject(n integer, claim_role text default 'authenticated') returns void
 language plpgsql security invoker as $$
@@ -137,6 +150,48 @@ create function pg_temp.avg_cost(item text) returns numeric language sql stable 
   select avg_cost from public.inventory_items where id = item $$;
 create function pg_temp.recipes_n(pid text) returns bigint language sql stable security definer as $$
   select count(*) from public.recipes where product_id = pid $$;
+create function pg_temp.max_seq() returns bigint language sql stable security definer as $$
+  select max(seq) from public.stock_movements $$;
+-- Read through to_jsonb, so the suite still runs (and its cases fail, rather than the file) against a database without the column.
+create function pg_temp.max_cseq() returns bigint language sql stable security definer as $$
+  select max((to_jsonb(c) ->> 'seq')::bigint) from public.stock_cost_corrections c $$;
+-- The spice is used up, so nothing on hand is left without a cost.
+create function pg_temp.use_up_spice() returns void language sql security definer as $$
+  update public.inventory_items set on_hand = 0 where id = 'cci-spice' $$;
+-- The rows written right after the apply, dated as the plan says (from the cutover instant, T = used_from).
+create function pg_temp.after_rows() returns void language sql security definer as $$
+  insert into public.ledger_entries(id, kind, category, memo, amount_cents, occurred_at) values
+    (pg_temp.uid('1', 3), 'cost', 'Ingredients', 'CC flour delivery after', -40000, pg_temp.used_from());
+  insert into public.stock_movements(id, item_id, kind, qty_delta, cost_cents, supplier, reason, at, ledger_id, payload_hash, unit_cost, cost_source) values
+    (pg_temp.uid('2', 3), 'cci-flour', 'receipt', 500, 40000, 'CC Mill', '', pg_temp.used_from(), pg_temp.uid('1', 3), repeat('3', 64), null, null),
+    (pg_temp.uid('2', 4), 'cci-flour', 'use', -200, null, '', 'Baked', pg_temp.used_from(), null, repeat('4', 64), 1.5, 'average'),
+    (pg_temp.uid('2', 6), 'cci-spice', 'use', -5, null, '', 'Baked', pg_temp.used_from(), null, repeat('6', 64), null, null);
+  insert into public.stock_cost_corrections(id, movement_id, cost_cents, ledger_id, at, payload_hash, used_cents) values
+    (pg_temp.uid('3', 2), pg_temp.uid('2', 3), 40400, null, pg_temp.used_from() + interval '1 hour', repeat('8', 64), 400) $$;
+-- Rows written after the apply whose dates say otherwise (a phone writes the date it likes: up to a day ahead, any distance back).
+create function pg_temp.late_rows() returns void language sql security definer as $$
+  -- a delivery of 1000 g for 30000 dated an hour before the cutover, and 100 g of it used later at its cost, 30 c/g
+  insert into public.ledger_entries(id, kind, category, memo, amount_cents, occurred_at) values
+    (pg_temp.uid('1', 5), 'cost', 'Ingredients', 'CC late flour delivery', -30000, pg_temp.used_from() - interval '1 hour');
+  insert into public.stock_movements(id, item_id, kind, qty_delta, cost_cents, supplier, reason, at, ledger_id, payload_hash, unit_cost, cost_source) values
+    (pg_temp.uid('2', 9), 'cci-flour', 'receipt', 1000, 30000, 'CC Mill', '', pg_temp.used_from() - interval '1 hour', pg_temp.uid('1', 5), repeat('d', 64), null, null),
+    (pg_temp.uid('2', 10), 'cci-flour', 'use', -100, null, '', 'Baked', pg_temp.used_from() + interval '2 hours', null, repeat('e', 64), 30, 'average'),
+    -- stock that was in the opening credit, used: dated an hour before the cutover, written after it
+    (pg_temp.uid('2', 11), 'cci-flour', 'use', -100, null, '', 'Baked', pg_temp.used_from() - interval '1 hour', null, repeat('f', 64), 1.2, 'usual'),
+    -- a use dated a day ahead (the most the phone may say)
+    (pg_temp.uid('2', 12), 'cci-flour', 'use', -50, null, '', 'Baked', pg_temp.used_from() + interval '1 day', null, repeat('0', 64), 2, 'usual'),
+    -- a use with no cost, dated before the cutover, written after it
+    (pg_temp.uid('2', 14), 'cci-spice', 'use', -5, null, '', 'Baked', pg_temp.used_from() - interval '30 minutes', null, repeat('a', 64), null, null);
+  -- a delivery dated a day ahead
+  insert into public.ledger_entries(id, kind, category, memo, amount_cents, occurred_at) values
+    (pg_temp.uid('1', 6), 'cost', 'Ingredients', 'CC forward flour delivery', -9000, pg_temp.used_from() + interval '1 day');
+  insert into public.stock_movements(id, item_id, kind, qty_delta, cost_cents, supplier, reason, at, ledger_id, payload_hash, unit_cost, cost_source) values
+    (pg_temp.uid('2', 13), 'cci-flour', 'receipt', 200, 9000, 'CC Mill', '', pg_temp.used_from() + interval '1 day', pg_temp.uid('1', 6), repeat('b', 64), null, null);
+  -- a correction dated 30 minutes before the cutover, written after it, to the delivery from before it: 30000 -> 31000, 600 already used
+  insert into public.ledger_entries(id, kind, category, memo, amount_cents, occurred_at) values
+    (pg_temp.uid('1', 7), 'adjustment', 'Ingredients', 'CC late correction', -1000, pg_temp.used_from() - interval '30 minutes');
+  insert into public.stock_cost_corrections(id, movement_id, cost_cents, ledger_id, at, payload_hash, used_cents) values
+    (pg_temp.uid('3', 3), pg_temp.uid('2', 2), 31000, pg_temp.uid('1', 7), pg_temp.used_from() - interval '30 minutes', repeat('9', 64), 600) $$;
 -- A delivery of 10 g of sugar (the stock and the ledger both move), and a count that changes nothing but the ledger.
 create function pg_temp.receipt_sugar() returns void language sql security definer as $$
   insert into public.stock_movements(id, item_id, kind, qty_delta, cost_cents, supplier, reason, at, payload_hash)
@@ -209,7 +264,7 @@ end $$;
 
 -- The operator, before the cutover (as postgres).
 create function pg_temp.phase_operator_1(a text) returns void language plpgsql security invoker as $$
-declare p jsonb; p2 jsonb; p3 jsonb; h text; t bigint;
+declare p jsonb; p2 jsonb; p3 jsonb; p4 jsonb; h text; t bigint;
 begin
   perform pg_temp.assert_ok(a, 'cutover_nothing_applied_yet',
     pg_temp.used_from() is null and pg_temp.basis() = 'bought' and pg_temp.cutover_rows() = 0 and pg_temp.audit_n() = 0);
@@ -269,6 +324,20 @@ begin
   perform pg_temp.assert_ok(a, 'cutover_hash_follows_the_ledger',
     p3 ->> 'hash' <> p2 ->> 'hash' and p3 -> 'items' = p2 -> 'items' and p3 -> 'total_cents' = p2 -> 'total_cents');
   perform pg_temp.ap(a, 'cutover_changed_after_a_count', pg_temp.eb(p2), 'P0002');
+
+  -- ---- an item on hand with no cost stops the cutover: the opening credit would be short by what it holds. The expectation is the current
+  -- one, so nothing but the unvalued spice refuses it; and the refusal writes nothing
+  p4 := pg_temp.pv();
+  perform pg_temp.assert_ok(a, 'cutover_unvalued_still_listed', jsonb_array_length(p4 -> 'unvalued') = 1 and p4 -> 'counts' = '{"items_on_hand": 5, "valued": 4, "unvalued": 1}'::jsonb);
+  perform pg_temp.ap(a, 'cutover_unvalued_refused', pg_temp.eb(p4), 'P0001');
+  perform pg_temp.assert_ok(a, 'cutover_unvalued_changed_nothing',
+    pg_temp.used_from() is null and pg_temp.basis() = 'bought' and pg_temp.cutover_rows() = 0 and pg_temp.audit_n() = 0);
+  -- the spice is used up: a new preview lists nothing unvalued, the credit is the same 3655, and the apply (below) goes through
+  perform pg_temp.use_up_spice();
+  p4 := pg_temp.pv();
+  perform pg_temp.assert_ok(a, 'cutover_preview_without_unvalued',
+    p4 -> 'unvalued' = '[]'::jsonb and p4 -> 'counts' = '{"items_on_hand": 4, "valued": 4, "unvalued": 0}'::jsonb
+    and (p4 ->> 'total_cents')::bigint = 3655 and pg_temp.pi(p4, 'cci-spice') is null);
 end $$;
 
 -- The owner, before the cutover: "when used" is not there to choose yet.
@@ -278,22 +347,28 @@ begin
   perform pg_temp.expect(a, 'basis_needs_cutover', 'select public.set_cost_basis(''used'')', '22023');
   perform pg_temp.assert_ok(a, 'basis_refusal_changed_nothing', pg_temp.basis() = 'bought' and pg_temp.used_from() is null);
   perform pg_temp.expect(a, 'basis_bought_before_cutover', 'select public.set_cost_basis(''bought'')', '00000');
-  -- before the cutover every purchase is an expense and a use is not: 50000 + 30000 + 40000 + 7000 = 127000
+  -- before the cutover every purchase is an expense and a use is not: 50000 + 30000 + 7000 = 87000 (the 40000 delivery is written later)
   j := pg_temp.bk(now() - interval '10 days', now() + interval '1 day');
   perform pg_temp.assert_ok(a, 'books_bought_until_the_cutover',
-    j ->> 'basis' = 'bought' and pg_temp.sumk(j, 'expense') = 127000 and pg_temp.bl(j, 'k:opening') is null);
+    j ->> 'basis' = 'bought' and pg_temp.sumk(j, 'expense') = 87000 and pg_temp.bl(j, 'k:opening') is null);
 end $$;
 
 -- The operator applies the cutover (as postgres).
 create function pg_temp.phase_operator_2(a text) returns void language plpgsql security invoker as $$
-declare p jsonb; j jsonb;
+declare p jsonb; j jsonb; t0 timestamptz; sq bigint; cq bigint;
 begin
   p := pg_temp.pv();
+  sq := pg_temp.max_seq(); cq := pg_temp.max_cseq();
   j := public.apply_cost_cutover(pg_temp.eb(p));
   perform pg_temp.assert_ok(a, 'cutover_apply_returns_the_credit',
-    (j ->> 'total_cents')::bigint = 3655 and j -> 'counts' = '{"items_on_hand": 5, "valued": 4, "unvalued": 1}'::jsonb
-    and (j ->> 'used_from')::timestamptz = now());
-  perform pg_temp.assert_ok(a, 'cutover_apply_sets_used', pg_temp.used_from() = now() and pg_temp.basis() = 'used');
+    (j ->> 'total_cents')::bigint = 3655 and j -> 'counts' = '{"items_on_hand": 4, "valued": 4, "unvalued": 0}'::jsonb
+    and (j ->> 'used_from')::timestamptz = pg_temp.used_from());
+  -- the instant is taken with clock_timestamp() once the locks are held, so it is later than the transaction's now()
+  t0 := pg_temp.used_from();
+  perform pg_temp.assert_ok(a, 'cutover_apply_sets_used', t0 > now() and t0 <= clock_timestamp() and pg_temp.basis() = 'used');
+  -- the creation order the books rest on: the last movement and the last correction written when the apply held the locks
+  perform pg_temp.assert_ok(a, 'cutover_apply_records_the_sequence',
+    sq is not null and cq is not null and (pg_temp.cutover_row() ->> 'cut_seq')::bigint = sq and (pg_temp.cutover_row() ->> 'cut_corr_seq')::bigint = cq);
   perform pg_temp.assert_ok(a, 'cutover_apply_records_the_credit',
     pg_temp.cutover_rows() = 1
     and (pg_temp.cutover_row() ->> 'total_cents')::bigint = 3655 and (pg_temp.cutover_row() ->> 'at')::timestamptz = pg_temp.used_from()
@@ -307,7 +382,10 @@ begin
   perform pg_temp.ap(a, 'cutover_once', pg_temp.eb(pg_temp.pv()), 'P0001');
   perform pg_temp.ap(a, 'cutover_once_before_changed', jsonb_build_object('hash', repeat('0', 64), 'total_cents', 1), 'P0001');
   perform pg_temp.assert_ok(a, 'cutover_once_changed_nothing',
-    pg_temp.audit_n() = 1 and pg_temp.cutover_rows() = 1 and pg_temp.used_from() = now() and (pg_temp.cutover_row() ->> 'total_cents')::bigint = 3655);
+    pg_temp.audit_n() = 1 and pg_temp.cutover_rows() = 1 and pg_temp.used_from() = t0 and (pg_temp.cutover_row() ->> 'total_cents')::bigint = 3655
+    and (pg_temp.cutover_row() ->> 'cut_seq')::bigint = sq and (pg_temp.cutover_row() ->> 'cut_corr_seq')::bigint = cq);
+  -- the rows the plan calls "from the cutover" are written now, after the apply
+  perform pg_temp.after_rows();
 end $$;
 
 -- The owner, after the cutover: the books on both sides of it, and the recipe rule.
@@ -316,19 +394,19 @@ declare j jsonb; k jsonb;
 begin
   -- ---- before the cutover the lines are bought lines, though the basis is used: 50000 + 30000 = 80000. The flour used and the correction
   -- (T - 1 day) are not expenses, and nor is any opening credit (it is at T - 1 ms, after this period).
-  j := pg_temp.bk(now() - interval '10 days', now() - interval '1 hour');
+  j := pg_temp.bk(pg_temp.used_from() - interval '10 days', pg_temp.used_from() - interval '1 hour');
   perform pg_temp.assert_ok(a, 'books_before_cutover_is_bought',
     j ->> 'basis' = 'used' and pg_temp.sumk(j, 'expense') = 80000
     and pg_temp.bl(j, 'l:' || pg_temp.uid('1', 1)) ->> 'amount_cents' = '50000' and pg_temp.bl(j, 'l:' || pg_temp.uid('1', 2)) ->> 'amount_cents' = '30000'
     and pg_temp.bl(j, 'm:' || pg_temp.uid('2', 1)) is null and pg_temp.bl(j, 'c:' || pg_temp.uid('3', 1)) is null
     and pg_temp.bl(j, 'k:opening') is null);
   -- the opening credit's own instant is outside a period that ends at it (the end is exclusive)
-  j := pg_temp.bk(now() - interval '10 days', now() - interval '1 millisecond');
+  j := pg_temp.bk(pg_temp.used_from() - interval '10 days', pg_temp.used_from() - interval '1 millisecond');
   perform pg_temp.assert_ok(a, 'books_period_ending_at_the_opening_has_none', pg_temp.bl(j, 'k:opening') is null and pg_temp.sumk(j, 'expense') = 80000);
 
   -- ---- from the cutover (T, inclusive): the flour used (300), the rent (7000) and the correction (400) are expenses; the delivery that took
   -- flour in (40000, linked to its receipt) is not
-  j := pg_temp.bk(now(), now() + interval '1 day');
+  j := pg_temp.bk(pg_temp.used_from(), pg_temp.used_from() + interval '1 day');
   perform pg_temp.assert_ok(a, 'books_after_cutover',
     pg_temp.sumk(j, 'expense') = 7700
     and pg_temp.bl(j, 'm:' || pg_temp.uid('2', 4)) ->> 'amount_cents' = '300' and pg_temp.bl(j, 'l:' || pg_temp.uid('1', 4)) ->> 'amount_cents' = '7000'
@@ -336,34 +414,36 @@ begin
     and pg_temp.bl(j, 'l:' || pg_temp.uid('1', 3)) is null and pg_temp.bl(j, 'k:opening') is null);
 
   -- ---- the whole period: the opening stock is credited once. 50000 + 30000 - 3655 + 7000 + 300 + 400 = 84045
-  j := pg_temp.bk(now() - interval '10 days', now() + interval '1 day');
+  j := pg_temp.bk(pg_temp.used_from() - interval '10 days', pg_temp.used_from() + interval '1 day');
   perform pg_temp.assert_ok(a, 'books_opening_credit_once',
     pg_temp.sumk(j, 'expense') = 84045
     and (select count(*) from jsonb_array_elements(j -> 'lines') l where l ->> 'id' = 'k:opening') = 1);
   -- the sums of the two halves are the whole
   perform pg_temp.assert_ok(a, 'books_halves_make_the_whole',
-    pg_temp.sumk(pg_temp.bk(now() - interval '10 days', now() - interval '1 millisecond'), 'expense')
-    + pg_temp.sumk(pg_temp.bk(now() - interval '1 millisecond', now()), 'expense')
-    + pg_temp.sumk(pg_temp.bk(now(), now() + interval '1 day'), 'expense') = 84045);
-  k := pg_temp.bk(now() - interval '1 millisecond', now());
+    pg_temp.sumk(pg_temp.bk(pg_temp.used_from() - interval '10 days', pg_temp.used_from() - interval '1 millisecond'), 'expense')
+    + pg_temp.sumk(pg_temp.bk(pg_temp.used_from() - interval '1 millisecond', pg_temp.used_from()), 'expense')
+    + pg_temp.sumk(pg_temp.bk(pg_temp.used_from(), pg_temp.used_from() + interval '1 day'), 'expense') = 84045);
+  k := pg_temp.bk(pg_temp.used_from() - interval '1 millisecond', pg_temp.used_from());
   perform pg_temp.assert_ok(a, 'books_opening_line_shape',
     pg_temp.nl(k) = 1 and pg_temp.bl(k, 'k:opening') = jsonb_build_object('id', 'k:opening', 'kind', 'expense', 'cat', 'Stock',
       'label', 'Opening stock carried in', 'amount_cents', -3655, 'at', pg_temp.used_ms() - 1, 'short_qty', 0));
   -- a period that starts after the opening instant has no opening line
-  perform pg_temp.assert_ok(a, 'books_period_after_the_opening_has_none', pg_temp.bl(pg_temp.bk(now(), now() + interval '1 hour'), 'k:opening') is null);
+  perform pg_temp.assert_ok(a, 'books_period_after_the_opening_has_none', pg_temp.bl(pg_temp.bk(pg_temp.used_from(), pg_temp.used_from() + interval '1 hour'), 'k:opening') is null);
 
   -- ---- what has no cost is listed from the cutover only: the spice used at T is, the one used a day before is not
   perform pg_temp.assert_ok(a, 'books_uncosted_only_after_cutover',
     pg_temp.unc(j, 'm:' || pg_temp.uid('2', 6)) = jsonb_build_object('id', 'm:' || pg_temp.uid('2', 6), 'kind', 'use', 'item', 'CC Spice', 'qty', 5, 'unit', 'g',
       'at', pg_temp.used_ms())
-    and pg_temp.unc(j, 'm:' || pg_temp.uid('2', 5)) is null and jsonb_array_length(j -> 'uncosted') = 1);
+    and pg_temp.unc(j, 'm:' || pg_temp.uid('2', 5)) is null
+    -- the bake line that took nothing a day before the cutover (with its why) is not listed either
+    and pg_temp.unc(j, 'p:' || pg_temp.uid('4', 1)::text || ':0') is null and jsonb_array_length(j -> 'uncosted') = 1);
 
   -- ---- the owner can still choose bought, and then it is bought on both sides: 127000 and no opening credit; and used again afterwards
   perform pg_temp.expect(a, 'basis_bought_after_cutover', 'select public.set_cost_basis(''bought'')', '00000');
-  j := pg_temp.bk(now() - interval '10 days', now() + interval '1 day');
+  j := pg_temp.bk(pg_temp.used_from() - interval '10 days', pg_temp.used_from() + interval '1 day');
   perform pg_temp.assert_ok(a, 'books_bought_after_cutover', j ->> 'basis' = 'bought' and pg_temp.sumk(j, 'expense') = 127000 and pg_temp.bl(j, 'k:opening') is null);
   perform pg_temp.expect(a, 'basis_used_after_cutover', 'select public.set_cost_basis(''used'')', '00000');
-  perform pg_temp.assert_ok(a, 'books_used_again', pg_temp.bk(now() - interval '10 days', now() + interval '1 day') ->> 'basis' = 'used');
+  perform pg_temp.assert_ok(a, 'books_used_again', pg_temp.bk(pg_temp.used_from() - interval '10 days', pg_temp.used_from() + interval '1 day') ->> 'basis' = 'used');
 
   -- ---- a recipe may not take as an ingredient what a packaging rule takes (the card is on the order rule, per container)
   perform pg_temp.rc(a, 'recipe_ingredient_off_rule_ok', pg_temp.recipe('ccp1', 'CC Flour', 'g'), '00000');
@@ -374,6 +454,41 @@ begin
   perform pg_temp.rc(a, 'recipe_packaging_on_container_rule_ok', pg_temp.recipe('ccp4', 'CC Card', 'pcs', 'packaging'), '00000');
 end $$;
 
+-- The owner, with rows written after the apply whose dates disagree with it. The side of the cutover is the order they were written in.
+create function pg_temp.phase_owner_3(a text) returns void language plpgsql security invoker as $$
+declare j jsonb; w jsonb;
+begin
+  -- the whole span, [T - 10 days, T + 2 days): 84045 + 3000 + 120 + 100 + 600 = 87865
+  j := pg_temp.bk(pg_temp.used_from() - interval '10 days', pg_temp.used_from() + interval '2 days');
+  perform pg_temp.assert_ok(a, 'late_delivery_after_cutover',
+    pg_temp.bl(j, 'l:' || pg_temp.uid('1', 5)) is null);
+  perform pg_temp.assert_ok(a, 'late_delivery_use_at_the_receipts_cost',
+    pg_temp.bl(j, 'm:' || pg_temp.uid('2', 10)) ->> 'amount_cents' = '3000');
+  perform pg_temp.assert_ok(a, 'late_use_before_cutover_date',
+    pg_temp.bl(j, 'm:' || pg_temp.uid('2', 11)) ->> 'amount_cents' = '120'
+    and (pg_temp.bl(j, 'm:' || pg_temp.uid('2', 11)) ->> 'at')::bigint = pg_temp.used_ms() - 3600000
+    and (pg_temp.bl(j, 'k:opening') ->> 'amount_cents') = '-3655');
+  perform pg_temp.assert_ok(a, 'forward_dated_use_is_an_expense_and_receipt_is_not',
+    pg_temp.bl(j, 'm:' || pg_temp.uid('2', 12)) ->> 'amount_cents' = '100' and pg_temp.bl(j, 'l:' || pg_temp.uid('1', 6)) is null);
+  perform pg_temp.assert_ok(a, 'late_correction_counted_once',
+    pg_temp.bl(j, 'c:' || pg_temp.uid('3', 3)) ->> 'amount_cents' = '600' and pg_temp.bl(j, 'l:' || pg_temp.uid('1', 7)) is null);
+  perform pg_temp.assert_ok(a, 'late_rows_whole_span_total', pg_temp.sumk(j, 'expense') = 87865);
+  -- the late use with no cost is listed (it is after the cutover by order), the one written before the apply is not
+  perform pg_temp.assert_ok(a, 'late_uncosted_use_is_listed',
+    pg_temp.unc(j, 'm:' || pg_temp.uid('2', 14)) is not null and pg_temp.unc(j, 'm:' || pg_temp.uid('2', 5)) is null
+    and pg_temp.unc(j, 'm:' || pg_temp.uid('2', 6)) is not null and jsonb_array_length(j -> 'uncosted') = 2);
+  -- the day ahead on its own: the use is an expense, the delivery is not
+  w := pg_temp.bk(pg_temp.used_from() + interval '1 day', pg_temp.used_from() + interval '2 days');
+  perform pg_temp.assert_ok(a, 'forward_dated_window',
+    pg_temp.nl(w) = 1 and pg_temp.sumk(w, 'expense') = 100);
+  -- the same span on the bought basis: every purchase is an expense, however it is dated, and no use is.
+  -- 50000 + 30000 + 40000 + 7000 + 30000 + 9000 + 1000 = 167000
+  perform pg_temp.expect(a, 'basis_bought_late_rows', 'select public.set_cost_basis(''bought'')', '00000');
+  j := pg_temp.bk(pg_temp.used_from() - interval '10 days', pg_temp.used_from() + interval '2 days');
+  perform pg_temp.assert_ok(a, 'late_rows_bought_basis_total', j ->> 'basis' = 'bought' and pg_temp.sumk(j, 'expense') = 167000);
+  perform pg_temp.expect(a, 'basis_used_late_rows', 'select public.set_cost_basis(''used'')', '00000');
+end $$;
+
 grant execute on function
   pg_temp.uid(text, integer), pg_temp.used_from(), pg_temp.basis(), pg_temp.used_ms(), pg_temp.cutover_rows(), pg_temp.cutover_row(), pg_temp.audit_n(),
   pg_temp.audit_detail(), pg_temp.avg_cost(text), pg_temp.recipes_n(text), pg_temp.receipt_sugar(), pg_temp.count_sugar(), pg_temp.pv(),
@@ -381,7 +496,8 @@ grant execute on function
   pg_temp.bl(jsonb, text), pg_temp.nl(jsonb), pg_temp.unc(jsonb, text), pg_temp.rc(text, text, jsonb, text), pg_temp.recipe(text, text, text, text),
   pg_temp.set_subject(integer, text), pg_temp.expect(text, text, text, text), pg_temp.assert_ok(text, text, boolean),
   pg_temp.assert_acl(), pg_temp.assert_table(text), pg_temp.assert_refused(text),
-  pg_temp.phase_operator_1(text), pg_temp.phase_owner_1(text), pg_temp.phase_operator_2(text), pg_temp.phase_owner_2(text)
+  pg_temp.phase_operator_1(text), pg_temp.phase_owner_1(text), pg_temp.phase_operator_2(text), pg_temp.phase_owner_2(text),
+  pg_temp.phase_owner_3(text), pg_temp.max_seq(), pg_temp.max_cseq(), pg_temp.use_up_spice(), pg_temp.after_rows(), pg_temp.late_rows()
   to anon, authenticated, service_role;
 
 -- ================================================================ the run
@@ -415,6 +531,13 @@ select pg_temp.phase_operator_2('operator');
 set local role authenticated;
 select pg_temp.set_subject(1);
 select pg_temp.phase_owner_2('active_owner');
+reset role;
+
+select pg_temp.late_rows();
+
+set local role authenticated;
+select pg_temp.set_subject(1);
+select pg_temp.phase_owner_3('active_owner');
 reset role;
 
 select 'SEC_RESULT|' || operation || '|' || actor || '|' || outcome
