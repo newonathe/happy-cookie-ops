@@ -2,6 +2,7 @@
 import hashlib
 import importlib.util
 import json
+import os
 import re
 import runpy
 from pathlib import Path
@@ -800,7 +801,11 @@ PAYMENT_MUTATIONS = {
                                    'public payment read differs: anon_default'),
 }
 
-REPORT = ROOT / "docs/state/evidence/MP-06l-security.json"
+# A run writes its reports to test-results/ (ignored by git). Set RECORD_EVIDENCE=1 to refresh the
+# committed receipts in docs/state/evidence/ on purpose; otherwise a passing run leaves the tree clean.
+REPORT_DIR = ROOT / ("docs/state/evidence" if os.environ.get("RECORD_EVIDENCE") == "1" else "test-results/db")
+REPORT_DIR.mkdir(parents=True, exist_ok=True)
+REPORT = REPORT_DIR / "MP-06l-security.json"
 EMPTY_FIXTURES = 'select ' + ' and '.join(
     'not exists(select 1 from public.' + table + ')'
     for table in ('orders', 'order_items', 'products', 'drops', 'settings', 'rate_limits', 'profiles', 'audit_log', 'ledger_entries', 'event_sales', 'event_sale_items', 'inventory_items', 'packaging_rules', 'bake_batches', 'recipes', 'recipe_ingredients', 'suppliers', 'supplier_prices', 'events', 'erasure_requests', 'payment_methods', 'shop_texts', 'shop_identity', 'waitlist_entries', 'order_add_ons', 'order_boxes', 'scheduled_events', 'recipe_versions', 'stock_movements', 'item_prices')) + " and not exists(select 1 from auth.users) and to_regnamespace('mp06f_probe') is null and to_regnamespace('mp06g_probe') is null and to_regclass('public.mp06g_future') is null and to_regclass('public.mp06g_future_id_seq') is null;"
@@ -1078,7 +1083,7 @@ def main():
         h.catalog(db_id, workdir, h.sql_for(h.expected_versions()))
         report["runs"].append(sorted(results))
 
-    h.REPORT = ROOT / "docs/state/evidence/MP-06l-bootstrap.json"
+    h.REPORT = REPORT_DIR / "MP-06l-bootstrap.json"
     # Replace an older pass before bootstrap preflight can fail.
     REPORT.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     try:
