@@ -7,7 +7,13 @@ move a checkpoint here when it leaves `current.md`.
 
 # Moved from current.md on 2026-10-08
 
-The closed-slice paragraph of "Where things stand", verbatim.
+The closed-slice paragraphs of "Where things stand", verbatim.
+
+**B3b-1, 8 October:** the database half of B3b, migration 60 (`20260101005900_packaging_rules.sql`), **not on
+the trial**. Packaging is records: a recipe line is an ingredient or packaging (per cookie, never taken at a
+bake), and a rule per container (each box size, loose, order, bazaar sale) lists the items. `record_pack` and
+`record_sale_packaging` read them and no item name is left in SQL; until today's rule is entered they take no
+packaging and say so. `get_recipe_costs` adds packaging per cookie. `record_event_sale` is untouched.
 
 **B3a, 7 October:** the database half of B3, four migrations (56 to 59), **none on the trial**.
 Recipe lines and supplier prices point at their stock item by id, after a step that is previewed
