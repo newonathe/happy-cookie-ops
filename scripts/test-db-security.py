@@ -37,7 +37,8 @@ ORDER_MIGRATIONS = [ROOT / 'supabase/migrations/20260101003500_place_order.sql',
                     ROOT / 'supabase/migrations/20260101005700_clock_policies.sql',
                     ROOT / 'supabase/migrations/20260101005800_batch_correction.sql',
                     ROOT / 'supabase/migrations/20260101005900_packaging_rules.sql',
-                    ROOT / 'supabase/migrations/20260101006000_books_used.sql']
+                    ROOT / 'supabase/migrations/20260101006000_books_used.sql',
+                    ROOT / 'supabase/migrations/20260101006100_cost_cutover.sql']
 _OUT = 'order outcome differs: anon / '
 _CHK = 'order check differs: anon / '
 _LOOK = 'lookup check differs: anon / '
@@ -466,7 +467,9 @@ PACKAGING_MUTATIONS = {
     'text_recipes_read_the_kind': ('get_recipes', 'text', ("'item_id', i.item_id, 'kind', i.kind)", "'item_id', i.item_id, 'kind', 'ingredient')"),
                                    _PKC + 'active_owner / get_recipes_lines_have_a_kind'),
     'text_recipe_stores_the_kind': ('save_recipe', 'text', ("|| case when l ->> 'kind' = 'packaging' then jsonb_build_object('kind', 'packaging') else '{}'::jsonb end", "|| '{}'::jsonb"),
-                                    _PK + 'active_owner / recipe_pack_double / '),
+                                    # B4a: without the stored kind, recipe-ingredient-on-rule refuses the card line (an ingredient on a rule) too
+                                    # and the pack-double refusal is still answered 22023; the first case to differ is the one that saves it.
+                                    _PK + 'active_owner / recipe_with_kinds_ok / '),
     'text_recipe_noop_sees_the_kind': ('save_recipe', 'text', ("|| case when i.kind = 'packaging' then jsonb_build_object('kind', 'packaging') else '{}'::jsonb end", "|| '{}'::jsonb"),
                                        _PKC + 'active_owner / recipe_same_again_made_no_version'),
     'text_cost_adds_the_packaging': ('get_recipe_costs', 'text', ('t.batch / r.yield_count + coalesce(t.pack, 0)', 't.batch / r.yield_count'),
@@ -543,9 +546,28 @@ BOOKS_MUTATIONS = {
 }
 BOOKS_TABLE_MUTATIONS = {
     'settings_table_select': ('grant select on public.books_settings to anon;', 'books outcome differs: anon / settings_select / '),
-    # B3b-2 (migration 61, DP-04): a fresh database counts stock when it is used.
-    'basis_row_is_bought': ("update public.books_settings set cost_basis = 'bought' where id;", _BKC + 'books_default_basis_is_used'),
-    'basis_default_is_bought': ("alter table public.books_settings alter column cost_basis set default 'bought';", _BKC + 'books_column_default_is_used'),
+    # B4a (migration 62): a fresh database counts stock as it is bought until the cost cutover; the row and the column default say so.
+    'basis_row_is_used': ("update public.books_settings set cost_basis = 'used' where id;", _BKC + 'books_default_basis_is_bought'),
+    'basis_default_is_used': ("alter table public.books_settings alter column cost_basis set default 'used';", _BKC + 'books_column_default_is_bought'),
+}
+# B4a-1: the cost cutover (cutover.sql), acting on migration 62. The rule mutants neutralise one tagged refusal; the text mutants restate one
+# line of the plan (the use arm starts at the cutover, the opening credit is a credit, a purchase before the cutover is still an expense).
+# Each expected text is the first case of the suite that must then fail.
+_CU = 'cutover outcome differs: '
+_CUC = 'cutover check differs: '
+COST_CUTOVER_MUTATIONS = {
+    'rule_cutover_expected': ('apply_cost_cutover', 'rule', 'cutover-expected', _CU + 'operator / cutover_keys_null / '),
+    'rule_cutover_once': ('apply_cost_cutover', 'rule', 'cutover-once', _CU + 'operator / cutover_once / '),
+    'rule_cutover_changed': ('apply_cost_cutover', 'rule', 'cutover-changed', _CU + 'operator / cutover_changed_after_preview / '),
+    'rule_basis_needs_cutover': ('set_cost_basis', 'rule', 'basis-needs-cutover', _CU + 'active_owner / basis_needs_cutover / '),
+    'rule_recipe_ingredient_on_rule': ('save_recipe', 'rule', 'recipe-ingredient-on-rule', _CU + 'active_owner / recipe_ingredient_on_rule / '),
+    'text_cutover_use_bound': ('get_books', 'text', ("and m.at >= v_cut\n      union all\n      select 'c:'", "\n      union all\n      select 'c:'"),
+                               _CUC + 'active_owner / books_before_cutover_is_bought'),
+    'text_cutover_opening_sign': ('get_books', 'text', ('-k.total_cents', 'k.total_cents'), _CUC + 'active_owner / books_opening_credit_once'),
+    'text_cutover_purchase_before': ('get_books', 'text', ('or l.occurred_at < v_cut', 'or false'), _CUC + 'active_owner / books_before_cutover_is_bought'),
+}
+COST_CUTOVER_TABLE_MUTATIONS = {
+    'cutover_table_select': ('grant select on public.cost_cutover to anon;', _CU + 'anon / cutover_select / '),
 }
 # B3a: the cost core (item-costs.sql), acting on the last migration that defines each function. The money cases are worked by hand in the suite.
 _CS = 'item cost outcome differs: active_owner / '
@@ -678,7 +700,7 @@ OPERATIONS_MUTATIONS = {
 
 def order_mutant(name):
     """The migration's one function, changed in exactly one place, as SQL to run inside the suite."""
-    function, kind, argument, _ = (ORDER_MUTATIONS | LOOKUP_MUTATIONS | STAFF_MUTATIONS | SHOP_MUTATIONS | EXTRAS_MUTATIONS | SCHEDULED_MUTATIONS | STOCK_MUTATIONS | RECIPE_MUTATIONS | LEDGER_MUTATIONS | PRODUCTION_MUTATIONS | BOOKS_MUTATIONS | OPERATIONS_MUTATIONS | IDENTITY_RULES | LINK_MUTATIONS | COST_MUTATIONS | BATCH_CORRECTION_MUTATIONS | PACKAGING_MUTATIONS)[name]
+    function, kind, argument, _ = (ORDER_MUTATIONS | LOOKUP_MUTATIONS | STAFF_MUTATIONS | SHOP_MUTATIONS | EXTRAS_MUTATIONS | SCHEDULED_MUTATIONS | STOCK_MUTATIONS | RECIPE_MUTATIONS | LEDGER_MUTATIONS | PRODUCTION_MUTATIONS | BOOKS_MUTATIONS | OPERATIONS_MUTATIONS | IDENTITY_RULES | LINK_MUTATIONS | COST_MUTATIONS | BATCH_CORRECTION_MUTATIONS | PACKAGING_MUTATIONS | COST_CUTOVER_MUTATIONS)[name]
     marker = 'create or replace function public.' + function + '('
     text = [m.read_text(encoding='utf-8') for m in ORDER_MIGRATIONS if marker in m.read_text(encoding='utf-8')][-1]
     start = text.index('create or replace function public.' + function + '(')
@@ -777,6 +799,8 @@ SUITES = (
     ('batch-correction.sql', ('record_batch_correction(jsonb)',) + tuple(BATCH_CORRECTION_MUTATIONS), 'forbidden correction call succeeded', 110),
     ('packaging.sql', ('get_packaging_rules()', 'save_packaging_rule(jsonb)', 'write_packaging_rule(jsonb)', 'apply_packaging_rule(jsonb)')
                       + tuple(PACKAGING_MUTATIONS) + tuple(PACKAGING_TABLE_MUTATIONS), 'forbidden packaging call succeeded', 141),
+    ('cutover.sql', ('preview_cost_cutover()', 'apply_cost_cutover(jsonb)') + tuple(COST_CUTOVER_MUTATIONS) + tuple(COST_CUTOVER_TABLE_MUTATIONS),
+     'forbidden cutover call succeeded', 80),
     ('operations.sql', tuple(OPERATIONS_MUTATIONS), 'forbidden operations call succeeded', 14),
     ('bazaar-closeout.sql', ('event_summary(uuid)', 'load_event_stock(uuid,jsonb,bigint)', 'add_event_expense(jsonb)', 'close_event(jsonb)'), 'forbidden closeout call succeeded', 80),
     ('shop-identity.sql', ('save_shop_identity(jsonb,timestamptz)', 'business_clock(timestamptz)') + tuple(IDENTITY_MUTATIONS) + tuple(IDENTITY_RULES),
@@ -818,7 +842,7 @@ PAYMENT_MUTATIONS = {
 REPORT = ROOT / "docs/state/evidence/MP-06l-security.json"
 EMPTY_FIXTURES = 'select ' + ' and '.join(
     'not exists(select 1 from public.' + table + ')'
-    for table in ('orders', 'order_items', 'products', 'drops', 'settings', 'rate_limits', 'profiles', 'audit_log', 'ledger_entries', 'event_sales', 'event_sale_items', 'inventory_items', 'packaging_rules', 'bake_batches', 'recipes', 'recipe_ingredients', 'suppliers', 'supplier_prices', 'events', 'erasure_requests', 'payment_methods', 'shop_texts', 'shop_identity', 'waitlist_entries', 'order_add_ons', 'order_boxes', 'scheduled_events', 'recipe_versions', 'stock_movements', 'item_prices')) + " and not exists(select 1 from auth.users) and to_regnamespace('mp06f_probe') is null and to_regnamespace('mp06g_probe') is null and to_regclass('public.mp06g_future') is null and to_regclass('public.mp06g_future_id_seq') is null;"
+    for table in ('orders', 'order_items', 'products', 'drops', 'settings', 'rate_limits', 'profiles', 'audit_log', 'ledger_entries', 'event_sales', 'event_sale_items', 'inventory_items', 'packaging_rules', 'cost_cutover', 'bake_batches', 'recipes', 'recipe_ingredients', 'suppliers', 'supplier_prices', 'events', 'erasure_requests', 'payment_methods', 'shop_texts', 'shop_identity', 'waitlist_entries', 'order_add_ons', 'order_boxes', 'scheduled_events', 'recipe_versions', 'stock_movements', 'item_prices')) + " and not exists(select 1 from auth.users) and to_regnamespace('mp06f_probe') is null and to_regnamespace('mp06g_probe') is null and to_regclass('public.mp06g_future') is null and to_regclass('public.mp06g_future_id_seq') is null;"
 
 
 def main():
@@ -969,6 +993,13 @@ def main():
                     elif signature in PACKAGING_TABLE_MUTATIONS:
                         unsafe, expected_error = PACKAGING_TABLE_MUTATIONS[signature]
                         broken = sql.replace('begin;', 'begin;' + chr(10) + unsafe, 1)
+                if filename == 'cutover.sql':
+                    if signature in COST_CUTOVER_MUTATIONS:
+                        broken = sql.replace('begin;', 'begin;' + chr(10) + order_mutant(signature), 1)
+                        expected_error = COST_CUTOVER_MUTATIONS[signature][3]
+                    elif signature in COST_CUTOVER_TABLE_MUTATIONS:
+                        unsafe, expected_error = COST_CUTOVER_TABLE_MUTATIONS[signature]
+                        broken = sql.replace('begin;', 'begin;' + chr(10) + unsafe, 1)
                 if filename == 'item-costs.sql' and signature in COST_MUTATIONS:
                     broken = sql.replace('begin;', 'begin;' + chr(10) + order_mutant(signature), 1)
                     expected_error = COST_MUTATIONS[signature][3]
@@ -1086,7 +1117,7 @@ def main():
                 h.fail(filename + ' did not return its complete role matrix')
             results.extend(rows)
             assert_empty()
-        if len(set(results)) != 2600:
+        if len(set(results)) != 2680:
             h.fail('combined role matrix has missing or duplicate cases: %d rows, %d unique (duplicates: %s)' % (len(results), len(set(results)), sorted({r for r in results if results.count(r) > 1})[:5]))
         assert_functions()
         assert_catalog_wide()
@@ -1099,10 +1130,10 @@ def main():
     try:
         code = h.main(after_reset=check)
         if (code == 0 and len(report["runs"]) == 2 and report["runs"][0] == report["runs"][1]
-                and len(report['regressions_detected']) == 954 and report['sequence_restorations'] == 10
+                and len(report['regressions_detected']) == 976 and report['sequence_restorations'] == 10
                 and report['upgrade_runs'] == 2 and report['function_guard_runs'] == 4
                 and report['catalog_guard_runs'] == 4 and report['catalog_guard_red_runs'] == 4):
-            report.update(status="passed", cases_per_reset=2600, resets=2, matrix_equal=True, rollback_verified=True,
+            report.update(status="passed", cases_per_reset=2680, resets=2, matrix_equal=True, rollback_verified=True,
                           sql_sha256={name: hashlib.sha256((ROOT / 'tests/integration/security' / name).read_bytes()).hexdigest() for name, _, _, _ in SUITES},
                           harness_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
     except (RuntimeError, OSError, ValueError) as error:

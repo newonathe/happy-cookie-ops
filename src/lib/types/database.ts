@@ -117,16 +117,46 @@ export type Database = {
           cost_basis: string
           id: boolean
           updated_at: string
+          used_from: string | null
         }
         Insert: {
           cost_basis?: string
           id?: boolean
           updated_at?: string
+          used_from?: string | null
         }
         Update: {
           cost_basis?: string
           id?: boolean
           updated_at?: string
+          used_from?: string | null
+        }
+        Relationships: []
+      }
+      cost_cutover: {
+        Row: {
+          at: string
+          created_by: string | null
+          id: boolean
+          items: Json
+          payload_hash: string
+          total_cents: number
+        }
+        Insert: {
+          at: string
+          created_by?: string | null
+          id?: boolean
+          items: Json
+          payload_hash: string
+          total_cents: number
+        }
+        Update: {
+          at?: string
+          created_by?: string | null
+          id?: boolean
+          items?: Json
+          payload_hash?: string
+          total_cents?: number
         }
         Relationships: []
       }
@@ -1969,6 +1999,7 @@ export type Database = {
         Args: { p_note?: string; p_phone: string }
         Returns: number
       }
+      apply_cost_cutover: { Args: { p_expected: Json }; Returns: Json }
       apply_identity_links: { Args: { p_expected: Json }; Returns: Json }
       apply_packaging_rule: { Args: { p_rule: Json }; Returns: Json }
       bff_session_acquire_refresh: {
@@ -2301,6 +2332,7 @@ export type Database = {
           total_cents: number
         }[]
       }
+      preview_cost_cutover: { Args: never; Returns: Json }
       preview_identity_links: { Args: never; Returns: Json }
       prune_personal_data: { Args: { p_retain_days?: number }; Returns: number }
       prune_rate_limits: { Args: never; Returns: number }

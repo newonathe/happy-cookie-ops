@@ -76,6 +76,10 @@ insert into public.order_items(order_id, product_id, qty, unit_price_cents) valu
 insert into public.events(id, name, starts_at, selling_device, price_snapshot)
 values ('b3be0000-0000-4000-8000-000000000001', 'PK stall', now() - interval '1 hour', 'devK', '{"pkp1": 10000}');
 
+-- B4a: these cases read the books on the used basis, which a fresh database no longer starts on: it needs the cost cutover (cutover.sql's).
+-- The cutover here is long before any row, set as postgres, so every row below is on the used rules.
+update public.books_settings set used_from = timestamptz '2020-01-01 00:00+00', cost_basis = 'used' where id;
+
 create function pg_temp.set_subject(n integer, claim_role text default 'authenticated') returns void
 language plpgsql security invoker as $$
 declare subject text := case when n is null then '' else
@@ -325,7 +329,7 @@ begin
   perform pg_temp.assert_ok(a, 'pack_box_without_a_rule_is_flagged',
     r.shortfall @> '[{"name": "Box of 12", "by": 1, "unit": "box", "why": "no packaging rule"}]'::jsonb and jsonb_array_length(r.shortfall) = 2);
   perform pg_temp.assert_ok(a, 'pack_one_movement_per_item', pg_temp.pack_moves('PK-ORD-1') = 6);
-  -- the books list the box that took nothing, with its why, as stock used with no cost (the default basis is used); the sticker that was only
+  -- the books list the box that took nothing, with its why, as stock used with no cost (the fixture sets the used basis); the sticker that was only
   -- short is a movement of its own, not a second line here
   perform pg_temp.assert_ok(a, 'books_pack_no_rule_is_uncosted',
     pg_temp.unc_row('p:' || pg_temp.pack_id('PK-ORD-1')::text || ':1', now() - interval '1 day', now() + interval '1 day') =
@@ -406,11 +410,13 @@ begin
     '{"product_id": "pkp4", "yield": 4, "lines": [{"name": "PK Flour", "qty": 200, "unit": "g"}, {"kind": "packaging", "name": "PK Card", "qty": 1, "unit": "pcs"}, {"kind": "ingredient", "name": "PK Sugar", "qty": 40, "unit": "g"}]}',
     k, '00000');
   perform pg_temp.assert_ok(a, 'recipe_same_again_made_no_version', (select version from public.recipes where product_id = 'pkp4') = 1);
+  -- B4a: the card is on the order rule now, so it can no longer be flipped to an ingredient (recipe-ingredient-on-rule, cutover.sql); the sugar,
+  -- which no rule takes, is flipped to packaging instead. A kind change is still a new version.
   perform pg_temp.rc(a, 'recipe_kind_change_is_a_new_version',
-    '{"product_id": "pkp4", "yield": 4, "lines": [{"name": "PK Flour", "qty": 200, "unit": "g"}, {"name": "PK Card", "qty": 1, "unit": "pcs"}, {"name": "PK Sugar", "qty": 40, "unit": "g"}]}',
+    '{"product_id": "pkp4", "yield": 4, "lines": [{"name": "PK Flour", "qty": 200, "unit": "g"}, {"kind": "packaging", "name": "PK Card", "qty": 1, "unit": "pcs"}, {"kind": "packaging", "name": "PK Sugar", "qty": 40, "unit": "g"}]}',
     k, '00000');
   perform pg_temp.assert_ok(a, 'recipe_kind_change_saved',
-    (select version from public.recipes where product_id = 'pkp4') = 2 and pg_temp.recipe_line_kinds('pkp4') = 'PK Flour:ingredient,PK Card:ingredient,PK Sugar:ingredient');
+    (select version from public.recipes where product_id = 'pkp4') = 2 and pg_temp.recipe_line_kinds('pkp4') = 'PK Flour:ingredient,PK Card:packaging,PK Sugar:packaging');
   perform pg_temp.assert_ok(a, 'recipe_history_keeps_the_kind',
     (select h -> 'lines' -> 1 ->> 'kind' from jsonb_array_elements((select x -> 'history' from jsonb_array_elements(public.get_recipes()) x where x ->> 'product_id' = 'pkp4')) h) = 'packaging');
 

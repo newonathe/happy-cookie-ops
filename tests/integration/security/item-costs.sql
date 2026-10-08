@@ -63,6 +63,10 @@ insert into public.supplier_prices(supplier_id, item_name, item_id, pack_label, 
   ('k3s3', 'K3 Bravo2', 'k3i-b2', 'p', 100, 1000, true), ('k3s4', 'K3 Bravo2', 'k3i-b2', 'p', 100, 1000, false),
   ('k3s5', 'K3 Bravo2', 'k3i-b2', 'p', 10, null, true), ('k3s6', 'K3 Bravo2', 'k3i-b2', 'p', 0, 1000, true);
 
+-- B4a: "when used" starts at the cutover, and choosing the used basis is refused until one is set. This fixture's cutover is long before any of
+-- its rows (set here as postgres; the cutover itself is cutover.sql's), so once the owner chooses used every row below is on the used rules.
+update public.books_settings set used_from = timestamptz '2020-01-01 00:00+00' where id;
+
 create function pg_temp.set_subject(n integer, claim_role text default 'authenticated') returns void
 language plpgsql security invoker as $$
 declare subject text := case when n is null then '' else
@@ -206,8 +210,8 @@ end $$;
 create function pg_temp.phase_owner(a text) returns void language plpgsql security invoker as $$
 declare r record; j jsonb; n bigint;
 begin
-  -- the books default to used (migration 61, DP-04: the screens show the uncosted list); these cases choose it all the same
-  perform pg_temp.assert_ok(a, 'cost_default_basis_is_used', public.get_books(now() - interval '1 day', now()) ->> 'basis' = 'used');
+  -- the books default to bought until the cost cutover (B4a; the fixture sets used_from long ago, as postgres, below); these cases choose used
+  perform pg_temp.assert_ok(a, 'cost_default_basis_is_bought', public.get_books(now() - interval '1 day', now()) ->> 'basis' = 'bought');
   perform pg_temp.expect(a, 'cost_choose_used', 'select public.set_cost_basis(''used'')', '00000');
 
   -- A, two deliveries: 1000 g for 400 pesos (40 c/g), 400 g used at 40 = 16000; 600 g for 300 pesos with 600 g on hand: the average
