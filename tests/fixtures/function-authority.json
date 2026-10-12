@@ -1689,7 +1689,7 @@
         "search_path=\"\""
       ],
       "returns": "jsonb",
-      "body_md5": "24baf949f2d3ce5617a72adcbf3315de",
+      "body_md5": "93e0b2091abbb1f6859938c5ee2ea946",
       "identity": "",
       "execute_anon": false,
       "security_definer": true,
@@ -1809,7 +1809,7 @@
         "search_path=\"\""
       ],
       "returns": "boolean",
-      "body_md5": "4468ca525f06c8b255480b0e125148a2",
+      "body_md5": "8b7747d224e9cd64e8202454f289e600",
       "identity": "p_name text",
       "execute_anon": false,
       "security_definer": true,

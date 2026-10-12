@@ -328,6 +328,14 @@ begin
   perform pg_temp.assert_ok(a, 'imp_items_invisible_names_are_listed', p -> 'counts' = '{"will_write": 1, "unchanged": 0, "unmatched": 5}'::jsonb
     and pg_temp.field_of(p, 'will_write', 'name') = array[E'IM Caf\u00e9']
     and (select bool_and(pg_temp.why(p, n) = 'a name has an invisible space or is not in composed form') from generate_series(1, 5) n));
+  -- more characters that show nothing: a soft hyphen, a combining grapheme joiner, the Hangul fillers (U+115F, U+1160, U+3164, U+FFA0), an Ogham
+  -- space mark, a Mongolian vowel separator, a variation selector and a tag character (a surrogate pair in JSON, U+E0041); each row is listed
+  p := pg_temp.pv('items', '[{"name": "IM Soft\u00ad", "unit": "g"}, {"name": "IM Cgj\u034f", "unit": "g"}, {"name": "IM Hangul\u115f", "unit": "g"},
+    {"name": "IM Hangul\u1160", "unit": "g"}, {"name": "IM Ogham\u1680", "unit": "g"}, {"name": "IM Mongolian\u180e", "unit": "g"},
+    {"name": "IM Filler\u3164", "unit": "g"}, {"name": "IM Selector\ufe0f", "unit": "g"}, {"name": "IM Half\uffa0", "unit": "g"},
+    {"name": "IM Tag\udb40\udc41", "unit": "g"}]'::jsonb);
+  perform pg_temp.assert_ok(a, 'imp_items_more_invisible_characters', p -> 'counts' = '{"will_write": 0, "unchanged": 0, "unmatched": 10}'::jsonb
+    and (select bool_and(pg_temp.why(p, n) = 'a name has an invisible space or is not in composed form') from generate_series(1, 10) n));
   -- the same item twice in one call is made once
   p := pg_temp.pv('items', '[{"name": "IM Dupe", "unit": "g"}, {"name": "im dupe", "unit": "g"}, {"name": "IM Dupe", "unit": "ml"}]'::jsonb);
   perform pg_temp.assert_ok(a, 'imp_items_same_name_twice', p -> 'counts' = '{"will_write": 1, "unchanged": 1, "unmatched": 1}'::jsonb

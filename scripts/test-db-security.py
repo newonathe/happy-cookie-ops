@@ -603,8 +603,10 @@ COST_CUTOVER_MUTATIONS = {
                                       _CUC + 'operator / cutover_hash_follows_not_counted'),
     'text_cutover_not_counted_active': ('preview_cost_cutover', 'text', ('where i.active and not exists', 'where not exists'),
                                         _CUC + 'operator / cutover_preview_counts_and_hash'),
-    'text_cutover_not_counted_movement': ('preview_cost_cutover', 'text', (' and not exists (select 1 from public.stock_movements m where m.item_id = i.id)', ''),
+    'text_cutover_not_counted_movement': ('preview_cost_cutover', 'text', (" and not exists (select 1 from public.stock_movements m where m.item_id = i.id and m.kind in ('opening', 'receipt', 'count', 'adjust'))", ''),
                                           _CUC + 'operator / cutover_preview_counts_and_hash'),
+    'text_cutover_not_counted_kind': ('preview_cost_cutover', 'text', (" and m.kind in ('opening', 'receipt', 'count', 'adjust'))", ')'),
+                                      _CUC + 'operator / cutover_preview_counts_and_hash'),
     'text_cutover_not_counted_count': ('preview_cost_cutover', 'text', ("'unvalued', v_n - v_valued, 'not_counted', v_nc_n)", "'unvalued', v_n - v_valued, 'not_counted', 0)"),
                                        _CUC + 'operator / cutover_preview_counts_and_hash'),
     'text_cutover_not_counted_listed': ('preview_cost_cutover', 'text', ("'not_counted', v_notcounted,", "'not_counted', '[]'::jsonb,"),
@@ -685,6 +687,7 @@ IMPORT_MUTATIONS = {
     'rule_import_recipes_flavour_twice': ('run_import_recipes', 'rule', 'import-recipes-flavour-twice', _IMC + 'imp_recipes_flavour_twice'),
     'rule_import_flavours_invisible': ('run_import_flavours', 'rule', 'import-flavours-invisible', _IMC + 'imp_flavours_invisible_name_is_listed'),
     'rule_import_bookings_invisible': ('run_import_bookings', 'rule', 'import-bookings-invisible', _IMC + 'imp_bookings_invisible_name_is_listed'),
+    'text_import_name_ok_hidden_characters': ('import_name_ok', 'text', ('\\u00ad\\u034f\\u115f\\u1160\\u1680\\u180e', ''), _IMC + 'imp_items_more_invisible_characters'),
     'text_import_items_unchanged_category': ('run_import_items', 'text', (", 'unit', v_item.unit, 'category', v_item.category));", ", 'unit', v_item.unit));"),
                                              _IMC + 'imp_items_unchanged_shows_category'),
     'text_import_bookings_unchanged_fields': ('run_import_bookings', 'text', (",\n          'place', v_old.place, 'rent_cents', v_old.rent_cents, 'active', v_old.active));", "));"),
@@ -931,8 +934,8 @@ SUITES = (
     ('packaging.sql', ('get_packaging_rules()', 'save_packaging_rule(jsonb)', 'write_packaging_rule(jsonb)', 'apply_packaging_rule(jsonb)')
                       + tuple(PACKAGING_MUTATIONS) + tuple(PACKAGING_TABLE_MUTATIONS), 'forbidden packaging call succeeded', 146),
     ('cutover.sql', ('preview_cost_cutover()', 'apply_cost_cutover(jsonb)') + tuple(COST_CUTOVER_MUTATIONS) + tuple(COST_CUTOVER_TABLE_MUTATIONS),
-     'forbidden cutover call succeeded', 110),
-    ('imports.sql', IMPORT_ACL + tuple(IMPORT_MUTATIONS), 'forbidden import call succeeded', 260),
+     'forbidden cutover call succeeded', 111),
+    ('imports.sql', IMPORT_ACL + tuple(IMPORT_MUTATIONS), 'forbidden import call succeeded', 261),
     ('operations.sql', tuple(OPERATIONS_MUTATIONS), 'forbidden operations call succeeded', 14),
     ('bazaar-closeout.sql', ('event_summary(uuid)', 'load_event_stock(uuid,jsonb,bigint)', 'add_event_expense(jsonb)', 'close_event(jsonb)'), 'forbidden closeout call succeeded', 80),
     ('shop-identity.sql', ('save_shop_identity(jsonb,timestamptz)', 'business_clock(timestamptz)') + tuple(IDENTITY_MUTATIONS) + tuple(IDENTITY_RULES),
@@ -1283,7 +1286,7 @@ def main():
                 h.fail(filename + ' did not return its complete role matrix')
             results.extend(rows)
             assert_empty()
-        if len(set(results)) != 2975:
+        if len(set(results)) != 2977:
             h.fail('combined role matrix has missing or duplicate cases: %d rows, %d unique (duplicates: %s)' % (len(results), len(set(results)), sorted({r for r in results if results.count(r) > 1})[:5]))
         assert_functions()
         assert_catalog_wide()
@@ -1296,10 +1299,10 @@ def main():
     try:
         code = h.main(after_reset=check)
         if (code == 0 and len(report["runs"]) == 2 and report["runs"][0] == report["runs"][1]
-                and len(report['regressions_detected']) == 1186 and report['sequence_restorations'] == 10
+                and len(report['regressions_detected']) == 1190 and report['sequence_restorations'] == 10
                 and report['upgrade_runs'] == 2 and report['pair_guard_runs'] == 2 and report['function_guard_runs'] == 4
                 and report['catalog_guard_runs'] == 4 and report['catalog_guard_red_runs'] == 4):
-            report.update(status="passed", cases_per_reset=2975, resets=2, matrix_equal=True, rollback_verified=True,
+            report.update(status="passed", cases_per_reset=2977, resets=2, matrix_equal=True, rollback_verified=True,
                           sql_sha256={name: hashlib.sha256((ROOT / 'tests/integration/security' / name).read_bytes()).hexdigest() for name, _, _, _ in SUITES},
                           harness_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
     except (RuntimeError, OSError, ValueError) as error:

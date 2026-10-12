@@ -8,8 +8,9 @@
 --                           refused once books_settings.used_from is set (rule mv-opening-after-cutover, 22023): the item is brought in by a count.
 --                           The check sits after the replay check, so an opening a phone wrote before the cutover and sends again is answered as
 --                           the same movement, not refused. A cutover that is applied while the opening is waiting takes the same item lock first.
---   preview_cost_cutover    (20260101006100_cost_cutover.sql; the 62 fix did not redefine it) lists the ACTIVE items that have never had any stock
---                           movement as `not_counted` ({item_id, name}, by id), counts them in counts.not_counted and puts them in the hash. What was
+--   preview_cost_cutover    (20260101006100_cost_cutover.sql; the 62 fix did not redefine it) lists the ACTIVE items that have never been counted
+--                           (no movement of kind opening, receipt, count or adjust; a use or a waste row does not count, because a bake writes a
+--                           use row even when nothing was taken) as `not_counted` ({item_id, name}, by id), counts them in counts.not_counted and puts them in the hash. What was
 --                           never counted cannot be in the credit; the operator must see that before the cutover. apply_cost_cutover is unchanged:
 --                           it works the preview out again under the locks and compares the hash, so it agrees with the preview by construction (its
 --                           counts and its audit row carry the new count).
@@ -229,12 +230,14 @@ begin
             from public.inventory_items i
             left join lateral public.item_unit_cost(i.id) c on true
            where i.on_hand > 0) x;
-  -- B4a-4: the active items that have never had a stock movement. Nothing was ever counted for them, so the credit cannot include what they hold;
+  -- B4a-4: the active items that have never been counted: no opening, receipt, count or adjustment. A use or a waste row is not a count (a bake or a
+  -- dough mix writes a use row even when it took nothing), so flour baked with before anyone counted it is still listed. Nothing was ever counted
+  -- for them, so the credit cannot include what they hold;
   -- the operator sees them (and they are in the hash) and decides before the cutover whether to count them first.
   select coalesce(jsonb_agg(jsonb_build_object('item_id', i.id, 'name', i.name) order by i.id collate "C"), '[]'::jsonb), count(*)
     into v_notcounted, v_nc_n
     from public.inventory_items i
-   where i.active and not exists (select 1 from public.stock_movements m where m.item_id = i.id);
+   where i.active and not exists (select 1 from public.stock_movements m where m.item_id = i.id and m.kind in ('opening', 'receipt', 'count', 'adjust'));
   select max(m.seq) into v_seq from public.stock_movements m;
   return jsonb_build_object(
     'items', v_items,

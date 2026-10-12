@@ -7,7 +7,8 @@
 -- the preview moved, applied once, writes no average cost. From the cutover "when used" starts: get_books follows the bought rules for every
 -- line before used_from and the used rules from it, and credits the opening stock once. set_cost_basis refuses 'used' before a cutover.
 -- save_recipe refuses an INGREDIENT that a packaging rule takes. B4a-4 (migration 64, the review of 62): the preview also lists the active items
--- that have never had a stock movement (`not_counted`: what the credit cannot include), counts them and hashes them; an `opening` stock movement
+-- that have never been COUNTED (`not_counted`: no opening, receipt, count or adjustment; a use or a waste row does not make an item counted, since a
+-- bake writes a use row even when nothing was taken. What the credit cannot include), counts them and hashes them; an `opening` stock movement
 -- is refused once the cutover has been applied (the item's purchase is already in the historical lines, and it was not in the credit, so its
 -- uses would be expensed twice); and a cutover cleared by hand while the basis is still `used` is read as the bought basis, so every purchase and
 -- every use is not counted at once. The harness neutralises each `-- rule:` line of
@@ -101,6 +102,9 @@ insert into public.stock_cost_corrections(id, movement_id, cost_cents, ledger_id
 -- not be listed (the `r.at >= cutover` side of the production arm).
 insert into public.production_records(id, kind, product_id, qty, short, at, payload_hash) values
   (pg_temp.uid('4', 1), 'batch', 'ccp1', 12, '[{"name": "CC Flour", "by": 500, "unit": "g", "why": "no cost"}]'::jsonb, now() - interval '1 day', repeat('c', 64));
+-- The butter was wasted once and never counted (a waste row, like the spice's use row above, is not a count; both were written before the apply).
+insert into public.stock_movements(id, item_id, kind, qty_delta, cost_cents, supplier, reason, at, ledger_id, payload_hash, unit_cost, cost_source) values
+  (pg_temp.uid('2', 15), 'cci-butter', 'waste', -1, null, '', 'Dropped', now() - interval '1 day', null, repeat('a', 32) || repeat('b', 32), null, null);
 
 create function pg_temp.set_subject(n integer, claim_role text default 'authenticated') returns void
 language plpgsql security invoker as $$
@@ -302,12 +306,14 @@ begin
     and pg_temp.pi(p, 'cci-old') = '{"item_id": "cci-old", "name": "CC Old", "unit": "pcs", "on_hand": 10, "unit_cost": 10, "source": "usual", "value_cents": 100}'::jsonb
     and (p ->> 'total_cents')::bigint = 3650);
   perform pg_temp.assert_ok(a, 'cutover_preview_counts_and_hash',
-    p -> 'counts' = '{"items_on_hand": 5, "valued": 4, "unvalued": 1, "not_counted": 4}'::jsonb and (p ->> 'hash') ~ '^[0-9a-f]{64}$');
-  -- B4a-4: the active items that have never had a stock movement are listed (the credit cannot include what was never counted), by id: the
-  -- butter, the card, the empty bag and the sugar (its first delivery is written below). The flour and the spice have movements; the old item is
-  -- switched off.
+    p -> 'counts' = '{"items_on_hand": 5, "valued": 4, "unvalued": 1, "not_counted": 5}'::jsonb and (p ->> 'hash') ~ '^[0-9a-f]{64}$');
+  -- B4a-4: the active items that have never been counted are listed (the credit cannot include what was never counted), by id: the butter (only
+  -- wasted), the card, the empty bag, the spice (only used: a bake writes a use row even when nothing was taken, so a use is not a count) and the
+  -- sugar (its first delivery is written below). The flour has a receipt; the old item is switched off.
   perform pg_temp.assert_ok(a, 'cutover_preview_lists_not_counted',
-    p -> 'not_counted' = '[{"item_id": "cci-butter", "name": "CC Butter"}, {"item_id": "cci-card", "name": "CC Card"}, {"item_id": "cci-empty", "name": "CC Empty"}, {"item_id": "cci-sugar", "name": "CC Sugar"}]'::jsonb);
+    p -> 'not_counted' = '[{"item_id": "cci-butter", "name": "CC Butter"}, {"item_id": "cci-card", "name": "CC Card"}, {"item_id": "cci-empty", "name": "CC Empty"}, {"item_id": "cci-spice", "name": "CC Spice"}, {"item_id": "cci-sugar", "name": "CC Sugar"}]'::jsonb);
+  perform pg_temp.assert_ok(a, 'cutover_used_or_wasted_is_not_counted',
+    pg_temp.field_ids(p -> 'not_counted') @> array['cci-spice', 'cci-butter'] and not (pg_temp.field_ids(p -> 'not_counted') @> array['cci-flour']));
   -- no cost is listed, never a zero: the spice has stock and no price, so it adds nothing and says so
   perform pg_temp.assert_ok(a, 'cutover_preview_lists_the_unvalued',
     p -> 'unvalued' = '[{"item_id": "cci-spice", "name": "CC Spice"}]'::jsonb
@@ -344,8 +350,8 @@ begin
     pg_temp.pi(p2, 'cci-sugar') ->> 'value_cents' = '255' and (p2 ->> 'total_cents')::bigint = 3655 and p2 ->> 'hash' <> h);
   -- the sugar has a movement now, so it is no longer waiting to be counted
   perform pg_temp.assert_ok(a, 'cutover_not_counted_follows_the_movements',
-    p2 -> 'not_counted' = '[{"item_id": "cci-butter", "name": "CC Butter"}, {"item_id": "cci-card", "name": "CC Card"}, {"item_id": "cci-empty", "name": "CC Empty"}]'::jsonb
-    and p2 -> 'counts' = '{"items_on_hand": 5, "valued": 4, "unvalued": 1, "not_counted": 3}'::jsonb);
+    p2 -> 'not_counted' = '[{"item_id": "cci-butter", "name": "CC Butter"}, {"item_id": "cci-card", "name": "CC Card"}, {"item_id": "cci-empty", "name": "CC Empty"}, {"item_id": "cci-spice", "name": "CC Spice"}]'::jsonb
+    and p2 -> 'counts' = '{"items_on_hand": 5, "valued": 4, "unvalued": 1, "not_counted": 4}'::jsonb);
   perform pg_temp.ap(a, 'cutover_changed_total_only', jsonb_build_object('hash', p2 ->> 'hash', 'total_cents', t), 'P0002');
   perform pg_temp.ap(a, 'cutover_changed_hash_only', jsonb_build_object('hash', h, 'total_cents', (p2 ->> 'total_cents')::bigint), 'P0002');
   -- the hash follows the ledger, not only the stock: a count that changes no quantity still moves it
@@ -358,7 +364,7 @@ begin
   -- ---- an item on hand with no cost stops the cutover: the opening credit would be short by what it holds. The expectation is the current
   -- one, so nothing but the unvalued spice refuses it; and the refusal writes nothing
   p4 := pg_temp.pv();
-  perform pg_temp.assert_ok(a, 'cutover_unvalued_still_listed', jsonb_array_length(p4 -> 'unvalued') = 1 and p4 -> 'counts' = '{"items_on_hand": 5, "valued": 4, "unvalued": 1, "not_counted": 3}'::jsonb);
+  perform pg_temp.assert_ok(a, 'cutover_unvalued_still_listed', jsonb_array_length(p4 -> 'unvalued') = 1 and p4 -> 'counts' = '{"items_on_hand": 5, "valued": 4, "unvalued": 1, "not_counted": 4}'::jsonb);
   perform pg_temp.ap(a, 'cutover_unvalued_refused', pg_temp.eb(p4), 'P0001');
   perform pg_temp.assert_ok(a, 'cutover_unvalued_changed_nothing',
     pg_temp.used_from() is null and pg_temp.basis() = 'bought' and pg_temp.cutover_rows() = 0 and pg_temp.audit_n() = 0);
@@ -366,7 +372,7 @@ begin
   perform pg_temp.use_up_spice();
   p4 := pg_temp.pv();
   perform pg_temp.assert_ok(a, 'cutover_preview_without_unvalued',
-    p4 -> 'unvalued' = '[]'::jsonb and p4 -> 'counts' = '{"items_on_hand": 4, "valued": 4, "unvalued": 0, "not_counted": 3}'::jsonb
+    p4 -> 'unvalued' = '[]'::jsonb and p4 -> 'counts' = '{"items_on_hand": 4, "valued": 4, "unvalued": 0, "not_counted": 4}'::jsonb
     and (p4 ->> 'total_cents')::bigint = 3655 and pg_temp.pi(p4, 'cci-spice') is null);
   -- the hash follows the list of items not counted too, not only the stock and the last movement: a new active item with no movement changes
   -- nothing else (no stock, no movement), so it is the list alone that moves the hash; taking it away puts the preview back
@@ -375,8 +381,8 @@ begin
   p6 := pg_temp.pv();
   perform pg_temp.assert_ok(a, 'cutover_hash_follows_not_counted',
     p6 ->> 'hash' <> p5 ->> 'hash' and p6 -> 'items' = p5 -> 'items' and p6 -> 'total_cents' = p5 -> 'total_cents'
-    and jsonb_array_length(p6 -> 'not_counted') = 4 and p6 -> 'counts' ->> 'not_counted' = '4'
-    and pg_temp.field_ids(p6 -> 'not_counted') = array['cci-butter', 'cci-card', 'cci-empty', 'cci-late-item']);
+    and jsonb_array_length(p6 -> 'not_counted') = 5 and p6 -> 'counts' ->> 'not_counted' = '5'
+    and pg_temp.field_ids(p6 -> 'not_counted') = array['cci-butter', 'cci-card', 'cci-empty', 'cci-late-item', 'cci-spice']);
   perform pg_temp.drop_item('cci-late-item');
   perform pg_temp.assert_ok(a, 'cutover_not_counted_back_to_the_stock', pg_temp.pv() = p5);
 end $$;
@@ -402,7 +408,7 @@ begin
   sq := pg_temp.max_seq(); cq := pg_temp.max_cseq();
   j := public.apply_cost_cutover(pg_temp.eb(p));
   perform pg_temp.assert_ok(a, 'cutover_apply_returns_the_credit',
-    (j ->> 'total_cents')::bigint = 3655 and j -> 'counts' = '{"items_on_hand": 4, "valued": 4, "unvalued": 0, "not_counted": 3}'::jsonb
+    (j ->> 'total_cents')::bigint = 3655 and j -> 'counts' = '{"items_on_hand": 4, "valued": 4, "unvalued": 0, "not_counted": 4}'::jsonb
     and (j ->> 'used_from')::timestamptz = pg_temp.used_from());
   -- the instant is taken with clock_timestamp() once the locks are held, so it is later than the transaction's now()
   t0 := pg_temp.used_from();

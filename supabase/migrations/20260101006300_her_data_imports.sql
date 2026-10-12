@@ -800,7 +800,9 @@ revoke execute on function public.import_keys_ok(jsonb, text[], text[]) from pub
 /**
  * Internal. True when p_name has no invisible space and is written in composed form (Unicode NFC). btrim strips only the ASCII space, so a name
  * followed by a no-break space (U+00A0), a space of U+2000 to U+200F (the zero-width ones too), U+2028 to U+202F, U+205F to U+206F, an
- * ideographic space (U+3000) or a byte-order mark (U+FEFF) would not be the name it looks like, and an e followed by a combining accent is not the
+ * ideographic space (U+3000), a byte-order mark (U+FEFF), or a character that shows nothing (a soft hyphen U+00AD, U+034F, the Hangul fillers
+ * U+115F, U+1160, U+3164 and U+FFA0, an Ogham space mark U+1680, U+180E, the variation selectors U+FE00 to U+FE0F, the tag characters U+E0000 to
+ * U+E007F) would not be the name it looks like, and an e followed by a combining accent is not the
  * same text as the accented e. The imports refuse such a name, so they cannot make a second item, flavour or booking that looks like the first.
  */
 create or replace function public.import_name_ok(p_name text)
@@ -811,7 +813,7 @@ security definer
 set search_path = ''
 as $$
   select coalesce(p_name = normalize(p_name, nfc)
-                  and p_name !~ '[\u00a0\u2000-\u200f\u2028-\u202f\u205f-\u206f\u3000\ufeff]', false)
+                  and p_name !~ '[\u00a0\u00ad\u034f\u115f\u1160\u1680\u180e\u2000-\u200f\u2028-\u202f\u205f-\u206f\u3000\u3164\ufe00-\ufe0f\ufeff\uffa0\U000e0000-\U000e007f]', false)
 $$;
 revoke execute on function public.import_name_ok(text) from public, anon, authenticated, service_role;
 
