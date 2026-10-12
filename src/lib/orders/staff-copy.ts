@@ -230,9 +230,11 @@ export const BOOKS_COPY = {
   noReceipts: 'No costed deliveries in the last 90 days.',
   uncostedTitle: 'Not costed yet',
   uncostedNote:
-    'Stock used or wasted while the item had no cost. It is not in your costs until the item has a price.',
+    'Stock used, wasted, or counted or adjusted down while the item had no cost. It is not in your costs until the item has a price.',
   uncostedUse: 'Used',
   uncostedWaste: 'Wasted',
+  uncostedCount: 'Counted short',
+  uncostedAdjust: 'Adjusted down',
   corrected: 'Cost corrected. The books show the difference.',
   downloadTitle: 'Download the books',
   downloadNote:

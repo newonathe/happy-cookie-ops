@@ -4209,7 +4209,12 @@ export class OpsRuntime extends OpsProvider {
         id: u.id,
         item: u.item,
         detail:
-          (u.kind === 'waste' ? BOOKS_COPY.uncostedWaste : BOOKS_COPY.uncostedUse) +
+          {
+            use: BOOKS_COPY.uncostedUse,
+            waste: BOOKS_COPY.uncostedWaste,
+            count: BOOKS_COPY.uncostedCount,
+            adjust: BOOKS_COPY.uncostedAdjust
+          }[u.kind] +
           ' · ' +
           u.qty +
           ' ' +
