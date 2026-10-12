@@ -5,6 +5,15 @@ is in [current.md](current.md). Sections were moved here from `current.md` on 20
 again, with the earlier goals from `next-goal.md`, on 2026-10-05, and again on 2026-10-06. Add nothing here by hand;
 move a checkpoint here when it leaves `current.md`.
 
+# Moved from current.md on 2026-10-12
+
+The closed-slice paragraph of "Where things stand", verbatim.
+
+**B3b-2, 8 October:** migration 61 (`20260101006000_books_used.sql`), **not on the trial and not before
+B4's cost cutover** (final-plan.md section 11), and the runtime. The books count stock when used and list what
+has no cost, packs and bazaar sales included. The owner's screens read `get_item_costs` and `get_recipe_costs`;
+an unknown cost reads "Cost pending". On the trial (migration 55) the engine's own path stands, as today.
+
 # Moved from current.md on 2026-10-08
 
 The closed-slice paragraphs of "Where things stand", verbatim.

@@ -4,7 +4,7 @@ Read this page first in a new session. It is kept short on purpose.
 
 | If you need                                        | Read                                                                                                                                                     |
 | -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| The goal to run next                               | [next-goal.md](next-goal.md) (slice B4)                                                                                                                  |
+| The goal to run next                               | [next-goal.md](next-goal.md) (slice B4b)                                                                                                                 |
 | The plan, approved 5 October                       | [final-plan.md](final-plan.md), version 2                                                                                                                |
 | The rules every agent follows                      | [AGENTS.md](../../AGENTS.md)                                                                                                                             |
 | Ethan's and Cine's decisions                       | [decision-register.md](decision-register.md)                                                                                                             |
@@ -16,15 +16,17 @@ Read this page first in a new session. It is kept short on purpose.
 
 ## Where things stand — 7 October 2026
 
-**The plan is approved; stage A (A1 to A4) and slices B1, B2, B3a, B3b-1 and B3b-2 are built.** Ethan approved
+**The plan is approved; stage A (A1 to A4) and slices B1, B2, B3a, B3b-1, B3b-2 and B4a are built.** Ethan approved
 [final-plan.md](final-plan.md), version 2, on 5 October after a re-audit, a debate and
 wider research. It replaces finish-plan.md as the forward plan. The Bazaar defect B1 found is
-fixed (below). The next step is slice B4 (her data).
+fixed (below). The next step is slice B4b (photos, newer sales) and your answers (below).
 
-**B3b-2, 8 October:** migration 61 (`20260101006000_books_used.sql`), **not on the trial and not before
-B4's cost cutover** (final-plan.md section 11), and the runtime. The books count stock when used and list what
-has no cost, packs and bazaar sales included. The owner's screens read `get_item_costs` and `get_recipe_costs`;
-an unknown cost reads "Cost pending". On the trial (migration 55) the engine's own path stands, as today.
+**B4a, 12 October:** the database half of B4 (migrations 62 to 64), **none on the trial**. "When used" now
+starts at a previewed cutover date: stock then on hand is valued once from her price list and credited once, so
+stock already expensed in the historical lines is not expensed again (this takes back migration 61's flip; the
+basis stays "bought" until the cutover is applied). An opening count is refused after it, and the preview lists
+the items never counted. Her items, prices, recipes, flavour prices and bookings go in through `preview_import_*`
+and `apply_import_*` (operator only, hash-checked). B4b (photos, newer sales) is next.
 
 Stage A and slices B1 and B2, as each was recorded when it closed, are in [current-history.md](current-history.md), the section moved on 7 October.
 
@@ -90,7 +92,7 @@ All in [decision-register.md](decision-register.md), the section for 5 October.
 
 ### Waiting on Ethan
 
-- **Migrations 56 to 61 (B3a, B3b-1, B3b-2) are not on the trial, and nothing in the bazaar needs them.** Migration 61 waits for B4's cost cutover: without it, stock already in the historical lines is expensed again when used.
+- **Migrations 56 to 64 (B3a, B3b-1, B3b-2, B4a) are not on the trial, and nothing in the bazaar needs them.** Apply 61 to 64 only together with the cutover (below).
   Recommended: not before 27 October. When you say so, in one quiet sitting and in this order,
   each file as one transaction: (1) read the owner and grants of `business_clock`, `place_order`
   and `join_waitlist`, and the 40 policies against `tests/fixtures/policies-before-58.json`;
@@ -101,10 +103,15 @@ All in [decision-register.md](decision-register.md), the section for 5 October.
   a name that is not exactly one stock item is listed and nothing is written). Until it runs, a pack or bazaar
   sale takes no packaging and is flagged. A recipe line still listed as unmatched takes no stock when baked: fix it in
   Recipes before baking. `python scripts/test-b3a-upgrade.py` rehearses steps 2 to 6 on the
-  local database.
+  local database. Then (7) apply 61 to 64; (8) with Cine's opening count done, run `preview_cost_cutover()`, read
+  `not_counted` and the items with no cost, then `apply_cost_cutover('<its hash and total>')` once; (9) run each
+  `preview_import_*`, read what is unmatched, and apply it with its hash and counts.
 - **Decided 8 October (B3b):** today's packaging rule is entered by hand through that script; her per-cookie
   packaging lines reach the trial after 26 October with B4, once 56 to 60 are applied, and the pouch leaves the
   bazaar-sale and loose rules in the same sitting; undoing an untouched delivery is built in B5 with the receive form.
+- **Decided 12 October (B4a):** a dated cutover with one opening credit, as built; B4 split into B4a (done) and B4b (photos,
+  newer sales). **Open, yours** ([register](decision-register.md)): what a stock count after the cutover does to the books, and
+  the recipe questions (pouch naming, per-cookie packaging, items missing from her master).
 - A1 is built (the release check takes two to six addresses; Cine is not added yet). Add her
   two addresses to Cloudflare Access and the approved-digest variable in one sitting, or the
   next deploy fails. Set the session to one week: that deploy then fails once and prints the

@@ -331,6 +331,36 @@ No migration goes on the trial without his word.
 | A set (the sampler) when packing                               | Counts as one cookie, as before. A sampler-only order is still packable.                                                               | Carried over unchanged; a container of its own for sets is a later rule.  |
 | Recipe packaging lines at a bake                               | Never taken. Taken when the cookie is packed or sold.                                                                                  | A quantity per cookie belongs to the cookie leaving, not to the batch.    |
 
+### Slice B4a, 12 October 2026: the cutover and the split
+
+Ethan decided both questions on 12 October, in plan mode, taking the recommendation each time.
+
+| Question                                                         | Decision                                                                                                                                                                                                                                                                |
+| ---------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| How the books switch to "when used" without counting stock twice | A dated cutover with one opening credit (migration 62). "Used" starts at a previewed date; the stock then on hand is valued once from her price list and credited once; before the date the books stay on "bought". Applied once, after 26 October, by the operator.    |
+| The size of B4                                                   | Split. B4a (done): the cutover and the operator's preview and apply for items, prices, recipes, flavour prices and bookings. B4b (next, on his laptop): photos (561 MB, resized under the 2 MB limit) and newer sales (appended against the trial's exact ledger hash). |
+
+**Defaults, not decisions.** Chosen by the builder; each is Ethan's or Cine's to change.
+
+| Rule                                                          | Default                                                                                                    | Why                                                                       |
+| ------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| An item with stock but no known cost at the cutover           | Listed, credited nothing. Its uses stay expensed twice until it is priced.                                 | A credit built on a guess is worse than a visible gap.                    |
+| An opening count after the cutover                            | Refused.                                                                                                   | Its purchase is already in the historical lines and is not in the credit. |
+| An item never counted                                         | Listed in the cutover preview as not counted.                                                              | The operator sees what the credit cannot include before applying.         |
+| A name with a non-breaking or zero-width space, or not in NFC | Refused by every import.                                                                                   | It would create a second record that looks the same.                      |
+| Two price rows for one item on one date                       | Refused.                                                                                                   | The usual price would fall to an arbitrary id order.                      |
+| An import                                                     | Whole or nothing: the caller approves the preview as it stands; an unmatched row is listed and left alone. | Nothing is guessed.                                                       |
+
+**Open, Ethan's:**
+
+1. **A stock count after the cutover.** Today a count or an adjustment leaves the books alone (a B3a default), so a count that finds less
+   loses credited stock with no expense. Recommended: a count that finds less is an expense at the item's cost, one that finds more is no
+   entry. Not built.
+2. **The recipes that do not import cleanly.** As the 8 October preview reported on her workbook, 4 of 23 recipes import cleanly and
+   the rest wait on: how her plastic pouch and sticker are named and priced (a unit of bags; no unit or price), whether each flavour's
+   packaging lines are per cookie, and four items missing from her master or with a mismatched unit (oats, sea salt, the sauce tub).
+   Her costing reproduced for 22 of 23 flavours from her own price list; one differs by about ₱11.40. Nothing is guessed.
+
 ## Amended decisions (open — block the listed work)
 
 **DP-02 · Payment timing** — blocks MP-10, MP-12.
