@@ -7,7 +7,14 @@ move a checkpoint here when it leaves `current.md`.
 
 # Moved from current.md on 2026-10-12
 
-The closed-slice paragraph of "Where things stand", verbatim.
+The closed-slice paragraphs of "Where things stand", verbatim.
+
+**B4a, 12 October:** the database half of B4 (migrations 62 to 64), **none on the trial**. "When used" now
+starts at a previewed cutover date: stock then on hand is valued once from her price list and credited once, so
+stock already expensed in the historical lines is not expensed again (this takes back migration 61's flip; the
+basis stays "bought" until the cutover is applied). An opening count is refused after it, and the preview lists
+the items never counted. Her items, prices, recipes, flavour prices and bookings go in through `preview_import_*`
+and `apply_import_*` (operator only, hash-checked). B4b (photos, newer sales) is next.
 
 **B3b-2, 8 October:** migration 61 (`20260101006000_books_used.sql`), **not on the trial and not before
 B4's cost cutover** (final-plan.md section 11), and the runtime. The books count stock when used and list what

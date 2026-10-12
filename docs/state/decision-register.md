@@ -351,15 +351,35 @@ Ethan decided both questions on 12 October, in plan mode, taking the recommendat
 | Two price rows for one item on one date                       | Refused.                                                                                                   | The usual price would fall to an arbitrary id order.                      |
 | An import                                                     | Whole or nothing: the caller approves the preview as it stands; an unmatched row is listed and left alone. | Nothing is guessed.                                                       |
 
-**Open, Ethan's:**
+**Open, Ethan's:** both questions below were answered the same day, in B4b's plan mode (next section).
 
-1. **A stock count after the cutover.** Today a count or an adjustment leaves the books alone (a B3a default), so a count that finds less
-   loses credited stock with no expense. Recommended: a count that finds less is an expense at the item's cost, one that finds more is no
-   entry. Not built.
-2. **The recipes that do not import cleanly.** As the 8 October preview reported on her workbook, 4 of 23 recipes import cleanly and
-   the rest wait on: how her plastic pouch and sticker are named and priced (a unit of bags; no unit or price), whether each flavour's
-   packaging lines are per cookie, and four items missing from her master or with a mismatched unit (oats, sea salt, the sauce tub).
-   Her costing reproduced for 22 of 23 flavours from her own price list; one differs by about ₱11.40. Nothing is guessed.
+### Slice B4b, 12 October 2026: the count rule, her recipes, her newer sales and her photos
+
+Ethan answered four questions in plan mode on 12 October, taking the recommendation each time.
+
+| Question                                                          | Decision                                                                                                                                                  |
+| ----------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A stock count after the cutover                                   | A count that finds less is an expense at the item's cost; one that finds more is no entry. Built in migration 65.                                         |
+| Her eight packaging items                                         | All are per-cookie packaging lines: Apple Pie Box, Banoffee Pie Box, Heart-shaped box with lid, Kraft pouch, Pink box, Plastic pouch, Sauce Tub, Sticker. |
+| Recipe items missing from her master (Oats, Sea salt, Sauce Tub)  | Created as stock items with no price. A recipe using them reads "Cost pending" until it is priced.                                                        |
+| A unit that disagrees with her master (Biscoff cookies, Pink box) | The recipe is held and listed until Cine fixes the unit. Nothing is converted.                                                                            |
+
+**Defaults, not decisions.** Chosen by the builder; each is Ethan's or Cine's to change.
+
+| Rule                                                           | Default                                                                                                                                                                                                 | Why                                                              |
+| -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| A negative stock adjustment after the cutover                  | Follows the count rule: an expense at the item's cost.                                                                                                                                                  | A removal by hand is a loss the same as a count.                 |
+| A recipe line with no quantity (a Sea salt line in one recipe) | The recipe is held and listed.                                                                                                                                                                          | Nothing is guessed.                                              |
+| A flavour photo                                                | Always re-encoded in the browser to WebP (JPEG where WebP is not available), longest side 1,600 px, under 1.9 MB, location data dropped. A file over 40 MiB or a picture over 50 megapixels is refused. | The bucket is public; an 18 MB original must not freeze the tab. |
+| Newer sales                                                    | Appended before the cutover, the opening counts and the first order. A row whose date is not settled by the rules the first import was approved on is listed, not written.                              | The append guard refuses afterwards.                             |
+
+**Known, not built.** The reviewers' P3s, so nobody assumes they are covered:
+
+1. Stock counted down, then found again by a count up, then used is expensed twice: the count up books nothing and the average does not move. This follows from the rule above; Ethan can change it.
+2. The migration 65 guard (it refuses to run after a cutover with a lowering count) and the rounding of a half-centavo shortfall have no test.
+3. Flavour photos already in the bucket before 12 October may carry location data; check them once.
+4. The books' "N uses not costed" caption also counts counts and adjustments.
+5. The Sales sheet's memo is "Workbook Sales row N"; how the first import worded its memos was not found.
 
 ## Amended decisions (open — block the listed work)
 
