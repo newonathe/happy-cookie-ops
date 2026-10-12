@@ -11,7 +11,11 @@
 -- bake writes a use row even when nothing was taken. What the credit cannot include), counts them and hashes them; an `opening` stock movement
 -- is refused once the cutover has been applied (the item's purchase is already in the historical lines, and it was not in the credit, so its
 -- uses would be expensed twice); and a cutover cleared by hand while the basis is still `used` is read as the bought basis, so every purchase and
--- every use is not counted at once. The harness neutralises each `-- rule:` line of
+-- every use is not counted at once. B4b-1 (migration 65, Ethan's decision of 12 October): after the cutover a stock COUNT that finds less than the
+-- books say, and by default a negative stock ADJUSTMENT, is an expense at the item's cost (stamped when it is written, as a waste is; the average cost
+-- is NOT moved); a count that finds more, or the same, and a positive adjustment book nothing. With no known cost the movement is listed in
+-- `uncosted` (kind count or adjust), never as a zero line. Before the cutover, and on the bought basis, nothing is booked. The side is the order of
+-- writing (seq > cut_seq), never the date. The harness neutralises each `-- rule:` line of
 -- supabase/migrations/20260101006100_cost_cutover.sql (and 20260101006400_cutover_guard.sql) in turn (scripts/test-db-security.py, COST_CUTOVER_MUTATIONS) and requires the named
 -- case here to fail. Outcome messages carry no quote character: the harness redacts quoted literals.
 --
@@ -50,6 +54,15 @@
 --   a correction dated T - 30 minutes to the delivery from before the cutover (cost 30000 -> 31000, 600 of it already used): its ledger line
 --   (1000) is NOT an expense and the correction's 600 is: counted once
 --   84045 + 3000 + 120 + 100 + 600 = 87865.
+-- B4b-1, written after the apply (the fourth owner phase), items made up for it, each with its cost:
+--   a count 100 -> 90 g at 3 c/g = 30 (and sent again with the same id: still 30, one row); a count 20 -> 25 and 25 -> 25: nothing
+--   an adjustment -5 g at 4 c/g = 20; +5 g: nothing; -1000 g with 50 g on hand (taken down to what is there) = 50 x 4 = 200
+--   a count 100 -> 50 g at the usual price, 1.2 c/g = 60; a count 10 -> 8 g at 5 c/g = 10, dated an hour BEFORE the cutover but written after it
+--   a count 40 -> 30 g and an adjustment -4 g of an item with no cost: listed as uncosted (10 g, 4 g), no line, nothing stamped; a count
+--   10 -> 8 g of another, dated an hour before the cutover and written after it: listed too (2 g)
+--   three rows a hand could write (a count up, a count of the same, an adjustment up, each with a cost stamp): not an expense, not listed
+--   written BEFORE the apply, dated 30 days back: a count 10 -> 0 g at 2 c/g and a count 7 -> 0 g with no cost: nothing in the books, nothing listed
+--   counts 30 + 60 + 10 = 100, adjustments 20 + 200 = 220; the whole span of 87865 becomes 87865 + 100 + 220 = 88185.
 begin;
 create temporary table authority_results (operation text, actor text, outcome text);
 grant insert on authority_results to anon, authenticated, service_role;
@@ -223,6 +236,40 @@ create function pg_temp.receipt_sugar() returns void language sql security defin
 create function pg_temp.count_sugar() returns void language sql security definer as $$
   insert into public.stock_movements(id, item_id, kind, qty_delta, counted, supplier, reason, at, payload_hash)
   values (pg_temp.uid('2', 8), 'cci-sugar', 'count', 0, 510, '', '', now(), repeat('b', 64)) $$;
+
+-- B4b-1: items with a cost, a movement with a date and a reason, and the readers for the stamp and the stock.
+create function pg_temp.add_costed(item text, item_name text, qty numeric, avg numeric) returns void language sql security definer as $$
+  insert into public.inventory_items(id, name, unit, category, active, on_hand, avg_cost, avg_cost_at)
+  values (item, item_name, 'g', 'Ingredients', true, qty, avg, case when avg is null then null else now() - interval '5 days' end) $$;
+create function pg_temp.add_usual(item text, item_name text, qty numeric, price integer, pack integer) returns void language sql security definer as $$
+  insert into public.inventory_items(id, name, unit, category, active, on_hand) values (item, item_name, 'g', 'Ingredients', true, qty);
+  insert into public.item_prices(id, item_id, price_cents, pack_size, as_of, payload_hash) values (gen_random_uuid(), item, price, pack, current_date, repeat('a', 64)) $$;
+create function pg_temp.ms(ts timestamptz) returns bigint language sql immutable as $$
+  select (extract(epoch from ts) * 1000)::bigint $$;
+create function pg_temp.mvx(mv_id uuid, item text, kind text, qty numeric, why text, at_ts timestamptz) returns jsonb language sql stable as $$
+  select jsonb_build_object('id', mv_id::text, 'item_id', item, 'kind', kind, 'qty', qty, 'cost_cents', null, 'supplier', '', 'reason', why,
+    'at', pg_temp.ms(at_ts)) $$;
+create function pg_temp.rec(actor text, op text, body jsonb, wanted text) returns void
+language plpgsql security invoker as $$
+begin
+  perform pg_temp.expect(actor, op, format('select * from public.record_stock_movement(%L::jsonb)', body::text), wanted);
+end $$;
+create function pg_temp.on_hand_of(item text) returns numeric language sql stable security definer as $$
+  select on_hand from public.inventory_items where id = item $$;
+create function pg_temp.stamp_of(mv_id uuid) returns jsonb language sql stable security definer as $$
+  select jsonb_build_object('unit_cost', unit_cost, 'source', cost_source) from public.stock_movements where id = mv_id $$;
+create function pg_temp.sumlbl(j jsonb, pattern text) returns bigint language sql immutable as $$
+  select coalesce(sum((l ->> 'amount_cents')::bigint), 0)::bigint from jsonb_array_elements(j -> 'lines') l
+   where l ->> 'kind' = 'expense' and l ->> 'label' like pattern $$;
+create function pg_temp.unc_n(j jsonb) returns integer language sql immutable as $$
+  select count(*)::integer from jsonb_array_elements(j -> 'uncosted') u where u ->> 'kind' in ('count', 'adjust') $$;
+-- Rows the screen cannot write, only a hand or an older version could: a count that found more, a count that found the same and an adjustment up, each
+-- carrying a cost stamp. The books must still book nothing for them (a stamp alone is not an expense; the stock went the other way).
+create function pg_temp.stamped_up(at_ts timestamptz) returns void language sql security definer as $$
+  insert into public.stock_movements(id, item_id, kind, qty_delta, counted, supplier, reason, at, payload_hash, unit_cost, cost_source) values
+    (pg_temp.uid('6', 31), 'cci-cb', 'count', 5, 30, '', '', at_ts, repeat('1', 64), 3, 'usual'),
+    (pg_temp.uid('6', 32), 'cci-cb', 'count', 0, 30, '', '', at_ts, repeat('2', 64), 3, 'usual'),
+    (pg_temp.uid('6', 33), 'cci-cb', 'adjust', 5, null, '', 'Found', at_ts, repeat('3', 64), 3, 'usual') $$;
 
 -- The operator's calls (as postgres) and the book readers (as the owner).
 create function pg_temp.pv() returns jsonb language sql volatile security invoker as $$
@@ -398,6 +445,12 @@ begin
   j := pg_temp.bk(now() - interval '10 days', now() + interval '1 day');
   perform pg_temp.assert_ok(a, 'books_bought_until_the_cutover',
     j ->> 'basis' = 'bought' and pg_temp.sumk(j, 'expense') = 87000 and pg_temp.bl(j, 'k:opening') is null);
+  -- ---- B4b-1: two counts written BEFORE the cutover, dated 30 days back (outside every period above), each taking an item down to nothing so the
+  -- preview and the credit stay as they were: one with a cost (2 c/g), one with none. Nothing is booked for either; phase 4 shows it.
+  perform pg_temp.add_costed('cci-pre-a', 'CC4 Pre costed', 10, 2);
+  perform pg_temp.add_costed('cci-pre-b', 'CC4 Pre uncosted', 7, null);
+  perform pg_temp.rec(a, 'b4b1_pre_count_costed', pg_temp.mvx(pg_temp.uid('6', 21), 'cci-pre-a', 'count', 0, '', now() - interval '30 days'), '00000');
+  perform pg_temp.rec(a, 'b4b1_pre_count_uncosted', pg_temp.mvx(pg_temp.uid('6', 22), 'cci-pre-b', 'count', 0, '', now() - interval '30 days'), '00000');
 end $$;
 
 -- The operator applies the cutover (as postgres).
@@ -567,6 +620,131 @@ begin
   perform pg_temp.assert_ok(a, 'opening_replay_wrote_nothing_more', pg_temp.moves_of('cci-card') = 1 and pg_temp.used_from() = v_t);
 end $$;
 
+-- B4b-1: a count that finds less stock than the books say, and a negative adjustment, are an expense at the item's cost once the cutover is in;
+-- more stock, the same stock and a positive adjustment book nothing; no cost lists it as uncosted; before the cutover nothing is booked.
+create function pg_temp.phase_owner_4(a text) returns void language plpgsql security invoker as $$
+declare t timestamptz := pg_temp.used_from(); j jsonb; w jsonb; x jsonb; v_all jsonb;
+begin
+  perform pg_temp.add_costed('cci-ca', 'CC4 Count A', 100, 3);
+  perform pg_temp.add_costed('cci-cb', 'CC4 Count B', 20, 2);
+  perform pg_temp.add_costed('cci-cc', 'CC4 Adjust', 50, 4);
+  perform pg_temp.add_costed('cci-cd', 'CC4 No cost', 40, null);
+  perform pg_temp.add_usual('cci-ce', 'CC4 Usual', 100, 1200, 1000);
+  perform pg_temp.add_costed('cci-cf', 'CC4 Late', 10, 5);
+  perform pg_temp.add_costed('cci-cg', 'CC4 Late no cost', 10, null);
+  -- a count down (100 -> 90), and the same count sent again (the phone's queue): one row
+  perform pg_temp.rec(a, 'b4b1_count_down', pg_temp.mvx(pg_temp.uid('6', 1), 'cci-ca', 'count', 90, '', t + interval '1 hour'), '00000');
+  perform pg_temp.rec(a, 'b4b1_count_down_replay', pg_temp.mvx(pg_temp.uid('6', 1), 'cci-ca', 'count', 90, '', t + interval '1 hour'), '00000');
+  -- a count up (20 -> 25) and a count that finds what the books say (25 -> 25)
+  perform pg_temp.rec(a, 'b4b1_count_up', pg_temp.mvx(pg_temp.uid('6', 2), 'cci-cb', 'count', 25, '', t + interval '1 hour'), '00000');
+  perform pg_temp.rec(a, 'b4b1_count_same', pg_temp.mvx(pg_temp.uid('6', 3), 'cci-cb', 'count', 25, '', t + interval '2 hours'), '00000');
+  -- adjustments: -5, +5, then more than is there (taken down to what is there)
+  perform pg_temp.rec(a, 'b4b1_adjust_down', pg_temp.mvx(pg_temp.uid('6', 4), 'cci-cc', 'adjust', -5, 'Spilled', t + interval '1 hour'), '00000');
+  perform pg_temp.rec(a, 'b4b1_adjust_up', pg_temp.mvx(pg_temp.uid('6', 5), 'cci-cc', 'adjust', 5, 'Found', t + interval '2 hours'), '00000');
+  perform pg_temp.rec(a, 'b4b1_adjust_down_clamped', pg_temp.mvx(pg_temp.uid('6', 6), 'cci-cc', 'adjust', -1000, 'Lost', t + interval '3 hours'), '00000');
+  -- no known cost: a count down and an adjustment down
+  perform pg_temp.rec(a, 'b4b1_count_down_no_cost', pg_temp.mvx(pg_temp.uid('6', 7), 'cci-cd', 'count', 30, '', t + interval '1 hour'), '00000');
+  perform pg_temp.rec(a, 'b4b1_adjust_down_no_cost', pg_temp.mvx(pg_temp.uid('6', 8), 'cci-cd', 'adjust', -4, 'Spilled', t + interval '2 hours'), '00000');
+  -- her usual price, and a count dated before the cutover but written after it
+  perform pg_temp.rec(a, 'b4b1_count_down_usual_price', pg_temp.mvx(pg_temp.uid('6', 9), 'cci-ce', 'count', 50, '', t + interval '1 hour'), '00000');
+  perform pg_temp.rec(a, 'b4b1_count_down_dated_before_cutover', pg_temp.mvx(pg_temp.uid('6', 10), 'cci-cf', 'count', 8, '', t - interval '1 hour'), '00000');
+  perform pg_temp.rec(a, 'b4b1_count_down_no_cost_dated_before_cutover', pg_temp.mvx(pg_temp.uid('6', 11), 'cci-cg', 'count', 8, '', t - interval '1 hour'), '00000');
+  perform pg_temp.assert_ok(a, 'b4b1_replay_wrote_one_row', pg_temp.moves_of('cci-ca') = 1);
+  perform pg_temp.stamped_up(t + interval '1 hour');
+
+  -- ---- what is stamped: the cost known when the movement was written, only for a movement that takes stock off the books; none known is null, never 0
+  perform pg_temp.assert_ok(a, 'b4b1_count_down_is_stamped',
+    pg_temp.stamp_of(pg_temp.uid('6', 1)) = '{"unit_cost": 3, "source": "average"}'::jsonb
+    and pg_temp.stamp_of(pg_temp.uid('6', 4)) = '{"unit_cost": 4, "source": "average"}'::jsonb
+    and pg_temp.stamp_of(pg_temp.uid('6', 6)) = '{"unit_cost": 4, "source": "average"}'::jsonb
+    and pg_temp.stamp_of(pg_temp.uid('6', 9)) = '{"unit_cost": 1.2, "source": "usual"}'::jsonb
+    and pg_temp.stamp_of(pg_temp.uid('6', 10)) = '{"unit_cost": 5, "source": "average"}'::jsonb);
+  perform pg_temp.assert_ok(a, 'b4b1_count_up_same_adjust_up_not_stamped',
+    pg_temp.stamp_of(pg_temp.uid('6', 2)) = '{"unit_cost": null, "source": null}'::jsonb
+    and pg_temp.stamp_of(pg_temp.uid('6', 3)) = '{"unit_cost": null, "source": null}'::jsonb
+    and pg_temp.stamp_of(pg_temp.uid('6', 5)) = '{"unit_cost": null, "source": null}'::jsonb);
+  perform pg_temp.assert_ok(a, 'b4b1_no_cost_is_null_not_zero',
+    pg_temp.stamp_of(pg_temp.uid('6', 7)) = '{"unit_cost": null, "source": null}'::jsonb
+    and pg_temp.stamp_of(pg_temp.uid('6', 8)) = '{"unit_cost": null, "source": null}'::jsonb);
+  -- the stock moves as it always did, and no average is written or moved by a count or an adjustment
+  perform pg_temp.assert_ok(a, 'b4b1_stock_moves_and_average_stays',
+    pg_temp.on_hand_of('cci-ca') = 90 and pg_temp.on_hand_of('cci-cb') = 25 and pg_temp.on_hand_of('cci-cc') = 0
+    and pg_temp.on_hand_of('cci-cd') = 26 and pg_temp.on_hand_of('cci-ce') = 50 and pg_temp.on_hand_of('cci-cf') = 8
+    and pg_temp.avg_cost('cci-ca') = 3 and pg_temp.avg_cost('cci-cb') = 2 and pg_temp.avg_cost('cci-cc') = 4
+    and pg_temp.avg_cost('cci-cd') is null and pg_temp.avg_cost('cci-ce') is null and pg_temp.avg_cost('cci-cf') = 5);
+
+  -- ---- the books, [T - 2 hours, T + 4 hours)
+  j := pg_temp.bk(t - interval '2 hours', t + interval '4 hours');
+  perform pg_temp.assert_ok(a, 'b4b1_count_down_is_an_expense',
+    pg_temp.bl(j, 'm:' || pg_temp.uid('6', 1)) = jsonb_build_object('id', 'm:' || pg_temp.uid('6', 1), 'kind', 'expense', 'cat', 'Ingredients',
+      'label', 'Count: CC4 Count A', 'amount_cents', 30, 'at', pg_temp.ms(t + interval '1 hour'), 'short_qty', 0));
+  perform pg_temp.assert_ok(a, 'b4b1_replayed_count_is_one_expense',
+    (select count(*) from jsonb_array_elements(j -> 'lines') l where l ->> 'label' = 'Count: CC4 Count A') = 1);
+  perform pg_temp.assert_ok(a, 'b4b1_adjust_down_is_an_expense',
+    pg_temp.bl(j, 'm:' || pg_temp.uid('6', 4)) = jsonb_build_object('id', 'm:' || pg_temp.uid('6', 4), 'kind', 'expense', 'cat', 'Ingredients',
+      'label', 'Adjustment: CC4 Adjust', 'amount_cents', 20, 'at', pg_temp.ms(t + interval '1 hour'), 'short_qty', 0));
+  perform pg_temp.assert_ok(a, 'b4b1_adjust_clamped_books_what_was_there',
+    pg_temp.bl(j, 'm:' || pg_temp.uid('6', 6)) ->> 'amount_cents' = '200' and pg_temp.bl(j, 'm:' || pg_temp.uid('6', 6)) ->> 'label' = 'Adjustment: CC4 Adjust');
+  perform pg_temp.assert_ok(a, 'b4b1_count_down_at_the_usual_price',
+    pg_temp.bl(j, 'm:' || pg_temp.uid('6', 9)) ->> 'amount_cents' = '60' and pg_temp.bl(j, 'm:' || pg_temp.uid('6', 9)) ->> 'label' = 'Count: CC4 Usual');
+  perform pg_temp.assert_ok(a, 'b4b1_count_up_same_adjust_up_book_nothing',
+    pg_temp.bl(j, 'm:' || pg_temp.uid('6', 2)) is null and pg_temp.bl(j, 'm:' || pg_temp.uid('6', 3)) is null and pg_temp.bl(j, 'm:' || pg_temp.uid('6', 5)) is null
+    and pg_temp.unc(j, 'm:' || pg_temp.uid('6', 2)) is null and pg_temp.unc(j, 'm:' || pg_temp.uid('6', 3)) is null and pg_temp.unc(j, 'm:' || pg_temp.uid('6', 5)) is null);
+  perform pg_temp.assert_ok(a, 'b4b1_stamped_count_up_books_nothing',
+    pg_temp.bl(j, 'm:' || pg_temp.uid('6', 31)) is null and pg_temp.bl(j, 'm:' || pg_temp.uid('6', 32)) is null and pg_temp.bl(j, 'm:' || pg_temp.uid('6', 33)) is null
+    and pg_temp.unc(j, 'm:' || pg_temp.uid('6', 31)) is null and pg_temp.unc(j, 'm:' || pg_temp.uid('6', 32)) is null and pg_temp.unc(j, 'm:' || pg_temp.uid('6', 33)) is null);
+  -- written after the apply, dated before it: the side is the order of writing (the stock WAS in the opening credit)
+  perform pg_temp.assert_ok(a, 'b4b1_count_dated_before_cutover_is_written_after',
+    pg_temp.bl(j, 'm:' || pg_temp.uid('6', 10)) ->> 'amount_cents' = '10'
+    and (pg_temp.bl(j, 'm:' || pg_temp.uid('6', 10)) ->> 'at')::bigint = pg_temp.ms(t - interval '1 hour'));
+  perform pg_temp.assert_ok(a, 'b4b1_counts_and_adjustments_sum',
+    pg_temp.sumlbl(j, 'Count: %') = 100 and pg_temp.sumlbl(j, 'Adjustment: %') = 220);
+  -- no cost: listed, with its kind and the quantity that went, and not a line
+  perform pg_temp.assert_ok(a, 'b4b1_count_down_no_cost_is_listed',
+    pg_temp.unc(j, 'm:' || pg_temp.uid('6', 7)) = jsonb_build_object('id', 'm:' || pg_temp.uid('6', 7), 'kind', 'count', 'item', 'CC4 No cost',
+      'qty', 10, 'unit', 'g', 'at', pg_temp.ms(t + interval '1 hour')));
+  perform pg_temp.assert_ok(a, 'b4b1_adjust_down_no_cost_is_listed',
+    pg_temp.unc(j, 'm:' || pg_temp.uid('6', 8)) = jsonb_build_object('id', 'm:' || pg_temp.uid('6', 8), 'kind', 'adjust', 'item', 'CC4 No cost',
+      'qty', 4, 'unit', 'g', 'at', pg_temp.ms(t + interval '2 hours')));
+  perform pg_temp.assert_ok(a, 'b4b1_no_cost_is_never_a_line',
+    pg_temp.bl(j, 'm:' || pg_temp.uid('6', 7)) is null and pg_temp.bl(j, 'm:' || pg_temp.uid('6', 8)) is null and pg_temp.bl(j, 'm:' || pg_temp.uid('6', 11)) is null
+    and pg_temp.sumlbl(j, '%CC4 No cost') = 0 and pg_temp.sumlbl(j, '%CC4 Late no cost') = 0);
+  -- written after the apply, dated before it: listed all the same (the order of writing)
+  perform pg_temp.assert_ok(a, 'b4b1_late_dated_no_cost_count_is_listed',
+    pg_temp.unc(j, 'm:' || pg_temp.uid('6', 11)) = jsonb_build_object('id', 'm:' || pg_temp.uid('6', 11), 'kind', 'count', 'item', 'CC4 Late no cost',
+      'qty', 2, 'unit', 'g', 'at', pg_temp.ms(t - interval '1 hour')));
+  perform pg_temp.assert_ok(a, 'b4b1_costed_movements_are_not_uncosted',
+    pg_temp.unc(j, 'm:' || pg_temp.uid('6', 1)) is null and pg_temp.unc(j, 'm:' || pg_temp.uid('6', 4)) is null and pg_temp.unc(j, 'm:' || pg_temp.uid('6', 10)) is null
+    and pg_temp.unc_n(j) = 3);
+
+  -- ---- before the cutover nothing is booked, costed or not: a period that holds only the two counts written before the apply
+  w := pg_temp.bk(now() - interval '31 days', now() - interval '29 days');
+  perform pg_temp.assert_ok(a, 'b4b1_count_before_cutover_books_nothing',
+    w ->> 'basis' = 'used' and pg_temp.nl(w) = 0 and pg_temp.bl(w, 'm:' || pg_temp.uid('6', 21)) is null);
+  perform pg_temp.assert_ok(a, 'b4b1_count_before_cutover_is_not_uncosted',
+    jsonb_array_length(w -> 'uncosted') = 0 and pg_temp.unc(w, 'm:' || pg_temp.uid('6', 22)) is null);
+  perform pg_temp.assert_ok(a, 'b4b1_count_before_cutover_is_still_stamped',
+    pg_temp.stamp_of(pg_temp.uid('6', 21)) = '{"unit_cost": 2, "source": "average"}'::jsonb
+    and pg_temp.stamp_of(pg_temp.uid('6', 22)) = '{"unit_cost": null, "source": null}'::jsonb and pg_temp.on_hand_of('cci-pre-a') = 0);
+  -- a period across the cutover is right on both sides: the two before are left out, the six after are in once
+  x := pg_temp.bk(now() - interval '31 days', t + interval '4 hours');
+  perform pg_temp.assert_ok(a, 'b4b1_period_across_the_cutover',
+    pg_temp.sumlbl(x, 'Count: %') = 100 and pg_temp.sumlbl(x, 'Adjustment: %') = 220
+    and pg_temp.bl(x, 'm:' || pg_temp.uid('6', 21)) is null and pg_temp.unc(x, 'm:' || pg_temp.uid('6', 22)) is null
+    and pg_temp.bl(x, 'm:' || pg_temp.uid('6', 1)) is not null and pg_temp.unc_n(x) = 3);
+  -- the whole span of the earlier cases: 87865 + 100 + 220
+  v_all := pg_temp.bk(t - interval '10 days', t + interval '2 days');
+  perform pg_temp.assert_ok(a, 'b4b1_whole_span_total', pg_temp.sumk(v_all, 'expense') = 88185);
+
+  -- ---- on the bought basis a count or an adjustment is not an expense and not listed
+  perform pg_temp.expect(a, 'b4b1_basis_bought', 'select public.set_cost_basis(''bought'')', '00000');
+  j := pg_temp.bk(t - interval '2 hours', t + interval '4 hours');
+  perform pg_temp.assert_ok(a, 'b4b1_bought_basis_books_no_count',
+    j ->> 'basis' = 'bought' and pg_temp.sumlbl(j, 'Count: %') = 0 and pg_temp.sumlbl(j, 'Adjustment: %') = 0 and pg_temp.unc_n(j) = 0
+    and pg_temp.bl(j, 'm:' || pg_temp.uid('6', 1)) is null);
+  perform pg_temp.expect(a, 'b4b1_basis_used', 'select public.set_cost_basis(''used'')', '00000');
+end $$;
+
 grant execute on function
   pg_temp.uid(text, integer), pg_temp.used_from(), pg_temp.basis(), pg_temp.used_ms(), pg_temp.cutover_rows(), pg_temp.cutover_row(), pg_temp.audit_n(),
   pg_temp.audit_detail(), pg_temp.avg_cost(text), pg_temp.recipes_n(text), pg_temp.receipt_sugar(), pg_temp.count_sugar(), pg_temp.pv(),
@@ -577,7 +755,10 @@ grant execute on function
   pg_temp.phase_operator_1(text), pg_temp.phase_owner_1(text), pg_temp.phase_operator_2(text), pg_temp.phase_owner_2(text),
   pg_temp.phase_owner_3(text), pg_temp.max_seq(), pg_temp.max_cseq(), pg_temp.use_up_spice(), pg_temp.after_rows(), pg_temp.late_rows(),
   pg_temp.add_item(text, text), pg_temp.drop_item(text), pg_temp.clear_cutover(), pg_temp.set_used_from(timestamptz),
-  pg_temp.mv(uuid, text, text, numeric), pg_temp.moves_of(text), pg_temp.field_ids(jsonb)
+  pg_temp.mv(uuid, text, text, numeric), pg_temp.moves_of(text), pg_temp.field_ids(jsonb), pg_temp.phase_owner_4(text),
+  pg_temp.add_costed(text, text, numeric, numeric), pg_temp.add_usual(text, text, numeric, integer, integer), pg_temp.ms(timestamptz),
+  pg_temp.mvx(uuid, text, text, numeric, text, timestamptz), pg_temp.rec(text, text, jsonb, text), pg_temp.on_hand_of(text), pg_temp.stamp_of(uuid),
+  pg_temp.sumlbl(jsonb, text), pg_temp.unc_n(jsonb), pg_temp.stamped_up(timestamptz)
   to anon, authenticated, service_role;
 
 -- ================================================================ the run
@@ -618,6 +799,11 @@ select pg_temp.late_rows();
 set local role authenticated;
 select pg_temp.set_subject(1);
 select pg_temp.phase_owner_3('active_owner');
+reset role;
+
+set local role authenticated;
+select pg_temp.set_subject(1);
+select pg_temp.phase_owner_4('active_owner');
 reset role;
 
 select 'SEC_RESULT|' || operation || '|' || actor || '|' || outcome

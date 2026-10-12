@@ -41,7 +41,8 @@ ORDER_MIGRATIONS = [ROOT / 'supabase/migrations/20260101003500_place_order.sql',
                     ROOT / 'supabase/migrations/20260101006100_cost_cutover.sql',
                     ROOT / 'supabase/migrations/20260101006200_cost_cutover_fix.sql',
                     ROOT / 'supabase/migrations/20260101006300_her_data_imports.sql',
-                    ROOT / 'supabase/migrations/20260101006400_cutover_guard.sql']
+                    ROOT / 'supabase/migrations/20260101006400_cutover_guard.sql',
+                    ROOT / 'supabase/migrations/20260101006500_count_shrinkage.sql']
 _OUT = 'order outcome differs: anon / '
 _CHK = 'order check differs: anon / '
 _LOOK = 'lookup check differs: anon / '
@@ -611,6 +612,52 @@ COST_CUTOVER_MUTATIONS = {
                                        _CUC + 'operator / cutover_preview_counts_and_hash'),
     'text_cutover_not_counted_listed': ('preview_cost_cutover', 'text', ("'not_counted', v_notcounted,", "'not_counted', '[]'::jsonb,"),
                                         _CUC + 'operator / cutover_preview_lists_not_counted'),
+    # B4b-1 (migration 65): after the cutover a count that finds less, and a negative adjustment, are stamped with the cost known when they are written
+    # and booked as an expense of the change x that cost, by order of writing; none known is listed as uncosted; more, the same and an adjustment up book nothing.
+    'text_count_stamp_off': ('record_stock_movement', 'text', ("if v_kind in ('count', 'adjust') and v_delta < 0 then", 'if false then'),
+                             _CUC + 'active_owner / b4b1_count_down_is_stamped'),
+    'text_count_stamp_count_only': ('record_stock_movement', 'text', ("if v_kind in ('count', 'adjust') and v_delta < 0 then", "if v_kind = 'count' and v_delta < 0 then"),
+                                    _CUC + 'active_owner / b4b1_count_down_is_stamped'),
+    'text_count_stamp_adjust_only': ('record_stock_movement', 'text', ("if v_kind in ('count', 'adjust') and v_delta < 0 then", "if v_kind = 'adjust' and v_delta < 0 then"),
+                                     _CUC + 'active_owner / b4b1_count_down_is_stamped'),
+    'text_count_stamp_the_same': ('record_stock_movement', 'text', ("if v_kind in ('count', 'adjust') and v_delta < 0 then", "if v_kind in ('count', 'adjust') and v_delta <= 0 then"),
+                                  _CUC + 'active_owner / b4b1_count_up_same_adjust_up_not_stamped'),
+    'text_count_stamp_the_raise': ('record_stock_movement', 'text', ("if v_kind in ('count', 'adjust') and v_delta < 0 then", "if v_kind in ('count', 'adjust') and v_delta <> 0 then"),
+                                   _CUC + 'active_owner / b4b1_count_up_same_adjust_up_not_stamped'),
+    'text_count_line_off': ('get_books', 'text', ("m.kind in ('count', 'adjust') and m.qty_delta < 0 and m.unit_cost is not null", 'false'),
+                            _CUC + 'active_owner / b4b1_count_down_is_an_expense'),
+    'text_count_line_sign': ('get_books', 'text', ('round(-m.qty_delta * m.unit_cost)::bigint, m.at, 0', 'round(m.qty_delta * m.unit_cost)::bigint, m.at, 0'),
+                             _CUC + 'active_owner / b4b1_count_down_is_an_expense'),
+    'text_count_line_label': ('get_books', 'text', ("(case m.kind when 'count' then 'Count: ' else 'Adjustment: ' end)", "'Count: '"),
+                              _CUC + 'active_owner / b4b1_adjust_down_is_an_expense'),
+    'text_count_line_raise': ('get_books', 'text', ("m.kind in ('count', 'adjust') and m.qty_delta < 0 and m.unit_cost is not null", "m.kind in ('count', 'adjust') and m.unit_cost is not null"),
+                              _CUC + 'active_owner / b4b1_stamped_count_up_books_nothing'),
+    'text_count_line_basis': ('get_books', 'text', ("where v_basis = 'used' and m.kind in ('count', 'adjust') and m.qty_delta < 0 and m.unit_cost is not null",
+                                                    "where m.kind in ('count', 'adjust') and m.qty_delta < 0 and m.unit_cost is not null"),
+                              _CUC + 'active_owner / b4b1_bought_basis_books_no_count'),
+    'text_count_line_bound': ("get_books", 'text', ("m.unit_cost is not null and m.at >= p_from and m.at < p_to\n         and m.seq > v_cut_seq\n      union all\n      select 'm:' || m.id::text, 'expense', i.category, (case m.kind when 'use'",
+                                                    "m.unit_cost is not null and m.at >= p_from and m.at < p_to\n      union all\n      select 'm:' || m.id::text, 'expense', i.category, (case m.kind when 'use'"),
+                              _CUC + 'active_owner / b4b1_count_before_cutover_books_nothing'),
+    'text_count_line_by_date': ('get_books', 'text', ("m.unit_cost is not null and m.at >= p_from and m.at < p_to\n         and m.seq > v_cut_seq\n      union all\n      select 'm:' || m.id::text, 'expense', i.category, (case m.kind when 'use'",
+                                                      "m.unit_cost is not null and m.at >= p_from and m.at < p_to\n         and m.at >= v_cut\n      union all\n      select 'm:' || m.id::text, 'expense', i.category, (case m.kind when 'use'"),
+                               _CUC + 'active_owner / b4b1_count_dated_before_cutover_is_written_after'),
+    'text_count_uncosted_off': ('get_books', 'text', ("m.kind in ('count', 'adjust') and m.qty_delta < 0 and m.unit_cost is null", 'false'),
+                                _CUC + 'active_owner / b4b1_count_down_no_cost_is_listed'),
+    'text_count_uncosted_costed': ('get_books', 'text', ("m.kind in ('count', 'adjust') and m.qty_delta < 0 and m.unit_cost is null", "m.kind in ('count', 'adjust') and m.qty_delta < 0"),
+                                   _CUC + 'active_owner / b4b1_costed_movements_are_not_uncosted'),
+    'text_count_uncosted_raise': ('get_books', 'text', ("m.kind in ('count', 'adjust') and m.qty_delta < 0 and m.unit_cost is null", "m.kind in ('count', 'adjust') and m.unit_cost is null"),
+                                  _CUC + 'active_owner / b4b1_count_up_same_adjust_up_book_nothing'),
+    'text_count_uncosted_kind': ('get_books', 'text', ("select 'm:' || m.id::text, m.kind, i.name, -m.qty_delta", "select 'm:' || m.id::text, 'count', i.name, -m.qty_delta"),
+                                 _CUC + 'active_owner / b4b1_adjust_down_no_cost_is_listed'),
+    'text_count_uncosted_qty': ('get_books', 'text', ("m.kind, i.name, -m.qty_delta, i.unit", "m.kind, i.name, m.qty_delta, i.unit"),
+                                _CUC + 'active_owner / b4b1_count_down_no_cost_is_listed'),
+    'text_count_uncosted_basis': ('get_books', 'text', ("m.unit_cost is null and v_basis = 'used' and m.at >= p_from and m.at < p_to\n         and m.seq > v_cut_seq\n", "m.unit_cost is null and m.at >= p_from and m.at < p_to\n         and m.seq > v_cut_seq\n"),
+                                 _CUC + 'active_owner / b4b1_bought_basis_books_no_count'),
+    'text_count_uncosted_bound': ('get_books', 'text', ("where m.kind in ('count', 'adjust') and m.qty_delta < 0 and m.unit_cost is null and v_basis = 'used' and m.at >= p_from and m.at < p_to\n         and m.seq > v_cut_seq",
+                                                       "where m.kind in ('count', 'adjust') and m.qty_delta < 0 and m.unit_cost is null and v_basis = 'used' and m.at >= p_from and m.at < p_to"),
+                                  _CUC + 'active_owner / b4b1_count_before_cutover_is_not_uncosted'),
+    'text_count_uncosted_by_date': ('get_books', 'text', ("m.unit_cost is null and v_basis = 'used' and m.at >= p_from and m.at < p_to\n         and m.seq > v_cut_seq\n", "m.unit_cost is null and v_basis = 'used' and m.at >= p_from and m.at < p_to\n         and m.at >= v_cut\n"),
+                                    _CUC + 'active_owner / b4b1_late_dated_no_cost_count_is_listed'),
 }
 COST_CUTOVER_TABLE_MUTATIONS = {
     'cutover_table_select': ('grant select on public.cost_cutover to anon;', _CU + 'anon / cutover_select / '),
@@ -934,7 +981,7 @@ SUITES = (
     ('packaging.sql', ('get_packaging_rules()', 'save_packaging_rule(jsonb)', 'write_packaging_rule(jsonb)', 'apply_packaging_rule(jsonb)')
                       + tuple(PACKAGING_MUTATIONS) + tuple(PACKAGING_TABLE_MUTATIONS), 'forbidden packaging call succeeded', 146),
     ('cutover.sql', ('preview_cost_cutover()', 'apply_cost_cutover(jsonb)') + tuple(COST_CUTOVER_MUTATIONS) + tuple(COST_CUTOVER_TABLE_MUTATIONS),
-     'forbidden cutover call succeeded', 111),
+     'forbidden cutover call succeeded', 152),
     ('imports.sql', IMPORT_ACL + tuple(IMPORT_MUTATIONS), 'forbidden import call succeeded', 261),
     ('operations.sql', tuple(OPERATIONS_MUTATIONS), 'forbidden operations call succeeded', 14),
     ('bazaar-closeout.sql', ('event_summary(uuid)', 'load_event_stock(uuid,jsonb,bigint)', 'add_event_expense(jsonb)', 'close_event(jsonb)'), 'forbidden closeout call succeeded', 80),
@@ -1286,7 +1333,7 @@ def main():
                 h.fail(filename + ' did not return its complete role matrix')
             results.extend(rows)
             assert_empty()
-        if len(set(results)) != 2977:
+        if len(set(results)) != 3018:
             h.fail('combined role matrix has missing or duplicate cases: %d rows, %d unique (duplicates: %s)' % (len(results), len(set(results)), sorted({r for r in results if results.count(r) > 1})[:5]))
         assert_functions()
         assert_catalog_wide()
@@ -1299,10 +1346,10 @@ def main():
     try:
         code = h.main(after_reset=check)
         if (code == 0 and len(report["runs"]) == 2 and report["runs"][0] == report["runs"][1]
-                and len(report['regressions_detected']) == 1190 and report['sequence_restorations'] == 10
+                and len(report['regressions_detected']) == 1230 and report['sequence_restorations'] == 10
                 and report['upgrade_runs'] == 2 and report['pair_guard_runs'] == 2 and report['function_guard_runs'] == 4
                 and report['catalog_guard_runs'] == 4 and report['catalog_guard_red_runs'] == 4):
-            report.update(status="passed", cases_per_reset=2977, resets=2, matrix_equal=True, rollback_verified=True,
+            report.update(status="passed", cases_per_reset=3018, resets=2, matrix_equal=True, rollback_verified=True,
                           sql_sha256={name: hashlib.sha256((ROOT / 'tests/integration/security' / name).read_bytes()).hexdigest() for name, _, _, _ in SUITES},
                           harness_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
     except (RuntimeError, OSError, ValueError) as error:
