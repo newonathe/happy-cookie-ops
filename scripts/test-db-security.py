@@ -40,7 +40,8 @@ ORDER_MIGRATIONS = [ROOT / 'supabase/migrations/20260101003500_place_order.sql',
                     ROOT / 'supabase/migrations/20260101006000_books_used.sql',
                     ROOT / 'supabase/migrations/20260101006100_cost_cutover.sql',
                     ROOT / 'supabase/migrations/20260101006200_cost_cutover_fix.sql',
-                    ROOT / 'supabase/migrations/20260101006300_her_data_imports.sql']
+                    ROOT / 'supabase/migrations/20260101006300_her_data_imports.sql',
+                    ROOT / 'supabase/migrations/20260101006400_cutover_guard.sql']
 _OUT = 'order outcome differs: anon / '
 _CHK = 'order check differs: anon / '
 _LOOK = 'lookup check differs: anon / '
@@ -593,6 +594,21 @@ COST_CUTOVER_MUTATIONS = {
     'text_cutover_uncosted_by_date': ('get_books', 'text', ("and m.seq > v_cut_seq\n      union all\n      select 'p:'", "and m.at >= v_cut\n      union all\n      select 'p:'"),
                                       _CUC + 'active_owner / late_uncosted_use_is_listed'),
     'text_cutover_production_bound': ('get_books', 'text', (' and r.at < p_to and r.at >= v_cut', ' and r.at < p_to'), _CUC + 'active_owner / books_uncosted_only_after_cutover'),
+    # B4a-4 (migration 64): an opening quantity is refused after the cutover, a cutover cleared by hand is read as the bought basis, and the preview
+    # lists the active items that have never had a movement (listed, counted and in the hash).
+    'rule_mv_opening_after_cutover': ('record_stock_movement', 'rule', 'mv-opening-after-cutover', _CU + 'active_owner / opening_after_cutover / '),
+    'text_cutover_null_cut_is_bought': ('get_books', 'text', ("  if v_cut is null then v_basis := 'bought'; end if;\n", ''),
+                                        _CUC + 'active_owner / books_hand_cleared_cutover_is_bought'),
+    'text_cutover_not_counted_hash': ('preview_cost_cutover', 'text', ('v_items::text || v_notcounted::text ||', 'v_items::text ||'),
+                                      _CUC + 'operator / cutover_hash_follows_not_counted'),
+    'text_cutover_not_counted_active': ('preview_cost_cutover', 'text', ('where i.active and not exists', 'where not exists'),
+                                        _CUC + 'operator / cutover_preview_counts_and_hash'),
+    'text_cutover_not_counted_movement': ('preview_cost_cutover', 'text', (' and not exists (select 1 from public.stock_movements m where m.item_id = i.id)', ''),
+                                          _CUC + 'operator / cutover_preview_counts_and_hash'),
+    'text_cutover_not_counted_count': ('preview_cost_cutover', 'text', ("'unvalued', v_n - v_valued, 'not_counted', v_nc_n)", "'unvalued', v_n - v_valued, 'not_counted', 0)"),
+                                       _CUC + 'operator / cutover_preview_counts_and_hash'),
+    'text_cutover_not_counted_listed': ('preview_cost_cutover', 'text', ("'not_counted', v_notcounted,", "'not_counted', '[]'::jsonb,"),
+                                        _CUC + 'operator / cutover_preview_lists_not_counted'),
 }
 COST_CUTOVER_TABLE_MUTATIONS = {
     'cutover_table_select': ('grant select on public.cost_cutover to anon;', _CU + 'anon / cutover_select / '),
@@ -659,6 +675,25 @@ IMPORT_MUTATIONS = {
                                               _IMC + 'imp_items_reapply_writes_nothing'),
     'text_import_preview_items_keeps_its_work': ('preview_import_items', 'text', ("raise exception '%', v_out::text using errcode = 'P0099';", 'return v_out;'),
                                                  _IMC + 'imp_items_preview_writes_nothing'),
+    # Review fixes (migration 63): an invisible space or a name not in composed form, two prices for one item on one day, one flavour twice in a
+    # recipes call, the fields an unchanged entry hides, and the will_write list in the audit row.
+    'rule_import_items_invisible': ('run_import_items', 'rule', 'import-items-invisible', _IMC + 'imp_items_invisible_names_are_listed'),
+    'rule_import_prices_invisible': ('run_import_prices', 'rule', 'import-prices-invisible', _IMC + 'imp_prices_invisible_name_is_listed'),
+    'rule_import_prices_same_day': ('run_import_prices', 'rule', 'import-prices-same-day', _IMC + 'imp_prices_same_day_other_price'),
+    'rule_import_recipes_product_invisible': ('run_import_recipes', 'rule', 'import-recipes-product-invisible', _IMC + 'imp_recipes_invisible_flavour_is_listed'),
+    'rule_import_recipes_line_invisible': ('run_import_recipes', 'rule', 'import-recipes-line-invisible', _IMC + 'imp_recipes_invisible_line_item_holds_the_recipe'),
+    'rule_import_recipes_flavour_twice': ('run_import_recipes', 'rule', 'import-recipes-flavour-twice', _IMC + 'imp_recipes_flavour_twice'),
+    'rule_import_flavours_invisible': ('run_import_flavours', 'rule', 'import-flavours-invisible', _IMC + 'imp_flavours_invisible_name_is_listed'),
+    'rule_import_bookings_invisible': ('run_import_bookings', 'rule', 'import-bookings-invisible', _IMC + 'imp_bookings_invisible_name_is_listed'),
+    'text_import_items_unchanged_category': ('run_import_items', 'text', (", 'unit', v_item.unit, 'category', v_item.category));", ", 'unit', v_item.unit));"),
+                                             _IMC + 'imp_items_unchanged_shows_category'),
+    'text_import_bookings_unchanged_fields': ('run_import_bookings', 'text', (",\n          'place', v_old.place, 'rent_cents', v_old.rent_cents, 'active', v_old.active));", "));"),
+                                               _IMC + 'imp_bookings_unchanged_shows_what_it_keeps'),
+    'text_import_items_audit_will_write': ('apply_import_items', 'text', (", 'will_write', v_res -> 'will_write'", ''), _IMC + 'imp_items_one_audit_row'),
+    'text_import_prices_audit_will_write': ('apply_import_prices', 'text', (", 'will_write', v_res -> 'will_write'", ''), _IMC + 'imp_prices_one_audit_row'),
+    'text_import_recipes_audit_will_write': ('apply_import_recipes', 'text', (", 'will_write', v_res -> 'will_write'", ''), _IMC + 'imp_recipes_audit_rows'),
+    'text_import_flavours_audit_will_write': ('apply_import_flavours', 'text', (", 'will_write', v_res -> 'will_write'", ''), _IMC + 'imp_flavours_one_audit_row'),
+    'text_import_bookings_audit_will_write': ('apply_import_bookings', 'text', (", 'will_write', v_res -> 'will_write'", ''), _IMC + 'imp_bookings_one_audit_row'),
     'text_import_preview_recipes_keeps_its_work': ('preview_import_recipes', 'text', ("raise exception '%', v_out::text using errcode = 'P0099';", 'return v_out;'),
                                                    _IMC + 'imp_recipes_preview_writes_nothing'),
 }
@@ -667,7 +702,7 @@ IMPORT_ACL = ('preview_import_items(jsonb)', 'apply_import_items(jsonb,jsonb)', 
               'preview_import_bookings(jsonb)', 'apply_import_bookings(jsonb,jsonb)',
               'run_import_items(jsonb)', 'run_import_prices(jsonb)', 'run_import_recipes(jsonb)', 'run_import_flavours(jsonb)', 'run_import_bookings(jsonb)',
               'write_stock_item(jsonb,timestamptz)', 'write_item_price(jsonb)', 'write_recipe(jsonb,timestamptz)', 'write_flavour(text,jsonb,timestamptz)',
-              'write_scheduled_event(jsonb,timestamptz)', 'import_result(jsonb,jsonb,jsonb,jsonb)', 'import_expected_ok(jsonb,text[])', 'import_keys_ok(jsonb,text[],text[])')
+              'write_scheduled_event(jsonb,timestamptz)', 'import_result(jsonb,jsonb,jsonb,jsonb)', 'import_expected_ok(jsonb,text[])', 'import_keys_ok(jsonb,text[],text[])', 'import_name_ok(text)')
 COST_MUTATIONS = {
     'rule_itemprice_keys': ('write_item_price', 'rule', 'itemprice-keys', _CS + 'ip_keys_missing / '),
     'rule_itemprice_id': ('write_item_price', 'rule', 'itemprice-id', _CS + 'ip_id_bad / '),
@@ -896,8 +931,8 @@ SUITES = (
     ('packaging.sql', ('get_packaging_rules()', 'save_packaging_rule(jsonb)', 'write_packaging_rule(jsonb)', 'apply_packaging_rule(jsonb)')
                       + tuple(PACKAGING_MUTATIONS) + tuple(PACKAGING_TABLE_MUTATIONS), 'forbidden packaging call succeeded', 146),
     ('cutover.sql', ('preview_cost_cutover()', 'apply_cost_cutover(jsonb)') + tuple(COST_CUTOVER_MUTATIONS) + tuple(COST_CUTOVER_TABLE_MUTATIONS),
-     'forbidden cutover call succeeded', 96),
-    ('imports.sql', IMPORT_ACL + tuple(IMPORT_MUTATIONS), 'forbidden import call succeeded', 249),
+     'forbidden cutover call succeeded', 110),
+    ('imports.sql', IMPORT_ACL + tuple(IMPORT_MUTATIONS), 'forbidden import call succeeded', 260),
     ('operations.sql', tuple(OPERATIONS_MUTATIONS), 'forbidden operations call succeeded', 14),
     ('bazaar-closeout.sql', ('event_summary(uuid)', 'load_event_stock(uuid,jsonb,bigint)', 'add_event_expense(jsonb)', 'close_event(jsonb)'), 'forbidden closeout call succeeded', 80),
     ('shop-identity.sql', ('save_shop_identity(jsonb,timestamptz)', 'business_clock(timestamptz)') + tuple(IDENTITY_MUTATIONS) + tuple(IDENTITY_RULES),
@@ -1248,7 +1283,7 @@ def main():
                 h.fail(filename + ' did not return its complete role matrix')
             results.extend(rows)
             assert_empty()
-        if len(set(results)) != 2950:
+        if len(set(results)) != 2975:
             h.fail('combined role matrix has missing or duplicate cases: %d rows, %d unique (duplicates: %s)' % (len(results), len(set(results)), sorted({r for r in results if results.count(r) > 1})[:5]))
         assert_functions()
         assert_catalog_wide()
@@ -1261,10 +1296,10 @@ def main():
     try:
         code = h.main(after_reset=check)
         if (code == 0 and len(report["runs"]) == 2 and report["runs"][0] == report["runs"][1]
-                and len(report['regressions_detected']) == 1140 and report['sequence_restorations'] == 10
+                and len(report['regressions_detected']) == 1186 and report['sequence_restorations'] == 10
                 and report['upgrade_runs'] == 2 and report['pair_guard_runs'] == 2 and report['function_guard_runs'] == 4
                 and report['catalog_guard_runs'] == 4 and report['catalog_guard_red_runs'] == 4):
-            report.update(status="passed", cases_per_reset=2950, resets=2, matrix_equal=True, rollback_verified=True,
+            report.update(status="passed", cases_per_reset=2975, resets=2, matrix_equal=True, rollback_verified=True,
                           sql_sha256={name: hashlib.sha256((ROOT / 'tests/integration/security' / name).read_bytes()).hexdigest() for name, _, _, _ in SUITES},
                           harness_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
     except (RuntimeError, OSError, ValueError) as error:

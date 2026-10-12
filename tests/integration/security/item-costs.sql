@@ -132,12 +132,19 @@ create function pg_temp.rc(pid text) returns jsonb language sql stable as $$
   select x from jsonb_array_elements(public.get_recipe_costs()) x where x ->> 'product_id' = pid $$;
 
 -- ---- writers
+-- B4a-4: an opening quantity is refused once a cutover is set (cutover.sql proves it), and this fixture's cutover is set from the start so that
+-- the used rules apply to every row. The openings below stand for stock counted before any cutover, so each is written with the fixture's cutover
+-- switched off for that one call and put back right after; nothing else of the suite is touched.
+create function pg_temp.cutover_set(on_ boolean) returns void language sql security definer as $$
+  update public.books_settings set used_from = case when on_ then timestamptz '2020-01-01 00:00+00' end where id $$;
 create function pg_temp.mv(actor text, op text, sfx text, kind text, qty numeric, cost numeric, hours numeric, reason text default '') returns void
 language plpgsql security invoker as $$
 begin
+  if kind = 'opening' then perform pg_temp.cutover_set(false); end if;
   perform pg_temp.expect(actor, op, format('select * from public.record_stock_movement(%L::jsonb)', jsonb_build_object(
     'id', md5('k3mv:' || op)::uuid::text, 'item_id', 'k3i-' || sfx, 'kind', kind, 'qty', qty, 'cost_cents', cost, 'supplier', '', 'reason', reason,
     'at', ((extract(epoch from now()) - hours * 3600) * 1000)::bigint)::text), '00000');
+  if kind = 'opening' then perform pg_temp.cutover_set(true); end if;
 end $$;
 create function pg_temp.batch_body(op text, pid text, qty numeric, hours numeric) returns jsonb language sql stable as $$
   select jsonb_build_object('id', md5('k3pr:' || op)::uuid::text, 'kind', 'batch', 'product_id', pid, 'qty', qty, 'target', qty, 'rejects', 0,
@@ -474,7 +481,7 @@ end $$;
 grant execute on function
   pg_temp.moves(text), pg_temp.avg(text), pg_temp.onhand(text), pg_temp.corr_used(text), pg_temp.audit_n(text), pg_temp.today_txt(integer),
   pg_temp.total(text), pg_temp.line_amounts(text), pg_temp.uncosted(text), pg_temp.ic(text), pg_temp.rc(text),
-  pg_temp.mv(text, text, text, text, numeric, numeric, numeric, text), pg_temp.batch_body(text, text, numeric, numeric),
+  pg_temp.cutover_set(boolean), pg_temp.mv(text, text, text, text, numeric, numeric, numeric, text), pg_temp.batch_body(text, text, numeric, numeric),
   pg_temp.batch(text, text, text, numeric, numeric), pg_temp.cor(text, text, text, numeric),
   pg_temp.ip_body(integer, text, numeric, numeric, integer, jsonb, text[]), pg_temp.ip(text, text, jsonb, text),
   pg_temp.quote(text, text, integer, text, text, numeric, numeric),

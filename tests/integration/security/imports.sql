@@ -12,6 +12,11 @@
 -- cookie (or loose), the container's other lines kept, then saves the recipe; a held recipe removes nothing. The harness neutralises each
 -- `-- rule:` line of supabase/migrations/20260101006300_her_data_imports.sql in turn (scripts/test-db-security.py, IMPORT_MUTATIONS) and requires
 -- the named case here to fail. Outcome messages carry no quote character: the harness redacts quoted literals.
+-- Review fixes (still migration 63, which is applied nowhere): a name with an invisible space (no-break, zero-width, ideographic, a byte-order
+-- mark and the like) or not written in composed (NFC) form is listed as unmatched, because btrim strips only the ASCII space and the row would
+-- otherwise make a second item, flavour or booking that looks like the first; two prices for one item on one day are refused (the usual price
+-- would fall to an arbitrary id), also within one call; the same flavour twice in one recipes call lists the second (a removal made for the
+-- first cannot be left behind by the second); an unchanged entry shows the fields it hides; the audit row carries the will_write list.
 begin;
 create temporary table authority_results (operation text, actor text, outcome text);
 grant insert on authority_results to anon, authenticated, service_role;
@@ -303,13 +308,26 @@ begin
     and pg_temp.item_row((select i.id from public.inventory_items i where i.name = 'IM Mailer')) ->> 'category' = 'Packaging');
   perform pg_temp.assert_ok(a, 'imp_items_nothing_is_priced', not exists (select 1 from public.item_prices where item_id in (select i.id from public.inventory_items i where i.name in ('IM Brown sugar', 'IM Mailer'))));
   perform pg_temp.assert_ok(a, 'imp_items_one_audit_row', pg_temp.n_audit('import.items') = 1 and pg_temp.n_audit_all() = au0 + 1
-    and exists (select 1 from public.audit_log l where l.action = 'import.items' and l.detail = jsonb_build_object('counts', p -> 'counts', 'hash', p ->> 'hash')));
+    and exists (select 1 from public.audit_log l where l.action = 'import.items'
+      and l.detail = jsonb_build_object('counts', p -> 'counts', 'hash', p ->> 'hash', 'will_write', p -> 'will_write')));
   -- the same call again writes nothing
   p := pg_temp.pv('items', pg_temp.items_rows());
   perform pg_temp.assert_ok(a, 'imp_items_reapply_preview', p -> 'counts' = '{"will_write": 0, "unchanged": 3, "unmatched": 6}'::jsonb);
   r := pg_temp.ap('items', pg_temp.items_rows(), pg_temp.approve(p));
   perform pg_temp.assert_ok(a, 'imp_items_reapply_writes_nothing', pg_temp.n_items() = n0 + 2 and pg_temp.n_audit('import.items') = 1 and pg_temp.n_audit_all() = au0 + 1
     and r -> 'counts' = p -> 'counts');
+  -- the unchanged entry shows its category too, so a workbook that says otherwise is visible
+  perform pg_temp.assert_ok(a, 'imp_items_unchanged_shows_category',
+    pg_temp.pv('items', '[{"name": "IM Flour", "unit": "g", "category": "Packaging"}]'::jsonb) -> 'unchanged'
+      = '[{"id": "im-flour", "name": "IM Flour", "unit": "g", "category": "Ingredients"}]'::jsonb);
+  -- a name with an invisible space is not the name it looks like: btrim strips only the ASCII space, so each of these would have made a second
+  -- item beside the first. A no-break space after an existing name, a zero-width space, an ideographic space, a byte-order mark, a name that is
+  -- not composed (e + a combining accent) are all listed; the composed one (a real e with an accent) is written.
+  p := pg_temp.pv('items', '[{"name": "IM Flour\u00a0", "unit": "g"}, {"name": "IM Zero\u200bwidth", "unit": "g"}, {"name": "IM Ideo\u3000space", "unit": "g"},
+    {"name": "IM Bom\ufeff", "unit": "g"}, {"name": "IM Cafe\u0301", "unit": "g"}, {"name": "IM Caf\u00e9", "unit": "g"}]'::jsonb);
+  perform pg_temp.assert_ok(a, 'imp_items_invisible_names_are_listed', p -> 'counts' = '{"will_write": 1, "unchanged": 0, "unmatched": 5}'::jsonb
+    and pg_temp.field_of(p, 'will_write', 'name') = array[E'IM Caf\u00e9']
+    and (select bool_and(pg_temp.why(p, n) = 'a name has an invisible space or is not in composed form') from generate_series(1, 5) n));
   -- the same item twice in one call is made once
   p := pg_temp.pv('items', '[{"name": "IM Dupe", "unit": "g"}, {"name": "im dupe", "unit": "g"}, {"name": "IM Dupe", "unit": "ml"}]'::jsonb);
   perform pg_temp.assert_ok(a, 'imp_items_same_name_twice', p -> 'counts' = '{"will_write": 1, "unchanged": 1, "unmatched": 1}'::jsonb
@@ -347,7 +365,8 @@ begin
   perform pg_temp.assert_ok(a, 'imp_prices_history_is_kept', jsonb_array_length(pg_temp.price_rows('im-flour')) = 2 and pg_temp.price_rows('im-butter') -> 0 ->> 'price_cents' = '5000'
     and jsonb_array_length(pg_temp.price_rows('im-butter')) = 1);
   perform pg_temp.assert_ok(a, 'imp_prices_one_audit_row', pg_temp.n_audit('import.prices') = 1
-    and exists (select 1 from public.audit_log l where l.action = 'import.prices' and l.detail = jsonb_build_object('counts', p -> 'counts', 'hash', p ->> 'hash')));
+    and exists (select 1 from public.audit_log l where l.action = 'import.prices'
+      and l.detail = jsonb_build_object('counts', p -> 'counts', 'hash', p ->> 'hash', 'will_write', p -> 'will_write')));
   p := pg_temp.pv('prices', pg_temp.prices_rows());
   perform pg_temp.assert_ok(a, 'imp_prices_reapply_preview', p -> 'counts' = '{"will_write": 0, "unchanged": 3, "unmatched": 8}'::jsonb);
   r := pg_temp.ap('prices', pg_temp.prices_rows(), pg_temp.approve(p));
@@ -361,6 +380,20 @@ begin
   perform pg_temp.assert_ok(a, 'imp_prices_same_price_twice_in_one_call', p -> 'counts' = '{"will_write": 1, "unchanged": 1, "unmatched": 0}'::jsonb);
   r := pg_temp.ap('prices', '[{"item": "IM Flour", "unit": "g", "price_cents": 1300, "pack_size": 1000, "as_of": "2025-06-01"}, {"item": "IM Flour", "unit": "g", "price_cents": 1300, "pack_size": 1000, "as_of": "2025-06-02"}]'::jsonb, pg_temp.approve(p));
   perform pg_temp.assert_ok(a, 'imp_prices_changed_price_is_a_new_row', jsonb_array_length(pg_temp.price_rows('im-flour')) = 3);
+  -- an item name with an invisible space is listed, not matched (and not read as another item)
+  p := pg_temp.pv('prices', '[{"item": "IM Flour\u00a0", "unit": "g", "price_cents": 1500, "pack_size": 1000, "as_of": "2025-07-01"}]'::jsonb);
+  perform pg_temp.assert_ok(a, 'imp_prices_invisible_name_is_listed', p -> 'counts' = '{"will_write": 0, "unchanged": 0, "unmatched": 1}'::jsonb
+    and pg_temp.why(p, 1) = 'a name has an invisible space or is not in composed form');
+  -- one item, one day, one price: another price on a day that already has one is listed (the usual price would fall to an arbitrary id), and so
+  -- is the second of two prices for one new day inside one call; the same price again is still the same row
+  p := pg_temp.pv('prices', '[{"item": "IM Butter", "unit": "g", "price_cents": 5100, "pack_size": 1000, "as_of": "2025-01-10"}]'::jsonb);
+  perform pg_temp.assert_ok(a, 'imp_prices_same_day_other_price', p -> 'counts' = '{"will_write": 0, "unchanged": 0, "unmatched": 1}'::jsonb
+    and pg_temp.why(p, 1) = 'that item already has a price dated that day');
+  p := pg_temp.pv('prices', '[{"item": "IM Wrap", "unit": "pcs", "price_cents": 100, "pack_size": 10, "as_of": "2025-04-01"},
+    {"item": "im wrap", "unit": "pcs", "price_cents": 200, "pack_size": 10, "as_of": "2025-04-01"},
+    {"item": "IM Wrap", "unit": "pcs", "price_cents": 100, "pack_size": 10, "as_of": "2025-04-01"}]'::jsonb);
+  perform pg_temp.assert_ok(a, 'imp_prices_same_day_twice_in_one_call', p -> 'counts' = '{"will_write": 1, "unchanged": 1, "unmatched": 1}'::jsonb
+    and pg_temp.why(p, 2) = 'that item already has a price dated that day' and pg_temp.field_of(p, 'will_write', 'price_cents') = array['100']);
 end $$;
 
 create function pg_temp.phase_recipes(a text) returns void language plpgsql security invoker as $$
@@ -424,7 +457,8 @@ begin
     and pg_temp.rule_lines('order', null) = '[{"item": "im-card", "qty": "1.000", "per": "container", "pos": 1}]'::jsonb);
   perform pg_temp.assert_ok(a, 'imp_recipes_a_held_recipe_removes_nothing', pg_temp.rule_lines('loose', null) -> 0 ->> 'item' = 'im-sticker');
   perform pg_temp.assert_ok(a, 'imp_recipes_audit_rows', pg_temp.n_audit('import.recipes') = 1 and pg_temp.n_audit('packaging.rule_saved') = 2
-    and exists (select 1 from public.audit_log l where l.action = 'import.recipes' and l.detail = jsonb_build_object('counts', p -> 'counts', 'hash', p ->> 'hash')));
+    and exists (select 1 from public.audit_log l where l.action = 'import.recipes'
+      and l.detail = jsonb_build_object('counts', p -> 'counts', 'hash', p ->> 'hash', 'will_write', p -> 'will_write')));
   p := pg_temp.pv('recipes', pg_temp.recipes_rows());
   perform pg_temp.assert_ok(a, 'imp_recipes_reapply_preview', p -> 'counts' = '{"will_write": 0, "unchanged": 3, "unmatched": 10, "rule_removals": 0}'::jsonb);
   r := pg_temp.ap('recipes', pg_temp.recipes_rows(), pg_temp.approve(p));
@@ -435,6 +469,19 @@ begin
   perform pg_temp.assert_ok(a, 'imp_recipes_sticker_removal_is_named', p -> 'counts' = '{"will_write": 1, "unchanged": 0, "unmatched": 0, "rule_removals": 1}'::jsonb
     and p -> 'rule_removals' -> 0 ->> 'container' = 'loose' and p -> 'rule_removals' -> 0 ->> 'item_id' = 'im-sticker');
   perform pg_temp.assert_ok(a, 'imp_recipes_preview_again_removed_nothing', jsonb_array_length(pg_temp.rule_lines('loose', null)) = 1);
+  -- the same flavour twice in one call: the second is listed, so the sticker taken off its rule for the first cannot be left behind by a second
+  -- recipe that does not use it (the flavour is the same however it is written)
+  p := pg_temp.pv('recipes', '[{"flavour": "IM Cookie D", "yield": 5, "lines": [{"item": "IM Sticker", "qty": 1, "unit": "pcs", "kind": "packaging"}, {"item": "IM Flour", "qty": 5, "unit": "g", "kind": "ingredient"}]},
+    {"flavour": " im cookie d ", "yield": 5, "lines": [{"item": "IM Flour", "qty": 6, "unit": "g", "kind": "ingredient"}]}]'::jsonb);
+  perform pg_temp.assert_ok(a, 'imp_recipes_flavour_twice', p -> 'counts' = '{"will_write": 1, "unchanged": 0, "unmatched": 1, "rule_removals": 1}'::jsonb
+    and pg_temp.why(p, 2) = 'that flavour is already in this call' and pg_temp.field_of(p, 'will_write', 'product_id') = array['imp-d']);
+  -- a flavour or a line item with an invisible space is listed, and the line is named
+  p := pg_temp.pv('recipes', '[{"flavour": "IM Cookie A\u00a0", "yield": 5, "lines": [{"item": "IM Flour", "qty": 5, "unit": "g", "kind": "ingredient"}]},
+    {"flavour": "IM Cookie D", "yield": 5, "lines": [{"item": "IM Flour", "qty": 5, "unit": "g", "kind": "ingredient"}, {"item": "IM Sugar\u200b", "qty": 1, "unit": "g", "kind": "ingredient"}]}]'::jsonb);
+  perform pg_temp.assert_ok(a, 'imp_recipes_invisible_flavour_is_listed', p -> 'counts' = '{"will_write": 0, "unchanged": 0, "unmatched": 2, "rule_removals": 0}'::jsonb
+    and pg_temp.why(p, 1) = 'a name has an invisible space or is not in composed form');
+  perform pg_temp.assert_ok(a, 'imp_recipes_invisible_line_item_holds_the_recipe',
+    pg_temp.why(p, 2) = 'the recipe is held whole: line 2: a name has an invisible space or is not in composed form');
 end $$;
 
 create function pg_temp.phase_flavours(a text) returns void language plpgsql security invoker as $$
@@ -464,7 +511,8 @@ begin
     and pg_temp.flavour_price('imp-b') = 10000 and pg_temp.flavour_price('imp-c') = 8000 and pg_temp.flavour_price('imp-x') = 6000);
   perform pg_temp.assert_ok(a, 'imp_flavours_only_the_price_changes', pg_temp.flavour_row('imp-a') = row_a and pg_temp.flavour_stamp('imp-b') = stamp_b and pg_temp.flavour_row('imp-x') = row_x);
   perform pg_temp.assert_ok(a, 'imp_flavours_one_audit_row', pg_temp.n_audit('import.flavour_prices') = 1 and pg_temp.n_audit_all() = au0 + 1
-    and exists (select 1 from public.audit_log l where l.action = 'import.flavour_prices' and l.detail = jsonb_build_object('counts', p -> 'counts', 'hash', p ->> 'hash')));
+    and exists (select 1 from public.audit_log l where l.action = 'import.flavour_prices'
+      and l.detail = jsonb_build_object('counts', p -> 'counts', 'hash', p ->> 'hash', 'will_write', p -> 'will_write')));
   p := pg_temp.pv('flavours', pg_temp.flavours_rows());
   perform pg_temp.assert_ok(a, 'imp_flavours_reapply_preview', p -> 'counts' = '{"will_write": 0, "unchanged": 2, "unmatched": 7}'::jsonb);
   r := pg_temp.ap('flavours', pg_temp.flavours_rows(), pg_temp.approve(p));
@@ -472,6 +520,9 @@ begin
   -- a price of zero is a price the owner can set, so the import can too
   p := pg_temp.pv('flavours', '[{"product": "IM Cookie E", "price_cents": 0}, {"product": "im cookie e", "price_cents": 150}]'::jsonb);
   perform pg_temp.assert_ok(a, 'imp_flavours_same_product_twice_in_one_call', p -> 'counts' = '{"will_write": 2, "unchanged": 0, "unmatched": 0}'::jsonb);
+  p := pg_temp.pv('flavours', '[{"product": "IM Cookie A\u00a0", "price_cents": 100}]'::jsonb);
+  perform pg_temp.assert_ok(a, 'imp_flavours_invisible_name_is_listed', p -> 'counts' = '{"will_write": 0, "unchanged": 0, "unmatched": 1}'::jsonb
+    and pg_temp.why(p, 1) = 'a name has an invisible space or is not in composed form');
 end $$;
 
 create function pg_temp.phase_bookings(a text) returns void language plpgsql security invoker as $$
@@ -505,11 +556,19 @@ begin
   perform pg_temp.assert_ok(a, 'imp_bookings_the_existing_one_is_kept', pg_temp.event_row('IM Bazaar', date '2026-11-01') = kept
     and kept ->> 'place' = 'Hall' and kept ->> 'rent_cents' = '500000');
   perform pg_temp.assert_ok(a, 'imp_bookings_one_audit_row', pg_temp.n_audit('import.bookings') = 1 and pg_temp.n_audit_all() = au0 + 1
-    and exists (select 1 from public.audit_log l where l.action = 'import.bookings' and l.detail = jsonb_build_object('counts', p -> 'counts', 'hash', p ->> 'hash')));
+    and exists (select 1 from public.audit_log l where l.action = 'import.bookings'
+      and l.detail = jsonb_build_object('counts', p -> 'counts', 'hash', p ->> 'hash', 'will_write', p -> 'will_write')));
   p := pg_temp.pv('bookings', pg_temp.bookings_rows());
   perform pg_temp.assert_ok(a, 'imp_bookings_reapply_preview', p -> 'counts' = '{"will_write": 0, "unchanged": 2, "unmatched": 7}'::jsonb);
   r := pg_temp.ap('bookings', pg_temp.bookings_rows(), pg_temp.approve(p));
   perform pg_temp.assert_ok(a, 'imp_bookings_reapply_writes_nothing', pg_temp.n_events() = n0 + 1 and pg_temp.n_audit('import.bookings') = 1);
+  -- an unchanged booking shows the place, the rent and the switch it keeps, so a workbook that says otherwise is visible
+  p := pg_temp.pv('bookings', '[{"name": "IM Bazaar", "starts_on": "2026-11-01", "ends_on": "2026-11-03", "place": "Elsewhere", "rent_cents": 1, "active": false}]'::jsonb);
+  perform pg_temp.assert_ok(a, 'imp_bookings_unchanged_shows_what_it_keeps', p -> 'unchanged'
+    = '[{"id": "b4a3e000-0000-4000-8000-000000000001", "name": "IM Bazaar", "starts_on": "2026-11-01", "ends_on": "2026-11-03", "place": "Hall", "rent_cents": 500000, "active": true}]'::jsonb);
+  p := pg_temp.pv('bookings', '[{"name": "IM Bazaar\u00a0", "starts_on": "2026-11-01", "ends_on": "2026-11-03", "place": "", "rent_cents": 0, "active": true}]'::jsonb);
+  perform pg_temp.assert_ok(a, 'imp_bookings_invisible_name_is_listed', p -> 'counts' = '{"will_write": 0, "unchanged": 0, "unmatched": 1}'::jsonb
+    and pg_temp.why(p, 1) = 'a name has an invisible space or is not in composed form');
 end $$;
 
 -- None of these holds EXECUTE for an API role, service_role included.
@@ -522,7 +581,7 @@ begin
     'preview_import_bookings(jsonb)', 'apply_import_bookings(jsonb,jsonb)',
     'run_import_items(jsonb)', 'run_import_prices(jsonb)', 'run_import_recipes(jsonb)', 'run_import_flavours(jsonb)', 'run_import_bookings(jsonb)',
     'write_stock_item(jsonb,timestamptz)', 'write_item_price(jsonb)', 'write_recipe(jsonb,timestamptz)', 'write_flavour(text,jsonb,timestamptz)',
-    'write_scheduled_event(jsonb,timestamptz)', 'import_result(jsonb,jsonb,jsonb,jsonb)', 'import_expected_ok(jsonb,text[])', 'import_keys_ok(jsonb,text[],text[])'] loop
+    'write_scheduled_event(jsonb,timestamptz)', 'import_result(jsonb,jsonb,jsonb,jsonb)', 'import_expected_ok(jsonb,text[])', 'import_keys_ok(jsonb,text[],text[])', 'import_name_ok(text)'] loop
     if has_function_privilege('anon', 'public.' || f, 'EXECUTE') then
       raise exception 'forbidden import call succeeded: anon / %', split_part(f, '(', 1);
     end if;

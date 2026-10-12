@@ -2281,6 +2281,7 @@ export type Database = {
       get_stock_catalogue: { Args: never; Returns: Json }
       import_expected_ok: { Args: { p_count_keys: string[]; p_expected: Json }; Returns: boolean }
       import_keys_ok: { Args: { p_optional: string[]; p_required: string[]; p_row: Json }; Returns: boolean }
+      import_name_ok: { Args: { p_name: string }; Returns: boolean }
       import_result: { Args: { p_removals: Json; p_same: Json; p_unmatched: Json; p_write: Json }; Returns: Json }
       is_owner: { Args: never; Returns: boolean }
       is_staff: { Args: never; Returns: boolean }

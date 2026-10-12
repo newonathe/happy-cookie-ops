@@ -1,5 +1,5 @@
 {
-  "scope": "Reviewed local function-authority drift baseline through B4a-3 her-data imports (migration 64: preview_import_X and apply_import_X for items, prices, recipes, flavours and bookings, with run_import_X, import_result, import_expected_ok, import_keys_ok and the writers write_stock_item, write_item_price, write_recipe, write_flavour and write_scheduled_event, all internal with no API grant; save_stock_item, save_item_price, save_recipe, save_flavour and save_scheduled_event redefined as the owner check plus the writer, grants unchanged); earlier: Reviewed local function-authority drift baseline through B4a-2 the cost cutover fix (migration 63: apply_cost_cutover, get_books and write_packaging_rule redefined; grants unchanged; no function added); earlier: B4a-1 the cost cutover (preview_cost_cutover and apply_cost_cutover added, internal with no API grant; get_books, set_cost_basis and save_recipe redefined; grants unchanged; books_settings defaults to bought until a cutover); earlier: Reviewed local function-authority drift baseline through B3b-2 books on the used basis (get_books redefined: the uncosted list also carries a pack and a bazaar sale that took nothing; grants unchanged; books_settings defaults to used); earlier: B3b-1 packaging rules (save_packaging_rule and get_packaging_rules owner-only; write_packaging_rule and apply_packaging_rule internal with no API grant; record_pack, record_sale_packaging, record_production, save_recipe, get_recipes and get_recipe_costs redefined; record_event_sale untouched); earlier: B3a batch correction (record_batch_correction added; record_discard and get_production redefined for corrections and batch cost); earlier: B3a clock (business_clock gains local_time; place_order and join_waitlist read the day from it) and wrapped policies (no function added); earlier: B3a cost core (item_unit_cost, use_stock_item, lock_stock_item_ids internal with no API grant; save_item_price, get_item_costs, get_recipe_costs added; unit_price_at removed; use_stock, record_stock_movement, record_production, record_cost_correction, get_books redefined); earlier: B3a identity links (preview_identity_links and apply_identity_links added with no API grant; save_recipe, get_recipes, save_supplier_price and get_stock_catalogue redefined for item ids, pack sizes and complete recipe versions); earlier: B2 database half (business_clock, get_shop_identity, save_shop_identity added); earlier: C2 (record_production, record_pack, get_production, use_stock, lock_stock_items, record_sale_packaging added; record_event_sale redefined to use packaging); earlier: Reviewed local function-authority drift baseline through B4a (get_order_extras, save_order_extras, get_shop_extras added; place_order, order_status, get_staff_orders, anonymise_customer, prune_personal_data redefined for boxes, add-ons and the same-day surcharge); earlier: B2 database half (get_shop_order_rules, find_order added); B1 (place_order, order_status, join_waitlist, order_holds_capacity, get_order_rules, save_order_rules added; anonymise_customer and prune_personal_data recreated for the new personal data); A2 (payment_methods, shop_texts, get_shop_payment_info added); load_event_stock/add_event_expense/close_event/event_summary added (D2); D1: start_event/set_event_device/record_event_sale/void_event_sale added (D1); MP-09 c1b: publish_flavours added (MP-09 c1b); get_flavours/save_flavour added (MP-09 c1); settings_effective gained three idle-minute defaults, get_settings/save_setting/get_operating_settings added; MP-09 b3 recreated settings_effective/get_settings/get_operating_settings with json_value and replaced save_setting; full capability/domain and hosted acceptance remain open; F1: record_operations_run and get_operations_health added, prune_personal_data redefined for the fixed 365-day retention window",
+  "scope": "Reviewed local function-authority drift baseline through B4a-4 the cutover guard (migration 64: record_stock_movement, preview_cost_cutover and get_books redefined, each with one added guard; grants unchanged; no function added); earlier: B4a-3 her-data imports (migration 63: preview_import_X and apply_import_X for items, prices, recipes, flavours and bookings, with run_import_X, import_result, import_expected_ok, import_keys_ok, import_name_ok and the writers write_stock_item, write_item_price, write_recipe, write_flavour and write_scheduled_event, all internal with no API grant; save_stock_item, save_item_price, save_recipe, save_flavour and save_scheduled_event redefined as the owner check plus the writer, grants unchanged); earlier: Reviewed local function-authority drift baseline through B4a-2 the cost cutover fix (migration 62 fix: apply_cost_cutover, get_books and write_packaging_rule redefined; grants unchanged; no function added); earlier: B4a-1 the cost cutover (preview_cost_cutover and apply_cost_cutover added, internal with no API grant; get_books, set_cost_basis and save_recipe redefined; grants unchanged; books_settings defaults to bought until a cutover); earlier: Reviewed local function-authority drift baseline through B3b-2 books on the used basis (get_books redefined: the uncosted list also carries a pack and a bazaar sale that took nothing; grants unchanged; books_settings defaults to used); earlier: B3b-1 packaging rules (save_packaging_rule and get_packaging_rules owner-only; write_packaging_rule and apply_packaging_rule internal with no API grant; record_pack, record_sale_packaging, record_production, save_recipe, get_recipes and get_recipe_costs redefined; record_event_sale untouched); earlier: B3a batch correction (record_batch_correction added; record_discard and get_production redefined for corrections and batch cost); earlier: B3a clock (business_clock gains local_time; place_order and join_waitlist read the day from it) and wrapped policies (no function added); earlier: B3a cost core (item_unit_cost, use_stock_item, lock_stock_item_ids internal with no API grant; save_item_price, get_item_costs, get_recipe_costs added; unit_price_at removed; use_stock, record_stock_movement, record_production, record_cost_correction, get_books redefined); earlier: B3a identity links (preview_identity_links and apply_identity_links added with no API grant; save_recipe, get_recipes, save_supplier_price and get_stock_catalogue redefined for item ids, pack sizes and complete recipe versions); earlier: B2 database half (business_clock, get_shop_identity, save_shop_identity added); earlier: C2 (record_production, record_pack, get_production, use_stock, lock_stock_items, record_sale_packaging added; record_event_sale redefined to use packaging); earlier: Reviewed local function-authority drift baseline through B4a (get_order_extras, save_order_extras, get_shop_extras added; place_order, order_status, get_staff_orders, anonymise_customer, prune_personal_data redefined for boxes, add-ons and the same-day surcharge); earlier: B2 database half (get_shop_order_rules, find_order added); B1 (place_order, order_status, join_waitlist, order_holds_capacity, get_order_rules, save_order_rules added; anonymise_customer and prune_personal_data recreated for the new personal data); A2 (payment_methods, shop_texts, get_shop_payment_info added); load_event_stock/add_event_expense/close_event/event_summary added (D2); D1: start_event/set_event_device/record_event_sale/void_event_sale added (D1); MP-09 c1b: publish_flavours added (MP-09 c1b); get_flavours/save_flavour added (MP-09 c1); settings_effective gained three idle-minute defaults, get_settings/save_setting/get_operating_settings added; MP-09 b3 recreated settings_effective/get_settings/get_operating_settings with json_value and replaced save_setting; full capability/domain and hosted acceptance remain open; F1: record_operations_run and get_operations_health added, prune_personal_data redefined for the fixed 365-day retention window",
   "functions": [
     {
       "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
@@ -1194,7 +1194,7 @@
         "search_path=\"\""
       ],
       "returns": "TABLE(item_id text, on_hand numeric, duplicate boolean)",
-      "body_md5": "e48774626dfee4d6775735812dc56646",
+      "body_md5": "427a04d52d5ae490345587df9ca34711",
       "identity": "p_movement jsonb",
       "execute_anon": false,
       "security_definer": true,
@@ -1464,7 +1464,7 @@
         "search_path=\"\""
       ],
       "returns": "jsonb",
-      "body_md5": "1bd34c178f4e2cf8bb618f9fa25734d0",
+      "body_md5": "a42a0d2faf90cd8116f2c3edffe16784",
       "identity": "p_from timestamp with time zone, p_to timestamp with time zone",
       "execute_anon": false,
       "security_definer": true,
@@ -1689,7 +1689,7 @@
         "search_path=\"\""
       ],
       "returns": "jsonb",
-      "body_md5": "b46d49fd02995668576c9f715647ced2",
+      "body_md5": "24baf949f2d3ce5617a72adcbf3315de",
       "identity": "",
       "execute_anon": false,
       "security_definer": true,
@@ -1704,7 +1704,7 @@
         "search_path=\"\""
       ],
       "returns": "jsonb",
-      "body_md5": "b08fa5f22a0c89dcf34f2f6510d6beb5",
+      "body_md5": "66de0877c2de44569b950dd87121026b",
       "identity": "p_rows jsonb, p_expected jsonb",
       "execute_anon": false,
       "security_definer": true,
@@ -1719,7 +1719,7 @@
         "search_path=\"\""
       ],
       "returns": "jsonb",
-      "body_md5": "008f7c2b028229f1d3884796125a52d5",
+      "body_md5": "222760cccd6b0ca059de5f90a7a35f7d",
       "identity": "p_rows jsonb, p_expected jsonb",
       "execute_anon": false,
       "security_definer": true,
@@ -1734,7 +1734,7 @@
         "search_path=\"\""
       ],
       "returns": "jsonb",
-      "body_md5": "0e4352ccd19a2268d96cebf72748423e",
+      "body_md5": "3cfeeaf7dfbc583d3f4624e2f60e0888",
       "identity": "p_rows jsonb, p_expected jsonb",
       "execute_anon": false,
       "security_definer": true,
@@ -1749,7 +1749,7 @@
         "search_path=\"\""
       ],
       "returns": "jsonb",
-      "body_md5": "58c2382475378bed1b5b1e2852baaa5d",
+      "body_md5": "e489d262b259e59967f182b6813740fb",
       "identity": "p_rows jsonb, p_expected jsonb",
       "execute_anon": false,
       "security_definer": true,
@@ -1764,7 +1764,7 @@
         "search_path=\"\""
       ],
       "returns": "jsonb",
-      "body_md5": "bf1f485d0ab7832c8717689916538381",
+      "body_md5": "d3c43427f222717da5bb160271691cd0",
       "identity": "p_rows jsonb, p_expected jsonb",
       "execute_anon": false,
       "security_definer": true,
@@ -1796,6 +1796,21 @@
       "returns": "boolean",
       "body_md5": "292a2a3a636d168a70905ac04b2c3e49",
       "identity": "p_row jsonb, p_required text[], p_optional text[]",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "import_name_ok",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "boolean",
+      "body_md5": "4468ca525f06c8b255480b0e125148a2",
+      "identity": "p_name text",
       "execute_anon": false,
       "security_definer": true,
       "execute_service_role": false,
@@ -1899,7 +1914,7 @@
         "search_path=\"\""
       ],
       "returns": "jsonb",
-      "body_md5": "32e681dd48fe5a5f438267f59eb6a3dd",
+      "body_md5": "aea2df86d88a2c4892ec6aebf625b629",
       "identity": "p_rows jsonb",
       "execute_anon": false,
       "security_definer": true,
@@ -1914,7 +1929,7 @@
         "search_path=\"\""
       ],
       "returns": "jsonb",
-      "body_md5": "52c43569500fc8b526786414e202837d",
+      "body_md5": "0b10e3209a81ecb4bf3a9bdceab0e958",
       "identity": "p_rows jsonb",
       "execute_anon": false,
       "security_definer": true,
@@ -1929,7 +1944,7 @@
         "search_path=\"\""
       ],
       "returns": "jsonb",
-      "body_md5": "6d329d165bcf21203d8775500f9d3014",
+      "body_md5": "5f2cc97ad4bcdb945eaf6f4cb55c4f0f",
       "identity": "p_rows jsonb",
       "execute_anon": false,
       "security_definer": true,
@@ -1944,7 +1959,7 @@
         "search_path=\"\""
       ],
       "returns": "jsonb",
-      "body_md5": "4ec391d9b30b46c0de49fc263741db66",
+      "body_md5": "8b2f827cfc5304dd89e78e72df5f39d2",
       "identity": "p_rows jsonb",
       "execute_anon": false,
       "security_definer": true,
@@ -1959,7 +1974,7 @@
         "search_path=\"\""
       ],
       "returns": "jsonb",
-      "body_md5": "291489862689bb5bbd6ebfdafc334164",
+      "body_md5": "f8edc8402d620c658239794733bcac4c",
       "identity": "p_rows jsonb",
       "execute_anon": false,
       "security_definer": true,

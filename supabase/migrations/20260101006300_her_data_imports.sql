@@ -12,7 +12,8 @@
 --                                       hash        the sha256 of the will_write list (canonical: sorted by its own text)
 --   apply_import_X(rows, expected)    expected is EXACTLY {hash, counts} of the preview. It takes the catalogue lock, works the preview out
 --                                     again, is REFUSED (P0002) when the hash or the counts differ, then writes only will_write, in one
---                                     transaction, with one audit row (action import.X; detail the counts and the hash). A call that
+--                                     transaction, with one audit row (action import.X; detail the counts, the hash and the will_write list, so a removed rule line or a flavour's old price can be
+--                                     explained later). A call that
 --                                     writes nothing writes no audit row either. The whole call is refused, never half applied: an
 --                                     unmatched row is listed and left alone, but the caller must approve the preview as it stands.
 --
@@ -37,6 +38,12 @@
 --
 -- Nothing is guessed. A name must be exactly one record (case and surrounding spaces ignored); none, or several, lists the row and writes
 -- nothing. A unit must be the item's own. No item, flavour or person name is written in this file: names are data in the call.
+-- A name is also refused (the row is listed) when it holds an invisible space (btrim strips only the ASCII space, so a no-break space after
+-- a name would make a second item that looks like the first: U+00A0, U+2000 to U+200F, U+2028 to U+202F, U+205F to U+206F, U+3000, U+FEFF) or
+-- is not written in composed form (Unicode NFC), by import_name_ok. Two prices for one item on one day are refused, because the usual price
+-- is the latest and two on one day would fall to an arbitrary id; and one flavour twice in a recipes call lists the second, so a packaging
+-- rule line taken off for the first cannot be left behind by a second recipe that does not use it. The unchanged lists show the fields they
+-- hide (an item's category; a booking's place, rent and switch), so a workbook that says otherwise is visible in the preview.
 --
 -- ONE RULE, ONE PLACE. The rows are checked by the same code as the owner's saves. Each owner save is split in two: write_X (internal, no owner
 -- check: the one place the rule is checked and the row written) and save_X (the owner check, then write_X). The five functions below are the
@@ -54,9 +61,10 @@
 --
 -- Each refusal of the imports is one `if ... then -- rule:name` line so the SQL role suite can neutralise it:
 --   import-X-rows (22023: the rows are a list of 1 to 1000), import-X-row (the shape of a row), import-X-expected (22023), import-X-changed (P0002),
---   items: import-items-unit, import-items-ambiguous, import-items-unit-differs; prices: import-prices-item-none, -item-several, -unit;
---   recipes: import-recipes-product-none, -product-several, -line-none, -line-several, -line-unit, -held; flavours: import-flavours-product-none,
---   -product-several; bookings: import-bookings-several. The writers keep their own, as they had them.
+--   items: import-items-invisible, -unit, -ambiguous, -unit-differs; prices: import-prices-invisible, -item-none, -item-several, -unit, -same-day;
+--   recipes: import-recipes-product-invisible, -product-none, -product-several, -flavour-twice, -line-invisible, -line-none, -line-several,
+--   -line-unit, -held; flavours: import-flavours-invisible, -product-none, -product-several; bookings: import-bookings-invisible, -several.
+--   The writers keep their own, as they had them.
 
 /**
  * The one place a stock item is validated and written (what save_stock_item was, less the owner check). Creates (no stamp) or changes (with
@@ -790,6 +798,24 @@ $$;
 revoke execute on function public.import_keys_ok(jsonb, text[], text[]) from public, anon, authenticated, service_role;
 
 /**
+ * Internal. True when p_name has no invisible space and is written in composed form (Unicode NFC). btrim strips only the ASCII space, so a name
+ * followed by a no-break space (U+00A0), a space of U+2000 to U+200F (the zero-width ones too), U+2028 to U+202F, U+205F to U+206F, an
+ * ideographic space (U+3000) or a byte-order mark (U+FEFF) would not be the name it looks like, and an e followed by a combining accent is not the
+ * same text as the accented e. The imports refuse such a name, so they cannot make a second item, flavour or booking that looks like the first.
+ */
+create or replace function public.import_name_ok(p_name text)
+returns boolean
+language sql
+immutable
+security definer
+set search_path = ''
+as $$
+  select coalesce(p_name = normalize(p_name, nfc)
+                  and p_name !~ '[\u00a0\u2000-\u200f\u2028-\u202f\u205f-\u206f\u3000\ufeff]', false)
+$$;
+revoke execute on function public.import_name_ok(text) from public, anon, authenticated, service_role;
+
+/**
  * Internal. True when p_expected is exactly {hash, counts}: hash 64 lower-case hex, counts an object with exactly the keys p_count_keys, each a
  * whole number of 0 or more.
  */
@@ -889,6 +915,9 @@ begin
       if v_bad then -- rule:import-items-row
         raise exception 'the row carries exactly name, unit and optionally category' using errcode = '22023';
       end if;
+      if not public.import_name_ok(v_row ->> 'name') then -- rule:import-items-invisible
+        raise exception 'a name has an invisible space or is not in composed form' using errcode = '22023';
+      end if;
       v_name := btrim(v_row ->> 'name');
       v_unit := btrim(v_row ->> 'unit');
       v_cat := coalesce(v_row ->> 'category', 'Ingredients');
@@ -904,7 +933,7 @@ begin
         if v_item.unit <> v_unit then -- rule:import-items-unit-differs
           raise exception 'that item is stocked in another unit' using errcode = '22023';
         end if;
-        v_same := v_same || jsonb_build_array(jsonb_build_object('id', v_item.id, 'name', v_item.name, 'unit', v_item.unit));
+        v_same := v_same || jsonb_build_array(jsonb_build_object('id', v_item.id, 'name', v_item.name, 'unit', v_item.unit, 'category', v_item.category));
       else
         v_id := md5('import:item:' || lower(v_name))::uuid::text;
         perform public.write_stock_item(jsonb_build_object('id', v_id, 'name', v_name, 'category', v_cat, 'unit', v_unit, 'par_level', 0,
@@ -947,7 +976,7 @@ revoke execute on function public.preview_import_items(jsonb) from public, anon,
 /**
  * For the operator: writes exactly the will_write rows of the preview the operator looked at. p_expected is exactly {hash, counts} of that
  * preview. The preview is worked out again under the catalogue lock and the call is refused (P0002) when either differs. Then the same work is
- * done for real, in this one transaction, and one audit row (action import.items) records the counts and the hash. A call with nothing to write
+ * done for real, in this one transaction, and one audit row (action import.items) records the counts, the hash and the will_write list. A call with nothing to write
  * writes nothing and no audit row. Returns what was done, in the shape of the preview.
  */
 create or replace function public.apply_import_items(p_rows jsonb, p_expected jsonb)
@@ -978,7 +1007,7 @@ begin
   end if;
   if (v_res -> 'counts' ->> 'will_write')::integer > 0 then
     insert into public.audit_log (actor, action, entity, entity_id, detail)
-    values (auth.uid(), 'import.items', 'imports', 'items', jsonb_build_object('counts', v_res -> 'counts', 'hash', v_res ->> 'hash'));
+    values (auth.uid(), 'import.items', 'imports', 'items', jsonb_build_object('counts', v_res -> 'counts', 'hash', v_res ->> 'hash', 'will_write', v_res -> 'will_write'));
   end if;
   return v_res;
 end;
@@ -1030,6 +1059,9 @@ begin
       if v_bad then -- rule:import-prices-row
         raise exception 'the row carries exactly item, unit, price_cents, pack_size and as_of' using errcode = '22023';
       end if;
+      if not public.import_name_ok(v_row ->> 'item') then -- rule:import-prices-invisible
+        raise exception 'a name has an invisible space or is not in composed form' using errcode = '22023';
+      end if;
       select count(*) into v_cnt from public.inventory_items i where lower(btrim(i.name)) = lower(btrim(v_row ->> 'item'));
       if v_cnt = 0 then -- rule:import-prices-item-none
         raise exception 'no stock item has that name' using errcode = '22023';
@@ -1056,6 +1088,11 @@ begin
       select * into v_last from public.item_prices x where x.item_id = v_item.id order by x.as_of desc, x.received_at desc, x.id desc limit 1;
       v_same := exists (select 1 from public.item_prices x where x.id = v_id)
                 or (v_last.id is not null and v_last.price_cents = v_cents and v_last.pack_size = v_pack);
+      -- One item, one day, one price: the usual price is the latest row, and two on one day would fall to an arbitrary id. The rows before this
+      -- one in the same call are written already, so they are seen here too.
+      if not v_same and exists (select 1 from public.item_prices x where x.item_id = v_item.id and x.as_of = (v_row ->> 'as_of')::date and x.id <> v_id) then -- rule:import-prices-same-day
+        raise exception 'that item already has a price dated that day' using errcode = '22023';
+      end if;
       v_entry := jsonb_build_object('id', v_id, 'item_id', v_item.id, 'item', v_item.name, 'unit', v_item.unit, 'price_cents', trim_scale(v_cents),
                                     'pack_size', trim_scale(v_pack), 'as_of', v_row ->> 'as_of');
       if v_same then
@@ -1100,7 +1137,7 @@ revoke execute on function public.preview_import_prices(jsonb) from public, anon
 /**
  * For the operator: writes exactly the will_write rows of the preview the operator looked at. p_expected is exactly {hash, counts} of that
  * preview. The preview is worked out again under the catalogue lock and the call is refused (P0002) when either differs. Then the same work is
- * done for real, in this one transaction, and one audit row (action import.prices) records the counts and the hash. A call with nothing to write
+ * done for real, in this one transaction, and one audit row (action import.prices) records the counts, the hash and the will_write list. A call with nothing to write
  * writes nothing and no audit row. Returns what was done, in the shape of the preview.
  */
 create or replace function public.apply_import_prices(p_rows jsonb, p_expected jsonb)
@@ -1131,7 +1168,7 @@ begin
   end if;
   if (v_res -> 'counts' ->> 'will_write')::integer > 0 then
     insert into public.audit_log (actor, action, entity, entity_id, detail)
-    values (auth.uid(), 'import.prices', 'imports', 'prices', jsonb_build_object('counts', v_res -> 'counts', 'hash', v_res ->> 'hash'));
+    values (auth.uid(), 'import.prices', 'imports', 'prices', jsonb_build_object('counts', v_res -> 'counts', 'hash', v_res ->> 'hash', 'will_write', v_res -> 'will_write'));
   end if;
   return v_res;
 end;
@@ -1174,6 +1211,7 @@ declare
   v_keep      jsonb;
   v_removed   jsonb;
   v_noop      boolean;
+  v_seen      text[] := '{}';
   v_write     jsonb := '[]'::jsonb;
   v_same      jsonb := '[]'::jsonb;
   v_unmatched jsonb := '[]'::jsonb;
@@ -1198,6 +1236,9 @@ begin
       if v_bad then -- rule:import-recipes-row
         raise exception 'the row carries exactly flavour, yield and lines of item, qty, unit and kind' using errcode = '22023';
       end if;
+      if not public.import_name_ok(v_row ->> 'flavour') then -- rule:import-recipes-product-invisible
+        raise exception 'a name has an invisible space or is not in composed form' using errcode = '22023';
+      end if;
       select count(*), min(p.id) into v_cnt, v_pid from public.products p where lower(btrim(p.name)) = lower(btrim(v_row ->> 'flavour'));
       if v_cnt = 0 then -- rule:import-recipes-product-none
         raise exception 'no flavour has that name' using errcode = '22023';
@@ -1205,12 +1246,22 @@ begin
       if v_cnt > 1 then -- rule:import-recipes-product-several
         raise exception 'several flavours have that name' using errcode = '22023';
       end if;
+      -- A flavour is written once in a call: a second recipe for it would be worked out on the first, and a packaging rule line taken off for the
+      -- first would stay off though the second does not use that item. A flavour is marked once its row is done (written, or found unchanged); a
+      -- row that fails undoes everything it did, so a later row for the same flavour starts from a clean state and is judged on its own.
+      if v_pid = any (v_seen) then -- rule:import-recipes-flavour-twice
+        raise exception 'that flavour is already in this call' using errcode = '22023';
+      end if;
       select p.name into v_pname from public.products p where p.id = v_pid;
 
       -- every line item: exactly one stock item, in the line's own unit. All the problems are listed, and the recipe is held whole.
       v_probs := '{}';
       v_lines := '[]'::jsonb;
       for v_line, v_ord in select l.value, l.ord from jsonb_array_elements(v_row -> 'lines') with ordinality l(value, ord) order by l.ord loop
+        if not public.import_name_ok(v_line ->> 'item') then -- rule:import-recipes-line-invisible
+          v_probs := array_append(v_probs, 'line ' || v_ord || ': a name has an invisible space or is not in composed form');
+          continue;
+        end if;
         select count(*), min(i.id) into v_cnt, v_iid from public.inventory_items i where lower(btrim(i.name)) = lower(btrim(v_line ->> 'item'));
         if v_cnt = 0 then -- rule:import-recipes-line-none
           v_probs := array_append(v_probs, 'line ' || v_ord || ': no stock item has that name');
@@ -1280,6 +1331,7 @@ begin
           'rule_removals', v_removed));
         v_all_gone := v_all_gone || v_removed;
       end if;
+      v_seen := array_append(v_seen, v_pid);
     exception when sqlstate '22023' or sqlstate 'P0002' or sqlstate '23505' or sqlstate '23503' or sqlstate '23514' or sqlstate '23502'
                  or sqlstate '22P02' or sqlstate '22003' or sqlstate '22007' or sqlstate '22008' or sqlstate '22001' or sqlstate '22004' then
       v_unmatched := v_unmatched || jsonb_build_array(jsonb_build_object('n', v_n, 'row', v_row, 'why', sqlerrm));
@@ -1316,7 +1368,7 @@ revoke execute on function public.preview_import_recipes(jsonb) from public, ano
 /**
  * For the operator: writes exactly the will_write rows of the preview the operator looked at. p_expected is exactly {hash, counts} of that
  * preview. The preview is worked out again under the catalogue lock and the call is refused (P0002) when either differs. Then the same work is
- * done for real, in this one transaction, and one audit row (action import.recipes) records the counts and the hash. A call with nothing to write
+ * done for real, in this one transaction, and one audit row (action import.recipes) records the counts, the hash and the will_write list. A call with nothing to write
  * writes nothing and no audit row. Returns what was done, in the shape of the preview.
  */
 create or replace function public.apply_import_recipes(p_rows jsonb, p_expected jsonb)
@@ -1347,7 +1399,7 @@ begin
   end if;
   if (v_res -> 'counts' ->> 'will_write')::integer > 0 then
     insert into public.audit_log (actor, action, entity, entity_id, detail)
-    values (auth.uid(), 'import.recipes', 'imports', 'recipes', jsonb_build_object('counts', v_res -> 'counts', 'hash', v_res ->> 'hash'));
+    values (auth.uid(), 'import.recipes', 'imports', 'recipes', jsonb_build_object('counts', v_res -> 'counts', 'hash', v_res ->> 'hash', 'will_write', v_res -> 'will_write'));
   end if;
   return v_res;
 end;
@@ -1389,6 +1441,9 @@ begin
                or jsonb_typeof(v_row -> 'product') <> 'string' or jsonb_typeof(v_row -> 'price_cents') <> 'number';
       if v_bad then -- rule:import-flavours-row
         raise exception 'the row carries exactly product and price_cents' using errcode = '22023';
+      end if;
+      if not public.import_name_ok(v_row ->> 'product') then -- rule:import-flavours-invisible
+        raise exception 'a name has an invisible space or is not in composed form' using errcode = '22023';
       end if;
       select count(*) into v_cnt from public.products p where lower(btrim(p.name)) = lower(btrim(v_row ->> 'product'));
       if v_cnt = 0 then -- rule:import-flavours-product-none
@@ -1443,7 +1498,7 @@ revoke execute on function public.preview_import_flavours(jsonb) from public, an
 /**
  * For the operator: writes exactly the will_write rows of the preview the operator looked at. p_expected is exactly {hash, counts} of that
  * preview. The preview is worked out again under the catalogue lock and the call is refused (P0002) when either differs. Then the same work is
- * done for real, in this one transaction, and one audit row (action import.flavour_prices) records the counts and the hash. A call with nothing to write
+ * done for real, in this one transaction, and one audit row (action import.flavour_prices) records the counts, the hash and the will_write list. A call with nothing to write
  * writes nothing and no audit row. Returns what was done, in the shape of the preview.
  */
 create or replace function public.apply_import_flavours(p_rows jsonb, p_expected jsonb)
@@ -1474,7 +1529,7 @@ begin
   end if;
   if (v_res -> 'counts' ->> 'will_write')::integer > 0 then
     insert into public.audit_log (actor, action, entity, entity_id, detail)
-    values (auth.uid(), 'import.flavour_prices', 'imports', 'flavour_prices', jsonb_build_object('counts', v_res -> 'counts', 'hash', v_res ->> 'hash'));
+    values (auth.uid(), 'import.flavour_prices', 'imports', 'flavour_prices', jsonb_build_object('counts', v_res -> 'counts', 'hash', v_res ->> 'hash', 'will_write', v_res -> 'will_write'));
   end if;
   return v_res;
 end;
@@ -1520,6 +1575,9 @@ begin
       if v_bad then -- rule:import-bookings-row
         raise exception 'the row carries exactly name, starts_on, ends_on, place, rent_cents and active' using errcode = '22023';
       end if;
+      if not public.import_name_ok(v_row ->> 'name') then -- rule:import-bookings-invisible
+        raise exception 'a name has an invisible space or is not in composed form' using errcode = '22023';
+      end if;
       select count(*) into v_cnt from public.scheduled_events s
        where lower(btrim(s.name)) = lower(btrim(v_row ->> 'name'))
          and to_char(s.starts_on, 'YYYY-MM-DD') = v_row ->> 'starts_on' and to_char(s.ends_on, 'YYYY-MM-DD') = v_row ->> 'ends_on';
@@ -1530,7 +1588,8 @@ begin
         select * into v_old from public.scheduled_events s
          where lower(btrim(s.name)) = lower(btrim(v_row ->> 'name'))
            and to_char(s.starts_on, 'YYYY-MM-DD') = v_row ->> 'starts_on' and to_char(s.ends_on, 'YYYY-MM-DD') = v_row ->> 'ends_on';
-        v_same := v_same || jsonb_build_array(jsonb_build_object('id', v_old.id, 'name', v_old.name, 'starts_on', v_old.starts_on, 'ends_on', v_old.ends_on));
+        v_same := v_same || jsonb_build_array(jsonb_build_object('id', v_old.id, 'name', v_old.name, 'starts_on', v_old.starts_on, 'ends_on', v_old.ends_on,
+          'place', v_old.place, 'rent_cents', v_old.rent_cents, 'active', v_old.active));
       else
         v_id := md5('import:booking:' || lower(btrim(v_row ->> 'name')) || '|' || (v_row ->> 'starts_on') || '|' || (v_row ->> 'ends_on'))::uuid;
         perform public.write_scheduled_event(jsonb_build_object('id', v_id, 'name', v_row -> 'name', 'starts_on', v_row -> 'starts_on',
@@ -1575,7 +1634,7 @@ revoke execute on function public.preview_import_bookings(jsonb) from public, an
 /**
  * For the operator: writes exactly the will_write rows of the preview the operator looked at. p_expected is exactly {hash, counts} of that
  * preview. The preview is worked out again under the catalogue lock and the call is refused (P0002) when either differs. Then the same work is
- * done for real, in this one transaction, and one audit row (action import.bookings) records the counts and the hash. A call with nothing to write
+ * done for real, in this one transaction, and one audit row (action import.bookings) records the counts, the hash and the will_write list. A call with nothing to write
  * writes nothing and no audit row. Returns what was done, in the shape of the preview.
  */
 create or replace function public.apply_import_bookings(p_rows jsonb, p_expected jsonb)
@@ -1606,7 +1665,7 @@ begin
   end if;
   if (v_res -> 'counts' ->> 'will_write')::integer > 0 then
     insert into public.audit_log (actor, action, entity, entity_id, detail)
-    values (auth.uid(), 'import.bookings', 'imports', 'bookings', jsonb_build_object('counts', v_res -> 'counts', 'hash', v_res ->> 'hash'));
+    values (auth.uid(), 'import.bookings', 'imports', 'bookings', jsonb_build_object('counts', v_res -> 'counts', 'hash', v_res ->> 'hash', 'will_write', v_res -> 'will_write'));
   end if;
   return v_res;
 end;
