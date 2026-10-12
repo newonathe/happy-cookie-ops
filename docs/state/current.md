@@ -38,7 +38,7 @@ plan is built (Ethan, 5 October). F3 (launch) stays closed until Cine accepts a 
 - **The product** is built through E1: menu and settings, checkout and owner orders,
   bazaar selling with offline close-out, stock, recipes and production, books, P&L and
   CSV, backups and health. `pnpm verify` passes 100 files / 1,850 tests; the planning
-  validator passes 1,232 checks; the database role suite passes 2,600 cases a reset.
+  validator passes 1,232 checks; the database role suite passes 2,977 cases a reset.
 - **The private trial site** is live for owners only:
   <https://happy-cookie-owner-trial.admin-kethai.workers.dev>. Cloudflare Access sends an
   email code to two approved mailboxes. The shop is closed and the menu is unpublished.
