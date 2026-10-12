@@ -39,7 +39,8 @@ ORDER_MIGRATIONS = [ROOT / 'supabase/migrations/20260101003500_place_order.sql',
                     ROOT / 'supabase/migrations/20260101005900_packaging_rules.sql',
                     ROOT / 'supabase/migrations/20260101006000_books_used.sql',
                     ROOT / 'supabase/migrations/20260101006100_cost_cutover.sql',
-                    ROOT / 'supabase/migrations/20260101006200_cost_cutover_fix.sql']
+                    ROOT / 'supabase/migrations/20260101006200_cost_cutover_fix.sql',
+                    ROOT / 'supabase/migrations/20260101006300_her_data_imports.sql']
 _OUT = 'order outcome differs: anon / '
 _CHK = 'order check differs: anon / '
 _LOOK = 'lookup check differs: anon / '
@@ -231,13 +232,13 @@ EXTRAS_TABLE_MUTATIONS = {
 # D4: the owner's scheduled bazaar events (scheduled-events.sql), acting on the last migration that defines each function.
 _SC = 'scheduled outcome differs: active_owner / '
 SCHEDULED_MUTATIONS = {
-    'rule_sched_keys': ('save_scheduled_event', 'rule', 'keys', _SC + 'save_keys_missing / '),
-    'rule_sched_text': ('save_scheduled_event', 'rule', 'text', _SC + 'save_name_blank / '),
-    'rule_sched_dates': ('save_scheduled_event', 'rule', 'dates', _SC + 'save_ends_before_start / '),
-    'rule_sched_rent': ('save_scheduled_event', 'rule', 'rent', _SC + 'save_rent_negative / '),
-    'rule_sched_create_stamp': ('save_scheduled_event', 'rule', 'create-stamp', _SC + 'create_with_stamp_unknown / '),
-    'rule_sched_replay': ('save_scheduled_event', 'rule', 'replay', _SC + 'create_replay / '),
-    'rule_sched_stale': ('save_scheduled_event', 'rule', 'stale', _SC + 'change_stale / '),
+    'rule_sched_keys': ('write_scheduled_event', 'rule', 'keys', _SC + 'save_keys_missing / '),
+    'rule_sched_text': ('write_scheduled_event', 'rule', 'text', _SC + 'save_name_blank / '),
+    'rule_sched_dates': ('write_scheduled_event', 'rule', 'dates', _SC + 'save_ends_before_start / '),
+    'rule_sched_rent': ('write_scheduled_event', 'rule', 'rent', _SC + 'save_rent_negative / '),
+    'rule_sched_create_stamp': ('write_scheduled_event', 'rule', 'create-stamp', _SC + 'create_with_stamp_unknown / '),
+    'rule_sched_replay': ('write_scheduled_event', 'rule', 'replay', _SC + 'create_replay / '),
+    'rule_sched_stale': ('write_scheduled_event', 'rule', 'stale', _SC + 'change_stale / '),
     'rule_sched_link_missing': ('link_scheduled_event', 'rule', 'link-missing', _SC + 'link_booking_missing / '),
     'rule_sched_link_event': ('link_scheduled_event', 'rule', 'link-event', _SC + 'link_event_missing / '),
     'rule_sched_link_conflict': ('link_scheduled_event', 'rule', 'link-conflict', _SC + 'link_other_event / '),
@@ -262,19 +263,19 @@ STOCK_MUTATIONS = {
     'rule_supplier_create_stamp': ('save_supplier', 'rule', 'supplier-create-stamp', _ST + 'sup_create_with_stamp_unknown / '),
     'rule_supplier_replay': ('save_supplier', 'rule', 'supplier-replay', _ST + 'sup_create_replay / '),
     'rule_supplier_stale': ('save_supplier', 'rule', 'supplier-stale', _ST + 'sup_change_stale / '),
-    'rule_item_keys': ('save_stock_item', 'rule', 'item-keys', _ST + 'item_keys_missing / '),
-    'rule_item_id': ('save_stock_item', 'rule', 'item-id', _ST + 'item_id_bad / '),
-    'rule_item_text': ('save_stock_item', 'rule', 'item-text', _ST + 'item_name_blank / '),
-    'rule_item_category': ('save_stock_item', 'rule', 'item-category', _ST + 'item_category_bad / '),
-    'rule_item_numbers': ('save_stock_item', 'rule', 'item-numbers', _ST + 'item_par_negative / '),
-    'rule_item_useby': ('save_stock_item', 'rule', 'item-useby', _ST + 'item_useby_zero / '),
-    'rule_item_supplier': ('save_stock_item', 'rule', 'item-supplier', _ST + 'item_supplier_unknown / '),
-    'rule_item_name_taken': ('save_stock_item', 'rule', 'item-name-taken', _ST + 'item_name_taken / '),
-    'rule_item_create_stamp': ('save_stock_item', 'rule', 'item-create-stamp', _ST + 'item_create_with_stamp_unknown / '),
-    'rule_item_replay': ('save_stock_item', 'rule', 'item-replay', _ST + 'item_create_replay / '),
-    'rule_item_stale': ('save_stock_item', 'rule', 'item-stale', _ST + 'item_change_stale / '),
-    'rule_item_rename_referenced': ('save_stock_item', 'rule', 'item-rename-referenced', _ST + 'item_rename_referenced / '),
-    'rule_item_unit_referenced': ('save_stock_item', 'rule', 'item-unit-referenced', _ST + 'item_unit_change_referenced / '),
+    'rule_item_keys': ('write_stock_item', 'rule', 'item-keys', _ST + 'item_keys_missing / '),
+    'rule_item_id': ('write_stock_item', 'rule', 'item-id', _ST + 'item_id_bad / '),
+    'rule_item_text': ('write_stock_item', 'rule', 'item-text', _ST + 'item_name_blank / '),
+    'rule_item_category': ('write_stock_item', 'rule', 'item-category', _ST + 'item_category_bad / '),
+    'rule_item_numbers': ('write_stock_item', 'rule', 'item-numbers', _ST + 'item_par_negative / '),
+    'rule_item_useby': ('write_stock_item', 'rule', 'item-useby', _ST + 'item_useby_zero / '),
+    'rule_item_supplier': ('write_stock_item', 'rule', 'item-supplier', _ST + 'item_supplier_unknown / '),
+    'rule_item_name_taken': ('write_stock_item', 'rule', 'item-name-taken', _ST + 'item_name_taken / '),
+    'rule_item_create_stamp': ('write_stock_item', 'rule', 'item-create-stamp', _ST + 'item_create_with_stamp_unknown / '),
+    'rule_item_replay': ('write_stock_item', 'rule', 'item-replay', _ST + 'item_create_replay / '),
+    'rule_item_stale': ('write_stock_item', 'rule', 'item-stale', _ST + 'item_change_stale / '),
+    'rule_item_rename_referenced': ('write_stock_item', 'rule', 'item-rename-referenced', _ST + 'item_rename_referenced / '),
+    'rule_item_unit_referenced': ('write_stock_item', 'rule', 'item-unit-referenced', _ST + 'item_unit_change_referenced / '),
     'rule_price_keys': ('save_supplier_price', 'rule', 'price-keys', _ST + 'price_keys_missing / '),
     'rule_price_text': ('save_supplier_price', 'rule', 'price-text', _ST + 'price_label_blank / '),
     'rule_price_cents': ('save_supplier_price', 'rule', 'price-cents', _ST + 'price_cents_negative / '),
@@ -300,20 +301,20 @@ STOCK_TABLE_MUTATIONS = {
 _RC = 'recipe outcome differs: active_owner / '
 _RCC = 'recipe check differs: active_owner / '
 RECIPE_MUTATIONS = {
-    'rule_recipe_keys': ('save_recipe', 'rule', 'recipe-keys', _RC + 'recipe_keys_missing / '),
-    'rule_recipe_yield': ('save_recipe', 'rule', 'recipe-yield', _RC + 'recipe_yield_zero / '),
-    'rule_recipe_size': ('save_recipe', 'rule', 'recipe-size', _RC + 'recipe_too_many_lines / '),
-    'rule_line_keys': ('save_recipe', 'rule', 'line-keys', _RC + 'line_keys_missing / '),
-    'rule_line_name': ('save_recipe', 'rule', 'line-name', _RC + 'line_name_blank / '),
-    'rule_line_qty': ('save_recipe', 'rule', 'line-qty', _RC + 'line_qty_zero / '),
-    'rule_line_unit': ('save_recipe', 'rule', 'line-unit', _RC + 'line_unit_kg / '),
-    'rule_line_duplicate': ('save_recipe', 'rule', 'line-duplicate', _RC + 'line_duplicate / '),
-    'rule_line_unit_match': ('save_recipe', 'rule', 'line-unit-match', _RC + 'line_unit_mismatch / '),
-    'rule_line_item_unknown': ('save_recipe', 'rule', 'line-item-unknown', _RC + 'line_item_unknown / '),
-    'rule_recipe_product': ('save_recipe', 'rule', 'recipe-product', _RC + 'recipe_product_unknown / '),
-    'rule_recipe_create_stamp': ('save_recipe', 'rule', 'recipe-create-stamp', _RC + 'recipe_create_with_stamp_unknown / '),
-    'rule_recipe_noop': ('save_recipe', 'rule', 'recipe-noop', _RC + 'recipe_create_replay / '),
-    'rule_recipe_stale': ('save_recipe', 'rule', 'recipe-stale', _RC + 'recipe_change_stale / '),
+    'rule_recipe_keys': ('write_recipe', 'rule', 'recipe-keys', _RC + 'recipe_keys_missing / '),
+    'rule_recipe_yield': ('write_recipe', 'rule', 'recipe-yield', _RC + 'recipe_yield_zero / '),
+    'rule_recipe_size': ('write_recipe', 'rule', 'recipe-size', _RC + 'recipe_too_many_lines / '),
+    'rule_line_keys': ('write_recipe', 'rule', 'line-keys', _RC + 'line_keys_missing / '),
+    'rule_line_name': ('write_recipe', 'rule', 'line-name', _RC + 'line_name_blank / '),
+    'rule_line_qty': ('write_recipe', 'rule', 'line-qty', _RC + 'line_qty_zero / '),
+    'rule_line_unit': ('write_recipe', 'rule', 'line-unit', _RC + 'line_unit_kg / '),
+    'rule_line_duplicate': ('write_recipe', 'rule', 'line-duplicate', _RC + 'line_duplicate / '),
+    'rule_line_unit_match': ('write_recipe', 'rule', 'line-unit-match', _RC + 'line_unit_mismatch / '),
+    'rule_line_item_unknown': ('write_recipe', 'rule', 'line-item-unknown', _RC + 'line_item_unknown / '),
+    'rule_recipe_product': ('write_recipe', 'rule', 'recipe-product', _RC + 'recipe_product_unknown / '),
+    'rule_recipe_create_stamp': ('write_recipe', 'rule', 'recipe-create-stamp', _RC + 'recipe_create_with_stamp_unknown / '),
+    'rule_recipe_noop': ('write_recipe', 'rule', 'recipe-noop', _RC + 'recipe_create_replay / '),
+    'rule_recipe_stale': ('write_recipe', 'rule', 'recipe-stale', _RC + 'recipe_change_stale / '),
 }
 RECIPE_TABLE_MUTATIONS = {
     'recipes_table_update': ('grant update on public.recipes to anon;', 'recipe outcome differs: anon / recipes_update / '),
@@ -435,8 +436,8 @@ PACKAGING_MUTATIONS = {
     'rule_packrule_name_keys': ('apply_packaging_rule', 'rule', 'packrule-name-keys', _PK + 'operator / apply_keys_extra / '),
     'rule_packrule_apply_dup': ('apply_packaging_rule', 'rule', 'packrule-apply-dup', _PK + 'operator / apply_container_twice / '),
     'rule_packrule_name': ('apply_packaging_rule', 'rule', 'packrule-name', _PK + 'operator / apply_name_several / '),
-    'rule_recipe_kind': ('save_recipe', 'rule', 'recipe-kind', _PK + 'active_owner / recipe_kind_bad / '),
-    'rule_recipe_pack_double': ('save_recipe', 'rule', 'recipe-pack-double', _PK + 'active_owner / recipe_pack_double / '),
+    'rule_recipe_kind': ('write_recipe', 'rule', 'recipe-kind', _PK + 'active_owner / recipe_kind_bad / '),
+    'rule_recipe_pack_double': ('write_recipe', 'rule', 'recipe-pack-double', _PK + 'active_owner / recipe_pack_double / '),
     'rule_pack_no_loose_rule': ('record_pack', 'rule', 'pack-no-loose-rule', _PKC + 'active_owner / pack_flags_loose_without_a_rule'),
     'rule_pack_no_order_rule': ('record_pack', 'rule', 'pack-no-order-rule', _PKC + 'active_owner / pack_flags_order_without_a_rule'),
     'rule_sale_no_rule': ('record_sale_packaging', 'rule', 'sale-no-rule', _PKC + 'active_owner / sale_without_rule_flagged'),
@@ -464,15 +465,15 @@ PACKAGING_MUTATIONS = {
                                   _PKC + 'active_owner / bake_skips_packaging'),
     'text_bake_adj_ingredients_only': ('record_production', 'text', ("where i.product_id = v_pid and i.kind = 'ingredient' and i.item_name = k));", 'where i.product_id = v_pid and i.item_name = k));'),
                                        _PK + 'active_owner / bake_adj_names_a_packaging_line / '),
-    'text_recipe_pack_double_loose': ('save_recipe', 'text', ("(r.per = 'cookie' or r.container = 'loose')", "r.per = 'cookie'"),
+    'text_recipe_pack_double_loose': ('write_recipe', 'text', ("(r.per = 'cookie' or r.container = 'loose')", "r.per = 'cookie'"),
                                       _PK + 'active_owner / recipe_pack_double_loose_container / '),
     'text_recipes_read_the_kind': ('get_recipes', 'text', ("'item_id', i.item_id, 'kind', i.kind)", "'item_id', i.item_id, 'kind', 'ingredient')"),
                                    _PKC + 'active_owner / get_recipes_lines_have_a_kind'),
-    'text_recipe_stores_the_kind': ('save_recipe', 'text', ("|| case when l ->> 'kind' = 'packaging' then jsonb_build_object('kind', 'packaging') else '{}'::jsonb end", "|| '{}'::jsonb"),
+    'text_recipe_stores_the_kind': ('write_recipe', 'text', ("|| case when l ->> 'kind' = 'packaging' then jsonb_build_object('kind', 'packaging') else '{}'::jsonb end", "|| '{}'::jsonb"),
                                     # B4a: without the stored kind, recipe-ingredient-on-rule refuses the card line (an ingredient on a rule) too
                                     # and the pack-double refusal is still answered 22023; the first case to differ is the one that saves it.
                                     _PK + 'active_owner / recipe_with_kinds_ok / '),
-    'text_recipe_noop_sees_the_kind': ('save_recipe', 'text', ("|| case when i.kind = 'packaging' then jsonb_build_object('kind', 'packaging') else '{}'::jsonb end", "|| '{}'::jsonb"),
+    'text_recipe_noop_sees_the_kind': ('write_recipe', 'text', ("|| case when i.kind = 'packaging' then jsonb_build_object('kind', 'packaging') else '{}'::jsonb end", "|| '{}'::jsonb"),
                                        _PKC + 'active_owner / recipe_same_again_made_no_version'),
     'text_cost_adds_the_packaging': ('get_recipe_costs', 'text', ('t.batch / r.yield_count + coalesce(t.pack, 0)', 't.batch / r.yield_count'),
                                      _PKC + 'active_owner / cost_per_cookie_adds_both'),
@@ -562,7 +563,7 @@ COST_CUTOVER_MUTATIONS = {
     'rule_cutover_once': ('apply_cost_cutover', 'rule', 'cutover-once', _CU + 'operator / cutover_once / '),
     'rule_cutover_changed': ('apply_cost_cutover', 'rule', 'cutover-changed', _CU + 'operator / cutover_changed_after_preview / '),
     'rule_basis_needs_cutover': ('set_cost_basis', 'rule', 'basis-needs-cutover', _CU + 'active_owner / basis_needs_cutover / '),
-    'rule_recipe_ingredient_on_rule': ('save_recipe', 'rule', 'recipe-ingredient-on-rule', _CU + 'active_owner / recipe_ingredient_on_rule / '),
+    'rule_recipe_ingredient_on_rule': ('write_recipe', 'rule', 'recipe-ingredient-on-rule', _CU + 'active_owner / recipe_ingredient_on_rule / '),
     # B4a-2: the unvalued refusal, the instant and the creation order the apply takes, and the side of each row (by order of writing, not date).
     'rule_cutover_unvalued': ('apply_cost_cutover', 'rule', 'cutover-unvalued', _CU + 'operator / cutover_unvalued_refused / '),
     'text_cutover_clock': ('apply_cost_cutover', 'text', ('v_at := clock_timestamp();', 'v_at := now();'), _CUC + 'operator / cutover_apply_sets_used'),
@@ -599,15 +600,83 @@ COST_CUTOVER_TABLE_MUTATIONS = {
 # B3a: the cost core (item-costs.sql), acting on the last migration that defines each function. The money cases are worked by hand in the suite.
 _CS = 'item cost outcome differs: active_owner / '
 _CSC = 'item cost check differs: active_owner / '
+# B4a-3: her-data imports (imports.sql), acting on migration 63. The rule mutants neutralise one tagged refusal of a run_ or apply_ function; the text
+# mutants restate one line (the category default, the rule an import removes, the rollback of a preview, the hash). The writers under them keep their
+# own rules, which the earlier suites mutate (the write_ names above).
+_IMO = 'import outcome differs: operator / '
+_IMC = 'import check differs: operator / '
+IMPORT_MUTATIONS = {
+    'rule_import_items_rows': ('run_import_items', 'rule', 'import-items-rows', _IMO + 'imp_items_rows_empty_list / '),
+    'rule_import_items_row': ('run_import_items', 'rule', 'import-items-row', _IMC + 'imp_items_preview_counts'),
+    'rule_import_items_unit': ('run_import_items', 'rule', 'import-items-unit', _IMC + 'imp_items_preview_counts'),
+    'rule_import_items_ambiguous': ('run_import_items', 'rule', 'import-items-ambiguous', _IMC + 'imp_items_why_several'),
+    'rule_import_items_unit_differs': ('run_import_items', 'rule', 'import-items-unit-differs', _IMC + 'imp_items_preview_counts'),
+    'rule_import_items_expected': ('apply_import_items', 'rule', 'import-items-expected', _IMO + 'imp_items_expected_null / '),
+    'rule_import_items_changed': ('apply_import_items', 'rule', 'import-items-changed', _IMO + 'imp_items_stale_hash / '),
+    'rule_import_prices_rows': ('run_import_prices', 'rule', 'import-prices-rows', _IMO + 'imp_prices_rows_empty_list / '),
+    'rule_import_prices_row': ('run_import_prices', 'rule', 'import-prices-row', _IMC + 'imp_prices_why_row_keys'),
+    'rule_import_prices_item_none': ('run_import_prices', 'rule', 'import-prices-item-none', _IMC + 'imp_prices_why_none'),
+    'rule_import_prices_item_several': ('run_import_prices', 'rule', 'import-prices-item-several', _IMC + 'imp_prices_preview_counts'),
+    'rule_import_prices_unit': ('run_import_prices', 'rule', 'import-prices-unit', _IMC + 'imp_prices_preview_counts'),
+    'rule_import_prices_expected': ('apply_import_prices', 'rule', 'import-prices-expected', _IMO + 'imp_prices_expected_null / '),
+    'rule_import_prices_changed': ('apply_import_prices', 'rule', 'import-prices-changed', _IMO + 'imp_prices_stale_hash / '),
+    'rule_import_recipes_rows': ('run_import_recipes', 'rule', 'import-recipes-rows', _IMO + 'imp_recipes_rows_empty_list / '),
+    'rule_import_recipes_row': ('run_import_recipes', 'rule', 'import-recipes-row', _IMC + 'imp_recipes_preview_counts'),
+    'rule_import_recipes_product_none': ('run_import_recipes', 'rule', 'import-recipes-product-none', _IMC + 'imp_recipes_why_product_none'),
+    'rule_import_recipes_product_several': ('run_import_recipes', 'rule', 'import-recipes-product-several', _IMC + 'imp_recipes_preview_counts'),
+    'rule_import_recipes_line_none': ('run_import_recipes', 'rule', 'import-recipes-line-none', _IMC + 'imp_recipes_one_bad_line_holds_the_recipe'),
+    'rule_import_recipes_line_several': ('run_import_recipes', 'rule', 'import-recipes-line-several', _IMC + 'imp_recipes_why_line_several'),
+    'rule_import_recipes_line_unit': ('run_import_recipes', 'rule', 'import-recipes-line-unit', _IMC + 'imp_recipes_why_line_unit'),
+    'rule_import_recipes_held': ('run_import_recipes', 'rule', 'import-recipes-held', _IMC + 'imp_recipes_one_bad_line_holds_the_recipe'),
+    'rule_import_recipes_expected': ('apply_import_recipes', 'rule', 'import-recipes-expected', _IMO + 'imp_recipes_expected_null / '),
+    'rule_import_recipes_changed': ('apply_import_recipes', 'rule', 'import-recipes-changed', _IMO + 'imp_recipes_stale_hash / '),
+    'rule_import_flavours_rows': ('run_import_flavours', 'rule', 'import-flavours-rows', _IMO + 'imp_flavours_rows_empty_list / '),
+    'rule_import_flavours_row': ('run_import_flavours', 'rule', 'import-flavours-row', _IMC + 'imp_flavours_why_row_keys'),
+    'rule_import_flavours_product_none': ('run_import_flavours', 'rule', 'import-flavours-product-none', _IMC + 'imp_flavours_why_none'),
+    'rule_import_flavours_product_several': ('run_import_flavours', 'rule', 'import-flavours-product-several', _IMC + 'imp_flavours_preview_counts'),
+    'rule_import_flavours_expected': ('apply_import_flavours', 'rule', 'import-flavours-expected', _IMO + 'imp_flavours_expected_null / '),
+    'rule_import_flavours_changed': ('apply_import_flavours', 'rule', 'import-flavours-changed', _IMO + 'imp_flavours_stale_hash / '),
+    'rule_import_bookings_rows': ('run_import_bookings', 'rule', 'import-bookings-rows', _IMO + 'imp_bookings_rows_empty_list / '),
+    'rule_import_bookings_row': ('run_import_bookings', 'rule', 'import-bookings-row', _IMC + 'imp_bookings_why_row_keys'),
+    'rule_import_bookings_several': ('run_import_bookings', 'rule', 'import-bookings-several', _IMC + 'imp_bookings_preview_counts'),
+    'rule_import_bookings_expected': ('apply_import_bookings', 'rule', 'import-bookings-expected', _IMO + 'imp_bookings_expected_null / '),
+    'rule_import_bookings_changed': ('apply_import_bookings', 'rule', 'import-bookings-changed', _IMO + 'imp_bookings_stale_hash / '),
+    'text_import_items_category_default': ('run_import_items', 'text', ("v_cat := coalesce(v_row ->> 'category', 'Ingredients');", "v_cat := coalesce(v_row ->> 'category', 'Packaging');"),
+                                           _IMC + 'imp_items_will_write_names'),
+    'text_import_prices_latest_pack': ('run_import_prices', 'text', ('or (v_last.id is not null and v_last.price_cents = v_cents and v_last.pack_size = v_pack);',
+                                                                     'or (v_last.id is not null and v_last.price_cents = v_cents);'), _IMC + 'imp_prices_other_pack_is_a_change'),
+    'text_import_recipes_removes_only_per_cookie': ('run_import_recipes', 'text', ("where r.item_id = any (v_pack_ids) and (r.per = 'cookie' or r.container = 'loose')\n                    order by r.container",
+                                                                                   "where r.item_id = any (v_pack_ids)\n                    order by r.container"),
+                                                    _IMC + 'imp_recipes_audit_rows'),
+    'text_import_recipes_removes_first': ('run_import_recipes', 'text', ("perform public.write_packaging_rule(jsonb_build_object('container', v_c.container, 'box_size', v_c.box_size, 'lines', v_keep));", 'null;'),
+                                          _IMC + 'imp_recipes_preview_counts'),
+    'text_import_recipes_unchanged_removes_nothing': ('run_import_recipes', 'text', ('if v_res.version is not distinct from v_before then', 'if false then'),
+                                                      _IMC + 'imp_recipes_preview_counts'),
+    'text_import_flavours_keeps_the_stamp': ('run_import_flavours', 'text', ("'tag', v_p.tag), v_p.updated_at);", "'tag', v_p.tag), null);"), _IMC + 'imp_flavours_preview_counts'),
+    'text_import_hash_is_of_will_write': ('import_result', 'text', ("'hash', encode(sha256(convert_to(v_write::text, 'UTF8')), 'hex'));", "'hash', encode(sha256(convert_to(v_same::text, 'UTF8')), 'hex'));"),
+                                          _IMC + 'imp_items_hash_is_of_will_write'),
+    'text_import_apply_audits_only_a_write': ('apply_import_items', 'text', ("if (v_res -> 'counts' ->> 'will_write')::integer > 0 then", 'if true then'),
+                                              _IMC + 'imp_items_reapply_writes_nothing'),
+    'text_import_preview_items_keeps_its_work': ('preview_import_items', 'text', ("raise exception '%', v_out::text using errcode = 'P0099';", 'return v_out;'),
+                                                 _IMC + 'imp_items_preview_writes_nothing'),
+    'text_import_preview_recipes_keeps_its_work': ('preview_import_recipes', 'text', ("raise exception '%', v_out::text using errcode = 'P0099';", 'return v_out;'),
+                                                   _IMC + 'imp_recipes_preview_writes_nothing'),
+}
+IMPORT_ACL = ('preview_import_items(jsonb)', 'apply_import_items(jsonb,jsonb)', 'preview_import_prices(jsonb)', 'apply_import_prices(jsonb,jsonb)',
+              'preview_import_recipes(jsonb)', 'apply_import_recipes(jsonb,jsonb)', 'preview_import_flavours(jsonb)', 'apply_import_flavours(jsonb,jsonb)',
+              'preview_import_bookings(jsonb)', 'apply_import_bookings(jsonb,jsonb)',
+              'run_import_items(jsonb)', 'run_import_prices(jsonb)', 'run_import_recipes(jsonb)', 'run_import_flavours(jsonb)', 'run_import_bookings(jsonb)',
+              'write_stock_item(jsonb,timestamptz)', 'write_item_price(jsonb)', 'write_recipe(jsonb,timestamptz)', 'write_flavour(text,jsonb,timestamptz)',
+              'write_scheduled_event(jsonb,timestamptz)', 'import_result(jsonb,jsonb,jsonb,jsonb)', 'import_expected_ok(jsonb,text[])', 'import_keys_ok(jsonb,text[],text[])')
 COST_MUTATIONS = {
-    'rule_itemprice_keys': ('save_item_price', 'rule', 'itemprice-keys', _CS + 'ip_keys_missing / '),
-    'rule_itemprice_id': ('save_item_price', 'rule', 'itemprice-id', _CS + 'ip_id_bad / '),
-    'rule_itemprice_cents': ('save_item_price', 'rule', 'itemprice-cents', _CS + 'ip_cents_zero / '),
-    'rule_itemprice_pack': ('save_item_price', 'rule', 'itemprice-pack', _CS + 'ip_pack_zero / '),
-    'rule_itemprice_date': ('save_item_price', 'rule', 'itemprice-date', _CS + 'ip_date_format / '),
-    'rule_itemprice_future': ('save_item_price', 'rule', 'itemprice-future', _CS + 'ip_date_future / '),
-    'rule_itemprice_replay_conflict': ('save_item_price', 'rule', 'itemprice-replay-conflict', _CS + 'ip_replay_other_body / '),
-    'rule_itemprice_item_missing': ('save_item_price', 'rule', 'itemprice-item-missing', _CS + 'ip_item_missing / '),
+    'rule_itemprice_keys': ('write_item_price', 'rule', 'itemprice-keys', _CS + 'ip_keys_missing / '),
+    'rule_itemprice_id': ('write_item_price', 'rule', 'itemprice-id', _CS + 'ip_id_bad / '),
+    'rule_itemprice_cents': ('write_item_price', 'rule', 'itemprice-cents', _CS + 'ip_cents_zero / '),
+    'rule_itemprice_pack': ('write_item_price', 'rule', 'itemprice-pack', _CS + 'ip_pack_zero / '),
+    'rule_itemprice_date': ('write_item_price', 'rule', 'itemprice-date', _CS + 'ip_date_format / '),
+    'rule_itemprice_future': ('write_item_price', 'rule', 'itemprice-future', _CS + 'ip_date_future / '),
+    'rule_itemprice_replay_conflict': ('write_item_price', 'rule', 'itemprice-replay-conflict', _CS + 'ip_replay_other_body / '),
+    'rule_itemprice_item_missing': ('write_item_price', 'rule', 'itemprice-item-missing', _CS + 'ip_item_missing / '),
     'text_cost_average_formula': ('record_stock_movement', 'text',
                                   ('v_avg := (v_item.on_hand * v_base + v_cost) / (v_item.on_hand + v_qty);', 'v_avg := v_cost / v_qty;'),
                                   _CSC + 'cost_a_stamps'),
@@ -727,7 +796,7 @@ OPERATIONS_MUTATIONS = {
 
 def order_mutant(name):
     """The migration's one function, changed in exactly one place, as SQL to run inside the suite."""
-    function, kind, argument, _ = (ORDER_MUTATIONS | LOOKUP_MUTATIONS | STAFF_MUTATIONS | SHOP_MUTATIONS | EXTRAS_MUTATIONS | SCHEDULED_MUTATIONS | STOCK_MUTATIONS | RECIPE_MUTATIONS | LEDGER_MUTATIONS | PRODUCTION_MUTATIONS | BOOKS_MUTATIONS | OPERATIONS_MUTATIONS | IDENTITY_RULES | LINK_MUTATIONS | COST_MUTATIONS | BATCH_CORRECTION_MUTATIONS | PACKAGING_MUTATIONS | COST_CUTOVER_MUTATIONS)[name]
+    function, kind, argument, _ = (ORDER_MUTATIONS | LOOKUP_MUTATIONS | STAFF_MUTATIONS | SHOP_MUTATIONS | EXTRAS_MUTATIONS | SCHEDULED_MUTATIONS | STOCK_MUTATIONS | RECIPE_MUTATIONS | LEDGER_MUTATIONS | PRODUCTION_MUTATIONS | BOOKS_MUTATIONS | OPERATIONS_MUTATIONS | IDENTITY_RULES | LINK_MUTATIONS | COST_MUTATIONS | BATCH_CORRECTION_MUTATIONS | PACKAGING_MUTATIONS | COST_CUTOVER_MUTATIONS | IMPORT_MUTATIONS)[name]
     marker = 'create or replace function public.' + function + '('
     text = [m.read_text(encoding='utf-8') for m in ORDER_MIGRATIONS if marker in m.read_text(encoding='utf-8')][-1]
     start = text.index('create or replace function public.' + function + '(')
@@ -828,6 +897,7 @@ SUITES = (
                       + tuple(PACKAGING_MUTATIONS) + tuple(PACKAGING_TABLE_MUTATIONS), 'forbidden packaging call succeeded', 146),
     ('cutover.sql', ('preview_cost_cutover()', 'apply_cost_cutover(jsonb)') + tuple(COST_CUTOVER_MUTATIONS) + tuple(COST_CUTOVER_TABLE_MUTATIONS),
      'forbidden cutover call succeeded', 96),
+    ('imports.sql', IMPORT_ACL + tuple(IMPORT_MUTATIONS), 'forbidden import call succeeded', 249),
     ('operations.sql', tuple(OPERATIONS_MUTATIONS), 'forbidden operations call succeeded', 14),
     ('bazaar-closeout.sql', ('event_summary(uuid)', 'load_event_stock(uuid,jsonb,bigint)', 'add_event_expense(jsonb)', 'close_event(jsonb)'), 'forbidden closeout call succeeded', 80),
     ('shop-identity.sql', ('save_shop_identity(jsonb,timestamptz)', 'business_clock(timestamptz)') + tuple(IDENTITY_MUTATIONS) + tuple(IDENTITY_RULES),
@@ -1058,6 +1128,9 @@ def main():
                     elif signature in COST_CUTOVER_TABLE_MUTATIONS:
                         unsafe, expected_error = COST_CUTOVER_TABLE_MUTATIONS[signature]
                         broken = sql.replace('begin;', 'begin;' + chr(10) + unsafe, 1)
+                if filename == 'imports.sql' and signature in IMPORT_MUTATIONS:
+                    broken = sql.replace('begin;', 'begin;' + chr(10) + order_mutant(signature), 1)
+                    expected_error = IMPORT_MUTATIONS[signature][3]
                 if filename == 'item-costs.sql' and signature in COST_MUTATIONS:
                     broken = sql.replace('begin;', 'begin;' + chr(10) + order_mutant(signature), 1)
                     expected_error = COST_MUTATIONS[signature][3]
@@ -1175,7 +1248,7 @@ def main():
                 h.fail(filename + ' did not return its complete role matrix')
             results.extend(rows)
             assert_empty()
-        if len(set(results)) != 2701:
+        if len(set(results)) != 2950:
             h.fail('combined role matrix has missing or duplicate cases: %d rows, %d unique (duplicates: %s)' % (len(results), len(set(results)), sorted({r for r in results if results.count(r) > 1})[:5]))
         assert_functions()
         assert_catalog_wide()
@@ -1188,10 +1261,10 @@ def main():
     try:
         code = h.main(after_reset=check)
         if (code == 0 and len(report["runs"]) == 2 and report["runs"][0] == report["runs"][1]
-                and len(report['regressions_detected']) == 1004 and report['sequence_restorations'] == 10
+                and len(report['regressions_detected']) == 1140 and report['sequence_restorations'] == 10
                 and report['upgrade_runs'] == 2 and report['pair_guard_runs'] == 2 and report['function_guard_runs'] == 4
                 and report['catalog_guard_runs'] == 4 and report['catalog_guard_red_runs'] == 4):
-            report.update(status="passed", cases_per_reset=2701, resets=2, matrix_equal=True, rollback_verified=True,
+            report.update(status="passed", cases_per_reset=2950, resets=2, matrix_equal=True, rollback_verified=True,
                           sql_sha256={name: hashlib.sha256((ROOT / 'tests/integration/security' / name).read_bytes()).hexdigest() for name, _, _, _ in SUITES},
                           harness_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
     except (RuntimeError, OSError, ValueError) as error:

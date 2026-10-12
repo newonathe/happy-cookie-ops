@@ -2010,6 +2010,11 @@ export type Database = {
       }
       apply_cost_cutover: { Args: { p_expected: Json }; Returns: Json }
       apply_identity_links: { Args: { p_expected: Json }; Returns: Json }
+      apply_import_bookings: { Args: { p_expected: Json; p_rows: Json }; Returns: Json }
+      apply_import_flavours: { Args: { p_expected: Json; p_rows: Json }; Returns: Json }
+      apply_import_items: { Args: { p_expected: Json; p_rows: Json }; Returns: Json }
+      apply_import_prices: { Args: { p_expected: Json; p_rows: Json }; Returns: Json }
+      apply_import_recipes: { Args: { p_expected: Json; p_rows: Json }; Returns: Json }
       apply_packaging_rule: { Args: { p_rule: Json }; Returns: Json }
       bff_session_acquire_refresh: {
         Args: { p_session_hash: string }
@@ -2274,6 +2279,9 @@ export type Database = {
       get_shop_status: { Args: never; Returns: Json }
       get_staff_orders: { Args: never; Returns: Json }
       get_stock_catalogue: { Args: never; Returns: Json }
+      import_expected_ok: { Args: { p_count_keys: string[]; p_expected: Json }; Returns: boolean }
+      import_keys_ok: { Args: { p_optional: string[]; p_required: string[]; p_row: Json }; Returns: boolean }
+      import_result: { Args: { p_removals: Json; p_same: Json; p_unmatched: Json; p_write: Json }; Returns: Json }
       is_owner: { Args: never; Returns: boolean }
       is_staff: { Args: never; Returns: boolean }
       item_unit_cost: {
@@ -2343,6 +2351,11 @@ export type Database = {
       }
       preview_cost_cutover: { Args: never; Returns: Json }
       preview_identity_links: { Args: never; Returns: Json }
+      preview_import_bookings: { Args: { p_rows: Json }; Returns: Json }
+      preview_import_flavours: { Args: { p_rows: Json }; Returns: Json }
+      preview_import_items: { Args: { p_rows: Json }; Returns: Json }
+      preview_import_prices: { Args: { p_rows: Json }; Returns: Json }
+      preview_import_recipes: { Args: { p_rows: Json }; Returns: Json }
       prune_personal_data: { Args: { p_retain_days?: number }; Returns: number }
       prune_rate_limits: { Args: never; Returns: number }
       publish_flavours: {
@@ -2439,6 +2452,11 @@ export type Database = {
           on_hand: number
         }[]
       }
+      run_import_bookings: { Args: { p_rows: Json }; Returns: Json }
+      run_import_flavours: { Args: { p_rows: Json }; Returns: Json }
+      run_import_items: { Args: { p_rows: Json }; Returns: Json }
+      run_import_prices: { Args: { p_rows: Json }; Returns: Json }
+      run_import_recipes: { Args: { p_rows: Json }; Returns: Json }
       save_flavour: {
         Args: { p_expected_updated_at: string; p_flavour: Json; p_id: string }
         Returns: {
@@ -2757,7 +2775,43 @@ export type Database = {
           sale_known: boolean
         }[]
       }
+      write_flavour: {
+        Args: { p_expected_updated_at: string; p_flavour: Json; p_id: string }
+        Returns: {
+          id: string
+          updated_at: string
+        }[]
+      }
+      write_item_price: {
+        Args: { p_price: Json }
+        Returns: {
+          duplicate: boolean
+          price_id: string
+        }[]
+      }
       write_packaging_rule: { Args: { p_rule: Json }; Returns: Json }
+      write_recipe: {
+        Args: { p_expected_updated_at: string; p_recipe: Json }
+        Returns: {
+          product_id: string
+          updated_at: string
+          version: number
+        }[]
+      }
+      write_scheduled_event: {
+        Args: { p_event: Json; p_expected_updated_at: string }
+        Returns: {
+          id: string
+          updated_at: string
+        }[]
+      }
+      write_stock_item: {
+        Args: { p_expected_updated_at: string; p_item: Json }
+        Returns: {
+          id: string
+          updated_at: string
+        }[]
+      }
     }
     Enums: {
       app_role: "owner" | "helper" | "support"

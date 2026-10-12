@@ -1,5 +1,5 @@
 {
-  "scope": "Reviewed local function-authority drift baseline through B4a-2 the cost cutover fix (migration 63: apply_cost_cutover, get_books and write_packaging_rule redefined; grants unchanged; no function added); earlier: B4a-1 the cost cutover (preview_cost_cutover and apply_cost_cutover added, internal with no API grant; get_books, set_cost_basis and save_recipe redefined; grants unchanged; books_settings defaults to bought until a cutover); earlier: Reviewed local function-authority drift baseline through B3b-2 books on the used basis (get_books redefined: the uncosted list also carries a pack and a bazaar sale that took nothing; grants unchanged; books_settings defaults to used); earlier: B3b-1 packaging rules (save_packaging_rule and get_packaging_rules owner-only; write_packaging_rule and apply_packaging_rule internal with no API grant; record_pack, record_sale_packaging, record_production, save_recipe, get_recipes and get_recipe_costs redefined; record_event_sale untouched); earlier: B3a batch correction (record_batch_correction added; record_discard and get_production redefined for corrections and batch cost); earlier: B3a clock (business_clock gains local_time; place_order and join_waitlist read the day from it) and wrapped policies (no function added); earlier: B3a cost core (item_unit_cost, use_stock_item, lock_stock_item_ids internal with no API grant; save_item_price, get_item_costs, get_recipe_costs added; unit_price_at removed; use_stock, record_stock_movement, record_production, record_cost_correction, get_books redefined); earlier: B3a identity links (preview_identity_links and apply_identity_links added with no API grant; save_recipe, get_recipes, save_supplier_price and get_stock_catalogue redefined for item ids, pack sizes and complete recipe versions); earlier: B2 database half (business_clock, get_shop_identity, save_shop_identity added); earlier: C2 (record_production, record_pack, get_production, use_stock, lock_stock_items, record_sale_packaging added; record_event_sale redefined to use packaging); earlier: Reviewed local function-authority drift baseline through B4a (get_order_extras, save_order_extras, get_shop_extras added; place_order, order_status, get_staff_orders, anonymise_customer, prune_personal_data redefined for boxes, add-ons and the same-day surcharge); earlier: B2 database half (get_shop_order_rules, find_order added); B1 (place_order, order_status, join_waitlist, order_holds_capacity, get_order_rules, save_order_rules added; anonymise_customer and prune_personal_data recreated for the new personal data); A2 (payment_methods, shop_texts, get_shop_payment_info added); load_event_stock/add_event_expense/close_event/event_summary added (D2); D1: start_event/set_event_device/record_event_sale/void_event_sale added (D1); MP-09 c1b: publish_flavours added (MP-09 c1b); get_flavours/save_flavour added (MP-09 c1); settings_effective gained three idle-minute defaults, get_settings/save_setting/get_operating_settings added; MP-09 b3 recreated settings_effective/get_settings/get_operating_settings with json_value and replaced save_setting; full capability/domain and hosted acceptance remain open; F1: record_operations_run and get_operations_health added, prune_personal_data redefined for the fixed 365-day retention window",
+  "scope": "Reviewed local function-authority drift baseline through B4a-3 her-data imports (migration 64: preview_import_X and apply_import_X for items, prices, recipes, flavours and bookings, with run_import_X, import_result, import_expected_ok, import_keys_ok and the writers write_stock_item, write_item_price, write_recipe, write_flavour and write_scheduled_event, all internal with no API grant; save_stock_item, save_item_price, save_recipe, save_flavour and save_scheduled_event redefined as the owner check plus the writer, grants unchanged); earlier: Reviewed local function-authority drift baseline through B4a-2 the cost cutover fix (migration 63: apply_cost_cutover, get_books and write_packaging_rule redefined; grants unchanged; no function added); earlier: B4a-1 the cost cutover (preview_cost_cutover and apply_cost_cutover added, internal with no API grant; get_books, set_cost_basis and save_recipe redefined; grants unchanged; books_settings defaults to bought until a cutover); earlier: Reviewed local function-authority drift baseline through B3b-2 books on the used basis (get_books redefined: the uncosted list also carries a pack and a bazaar sale that took nothing; grants unchanged; books_settings defaults to used); earlier: B3b-1 packaging rules (save_packaging_rule and get_packaging_rules owner-only; write_packaging_rule and apply_packaging_rule internal with no API grant; record_pack, record_sale_packaging, record_production, save_recipe, get_recipes and get_recipe_costs redefined; record_event_sale untouched); earlier: B3a batch correction (record_batch_correction added; record_discard and get_production redefined for corrections and batch cost); earlier: B3a clock (business_clock gains local_time; place_order and join_waitlist read the day from it) and wrapped policies (no function added); earlier: B3a cost core (item_unit_cost, use_stock_item, lock_stock_item_ids internal with no API grant; save_item_price, get_item_costs, get_recipe_costs added; unit_price_at removed; use_stock, record_stock_movement, record_production, record_cost_correction, get_books redefined); earlier: B3a identity links (preview_identity_links and apply_identity_links added with no API grant; save_recipe, get_recipes, save_supplier_price and get_stock_catalogue redefined for item ids, pack sizes and complete recipe versions); earlier: B2 database half (business_clock, get_shop_identity, save_shop_identity added); earlier: C2 (record_production, record_pack, get_production, use_stock, lock_stock_items, record_sale_packaging added; record_event_sale redefined to use packaging); earlier: Reviewed local function-authority drift baseline through B4a (get_order_extras, save_order_extras, get_shop_extras added; place_order, order_status, get_staff_orders, anonymise_customer, prune_personal_data redefined for boxes, add-ons and the same-day surcharge); earlier: B2 database half (get_shop_order_rules, find_order added); B1 (place_order, order_status, join_waitlist, order_holds_capacity, get_order_rules, save_order_rules added; anonymise_customer and prune_personal_data recreated for the new personal data); A2 (payment_methods, shop_texts, get_shop_payment_info added); load_event_stock/add_event_expense/close_event/event_summary added (D2); D1: start_event/set_event_device/record_event_sale/void_event_sale added (D1); MP-09 c1b: publish_flavours added (MP-09 c1b); get_flavours/save_flavour added (MP-09 c1); settings_effective gained three idle-minute defaults, get_settings/save_setting/get_operating_settings added; MP-09 b3 recreated settings_effective/get_settings/get_operating_settings with json_value and replaced save_setting; full capability/domain and hosted acceptance remain open; F1: record_operations_run and get_operations_health added, prune_personal_data redefined for the fixed 365-day retention window",
   "functions": [
     {
       "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
@@ -819,7 +819,7 @@
         "search_path=\"\""
       ],
       "returns": "TABLE(id text, updated_at timestamp with time zone)",
-      "body_md5": "e2f5e95aff7d178fd7d565aed8417ac9",
+      "body_md5": "96e9cd2a0106ab047620d3f04be0530a",
       "identity": "p_id text, p_flavour jsonb, p_expected_updated_at timestamp with time zone",
       "execute_anon": false,
       "security_definer": true,
@@ -1074,7 +1074,7 @@
         "search_path=\"\""
       ],
       "returns": "TABLE(id uuid, updated_at timestamp with time zone)",
-      "body_md5": "3d938cc899e4fb501d174148494b7f9b",
+      "body_md5": "a519ef0d721aeef2df00259a894da89b",
       "identity": "p_event jsonb, p_expected_updated_at timestamp with time zone",
       "execute_anon": false,
       "security_definer": true,
@@ -1104,7 +1104,7 @@
         "search_path=\"\""
       ],
       "returns": "TABLE(id text, updated_at timestamp with time zone)",
-      "body_md5": "84df2ce9c48d8e0099108ddff35e083d",
+      "body_md5": "06773b94140561bf8dc15b84c44f82aa",
       "identity": "p_item jsonb, p_expected_updated_at timestamp with time zone",
       "execute_anon": false,
       "security_definer": true,
@@ -1164,7 +1164,7 @@
         "search_path=\"\""
       ],
       "returns": "TABLE(product_id text, version integer, updated_at timestamp with time zone)",
-      "body_md5": "9d1e741364438aff249cecb5d780664c",
+      "body_md5": "ed5a41c79a4c29c46ac17ecd5888cc6c",
       "identity": "p_recipe jsonb, p_expected_updated_at timestamp with time zone",
       "execute_anon": false,
       "security_definer": true,
@@ -1359,7 +1359,7 @@
         "search_path=\"\""
       ],
       "returns": "TABLE(price_id uuid, duplicate boolean)",
-      "body_md5": "ad4afc7e3c84cadc337de64960f44e48",
+      "body_md5": "e6d5fc954371d42f5daa2c7cc77373f0",
       "identity": "p_price jsonb",
       "execute_anon": false,
       "security_definer": true,
@@ -1691,6 +1691,351 @@
       "returns": "jsonb",
       "body_md5": "b46d49fd02995668576c9f715647ced2",
       "identity": "",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "apply_import_bookings",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "b08fa5f22a0c89dcf34f2f6510d6beb5",
+      "identity": "p_rows jsonb, p_expected jsonb",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "apply_import_flavours",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "008f7c2b028229f1d3884796125a52d5",
+      "identity": "p_rows jsonb, p_expected jsonb",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "apply_import_items",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "0e4352ccd19a2268d96cebf72748423e",
+      "identity": "p_rows jsonb, p_expected jsonb",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "apply_import_prices",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "58c2382475378bed1b5b1e2852baaa5d",
+      "identity": "p_rows jsonb, p_expected jsonb",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "apply_import_recipes",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "bf1f485d0ab7832c8717689916538381",
+      "identity": "p_rows jsonb, p_expected jsonb",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "import_expected_ok",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "boolean",
+      "body_md5": "b18ab39b61c84725a4ce8a0f2174087c",
+      "identity": "p_expected jsonb, p_count_keys text[]",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "import_keys_ok",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "boolean",
+      "body_md5": "292a2a3a636d168a70905ac04b2c3e49",
+      "identity": "p_row jsonb, p_required text[], p_optional text[]",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "import_result",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "b1df04f420133c2043afb8024da75c22",
+      "identity": "p_write jsonb, p_same jsonb, p_unmatched jsonb, p_removals jsonb",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "preview_import_bookings",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "6f4af76d38382d8e81f0d6f615364e74",
+      "identity": "p_rows jsonb",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "preview_import_flavours",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "9269f5b271e15aaf5cf7d23327b918ab",
+      "identity": "p_rows jsonb",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "preview_import_items",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "339f6eef3fcca8d7291e46feb5a354eb",
+      "identity": "p_rows jsonb",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "preview_import_prices",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "7d5a33add77c2b7c20befaeec7293c76",
+      "identity": "p_rows jsonb",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "preview_import_recipes",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "22803aaae5ac5dfbd0c60fcabe079481",
+      "identity": "p_rows jsonb",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "run_import_bookings",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "32e681dd48fe5a5f438267f59eb6a3dd",
+      "identity": "p_rows jsonb",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "run_import_flavours",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "52c43569500fc8b526786414e202837d",
+      "identity": "p_rows jsonb",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "run_import_items",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "6d329d165bcf21203d8775500f9d3014",
+      "identity": "p_rows jsonb",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "run_import_prices",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "4ec391d9b30b46c0de49fc263741db66",
+      "identity": "p_rows jsonb",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "run_import_recipes",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "291489862689bb5bbd6ebfdafc334164",
+      "identity": "p_rows jsonb",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "write_flavour",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(id text, updated_at timestamp with time zone)",
+      "body_md5": "e470856b52cecd4016390bec573a94ce",
+      "identity": "p_id text, p_flavour jsonb, p_expected_updated_at timestamp with time zone",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "write_item_price",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(price_id uuid, duplicate boolean)",
+      "body_md5": "6e9036c8ed51a9d7b5fa64ab4d65bf9c",
+      "identity": "p_price jsonb",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "write_recipe",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(product_id text, version integer, updated_at timestamp with time zone)",
+      "body_md5": "732e2b8510d9347f3d76444bcf058de2",
+      "identity": "p_recipe jsonb, p_expected_updated_at timestamp with time zone",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "write_scheduled_event",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(id uuid, updated_at timestamp with time zone)",
+      "body_md5": "5114a48e2fbf54c43b9b54c9995f809c",
+      "identity": "p_event jsonb, p_expected_updated_at timestamp with time zone",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "write_stock_item",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(id text, updated_at timestamp with time zone)",
+      "body_md5": "5a18d0ae926b8da17b0d2c30764cd3c6",
+      "identity": "p_item jsonb, p_expected_updated_at timestamp with time zone",
       "execute_anon": false,
       "security_definer": true,
       "execute_service_role": false,
