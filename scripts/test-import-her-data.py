@@ -86,4 +86,108 @@ with tempfile.TemporaryDirectory() as t:
           [('Holiday Fair', '2026-12-12', '2026-12-13', 2500000, True), ('Org Two', '2026-11-25', '2026-11-30', 0, False)],
           'bookings: dates with the stated year, rent only when accepted and stated, unaccepted kept inactive')
     check(len(listed) == 1 and listed[0]['row'] == 4, 'bookings: a date that is not Mon D - D is listed, not guessed')
+
+
+def workbook_b4b(path):
+    """Shaped like hers: eight packaging items, unlisted recipe items, two unit clashes, one flavour whose dashboard is off."""
+    wb = openpyxl.Workbook()
+    m = wb.active
+    m.title = 'Ingredient Master'
+    m.append(['Ingredient Name', 'Unit', 'Bulk Quantity', 'Bulk Price', 'Unit Cost'])
+    m.append(['Flour', 'grams', 1000, 60, 0.06])
+    m.append(['Biscoff cookies', 'grams', 1000, 400, 0.4])
+    m.append(['Pink box', 'piece', 50, 100, 2])
+    m.append(['Kraft pouch', 'piece', 100, 30, 0.3])
+    m.append(['Apple Pie Box', 'piece', 20, 100, 5])
+    m.append(['Banoffee Pie Box', 'piece', 20, 100, 5])
+    m.append(['Heart-shaped box with lid', 'piece', 20, 100, 5])
+    m.append(['Plastic pouch', 'piece', 100, 30, 0.3])
+    m.append(['Sticker', 'piece', 100, 20, 0.2])
+    r = wb.create_sheet('Recipes')
+    r.append(['Flavor', 'Ingredient Name', 'Qty per Batch', 'Unit', 'Unit Cost', 'Ingredient Cost'])
+    r.append(['Oaty', 'Flour', 100, 'grams', 0.06, 6])
+    r.append(['Oaty', 'Oats', 50, 'grams', None, None])
+    r.append(['Oaty', 'Kraft pouch', 10, 'piece', 0.3, 3])
+    r.append(['Salty', 'Flour', 100, 'grams', 0.06, 6])
+    r.append(['Salty', 'Sea salt', 2, 'grams', None, None])
+    r.append(['Saucy', 'Flour', 100, 'grams', 0.06, 6])
+    r.append(['Saucy', 'Sauce Tub', 10, 'piece', None, None])
+    r.append(['Biscoffy', 'Biscoff cookies', 4, 'piece', 0.4, 1.6])
+    r.append(['Biscoffy', 'Flour', 100, 'grams', 0.06, 6])
+    r.append(['Biscoffy', 'Cocoa nibs', 5, 'grams', None, None])
+    r.append(['Quiet', 'Flour', 100, 'grams', 0.06, 6])
+    r.append(['Quiet', 'Nutmeg', None, 'grams', None, None])
+    r.append(['Boxed', 'Flour', 100, 'grams', 0.06, 6])
+    r.append(['Boxed', 'Pink box', 10, 'grams', 2, 20])
+    r.append(['Weird', 'Flour', 100, 'grams', 0.06, 6])
+    r.append(['Weird', 'Zest', 3, 'tbsp', None, None])
+    r.append(['Packed', 'Flour', 100, 'grams', 0.06, 6])
+    for name, q in [('Apple Pie Box', 10), ('Banoffee Pie Box', 11), ('Heart-shaped box with lid', 12), ('Kraft pouch', 10),
+                    ('Plastic pouch', 9), ('Sticker', 8)]:
+        r.append(['Packed', name, q, 'piece', 1, 1])
+    r.append(['Packed', 'Pink box', 14, 'piece', 2, 28])
+    d = wb.create_sheet('Costing Dashboard')
+    d.append(['Flavor', 'Cookies per Batch', 'Price', 'Cost per Batch'])
+    d.append(['Oaty', 10, 100, 9])
+    d.append(['Salty', 10, 100, 6.12])
+    d.append(['Saucy', 10, 100, 6])
+    d.append(['Biscoffy', 4, 100, 7.6])
+    d.append(['Quiet', 10, 100, 6])
+    d.append(['Boxed', 10, 100, 26])
+    d.append(['Weird', 10, 100, 6])
+    d.append(['Packed', 10, 100, 206.3])
+    wb.create_sheet('Bazaars').append(['Organizer', 'Event Date', 'Event Name', 'Location', 'Replied?', 'Email', 'Notes'])
+    wb.save(path)
+
+
+with tempfile.TemporaryDirectory() as t:
+    pk_file = ROOT / 'scripts/b4b-packaging-items.json'
+    eight = ['Apple Pie Box', 'Banoffee Pie Box', 'Heart-shaped box with lid', 'Kraft pouch', 'Pink box', 'Plastic pouch', 'Sauce Tub', 'Sticker']
+    pk = json.loads(pk_file.read_text())
+    check(isinstance(pk, list) and sorted(pk) == sorted(eight), 'b4b-packaging-items.json holds exactly the eight packaging names')
+    p = Path(t) / 'b.xlsx'
+    workbook_b4b(p)
+    _, rc, rp = imp.build(p, None, pk, '2026-10-12')
+    packed = [r for r in rc if r['flavour'] == 'Packed']
+    # Packed: boxes 10, 11, 12 and pouches 10, 9, 8 against a batch of 10 are within the spare tolerance of 2; the Pink box at 14 is not.
+    check([f['item'] for f in rp['for_cine']] == ['Pink box'] and [f['flavour'] for f in rp['for_cine']] == ['Packed'],
+          'packaging: the spare-tolerance rule is unchanged (13 or more for 10 cookies goes to Cine)')
+    check(len(packed) == 1 and {l['item'] for l in packed[0]['lines'] if l['kind'] == 'packaging'} == set(eight) - {'Pink box', 'Sauce Tub'}
+          and all(l['qty'] == 1.0 and l['unit'] == 'pcs' for l in packed[0]['lines'] if l['kind'] == 'packaging'),
+          'packaging: each of the six present items in the file is read as a per-cookie line')
+    check('Oaty' not in [r['flavour'] for r in rc] and 'not in the Ingredient Master' in json.dumps(rp['unmatched']['recipes']),
+          'without the flag an item missing from the master still holds the recipe')
+
+    _, rc2, rp2 = imp.build(p, None, pk, '2026-10-12', create_unlisted=True)
+    check({c['name'] for c in rp2['items_to_create']} == {'Oats', 'Sea salt', 'Sauce Tub', 'Cocoa nibs', 'Nutmeg'},
+          'create-unlisted: Oats, Sea salt and Sauce Tub are proposed, and so are the unlisted items of a held recipe')
+    check(all(c['price'] is None for c in rp2['items_to_create']), 'create-unlisted: they are unpriced, nothing guessed')
+    check({c['name']: c['unit'] for c in rp2['items_to_create']} == {'Oats': 'g', 'Sea salt': 'g', 'Sauce Tub': 'pcs', 'Cocoa nibs': 'g', 'Nutmeg': 'g'},
+          'create-unlisted: the unit comes from the recipe line')
+    got = {r['flavour']: r for r in rc2}
+    check({'Oaty', 'Salty', 'Saucy'} <= set(got), 'create-unlisted: those recipes are importable, not held')
+    sauce = [l for l in got['Saucy']['lines'] if l['item'] == 'Sauce Tub'][0]
+    check(sauce['kind'] == 'packaging' and sauce['qty'] == 1.0 and sauce['unit'] == 'pcs' and sauce['new_item'], 'create-unlisted: Sauce Tub is a per-cookie packaging line')
+    cost = {c['flavour']: c for c in rp2['recipe_costing']}
+    check(all(cost[f]['status'] == 'cost pending' and cost[f]['batch_cost'] is None for f in ('Oaty', 'Salty', 'Saucy')),
+          'costing: a recipe with an unpriced item is incomplete, not a number')
+    check(cost['Oaty']['pending_items'] == ['Oats'] and cost['Saucy']['pending_items'] == ['Sauce Tub'], 'costing: the unpriced items are named')
+    held2 = {h['flavour']: h['why'] for h in rp2['unmatched']['recipes']}
+    check(set(held2) == {'Biscoffy', 'Boxed', 'Weird', 'Quiet'}, 'unit clashes, a missing quantity and an unusable unit stay held, whatever the flag')
+    check('unit differs (recipe piece, master grams)' in json.dumps(held2['Biscoffy']), 'Biscoff cookies: held with the reason, no conversion')
+    check('unit differs (recipe grams, master piece)' in json.dumps(held2['Boxed']), 'Pink box: a packaging unit clash is held with the reason')
+    check('tbsp' in json.dumps(held2['Weird']) or 'unit' in json.dumps(held2['Weird']), 'an unlisted item with an unusable unit is held with a reason')
+    check('Zest' not in {c['name'] for c in rp2['items_to_create']}, 'an unlisted item with an unusable unit is not proposed')
+    # Her own arithmetic: 7 flavours, Salty is the deliberately off one (dashboard 6.12, master total 6.00).
+    cn = rp2['counts']
+    check(cn['costing_total'] == 8 and cn['costing_reproduced'] == 7, 'costing reproduction is counted N of M (7 of 8)')
+    off = [x for x in rp2['unmatched']['costing'] if x['flavour'] == 'Salty']
+    check(len(off) == 1 and 'master total 6.00 differs from dashboard 6.12' in off[0]['why'], 'the off flavour is listed with its difference')
+    check(imp.costing_line(cn) == 'costing reproduced 7 of 8', 'the costing summary line reads N of M')
+    out = Path(t) / 'o'
+    pkp = Path(t) / 'pk.json'
+    pkp.write_text(json.dumps(pk))
+    imp.main(['--workbook', str(p), '--out', str(out), '--as-of', '2026-10-12', '--packaging-items', str(pkp), '--create-unlisted'])
+    rep = json.loads((out / 'report.json').read_text())
+    check(rep['counts']['items_to_create'] == 5 and rep['counts']['recipes_unmatched'] == 4, 'the flag works through the command line')
 print('import-her-data: all passed')

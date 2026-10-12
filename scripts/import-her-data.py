@@ -13,6 +13,9 @@ Git; the payloads hold her prices and recipes. Only counts and hashes are meant 
   --item-prices      {"<item name>": {"price": 88.25, "pack": 110, "unit": "g"}}: prices Ethan stated, for items the master does not price.
   --spare-tolerance  a packaging line within this many of the cookies per batch is read as 1 per cookie (the spare is waste, not recipe);
                      further out it is listed for Cine to confirm in the one-time set-up. Default 2.
+  --create-unlisted  a recipe line naming an item that is not in the master is proposed under `items_to_create` as an UNPRICED item (price null, unit
+                     from the line: g, ml or pcs; any other unit holds the recipe with the reason). Those recipes import and read "Cost pending" in
+                     `recipe_costing` until priced. A unit that disagrees with the master (also for packaging) holds the recipe, with no conversion.
   --packaging-items  ["<master item name>", ...]; the items whose recipe lines are packaging (per cookie). Without it every line is an
                      ingredient and `proposed_packaging_items` in the report lists what looks like packaging, for Ethan to confirm.
 """
@@ -89,7 +92,7 @@ def bookings(path, year=2026):
     return out, listed
 
 
-def build(path, flavour_map=None, packaging_items=None, as_of='1970-01-01', catalogue=None, item_prices=None, spare_tolerance=2):
+def build(path, flavour_map=None, packaging_items=None, as_of='1970-01-01', catalogue=None, item_prices=None, spare_tolerance=2, create_unlisted=False):
     master, recipes, dash = read(path)
     item_prices = {norm(k): v for k, v in (item_prices or {}).items()}
     to_create = OrderedDict()
@@ -135,10 +138,16 @@ def build(path, flavour_map=None, packaging_items=None, as_of='1970-01-01', cata
         payload_lines = []
         for ln in lines:
             m = master.get(norm(ln['item']))
-            if m is None and catalogue is None:
-                bad.append(dict(item=ln['item'], row=ln['row'], why='not in the Ingredient Master'))
-                continue
             lu = unit_of(ln['unit'])
+            if m is None and catalogue is None:
+                if not create_unlisted:
+                    bad.append(dict(item=ln['item'], row=ln['row'], why='not in the Ingredient Master'))
+                    continue
+                if lu is None:
+                    bad.append(dict(item=ln['item'], row=ln['row'], why='not in the Ingredient Master and its unit (%s) is not g, ml or pcs' % ln['unit']))
+                    continue
+                # Proposed even when the recipe is held for another reason (a missing quantity, say): the item is needed either way.
+                to_create.setdefault(norm(ln['item']), dict(name=str(ln['item']).strip(), unit=lu, source='Recipes!A%d' % ln['row']))
             u = unit_of(m['unit']) if m is not None else lu
             is_pack = norm(ln['item']) in pack_set
             if not isinstance(ln['qty'], (int, float)) or ln['qty'] <= 0:
@@ -147,10 +156,14 @@ def build(path, flavour_map=None, packaging_items=None, as_of='1970-01-01', cata
             if u is None:
                 bad.append(dict(item=ln['item'], row=ln['row'], why='the unit is not g, ml or pcs'))
                 continue
-            name, why = app_item(ln['item'], u)
+            if m is not None and lu != u:
+                # Her unit and the master's disagree: the recipe is held until Cine fixes the unit. No conversion, packaging included.
+                bad.append(dict(item=ln['item'], row=ln['row'], why='unit differs (recipe %s, master %s)' % (ln['unit'], m['unit'])))
+                continue
+            name, why = app_item(ln['item'], u) if (m is not None or catalogue is not None) else (str(ln['item']).strip(), 'no stock item of that name')
             new_item = False
             if why == 'no stock item of that name':
-                # In a recipe but not in the app: proposed for creation, with the unit the recipe states (set-up confirms it).
+                # In a recipe but not in the app: proposed for creation, with the unit the recipe states (set-up confirms it). Unpriced unless Ethan stated a price.
                 to_create.setdefault(norm(ln['item']), dict(name=str(ln['item']).strip(), unit=u, source='Recipes!A%d' % ln['row']))
                 name, why, new_item = str(ln['item']).strip(), None, True
             if why:
@@ -202,12 +215,22 @@ def build(path, flavour_map=None, packaging_items=None, as_of='1970-01-01', cata
         elif mrow and unit_of(mrow['unit']) and isinstance(mrow['bulk_price'], (int, float)) and isinstance(mrow['bulk_qty'], (int, float)) and mrow['bulk_price'] > 0:
             price = dict(price_cents=cents(mrow['bulk_price']), pack_size=float(mrow['bulk_qty']), unit=unit_of(mrow['unit']), as_of=as_of, source='Ingredient Master!A%d' % mrow['row'])
         creates.append(dict(c, price=price))
+    unpriced = {c['name'].lower() for c in creates if c['price'] is None}
+    recipe_costing = []
+    for r in out_recipes:
+        pend = [l['item'] for l in r['lines'] if l.get('new_item') and l['item'].lower() in unpriced]
+        # No number is offered while an item has no price: the app reads "Cost pending" until it is priced.
+        recipe_costing.append(dict(flavour=r['flavour'], status='cost pending' if pend else 'priced', pending_items=pend, batch_cost=None))
     proposed = sorted({l['item'] for ls in recipes.values() for l in ls if any(k in norm(l['item']) for k in LOOKS_LIKE_PACKAGING)})
     return prices, out_recipes, dict(
         counts=dict(master_rows=len(master), prices=len(prices), prices_unmatched=len(unmatched['prices']), recipes=len(out_recipes),
                     recipes_unmatched=len(unmatched['recipes']), recipes_in_workbook=len(recipes), items_to_create=len(to_create), for_cine=len(for_cine),
                     costing_reproduced=sum(1 for r in reproduction if r['matches_dashboard']), costing_total=len(reproduction)),
-        reproduction=reproduction, unmatched=unmatched, items_to_create=creates, for_cine=for_cine, proposed_packaging_items=proposed)
+        reproduction=reproduction, unmatched=unmatched, items_to_create=creates, recipe_costing=recipe_costing, for_cine=for_cine, proposed_packaging_items=proposed)
+
+
+def costing_line(counts):
+    return 'costing reproduced %d of %d' % (counts['costing_reproduced'], counts['costing_total'])
 
 
 def main(argv=None):
@@ -219,6 +242,9 @@ def main(argv=None):
     ap.add_argument('--catalogue')
     ap.add_argument('--item-prices')
     ap.add_argument('--spare-tolerance', type=int, default=2)
+    ap.add_argument('--create-unlisted', action='store_true',
+                    help='a recipe line whose item is not in the Ingredient Master is proposed as a new UNPRICED stock item (unit from the line); '
+                         'its recipe reads "Cost pending" until priced. Without it such a recipe is held.')
     ap.add_argument('--as-of', default=None, help='the date her price list is current from (YYYY-MM-DD); required to write payloads')
     a = ap.parse_args(argv)
     fm = json.loads(Path(a.flavour_map).read_text()) if a.flavour_map else None
@@ -227,7 +253,7 @@ def main(argv=None):
         sys.exit('--as-of YYYY-MM-DD is required: the price list needs a date')
     cat = json.loads(Path(a.catalogue).read_text()) if a.catalogue else None
     ip = json.loads(Path(a.item_prices).read_text()) if a.item_prices else None
-    prices, recipes, report = build(a.workbook, fm, pk, a.as_of, cat, ip, a.spare_tolerance)
+    prices, recipes, report = build(a.workbook, fm, pk, a.as_of, cat, ip, a.spare_tolerance, a.create_unlisted)
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
     (out / 'prices.json').write_text(json.dumps(prices, indent=1, ensure_ascii=False))
@@ -238,6 +264,7 @@ def main(argv=None):
     report['hashes'] = dict(source=hashlib.sha256(Path(a.workbook).read_bytes()).hexdigest(), prices=sha(prices), recipes=sha(recipes))
     (out / 'report.json').write_text(json.dumps(report, indent=1, ensure_ascii=False))
     print(json.dumps(dict(counts=report['counts'], hashes=report['hashes']), indent=1))
+    print(costing_line(report['counts']))
 
 
 if __name__ == '__main__':
