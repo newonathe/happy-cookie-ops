@@ -24,11 +24,14 @@ function fieldValue(form: HTMLFormElement, name: string): string {
 export function UploadField({
   upload,
   target,
-  label
+  label,
+  hint = '(PNG, JPEG or WebP, up to 2 MB)'
 }: {
   upload: (file: File) => Promise<string | null>;
   target: React.RefObject<HTMLInputElement | null>;
   label: string;
+  /** The size note after the label; flavour photos are resized for her, so theirs differs. */
+  hint?: string;
 }) {
   const [busy, setBusy] = useState(false);
   const onChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -46,9 +49,7 @@ export function UploadField({
   };
   return (
     <label style={labelStyle}>
-      <span style={smallLabel}>
-        {busy ? 'Uploading…' : label + ' (PNG, JPEG or WebP, up to 2 MB)'}
-      </span>
+      <span style={smallLabel}>{busy ? 'Uploading…' : label + ' ' + hint}</span>
       <input
         type="file"
         accept="image/png,image/jpeg,image/webp"

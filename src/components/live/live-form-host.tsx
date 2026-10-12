@@ -196,7 +196,12 @@ function FlavourEditForm({ editing }: { editing: Editing }) {
           style={inputStyle}
         />
       </label>
-      <UploadField upload={editing.upload} target={photoRef} label="Upload a photo" />
+      <UploadField
+        upload={editing.upload}
+        target={photoRef}
+        label="Upload a photo"
+        hint="(PNG, JPEG or WebP, any size: it is resized and stripped of location data for you)"
+      />
       <label style={labelStyle}>
         <span style={smallLabel}>Allergens (shown as &quot;Contains …&quot;)</span>
         <input
