@@ -47,7 +47,8 @@ plan is built (Ethan, 5 October). F3 (launch) stays closed until Cine accepts a 
   <https://happy-cookie-owner-trial.admin-kethai.workers.dev>. Cloudflare Access sends an
   email code to two approved mailboxes. The shop is closed and the menu is unpublished.
 - **On the trial** (read 13 October): 67 of 67 migrations; 75 stock items, 72 priced; 26 flavours, 7 on the menu,
-  23 with a recipe; 4 bookings; 804 historical book lines; no orders, no bake, no sale.
+  23 with a recipe; 4 bookings; 835 historical book lines (her 31 newer sales, to 4 October, appended); no orders,
+  no bake, no sale.
 - **CI/CD:** a green push to `agent/codex/MP-04-g1-feasibility` redeploys the trial; a push
   that changes only documents does not. The last runs that completed were green (A1 and A2).
   **The two early 6 October pushes (A3 at `79b8e97`, A4 at `851e95e`) did not release:** GitHub
@@ -99,6 +100,11 @@ All in [decision-register.md](decision-register.md), the section for 5 October.
   the items with no cost, then `select public.apply_cost_cutover('<its hash and total>');`. An opening count after it is
   refused. Until then the books stay on "bought".
 - **No more database writes after the phone rehearsal passes**; set the release hold then.
+- **The trial still runs the 8 October build.** The release job could not upload its build: the GitHub Actions artifact
+  storage is full (run 38403473210). Delete old artifacts, or wait for the quota to be worked out again, then re-run the
+  release of the newest run. Its database is already at 67.
+- **Do not save a recipe in the Recipes screen yet.** It sends no line kind, so a saved recipe's packaging lines become
+  ingredients (slice B6, New Recipes). Reading is safe.
 - A1 is built (the release check takes two to six addresses; Cine is not added yet). Add her
   two addresses to Cloudflare Access and the approved-digest variable in one sitting, or the
   next deploy fails. Set the session to one week: that deploy then fails once and prints the

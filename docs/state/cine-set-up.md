@@ -41,6 +41,9 @@ Also for her to confirm, loaded as her sheet has them:
 - Apple Pie: her workbook's recipe replaced the one typed into the app; the older version is kept.
 - No recipe in her workbook for banana bread ccc, nutella churro and red velvet cheesecake.
 
+**Until the new Recipes screen is built (slice B6), do not save a recipe in the Recipes screen:** it sends no line kind,
+so the recipe's packaging lines would be saved as ingredients. The older version is kept, so a slip can be put back.
+
 ## 3. Packaging that is not in a recipe
 
 No container rule is entered: what goes with a box of 6, a loose cookie, an order and a bazaar sale (a box, a card, a
