@@ -92,7 +92,9 @@ const DETAILS = { name: 'Smoke Test Bakes', tagline: 'Checked by the smoke suite
 const DAY_PRICE_PESOS = 150;
 const DAY_FLOAT_PESOS = 500;
 const DAY_COOKIES = 6;
-const BOOKING_NAME = 'Smoke bazaar';
+// One booking a run, named for it, so a run on a database a run has been on before finds its own.
+const bookingId = randomUUID();
+const BOOKING_NAME = 'Smoke bazaar ' + bookingId.slice(0, 8);
 /** Today on the business clock, as YYYY-MM-DD. */
 const manilaToday = () =>
   new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Manila' }).format(new Date());
@@ -137,7 +139,6 @@ const FORMS_OF_6_7 = [
 
 // ---------------------------------------------------------------- the world, set through the service role
 const owner = { email: `b1-smoke-${randomUUID().slice(0, 8)}@example.test`, id: null };
-const bookingId = randomUUID();
 const secret = randomBytes(24).toString('base64url');
 
 async function seedWorld() {
