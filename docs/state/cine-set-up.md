@@ -70,4 +70,6 @@ she sets it, a pack or a bazaar sale takes only the per-cookie packaging in the 
 A live-only screen, shown once to an owner until each section is done, that lists the open items above from the
 database (items with no price, never counted, recipes with a line left out, flavours with no recipe or picture, no
 container rule, no cutover) and links each to the place it is fixed. It needs one new table for the lines left out, with
-its own migration, role-suite cases and security review. Deploying it before 24 October means a new phone rehearsal.
+its own migration, role-suite cases and security review. The import of 13 October used a scratch copy of
+`scripts/import-her-data.py` that leaves an unclear line out and lists it; the repository's copy still holds the whole recipe, and
+changes with this slice (a script change runs CI and redeploys). Deploying it before 24 October means a new phone rehearsal.
