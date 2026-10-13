@@ -4,7 +4,7 @@ Read this page first in a new session. It is kept short on purpose.
 
 | If you need                                        | Read                                                                                                                                                     |
 | -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| The goal to run next                               | [next-goal.md](next-goal.md) (slice B5)                                                                                                                  |
+| The goal to run next                               | [next-goal.md](next-goal.md) (slice B6)                                                                                                                  |
 | The plan, approved 5 October                       | [final-plan.md](final-plan.md), version 2                                                                                                                |
 | The rules every agent follows                      | [AGENTS.md](../../AGENTS.md)                                                                                                                             |
 | Ethan's and Cine's decisions                       | [decision-register.md](decision-register.md)                                                                                                             |
@@ -16,15 +16,15 @@ Read this page first in a new session. It is kept short on purpose.
 
 ## Where things stand — 7 October 2026
 
-**The plan is approved; stage A (A1 to A4) and slices B1 to B3b-2, B4a and B4b are built.** Ethan approved
+**The plan is approved; stage A (A1 to A4) and slices B1 to B3b-2, B4a, B4b and B5 are built.** Ethan approved
 [final-plan.md](final-plan.md), version 2, on 5 October after a re-audit, a debate and
 wider research. It replaces finish-plan.md as the forward plan. The Bazaar defect B1 found is
-fixed (below). The next step is slice B5 (New Stock), and your reads (below).
+fixed (below). The next step is slice B6 (New Recipes), and your reads (below).
 
-**B4b, 12 October:** migration 65 and three offline tools, **none on the trial**. After the cutover a count that finds
-less stock is an expense at the item's cost (a count that finds more books nothing). Her recipes go in as decided: 19 of 23
-import, 4 are held for a unit clash or a missing quantity, 22 of 23 costing rows reproduce. Newer sales have an offline
-append plan; flavour photos are resized in the browser before the existing upload. Ethan's reads and her photo folder are next.
+**B5, 13 October:** migration 66 (an owner-only read of an item's movements, **not on the trial**) and the live Inventory and
+Grocery screens. Out at 0, Low below the item's level, Good otherwise, always as a word. Grocery shows the running total;
+"left" or "over" appears only once she sets a budget. An unknown cost reads "Cost pending", never 0. Smoke, 320 px and
+keyboard checks are for the laptop (PR #14).
 
 Stage A and slices B1 and B2, as each was recorded when it closed, are in [current-history.md](current-history.md), the section moved on 7 October.
 
@@ -35,8 +35,8 @@ plan is built (Ethan, 5 October). F3 (launch) stays closed until Cine accepts a 
 
 - **The product** is built through E1: menu and settings, checkout and owner orders,
   bazaar selling with offline close-out, stock, recipes and production, books, P&L and
-  CSV, backups and health. `pnpm verify` passes 100 files / 1,850 tests; the planning
-  validator passes 1,232 checks; the database role suite passes 2,977 cases a reset.
+  CSV, backups and health. `pnpm verify` passes 110 files / 1,988 tests; the planning
+  validator passes 1,232 checks; the database role suite passes 3,049 cases a reset.
 - **The private trial site** is live for owners only:
   <https://happy-cookie-owner-trial.admin-kethai.workers.dev>. Cloudflare Access sends an
   email code to two approved mailboxes. The shop is closed and the menu is unpublished.
@@ -90,7 +90,7 @@ All in [decision-register.md](decision-register.md), the section for 5 October.
 
 ### Waiting on Ethan
 
-- **Migrations 56 to 65 (B3a to B4b) are not on the trial, and nothing in the bazaar needs them.** Apply 61 to 64 only together with the cutover (below).
+- **Migrations 56 to 66 (B3a to B5) are not on the trial, and nothing in the bazaar needs them.** Apply 61 to 64 only together with the cutover (below).
   Recommended: not before 27 October. When you say so, in one quiet sitting and in this order,
   each file as one transaction: (1) read the owner and grants of `business_clock`, `place_order`
   and `join_waitlist`, and the 40 policies against `tests/fixtures/policies-before-58.json`;

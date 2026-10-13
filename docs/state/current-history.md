@@ -5,6 +5,15 @@ is in [current.md](current.md). Sections were moved here from `current.md` on 20
 again, with the earlier goals from `next-goal.md`, on 2026-10-05, and again on 2026-10-06. Add nothing here by hand;
 move a checkpoint here when it leaves `current.md`.
 
+# Moved from current.md on 2026-10-13
+
+The closed-slice paragraph of "Where things stand", verbatim.
+
+**B4b, 12 October:** migration 65 and three offline tools, **none on the trial**. After the cutover a count that finds
+less stock is an expense at the item's cost (a count that finds more books nothing). Her recipes go in as decided: 19 of 23
+import, 4 are held for a unit clash or a missing quantity, 22 of 23 costing rows reproduce. Newer sales have an offline
+append plan; flavour photos are resized in the browser before the existing upload. Ethan's reads and her photo folder are next.
+
 # Moved from current.md on 2026-10-12
 
 The closed-slice paragraphs of "Where things stand", verbatim.

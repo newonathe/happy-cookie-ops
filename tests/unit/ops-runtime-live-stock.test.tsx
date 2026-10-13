@@ -340,6 +340,15 @@ describe('B5-1: liveStock (live mode, owner)', () => {
     for (const i of stock(runtime).items) expect(i.costText).toBe('Cost pending');
   });
 
+  it('on a database with no cost function the engine path never shows ₱0.00 for an unpriced item', async () => {
+    const { runtime } = await mounted(
+      world({ itemCosts: { data: null, error: { code: 'PGRST202' }, status: 404 } })
+    );
+    for (const i of stock(runtime).items) expect(i.costText).not.toMatch(/₱0(\.0+)?\s/);
+    expect(byName(runtime, 'Tape').costText).toBe('Cost pending');
+    // Mutation: accepting the engine's 0 as a cost prints "₱0.00 per ..." for an item nobody has priced.
+  });
+
   it('shows what was last paid when something was', async () => {
     const { runtime } = await mounted(
       world({

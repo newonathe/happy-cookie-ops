@@ -3858,7 +3858,8 @@ export class OpsRuntime extends OpsProvider {
       };
     }
     const cost = (this as unknown as CostActions).costPerUnit(item.name);
-    return { perUnit: Number.isFinite(cost) ? cost : null, source: null };
+    // The engine answers 0 for an item nobody has priced: that is "unknown", never a cost of nothing.
+    return { perUnit: Number.isFinite(cost) && cost > 0 ? cost : null, source: null };
   }
 
   /** The existing count flow, for one item: on its tab, with only that item on the sheet. */

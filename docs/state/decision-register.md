@@ -381,6 +381,30 @@ Ethan answered four questions in plan mode on 12 October, taking the recommendat
 4. The books' "N uses not costed" caption also counts counts and adjustments.
 5. The Sales sheet's memo is "Workbook Sales row N"; how the first import worded its memos was not found.
 
+### Slice B5, 13 October 2026: New Stock, Inventory and Grocery
+
+Ethan answered three questions in plan mode on 13 October, taking the recommendation each time.
+
+| Question                        | Decision                                                                                                                                                                                |
+| ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Item movements on the item page | Add the read now: migration 66, `get_item_movements`, owner only, no person's name returned. Not on the trial; there the page says movements are not available yet.                     |
+| Out, Low and Good               | Out at 0, Low below the item's level, Good otherwise. An item with no level is Good unless it is at 0. The word is always shown beside the colour; Grocery lists the Out and Low items. |
+| The grocery budget              | The running total always shows. "Left" or "over" appears only once she has set a budget; no built-in 6,000 is shown.                                                                    |
+
+**Defaults, not decisions.** Chosen by the builder; each is Ethan's or Cine's to change.
+
+| Rule                                                      | Default                                                                                                                     |
+| --------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| A receipt's movement line                                 | Shows what was paid (`paid_cents`), because a receipt carries no unit cost.                                                 |
+| A use, waste or stock-lowering count with no cost stamped | Reads "Cost pending" (a count before the cutover keeps reading so). An increase shows no cost.                              |
+| The item page asks for                                    | The latest 50 movements.                                                                                                    |
+| Grocery "Needed" when the plan is reorder-only            | The item's level; otherwise the engine plan's need. An item with no price reads "Cost pending", and the total says so.      |
+| Trial cost fallback (no cost function)                    | The engine's 0 for an unpriced item is treated as unknown, never shown as a cost (found in review; test written red first). |
+
+Left as recorded by the Opus review (P3, theoretical for this shop): a unit cost under half a millionth of a centavo rounds to 0 in
+the read and would mark one item's history unavailable; a rate under ₱0.00005 shows as ₱0.00; the left/over note subtracts in pesos
+(display only).
+
 ## Amended decisions (open — block the listed work)
 
 **DP-02 · Payment timing** — blocks MP-10, MP-12.
