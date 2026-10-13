@@ -557,3 +557,19 @@ is current from.
 
 **Defaults, not decisions.** The price list is dated 13 October 2026, the day of the import. The bazaar table still loads only
 from baked stock: that rule was not changed.
+
+### Bazaar days, 13 October 2026
+
+Ethan asked for a bazaar that needs no bake, with a plan per day, fees, losses, a review before each close and a P&L that counts
+in the books only when the event ends. Design: [bazaar-days.md](bazaar-days.md). He answered four questions in plan mode.
+
+| Question                                       | Decision                                                                                                                                                           |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| If the new flow is not rehearsed by 20 October | New flow or nothing: the old start is not offered. He did not take the recommendation (fall back to today's flow). Putting it back needs a deploy and a rehearsal. |
+| Unsold cookies                                 | Cine decides, per day and per flavour, how many carry over to the next day, how many go to the shop and how many are written off (freshness).                      |
+| A flavour whose cost is not fully known        | Cine may type a cost per cookie for the event, marked as hers beside the recipe's. Until every flavour made has a cost, profit reads "Cost pending".               |
+| Order of work                                  | Bazaar first (S1 to S3), then the one-time set-up (S4, S5), then B6.                                                                                               |
+
+**Defaults, not decisions** (the builder's, his or hers to change): one cost per flavour per event; planning, starting a day,
+review and close need signal while selling does not; a line's cost is rounded half up to the centavo per flavour; fees paid
+before the event are dated the day they were paid and count when the event is finalised.

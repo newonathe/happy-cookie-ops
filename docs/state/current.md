@@ -4,7 +4,7 @@ Read this page first in a new session. It is kept short on purpose.
 
 | If you need                                        | Read                                                                                                                                                     |
 | -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| The goal to run next                               | [next-goal.md](next-goal.md) (slice B6)                                                                                                                  |
+| The goal to run next                               | [next-goal.md](next-goal.md) (slice S1, bazaar days)                                                                                                     |
 | The plan, approved 5 October                       | [final-plan.md](final-plan.md), version 2                                                                                                                |
 | The rules every agent follows                      | [AGENTS.md](../../AGENTS.md)                                                                                                                             |
 | Ethan's and Cine's decisions                       | [decision-register.md](decision-register.md)                                                                                                             |
@@ -19,7 +19,9 @@ Read this page first in a new session. It is kept short on purpose.
 **The plan is approved; stage A (A1 to A4) and slices B1 to B3b-2, B4a, B4b and B5 are built.** Ethan approved
 [final-plan.md](final-plan.md), version 2, on 5 October after a re-audit, a debate and
 wider research. It replaces finish-plan.md as the forward plan. The Bazaar defect B1 found is
-fixed (below). The next step is slice B6 (New Recipes), and your reads (below).
+fixed (below). The next step is slice S1 of
+[bazaar-days.md](bazaar-days.md): Ethan put the bazaar's new flow ahead of B6 on 13 October, with no fallback, so S1 to
+S3 must be deployed and rehearsed on the phone by 20 October.
 
 **Her data and the database, 13 October:** at Ethan's instruction the trial went from migration 55 to 67 of 67 (through
 B5), rehearsed first on the local database, and her data is in: 23 recipes with packaging lines, 72 prices, the items

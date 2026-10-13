@@ -1,59 +1,51 @@
-# Next goal — B6
+# Next goal — S1, bazaar days (the database)
 
 One goal per package, each in a fresh conversation opened in the repository root. Paste
-one block. Where things stand: [current.md](current.md). The plan these come from:
-[final-plan.md](final-plan.md), version 2, section 9, stage B. Earlier goals are in
+one block. Where things stand: [current.md](current.md). The design these come from:
+[bazaar-days.md](bazaar-days.md), approved by Ethan on 13 October; it holds the S2 and S3 goals. Earlier goals are in
 [current-history.md](current-history.md).
 
-B3, B4 and B5 are built: B3a (migrations 56 to 59), B3b-1 (60), B3b-2 (61, and the runtime), B4a (62 to 64: the cost
-cutover and the operator's imports), B4b (65, the count rule, and the offline tools for her recipes, newer sales and
-photos) and B5 (66, the owner-only item movements read, and the live Inventory and Grocery screens). None is on the
-trial. What B5 decided is in [decision-register.md](decision-register.md), the section for 13 October. B6 is an interface
-slice; it waits on none of Ethan's reads, but the cost of a recipe stays "Cost pending" until her prices are imported.
+Ethan put the bazaar ahead of B6 on 13 October: the 24 to 25 October bazaar sells on the new flow, with no fallback, so
+S1 to S3 must be deployed and rehearsed on the phone by 20 October. The one-time set-up (S4, S5:
+[cine-set-up.md](cine-set-up.md)) follows, then B6 (New Recipes; its goal is in Git at `3597c19`, this file).
 
-## B6 — New Recipes
+## S1 — migration 68: days, fees, losses, the summary, close and finalise
 
-| Setting         | Value                                                                                                          |
-| --------------- | -------------------------------------------------------------------------------------------------------------- |
-| Model, effort   | Claude Opus, high to plan and sign off; Sonnet, high to build                                                  |
-| Plan mode       | On: the screens, their states and every figure they show, for Ethan first                                      |
-| Permission mode | Auto after the plan is accepted                                                                                |
-| Review          | Required: `port-auditor` (locked files untouched); `security-reviewer` only if a migration or write path moves |
-| Browser QA      | Yes: the live build against the local database, an accessibility scan, and `pnpm test:live:smoke`              |
-| Tools           | Node 24.20.0 and pnpm 9.12.3 from `happy-cookie-tools`; local Supabase                                         |
-| Stop            | Evidence printed and pushed; 25 turns; two failed fix attempts                                                 |
+| Setting         | Value                                                                             |
+| --------------- | --------------------------------------------------------------------------------- |
+| Model, effort   | Claude Sonnet, high to build; Opus, high for the sign-off only                    |
+| Plan mode       | Off: the design is approved. Write the hand-worked example before any SQL         |
+| Permission mode | Auto                                                                              |
+| Review          | Required: `security-reviewer` on a different model for the whole migration        |
+| Browser QA      | None (no screen changes)                                                          |
+| Tools           | Node 24.20.0 and pnpm 9.12.3 from `happy-cookie-tools`; Docker and local Supabase |
+| Stop            | Evidence printed and pushed; 25 turns; two failed fix attempts                    |
 
 ```text
-/goal Slice B6 of docs/state/final-plan.md (version 2) for The Happy Cookie Ops in
-C:\Users\ethan\dev\happy-cookie-ops-g0: New Recipes, the picture grid and the flavour page. B5 is built
-(migrations 56 to 66; none is on the trial, which is at 55). record_event_sale stays untouched (hash 8cf2bd63).
-The ported screens, sheets, shell and engine stay locked: the new screens enter through the guarded live-only slot
-(src/components/live/live-screens.ts; the B5 stock screens in src/components/live/stock/ are the pattern to follow).
+/goal Slice S1 of docs/state/bazaar-days.md for The Happy Cookie Ops in C:\Users\ethan\dev\happy-cookie-ops-g0, on a
+new branch from agent/codex/MP-04-g1-feasibility: migration 20260101006700_bazaar_days.sql and its tests. This is real
+money: exact, whole centavos, nothing guessed. The trial is at 67 of 67 and gets no migration without Ethan's word.
+record_event_sale stays untouched (body md5 8cf2bd637503cd4ef791a80eb415bb43).
 
-Read first: AGENTS.md, docs/state/current.md, final-plan.md section 6 (the Make, Recipes row of the screen table and
-6.4 the accessibility floor) and 7.1 (Recipe, Ingredient cost, Packaging rule), the existing Recipes, Menu & flavours
-and Recipe drafts screens and their live actions in src/store/ops-runtime.tsx (recipeCosts, knownRecipeCost, the
-packaging fallbacks), src/lib/data/costs.ts and the recipe reads. Say what exists before building.
+Read first, and nothing else until you have said what exists: AGENTS.md, docs/state/current.md,
+docs/state/bazaar-days.md, migrations 20260101003200, 003300, 004100, 004200, 004700 (record_production),
+005900 (record_sale_packaging, get_recipe_costs) and 006400 (get_books), tests/integration/security/bazaar-events.sql
+and bazaar-closeout.sql, and how scripts/test-db-security.py counts a suite.
 
-1. Picture grid of flavours with the filters on sale, all and cannot make now.
-2. Flavour page: picture, price, cost per cookie, margin, allergens, ingredients each marked Good, Low or Out (the B5
-   status words), versions, her original recipe text, Edit recipe, Add a flavour. An incomplete cost names what is
-   missing ("Cost pending: Oats has no price") and never shows 0 or a margin made from it.
-3. Margin "against her floor" only once a floor is set; the floor setting itself is slice B7. Put this to Ethan in plan
-   mode: show cost and margin without a floor line until then.
-4. 320 px wide and 200% text with no sideways scroll; every target at least 24 px (primary buttons 44); a keyboard
-   pass; an axe scan for each new screen in the vitest and smoke tests, as B5 did.
+1. First, in the new suite's header: a hand-worked two-day event (three flavours, one with a typed cost, one with no
+   cost; a discount, a freebie, a void, a loss, a short drawer, a carry-over, cookies to the shop, a fee for the event
+   and one for a day), with every figure of the summary worked out by hand.
+2. tests/integration/security/bazaar-days.sql: that example to the centavo; one case and one rule mutation per
+   refusal; anon, helper, support and an inactive owner denied every function; a repeat of each call answered.
+3. The migration, as the design's tables and contracts say. One scaling rule for a recipe's stock, shared with
+   record_production. record_sale_packaging and get_books redefined whole with one change each.
+4. Check how the app reads baked stock before writing "to the shop"; if it needs a second stock count, stop and report.
+5. Pins, function authority, the suite's counts, pnpm db:types.
 
-Interface track: new files only; src/store/ops-runtime.tsx and src/lib/types/database.ts belong to the database
-track, so a runtime change is queued behind it and named in the report. Tests first. tests/unit/no-prototype-
-values.test.tsx stays green. Build with at most two Sonnet subagents. Review: port-auditor confirms the locked
-files are untouched.
-
-Update docs/state/current.md (five lines) and task-status.json (one note, by string insertion); replace this
-block with slice B7 from final-plan.md. Print: each failing test before and passing after, the reviewers'
-verdicts, the pnpm verify summary, the smoke-suite output, the accessibility scan result, the commit hashes and
-the pushed branch.
-
-No new resources, shop opening, real customers, launch, merge or automatic runner. Do not set the release
-hold. Stop after 25 turns or two failed fix attempts and report the obstacle.
+Run python scripts/test-b3a-upgrade.py, python scripts/test-db-security.py (then git checkout -- docs/state/evidence/)
+and pnpm verify. security-reviewer on a different model; fix every P0 to P2. Update docs/state/current.md (five lines)
+and task-status.json (one note, by string insertion); replace this block with S2 from bazaar-days.md. Print each
+failing test before and passing after, the reviewer's verdict, the suite and verify summaries, the commit hashes and
+the pushed branch. Open a draft PR. Do not merge, deploy or touch the trial. Stop after 25 turns or two failed fix
+attempts and report the obstacle.
 ```
