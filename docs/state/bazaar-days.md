@@ -109,9 +109,12 @@ carry_next, to_shop, written_off}}, expected`; `lines` names every flavour of th
   in date order. A day never counted has `over_cents` and `short_cents` null.
 - **Finalise writes stock use on `production_records` of kind `sale`** (one per flavour, one for the sale containers),
   so shortfalls reach the books' uncosted list. It needs at least one started day.
-- **Not built: cookies to the shop entering baked stock.** `finalise_bazaar` refuses a bazaar that sent any
-  (`rule:fin-shop-entry`) until Ethan decides ([current.md](current.md), Waiting on Ethan). S3 must not offer "to the
-  shop" as final until then.
+- **Cookies to the shop (Ethan, 14 October):** `finalise_bazaar(booking, expected, drop)` takes the drop number (the phone's) and
+  writes those cookies as an ordinary `batch` record of that drop, taking its ingredients once; the stock use of the rest
+  is made less to the shop. A flavour sent to the shop needs a recipe (`55000`). Recipe packaging is taken for every
+  cookie made, not those sent to the shop (packed later with `record_pack`). S3 passes the drop number.
+- **Kept as the design says (Ethan, 14 October):** a day cannot close with a negative "not accounted" (add the stock
+  that was made first); recipe packaging is for every cookie made.
 - `void_event_sale` and `record_event_sale` are untouched, so a void or a queued sale can still arrive after a close or
   a finalise: the summary is worked out again from the rows, and a day says `changed_after_close`.
 

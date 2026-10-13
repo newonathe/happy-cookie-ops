@@ -47,7 +47,8 @@
 --   Cost of cookies made 38416 + 28753 + 6000 = 73169; to the shop 15607 + 2000 = 17607; COOKIE COST 55562.
 --   Parts: sold 21431 + given 4076 + lost 2201 + written off 22780 + not accounted 5076 = 55564, rounding -2: 55562.
 --   PROFIT = 175000 - 80000 - 55562 + 0 over - 500 short = 38938. Against the target: 38938 - 50000 = -11062; revenue still needed 11062.
--- X sent cookies to the shop, so finalise_bazaar refuses it (rule:fin-shop-entry) until that entry is decided.
+-- X sent cookies to the shop (A 13, C 2): finalise_bazaar writes them as an ordinary batch of the drop it is given (7), refusing a flavour
+-- with no recipe (C has none until the end of the suite). A's batch: flour 250 x 13 / 10 = 325 g, eggs 3 x 13 / 10 = 3.9 -> 4 pcs.
 --
 -- Booking Y "Second fair", sells on one day of its three, nothing to the shop, so it is finalised. Rent 300.00. "Tape" 15.00 was added at the
 -- till (add_event_expense) on the day: it is a fee of the day too. Fees "Ice" 40.00 (the day), "Permit" 60.00 (the
@@ -84,6 +85,7 @@ insert into public.inventory_items(id, name, unit, category, active, on_hand, av
   ('bzi-pouch', 'BZ Pouch', 'pcs', 'Packaging', true, 100, 250.5),
   ('bzi-bag', 'BZ Bag', 'pcs', 'Packaging', true, 1, 300);
 insert into public.recipes(product_id, yield_count) values ('mp0s-a', 10), ('mp0s-d', 10);
+insert into public.recipe_versions(product_id, version, yield_count, lines) values ('mp0s-a', 1, 10, '[]'), ('mp0s-d', 1, 10, '[]');
 insert into public.recipe_ingredients(product_id, item_name, qty, unit, position, item_id, kind) values
   ('mp0s-a', 'BZ Flour', 250, 'g', 0, 'bzi-flour', 'ingredient'),
   ('mp0s-a', 'BZ Egg', 3, 'pcs', 1, 'bzi-egg', 'ingredient'),
@@ -109,15 +111,15 @@ end $$;
 -- Runs one statement; anything but `wanted` fails the suite, a success included.
 create function pg_temp.expect(actor text, operation text, statement text, wanted text) returns void
 language plpgsql security invoker as $$
-declare state text := '00000';
+declare state text := '00000'; why text := '';
 begin
   begin
     execute statement;
   exception when others then
-    get stacked diagnostics state = returned_sqlstate;
+    get stacked diagnostics state = returned_sqlstate, why = message_text;
   end;
   if state <> wanted then
-    raise exception 'bazaar day outcome differs: % / % / % (wanted %)', actor, operation, state, wanted;
+    raise exception 'bazaar day outcome differs: % / % / % (wanted %): %', actor, operation, state, wanted, why;
   end if;
   insert into pg_temp.authority_results values (operation, actor, 'sqlstate_' || state);
 end $$;
@@ -137,6 +139,11 @@ declare ok boolean;
 begin
   execute 'select ' || cond into ok;
   return ok;
+end $$;
+
+create function pg_temp.x(stmt text) returns void language plpgsql security definer as $$
+begin
+  execute stmt;
 end $$;
 
 create function pg_temp.bx() returns text language sql immutable as $$ select 'b0d0b000-0000-4000-8000-000000000001'::text $$;
@@ -215,7 +222,7 @@ declare
 begin
   foreach sig in array array['get_bazaar(uuid)', 'save_bazaar_day(jsonb,timestamptz)', 'save_bazaar_fee(jsonb)', 'save_bazaar_loss(jsonb)',
     'save_bazaar_cost(uuid,text,numeric)', 'save_bazaar_target(uuid,bigint)', 'start_bazaar_day(uuid,text,uuid)',
-    'add_bazaar_day_stock(uuid,text,integer,text,uuid)', 'close_bazaar_day(jsonb)', 'finalise_bazaar(uuid,text)',
+    'add_bazaar_day_stock(uuid,text,integer,text,uuid)', 'close_bazaar_day(jsonb)', 'finalise_bazaar(uuid,text,integer)',
     'bazaar_summary(uuid)', 'bazaar_line_facts(uuid)', 'bazaar_held_ledger()', 'recipe_stock_plan(text,numeric,text,jsonb)'] loop
     if has_function_privilege('anon', 'public.' || sig, 'EXECUTE') then
       raise exception 'forbidden bazaar day call succeeded: anon / %', split_part(sig, '(', 1);
@@ -239,7 +246,7 @@ begin
   perform pg_temp.expect(actor, 'add_bazaar_day_stock',
     'select * from public.add_bazaar_day_stock(' || f || ', ''mp0s-a'', 1, ''made'', ' || f || ')', '42501');
   perform pg_temp.expect(actor, 'close_bazaar_day', 'select public.close_bazaar_day(''{}''::jsonb)', '42501');
-  perform pg_temp.expect(actor, 'finalise_bazaar', 'select public.finalise_bazaar(' || f || ', repeat(''0'', 64))', '42501');
+  perform pg_temp.expect(actor, 'finalise_bazaar', 'select public.finalise_bazaar(' || f || ', repeat(''0'', 64), 7)', '42501');
 end $$;
 
 create function pg_temp.assert_owner() returns void language plpgsql security invoker as $$
@@ -365,7 +372,7 @@ begin
   perform pg_temp.expect(a, 'close_before_the_day_starts',
     $q$select public.close_bazaar_day(pg_temp.closing(pg_temp.bx(), pg_temp.dy(11), '0', '{}'))$q$, '55000');
   perform pg_temp.expect(a, 'finalise_no_day_started',
-    $q$select public.finalise_bazaar(pg_temp.bz()::uuid, pg_temp.sm(pg_temp.bz()) ->> 'hash')$q$, '55000');
+    $q$select public.finalise_bazaar(pg_temp.bz()::uuid, pg_temp.sm(pg_temp.bz()) ->> 'hash', 7)$q$, '55000');
   select * into r from public.start_bazaar_day(pg_temp.dy(11)::uuid, 'devA', pg_temp.ev(11)::uuid);
   perform pg_temp.confirm(r.event_id = pg_temp.ev(11)::uuid and r.selling_device = 'devA' and r.float_cents = 50000
     and r.prices = '{"mp0s-a": 13000, "mp0s-b": 15000, "mp0s-c": 9000, "mp0s-d": 8000}'
@@ -580,11 +587,12 @@ begin
     a, 'summary_same_rows_same_answer', 'stable');
 
   -- ---- X cannot be finalised: it sent cookies to the shop
-  perform pg_temp.expect(a, 'finalise_bad_hash', $q$select public.finalise_bazaar(pg_temp.bx()::uuid, 'nope')$q$, '22023');
+  perform pg_temp.expect(a, 'finalise_bad_hash', $q$select public.finalise_bazaar(pg_temp.bx()::uuid, 'nope', 7)$q$, '22023');
   perform pg_temp.expect(a, 'finalise_booking_missing',
-    $q$select public.finalise_bazaar('b0d0c105-0000-4000-8000-0000000000ff', repeat('0', 64))$q$, 'P0002');
-  perform pg_temp.expect(a, 'finalise_with_cookies_to_the_shop',
-    $q$select public.finalise_bazaar(pg_temp.bx()::uuid, pg_temp.sm(pg_temp.bx()) ->> 'hash')$q$, '55000');
+    $q$select public.finalise_bazaar('b0d0c105-0000-4000-8000-0000000000ff', repeat('0', 64), 7)$q$, 'P0002');
+  perform pg_temp.expect(a, 'finalise_bad_drop', $q$select public.finalise_bazaar(pg_temp.bx()::uuid, repeat('0', 64), -1)$q$, '22023');
+  perform pg_temp.expect(a, 'finalise_shop_flavour_without_recipe',
+    $q$select public.finalise_bazaar(pg_temp.bx()::uuid, pg_temp.sm(pg_temp.bx()) ->> 'hash', 7)$q$, '55000');
   perform pg_temp.confirm(pg_temp.q($q$(select finalised_at is null from public.scheduled_events where id = pg_temp.bx()::uuid)$q$)
     and pg_temp.q($q$(select count(*) = 0 from public.event_expenses)$q$) and pg_temp.q($q$(select count(*) = 0 from public.production_records)$q$),
     a, 'finalise_refusal_leaves_nothing', 'nothing_posted');
@@ -608,7 +616,7 @@ begin
   perform public.add_event_expense(jsonb_build_object('clientId', 'devA:E1', 'eventId', pg_temp.ev(21), 'label', 'Tape', 'category', 'Supplies',
     'amountCents', 1500, 'at', pg_temp.now_ms()));
   perform pg_temp.expect(a, 'finalise_while_a_day_is_open',
-    $q$select public.finalise_bazaar(pg_temp.bqy()::uuid, pg_temp.sm(pg_temp.bqy()) ->> 'hash')$q$, '55000');
+    $q$select public.finalise_bazaar(pg_temp.bqy()::uuid, pg_temp.sm(pg_temp.bqy()) ->> 'hash', 7)$q$, '55000');
   b := jsonb_build_object('mp0s-a', pg_temp.cl(8, 0, 0, 8), 'mp0s-b', pg_temp.cl(2, 0, 0, 2));
   perform pg_temp.expect(a, 'day_close_before_a_recorded_sale',
     format($q$select public.close_bazaar_day(pg_temp.closing(pg_temp.bqy(), pg_temp.dy(21), '59700', %L))$q$, b), '22023');
@@ -637,9 +645,9 @@ begin
     a, 'books_hold_an_open_bazaar', 'left_out_of_lines_and_counted_in_held');
   perform pg_temp.confirm(jsonb_array_length(public.get_books(now() - interval '60 days', now() - interval '30 days') -> 'held') = 0,
     a, 'books_held_follows_the_period', 'empty_list_outside_it');
-  perform pg_temp.expect(a, 'finalise_stale_hash', $q$select public.finalise_bazaar(pg_temp.bqy()::uuid, repeat('0', 64))$q$, '40001');
+  perform pg_temp.expect(a, 'finalise_stale_hash', $q$select public.finalise_bazaar(pg_temp.bqy()::uuid, repeat('0', 64), 7)$q$, '40001');
   h := pg_temp.sm(pg_temp.bqy()) ->> 'hash';
-  s := public.finalise_bazaar(pg_temp.bqy()::uuid, h);
+  s := public.finalise_bazaar(pg_temp.bqy()::uuid, h, 7);
   perform pg_temp.confirm(s ->> 'hash' = h
     and pg_temp.q(format($q$(select finalised_at is not null and final_hash = %L and final_summary = %L::jsonb from public.scheduled_events where id = pg_temp.bqy()::uuid)$q$, h, s))
     and pg_temp.q($q$(select count(*) = 1 from public.audit_log where action = 'bazaar.finalised')$q$),
@@ -679,10 +687,10 @@ begin
     and pg_temp.q($q$(select r2.qty = 4 and r2.short -> 0 ->> 'name' = 'BZ Bag' and (r2.short -> 0 ->> 'by')::numeric = 1
            from public.production_records r2 where r2.product_id is null)$q$),
     a, 'finalise_records_each_shortfall', 'with_its_why_never_a_refusal');
-  perform pg_temp.expect(a, 'finalise_repeat_answered', format($q$select public.finalise_bazaar(pg_temp.bqy()::uuid, %L)$q$, h), '00000');
+  perform pg_temp.expect(a, 'finalise_repeat_answered', format($q$select public.finalise_bazaar(pg_temp.bqy()::uuid, %L, 7)$q$, h), '00000');
   perform pg_temp.confirm(pg_temp.q($q$(select count(*) = 16 from public.ledger_entries)$q$) and pg_temp.q($q$(select count(*) = 4 from public.stock_movements where kind = 'use')$q$)
     and pg_temp.q($q$(select count(*) = 1 from public.audit_log where action = 'bazaar.finalised')$q$), a, 'finalise_repeat_adds_nothing', 'posted_once');
-  perform pg_temp.expect(a, 'finalise_again_other_hash', $q$select public.finalise_bazaar(pg_temp.bqy()::uuid, repeat('0', 64))$q$, '23505');
+  perform pg_temp.expect(a, 'finalise_again_other_hash', $q$select public.finalise_bazaar(pg_temp.bqy()::uuid, repeat('0', 64), 7)$q$, '23505');
   b := pg_temp.books();
   perform pg_temp.confirm(pg_temp.sumk(b, 'revenue') = 54700 and pg_temp.sumk(b, 'expense') = 41500 and jsonb_array_length(b -> 'lines') = 9
     and jsonb_array_length(b -> 'held') = 1 and pg_temp.held(b, pg_temp.bx()) @> '{"count": 7, "revenue_cents": 175000}',
@@ -712,6 +720,29 @@ begin
     and (s #>> '{summary,fees,total_cents}')::bigint = 41500 and (s #>> '{final_summary,fees,total_cents}')::bigint = 41500 and s #>> '{summary,hash}' <> s ->> 'final_hash'
     and pg_temp.dayj(s -> 'summary', pg_temp.dy(21)) @> '{"changed_after_close": true}',
     a, 'late_void_after_finalise', 'books_follow_the_ledger_and_the_summary_shows_the_change');
+  -- X: C gets a recipe, then X is finalised; A's 13 and C's 2 cookies sent to the shop are batches of drop 7.
+  perform pg_temp.x($q$insert into public.recipes(product_id, yield_count) values ('mp0s-c', 10)$q$);
+  perform pg_temp.x($q$insert into public.recipe_versions(product_id, version, yield_count, lines) values ('mp0s-c', 1, 10, '[]')$q$);
+  perform pg_temp.x($q$insert into public.recipe_ingredients(product_id, item_name, qty, unit, position, item_id, kind) values ('mp0s-c', 'BZ Flour', 10, 'g', 0, 'bzi-flour', 'ingredient')$q$);
+  perform public.finalise_bazaar(pg_temp.bx()::uuid, pg_temp.sm(pg_temp.bx()) ->> 'hash', 7);
+  perform pg_temp.confirm(
+    pg_temp.q($q$(select count(*) = 2 from public.production_records r where r.kind = 'batch' and r.drop_no = 7 and r.ref = 'bazaar:' || pg_temp.bx()
+        and r.rejects = 0 and r.dough_used = 0 and r.recipe_version = 1 and r.target = r.qty)$q$)
+    and pg_temp.q($q$(select r.qty = 13 from public.production_records r where r.kind = 'batch' and r.product_id = 'mp0s-a')$q$)
+    and pg_temp.q($q$(select r.qty = 2 from public.production_records r where r.kind = 'batch' and r.product_id = 'mp0s-c')$q$)
+    and (select (x ->> 'qty')::integer = 13 from jsonb_array_elements(public.get_production(7) -> 'baked') x where x ->> 'product_id' = 'mp0s-a')
+    and (select (x ->> 'qty')::integer = 2 from jsonb_array_elements(public.get_production(7) -> 'baked') x where x ->> 'product_id' = 'mp0s-c')
+    and (select (x ->> 'qty')::integer = 0 from jsonb_array_elements(public.get_production(8) -> 'baked') x where false) is null,
+    a, 'finalise_shop_batch_enters_baked_stock', 'a_batch_of_drop_7');
+  perform pg_temp.confirm(
+    pg_temp.q($q$(select m.qty_delta = -4 and m.short_qty = 0 from public.stock_movements m join public.production_records r on r.id = m.production_id
+        where m.item_id = 'bzi-egg' and r.kind = 'batch' and r.product_id = 'mp0s-a')$q$)
+    and pg_temp.q($q$(select m.qty_delta = 0 and m.short_qty = 325 from public.stock_movements m join public.production_records r on r.id = m.production_id
+        where m.item_id = 'bzi-flour' and r.kind = 'batch' and r.product_id = 'mp0s-a')$q$)
+    and pg_temp.q($q$(select m.qty_delta = -2 and m.short_qty = 4 from public.stock_movements m join public.production_records r on r.id = m.production_id
+        where m.item_id = 'bzi-egg' and r.kind = 'sale' and r.product_id = 'mp0s-a' and r.ref = 'bazaar:' || pg_temp.bx())$q$)
+    and pg_temp.q($q$(select on_hand = 0 from public.inventory_items where id = 'bzi-egg')$q$),
+    a, 'finalise_shop_cookies_take_ingredients_once', 'eggs_4_for_the_batch_6_for_the_rest');
 end $$;
 
 -- A day cannot start once its bazaar is finalised (the later day planned and never started above).
@@ -722,7 +753,7 @@ begin
 end $$;
 
 grant execute on function pg_temp.set_subject(integer, text), pg_temp.expect(text, text, text, text),
-  pg_temp.confirm(boolean, text, text, text), pg_temp.q(text), pg_temp.bx(), pg_temp.bqy(), pg_temp.bz(), pg_temp.dy(integer), pg_temp.ev(integer),
+  pg_temp.confirm(boolean, text, text, text), pg_temp.q(text), pg_temp.x(text), pg_temp.bx(), pg_temp.bqy(), pg_temp.bz(), pg_temp.dy(integer), pg_temp.ev(integer),
   pg_temp.d(integer), pg_temp.now_ms(), pg_temp.line(text, integer, integer, bigint), pg_temp.plan(text, text, integer, bigint, jsonb),
   pg_temp.fee(text, text, text, text, bigint, integer), pg_temp.loss(text, text, text, integer),
   pg_temp.sale(text, text, jsonb, bigint, bigint, text), pg_temp.void(text), pg_temp.sm(text), pg_temp.dayj(jsonb, text),

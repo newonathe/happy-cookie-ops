@@ -10,9 +10,6 @@ S1 to S3 must be deployed and rehearsed on the phone by 20 October. S1 (migratio
 database only. The one-time set-up (S4, S5: [cine-set-up.md](cine-set-up.md)) follows, then B6 (New Recipes; its goal
 is in Git at `3597c19`, this file).
 
-**Before S3, Ethan decides** how cookies sent to the shop enter baked stock ([current.md](current.md), Waiting on
-Ethan). S2 does not depend on it.
-
 ## S2 — the data layer, the runtime and the screens up to selling
 
 | Setting         | Value                                                                                |

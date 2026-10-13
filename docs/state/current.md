@@ -27,8 +27,9 @@ S3 must be deployed and rehearsed on the phone by 20 October.
 booking's days, fees, losses, typed costs, target, start, added stock, close and finalise, and the one summary, held to
 a hand-worked two-day example to the centavo (`tests/integration/security/bazaar-days.sql`). The books leave an open
 bazaar out of their lines and count it in `held`. What S1 changed in the design's contracts is in
-[bazaar-days.md](bazaar-days.md), "S1 as built". **Open, Ethan's call: how cookies sent to the shop enter baked stock**
-(below); until then `finalise_bazaar` refuses a bazaar that sent any.
+[bazaar-days.md](bazaar-days.md), "S1 as built". Ethan's answers of 14 October: cookies sent to the shop are written by
+`finalise_bazaar(booking, expected, drop)` as an ordinary batch of that drop; an oversold day keeps the refusal; recipe
+packaging is taken for every cookie made.
 
 **Her data and the database, 13 October:** at Ethan's instruction the trial went from migration 55 to 67 of 67 (through
 B5), rehearsed first on the local database, and her data is in: 23 recipes with packaging lines, 72 prices, the items
@@ -105,13 +106,9 @@ All in [decision-register.md](decision-register.md), the section for 5 October.
 
 ### Waiting on Ethan
 
-- **Cookies sent to the shop from a bazaar (S1).** Baked stock is read per drop number, which only the phone holds, and
-  only a batch record adds to it; the design takes ingredients for "made less to the shop". Recommended: `finalise_bazaar`
-  takes the drop number and writes those cookies as an ordinary batch that takes its own ingredients once (a flavour
-  with no recipe then cannot go to the shop). Say yes, or how else; it is one migration.
-- **Two more from S1's review, each the design's own wording:** a day whose sales outran its recorded stock cannot be
-  closed until she adds the stock that was made (the design refuses a negative); and finalise takes recipe packaging
-  for every cookie made, not only those sold. Keep both, or change either.
+- **Plan quantities as a bake batch (S2).** Ethan, 14 October: "log those automatically as part of the bake batch that was
+  done for that day". Not built and not yet clear: finalise already takes each flavour's ingredients once. Ask what he means
+  before S2 adds a batch at the start of a day.
 - **The cost cutover**, once, after Cine's opening count: `select public.preview_cost_cutover();`, read `not_counted` and
   the items with no cost, then `select public.apply_cost_cutover('<its hash and total>');`. An opening count after it is
   refused. Until then the books stay on "bought".

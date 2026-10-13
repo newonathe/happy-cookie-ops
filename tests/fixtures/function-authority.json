@@ -2154,8 +2154,8 @@
         "search_path=\"\""
       ],
       "returns": "jsonb",
-      "body_md5": "77fc3d1fe11618b09e0142e3abc56138",
-      "identity": "p_booking uuid, p_expected text",
+      "body_md5": "aa191371947d791e57bba07f176df691",
+      "identity": "p_booking uuid, p_expected text, p_drop integer",
       "execute_anon": false,
       "security_definer": true,
       "execute_service_role": true,

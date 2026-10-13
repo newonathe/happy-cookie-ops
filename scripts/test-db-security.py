@@ -1037,7 +1037,8 @@ BAZAAR_DAY_MUTATIONS = {
     'rule_bz_fin_replay_conflict': ('finalise_bazaar', 'rule', 'fin-replay-conflict', _BZO + 'finalise_again_other_hash / '),
     'rule_bz_fin_no_day': ('finalise_bazaar', 'rule', 'fin-no-day', _BZO + 'finalise_no_day_started / '),
     'rule_bz_fin_open_day': ('finalise_bazaar', 'rule', 'fin-open-day', _BZO + 'finalise_while_a_day_is_open / '),
-    'rule_bz_fin_shop_entry': ('finalise_bazaar', 'rule', 'fin-shop-entry', _BZO + 'finalise_with_cookies_to_the_shop / '),
+    'rule_bz_fin_shop_no_recipe': ('finalise_bazaar', 'rule', 'fin-shop-no-recipe', _BZO + 'finalise_shop_flavour_without_recipe / '),
+    'rule_bz_fin_drop': ('finalise_bazaar', 'rule', 'fin-drop', _BZO + 'finalise_bad_drop / '),
     'rule_bz_fin_stale': ('finalise_bazaar', 'rule', 'fin-stale', _BZO + 'finalise_stale_hash / '),
     'rule_bz_close_event_bazaar_day': ('close_event', 'rule', 'close-event-bazaar-day', _BZO + 'old_close_refused_on_a_bazaar_day / '),
     'rule_bz_fee_date': ('save_bazaar_fee', 'rule', 'fee-date', _BZO + 'fee_paid_on_far / '),
@@ -1063,11 +1064,15 @@ BAZAAR_DAY_MUTATIONS = {
     'text_bz_held_period': ('get_books', 'text', ("where l.occurred_at >= p_from and l.occurred_at < p_to\n           group by h.scheduled_id", "where true\n           group by h.scheduled_id"), _BZC + 'books_held_follows_the_period / '),
     'text_bz_variance_sign': ('finalise_bazaar', 'text', ("v_d.over - v_d.short, v_d.closed_at", "v_d.short - v_d.over, v_d.closed_at"), _BZC + 'finalise_posts_the_cash_variance / '),
     'text_bz_packaging_per_cookie': ('finalise_bazaar', 'text', ("l.qty * v_p.qty as amount", "l.qty as amount"), _BZC + 'finalise_takes_stock / '),
+    'text_bz_shop_batch_drop': ('finalise_bazaar', 'text', ('v_p.qty, v_p.qty, 0, 0, r.version, p_drop, v_at,', 'v_p.qty, v_p.qty, 0, 0, r.version, 0, v_at,'),
+                                _BZC + 'finalise_shop_batch_enters_baked_stock / '),
+    'text_bz_shop_not_taken_twice': ('finalise_bazaar', 'text', ("(l ->> 'made')::integer - (l ->> 'to_shop')::integer as qty", "(l ->> 'made')::integer as qty"),
+                                     _BZC + 'finalise_shop_cookies_take_ingredients_once / '),
     'text_bz_bag_per_sale': ('finalise_bazaar', 'text', ("else v_sales end as amount", "else 1 end as amount"), _BZC + 'finalise_records_each_shortfall / '),
 }
 BAZAAR_DAY_ACL = ('get_bazaar(uuid)', 'save_bazaar_day(jsonb,timestamptz)', 'save_bazaar_fee(jsonb)', 'save_bazaar_loss(jsonb)',
                   'save_bazaar_cost(uuid,text,numeric)', 'save_bazaar_target(uuid,bigint)', 'start_bazaar_day(uuid,text,uuid)',
-                  'add_bazaar_day_stock(uuid,text,integer,text,uuid)', 'close_bazaar_day(jsonb)', 'finalise_bazaar(uuid,text)',
+                  'add_bazaar_day_stock(uuid,text,integer,text,uuid)', 'close_bazaar_day(jsonb)', 'finalise_bazaar(uuid,text,integer)',
                   'bazaar_summary(uuid)', 'bazaar_line_facts(uuid)', 'bazaar_held_ledger()', 'recipe_stock_plan(text,numeric,text,jsonb)')
 SUITES = (
     ('public-catalog.sql', ('catalog_raw_read','catalog_view_update'), 'catalog boundary', 41),
@@ -1124,7 +1129,7 @@ SUITES = (
     ('imports.sql', IMPORT_ACL + tuple(IMPORT_MUTATIONS), 'forbidden import call succeeded', 261),
     ('operations.sql', tuple(OPERATIONS_MUTATIONS), 'forbidden operations call succeeded', 14),
     ('bazaar-closeout.sql', ('event_summary(uuid)', 'load_event_stock(uuid,jsonb,bigint)', 'add_event_expense(jsonb)', 'close_event(jsonb)'), 'forbidden closeout call succeeded', 80),
-    ('bazaar-days.sql', BAZAAR_DAY_ACL + tuple(BAZAAR_DAY_MUTATIONS), 'forbidden bazaar day call succeeded', 208),
+    ('bazaar-days.sql', BAZAAR_DAY_ACL + tuple(BAZAAR_DAY_MUTATIONS), 'forbidden bazaar day call succeeded', 211),
     ('shop-identity.sql', ('save_shop_identity(jsonb,timestamptz)', 'business_clock(timestamptz)') + tuple(IDENTITY_MUTATIONS) + tuple(IDENTITY_RULES),
      'forbidden identity call succeeded', IDENTITY_ROWS),
     ('policies.sql', tuple(POLICY_MUTATIONS), 'policy', 42),
@@ -1479,7 +1484,7 @@ def main():
                 h.fail(filename + ' did not return its complete role matrix')
             results.extend(rows)
             assert_empty()
-        if len(set(results)) != 3257:
+        if len(set(results)) != 3260:
             h.fail('combined role matrix has missing or duplicate cases: %d rows, %d unique (duplicates: %s)' % (len(results), len(set(results)), sorted({r for r in results if results.count(r) > 1})[:5]))
         assert_functions()
         assert_catalog_wide()
@@ -1492,10 +1497,10 @@ def main():
     try:
         code = h.main(after_reset=check)
         if (code == 0 and len(report["runs"]) == 2 and report["runs"][0] == report["runs"][1]
-                and len(report['regressions_detected']) == 1470 and report['sequence_restorations'] == 10
+                and len(report['regressions_detected']) == 1476 and report['sequence_restorations'] == 10
                 and report['upgrade_runs'] == 2 and report['pair_guard_runs'] == 2 and report['function_guard_runs'] == 4
                 and report['catalog_guard_runs'] == 4 and report['catalog_guard_red_runs'] == 4):
-            report.update(status="passed", cases_per_reset=3257, resets=2, matrix_equal=True, rollback_verified=True,
+            report.update(status="passed", cases_per_reset=3260, resets=2, matrix_equal=True, rollback_verified=True,
                           sql_sha256={name: hashlib.sha256((ROOT / 'tests/integration/security' / name).read_bytes()).hexdigest() for name, _, _, _ in SUITES},
                           harness_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
     except (RuntimeError, OSError, ValueError) as error:

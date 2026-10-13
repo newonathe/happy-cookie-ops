@@ -14,7 +14,8 @@
 --   start_bazaar_day(day, device, event) owner. Starts a planned day as an `events` row and reads each new flavour's recipe cost.
 --   add_bazaar_day_stock(day, product, qty, kind, client id)  owner. More stock on an open day.
 --   close_bazaar_day(close)              owner. Her count, the leftover split and the cash count. Posts nothing to the books.
---   finalise_bazaar(booking, expected)   owner. Once: fees, rent, cash variances and stock use reach the books.
+--   finalise_bazaar(booking, expected, drop)  owner. Once: fees, rent, cash variances and stock use reach the books; cookies sent to
+--                                        the shop are written as an ordinary batch of that drop.
 --   bazaar_summary(booking)              internal. The one computation. bazaar_line_facts and bazaar_held_ledger are internal too.
 --   recipe_stock_plan(product, cookies, kind, adj)  internal. The ONE scaling rule for a recipe's stock, moved out of record_production
 --                                        (which now calls it) so finalise_bazaar scales exactly as a batch does.
@@ -39,9 +40,11 @@
 --   add_bazaar_day_stock takes a client id (and bazaar_stock_adds keeps it): the call ADDS, so a repeat after a lost reply could not be
 --     told from a second add without a key.
 --   bazaar_days has updated_at (the stamp save_bazaar_day is given) and plan_hash (so a repeated save is answered).
--- One thing it does NOT do yet: cookies sent to the shop do not enter baked stock. The app reads baked stock per drop number, a number
--- only the phone holds, and only a batch record adds to it, so the entry needs a decision (docs/state/current.md). Until then
--- finalise_bazaar refuses a booking that has cookies sent to the shop (rule:fin-shop-entry): nothing is lost and nothing is guessed.
+-- Cookies sent to the shop (Ethan's decision, 14 October): the app reads baked stock per drop number, a number only the phone holds, and
+-- only a batch record adds to it. So finalise_bazaar takes the drop number and writes those cookies as an ordinary batch of that drop,
+-- which takes its own ingredients once; the stock use of the cookies not sent to the shop is made - to the shop, so every cookie made takes
+-- its ingredients exactly once. A flavour sent to the shop must have a recipe (rule:fin-shop-no-recipe); the recipe packaging of those
+-- cookies is taken when they are packed for an order, not here.
 --
 -- Every table: row security on, no policy, no API grant. Every function: SECURITY DEFINER, search_path = '', an owner check inside,
 -- explicit grants, exact keys. Each refusal is one `if ... then -- rule:name` line so the SQL role suite can neutralise it.
@@ -1728,7 +1731,7 @@ $$;
  * container rule is taken once per sale that is not voided. A shortfall is recorded with its why and never refuses the finalise. The
  * summary and its hash are stored. The same call again is answered with the stored summary.
  */
-create or replace function public.finalise_bazaar(p_booking uuid, p_expected text)
+create or replace function public.finalise_bazaar(p_booking uuid, p_expected text, p_drop integer)
 returns jsonb
 language plpgsql
 security definer
@@ -1762,6 +1765,9 @@ begin
   if p_booking is null or p_expected is null or p_expected !~ '^[0-9a-f]{64}$' then -- rule:fin-shape
     raise exception 'a booking and the hash of the summary shown are required' using errcode = '22023';
   end if;
+  if p_drop is null or p_drop not between 0 and 100000 then -- rule:fin-drop
+    raise exception 'the drop the cookies sent to the shop belong to is required' using errcode = '22023';
+  end if;
   perform pg_advisory_xact_lock(hashtextextended('scheduled_event:' || p_booking::text, 0));
   select * into v_s from public.scheduled_events s where s.id = p_booking for update;
   if not found then -- rule:fin-booking-missing
@@ -1782,12 +1788,6 @@ begin
                     where d.scheduled_id = p_booking and e.closed_at is null);
   if v_bad then -- rule:fin-open-day
     raise exception 'a day of this bazaar is still open: close it first' using errcode = '55000';
-  end if;
-  -- Cookies sent to the shop cannot enter baked stock yet (see the header): refused, never dropped.
-  v_bad := exists (select 1 from public.bazaar_days d join public.bazaar_day_lines l on l.day_id = d.id
-                    where d.scheduled_id = p_booking and l.to_shop_qty > 0);
-  if v_bad then -- rule:fin-shop-entry
-    raise exception 'this bazaar sent cookies to the shop: how they enter baked stock is not decided yet' using errcode = '55000';
   end if;
   select public.bazaar_summary(p_booking) into v_sum;
   if (v_sum ->> 'hash') is distinct from p_expected then -- rule:fin-stale
@@ -1831,6 +1831,37 @@ begin
 
   -- Stock. The catalogue's lock first, as every production takes it, so the recipes and rules read here hold for the whole take.
   perform pg_advisory_xact_lock(hashtextextended('stock_catalogue:items', 0));
+  -- Cookies sent to the shop are an ordinary batch of the drop given: baked stock reads it as it reads any batch, and the batch takes
+  -- its own ingredients once (the loop after this one takes ingredients only for the cookies that were not sent to the shop).
+  for v_p in select l ->> 'product_id' as pid, l ->> 'name' as name, (l ->> 'to_shop')::integer as qty
+               from jsonb_array_elements(v_sum -> 'cookie_cost' -> 'lines') l where (l ->> 'to_shop')::integer > 0 order by l ->> 'product_id' loop
+    v_id := md5('bazaar:' || p_booking::text || ':shop:' || v_p.pid)::uuid;
+    v_n := 0;
+    v_short := '[]'::jsonb;
+    v_reason := 'Baked: ' || v_p.name || ', for the shop from ' || left(v_s.name, 40);
+    insert into public.production_records (id, kind, product_id, ref, qty, target, rejects, dough_used, recipe_version, drop_no, at,
+                                           payload_hash, created_by)
+    select v_id, 'batch', v_p.pid, 'bazaar:' || p_booking::text, v_p.qty, v_p.qty, 0, 0, r.version, p_drop, v_at,
+           encode(sha256(convert_to('bazaar:' || p_booking::text || ':shop:' || v_p.pid || ':' || p_drop::text, 'UTF8')), 'hex'), auth.uid()
+      from public.recipes r where r.product_id = v_p.pid;
+    if not found then -- rule:fin-shop-no-recipe
+      raise exception 'a flavour sent to the shop has no recipe: a batch cannot be written for it' using errcode = '55000';
+    end if;
+    select public.recipe_stock_plan(v_p.pid, v_p.qty, 'batch', '{}'::jsonb) into v_plan;
+    for v_x in select x from jsonb_array_elements(coalesce(v_plan, '[]'::jsonb)) x loop
+      v_n := v_n + 1;
+      if v_x ->> 'item_id' is not null then
+        v_left := public.use_stock_item(v_id, v_n, v_x ->> 'item_id', (v_x ->> 'amount')::numeric, v_reason, v_at, true);
+      else
+        v_left := (v_x ->> 'amount')::numeric;
+      end if;
+      if v_left > 0 then
+        v_short := v_short || (jsonb_build_object('name', v_x ->> 'name', 'by', round(v_left, 1), 'unit', v_x ->> 'unit')
+                               || case when v_x ->> 'why' is not null then jsonb_build_object('why', v_x ->> 'why') else '{}'::jsonb end);
+      end if;
+    end loop;
+    update public.production_records as r set short = v_short where r.id = v_id;
+  end loop;
   for v_p in select l ->> 'product_id' as pid, l ->> 'name' as name, (l ->> 'made')::integer - (l ->> 'to_shop')::integer as qty
                from jsonb_array_elements(v_sum -> 'cookie_cost' -> 'lines') l order by l ->> 'product_id' loop
     if v_p.qty > 0 then
@@ -1931,5 +1962,5 @@ revoke execute on function public.add_bazaar_day_stock(uuid, text, integer, text
 grant execute on function public.add_bazaar_day_stock(uuid, text, integer, text, uuid) to authenticated;
 revoke execute on function public.close_bazaar_day(jsonb) from public, anon, authenticated;
 grant execute on function public.close_bazaar_day(jsonb) to authenticated;
-revoke execute on function public.finalise_bazaar(uuid, text) from public, anon, authenticated;
-grant execute on function public.finalise_bazaar(uuid, text) to authenticated;
+revoke execute on function public.finalise_bazaar(uuid, text, integer) from public, anon, authenticated;
+grant execute on function public.finalise_bazaar(uuid, text, integer) to authenticated;

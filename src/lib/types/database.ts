@@ -2593,7 +2593,7 @@ export type Database = {
         }[]
       }
       finalise_bazaar: {
-        Args: { p_booking: string; p_expected: string }
+        Args: { p_booking: string; p_drop: number; p_expected: string }
         Returns: Json
       }
       find_order: {
