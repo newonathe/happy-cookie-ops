@@ -116,6 +116,32 @@ import {
   STOCK_COPY
 } from '@/lib/orders/staff-copy';
 import {
+  fetchItemMovements,
+  type ItemMovement,
+  type MovementsClient
+} from '@/lib/data/item-movements';
+import {
+  changeText,
+  formatPesos,
+  formatPesosShort,
+  formatQuantity,
+  lastCountedText,
+  lastPaidText,
+  levelText,
+  lineCost,
+  ratePerUnitText,
+  stockStatus,
+  sumKnown,
+  totalText,
+  unitCostText
+} from '@/lib/stock/stock-status';
+import type {
+  GroceryRowView,
+  LiveStockVals,
+  StockItemView,
+  StockMovementView
+} from '@/lib/stock/live-stock-types';
+import {
   fetchItemCosts,
   fetchRecipeCosts,
   type CostsClient,
@@ -132,7 +158,9 @@ import {
 } from '@/lib/data/recipes';
 import { fetchRecipeDrafts, saveRecipeDraft, type RecipeDraft } from '@/lib/data/recipe-drafts';
 import {
+  engineBestBuy,
   engineInventory,
+  engineSuppliers,
   fetchStockCatalogue,
   itemError,
   priceError,
@@ -143,7 +171,8 @@ import {
   type ItemFields,
   type PriceFields,
   type StockCatalogue,
-  type StockClient
+  type StockClient,
+  type StockItem
 } from '@/lib/data/stock-catalogue';
 import {
   currentSuppliers,
@@ -377,6 +406,19 @@ type CostActions = {
 
 /** What the last read of the database's costs came to: not asked yet, no such functions (migration 55), failed, or read. */
 type CostReads = 'unread' | 'missing' | 'failed' | 'ok';
+
+/**
+ * The engine words an amount for the grocery list ("1.25 kg" for 1,250 g); the number back in the item's own unit, or null when the text is
+ * not one it knows (the caller then shows the engine's own text).
+ */
+function engineAmount(text: string, unit: string): number | null {
+  const m = /^(-?[\d,]*\.?\d+) (\S+)$/.exec(text);
+  if (!m) return null;
+  const n = Number((m[1] ?? '').replace(/,/g, ''));
+  if (!Number.isFinite(n)) return null;
+  if (m[2] === unit) return n;
+  return m[2] === 'kg' && unit === 'g' ? Math.round(n * 1000) : null;
+}
 
 /** What each role can open in the live app: fixed by design (final-plan.md, section 6.7). */
 const STAFF_ACCESS: Record<Role, { can: string; extra: string }> = {
@@ -713,6 +755,13 @@ export class OpsRuntime extends OpsProvider {
   private scheduledVersion = 0;
   private stockCatalogue: StockCatalogue | null = null;
   private stockClient: StockClient | null = null;
+  /** B5-1: each opened item's movements (owner only) as the item page shows them, and the latest read's token per item. */
+  private movementReads = new Map<
+    string,
+    { state: 'loading' | 'ready' | 'unavailable'; rows: ItemMovement[] }
+  >();
+  private movementTokens = new Map<string, number>();
+  private movementToken = 0;
   /** A movement whose answer never came is kept, so repeating it exactly sends the same id and time: the database answers it, never applies it twice. */
   private pendingMovements = new Map<string, MovementFields>();
   /** When each item's count was entered on the open stocktake, so a count is measured at its own moment. */
@@ -2236,6 +2285,7 @@ export class OpsRuntime extends OpsProvider {
         ? { exportNow: () => this.toast('Only the owner can export the books.', 'warn') }
         : {}),
       liveStockItems: this.liveStockItemsVals(),
+      liveStock: this.liveStockVals(),
       liveStockSuppliers: this.liveStockSuppliersVals(),
       liveRecipeDrafts: this.liveRecipeDraftsVals(),
       // D4: in live mode the Bazaar list is the owner's bookings, never the ported prototype events.
@@ -3083,6 +3133,8 @@ export class OpsRuntime extends OpsProvider {
       return false;
     }
     this.applyStockCatalogue();
+    // B5-1: a movement or a reload may have changed an item's history; the open page reads it again.
+    this.refreshMovements();
     // What was last paid for each item, which the cost per unit is worked out from (a failed read leaves what was there).
     try {
       const paid = enginePaid(await fetchLastPaid(use as LedgerClient));
@@ -3752,6 +3804,285 @@ export class OpsRuntime extends OpsProvider {
     this.toast(name + ' ' + STOCK_COPY.removedNote, 'warn');
   }
 
+  // ------------------------------------------------------------------ B5-1: the New Stock screens' data
+
+  /** How many movements the item page asks for (the database allows 1 to 200). */
+  private static readonly MOVEMENT_LIMIT = 50;
+
+  /** Reads one item's movements for its page. A cached answer stays on show while a newer one is read; a missing function or a failed read is `unavailable`. */
+  private async loadMovements(itemId: string): Promise<void> {
+    const client = this.stockClient as MovementsClient | null;
+    if (!isLiveMode() || !client || this.state.role !== 'owner') return;
+    const token = (this.movementToken += 1);
+    this.movementTokens.set(itemId, token);
+    const read = await fetchItemMovements(client, itemId, OpsRuntime.MOVEMENT_LIMIT);
+    // A newer read of this item started meanwhile: it will apply, an older answer must not put an older history back.
+    if (this.movementTokens.get(itemId) !== token || this.unmounted) return;
+    this.movementReads.set(
+      itemId,
+      read.status === 'ok'
+        ? { state: 'ready', rows: read.rows }
+        : { state: 'unavailable', rows: [] }
+    );
+    this.setState({});
+  }
+
+  /** After a stock movement or a catalogue reload: other items' histories are dropped, the open one is read again (its rows stay on show meanwhile). */
+  private refreshMovements(): void {
+    const open = (this.state as Record<string, unknown>).liveStockOpen;
+    for (const id of [...this.movementReads.keys()]) if (id !== open) this.movementReads.delete(id);
+    if (typeof open !== 'string') return;
+    if (!this.stockCatalogue?.items.some((i) => i.id === open)) {
+      this.movementReads.delete(open);
+      this.setState({ liveStockOpen: null });
+      return;
+    }
+    void this.loadMovements(open);
+  }
+
+  private openStockItemPage(id: string): void {
+    const cached = this.movementReads.get(id);
+    if (!cached || cached.state !== 'ready')
+      this.movementReads.set(id, { state: 'loading', rows: [] });
+    this.setState({ liveStockOpen: id });
+    if (!cached || cached.state !== 'ready') void this.loadMovements(id);
+  }
+
+  /** The cost per unit and where it came from: the database's for the owner, else the engine's own (a database before B3b). Unknown is null. */
+  private stockUnitCost(item: StockItem): { perUnit: number | null; source: string | null } {
+    if (this.costsFromDatabase()) {
+      if (this.costReads !== 'ok' || !this.itemCosts) return { perUnit: null, source: null };
+      return {
+        perUnit: this.itemCosts.byId.get(item.id) ?? null,
+        source: this.itemCosts.sourceById.get(item.id) ?? null
+      };
+    }
+    const cost = (this as unknown as CostActions).costPerUnit(item.name);
+    // The engine answers 0 for an item nobody has priced: that is "unknown", never a cost of nothing.
+    return { perUnit: Number.isFinite(cost) && cost > 0 ? cost : null, source: null };
+  }
+
+  /** The existing count flow, for one item: on its tab, with only that item on the sheet. */
+  private startItemCount(item: StockItem): void {
+    this.setState({ invTab: item.category } as never, () => {
+      (this as unknown as InvActions).startStocktake();
+      this.setState((s) => ({
+        stocktake: s.stocktake ? { ...(s.stocktake as object), items: [item.name] } : s.stocktake
+      }));
+    });
+  }
+
+  private stockItemView(
+    item: StockItem,
+    supplierNames: ReadonlyMap<string, string>,
+    paid: Record<string, { price: number; at: number }>
+  ): StockItemView {
+    const cost = this.stockUnitCost(item);
+    const last = paid[item.name];
+    const engine = this as unknown as { openReceive: (name: string) => void };
+    return {
+      id: item.id,
+      name: item.name,
+      category: item.category,
+      unit: item.unit,
+      active: item.active,
+      qtyText: formatQuantity(item.onHand, item.unit),
+      status: stockStatus(item.onHand, item.parLevel),
+      levelText: levelText(item.parLevel, item.unit),
+      lastCountedText: lastCountedText(item.lastCounted),
+      costText: unitCostText(cost.perUnit, item.unit, cost.source),
+      supplier: (item.supplierId && supplierNames.get(item.supplierId)) || STOCK_COPY.noSupplier,
+      lastPaidText: last ? lastPaidText(last.price, last.at) : null,
+      open: () => this.openStockItemPage(item.id),
+      receive: () => engine.openReceive(item.name),
+      count: () => this.startItemCount(item),
+      waste: () => this.sheet('spoil', { name: item.name }),
+      adjust: () => {
+        const row = (this.state.inv as Array<{ name: string }>).find((r) => r.name === item.name);
+        if (row) this.sheet('invEdit', { ...row });
+        else
+          this.sheet('invEdit', {
+            name: item.name,
+            qty: item.onHand,
+            unit: item.unit,
+            level: item.parLevel,
+            cat: item.category,
+            supplier: supplierNames.get(item.supplierId ?? '') ?? '—'
+          });
+      },
+      edit: () => this.sheet('stockitems', { id: item.id })
+    };
+  }
+
+  private movementView(m: ItemMovement, unit: string): StockMovementView {
+    // A cost is stamped when stock goes out (a use, a waste, a count or an adjustment that took stock off); none known is pending, never 0.
+    const outgoing = m.kind === 'use' || m.kind === 'waste' || m.qtyDelta < 0;
+    const costText =
+      m.unitCost !== null
+        ? ratePerUnitText(m.unitCost, unit)
+        : m.paid !== null
+          ? formatPesos(m.paid) + ' ' + STOCK_COPY.paid
+          : outgoing
+            ? COST_COPY.pending
+            : null;
+    return {
+      id: m.id,
+      kind: m.kind,
+      changeText: changeText(m.qtyDelta, unit),
+      costText,
+      supplier: m.supplier,
+      reason: m.reason,
+      at: m.at
+    };
+  }
+
+  /** The engine's grocery plan row, as far as this reads it (the engine's file has no types for it). */
+  private groceryPlanRows(): Array<{
+    key: string;
+    reorderOnly: boolean;
+    needText: string;
+    packText: string;
+    packs: number;
+    add: number;
+    cost: number;
+    supplier: string;
+  }> {
+    try {
+      const plan = (this as unknown as { groceryPlan: (s: unknown) => unknown }).groceryPlan(
+        this.state
+      );
+      return Array.isArray(plan) ? (plan as ReturnType<OpsRuntime['groceryPlanRows']>) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  private groceryRowViews(
+    c: StockCatalogue,
+    supplierNames: ReadonlyMap<string, string>
+  ): { rows: GroceryRowView[]; lines: Array<number | null> } {
+    const plan = new Map(this.groceryPlanRows().map((p) => [p.key, p]));
+    const best = engineBestBuy(engineSuppliers(c));
+    const engine = this as unknown as { openReceive: (name: string) => void };
+    const wanted = c.items
+      .filter((i) => i.active && stockStatus(i.onHand, i.parLevel) !== 'Good')
+      .sort(
+        (a, b) =>
+          Number(stockStatus(b.onHand, b.parLevel) === 'Out') -
+            Number(stockStatus(a.onHand, a.parLevel) === 'Out') || a.name.localeCompare(b.name)
+      );
+    const rows: GroceryRowView[] = [];
+    const lines: Array<number | null> = [];
+    for (const i of wanted) {
+      const status = stockStatus(i.onHand, i.parLevel) as 'Out' | 'Low';
+      const p = plan.get(i.name);
+      const own = (i.supplierId && supplierNames.get(i.supplierId)) || STOCK_COPY.noSupplier;
+      const common = {
+        itemId: i.id,
+        name: i.name,
+        status,
+        haveText: formatQuantity(i.onHand, i.unit),
+        bought: () => engine.openReceive(i.name)
+      };
+      if (!p) {
+        // Out or Low, but the plan has nothing to buy (nothing short of what is needed, or no level to buy back to).
+        const price = best[i.name];
+        const size = i.packSize && i.packSize > 0 ? i.packSize : null;
+        rows.push({
+          ...common,
+          neededText: formatQuantity(i.parLevel, i.unit),
+          toBuyText: STOCK_COPY.nothingToBuy,
+          packText: price?.pack || i.packLabel || STOCK_COPY.noPackSet,
+          bestPriceText: ratePerUnitText(price && size ? price.price / size : null, i.unit),
+          supplier: price?.supplier ?? own,
+          lineCostText: formatPesos(0)
+        });
+        lines.push(0);
+        continue;
+      }
+      // The engine prices an item with no supplier price at 0 with the pack '—'; that is not a price.
+      const priced = p.packText !== '—' && p.cost > 0;
+      const line = priced ? p.cost : null;
+      const label = priced ? p.packText : i.packLabel;
+      const needed = p.reorderOnly ? i.parLevel : engineAmount(p.needText, i.unit);
+      rows.push({
+        ...common,
+        neededText: needed === null ? p.needText : formatQuantity(needed, i.unit),
+        toBuyText: label
+          ? p.packs + ' × ' + label + ' (' + formatQuantity(p.add, i.unit) + ')'
+          : STOCK_COPY.buy + ' ' + formatQuantity(p.add, i.unit),
+        packText: label || STOCK_COPY.noPackSet,
+        bestPriceText: ratePerUnitText(priced && p.add > 0 ? p.cost / p.add : null, i.unit),
+        supplier: priced && p.supplier !== '—' ? p.supplier : own,
+        lineCostText: line === null ? COST_COPY.pending : formatPesos(line)
+      });
+      lines.push(lineCost(1, line));
+    }
+    return { rows, lines };
+  }
+
+  private groceryView(
+    c: StockCatalogue,
+    supplierNames: ReadonlyMap<string, string>
+  ): LiveStockVals['grocery'] {
+    const { rows, lines } = this.groceryRowViews(c, supplierNames);
+    const sum = sumKnown(lines);
+    // The budget is hers: only a value she saved counts. The database's own default (and the prototype's 6,000) is not a budget.
+    const raw = this.settingsSync?.isSet('groceryBudget')
+      ? Number((this.state.cfg as Record<string, unknown> | undefined)?.groceryBudget)
+      : Number.NaN;
+    const budget = Number.isFinite(raw) && raw >= 0 ? raw : null;
+    const known = sum.centavos / 100;
+    const over = budget !== null && known > budget;
+    return {
+      rows,
+      totalText: totalText(lines),
+      budgetText: budget === null ? null : formatPesosShort(budget),
+      budgetNoteText:
+        budget === null
+          ? null
+          : over
+            ? formatPesos(known - budget) + ' ' + STOCK_COPY.budgetOver
+            : formatPesos(budget - known) +
+              ' ' +
+              (sum.pending > 0 ? STOCK_COPY.budgetLeftSoFar : STOCK_COPY.budgetLeft),
+      overBudget: over
+    };
+  }
+
+  /** The live owner's New Stock data: null for anyone else, outside live mode, and until the catalogue has been read. */
+  private liveStockVals(): LiveStockVals | null {
+    const c = this.stockCatalogue;
+    if (!isLiveMode() || this.state.role !== 'owner' || !c) return null;
+    const supplierNames = new Map(c.suppliers.map((s) => [s.id, s.name]));
+    const paid = (this.state.paid ?? {}) as Record<string, { price: number; at: number }>;
+    const items = c.items.map((i) => this.stockItemView(i, supplierNames, paid));
+    const active = items.filter((i) => i.active);
+    const openId = (this.state as Record<string, unknown>).liveStockOpen;
+    const open = typeof openId === 'string' ? items.find((i) => i.id === openId) : undefined;
+    const reads = open ? this.movementReads.get(open.id) : undefined;
+    return {
+      online: this.stockOnline(),
+      items,
+      counts: {
+        total: active.length,
+        out: active.filter((i) => i.status === 'Out').length,
+        low: active.filter((i) => i.status === 'Low').length
+      },
+      page: open
+        ? {
+            item: open,
+            movementsState: reads?.state ?? 'loading',
+            movements: (reads?.rows ?? []).map((m) => this.movementView(m, open.unit)),
+            close: () => this.setState({ liveStockOpen: null })
+          }
+        : null,
+      // After a cutover on the used basis a count that finds less stock is an expense; before it, or with the books unread, nothing is said.
+      countNote: this.booksRows?.basis === 'used' ? STOCK_COPY.countNote : null,
+      grocery: this.groceryView(c, supplierNames)
+    };
+  }
+
   // ------------------------------------------------------------------ C2: production
 
   /** Reads the owner's batches, dough and baked counts (the live gate calls it once the owner is verified). False when it could not. */
@@ -4209,7 +4540,12 @@ export class OpsRuntime extends OpsProvider {
         id: u.id,
         item: u.item,
         detail:
-          (u.kind === 'waste' ? BOOKS_COPY.uncostedWaste : BOOKS_COPY.uncostedUse) +
+          {
+            use: BOOKS_COPY.uncostedUse,
+            waste: BOOKS_COPY.uncostedWaste,
+            count: BOOKS_COPY.uncostedCount,
+            adjust: BOOKS_COPY.uncostedAdjust
+          }[u.kind] +
           ' · ' +
           u.qty +
           ' ' +

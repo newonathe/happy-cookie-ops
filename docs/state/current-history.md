@@ -5,6 +5,31 @@ is in [current.md](current.md). Sections were moved here from `current.md` on 20
 again, with the earlier goals from `next-goal.md`, on 2026-10-05, and again on 2026-10-06. Add nothing here by hand;
 move a checkpoint here when it leaves `current.md`.
 
+# Moved from current.md on 2026-10-13
+
+The closed-slice paragraph of "Where things stand", verbatim.
+
+**B4b, 12 October:** migration 65 and three offline tools, **none on the trial**. After the cutover a count that finds
+less stock is an expense at the item's cost (a count that finds more books nothing). Her recipes go in as decided: 19 of 23
+import, 4 are held for a unit clash or a missing quantity, 22 of 23 costing rows reproduce. Newer sales have an offline
+append plan; flavour photos are resized in the browser before the existing upload. Ethan's reads and her photo folder are next.
+
+# Moved from current.md on 2026-10-12
+
+The closed-slice paragraphs of "Where things stand", verbatim.
+
+**B4a, 12 October:** the database half of B4 (migrations 62 to 64), **none on the trial**. "When used" now
+starts at a previewed cutover date: stock then on hand is valued once from her price list and credited once, so
+stock already expensed in the historical lines is not expensed again (this takes back migration 61's flip; the
+basis stays "bought" until the cutover is applied). An opening count is refused after it, and the preview lists
+the items never counted. Her items, prices, recipes, flavour prices and bookings go in through `preview_import_*`
+and `apply_import_*` (operator only, hash-checked). B4b (photos, newer sales) is next.
+
+**B3b-2, 8 October:** migration 61 (`20260101006000_books_used.sql`), **not on the trial and not before
+B4's cost cutover** (final-plan.md section 11), and the runtime. The books count stock when used and list what
+has no cost, packs and bazaar sales included. The owner's screens read `get_item_costs` and `get_recipe_costs`;
+an unknown cost reads "Cost pending". On the trial (migration 55) the engine's own path stands, as today.
+
 # Moved from current.md on 2026-10-08
 
 The closed-slice paragraphs of "Where things stand", verbatim.
@@ -2086,3 +2111,43 @@ Stop at G0. The next product work follows G1/MP-04 onward and its decision gates
   - **Independent review:** bounded Sol review found no remaining P1/P2 code defect after correcting false backup-success reporting, target binding, Windows containment, privacy wording and post-enqueue health-read failures. Acceptance still requires recovery proof. Final port review passes; headless live health/alerts/privacy visual QA and live-checkout gate remain outstanding; no F1 completion/commit/push claimed.
   - **Continue F1, not F2.** Stop-budget reconciliation and latest gate output are in F1-checkpoint.md. Hosted activation and schedule activation still need Ethan's approval after a concrete, reviewed local result.
   - **Latest verify rerun exited 1:** port/engine/typechecks/lint passed; 75 test files / 1,455 tests passed, with one 5-second timeout at `tests/unit/sync-unavailable.test.ts:15`. Earlier green verify remains historical evidence; the latest gate is not green. No retry after the exhausted restore budget.
+
+## Moved from current.md on 13 October 2026 (the trial reached migration 67)
+
+- **Migrations 56 to 66 (B3a to B5) are not on the trial, and nothing in the bazaar needs them.** Apply 61 to 64 only together with the cutover (below).
+  Recommended: not before 27 October. When you say so, in one quiet sitting and in this order,
+  each file as one transaction: (1) read the owner and grants of `business_clock`, `place_order`
+  and `join_waitlist`, and the 40 policies against `tests/fixtures/policies-before-58.json`;
+  (2) apply 56; (3) run `select public.preview_identity_links();`, read what is unmatched or
+  ambiguous, then `select public.apply_identity_links('<its counts>');`; (4) apply 57, which
+  refuses to run until step 3 is done; (5) apply 58 and 59, then read the three functions'
+  owner again; (6) apply 60, then run `scripts/packaging-rule-today.sql` (one call, today's packaging as data;
+  a name that is not exactly one stock item is listed and nothing is written). Until it runs, a pack or bazaar
+  sale takes no packaging and is flagged. A recipe line still listed as unmatched takes no stock when baked: fix it in
+  Recipes before baking. `python scripts/test-b3a-upgrade.py` rehearses steps 2 to 6 on the
+  local database. Then (7) apply 61 to 65 and append newer sales (before 8: its guard refuses after); (8) with Cine's opening count done, run `preview_cost_cutover()`, read
+  `not_counted` and the items with no cost, then `apply_cost_cutover('<its hash and total>')` once; (9) run each
+  `preview_import_*`, read what is unmatched, and apply it with its hash and counts.
+- **Decided 8 October (B3b):** today's packaging rule is entered by hand through that script; her per-cookie
+  packaging lines reach the trial after 26 October with B4, once 56 to 60 are applied, and the pouch leaves the
+  bazaar-sale and loose rules in the same sitting; undoing an untouched delivery is built in B5 with the receive form.
+- **Decided 12 October (B4):** a cutover with one opening credit; a count down is an expense; her eight packaging items;
+  Oats, Sea salt and Sauce Tub created unpriced; unit clashes held ([register](decision-register.md)). **Yours next:** run
+  `scripts/b4b-trial-reads.sql` (three read-only queries) so newer sales can be appended; on your laptop run the photo
+  script on her folder and the browser checks listed in PR #14.
+- Done on the trial on 6 October, at Ethan's instruction, through the database connector:
+  migration `20260101005300_offline_open_hours.sql` applied (54 of 54; the three function
+  bodies match the committed hashes); the test event of 5 October closed through
+  `close_event` (no sales, no stock, nothing booked); the owner's idle time set to 480
+  minutes through `save_setting`. Put the idle time back to 60 in Settings after the bazaar
+  if wanted. No workflow applies migrations: the next one is again a step by hand.
+- Done on the trial on 6 October, at Ethan's instruction ("migrate everything"), through the
+  database connector: migration `20260101005400_business_clock_shop_identity.sql` applied (55
+  of 55; it was the only one pending; its history row renamed to the repository's version
+  number). Read back: the three function bodies match the committed hashes, grants are as
+  pinned (`business_clock` has no browser grant, anyone reads `get_shop_identity`, only a
+  signed-in owner saves), the table has row security on, no policy, no API grant and no row,
+  and the clock answers the shared cases. The security advisor shows the new objects only in
+  the classes it already reports by design. Shop details now save; they are empty until set
+  (Sell, Shop, Shop texts).
+- Approve each import preview.

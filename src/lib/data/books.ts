@@ -34,10 +34,13 @@ export interface ReceiptRow {
   at: number;
 }
 
-/** Stock used or wasted whose cost is not known (never a zero line in the books): a movement, or a production line that could not be taken. */
+/**
+ * Stock used, wasted, or counted or adjusted down whose cost is not known (never a zero line in the books): a movement, or a
+ * production line that could not be taken.
+ */
 export interface UncostedRow {
   id: string;
-  kind: 'use' | 'waste';
+  kind: 'use' | 'waste' | 'count' | 'adjust';
   item: string;
   qty: number;
   unit: string;
@@ -114,7 +117,7 @@ function parseUncosted(json: unknown): UncostedRow[] {
     if (
       !isObj(u) ||
       typeof u.id !== 'string' ||
-      (u.kind !== 'use' && u.kind !== 'waste') ||
+      (u.kind !== 'use' && u.kind !== 'waste' && u.kind !== 'count' && u.kind !== 'adjust') ||
       typeof u.item !== 'string' ||
       typeof u.qty !== 'number' ||
       !Number.isFinite(u.qty) ||

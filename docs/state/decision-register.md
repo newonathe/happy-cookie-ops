@@ -331,6 +331,80 @@ No migration goes on the trial without his word.
 | A set (the sampler) when packing                               | Counts as one cookie, as before. A sampler-only order is still packable.                                                               | Carried over unchanged; a container of its own for sets is a later rule.  |
 | Recipe packaging lines at a bake                               | Never taken. Taken when the cookie is packed or sold.                                                                                  | A quantity per cookie belongs to the cookie leaving, not to the batch.    |
 
+### Slice B4a, 12 October 2026: the cutover and the split
+
+Ethan decided both questions on 12 October, in plan mode, taking the recommendation each time.
+
+| Question                                                         | Decision                                                                                                                                                                                                                                                                |
+| ---------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| How the books switch to "when used" without counting stock twice | A dated cutover with one opening credit (migration 62). "Used" starts at a previewed date; the stock then on hand is valued once from her price list and credited once; before the date the books stay on "bought". Applied once, after 26 October, by the operator.    |
+| The size of B4                                                   | Split. B4a (done): the cutover and the operator's preview and apply for items, prices, recipes, flavour prices and bookings. B4b (next, on his laptop): photos (561 MB, resized under the 2 MB limit) and newer sales (appended against the trial's exact ledger hash). |
+
+**Defaults, not decisions.** Chosen by the builder; each is Ethan's or Cine's to change.
+
+| Rule                                                          | Default                                                                                                    | Why                                                                       |
+| ------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| An item with stock but no known cost at the cutover           | Listed, credited nothing. Its uses stay expensed twice until it is priced.                                 | A credit built on a guess is worse than a visible gap.                    |
+| An opening count after the cutover                            | Refused.                                                                                                   | Its purchase is already in the historical lines and is not in the credit. |
+| An item never counted                                         | Listed in the cutover preview as not counted.                                                              | The operator sees what the credit cannot include before applying.         |
+| A name with a non-breaking or zero-width space, or not in NFC | Refused by every import.                                                                                   | It would create a second record that looks the same.                      |
+| Two price rows for one item on one date                       | Refused.                                                                                                   | The usual price would fall to an arbitrary id order.                      |
+| An import                                                     | Whole or nothing: the caller approves the preview as it stands; an unmatched row is listed and left alone. | Nothing is guessed.                                                       |
+
+**Open, Ethan's:** both questions below were answered the same day, in B4b's plan mode (next section).
+
+### Slice B4b, 12 October 2026: the count rule, her recipes, her newer sales and her photos
+
+Ethan answered four questions in plan mode on 12 October, taking the recommendation each time.
+
+| Question                                                          | Decision                                                                                                                                                  |
+| ----------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A stock count after the cutover                                   | A count that finds less is an expense at the item's cost; one that finds more is no entry. Built in migration 65.                                         |
+| Her eight packaging items                                         | All are per-cookie packaging lines: Apple Pie Box, Banoffee Pie Box, Heart-shaped box with lid, Kraft pouch, Pink box, Plastic pouch, Sauce Tub, Sticker. |
+| Recipe items missing from her master (Oats, Sea salt, Sauce Tub)  | Created as stock items with no price. A recipe using them reads "Cost pending" until it is priced.                                                        |
+| A unit that disagrees with her master (Biscoff cookies, Pink box) | The recipe is held and listed until Cine fixes the unit. Nothing is converted.                                                                            |
+
+**Defaults, not decisions.** Chosen by the builder; each is Ethan's or Cine's to change.
+
+| Rule                                                           | Default                                                                                                                                                                                                 | Why                                                              |
+| -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| A negative stock adjustment after the cutover                  | Follows the count rule: an expense at the item's cost.                                                                                                                                                  | A removal by hand is a loss the same as a count.                 |
+| A recipe line with no quantity (a Sea salt line in one recipe) | The recipe is held and listed.                                                                                                                                                                          | Nothing is guessed.                                              |
+| A flavour photo                                                | Always re-encoded in the browser to WebP (JPEG where WebP is not available), longest side 1,600 px, under 1.9 MB, location data dropped. A file over 40 MiB or a picture over 50 megapixels is refused. | The bucket is public; an 18 MB original must not freeze the tab. |
+| Newer sales                                                    | Appended before the cutover, the opening counts and the first order. A row whose date is not settled by the rules the first import was approved on is listed, not written.                              | The append guard refuses afterwards.                             |
+
+**Known, not built.** The reviewers' P3s, so nobody assumes they are covered:
+
+1. Stock counted down, then found again by a count up, then used is expensed twice: the count up books nothing and the average does not move. This follows from the rule above; Ethan can change it.
+2. The migration 65 guard (it refuses to run after a cutover with a lowering count) and the rounding of a half-centavo shortfall have no test.
+3. Flavour photos already in the bucket before 12 October may carry location data; check them once.
+4. The books' "N uses not costed" caption also counts counts and adjustments.
+5. The Sales sheet's memo is "Workbook Sales row N"; how the first import worded its memos was not found.
+
+### Slice B5, 13 October 2026: New Stock, Inventory and Grocery
+
+Ethan answered three questions in plan mode on 13 October, taking the recommendation each time.
+
+| Question                        | Decision                                                                                                                                                                                |
+| ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Item movements on the item page | Add the read now: migration 66, `get_item_movements`, owner only, no person's name returned. Not on the trial; there the page says movements are not available yet.                     |
+| Out, Low and Good               | Out at 0, Low below the item's level, Good otherwise. An item with no level is Good unless it is at 0. The word is always shown beside the colour; Grocery lists the Out and Low items. |
+| The grocery budget              | The running total always shows. "Left" or "over" appears only once she has set a budget; no built-in 6,000 is shown.                                                                    |
+
+**Defaults, not decisions.** Chosen by the builder; each is Ethan's or Cine's to change.
+
+| Rule                                                      | Default                                                                                                                     |
+| --------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| A receipt's movement line                                 | Shows what was paid (`paid_cents`), because a receipt carries no unit cost.                                                 |
+| A use, waste or stock-lowering count with no cost stamped | Reads "Cost pending" (a count before the cutover keeps reading so). An increase shows no cost.                              |
+| The item page asks for                                    | The latest 50 movements.                                                                                                    |
+| Grocery "Needed" when the plan is reorder-only            | The item's level; otherwise the engine plan's need. An item with no price reads "Cost pending", and the total says so.      |
+| Trial cost fallback (no cost function)                    | The engine's 0 for an unpriced item is treated as unknown, never shown as a cost (found in review; test written red first). |
+
+Left as recorded by the Opus review (P3, theoretical for this shop): a unit cost under half a millionth of a centavo rounds to 0 in
+the read and would mark one item's history unavailable; a rate under ₱0.00005 shows as ₱0.00; the left/over note subtracts in pesos
+(display only).
+
 ## Amended decisions (open — block the listed work)
 
 **DP-02 · Payment timing** — blocks MP-10, MP-12.
@@ -471,3 +545,15 @@ Ethan answered in the session of 13 October.
 **Open, Cine's or Ethan's:** none of the 17 recipes lists egg, though her price list has it; "Nutella Cookie Fries" has no
 flavour in the app; two of her bookings fall on 24 to 25 October (one marked inactive in her sheet); the date her price list
 is current from.
+
+**Later the same day** Ethan reversed the timing decided on 12 October and widened the import:
+
+| Question                             | Decision                                                                                                                                                |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| When migrations 56 to 66 apply       | Now, before the phone rehearsal, so the rehearsal tests the final state. Done 13 October. The cutover itself still waits for Cine's opening count.      |
+| A recipe with an unclear line        | Nothing is held. The unclear line is left out and listed for Cine's one-time set-up ([cine-set-up.md](cine-set-up.md)); the rest of the recipe goes in. |
+| What is not certain                  | It is configurable and hers to set once, in a one-time set-up when she first signs in. The screen is the next slice; its list is cine-set-up.md.        |
+| Nutella Cookie Fries, Egg, Sauce Tub | All in. The flavour already existed (a set, off the menu) and now has its recipe; Egg is created and priced; Sauce Tub is created with no price.        |
+
+**Defaults, not decisions.** The price list is dated 13 October 2026, the day of the import. The bazaar table still loads only
+from baked stock: that rule was not changed.

@@ -596,6 +596,22 @@ describe('B3b-2: the books list what has no cost', () => {
     expect(none.runtime.renderVals().pl.periodText).not.toContain('not costed');
   });
 
+  it('B4b-1: a count or an adjustment down with no cost is listed with its own wording, not as a use', async () => {
+    const counted = [
+      { id: 'm:11', kind: 'count', item: 'Butter', qty: 250, unit: 'g', at: Date.now() - 1000 },
+      { id: 'm:12', kind: 'adjust', item: 'Sugar', qty: 40, unit: 'g', at: Date.now() - 1500 }
+    ];
+    const { runtime } = await mounted(
+      world({ books: books({ basis: 'used', uncosted: counted }) })
+    );
+    act(() => runtime.setState({ sheet: { kind: 'books' } } as never));
+    const lb = runtime.renderVals().liveBooks!;
+    expect(lb.uncosted).toHaveLength(2);
+    expect(lb.uncosted![0]!.detail).toContain('Counted short · 250 g');
+    expect(lb.uncosted![1]!.detail).toContain('Adjusted down · 40 g');
+    expect(runtime.renderVals().pl.periodText).toMatch(/ · 2 uses not costed$/);
+  });
+
   it('(e) the books sheet lists each one: item, quantity, why, date', async () => {
     const { runtime } = await mounted(world({ books: books({ basis: 'used', uncosted }) }));
     act(() => runtime.setState({ sheet: { kind: 'books' } } as never));

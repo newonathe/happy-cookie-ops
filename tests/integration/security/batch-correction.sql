@@ -44,6 +44,10 @@ select public.apply_identity_links(public.preview_identity_links() -> 'counts');
 insert into public.orders(id, customer_name, phone) values ('BC-ORD-1', 'Pack One', '09170000011'), ('BC-ORD-2', 'Pack Two', '09170000012');
 insert into public.order_items(order_id, product_id, qty, unit_price_cents) values ('BC-ORD-1', 'bcp1', 5, 10000), ('BC-ORD-2', 'bcp1', 9, 10000);
 
+-- B4a: these cases read the books on the used basis, which a fresh database no longer starts on: it needs the cost cutover (cutover.sql's).
+-- The cutover here is long before any row, set as postgres, so every row below is on the used rules.
+update public.books_settings set used_from = timestamptz '2020-01-01 00:00+00', cost_basis = 'used' where id;
+
 create function pg_temp.set_subject(n integer, claim_role text default 'authenticated') returns void
 language plpgsql security invoker as $$
 declare subject text := case when n is null then '' else
