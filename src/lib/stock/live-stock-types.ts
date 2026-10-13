@@ -10,7 +10,8 @@
 /** Out at 0, Low below the item's level, Good otherwise (Ethan, 13 October). An item with no level is Good unless it is at 0. */
 export type StockStatus = 'Out' | 'Low' | 'Good';
 
-export type StockMovementKind = 'opening' | 'receipt' | 'count' | 'waste' | 'adjust';
+/** `use` is what a batch, a mix or a pack took off: the database writes it, and the item page must show it. */
+export type StockMovementKind = 'opening' | 'receipt' | 'count' | 'waste' | 'adjust' | 'use';
 
 /** One line of an item's history, newest first. Never carries who wrote it. */
 export interface StockMovementView {

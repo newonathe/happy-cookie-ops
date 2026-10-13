@@ -168,7 +168,26 @@ export const STOCK_COPY = {
       : (n === 1 ? '1 item' : n + ' items') + ' corrected.',
   adjustReason: 'Adjusted on the Inventory screen',
   openingNote: 'added with its opening quantity.',
-  removedNote: 'switched off. Past records keep their history.'
+  removedNote: 'switched off. Past records keep their history.',
+  // B5-1: the words of the New Stock screens (status words always go with a colour).
+  noLevel: 'No level set',
+  lowBelow: 'Low below',
+  countedOn: 'Counted',
+  openingPending: 'Opening count pending',
+  sourceAverage: 'average',
+  sourceUsual: 'usual price',
+  sourceSupplier: 'supplier price',
+  somePending: 'some cost pending',
+  paid: 'paid',
+  lastPaid: 'Last paid',
+  noSupplier: 'No supplier set',
+  nothingToBuy: 'Nothing to buy',
+  buy: 'Buy',
+  noPackSet: 'No pack set',
+  countNote: 'A count that finds less stock counts as an expense at the item’s cost.',
+  budgetLeft: 'left',
+  budgetOver: 'over',
+  budgetLeftSoFar: 'left so far'
 } as const;
 
 /** B3b-2: the words for a cost the database does not know yet, and for waste on either cost basis. */

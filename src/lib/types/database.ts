@@ -2211,6 +2211,7 @@ export type Database = {
         }[]
       }
       get_item_costs: { Args: never; Returns: Json }
+      get_item_movements: { Args: { p_item: string; p_limit: number }; Returns: Json }
       get_last_paid: { Args: never; Returns: Json }
       get_operating_settings: {
         Args: never

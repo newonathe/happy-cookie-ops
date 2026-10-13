@@ -42,7 +42,8 @@ ORDER_MIGRATIONS = [ROOT / 'supabase/migrations/20260101003500_place_order.sql',
                     ROOT / 'supabase/migrations/20260101006200_cost_cutover_fix.sql',
                     ROOT / 'supabase/migrations/20260101006300_her_data_imports.sql',
                     ROOT / 'supabase/migrations/20260101006400_cutover_guard.sql',
-                    ROOT / 'supabase/migrations/20260101006500_count_shrinkage.sql']
+                    ROOT / 'supabase/migrations/20260101006500_count_shrinkage.sql',
+                    ROOT / 'supabase/migrations/20260101006600_item_movements.sql']
 _OUT = 'order outcome differs: anon / '
 _CHK = 'order check differs: anon / '
 _LOOK = 'lookup check differs: anon / '
@@ -881,7 +882,7 @@ OPERATIONS_MUTATIONS = {
 
 def order_mutant(name):
     """The migration's one function, changed in exactly one place, as SQL to run inside the suite."""
-    function, kind, argument, _ = (ORDER_MUTATIONS | LOOKUP_MUTATIONS | STAFF_MUTATIONS | SHOP_MUTATIONS | EXTRAS_MUTATIONS | SCHEDULED_MUTATIONS | STOCK_MUTATIONS | RECIPE_MUTATIONS | LEDGER_MUTATIONS | PRODUCTION_MUTATIONS | BOOKS_MUTATIONS | OPERATIONS_MUTATIONS | IDENTITY_RULES | LINK_MUTATIONS | COST_MUTATIONS | BATCH_CORRECTION_MUTATIONS | PACKAGING_MUTATIONS | COST_CUTOVER_MUTATIONS | IMPORT_MUTATIONS)[name]
+    function, kind, argument, _ = (ORDER_MUTATIONS | LOOKUP_MUTATIONS | STAFF_MUTATIONS | SHOP_MUTATIONS | EXTRAS_MUTATIONS | SCHEDULED_MUTATIONS | STOCK_MUTATIONS | RECIPE_MUTATIONS | LEDGER_MUTATIONS | PRODUCTION_MUTATIONS | BOOKS_MUTATIONS | OPERATIONS_MUTATIONS | IDENTITY_RULES | LINK_MUTATIONS | COST_MUTATIONS | BATCH_CORRECTION_MUTATIONS | PACKAGING_MUTATIONS | COST_CUTOVER_MUTATIONS | IMPORT_MUTATIONS | MOVEMENT_MUTATIONS)[name]
     marker = 'create or replace function public.' + function + '('
     text = [m.read_text(encoding='utf-8') for m in ORDER_MIGRATIONS if marker in m.read_text(encoding='utf-8')][-1]
     start = text.index('create or replace function public.' + function + '(')
@@ -931,6 +932,37 @@ POLICY_MUTATIONS = {
     'policy_added': ("create policy \"leak\" on public.settings for select using (true);",
                      'policy count differs'),
 }
+# B5-1: the owner's read of an item's movements (item-movements.sql), acting on migration 66. The rule mutants neutralise one tagged refusal; the text
+# mutants restate one line (the owner check, each way the order or the limit could go wrong, a person column, a null cost turned into 0, a stamp or a
+# paid total dropped, seconds for milliseconds).
+_MVO = 'item movement outcome differs: '
+_MVC = 'item movement check differs: '
+_MVS = "order by m.seq desc\n       limit p_limit"
+MOVEMENT_MUTATIONS = {
+    'rule_movements_limit': ('get_item_movements', 'rule', 'movements-limit', _MVO + 'active_owner / movements_limit_zero / '),
+    'rule_movements_item': ('get_item_movements', 'rule', 'movements-item', _MVO + 'active_owner / movements_item_unknown / '),
+    'text_movements_owner': ('get_item_movements', 'text', ('if not public.is_owner() then', 'if false then'), _MVO + 'active_helper / movements_refused'),
+    'text_movements_order_outer': ('get_item_movements', 'text', ('jsonb_agg(x.j order by x.seq desc)', 'jsonb_agg(x.j order by x.seq)'),
+                                   _MVC + 'active_owner / movements_newest_first'),
+    'text_movements_order_outer_by_date': ('get_item_movements', 'text', ('jsonb_agg(x.j order by x.seq desc)', "jsonb_agg(x.j order by (x.j ->> 'at')::bigint desc)"),
+                                           _MVC + 'active_owner / movements_newest_first'),
+    'text_movements_order_inner': ('get_item_movements', 'text', (_MVS, "order by m.seq\n       limit p_limit"),
+                                   _MVC + 'active_owner / movements_limit_keeps_the_newest'),
+    'text_movements_order_inner_by_date': ('get_item_movements', 'text', (_MVS, "order by m.at desc\n       limit p_limit"),
+                                           _MVC + 'active_owner / movements_limit_keeps_the_newest'),
+    'text_movements_limit_ignored': ('get_item_movements', 'text', ("\n       limit p_limit", ''),
+                                     _MVC + 'active_owner / movements_limit_keeps_the_newest'),
+    'text_movements_person': ('get_item_movements', 'text', ("'paid_cents', m.cost_cents,", "'paid_cents', m.cost_cents, 'created_by', m.created_by,"),
+                              _MVC + 'active_owner / movements_row_keys'),
+    'text_movements_stamp_dropped': ('get_item_movements', 'text', ("'unit_cost', round(m.unit_cost, 6)", "'unit_cost', null"),
+                                     _MVC + 'active_owner / movements_stamped_cost_shows'),
+    'text_movements_null_cost_zero': ('get_item_movements', 'text', ("'unit_cost', round(m.unit_cost, 6)", "'unit_cost', coalesce(round(m.unit_cost, 6), 0)"),
+                                      _MVC + 'active_owner / movements_unknown_cost_stays_null'),
+    'text_movements_paid_dropped': ('get_item_movements', 'text', ("'paid_cents', m.cost_cents", "'paid_cents', null"),
+                                    _MVC + 'active_owner / movements_receipt_paid_and_supplier'),
+    'text_movements_at_seconds': ('get_item_movements', 'text', ('* 1000)::bigint', '* 1)::bigint'),
+                                  _MVC + 'active_owner / movements_at_is_epoch_milliseconds'),
+}
 SUITES = (
     ('public-catalog.sql', ('catalog_raw_read','catalog_view_update'), 'catalog boundary', 41),
     ('private-role-authority.sql', ('private_orders_select','private_stock_update'), 'private authority', 103),
@@ -977,6 +1009,7 @@ SUITES = (
                   + tuple(BOOKS_MUTATIONS) + tuple(BOOKS_TABLE_MUTATIONS), 'forbidden books call succeeded', 110),
     ('item-costs.sql', ('save_item_price(jsonb)', 'get_item_costs()', 'get_recipe_costs()') + tuple(COST_MUTATIONS),
      'forbidden cost call succeeded', 172),
+    ('item-movements.sql', ('get_item_movements(text,integer)',) + tuple(MOVEMENT_MUTATIONS), 'forbidden movements call succeeded', 31),
     ('batch-correction.sql', ('record_batch_correction(jsonb)',) + tuple(BATCH_CORRECTION_MUTATIONS), 'forbidden correction call succeeded', 110),
     ('packaging.sql', ('get_packaging_rules()', 'save_packaging_rule(jsonb)', 'write_packaging_rule(jsonb)', 'apply_packaging_rule(jsonb)')
                       + tuple(PACKAGING_MUTATIONS) + tuple(PACKAGING_TABLE_MUTATIONS), 'forbidden packaging call succeeded', 146),
@@ -1216,6 +1249,9 @@ def main():
                 if filename == 'imports.sql' and signature in IMPORT_MUTATIONS:
                     broken = sql.replace('begin;', 'begin;' + chr(10) + order_mutant(signature), 1)
                     expected_error = IMPORT_MUTATIONS[signature][3]
+                if filename == 'item-movements.sql' and signature in MOVEMENT_MUTATIONS:
+                    broken = sql.replace('begin;', 'begin;' + chr(10) + order_mutant(signature), 1)
+                    expected_error = MOVEMENT_MUTATIONS[signature][3]
                 if filename == 'item-costs.sql' and signature in COST_MUTATIONS:
                     broken = sql.replace('begin;', 'begin;' + chr(10) + order_mutant(signature), 1)
                     expected_error = COST_MUTATIONS[signature][3]
@@ -1333,7 +1369,7 @@ def main():
                 h.fail(filename + ' did not return its complete role matrix')
             results.extend(rows)
             assert_empty()
-        if len(set(results)) != 3018:
+        if len(set(results)) != 3049:
             h.fail('combined role matrix has missing or duplicate cases: %d rows, %d unique (duplicates: %s)' % (len(results), len(set(results)), sorted({r for r in results if results.count(r) > 1})[:5]))
         assert_functions()
         assert_catalog_wide()
@@ -1346,10 +1382,10 @@ def main():
     try:
         code = h.main(after_reset=check)
         if (code == 0 and len(report["runs"]) == 2 and report["runs"][0] == report["runs"][1]
-                and len(report['regressions_detected']) == 1230 and report['sequence_restorations'] == 10
+                and len(report['regressions_detected']) == 1258 and report['sequence_restorations'] == 10
                 and report['upgrade_runs'] == 2 and report['pair_guard_runs'] == 2 and report['function_guard_runs'] == 4
                 and report['catalog_guard_runs'] == 4 and report['catalog_guard_red_runs'] == 4):
-            report.update(status="passed", cases_per_reset=3018, resets=2, matrix_equal=True, rollback_verified=True,
+            report.update(status="passed", cases_per_reset=3049, resets=2, matrix_equal=True, rollback_verified=True,
                           sql_sha256={name: hashlib.sha256((ROOT / 'tests/integration/security' / name).read_bytes()).hexdigest() for name, _, _, _ in SUITES},
                           harness_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
     except (RuntimeError, OSError, ValueError) as error:
