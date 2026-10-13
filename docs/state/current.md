@@ -4,7 +4,7 @@ Read this page first in a new session. It is kept short on purpose.
 
 | If you need                                        | Read                                                                                                                                                     |
 | -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| The goal to run next                               | [next-goal.md](next-goal.md) (slice S1, bazaar days)                                                                                                     |
+| The goal to run next                               | [next-goal.md](next-goal.md) (slice S2, bazaar days)                                                                                                     |
 | The plan, approved 5 October                       | [final-plan.md](final-plan.md), version 2                                                                                                                |
 | The rules every agent follows                      | [AGENTS.md](../../AGENTS.md)                                                                                                                             |
 | Ethan's and Cine's decisions                       | [decision-register.md](decision-register.md)                                                                                                             |
@@ -19,9 +19,16 @@ Read this page first in a new session. It is kept short on purpose.
 **The plan is approved; stage A (A1 to A4) and slices B1 to B3b-2, B4a, B4b and B5 are built.** Ethan approved
 [final-plan.md](final-plan.md), version 2, on 5 October after a re-audit, a debate and
 wider research. It replaces finish-plan.md as the forward plan. The Bazaar defect B1 found is
-fixed (below). The next step is slice S1 of
+fixed (below). The next step is slice S2 of
 [bazaar-days.md](bazaar-days.md): Ethan put the bazaar's new flow ahead of B6 on 13 October, with no fallback, so S1 to
 S3 must be deployed and rehearsed on the phone by 20 October.
+
+**S1, 13 October (built, local only; the trial stays at 67):** migration 68 (`20260101006700_bazaar_days.sql`): a
+booking's days, fees, losses, typed costs, target, start, added stock, close and finalise, and the one summary, held to
+a hand-worked two-day example to the centavo (`tests/integration/security/bazaar-days.sql`). The books leave an open
+bazaar out of their lines and count it in `held`. What S1 changed in the design's contracts is in
+[bazaar-days.md](bazaar-days.md), "S1 as built". **Open, Ethan's call: how cookies sent to the shop enter baked stock**
+(below); until then `finalise_bazaar` refuses a bazaar that sent any.
 
 **Her data and the database, 13 October:** at Ethan's instruction the trial went from migration 55 to 67 of 67 (through
 B5), rehearsed first on the local database, and her data is in: 23 recipes with packaging lines, 72 prices, the items
@@ -43,8 +50,8 @@ plan is built (Ethan, 5 October). F3 (launch) stays closed until Cine accepts a 
 
 - **The product** is built through E1: menu and settings, checkout and owner orders,
   bazaar selling with offline close-out, stock, recipes and production, books, P&L and
-  CSV, backups and health. `pnpm verify` passes 110 files / 1,988 tests; the planning
-  validator passes 1,232 checks; the database role suite passes 3,049 cases a reset.
+  CSV, backups and health. `pnpm verify` passes 110 files / 1,991 tests; the planning
+  validator passes 1,232 checks; the database role suite passes 3,257 cases a reset (S1, local).
 - **The private trial site** is live for owners only:
   <https://happy-cookie-owner-trial.admin-kethai.workers.dev>. Cloudflare Access sends an
   email code to two approved mailboxes. The shop is closed and the menu is unpublished.
@@ -98,6 +105,13 @@ All in [decision-register.md](decision-register.md), the section for 5 October.
 
 ### Waiting on Ethan
 
+- **Cookies sent to the shop from a bazaar (S1).** Baked stock is read per drop number, which only the phone holds, and
+  only a batch record adds to it; the design takes ingredients for "made less to the shop". Recommended: `finalise_bazaar`
+  takes the drop number and writes those cookies as an ordinary batch that takes its own ingredients once (a flavour
+  with no recipe then cannot go to the shop). Say yes, or how else; it is one migration.
+- **Two more from S1's review, each the design's own wording:** a day whose sales outran its recorded stock cannot be
+  closed until she adds the stock that was made (the design refuses a negative); and finalise takes recipe packaging
+  for every cookie made, not only those sold. Keep both, or change either.
 - **The cost cutover**, once, after Cine's opening count: `select public.preview_cost_cutover();`, read `not_counted` and
   the items with no cost, then `select public.apply_cost_cutover('<its hash and total>');`. An opening count after it is
   refused. Until then the books stay on "bought".

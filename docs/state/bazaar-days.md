@@ -78,6 +78,43 @@ internal function that `record_production` also calls, and keep the production s
 production patch). The cookies must appear there without taking ingredients a second time. If that cannot be done
 without changing how baked stock is read, stop and report: do not invent a second stock count.
 
+## S1 as built (13 October): where the migration differs from the tables above
+
+Read this before S2 and S3. Each is in the migration's header too.
+
+- **`add_bazaar_day_stock(day, product, qty, kind, client_id)`** takes a client id (a uuid the phone mints), kept in
+  `bazaar_stock_adds`: the call adds, so a repeat after a lost reply could not be told from a second add without a key.
+- **`bazaar_days`** also has `updated_at` (the stamp `save_bazaar_day` is given; `get_bazaar` returns it in `stamps`)
+  and `plan_hash` (the same body again is answered).
+- **Bodies are snake_case, exact keys.** Day: `id, scheduled_id, day, float_cents, lines[product_id, made_qty,
+carried_qty, price_cents]`. Fee: `client_id, scheduled_id, day_id, label, category, amount_cents, paid_on`. Loss:
+  `client_id, day_id, product_id, qty, reason, at`. Close: `day_id, at, counted_cents, lines{product: {left,
+carry_next, to_shop, written_off}}, expected`; `lines` names every flavour of the day.
+- **`get_bazaar`** returns `summary` (with `hash`; each day has its own `hash`, the close's `expected`), `stamps`,
+  `costs`, `losses`, `stock_adds`, `target_profit_cents`, and after finalise `final_summary` and `final_hash`.
+- **Rounding.** Each cost line is rounded half up per flavour. Cookie cost is made less to the shop; its five parts are
+  rounded lines too, and the few centavos between them and the total are a sixth part, "Rounding", so the parts add up.
+- **A recipe's cost counts only when the recipe is complete**; a partial figure is stored as no cost and she types one.
+- **Not accounted, for the event,** is what is left of made after to the shop, sold, given, lost and written off. It
+  includes a cookie set aside to carry over that never arrived the next day. `counted` is false while a day is open.
+- **A stale `expected`** (close or finalise) is refused with `40001`: read again. A started day cannot start while
+  another day of the booking is open. A fee id starting `rent:` is refused. A fee cannot be removed once saved.
+- **`get_books`** was redefined from migration 65 (`20260101006500`), its last definition. `held` is a list per booking:
+  `scheduled_id, name, count, revenue_cents, expense_cents`, for the period asked.
+- **`close_event` (the old close-out) refuses a bazaar day's event** (`55000`): it would book the drawer difference at
+  once and finalise would book it again. A fourth redefinition, not in the list above. A cost is dated noon UTC of the
+  day it was paid (the same calendar day in the shop's zone, which only `business_clock` names).
+- **An expense added at the till** (`add_event_expense` on a day's event) is a fee of that day in the summary and in
+  the day's hash; its ledger line is held with the sales. A fee's `paid_on` is within a year of the booking. Days start
+  in date order. A day never counted has `over_cents` and `short_cents` null.
+- **Finalise writes stock use on `production_records` of kind `sale`** (one per flavour, one for the sale containers),
+  so shortfalls reach the books' uncosted list. It needs at least one started day.
+- **Not built: cookies to the shop entering baked stock.** `finalise_bazaar` refuses a bazaar that sent any
+  (`rule:fin-shop-entry`) until Ethan decides ([current.md](current.md), Waiting on Ethan). S3 must not offer "to the
+  shop" as final until then.
+- `void_event_sale` and `record_event_sale` are untouched, so a void or a queued sale can still arrive after a close or
+  a finalise: the summary is worked out again from the rows, and a day says `changed_after_close`.
+
 ## The computation
 
 Whole centavos. A cost per cookie is numeric with four decimals; a cost line is `quantity × cost`, rounded half up to the
