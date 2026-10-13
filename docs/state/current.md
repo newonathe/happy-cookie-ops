@@ -23,13 +23,9 @@ fixed (below). The next step is slice S2 of
 [bazaar-days.md](bazaar-days.md): Ethan put the bazaar's new flow ahead of B6 on 13 October, with no fallback, so S1 to
 S3 must be deployed and rehearsed on the phone by 20 October.
 
-**S1, 13 October (built, local only; the trial stays at 67):** migration 68 (`20260101006700_bazaar_days.sql`): a
-booking's days, fees, losses, typed costs, target, start, added stock, close and finalise, and the one summary, held to
-a hand-worked two-day example to the centavo (`tests/integration/security/bazaar-days.sql`). The books leave an open
-bazaar out of their lines and count it in `held`. What S1 changed in the design's contracts is in
-[bazaar-days.md](bazaar-days.md), "S1 as built". Ethan's answers of 14 October: cookies sent to the shop are written by
-`finalise_bazaar(booking, expected, drop)` as an ordinary batch of that drop; an oversold day keeps the refusal; recipe
-packaging is taken for every cookie made.
+**S1, 13 October (built, local only; the trial stays at 67):** migration 68 holds a booking's days, fees, losses, costs,
+start, close and finalise, held to a hand-worked example to the centavo; the books count an open bazaar in `held`.
+Contracts as built, and Ethan's answers of 14 October (shop cookies are a batch of the drop): [bazaar-days.md](bazaar-days.md).
 
 **Her data and the database, 13 October:** at Ethan's instruction the trial went from migration 55 to 67 of 67 (through
 B5), rehearsed first on the local database, and her data is in: 23 recipes with packaging lines, 72 prices, the items
@@ -52,7 +48,7 @@ plan is built (Ethan, 5 October). F3 (launch) stays closed until Cine accepts a 
 - **The product** is built through E1: menu and settings, checkout and owner orders,
   bazaar selling with offline close-out, stock, recipes and production, books, P&L and
   CSV, backups and health. `pnpm verify` passes 110 files / 1,991 tests; the planning
-  validator passes 1,232 checks; the database role suite passes 3,257 cases a reset (S1, local).
+  validator passes 1,232 checks; the database role suite passes 3,260 cases a reset (S1, local).
 - **The private trial site** is live for owners only:
   <https://happy-cookie-owner-trial.admin-kethai.workers.dev>. Cloudflare Access sends an
   email code to two approved mailboxes. The shop is closed and the menu is unpublished.
@@ -106,9 +102,7 @@ All in [decision-register.md](decision-register.md), the section for 5 October.
 
 ### Waiting on Ethan
 
-- **Plan quantities as a bake batch (S2).** Ethan, 14 October: "log those automatically as part of the bake batch that was
-  done for that day". Not built and not yet clear: finalise already takes each flavour's ingredients once. Ask what he means
-  before S2 adds a batch at the start of a day.
+- **Plan quantities as a bake batch (S2).** Ethan's 14 October note ("log those as part of the bake batch") is unclear: ask first.
 - **The cost cutover**, once, after Cine's opening count: `select public.preview_cost_cutover();`, read `not_counted` and
   the items with no cost, then `select public.apply_cost_cutover('<its hash and total>');`. An opening count after it is
   refused. Until then the books stay on "bought".
