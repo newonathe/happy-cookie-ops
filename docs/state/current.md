@@ -4,7 +4,7 @@ Read this page first in a new session. It is kept short on purpose.
 
 | If you need                                        | Read                                                                                                                                                     |
 | -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| The goal to run next                               | [next-goal.md](next-goal.md) (slice B4)                                                                                                                  |
+| The goal to run next                               | [next-goal.md](next-goal.md) (slice B6)                                                                                                                  |
 | The plan, approved 5 October                       | [final-plan.md](final-plan.md), version 2                                                                                                                |
 | The rules every agent follows                      | [AGENTS.md](../../AGENTS.md)                                                                                                                             |
 | Ethan's and Cine's decisions                       | [decision-register.md](decision-register.md)                                                                                                             |
@@ -16,21 +16,21 @@ Read this page first in a new session. It is kept short on purpose.
 
 ## Where things stand — 7 October 2026
 
-**The plan is approved; stage A (A1 to A4) and slices B1, B2, B3a, B3b-1 and B3b-2 are built.** Ethan approved
+**The plan is approved; stage A (A1 to A4) and slices B1 to B3b-2, B4a, B4b and B5 are built.** Ethan approved
 [final-plan.md](final-plan.md), version 2, on 5 October after a re-audit, a debate and
 wider research. It replaces finish-plan.md as the forward plan. The Bazaar defect B1 found is
-fixed (below). The next step is slice B4 (her data).
+fixed (below). The next step is slice B6 (New Recipes), and your reads (below).
 
-**Bazaar readiness and her data, 13 October:** audited end to end, no behaviour change. Loaded on the trial through
-its own owner functions, with no migration (still 55): 17 of her recipes (ingredients only; all 7 menu flavours now
-have one), the item Oats and her 4 bookings. **Still no-go until a bake is recorded:** the table loads only from
-baked stock, and a sale needs an owner sign-in. Prices, packaging lines, newer sales, photos and the cutover wait
-for B4 after 26 October. Steps, rules, go / no-go: [bazaar-run-sheet.md](bazaar-run-sheet.md).
+**Her data and the database, 13 October:** at Ethan's instruction the trial went from migration 55 to 67 of 67 (through
+B5), rehearsed first on the local database, and her data is in: 23 recipes with packaging lines, 72 prices, the items
+Oats, Egg and Sauce Tub, 4 bookings. The cost cutover is **not** applied (it needs her opening count), so the books
+stay on "bought" and equal the ledger. **Bazaar: still no-go until a bake is recorded**, and a sale needs an owner
+sign-in: [bazaar-run-sheet.md](bazaar-run-sheet.md). What Cine sets once: [cine-set-up.md](cine-set-up.md).
 
-**B3b-2, 8 October:** migration 61 (`20260101006000_books_used.sql`), **not on the trial and not before
-B4's cost cutover** (final-plan.md section 11), and the runtime. The books count stock when used and list what
-has no cost, packs and bazaar sales included. The owner's screens read `get_item_costs` and `get_recipe_costs`;
-an unknown cost reads "Cost pending". On the trial (migration 55) the engine's own path stands, as today.
+**B5, 13 October:** migration 66 (an owner-only read of an item's movements, on the trial since 13 October) and the live Inventory and
+Grocery screens. Out at 0, Low below the item's level, Good otherwise, always as a word. Grocery shows the running total;
+"left" or "over" appears only once she sets a budget. An unknown cost reads "Cost pending", never 0. Smoke, 320 px and
+keyboard checks are for the laptop (PR #14).
 
 Stage A and slices B1 and B2, as each was recorded when it closed, are in [current-history.md](current-history.md), the section moved on 7 October.
 
@@ -41,14 +41,13 @@ plan is built (Ethan, 5 October). F3 (launch) stays closed until Cine accepts a 
 
 - **The product** is built through E1: menu and settings, checkout and owner orders,
   bazaar selling with offline close-out, stock, recipes and production, books, P&L and
-  CSV, backups and health. `pnpm verify` passes 100 files / 1,850 tests; the planning
-  validator passes 1,232 checks; the database role suite passes 2,600 cases a reset.
+  CSV, backups and health. `pnpm verify` passes 110 files / 1,988 tests; the planning
+  validator passes 1,232 checks; the database role suite passes 3,049 cases a reset.
 - **The private trial site** is live for owners only:
   <https://happy-cookie-owner-trial.admin-kethai.workers.dev>. Cloudflare Access sends an
   email code to two approved mailboxes. The shop is closed and the menu is unpublished.
-- **On the trial** (read 5 October; migrations 54 and 55 added 6 October): 55 of the
-  repository's 59 migrations applied (56 to 59 wait for Ethan, below); 72 stock items, 26
-  flavours, 804 historical book lines, no orders.
+- **On the trial** (read 13 October): 67 of 67 migrations; 75 stock items, 72 priced; 26 flavours, 7 on the menu,
+  23 with a recipe; 4 bookings; 804 historical book lines; no orders, no bake, no sale.
 - **CI/CD:** a green push to `agent/codex/MP-04-g1-feasibility` redeploys the trial; a push
   that changes only documents does not. The last runs that completed were green (A1 and A2).
   **The two early 6 October pushes (A3 at `79b8e97`, A4 at `851e95e`) did not release:** GitHub
@@ -96,40 +95,14 @@ All in [decision-register.md](decision-register.md), the section for 5 October.
 
 ### Waiting on Ethan
 
-- **Migrations 56 to 61 (B3a, B3b-1, B3b-2) are not on the trial, and nothing in the bazaar needs them.** Migration 61 waits for B4's cost cutover: without it, stock already in the historical lines is expensed again when used.
-  Recommended: not before 27 October. When you say so, in one quiet sitting and in this order,
-  each file as one transaction: (1) read the owner and grants of `business_clock`, `place_order`
-  and `join_waitlist`, and the 40 policies against `tests/fixtures/policies-before-58.json`;
-  (2) apply 56; (3) run `select public.preview_identity_links();`, read what is unmatched or
-  ambiguous, then `select public.apply_identity_links('<its counts>');`; (4) apply 57, which
-  refuses to run until step 3 is done; (5) apply 58 and 59, then read the three functions'
-  owner again; (6) apply 60, then run `scripts/packaging-rule-today.sql` (one call, today's packaging as data;
-  a name that is not exactly one stock item is listed and nothing is written). Until it runs, a pack or bazaar
-  sale takes no packaging and is flagged. A recipe line still listed as unmatched takes no stock when baked: fix it in
-  Recipes before baking. `python scripts/test-b3a-upgrade.py` rehearses steps 2 to 6 on the
-  local database.
-- **Decided 8 October (B3b):** today's packaging rule is entered by hand through that script; her per-cookie
-  packaging lines reach the trial after 26 October with B4, once 56 to 60 are applied, and the pouch leaves the
-  bazaar-sale and loose rules in the same sitting; undoing an untouched delivery is built in B5 with the receive form.
+- **The cost cutover**, once, after Cine's opening count: `select public.preview_cost_cutover();`, read `not_counted` and
+  the items with no cost, then `select public.apply_cost_cutover('<its hash and total>');`. An opening count after it is
+  refused. Until then the books stay on "bought".
+- **No more database writes after the phone rehearsal passes**; set the release hold then.
 - A1 is built (the release check takes two to six addresses; Cine is not added yet). Add her
   two addresses to Cloudflare Access and the approved-digest variable in one sitting, or the
   next deploy fails. Set the session to one week: that deploy then fails once and prints the
   value; put it in `ALLOWED_SESSION_DURATIONS`, push, then invite her.
-- Done on the trial on 6 October, at Ethan's instruction, through the database connector:
-  migration `20260101005300_offline_open_hours.sql` applied (54 of 54; the three function
-  bodies match the committed hashes); the test event of 5 October closed through
-  `close_event` (no sales, no stock, nothing booked); the owner's idle time set to 480
-  minutes through `save_setting`. Put the idle time back to 60 in Settings after the bazaar
-  if wanted. No workflow applies migrations: the next one is again a step by hand.
-- Done on the trial on 6 October, at Ethan's instruction ("migrate everything"), through the
-  database connector: migration `20260101005400_business_clock_shop_identity.sql` applied (55
-  of 55; it was the only one pending; its history row renamed to the repository's version
-  number). Read back: the three function bodies match the committed hashes, grants are as
-  pinned (`business_clock` has no browser grant, anyone reads `get_shop_identity`, only a
-  signed-in owner saves), the table has row security on, no policy, no API grant and no row,
-  and the clock answers the shared cases. The security advisor shows the new objects only in
-  the classes it already reports by design. Shop details now save; they are empty until set
-  (Sell, Shop, Shop texts).
 - **Display names.** From this deploy the app greets each person, and records each bazaar
   sale, under their profile's `display_name`. No form edits it yet (C6). Check yours, Cine's
   and each helper's before 20 October: Supabase dashboard, Table editor, `profiles`, or say
@@ -146,7 +119,6 @@ All in [decision-register.md](decision-register.md), the section for 5 October.
   `true`. A push then builds and tests but does not deploy, and the run says so. Delete it or
   set it to `false` to lift. Any value that is not clearly "off" holds.
 - The phone rehearsal by **20 October** ([final-plan.md](final-plan.md) section 11.1).
-- Approve each import preview.
 
 ### Waiting on Cine
 

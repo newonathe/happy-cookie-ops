@@ -17,6 +17,8 @@ export interface ItemCosts {
   byId: ReadonlyMap<string, number | null>;
   /** Active items only; a name held by two active items is unknown (null). */
   byName: ReadonlyMap<string, number | null>;
+  /** Where each item's cost came from (`average`, `usual`, `supplier`); null when the cost is unknown or the answer gave none. */
+  sourceById: ReadonlyMap<string, string | null>;
 }
 
 export interface RecipeCost {
@@ -75,6 +77,7 @@ export async function fetchItemCosts(client: CostsClient): Promise<ItemCostsRead
   if (!Array.isArray(got.data)) return { status: 'failed' };
   const byId = new Map<string, number | null>();
   const byName = new Map<string, number | null>();
+  const sourceById = new Map<string, string | null>();
   for (const row of got.data as unknown[]) {
     if (
       !isObj(row) ||
@@ -86,10 +89,14 @@ export async function fetchItemCosts(client: CostsClient): Promise<ItemCostsRead
     const cost = readRate(row.unit_cost ?? null);
     if (cost === undefined) return { status: 'failed' };
     byId.set(row.item_id, cost);
+    sourceById.set(
+      row.item_id,
+      cost !== null && typeof row.source === 'string' ? row.source : null
+    );
     if (!row.active) continue;
     byName.set(row.name, byName.has(row.name) ? null : cost);
   }
-  return { status: 'ok', byId, byName };
+  return { status: 'ok', byId, byName, sourceById };
 }
 
 export async function fetchRecipeCosts(client: CostsClient): Promise<RecipeCostsRead> {

@@ -25,8 +25,12 @@ import {
 import type { LocalSale } from '@/lib/auth/sign-out-guard';
 import { OpsRuntime } from '@/store/ops-runtime';
 import type { Role } from '@/store/engine/ops-engine';
+import { registerLiveStockScreens } from '@/components/live/stock/register';
 import { OfflineHold } from './offline-hold';
 import { SignOutControl } from './sign-out-control';
+
+// The live owner's New Stock screens (B5) take the guarded slot, once, when this module loads.
+registerLiveStockScreens();
 
 /** How long one identity check may take before the gate treats the server as unreachable. */
 export const CHECK_TIMEOUT_MS = 8_000;

@@ -168,7 +168,26 @@ export const STOCK_COPY = {
       : (n === 1 ? '1 item' : n + ' items') + ' corrected.',
   adjustReason: 'Adjusted on the Inventory screen',
   openingNote: 'added with its opening quantity.',
-  removedNote: 'switched off. Past records keep their history.'
+  removedNote: 'switched off. Past records keep their history.',
+  // B5-1: the words of the New Stock screens (status words always go with a colour).
+  noLevel: 'No level set',
+  lowBelow: 'Low below',
+  countedOn: 'Counted',
+  openingPending: 'Opening count pending',
+  sourceAverage: 'average',
+  sourceUsual: 'usual price',
+  sourceSupplier: 'supplier price',
+  somePending: 'some cost pending',
+  paid: 'paid',
+  lastPaid: 'Last paid',
+  noSupplier: 'No supplier set',
+  nothingToBuy: 'Nothing to buy',
+  buy: 'Buy',
+  noPackSet: 'No pack set',
+  countNote: 'A count that finds less stock counts as an expense at the item’s cost.',
+  budgetLeft: 'left',
+  budgetOver: 'over',
+  budgetLeftSoFar: 'left so far'
 } as const;
 
 /** B3b-2: the words for a cost the database does not know yet, and for waste on either cost basis. */
@@ -230,9 +249,11 @@ export const BOOKS_COPY = {
   noReceipts: 'No costed deliveries in the last 90 days.',
   uncostedTitle: 'Not costed yet',
   uncostedNote:
-    'Stock used or wasted while the item had no cost. It is not in your costs until the item has a price.',
+    'Stock used, wasted, or counted or adjusted down while the item had no cost. It is not in your costs until the item has a price.',
   uncostedUse: 'Used',
   uncostedWaste: 'Wasted',
+  uncostedCount: 'Counted short',
+  uncostedAdjust: 'Adjusted down',
   corrected: 'Cost corrected. The books show the difference.',
   downloadTitle: 'Download the books',
   downloadNote:

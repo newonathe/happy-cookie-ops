@@ -43,6 +43,10 @@ insert into public.stock_movements(id, item_id, kind, qty_delta, cost_cents, sup
   ('c3b00000-0000-4000-8000-0000000000b4', 'c3i-flour', 'receipt', 500, 7500, 'Landers', '', now() - interval '3 days', 'c3a00000-0000-4000-8000-0000000000a2', repeat('4', 64), null, null),
   ('c3b00000-0000-4000-8000-0000000000b5', 'c3i-flour', 'use', -100, null, '', 'Baked', now() - interval '2 days', null, repeat('5', 64), 12, 'average');
 
+-- B4a: "when used" starts at the cutover. This fixture's cutover is long before any of its rows (as postgres: choosing the used basis is
+-- refused until used_from is set; the cutover itself is cutover.sql's), so every row below is on the used rules once the owner chooses it.
+update public.books_settings set used_from = timestamptz '2020-01-01 00:00+00' where id;
+
 create function pg_temp.set_subject(n integer, claim_role text default 'authenticated') returns void
 language plpgsql security invoker as $$
 declare subject text := case when n is null then '' else
@@ -182,10 +186,10 @@ begin
   perform pg_temp.expect(a, 'books_period_reversed', 'select public.get_books(now(), now() - interval ''1 day'')', '22023');
   perform pg_temp.expect(a, 'books_period_too_long', 'select public.get_books(now() - interval ''500 days'', now())', '22023');
 
-  -- a fresh database counts stock when it is used (DP-04): the first read says so, and so does the row and the column default; the cases below
-  -- on the bought basis choose it
-  perform pg_temp.assert_ok(a, 'books_default_basis_is_used', pg_temp.books() ->> 'basis' = 'used' and pg_temp.basis_row() = 'used');
-  perform pg_temp.assert_ok(a, 'books_column_default_is_used', pg_temp.basis_default() = '''used''::text');
+  -- a fresh database counts stock as it is bought, until the cost cutover (B4a): the first read says so, and so does the row and the column
+  -- default; the cases below choose the used basis once the fixture's cutover has been set (above)
+  perform pg_temp.assert_ok(a, 'books_default_basis_is_bought', pg_temp.books() ->> 'basis' = 'bought' and pg_temp.basis_row() = 'bought');
+  perform pg_temp.assert_ok(a, 'books_column_default_is_bought', pg_temp.basis_default() = '''bought''::text');
   perform pg_temp.expect(a, 'basis_bought_to_start', 'select public.set_cost_basis(''bought'')', '00000');
 
   -- bought: revenue is when an order was paid (less refunds) and stall sales; costs are each receipt and the event cost

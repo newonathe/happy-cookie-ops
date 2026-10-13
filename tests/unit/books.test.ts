@@ -105,6 +105,14 @@ describe('parseBooks', () => {
       expect(parseBooks(bad as never)).toBeNull();
   });
 
+  it('B4b-1: a count or an adjustment that lowered stock with no cost is kept in the uncosted list, never dropped', () => {
+    const uncosted = [
+      { id: 'm:11', kind: 'count', item: 'Butter', qty: 250, unit: 'g', at: 6000 },
+      { id: 'm:12', kind: 'adjust', item: 'Sugar', qty: 40, unit: 'g', at: 5500 }
+    ];
+    expect(parseBooks({ ...WIRE, uncosted })?.uncosted).toEqual(uncosted);
+  });
+
   it('B3b-2: reads the uncosted list (stock used or wasted with no cost); absent is an empty list; a malformed row is dropped, not the read', () => {
     expect(parseBooks(WIRE)?.uncosted).toEqual([]);
     const uncosted = [

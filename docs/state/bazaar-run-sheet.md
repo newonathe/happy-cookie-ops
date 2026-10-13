@@ -6,12 +6,13 @@ is the one hosted copy of the app, and what is rung up there is the real record.
 
 ## Go / no-go for 24 October
 
-**Today: no-go.** Bazaar Mode is built and deployed and her recipes are in (13 October), but the trial cannot open a
-table until a bake is recorded (row 1).
+**Today: no-go.** Bazaar Mode is built and deployed, the database is at 67 of 67 and her recipes and prices are in
+(13 October), but the trial cannot open a table until a bake is recorded (row 1). The rehearsal runs on this state:
+after it passes, no more database writes and no merges until 26 October.
 
 | #   | What                                                                                                                                                                                                                                            | Owner       | State on 13 October                                                                                                   |
 | --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- | --------------------------------------------------------------------------------------------------------------------- |
-| 1   | **Baked stock.** The table loads only from baked stock, and a bake needs a recipe for that flavour (the database accepts one with only a yield; whether the Recipes screen does was not run). Each flavour to be sold needs both, each morning. | Ethan, Cine | 18 recipes since 13 October, one for every flavour on the menu; 0 bakes: "Nothing is baked yet" until one is recorded |
+| 1   | **Baked stock.** The table loads only from baked stock, and a bake needs a recipe for that flavour (the database accepts one with only a yield; whether the Recipes screen does was not run). Each flavour to be sold needs both, each morning. | Ethan, Cine | 23 recipes since 13 October, one for every flavour on the menu; 0 bakes: "Nothing is baked yet" until one is recorded |
 | 2   | **The menu.** An event sells the flavours on the menu at the moment it starts, at those prices, fixed for the event.                                                                                                                            | Cine        | 7 of 26 flavours on the menu: confirm the 7 and their prices                                                          |
 | 3   | **Who signs in.** The server takes a bazaar sale from an owner sign-in only. A helper sign-in's sales wait on the phone until an owner signs in on it.                                                                                          | Ethan       | 1 active owner (whose was not read), no helper. If it is not Cine's, she needs an owner account and Access            |
 | 4   | Cine's two addresses in Cloudflare Access and the digest variable, one sitting; Access session set to one week.                                                                                                                                 | Ethan       | Variable holds two digests; session not confirmed                                                                     |

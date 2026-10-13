@@ -6,6 +6,7 @@
  */
 import type * as React from 'react';
 import type { ScreenKey } from '@/lib/screens';
+import type { LiveStockVals } from '@/lib/stock/live-stock-types';
 
 /** Every field the live flavour editor's form submits (MP-09 c1c), pesos not centavos. */
 export interface LiveFlavourFormFields {
@@ -295,6 +296,8 @@ export interface OpsVals {
     back: () => void;
     close: (event?: unknown) => void;
   } | null;
+  /** Live owner only (B5-1): the New Stock screens' data (list, item page, grocery). Null for anyone else and before the catalogue is read. */
+  liveStock?: LiveStockVals | null;
   /** Live owner only (A3): the suppliers list and edit form, with each supplier's prices. */
   liveStockSuppliers?: {
     online: boolean;
