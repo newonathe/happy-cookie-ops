@@ -457,3 +457,17 @@ Sources:
 - [OWASP ASVS 5.0 V7.3](https://cornucopia.owasp.org/taxonomy/asvs-5.0/07-session-management/03-session-timeout)
 - [NIST SP 800-63B-4 §2.1.3/§2.2.3 reauthentication](https://pages.nist.gov/800-63-4/sp800-63b.html) (checked 2026-09-26)
 - [Next.js middleware→proxy](https://nextjs.org/docs/messages/middleware-to-proxy)
+
+### Bazaar readiness and her data, 13 October 2026
+
+Ethan answered in the session of 13 October.
+
+| Question                                    | Decision                                                                                                                                                                        |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Who rings up sales at the stall             | An owner sign-in only, on the one selling phone. Signal is usual at the stall; offline is the fallback.                                                                         |
+| How much of her data goes to the trial now  | Everything that is safe and can be imported now. Done the same day, with no migration: 17 recipes (ingredients only), the item Oats and her 4 bookings. The rest stays with B4. |
+| Her workbook's names for four menu flavours | Dark chocolate is double chocolate fudge; Smores is happy camper; PB Miso is pb & miso; Biscoff is white chocolate biscoff.                                                     |
+
+**Open, Cine's or Ethan's:** none of the 17 recipes lists egg, though her price list has it; "Nutella Cookie Fries" has no
+flavour in the app; two of her bookings fall on 24 to 25 October (one marked inactive in her sheet); the date her price list
+is current from.

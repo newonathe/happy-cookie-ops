@@ -141,6 +141,12 @@ three sales, once each.
 
 ## Deliberate limits
 
+- Only an owner's sign-in records a sale (`record_event_sale`). One rung up under a helper's sign-in is refused,
+  stays queued, and goes up unchanged when an owner signs in on that phone.
+- On an iPhone the Home Screen app and Safari keep separate storage: the device id, the event and the queue
+  exist only where the event was started. Deleting the icon deletes unsent sales.
+- A closed event stays closed, starting one needs signal, and Bazaar Mode opens offline only while the phone
+  holds an open event: a second day is started where there is signal.
 - Sent rows are kept for 24 hours (`pruneSent`) so a helper can still see what went out.
 - The queue is per device. Two phones at one stall produce two queues and two sets of
   sale numbers; the server merges them by `clientId`. There is no device-to-device sync,

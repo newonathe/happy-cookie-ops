@@ -21,6 +21,12 @@ Read this page first in a new session. It is kept short on purpose.
 wider research. It replaces finish-plan.md as the forward plan. The Bazaar defect B1 found is
 fixed (below). The next step is slice B4 (her data).
 
+**Bazaar readiness and her data, 13 October:** audited end to end, no behaviour change. Loaded on the trial through
+its own owner functions, with no migration (still 55): 17 of her recipes (ingredients only; all 7 menu flavours now
+have one), the item Oats and her 4 bookings. **Still no-go until a bake is recorded:** the table loads only from
+baked stock, and a sale needs an owner sign-in. Prices, packaging lines, newer sales, photos and the cutover wait
+for B4 after 26 October. Steps, rules, go / no-go: [bazaar-run-sheet.md](bazaar-run-sheet.md).
+
 **B3b-2, 8 October:** migration 61 (`20260101006000_books_used.sql`), **not on the trial and not before
 B4's cost cutover** (final-plan.md section 11), and the runtime. The books count stock when used and list what
 has no cost, packs and bazaar sales included. The owner's screens read `get_item_costs` and `get_recipe_costs`;
