@@ -19,6 +19,8 @@ vi.mock('@/lib/offline/idb', () => ({
 vi.mock('@/lib/device', () => ({ deviceId: () => 'dev1' }));
 
 import { OpsRuntime } from '@/store/ops-runtime';
+import { dayEventId } from '@/lib/data/bazaar-days';
+import { clearBazaar } from '@/lib/offline/bazaar-state';
 
 /**
  * D1: the bazaar wrappers on the runtime — the server-priced event start (live only), the
@@ -54,66 +56,213 @@ beforeEach(() => {
   live = true;
   store.clear();
   localStorage.clear();
+  // The saved copy is skipped when it equals the last one written, and that memory outlives each test.
+  clearBazaar();
 });
 afterEach(() => cleanup());
 
-describe('startEvent (live)', () => {
-  it('opens the event on the server, then adopts its id and its price snapshot', async () => {
-    const runtime = mounted();
-    const { client, rpc } = rpcThatStarts((args) => ({
-      data: [
-        {
-          event_id: args.p_event_id,
-          starts_at: 'x',
-          selling_device: 'dev1',
-          prices: { dcf: 12500 }
-        }
-      ],
-      error: null
-    }));
-    bazaar(runtime).saleClient = client;
-    act(() => bazaar(runtime).startEvent({ name: 'Katipunan', date: 'Oct 24' }));
-    await settle();
-    expect(rpc).toHaveBeenCalledTimes(1);
-    const args = rpc.mock.calls[0]![1];
-    expect(rpc.mock.calls[0]![0]).toBe('start_event');
-    expect(args).toMatchObject({ p_name: 'Katipunan', p_device: 'dev1', p_float_cents: 0 });
-    expect(runtime.state.event).toMatchObject({ id: args.p_event_id, name: 'Katipunan' });
-    expect((runtime.state.eventPrices as Record<string, number>).dcf).toBe(125);
-  });
+const DAY = 'd5a00000-0000-4000-8000-000000000001';
+const BOOKING = 'd5b00000-0000-4000-8000-000000000001';
 
-  it('refuses to start with no signal, and asks nothing of the server', async () => {
+interface Days {
+  beginBazaarDay: (
+    booking: { id: string; name: string },
+    day: { id: string; day: string }
+  ) => Promise<'started' | 'offline' | 'refused'>;
+}
+const days = (runtime: OpsRuntime) => runtime as unknown as Days;
+const startReply = (args: Record<string, unknown>) => ({
+  data: [
+    {
+      event_id: args.p_event_id,
+      selling_device: 'dev1',
+      float_cents: 50000,
+      prices: { dcf: 12500, wcb: 9000 },
+      loaded: { dcf: 20, wcb: 5 }
+    }
+  ],
+  error: null
+});
+const begin = (runtime: OpsRuntime) =>
+  days(runtime).beginBazaarDay(
+    { id: BOOKING, name: 'Katipunan market' },
+    { id: DAY, day: '2026-10-24' }
+  );
+
+describe('the old start is closed in live mode (S2)', () => {
+  it('startEvent asks the server nothing and opens no event', async () => {
     const runtime = mounted();
     const { client, rpc } = rpcThatStarts(() => ({ data: [], error: null }));
     bazaar(runtime).saleClient = client;
-    act(() => runtime.setState({ online: false }));
     act(() => bazaar(runtime).startEvent({ name: 'Katipunan', date: 'Oct 24' }));
     await settle();
+    expect(rpc).not.toHaveBeenCalled();
+    expect(runtime.state.event).toBeNull();
+    expect(toastText(runtime)).toContain('plan the day');
+    // Mutation: letting startEvent through starts an event at the menu prices with no plan, and no day to close it from.
+  });
+
+  it('offers no start list: the ported prototype events and the old booking rows are gone', () => {
+    const runtime = mounted();
+    expect(runtime.renderVals().events).toEqual([]);
+  });
+});
+
+describe('beginBazaarDay (live)', () => {
+  it('starts the day on the server under its own event id and puts it in the till exactly as the day plans it', async () => {
+    const runtime = mounted();
+    const { client, rpc } = rpcThatStarts(startReply);
+    bazaar(runtime).saleClient = client;
+    act(() => runtime.setState({ baked: { dcf: 3, wcb: 4 } }));
+    let outcome: string | undefined;
+    await act(async () => {
+      outcome = await begin(runtime);
+    });
+    expect(outcome).toBe('started');
+    expect(rpc).toHaveBeenCalledTimes(1);
+    const [name, args] = rpc.mock.calls[0]!;
+    expect(name).toBe('start_bazaar_day');
+    expect(args).toMatchObject({ p_day: DAY, p_device: 'dev1' });
+    expect(args.p_event_id).toBe(await dayEventId(DAY));
+    expect(runtime.state.event).toMatchObject({
+      id: args.p_event_id,
+      stage: 'selling',
+      name: 'Katipunan market',
+      dayId: DAY,
+      scheduledId: BOOKING
+    });
+    expect((runtime.state.eventPrices as Record<string, number>).dcf).toBe(125);
+    expect((runtime.state.eventPrices as Record<string, number>).wcb).toBe(90);
+    expect(runtime.state.eventStock).toMatchObject({ dcf: 20, wcb: 5 });
+    expect(runtime.state.drawer).toMatchObject({ float: 500 });
+    expect(runtime.state.sales).toEqual([]);
+    // The day's cookies are its own plan, not shop stock: baked does not move.
+    expect(runtime.state.baked).toMatchObject({ dcf: 3, wcb: 4 });
+    // Mutation: openSelling's move out of baked would take 20 cookies the shop never held.
+  });
+
+  it('keeps the day on the phone: a reload carries on with its id, prices, stock and day', async () => {
+    const first = mounted();
+    bazaar(first).saleClient = rpcThatStarts(startReply).client;
+    await act(async () => void (await begin(first)));
+    act(() => first.persist(true));
+    cleanup();
+    const second = mounted();
+    await settle();
+    expect(second.state.event).toMatchObject({
+      id: await dayEventId(DAY),
+      stage: 'selling',
+      dayId: DAY,
+      scheduledId: BOOKING
+    });
+    expect((second.state.eventPrices as Record<string, number>).dcf).toBe(125);
+    expect(second.state.eventStock).toMatchObject({ dcf: 20 });
+  });
+
+  it('with no signal asks the server nothing and starts nothing', async () => {
+    const runtime = mounted();
+    const { client, rpc } = rpcThatStarts(startReply);
+    bazaar(runtime).saleClient = client;
+    act(() => runtime.setState({ online: false }));
+    let outcome: string | undefined;
+    await act(async () => {
+      outcome = await begin(runtime);
+    });
+    expect(outcome).toBe('offline');
     expect(rpc).not.toHaveBeenCalled();
     expect(runtime.state.event).toBeNull();
     expect(toastText(runtime)).toContain('signal');
   });
 
-  it('a start whose reply was lost is retried under the same event id', async () => {
+  it('a refusal starts nothing and says the day cannot start now', async () => {
     const runtime = mounted();
-    let first = true;
-    const { client, rpc } = rpcThatStarts((args) => {
-      if (first) {
-        first = false;
-        return { data: null, error: { code: '', message: 'Failed to fetch' } };
-      }
-      return { data: [{ event_id: args.p_event_id, prices: { dcf: 12500 } }], error: null };
+    bazaar(runtime).saleClient = rpcThatStarts(() => ({
+      data: null,
+      error: { code: '55000', message: 'rule:day_open' }
+    })).client;
+    let outcome: string | undefined;
+    await act(async () => {
+      outcome = await begin(runtime);
     });
-    bazaar(runtime).saleClient = client;
-    act(() => bazaar(runtime).startEvent({ name: 'Katipunan', date: 'Oct 24' }));
-    await settle();
+    expect(outcome).toBe('refused');
     expect(runtime.state.event).toBeNull();
-    act(() => bazaar(runtime).startEvent({ name: 'Katipunan', date: 'Oct 24' }));
-    await settle();
-    expect(rpc.mock.calls[1]![1].p_event_id).toBe(rpc.mock.calls[0]![1].p_event_id);
-    expect(runtime.state.event).toMatchObject({ id: rpc.mock.calls[0]![1].p_event_id });
+    expect(toastText(runtime)).toContain('cannot be started');
   });
 
+  it('adopts nothing from a reply that names another event', async () => {
+    const runtime = mounted();
+    bazaar(runtime).saleClient = rpcThatStarts((args) =>
+      startReply({
+        ...args,
+        p_event_id: 'aaaaaaaa-0000-4000-8000-000000000009'
+      })
+    ).client;
+    let outcome: string | undefined;
+    await act(async () => {
+      outcome = await begin(runtime);
+    });
+    expect(outcome).toBe('offline');
+    expect(runtime.state.event).toBeNull();
+    // Mutation: adopting the reply's event would sell into an event this day never asked for.
+  });
+
+  it('a second start of the same day is the same event, so a lost reply or a second tap never opens another', async () => {
+    const runtime = mounted();
+    const { client, rpc } = rpcThatStarts(startReply);
+    bazaar(runtime).saleClient = client;
+    await act(async () => void (await begin(runtime)));
+    await act(async () => void (await begin(runtime)));
+    expect(rpc.mock.calls[1]![1].p_event_id).toBe(rpc.mock.calls[0]![1].p_event_id);
+  });
+});
+
+describe('a started day cannot be closed or left from the till (S2)', () => {
+  interface Till {
+    closeEvent: () => void;
+    resetEvent: () => void;
+  }
+  const till = (runtime: OpsRuntime) => runtime as unknown as Till;
+
+  it('the old close-out queues nothing and the day stays selling; leaving keeps the day and its stock', async () => {
+    const runtime = mounted();
+    const { client, rpc } = rpcThatStarts(startReply);
+    bazaar(runtime).saleClient = client;
+    act(() => runtime.setState({ baked: { dcf: 3 } }));
+    await act(async () => void (await begin(runtime)));
+    rpc.mockClear();
+    act(() => till(runtime).closeEvent());
+    await settle();
+    expect(runtime.state.event).toMatchObject({ stage: 'selling', dayId: DAY });
+    expect([...store.values()].filter((r) => r.kind === 'close')).toEqual([]);
+    expect(rpc).not.toHaveBeenCalled();
+    expect(toastText(runtime)).toContain('review');
+    act(() => till(runtime).resetEvent());
+    expect(runtime.state.event).toMatchObject({ stage: 'selling', dayId: DAY });
+    expect(runtime.state.eventStock).toMatchObject({ dcf: 20 });
+    expect(runtime.state.baked).toMatchObject({ dcf: 3 });
+    // Mutation: the engine's own Leave moves the day's 25 cookies into baked stock and forgets a day that is open on the server.
+  });
+
+  it('an event that is not a day still leaves as before', () => {
+    const runtime = mounted();
+    act(() =>
+      runtime.setState({
+        event: {
+          id: EVENT,
+          name: 'Fair',
+          stage: 'selling',
+          snapshot: ['dcf']
+        } as never,
+        eventStock: { dcf: 2 },
+        baked: { dcf: 1 }
+      })
+    );
+    act(() => till(runtime).resetEvent());
+    expect(runtime.state.event).toBeNull();
+    expect(runtime.state.baked).toMatchObject({ dcf: 3 });
+  });
+});
+describe('event prices and the demo start', () => {
   it('does not let a stall change a price once the event has started', async () => {
     const runtime = mounted();
     act(() => runtime.setState({ eventPrices: { dcf: 125 } }));
@@ -203,26 +352,6 @@ describe('voidSale', () => {
 });
 
 describe('a reload at the stall (live)', () => {
-  it('carries on with the same event: id, snapshot prices and the day’s sales come back', async () => {
-    const first = mounted();
-    const { client } = rpcThatStarts((args) => ({
-      data: [{ event_id: args.p_event_id, prices: { dcf: 12500 } }],
-      error: null
-    }));
-    bazaar(first).saleClient = client;
-    act(() => bazaar(first).startEvent({ name: 'Katipunan', date: 'Oct 24' }));
-    await settle();
-    const eventId = (first.state.event as { id: string }).id;
-    act(() => first.persist(true));
-    expect(JSON.parse(localStorage.getItem('hc-live-bazaar') ?? '{}').event.id).toBe(eventId);
-
-    cleanup();
-    const second = mounted();
-    await settle();
-    expect(second.state.event).toMatchObject({ id: eventId, name: 'Katipunan' });
-    expect((second.state.eventPrices as Record<string, number>).dcf).toBe(125);
-  });
-
   it('never overwrites the saved event with the empty start before it is read back', () => {
     localStorage.setItem(
       'hc-live-bazaar',

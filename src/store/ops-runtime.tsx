@@ -52,7 +52,7 @@ import {
 } from '@/lib/data/bazaar-days';
 import { readStallCopy, saveStallCopy } from '@/lib/offline/stall-copy';
 import { requestPersistentStorage } from '@/lib/offline/persist';
-import { isEventUuid, startEventOnServer, type EventSalesClient } from '@/lib/data/event-sales';
+import { isEventUuid, type EventSalesClient } from '@/lib/data/event-sales';
 import { deviceId } from '@/lib/device';
 import { plural } from '@/store/engine/ops-engine';
 import type {
@@ -105,7 +105,6 @@ import {
   linkScheduledEvent,
   saveScheduledEvent,
   scheduledEventError,
-  upcomingEvents,
   type ScheduledClient,
   type ScheduledEvent
 } from '@/lib/data/scheduled-events';
@@ -502,6 +501,7 @@ interface BazaarActions {
   addEventExpense: (label: string, amount: unknown, cat?: string) => void;
   closeEvent: () => void;
   reopenEvent: () => void;
+  resetEvent: () => void;
 }
 
 /** The engine's inventory actions (instance fields the typings do not list), replaced in live mode by A3. */
@@ -629,43 +629,6 @@ function withUniqueNewestId(sales: EventSale[]): EventSale[] | null {
   return [{ ...newest, id: 'S' + (highest + 1) }, ...sales.slice(1)];
 }
 
-const EVENT_ATTEMPT = 'hc-event-attempt';
-
-/** A start that lost its reply is retried under the same event id, so it cannot open a second event. */
-function eventAttemptId(name: string): string {
-  try {
-    const saved = JSON.parse(localStorage.getItem(EVENT_ATTEMPT) ?? 'null') as {
-      name?: string;
-      id?: string;
-      at?: number;
-    } | null;
-    if (
-      saved &&
-      saved.name === name &&
-      typeof saved.id === 'string' &&
-      Date.now() - (saved.at ?? 0) < 600_000
-    )
-      return saved.id;
-  } catch {
-    /* unreadable: start a fresh attempt */
-  }
-  const id = crypto.randomUUID();
-  try {
-    localStorage.setItem(EVENT_ATTEMPT, JSON.stringify({ name, id, at: Date.now() }));
-  } catch {
-    /* private mode: a retry after a lost reply may open a second event */
-  }
-  return id;
-}
-
-function clearEventAttempt(): void {
-  try {
-    localStorage.removeItem(EVENT_ATTEMPT);
-  } catch {
-    /* nothing to clear */
-  }
-}
-
 const PENDING_LINK = 'hc-pending-link';
 
 interface PendingLink {
@@ -705,13 +668,6 @@ function writePendingLinks(links: PendingLink[]): void {
   } catch {
     /* private mode: the owner is told, and a later start of the same booking links again */
   }
-}
-
-function savePendingLink(link: PendingLink): void {
-  writePendingLinks([
-    ...readPendingLinks().filter((l) => l.scheduledId !== link.scheduledId),
-    link
-  ]);
 }
 
 function clearPendingLink(link: PendingLink): void {
@@ -759,7 +715,6 @@ export class OpsRuntime extends OpsProvider {
   /** D4: the owner's bookings (null until read), the client they were read with, the booking being started, and the id the blank form row will use. */
   private scheduledRows: ScheduledEvent[] | null = null;
   private scheduledClient: ScheduledClient | null = null;
-  private pendingSchedule: ScheduledEvent | null = null;
   private scheduledNewId = '';
   private scheduledVersion = 0;
   private stockCatalogue: StockCatalogue | null = null;
@@ -835,7 +790,7 @@ export class OpsRuntime extends OpsProvider {
   constructor(props: OpsEngineProps) {
     super(props);
     const bazaar = this as unknown as BazaarActions;
-    const { recordSale, voidSale, startEvent } = bazaar;
+    const { recordSale, voidSale } = bazaar;
     bazaar.recordSale = (pay, freebie) => {
       recordSale(pay, freebie);
       this.setState((s: { sales: EventSale[] }) => {
@@ -939,9 +894,10 @@ export class OpsRuntime extends OpsProvider {
       if (field) this.orderFlow?.clearError(field);
       custSet(key, value);
     };
-    // DP-20: an event sells at the menu prices it started with, taken by the server.
-    bazaar.startEvent = (ev) => {
-      void this.startLiveEvent(ev, startEvent);
+    // S2: a live event is only ever a started bazaar day (`beginBazaarDay`): planned, then started with its own prices and
+    // stock. The old one-tap start, at the menu prices with no plan, is closed to every caller.
+    bazaar.startEvent = () => {
+      this.toast('Start a bazaar day from the Bazaar page: plan the day, then start it.', 'warn');
     };
     bazaar.setEventPrice = () => {
       this.toast('Bazaar prices are the menu prices from the moment the event starts.', 'warn');
@@ -1031,6 +987,16 @@ export class OpsRuntime extends OpsProvider {
           cashCents
         });
       });
+    };
+    // S2: "Leave" would put the day's cookies back into the shop's baked stock and forget the day while it is open on the
+    // server. A started day is left by closing it, from its review (S3).
+    const { resetEvent } = bazaar;
+    bazaar.resetEvent = () => {
+      if ((this.state.event as LiveEvent | null)?.dayId) {
+        this.toast('A bazaar day stays open until you close it from its review.', 'warn');
+        return;
+      }
+      resetEvent();
     };
     // A closed event stays closed: the server has (or will have) its count and its books.
     bazaar.reopenEvent = () => {
@@ -1265,48 +1231,6 @@ export class OpsRuntime extends OpsProvider {
         'warn'
       );
     return 'started';
-  }
-
-  /** Online only: the server snapshots the prices and names this phone the selling device. */
-  private async startLiveEvent(
-    ev: { name: string; date: string },
-    begin: (ev: { name: string; date: string }) => void
-  ): Promise<void> {
-    const pending = this.pendingSchedule;
-    this.pendingSchedule = null;
-    const target = this.state.online ? this.salesTarget() : null;
-    if (!target) {
-      this.toast('Start the event while you have signal. Sales can go offline after that.', 'warn');
-      return;
-    }
-    const outcome = await startEventOnServer(target, {
-      name: ev.name,
-      deviceId: deviceId(),
-      eventId: eventAttemptId(pending ? 'booking:' + pending.id : ev.name)
-    });
-    if (!outcome.ok) {
-      this.toast('The event could not be started. Try again.', 'warn');
-      return;
-    }
-    clearEventAttempt();
-    // A2: this phone now holds the day's sales, so ask the browser not to evict its storage.
-    void requestPersistentStorage();
-    begin(ev);
-    const unsellable = PRODUCTS.filter((p) => !(p.id in outcome.prices)).length;
-    if (unsellable) {
-      this.toast(
-        plural(unsellable, 'flavour is', 'flavours are') +
-          ' not on the menu, so ' +
-          (unsellable === 1 ? 'it' : 'they') +
-          ' cannot be sold at this event.',
-        'warn'
-      );
-    }
-    this.setState((s) => ({
-      event: { ...(s.event ?? {}), id: outcome.eventId, snapshot: Object.keys(outcome.prices) },
-      eventPrices: { ...(s.eventPrices as Record<string, number>), ...outcome.prices }
-    }));
-    if (pending) void this.afterScheduledStart(pending, outcome.eventId);
   }
 
   /**
@@ -2359,8 +2283,8 @@ export class OpsRuntime extends OpsProvider {
       liveStock: this.liveStockVals(),
       liveStockSuppliers: this.liveStockSuppliersVals(),
       liveRecipeDrafts: this.liveRecipeDraftsVals(),
-      // D4: in live mode the Bazaar list is the owner's bookings, never the ported prototype events.
-      events: this.liveBazaarEvents(),
+      // S2: the ported start list is never offered in live mode: a day is started from the Bazaar page (`liveBazaar`).
+      events: [] as OpsVals['events'],
       cust: this.liveStatusCust(this.livePayCust(starved.cust)),
       openLookup: () => this.openLookupSheet(),
       openWaitlist: () => this.openWaitlist(),
@@ -2851,49 +2775,6 @@ export class OpsRuntime extends OpsProvider {
     this.toast(SCHEDULED_COPY.saved);
     await this.loadScheduledEvents(null);
     this.closeSheet();
-  }
-
-  /**
-   * The Bazaar screen's "Start an event" list in live mode: the owner's upcoming bookings, then one row to start an
-   * event that was never booked. The ported list (two prototype events) is never shown.
-   */
-  private liveBazaarEvents(): OpsVals['events'] {
-    const bazaar = this as unknown as BazaarActions;
-    const today = manilaToday();
-    const rows = upcomingEvents(this.scheduledRows ?? [], today).map((row) => ({
-      name: row.name,
-      date: dateRange(row.startsOn, row.endsOn),
-      place: row.place || SCHEDULED_COPY.unbookedPlace,
-      go: () => {
-        this.pendingSchedule = row;
-        bazaar.startEvent({ name: row.name, date: dateRange(row.startsOn, row.endsOn) });
-      }
-    }));
-    const label = dateRange(today, today);
-    rows.push({
-      name: SCHEDULED_COPY.unbookedTitle,
-      date: label,
-      place: SCHEDULED_COPY.unbookedPlace,
-      go: () => {
-        this.pendingSchedule = null;
-        bazaar.startEvent({ name: 'Bazaar · ' + label, date: label });
-      }
-    });
-    return rows;
-  }
-
-  /** The event is open: record which booking it was, and book the stall rent as an event expense, once. */
-  private async afterScheduledStart(row: ScheduledEvent, eventId: string): Promise<void> {
-    const client = this.scheduledClient;
-    const linked = client ? await linkScheduledEvent(client, row.id, eventId) : 'failed';
-    if (linked === 'failed') {
-      // The database books the rent with the first link; keep the pair until a retry is confirmed.
-      savePendingLink({ scheduledId: row.id, eventId, rentCents: row.rentCents, at: Date.now() });
-      this.toast(SCHEDULED_COPY.linkPending, 'warn');
-    } else if (linked === 'first') {
-      this.showRentBooked(eventId, row.rentCents);
-    }
-    await this.loadScheduledEvents(null);
   }
 
   // ------------------------------------------------------------------ A4: the owner's recipes
