@@ -19,7 +19,10 @@ function setup(resizer?: FlavourResizer) {
 }
 
 const MB = 1024 * 1024;
-const big = new File([new Uint8Array(18 * MB)], 'IMG_9999.JPG', { type: 'image/jpeg' });
+// An 18 MB original: only its reported size matters to the code under test, so it is not allocated (a real 18 MB buffer made this
+// file time out when the machine was busy).
+const big = new File([new Uint8Array(8)], 'IMG_9999.JPG', { type: 'image/jpeg' });
+Object.defineProperty(big, 'size', { value: 18 * MB });
 const small = new Blob([new Uint8Array(900_000)], { type: 'image/webp' });
 
 describe('flavour photo upload', () => {
