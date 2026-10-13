@@ -16,8 +16,7 @@ import {
 } from '@/components/live/stock/stock-shared';
 
 const ACTION_WORD: Record<NonNullable<BazaarDayRow['action']>, string> = {
-  start: 'Start this day',
-  resume: 'Sell on this phone'
+  start: 'Start this day'
 };
 
 function DayCard({ day }: { day: BazaarDayRow }) {

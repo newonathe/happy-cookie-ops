@@ -720,6 +720,7 @@ export class OpsRuntime extends OpsProvider {
     client: () => this.scheduledClient,
     online: () => Boolean(this.state.online),
     bookings: () => this.scheduledRows ?? [],
+    bookingsRead: () => this.scheduledRows !== null,
     flavours: () =>
       PRODUCTS.map((p) => ({
         id: p.id,
@@ -1124,6 +1125,11 @@ export class OpsRuntime extends OpsProvider {
     // start (no event) is never saved, so it cannot overwrite the event before it is read back.
     this.persist = () => saveBazaar(this.state);
     this.resetData = () => {
+      // The phone's copy of a started day is the only way to keep selling it: it is not cleared while the day is open.
+      if ((this.state.event as LiveEvent | null)?.dayId) {
+        this.toast('A bazaar day is open on this phone. Close it before starting over.', 'warn');
+        return;
+      }
       clearStoredBooks();
       clearBazaar();
       const fresh = liveBaseState() as Record<string, unknown>;
@@ -1227,6 +1233,15 @@ export class OpsRuntime extends OpsProvider {
       );
       return outcome.error === 'refused' ? 'refused' : 'offline';
     }
+    // A repeat of a start is answered with the day as it first started, selling device included. A day that another phone
+    // is selling is not taken over here: every sale rung up on this phone would be refused by the server.
+    if (outcome.started.sellingDevice !== deviceId()) {
+      this.toast(
+        'This day is being sold on another phone. Sales rung up here would be refused.',
+        'warn'
+      );
+      return 'refused';
+    }
     // A2: this phone now holds the day's sales, so ask the browser not to evict its storage.
     void requestPersistentStorage();
     const patch = engineStateForDay(
@@ -1246,11 +1261,6 @@ export class OpsRuntime extends OpsProvider {
       syncState: 'idle' as never,
       eventPrices: { ...(s.eventPrices as object), ...patch.eventPrices }
     }));
-    if (outcome.started.sellingDevice !== deviceId())
-      this.toast(
-        'Another phone is the selling device for this day: sales here would be refused.',
-        'warn'
-      );
     return 'started';
   }
 

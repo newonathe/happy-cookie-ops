@@ -219,6 +219,28 @@ describe('S2: with no event on the phone', () => {
     expect(document.body.textContent).not.toMatch(/Katipunan Weekend Market|UP Town Center/);
   });
 
+  it('before her events are read the list says so, and never that there are none', async () => {
+    const { runtime } = await mount('owner');
+    // A fresh runtime that has read nothing yet.
+    cleanup();
+    const ref: { current: OpsRuntime | null } = { current: null };
+    render(
+      <OpsRuntime ref={(r) => void (ref.current = r)}>
+        <Frame />
+      </OpsRuntime>
+    );
+    act(() => ref.current!.setRole('owner'));
+    act(() => ref.current!.setState({ device: 'mobile' }));
+    act(() => ref.current!.go('bazaar'));
+    expect(runtime).not.toBe(ref.current);
+    expect(screen.getByText('Reading your events…')).toBeTruthy();
+    expect(screen.queryByText(/No upcoming events yet/)).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Add an event' })).toBeNull();
+    act(() => ref.current!.setState({ online: false }));
+    expect(screen.getByText(/need signal to load/)).toBeTruthy();
+    // Mutation: "No upcoming events yet" before the read lets her add a booking that is already there.
+  });
+
   it('a helper is told a day is started by the owner, and is offered nothing to start', async () => {
     await mount('helper');
     expect(screen.getByText(/started by the owner, with signal/)).toBeTruthy();
@@ -316,8 +338,12 @@ describe('S2: with no event on the phone', () => {
     });
     await click(/Katipunan market/);
     expect(screen.getByText('Close the day that is still open first')).toBeTruthy();
-    const resume = screen.getByRole('button', { name: 'Sell on this phone' }) as HTMLButtonElement;
-    expect(resume.disabled).toBe(false);
+    // An open day is sold on the phone that started it: no button here takes it over.
+    expect(
+      screen.getByText('Selling has started. Sell on the phone that started it.')
+    ).toBeTruthy();
+    expect(screen.getAllByRole('button', { name: 'Start this day' })).toHaveLength(1);
+    expect(screen.queryByRole('button', { name: /Sell on this phone/ })).toBeNull();
   });
 });
 

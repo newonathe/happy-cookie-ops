@@ -35,10 +35,10 @@ export interface BazaarDayRow {
   /** Only a planned day can be changed. */
   edit: (() => void) | null;
   /**
-   * `start`: a planned day, started with signal. `resume`: a day that is open on the server but not on this phone.
-   * Null for a closed day. (A day this phone holds is drawn as the till, never as a row.)
+   * `start`: a planned day, started with signal. Null for a day that is open or closed: an open day is sold on the phone
+   * that started it (one this phone holds is drawn as the till, never as a row) and closed from its review (S3).
    */
-  action: 'start' | 'resume' | null;
+  action: 'start' | null;
   /** Why the action is not available now, in words; null when it is. */
   actionNote: string | null;
   run: () => void;
@@ -86,6 +86,8 @@ export interface DayPlanEditor {
 
 export interface LiveBazaarVals {
   online: boolean;
+  /** False until the owner's bookings have been read: the list must not say there are none before it knows. */
+  eventsRead: boolean;
   /** `loading` while a read is in flight; `failed` when it could not be read (shown with a retry). */
   state: 'read' | 'loading' | 'failed';
   list: BazaarListRow[];

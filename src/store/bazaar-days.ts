@@ -26,6 +26,8 @@ export interface BazaarDaysDeps {
   client: () => BazaarClient | null;
   online: () => boolean;
   bookings: () => readonly ScheduledEvent[];
+  /** False until the owner's bookings have been read. */
+  bookingsRead: () => boolean;
   /** The flavours a day can be planned with: the engine's, with their menu price in centavos. */
   flavours: () => ReadonlyArray<{ id: string; name: string; priceCents: number }>;
   /** True while this phone holds an event (a started day, or one from before): a second cannot start. */
@@ -55,7 +57,8 @@ const COPY = {
   needSignal: 'Needs signal',
   noStock: 'Plan some cookies first',
   anotherOpen: 'Close the day that is still open first',
-  holding: 'This phone is already selling an event'
+  holding: 'This phone is already selling an event',
+  openElsewhere: 'Selling has started. Sell on the phone that started it.'
 } as const;
 
 /** `YYYY-MM-DD` from `a` to `b` inclusive. The bookings are at most 15 days (`scheduledEventError`). */
@@ -133,6 +136,7 @@ export class BazaarDays {
     const event = booking && this.data ? this.eventView(booking, this.data) : null;
     return {
       online: this.deps.online(),
+      eventsRead: this.deps.bookingsRead(),
       state: this.bookingId && !this.data ? this.reading : 'read',
       list: upcomingEvents(this.deps.bookings(), this.deps.today()).map((b) => ({
         id: b.id,
@@ -188,7 +192,7 @@ export class BazaarDays {
       action = 'start';
       if (total === 0) note = COPY.noStock;
       else if (open) note = COPY.anotherOpen;
-    } else if (day.state === 'open') action = 'resume';
+    } else if (day.state === 'open') note = COPY.openElsewhere;
     if (action && note === null) {
       if (!this.deps.online()) note = COPY.needSignal;
       else if (this.deps.holdsEvent()) note = COPY.holding;

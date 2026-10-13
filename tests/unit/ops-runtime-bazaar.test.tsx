@@ -206,6 +206,23 @@ describe('beginBazaarDay (live)', () => {
     // Mutation: adopting the reply's event would sell into an event this day never asked for.
   });
 
+  it('a day another phone is selling is not taken over: nothing changes and the owner is told', async () => {
+    const runtime = mounted();
+    bazaar(runtime).saleClient = rpcThatStarts((args) => {
+      const reply = startReply(args);
+      return { ...reply, data: [{ ...reply.data[0]!, selling_device: 'other-phone' }] };
+    }).client;
+    let outcome: string | undefined;
+    await act(async () => {
+      outcome = await begin(runtime);
+    });
+    expect(outcome).toBe('refused');
+    expect(runtime.state.event).toBeNull();
+    expect(runtime.state.eventStock).toEqual({});
+    expect(toastText(runtime)).toContain('another phone');
+    // Mutation: adopting the day here would show the full planned stock and no sales, and every sale rung up would be refused.
+  });
+
   it('a second start of the same day is the same event, so a lost reply or a second tap never opens another', async () => {
     const runtime = mounted();
     const { client, rpc } = rpcThatStarts(startReply);
@@ -241,6 +258,17 @@ describe('a started day cannot be closed or left from the till (S2)', () => {
     expect(runtime.state.eventStock).toMatchObject({ dcf: 20 });
     expect(runtime.state.baked).toMatchObject({ dcf: 3 });
     // Mutation: the engine's own Leave moves the day's 25 cookies into baked stock and forgets a day that is open on the server.
+  });
+
+  it('starting the books over leaves a started day on the phone', async () => {
+    const runtime = mounted();
+    bazaar(runtime).saleClient = rpcThatStarts(startReply).client;
+    await act(async () => void (await begin(runtime)));
+    act(() => runtime.resetData());
+    await settle();
+    expect(runtime.state.event).toMatchObject({ dayId: DAY, stage: 'selling' });
+    expect(localStorage.getItem('hc-live-bazaar')).not.toBeNull();
+    expect(toastText(runtime)).toContain('Close it before starting over');
   });
 
   it('an event that is not a day still leaves as before', () => {

@@ -29,7 +29,13 @@ export function EventList({ bazaar }: { bazaar: LiveBazaarVals }) {
   return (
     <>
       <h1 style={h1Style}>Bazaar</h1>
-      {bazaar.list.length === 0 ? (
+      {!bazaar.eventsRead ? (
+        <p aria-live="polite" style={mutedStyle}>
+          {bazaar.online
+            ? 'Reading your events…'
+            : 'Your events are not loaded yet. They need signal to load.'}
+        </p>
+      ) : bazaar.list.length === 0 ? (
         <p style={mutedStyle}>No upcoming events yet. Add one to plan its days.</p>
       ) : (
         <ul aria-label="Events" style={listStyle}>
@@ -51,15 +57,17 @@ export function EventList({ bazaar }: { bazaar: LiveBazaarVals }) {
           ? 'Starting a day needs signal. Selling does not.'
           : 'Starting a day needs signal: it is read from the server.'}
       </p>
-      <div style={wrapRow}>
-        <button
-          type="button"
-          onClick={bazaar.add}
-          style={{ ...primaryBase, minHeight: '48px', alignSelf: 'flex-start' }}
-        >
-          Add an event
-        </button>
-      </div>
+      {bazaar.eventsRead ? (
+        <div style={wrapRow}>
+          <button
+            type="button"
+            onClick={bazaar.add}
+            style={{ ...primaryBase, minHeight: '48px', alignSelf: 'flex-start' }}
+          >
+            Add an event
+          </button>
+        </div>
+      ) : null}
     </>
   );
 }
