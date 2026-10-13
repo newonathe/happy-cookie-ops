@@ -296,7 +296,5 @@ export const SCHEDULED_COPY = {
   rentLabel: 'Stall rent',
   rentBooked: (amount: string) => amount + ' stall rent booked as an event expense.',
   linkPending:
-    'The event started, but this phone could not tell the server which booking it was. Do not add the stall rent by hand: it is booked automatically the next time this phone is online.',
-  unbookedTitle: 'Start without a booking',
-  unbookedPlace: 'A one-off event'
+    'The event started, but this phone could not tell the server which booking it was. Do not add the stall rent by hand: it is booked automatically the next time this phone is online.'
 } as const;

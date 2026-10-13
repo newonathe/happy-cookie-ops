@@ -44,6 +44,7 @@ import {
   type CommandKind
 } from '@/lib/offline/queue';
 import { clearBazaar, readBazaar, saveBazaar } from '@/lib/offline/bazaar-state';
+import { BazaarDays } from '@/store/bazaar-days';
 import {
   dayEventId,
   engineStateForDay,
@@ -715,6 +716,26 @@ export class OpsRuntime extends OpsProvider {
   /** D4: the owner's bookings (null until read), the client they were read with, the booking being started, and the id the blank form row will use. */
   private scheduledRows: ScheduledEvent[] | null = null;
   private scheduledClient: ScheduledClient | null = null;
+  private bazaarDays = new BazaarDays({
+    client: () => this.scheduledClient,
+    online: () => Boolean(this.state.online),
+    bookings: () => this.scheduledRows ?? [],
+    flavours: () =>
+      PRODUCTS.map((p) => ({
+        id: p.id,
+        name: p.short,
+        priceCents: pesosToCentavos(Number((this as unknown as TotalActions).priceOf(p.id)) || 0)
+      })),
+    holdsEvent: () => !!this.state.event,
+    begin: (booking, day) => this.beginBazaarDay(booking, day),
+    rerender: () => {
+      if (!this.unmounted) this.forceUpdate();
+    },
+    toast: (text, kind) => this.toast(text, kind),
+    today: () => manilaToday(),
+    newId: () => crypto.randomUUID(),
+    openAdd: () => void this.openScheduled()
+  });
   private scheduledNewId = '';
   private scheduledVersion = 0;
   private stockCatalogue: StockCatalogue | null = null;
@@ -2281,6 +2302,7 @@ export class OpsRuntime extends OpsProvider {
         : {}),
       liveStockItems: this.liveStockItemsVals(),
       liveStock: this.liveStockVals(),
+      liveBazaar: isLiveMode() && this.state.role === 'owner' ? this.bazaarDays.vals() : null,
       liveStockSuppliers: this.liveStockSuppliersVals(),
       liveRecipeDrafts: this.liveRecipeDraftsVals(),
       // S2: the ported start list is never offered in live mode: a day is started from the Bazaar page (`liveBazaar`).
