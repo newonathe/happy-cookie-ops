@@ -30,6 +30,7 @@
  * It deletes nothing but the account it made and the shop details it saved.
  */
 import { randomBytes, randomUUID } from 'node:crypto';
+import { readFileSync } from 'node:fs';
 import { chromium } from '@playwright/test';
 import { createClient } from '@supabase/supabase-js';
 import { assert, localStack, serveLiveBuild } from './lib/live-stack.mjs';
@@ -591,6 +592,76 @@ try {
     );
     await check(page, 'Bazaar, back online', 'Bazaar Mode');
   });
+
+  // B5: the New Stock screens, in a real browser. axe finds what jsdom cannot (real colour contrast), and the
+  // layout is held to 320 px wide at 200% text with no sideways scroll. Skip with SMOKE_SKIP_STOCK_A11Y=1, so a
+  // build without these screens cannot fail the checks above. The scan is limited to the screen's own region.
+  if (process.env.SMOKE_SKIP_STOCK_A11Y === '1') {
+    console.log(
+      '  skip  the New Stock screens: accessibility and layout (SMOKE_SKIP_STOCK_A11Y=1)'
+    );
+  } else {
+    const axeSource = readFileSync(
+      new URL('../node_modules/axe-core/axe.min.js', import.meta.url),
+      'utf8'
+    );
+    /** Serious or critical axe violations inside the open screen's region, as short lines. */
+    const axeProblems = async (at, label) => {
+      await page.evaluate(axeSource);
+      const found = await page.evaluate(async (screenLabel) => {
+        const region = document.querySelector(`[data-screen-label="${screenLabel}"]`);
+        const result = await window.axe.run(region, { resultTypes: ['violations'] });
+        return result.violations
+          .filter((v) => v.impact === 'serious' || v.impact === 'critical')
+          .map((v) => `${v.impact} ${v.id}: ${v.nodes.map((n) => n.target.join(' ')).join(', ')}`);
+      }, label);
+      assert(found.length === 0, `${at}: axe found ${found.join(' | ')}`);
+    };
+    /** No sideways scroll at 320 px wide with the text at 200%. */
+    const fitsNarrow = async (at) => {
+      await page.setViewportSize({ width: 320, height: 640 });
+      await page.evaluate(() => (document.documentElement.style.fontSize = '200%'));
+      await page.waitForTimeout(250);
+      const wide = await page.evaluate(() => ({
+        page: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+        body: document.body.scrollWidth - document.documentElement.clientWidth
+      }));
+      await page.evaluate(() => (document.documentElement.style.fontSize = ''));
+      await page.setViewportSize({ width: 390, height: 844 });
+      assert(
+        wide.page <= 0 && wide.body <= 0,
+        `${at}: scrolls sideways at 320 px and 200% text (${JSON.stringify(wide)}).`
+      );
+    };
+    /** Opens a screen by its address and waits for the new screen, not the ported one, with its stock read in. */
+    const openStock = async (route, label, mark) => {
+      await page.goto(`${base}/${route}`, { waitUntil: 'networkidle' });
+      await page.locator(`[data-screen-label="${label}"]`).waitFor();
+      await page.locator(mark).first().waitFor();
+      await page.getByText('Stock is loading.').waitFor({ state: 'detached' });
+    };
+
+    await step(
+      'Inventory and Grocery: no serious axe violation, and they fit 320 px at 200% text',
+      async () => {
+        await openStock('inventory', 'Inventory', '[aria-label="Stock counts"]');
+        await axeProblems('Inventory list', 'Inventory');
+        await fitsNarrow('Inventory list');
+        const first = page.locator('[aria-label="Stock items"] button').first();
+        if ((await first.count()) > 0) {
+          await first.click();
+          await page.getByRole('button', { name: 'Back to all items' }).waitFor();
+          await axeProblems('Inventory item page', 'Inventory');
+          await fitsNarrow('Inventory item page');
+        } else {
+          console.log('      the stock catalogue is empty: the item page was not scanned.');
+        }
+        await openStock('grocery', 'Grocery list', '[aria-label="Totals"]');
+        await axeProblems('Grocery list', 'Grocery list');
+        await fitsNarrow('Grocery list');
+      }
+    );
+  }
 
   await step('no errors, no CSP violations and no foreign origin, start to finish', async () => {
     assert(problems.length === 0, `Browser errors: ${JSON.stringify(problems)}`);

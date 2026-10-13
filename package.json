@@ -85,7 +85,8 @@
     "@storybook/nextjs": "10.2.10",
     "supabase": "2.116.0",
     "@lhci/cli": "0.15.1",
-    "wrangler": "4.130.0"
+    "wrangler": "4.130.0",
+    "axe-core": "4.13.0"
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx,css,md,json}": [
