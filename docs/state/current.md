@@ -4,7 +4,7 @@ Read this page first in a new session. It is kept short on purpose.
 
 | If you need                                        | Read                                                                                                                                                     |
 | -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| The goal to run next                               | [next-goal.md](next-goal.md) (slice S2, bazaar days)                                                                                                     |
+| The goal to run next                               | [next-goal.md](next-goal.md) (slice S3, bazaar days)                                                                                                     |
 | The plan, approved 5 October                       | [final-plan.md](final-plan.md), version 2                                                                                                                |
 | The rules every agent follows                      | [AGENTS.md](../../AGENTS.md)                                                                                                                             |
 | Ethan's and Cine's decisions                       | [decision-register.md](decision-register.md)                                                                                                             |
@@ -19,13 +19,19 @@ Read this page first in a new session. It is kept short on purpose.
 **The plan is approved; stage A (A1 to A4) and slices B1 to B3b-2, B4a, B4b and B5 are built.** Ethan approved
 [final-plan.md](final-plan.md), version 2, on 5 October after a re-audit, a debate and
 wider research. It replaces finish-plan.md as the forward plan. The Bazaar defect B1 found is
-fixed (below). The next step is slice S2 of
+fixed (below). The next step is slice S3 of
 [bazaar-days.md](bazaar-days.md): Ethan put the bazaar's new flow ahead of B6 on 13 October, with no fallback, so S1 to
 S3 must be deployed and rehearsed on the phone by 20 October.
 
 **S1, 13 October (built, local only; the trial stays at 67):** migration 68 holds a booking's days, fees, losses, costs,
 start, close and finalise, held to a hand-worked example to the centavo; the books count an open bazaar in `held`.
 Contracts as built, and Ethan's answers of 14 October (shop cookies are a batch of the drop): [bazaar-days.md](bazaar-days.md).
+
+**S2, 14 October (built, local only; branch claude/bazaar-days-s2):** the Bazaar screen is the owner's event list, event page, day plan
+and "Start this day" (`src/components/live/bazaar/`); with an event on the phone it draws the ported till unchanged, so a helper and a
+phone with no signal still sell. The old one-tap start and the ported start list are closed in live mode; "Leave" and the old close-out
+refuse on a started day (S3 closes it from a review). The smoke suite plans, starts and sells day 1 at its own price, online and offline.
+Not built yet: fees, target and costs on the event page, carrying over, the review and close (S3).
 
 **Her data and the database, 13 October:** at Ethan's instruction the trial went from migration 55 to 67 of 67 (through
 B5), rehearsed first on the local database, and her data is in: 23 recipes with packaging lines, 72 prices, the items

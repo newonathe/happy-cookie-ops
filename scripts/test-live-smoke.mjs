@@ -7,6 +7,10 @@
  * every tab, sub-tab and entry of the function map, every route by its address, and one Bazaar
  * sale online, two with no network (one of them after a reload), all three in the database once.
  *
+ * Slice S2 (bazaar days) changed the Bazaar part: the stall's day is planned on the Bazaar page (a booking, then
+ * day 1 with its own float, cookies and price), started with signal, and sold at that price. Day 1 only: closing,
+ * carrying over and finalising are S3.
+ *
  * Slice B2 added: no prototype value on any page it visits (`PROTOTYPE`, below); the signed-in
  * person's own name on Home and on every sale, the offline ones included; the owner's shop
  * details saved through the form and shown to a signed-out customer; and a control in every
@@ -26,7 +30,8 @@
  *   - the flavour `dcf` is set published and on the order form (the only existing row it changes);
  *   - one `production_records` batch row, written directly so the stall has baked stock: no
  *     ingredients are taken for it;
- *   - one event, left open, and its three sales. Repeated runs add one open event each.
+ *   - one booking, its day 1 (planned, started and left open as one event) and the day's three sales. Repeated runs add
+ *     one booking each; `pnpm db:reset` clears them.
  * It deletes nothing but the account it made and the shop details it saved.
  */
 import { randomBytes, randomUUID } from 'node:crypto';
@@ -63,7 +68,7 @@ const SCREEN_LABEL = {
   stocktake: 'Inventory',
   more: 'All tools',
   grocery: 'Grocery list',
-  bazaar: 'Bazaar Mode',
+  bazaar: 'Bazaar',
   pnl: 'P and L',
   formqueue: 'Form queue',
   health: 'System health',
@@ -83,6 +88,18 @@ const FLAVOUR = 'dcf';
 const BATCH_REF = 'B1 smoke suite';
 const OWNER_NAME = 'Smoke Owner Reyes';
 const DETAILS = { name: 'Smoke Test Bakes', tagline: 'Checked by the smoke suite, 137 ways.' };
+// S2: day 1's own plan. The price is not the menu's, so a sale at the menu price would fail the check below.
+const DAY_PRICE_PESOS = 150;
+const DAY_FLOAT_PESOS = 500;
+const DAY_COOKIES = 6;
+const BOOKING_NAME = 'Smoke bazaar';
+/** Today on the business clock, as YYYY-MM-DD. */
+const manilaToday = () =>
+  new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Manila' }).format(new Date());
+const manilaPlus = (days) =>
+  new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Manila' }).format(
+    new Date(Date.now() + days * 86_400_000)
+  );
 
 // Values of the prototype that must be on no live page (audit H1 to H6, H14, and the ported
 // payment channels). The local seed holds none of them as a real record; two that it does
@@ -120,6 +137,7 @@ const FORMS_OF_6_7 = [
 
 // ---------------------------------------------------------------- the world, set through the service role
 const owner = { email: `b1-smoke-${randomUUID().slice(0, 8)}@example.test`, id: null };
+const bookingId = randomUUID();
 const secret = randomBytes(24).toString('base64url');
 
 async function seedWorld() {
@@ -154,6 +172,19 @@ async function seedWorld() {
       recipe_version: 1,
       at: new Date().toISOString(),
       payload_hash: randomBytes(32).toString('hex')
+    })
+  );
+  // S2: the booking whose day 1 the stall sells (today to tomorrow, so its day is inside its dates on any run).
+  ok(
+    'bazaar booking',
+    await admin.from('scheduled_events').insert({
+      id: bookingId,
+      name: BOOKING_NAME,
+      starts_on: manilaToday(),
+      ends_on: manilaPlus(1),
+      place: 'Smoke hall',
+      rent_cents: 100000,
+      active: true
     })
   );
   const { data, error } = await admin
@@ -484,27 +515,94 @@ try {
   let eventId = '';
 
   await step(
-    'Bazaar Mode: an event opens on the server, the table is loaded, one sale goes through',
+    'Bazaar: day 1 is planned, started at its own price and stock, and one sale goes through',
     async () => {
-      // The app counts as baked what was baked for its current drop. The seeded batch is given
-      // that number here: on a freshly reset database nothing else carries it, and the table
-      // would have nothing to load.
-      const dropNo = await page.evaluate(() => window.__hcOps.state.dropNo);
-      const stamped = await admin
-        .from('production_records')
-        .update({ drop_no: dropNo })
-        .eq('ref', BATCH_REF);
-      assert(!stamped.error, `baked stock drop: ${stamped.error?.message}`);
       await page.goto(`${base}/bazaar`, { waitUntil: 'networkidle' });
-      await check(page, 'Bazaar bookings', 'Bazaar Mode');
-      await page.getByText('Start without a booking').click();
-      await page.waitForFunction(() => window.__hcOps.state.event?.id);
+      await check(page, 'Bazaar bookings', 'Bazaar');
+      // The ported start list is gone: no prototype event, no one-tap start.
+      assert(
+        (await page.getByText('Start without a booking').count()) === 0 &&
+          (await page.getByText('Start an event').count()) === 0,
+        'The old start is still offered.'
+      );
+      await page.getByRole('button', { name: new RegExp(BOOKING_NAME) }).click();
+      await page.getByRole('heading', { level: 1, name: BOOKING_NAME }).waitFor();
+      await check(page, 'Bazaar event page', 'Bazaar');
+      // Day 1 is today: the first date still without a plan.
+      await page.locator('[aria-labelledby="bazaar-plan"] button').first().click();
+      const form = page.getByRole('form', { name: /^Plan for / });
+      await form.waitFor();
+      assert(
+        (await form.getByLabel('Carried over').count()) === 0,
+        'Day 1 offers cookies carried over.'
+      );
+      await check(page, 'Bazaar day plan', 'Bazaar day plan');
+      await form.getByLabel('Drawer float (₱)').fill(String(DAY_FLOAT_PESOS));
+      const card = form
+        .getByText(flavour.short_name, { exact: true })
+        .locator('xpath=ancestor::li[1]');
+      await card.getByLabel('Made').fill(String(DAY_COOKIES));
+      await card.getByLabel('Price (₱)').fill(String(DAY_PRICE_PESOS));
+      await form.getByRole('button', { name: 'Save the plan' }).click();
+      await page.getByText(`${DAY_COOKIES} cookies on the table`).waitFor();
+      const planned = await admin
+        .from('bazaar_days')
+        .select('id, float_cents, event_id, bazaar_day_lines(product_id, made_qty, price_cents)')
+        .eq('scheduled_id', bookingId);
+      assert(!planned.error && planned.data.length === 1, `bazaar_days: ${planned.error?.message}`);
+      const planRow = planned.data[0];
+      assert(
+        planRow.event_id === null &&
+          Number(planRow.float_cents) === DAY_FLOAT_PESOS * 100 &&
+          planRow.bazaar_day_lines.length === 1 &&
+          Number(planRow.bazaar_day_lines[0].price_cents) === DAY_PRICE_PESOS * 100 &&
+          planRow.bazaar_day_lines[0].made_qty === DAY_COOKIES,
+        `The saved plan is not what was typed: ${JSON.stringify(planRow)}`
+      );
+      await check(page, 'Bazaar planned day', 'Bazaar');
+      const bakedBefore = await page.evaluate(
+        (id) => window.__hcOps.state.baked?.[id] ?? 0,
+        FLAVOUR
+      );
+      await page.getByRole('button', { name: 'Start this day', exact: true }).click();
+      await page.waitForFunction(() => window.__hcOps.state.event?.dayId);
+      await page.locator('[data-screen-label="Bazaar Mode"]').waitFor();
       eventId = await page.evaluate(() => window.__hcOps.state.event.id);
-      // With an event on the phone, the Bazaar screen is exactly as before B1: no strip.
+      const started = await page.evaluate((id) => {
+        const s = window.__hcOps.state;
+        return {
+          stage: s.event.stage,
+          day: s.event.dayId,
+          price: s.eventPrices[id],
+          stock: s.eventStock[id],
+          baked: s.baked?.[id] ?? 0,
+          float: s.drawer?.float
+        };
+      }, FLAVOUR);
+      assert(
+        started.stage === 'selling' &&
+          started.day === planRow.id &&
+          started.price === DAY_PRICE_PESOS &&
+          started.stock === DAY_COOKIES &&
+          started.float === DAY_FLOAT_PESOS,
+        `The started day is not the planned one: ${JSON.stringify(started)}`
+      );
+      assert(
+        started.baked === bakedBefore,
+        "The day's cookies were taken from the shop's baked stock."
+      );
+      const opened = await admin
+        .from('events')
+        .select('id, price_snapshot')
+        .eq('id', eventId)
+        .single();
+      assert(!opened.error, `events: ${opened.error?.message}`);
+      // With an event on the phone, the Bazaar screen is the ported till: no strip, no planning.
       assert((await row(page, 'places').count()) === 0, 'The strip is drawn over an open event.');
-      await page.getByLabel(`Cookies on the table for ${flavour.name}`).fill('6');
-      await page.getByRole('button', { name: /^Open the table/ }).click();
-      await page.waitForFunction(() => window.__hcOps.state.event?.stage === 'selling');
+      assert(
+        (await page.getByRole('button', { name: 'Start this day' }).count()) === 0,
+        'Planning is drawn over the till.'
+      );
       await sellOne(1);
       await check(page, 'Bazaar selling', 'Bazaar Mode');
       await assertEventually(
@@ -551,13 +649,14 @@ try {
     // Stands in for the browser's own event, which headless Chromium does not always fire.
     await page.evaluate(() => window.dispatchEvent(new Event('online')));
     await assertEventually(async () => (await salesInDb(eventId)).length === 3, 'the queued sales');
-    const cents = Number(flavour.price_cents);
+    // Day 1's own price, not the menu's.
+    const cents = DAY_PRICE_PESOS * 100;
     const settled = async (when) => {
       const rows = await salesInDb(eventId);
       assert(rows.length === 3, `${when}: ${rows.length} sales in the database, wanted 3.`);
       assert(
         rows.every((r) => Number(r.total_cents) === cents),
-        `${when}: sale totals differ from the menu price: ${JSON.stringify(rows)}`
+        `${when}: sale totals differ from the day's price: ${JSON.stringify(rows)}`
       );
       // Two of the three were rung up with no network, one of those after a reload.
       assert(

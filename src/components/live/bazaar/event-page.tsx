@@ -3,6 +3,7 @@ import type { BazaarDayRow, BazaarEventView } from '@/lib/bazaar/live-bazaar-typ
 import {
   Facts,
   INK_SOFT,
+  LINE,
   buttonBase,
   cardStyle,
   h1Style,
@@ -23,7 +24,7 @@ function DayCard({ day }: { day: BazaarDayRow }) {
   const noteId = 'day-note-' + day.id;
   const blocked = day.actionNote !== null;
   const primary: React.CSSProperties = blocked
-    ? { ...primaryBase, background: '#E7E1DC', color: INK_SOFT, cursor: 'not-allowed' }
+    ? { ...primaryBase, background: LINE, color: INK_SOFT, cursor: 'not-allowed' }
     : primaryBase;
   return (
     <li style={{ ...cardStyle, display: 'flex', flexDirection: 'column', gap: '8px' }}>

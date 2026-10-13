@@ -46,6 +46,11 @@ export function EventList({ bazaar }: { bazaar: LiveBazaarVals }) {
           ))}
         </ul>
       )}
+      <p style={mutedStyle}>
+        {bazaar.online
+          ? 'Starting a day needs signal. Selling does not.'
+          : 'Starting a day needs signal: it is read from the server.'}
+      </p>
       <div style={wrapRow}>
         <button
           type="button"
@@ -55,11 +60,6 @@ export function EventList({ bazaar }: { bazaar: LiveBazaarVals }) {
           Add an event
         </button>
       </div>
-      <p style={mutedStyle}>
-        {bazaar.online
-          ? 'Starting a day needs signal. Selling does not.'
-          : 'Starting a day needs signal: it is read from the server.'}
-      </p>
     </>
   );
 }

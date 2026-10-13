@@ -180,6 +180,8 @@ export class BazaarDays {
     open: BazaarDay | undefined
   ): BazaarDayRow {
     const total = day.lines.reduce((t, l) => t + l.made + l.carried, 0);
+    // The flavour's name as the rest of the app writes it; the database's own spelling when the flavour is not in the list.
+    const names = new Map(this.deps.flavours().map((f) => [f.id, f.name]));
     let action: BazaarDayRow['action'] = null;
     let note: string | null = null;
     if (day.state === 'planned') {
@@ -199,7 +201,14 @@ export class BazaarDays {
       floatText: 'Float ' + pesoText(day.floatCents),
       lines: day.lines
         .filter((l) => l.made + l.carried > 0)
-        .map((l) => l.name + ' · ' + (l.made + l.carried) + ' at ' + pesoText(l.priceCents)),
+        .map(
+          (l) =>
+            (names.get(l.productId) ?? l.name) +
+            ' · ' +
+            (l.made + l.carried) +
+            ' at ' +
+            pesoText(l.priceCents)
+        ),
       edit: day.state === 'planned' ? () => this.edit(day) : null,
       action,
       actionNote: note,

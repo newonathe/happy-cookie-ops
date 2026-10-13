@@ -29,7 +29,12 @@ export function BazaarLive({ v }: { v: OpsVals }) {
   if (v.event) return <BazaarModeScreen v={v} />;
   const bazaar = liveBazaarOf(v);
   return (
-    <section aria-label="Bazaar" data-screen-label="Bazaar" style={screenStyle}>
+    // The room at the bottom keeps the last control clear of the app's floating add button.
+    <section
+      aria-label="Bazaar"
+      data-screen-label="Bazaar"
+      style={{ ...screenStyle, paddingBottom: '72px' }}
+    >
       {!bazaar ? <NoDays /> : <Days bazaar={bazaar} />}
     </section>
   );
