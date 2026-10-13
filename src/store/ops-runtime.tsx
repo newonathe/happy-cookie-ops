@@ -44,6 +44,12 @@ import {
   type CommandKind
 } from '@/lib/offline/queue';
 import { clearBazaar, readBazaar, saveBazaar } from '@/lib/offline/bazaar-state';
+import {
+  dayEventId,
+  engineStateForDay,
+  startBazaarDay,
+  type BazaarClient
+} from '@/lib/data/bazaar-days';
 import { readStallCopy, saveStallCopy } from '@/lib/offline/stall-copy';
 import { requestPersistentStorage } from '@/lib/offline/persist';
 import { isEventUuid, startEventOnServer, type EventSalesClient } from '@/lib/data/event-sales';
@@ -596,6 +602,9 @@ interface LiveEvent {
   stage?: string;
   snapshot?: string[];
   closedAt?: number;
+  /** S2: set when the event is a started bazaar day. */
+  dayId?: string;
+  scheduledId?: string;
 }
 
 /** Whole, positive counts of the flavours the server knows for this event. */
@@ -990,6 +999,12 @@ export class OpsRuntime extends OpsProvider {
       });
     };
     bazaar.closeEvent = () => {
+      // S2: a bazaar day is closed from its day review (S3), never by the old close-out: the database refuses it (55000), so
+      // it would wait in the queue as a failed sync for the whole rehearsal.
+      if ((this.state.event as LiveEvent | null)?.dayId) {
+        this.toast('Close this day from its review on the Bazaar page.', 'warn');
+        return;
+      }
       const before = this.state;
       const counted = (before.drawer as { counted?: unknown } | null)?.counted;
       const pesos = counted === '' || counted == null ? NaN : Number(counted);
@@ -1194,6 +1209,62 @@ export class OpsRuntime extends OpsProvider {
     } catch {
       this.toast('Saved on this phone. Sync is still pending.', 'warn');
     }
+  }
+
+  /**
+   * S2: starts a planned bazaar day. Online only: the server opens it as one event with the day's own prices and stock and
+   * names this phone the selling device. The event id comes from the day, so a retry, a cleared tab or a second tap is
+   * answered with the same event. The till then sells exactly as before. Never calls `link_scheduled_event`.
+   */
+  async beginBazaarDay(
+    booking: { id: string; name: string },
+    day: { id: string; day: string }
+  ): Promise<'started' | 'offline' | 'refused'> {
+    const target = this.state.online ? this.salesTarget() : null;
+    if (!target) {
+      this.toast('Start the day while you have signal. Sales can go offline after that.', 'warn');
+      return 'offline';
+    }
+    const outcome = await startBazaarDay(
+      target as unknown as BazaarClient,
+      day.id,
+      deviceId(),
+      await dayEventId(day.id)
+    );
+    if (!outcome.ok) {
+      this.toast(
+        outcome.error === 'refused'
+          ? 'This day cannot be started now. Check the plan and any day still open.'
+          : 'The day could not be started. Try again.',
+        'warn'
+      );
+      return outcome.error === 'refused' ? 'refused' : 'offline';
+    }
+    // A2: this phone now holds the day's sales, so ask the browser not to evict its storage.
+    void requestPersistentStorage();
+    const patch = engineStateForDay(
+      outcome.started,
+      {
+        name: booking.name,
+        date: dateRange(day.day, day.day),
+        dayId: day.id,
+        scheduledId: booking.id
+      },
+      PRODUCTS.map((p) => p.id),
+      centavosToPesos
+    );
+    this.setState((s) => ({
+      // The engine's own startEvent sets syncState 'idle' (it means nothing to sync), which its state type does not list.
+      ...(patch as Omit<typeof patch, 'syncState'>),
+      syncState: 'idle' as never,
+      eventPrices: { ...(s.eventPrices as object), ...patch.eventPrices }
+    }));
+    if (outcome.started.sellingDevice !== deviceId())
+      this.toast(
+        'Another phone is the selling device for this day: sales here would be refused.',
+        'warn'
+      );
+    return 'started';
   }
 
   /** Online only: the server snapshots the prices and names this phone the selling device. */

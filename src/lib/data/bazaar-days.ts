@@ -324,3 +324,42 @@ export async function startBazaarDay(
     return { ok: false, error: 'offline' };
   }
 }
+
+/**
+ * The engine's state for a day that has just started, exactly as `startEvent` then `openSelling` would leave it for an
+ * event with this day's prices and stock, so the till, `saveBazaar` and the offline gate work unchanged. Unlike
+ * `openSelling` it does NOT move `baked`: these cookies are the day's own plan, not shop stock. `dayId` and `scheduledId`
+ * ride on `event`, which `saveBazaar` already keeps, so a reload with no signal still knows which day is selling.
+ * `productIds` are the engine's flavours; `toPesos` converts centavos in one place (`src/lib/money.ts`).
+ */
+export function engineStateForDay(
+  started: StartedDay,
+  ctx: { name: string; date: string; dayId: string; scheduledId: string },
+  productIds: readonly string[],
+  toPesos: (cents: number) => number
+) {
+  const loaded: Record<string, number> = {};
+  for (const id of productIds) loaded[id] = started.loaded[id] ?? 0;
+  const prices: Record<string, number> = {};
+  for (const [id, cents] of Object.entries(started.prices)) prices[id] = toPesos(cents);
+  return {
+    event: {
+      name: ctx.name,
+      date: ctx.date,
+      stage: 'selling',
+      id: started.eventId,
+      snapshot: Object.keys(started.prices),
+      dayId: ctx.dayId,
+      scheduledId: ctx.scheduledId
+    },
+    eventStock: { ...loaded },
+    eventLoaded: loaded,
+    eventPrices: prices,
+    drawer: { float: toPesos(started.floatCents), counted: '' },
+    sales: [] as never[],
+    cart: {} as Record<string, number>,
+    unsynced: 0,
+    syncState: 'idle',
+    syncTried: false
+  };
+}

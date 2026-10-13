@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
   dayEventId,
+  engineStateForDay,
   fetchBazaar,
   parseBazaar,
   parseStartedDay,
@@ -308,3 +309,65 @@ function planOf() {
     lines: [{ productId: 'mp0s-a', made: 20, carried: 0, priceCents: 13000 }]
   };
 }
+
+describe('engineStateForDay', () => {
+  const started = {
+    eventId: EVENT1,
+    sellingDevice: 'devA',
+    prices: { 'mp0s-a': 13000, 'mp0s-b': 15050 },
+    loaded: { 'mp0s-a': 20, 'mp0s-b': 10 },
+    floatCents: 50000
+  };
+  const ctx = { name: 'Fixture fair', date: 'Sat, Oct 24', dayId: DAY1, scheduledId: BOOKING };
+  const pesos = (c: number) => c / 100;
+
+  it('puts the day in the engine selling, with its own prices and stock and no cookies taken from baked stock', () => {
+    const s = engineStateForDay(started, ctx, ['mp0s-a', 'mp0s-b', 'mp0s-c'], pesos);
+    expect(s.event).toEqual({
+      name: 'Fixture fair',
+      date: 'Sat, Oct 24',
+      stage: 'selling',
+      id: EVENT1,
+      snapshot: ['mp0s-a', 'mp0s-b'],
+      dayId: DAY1,
+      scheduledId: BOOKING
+    });
+    expect(s.eventPrices).toEqual({ 'mp0s-a': 130, 'mp0s-b': 150.5 });
+    expect(s.eventLoaded).toEqual({ 'mp0s-a': 20, 'mp0s-b': 10, 'mp0s-c': 0 });
+    expect(s.eventStock).toEqual(s.eventLoaded);
+    expect(s.drawer).toEqual({ float: 500, counted: '' });
+    expect(s).not.toHaveProperty('baked');
+    expect(s.sales).toEqual([]);
+    // Mutation: copying openSelling's `baked` subtraction (adding a baked key) fails the not.toHaveProperty.
+  });
+});
+
+describe('a started day survives a reload', () => {
+  it('keeps the event, its day and its prices in the saved bazaar', async () => {
+    const { saveBazaar, readBazaar, clearBazaar } = await import('@/lib/offline/bazaar-state');
+    clearBazaar();
+    const s = engineStateForDay(
+      {
+        eventId: EVENT1,
+        sellingDevice: 'devA',
+        prices: { 'mp0s-a': 13000 },
+        loaded: { 'mp0s-a': 20 },
+        floatCents: 50000
+      },
+      { name: 'Fixture fair', date: 'Sat, Oct 24', dayId: DAY1, scheduledId: BOOKING },
+      ['mp0s-a'],
+      (c) => c / 100
+    );
+    saveBazaar({ ...s, unsynced: 0 });
+    const back = readBazaar();
+    expect(back?.event).toMatchObject({
+      id: EVENT1,
+      dayId: DAY1,
+      scheduledId: BOOKING,
+      stage: 'selling'
+    });
+    expect(back?.eventPrices).toEqual({ 'mp0s-a': 130 });
+    expect(back?.eventLoaded).toEqual({ 'mp0s-a': 20 });
+    clearBazaar();
+  });
+});
