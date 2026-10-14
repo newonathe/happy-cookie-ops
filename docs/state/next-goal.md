@@ -1,22 +1,31 @@
-# Next goal — the phone rehearsal (run sheet row 7), then the release hold
+# Next goal — Bazaar v2, slice D0 (design spec and mockups)
 
-S3.1 is on the trial (14 October): migration 69 (`20260101006800_bazaar_hardening.sql`) applied from a scratch folder, 69 of
-69, and its build deployed by PR #24 (merge `3cf4a36`, version `2eda3738`), redeployed unchanged by PR #26 as `fbfd8860`, the version to rehearse. Rows 1, 2 and 2a of the
-[run sheet](bazaar-run-sheet.md) are done. The repository is public since 14 October (GitHub's free minutes for private
-repositories had run out): nothing secret may be committed, and the secret scan runs before every push.
+Ethan reviewed the live bazaar screens on 15 October (13 points: design, flow, motion, forms, costs). The approved plan is
+[bazaar-v2.md](bazaar-v2.md): 10 slices, D0 to U9, each its own `/goal` in a new conversation (blocks at the end of that
+file). Everything lands before the bazaar in **one** release (U9), then the phone rehearsal **by 22 October**, then
+`RELEASE_HOLD=true`. Cut line: U6, U7 and U8 move after 26 October if not green by the evening of 19 October.
 
-**The rehearsal is Ethan's, on the selling iPhone** ([run sheet](bazaar-run-sheet.md), "The rehearsal", steps 1 to 11). An
-agent cannot run it: it needs the phone, aeroplane mode, the Home Screen app and the owner's sign-in. Nothing is deployed and
-nothing is written to the database between the rehearsal and 26 October (row 8).
+The trial today: migration 69 of 69, version `fbfd8860` (S3.1). Cine's two sign-ins are owners; Access admits four
+addresses for one week. The repository is public: secret scan before every push.
 
 ```
-/goal Record the bazaar phone rehearsal in C:\Users\ethan\dev\happy-cookie-ops-g0. Read AGENTS.md, docs/state/current.md,
-this file, bazaar-run-sheet.md ("Go / no-go", "The rehearsal"). Ethan pastes each step's result (pass, or what he saw).
-1 For each failed step: find the cause in code (read only the files the step's row in "What proves each step" names),
-  say whether it blocks 24 October, and propose the smallest fix. Build nothing until Ethan says which to fix.
-2 When all 11 pass: update row 7 and the go/no-go paragraph, current.md, and this file (next: RELEASE_HOLD, row 8).
-Stop and ask before any hosted write; setting RELEASE_HOLD is Ethan's.
+/goal Bazaar v2 slice D0 (design spec and mockups) in C:\Users\ethan\dev\happy-cookie-ops-g0. Read AGENTS.md,
+docs/state/current.md, docs/state/bazaar-v2.md (Audit, Research, D0). Look at src/app/globals.css @theme,
+docs/reference/screens/states/06-sheet-closeout.png, docs/master-plan/evidence/ui/chromium-phone/01-home.png.
+1 Write docs/design/bazaar-v2.md: the rules, each component with its props and states, the motion table (element,
+  trigger, property, duration, curve, reduced-motion fallback), and the anatomy of every screen.
+2 Publish one artifact page of mockups at 375 and 1440 px, @theme tokens only, no new hex: Home card, events hub,
+  add-event sheet, event page, day plan tile grid, till frame (Home, Add cookies, sold-out hidden), review with
+  pre-filled close, recipe book and cost receipt, error summary and red fields; live motion demos.
+3 Stop for Ethan's approval; write his changes into the doc. No app code in this slice.
 ```
 
-Model Sonnet, effort medium, a new conversation, plan mode off. Not in S3.1: an expense added at the till
-(`event_expenses`) cannot be removed yet.
+| Setting      | Value                                                          |
+| ------------ | -------------------------------------------------------------- |
+| Model        | Opus                                                           |
+| Effort       | high                                                           |
+| Plan mode    | off                                                            |
+| Conversation | new                                                            |
+| Read         | AGENTS.md, current.md, bazaar-v2.md (Audit, Research, D0 only) |
+
+After D0 is approved: U1, then U2 with U6 in two conversations, then U3 with U5, then U4, U7, U8 and U9.

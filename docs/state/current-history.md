@@ -5,6 +5,19 @@ is in [current.md](current.md). Sections were moved here from `current.md` on 20
 again, with the earlier goals from `next-goal.md`, on 2026-10-05, and again on 2026-10-06. Add nothing here by hand;
 move a checkpoint here when it leaves `current.md`.
 
+# Moved from current.md on 2026-10-15
+
+Two "Waiting on Ethan" items, verbatim, done on 14 October (run sheet rows 5, 6 and 10).
+
+- A1 is built (the release check takes two to six addresses; Cine is not added yet). Add her
+  two addresses to Cloudflare Access and the approved-digest variable in one sitting, or the
+  next deploy fails. Set the session to one week: that deploy then fails once and prints the
+  value; put it in `ALLOWED_SESSION_DURATIONS`, push, then invite her.
+- **Display names.** From this deploy the app greets each person, and records each bazaar
+  sale, under their profile's `display_name`. No form edits it yet (C6). Check yours, Cine's
+  and each helper's before 20 October: Supabase dashboard, Table editor, `profiles`, or say
+  the word and it is done through the connector. The trial's profiles were not read.
+
 # Moved from current.md on 2026-10-14
 
 The migration 68 release paragraph of "Where things stand", verbatim (superseded by the S3.1 release).

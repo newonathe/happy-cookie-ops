@@ -1,0 +1,385 @@
+# Bazaar v2: design, flow and motion, in 10 slices
+
+Approved by Ethan on 15 October 2026 (plan mode). Each slice below is its own `/goal` in a new conversation; the goal blocks are at the end.
+
+## Context
+
+Ethan's review of the live bazaar screens gave 13 points:
+
+- The screens are bland and unsectioned, and give the eye no guidance.
+- They need too much typing.
+- The till traps the owner once a day starts.
+- "Add an event" shows every booking as an editable list.
+- Decimals are inconsistent.
+- Errors do not point at the field.
+- Cost is asked per event instead of coming from the flavour.
+- There is no picture-led layout.
+
+He wants it planned as separate slices, each with its own plan; researched thoroughly, with animation and transitions; built fast; and done before the 24–25 October bazaar. His earlier choices:
+
+- everything before the bazaar;
+- a big Bazaar card on Home;
+- a typed cost per flavour, set in the recipe book;
+- designs approved before code.
+
+## Audit: what the code and the screens show (15 Oct)
+
+- **Two design languages.**
+  - The ported prototype screens have a strong system:
+    - Home: huge numerals ("78 of 200"), an "Open" status pill, a progress bar, an accent left-border "Prepare" card, round flavour photo chips, a dark primary button with an arrow;
+    - till: photo tiles with a "– 0 +" stepper;
+    - close-out: a bottom sheet with a 2×2 stat grid and a "Count the cash box" inset.
+  - The 9 live bazaar files (`src/components/live/bazaar/`, about 4,100 lines with the other live files) use none of it. Every card has equal weight, labels sit stacked on full-width inputs, there are no photos or status pills, and figures are plain text.
+- **Hard-coded styles.** 134 hex literals (21 distinct) and 268 inline `style={{}}` objects in `src/components/live`, including `form-styles.ts`, instead of the `@theme` tokens in `src/app/globals.css`.
+  - The tokens cover colour, radius, shadow and motion (`--ease-out-quint`, `--ease-pop`, `rise`, `sheet`, `fade`, `pop`, screen-slide `hcScr*`, a global reduced-motion rule), but have no spacing or duration scale.
+  - Shared UI is only `pressable.tsx` and `sub-tabs.tsx`.
+- **Behaviour gaps** (found by reading the code):
+  - The till takes over `/bazaar` whenever `v.event` is set (`bazaar-live.tsx:32`). Leaving is refused (`ops-runtime.tsx:1087`) and the tab strip is hidden (`:5399`), yet nothing actually ends the event on navigation.
+  - "Add an event" opens `scheduled-events-form.tsx` with every booking as a row.
+  - Sold-out tiles stay on the till (`ops-engine.js:3072`).
+  - Add stock lives only in the review.
+  - The close form starts blank.
+  - Errors are one `role=alert` line at the bottom of the form; no field gets `aria-invalid`.
+  - Money uses four helpers: the engine's `PESO` (0 decimals, locked), `pesoText` in `src/lib/bazaar/plan.ts:16`, a local `pesoText` in `ops-runtime.tsx:659`, and `formatPesos` in `src/lib/stock/stock-status.ts:81` (2 decimals).
+  - Cost comes from `get_recipe_costs` (8 of 72 ingredients priced) or a per-event typed cost.
+- **Usability seen in the screenshots** (phone, 375 px):
+  - the floating + button and toasts cover form buttons;
+  - long event names wrap into heavy cards;
+  - counts are typed into full-width boxes;
+  - the review's "Selling" is plain text;
+  - the screen has no clear first thing to look at.
+- **Platform.** React 19.2.8 / Next 16.3.8. `<ViewTransition>` is stable only from React 19.3 and Next's flag is experimental. Navigation here is `history.replaceState`, not the router. No motion library is installed. A performance budget exists (C8).
+
+## Research → rules applied in every slice
+
+1. **Hierarchy, inverted pyramid:** status and the one number that matters on top, the explanation in the middle, detail last. One primary action per screen, and progressive disclosure for the rest. On a phone, a card shows one headline figure, with the breakdown on tap. (NN/g progressive disclosure; dashboard-density guidance.)
+2. **Speak the prototype's language:** big numerals, status pills, progress bars, accent cards, photo tiles, steppers, bottom sheets. It is already the approved visual system, so new UI looks native.
+3. **POS tiles:** a photo grid flowing left to right; sold-out hidden from the selling grid, with a one-tap "show sold out"; counts as badges; disabled states explain why. (Roller and Shopify POS tile docs; Shopify merchants asking for sold-out items to be hidden.)
+4. **Forms:**
+   - pre-fill the dominant answer (facts, never decisions);
+   - steppers instead of typing for small counts;
+   - one column on phones, numeric keypad for numbers;
+   - validate on blur;
+   - on submit: an error summary at the top ("There is a problem"), linking to each field, with focus moved there;
+   - an inline message under each bad field, linked with `aria-describedby`, plus a red border and `aria-invalid`;
+   - each message says what is wrong and how to fix it.
+     (GOV.UK error summary and error message; WCAG 2.2 3.3.1 and 3.3.3.)
+5. **Motion:**
+   - animate only `transform` and `opacity` (web.dev);
+   - durations 150–400 ms: enter on an emphasized decelerate curve, exit faster on an accelerate curve (Material 3 tokens: enter `cubic-bezier(0.05,0.7,0.1,1)` 300–400 ms, exit `cubic-bezier(0.3,0,0.8,0.15)` 150–200 ms, standard `cubic-bezier(0.2,0,0,1)`);
+   - motion is purposeful and never the only signal (Apple HIG);
+   - every animation turns off under `prefers-reduced-motion` (the existing global rule);
+   - library-free: CSS keyframes plus `@starting-style` for entry, `document.startViewTransition` behind feature detection for in-screen state swaps, and the frame's existing `hcScr*` slides for screens. No Framer or Motion package (budget, offline bundle).
+6. **Process: spec-driven vertical slices.**
+   - Each slice is one `/goal`, whose block is the spec. Tokens and components come first; each component has a Storybook story; each slice ends with browser-pane QA at 375 px and 1440 px, axe, and the tests.
+   - Two Sonnet builders at most, one writer per file. The interface track runs beside the database track.
+   - Opus signs off. Different-model review for money, SQL and offline.
+     (Spec Kit and OpenSpec-style "spec, plan, tasks" kept small per slice.)
+
+## Slices, order and dates
+
+```
+D0 ─▶ U1 ─┬▶ U2 ─┬▶ U3 ─┐
+          │      └▶ U5 ─┼▶ U4 ─▶ U9 ─▶ release ─▶ rehearsal
+          └▶ U6 (DB) ───┴▶ U7 ─┘        U8 (needs yes) joins before U9
+```
+
+| Slice | What                                                                       | Points        | Date (Oct) | Cut if late?                      |
+| ----- | -------------------------------------------------------------------------- | ------------- | ---------- | --------------------------------- |
+| D0    | Design spec, motion spec, mockups artifact; approval                       | 7, 10, 13     | 15–16      | no                                |
+| U1    | Design system: tokens, components, motion utilities, stories               | 7, 8, 12, 13  | 16         | no                                |
+| U2    | Till freedom: leave and come back, Home card, sold-out hidden, Add cookies | 1, 4, 5       | 17         | no                                |
+| U6    | Cost per flavour (migration 70), database track                            | 9             | 17         | yes → after 26                    |
+| U3    | Events hub: Active pinned, Upcoming and Past, Add top right, single form   | 2, 3          | 18         | no                                |
+| U5    | Review and close: live stat tiles, pre-filled close, receipt               | 6             | 18         | no                                |
+| U4    | Event page and day plan: tile grid, steppers, timeline, red fields         | 9, 10, 11, 12 | 19         | no                                |
+| U7    | Recipe book tiles and the flavour cost receipt                             | 9, 11         | 19–20      | yes → after 26                    |
+| U8    | Two decimals in the ported screens (protected exception)                   | 8             | 20         | yes (needs Ethan's yes)           |
+| U9    | Motion pass, full QA, release                                              | 13            | 21         | no                                |
+| —     | Phone rehearsal → fixes → `RELEASE_HOLD=true`                              | —             | 22–23      | rehearsal by 22 Oct at the latest |
+
+## Slice plans
+
+### D0: design spec and mockups (Opus; about 1 session)
+
+- **Output:**
+  - `docs/design/bazaar-v2.md`: the rules above, a component list, a motion table (element, trigger, property, duration, curve), screen anatomy;
+  - an artifact page of mockups at 375 px and 1440 px, built only from `@theme` tokens: Home card; events hub; add-event sheet; event page; plan tile grid; till frame with Home and Add cookies; review stat tiles and pre-filled close; recipe book and cost receipt; error states; motion demos.
+- **Gate:** Ethan approves or marks changes. The approved page is the spec for U1–U9.
+
+### U1: design system foundations (Sonnet; interface track; no behaviour change)
+
+- **Tokens:** add a spacing scale (4/8/12/16/24/32), a type scale (display, title, body, caption), motion durations (`--dur-fast 150ms`, `--dur-base 250ms`, `--dur-slow 400ms`) and the M3 enter, exit and standard curves to `@theme`. No new hex.
+- **Components** in `src/components/ui/`, each with a story and a unit test:
+  - layout and content: `Card` (plain, accent, inset), `SectionHeader` (title, count, action), `StatTile` (big numeral, label, delta, tap to open), `StatusPill` (Open, Planned, Selling, Closed, Past), `ProgressBar`, `EmptyState`, `Skeleton`, `Banner`;
+  - controls: `Button` (primary, dark, secondary, danger, icon, with press scale), `FilterChips`, `Stepper` (– n +, long-press repeat, numeric keypad);
+  - selling and money: `FlavourTile` (photo via `src/lib/media/resolve-image.ts`, name, price, count badge, sold-out state), `ReceiptTable` (lines, subtotal, total, two decimals);
+  - forms and sheets: `Field`/`SelectField` (label, hint, inline error, `aria-invalid`, red border), `ErrorSummary` (focus, links), `Sheet` (bottom on phone, side or centre on desktop).
+- **Money:** one helper `src/lib/money/format.ts` (`peso(centavosOrPesos)` → `₱1,234.00`) with tests. Replace `pesoText` in `src/lib/bazaar/plan.ts` and `ops-runtime.tsx:659`, and the per-cookie formatting in `src/lib/bazaar/review.ts`.
+- **Motion utilities** (`src/components/ui/motion.css` or `globals.css`):
+  - entry and exit classes using `@starting-style`;
+  - list enter and leave;
+  - a `useViewTransition(fn)` hook (feature-detected, reduced motion respected);
+  - a number count-up for stat tiles (the prototype already counts up).
+- Replace the hex values in `src/components/live/form-styles.ts` with tokens.
+- **Accept:** Storybook builds; `pnpm verify`; port integrity unchanged.
+
+### U2: till freedom (Sonnet; interface plus runtime; the offline rules apply)
+
+- Add `liveBazaar.leaveTill = () => this.go('today')` (`ops-runtime.tsx`) and a "Home" button above the till in `bazaar-live.tsx`. Owner only, hidden when `!bazaar.online` (A2).
+- `liveScreenVals` adds `till: {name, sales, back}`; `live-screen-host.tsx` draws the Home Bazaar card and, on other screens, a "Back to the till" banner. Widen `src/view-models/vals.ts`.
+  - The Home card with no day open shows the active or next event: name, dates, a status pill, Open.
+- `renderVals`, live only: filter `bzSell` to `!soldOut || inCart>0`, with a "Show sold out (n)" chip. When everything is gone, `allGone` gives an empty state with Add cookies.
+- **Add cookies:** export `StockForm` from `day-review.tsx`; add `BazaarDays.addHeldStock` in `src/store/bazaar-days.ts`, reusing `addStock` and the `'stock:'+dayId` pending key.
+- **Motion:** a sold-out tile scales and fades out (200 ms), and comes back after a void; the banner slides down on entry.
+- **Accept:** smoke steps for leaving the till and coming back, a sold-out tile hidden then back after a void, and Add cookies. Offline: Bazaar only (unchanged). Different-model review (offline).
+
+### U3: events hub (Sonnet; interface)
+
+- `event-list.tsx` becomes:
+  - a header "Bazaar" with **Add an event** top right (dark button);
+  - **Active**, pinned (a started day, or today within its dates): a large accent card with today's stats;
+  - **Upcoming** and **Past** behind `FilterChips`, as compact rows with a status pill and dates.
+- **Add an event:** a new single-event `Sheet` (`src/components/live/bazaar/event-form.tsx`) with name, place, dates (a range picker), rent, and pre-filled defaults. It saves through the existing `save_scheduled_event` data path used by `live-form-host.tsx`. Editing happens on the event page.
+- The "Bazaar events" sub-tab (`src/lib/nav/function-map.ts:65`) points at this hub.
+- **Motion:** the sheet rises (`--animate-sheet`); a new event card enters with a rise and highlight; chip switches cross-fade through the view-transition hook.
+
+### U4: event page and day plan (Sonnet; interface)
+
+- **Event page:**
+  - a hero (name, place, a status pill, dates);
+  - a stat row: revenue, profit (or "Cost pending"), cookies sold, against the target `ProgressBar`;
+  - a days timeline (Planned, Selling, Closed);
+  - fees as a `ReceiptTable` with Remove;
+  - costs as a receipt pre-filled from U6 (from the per-event cost until U6 lands);
+  - one primary action per state: Plan a day, Start, Review and close, Close the event.
+- **Day plan:**
+  - a `FlavourTile` grid (photo, name, menu price) with a `Stepper` for the count, pre-filled prices (editable) and carried counts;
+  - a sticky footer total ("50 cookies · ₱6,050.00 at full sale") with the primary action;
+  - the float as a stepper with ₱100 steps.
+- **Red fields everywhere:** validation returns `{field, message}[]`; `Field` shows inline errors; `ErrorSummary` on submit, with focus moved to it. Applies to plan, fees, losses, cost and the event sheet.
+- Remove the FAB overlap: reserve space at the bottom, and position toasts above the sticky footer.
+
+### U5: review and close (Sonnet; interface; money display → review)
+
+- **Live figures** (already in SQL as the day runs): `StatTile`s for revenue, cash expected, sold, left and lost, each opening to its parts (`figure.tsx`, restyled). A "Selling" status pill.
+- **Pre-filled close** (`CloseForm`, `day-review.tsx:~142`), with derived defaults:
+  - Left = should be left;
+  - the remainder goes to Carried over (not the last day), else to the shop if the flavour has a recipe, else Written off;
+  - Cash counted = cash expected.
+  - Add `hasRecipe` to `ReviewStockRow` (`src/lib/bazaar/live-bazaar-types.ts`, `reviewView`) and `cashExpectedPesos`.
+  - Shown as editable steppers per flavour, with an "Over / short ₱x.xx" live line.
+- A Z-report-style day summary as a `ReceiptTable` (sales by flavour, by payment, losses, fees, drawer).
+- **Motion:** figures count up on open; on close, the stat cards settle into a "Day closed" state.
+
+### U6: cost per flavour (database track; Sonnet high; different-model review)
+
+- **Migration 70** `supabase/migrations/20260101006900_flavour_cost.sql`:
+  - `flavour_costs(product_id pk, cost_cents, typed_by, typed_at)`;
+  - `save_flavour_cost(p_product, p_cents)`: owner only, `SECURITY DEFINER`, `search_path=''`, grants, `-- rule:` lines;
+  - a read through `get_flavour_costs()`;
+  - the cost order in `bazaar_line_facts`/`bazaar_summary`: booking typed, then flavour typed, then complete recipe.
+- Pins in `tests/fixtures/mp08g-source-pins.json` and `function-authority.json`; role-suite cases in `tests/integration/security/bazaar-days.sql`; regenerate types.
+- Rehearse locally, then apply hosted from a scratch folder exported from the commit (dry run first), then the fingerprint check. Same method as 69.
+- **Cut:** if not green by 19 Oct, it moves after 26 Oct and U4 keeps the per-event cost.
+
+### U7: recipe book (Sonnet; interface; needs U6)
+
+- A live screen registered for `recipes` (`src/components/live/live-screens.ts`):
+  - a `FlavourTile` grid with search, on-menu and all filters, and price, cost and margin badges (margin colour against the margin floor);
+  - a flavour page: photo hero, price, cost per cookie (editable, saved with `save_flavour_cost`), margin, and a receipt-style breakdown from `get_recipe_costs` lines (`20260101005900_packaging_rules.sql:916`), or "Typed by Cine" with no lines.
+- Recipe editing stays in the old screen (its save bug is B6). Its button says so.
+- **Motion:** tile to page through the view-transition hook (the shared photo morphs); fallback is a fade.
+
+### U8: two decimals in the ported screens (needs Ethan's yes)
+
+- A one-line protected exception: `PESO` in `src/store/engine/ops-engine.js:19` uses 2 fraction digits. Record it in `docs/state/protected-exception.md`, add a reversal in `scripts/validate-g0.py`, run `check-port-integrity.mjs --update` in the same commit, regenerate the Docker visual baselines, and get an independent port audit.
+- **Cut:** without a yes, the till keeps whole pesos.
+
+### U9: motion pass, QA and release (Opus sign-off)
+
+- Apply the D0 motion table across the slices:
+  - press scale 0.97;
+  - sheet rise and fall;
+  - list enter and leave;
+  - tile sold-out fade;
+  - count-ups;
+  - focus jump to the error summary;
+  - the view-transition swaps.
+- Check reduced motion. Check the performance budget against the C8 baseline (no new dependency).
+- **Full QA:** `pnpm verify`, `test:e2e`, `test:live:smoke` (extended in U2–U5), the role suite (if U6), Docker visual (if U8), browser pane at 320, 375, 768 and 1440 px, and axe.
+- **Release:** secret scan → PR → merge → deploy → confirm the version and the Access redirect. Then the phone rehearsal (run sheet), fixes, a re-run, and `RELEASE_HOLD=true`.
+
+## Verification (every slice)
+
+- `pnpm verify` (port integrity unchanged except an approved U8).
+- New unit tests for every helper, validator and default.
+- The smoke suite extended for each new flow.
+- Browser-pane screenshots at 375 px and 1440 px, compared with the approved D0 mockup.
+- axe with no serious violations; 44 px targets; no sideways scroll at 320 px or at 200 % text.
+- Each slice is committed and pushed to its branch. Only U9 merges and deploys.
+
+## How to run the slices
+
+- One slice = one `/goal`, in a **new conversation**, with auto mode on. Paste the block from below.
+- Pairs that may run at the same time in two conversations (different files): **U2 with U6**, **U3 with U5**. Never
+  two database slices at once.
+- Each slice commits and pushes its own branch and stops. Only U9 merges and deploys (one release, then the rehearsal).
+- Every slice ends with browser-pane QA at 375 px and 1440 px against the approved D0 mockups, axe, `pnpm verify`.
+- Cut line: U6, U7 and U8 move after 26 October if they are not green by the evening of 19 October. The rehearsal is
+  no later than 22 October whatever is cut.
+
+## Goal blocks
+
+### D0
+
+```
+/goal Bazaar v2 slice D0 (design spec and mockups) in C:\Users\ethan\dev\happy-cookie-ops-g0. Read AGENTS.md,
+docs/state/current.md, docs/state/bazaar-v2.md (Audit, Research, D0). Look at src/app/globals.css @theme,
+docs/reference/screens/states/06-sheet-closeout.png, docs/master-plan/evidence/ui/chromium-phone/01-home.png.
+1 Write docs/design/bazaar-v2.md: the rules, each component with its props and states, the motion table (element,
+  trigger, property, duration, curve, reduced-motion fallback), and the anatomy of every screen.
+2 Publish one artifact page of mockups at 375 and 1440 px, @theme tokens only, no new hex: Home card, events hub,
+  add-event sheet, event page, day plan tile grid, till frame (Home, Add cookies, sold-out hidden), review with
+  pre-filled close, recipe book and cost receipt, error summary and red fields; live motion demos.
+3 Stop for Ethan's approval; write his changes into the doc. No app code in this slice.
+```
+
+Model Opus, effort high, new conversation, plan mode off.
+
+### U1
+
+```
+/goal Bazaar v2 slice U1 (design system foundations) in C:\Users\ethan\dev\happy-cookie-ops-g0. Read AGENTS.md,
+docs/state/current.md, docs/state/bazaar-v2.md (U1), docs/design/bazaar-v2.md and the approved D0 artifact.
+1 Tokens in src/app/globals.css @theme: spacing, type scale, durations, M3 enter/exit/standard curves. No new hex.
+2 src/components/ui/: Card, SectionHeader, StatTile, StatusPill, ProgressBar, EmptyState, Skeleton, Banner, Button,
+  FilterChips, Stepper, FlavourTile, ReceiptTable, Field/SelectField (inline error, aria-invalid), ErrorSummary,
+  Sheet; a story and a unit test each.
+3 src/lib/money/format.ts (two decimals) replacing pesoText in src/lib/bazaar/plan.ts and src/store/ops-runtime.tsx,
+  and per-cookie formatting in src/lib/bazaar/review.ts. Tokens in src/components/live/form-styles.ts.
+4 Motion utilities: @starting-style entry, list enter/leave, useViewTransition (feature-detected), count-up.
+pnpm verify, build-storybook, stories checked in the browser pane at 375 px. Commit and push the branch; do not merge.
+```
+
+Model Sonnet builds with Opus sign-off, effort high, new conversation, plan mode off.
+
+### U2
+
+```
+/goal Bazaar v2 slice U2 (till freedom) in C:\Users\ethan\dev\happy-cookie-ops-g0. Read AGENTS.md,
+docs/state/current.md, docs/state/bazaar-v2.md (Audit, U2), docs/OFFLINE.md, docs/design/bazaar-v2.md.
+1 leaveTill (ops-runtime) and a Home button above the till (bazaar-live.tsx), owner only, hidden offline.
+2 liveScreenVals till {name, sales, back}; live-screen-host.tsx draws the Home Bazaar card and the "Back to the till"
+  banner; widen src/view-models/vals.ts.
+3 renderVals (live only): hide sold-out tiles unless in the cart; "Show sold out (n)"; allGone empty state.
+4 Add cookies from the till: export StockForm, BazaarDays.addHeldStock reusing addStock and its pending key.
+Tests first; extend scripts/test-live-smoke.mjs (leave and return, sold-out hidden then back after a void, add cookies).
+One different-model review (offline). Browser-pane QA at 375 and 1440 px. Commit and push the branch; do not merge.
+```
+
+Model Sonnet high with Opus sign-off, new conversation, plan mode off.
+
+### U6
+
+```
+/goal Bazaar v2 slice U6 (cost per flavour, migration 70) in C:\Users\ethan\dev\happy-cookie-ops-g0. Read AGENTS.md,
+docs/state/current.md, docs/state/bazaar-v2.md (U6), supabase/migrations/20260101006800_bazaar_hardening.sql by
+range (bazaar_line_facts, bazaar_summary), 20260101005900_packaging_rules.sql:880-940.
+1 New 20260101006900_flavour_cost.sql: flavour_costs, save_flavour_cost (owner only, SECURITY DEFINER,
+  search_path='', grants, rule lines), get_flavour_costs, cost order booking typed > flavour typed > complete recipe.
+2 Pins (mp08g-source-pins.json, function-authority.json), role-suite cases (bazaar-days.sql), types, data layer.
+3 pnpm verify, the role suite twice, the live smoke suite; one different-model review with hand-worked numbers.
+4 Commit and push the branch. Hosted apply waits for U9's release (scratch folder, dry run, fingerprint).
+```
+
+Model Sonnet high with Opus sign-off, new conversation, plan mode off.
+
+### U3
+
+```
+/goal Bazaar v2 slice U3 (events hub) in C:\Users\ethan\dev\happy-cookie-ops-g0. Read AGENTS.md,
+docs/state/current.md, docs/state/bazaar-v2.md (U3), docs/design/bazaar-v2.md, src/components/live/bazaar/
+event-list.tsx, src/components/live/live-form-host.tsx, src/lib/nav/function-map.ts.
+1 event-list.tsx: header with Add an event top right; Active pinned; Upcoming and Past behind FilterChips.
+2 New event-form.tsx: one blank event in a Sheet (name, place, dates, rent), saved through save_scheduled_event.
+3 The Bazaar events sub-tab opens the hub. Motion per the D0 table.
+Tests (unit and smoke: add an event in the sheet). Browser-pane QA at 375 and 1440 px. Commit and push; do not merge.
+```
+
+Model Sonnet with Opus sign-off, new conversation, plan mode off.
+
+### U5
+
+```
+/goal Bazaar v2 slice U5 (review and close) in C:\Users\ethan\dev\happy-cookie-ops-g0. Read AGENTS.md,
+docs/state/current.md, docs/state/bazaar-v2.md (U5), docs/design/bazaar-v2.md, src/components/live/bazaar/
+day-review.tsx, figure.tsx, src/store/bazaar-days.ts (reviewView), src/lib/bazaar/live-bazaar-types.ts.
+1 StatTiles for the live figures, each opening to its parts; a status pill.
+2 Pre-filled close (derived defaults): left = should be left, rest to carried over (not last day) else to the shop
+  with a recipe else written off; cash counted = cash expected; hasRecipe and cashExpectedPesos added; over/short line.
+3 Z-report day summary as a ReceiptTable. Motion per the D0 table.
+Tests first (defaults, the close sends what is shown); smoke closes a day with the defaults. One different-model
+review (money). Browser-pane QA at 375 and 1440 px. Commit and push; do not merge.
+```
+
+Model Sonnet high with Opus sign-off, new conversation, plan mode off.
+
+### U4
+
+```
+/goal Bazaar v2 slice U4 (event page and day plan) in C:\Users\ethan\dev\happy-cookie-ops-g0. Read AGENTS.md,
+docs/state/current.md, docs/state/bazaar-v2.md (U4), docs/design/bazaar-v2.md, src/components/live/bazaar/
+event-page.tsx, day-plan.tsx, field.tsx.
+1 Event page: hero, stat row with target bar, days timeline, fees ReceiptTable, costs receipt, one primary action.
+2 Day plan: FlavourTile grid with photos and Steppers, prices and carried counts pre-filled, sticky total footer,
+  float stepper.
+3 Validation returns {field, message}[]; red fields and ErrorSummary on plan, fees, losses, cost and event forms.
+4 Clear the floating button and toasts from form actions.
+Tests (validation keys, plan totals); smoke plans a day with steppers and hits a red field. Browser-pane QA at 375 and
+1440 px. Commit and push; do not merge.
+```
+
+Model Sonnet with Opus sign-off, new conversation, plan mode off.
+
+### U7
+
+```
+/goal Bazaar v2 slice U7 (recipe book) in C:\Users\ethan\dev\happy-cookie-ops-g0, after U6. Read AGENTS.md,
+docs/state/current.md, docs/state/bazaar-v2.md (U7), docs/design/bazaar-v2.md, src/components/live/live-screens.ts,
+src/lib/data/costs.ts.
+1 A live screen for recipes: FlavourTile grid, search, on-menu and all filters, price, cost and margin badges.
+2 Flavour page: photo hero, editable cost per cookie (save_flavour_cost), margin, receipt breakdown from
+  get_recipe_costs lines, or "Typed by Cine". Recipe editing stays in the old screen.
+3 Tile-to-page view transition with a fade fallback.
+Tests and smoke (type a cost, see it on the event page). Browser-pane QA at 375 and 1440 px. Commit and push.
+```
+
+Model Sonnet with Opus sign-off, new conversation, plan mode off.
+
+### U8
+
+```
+/goal Bazaar v2 slice U8 (two decimals in the ported screens) in C:\Users\ethan\dev\happy-cookie-ops-g0, only after
+Ethan says "approve PESO". Read AGENTS.md, docs/state/protected-exception.md, docs/state/bazaar-v2.md (U8).
+One-line protected exception to PESO in src/store/engine/ops-engine.js:19 (two fraction digits), recorded in
+protected-exception.md, a reversal in scripts/validate-g0.py, check-port-integrity.mjs --update in the same commit,
+Docker visual baselines regenerated (docs/TESTING.md), an independent port audit. pnpm verify. Commit and push.
+```
+
+Model Sonnet with Opus sign-off, new conversation, plan mode off.
+
+### U9
+
+```
+/goal Bazaar v2 slice U9 (motion pass, QA and release) in C:\Users\ethan\dev\happy-cookie-ops-g0. Read AGENTS.md,
+docs/state/current.md, docs/state/bazaar-v2.md (U9), docs/design/bazaar-v2.md. Merge the finished slice branches.
+1 Apply the D0 motion table everywhere; reduced motion; performance budget against the C8 baseline.
+2 pnpm verify, test:e2e, test:live:smoke, the role suite (if U6), Docker visual (if U8), browser pane at 320, 375,
+  768 and 1440 px, axe.
+3 If U6 is in: apply migration 70 to the trial from a scratch folder (dry run, fingerprint) first.
+4 Secret scan, PR into agent/codex/MP-04-g1-feasibility, merge, confirm the deployed version and the Access redirect.
+5 Update the run sheet and current.md; hand Ethan the rehearsal steps (exact, step by step).
+```
+
+Model Opus, effort high, new conversation, plan mode off.

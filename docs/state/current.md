@@ -16,6 +16,10 @@ Read this page first in a new session. It is kept short on purpose.
 
 ## Where things stand — 7 October 2026
 
+**Bazaar v2 (15 October): planned, not started.** Ethan's 13-point review of the bazaar screens (design, flow, motion)
+is planned as 10 slices, D0 to U9, in [bazaar-v2.md](bazaar-v2.md); everything lands before the bazaar, one release, then the
+rehearsal by 22 October. Next: D0 ([next-goal.md](next-goal.md)).
+
 **S3.1 bazaar hardening (14 October): released to the trial.** Migration 69 (`20260101006800_bazaar_hardening.sql`) and its
 client: a refused sale no longer blocks the close; close and finalise check the till's count and cash (40001); a fee or a loss can be
 removed; no sale or void lands on a finalised event; no stock load on a bazaar day; retry ids survive a reload. Before release:
@@ -33,7 +37,7 @@ rerun deployed version `2eda3738`; anonymous requests still go to Cloudflare Acc
 wider research. It replaces finish-plan.md as the forward plan. The Bazaar defect B1 found is
 fixed (below). S1 to S3 of [bazaar-days.md](bazaar-days.md) are built (Ethan put the bazaar's new flow ahead of B6 on
 13 October, with no fallback), migration 68 is on the trial and the code is merged (14 October). The next step is the
-phone rehearsal by 20 October ([bazaar-run-sheet.md](bazaar-run-sheet.md)): the release is deployed.
+phone rehearsal by 22 October ([bazaar-run-sheet.md](bazaar-run-sheet.md)): the release is deployed.
 
 **S3, 14 October (built; merged in PR #21):** losses, more stock, the day review with each figure
 openable, "Close the day" with the leftover split, carrying over, fees, target, typed cost, "Close the event", and the books'
@@ -120,14 +124,6 @@ All in [decision-register.md](decision-register.md), the section for 5 October.
   no longer need it (PR #22); the performance-budget job still fails on its upload. Clear it in Settings, Billing.
 - **Do not save a recipe in the Recipes screen yet.** It sends no line kind, so a saved recipe's packaging lines become
   ingredients (slice B6, New Recipes). Reading is safe.
-- A1 is built (the release check takes two to six addresses; Cine is not added yet). Add her
-  two addresses to Cloudflare Access and the approved-digest variable in one sitting, or the
-  next deploy fails. Set the session to one week: that deploy then fails once and prints the
-  value; put it in `ALLOWED_SESSION_DURATIONS`, push, then invite her.
-- **Display names.** From this deploy the app greets each person, and records each bazaar
-  sale, under their profile's `display_name`. No form edits it yet (C6). Check yours, Cine's
-  and each helper's before 20 October: Supabase dashboard, Table editor, `profiles`, or say
-  the word and it is done through the connector. The trial's profiles were not read.
 - **The rehearsal gains one step** (B2): with the radio off, reload, sell, and read the name
   under "Rung up by" on the payment sheet. It must be the signed-in person's name, the same
   as with signal. Each helper's profile needs the display name they want on their sales.
@@ -139,7 +135,7 @@ All in [decision-register.md](decision-register.md), the section for 5 October.
   the repository's Settings, Secrets and variables, Actions, Variables, add `RELEASE_HOLD` =
   `true`. A push then builds and tests but does not deploy, and the run says so. Delete it or
   set it to `false` to lift. Any value that is not clearly "off" holds.
-- The phone rehearsal by **20 October** ([final-plan.md](final-plan.md) section 11.1).
+- The phone rehearsal by **22 October** (Bazaar v2 lands first) ([final-plan.md](final-plan.md) section 11.1).
 
 ### Waiting on Cine
 
@@ -156,6 +152,6 @@ set-up screen and seven dates for her week.
 
 ### Dates
 
-Rehearsal by **20 October**; bazaar **24 to 25 October**; releases held from the
+Rehearsal by **22 October**; bazaar **24 to 25 October**; releases held from the
 rehearsal to 26 October. Everything built: mid-November at the earliest, early December
 more likely. Cine's week follows the wording pass. Second bazaar 12 to 13 December.
