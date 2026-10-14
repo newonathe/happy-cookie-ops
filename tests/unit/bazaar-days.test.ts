@@ -9,6 +9,7 @@ import {
   startBazaarDay,
   type BazaarClient
 } from '@/lib/data/bazaar-days';
+import { answerFacts, dayFacts, summaryFacts } from '../fixtures/bazaar-answer';
 
 /**
  * S2: the bazaar days data layer (`get_bazaar`, `save_bazaar_day`, `start_bazaar_day`, migration 20260101006700) as a
@@ -33,6 +34,7 @@ const line = (over: Record<string, unknown> = {}) => ({
   ...over
 });
 const day = (over: Record<string, unknown> = {}) => ({
+  ...dayFacts(),
   id: DAY1,
   day: '2026-10-24',
   event_id: null,
@@ -53,12 +55,11 @@ const answer = (over: Record<string, unknown> = {}) => ({
       rent_cents: 50000,
       active: true
     },
-    counted: true,
+    ...summaryFacts(50000),
     days: [day()],
-    fees: { total_cents: 50000 },
-    profit: { cents: null, why: 'no cost per cookie for: Fixture A' },
     hash: HASH
   },
+  ...answerFacts(),
   target_profit_cents: 50000,
   updated_at: STAMP,
   finalised_at: null,
@@ -79,7 +80,7 @@ describe('parseBazaar', () => {
       rentCents: 50000,
       active: true
     });
-    expect(b!.days).toEqual([
+    expect(b!.days).toMatchObject([
       {
         id: DAY1,
         day: '2026-10-24',
@@ -97,7 +98,7 @@ describe('parseBazaar', () => {
 
   it('keeps an unknown profit as null with its why, never 0', () => {
     const b = parseBazaar(answer())!;
-    expect(b.profit).toEqual({ cents: null, why: 'no cost per cookie for: Fixture A' });
+    expect(b.profit).toMatchObject({ cents: null, why: 'no cost per cookie for: Fixture A' });
     // Mutation: coalescing a null profit to 0 fails here.
   });
 
@@ -330,7 +331,9 @@ describe('engineStateForDay', () => {
       id: EVENT1,
       snapshot: ['mp0s-a', 'mp0s-b'],
       dayId: DAY1,
-      scheduledId: BOOKING
+      scheduledId: BOOKING,
+      // S3: the float rides on the saved event, so a reload can put the drawer back.
+      floatCents: 50000
     });
     expect(s.eventPrices).toEqual({ 'mp0s-a': 130, 'mp0s-b': 150.5 });
     expect(s.eventLoaded).toEqual({ 'mp0s-a': 20, 'mp0s-b': 10, 'mp0s-c': 0 });

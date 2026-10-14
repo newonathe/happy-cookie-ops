@@ -19,6 +19,21 @@ export interface DayLine {
   made: number;
   carried: number;
   priceCents: number;
+  /** From the sales that are not voided: paid for, and given away (a sale with a zero total). */
+  sold: number;
+  given: number;
+  /** From the losses recorded on the day. */
+  lost: number;
+}
+
+/** Her count of one flavour when the day closed. `notAccounted` is the database's, and below zero if a sale arrived late. */
+export interface DayCount {
+  productId: string;
+  left: number;
+  carryNext: number;
+  toShop: number;
+  writtenOff: number;
+  notAccounted: number;
 }
 
 export interface BazaarDay {
@@ -29,14 +44,85 @@ export interface BazaarDay {
   eventId: string | null;
   floatCents: number;
   state: DayState;
-  /** The day's hash from the summary, which closing a day is given back (S3). */
+  /** The day's hash from the summary, which closing a day is given back as `expected`. */
   hash: string;
   /** The stamp `save_bazaar_day` is given to change the plan. */
   updatedAt: string;
   lines: DayLine[];
+  revenueCents: number;
+  grossCents: number;
+  discountCents: number;
+  /** Freebies at their price. */
+  freebieCents: number;
+  /** Takings by how paid (sales that were paid for). */
+  byPay: Record<string, number>;
+  sales: number;
+  voided: number;
+  cashSalesCents: number;
+  /** The float plus the cash sales. */
+  cashExpectedCents: number;
+  /** The day's own fees, an expense added at the till included. */
+  feesCents: number;
+  /** Null until the day is closed. */
+  count: DayCount[] | null;
+  /** Epoch milliseconds; null while the day is planned or open. */
+  closedAt: number | null;
+  /** Null while open, and for a day closed with no cash count. */
+  countedCents: number | null;
+  overCents: number | null;
+  shortCents: number | null;
+  /** A sale, a void, a loss or a fee reached the day after she closed it. */
+  changedAfterClose: boolean;
 }
 
-export interface Bazaar {
+/** One part of a figure, so the screen can open it. A null amount is a cost that is not known: never 0. */
+export interface FigurePart {
+  label: string;
+  quantity: number | null;
+  amountCents: number | null;
+}
+
+export interface FeePart {
+  clientId: string;
+  label: string;
+  category: string;
+  /** Null for a fee of the whole event. */
+  dayId: string | null;
+  paidOn: string;
+  amountCents: number;
+  /** An expense added at the till on the day (`add_event_expense`). */
+  atTheTill: boolean;
+}
+
+/** One flavour's cookie cost for the event. Every `…Cents` is null while the flavour has cookies and no cost per cookie. */
+export interface CostLine {
+  productId: string;
+  name: string;
+  /** Centavos with up to four decimals; null when there is none. */
+  unitCents: number | null;
+  source: 'typed' | 'recipe' | null;
+  uncosted: boolean;
+  made: number;
+  toShop: number;
+  sold: number;
+  given: number;
+  lost: number;
+  writtenOff: number;
+  notAccounted: number;
+  madeCents: number | null;
+  toShopCents: number | null;
+  soldCents: number | null;
+  givenCents: number | null;
+  lostCents: number | null;
+  writtenOffCents: number | null;
+  notAccountedCents: number | null;
+  /** Made less sent to the shop. */
+  costCents: number | null;
+  roundingCents: number | null;
+}
+
+/** `bazaar_summary` as the database works it out: the one computation. Nothing here is worked out again in the app. */
+export interface BazaarSummary {
   booking: {
     id: string;
     name: string;
@@ -46,15 +132,60 @@ export interface Bazaar {
     rentCents: number;
     active: boolean;
   };
+  /** False while a started day is open: "not accounted" then still includes what is on the table. */
+  counted: boolean;
   days: BazaarDay[];
+  revenue: {
+    revenueCents: number;
+    grossCents: number;
+    discountCents: number;
+    freebieCents: number;
+    byPay: Record<string, number>;
+    sales: number;
+    voided: number;
+  };
+  cash: { overCents: number; shortCents: number };
+  fees: { totalCents: number; eventCents: number; parts: FeePart[] };
+  cookieCost: {
+    cents: number | null;
+    why: string | null;
+    made: number;
+    toShop: number;
+    madeCents: number | null;
+    toShopCents: number | null;
+    parts: FigurePart[];
+    lines: CostLine[];
+  };
+  /** `cents` is null, with its why, while a flavour that has cookies has no cost per cookie: never 0. */
+  profit: { cents: number | null; why: string | null; parts: FigurePart[] };
+  target: {
+    cents: number | null;
+    againstCents: number | null;
+    revenueNeededCents: number | null;
+  };
+  /** The whole summary's hash: what closing the event is given back as `expected`. */
+  hash: string;
+}
+
+export interface BazaarLoss {
+  clientId: string;
+  dayId: string;
+  productId: string;
+  qty: number;
+  reason: string;
+  at: number;
+}
+
+export interface Bazaar extends BazaarSummary {
   targetCents: number | null;
   finalised: boolean;
-  /** Fees including the stall rent. */
+  /** Fees including the stall rent (`fees.totalCents`). */
   feesCents: number;
-  /** `cents` is null, with its why, while a flavour that has cookies has no cost per cookie: never 0. */
-  profit: { cents: number | null; why: string | null };
-  /** The whole summary's hash. */
-  hash: string;
+  /** Each flavour's cost per cookie as stored: the recipe's (read at its first day) and hers, if she typed one. */
+  costs: Array<{ productId: string; recipeCents: number | null; typedCents: number | null }>;
+  losses: BazaarLoss[];
+  /** What was booked when the event was closed; null until then. */
+  finalSummary: BazaarSummary | null;
 }
 
 export interface BazaarPlan {
@@ -94,10 +225,218 @@ function realDate(ymd: string): boolean {
   return back.getUTCFullYear() === y && back.getUTCMonth() === m - 1 && back.getUTCDate() === d;
 }
 
-/** Strict: anything unexpected is no answer at all. */
-export function parseBazaar(json: Json | null | undefined): Bazaar | null {
-  if (!isObj(json) || !isObj(json.summary)) return null;
-  const sum = json.summary;
+/** A whole number of centavos, either sign (a part of profit is negative; a rounding part can be). */
+const int = (v: unknown): v is number =>
+  typeof v === 'number' && Number.isSafeInteger(v) && Math.abs(v) <= 1_000_000_000_000;
+const intOrNull = (v: unknown): v is number | null => v === null || int(v);
+/** Centavos with decimals (a cost per cookie), 0 or more. */
+const decimalOrNull = (v: unknown): v is number | null =>
+  v === null || (typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= 100_000_000);
+const strOrNull = (v: unknown): v is string | null => v === null || typeof v === 'string';
+
+/** Takings by how paid: each a whole number of centavos, 0 or more. */
+function parsePay(v: unknown): Record<string, number> | null {
+  if (!isObj(v)) return null;
+  const out: Record<string, number> = {};
+  for (const [method, cents] of Object.entries(v)) {
+    if (method.length < 1 || method.length > 40 || !whole(cents, 0, 1_000_000_000_000)) return null;
+    out[method] = cents;
+  }
+  return out;
+}
+
+/** A figure's parts. `quantity` is absent on the parts of profit. */
+function parseParts(v: unknown): FigurePart[] | null {
+  if (!Array.isArray(v)) return null;
+  const out: FigurePart[] = [];
+  for (const p of v) {
+    if (!isObj(p) || !str(p.label, 80) || !intOrNull(p.amount_cents)) return null;
+    const quantity = p.quantity === undefined ? null : p.quantity;
+    if (!intOrNull(quantity)) return null;
+    out.push({ label: p.label, quantity, amountCents: p.amount_cents });
+  }
+  return out;
+}
+
+function parseDay(d: unknown, updatedAt: string | undefined): BazaarDay | null {
+  if (
+    !isObj(d) ||
+    typeof d.id !== 'string' ||
+    !UUID.test(d.id) ||
+    typeof d.day !== 'string' ||
+    !realDate(d.day) ||
+    !(d.event_id === null || (typeof d.event_id === 'string' && UUID.test(d.event_id))) ||
+    !whole(d.float_cents, 0, 100_000_000) ||
+    (d.state !== 'planned' && d.state !== 'open' && d.state !== 'closed') ||
+    typeof d.hash !== 'string' ||
+    !HASH.test(d.hash) ||
+    !Array.isArray(d.lines) ||
+    updatedAt === undefined ||
+    !int(d.revenue_cents) ||
+    !int(d.gross_cents) ||
+    !int(d.discount_cents) ||
+    !int(d.freebie_cents) ||
+    !whole(d.sales, 0, 1_000_000) ||
+    !whole(d.voided, 0, 1_000_000) ||
+    !int(d.cash_sales_cents) ||
+    !int(d.cash_expected_cents) ||
+    !int(d.fees_cents) ||
+    // Epoch milliseconds, which are past the bound a sum of money is held to.
+    !(d.closed_at === null || whole(d.closed_at, 0, 99_999_999_999_999)) ||
+    !intOrNull(d.counted_cents) ||
+    !intOrNull(d.over_cents) ||
+    !intOrNull(d.short_cents) ||
+    typeof d.changed_after_close !== 'boolean' ||
+    !(d.count === null || Array.isArray(d.count))
+  )
+    return null;
+  const byPay = parsePay(d.by_pay);
+  if (!byPay) return null;
+  const lines: DayLine[] = [];
+  for (const l of d.lines) {
+    if (
+      !isObj(l) ||
+      typeof l.product_id !== 'string' ||
+      !PRODUCT.test(l.product_id) ||
+      !str(l.name, 120) ||
+      !whole(l.made, 0, 9999) ||
+      !whole(l.carried, 0, 9999) ||
+      !whole(l.price_cents, 0, 100_000_000) ||
+      !whole(l.sold, 0, 1_000_000) ||
+      !whole(l.given, 0, 1_000_000) ||
+      !whole(l.lost, 0, 1_000_000)
+    )
+      return null;
+    lines.push({
+      productId: l.product_id,
+      name: l.name,
+      made: l.made,
+      carried: l.carried,
+      priceCents: l.price_cents,
+      sold: l.sold,
+      given: l.given,
+      lost: l.lost
+    });
+  }
+  // Her count exists only for a closed day, and then for every flavour of the day.
+  let count: DayCount[] | null = null;
+  if (d.state === 'closed') {
+    if (!Array.isArray(d.count) || d.count.length !== lines.length) return null;
+    count = [];
+    for (const c of d.count) {
+      if (
+        !isObj(c) ||
+        typeof c.product_id !== 'string' ||
+        !lines.some((l) => l.productId === c.product_id) ||
+        !whole(c.left, 0, 99_999) ||
+        !whole(c.carry_next, 0, 99_999) ||
+        !whole(c.to_shop, 0, 99_999) ||
+        !whole(c.written_off, 0, 99_999) ||
+        !int(c.not_accounted)
+      )
+        return null;
+      count.push({
+        productId: c.product_id,
+        left: c.left,
+        carryNext: c.carry_next,
+        toShop: c.to_shop,
+        writtenOff: c.written_off,
+        notAccounted: c.not_accounted
+      });
+    }
+  }
+  return {
+    id: d.id,
+    day: d.day,
+    eventId: d.event_id as string | null,
+    floatCents: d.float_cents,
+    state: d.state,
+    hash: d.hash,
+    updatedAt,
+    lines,
+    revenueCents: d.revenue_cents,
+    grossCents: d.gross_cents,
+    discountCents: d.discount_cents,
+    freebieCents: d.freebie_cents,
+    byPay,
+    sales: d.sales,
+    voided: d.voided,
+    cashSalesCents: d.cash_sales_cents,
+    cashExpectedCents: d.cash_expected_cents,
+    feesCents: d.fees_cents,
+    count,
+    closedAt: d.closed_at,
+    countedCents: d.counted_cents,
+    overCents: d.over_cents,
+    shortCents: d.short_cents,
+    changedAfterClose: d.changed_after_close
+  };
+}
+
+function parseCostLine(l: unknown): CostLine | null {
+  if (
+    !isObj(l) ||
+    typeof l.product_id !== 'string' ||
+    !PRODUCT.test(l.product_id) ||
+    !str(l.name, 120) ||
+    !decimalOrNull(l.unit_cents) ||
+    !(l.source === null || l.source === 'typed' || l.source === 'recipe') ||
+    typeof l.uncosted !== 'boolean' ||
+    !whole(l.made, 0, 1_000_000) ||
+    !whole(l.to_shop, 0, 1_000_000) ||
+    !whole(l.sold, 0, 1_000_000) ||
+    !whole(l.given, 0, 1_000_000) ||
+    !whole(l.lost, 0, 1_000_000) ||
+    !whole(l.written_off, 0, 1_000_000) ||
+    !int(l.not_accounted) ||
+    !intOrNull(l.made_cents) ||
+    !intOrNull(l.to_shop_cents) ||
+    !intOrNull(l.sold_cents) ||
+    !intOrNull(l.given_cents) ||
+    !intOrNull(l.lost_cents) ||
+    !intOrNull(l.written_off_cents) ||
+    !intOrNull(l.not_accounted_cents) ||
+    !intOrNull(l.cost_cents) ||
+    !intOrNull(l.rounding_cents)
+  )
+    return null;
+  // A flavour with cookies and no cost has no cost line at all: a zero here would be a cost that was never known.
+  if (l.uncosted && (l.cost_cents !== null || l.made_cents !== null)) return null;
+  return {
+    productId: l.product_id,
+    name: l.name,
+    unitCents: l.unit_cents,
+    source: l.source,
+    uncosted: l.uncosted,
+    made: l.made,
+    toShop: l.to_shop,
+    sold: l.sold,
+    given: l.given,
+    lost: l.lost,
+    writtenOff: l.written_off,
+    notAccounted: l.not_accounted,
+    madeCents: l.made_cents,
+    toShopCents: l.to_shop_cents,
+    soldCents: l.sold_cents,
+    givenCents: l.given_cents,
+    lostCents: l.lost_cents,
+    writtenOffCents: l.written_off_cents,
+    notAccountedCents: l.not_accounted_cents,
+    costCents: l.cost_cents,
+    roundingCents: l.rounding_cents
+  };
+}
+
+/**
+ * Strict: anything unexpected is no summary at all. `stamps` gives each day its plan stamp; a stored summary (the one
+ * kept when the event was closed) is read with `stored`, where a day without a stamp is still read.
+ */
+export function parseSummary(
+  sum: unknown,
+  stamps: ReadonlyMap<string, string>,
+  stored = false
+): BazaarSummary | null {
+  if (!isObj(sum)) return null;
   const b = sum.booking;
   if (
     !isObj(b) ||
@@ -114,76 +453,108 @@ export function parseBazaar(json: Json | null | undefined): Bazaar | null {
   )
     return null;
   if (typeof sum.hash !== 'string' || !HASH.test(sum.hash)) return null;
-  if (!Array.isArray(sum.days) || !Array.isArray(json.stamps)) return null;
-  if (!isObj(sum.fees) || !whole(sum.fees.total_cents, 0, 1_000_000_000_000)) return null;
-  const profit = sum.profit;
-  if (
-    !isObj(profit) ||
-    !(
-      profit.cents === null ||
-      (typeof profit.cents === 'number' && Number.isInteger(profit.cents))
-    ) ||
-    !(profit.why === null || typeof profit.why === 'string')
-  )
-    return null;
-  const target = json.target_profit_cents;
-  if (target !== null && !whole(target, 0, 10_000_000_000)) return null;
-  if (json.finalised_at !== null && typeof json.finalised_at !== 'string') return null;
+  if (typeof sum.counted !== 'boolean' || !Array.isArray(sum.days)) return null;
 
-  const stamps = new Map<string, string>();
-  for (const s of json.stamps) {
-    if (!isObj(s) || typeof s.id !== 'string' || typeof s.updated_at !== 'string') return null;
-    stamps.set(s.id, s.updated_at);
-  }
   const days: BazaarDay[] = [];
   for (const d of sum.days) {
+    const id = isObj(d) && typeof d.id === 'string' ? d.id : '';
+    const day = parseDay(d, stamps.get(id) ?? (stored ? '' : undefined));
+    if (!day) return null;
+    days.push(day);
+  }
+
+  const r = sum.revenue;
+  if (
+    !isObj(r) ||
+    !int(r.revenue_cents) ||
+    !int(r.gross_cents) ||
+    !int(r.discount_cents) ||
+    !int(r.freebie_cents) ||
+    !whole(r.sales, 0, 1_000_000) ||
+    !whole(r.voided, 0, 1_000_000)
+  )
+    return null;
+  const byPay = parsePay(r.by_pay);
+  if (!byPay) return null;
+
+  const cash = sum.cash;
+  if (
+    !isObj(cash) ||
+    !whole(cash.over_cents, 0, 1_000_000_000_000) ||
+    !whole(cash.short_cents, 0, 1_000_000_000_000)
+  )
+    return null;
+
+  const fees = sum.fees;
+  if (
+    !isObj(fees) ||
+    !whole(fees.total_cents, 0, 1_000_000_000_000) ||
+    !whole(fees.event_cents, 0, 1_000_000_000_000) ||
+    !Array.isArray(fees.parts)
+  )
+    return null;
+  const feeParts: FeePart[] = [];
+  for (const f of fees.parts) {
     if (
-      !isObj(d) ||
-      typeof d.id !== 'string' ||
-      !UUID.test(d.id) ||
-      typeof d.day !== 'string' ||
-      !realDate(d.day) ||
-      !(d.event_id === null || (typeof d.event_id === 'string' && UUID.test(d.event_id))) ||
-      !whole(d.float_cents, 0, 100_000_000) ||
-      (d.state !== 'planned' && d.state !== 'open' && d.state !== 'closed') ||
-      typeof d.hash !== 'string' ||
-      !HASH.test(d.hash) ||
-      !Array.isArray(d.lines)
+      !isObj(f) ||
+      typeof f.client_id !== 'string' ||
+      !str(f.label, 80) ||
+      !str(f.category, 40) ||
+      !(f.day_id === null || (typeof f.day_id === 'string' && UUID.test(f.day_id))) ||
+      typeof f.paid_on !== 'string' ||
+      !realDate(f.paid_on) ||
+      !whole(f.amount_cents, 1, 100_000_000) ||
+      !(f.at_the_till === undefined || typeof f.at_the_till === 'boolean')
     )
       return null;
-    const updatedAt = stamps.get(d.id);
-    if (updatedAt === undefined) return null;
-    const lines: DayLine[] = [];
-    for (const l of d.lines) {
-      if (
-        !isObj(l) ||
-        typeof l.product_id !== 'string' ||
-        !PRODUCT.test(l.product_id) ||
-        !str(l.name, 120) ||
-        !whole(l.made, 0, 9999) ||
-        !whole(l.carried, 0, 9999) ||
-        !whole(l.price_cents, 0, 100_000_000)
-      )
-        return null;
-      lines.push({
-        productId: l.product_id,
-        name: l.name,
-        made: l.made,
-        carried: l.carried,
-        priceCents: l.price_cents
-      });
-    }
-    days.push({
-      id: d.id,
-      day: d.day,
-      eventId: d.event_id as string | null,
-      floatCents: d.float_cents,
-      state: d.state,
-      hash: d.hash,
-      updatedAt,
-      lines
+    feeParts.push({
+      clientId: f.client_id,
+      label: f.label,
+      category: f.category,
+      dayId: f.day_id as string | null,
+      paidOn: f.paid_on,
+      amountCents: f.amount_cents,
+      atTheTill: f.at_the_till === true
     });
   }
+
+  const cc = sum.cookie_cost;
+  if (
+    !isObj(cc) ||
+    !intOrNull(cc.cents) ||
+    !strOrNull(cc.why) ||
+    !whole(cc.made, 0, 10_000_000) ||
+    !whole(cc.to_shop, 0, 10_000_000) ||
+    !intOrNull(cc.made_cents) ||
+    !intOrNull(cc.to_shop_cents) ||
+    !Array.isArray(cc.lines)
+  )
+    return null;
+  const costParts = parseParts(cc.parts);
+  if (!costParts) return null;
+  const costLines: CostLine[] = [];
+  for (const l of cc.lines) {
+    const line = parseCostLine(l);
+    if (!line) return null;
+    costLines.push(line);
+  }
+  // An unknown cookie cost always says why, and a known one never carries a why.
+  if ((cc.cents === null) !== (typeof cc.why === 'string')) return null;
+
+  const profit = sum.profit;
+  if (!isObj(profit) || !intOrNull(profit.cents) || !strOrNull(profit.why)) return null;
+  const profitParts = parseParts(profit.parts);
+  if (!profitParts) return null;
+
+  const target = sum.target;
+  if (
+    !isObj(target) ||
+    !(target.cents === null || whole(target.cents, 0, 10_000_000_000)) ||
+    !intOrNull(target.against_cents) ||
+    !intOrNull(target.revenue_needed_cents)
+  )
+    return null;
+
   return {
     booking: {
       id: b.id,
@@ -194,12 +565,107 @@ export function parseBazaar(json: Json | null | undefined): Bazaar | null {
       rentCents: b.rent_cents,
       active: b.active
     },
+    counted: sum.counted,
     days,
+    revenue: {
+      revenueCents: r.revenue_cents,
+      grossCents: r.gross_cents,
+      discountCents: r.discount_cents,
+      freebieCents: r.freebie_cents,
+      byPay,
+      sales: r.sales,
+      voided: r.voided
+    },
+    cash: { overCents: cash.over_cents, shortCents: cash.short_cents },
+    fees: { totalCents: fees.total_cents, eventCents: fees.event_cents, parts: feeParts },
+    cookieCost: {
+      cents: cc.cents,
+      why: cc.why,
+      made: cc.made,
+      toShop: cc.to_shop,
+      madeCents: cc.made_cents,
+      toShopCents: cc.to_shop_cents,
+      parts: costParts,
+      lines: costLines
+    },
+    profit: { cents: profit.cents, why: profit.why, parts: profitParts },
+    target: {
+      cents: target.cents as number | null,
+      againstCents: target.against_cents,
+      revenueNeededCents: target.revenue_needed_cents
+    },
+    hash: sum.hash
+  };
+}
+
+/** Strict: anything unexpected is no answer at all. */
+export function parseBazaar(json: Json | null | undefined): Bazaar | null {
+  if (!isObj(json) || !Array.isArray(json.stamps)) return null;
+  const stamps = new Map<string, string>();
+  for (const s of json.stamps) {
+    if (!isObj(s) || typeof s.id !== 'string' || typeof s.updated_at !== 'string') return null;
+    stamps.set(s.id, s.updated_at);
+  }
+  const summary = parseSummary(json.summary, stamps);
+  if (!summary) return null;
+  const target = json.target_profit_cents;
+  if (target !== null && !whole(target, 0, 10_000_000_000)) return null;
+  if (json.finalised_at !== null && typeof json.finalised_at !== 'string') return null;
+  if (!Array.isArray(json.costs) || !Array.isArray(json.losses)) return null;
+
+  const costs: Bazaar['costs'] = [];
+  for (const k of json.costs) {
+    if (
+      !isObj(k) ||
+      typeof k.product_id !== 'string' ||
+      !PRODUCT.test(k.product_id) ||
+      !decimalOrNull(k.recipe_cents) ||
+      !decimalOrNull(k.typed_cents)
+    )
+      return null;
+    costs.push({
+      productId: k.product_id,
+      recipeCents: k.recipe_cents,
+      typedCents: k.typed_cents
+    });
+  }
+  const losses: BazaarLoss[] = [];
+  for (const o of json.losses) {
+    if (
+      !isObj(o) ||
+      typeof o.client_id !== 'string' ||
+      typeof o.day_id !== 'string' ||
+      !UUID.test(o.day_id) ||
+      typeof o.product_id !== 'string' ||
+      !PRODUCT.test(o.product_id) ||
+      !whole(o.qty, 1, 9999) ||
+      !str(o.reason, 80) ||
+      !whole(o.at, 0, 99_999_999_999_999)
+    )
+      return null;
+    losses.push({
+      clientId: o.client_id,
+      dayId: o.day_id,
+      productId: o.product_id,
+      qty: o.qty,
+      reason: o.reason,
+      at: o.at
+    });
+  }
+  // What was booked when the event was closed. A finalised event always has it: without it the answer is not understood.
+  let finalSummary: BazaarSummary | null = null;
+  if (json.finalised_at !== null) {
+    finalSummary = parseSummary(json.final_summary, stamps, true);
+    if (!finalSummary) return null;
+  }
+  return {
+    ...summary,
     targetCents: target as number | null,
     finalised: json.finalised_at !== null,
-    feesCents: sum.fees.total_cents,
-    profit: { cents: profit.cents as number | null, why: profit.why as string | null },
-    hash: sum.hash
+    feesCents: summary.fees.totalCents,
+    costs,
+    losses,
+    finalSummary
   };
 }
 
@@ -350,7 +816,10 @@ export function engineStateForDay(
       id: started.eventId,
       snapshot: Object.keys(started.prices),
       dayId: ctx.dayId,
-      scheduledId: ctx.scheduledId
+      scheduledId: ctx.scheduledId,
+      // S3: the day's float rides here too. The saved copy of the bazaar keeps `event` and not `drawer`, so after a
+      // reload the drawer is put back from this.
+      floatCents: started.floatCents
     },
     eventStock: { ...loaded },
     eventLoaded: loaded,
@@ -362,4 +831,273 @@ export function engineStateForDay(
     syncState: 'idle',
     syncTried: false
   };
+}
+
+// ------------------------------------------------------------------ S3: fees, losses, costs, the close and the finalise
+
+/**
+ * `stale`: the day or the event changed since it was shown (40001). The caller reads it again and she looks again; it is
+ * never sent again with the new hash on its own. `refused`: the database said no, and saying it again changes nothing.
+ */
+export type MoneyOutcome = 'saved' | 'stale' | 'refused' | 'offline';
+
+function classifyMoney(error: { code?: string } | null): MoneyOutcome {
+  if (!error) return 'saved';
+  if (error.code === '40001') return 'stale';
+  if (['22023', '23505', '42501', '55000', 'P0002'].includes(error.code ?? '')) return 'refused';
+  return 'offline';
+}
+
+const CONTROL = /[\u0000-\u001f\u007f-\u009f]/;
+const validAt = (at: number): boolean =>
+  Number.isInteger(at) && at >= 100_000_000_000 && at <= 99_999_999_999_999;
+
+export interface FeeFields {
+  /** Minted once for the form, so a save whose reply was lost is repeated under the same id. */
+  clientId: string;
+  scheduledId: string;
+  /** Null for a fee of the whole event. */
+  dayId: string | null;
+  label: string;
+  category: string;
+  amountCents: number;
+  /** YYYY-MM-DD */
+  paidOn: string;
+}
+
+/** The same bounds `save_bazaar_fee` enforces. Null means the fee is acceptable. */
+export function feeError(f: FeeFields): string | null {
+  if (f.clientId.length < 1 || f.clientId.length > 150 || f.clientId.startsWith('rent:'))
+    return 'This fee has no id yet. Reload and try again.';
+  if (!UUID.test(f.scheduledId) || (f.dayId !== null && !UUID.test(f.dayId)))
+    return 'This fee has no event yet. Reload and try again.';
+  const label = f.label.trim();
+  const category = f.category.trim();
+  if (
+    label.length < 1 ||
+    label.length > 80 ||
+    category.length < 1 ||
+    category.length > 40 ||
+    CONTROL.test(f.label + f.category)
+  )
+    return 'A fee needs a name of 1 to 80 characters.';
+  if (!whole(f.amountCents, 1, 100_000_000)) return 'An amount is from ₱0.01 to ₱1,000,000.';
+  if (!realDate(f.paidOn)) return 'The day it was paid is not a real date.';
+  return null;
+}
+
+export async function saveBazaarFee(client: BazaarClient, f: FeeFields): Promise<MoneyOutcome> {
+  try {
+    const { error } = await client.rpc('save_bazaar_fee', {
+      p_fee: {
+        client_id: f.clientId,
+        scheduled_id: f.scheduledId,
+        day_id: f.dayId,
+        label: f.label.trim(),
+        category: f.category.trim(),
+        amount_cents: f.amountCents,
+        paid_on: f.paidOn
+      }
+    });
+    return classifyMoney(error);
+  } catch {
+    return 'offline';
+  }
+}
+
+export interface LossFields {
+  clientId: string;
+  dayId: string;
+  productId: string;
+  qty: number;
+  reason: string;
+  /** Epoch milliseconds, kept with the id so a repeat is the same loss. */
+  at: number;
+}
+
+/** The same bounds `save_bazaar_loss` enforces. Null means the loss is acceptable. */
+export function lossError(f: LossFields): string | null {
+  if (f.clientId.length < 1 || f.clientId.length > 160 || !UUID.test(f.dayId))
+    return 'This loss has no id yet. Reload and try again.';
+  if (!PRODUCT.test(f.productId)) return 'Choose the flavour.';
+  if (!whole(f.qty, 1, 9999)) return 'How many is a whole number, 1 or more.';
+  const reason = f.reason.trim();
+  if (reason.length < 1 || reason.length > 80 || CONTROL.test(f.reason))
+    return 'Say what happened, in 1 to 80 characters.';
+  if (!validAt(f.at)) return 'The time is not valid.';
+  return null;
+}
+
+export async function saveBazaarLoss(client: BazaarClient, f: LossFields): Promise<MoneyOutcome> {
+  try {
+    const { error } = await client.rpc('save_bazaar_loss', {
+      p_loss: {
+        client_id: f.clientId,
+        day_id: f.dayId,
+        product_id: f.productId,
+        qty: f.qty,
+        reason: f.reason.trim(),
+        at: f.at
+      }
+    });
+    return classifyMoney(error);
+  } catch {
+    return 'offline';
+  }
+}
+
+/** Her typed cost per cookie in centavos (at most four decimals), or null to go back to the recipe's. */
+export async function saveBazaarCost(
+  client: BazaarClient,
+  bookingId: string,
+  productId: string,
+  typedCents: number | null
+): Promise<MoneyOutcome> {
+  if (
+    typedCents !== null &&
+    !(Number.isFinite(typedCents) && typedCents >= 0 && typedCents <= 100_000_000)
+  )
+    return 'refused';
+  try {
+    const { error } = await client.rpc('save_bazaar_cost', {
+      p_booking: bookingId,
+      p_product: productId,
+      p_typed_cents: typedCents as number
+    });
+    return classifyMoney(error);
+  } catch {
+    return 'offline';
+  }
+}
+
+/** Her target profit in whole centavos, or null for none. */
+export async function saveBazaarTarget(
+  client: BazaarClient,
+  bookingId: string,
+  cents: number | null
+): Promise<MoneyOutcome> {
+  if (cents !== null && !whole(cents, 0, 10_000_000_000)) return 'refused';
+  try {
+    const { error } = await client.rpc('save_bazaar_target', {
+      p_booking: bookingId,
+      p_cents: cents as number
+    });
+    return classifyMoney(error);
+  } catch {
+    return 'offline';
+  }
+}
+
+export interface StockAddFields {
+  /** A uuid minted once for the form: the call adds, so a repeat must be told from a second add. */
+  clientId: string;
+  dayId: string;
+  productId: string;
+  qty: number;
+  kind: 'made' | 'carried';
+}
+
+/** More stock on an open day. `loaded` is what the day now holds of the flavour (made and carried), as the database has it. */
+export async function addBazaarDayStock(
+  client: BazaarClient,
+  f: StockAddFields
+): Promise<{ result: MoneyOutcome; loaded: number | null }> {
+  if (!UUID.test(f.clientId) || !UUID.test(f.dayId) || !whole(f.qty, 1, 9999))
+    return { result: 'refused', loaded: null };
+  try {
+    const { data, error } = await client.rpc('add_bazaar_day_stock', {
+      p_day: f.dayId,
+      p_product: f.productId,
+      p_qty: f.qty,
+      p_kind: f.kind,
+      p_client_id: f.clientId
+    });
+    const result = classifyMoney(error);
+    const row = Array.isArray(data) ? data[0] : null;
+    const loaded =
+      result === 'saved' && isObj(row) && whole(row.loaded, 0, 19_998) ? row.loaded : null;
+    // Saved only when the reply says what the day now holds.
+    return { result: result === 'saved' && loaded === null ? 'offline' : result, loaded };
+  } catch {
+    return { result: 'offline', loaded: null };
+  }
+}
+
+export interface CloseLine {
+  left: number;
+  carryNext: number;
+  toShop: number;
+  writtenOff: number;
+}
+
+export interface DayClose {
+  dayId: string;
+  /** Epoch milliseconds. */
+  at: number;
+  /** Null when the cash was not counted. */
+  countedCents: number | null;
+  /** Every flavour of the day, and no other. */
+  lines: Record<string, CloseLine>;
+  /** The day's hash from the read she was shown. */
+  expected: string;
+}
+
+/** The body `close_bazaar_day` is given: exactly these keys, and nothing the screen did not show. */
+export function closeBody(c: DayClose) {
+  const lines: Record<
+    string,
+    { left: number; carry_next: number; to_shop: number; written_off: number }
+  > = {};
+  for (const [pid, l] of Object.entries(c.lines))
+    lines[pid] = {
+      left: l.left,
+      carry_next: l.carryNext,
+      to_shop: l.toShop,
+      written_off: l.writtenOff
+    };
+  return {
+    day_id: c.dayId,
+    at: c.at,
+    counted_cents: c.countedCents,
+    lines,
+    expected: c.expected
+  };
+}
+
+/** Closes a day with her count. Posts nothing to the books. The same close again is answered. */
+export async function closeBazaarDay(client: BazaarClient, c: DayClose): Promise<MoneyOutcome> {
+  if (!UUID.test(c.dayId) || !HASH.test(c.expected) || !validAt(c.at)) return 'refused';
+  if (c.countedCents !== null && !whole(c.countedCents, 0, 999_999_999_999)) return 'refused';
+  try {
+    const { data, error } = await client.rpc('close_bazaar_day', { p_close: closeBody(c) });
+    const result = classifyMoney(error);
+    // Acknowledged only when the reply is the summary.
+    return result === 'saved' && !isObj(data) ? 'offline' : result;
+  } catch {
+    return 'offline';
+  }
+}
+
+/**
+ * Closes the event, once: only now do its fees, rent, cash differences and stock use reach the books. `expected` is the
+ * hash of the summary she was shown; `dropNo` is the drop the cookies sent to the shop are written to as a batch.
+ */
+export async function finaliseBazaar(
+  client: BazaarClient,
+  bookingId: string,
+  expected: string,
+  dropNo: number
+): Promise<MoneyOutcome> {
+  if (!UUID.test(bookingId) || !HASH.test(expected) || !whole(dropNo, 0, 100_000)) return 'refused';
+  try {
+    const { data, error } = await client.rpc('finalise_bazaar', {
+      p_booking: bookingId,
+      p_expected: expected,
+      p_drop: dropNo
+    });
+    const result = classifyMoney(error);
+    return result === 'saved' && !isObj(data) ? 'offline' : result;
+  } catch {
+    return 'offline';
+  }
 }
