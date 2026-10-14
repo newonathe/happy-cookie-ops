@@ -148,6 +148,19 @@ describe('ErrorSummary', () => {
     expect(() => fireEvent.click(screen.getByRole('link'))).not.toThrow();
   });
 
+  it('two summaries on screen each name themselves', () => {
+    render(
+      <>
+        <ErrorSummary errors={errors} />
+        <ErrorSummary errors={[{ field: 'x', message: 'X' }]} />
+      </>
+    );
+    for (const box of screen.getAllByRole('alert'))
+      expect(box).toHaveAccessibleName('There is a problem');
+    const ids = screen.getAllByRole('heading', { name: 'There is a problem' }).map((h) => h.id);
+    expect(new Set(ids).size).toBe(2);
+  });
+
   it('has no axe violations', async () => {
     const { container } = render(<ErrorSummary errors={errors} />);
     expect(await violations(container)).toEqual([]);

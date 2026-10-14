@@ -104,7 +104,9 @@ export function Stepper({
       type="button"
       aria-label={`${direction === 1 ? 'More' : 'Fewer'} ${label}`}
       disabled={direction === 1 ? value >= max : value <= min}
-      className={button}
+      className={cx(button, 'select-none [-webkit-touch-callout:none]')}
+      // A long press must not select text or open the context menu on a phone: that cancels the hold.
+      onContextMenu={(event) => event.preventDefault()}
       // Pointer: step now, then repeat while held. The click that follows a pointer press (detail > 0) is ignored.
       onPointerDown={(event) => {
         if (event.button > 0) return;

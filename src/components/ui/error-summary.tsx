@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useId, useRef } from 'react';
 
 export interface FieldError {
   /** The id of the field's input. */
@@ -21,6 +21,8 @@ export interface ErrorSummaryProps {
  */
 export function ErrorSummary({ errors, focusKey = 0 }: ErrorSummaryProps) {
   const ref = useRef<HTMLDivElement>(null);
+  // Two summaries can be open at once (a sheet over a page); each names itself.
+  const titleId = useId();
   const shown = errors.length > 0;
   useEffect(() => {
     if (shown) ref.current?.focus();
@@ -31,10 +33,10 @@ export function ErrorSummary({ errors, focusKey = 0 }: ErrorSummaryProps) {
       ref={ref}
       role="alert"
       tabIndex={-1}
-      aria-labelledby="error-summary-title"
+      aria-labelledby={titleId}
       className="motion-rise rounded-control border-[3px] border-danger bg-surface p-4"
     >
-      <h2 id="error-summary-title" className="m-0 text-body font-bold text-ink">
+      <h2 id={titleId} className="m-0 text-body font-bold text-ink">
         There is a problem
       </h2>
       <ul className="mt-2 mb-0 flex list-none flex-col gap-1.5 p-0">

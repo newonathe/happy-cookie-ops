@@ -483,13 +483,13 @@ describe('E1: the books on screen and their writes (live mode)', () => {
     const { runtime } = await mounted('owner', fresh());
     await act(async () => void (await acts(runtime).openBooks()));
     const u = runtime.renderVals().liveBooks?.unpaid;
-    expect(u?.summary).toBe(BOOKS_COPY.unpaidSummary(1, '₱150'));
+    expect(u?.summary).toBe(BOOKS_COPY.unpaidSummary(1, '₱150.00'));
     expect(u?.rows).toEqual([
       {
         id: 'HC-1002',
         title: 'HC-1002 · Ben Diaz',
         detail: BOOKS_COPY.unpaidWaiting + ' · ' + BOOKS_COPY.unpaidDays(3),
-        amount: '₱150'
+        amount: '₱150.00'
       }
     ]);
     // Mutation: counting the paid order too puts HC-1001 on the tracker.

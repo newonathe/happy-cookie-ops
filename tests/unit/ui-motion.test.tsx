@@ -39,6 +39,23 @@ describe('usePresence', () => {
     expect(result.current).toEqual({ mounted: false, leaving: false });
   });
 
+  it('tells the list when the exit is over, once, with whatever callback is current', () => {
+    const first = vi.fn();
+    const second = vi.fn();
+    const { rerender } = renderHook(({ present, cb }) => usePresence(present, 150, cb), {
+      initialProps: { present: true, cb: first }
+    });
+    rerender({ present: false, cb: first });
+    rerender({ present: false, cb: second });
+    act(() => void vi.advanceTimersByTime(149));
+    expect(second).not.toHaveBeenCalled();
+    act(() => void vi.advanceTimersByTime(2));
+    expect(first).not.toHaveBeenCalled();
+    expect(second).toHaveBeenCalledTimes(1);
+    act(() => void vi.advanceTimersByTime(1000));
+    expect(second).toHaveBeenCalledTimes(1);
+  });
+
   it('comes back at once when it is shown again mid-exit', () => {
     const { result, rerender } = renderHook(({ present }) => usePresence(present, 150), {
       initialProps: { present: true }
