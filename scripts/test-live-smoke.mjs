@@ -913,7 +913,13 @@ try {
       await card.getByLabel('Made').fill(String(DAY2_MADE));
       await card.getByLabel('Price (₱)').fill(String(DAY2_PRICE_PESOS));
       await form.getByRole('button', { name: 'Save the plan' }).click();
-      await page.getByText(`${DAY2_MADE + CARRIED} cookies on the table`).waitFor();
+      // Day 1 also had this many on its table: read day 2's own card.
+      await page
+        .getByRole('list', { name: 'Days', exact: true })
+        .locator(':scope > li')
+        .nth(1)
+        .getByText(`${DAY2_MADE + CARRIED} cookies on the table`)
+        .waitFor();
       await page.getByRole('button', { name: 'Start this day', exact: true }).click();
       await page.waitForFunction((d) => {
         const event = window.__hcOps.state.event;
