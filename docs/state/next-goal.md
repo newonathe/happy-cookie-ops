@@ -3,8 +3,8 @@
 Ethan reviewed the live bazaar screens on 15 October (13 points: design, flow, motion, forms, costs). The approved plan is
 [bazaar-v2.md](bazaar-v2.md): 10 slices, D0 to U9, each its own `/goal` in a new conversation (blocks at the end of that
 file). Everything lands before the bazaar in **one** release (U9), then the phone rehearsal **by 22 October**, then
-`RELEASE_HOLD=true`. Revised after the Ateneo audit (bazaar-v2.md, read that section first): no migration before the bazaar, U6 after
-26 October, U7 interface only. Cut line: U7 and U8 move after 26 October if not green by the evening of 19 October.
+`RELEASE_HOLD=true`. After the Ateneo audit (bazaar-v2.md, read that section first) Ethan chose: migration 70 (U6) before the bazaar,
+with the cost edit, the leftover split and a reviewed reversal of the Ateneo test (run only on his "yes, reverse Ateneo"). Cut line: U7 and U8 move after 26 October if not green by the evening of 19 October.
 
 The trial today: migration 69 of 69, version `fbfd8860` (S3.1). Cine's two sign-ins are owners; Access admits four
 addresses for one week. The repository is public: secret scan before every push.
