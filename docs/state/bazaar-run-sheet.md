@@ -10,7 +10,7 @@ of the app, and what is rung up there is the real record.
 
 **Today: no-go until the rehearsal passes.** S3.1 is on the trial (14 October): migration 69
 (`20260101006800_bazaar_hardening.sql`) applied, 69 of 69, the schema fingerprint equal to local; its build deployed by
-PR #24 (merge `3cf4a36`, version `2eda3738`). Next: the rehearsal on the selling iPhone (row 7).
+PR #24 (merge `3cf4a36`, version `2eda3738`); redeployed unchanged by PR #26 (the one-week Access guard) as `fbfd8860`, the version to rehearse. Next: the rehearsal on the selling iPhone (row 7).
 
 | #   | What                                                                                                                                                                                                                                                                              | Owner       | State on 14 October                                             |
 | --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- | --------------------------------------------------------------- |
