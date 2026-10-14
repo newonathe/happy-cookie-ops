@@ -8,8 +8,13 @@
  * sale online, two with no network (one of them after a reload), all three in the database once.
  *
  * Slice S2 (bazaar days) changed the Bazaar part: the stall's day is planned on the Bazaar page (a booking, then
- * day 1 with its own float, cookies and price), started with signal, and sold at that price. Day 1 only: closing,
- * carrying over and finalising are S3.
+ * day 1 with its own float, cookies and price), started with signal, and sold at that price.
+ *
+ * Slice S3 added the rest of the event: day 1 is reviewed from "Close out" (a loss recorded, every figure openable, an
+ * unknown cost in words), closed with cookies carried over; a cost, a fee and a target are typed on the event page; day 2
+ * starts with the carried cookies, sells through a reload with no network (the drawer float comes back), and closes; the
+ * event is closed; and the books hold the bazaar back until then and count it after. The figures on screen are held to
+ * the run's own sums.
  *
  * Slice B2 added: no prototype value on any page it visits (`PROTOTYPE`, below); the signed-in
  * person's own name on Home and on every sale, the offline ones included; the owner's shop
@@ -30,8 +35,9 @@
  *   - the flavour `dcf` is set published and on the order form (the only existing row it changes);
  *   - one `production_records` batch row, written directly so the stall has baked stock: no
  *     ingredients are taken for it;
- *   - one booking, its day 1 (planned, started and left open as one event) and the day's three sales. Repeated runs add
- *     one booking each; `pnpm db:reset` clears them.
+ *   - one booking with its two days, their five sales, one loss, one fee, a typed cost and a target, closed as an event:
+ *     its rent, fee and drawer difference are in the ledger, its stock use is taken (shortfalls recorded), and one cookie
+ *     is written as a batch when the flavour has a recipe. Repeated runs add one booking each; `pnpm db:reset` clears them.
  * It deletes nothing but the account it made and the shop details it saved.
  */
 import { randomBytes, randomUUID } from 'node:crypto';
@@ -691,6 +697,376 @@ try {
       'The phone no longer shows three sales.'
     );
     await check(page, 'Bazaar, back online', 'Bazaar Mode');
+  });
+
+  // S3: day 1 is closed from its review with cookies carried over, day 2 sells them (through a reload with no
+  // network), the event is closed, and only then do the books count it. The figures on screen are held to this
+  // run's own sums: 3 cookies at day 1's price, 2 at day 2's, the rent, one fee, a typed cost and ₱5 over.
+  const DAY2_PRICE_PESOS = 140;
+  const DAY2_FLOAT_PESOS = 300;
+  const DAY2_MADE = 4;
+  const COST_PESOS = 40;
+  const FEE_PESOS = 100;
+  const RENT_PESOS = 1000;
+  const CARRIED = DAY_COOKIES - 3 - 1; // made, less the three sold and the one lost
+  const pesoOf = (pesos) =>
+    (pesos < 0 ? '-₱' : '₱') +
+    Math.abs(pesos).toLocaleString('en-PH', {
+      minimumFractionDigits: Number.isInteger(pesos) ? 0 : 2,
+      maximumFractionDigits: 2
+    });
+  // A figure is a row of its list whose text begins with its label; its parts stay hidden until it is opened.
+  const figure = (list, label) =>
+    page
+      .getByRole('list', { name: list, exact: true })
+      .locator(':scope > li')
+      .filter({ hasText: new RegExp('^' + label) });
+  const figureSays = async (list, label, wanted) => {
+    const text = (await figure(list, label).innerText()).replace(/\s+/g, ' ');
+    assert(text.includes(wanted), `${list} › ${label} reads "${text}", wanted ${wanted}.`);
+    return text;
+  };
+  const review = page.locator('[data-screen-label="Bazaar day review"]');
+  /** S3: the review and the event page, as the stock screens are held: no serious axe violation, and no sideways scroll at 320 px with the text at 200%. */
+  const bazaarFits = async (at, label) => {
+    await page.evaluate(
+      readFileSync(new URL('../node_modules/axe-core/axe.min.js', import.meta.url), 'utf8')
+    );
+    const found = await page.evaluate(async (screenLabel) => {
+      const region = document.querySelector(`[data-screen-label="${screenLabel}"]`);
+      const result = await window.axe.run(region, { resultTypes: ['violations'] });
+      return result.violations
+        .filter((v) => v.impact === 'serious' || v.impact === 'critical')
+        .map((v) => `${v.impact} ${v.id}: ${v.nodes.map((n) => n.target.join(' ')).join(', ')}`);
+    }, label);
+    assert(found.length === 0, `${at}: axe found ${found.join(' | ')}`);
+    await page.setViewportSize({ width: 320, height: 640 });
+    if (process.env.SMOKE_SHOTS)
+      await page.screenshot({
+        path: `${process.env.SMOKE_SHOTS}/${label.replace(/ /g, '-')}.png`,
+        fullPage: true
+      });
+    await page.evaluate(() => (document.documentElement.style.fontSize = '200%'));
+    await page.waitForTimeout(250);
+    const wide = await page.evaluate(
+      () => document.documentElement.scrollWidth - document.documentElement.clientWidth
+    );
+    await page.evaluate(() => (document.documentElement.style.fontSize = ''));
+    await page.setViewportSize({ width: 390, height: 844 });
+    assert(wide <= 0, `${at}: scrolls sideways at 320 px and 200% text (${wide} px).`);
+  };
+  /** Whether the books say this run's bazaar is in progress (its sales held back). Leaves the Bazaar page. */
+  const booksHoldIt = async () => {
+    await page.getByRole('button', { name: 'Money', exact: true }).click();
+    await chip(page, 'places', 'Expenses').click();
+    await sheetShown(page, 'Money › Expenses › Books & costs');
+    const held =
+      (await page.getByText('Bazaar in progress: not counted yet').count()) > 0 &&
+      (await page.getByText(BOOKING_NAME, { exact: true }).count()) > 0;
+    await closeSheet(page);
+    return held;
+  };
+  const openBooking = async () => {
+    await page.goto(`${base}/bazaar`, { waitUntil: 'networkidle' });
+    await page.getByRole('button', { name: new RegExp(BOOKING_NAME) }).click();
+    await page.getByRole('heading', { level: 1, name: BOOKING_NAME }).waitFor();
+  };
+  let day1 = '';
+
+  await step(
+    'Bazaar: day 1 is reviewed, a loss is recorded, and it closes with cookies carried over',
+    async () => {
+      day1 = await page.evaluate(() => window.__hcOps.state.event.dayId);
+      const bakedBefore = await page.evaluate(
+        (id) => window.__hcOps.state.baked?.[id] ?? 0,
+        FLAVOUR
+      );
+      await page.getByRole('button', { name: 'Close out', exact: true }).click();
+      await review.waitFor();
+      await check(page, 'Bazaar day review', 'Bazaar day review');
+      assert(
+        (await page.evaluate(() => window.__hcOps.state.sheet?.kind ?? null)) !== 'closeout',
+        'The old close-out opened on a bazaar day.'
+      );
+      const taken = DAY_PRICE_PESOS * 3;
+      await figureSays('This day', 'Revenue', pesoOf(taken));
+      await figureSays('This day', 'Cash expected in the drawer', pesoOf(DAY_FLOAT_PESOS + taken));
+      // Every figure opens into its parts.
+      await figure('This day', 'Revenue').locator('summary').click();
+      await figure('This day', 'Revenue').getByText('Before discounts and freebies').waitFor();
+      // A flavour with no cost per cookie: profit is pending, in words, never a zero.
+      const costs = await admin
+        .from('bazaar_costs')
+        .select('recipe_cents, typed_cents')
+        .eq('scheduled_id', bookingId)
+        .eq('product_id', FLAVOUR)
+        .single();
+      assert(!costs.error, `bazaar_costs: ${costs.error?.message}`);
+      if (costs.data.recipe_cents === null && costs.data.typed_cents === null) {
+        const profit = await figureSays('Event so far', 'Profit', 'Cost pending');
+        assert(!/₱0(?![\d.,])/.test(profit), `An unknown profit is shown as a zero: "${profit}".`);
+      }
+
+      const loss = page.getByRole('form', { name: 'Record a loss' });
+      await loss.getByLabel('How many').fill('1');
+      await loss.getByLabel('What happened').fill('Dropped at the stall');
+      await loss.getByRole('button', { name: 'Record the loss' }).click();
+      await review.getByText(/Dropped at the stall/).waitFor();
+      const lost = await admin.from('bazaar_losses').select('qty, product_id').eq('day_id', day1);
+      assert(
+        !lost.error && lost.data.length === 1 && lost.data[0].qty === 1,
+        `bazaar_losses: ${lost.error?.message ?? JSON.stringify(lost.data)}`
+      );
+      assert(
+        (await page.evaluate((id) => window.__hcOps.state.eventStock[id], FLAVOUR)) === CARRIED,
+        'The till still offers the cookie that was lost.'
+      );
+
+      const close = page.getByRole('form', { name: 'Close the day' });
+      await close.getByLabel('Left', { exact: true }).fill(String(CARRIED));
+      await close.getByLabel('Carried over', { exact: true }).fill(String(CARRIED));
+      await close.getByLabel('Cash counted (₱)').fill(String(DAY_FLOAT_PESOS + taken));
+      await close.getByRole('button', { name: 'Close the day', exact: true }).click();
+      await page.waitForFunction(() => !window.__hcOps.state.event);
+      await review.getByText('Closed', { exact: true }).waitFor();
+      await figureSays('This day', 'Cash', 'Exact');
+      await check(page, 'Bazaar day review, closed', 'Bazaar day review');
+      const closed = await admin
+        .from('events')
+        .select('closed_at, counted_cents, variance_cents')
+        .eq('id', eventId)
+        .single();
+      assert(
+        !closed.error &&
+          closed.data.closed_at !== null &&
+          Number(closed.data.counted_cents) === (DAY_FLOAT_PESOS + taken) * 100 &&
+          Number(closed.data.variance_cents) === 0,
+        `The day did not close as counted: ${JSON.stringify(closed.data)}`
+      );
+      const counted = await admin
+        .from('bazaar_day_lines')
+        .select('left_qty, carry_next_qty, to_shop_qty, written_off_qty')
+        .eq('day_id', day1)
+        .single();
+      assert(
+        !counted.error &&
+          counted.data.left_qty === CARRIED &&
+          counted.data.carry_next_qty === CARRIED &&
+          counted.data.to_shop_qty === 0 &&
+          counted.data.written_off_qty === 0,
+        `Her count was not stored as typed: ${JSON.stringify(counted.data)}`
+      );
+      // The phone let go of the day, and what was left did not go into the shop's baked stock.
+      const after = await page.evaluate(
+        (id) => ({
+          saved: localStorage.getItem('hc-live-bazaar'),
+          baked: window.__hcOps.state.baked?.[id] ?? 0
+        }),
+        FLAVOUR
+      );
+      assert(after.saved === null, 'The closed day is still saved on the phone.');
+      assert(
+        after.baked === bakedBefore,
+        "The day's leftovers were put into the shop's baked stock."
+      );
+    }
+  );
+
+  await step(
+    'the books hold the open bazaar back; day 2 carries the cookies in and sells through an offline reload',
+    async () => {
+      assert(await booksHoldIt(), 'The books do not say this bazaar is in progress.');
+      await openBooking();
+      await check(page, 'Bazaar event page, day 1 closed', 'Bazaar');
+      const cost = page.getByRole('form', { name: /^Cost per cookie for / });
+      await cost.getByLabel('Your cost per cookie (₱)').fill(String(COST_PESOS));
+      await cost.getByRole('button', { name: 'Save the cost' }).click();
+      await page.getByText(`${pesoOf(COST_PESOS)}.00 per cookie · typed by you`).waitFor();
+      const fee = page.getByRole('form', { name: 'Add a fee' });
+      await fee.getByLabel('What for').fill('Permit');
+      await fee.getByLabel('Amount (₱)').fill(String(FEE_PESOS));
+      await fee.getByRole('button', { name: 'Add the fee' }).click();
+      await page.getByText(/Permit · Whole event/).waitFor();
+      const target = page.getByRole('form', { name: 'Target profit' });
+      await target.getByLabel('Target (₱)').fill('500');
+      await target.getByRole('button', { name: 'Save the target' }).click();
+      await assertEventually(async () => {
+        const { data } = await admin
+          .from('scheduled_events')
+          .select('target_profit_cents')
+          .eq('id', bookingId)
+          .single();
+        return Number(data?.target_profit_cents) === 50000;
+      }, 'the target profit');
+
+      await page.locator('[aria-labelledby="bazaar-plan"] button').first().click();
+      const form = page.getByRole('form', { name: /^Plan for / });
+      await form.waitFor();
+      const card = form
+        .getByText(flavour.short_name, { exact: true })
+        .locator('xpath=ancestor::li[1]');
+      assert(
+        (await card.getByLabel('Carried over').inputValue()) === String(CARRIED),
+        'Day 2 does not start from what day 1 set aside.'
+      );
+      await form.getByLabel('Drawer float (₱)').fill(String(DAY2_FLOAT_PESOS));
+      await card.getByLabel('Made').fill(String(DAY2_MADE));
+      await card.getByLabel('Price (₱)').fill(String(DAY2_PRICE_PESOS));
+      await form.getByRole('button', { name: 'Save the plan' }).click();
+      await page.getByText(`${DAY2_MADE + CARRIED} cookies on the table`).waitFor();
+      await page.getByRole('button', { name: 'Start this day', exact: true }).click();
+      await page.waitForFunction((d) => {
+        const event = window.__hcOps.state.event;
+        return !!event?.dayId && event.dayId !== d;
+      }, day1);
+      await page.locator('[data-screen-label="Bazaar Mode"]').waitFor();
+      const day2Event = await page.evaluate(() => window.__hcOps.state.event.id);
+      assert(day2Event !== eventId, "Day 2 is selling on day 1's event.");
+      const started = await page.evaluate(
+        (id) => ({
+          stock: window.__hcOps.state.eventStock[id],
+          price: window.__hcOps.state.eventPrices[id],
+          float: window.__hcOps.state.drawer?.float
+        }),
+        FLAVOUR
+      );
+      assert(
+        started.stock === DAY2_MADE + CARRIED &&
+          started.price === DAY2_PRICE_PESOS &&
+          started.float === DAY2_FLOAT_PESOS,
+        `Day 2 did not start as planned: ${JSON.stringify(started)}`
+      );
+      await sellOne(1);
+      await assertEventually(async () => (await salesInDb(day2Event)).length === 1, "day 2's sale");
+
+      offline = true;
+      await context.setOffline(true);
+      await page.reload({ waitUntil: 'domcontentloaded' });
+      await page.locator('[data-screen-label="Bazaar Mode"]').waitFor();
+      await page.waitForFunction(() => (window.__hcOps?.state.sales ?? []).length === 1);
+      // The saved copy of the bazaar does not keep the drawer: the float comes back from the day.
+      assert(
+        (await page.evaluate(() => window.__hcOps.state.drawer?.float)) === DAY2_FLOAT_PESOS,
+        'The drawer float was lost in the reload.'
+      );
+      await sellOne(2);
+      await check(page, 'Bazaar day 2, offline after a reload', 'Bazaar Mode');
+      await context.setOffline(false);
+      offline = false;
+      await page.evaluate(() => window.dispatchEvent(new Event('online')));
+      await assertEventually(
+        async () => (await salesInDb(day2Event)).length === 2,
+        "day 2's offline sale"
+      );
+      await page.waitForFunction(() => window.__hcOps.state.unsynced === 0);
+      eventId = day2Event;
+    }
+  );
+
+  await step('day 2 closes, the event is closed, and only then do the books count it', async () => {
+    const recipe = await admin.from('recipes').select('product_id').eq('product_id', FLAVOUR);
+    assert(!recipe.error, `recipes: ${recipe.error?.message}`);
+    // A flavour is sent to the shop only when it has a recipe: the cookies become a batch of the drop.
+    const toShop = recipe.data.length ? 1 : 0;
+    const left = DAY2_MADE + CARRIED - 2;
+    const taken = DAY2_PRICE_PESOS * 2;
+    await page.goto(`${base}/bazaar`, { waitUntil: 'networkidle' });
+    await page.locator('[data-screen-label="Bazaar Mode"]').waitFor();
+    await page.getByRole('button', { name: 'Close out', exact: true }).click();
+    await review.waitFor();
+    const close = page.getByRole('form', { name: 'Close the day' });
+    await close.waitFor();
+    await bazaarFits('Bazaar day review, open', 'Bazaar day review');
+    assert(
+      (await close.getByLabel('Carried over', { exact: true }).count()) === 0,
+      "The booking's last day offers a carry-over."
+    );
+    await close.getByLabel('Left', { exact: true }).fill(String(left));
+    await close.getByLabel('To the shop', { exact: true }).fill(String(toShop));
+    await close.getByLabel('Written off', { exact: true }).fill(String(left - toShop));
+    await close.getByLabel('Cash counted (₱)').fill(String(DAY2_FLOAT_PESOS + taken + 5));
+    await close.getByRole('button', { name: 'Close the day', exact: true }).click();
+    await page.waitForFunction(() => !window.__hcOps.state.event);
+    // The phone lets go of the day at once; the review shows the closed day once it has been read again.
+    await review.getByText('Closed', { exact: true }).waitFor();
+    await figureSays('This day', 'Cash', pesoOf(5) + ' over');
+    await page.getByRole('button', { name: /Back to the event/ }).click();
+    await page.getByRole('heading', { level: 1, name: BOOKING_NAME }).waitFor();
+    await check(page, 'Bazaar event page, both days closed', 'Bazaar');
+
+    // The event, against this run's own sums.
+    const revenue = DAY_PRICE_PESOS * 3 + taken;
+    const fees = RENT_PESOS + FEE_PESOS;
+    const cookieCost = (DAY_COOKIES + DAY2_MADE - toShop) * COST_PESOS;
+    const profit = revenue - fees - cookieCost + 5;
+    await figureSays('The event', 'Revenue', pesoOf(revenue));
+    await figureSays('The event', 'Fees', pesoOf(fees));
+    await figureSays('The event', 'Cookie cost', pesoOf(cookieCost));
+    await figureSays('The event', 'Profit', pesoOf(profit));
+    await figureSays(
+      'The event',
+      'Against the target',
+      profit < 500 ? pesoOf(500 - profit) + ' under the target' : pesoOf(profit - 500) + ' over'
+    );
+
+    const before = await admin
+      .from('ledger_entries')
+      .select('id')
+      .eq('category', 'Bazaar rent')
+      .like('memo', BOOKING_NAME + '%');
+    assert(
+      !before.error && before.data.length === 0,
+      'The rent reached the books before the event was closed.'
+    );
+    await page.getByRole('button', { name: 'Close the event', exact: true }).click();
+    await page.getByRole('button', { name: 'Yes, close the event', exact: true }).click();
+    await page.getByText(/This event is closed\./).waitFor();
+    await check(page, 'Bazaar event page, closed', 'Bazaar');
+    await bazaarFits('Bazaar event page, closed', 'Bazaar');
+    const booked = await admin
+      .from('scheduled_events')
+      .select('finalised_at, final_hash')
+      .eq('id', bookingId)
+      .single();
+    assert(
+      !booked.error &&
+        booked.data.finalised_at !== null &&
+        /^[0-9a-f]{64}$/.test(booked.data.final_hash),
+      `The event was not closed: ${JSON.stringify(booked.data)}`
+    );
+    const rent = await admin
+      .from('ledger_entries')
+      .select('amount_cents')
+      .eq('category', 'Bazaar rent')
+      .like('memo', BOOKING_NAME + '%');
+    assert(
+      !rent.error &&
+        rent.data.length === 1 &&
+        Number(rent.data[0].amount_cents) === -RENT_PESOS * 100,
+      `The rent is not in the books once: ${JSON.stringify(rent.data)}`
+    );
+    if (toShop) {
+      const batch = await admin
+        .from('production_records')
+        .select('kind, qty')
+        .eq('ref', 'bazaar:' + bookingId)
+        .eq('kind', 'batch');
+      assert(
+        !batch.error && batch.data.length === 1 && Number(batch.data[0].qty) === toShop,
+        `The cookies sent to the shop are not a batch: ${JSON.stringify(batch.data)}`
+      );
+    }
+    // The books: nothing held back any more, and the bazaar's lines are counted.
+    assert(!(await booksHoldIt()), 'The books still hold the closed bazaar back.');
+    const counted = await page.evaluate(
+      (name) =>
+        (window.__hcOps.state.ledger ?? []).filter((l) => String(l.label).includes(name)).length,
+      BOOKING_NAME
+    );
+    assert(
+      counted >= 2,
+      `The closed bazaar's rent and fee are not in the books (${counted} lines).`
+    );
   });
 
   // B5: the New Stock screens, in a real browser. axe finds what jsdom cannot (real colour contrast), and the

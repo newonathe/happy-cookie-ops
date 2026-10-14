@@ -118,6 +118,34 @@ carry_next, to_shop, written_off}}, expected`; `lines` names every flavour of th
 - `void_event_sale` and `record_event_sale` are untouched, so a void or a queued sale can still arrive after a close or
   a finalise: the summary is worked out again from the rows, and a day says `changed_after_close`.
 
+## S3 as built (14 October): the app half after selling
+
+No new migration: S3 calls what migration 68 already has.
+
+- **The review only formats `bazaar_summary`** (`src/lib/bazaar/review.ts`). Profit and the target are the event's,
+  shown as "Event so far"; no figure is worked out in the app. The one sum made there, "should be left", only bounds
+  what she may type. An unknown cost reads "Cost pending", never ₱0.
+- **The close.** "Close out" on a started day opens the review (the engine's `askClose` is overridden in the live
+  vals; `bazaar-mode.tsx` is unchanged). The review is drawn only from a read made when it opens; the close sends
+  that read's day hash with her count for every flavour of the day (zero-stock ones too), and keeps its time for a
+  retry. A changed day (40001) is read again and she closes it again herself. It is refused on the phone while it
+  has changes unsent (sales, voids, expenses). A closed day leaves the phone by a runtime patch, never through the
+  engine's `resetEvent`, which would put the leftovers into baked stock.
+- **An open day this phone does not hold** (decided in S3): any owner phone with signal reviews and closes it from
+  the event page. The review warns that sales still on the selling phone are not in the figures; whatever arrives
+  later shows as "Changed after it was closed". Selling is never taken over. A phone that still holds a day closed
+  elsewhere lets go of it once it has nothing left to send.
+- **The drawer float** rides on the saved event (`event.floatCents`), so it comes back after a reload with no signal,
+  and is confirmed from the day when the bookings are read with signal.
+- **The four small forms** (Ethan, 14 October): a fee (paid on its day, or the event's first day), the target, a typed
+  cost per cookie (blank goes back to the recipe's), and more stock on an open day (made, or carried within what the
+  day before set aside). A loss lowers the till's stock; added stock raises it.
+- **Closing the event** passes the phone's drop number, sends the hash of the summary she was shown, then reads the
+  books and production again. A closed event shows the summary that was booked, and says so if rows changed since.
+- **The books** show "Bazaar in progress: not counted yet" with each held booking's record count and sums.
+- **No bake is recorded for bazaar cookies** (Ethan, 14 October): the day's plan is the stock; only cookies sent to the
+  shop become a batch, at the close of the event.
+
 ## The computation
 
 Whole centavos. A cost per cookie is numeric with four decimals; a cost line is `quantity × cost`, rounded half up to the
