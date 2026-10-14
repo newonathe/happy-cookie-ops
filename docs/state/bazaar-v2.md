@@ -22,6 +22,63 @@ He wants it planned as separate slices, each with its own plan; researched thoro
 - a typed cost per flavour, set in the recipe book;
 - designs approved before code.
 
+## Revision after the Ateneo audit (15 October, later): read this first
+
+Ethan ran a test bazaar on the trial, "Ateneo" (19 to 24 Oct, rent ₱20,000.00, target ₱30,000.00). Days 19 and 21 were
+run on 15 Oct and the event was closed. It was audited read-only from the trial database (every figure recomputed from
+the raw rows). The bazaar screens were then replayed locally at 375 and 1440 px, with the same shape: two days, sales,
+a loss, an early close.
+
+**What checked out.** Sales, voids, freebies and discounts add up. Cash expected = float + cash sales. Each flavour
+balances: made + carried = sold + given + lost + left + not accounted. The carry-over reached the next day. Clerk names
+and payment methods are right, and nothing was double-counted.
+
+### Findings
+
+| #   | Finding (evidence)                                                                                                                                                                                                                                                                                       | Severity     | Fix and slice                                                                                                                                     |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A1  | **Ending an event early strands the carried-over cookies.** Day 21 carried 43 forward and the event was closed; they became "Not accounted" at ₱1,375.08 of cookie cost, never went back to the shop, and no screen asked. Designed ("a cookie set aside to carry over that never arrived"), but silent. | High         | U4: "Close the event" warns and names them. After 26 Oct (U6): the close takes a final split, to the shop or written off.                         |
+| A2  | **A day can be started on any date.** "Mon 19 Oct" was started on Thu 15 Oct. Its sales are dated 15 Oct in the books while the day says 19 Oct, and the rent is booked on 19 Oct. `start_bazaar_day` has no date rule.                                                                                  | Medium       | U4: starting a day that is not today asks "This day is Mon 19 Oct; today is Thu 15 Oct. Start anyway?" (the rehearsal needs "anyway").            |
+| A3  | **No check on a large drawer difference.** Day 19 had ₱0.00 expected and ₱1,000.00 typed, booked without a question.                                                                                                                                                                                     | Medium       | U5: an over or short above the larger of ₱100.00 and 10 % of expected asks to count again.                                                        |
+| A4  | **The drawer difference is booked as a sale.** The ₱1,000.00 over is a `sale` ledger line in "Bazaar" ("drawer over"), so the books show ₱1,510.00 of bazaar sales against ₱510.00 sold.                                                                                                                 | Medium       | After 26 Oct (U6): book over and short in their own category. Until then, A3 stops a typo from becoming revenue.                                  |
+| A5  | **The event closes with cost pending**, and the books then keep no cookie cost. The confirmation says "Type one under Cost per cookie on the event page" while you are on that page.                                                                                                                     | Medium       | U4: the confirmation lists the flavours without a cost, each with its cost field inline; "Close without cost" is explicit.                        |
+| A6  | **The test is in the real books.** Ateneo is closed: ₱20,000.00 rent (dated 19 Oct), ₱1,000.00 over, ₱510.00 of sales and the stock use of 50 cookies (as shortfalls) now count in October. Nothing can reverse a closed event.                                                                          | High (books) | **Ethan decides:** add reversing entries through a reviewed one-off script before 24 Oct, or leave them and note them. Rehearsal events add more. |
+| A7  | **Every bazaar close records "no packaging rule" for bazaar sales** (a shortfall line per close). Recipes already include the pouch and sticker per cookie.                                                                                                                                              | Low          | After 26 Oct: a "no packaging per sale" rule for the Bazaar channel, or skip the line when there is no rule.                                      |
+| B1  | **Flavours never put on the table show as "Sold out" on the till** (0 made), mixed in with real sell-outs.                                                                                                                                                                                               | Medium       | U2: tiles that were never on the table are not drawn; real sell-outs are hidden with "Show sold out (n)".                                         |
+| B2  | **Two places to enter a cost:** the till's "Event expenses · Add" (`event_expenses`, cannot be removed) and the event page's "Fees" (`bazaar_fees`, removable). The rent goes to a third place.                                                                                                          | Medium       | U2: the till's Add opens the live fee form for that day (one list, removable). The old till expense is no longer offered.                         |
+| B3  | Closed and past events stay in the list with no status. "Add an event" sits at the bottom.                                                                                                                                                                                                               | Medium       | U3 (as planned), plus a status pill on every row.                                                                                                 |
+| B4  | A closed day's card shows its plan ("20 cookies on the table · Float ₱100") instead of what happened.                                                                                                                                                                                                    | Medium       | U4: a closed day shows sold, revenue, left, carried and over or short, and opens the review.                                                      |
+| B5  | The plan lists all 26 flavours, menu and off-menu, each as a full card.                                                                                                                                                                                                                                  | Medium       | U4: menu flavours first as tiles; the rest under "More flavours".                                                                                 |
+| B6  | Toasts and the floating + cover form buttons at both widths. Dates show as 10/14/2026 (US). Small numbers get full-width boxes on desktop.                                                                                                                                                               | Low          | U1 layout rules; U3 dates as "Wed, 14 Oct"; steppers for counts.                                                                                  |
+
+### Correcting an earlier premise (costs)
+
+All 7 menu flavours already have a **complete recipe cost** on the trial: Apple Pie ₱42.49, Double Chocolate Fudge
+₱34.20, Espresso Brownie ₱30.17, Happy Camper ₱39.54, PB & Miso ₱16.17, Ube Coconut Crinkle ₱26.29, White Chocolate
+Biscoff ₱43.97. Of the 23 recipes, 22 are complete; Banana oat is missing one price. Ateneo's profit used them.
+
+Ethan's choice "she types a cost per flavour" rested on the statement that most recipes could not be costed, and that
+statement was wrong. So the cost is already pre-filled from the recipe. Point 9 is met **without a migration**:
+
+- show that cost with a receipt-style breakdown from `get_recipe_costs` lines, on the event page (U4) and in the recipe
+  book (U7);
+- a per-flavour typed override comes after 26 Oct (U6).
+
+### Debating the plan against the evidence
+
+- _Is "everything before the bazaar" still safe?_ Only if no database change ships before 26 Oct and the locked till is
+  touched only through runtime values. **Revised:** there are no migrations before the bazaar. U6 moves after 26 Oct
+  with A1, A4 and the cost override. U7 becomes interface-only (read and breakdown).
+- _Do bug fixes come before polish?_ They did not. **Revised:** each slice does its findings (A–B) first and then the
+  visual work, so a slipped slice still ships the fixes.
+- _Is the plan too big for six days?_ Ten slices become eight before the bazaar:
+  - D0, U1, U2, U3, U5, U4, U7 (lite), U9;
+  - U6 after 26 Oct;
+  - U8 only on "approve PESO".
+- _What can only the phone prove?_ Safari offline and iOS storage. The rehearsal stays, on the final build.
+- _What else is a hidden risk?_ Test events in the real books (A6). Every rehearsal and test adds rows that cannot be
+  reversed, so a reversal tool (after 26 Oct) or the one-off script (Ethan's choice) is needed before real reporting.
+
 ## Audit: what the code and the screens show (15 Oct)
 
 - **Two design languages.**
@@ -84,19 +141,19 @@ D0 ─▶ U1 ─┬▶ U2 ─┬▶ U3 ─┐
           └▶ U6 (DB) ───┴▶ U7 ─┘        U8 (needs yes) joins before U9
 ```
 
-| Slice | What                                                                       | Points        | Date (Oct) | Cut if late?                      |
-| ----- | -------------------------------------------------------------------------- | ------------- | ---------- | --------------------------------- |
-| D0    | Design spec, motion spec, mockups artifact; approval                       | 7, 10, 13     | 15–16      | no                                |
-| U1    | Design system: tokens, components, motion utilities, stories               | 7, 8, 12, 13  | 16         | no                                |
-| U2    | Till freedom: leave and come back, Home card, sold-out hidden, Add cookies | 1, 4, 5       | 17         | no                                |
-| U6    | Cost per flavour (migration 70), database track                            | 9             | 17         | yes → after 26                    |
-| U3    | Events hub: Active pinned, Upcoming and Past, Add top right, single form   | 2, 3          | 18         | no                                |
-| U5    | Review and close: live stat tiles, pre-filled close, receipt               | 6             | 18         | no                                |
-| U4    | Event page and day plan: tile grid, steppers, timeline, red fields         | 9, 10, 11, 12 | 19         | no                                |
-| U7    | Recipe book tiles and the flavour cost receipt                             | 9, 11         | 19–20      | yes → after 26                    |
-| U8    | Two decimals in the ported screens (protected exception)                   | 8             | 20         | yes (needs Ethan's yes)           |
-| U9    | Motion pass, full QA, release                                              | 13            | 21         | no                                |
-| —     | Phone rehearsal → fixes → `RELEASE_HOLD=true`                              | —             | 22–23      | rehearsal by 22 Oct at the latest |
+| Slice | What                                                                                 | Points        | Date (Oct) | Cut if late?                      |
+| ----- | ------------------------------------------------------------------------------------ | ------------- | ---------- | --------------------------------- |
+| D0    | Design spec, motion spec, mockups artifact; approval                                 | 7, 10, 13     | 15–16      | no                                |
+| U1    | Design system: tokens, components, motion utilities, stories                         | 7, 8, 12, 13  | 16         | no                                |
+| U2    | Till freedom: leave and come back, Home card, sold-out hidden, Add cookies           | 1, 4, 5       | 17         | no                                |
+| U6    | After 26 Oct: migration 70 (closing leftovers A1, drawer category A4, cost override) | 9             | after 26   | moved (Ateneo audit)              |
+| U3    | Events hub: Active pinned, Upcoming and Past, Add top right, single form             | 2, 3          | 18         | no                                |
+| U5    | Review and close: live stat tiles, pre-filled close, receipt                         | 6             | 18         | no                                |
+| U4    | Event page and day plan: tile grid, steppers, timeline, red fields                   | 9, 10, 11, 12 | 19         | no                                |
+| U7    | Recipe book tiles and the cost receipt from recipes (interface only, no migration)   | 9, 11         | 19–20      | yes → after 26                    |
+| U8    | Two decimals in the ported screens (protected exception)                             | 8             | 20         | yes (needs Ethan's yes)           |
+| U9    | Motion pass, full QA, release                                                        | 13            | 21         | no                                |
+| —     | Phone rehearsal → fixes → `RELEASE_HOLD=true`                                        | —             | 22–23      | rehearsal by 22 Oct at the latest |
 
 ## Slice plans
 
@@ -222,7 +279,7 @@ D0 ─▶ U1 ─┬▶ U2 ─┬▶ U3 ─┐
 ## How to run the slices
 
 - One slice = one `/goal`, in a **new conversation**, with auto mode on. Paste the block from below.
-- Pairs that may run at the same time in two conversations (different files): **U2 with U6**, **U3 with U5**. Never
+- Pairs that may run at the same time in two conversations (different files): **U2 with U7**, **U3 with U5**. Never
   two database slices at once.
 - Each slice commits and pushes its own branch and stops. Only U9 merges and deploys (one release, then the rehearsal).
 - Every slice ends with browser-pane QA at 375 px and 1440 px against the approved D0 mockups, axe, `pnpm verify`.
@@ -235,13 +292,14 @@ D0 ─▶ U1 ─┬▶ U2 ─┬▶ U3 ─┐
 
 ```
 /goal Bazaar v2 slice D0 (design spec and mockups) in C:\Users\ethan\dev\happy-cookie-ops-g0. Read AGENTS.md,
-docs/state/current.md, docs/state/bazaar-v2.md (Audit, Research, D0). Look at src/app/globals.css @theme,
+docs/state/current.md, docs/state/bazaar-v2.md (Revision after the Ateneo audit, Audit, Research, D0). Look at src/app/globals.css @theme,
 docs/reference/screens/states/06-sheet-closeout.png, docs/master-plan/evidence/ui/chromium-phone/01-home.png.
 1 Write docs/design/bazaar-v2.md: the rules, each component with its props and states, the motion table (element,
   trigger, property, duration, curve, reduced-motion fallback), and the anatomy of every screen.
 2 Publish one artifact page of mockups at 375 and 1440 px, @theme tokens only, no new hex: Home card, events hub,
   add-event sheet, event page, day plan tile grid, till frame (Home, Add cookies, sold-out hidden), review with
-  pre-filled close, recipe book and cost receipt, error summary and red fields; live motion demos.
+  pre-filled close, recipe book and cost receipt, error summary and red fields, and the Ateneo prompts (start a
+  day that is not today, count again, stranded carried cookies, cost-pending close); live motion demos.
 3 Stop for Ethan's approval; write his changes into the doc. No app code in this slice.
 ```
 
@@ -274,6 +332,7 @@ docs/state/current.md, docs/state/bazaar-v2.md (Audit, U2), docs/OFFLINE.md, doc
   banner; widen src/view-models/vals.ts.
 3 renderVals (live only): hide sold-out tiles unless in the cart; "Show sold out (n)"; allGone empty state.
 4 Add cookies from the till: export StockForm, BazaarDays.addHeldStock reusing addStock and its pending key.
+5 Ateneo findings first: B1 (tiles never on the table are not drawn), B2 (the till's expense Add opens the fee form).
 Tests first; extend scripts/test-live-smoke.mjs (leave and return, sold-out hidden then back after a void, add cookies).
 One different-model review (offline). Browser-pane QA at 375 and 1440 px. Commit and push the branch; do not merge.
 ```
@@ -283,10 +342,11 @@ Model Sonnet high with Opus sign-off, new conversation, plan mode off.
 ### U6
 
 ```
-/goal Bazaar v2 slice U6 (cost per flavour, migration 70) in C:\Users\ethan\dev\happy-cookie-ops-g0. Read AGENTS.md,
+/goal Bazaar v2 slice U6, AFTER 26 OCTOBER (closing rules and cost override, migration 70) in C:\Users\ethan\dev\happy-cookie-ops-g0. Read AGENTS.md,
 docs/state/current.md, docs/state/bazaar-v2.md (U6), supabase/migrations/20260101006800_bazaar_hardening.sql by
 range (bazaar_line_facts, bazaar_summary), 20260101005900_packaging_rules.sql:880-940.
-1 New 20260101006900_flavour_cost.sql: flavour_costs, save_flavour_cost (owner only, SECURITY DEFINER,
+1 New 20260101006900 migration: finalise takes a final split for carried cookies (Ateneo A1); drawer over/short in
+  its own category, not a sale (A4); bazaar packaging (A7); flavour_costs, save_flavour_cost (owner only, SECURITY DEFINER,
   search_path='', grants, rule lines), get_flavour_costs, cost order booking typed > flavour typed > complete recipe.
 2 Pins (mp08g-source-pins.json, function-authority.json), role-suite cases (bazaar-days.sql), types, data layer.
 3 pnpm verify, the role suite twice, the live smoke suite; one different-model review with hand-worked numbers.
@@ -303,7 +363,7 @@ docs/state/current.md, docs/state/bazaar-v2.md (U3), docs/design/bazaar-v2.md, s
 event-list.tsx, src/components/live/live-form-host.tsx, src/lib/nav/function-map.ts.
 1 event-list.tsx: header with Add an event top right; Active pinned; Upcoming and Past behind FilterChips.
 2 New event-form.tsx: one blank event in a Sheet (name, place, dates, rent), saved through save_scheduled_event.
-3 The Bazaar events sub-tab opens the hub. Motion per the D0 table.
+3 The Bazaar events sub-tab opens the hub. Motion per the D0 table. Ateneo B3, B6: a status pill per row, dates as "Wed, 14 Oct".
 Tests (unit and smoke: add an event in the sheet). Browser-pane QA at 375 and 1440 px. Commit and push; do not merge.
 ```
 
@@ -319,6 +379,7 @@ day-review.tsx, figure.tsx, src/store/bazaar-days.ts (reviewView), src/lib/bazaa
 2 Pre-filled close (derived defaults): left = should be left, rest to carried over (not last day) else to the shop
   with a recipe else written off; cash counted = cash expected; hasRecipe and cashExpectedPesos added; over/short line.
 3 Z-report day summary as a ReceiptTable. Motion per the D0 table.
+4 Ateneo A3 first: an over or short above max(₱100, 10% of expected) asks to count again.
 Tests first (defaults, the close sends what is shown); smoke closes a day with the defaults. One different-model
 review (money). Browser-pane QA at 375 and 1440 px. Commit and push; do not merge.
 ```
@@ -336,6 +397,9 @@ event-page.tsx, day-plan.tsx, field.tsx.
   float stepper.
 3 Validation returns {field, message}[]; red fields and ErrorSummary on plan, fees, losses, cost and event forms.
 4 Clear the floating button and toasts from form actions.
+5 Ateneo first: A1 (Close the event names stranded carried cookies), A2 (starting a day that is not today asks),
+  A5 (cost-pending flavours with inline cost fields in the close confirmation), B4 (closed day shows its outcome),
+  B5 (menu flavours first). Cost per cookie shows the recipe's cost with its receipt breakdown (no migration).
 Tests (validation keys, plan totals); smoke plans a day with steppers and hits a red field. Browser-pane QA at 375 and
 1440 px. Commit and push; do not merge.
 ```
@@ -345,14 +409,14 @@ Model Sonnet with Opus sign-off, new conversation, plan mode off.
 ### U7
 
 ```
-/goal Bazaar v2 slice U7 (recipe book) in C:\Users\ethan\dev\happy-cookie-ops-g0, after U6. Read AGENTS.md,
+/goal Bazaar v2 slice U7 (recipe book, interface only) in C:\Users\ethan\dev\happy-cookie-ops-g0. Read AGENTS.md,
 docs/state/current.md, docs/state/bazaar-v2.md (U7), docs/design/bazaar-v2.md, src/components/live/live-screens.ts,
 src/lib/data/costs.ts.
 1 A live screen for recipes: FlavourTile grid, search, on-menu and all filters, price, cost and margin badges.
-2 Flavour page: photo hero, editable cost per cookie (save_flavour_cost), margin, receipt breakdown from
-  get_recipe_costs lines, or "Typed by Cine". Recipe editing stays in the old screen.
+2 Flavour page: photo hero, the recipe's cost per cookie (read only until U6), margin, receipt breakdown from
+  get_recipe_costs lines, Recipe editing stays in the old screen.
 3 Tile-to-page view transition with a fade fallback.
-Tests and smoke (type a cost, see it on the event page). Browser-pane QA at 375 and 1440 px. Commit and push.
+Tests and smoke (the recipe cost matches the event page). Browser-pane QA at 375 and 1440 px. Commit and push.
 ```
 
 Model Sonnet with Opus sign-off, new conversation, plan mode off.
@@ -377,7 +441,7 @@ docs/state/current.md, docs/state/bazaar-v2.md (U9), docs/design/bazaar-v2.md. M
 1 Apply the D0 motion table everywhere; reduced motion; performance budget against the C8 baseline.
 2 pnpm verify, test:e2e, test:live:smoke, the role suite (if U6), Docker visual (if U8), browser pane at 320, 375,
   768 and 1440 px, axe.
-3 If U6 is in: apply migration 70 to the trial from a scratch folder (dry run, fingerprint) first.
+3 No migration ships before 26 October (Ateneo revision): U6 waits.
 4 Secret scan, PR into agent/codex/MP-04-g1-feasibility, merge, confirm the deployed version and the Access redirect.
 5 Update the run sheet and current.md; hand Ethan the rehearsal steps (exact, step by step).
 ```
