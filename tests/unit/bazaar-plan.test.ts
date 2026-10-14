@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { cookiesText, pesoInput, pesoText, planFromForm } from '@/lib/bazaar/plan';
+import { cookiesText, pesoInput, planFromForm } from '@/lib/bazaar/plan';
 import type { PlanFlavour } from '@/lib/bazaar/live-bazaar-types';
 
 /**
@@ -99,10 +99,7 @@ describe('planFromForm', () => {
 });
 
 describe('texts', () => {
-  it('shows whole pesos without decimals and others with two', () => {
-    expect(pesoText(12500)).toBe('₱125');
-    expect(pesoText(12550)).toBe('₱125.50');
-    expect(pesoText(250000)).toBe('₱2,500');
+  it('writes input text and counts (money text is src/lib/money/format.ts, tested in money-format.test.ts)', () => {
     expect(pesoInput(12500)).toBe('125');
     expect(pesoInput(12550)).toBe('125.5');
     expect(cookiesText(1)).toBe('1 cookie');

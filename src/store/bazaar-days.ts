@@ -28,7 +28,8 @@ import type {
   LiveBazaarVals,
   PlanFlavour
 } from '@/lib/bazaar/live-bazaar-types';
-import { cookiesText, pesoInput, pesoText, planFromForm } from '@/lib/bazaar/plan';
+import { cookiesText, pesoInput, planFromForm } from '@/lib/bazaar/plan';
+import { peso } from '@/lib/money/format';
 import {
   amountCents,
   closeFromForm,
@@ -366,7 +367,7 @@ export class BazaarDays {
       name: booking.name,
       placeText: booking.place || 'No place set',
       datesText: dateRange(data.booking.startsOn, data.booking.endsOn),
-      rentText: 'Stall rent ' + pesoText(data.booking.rentCents),
+      rentText: 'Stall rent ' + peso(data.booking.rentCents),
       days: [...data.days]
         .sort((a, b) => a.day.localeCompare(b.day))
         .map((d) => this.dayRow(booking, d, open)),
@@ -382,9 +383,9 @@ export class BazaarDays {
           ' · ' +
           (f.dayId === null ? 'Whole event' : (dayText.get(f.dayId) ?? 'One day')) +
           (f.atTheTill ? ' · added at the till' : ''),
-        amountText: pesoText(f.amountCents)
+        amountText: peso(f.amountCents)
       })),
-      feesTotalText: pesoText(shown.fees.totalCents),
+      feesTotalText: peso(shown.fees.totalCents),
       feeFor: [
         { dayId: null, text: 'The whole event' },
         ...[...data.days]
@@ -392,7 +393,7 @@ export class BazaarDays {
           .map((d) => ({ dayId: d.id, text: dateRange(d.day, d.day) }))
       ],
       addFee: data.finalised ? null : (input) => this.addFee(data, input),
-      targetText: data.targetCents === null ? 'No target set' : pesoText(data.targetCents),
+      targetText: data.targetCents === null ? 'No target set' : peso(data.targetCents),
       targetPesos: data.targetCents === null ? '' : pesoInput(data.targetCents),
       saveTarget: data.finalised ? null : (pesos) => this.saveTarget(data, pesos),
       costs: this.costRows(data, shown, names),
@@ -488,7 +489,7 @@ export class BazaarDays {
       dateText: dateRange(day.day, day.day),
       word: WORD[day.state],
       cookiesText: total === 0 ? 'Nothing planned' : cookiesText(total) + ' on the table',
-      floatText: 'Float ' + pesoText(day.floatCents),
+      floatText: 'Float ' + peso(day.floatCents),
       lines: day.lines
         .filter((l) => l.made + l.carried > 0)
         .map(
@@ -497,7 +498,7 @@ export class BazaarDays {
             ' · ' +
             (l.made + l.carried) +
             ' at ' +
-            pesoText(l.priceCents)
+            peso(l.priceCents)
         ),
       edit: day.state === 'planned' ? () => this.edit(day) : null,
       action,
@@ -635,7 +636,7 @@ export class BazaarDays {
       close: open
         ? {
             lastDay,
-            cashExpectedText: pesoText(day.cashExpectedCents),
+            cashExpectedText: peso(day.cashExpectedCents),
             blocked,
             submit: (input) => this.closeDay(day, lastDay, input)
           }
