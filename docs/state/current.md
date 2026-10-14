@@ -20,10 +20,18 @@ Read this page first in a new session. It is kept short on purpose.
 [final-plan.md](final-plan.md), version 2, on 5 October after a re-audit, a debate and
 wider research. It replaces finish-plan.md as the forward plan. The Bazaar defect B1 found is
 fixed (below). S1 to S3 of [bazaar-days.md](bazaar-days.md) are built (Ethan put the bazaar's new flow ahead of B6 on
-13 October, with no fallback). The next step is Ethan's word: migration 68 on the trial, merge, deploy, then the phone
-rehearsal by 20 October ([bazaar-run-sheet.md](bazaar-run-sheet.md)).
+13 October, with no fallback), migration 68 is on the trial and the code is merged (14 October). The next step is the
+phone rehearsal by 20 October ([bazaar-run-sheet.md](bazaar-run-sheet.md)), once the release run has deployed.
 
-**S3, 14 October (built, local only; branch claude/bazaar-days-s3):** losses, more stock, the day review with each figure
+**Release, 14 October (at Ethan's word):** migration 68 applied to the trial from a scratch folder (dry run first: only
+that file); the trial is at 68 of 68. Schema fingerprint equal to local (columns, policies, row security, table grants,
+functions), apart from Postgres 17 quoting `json_value` in three settings functions and the platform's `rls_auto_enable`.
+PR #21 merged into the working branch at `de78fdc`. CI run 38517366460: every test job green (performance budget red, as
+before), but the release did not deploy: the artifact storage quota is hit (the repository holds one 4.2 MB artifact,
+so the quota is account-wide or not recalculated yet). After it recalculates: `gh run rerun 38517366460 --failed`.
+The trial's database is at 68 while it still runs the 8 October build: do not rehearse until the deploy is done.
+
+**S3, 14 October (built; merged in PR #21):** losses, more stock, the day review with each figure
 openable, "Close the day" with the leftover split, carrying over, fees, target, typed cost, "Close the event", and the books'
 "Bazaar in progress" line. No new migration. The smoke suite closes day 1, carries into day 2, sells through an offline
 reload, closes, finalises and reads the books. Decisions as built: [bazaar-days.md](bazaar-days.md), "S3 as built".
@@ -42,11 +50,6 @@ B5), rehearsed first on the local database, and her data is in: 23 recipes with 
 Oats, Egg and Sauce Tub, 4 bookings. The cost cutover is **not** applied (it needs her opening count), so the books
 stay on "bought" and equal the ledger. **Bazaar: still no-go until a bake is recorded**, and a sale needs an owner
 sign-in: [bazaar-run-sheet.md](bazaar-run-sheet.md). What Cine sets once: [cine-set-up.md](cine-set-up.md).
-
-**B5, 13 October:** migration 66 (an owner-only read of an item's movements, on the trial since 13 October) and the live Inventory and
-Grocery screens. Out at 0, Low below the item's level, Good otherwise, always as a word. Grocery shows the running total;
-"left" or "over" appears only once she sets a budget. An unknown cost reads "Cost pending", never 0. Smoke, 320 px and
-keyboard checks are for the laptop (PR #14).
 
 Stage A and slices B1 and B2, as each was recorded when it closed, are in [current-history.md](current-history.md), the section moved on 7 October.
 
