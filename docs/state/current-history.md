@@ -2158,3 +2158,14 @@ Stop at G0. The next product work follows G1/MP-04 onward and its decision gates
 Grocery screens. Out at 0, Low below the item's level, Good otherwise, always as a word. Grocery shows the running total;
 "left" or "over" appears only once she sets a budget. An unknown cost reads "Cost pending", never 0. Smoke, 320 px and
 keyboard checks are for the laptop (PR #14).
+
+## S1 and S2 of the bazaar days, moved from current.md on 14 October
+
+**S1, 13 October (built, local only; the trial stays at 67):** migration 68 holds a booking's days, fees, losses, costs,
+start, close and finalise, held to a hand-worked example to the centavo; the books count an open bazaar in `held`.
+Contracts as built, and Ethan's answers of 14 October (shop cookies are a batch of the drop): [bazaar-days.md](bazaar-days.md).
+
+**S2, 14 October (built, local only; branch claude/bazaar-days-s2):** the Bazaar screen is the owner's event list, event page, day plan
+and "Start this day" (`src/components/live/bazaar/`); with an event on the phone it draws the ported till unchanged, so a helper and a
+phone with no signal still sell. The old one-tap start and the ported start list are closed in live mode; "Leave" and the old close-out
+refuse on a started day (S3 closes it from a review). The smoke suite plans, starts and sells day 1 at its own price, online and offline.
