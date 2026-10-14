@@ -1,7 +1,7 @@
 # Next goal — the phone rehearsal (run sheet row 7), then the release hold
 
 S3.1 is on the trial (14 October): migration 69 (`20260101006800_bazaar_hardening.sql`) applied from a scratch folder, 69 of
-69, and its build deployed by PR #24 (merge `3cf4a36`, version `2eda3738`). Rows 1, 2 and 2a of the
+69, and its build deployed by PR #24 (merge `3cf4a36`, version `2eda3738`), redeployed unchanged by PR #26 as `fbfd8860`, the version to rehearse. Rows 1, 2 and 2a of the
 [run sheet](bazaar-run-sheet.md) are done. The repository is public since 14 October (GitHub's free minutes for private
 repositories had run out): nothing secret may be committed, and the secret scan runs before every push.
 
