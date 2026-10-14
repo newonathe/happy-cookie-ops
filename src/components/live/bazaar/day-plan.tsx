@@ -3,7 +3,6 @@
 import { useId, useState } from 'react';
 import type * as React from 'react';
 import type { DayPlanEditor, PlanFlavour } from '@/lib/bazaar/live-bazaar-types';
-import { inputStyle, smallLabel } from '@/components/live/form-styles';
 import {
   buttonBase,
   cardStyle,
@@ -16,44 +15,12 @@ import {
   STATUS_COLOUR,
   textStyle
 } from '@/components/live/stock/stock-shared';
+import { Field } from './field';
 
-const field: React.CSSProperties = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '5px',
-  flex: '1 1 88px',
-  minWidth: 0
-};
-const input: React.CSSProperties = {
-  ...inputStyle,
-  width: '100%',
-  minWidth: 0,
-  boxSizing: 'border-box'
-};
-
-function Field({
-  label,
-  value,
-  mode,
-  onChange
-}: {
-  label: string;
-  value: string;
-  mode: 'numeric' | 'decimal';
-  onChange: (value: string) => void;
-}) {
-  return (
-    <label style={field}>
-      <span style={smallLabel}>{label}</span>
-      <input
-        value={value}
-        inputMode={mode}
-        autoComplete="off"
-        onChange={(e) => onChange(e.target.value)}
-        style={input}
-      />
-    </label>
-  );
+/** What an earlier day set aside for a flavour, as the text of the Carried over field; blank for none. */
+function carriedText(carryIn: NonNullable<DayPlanEditor['carryIn']>, id: string): string {
+  const n = carryIn.byFlavour[id];
+  return n === undefined ? '' : String(n);
 }
 
 /**
@@ -62,7 +29,17 @@ function Field({
  */
 export function DayPlan({ editor, online }: { editor: DayPlanEditor; online: boolean }) {
   const [floatPesos, setFloat] = useState(editor.floatPesos);
-  const [flavours, setFlavours] = useState<PlanFlavour[]>(editor.flavours);
+  const { carryIn } = editor;
+  // A new day starts with what the earlier day set aside, unless she has typed otherwise (a saved plan is left as it is).
+  const [flavours, setFlavours] = useState<PlanFlavour[]>(() =>
+    carryIn && editor.isNew
+      ? editor.flavours.map((f) =>
+          f.carried === '' && carryIn.byFlavour[f.id] !== undefined
+            ? { ...f, carried: carriedText(carryIn, f.id) }
+            : f
+        )
+      : editor.flavours
+  );
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const errorId = useId();
@@ -72,8 +49,19 @@ export function DayPlan({ editor, online }: { editor: DayPlanEditor; online: boo
   const copyDayBefore = () => {
     if (!editor.copy) return;
     setFloat(editor.copy.floatPesos);
-    // The day before's made and prices: what was carried over depends on how that day closed, so it starts at none.
-    setFlavours(editor.copy.flavours.map((f) => ({ ...f, carried: '' })));
+    // The day before's made and prices: what was carried over depends on how that day closed, so it starts at none,
+    // or at what the closed day set aside when there is one.
+    setFlavours(
+      editor.copy.flavours.map((f) => ({
+        ...f,
+        carried: carryIn ? carriedText(carryIn, f.id) : ''
+      }))
+    );
+    setError(null);
+  };
+  const fillCarriedOver = () => {
+    if (!carryIn) return;
+    setFlavours((all) => all.map((f) => ({ ...f, carried: carriedText(carryIn, f.id) })));
     setError(null);
   };
   const submit = async (event: React.FormEvent) => {
@@ -126,6 +114,15 @@ export function DayPlan({ editor, online }: { editor: DayPlanEditor; online: boo
         <h2 id="plan-flavours" style={h2Style}>
           Cookies on the table
         </h2>
+        {carryIn ? (
+          <button
+            type="button"
+            onClick={fillCarriedOver}
+            style={{ ...buttonBase, alignSelf: 'flex-start' }}
+          >
+            Use what was carried over from {carryIn.dateText}
+          </button>
+        ) : null}
         <ul aria-label="Flavours" style={listStyle}>
           {flavours.map((f) => (
             <li
@@ -155,6 +152,11 @@ export function DayPlan({ editor, online }: { editor: DayPlanEditor; online: boo
                   onChange={(price) => change(f.id, { price })}
                 />
               </span>
+              {carryIn && carryIn.byFlavour[f.id] !== undefined ? (
+                <span style={mutedStyle}>
+                  {carryIn.byFlavour[f.id]} set aside on {carryIn.dateText}
+                </span>
+              ) : null}
             </li>
           ))}
         </ul>

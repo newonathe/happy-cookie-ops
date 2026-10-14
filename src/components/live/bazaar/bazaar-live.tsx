@@ -14,6 +14,7 @@ import {
 import { EventList } from './event-list';
 import { EventPage } from './event-page';
 import { DayPlan } from './day-plan';
+import { DayReview } from './day-review';
 
 /** `liveBazaar` as the runtime provides it. Typed through the contract so this compiles before and after vals.ts widens. */
 export function liveBazaarOf(v: OpsVals): LiveBazaarVals | null {
@@ -26,8 +27,9 @@ export function liveBazaarOf(v: OpsVals): LiveBazaarVals | null {
  * the owner's data was never read on. With no event it is the owner's event list, an event's page and a day's plan.
  */
 export function BazaarLive({ v }: { v: OpsVals }) {
-  if (v.event) return <BazaarModeScreen v={v} />;
   const bazaar = liveBazaarOf(v);
+  // A review ahead of the till: it is the owner's close-out of a day, and the till stays under it.
+  if (!bazaar?.reviewing && v.event) return <BazaarModeScreen v={v} />;
   return (
     // The room at the bottom keeps the last control clear of the app's floating add button.
     <section
@@ -35,7 +37,13 @@ export function BazaarLive({ v }: { v: OpsVals }) {
       data-screen-label="Bazaar"
       style={{ ...screenStyle, paddingBottom: '72px' }}
     >
-      {!bazaar ? <NoDays /> : <Days bazaar={bazaar} />}
+      {!bazaar ? (
+        <NoDays />
+      ) : bazaar.reviewing ? (
+        <Reviewing bazaar={bazaar} />
+      ) : (
+        <Days bazaar={bazaar} />
+      )}
     </section>
   );
 }
@@ -48,6 +56,35 @@ function NoDays() {
         A bazaar day is planned and started by the owner, with signal. Once it has started, selling
         works with no signal.
       </p>
+    </>
+  );
+}
+
+function Reviewing({ bazaar }: { bazaar: LiveBazaarVals }) {
+  if (bazaar.review) return <DayReview review={bazaar.review} />;
+  if (bazaar.state === 'loading')
+    return (
+      <>
+        <h1 style={h1Style}>Bazaar</h1>
+        <p aria-live="polite" style={mutedStyle}>
+          Reading this day…
+        </p>
+      </>
+    );
+  return (
+    <>
+      <h1 style={h1Style}>Bazaar</h1>
+      <p role="alert" style={textStyle}>
+        This day could not be read. Check the signal and try again.
+      </p>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+        <button type="button" onClick={bazaar.retry} style={buttonBase}>
+          Try again
+        </button>
+        <button type="button" onClick={bazaar.closeReview} style={buttonBase}>
+          Back
+        </button>
+      </div>
     </>
   );
 }
