@@ -10,7 +10,7 @@
 --       reader leaves a voided row out: bazaar_line_facts (losses), bazaar_summary (the day's fees and the fee list), get_bazaar (the
 --       losses list) and finalise_bazaar (fee posting). save_bazaar_loss reads bazaar_line_facts, so its below-zero check follows.
 --   L1  refuse_finalised_bazaar_sale, a BEFORE INSERT OR UPDATE OF voided_at trigger on event_sales: no sale or void lands on a day of a
---       finalised booking (55000). record_event_sale and void_event_sale are NOT redefined (record_event_sale keeps md5 8cf2bd63); a
+--       finalised booking (55000). It takes the booking's lock first, so a sale racing the finalise waits and is then refused. record_event_sale and void_event_sale are NOT redefined (record_event_sale keeps md5 8cf2bd63); a
 --       replay of a sale already held is answered before any insert, so it still leaves the queue. The trigger function is SECURITY
 --       DEFINER with an empty search_path and no API grant, but has no is_owner() check: it runs inside the owner's RPCs, and the role
 --       suite's postgres fixtures write sales directly.
@@ -713,16 +713,18 @@ begin
     raise exception 'that fee does not exist' using errcode = 'P0002';
   end if;
   perform pg_advisory_xact_lock(hashtextextended('scheduled_event:' || v_booking::text, 0));
+  -- A repeat is answered first, even after the finalise: its first answer may have been lost.
+  select f.voided_at into v_voided from public.bazaar_fees f where f.client_id = p_client_id for update;
+  if v_voided is not null then
+    return public.bazaar_summary(v_booking);
+  end if;
   v_bad := exists (select 1 from public.scheduled_events s where s.id = v_booking and s.finalised_at is not null);
   if v_bad then -- rule:fee-void-finalised
     raise exception 'that bazaar is closed: its fees cannot change' using errcode = '55000';
   end if;
-  select f.voided_at into v_voided from public.bazaar_fees f where f.client_id = p_client_id for update;
-  if v_voided is null then
-    update public.bazaar_fees as f set voided_at = now(), voided_by = auth.uid() where f.client_id = p_client_id;
-    insert into public.audit_log (actor, action, entity, entity_id, detail)
-    values (auth.uid(), 'bazaar.fee_voided', 'bazaar_fees', p_client_id, jsonb_build_object('scheduled_id', v_booking));
-  end if;
+  update public.bazaar_fees as f set voided_at = now(), voided_by = auth.uid() where f.client_id = p_client_id;
+  insert into public.audit_log (actor, action, entity, entity_id, detail)
+  values (auth.uid(), 'bazaar.fee_voided', 'bazaar_fees', p_client_id, jsonb_build_object('scheduled_id', v_booking));
   return public.bazaar_summary(v_booking);
 end;
 $$;
@@ -780,6 +782,10 @@ $$;
 
 /**
  * Internal trigger (S3.1, L1): a sale or a void of a sale on a day of a finalised booking is refused. Its books are written.
+ * It takes the booking's lock (the key every bazaar function takes) and reads finalised_at in a statement after it, so a sale
+ * that arrives while finalise_bazaar runs waits for it and is then refused, rather than landing outside the stored summary.
+ * Lock order: event_sale (the RPC) then scheduled_event (here) then the events row (the insert's foreign key), as the close
+ * and the finalise take scheduled_event before the events row.
  */
 create or replace function public.refuse_finalised_bazaar_sale()
 returns trigger
@@ -788,10 +794,15 @@ security definer
 set search_path = ''
 as $$
 declare
-  v_bad boolean;
+  v_booking uuid;
+  v_bad     boolean;
 begin
-  v_bad := exists (select 1 from public.bazaar_days d join public.scheduled_events s on s.id = d.scheduled_id
-                    where d.event_id = new.event_id and s.finalised_at is not null);
+  select d.scheduled_id into v_booking from public.bazaar_days d where d.event_id = new.event_id;
+  if v_booking is null then
+    return new;
+  end if;
+  perform pg_advisory_xact_lock(hashtextextended('scheduled_event:' || v_booking::text, 0));
+  v_bad := exists (select 1 from public.scheduled_events s where s.id = v_booking and s.finalised_at is not null);
   if v_bad then -- rule:sale-finalised
     raise exception 'this bazaar is closed: its sales cannot change' using errcode = '55000';
   end if;

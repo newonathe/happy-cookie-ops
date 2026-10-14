@@ -775,6 +775,8 @@ begin
   perform pg_temp.confirm(pg_temp.q($q$(select ledger_id is null from public.bazaar_fees where client_id = 'f-oops')$q$)
     and pg_temp.q($q$(select count(*) = 2 from public.bazaar_fees where scheduled_id = pg_temp.bx()::uuid and ledger_id is not null)$q$),
     a, 'finalise_skips_a_voided_fee', 'posted_never');
+  -- A fee taken back whose answer was lost is answered when asked again, even after the finalise.
+  perform pg_temp.expect(a, 'fee_void_repeat_after_finalise', $q$select public.void_bazaar_fee('f-oops')$q$, '00000');
   perform pg_temp.confirm(
     pg_temp.q($q$(select count(*) = 2 from public.production_records r where r.kind = 'batch' and r.drop_no = 7 and r.ref = 'bazaar:' || pg_temp.bx()
         and r.rejects = 0 and r.dough_used = 0 and r.recipe_version = 1 and r.target = r.qty)$q$)
