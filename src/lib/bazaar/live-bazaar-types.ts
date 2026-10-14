@@ -222,6 +222,26 @@ export interface DayPlanEditor {
   back: () => void;
 }
 
+/**
+ * U2: what the owner opens over the till without leaving it. `fees` is the event's own fee form (the one list, removable);
+ * `cookies` adds stock to the day this phone is selling. Both are read from the database when they open.
+ */
+export interface TillPanelView {
+  kind: 'fees' | 'cookies';
+  /** `loading` while the day is read; `failed` when it could not be; `loaded` when the form can be drawn. */
+  status: 'loading' | 'failed' | 'loaded';
+  /** The event, for the fee form; null until read. */
+  event: BazaarEventView | null;
+  /** The held day's flavours and the add, for the cookies form; null until read. */
+  stock: {
+    flavours: Array<{ id: string; name: string }>;
+    canAddCarried: boolean;
+    addStock: NonNullable<DayReviewView['addStock']>;
+  } | null;
+  retry: () => void;
+  close: () => void;
+}
+
 export interface LiveBazaarVals {
   online: boolean;
   /** False until the owner's bookings have been read: the list must not say there are none before it knows. */
@@ -237,6 +257,8 @@ export interface LiveBazaarVals {
    */
   reviewing: boolean;
   review: DayReviewView | null;
+  /** U2: the fee form or the add-cookies form over the till, or null. */
+  tillPanel: TillPanelView | null;
   /** Leaves a review that is still being read or could not be read. */
   closeReview: () => void;
   /** The existing "Bazaar events" form: where a booking is added. */

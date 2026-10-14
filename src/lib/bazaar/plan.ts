@@ -21,6 +21,17 @@ export function cookiesText(n: number): string {
   return n === 1 ? '1 cookie' : n.toLocaleString('en-PH') + ' cookies';
 }
 
+/** "Today" while `today` is inside the dates, otherwise "Tomorrow" or "In 9 days". All `YYYY-MM-DD`; the event has not ended. */
+export function eventWhen(startsOn: string, endsOn: string, today: string): string {
+  if (startsOn <= today && today <= endsOn) return 'Today';
+  const day = (ymd: string) => {
+    const [y, m, d] = ymd.split('-').map(Number) as [number, number, number];
+    return Date.UTC(y, m - 1, d) / 86_400_000;
+  };
+  const days = day(startsOn) - day(today);
+  return days === 1 ? 'Tomorrow' : 'In ' + days + ' days';
+}
+
 export type PlanResult =
   { ok: true; plan: Omit<BazaarPlan, 'id' | 'scheduledId' | 'day'> } | { ok: false; error: string };
 

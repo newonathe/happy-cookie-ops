@@ -310,6 +310,7 @@ const livePanel = (over: Partial<LiveBazaarVals> = {}): LiveBazaarVals => ({
   event: null,
   editor: null,
   reviewing: false,
+  tillPanel: null,
   review: null,
   closeReview: noop,
   add: noop,

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { cookiesText, pesoInput, planFromForm } from '@/lib/bazaar/plan';
+import { cookiesText, eventWhen, pesoInput, planFromForm } from '@/lib/bazaar/plan';
 import type { PlanFlavour } from '@/lib/bazaar/live-bazaar-types';
 
 /**
@@ -104,5 +104,17 @@ describe('texts', () => {
     expect(pesoInput(12550)).toBe('125.5');
     expect(cookiesText(1)).toBe('1 cookie');
     expect(cookiesText(1200)).toBe('1,200 cookies');
+  });
+});
+
+describe('eventWhen', () => {
+  it('says when an event is, from its dates and today (Manila dates, YYYY-MM-DD)', () => {
+    expect(eventWhen('2026-10-24', '2026-10-25', '2026-10-24')).toBe('Today');
+    expect(eventWhen('2026-10-24', '2026-10-25', '2026-10-25')).toBe('Today');
+    expect(eventWhen('2026-10-24', '2026-10-25', '2026-10-23')).toBe('Tomorrow');
+    expect(eventWhen('2026-10-24', '2026-10-25', '2026-10-15')).toBe('In 9 days');
+    // Across a month end.
+    expect(eventWhen('2026-11-02', '2026-11-02', '2026-10-30')).toBe('In 3 days');
+    // Mutation: counting from the end date says "In 10 days" for a two-day event.
   });
 });
