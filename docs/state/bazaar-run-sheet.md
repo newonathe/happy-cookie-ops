@@ -53,6 +53,9 @@ of the app, and what is rung up there is the real record.
 5. **Count what was made.** A flavour cannot be left with more than was put on the table. If more was made than the
    plan says, add it under "Add stock" in the review first.
 6. **A sale the server refused** ("Send again" on its row) blocks the close on that phone. Send it again, or void it.
+   If its day is closed anyway (from another phone), that phone stays on the closed day with selling paused: start the
+   next day on another phone and tell Ethan. If a close's answer is lost, selling pauses too until the day is read
+   again with signal (tap **Close out**).
 7. **Cookies sent to the shop need a recipe** for that flavour; without one, write them off instead, or closing the
    event is refused.
 8. **If the app hangs on opening** (weak signal), switch to aeroplane mode: it opens from the copy on the phone and
