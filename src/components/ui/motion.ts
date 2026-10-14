@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState, useSyncExternalStore } from 'react';
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 
 /**
  * Motion helpers for the live screens (docs/design/bazaar-v2.md, section 4). The CSS classes sit in globals.css; these
@@ -30,19 +30,32 @@ export function usePrefersReducedMotion(): boolean {
 
 /**
  * Keeps a node mounted while it plays its exit. `present` going false sets `leaving` for `exitMs` (the `--dur-fast`
- * exit), then unmounts; under reduced motion it unmounts at once. Draw the node while `mounted` and put
+ * exit), then unmounts and calls `onExited` (where a list drops the row from its data); under reduced motion it
+ * unmounts at once. Draw the node while `mounted` and put
  * `data-leaving={leaving}` on an element with the `motion-leave` class.
  */
 export function usePresence(
   present: boolean,
-  exitMs = 150
+  exitMs = 150,
+  onExited?: () => void
 ): { mounted: boolean; leaving: boolean } {
   const [mounted, setMounted] = useState(present);
   // Shown again: mounted again in this render, not after an effect (React's "adjust state while rendering").
   if (present && !mounted) setMounted(true);
+  // The latest callback, so an inline arrow does not restart the exit timer on every render.
+  const exited = useRef(onExited);
+  useEffect(() => {
+    exited.current = onExited;
+  });
   useEffect(() => {
     if (present || !mounted) return;
-    const timer = window.setTimeout(() => setMounted(false), reducedMotionNow() ? 0 : exitMs);
+    const timer = window.setTimeout(
+      () => {
+        setMounted(false);
+        exited.current?.();
+      },
+      reducedMotionNow() ? 0 : exitMs
+    );
     return () => window.clearTimeout(timer);
   }, [present, mounted, exitMs]);
   // Under reduced motion there is no exit to play: the node is gone in the render that hides it.

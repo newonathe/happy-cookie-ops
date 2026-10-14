@@ -4783,7 +4783,6 @@ export class OpsRuntime extends OpsProvider {
   private unpaidVals(): NonNullable<OpsVals['liveBooks']>['unpaid'] {
     const orders = this.orderSync?.current();
     if (!orders) return null;
-    const peso = (cents: number) => '₱' + (cents / 100).toLocaleString('en-PH');
     const { rows, totalCents } = unpaidOrders(orders, Date.now());
     return {
       summary: rows.length
