@@ -108,6 +108,15 @@ did not. Now:
 - **Storage.** When the selling phone starts an event the app asks the browser to keep its
   storage. The browser may say no; nothing depends on the answer.
 
+### Leaving the till for Home (Bazaar v2 slice U2, 15 October 2026)
+
+The owner may leave a selling day's till for Home and come back to it: "← Home" above the till, a Bazaar card on Home and a
+"Back to the till" banner on every other screen. Leaving moves only the screen: the day, its stock, the open sale and the queue
+stay as they are, and the ported "Leave" (which refuses while a day is open) is untouched. Home, Add cookies and the till's fee
+form need signal and the whole app, so they are not offered when the phone has no signal, or when the gate has narrowed the app
+to Bazaar Mode (`OpsRuntime.setGateAccess`): there Home would only show the "Back to Bazaar Mode" notice. Sold-out tiles, and
+flavours never put on the table, are hidden on the till for every role; "Show sold out (n)" brings the sold-out ones back.
+
 ### Signing out on purpose (slice A3, 6 October 2026)
 
 The live app has one deliberate sign-out: a small "Sign out" pill above the dock, bottom left.

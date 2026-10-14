@@ -31,6 +31,7 @@ const { FakeRuntime } = vi.hoisted(() => ({
     loadRecipes = vi.fn();
     loadShopStatus = vi.fn();
     reloadShopStatus = vi.fn();
+    setGateAccess = vi.fn();
   }
 }));
 vi.mock('@/store/ops-runtime', () => ({ OpsRuntime: FakeRuntime }));

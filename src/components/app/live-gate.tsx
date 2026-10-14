@@ -191,6 +191,8 @@ export function LiveGate({
     const setAccess = (next: Access) => {
       accessRef.current = next;
       setAccessState(next);
+      // U2: Home on the till is offered only while the whole app is open, never in Bazaar-only mode.
+      if (engine instanceof OpsRuntime) engine.setGateAccess(next !== 'verified');
     };
     const cfg = () => engine.state.cfg as Record<string, unknown> | undefined;
     // MP-09 c2: the payment methods and shop texts, read on every live page, signed in or not.

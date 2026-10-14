@@ -183,6 +183,42 @@ export interface LiveTabs {
   entries: LiveTabItem[];
 }
 
+/**
+ * U2: the day this phone is selling, as Home's card and the "Back to the till" banner draw it (docs/design/bazaar-v2.md,
+ * 5.1). `revenueText` is null for a person who may not see the takings (a helper with the switch off).
+ */
+export interface LiveHomeTill {
+  name: string;
+  sales: number;
+  revenueText: string | null;
+  sold: number;
+  onTable: number;
+  /** Goes to the till. The day stays open and nothing on the phone changes. */
+  back: () => void;
+}
+
+/** U2: Home's Bazaar card when no day is selling here: the event under way or the next one (owner only). */
+export interface LiveHomeNext {
+  name: string;
+  datesText: string;
+  /** "Today" while its dates include today, otherwise "In 9 days" or "Tomorrow". */
+  whenText: string;
+  open: () => void;
+}
+
+/** U2: what the live till adds to the ported Bazaar Mode screen, for every role: the sold-out chip and the empty state. */
+export interface LiveTillVals {
+  soldOutCount: number;
+  showSoldOut: boolean;
+  toggleSoldOut: () => void;
+  /** Every flavour on the table is sold out, and the sold-out tiles are hidden. */
+  allGone: boolean;
+  /** Leaves the till for Home with the day, the stock and the open sale as they are. Owner, with signal, not narrowed to Bazaar Mode. */
+  home: (() => void) | null;
+  /** Opens the add-cookies form over the till. Owner, with signal, not narrowed to Bazaar Mode. */
+  addCookies: (() => void) | null;
+}
+
 export interface OpsVals {
   appSub: React.ReactNode;
   /**
@@ -197,7 +233,16 @@ export interface OpsVals {
    * screen is open. Null when there is nothing to draw; undefined everywhere else, so
    * demo is unchanged.
    */
-  liveScreen?: { screen: ScreenKey | null; tabs: LiveTabs | null } | null;
+  liveScreen?: {
+    screen: ScreenKey | null;
+    tabs: LiveTabs | null;
+    /** U2: set on every screen but the till while this phone holds a started day. */
+    till?: LiveHomeTill | null;
+    /** U2: Home only, owner only, when no day is selling here. */
+    next?: LiveHomeNext | null;
+  } | null;
+  /** U2: set only by OpsRuntime in live mode while a started bazaar day is on this phone, for every role. */
+  liveTill?: LiveTillVals | null;
   /**
    * Set only by OpsRuntime in live mode, owner only: content for the live-only form host
    * that later owner forms plug into (F3, docs/state/protected-exception.md). Shown when

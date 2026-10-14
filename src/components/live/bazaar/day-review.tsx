@@ -78,7 +78,7 @@ function LossForm({
   );
 }
 
-function StockForm({
+export function StockForm({
   flavours,
   canAddCarried,
   addStock
