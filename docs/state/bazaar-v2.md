@@ -24,6 +24,8 @@ He wants it planned as separate slices, each with its own plan; researched thoro
 
 ## Revision after the Ateneo audit (15 October, later): read this first
 
+**Ethan's decisions on the audit (15 October):** keep migration 70 before the bazaar (the cost is edited in the recipe book; closing takes a split for leftover cookies); reverse the Ateneo test in the books before the bazaar, through a reviewed owner-only reversal in the same migration, run on the trial only after he says "yes, reverse Ateneo"; leave the public history as it is. Where the text below says "after 26 Oct" for U6, these decisions win.
+
 Ethan ran a test bazaar on the trial, "Ateneo" (19 to 24 Oct, rent ₱20,000.00, target ₱30,000.00). Days 19 and 21 were
 run on 15 Oct and the event was closed. It was audited read-only from the trial database (every figure recomputed from
 the raw rows). The bazaar screens were then replayed locally at 375 and 1440 px, with the same shape: two days, sales,
@@ -139,19 +141,19 @@ D0 ─▶ U1 ─┬▶ U2 ─┬▶ U3 ─┐
           └▶ U6 (DB) ───┴▶ U7 ─┘        U8 (needs yes) joins before U9
 ```
 
-| Slice | What                                                                                 | Points        | Date (Oct) | Cut if late?                      |
-| ----- | ------------------------------------------------------------------------------------ | ------------- | ---------- | --------------------------------- |
-| D0    | Design spec, motion spec, mockups artifact; approval                                 | 7, 10, 13     | 15–16      | no                                |
-| U1    | Design system: tokens, components, motion utilities, stories                         | 7, 8, 12, 13  | 16         | no                                |
-| U2    | Till freedom: leave and come back, Home card, sold-out hidden, Add cookies           | 1, 4, 5       | 17         | no                                |
-| U6    | After 26 Oct: migration 70 (closing leftovers A1, drawer category A4, cost override) | 9             | after 26   | moved (Ateneo audit)              |
-| U3    | Events hub: Active pinned, Upcoming and Past, Add top right, single form             | 2, 3          | 18         | no                                |
-| U5    | Review and close: live stat tiles, pre-filled close, receipt                         | 6             | 18         | no                                |
-| U4    | Event page and day plan: tile grid, steppers, timeline, red fields                   | 9, 10, 11, 12 | 19         | no                                |
-| U7    | Recipe book tiles and the cost receipt from recipes (interface only, no migration)   | 9, 11         | 19–20      | yes → after 26                    |
-| U8    | Two decimals in the ported screens (protected exception)                             | 8             | 20         | yes (needs Ethan's yes)           |
-| U9    | Motion pass, full QA, release                                                        | 13            | 21         | no                                |
-| —     | Phone rehearsal → fixes → `RELEASE_HOLD=true`                                        | —             | 22–23      | rehearsal by 22 Oct at the latest |
+| Slice | What                                                                                                         | Points        | Date (Oct) | Cut if late?                      |
+| ----- | ------------------------------------------------------------------------------------------------------------ | ------------- | ---------- | --------------------------------- |
+| D0    | Design spec, motion spec, mockups artifact; approval                                                         | 7, 10, 13     | 15–16      | no                                |
+| U1    | Design system: tokens, components, motion utilities, stories                                                 | 7, 8, 12, 13  | 16         | no                                |
+| U2    | Till freedom: leave and come back, Home card, sold-out hidden, Add cookies                                   | 1, 4, 5       | 17         | no                                |
+| U6    | Migration 70: cost per flavour, leftover split at close (A1), drawer category (A4), test-event reversal (A6) | 9             | 17–18      | yes → after 26 (not the reversal) |
+| U3    | Events hub: Active pinned, Upcoming and Past, Add top right, single form                                     | 2, 3          | 18         | no                                |
+| U5    | Review and close: live stat tiles, pre-filled close, receipt                                                 | 6             | 18         | no                                |
+| U4    | Event page and day plan: tile grid, steppers, timeline, red fields                                           | 9, 10, 11, 12 | 19         | no                                |
+| U7    | Recipe book tiles, the cost receipt and the cost edit (needs U6)                                             | 9, 11         | 19–20      | yes → after 26                    |
+| U8    | Two decimals in the ported screens (protected exception)                                                     | 8             | 20         | yes (needs Ethan's yes)           |
+| U9    | Motion pass, full QA, release                                                                                | 13            | 21         | no                                |
+| —     | Phone rehearsal → fixes → `RELEASE_HOLD=true`                                                                | —             | 22–23      | rehearsal by 22 Oct at the latest |
 
 ## Slice plans
 
@@ -277,7 +279,7 @@ D0 ─▶ U1 ─┬▶ U2 ─┬▶ U3 ─┐
 ## How to run the slices
 
 - One slice = one `/goal`, in a **new conversation**, with auto mode on. Paste the block from below.
-- Pairs that may run at the same time in two conversations (different files): **U2 with U7**, **U3 with U5**. Never
+- Pairs that may run at the same time in two conversations (different files): **U2 with U6**, **U3 with U5**. Never
   two database slices at once.
 - Each slice commits and pushes its own branch and stops. Only U9 merges and deploys (one release, then the rehearsal).
 - Every slice ends with browser-pane QA at 375 px and 1440 px against the approved D0 mockups, axe, `pnpm verify`.
@@ -340,11 +342,13 @@ Model Sonnet high with Opus sign-off, new conversation, plan mode off.
 ### U6
 
 ```
-/goal Bazaar v2 slice U6, AFTER 26 OCTOBER (closing rules and cost override, migration 70) in C:\Users\ethan\dev\happy-cookie-ops-g0. Read AGENTS.md,
+/goal Bazaar v2 slice U6 (migration 70: costs, closing rules, test reversal) in C:\Users\ethan\dev\happy-cookie-ops-g0. Read AGENTS.md,
 docs/state/current.md, docs/state/bazaar-v2.md (U6), supabase/migrations/20260101006800_bazaar_hardening.sql by
 range (bazaar_line_facts, bazaar_summary), 20260101005900_packaging_rules.sql:880-940.
 1 New 20260101006900 migration: finalise takes a final split for carried cookies (Ateneo A1); drawer over/short in
-  its own category, not a sale (A4); bazaar packaging (A7); flavour_costs, save_flavour_cost (owner only, SECURITY DEFINER,
+  its own category, not a sale (A4); reverse_bazaar_test(p_booking, p_confirm_name): owner only, appends reversing
+  ledger lines and stock corrections, marks the booking reversed, refuses a real-looking mismatch (A6);
+  bazaar packaging (A7); flavour_costs, save_flavour_cost (owner only, SECURITY DEFINER,
   search_path='', grants, rule lines), get_flavour_costs, cost order booking typed > flavour typed > complete recipe.
 2 Pins (mp08g-source-pins.json, function-authority.json), role-suite cases (bazaar-days.sql), types, data layer.
 3 pnpm verify, the role suite twice, the live smoke suite; one different-model review with hand-worked numbers.
@@ -407,14 +411,14 @@ Model Sonnet with Opus sign-off, new conversation, plan mode off.
 ### U7
 
 ```
-/goal Bazaar v2 slice U7 (recipe book, interface only) in C:\Users\ethan\dev\happy-cookie-ops-g0. Read AGENTS.md,
+/goal Bazaar v2 slice U7 (recipe book) in C:\Users\ethan\dev\happy-cookie-ops-g0, after U6. Read AGENTS.md,
 docs/state/current.md, docs/state/bazaar-v2.md (U7), docs/design/bazaar-v2.md, src/components/live/live-screens.ts,
 src/lib/data/costs.ts.
 1 A live screen for recipes: FlavourTile grid, search, on-menu and all filters, price, cost and margin badges.
-2 Flavour page: photo hero, the recipe's cost per cookie (read only until U6), margin, receipt breakdown from
+2 Flavour page: photo hero, editable cost per cookie (save_flavour_cost, pre-filled from the recipe), margin, receipt breakdown from
   get_recipe_costs lines, Recipe editing stays in the old screen.
 3 Tile-to-page view transition with a fade fallback.
-Tests and smoke (the recipe cost matches the event page). Browser-pane QA at 375 and 1440 px. Commit and push.
+Tests and smoke (edit a cost, see it on the event page). Browser-pane QA at 375 and 1440 px. Commit and push.
 ```
 
 Model Sonnet with Opus sign-off, new conversation, plan mode off.
@@ -439,7 +443,8 @@ docs/state/current.md, docs/state/bazaar-v2.md (U9), docs/design/bazaar-v2.md. M
 1 Apply the D0 motion table everywhere; reduced motion; performance budget against the C8 baseline.
 2 pnpm verify, test:e2e, test:live:smoke, the role suite (if U6), Docker visual (if U8), browser pane at 320, 375,
   768 and 1440 px, axe.
-3 No migration ships before 26 October (Ateneo revision): U6 waits.
+3 If U6 is green: apply migration 70 to the trial from a scratch folder (dry run, fingerprint). Then, only after
+  Ethan says "yes, reverse Ateneo", call reverse_bazaar_test for Ateneo and show the books before and after.
 4 Secret scan, PR into agent/codex/MP-04-g1-feasibility, merge, confirm the deployed version and the Access redirect.
 5 Update the run sheet and current.md; hand Ethan the rehearsal steps (exact, step by step).
 ```

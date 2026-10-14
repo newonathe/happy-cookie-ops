@@ -19,8 +19,8 @@ Read this page first in a new session. It is kept short on purpose.
 **Bazaar v2 (15 October): planned, not started.** Ethan's 13-point review of the bazaar screens (design, flow, motion)
 is planned as 10 slices, D0 to U9, in [bazaar-v2.md](bazaar-v2.md); everything lands before the bazaar, one release, then the
 rehearsal by 22 October. Next: D0 ([next-goal.md](next-goal.md)). The
-Ateneo test audit (15 Oct, in bazaar-v2.md) found 13 issues; no migration ships before the bazaar; the test's rent,
-over and sales are in October's books and cannot be reversed (Ethan decides, A6).
+Ateneo test audit (15 Oct, in bazaar-v2.md) found 13 issues. Ethan chose migration 70 before the bazaar and a reviewed
+reversal of the Ateneo test (its rent, over, sales and stock use are in October's books until then).
 
 **S3.1 bazaar hardening (14 October): released to the trial.** Migration 69 (`20260101006800_bazaar_hardening.sql`) and its
 client: a refused sale no longer blocks the close; close and finalise check the till's count and cash (40001); a fee or a loss can be
