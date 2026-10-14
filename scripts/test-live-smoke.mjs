@@ -772,6 +772,19 @@ try {
     await page.getByRole('heading', { level: 1, name: BOOKING_NAME }).waitFor();
   };
   let day1 = '';
+  /** The bazaar as the database works it out (`get_bazaar`), read as the owner on a connection of its own. */
+  const summaryNow = async () => {
+    const db = createClient(url, process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, {
+      auth: { persistSession: false, autoRefreshToken: false }
+    });
+    const signed = await db.auth.signInWithPassword({ email: owner.email, password: secret });
+    assert(!signed.error, `owner sign-in for the summary: ${signed.error?.message}`);
+    const read = await db.rpc('get_bazaar', { p_booking: bookingId });
+    // Only this connection's session: the default scope would sign the owner out of the browser too.
+    await db.auth.signOut({ scope: 'local' });
+    assert(!read.error && read.data?.summary, `get_bazaar: ${read.error?.message}`);
+    return read.data.summary;
+  };
 
   await step(
     'Bazaar: day 1 is reviewed, a loss is recorded, and it closes with cookies carried over',
@@ -983,6 +996,15 @@ try {
     const close = page.getByRole('form', { name: 'Close the day' });
     await close.waitFor();
     await bazaarFits('Bazaar day review, open', 'Bazaar day review');
+    // The day's figures on screen are the database's own, to the centavo.
+    const open = (await summaryNow()).days.find((d) => d.state === 'open');
+    await figureSays('This day', 'Revenue', pesoOf(open.revenue_cents / 100));
+    await figureSays(
+      'This day',
+      'Cash expected in the drawer',
+      pesoOf(open.cash_expected_cents / 100)
+    );
+    await figureSays('This day', 'Fees for this day', pesoOf(open.fees_cents / 100));
     assert(
       (await close.getByLabel('Carried over', { exact: true }).count()) === 0,
       "The booking's last day offers a carry-over."
@@ -1015,6 +1037,19 @@ try {
       profit < 500 ? pesoOf(500 - profit) + ' under the target' : pesoOf(profit - 500) + ' over'
     );
 
+    // Each figure on screen is the database's own summary, to the centavo, and that summary equals this run's sums.
+    const sum = await summaryNow();
+    assert(
+      sum.revenue.revenue_cents === revenue * 100 &&
+        sum.fees.total_cents === fees * 100 &&
+        sum.cookie_cost.cents === cookieCost * 100 &&
+        sum.profit.cents === profit * 100,
+      `The database's summary differs from this run's sums: ${JSON.stringify({ revenue: sum.revenue.revenue_cents, fees: sum.fees.total_cents, cost: sum.cookie_cost.cents, profit: sum.profit.cents })}`
+    );
+    await figureSays('The event', 'Revenue', pesoOf(sum.revenue.revenue_cents / 100));
+    await figureSays('The event', 'Fees', pesoOf(sum.fees.total_cents / 100));
+    await figureSays('The event', 'Cookie cost', pesoOf(sum.cookie_cost.cents / 100));
+    await figureSays('The event', 'Profit', pesoOf(sum.profit.cents / 100));
     const before = await admin
       .from('ledger_entries')
       .select('id')

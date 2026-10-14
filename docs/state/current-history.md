@@ -2151,3 +2151,10 @@ Stop at G0. The next product work follows G1/MP-04 onward and its decision gates
   the classes it already reports by design. Shop details now save; they are empty until set
   (Sell, Shop, Shop texts).
 - Approve each import preview.
+
+## B5, moved from current.md on 14 October 2026
+
+**B5, 13 October:** migration 66 (an owner-only read of an item's movements, on the trial since 13 October) and the live Inventory and
+Grocery screens. Out at 0, Low below the item's level, Good otherwise, always as a word. Grocery shows the running total;
+"left" or "over" appears only once she sets a budget. An unknown cost reads "Cost pending", never 0. Smoke, 320 px and
+keyboard checks are for the laptop (PR #14).
