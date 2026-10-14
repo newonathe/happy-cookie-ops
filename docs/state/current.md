@@ -18,7 +18,9 @@ Read this page first in a new session. It is kept short on purpose.
 
 **Bazaar v2 (15 October): planned, not started.** Ethan's 13-point review of the bazaar screens (design, flow, motion)
 is planned as 10 slices, D0 to U9, in [bazaar-v2.md](bazaar-v2.md); everything lands before the bazaar, one release, then the
-rehearsal by 22 October. Next: D0 ([next-goal.md](next-goal.md)).
+rehearsal by 22 October. Next: D0 ([next-goal.md](next-goal.md)). The
+Ateneo test audit (15 Oct, in bazaar-v2.md) found 13 issues; no migration ships before the bazaar; the test's rent,
+over and sales are in October's books and cannot be reversed (Ethan decides, A6).
 
 **S3.1 bazaar hardening (14 October): released to the trial.** Migration 69 (`20260101006800_bazaar_hardening.sql`) and its
 client: a refused sale no longer blocks the close; close and finalise check the till's count and cash (40001); a fee or a loss can be
@@ -81,16 +83,16 @@ plan is built (Ethan, 5 October). F3 (launch) stays closed until Cine accepts a 
 
 Found by reading code or the trial, not by running. Each has a slice in the plan.
 
-| What                                                                                                         | Slice  |
-| ------------------------------------------------------------------------------------------------------------ | ------ |
-| The backup, retention and keep-alive jobs are written but off: nothing is backed up yet.                     | Ethan  |
-| Account has no button of its own: it is a chip on Home's strip. Customers and Expenses open a sheet.         | C6, C5 |
-| Until the flavour list arrives, or if it cannot be read, staff screens show the engine's six flavours.       | B6     |
-| Bazaar Mode offers a fixed list of wallets; Home's "Drop 32" starts from the engine's number.                | C7, C3 |
-| An empty menu cannot get its first flavour (the trial has 26, so nobody meets it).                           | B6     |
-| Almost every cost per cookie is unknown: 8 of 72 items have a price, no costed delivery, no measured recipe. | B4     |
-| A mistyped delivery quantity cannot be undone, and under a running average it lingers. Needs a decision.     | Ethan  |
-| Every page, the shop included, loads the whole staff app.                                                    | C8     |
+| What                                                                                                                | Slice  |
+| ------------------------------------------------------------------------------------------------------------------- | ------ |
+| The backup, retention and keep-alive jobs are written but off: nothing is backed up yet.                            | Ethan  |
+| Account has no button of its own: it is a chip on Home's strip. Customers and Expenses open a sheet.                | C6, C5 |
+| Until the flavour list arrives, or if it cannot be read, staff screens show the engine's six flavours.              | B6     |
+| Bazaar Mode offers a fixed list of wallets; Home's "Drop 32" starts from the engine's number.                       | C7, C3 |
+| An empty menu cannot get its first flavour (the trial has 26, so nobody meets it).                                  | B6     |
+| Cost per cookie: 22 of 23 recipes are complete (all 7 menu flavours, read 15 October); no per-flavour override yet. | U6     |
+| A mistyped delivery quantity cannot be undone, and under a running average it lingers. Needs a decision.            | Ethan  |
+| Every page, the shop included, loads the whole staff app.                                                           | C8     |
 
 ### Decisions in force
 
