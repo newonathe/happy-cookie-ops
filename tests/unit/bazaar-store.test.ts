@@ -566,3 +566,124 @@ describe('S3.1: refused sales, till figures, taking back, and ids that outlive a
     }
   });
 });
+
+describe('U2: the till adds cookies and fees without a review open', () => {
+  const heldDay2 = () => ({ dayId: DAY2, scheduledId: BOOKING, unsent: 0, refused: 0, stock: {} });
+  const input = { productId: 'mp0s-a', qty: '2', kind: 'made' as const };
+
+  it('reads the held day itself and adds under the same stock key as the review', async () => {
+    const h = harness(day2Open());
+    h.state.held = heldDay2();
+    h.reply('add_bazaar_day_stock', { data: [{ loaded: 22 }] });
+    expect(await h.store.addHeldStock(input)).toBeNull();
+    expect(h.calls('get_bazaar')).toHaveLength(1);
+    expect(h.calls('add_bazaar_day_stock')[0]).toMatchObject({
+      p_day: DAY2,
+      p_product: 'mp0s-a',
+      p_qty: 2,
+      p_kind: 'made'
+    });
+    expect(h.deps.stockAdded).toHaveBeenCalledWith(DAY2, 'mp0s-a', 2, 22);
+    expect(localStorage.getItem('hc-bazaar-pending')).toBeNull();
+    // It leaves no booking open behind it: the list is what she sees once the day is gone.
+    expect(h.store.vals().event).toBeNull();
+  });
+
+  it("a lost reply is sent again as the same change, and the key is the review's", async () => {
+    const h = harness(day2Open());
+    h.state.held = heldDay2();
+    h.reply('add_bazaar_day_stock', 'throw', { data: [{ loaded: 22, duplicate: true }] });
+    expect(await h.store.addHeldStock(input)).toMatch(/needs signal/);
+    const first = h.calls('add_bazaar_day_stock')[0]!;
+    expect(localStorage.getItem('hc-bazaar-pending')).toContain('stock:' + DAY2);
+    // A different amount typed after the lost reply is still the first change.
+    const words = await h.store.addHeldStock({ ...input, qty: '9' });
+    expect(words).toMatch(/earlier stock change/);
+    expect(h.calls('add_bazaar_day_stock')[1]).toEqual(first);
+    expect(h.deps.stockAdded).toHaveBeenCalledWith(DAY2, 'mp0s-a', 2, 22);
+    // Mutation: a fresh key per call books the cookies twice.
+  });
+
+  it('sends nothing when this phone holds no day, or the flavour is not on the day', async () => {
+    const h = harness(day2Open());
+    expect(await h.store.addHeldStock(input)).toMatch(/day/i);
+    h.state.held = heldDay2();
+    expect(await h.store.addHeldStock({ ...input, productId: 'mp0s-zzz' })).toBe(
+      'Choose the flavour.'
+    );
+    expect(h.calls('add_bazaar_day_stock')).toHaveLength(0);
+  });
+
+  it("the fee panel is the event's own fee form, read for the held day, and closing it leaves nothing open", async () => {
+    const h = harness(day2Open());
+    h.state.held = heldDay2();
+    expect(h.store.vals().tillPanel).toBeNull();
+    h.store.openTillPanel('fees');
+    expect(h.store.vals().tillPanel).toMatchObject({ kind: 'fees', status: 'loading' });
+    await settle();
+    const panel = h.store.vals().tillPanel!;
+    expect(panel).toMatchObject({ kind: 'fees', status: 'loaded' });
+    expect(panel.event!.addFee).not.toBeNull();
+    expect(panel.event!.feeFor.map((o) => o.dayId)).toContain(DAY2);
+    h.store.closeTillPanel();
+    expect(h.store.vals().tillPanel).toBeNull();
+    expect(h.store.vals().event).toBeNull();
+  });
+
+  it('the cookies panel offers the flavours of the held day, and its add is addHeldStock', async () => {
+    const h = harness(day2Open());
+    h.state.held = heldDay2();
+    h.store.openTillPanel('cookies');
+    await settle();
+    const stockForm = h.store.vals().tillPanel!.stock!;
+    expect(stockForm.flavours.map((f) => f.id)).toEqual(['mp0s-a', 'mp0s-b', 'mp0s-c']);
+    expect(stockForm.canAddCarried).toBe(true);
+    h.reply('add_bazaar_day_stock', { data: [{ loaded: 22 }] });
+    expect(await stockForm.addStock(input)).toBeNull();
+    expect(h.calls('add_bazaar_day_stock')[0]).toMatchObject({ p_day: DAY2 });
+  });
+
+  it('draws the fee form from the day read itself when the bookings list was never read', async () => {
+    const h = harness(day2Open());
+    h.state.held = heldDay2();
+    const store = new BazaarDays({ ...h.deps, bookings: () => [], bookingsRead: () => false });
+    store.openTillPanel('fees');
+    await settle();
+    const panel = store.vals().tillPanel!;
+    expect(panel.status).toBe('loaded');
+    expect(panel.event).toMatchObject({ id: BOOKING, name: 'Fixture fair' });
+    // Mutation: building the event from the bookings list leaves "could not be read" with no way out.
+  });
+
+  it('opens nothing when this phone holds no day or has no signal', async () => {
+    const h = harness(day2Open());
+    h.store.openTillPanel('fees');
+    expect(h.store.vals().tillPanel).toBeNull();
+    h.state.held = heldDay2();
+    h.state.online = false;
+    h.store.openTillPanel('fees');
+    expect(h.store.vals().tillPanel).toBeNull();
+    expect(h.calls('get_bazaar')).toHaveLength(0);
+  });
+
+  it('a day closed from another phone closes the panel and lets the phone go', async () => {
+    const h = harness(clone());
+    h.state.held = heldDay2();
+    h.store.openTillPanel('fees');
+    await settle();
+    expect(h.deps.dayClosed).toHaveBeenCalledWith(DAY2);
+    expect(h.store.vals().tillPanel).toBeNull();
+    expect(h.store.vals().event).toBeNull();
+  });
+
+  it('a review opened over the panel replaces it', async () => {
+    const h = harness(day2Open());
+    h.state.held = heldDay2();
+    h.store.openTillPanel('cookies');
+    await settle();
+    h.store.openReview(BOOKING, DAY2, 'till');
+    expect(h.store.vals().tillPanel).toBeNull();
+    await settle();
+    expect(h.store.vals().review).not.toBeNull();
+  });
+});

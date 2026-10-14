@@ -26,9 +26,10 @@ import type {
   DayReviewView,
   DayWord,
   LiveBazaarVals,
-  PlanFlavour
+  PlanFlavour,
+  TillPanelView
 } from '@/lib/bazaar/live-bazaar-types';
-import { cookiesText, pesoInput, planFromForm } from '@/lib/bazaar/plan';
+import { cookiesText, eventWhen, pesoInput, planFromForm } from '@/lib/bazaar/plan';
 import { peso } from '@/lib/money/format';
 import {
   amountCents,
@@ -173,6 +174,7 @@ const COPY = {
   lossSaved: 'Loss recorded.',
   lossRefused: 'That loss could not be recorded. A flavour cannot go below zero left.',
   stockSaved: 'Stock added.',
+  noHeldDay: 'This phone is not selling a day now.',
   stockRefused:
     'That stock could not be added. Carried-over cookies are limited to what the day before set aside.',
   feeSaved: 'Fee added.',
@@ -227,6 +229,11 @@ export class BazaarDays {
   private pending = new Map<string, PendingChange>();
   private pendingRead = false;
   private busy = false;
+  /**
+   * U2: the form open over the till. It reads the held booking the way an event page does (`bookingId`, `data`), and closing
+   * it lets the booking go again, so the list is what is drawn once the day has gone.
+   */
+  private tillPanel: 'fees' | 'cookies' | null = null;
 
   constructor(private readonly deps: BazaarDaysDeps) {}
 
@@ -236,6 +243,7 @@ export class BazaarDays {
     this.data = null;
     this.editing = null;
     this.reviewing = null;
+    this.tillPanel = null;
     this.reading = 'read';
     this.seq += 1;
   }
@@ -245,6 +253,7 @@ export class BazaarDays {
     this.data = null;
     this.editing = null;
     this.reviewing = null;
+    this.tillPanel = null;
     void this.reload();
   }
 
@@ -256,6 +265,7 @@ export class BazaarDays {
     this.bookingId = bookingId;
     this.data = null;
     this.editing = null;
+    this.tillPanel = null;
     this.reviewing = { dayId, from, notice: null };
     void this.reload();
   }
@@ -284,6 +294,12 @@ export class BazaarDays {
       // Selling pauses on a day the database has closed (the phone keeps it until it has sent everything), and
       // resumes only when a read shows the day still open: that settles a close whose answer was lost.
       if (heldDay?.state === 'closed') {
+        // The form over the till has nothing to add to now: the booking is let go, and the phone with the day.
+        if (this.tillPanel) {
+          this.tillPanel = null;
+          this.bookingId = null;
+          this.data = null;
+        }
         this.deps.closeInDoubt(heldDay.id);
         this.deps.dayClosed(heldDay.id);
       } else if (heldDay?.state === 'open') this.deps.closeInDoubt(null);
@@ -324,10 +340,104 @@ export class BazaarDays {
       editor: event && this.editing ? this.editorView(booking!, this.data!) : null,
       reviewing: this.reviewing !== null,
       review: this.data ? this.reviewView(this.data) : null,
+      tillPanel: this.tillPanelView(),
       closeReview: this.leaveReview,
       add: () => this.deps.openAdd(),
       retry: () => (this.bookingId ? void this.reload() : this.deps.rerender()),
       back: this.back
+    };
+  }
+
+  /** U2: opens the fee form or the add-cookies form over the till. Needs signal, and a day this phone is selling. */
+  openTillPanel(kind: 'fees' | 'cookies'): void {
+    const held = this.deps.held();
+    if (!held || !this.deps.online()) return;
+    this.bookingId = held.scheduledId;
+    this.data = null;
+    this.editing = null;
+    this.reviewing = null;
+    this.tillPanel = kind;
+    void this.reload();
+  }
+
+  closeTillPanel(): void {
+    if (!this.tillPanel) return;
+    this.reset();
+    this.deps.rerender();
+  }
+
+  private tillPanelView(): TillPanelView | null {
+    const kind = this.tillPanel;
+    const held = this.deps.held();
+    if (!kind || !held || this.bookingId !== held.scheduledId) return null;
+    const data = this.data;
+    // The booking comes back with the day's own read, so the form does not wait on the bookings list (which a weak signal
+    // may have failed to read): the event page needs only its id, name and place.
+    const booking =
+      this.booking() ?? (data ? { ...data.booking, started: true, updatedAt: '' } : undefined);
+    const event = data && booking ? this.eventView(booking, data) : null;
+    const day = data?.days.find((d) => d.id === held.dayId);
+    const stock: TillPanelView['stock'] =
+      day && day.state === 'open' && !data!.finalised
+        ? {
+            flavours: day.lines.map((l) => ({
+              id: l.productId,
+              name: this.names().get(l.productId) ?? l.name
+            })),
+            canAddCarried: Object.keys(this.carryIn(data!, day.day)?.byFlavour ?? {}).length > 0,
+            addStock: (input) => this.addHeldStock(input)
+          }
+        : null;
+    const ready = kind === 'fees' ? event !== null : stock !== null;
+    return {
+      kind,
+      status: ready ? 'loaded' : data || this.reading === 'failed' ? 'failed' : 'loading',
+      event: kind === 'fees' ? event : null,
+      stock: kind === 'cookies' ? stock : null,
+      retry: () => void this.reload(),
+      close: () => this.closeTillPanel()
+    };
+  }
+
+  /**
+   * U2: more cookies on the day this phone is selling, from the till. The day is read here, so no review has to be open;
+   * the add itself is the review's `addStock`, under the same `stock:` key, so a change whose answer was lost is the same
+   * change from either screen.
+   */
+  async addHeldStock(input: {
+    productId: string;
+    qty: string;
+    kind: 'made' | 'carried';
+  }): Promise<string | null> {
+    const held = this.deps.held();
+    if (!held) return COPY.noHeldDay;
+    if (this.busy) return COPY.busy;
+    const client = this.deps.client();
+    if (!client || !this.deps.online()) return COPY.moneyOffline;
+    let data = this.bookingId === held.scheduledId ? this.data : null;
+    if (!data) {
+      try {
+        data = await fetchBazaar(client, held.scheduledId);
+      } catch {
+        return COPY.moneyOffline;
+      }
+    }
+    const day = data.days.find((d) => d.id === held.dayId);
+    if (!day || day.state !== 'open') return COPY.noHeldDay;
+    return this.addStock(day, input);
+  }
+
+  /** U2: Home's card when no day is selling here: the event under way, else the next one (the bookings read; none, none). */
+  nextEvent(): { name: string; datesText: string; whenText: string; open: () => void } | null {
+    if (!this.deps.bookingsRead()) return null;
+    const today = this.deps.today();
+    const b = upcomingEvents(this.deps.bookings(), today)[0];
+    if (!b) return null;
+    return {
+      name: b.name,
+      datesText: dateRange(b.startsOn, b.endsOn),
+      whenText: eventWhen(b.startsOn, b.endsOn, today),
+      open: () => this.open(b.id)
     };
   }
 
