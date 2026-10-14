@@ -91,7 +91,7 @@ function DayCard({ day }: { day: BazaarDayRow }) {
 }
 
 /** The fees of the event, with the stall rent first, and a form to add one. */
-function FeesSection({ event }: { event: BazaarEventView }) {
+export function FeesSection({ event }: { event: BazaarEventView }) {
   const [label, setLabel] = useState('');
   const [amount, setAmount] = useState('');
   const [dayId, setDayId] = useState('');

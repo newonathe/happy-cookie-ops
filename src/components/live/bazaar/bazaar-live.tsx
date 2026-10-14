@@ -15,6 +15,7 @@ import { EventList } from './event-list';
 import { EventPage } from './event-page';
 import { DayPlan } from './day-plan';
 import { DayReview } from './day-review';
+import { TillBar } from './till-bar';
 
 /** `liveBazaar` as the runtime provides it. Typed through the contract so this compiles before and after vals.ts widens. */
 export function liveBazaarOf(v: OpsVals): LiveBazaarVals | null {
@@ -29,7 +30,13 @@ export function liveBazaarOf(v: OpsVals): LiveBazaarVals | null {
 export function BazaarLive({ v }: { v: OpsVals }) {
   const bazaar = liveBazaarOf(v);
   // A review ahead of the till: it is the owner's close-out of a day, and the till stays under it.
-  if (!bazaar?.reviewing && v.event) return <BazaarModeScreen v={v} />;
+  if (!bazaar?.reviewing && v.event)
+    return (
+      <>
+        <TillBar till={v.liveTill} panel={bazaar?.tillPanel} />
+        <BazaarModeScreen v={v} />
+      </>
+    );
   return (
     // The room at the bottom keeps the last control clear of the app's floating add button.
     <section

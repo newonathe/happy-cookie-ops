@@ -282,7 +282,7 @@ import {
 import { CUSTOMER_SCREENS, type ScreenKey } from '@/lib/screens';
 import { liveScreenFor } from '@/components/live/live-screens';
 import { PLACES, TABS, placeOfRoute, placesOf, tabOf, type Place } from '@/lib/nav/function-map';
-import type { LiveTabs } from '@/view-models/vals';
+import type { LiveHomeNext, LiveHomeTill, LiveTabs, LiveTillVals } from '@/view-models/vals';
 import { helperMoneyView } from '@/lib/auth/helper-money';
 import {
   IDLE_MINUTES_MAX,
@@ -605,6 +605,7 @@ const BAKED_FOR = ['Payment review', 'Confirmed', 'Preparing'];
 
 interface LiveEvent {
   id?: string;
+  name?: string;
   stage?: string;
   snapshot?: string[];
   closedAt?: number;
@@ -793,6 +794,10 @@ export class OpsRuntime extends OpsProvider {
     newId: () => crypto.randomUUID(),
     openAdd: () => void this.openScheduled()
   });
+  /** U2: the day whose "Show sold out (n)" is on. Screen state only: never saved, and any other day starts hidden. */
+  private tillShowSoldOut: string | null = null;
+  /** U2: the live gate has narrowed the app to Bazaar Mode (no signal to the server): nothing may leave the till. */
+  private gateNarrow = false;
   private scheduledNewId = '';
   private scheduledVersion = 0;
   private stockCatalogue: StockCatalogue | null = null;
@@ -1421,6 +1426,8 @@ export class OpsRuntime extends OpsProvider {
       () => {
         clearBazaar();
         this.setCloseInDoubt(null);
+        // A form left open over the till must not come back over the next day's.
+        this.bazaarDays.closeTillPanel();
       }
     );
   }
@@ -2482,6 +2489,7 @@ export class OpsRuntime extends OpsProvider {
           : row;
       }),
       sheet: this.liveSheet(starved.sheet),
+      ...this.liveTillVals(starved),
       ...this.liveScreenVals(starved, ownerTools),
       liveForm: this.liveFormVals(),
       livePay: this.livePayVals(),
@@ -5552,10 +5560,140 @@ export class OpsRuntime extends OpsProvider {
     const key = this.state.screen as ScreenKey;
     const replaced = !vals.denied && !!liveScreenFor(key);
     const tabs = tools ? this.liveTabs(vals, tools) : null;
+    const till = vals.denied ? null : this.liveHomeTill();
+    const next = vals.denied || till ? null : this.liveHomeNext();
     return {
-      liveScreen: replaced || tabs ? { screen: replaced ? key : null, tabs } : null,
+      liveScreen:
+        replaced || tabs || till || next
+          ? { screen: replaced ? key : null, tabs, till, next }
+          : null,
       screens: replaced ? { ...vals.screens, [key]: false } : vals.screens
     };
+  }
+
+  /**
+   * U2: Home's Bazaar card and the "Back to the till" banner. While this phone holds a started day, every screen but the
+   * till (and the customer pages) gets the way back; the money in it follows the helper rule (`helperMoneyView`).
+   */
+  private liveHomeTill(): LiveHomeTill | null {
+    const event = this.state.event as LiveEvent | null;
+    const screen = this.state.screen as ScreenKey;
+    if (!event?.dayId || event.stage !== 'selling') return null;
+    if (screen === 'bazaar' || CUSTOMER_SCREENS.includes(screen)) return null;
+    const sales = (this.state.sales ?? []) as EventSale[];
+    const seesMoney =
+      this.state.role === 'owner' ||
+      (this.state.cfg as Record<string, unknown> | undefined)?.helperSeesSales === 1;
+    const loaded = (this.state.eventLoaded ?? {}) as Record<string, number>;
+    return {
+      name: event.name ?? 'Bazaar',
+      sales: sales.length,
+      revenueText: seesMoney
+        ? peso(sales.reduce((sum, sale) => sum + pesosToCentavos(Number(sale.total) || 0), 0))
+        : null,
+      sold: sales.reduce(
+        (sum, sale) => sum + Object.values(sale.items).reduce((a, n) => a + (Number(n) || 0), 0),
+        0
+      ),
+      onTable: Object.values(loaded).reduce((a, n) => a + (Number(n) || 0), 0),
+      back: () => this.go('bazaar')
+    };
+  }
+
+  /** The live gate tells the runtime whether the full app is open (`verified`) or only Bazaar Mode is. */
+  setGateAccess(narrow: boolean): void {
+    if (this.gateNarrow === narrow) return;
+    this.gateNarrow = narrow;
+    // A form open over the till is the owner's with the whole app open: Bazaar-only mode closes it.
+    if (narrow) this.bazaarDays.closeTillPanel();
+    if (!this.unmounted) this.forceUpdate();
+  }
+
+  /** U2: the owner leaves the till for Home. The day stays open and nothing else moves: not `resetEvent`. */
+  private leaveTill = (): void => {
+    this.go('today');
+  };
+
+  /** U2: the owner, with signal, and with the whole app open. */
+  private canLeaveTill(): boolean {
+    return this.state.role === 'owner' && Boolean(this.state.online) && !this.gateNarrow;
+  }
+
+  /**
+   * U2 (Ateneo B2): the till's expense "Add" opens the day's fee form, the one list the books read, and never the old
+   * expense sheet. A helper cannot book a fee.
+   */
+  private openTillFees = (): void => {
+    if (this.state.role !== 'owner') {
+      this.toast('The owner adds fees from the event page.', 'warn');
+      return;
+    }
+    if (!this.canLeaveTill()) {
+      this.toast('Adding a fee needs signal. Try again when you are back online.', 'warn');
+      return;
+    }
+    this.bazaarDays.openTillPanel('fees');
+    this.forceUpdate();
+  };
+
+  /** U2: Home's card when no day is selling here (owner only): the event under way or the next, once the bookings are read. */
+  private liveHomeNext(): LiveHomeNext | null {
+    if (this.state.role !== 'owner' || this.state.screen !== 'today' || this.state.event)
+      return null;
+    const next = this.bazaarDays.nextEvent();
+    return next
+      ? {
+          ...next,
+          open: () => {
+            next.open();
+            this.go('bazaar');
+          }
+        }
+      : null;
+  }
+
+  /**
+   * U2: what the live till adds to the ported Bazaar Mode screen, for every role. Tiles that were never on the table (finding
+   * B1) are not drawn, a sold-out tile leaves the grid unless it is in the open sale, and "Show sold out (n)" brings the
+   * sold-out ones back, dimmed. Only a started bazaar day: an event from before the days existed keeps the ported list.
+   * `bzSell` has no flavour id, so each row is matched to its flavour by position before anything is dropped.
+   */
+  private liveTillVals(
+    vals: OpsVals
+  ): Pick<OpsVals, 'liveTill'> & Partial<Pick<OpsVals, 'bzSell' | 'openEventExpense'>> {
+    const event = this.state.event as LiveEvent | null;
+    const rows = vals.bzSell ?? [];
+    if (!event?.dayId || rows.length !== PRODUCTS.length) return { liveTill: null };
+    const loaded = (this.state.eventLoaded ?? {}) as Record<string, number>;
+    const showSoldOut = this.tillShowSoldOut === event.dayId;
+    let soldOutCount = 0;
+    const drawn = rows.filter((row, i) => {
+      const pid = PRODUCTS[i]!.id;
+      const inCart = Number(row.inCart) > 0;
+      const onTable = (loaded[pid] ?? 0) > 0 || Number(row.left) > 0 || inCart;
+      if (!onTable) return false;
+      const gone = Boolean(row.soldOut) && !inCart;
+      if (gone) soldOutCount += 1;
+      return !gone || showSoldOut;
+    });
+    const owner = this.canLeaveTill();
+    const liveTill: LiveTillVals = {
+      soldOutCount,
+      showSoldOut,
+      toggleSoldOut: () => {
+        this.tillShowSoldOut = showSoldOut ? null : event.dayId!;
+        this.forceUpdate();
+      },
+      allGone: !showSoldOut && soldOutCount > 0 && drawn.length === 0,
+      home: owner ? this.leaveTill : null,
+      addCookies: owner
+        ? () => {
+            this.bazaarDays.openTillPanel('cookies');
+            this.forceUpdate();
+          }
+        : null
+    };
+    return { bzSell: drawn, liveTill, openEventExpense: this.openTillFees };
   }
 
   /**

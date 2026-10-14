@@ -16,6 +16,11 @@
  * event is closed; and the books hold the bazaar back until then and count it after. The figures on screen are held to
  * the run's own sums.
  *
+ * Bazaar v2 slice U2 added one step on day 1: the owner leaves the till for Home and comes back (the day, its stock and the
+ * open sale stay), a flavour that sells out leaves the grid and returns after a void, two cookies are added from the till (they
+ * change the day's carried count and its cookie cost, which the later sums include), and the till's expense "Add" opens the
+ * day's fee form.
+ *
  * Slice B2 added: no prototype value on any page it visits (`PROTOTYPE`, below); the signed-in
  * person's own name on Home and on every sale, the offline ones included; the owner's shop
  * details saved through the form and shown to a signed-out customer; and a control in every
@@ -98,6 +103,8 @@ const DETAILS = { name: 'Smoke Test Bakes', tagline: 'Checked by the smoke suite
 const DAY_PRICE_PESOS = 150;
 const DAY_FLOAT_PESOS = 500;
 const DAY_COOKIES = 6;
+// U2: cookies added to the table from the till on day 1, after the plan was saved and the day started.
+const ADDED_COOKIES = 2;
 // One booking a run, named for it, so a run on a database a run has been on before finds its own.
 const bookingId = randomUUID();
 const BOOKING_NAME = 'Smoke bazaar ' + bookingId.slice(0, 8);
@@ -708,7 +715,7 @@ try {
   const COST_PESOS = 40;
   const FEE_PESOS = 100;
   const RENT_PESOS = 1000;
-  const CARRIED = DAY_COOKIES - 3 - 1; // made, less the three sold and the one lost
+  const CARRIED = DAY_COOKIES + ADDED_COOKIES - 3 - 1; // made and added, less the three sold and the one lost
   const pesoOf = (pesos) =>
     (pesos < 0 ? '-₱' : '₱') +
     Math.abs(pesos).toLocaleString('en-PH', {
@@ -785,6 +792,114 @@ try {
     assert(!read.error && read.data?.summary, `get_bazaar: ${read.error?.message}`);
     return read.data.summary;
   };
+
+  // U2: the owner leaves the till and comes back to it, a flavour that sells out leaves the grid and returns after a void,
+  // cookies are added from the till, and the till's expense "Add" opens the day's fee form. Day 1 still has three cookies and
+  // three sales; the sale and its void net to zero, and the void is sent before the review reads the day.
+  await step(
+    'Bazaar: leave the till and come back, sold out hidden then back after a void, Add cookies, the fee form',
+    async () => {
+      const till = page.locator('[data-screen-label="Bazaar Mode"]');
+      const tile = till.getByRole('button', { name: new RegExp(flavour.short_name) });
+      const stockOf = () => page.evaluate((id) => window.__hcOps.state.eventStock[id], FLAVOUR);
+      assert((await stockOf()) === DAY_COOKIES - 3, 'Day 1 does not hold the three cookies left.');
+
+      // Home: the day, its stock and the cart stay; Home shows the selling card; the way back is the card's button.
+      await tile.first().click();
+      await page.getByRole('button', { name: '← Home' }).click();
+      await page.waitForFunction(() => window.__hcOps.state.screen === 'today');
+      await check(page, 'Home, a day selling', 'Home');
+      const held = await page.evaluate(() => ({
+        day: window.__hcOps.state.event?.dayId ?? null,
+        cart: window.__hcOps.state.cart
+      }));
+      assert(held.day, 'Leaving the till let go of the day: ' + JSON.stringify(held));
+      assert(Object.values(held.cart).reduce((a, n) => a + n, 0) === 1, 'The open sale was lost.');
+      const card = page.getByRole('region', { name: 'Bazaar' });
+      await card.getByText(BOOKING_NAME, { exact: true }).waitFor();
+      await card.getByText(pesoOf(DAY_PRICE_PESOS * 3)).waitFor();
+      assert((await stockOf()) === DAY_COOKIES - 3, 'Leaving the till moved the stock.');
+      // Another screen carries the banner, not the card.
+      await page.evaluate(() => window.__hcOps.go('pnl'));
+      await page.getByRole('button', { name: 'Back to the till', exact: true }).waitFor();
+      assert(
+        (await page.getByRole('region', { name: 'Bazaar' }).count()) === 0,
+        'Card on P and L.'
+      );
+      await page.getByRole('button', { name: 'Back to the till', exact: true }).click();
+      await till.waitFor();
+      assert(
+        (await page.evaluate(() => window.__hcOps.state.screen)) === 'bazaar' &&
+          (await tile.count()) > 0,
+        'Back to the till did not return to the same till.'
+      );
+      // Put the cookie back: the cart was only there to prove it survived.
+      await till.getByRole('button', { name: 'One less' }).first().click();
+
+      // Sold out: three cookies in one sale empty the table, the tile leaves the grid and the till says so.
+      for (let i = 0; i < 3; i++) await tile.first().click();
+      await page.getByRole('button', { name: 'Charge', exact: true }).click();
+      await page.getByRole('button', { name: /^Cash/ }).last().click();
+      await page.waitForFunction(() => (window.__hcOps.state.sales ?? []).length === 4);
+      await page.getByText('Everything on the table is sold').waitFor();
+      assert((await tile.count()) === 0, 'A sold-out flavour is still on the grid.');
+      await page.getByRole('button', { name: 'Show sold out (1)' }).click();
+      await till.getByText('Sold out', { exact: true }).waitFor();
+      assert((await tile.count()) > 0, 'Show sold out did not bring the tile back.');
+      await check(page, 'Bazaar, sold out shown', 'Bazaar Mode');
+      await page.getByRole('button', { name: 'Hide sold out' }).click();
+      assert((await tile.count()) === 0, 'Hide sold out left the tile on the grid.');
+
+      // A void gives the cookies back: the tile returns on its own, and the empty state goes.
+      await till.getByRole('button', { name: 'Void' }).first().click();
+      await page.waitForFunction(() => (window.__hcOps.state.sales ?? []).length === 3);
+      await page.getByText('Everything on the table is sold').waitFor({ state: 'detached' });
+      await tile.first().waitFor();
+      assert((await stockOf()) === DAY_COOKIES - 3, 'The void did not return the cookies.');
+      // The void goes up before anything reads the day: its sale is flagged on the database.
+      await assertEventually(async () => {
+        const rows = await admin.from('event_sales').select('voided_at').eq('event_id', eventId);
+        return !rows.error && rows.data.filter((r) => r.voided_at !== null).length === 1;
+      }, 'the void of the sold-out sale');
+
+      // Add cookies from the till: the day holds them on the database and the table has them.
+      await page.getByRole('button', { name: 'Add cookies', exact: true }).first().click();
+      const adding = page.getByRole('dialog', { name: 'Add cookies' });
+      const addForm = adding.getByRole('form', { name: 'Add stock' });
+      await addForm.waitFor();
+      await addForm.getByLabel('How many').fill(String(ADDED_COOKIES));
+      await addForm.getByRole('button', { name: 'Add to the table' }).click();
+      await page.waitForFunction(
+        ([id, want]) => window.__hcOps.state.eventStock[id] === want,
+        [FLAVOUR, DAY_COOKIES - 3 + ADDED_COOKIES]
+      );
+      const dayRow = await admin
+        .from('bazaar_day_lines')
+        .select('made_qty, carried_qty')
+        .eq('day_id', held.day)
+        .eq('product_id', FLAVOUR)
+        .single();
+      assert(
+        !dayRow.error && dayRow.data.made_qty === DAY_COOKIES + ADDED_COOKIES,
+        `The day does not hold the added cookies: ${JSON.stringify(dayRow)}`
+      );
+      await adding.getByRole('button', { name: 'Done' }).click();
+      await adding.waitFor({ state: 'detached' });
+
+      // The expense "Add" opens the day's fee form, never the old expense sheet.
+      await till.getByRole('button', { name: 'Add', exact: true }).click();
+      const fees = page.getByRole('dialog', { name: 'Event fees' });
+      await fees.getByRole('form', { name: 'Add a fee' }).waitFor();
+      assert(
+        (await page.evaluate(() => window.__hcOps.state.sheet?.kind ?? null)) === null,
+        'The old expense sheet opened on a bazaar day.'
+      );
+      await fees.getByText(/^Total ₱/).waitFor();
+      await fees.getByRole('button', { name: 'Done' }).click();
+      await fees.waitFor({ state: 'detached' });
+      await check(page, 'Bazaar, after Add cookies', 'Bazaar Mode');
+    }
+  );
 
   await step(
     'Bazaar: day 1 is reviewed, a loss is recorded, and it closes with cookies carried over',
@@ -1028,7 +1143,7 @@ try {
     // The event, against this run's own sums.
     const revenue = DAY_PRICE_PESOS * 3 + taken;
     const fees = RENT_PESOS + FEE_PESOS;
-    const cookieCost = (DAY_COOKIES + DAY2_MADE - toShop) * COST_PESOS;
+    const cookieCost = (DAY_COOKIES + ADDED_COOKIES + DAY2_MADE - toShop) * COST_PESOS;
     const profit = revenue - fees - cookieCost + 5;
     await figureSays('The event', 'Revenue', pesoOf(revenue));
     await figureSays('The event', 'Fees', pesoOf(fees));
