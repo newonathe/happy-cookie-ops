@@ -1,24 +1,22 @@
-# Next goal — release S3.1 (migration 69 and its build), on Ethan's word only
+# Next goal — the phone rehearsal (run sheet row 7), then the release hold
 
-S3.1 is built and tested locally (14 October, `a18a9da`): migration 69 is `20260101006800_bazaar_hardening.sql`. **Nothing
-is applied to the trial.** The trial is at 68 and runs build `1b6c876c`. 69 and its build ship together: the old build's
-close and finalise are refused by 69, and the new build's are refused by 68 ([run sheet](bazaar-run-sheet.md) row 2a).
+S3.1 is on the trial (14 October): migration 69 (`20260101006800_bazaar_hardening.sql`) applied from a scratch folder, 69 of
+69, and its build deployed by PR #24 (merge `3cf4a36`, version `2eda3738`). Rows 1, 2 and 2a of the
+[run sheet](bazaar-run-sheet.md) are done. The repository is public since 14 October (GitHub's free minutes for private
+repositories had run out): nothing secret may be committed, and the secret scan runs before every push.
 
-**Proved locally:** `pnpm verify`; the SQL role suite (3,294 cases on each of two resets, all 1,516 mutants caught); one
-Opus review, with its two should-fix items (the trigger now takes the booking's lock; removing a fee again after the
-finalise is answered) fixed. **Still to prove:** `pnpm test:e2e`, and the two new **Remove** buttons (fees on the event page,
-losses in the day review) in the browser pane at phone width.
+**The rehearsal is Ethan's, on the selling iPhone** ([run sheet](bazaar-run-sheet.md), "The rehearsal", steps 1 to 11). An
+agent cannot run it: it needs the phone, aeroplane mode, the Home Screen app and the owner's sign-in. Nothing is deployed and
+nothing is written to the database between the rehearsal and 26 October (row 8).
 
 ```
-/goal Release S3.1 to the trial in C:\Users\ethan\dev\happy-cookie-ops-g0, only after Ethan says "apply 69". Read
-AGENTS.md, docs/state/current.md, this file, bazaar-run-sheet.md row 2a. Pinned toolchain (Node 24.20.0, pnpm 9.12.3).
-1 pnpm test:e2e, output to a file; fix or stop.
-2 Browser-pane QA of the Remove buttons at 375 px.
-3 Apply 20260101006800 from a scratch folder holding only that file (dry run first), compare the schema fingerprint with
-  local, then push the branch so CI deploys the matching build; confirm the version on the trial.
-4 Update the run sheet rows 1, 2 and 2a, and current.md. Then the phone rehearsal.
-Stop and ask before any hosted write other than step 3.
+/goal Record the bazaar phone rehearsal in C:\Users\ethan\dev\happy-cookie-ops-g0. Read AGENTS.md, docs/state/current.md,
+this file, bazaar-run-sheet.md ("Go / no-go", "The rehearsal"). Ethan pastes each step's result (pass, or what he saw).
+1 For each failed step: find the cause in code (read only the files the step's row in "What proves each step" names),
+  say whether it blocks 24 October, and propose the smallest fix. Build nothing until Ethan says which to fix.
+2 When all 11 pass: update row 7 and the go/no-go paragraph, current.md, and this file (next: RELEASE_HOLD, row 8).
+Stop and ask before any hosted write; setting RELEASE_HOLD is Ethan's.
 ```
 
-Model Opus, effort high, a new conversation, plan mode off. Not in S3.1: an expense added at the till (`event_expenses`)
-cannot be removed yet.
+Model Sonnet, effort medium, a new conversation, plan mode off. Not in S3.1: an expense added at the till
+(`event_expenses`) cannot be removed yet.

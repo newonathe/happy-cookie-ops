@@ -5,6 +5,17 @@ is in [current.md](current.md). Sections were moved here from `current.md` on 20
 again, with the earlier goals from `next-goal.md`, on 2026-10-05, and again on 2026-10-06. Add nothing here by hand;
 move a checkpoint here when it leaves `current.md`.
 
+# Moved from current.md on 2026-10-14
+
+The migration 68 release paragraph of "Where things stand", verbatim (superseded by the S3.1 release).
+
+**Release, 14 October (at Ethan's word):** migration 68 applied to the trial from a scratch folder (dry run first: only
+that file); the trial is at 68 of 68. Schema fingerprint equal to local (columns, policies, row security, table grants,
+functions), apart from Postgres 17 quoting `json_value` in three settings functions and the platform's `rls_auto_enable`.
+PR #21 merged into the working branch at `de78fdc`. Its release could not upload its build (the account's artifact
+storage quota), so PR #22 (Ethan's choice) builds the trial assets in the deploy job instead; run 38521932811 deployed
+version `1b6c876c` to the trial, 14 October. The trial now runs S1 to S3 on a database at 68.
+
 # Moved from current.md on 2026-10-13
 
 The closed-slice paragraph of "Where things stand", verbatim.
