@@ -25,7 +25,7 @@ scratch folder (the CLI needs every applied version present, so all 69 files wer
 69); the trial is at 69 of 69, its fingerprint equal to local apart from `json_value` quoting in three settings functions and
 `rls_auto_enable`. PR #24 merged (`3cf4a36`); the deploy job was refused twice for GitHub billing (free private-repo minutes used
 up), so **Ethan made the repository public** (Cine agreed: her name, GCash number and payment QR codes are in its history) and the
-rerun deployed version `2eda3738`; anonymous requests still go to Cloudflare Access. Same day, run sheet rows 5, 6 and 10: Cine's two addresses are active owners named "Cine" (the admin one is "Ethan"), Access admits four addresses, and its session is one week (`168h`, now allowed by the release guard). Next: the phone rehearsal
+rerun deployed version `2eda3738`; anonymous requests still go to Cloudflare Access. Same day, run sheet rows 5, 6 and 10: Cine's two addresses are active owners named "Cine" (the admin one is "Ethan"), Access admits four addresses, and its session is one week (`168h`, now allowed by the release guard; PR #26 redeployed the same app as `fbfd8860`). Next: the phone rehearsal
 ([run sheet](bazaar-run-sheet.md) row 7, [next-goal.md](next-goal.md)).
 
 **The plan is approved; stage A (A1 to A4) and slices B1 to B3b-2, B4a, B4b and B5 are built.** Ethan approved
