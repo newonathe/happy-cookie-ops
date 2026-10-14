@@ -1,4 +1,4 @@
-# Bazaar run sheet — rehearsal by 20 October, selling 24 to 25 October 2026
+# Bazaar run sheet — rehearsal by 22 October, selling 24 to 25 October 2026
 
 Rewritten 14 October for the bazaar days flow (slices S1 to S3, [bazaar-days.md](bazaar-days.md)). It replaces the
 one-event sheet of 13 October: no bake is recorded for bazaar cookies any more (Ethan, 14 October), a day is planned,
@@ -96,7 +96,7 @@ tell Ethan: the event then stays open and its lines stay out of the books.
 A sale: tap a flavour tile (or "One more"), **Charge**, then **Cash** (type "Cash handed over" for the change), or
 type "Last 4 of their reference" and tap **GCash**, **Maya** or **GoTyme**. A sample: tiles, then **Freebie**.
 
-Anything that fails is fixed and the whole list is run again before 20 October.
+Anything that fails is fixed and the whole list is run again before 23 October.
 
 ## What proves each step without the phone
 
