@@ -8,13 +8,13 @@ of the app, and what is rung up there is the real record.
 
 ## Go / no-go for 24 October
 
-**Today: no-go.** The flow is built and passes on the local database, but the trial does not have it: its database is at
-67 of 68 migrations and it runs the 8 October build. Rows 1 and 2 are Ethan's word.
+**Today: no-go until the release run has deployed and the rehearsal passes.** Migration 68 is on the trial (68 of 68)
+and the code is merged (PR #21, 14 October); CI run 38517366460 deploys it if its release job succeeds.
 
 | #   | What                                                                                                                                                                                                        | Owner       | State on 14 October                                            |
 | --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- | -------------------------------------------------------------- |
-| 1   | **Migration 68 on the trial**, rehearsed first from a scratch folder, the schema fingerprint equal to local.                                                                                                | Ethan       | Not applied: waits for his word                                |
-| 2   | **The S3 build is live**: free the Actions artifact storage, merge, let CI deploy, open the app and see the event list under Sell › Bazaar.                                                                 | Ethan       | Blocked: artifact storage full, branch not merged              |
+| 1   | **Migration 68 on the trial**, rehearsed first from a scratch folder, the schema fingerprint equal to local.                                                                                                | Ethan       | Done 14 October: 68 of 68, fingerprint equal to local          |
+| 2   | **The S3 build is live**: free the Actions artifact storage, merge, let CI deploy, open the app and see the event list under Sell › Bazaar.                                                                 | Ethan       | Merged 14 October; check run 38517366460 deployed              |
 | 3   | **The booking.** The 24 to 25 October event exists under Bazaar events with its rent. Each day needs a plan (flavours, how many, price, float) before it can start.                                         | Cine, Ethan | 4 bookings on the trial; no day planned                        |
 | 4   | **A cost per cookie for each flavour.** A recipe counts only when every line has a cost; almost none does yet. Type one on the event page, or profit reads "Cost pending" (selling and closing still work). | Cine        | Not typed                                                      |
 | 5   | **Who signs in.** Planning, starting, reviewing and closing are the owner's. The server takes a sale from an owner sign-in only.                                                                            | Ethan       | 1 active owner. If it is not Cine's, she needs one, and Access |
