@@ -28,6 +28,8 @@ export interface QueuedSale {
   state: QueuedState;
   attempts: number;
   lastError: string | null;
+  /** S3.1: the server understood and refused this body; sending it again cannot help. Never set for a network failure. */
+  refused?: true;
 }
 
 /**
@@ -42,6 +44,8 @@ export interface QueuedVoid {
   state: QueuedState;
   attempts: number;
   lastError: string | null;
+  /** S3.1: the server understood and refused this body; sending it again cannot help. Never set for a network failure. */
+  refused?: true;
 }
 
 /**
@@ -60,6 +64,8 @@ export interface QueuedCommand {
   state: QueuedState;
   attempts: number;
   lastError: string | null;
+  /** S3.1: the server understood and refused this body; sending it again cannot help. Never set for a network failure. */
+  refused?: true;
 }
 
 export type QueueRow = QueuedSale | QueuedVoid | QueuedCommand;
@@ -139,15 +145,62 @@ export async function markSent(clientIds: string[]): Promise<void> {
   }
 }
 
-export async function markFailed(clientId: string, error: string): Promise<void> {
+/**
+ * `permanent` is true only when the server refused the body itself (`SendOutcome.permanent`). A row that merely failed to
+ * get an answer stays a row to send: it is not marked refused, so it keeps blocking the day's close.
+ */
+export async function markFailed(
+  clientId: string,
+  error: string,
+  permanent = false
+): Promise<void> {
   const row = await idb.get<QueueRow>(clientId);
   if (!row) return;
+  const { refused: _was, ...rest } = row;
+  void _was;
   await idb.put({
-    ...row,
+    ...rest,
     state: 'failed' as QueuedState,
     attempts: row.attempts + 1,
-    lastError: error
-  });
+    lastError: error,
+    ...(permanent ? { refused: true as const } : {})
+  } as QueueRow);
+}
+
+/**
+ * S3.1: what this phone still owes the server for one event. `blocking` is every row of the event not sent and not refused
+ * (sales and commands by their event; a void by its sale's event, and a void whose sale row is gone counts, to be safe).
+ * `refused` lists the rows the server refused outright: they are kept, never deleted, and shown for review, but they no
+ * longer hold the day on the phone (voiding one or sending it again cannot make the server take it).
+ */
+export async function unsentForEvent(
+  eventId: string
+): Promise<{ blocking: QueueRow[]; refused: QueueRow[] }> {
+  return splitForEvent(await allSales(), eventId);
+}
+
+/** `unsentForEvent` over rows already read. */
+export function splitForEvent(
+  rows: QueueRow[],
+  eventId: string
+): { blocking: QueueRow[]; refused: QueueRow[] } {
+  const byId = new Map(rows.map((row) => [row.clientId, row]));
+  const eventOf = (row: QueueRow): string | null | undefined => {
+    if (!isVoidRow(row)) return row.eventId;
+    const sale = byId.get(row.saleClientId);
+    return sale && !isVoidRow(sale) ? sale.eventId : undefined;
+  };
+  const blocking: QueueRow[] = [];
+  const refused: QueueRow[] = [];
+  for (const row of rows) {
+    if (row.state === 'sent') continue;
+    const of = eventOf(row);
+    const orphanVoid = isVoidRow(row) && of === undefined;
+    if (of !== eventId && !orphanVoid) continue;
+    if (row.refused) refused.push(row);
+    else blocking.push(row);
+  }
+  return { blocking, refused };
 }
 
 /** Sent rows are kept for a day so a helper can still see what went out. */

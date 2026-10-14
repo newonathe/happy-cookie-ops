@@ -17,7 +17,7 @@ import {
   textStyle,
   wrapRow
 } from '@/components/live/stock/stock-shared';
-import { ErrorText, Field, Notices, SelectField } from './field';
+import { ErrorText, Field, Notices, RemoveButton, SelectField } from './field';
 import { Figures } from './figure';
 import { useSave } from './use-save';
 
@@ -127,6 +127,7 @@ function FeesSection({ event }: { event: BazaarEventView }) {
           >
             <span style={{ minWidth: 0, overflowWrap: 'anywhere' }}>{f.text}</span>
             <span style={{ fontWeight: 700, textAlign: 'right' }}>{f.amountText}</span>
+            {f.remove ? <RemoveButton label={f.text} remove={f.remove} /> : null}
           </li>
         ))}
       </ul>

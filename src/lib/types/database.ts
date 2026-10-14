@@ -292,6 +292,8 @@ export type Database = {
           payload_hash: string
           received_at: string
           scheduled_id: string
+          voided_at: string | null
+          voided_by: string | null
         }
         Insert: {
           amount_cents: number
@@ -304,6 +306,8 @@ export type Database = {
           payload_hash: string
           received_at?: string
           scheduled_id: string
+          voided_at?: string | null
+          voided_by?: string | null
         }
         Update: {
           amount_cents?: number
@@ -316,6 +320,8 @@ export type Database = {
           payload_hash?: string
           received_at?: string
           scheduled_id?: string
+          voided_at?: string | null
+          voided_by?: string | null
         }
         Relationships: [
           {
@@ -339,6 +345,13 @@ export type Database = {
             referencedRelation: "scheduled_events"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "bazaar_fees_voided_by_fkey"
+            columns: ["voided_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       bazaar_losses: {
@@ -351,6 +364,8 @@ export type Database = {
           qty: number
           reason: string
           received_at: string
+          voided_at: string | null
+          voided_by: string | null
         }
         Insert: {
           at: string
@@ -361,6 +376,8 @@ export type Database = {
           qty: number
           reason: string
           received_at?: string
+          voided_at?: string | null
+          voided_by?: string | null
         }
         Update: {
           at?: string
@@ -371,6 +388,8 @@ export type Database = {
           qty?: number
           reason?: string
           received_at?: string
+          voided_at?: string | null
+          voided_by?: string | null
         }
         Relationships: [
           {
@@ -392,6 +411,13 @@ export type Database = {
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "shop_products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bazaar_losses_voided_by_fkey"
+            columns: ["voided_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -2593,7 +2619,12 @@ export type Database = {
         }[]
       }
       finalise_bazaar: {
-        Args: { p_booking: string; p_drop: number; p_expected: string }
+        Args: {
+          p_booking: string
+          p_drop: number
+          p_expected: string
+          p_till: Json
+        }
         Returns: Json
       }
       find_order: {
@@ -3251,6 +3282,8 @@ export type Database = {
         }
         Returns: number
       }
+      void_bazaar_fee: { Args: { p_client_id: string }; Returns: Json }
+      void_bazaar_loss: { Args: { p_client_id: string }; Returns: Json }
       void_event_sale: {
         Args: { p_void: Json }
         Returns: {

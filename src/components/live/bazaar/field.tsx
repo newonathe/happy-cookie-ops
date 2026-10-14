@@ -1,6 +1,7 @@
 import type * as React from 'react';
 import { inputStyle, smallLabel } from '@/components/live/form-styles';
-import { STATUS_COLOUR, textStyle } from '@/components/live/stock/stock-shared';
+import { STATUS_COLOUR, buttonBase, textStyle } from '@/components/live/stock/stock-shared';
+import { useSave } from './use-save';
 
 const field: React.CSSProperties = {
   display: 'flex',
@@ -92,5 +93,30 @@ export function ErrorText({ error, id }: { error: string | null; id?: string }) 
     <p id={id} role="alert" style={{ ...textStyle, color: STATUS_COLOUR.Out, fontWeight: 600 }}>
       {error}
     </p>
+  );
+}
+
+/** S3.1: takes a fee or a loss back, with its own words if that is refused. `label` names what goes, for a screen reader. */
+export function RemoveButton({
+  label,
+  remove
+}: {
+  label: string;
+  remove: () => Promise<string | null>;
+}) {
+  const { error, saving, run } = useSave();
+  return (
+    <span style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-end' }}>
+      <button
+        type="button"
+        disabled={saving}
+        aria-label={'Remove ' + label}
+        onClick={() => void run(remove)}
+        style={{ ...buttonBase, minHeight: '44px', opacity: saving ? 0.6 : 1 }}
+      >
+        {saving ? 'Removing…' : 'Remove'}
+      </button>
+      <ErrorText error={error} />
+    </span>
   );
 }

@@ -14,7 +14,7 @@ import {
   screenStyle,
   textStyle
 } from '@/components/live/stock/stock-shared';
-import { ErrorText, Field, Notices, SelectField } from './field';
+import { ErrorText, Field, Notices, RemoveButton, SelectField } from './field';
 import { Figures } from './figure';
 import { useSave } from './use-save';
 
@@ -296,8 +296,20 @@ export function DayReview({ review }: { review: DayReviewView }) {
         {review.losses.length ? (
           <ul aria-label="Losses" style={listStyle}>
             {review.losses.map((l) => (
-              <li key={l.id} style={{ ...cardStyle, ...textStyle }}>
-                {l.text}
+              <li
+                key={l.id}
+                style={{
+                  ...cardStyle,
+                  ...textStyle,
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  gap: '6px 12px'
+                }}
+              >
+                <span style={{ minWidth: 0, overflowWrap: 'anywhere' }}>{l.text}</span>
+                {l.remove ? <RemoveButton label={l.text} remove={l.remove} /> : null}
               </li>
             ))}
           </ul>
