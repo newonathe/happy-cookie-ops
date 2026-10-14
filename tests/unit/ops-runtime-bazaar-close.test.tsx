@@ -318,7 +318,7 @@ describe("the books' hold", () => {
       {
         id: BOOKING,
         name: 'Fixture fair',
-        detail: '5 records · ₱880 taken · ₱15 spent at the till'
+        detail: '5 records · ₱880.00 taken · ₱15.00 spent at the till'
       }
     ]);
   });

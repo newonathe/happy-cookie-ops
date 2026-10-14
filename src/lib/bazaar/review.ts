@@ -1,8 +1,9 @@
 import type { BazaarDay, BazaarSummary, CloseLine } from '@/lib/data/bazaar-days';
 import type { CloseInput, ReviewFigure, ReviewStockRow } from '@/lib/bazaar/live-bazaar-types';
 import { COST_COPY } from '@/lib/orders/staff-copy';
-import { costCentavosToPesos, costPesosToCentavos, pesosToCentavos } from '@/lib/money';
-import { cookiesText, pesoText } from '@/lib/bazaar/plan';
+import { costPesosToCentavos, pesosToCentavos } from '@/lib/money';
+import { cookiesText } from '@/lib/bazaar/plan';
+import { peso, pesoUnit } from '@/lib/money/format';
 import { dateRange } from '@/lib/data/scheduled-events';
 
 /**
@@ -15,19 +16,16 @@ const MONEY = /^[0-9]{1,7}(\.[0-9]{1,2})?$/;
 const COST = /^[0-9]{1,6}(\.[0-9]{1,4})?$/;
 const COUNT = /^[0-9]{1,5}$/;
 
-/** "₱880", "-₱5", or "Cost pending" for an amount that is not known. */
+/** "₱880.00", "-₱5.00", or "Cost pending" for an amount that is not known. */
 export function moneyText(cents: number | null): string {
-  if (cents === null) return COST_COPY.pending;
-  return cents < 0 ? '-' + pesoText(-cents) : pesoText(cents);
+  return cents === null ? COST_COPY.pending : peso(cents);
 }
 
 /** "₱12.005", from centavos with up to four decimals; "Cost pending" when there is none. */
 export function unitCostText(unitCents: number | null): string {
-  const pesos = costCentavosToPesos(unitCents);
-  if (pesos === null) return COST_COPY.pending;
-  return (
-    '₱' + pesos.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 6 })
-  );
+  return unitCents === null || !Number.isFinite(unitCents)
+    ? COST_COPY.pending
+    : pesoUnit(unitCents);
 }
 
 const plural = (n: number, one: string, many: string) =>

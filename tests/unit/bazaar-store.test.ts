@@ -370,9 +370,9 @@ describe("the event's page", () => {
 
   it('shows the fees, the target and each cost per cookie in words, an unknown one as pending', async () => {
     const { event } = await page(clone());
-    expect(event.feesTotalText).toBe('₱800');
-    expect(event.fees.map((f) => f.amountText)).toEqual(['₱500', '₱250', '₱50']);
-    expect(event.targetText).toBe('₱500');
+    expect(event.feesTotalText).toBe('₱800.00');
+    expect(event.fees.map((f) => f.amountText)).toEqual(['₱500.00', '₱250.00', '₱50.00']);
+    expect(event.targetText).toBe('₱500.00');
     expect(event.costs.map((c) => c.text)).toEqual([
       '₱12.005 per cookie · from the recipe',
       '₱28.7525 per cookie · typed by you',

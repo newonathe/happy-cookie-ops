@@ -261,6 +261,7 @@ import { clearStoredBooks, liveBaseState } from '@/lib/data/live-state';
 import { STATE_LEVEL_KEYS, type SettingsClient } from '@/lib/data/settings';
 import { SettingsSync } from '@/lib/data/settings-sync';
 import { centavosFromDb, centavosToPesos, pesosToCentavos } from '@/lib/money';
+import { peso } from '@/lib/money/format';
 import {
   FLAVOUR_TOASTS,
   FlavourSync,
@@ -653,11 +654,6 @@ interface PendingLink {
   eventId: string;
   rentCents: number;
   at: number;
-}
-
-/** `₱2,500`, from centavos. */
-function pesoText(cents: number): string {
-  return '₱' + centavosToPesos(cents).toLocaleString('en-PH');
 }
 
 function readPendingLinks(): PendingLink[] {
@@ -2945,7 +2941,7 @@ export class OpsRuntime extends OpsProvider {
       const event = this.state.event as LiveEvent | null;
       if (event?.id === eventId && this.localEventExpense)
         this.localEventExpense(SCHEDULED_COPY.rentLabel, centavosToPesos(rentCents), 'Bazaar rent');
-      else this.toast(SCHEDULED_COPY.rentBooked(pesoText(rentCents)));
+      else this.toast(SCHEDULED_COPY.rentBooked(peso(rentCents)));
     });
   }
 
@@ -4771,9 +4767,9 @@ export class OpsRuntime extends OpsProvider {
         detail:
           plural(h.count, 'record', 'records') +
           ' · ' +
-          pesoText(h.revenueCents) +
+          peso(h.revenueCents) +
           ' taken · ' +
-          pesoText(h.expenseCents) +
+          peso(h.expenseCents) +
           ' spent at the till'
       })),
       setBasis: (b) => void this.liveSetBasis(b),

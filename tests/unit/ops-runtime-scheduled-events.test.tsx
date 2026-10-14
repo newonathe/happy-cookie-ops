@@ -231,7 +231,7 @@ describe('D4: the Bazaar screen lists the owner’s bookings (live mode)', () =>
     expect(called(up.rpc, 'link_scheduled_event').map((c) => c[1].p_scheduled)).toEqual([ID1, ID2]);
     expect(localStorage.getItem('hc-pending-link')).toBeNull();
     expect(rentRows(runtime)).toEqual([]);
-    expect(toasts(runtime)).toContain('₱2,500 stall rent booked as an event expense');
+    expect(toasts(runtime)).toContain('₱2,500.00 stall rent booked as an event expense');
     // Mutation: one saved slot loses the first booking's link (and its rent) when a second start fails.
   });
 });

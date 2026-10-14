@@ -90,8 +90,8 @@ describe('the event figures, as words', () => {
 
   it('reads the headline of each figure to the centavo', () => {
     expect(figures.map((f) => [f.key, f.valueText])).toEqual([
-      ['revenue', '₱1,750'],
-      ['fees', '₱800'],
+      ['revenue', '₱1,750.00'],
+      ['fees', '₱800.00'],
       ['cookie-cost', '₱555.62'],
       ['profit', '₱389.38'],
       ['target', '₱110.62 under the target']
@@ -101,11 +101,11 @@ describe('the event figures, as words', () => {
 
   it('opens profit into the database parts, a loss as a minus', () => {
     expect(figure(figures, 'profit').parts.map((p) => p.valueText)).toEqual([
-      '₱1,750',
-      '-₱800',
+      '₱1,750.00',
+      '-₱800.00',
       '-₱555.62',
-      '₱0',
-      '-₱5'
+      '₱0.00',
+      '-₱5.00'
     ]);
   });
 
@@ -144,7 +144,7 @@ describe('the event figures, as words', () => {
 
   it('opens the target into the target and what revenue is still needed', () => {
     expect(figure(figures, 'target').parts.map((p) => [p.label, p.valueText])).toEqual([
-      ['Target', '₱500'],
+      ['Target', '₱500.00'],
       ['Revenue still needed', '₱110.62']
     ]);
   });
@@ -152,7 +152,7 @@ describe('the event figures, as words', () => {
   it('says over the target when profit is past it', () => {
     const w = clone();
     Object.assign(w.summary.target, { against_cents: 2500, revenue_needed_cents: 0 });
-    expect(figure(eventFiguresOf(read(w)), 'target').valueText).toBe('₱25 over the target');
+    expect(figure(eventFiguresOf(read(w)), 'target').valueText).toBe('₱25.00 over the target');
   });
 
   it('says no target set when there is none', () => {
@@ -171,17 +171,17 @@ describe("one day's figures", () => {
 
   it('reads the revenue of the day', () => {
     const f = dayFiguresOf(b, b.days[0]!);
-    expect(f.find((x) => x.key === 'day-revenue')?.valueText).toBe('₱880');
+    expect(f.find((x) => x.key === 'day-revenue')?.valueText).toBe('₱880.00');
   });
 
   it('reads a closed day that was 5 short as short, with the cash it was worked from', () => {
     const cash = dayFiguresOf(b, b.days[0]!).find((x) => x.key === 'day-cash')!;
-    expect(cash.valueText).toBe('₱5 short');
+    expect(cash.valueText).toBe('₱5.00 short');
     expect(cash.parts.map((p) => [p.label, p.valueText])).toEqual([
-      ['Float', '₱500'],
-      ['Cash sales', '₱500'],
-      ['Expected', '₱1,000'],
-      ['Counted', '₱995']
+      ['Float', '₱500.00'],
+      ['Cash sales', '₱500.00'],
+      ['Expected', '₱1,000.00'],
+      ['Counted', '₱995.00']
     ]);
     // Mutation: calling a short day "Exact", or swapping expected and counted, changes this.
   });
@@ -204,18 +204,18 @@ describe("one day's figures", () => {
     const open = read(day1Open());
     const cash = dayFiguresOf(open, open.days[0]!).find((x) => x.key === 'day-cash')!;
     expect(cash.label).toBe('Cash expected in the drawer');
-    expect(cash.valueText).toBe('₱1,000');
+    expect(cash.valueText).toBe('₱1,000.00');
   });
 
   it("lists only the day's own fees", () => {
     const fees = dayFiguresOf(b, b.days[0]!).find((x) => x.key === 'day-fees')!;
-    expect(fees.valueText).toBe('₱50');
-    expect(fees.parts).toEqual([{ label: 'Parking', detail: null, valueText: '₱50' }]);
+    expect(fees.valueText).toBe('₱50.00');
+    expect(fees.parts).toEqual([{ label: 'Parking', detail: null, valueText: '₱50.00' }]);
     expect(dayFiguresOf(b, b.days[1]!).find((x) => x.key === 'day-fees')?.parts).toEqual([]);
   });
 });
 
-describe('an unknown cost reads "Cost pending" and never ₱0', () => {
+describe('an unknown cost reads "Cost pending" and never ₱0.00', () => {
   /** A flavour with cookies and no cost per cookie: the database answers null for every cost it cannot know. */
   function pending(): Wire {
     const w = clone();
@@ -256,24 +256,24 @@ describe('an unknown cost reads "Cost pending" and never ₱0', () => {
     expect(figure(figures, 'target').valueText).toBe('Cost pending');
   });
 
-  it('never writes ₱0 for any of the three, or for the flavour with no cost', () => {
+  it('never writes ₱0.00 for any of the three, or for the flavour with no cost', () => {
     for (const key of ['cookie-cost', 'profit', 'target']) {
-      expect(figure(figures, key).valueText).not.toContain('₱0');
+      expect(figure(figures, key).valueText).not.toContain('₱0.00');
     }
     const line = figure(figures, 'cookie-cost').parts.find((p) => p.label === 'Fixture C')!;
     expect(line.valueText).toBe('Cost pending');
-    expect(line.valueText).not.toContain('₱0');
-    expect(line.detail ?? '').not.toContain('₱0');
+    expect(line.valueText).not.toContain('₱0.00');
+    expect(line.detail ?? '').not.toContain('₱0.00');
     // Mutation: `cents ?? 0` anywhere in moneyText, the line, the profit or the target would turn these into ₱0.
   });
 
   it('shows the profit part that is unknown as pending, and the known ones as they were', () => {
     const parts = figure(figures, 'profit').parts;
     expect(parts.find((p) => p.label === 'Cookie cost')?.valueText).toBe('Cost pending');
-    expect(parts.find((p) => p.label === 'Revenue')?.valueText).toBe('₱1,750');
+    expect(parts.find((p) => p.label === 'Revenue')?.valueText).toBe('₱1,750.00');
   });
 
-  it('says what revenue is still needed is pending, not ₱0', () => {
+  it('says what revenue is still needed is pending, not ₱0.00', () => {
     const needed = figure(figures, 'target').parts.find((p) => p.label === 'Revenue still needed');
     expect(needed?.valueText).toBe('Cost pending');
   });
@@ -291,11 +291,11 @@ describe('an unknown cost reads "Cost pending" and never ₱0', () => {
 });
 
 describe('the small formatters', () => {
-  it('moneyText: pesos, a minus before the sign, pending for null', () => {
-    expect(moneyText(88000)).toBe('₱880');
+  it('moneyText: pesos with two decimals, a minus before the sign, pending for null', () => {
+    expect(moneyText(88000)).toBe('₱880.00');
     expect(moneyText(55562)).toBe('₱555.62');
-    expect(moneyText(-500)).toBe('-₱5');
-    expect(moneyText(0)).toBe('₱0');
+    expect(moneyText(-500)).toBe('-₱5.00');
+    expect(moneyText(0)).toBe('₱0.00');
     expect(moneyText(null)).toBe('Cost pending');
   });
 
@@ -449,7 +449,7 @@ describe('the close, as she types it', () => {
   it('a blank cash count is not counted, never 0', () => {
     const r = closeFromForm(day1, input({}, ''), false, names);
     expect(r.ok && r.countedCents).toBeNull();
-    // Mutation: turning a blank into 0 would record a count of ₱0 and a short of the whole drawer.
+    // Mutation: turning a blank into 0 would record a count of ₱0.00 and a short of the whole drawer.
   });
 
   it('turns cash typed in pesos into centavos', () => {

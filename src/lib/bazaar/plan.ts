@@ -12,18 +12,6 @@ const COUNT = /^[0-9]{1,4}$/;
 const MAX_PESOS = 1_000_000;
 const MAX_FLOAT_PESOS = 1_000_000;
 
-/** `₱1,250.50`, `₱125`: whole pesos have no decimals. */
-export function pesoText(cents: number): string {
-  const pesos = centavosToPesos(cents);
-  return (
-    '₱' +
-    pesos.toLocaleString('en-PH', {
-      minimumFractionDigits: Number.isInteger(pesos) ? 0 : 2,
-      maximumFractionDigits: 2
-    })
-  );
-}
-
 /** Centavos as the text an input shows: `125`, `125.5`. */
 export function pesoInput(cents: number): string {
   return String(centavosToPesos(cents));

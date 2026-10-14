@@ -712,7 +712,7 @@ try {
   const pesoOf = (pesos) =>
     (pesos < 0 ? '-₱' : '₱') +
     Math.abs(pesos).toLocaleString('en-PH', {
-      minimumFractionDigits: Number.isInteger(pesos) ? 0 : 2,
+      minimumFractionDigits: 2,
       maximumFractionDigits: 2
     });
   // A figure is a row of its list whose text begins with its label; its parts stay hidden until it is opened.
@@ -817,7 +817,10 @@ try {
       assert(!costs.error, `bazaar_costs: ${costs.error?.message}`);
       if (costs.data.recipe_cents === null && costs.data.typed_cents === null) {
         const profit = await figureSays('Event so far', 'Profit', 'Cost pending');
-        assert(!/₱0(?![\d.,])/.test(profit), `An unknown profit is shown as a zero: "${profit}".`);
+        assert(
+          !/₱0(\.00)?(?![\d,])/.test(profit),
+          `An unknown profit is shown as a zero: "${profit}".`
+        );
       }
 
       const loss = page.getByRole('form', { name: 'Record a loss' });
@@ -894,7 +897,7 @@ try {
       const cost = page.getByRole('form', { name: /^Cost per cookie for / });
       await cost.getByLabel('Your cost per cookie (₱)').fill(String(COST_PESOS));
       await cost.getByRole('button', { name: 'Save the cost' }).click();
-      await page.getByText(`${pesoOf(COST_PESOS)}.00 per cookie · typed by you`).waitFor();
+      await page.getByText(`${pesoOf(COST_PESOS)} per cookie · typed by you`).waitFor();
       const fee = page.getByRole('form', { name: 'Add a fee' });
       await fee.getByLabel('What for').fill('Permit');
       await fee.getByLabel('Amount (₱)').fill(String(FEE_PESOS));
