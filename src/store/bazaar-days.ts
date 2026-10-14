@@ -238,9 +238,12 @@ export class BazaarDays {
       // A day this phone still holds that the database has closed (from another phone): the phone lets go of it.
       const held = this.deps.held();
       const heldDay = held ? data.days.find((d) => d.id === held.dayId) : undefined;
-      if (heldDay?.state === 'closed') this.deps.dayClosed(heldDay.id);
-      // A read settles a close whose answer was lost: closed, or still open.
-      if (heldDay && heldDay.state !== 'planned') this.deps.closeInDoubt(null);
+      // Selling pauses on a day the database has closed (the phone keeps it until it has sent everything), and
+      // resumes only when a read shows the day still open: that settles a close whose answer was lost.
+      if (heldDay?.state === 'closed') {
+        this.deps.closeInDoubt(heldDay.id);
+        this.deps.dayClosed(heldDay.id);
+      } else if (heldDay?.state === 'open') this.deps.closeInDoubt(null);
       this.deps.rerender();
       return true;
     } catch {
@@ -700,6 +703,8 @@ export class BazaarDays {
       this.pending.delete(key);
       if (outcome === 'saved') {
         if (this.reviewing) this.reviewing.notice = null;
+        // No sale on this day from now on: the pause lasts until the phone has let go of the day.
+        if (held?.dayId === day.id) this.deps.closeInDoubt(day.id);
         this.deps.dayClosed(day.id);
         this.deps.toast(COPY.dayClosed);
         await this.reload();
@@ -745,11 +750,9 @@ export class BazaarDays {
       reason,
       at: p.at
     };
+    // A local error keeps the id: if an earlier answer was lost, the corrected loss is still that one change.
     const problem = lossError(fields);
-    if (problem) {
-      this.pending.delete(key);
-      return problem;
-    }
+    if (problem) return problem;
     this.busy = true;
     try {
       const outcome = await saveBazaarLoss(client, fields);
@@ -829,11 +832,9 @@ export class BazaarDays {
       // A day's fee is paid that day; a fee for the whole event, on its first day.
       paidOn: day ? day.day : data.booking.startsOn
     };
+    // A local error keeps the id, as for a loss.
     const problem = feeError(fields);
-    if (problem) {
-      this.pending.delete(key);
-      return problem;
-    }
+    if (problem) return problem;
     this.busy = true;
     try {
       const outcome = await saveBazaarFee(client, fields);

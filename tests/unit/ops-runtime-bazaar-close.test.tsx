@@ -226,6 +226,29 @@ describe('after the day is closed', () => {
   });
 });
 
+describe('a day the database has closed while this phone still holds something for it', () => {
+  it('keeps the day on the phone and pauses selling it until the queue is sent', async () => {
+    const { runtime, db } = await startedDay();
+    store.set('void-1', { clientId: 'void-1', state: 'pending', at: 1 });
+    act(() => vals(runtime).askClose());
+    await settle();
+    await act(async () => void (await liveBazaar(runtime)!.review!.close!.submit(count)));
+    // The close itself was refused here: something is unsent. Now the day is closed elsewhere and read again.
+    expect(db.rpc.mock.calls.filter((c) => c[0] === 'close_bazaar_day')).toHaveLength(0);
+    db.rpc.mockImplementation(async (name: string) =>
+      name === 'get_bazaar'
+        ? { data: bazaarAnswer('closed'), error: null }
+        : { data: null, error: null }
+    );
+    act(() => liveBazaar(runtime)!.retry());
+    await settle();
+    expect((runtime.state.event as { dayId?: string }).dayId).toBe(DAY);
+    expect(localStorage.getItem('hc-close-in-doubt')).toBe(DAY);
+    act(() => (runtime as unknown as { recordSale: (pay: string) => void }).recordSale('Cash'));
+    expect(JSON.stringify(runtime.state.toast)).toMatch(/may already be closed/);
+  });
+});
+
 describe('a close whose answer was lost', () => {
   it('pauses selling the day on this phone, also after a reload', async () => {
     const { runtime } = await startedDay();

@@ -1371,8 +1371,13 @@ export class OpsRuntime extends OpsProvider {
     } catch {
       return;
     }
-    if (unsent > 0 || (this.state.event as LiveEvent | null)?.dayId !== dayId) return;
-    this.setCloseInDoubt(null);
+    // Checked again after the wait: nothing may have reached the till or the queue meanwhile.
+    if (
+      unsent > 0 ||
+      this.unsentForDay() > 0 ||
+      (this.state.event as LiveEvent | null)?.dayId !== dayId
+    )
+      return;
     this.setState(
       {
         event: null,
@@ -1388,8 +1393,11 @@ export class OpsRuntime extends OpsProvider {
         eventStock: {},
         eventLoaded: {}
       } as never,
-      // After the state has landed, so a save in between cannot put the day back.
-      () => clearBazaar()
+      // After the state has landed, so a save in between cannot put the day back; the pause ends with the day.
+      () => {
+        clearBazaar();
+        this.setCloseInDoubt(null);
+      }
     );
   }
 
@@ -1423,8 +1431,12 @@ export class OpsRuntime extends OpsProvider {
     }
     const day = data.days.find((d) => d.id === event.dayId);
     if (this.unmounted || !day) return;
+    // A closed day pauses selling until the phone has let go of it; an open one settles any doubt.
+    if (day.state === 'closed') {
+      this.setCloseInDoubt(day.id);
+      return void (await this.dropClosedDay(day.id));
+    }
     this.setCloseInDoubt(null);
-    if (day.state === 'closed') return void (await this.dropClosedDay(day.id));
     this.setState((s) => {
       const now = s.event as LiveEvent | null;
       if (now?.dayId !== day.id) return null;

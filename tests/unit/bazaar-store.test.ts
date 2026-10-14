@@ -237,6 +237,15 @@ describe('closing a day', () => {
 });
 
 describe('the queue decides', () => {
+  it('a read that finds the held day closed pauses selling and asks the phone to let go of it', async () => {
+    const h = harness(clone());
+    h.state.held = { dayId: DAY2, scheduledId: BOOKING, unsent: 0, stock: {} };
+    await reviewing(h, 'event');
+    expect(h.deps.closeInDoubt).toHaveBeenLastCalledWith(DAY2);
+    expect(h.deps.dayClosed).toHaveBeenCalledWith(DAY2);
+    // Mutation: clearing the pause on a closed day lets the till ring up sales the database refuses.
+  });
+
   it('a queue that cannot be read closes nothing', async () => {
     const h = harness(day2Open());
     h.state.held = { dayId: DAY2, scheduledId: BOOKING, unsent: 0, stock: {} };
@@ -286,6 +295,21 @@ describe('losses and more stock on an open day', () => {
     expect(await review.addLoss!({ productId: 'mp0s-a', qty: '1', reason: 'Dropped' })).toBeNull();
     expect(h.deps.lossSaved).toHaveBeenCalledTimes(1);
     expect(h.deps.toast).toHaveBeenCalledWith(expect.stringMatching(/already recorded/));
+  });
+
+  it('a loss corrected after a lost reply and a local error is still the same change', async () => {
+    const h = harness(day2Open());
+    const review = await reviewing(h);
+    h.reply('save_bazaar_loss', { error: { code: '08006' } });
+    await review.addLoss!({ productId: 'mp0s-a', qty: '1', reason: 'Dropped' });
+    expect(await review.addLoss!({ productId: 'mp0s-a', qty: '1', reason: '   ' })).toMatch(
+      /Say what happened/
+    );
+    await review.addLoss!({ productId: 'mp0s-a', qty: '1', reason: 'Dropped' });
+    const [first, second] = h.calls('save_bazaar_loss');
+    expect((second!.p_loss as { client_id: string }).client_id).toBe(
+      (first!.p_loss as { client_id: string }).client_id
+    );
   });
 
   it('a loss changed after a lost reply keeps its id, so it is refused rather than booked twice', async () => {
