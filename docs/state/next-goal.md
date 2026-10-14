@@ -1,51 +1,35 @@
-# Next goal — S1, bazaar days (the database)
+# Next goal — the bazaar days release (on Ethan's word only)
 
 One goal per package, each in a fresh conversation opened in the repository root. Paste
-one block. Where things stand: [current.md](current.md). The design these come from:
-[bazaar-days.md](bazaar-days.md), approved by Ethan on 13 October; it holds the S2 and S3 goals. Earlier goals are in
-[current-history.md](current-history.md).
+one block. Where things stand: [current.md](current.md). The design and what was built:
+[bazaar-days.md](bazaar-days.md). Earlier goals are in [current-history.md](current-history.md) and in Git (S2: `fbae1e0`,
+this file).
 
-Ethan put the bazaar ahead of B6 on 13 October: the 24 to 25 October bazaar sells on the new flow, with no fallback, so
-S1 to S3 must be deployed and rehearsed on the phone by 20 October. The one-time set-up (S4, S5:
+S1 to S3 are built on branch `claude/bazaar-days-s3`, local only. The bazaar sells on the new flow on 24 to 25 October,
+with no fallback, so it must reach the trial and pass the phone rehearsal by 20 October. Every step below changes the
+hosted trial: run it only after Ethan says so in that conversation. The one-time set-up (S4, S5:
 [cine-set-up.md](cine-set-up.md)) follows, then B6 (New Recipes; its goal is in Git at `3597c19`, this file).
 
-## S1 — migration 68: days, fees, losses, the summary, close and finalise
+## The release — migration 68, merge, deploy
 
-| Setting         | Value                                                                             |
-| --------------- | --------------------------------------------------------------------------------- |
-| Model, effort   | Claude Sonnet, high to build; Opus, high for the sign-off only                    |
-| Plan mode       | Off: the design is approved. Write the hand-worked example before any SQL         |
-| Permission mode | Auto                                                                              |
-| Review          | Required: `security-reviewer` on a different model for the whole migration        |
-| Browser QA      | None (no screen changes)                                                          |
-| Tools           | Node 24.20.0 and pnpm 9.12.3 from `happy-cookie-tools`; Docker and local Supabase |
-| Stop            | Evidence printed and pushed; 25 turns; two failed fix attempts                    |
+| Setting         | Value                                                                                            |
+| --------------- | ------------------------------------------------------------------------------------------------ |
+| Model, effort   | Claude Opus, high (hosted database and a release: no workers)                                    |
+| Plan mode       | On: state each hosted step and wait for Ethan's word                                             |
+| Permission mode | Default: every hosted write asks                                                                 |
+| Review          | None new: S3's reviews are in its commits                                                        |
+| Browser QA      | The trial at 320 px after the deploy: the event list, a plan, the review of a test day           |
+| Tools           | Node 24.20.0 and pnpm 9.12.3 from `happy-cookie-tools`; Docker, local Supabase, the Supabase MCP |
+| Stop            | The trial at 68 of 68 with an equal fingerprint, deployed; 25 turns; two failed fix attempts     |
 
 ```text
-/goal Slice S1 of docs/state/bazaar-days.md for The Happy Cookie Ops in C:\Users\ethan\dev\happy-cookie-ops-g0, on a
-new branch from agent/codex/MP-04-g1-feasibility: migration 20260101006700_bazaar_days.sql and its tests. This is real
-money: exact, whole centavos, nothing guessed. The trial is at 67 of 67 and gets no migration without Ethan's word.
-record_event_sale stays untouched (body md5 8cf2bd637503cd4ef791a80eb415bb43).
-
-Read first, and nothing else until you have said what exists: AGENTS.md, docs/state/current.md,
-docs/state/bazaar-days.md, migrations 20260101003200, 003300, 004100, 004200, 004700 (record_production),
-005900 (record_sale_packaging, get_recipe_costs) and 006400 (get_books), tests/integration/security/bazaar-events.sql
-and bazaar-closeout.sql, and how scripts/test-db-security.py counts a suite.
-
-1. First, in the new suite's header: a hand-worked two-day event (three flavours, one with a typed cost, one with no
-   cost; a discount, a freebie, a void, a loss, a short drawer, a carry-over, cookies to the shop, a fee for the event
-   and one for a day), with every figure of the summary worked out by hand.
-2. tests/integration/security/bazaar-days.sql: that example to the centavo; one case and one rule mutation per
-   refusal; anon, helper, support and an inactive owner denied every function; a repeat of each call answered.
-3. The migration, as the design's tables and contracts say. One scaling rule for a recipe's stock, shared with
-   record_production. record_sale_packaging and get_books redefined whole with one change each.
-4. Check how the app reads baked stock before writing "to the shop"; if it needs a second stock count, stop and report.
-5. Pins, function authority, the suite's counts, pnpm db:types.
-
-Run python scripts/test-b3a-upgrade.py, python scripts/test-db-security.py (then git checkout -- docs/state/evidence/)
-and pnpm verify. security-reviewer on a different model; fix every P0 to P2. Update docs/state/current.md (five lines)
-and task-status.json (one note, by string insertion); replace this block with S2 from bazaar-days.md. Print each
-failing test before and passing after, the reviewer's verdict, the suite and verify summaries, the commit hashes and
-the pushed branch. Open a draft PR. Do not merge, deploy or touch the trial. Stop after 25 turns or two failed fix
-attempts and report the obstacle.
+/goal Release the bazaar days (S1 to S3 of docs/state/bazaar-days.md) to the trial for The Happy Cookie Ops in
+C:\Users\ethan\dev\happy-cookie-ops-g0, on Ethan's word only. Read first: AGENTS.md, docs/state/current.md,
+docs/state/bazaar-run-sheet.md (rows 1 and 2), the saved notes on the trial upgrade. Ask Ethan before each hosted step.
+1. From a scratch folder (never the repository folder): copy the trial's schema to a scratch local database, apply
+   migration 20260101006700 there, run the bazaar-days role suite. 2. With his word: apply it to the trial, read the
+   migration list (68 of 68) and compare the schema fingerprint with local. 3. Free the Actions artifact storage or
+   wait for it, open a PR from claude/bazaar-days-s3, and with his word merge and let CI deploy. 4. Open the trial at
+   320 px: the event list, a plan, a review. Set RELEASE_HOLD only after the phone rehearsal passes. Update current.md
+   and the run sheet's go/no-go table. Stop after 25 turns or two failed fix attempts.
 ```

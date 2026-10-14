@@ -1,0 +1,433 @@
+{
+  "summary": {
+    "booking": {
+      "id": "b0d0b000-0000-4000-8000-000000000001",
+      "name": "Fixture fair",
+      "place": "Hall",
+      "starts_on": "2026-10-24",
+      "ends_on": "2026-10-25",
+      "rent_cents": 50000,
+      "active": true
+    },
+    "counted": true,
+    "days": [
+      {
+        "id": "b0d0d000-0000-4000-8000-000000000011",
+        "day": "2026-10-24",
+        "event_id": "b0d0e000-0000-4000-8000-000000000011",
+        "float_cents": 50000,
+        "lines": [
+          {
+            "product_id": "mp0s-a",
+            "name": "Fixture A",
+            "made": 20,
+            "carried": 0,
+            "price_cents": 13000,
+            "sold": 5,
+            "given": 0,
+            "lost": 1
+          },
+          {
+            "product_id": "mp0s-b",
+            "name": "Fixture B",
+            "made": 10,
+            "carried": 0,
+            "price_cents": 15000,
+            "sold": 1,
+            "given": 1,
+            "lost": 0
+          },
+          {
+            "product_id": "mp0s-c",
+            "name": "Fixture C",
+            "made": 6,
+            "carried": 0,
+            "price_cents": 9000,
+            "sold": 1,
+            "given": 0,
+            "lost": 0
+          },
+          {
+            "product_id": "mp0s-d",
+            "name": "Fixture D",
+            "made": 0,
+            "carried": 0,
+            "price_cents": 8000,
+            "sold": 0,
+            "given": 0,
+            "lost": 0
+          }
+        ],
+        "revenue_cents": 88000,
+        "gross_cents": 104000,
+        "discount_cents": 1000,
+        "freebie_cents": 15000,
+        "by_pay": { "Cash": 50000, "GCash": 38000 },
+        "sales": 4,
+        "voided": 1,
+        "cash_sales_cents": 50000,
+        "cash_expected_cents": 100000,
+        "fees_cents": 5000,
+        "hash": "1111111111111111111111111111111111111111111111111111111111111111",
+        "state": "closed",
+        "count": [
+          {
+            "product_id": "mp0s-a",
+            "left": 13,
+            "carry_next": 8,
+            "to_shop": 3,
+            "written_off": 2,
+            "not_accounted": 1
+          },
+          {
+            "product_id": "mp0s-b",
+            "left": 8,
+            "carry_next": 5,
+            "to_shop": 0,
+            "written_off": 3,
+            "not_accounted": 0
+          },
+          {
+            "product_id": "mp0s-c",
+            "left": 5,
+            "carry_next": 5,
+            "to_shop": 0,
+            "written_off": 0,
+            "not_accounted": 0
+          },
+          {
+            "product_id": "mp0s-d",
+            "left": 0,
+            "carry_next": 0,
+            "to_shop": 0,
+            "written_off": 0,
+            "not_accounted": 0
+          }
+        ],
+        "closed_at": 1792846800000,
+        "counted_cents": 99500,
+        "over_cents": 0,
+        "short_cents": 500,
+        "changed_after_close": false
+      },
+      {
+        "id": "b0d0d000-0000-4000-8000-000000000012",
+        "day": "2026-10-25",
+        "event_id": "b0d0e000-0000-4000-8000-000000000012",
+        "float_cents": 30000,
+        "lines": [
+          {
+            "product_id": "mp0s-a",
+            "name": "Fixture A",
+            "made": 12,
+            "carried": 8,
+            "price_cents": 12000,
+            "sold": 4,
+            "given": 1,
+            "lost": 0
+          },
+          {
+            "product_id": "mp0s-b",
+            "name": "Fixture B",
+            "made": 0,
+            "carried": 4,
+            "price_cents": 15000,
+            "sold": 2,
+            "given": 0,
+            "lost": 0
+          },
+          {
+            "product_id": "mp0s-c",
+            "name": "Fixture C",
+            "made": 0,
+            "carried": 5,
+            "price_cents": 9000,
+            "sold": 1,
+            "given": 0,
+            "lost": 1
+          }
+        ],
+        "revenue_cents": 87000,
+        "gross_cents": 99000,
+        "discount_cents": 0,
+        "freebie_cents": 12000,
+        "by_pay": { "Cash": 48000, "Maya": 39000 },
+        "sales": 3,
+        "voided": 0,
+        "cash_sales_cents": 48000,
+        "cash_expected_cents": 78000,
+        "fees_cents": 0,
+        "hash": "2222222222222222222222222222222222222222222222222222222222222222",
+        "state": "closed",
+        "count": [
+          {
+            "product_id": "mp0s-a",
+            "left": 15,
+            "carry_next": 0,
+            "to_shop": 10,
+            "written_off": 5,
+            "not_accounted": 0
+          },
+          {
+            "product_id": "mp0s-b",
+            "left": 2,
+            "carry_next": 0,
+            "to_shop": 0,
+            "written_off": 2,
+            "not_accounted": 0
+          },
+          {
+            "product_id": "mp0s-c",
+            "left": 2,
+            "carry_next": 0,
+            "to_shop": 2,
+            "written_off": 0,
+            "not_accounted": 1
+          }
+        ],
+        "closed_at": 1792933200000,
+        "counted_cents": 78000,
+        "over_cents": 0,
+        "short_cents": 0,
+        "changed_after_close": false
+      }
+    ],
+    "revenue": {
+      "revenue_cents": 175000,
+      "gross_cents": 203000,
+      "discount_cents": 1000,
+      "freebie_cents": 27000,
+      "by_pay": { "Cash": 98000, "GCash": 38000, "Maya": 39000 },
+      "sales": 7,
+      "voided": 1
+    },
+    "cash": { "over_cents": 0, "short_cents": 500 },
+    "fees": {
+      "total_cents": 80000,
+      "event_cents": 75000,
+      "parts": [
+        {
+          "client_id": "rent:b0d0b000-0000-4000-8000-000000000001",
+          "label": "Stall rent",
+          "category": "Bazaar rent",
+          "day_id": null,
+          "paid_on": "2026-10-24",
+          "amount_cents": 50000
+        },
+        {
+          "client_id": "f-permit",
+          "label": "Permit",
+          "category": "Bazaar fees",
+          "day_id": null,
+          "paid_on": "2026-10-24",
+          "amount_cents": 25000
+        },
+        {
+          "client_id": "f-parking",
+          "label": "Parking",
+          "category": "Bazaar fees",
+          "day_id": "b0d0d000-0000-4000-8000-000000000011",
+          "paid_on": "2026-10-24",
+          "amount_cents": 5000
+        }
+      ]
+    },
+    "cookie_cost": {
+      "cents": 55562,
+      "why": null,
+      "made_cents": 73169,
+      "to_shop_cents": 17607,
+      "parts": [
+        { "label": "Sold", "quantity": 14, "amount_cents": 21431 },
+        { "label": "Given away", "quantity": 2, "amount_cents": 4076 },
+        { "label": "Lost", "quantity": 2, "amount_cents": 2201 },
+        { "label": "Written off", "quantity": 12, "amount_cents": 22780 },
+        { "label": "Not accounted", "quantity": 3, "amount_cents": 5076 },
+        { "label": "Rounding", "quantity": null, "amount_cents": -2 }
+      ],
+      "made": 48,
+      "to_shop": 15,
+      "lines": [
+        {
+          "product_id": "mp0s-a",
+          "name": "Fixture A",
+          "unit_cents": 1200.5,
+          "source": "recipe",
+          "made": 32,
+          "to_shop": 13,
+          "sold": 9,
+          "given": 1,
+          "lost": 1,
+          "written_off": 7,
+          "not_accounted": 1,
+          "uncosted": false,
+          "made_cents": 38416,
+          "to_shop_cents": 15607,
+          "sold_cents": 10805,
+          "given_cents": 1201,
+          "lost_cents": 1201,
+          "written_off_cents": 8404,
+          "not_accounted_cents": 1201,
+          "cost_cents": 22809,
+          "rounding_cents": -3
+        },
+        {
+          "product_id": "mp0s-b",
+          "name": "Fixture B",
+          "unit_cents": 2875.25,
+          "source": "typed",
+          "made": 10,
+          "to_shop": 0,
+          "sold": 3,
+          "given": 1,
+          "lost": 0,
+          "written_off": 5,
+          "not_accounted": 1,
+          "uncosted": false,
+          "made_cents": 28753,
+          "to_shop_cents": 0,
+          "sold_cents": 8626,
+          "given_cents": 2875,
+          "lost_cents": 0,
+          "written_off_cents": 14376,
+          "not_accounted_cents": 2875,
+          "cost_cents": 28753,
+          "rounding_cents": 1
+        },
+        {
+          "product_id": "mp0s-c",
+          "name": "Fixture C",
+          "unit_cents": 1000,
+          "source": "typed",
+          "made": 6,
+          "to_shop": 2,
+          "sold": 2,
+          "given": 0,
+          "lost": 1,
+          "written_off": 0,
+          "not_accounted": 1,
+          "uncosted": false,
+          "made_cents": 6000,
+          "to_shop_cents": 2000,
+          "sold_cents": 2000,
+          "given_cents": 0,
+          "lost_cents": 1000,
+          "written_off_cents": 0,
+          "not_accounted_cents": 1000,
+          "cost_cents": 4000,
+          "rounding_cents": 0
+        },
+        {
+          "product_id": "mp0s-d",
+          "name": "Fixture D",
+          "unit_cents": null,
+          "source": null,
+          "made": 0,
+          "to_shop": 0,
+          "sold": 0,
+          "given": 0,
+          "lost": 0,
+          "written_off": 0,
+          "not_accounted": 0,
+          "uncosted": false,
+          "made_cents": 0,
+          "to_shop_cents": 0,
+          "sold_cents": 0,
+          "given_cents": 0,
+          "lost_cents": 0,
+          "written_off_cents": 0,
+          "not_accounted_cents": 0,
+          "cost_cents": 0,
+          "rounding_cents": 0
+        }
+      ]
+    },
+    "profit": {
+      "cents": 38938,
+      "why": null,
+      "parts": [
+        { "label": "Revenue", "amount_cents": 175000 },
+        { "label": "Fees", "amount_cents": -80000 },
+        { "label": "Cookie cost", "amount_cents": -55562 },
+        { "label": "Cash over", "amount_cents": 0 },
+        { "label": "Cash short", "amount_cents": -500 }
+      ]
+    },
+    "target": { "cents": 50000, "against_cents": -11062, "revenue_needed_cents": 11062 },
+    "hash": "3333333333333333333333333333333333333333333333333333333333333333"
+  },
+  "target_profit_cents": 50000,
+  "updated_at": "2026-10-20T02:00:00.123456+00:00",
+  "finalised_at": null,
+  "final_hash": null,
+  "final_summary": null,
+  "stamps": [
+    {
+      "id": "b0d0d000-0000-4000-8000-000000000011",
+      "day": "2026-10-24",
+      "updated_at": "2026-10-23T22:00:00.123456+00:00"
+    },
+    {
+      "id": "b0d0d000-0000-4000-8000-000000000012",
+      "day": "2026-10-25",
+      "updated_at": "2026-10-24T22:00:00.123456+00:00"
+    }
+  ],
+  "costs": [
+    {
+      "product_id": "mp0s-a",
+      "recipe_cents": 1200.5,
+      "recipe_read_at": "2026-10-23T22:05:00+00:00",
+      "typed_cents": null,
+      "typed_at": null
+    },
+    {
+      "product_id": "mp0s-b",
+      "recipe_cents": null,
+      "recipe_read_at": "2026-10-23T22:05:00+00:00",
+      "typed_cents": 2875.25,
+      "typed_at": "2026-10-23T21:00:00+00:00"
+    },
+    {
+      "product_id": "mp0s-c",
+      "recipe_cents": null,
+      "recipe_read_at": "2026-10-23T22:05:00+00:00",
+      "typed_cents": 1000,
+      "typed_at": "2026-10-25T10:00:00+00:00"
+    },
+    {
+      "product_id": "mp0s-d",
+      "recipe_cents": null,
+      "recipe_read_at": "2026-10-23T22:05:00+00:00",
+      "typed_cents": null,
+      "typed_at": null
+    }
+  ],
+  "losses": [
+    {
+      "client_id": "loss:11111111-1111-4111-8111-111111111111",
+      "day_id": "b0d0d000-0000-4000-8000-000000000011",
+      "product_id": "mp0s-a",
+      "qty": 1,
+      "reason": "Dropped",
+      "at": 1792830000000
+    },
+    {
+      "client_id": "loss:22222222-2222-4222-8222-222222222222",
+      "day_id": "b0d0d000-0000-4000-8000-000000000012",
+      "product_id": "mp0s-c",
+      "qty": 1,
+      "reason": "Broken",
+      "at": 1792920000000
+    }
+  ],
+  "stock_adds": [
+    {
+      "client_id": "33333333-3333-4333-8333-333333333333",
+      "day_id": "b0d0d000-0000-4000-8000-000000000012",
+      "product_id": "mp0s-a",
+      "qty": 2,
+      "kind": "made"
+    }
+  ]
+}

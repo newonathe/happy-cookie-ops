@@ -49,12 +49,27 @@ export interface UncostedRow {
   why?: string;
 }
 
+/**
+ * A bazaar that is not closed yet (S3): its sales and the expenses added at its till are left out of `lines` until the
+ * event is closed, and counted here instead, for the period asked.
+ */
+export interface HeldBazaar {
+  scheduledId: string;
+  name: string;
+  /** How many book lines are held back. */
+  count: number;
+  revenueCents: number;
+  expenseCents: number;
+}
+
 export interface Books {
   basis: CostBasis;
   lines: BookLine[];
   /** Empty when the answer has none (a database before B3b, or the "bought" basis). */
   uncosted: UncostedRow[];
   receipts: ReceiptRow[];
+  /** Empty when no bazaar is in progress (or on a database before the bazaar days). */
+  held: HeldBazaar[];
 }
 
 const isObj = (v: unknown): v is Record<string, unknown> =>
@@ -106,7 +121,42 @@ export function parseBooks(json: Json | null | undefined): Books | null {
       at: r.at
     });
   }
-  return { basis: json.basis, lines, uncosted: parseUncosted(json.uncosted), receipts };
+  const held = parseHeld(json.held);
+  if (!held) return null;
+  return { basis: json.basis, lines, uncosted: parseUncosted(json.uncosted), receipts, held };
+}
+
+/**
+ * Absent means none. Anything else that cannot be read is no answer at all, unlike `uncosted`: this list says why money
+ * is missing from the totals, so the books are never shown without it.
+ */
+function parseHeld(json: unknown): HeldBazaar[] | null {
+  if (json === undefined) return [];
+  if (!Array.isArray(json)) return null;
+  const rows: HeldBazaar[] = [];
+  for (const h of json) {
+    if (
+      !isObj(h) ||
+      typeof h.scheduled_id !== 'string' ||
+      typeof h.name !== 'string' ||
+      typeof h.count !== 'number' ||
+      !Number.isInteger(h.count) ||
+      h.count < 0 ||
+      typeof h.revenue_cents !== 'number' ||
+      !Number.isSafeInteger(h.revenue_cents) ||
+      typeof h.expense_cents !== 'number' ||
+      !Number.isSafeInteger(h.expense_cents)
+    )
+      return null;
+    rows.push({
+      scheduledId: h.scheduled_id,
+      name: h.name,
+      count: h.count,
+      revenueCents: h.revenue_cents,
+      expenseCents: h.expense_cents
+    });
+  }
+  return rows;
 }
 
 /** A row that cannot be read is left out, not the whole answer: the list is a notice, never part of a total. */

@@ -40,13 +40,23 @@ import {
   enqueueCommand,
   enqueueVoid,
   isSaleKey,
+  pendingCount,
   pendingSales,
   type CommandKind
 } from '@/lib/offline/queue';
 import { clearBazaar, readBazaar, saveBazaar } from '@/lib/offline/bazaar-state';
+import { BazaarDays } from '@/store/bazaar-days';
+import {
+  dayEventId,
+  engineStateForDay,
+  fetchBazaar,
+  startBazaarDay,
+  type Bazaar,
+  type BazaarClient
+} from '@/lib/data/bazaar-days';
 import { readStallCopy, saveStallCopy } from '@/lib/offline/stall-copy';
 import { requestPersistentStorage } from '@/lib/offline/persist';
-import { isEventUuid, startEventOnServer, type EventSalesClient } from '@/lib/data/event-sales';
+import { isEventUuid, type EventSalesClient } from '@/lib/data/event-sales';
 import { deviceId } from '@/lib/device';
 import { plural } from '@/store/engine/ops-engine';
 import type {
@@ -99,7 +109,6 @@ import {
   linkScheduledEvent,
   saveScheduledEvent,
   scheduledEventError,
-  upcomingEvents,
   type ScheduledClient,
   type ScheduledEvent
 } from '@/lib/data/scheduled-events';
@@ -496,6 +505,7 @@ interface BazaarActions {
   addEventExpense: (label: string, amount: unknown, cat?: string) => void;
   closeEvent: () => void;
   reopenEvent: () => void;
+  resetEvent: () => void;
 }
 
 /** The engine's inventory actions (instance fields the typings do not list), replaced in live mode by A3. */
@@ -596,6 +606,11 @@ interface LiveEvent {
   stage?: string;
   snapshot?: string[];
   closedAt?: number;
+  /** S2: set when the event is a started bazaar day. */
+  dayId?: string;
+  scheduledId?: string;
+  /** S3: the day's drawer float. The saved copy of the bazaar keeps the event and not the drawer. */
+  floatCents?: number;
 }
 
 /** Whole, positive counts of the flavours the server knows for this event. */
@@ -620,44 +635,17 @@ function withUniqueNewestId(sales: EventSale[]): EventSale[] | null {
   return [{ ...newest, id: 'S' + (highest + 1) }, ...sales.slice(1)];
 }
 
-const EVENT_ATTEMPT = 'hc-event-attempt';
-
-/** A start that lost its reply is retried under the same event id, so it cannot open a second event. */
-function eventAttemptId(name: string): string {
-  try {
-    const saved = JSON.parse(localStorage.getItem(EVENT_ATTEMPT) ?? 'null') as {
-      name?: string;
-      id?: string;
-      at?: number;
-    } | null;
-    if (
-      saved &&
-      saved.name === name &&
-      typeof saved.id === 'string' &&
-      Date.now() - (saved.at ?? 0) < 600_000
-    )
-      return saved.id;
-  } catch {
-    /* unreadable: start a fresh attempt */
-  }
-  const id = crypto.randomUUID();
-  try {
-    localStorage.setItem(EVENT_ATTEMPT, JSON.stringify({ name, id, at: Date.now() }));
-  } catch {
-    /* private mode: a retry after a lost reply may open a second event */
-  }
-  return id;
-}
-
-function clearEventAttempt(): void {
-  try {
-    localStorage.removeItem(EVENT_ATTEMPT);
-  } catch {
-    /* nothing to clear */
-  }
-}
-
 const PENDING_LINK = 'hc-pending-link';
+/** S3: the day whose close was sent with no answer back. */
+const CLOSE_IN_DOUBT = 'hc-close-in-doubt';
+
+function readCloseInDoubt(): string | null {
+  try {
+    return localStorage.getItem(CLOSE_IN_DOUBT);
+  } catch {
+    return null;
+  }
+}
 
 interface PendingLink {
   scheduledId: string;
@@ -696,13 +684,6 @@ function writePendingLinks(links: PendingLink[]): void {
   } catch {
     /* private mode: the owner is told, and a later start of the same booking links again */
   }
-}
-
-function savePendingLink(link: PendingLink): void {
-  writePendingLinks([
-    ...readPendingLinks().filter((l) => l.scheduledId !== link.scheduledId),
-    link
-  ]);
 }
 
 function clearPendingLink(link: PendingLink): void {
@@ -750,7 +731,55 @@ export class OpsRuntime extends OpsProvider {
   /** D4: the owner's bookings (null until read), the client they were read with, the booking being started, and the id the blank form row will use. */
   private scheduledRows: ScheduledEvent[] | null = null;
   private scheduledClient: ScheduledClient | null = null;
-  private pendingSchedule: ScheduledEvent | null = null;
+  private bazaarDays = new BazaarDays({
+    // After a reload at the stall the bookings may not have been read yet: the review still reads its day.
+    client: () => (this.scheduledClient ?? this.salesTarget()) as unknown as BazaarClient | null,
+    online: () => Boolean(this.state.online),
+    bookings: () => this.scheduledRows ?? [],
+    bookingsRead: () => this.scheduledRows !== null,
+    flavours: () =>
+      PRODUCTS.map((p) => ({
+        id: p.id,
+        name: p.short,
+        priceCents: pesosToCentavos(Number((this as unknown as TotalActions).priceOf(p.id)) || 0)
+      })),
+    holdsEvent: () => !!this.state.event,
+    held: () => {
+      const event = this.state.event as LiveEvent | null;
+      if (!event?.dayId || !event.scheduledId) return null;
+      return {
+        dayId: event.dayId,
+        scheduledId: event.scheduledId,
+        unsent: this.unsentForDay(),
+        stock: (this.state.eventStock ?? {}) as Record<string, number>
+      };
+    },
+    begin: (booking, day) => this.beginBazaarDay(booking, day),
+    dayClosed: (dayId) => void this.dropClosedDay(dayId),
+    countUnsent: async () => {
+      try {
+        return await pendingCount();
+      } catch {
+        return null;
+      }
+    },
+    closeInDoubt: (dayId) => this.setCloseInDoubt(dayId),
+    lossSaved: (dayId, pid, qty) => this.moveDayStock(dayId, pid, -qty, null),
+    stockAdded: (dayId, pid, qty, loaded) => this.moveDayStock(dayId, pid, qty, loaded),
+    dropNo: () => (this.state as unknown as { dropNo: number }).dropNo,
+    finalised: () => {
+      void this.loadBooks(null);
+      void this.loadProduction(null);
+    },
+    now: () => Date.now(),
+    rerender: () => {
+      if (!this.unmounted) this.forceUpdate();
+    },
+    toast: (text, kind) => this.toast(text, kind),
+    today: () => manilaToday(),
+    newId: () => crypto.randomUUID(),
+    openAdd: () => void this.openScheduled()
+  });
   private scheduledNewId = '';
   private scheduledVersion = 0;
   private stockCatalogue: StockCatalogue | null = null;
@@ -826,8 +855,17 @@ export class OpsRuntime extends OpsProvider {
   constructor(props: OpsEngineProps) {
     super(props);
     const bazaar = this as unknown as BazaarActions;
-    const { recordSale, voidSale, startEvent } = bazaar;
+    const { recordSale, voidSale } = bazaar;
     bazaar.recordSale = (pay, freebie) => {
+      // S3: a close of this day whose answer was lost may have landed, and the database refuses a sale after a close.
+      const doubt = readCloseInDoubt();
+      if (doubt && (this.state.event as LiveEvent | null)?.dayId === doubt) {
+        this.toast(
+          'This day may already be closed. Get signal and tap Close out to check before selling more.',
+          'warn'
+        );
+        return;
+      }
       recordSale(pay, freebie);
       this.setState((s: { sales: EventSale[] }) => {
         const sales = withUniqueNewestId(s.sales);
@@ -930,9 +968,10 @@ export class OpsRuntime extends OpsProvider {
       if (field) this.orderFlow?.clearError(field);
       custSet(key, value);
     };
-    // DP-20: an event sells at the menu prices it started with, taken by the server.
-    bazaar.startEvent = (ev) => {
-      void this.startLiveEvent(ev, startEvent);
+    // S2: a live event is only ever a started bazaar day (`beginBazaarDay`): planned, then started with its own prices and
+    // stock. The old one-tap start, at the menu prices with no plan, is closed to every caller.
+    bazaar.startEvent = () => {
+      this.toast('Start a bazaar day from the Bazaar page: plan the day, then start it.', 'warn');
     };
     bazaar.setEventPrice = () => {
       this.toast('Bazaar prices are the menu prices from the moment the event starts.', 'warn');
@@ -990,6 +1029,12 @@ export class OpsRuntime extends OpsProvider {
       });
     };
     bazaar.closeEvent = () => {
+      // S2: a bazaar day is closed from its day review (S3), never by the old close-out: the database refuses it (55000), so
+      // it would wait in the queue as a failed sync for the whole rehearsal.
+      if ((this.state.event as LiveEvent | null)?.dayId) {
+        this.toast('Close this day from its review on the Bazaar page.', 'warn');
+        return;
+      }
       const before = this.state;
       const counted = (before.drawer as { counted?: unknown } | null)?.counted;
       const pesos = counted === '' || counted == null ? NaN : Number(counted);
@@ -1016,6 +1061,16 @@ export class OpsRuntime extends OpsProvider {
           cashCents
         });
       });
+    };
+    // S2: "Leave" would put the day's cookies back into the shop's baked stock and forget the day while it is open on the
+    // server. A started day is left by closing it, from its review (S3).
+    const { resetEvent } = bazaar;
+    bazaar.resetEvent = () => {
+      if ((this.state.event as LiveEvent | null)?.dayId) {
+        this.toast('A bazaar day stays open until you close it from its review.', 'warn');
+        return;
+      }
+      resetEvent();
     };
     // A closed event stays closed: the server has (or will have) its count and its books.
     bazaar.reopenEvent = () => {
@@ -1122,6 +1177,11 @@ export class OpsRuntime extends OpsProvider {
     // start (no event) is never saved, so it cannot overwrite the event before it is read back.
     this.persist = () => saveBazaar(this.state);
     this.resetData = () => {
+      // The phone's copy of a started day is the only way to keep selling it: it is not cleared while the day is open.
+      if ((this.state.event as LiveEvent | null)?.dayId) {
+        this.toast('A bazaar day is open on this phone. Close it before starting over.', 'warn');
+        return;
+      }
       clearStoredBooks();
       clearBazaar();
       const fresh = liveBaseState() as Record<string, unknown>;
@@ -1196,46 +1256,196 @@ export class OpsRuntime extends OpsProvider {
     }
   }
 
-  /** Online only: the server snapshots the prices and names this phone the selling device. */
-  private async startLiveEvent(
-    ev: { name: string; date: string },
-    begin: (ev: { name: string; date: string }) => void
-  ): Promise<void> {
-    const pending = this.pendingSchedule;
-    this.pendingSchedule = null;
+  /**
+   * S2: starts a planned bazaar day. Online only: the server opens it as one event with the day's own prices and stock and
+   * names this phone the selling device. The event id comes from the day, so a retry, a cleared tab or a second tap is
+   * answered with the same event. The till then sells exactly as before. Never calls `link_scheduled_event`.
+   */
+  async beginBazaarDay(
+    booking: { id: string; name: string },
+    day: { id: string; day: string }
+  ): Promise<'started' | 'offline' | 'refused'> {
     const target = this.state.online ? this.salesTarget() : null;
     if (!target) {
-      this.toast('Start the event while you have signal. Sales can go offline after that.', 'warn');
-      return;
+      this.toast('Start the day while you have signal. Sales can go offline after that.', 'warn');
+      return 'offline';
     }
-    const outcome = await startEventOnServer(target, {
-      name: ev.name,
-      deviceId: deviceId(),
-      eventId: eventAttemptId(pending ? 'booking:' + pending.id : ev.name)
-    });
+    const outcome = await startBazaarDay(
+      target as unknown as BazaarClient,
+      day.id,
+      deviceId(),
+      await dayEventId(day.id)
+    );
     if (!outcome.ok) {
-      this.toast('The event could not be started. Try again.', 'warn');
-      return;
-    }
-    clearEventAttempt();
-    // A2: this phone now holds the day's sales, so ask the browser not to evict its storage.
-    void requestPersistentStorage();
-    begin(ev);
-    const unsellable = PRODUCTS.filter((p) => !(p.id in outcome.prices)).length;
-    if (unsellable) {
       this.toast(
-        plural(unsellable, 'flavour is', 'flavours are') +
-          ' not on the menu, so ' +
-          (unsellable === 1 ? 'it' : 'they') +
-          ' cannot be sold at this event.',
+        outcome.error === 'refused'
+          ? 'This day cannot be started now. Check the plan and any day still open.'
+          : 'The day could not be started. Try again.',
         'warn'
       );
+      return outcome.error === 'refused' ? 'refused' : 'offline';
     }
+    // A repeat of a start is answered with the day as it first started, selling device included. A day that another phone
+    // is selling is not taken over here: every sale rung up on this phone would be refused by the server.
+    if (outcome.started.sellingDevice !== deviceId()) {
+      this.toast(
+        'This day is being sold on another phone. Sales rung up here would be refused.',
+        'warn'
+      );
+      return 'refused';
+    }
+    // A2: this phone now holds the day's sales, so ask the browser not to evict its storage.
+    void requestPersistentStorage();
+    const patch = engineStateForDay(
+      outcome.started,
+      {
+        name: booking.name,
+        date: dateRange(day.day, day.day),
+        dayId: day.id,
+        scheduledId: booking.id
+      },
+      PRODUCTS.map((p) => p.id),
+      centavosToPesos
+    );
     this.setState((s) => ({
-      event: { ...(s.event ?? {}), id: outcome.eventId, snapshot: Object.keys(outcome.prices) },
-      eventPrices: { ...(s.eventPrices as Record<string, number>), ...outcome.prices }
+      // The engine's own startEvent sets syncState 'idle' (it means nothing to sync), which its state type does not list.
+      ...(patch as Omit<typeof patch, 'syncState'>),
+      syncState: 'idle' as never,
+      eventPrices: { ...(s.eventPrices as object), ...patch.eventPrices }
     }));
-    if (pending) void this.afterScheduledStart(pending, outcome.eventId);
+    return 'started';
+  }
+
+  /** S3: kept on the phone so a reload does not forget that a close of the day may have landed. */
+  private setCloseInDoubt(dayId: string | null): void {
+    try {
+      if (dayId) localStorage.setItem(CLOSE_IN_DOUBT, dayId);
+      else localStorage.removeItem(CLOSE_IN_DOUBT);
+    } catch {
+      /* private mode: a sale after the close is refused by the database and stays on the phone, unsent */
+    }
+  }
+
+  /**
+   * S3: what this phone has not sent yet, as the screen shows it (sales, and the queue's own count when it was read).
+   * The close and the drop of a day count the queue itself (`pendingCount`).
+   */
+  private unsentForDay(): number {
+    return Math.max(Number(this.state.unsynced) || 0, this.operationsQueue, 0);
+  }
+
+  /**
+   * S3: "Close out" on a started day opens the day's review instead of the old close-out. The review is the owner's and
+   * is read from the database, so it needs signal; selling carries on without it.
+   */
+  private openDayReview(): void {
+    const event = this.state.event as LiveEvent | null;
+    if (!event?.dayId || !event.scheduledId) return;
+    if (this.state.role !== 'owner') {
+      this.toast('The owner closes the day from its review.', 'warn');
+      return;
+    }
+    if (!this.state.online) {
+      this.toast(
+        'Closing the day needs signal. Keep selling: sales are saved on this phone.',
+        'warn'
+      );
+      return;
+    }
+    this.bazaarDays.openReview(event.scheduledId, event.dayId, 'till');
+    this.forceUpdate();
+  }
+
+  /**
+   * S3: the database has closed this day. The phone lets go of it, but only once it has nothing left to send for it, and
+   * never through the engine's `resetEvent`: that would put what is left on the table into the shop's baked stock, and
+   * those cookies were carried over, sent to the shop or written off by her count.
+   */
+  private async dropClosedDay(dayId: string): Promise<void> {
+    if ((this.state.event as LiveEvent | null)?.dayId !== dayId) return;
+    if (this.unsentForDay() > 0) return;
+    // The queue itself decides: anything it has not sent (or a queue that cannot be read) keeps the day on the phone.
+    let unsent: number;
+    try {
+      unsent = await pendingCount();
+    } catch {
+      return;
+    }
+    // Checked again after the wait: nothing may have reached the till or the queue meanwhile.
+    if (
+      unsent > 0 ||
+      this.unsentForDay() > 0 ||
+      (this.state.event as LiveEvent | null)?.dayId !== dayId
+    )
+      return;
+    this.setState(
+      {
+        event: null,
+        sales: [],
+        cart: {},
+        unsynced: 0,
+        syncState: 'idle',
+        syncTried: false,
+        drawer: null,
+        cartDiscount: 0,
+        saleRef: '',
+        tendered: '',
+        eventStock: {},
+        eventLoaded: {}
+      } as never,
+      // After the state has landed, so a save in between cannot put the day back; the pause ends with the day.
+      () => {
+        clearBazaar();
+        this.setCloseInDoubt(null);
+      }
+    );
+  }
+
+  /** S3: a loss (below zero) or more stock (above) on the day this phone is selling: the table follows. */
+  private moveDayStock(dayId: string, pid: string, by: number, loaded: number | null): void {
+    this.setState((s) => {
+      if ((s.event as LiveEvent | null)?.dayId !== dayId) return null;
+      const stock = (s.eventStock ?? {}) as Record<string, number>;
+      const patch: Record<string, unknown> = {
+        eventStock: { ...stock, [pid]: Math.max(0, (stock[pid] ?? 0) + by) }
+      };
+      if (loaded !== null)
+        patch.eventLoaded = { ...(s.eventLoaded as Record<string, number>), [pid]: loaded };
+      return patch as never;
+    });
+  }
+
+  /**
+   * S3: with signal, the day this phone holds is read from the database. Its float is the day's own (the saved copy on
+   * the phone keeps the event, not the drawer), and a day that was closed from another phone is let go of.
+   */
+  private async confirmHeldDay(): Promise<void> {
+    const event = this.state.event as LiveEvent | null;
+    const client = this.scheduledClient as unknown as BazaarClient | null;
+    if (!event?.dayId || !event.scheduledId || !client || this.state.role !== 'owner') return;
+    let data: Bazaar;
+    try {
+      data = await fetchBazaar(client, event.scheduledId);
+    } catch {
+      return;
+    }
+    const day = data.days.find((d) => d.id === event.dayId);
+    if (this.unmounted || !day) return;
+    // A closed day pauses selling until the phone has let go of it; an open one settles any doubt.
+    if (day.state === 'closed') {
+      this.setCloseInDoubt(day.id);
+      return void (await this.dropClosedDay(day.id));
+    }
+    this.setCloseInDoubt(null);
+    this.setState((s) => {
+      const now = s.event as LiveEvent | null;
+      if (now?.dayId !== day.id) return null;
+      const counted = (s.drawer as { counted?: unknown } | null)?.counted ?? '';
+      return {
+        event: { ...now, floatCents: day.floatCents },
+        drawer: { float: centavosToPesos(day.floatCents), counted }
+      } as never;
+    });
   }
 
   /**
@@ -1882,7 +2092,16 @@ export class OpsRuntime extends OpsProvider {
     if (isLiveMode()) {
       clearStoredBooks();
       const bazaar = readBazaar();
-      if (bazaar) this.setState(bazaar);
+      if (bazaar) {
+        // S3: the saved copy keeps the event and not the drawer. A started day carries its float on the event, so the
+        // drawer comes back with no signal; with signal it is confirmed from the day (`confirmHeldDay`).
+        const floatCents = (bazaar.event as LiveEvent | null)?.floatCents;
+        this.setState(
+          typeof floatCents === 'number' && Number.isInteger(floatCents) && floatCents >= 0
+            ? { ...bazaar, drawer: { float: centavosToPesos(floatCents), counted: '' } }
+            : bazaar
+        );
+      }
       this.afterRestore();
       return;
     }
@@ -2286,10 +2505,15 @@ export class OpsRuntime extends OpsProvider {
         : {}),
       liveStockItems: this.liveStockItemsVals(),
       liveStock: this.liveStockVals(),
+      liveBazaar: isLiveMode() && this.state.role === 'owner' ? this.bazaarDays.vals() : null,
+      // S3: on a started day "Close out" opens the day's review, never the old close-out sheet (which the database refuses).
+      ...((this.state.event as LiveEvent | null)?.dayId
+        ? { askClose: () => this.openDayReview() }
+        : {}),
       liveStockSuppliers: this.liveStockSuppliersVals(),
       liveRecipeDrafts: this.liveRecipeDraftsVals(),
-      // D4: in live mode the Bazaar list is the owner's bookings, never the ported prototype events.
-      events: this.liveBazaarEvents(),
+      // S2: the ported start list is never offered in live mode: a day is started from the Bazaar page (`liveBazaar`).
+      events: [] as OpsVals['events'],
       cust: this.liveStatusCust(this.livePayCust(starved.cust)),
       openLookup: () => this.openLookupSheet(),
       openWaitlist: () => this.openWaitlist(),
@@ -2661,6 +2885,7 @@ export class OpsRuntime extends OpsProvider {
     }
     this.forceUpdate();
     void this.retryPendingLink(use);
+    void this.confirmHeldDay();
     return true;
   }
 
@@ -2780,49 +3005,6 @@ export class OpsRuntime extends OpsProvider {
     this.toast(SCHEDULED_COPY.saved);
     await this.loadScheduledEvents(null);
     this.closeSheet();
-  }
-
-  /**
-   * The Bazaar screen's "Start an event" list in live mode: the owner's upcoming bookings, then one row to start an
-   * event that was never booked. The ported list (two prototype events) is never shown.
-   */
-  private liveBazaarEvents(): OpsVals['events'] {
-    const bazaar = this as unknown as BazaarActions;
-    const today = manilaToday();
-    const rows = upcomingEvents(this.scheduledRows ?? [], today).map((row) => ({
-      name: row.name,
-      date: dateRange(row.startsOn, row.endsOn),
-      place: row.place || SCHEDULED_COPY.unbookedPlace,
-      go: () => {
-        this.pendingSchedule = row;
-        bazaar.startEvent({ name: row.name, date: dateRange(row.startsOn, row.endsOn) });
-      }
-    }));
-    const label = dateRange(today, today);
-    rows.push({
-      name: SCHEDULED_COPY.unbookedTitle,
-      date: label,
-      place: SCHEDULED_COPY.unbookedPlace,
-      go: () => {
-        this.pendingSchedule = null;
-        bazaar.startEvent({ name: 'Bazaar · ' + label, date: label });
-      }
-    });
-    return rows;
-  }
-
-  /** The event is open: record which booking it was, and book the stall rent as an event expense, once. */
-  private async afterScheduledStart(row: ScheduledEvent, eventId: string): Promise<void> {
-    const client = this.scheduledClient;
-    const linked = client ? await linkScheduledEvent(client, row.id, eventId) : 'failed';
-    if (linked === 'failed') {
-      // The database books the rent with the first link; keep the pair until a retry is confirmed.
-      savePendingLink({ scheduledId: row.id, eventId, rentCents: row.rentCents, at: Date.now() });
-      this.toast(SCHEDULED_COPY.linkPending, 'warn');
-    } else if (linked === 'first') {
-      this.showRentBooked(eventId, row.rentCents);
-    }
-    await this.loadScheduledEvents(null);
   }
 
   // ------------------------------------------------------------------ A4: the owner's recipes
@@ -4553,6 +4735,18 @@ export class OpsRuntime extends OpsProvider {
           (u.why ? ' · ' + u.why : '') +
           ' · ' +
           formatManila(u.at, { day: 'numeric', month: 'short' }, 'en-PH')
+      })),
+      // S3: a bazaar that is not closed yet is left out of the books; this says so, with what is held back.
+      held: books.held.map((h) => ({
+        id: h.scheduledId,
+        name: h.name,
+        detail:
+          plural(h.count, 'record', 'records') +
+          ' · ' +
+          pesoText(h.revenueCents) +
+          ' taken · ' +
+          pesoText(h.expenseCents) +
+          ' spent at the till'
       })),
       setBasis: (b) => void this.liveSetBasis(b),
       correct: (movementId, pesos) => void this.liveCorrect(movementId, pesos),

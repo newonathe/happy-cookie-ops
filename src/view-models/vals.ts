@@ -7,6 +7,7 @@
 import type * as React from 'react';
 import type { ScreenKey } from '@/lib/screens';
 import type { LiveStockVals } from '@/lib/stock/live-stock-types';
+import type { LiveBazaarVals } from '@/lib/bazaar/live-bazaar-types';
 
 /** Every field the live flavour editor's form submits (MP-09 c1c), pesos not centavos. */
 export interface LiveFlavourFormFields {
@@ -263,6 +264,7 @@ export interface OpsVals {
     receipts: Array<{ movementId: string; label: string }>;
     /** Stock used or wasted with no cost known (B3b-2): the item, then its quantity, why and date in one line. */
     uncosted?: Array<{ id: string; item: string; detail: string }>;
+    held?: Array<{ id: string; name: string; detail: string }>;
     /** Orders still owed money (null until the orders are read). */
     unpaid: {
       summary: string;
@@ -296,6 +298,8 @@ export interface OpsVals {
     back: () => void;
     close: (event?: unknown) => void;
   } | null;
+  /** Live owner only (S2): the Bazaar screens' data (event list, event page, day plan). Null for anyone else. */
+  liveBazaar?: LiveBazaarVals | null;
   /** Live owner only (B5-1): the New Stock screens' data (list, item page, grocery). Null for anyone else and before the catalogue is read. */
   liveStock?: LiveStockVals | null;
   /** Live owner only (A3): the suppliers list and edit form, with each supplier's prices. */

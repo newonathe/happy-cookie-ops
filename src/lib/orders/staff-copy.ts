@@ -247,6 +247,8 @@ export const BOOKS_COPY = {
   newCost: 'What it really cost (pesos)',
   correct: 'Correct the cost',
   noReceipts: 'No costed deliveries in the last 90 days.',
+  heldTitle: 'Bazaar in progress: not counted yet',
+  heldNote: 'These sales and till expenses count in the books when you close the event.',
   uncostedTitle: 'Not costed yet',
   uncostedNote:
     'Stock used, wasted, or counted or adjusted down while the item had no cost. It is not in your costs until the item has a price.',
@@ -296,7 +298,5 @@ export const SCHEDULED_COPY = {
   rentLabel: 'Stall rent',
   rentBooked: (amount: string) => amount + ' stall rent booked as an event expense.',
   linkPending:
-    'The event started, but this phone could not tell the server which booking it was. Do not add the stall rent by hand: it is booked automatically the next time this phone is online.',
-  unbookedTitle: 'Start without a booking',
-  unbookedPlace: 'A one-off event'
+    'The event started, but this phone could not tell the server which booking it was. Do not add the stall rent by hand: it is booked automatically the next time this phone is online.'
 } as const;

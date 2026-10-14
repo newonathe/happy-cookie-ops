@@ -1,90 +1,103 @@
 # Bazaar run sheet — rehearsal by 20 October, selling 24 to 25 October 2026
 
-Written 13 October from the code on `48b701f` (the build on the trial) and a counts-only read of the trial.
-The address: <https://happy-cookie-owner-trial.admin-kethai.workers.dev/bazaar>. "Trial" is only the name: it
-is the one hosted copy of the app, and what is rung up there is the real record.
+Rewritten 14 October for the bazaar days flow (slices S1 to S3, [bazaar-days.md](bazaar-days.md)). It replaces the
+one-event sheet of 13 October: no bake is recorded for bazaar cookies any more (Ethan, 14 October), a day is planned,
+started, reviewed and closed, and the event is closed once at the end. The address:
+<https://happy-cookie-owner-trial.admin-kethai.workers.dev/bazaar>. "Trial" is only the name: it is the one hosted copy
+of the app, and what is rung up there is the real record.
 
 ## Go / no-go for 24 October
 
-**Today: no-go.** Bazaar Mode is built and deployed, the database is at 67 of 67 and her recipes and prices are in
-(13 October), but the trial cannot open a table until a bake is recorded (row 1). The rehearsal runs on this state:
-after it passes, no more database writes and no merges until 26 October.
+**Today: no-go.** The flow is built and passes on the local database, but the trial does not have it: its database is at
+67 of 68 migrations and it runs the 8 October build. Rows 1 and 2 are Ethan's word.
 
-| #   | What                                                                                                                                                                                                                                            | Owner       | State on 13 October                                                                                                   |
-| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- | --------------------------------------------------------------------------------------------------------------------- |
-| 1   | **Baked stock.** The table loads only from baked stock, and a bake needs a recipe for that flavour (the database accepts one with only a yield; whether the Recipes screen does was not run). Each flavour to be sold needs both, each morning. | Ethan, Cine | 23 recipes since 13 October, one for every flavour on the menu; 0 bakes: "Nothing is baked yet" until one is recorded |
-| 2   | **The menu.** An event sells the flavours on the menu at the moment it starts, at those prices, fixed for the event.                                                                                                                            | Cine        | 7 of 26 flavours on the menu: confirm the 7 and their prices                                                          |
-| 3   | **Who signs in.** The server takes a bazaar sale from an owner sign-in only. A helper sign-in's sales wait on the phone until an owner signs in on it.                                                                                          | Ethan       | 1 active owner (whose was not read), no helper. If it is not Cine's, she needs an owner account and Access            |
-| 4   | Cine's two addresses in Cloudflare Access and the digest variable, one sitting; Access session set to one week.                                                                                                                                 | Ethan       | Variable holds two digests; session not confirmed                                                                     |
-| 5   | The phone rehearsal below passes, every step, on the selling iPhone.                                                                                                                                                                            | Ethan       | Not run. No sale has ever reached the trial                                                                           |
-| 6   | `RELEASE_HOLD=true` from the day the rehearsal passes to 26 October. Merge nothing into `agent/codex/MP-04-g1-feasibility` in between (PR #14 especially).                                                                                      | Ethan       | Not set                                                                                                               |
-| 7   | Backups are off. Download the CSV each evening and keep the paper tally, or decide custody and switch the jobs on.                                                                                                                              | Ethan       | Off                                                                                                                   |
-| 8   | Display name on each owner profile (it is the name under "Rung up by").                                                                                                                                                                         | Ethan       | The one owner has a name                                                                                              |
-| 9   | Rehearsal sales are real rows. Void each one (Void, on the sale) before closing the rehearsal event: the server reverses its book line. The packaging it used and the rehearsal bakes stay as records.                                          | Ethan       | —                                                                                                                     |
-| 10  | Open the app with signal on 23 October (the keep-alive job is off).                                                                                                                                                                             | Ethan       | —                                                                                                                     |
-| 11  | The new build is live: free the Actions artifact storage, re-run the release, open the app and see Inventory under Stock. Then rehearse.                                                                                                        | Ethan       | Blocked on 13 October: the trial runs the 8 October build (smoke-tested against this database)                        |
-| —   | Code                                                                                                                                                                                                                                            | —           | Nothing blocking. Two tests added (`offline-queue.test.ts`)                                                           |
+| #   | What                                                                                                                                                                                                        | Owner       | State on 14 October                                            |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- | -------------------------------------------------------------- |
+| 1   | **Migration 68 on the trial**, rehearsed first from a scratch folder, the schema fingerprint equal to local.                                                                                                | Ethan       | Not applied: waits for his word                                |
+| 2   | **The S3 build is live**: free the Actions artifact storage, merge, let CI deploy, open the app and see the event list under Sell › Bazaar.                                                                 | Ethan       | Blocked: artifact storage full, branch not merged              |
+| 3   | **The booking.** The 24 to 25 October event exists under Bazaar events with its rent. Each day needs a plan (flavours, how many, price, float) before it can start.                                         | Cine, Ethan | 4 bookings on the trial; no day planned                        |
+| 4   | **A cost per cookie for each flavour.** A recipe counts only when every line has a cost; almost none does yet. Type one on the event page, or profit reads "Cost pending" (selling and closing still work). | Cine        | Not typed                                                      |
+| 5   | **Who signs in.** Planning, starting, reviewing and closing are the owner's. The server takes a sale from an owner sign-in only.                                                                            | Ethan       | 1 active owner. If it is not Cine's, she needs one, and Access |
+| 6   | Cine's two addresses in Cloudflare Access and the digest variable, one sitting; Access session set to one week.                                                                                             | Ethan       | Variable holds two digests; session not confirmed              |
+| 7   | The phone rehearsal below passes, every step, on the selling iPhone.                                                                                                                                        | Ethan       | Not run                                                        |
+| 8   | `RELEASE_HOLD=true` from the day the rehearsal passes to 26 October. No database writes and no merges in between.                                                                                           | Ethan       | Not set                                                        |
+| 9   | Backups are off. Download the CSV each evening and keep the paper tally, or decide custody and switch the jobs on.                                                                                          | Ethan       | Off                                                            |
+| 10  | Display name on each owner profile (it is the name under "Rung up by").                                                                                                                                     | Ethan       | The one owner has a name                                       |
+| 11  | Open the app with signal on 23 October (the keep-alive job is off) and plan both days then.                                                                                                                 | Cine        | —                                                              |
 
-Row 1 has a second way out, which is a decision and not built: let the bazaar table take any count without a
-recorded bake. It changes a rule of the business, needs a live-only override, a review, a merge, a release and
-a fresh rehearsal, all before 20 October.
+## How an event runs
+
+1. **Plan.** Sell › Bazaar, tap the event, tap a date under "Plan a day". For each flavour: how many were made, the
+   price for that day, and the drawer float. The plan can be changed until the day starts.
+2. **Start this day**, with signal, on the phone that will sell. The till opens with that day's cookies and prices.
+3. **Sell.** No signal is needed. Sales save on the phone and send when there is signal.
+4. **Close out** (on the till) opens the day's review. It needs signal, and every sale on the phone must have been
+   sent first (**Sync now**). The review shows what should be left, the losses, the takings, the cash expected and the
+   event so far; each figure opens to show how it was worked out. Record a loss or add stock there.
+5. **Close the day.** Count each flavour and split what is left: carried over, to the shop, written off. Count the cash
+   (or leave it blank). If a sale arrived while you were counting, it says so and shows the day again: check and close.
+6. **The next day.** Its plan starts from what was carried over. Nothing carries over from the last day.
+7. **Close the event**, on the event's page, once every started day is closed. Only now do the sales, the rent, the
+   fees, the drawer differences and the stock used count in the books. It cannot be undone.
 
 ## Rules for the stall
 
-1. **One phone sells.** Only the phone that started the event can sell it; no screen moves it to another phone.
-2. **Home Screen app only.** Sign in and start the event inside the app opened from the Home Screen icon.
-   Safari keeps separate storage: an event started there does not exist in the app. Never delete the icon or
-   clear website data during the bazaar: unsent sales live on the phone only.
-3. **Owner sign-in all day.** Do not sign in as a helper on the selling phone.
-4. **One event per day.** A closed event stays closed and starting one needs signal: close day 1 with the
-   count where the signal is good, and start day 2's event before leaving it.
-5. **Count before you load.** The table cannot be topped up once it is open, and a tile reads "Sold out" at
-   the loaded number. Record the bake and load the true count.
-6. **If the app hangs on opening** (weak signal), switch to aeroplane mode: it opens at once from the copy on
-   the phone, and sales save on the phone first either way. Switch back and tap **Sync now** when it is quiet.
-7. **The iPhone sends only while the app is open.** Each evening open it on Wi-Fi and wait for "Synced".
-8. **Paper tally all day**, one line per sale: flavours, total, how paid.
+1. **One phone sells a day.** Only the phone that started the day can sell it. Another owner phone can still review and
+   close it from the event's page (if the selling phone is lost or broken): it warns that sales still on the selling
+   phone are not in the figures, and anything that phone sends later shows as "Changed after it was closed".
+2. **Home Screen app only.** Sign in and start the day inside the app opened from the Home Screen icon. Never delete
+   the icon or clear website data during the bazaar: unsent sales live on the phone only.
+3. **Owner sign-in all day** on the selling phone.
+4. **Close each day where the signal is good**, and start the next day's plan before leaving it: planning, starting,
+   reviewing and closing all need signal.
+5. **Count what was made.** A flavour cannot be left with more than was put on the table. If more was made than the
+   plan says, add it under "Add stock" in the review first.
+6. **A sale the server refused** ("Send again" on its row) blocks the close on that phone. Send it again, or void it.
+   If its day is closed anyway (from another phone), that phone stays on the closed day with selling paused: start the
+   next day on another phone and tell Ethan. If a close's answer is lost, selling pauses too until the day is read
+   again with signal (tap **Close out**).
+7. **Cookies sent to the shop need a recipe** for that flavour; without one, write them off instead, or closing the
+   event is refused.
+8. **If the app hangs on opening** (weak signal), switch to aeroplane mode: it opens from the copy on the phone and
+   sales save on the phone. Switch back and tap **Sync now** when it is quiet.
+9. **The iPhone sends only while the app is open.** Each evening open it on Wi-Fi and wait for "Synced".
+10. **Paper tally all day**, one line per sale: flavours, total, how paid.
 
 ## The rehearsal
 
-On the selling iPhone, in the Home Screen app, signed in as the owner who will sell, with signal.
+On the selling iPhone, in the Home Screen app, signed in as the owner who will sell, with signal. Rows 1 and 2 above
+must be done first, and nothing is deployed afterwards. Use a booking of its own: under Bazaar events add
+"Rehearsal", two days, rent 0. **Rehearsal sales are real rows:** void each one before closing its day. Closing the
+rehearsal event (step 9) leaves its records in the books' tables: the voided sales with their reversed lines, and the
+stock use of the planned cookies (as shortfalls where stock has no count yet). To leave none, stop after step 8 and
+tell Ethan: the event then stays open and its lines stay out of the books.
 
-Before starting, three checks. **The build:** the trial must be running the build merged on 13 October (the release was blocked
-that day by full artifact storage): rehearse only after that release has run, and deploy nothing after. **The open event:** the
-trial holds one event started on 13 October at 21:03 Manila with no table opened; close it first (Ethan says the word and it is
-closed through the connector, as on 6 October). **Recipes:** saving a recipe in the Recipes screen turns its packaging lines into
-ingredients until slice B6; look, do not save.
+| #   | Do                                                                                                                                                     | Read                                                                                 | Pass                                                                   |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------ | ---------------------------------------------------------------------- |
+| 1   | Sell › Bazaar, the Rehearsal event, plan day 1: two flavours, 5 each, your prices, float 500. **Start this day**.                                      | The till, with those flavours and prices                                             | No old "Start an event" list; the tiles show 5 each                    |
+| 2   | Aeroplane mode on. Ring up 6 mixed sales (below), one **Freebie**, one **Void**.                                                                       | "Offline · sales are being saved on this device"                                     | The list matches the tally; the voided cookies are back on their tile  |
+| 3   | Swipe the app away. Open it from the Home Screen, still in aeroplane mode. Tap **Charge** and read the last line.                                      | Bazaar Mode, the same day, the same sales; "Rung up by" and a name                   | Nothing missing; the signed-in person's own name                       |
+| 4   | Tap **Close out** while still in aeroplane mode.                                                                                                       | "Closing the day needs signal. Keep selling…"                                        | The till stays; nothing is closed                                      |
+| 5   | Aeroplane mode off, **Sync now**, wait for "Synced". **Close out**. Open Revenue and Cash. Record a loss of 1. Void the remaining sales from the till. | The review: what should be left, the loss, revenue by how paid, cash expected        | Figures equal the tally; after the voids revenue is 0                  |
+| 6   | **Close out** again. Type what is left; carry some over, write the rest off; type the cash. **Close the day**.                                         | "Day closed.", then the review marked Closed                                         | The event page shows day 1 Closed                                      |
+| 7   | Plan day 2: the carried cookies are already filled in. Add 3 more of one flavour. **Start this day**. Aeroplane mode on, reload, ring up 2 sales.      | The till with day 2's cookies; the sales in the list                                 | It opens with no sign-in page and sells                                |
+| 8   | Aeroplane mode off, **Sync now**. Void the sales. **Close out**, count, send one cookie to the shop (a flavour with a recipe), write off the rest.     | No "Carried over" field on the last day                                              | Day 2 closes                                                           |
+| 9   | On the event page: type a cost per cookie, add a fee, set a target. Read Profit and open it. **Close the event**, **Yes, close the event**.            | Profit with its parts; "This event is closed."                                       | Money › Expenses no longer says "Bazaar in progress" for the Rehearsal |
+| 10  | Leave the phone in aeroplane mode overnight during a real day's selling (steps 2 and 3, on the first evening). Open it in the morning, then go online. | Bazaar Mode and every sale; "Back online · syncing N sales", then "Synced"           | Nothing missing; note whether an email code was asked for              |
+| 11  | With something unsent: leave Bazaar, tap the **Sign out** pill.                                                                                        | "Sales are still on this phone", **Send now**, **Sign out anyway**, **Keep selling** | The warning shows. Tap **Keep selling**                                |
 
-| #   | Do                                                                                                                                                                                                                                            | Read                                                                                                                               | Pass                                                                                          |
-| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| 0   | **Make**: open Recipes and check two flavours have a recipe (look only, never tap Save there), then record a bake of each (Bake plan), 15 cookies each.                                                                                       | Baked stock for both                                                                                                               | Both show baked cookies. If a bake is refused, stop: row 1 above is not met                   |
-| 1   | **Sell**, then **Bazaar**. Under "Start an event" tap the booking, or today's row. Tap **More** to load both flavours, then **Open the table · N cookies**. Aeroplane mode on. Ring up 20 mixed sales (below), one **Freebie**, one **Void**. | Banner: "Offline · sales are being saved on this device". Each sale: "Saved on this phone. It will sync when you are back online." | 20 sales in the list after the void; the voided cookies are back on their tile                |
-| 2   | Swipe the app away. Open it from the Home Screen, still in aeroplane mode.                                                                                                                                                                    | Bazaar Mode, the same event, the same sales                                                                                        | It opens into Bazaar Mode without a sign-in page, and nothing is missing                      |
-| 3   | Leave the phone untouched for 70 minutes, aeroplane mode on. Ring up one sale.                                                                                                                                                                | The sale in the list                                                                                                               | It sells. (Owner idle time is 480 minutes on the trial; at 60 it would narrow to Bazaar Mode) |
-| 4   | Leave it in aeroplane mode overnight. Open it in the morning.                                                                                                                                                                                 | Bazaar Mode and every sale                                                                                                         | Opens, nothing missing                                                                        |
-| 5   | Aeroplane mode off. Wait, or tap **Sync now**.                                                                                                                                                                                                | "Back online · syncing N sales", then "Synced"                                                                                     | Count and total equal the paper tally. Ethan reads the event's totals on the server: same     |
-| 6   | Note what happened on opening that second morning, offline and then online: was an email code asked for, and did it arrive on this phone?                                                                                                     | Any Cloudflare page                                                                                                                | No code asked for, or it arrived and the app came back with every sale                        |
-| 7   | Aeroplane mode on, ring up one sale, aeroplane mode off but stay off Wi-Fi if you can. Leave Bazaar (any other tab), tap the **Sign out** pill above the dock, bottom left.                                                                   | "Sales are still on this phone", a count, **Send now**, **Sign out anyway**, **Keep selling**                                      | The warning shows whenever something is unsent. Tap **Keep selling**                          |
-| 8   | Void every rehearsal sale. Bazaar, **Close out**, "Count the cash box": type the float, **Close the event**.                                                                                                                                  | Revenue, "N cookies returned", the drawer line                                                                                     | Figures match the tally; "Reopen the table" answers that a closed event stays closed          |
-| 9   | Count the taps from opening the app to the first tile.                                                                                                                                                                                        | —                                                                                                                                  | Acceptable to the person selling                                                              |
-| 10  | During step 1, with aeroplane mode on: tap **Charge** and read the last line of the payment sheet.                                                                                                                                            | "Rung up by" and a name                                                                                                            | The signed-in person's own name, the same as with signal                                      |
-
-A sale: tap a flavour tile (or "One more"), **Charge**, then **Cash** (type "Cash handed over" for the
-change), or type "Last 4 of their reference" and tap **GCash**, **Maya** or **GoTyme**. A sample: tiles,
-then **Freebie**. Mix them: at least five cash with change, five wallet, two with a quick discount.
+A sale: tap a flavour tile (or "One more"), **Charge**, then **Cash** (type "Cash handed over" for the change), or
+type "Last 4 of their reference" and tap **GCash**, **Maya** or **GoTyme**. A sample: tiles, then **Freebie**.
 
 Anything that fails is fixed and the whole list is run again before 20 October.
 
 ## What proves each step without the phone
 
-| Step  | Tests                                                                                                                          | Only the phone proves                       |
-| ----- | ------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------- |
-| 1     | `ops-runtime-bazaar`, `offline-queue`, e2e OFFLINE-01 (Chromium), role suite `bazaar-events`                                   | Safari selling with the radio off           |
-| 2     | `live-gate-offline` (fresh load offline, each sale arrives once), `ops-runtime-bazaar` (same event comes back)                 | Safari serving the app from the Home Screen |
-| 3     | `live-gate-offline` idle cases, `idle-signout`                                                                                 | A phone that really slept                   |
-| 4     | `offline-trust`, `offline-queue` (an unsent row is never dropped)                                                              | iOS keeping its storage overnight           |
-| 5     | `offline-queue` (cleared only when named; repeats; a refused sale goes up later, unchanged; a pruned sale re-sent is a repeat) | Totals against paper                        |
-| 6     | None                                                                                                                           | All of it                                   |
-| 7     | `sign-out-guard`, `sign-out-control`, `live-gate-signout-control`                                                              | —                                           |
-| 8     | `ops-runtime-bazaar` (close body, refusals), role suite `bazaar-closeout`                                                      | The figures on screen                       |
-| 0, 10 | Role suite `production`; `ops-runtime-names`                                                                                   | A bake on the trial; the name on screen     |
+| Step     | Tests                                                                                                                          | Only the phone proves                       |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------- |
+| 1        | `bazaar-live`, `bazaar-plan`, `ops-runtime-bazaar` (start), role suite `bazaar-days`, the live smoke suite                     | The plan form on a small screen             |
+| 2, 3, 10 | `offline-queue`, `live-gate-offline`, `ops-runtime-bazaar`, e2e OFFLINE-01 (Chromium), `ops-runtime-names`                     | Safari selling and reopening with radio off |
+| 4 to 6   | `bazaar-close`, `bazaar-review`, `bazaar-store`, `ops-runtime-bazaar-close`, `bazaar-screens`; the smoke suite closes day 1    | The figures against paper                   |
+| 7, 8     | `bazaar-store` (carry-in), `ops-runtime-bazaar-close` (the float after a reload); the smoke suite sells day 2 through a reload | iOS keeping its storage                     |
+| 9        | Role suite `bazaar-days` (the hand-worked example, finalise, the books' hold), `bazaar-close`; the smoke suite reads the books | The books on the trial                      |
+| 11       | `sign-out-guard`, `sign-out-control`, `live-gate-signout-control`                                                              | —                                           |
