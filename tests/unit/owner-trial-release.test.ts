@@ -247,8 +247,10 @@ describe('owner trial release gate', () => {
       };
     };
 
-    it('allows 8h, and only plain duration strings are listed', () => {
+    it('allows 8h and one week (168h, read back from the live application), and only plain duration strings', () => {
       expect(ALLOWED_SESSION_DURATIONS).toContain('8h');
+      expect(ALLOWED_SESSION_DURATIONS).toContain('168h');
+      expect(ALLOWED_SESSION_DURATIONS).not.toContain('730h');
       for (const value of ALLOWED_SESSION_DURATIONS) expect(value).toMatch(/^\S+$/);
     });
 
