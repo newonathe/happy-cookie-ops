@@ -16,11 +16,17 @@ Read this page first in a new session. It is kept short on purpose.
 
 ## Where things stand — 7 October 2026
 
-**S3.1 bazaar hardening (14 October): built and tested locally, not applied.** Migration 69 (`20260101006800_bazaar_hardening.sql`;
-the goal's "006900" would break the contiguous-version check) and its client: a refused sale no longer blocks the close; close and
-finalise check the till's count and cash (40001); a fee or a loss can be removed; no sale or void lands on a finalised event; no stock
-load on a bazaar day; retry ids survive a reload. 69 and its build ship together ([run sheet](bazaar-run-sheet.md) row 2a); the
-rehearsal waits for both. Next: [next-goal.md](next-goal.md).
+**S3.1 bazaar hardening (14 October): released to the trial.** Migration 69 (`20260101006800_bazaar_hardening.sql`) and its
+client: a refused sale no longer blocks the close; close and finalise check the till's count and cash (40001); a fee or a loss can be
+removed; no sale or void lands on a finalised event; no stock load on a bazaar day; retry ids survive a reload. Before release:
+`pnpm test:e2e` (90 passed; the capacity parity spec 25 of 25 on the local database), the live smoke suite (14 steps), the role suite
+(3,294 cases on each of two resets) and the **Remove** buttons in the browser pane at 375 px. At Ethan's word: 69 applied from a
+scratch folder (the CLI needs every applied version present, so all 69 files were exported from the commit; the dry run listed only
+69); the trial is at 69 of 69, its fingerprint equal to local apart from `json_value` quoting in three settings functions and
+`rls_auto_enable`. PR #24 merged (`3cf4a36`); the deploy job was refused twice for GitHub billing (free private-repo minutes used
+up), so **Ethan made the repository public** (Cine agreed: her name, GCash number and payment QR codes are in its history) and the
+rerun deployed version `2eda3738`; anonymous requests still go to Cloudflare Access. Next: the phone rehearsal
+([run sheet](bazaar-run-sheet.md) row 7, [next-goal.md](next-goal.md)).
 
 **The plan is approved; stage A (A1 to A4) and slices B1 to B3b-2, B4a, B4b and B5 are built.** Ethan approved
 [final-plan.md](final-plan.md), version 2, on 5 October after a re-audit, a debate and
@@ -28,13 +34,6 @@ wider research. It replaces finish-plan.md as the forward plan. The Bazaar defec
 fixed (below). S1 to S3 of [bazaar-days.md](bazaar-days.md) are built (Ethan put the bazaar's new flow ahead of B6 on
 13 October, with no fallback), migration 68 is on the trial and the code is merged (14 October). The next step is the
 phone rehearsal by 20 October ([bazaar-run-sheet.md](bazaar-run-sheet.md)): the release is deployed.
-
-**Release, 14 October (at Ethan's word):** migration 68 applied to the trial from a scratch folder (dry run first: only
-that file); the trial is at 68 of 68. Schema fingerprint equal to local (columns, policies, row security, table grants,
-functions), apart from Postgres 17 quoting `json_value` in three settings functions and the platform's `rls_auto_enable`.
-PR #21 merged into the working branch at `de78fdc`. Its release could not upload its build (the account's artifact
-storage quota), so PR #22 (Ethan's choice) builds the trial assets in the deploy job instead; run 38521932811 deployed
-version `1b6c876c` to the trial, 14 October. The trial now runs S1 to S3 on a database at 68.
 
 **S3, 14 October (built; merged in PR #21):** losses, more stock, the day review with each figure
 openable, "Close the day" with the leftover split, carrying over, fees, target, typed cost, "Close the event", and the books'
