@@ -4,7 +4,7 @@ Read this page first in a new session. It is kept short on purpose.
 
 | If you need                                        | Read                                                                                                                                                     |
 | -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| The goal to run next                               | [bazaar-days.md](bazaar-days.md), its S3 block (next-goal.md still holds S2)                                                                             |
+| The goal to run next                               | [bazaar-days.md](bazaar-days.md), its S3 block (next-goal.md holds S3.1)                                                                                 |
 | The plan, approved 5 October                       | [final-plan.md](final-plan.md), version 2                                                                                                                |
 | The rules every agent follows                      | [AGENTS.md](../../AGENTS.md)                                                                                                                             |
 | Ethan's and Cine's decisions                       | [decision-register.md](decision-register.md)                                                                                                             |
@@ -15,6 +15,8 @@ Read this page first in a new session. It is kept short on purpose.
 | Older checkpoints, verbatim                        | [current-history.md](current-history.md)                                                                                                                 |
 
 ## Where things stand — 7 October 2026
+
+**S3.1 bazaar hardening (14 October): audited and planned, not built** ([next-goal.md](next-goal.md)); the rehearsal waits for it.
 
 **The plan is approved; stage A (A1 to A4) and slices B1 to B3b-2, B4a, B4b and B5 are built.** Ethan approved
 [final-plan.md](final-plan.md), version 2, on 5 October after a re-audit, a debate and
