@@ -1,6 +1,6 @@
 # Bazaar v2 design spec (slice D0)
 
-Status: **draft for Ethan's approval** (15 October 2026). The mockups are one private artifact page,
+Status: **approved by Ethan on 15 October 2026** ("approve D0"), as drawn, decisions 1 to 8 as recommended. The mockups are one private artifact page,
 <https://claude.ai/artifact/FEG4Xfriz6P9cCeu534DFa> (Ethan's account; open it signed in). Once approved, this file and that page are the spec for U1 to U9
 ([../state/bazaar-v2.md](../state/bazaar-v2.md)). Ethan's changes go in the last section, "Changes from Ethan".
 
@@ -72,17 +72,18 @@ Colour: `ink`, `ink-soft`, `ink-mute`, `ink-faint`, `surface`, `raise`, `inset`,
 
 ### 2.2 Proposed for U1 (new names, no new colour)
 
-| Token                                      | Value                             | Use                                      |
-| ------------------------------------------ | --------------------------------- | ---------------------------------------- |
-| `--space-1` … `--space-6`                  | 4, 8, 12, 16, 24, 32 px           | all gaps and padding in live screens     |
-| `--text-display`                           | 40px / 1.0, 700, tracking −0.02em | the headline numeral ("78", "₱6,050")    |
-| `--text-title`                             | 22px / 1.2, 700                   | screen and sheet titles                  |
-| `--text-body`                              | 15px / 1.45, 500                  | body text                                |
-| `--text-caption`                           | 12.5px / 1.35, 500                | labels, hints, pill text                 |
-| `--dur-fast` / `--dur-base` / `--dur-slow` | 150 / 250 / 400 ms                | exits / most changes / large entries     |
-| `--ease-enter`                             | `cubic-bezier(0.05, 0.7, 0.1, 1)` | anything arriving (M3 emphasized decel.) |
-| `--ease-exit`                              | `cubic-bezier(0.3, 0, 0.8, 0.15)` | anything leaving (M3 emphasized accel.)  |
-| `--ease-standard`                          | `cubic-bezier(0.2, 0, 0, 1)`      | state changes in place                   |
+| Token                                      | Value                             | Use                                          |
+| ------------------------------------------ | --------------------------------- | -------------------------------------------- |
+| `--space-1` … `--space-6`                  | 4, 8, 12, 16, 24, 32 px           | all gaps and padding in live screens         |
+| `--text-display`                           | 40px / 1.0, 700, tracking −0.02em | the headline numeral ("78", "₱6,050")        |
+| `--text-title`                             | 22px / 1.2, 700                   | screen and sheet titles                      |
+| `--text-body`                              | 15px / 1.45, 500                  | body text                                    |
+| `--text-caption`                           | 12.5px / 1.35, 500                | labels, hints, pill text                     |
+| `--dur-fast` / `--dur-base` / `--dur-slow` | 150 / 250 / 400 ms                | exits / most changes / large entries         |
+| `--ease-enter`                             | `cubic-bezier(0.05, 0.7, 0.1, 1)` | anything arriving (M3 emphasized decel.)     |
+| `--ease-exit`                              | `cubic-bezier(0.3, 0, 0.8, 0.15)` | anything leaving (M3 emphasized accel.)      |
+| `--ease-standard`                          | `cubic-bezier(0.2, 0, 0, 1)`      | state changes in place                       |
+| `--color-scrim`                            | `rgb(58 31 20 / 0.4)`             | sheet backdrop (ink at 40 %, as the shadows) |
 
 The ported `hcRise`, `hcSheet` and `hcFade` animations keep their `ease-out` curves inside ported screens. Live screens use
 the new curves.
@@ -264,7 +265,7 @@ after Sat, 12 Dec". The summary line and the field's message use the same words.
 Selling, voids and the review's figures work offline (unchanged). Needs signal, shown with the reason: start a day, save
 a plan, add or edit an event, fees, the cost, close the day, close the event, leaving the till for Home.
 
-## 6. Decisions for Ethan
+## 6. Decisions for Ethan (all approved as recommended, 15 October)
 
 1. The look as drawn (section 1 rules, the mockups).
 2. **Cash counted** stays blank with an **It matches** button, instead of the plan's pre-filled cash (a pre-filled cash
@@ -279,4 +280,11 @@ a plan, add or edit an event, fees, the cost, close the day, close the event, le
 
 ## 7. Changes from Ethan
 
-_None yet._
+Approved as drawn on 15 October 2026, with no changes. Decisions 1 to 8 in section 6 stand as recommended:
+
+- Cash counted starts empty, with **It matches** (not pre-filled; this replaces U5's "Cash counted = cash expected").
+- The leftover suggestion: carried on a non-last day; on the last day to the shop with a recipe, else written off.
+- Stranded carried cookies at "Close the event": suggested to the shop.
+- The proposed U1 tokens in 2.2.
+- The Home card above the greeting, through the live slot; no protected exception for Home.
+- Two decimals on live screens only; the till keeps whole pesos until "approve PESO" (U8).

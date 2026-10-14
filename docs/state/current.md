@@ -18,8 +18,7 @@ Read this page first in a new session. It is kept short on purpose.
 
 **Bazaar v2 (15 October): planned, not started.** Ethan's 13-point review of the bazaar screens (design, flow, motion)
 is planned as 10 slices, D0 to U9, in [bazaar-v2.md](bazaar-v2.md); everything lands before the bazaar, one release, then the
-rehearsal by 22 October. D0 is drafted and waits for Ethan's approval: [docs/design/bazaar-v2.md](../design/bazaar-v2.md)
-and the mockups artifact linked there. Then U1 ([next-goal.md](next-goal.md) after approval). The
+rehearsal by 22 October. D0 approved 15 Oct ([spec](../design/bazaar-v2.md)). Next: U1 ([next-goal.md](next-goal.md)). The
 Ateneo test audit (15 Oct, in bazaar-v2.md) found 13 issues. Ethan chose migration 70 before the bazaar and a reviewed
 reversal of the Ateneo test (its rent, over, sales and stock use are in October's books until then).
 
