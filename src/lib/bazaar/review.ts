@@ -94,7 +94,9 @@ export function dayFiguresOf(s: BazaarSummary, day: BazaarDay): ReviewFigure[] {
           ? moneyText(day.shortCents) + ' short'
           : day.overCents
             ? moneyText(day.overCents) + ' over'
-            : 'Exact';
+            : day.overCents === 0 && day.shortCents === 0
+              ? 'Exact'
+              : moneyText(day.countedCents) + ' counted';
     cash = {
       key: 'day-cash',
       label: 'Cash',

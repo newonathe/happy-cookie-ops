@@ -40,6 +40,7 @@ import {
   enqueueCommand,
   enqueueVoid,
   isSaleKey,
+  pendingCount,
   pendingSales,
   type CommandKind
 } from '@/lib/offline/queue';
@@ -635,6 +636,16 @@ function withUniqueNewestId(sales: EventSale[]): EventSale[] | null {
 }
 
 const PENDING_LINK = 'hc-pending-link';
+/** S3: the day whose close was sent with no answer back. */
+const CLOSE_IN_DOUBT = 'hc-close-in-doubt';
+
+function readCloseInDoubt(): string | null {
+  try {
+    return localStorage.getItem(CLOSE_IN_DOUBT);
+  } catch {
+    return null;
+  }
+}
 
 interface PendingLink {
   scheduledId: string;
@@ -744,7 +755,15 @@ export class OpsRuntime extends OpsProvider {
       };
     },
     begin: (booking, day) => this.beginBazaarDay(booking, day),
-    dayClosed: (dayId) => this.dropClosedDay(dayId),
+    dayClosed: (dayId) => void this.dropClosedDay(dayId),
+    countUnsent: async () => {
+      try {
+        return await pendingCount();
+      } catch {
+        return null;
+      }
+    },
+    closeInDoubt: (dayId) => this.setCloseInDoubt(dayId),
     lossSaved: (dayId, pid, qty) => this.moveDayStock(dayId, pid, -qty, null),
     stockAdded: (dayId, pid, qty, loaded) => this.moveDayStock(dayId, pid, qty, loaded),
     dropNo: () => (this.state as unknown as { dropNo: number }).dropNo,
@@ -838,6 +857,15 @@ export class OpsRuntime extends OpsProvider {
     const bazaar = this as unknown as BazaarActions;
     const { recordSale, voidSale } = bazaar;
     bazaar.recordSale = (pay, freebie) => {
+      // S3: a close of this day whose answer was lost may have landed, and the database refuses a sale after a close.
+      const doubt = readCloseInDoubt();
+      if (doubt && (this.state.event as LiveEvent | null)?.dayId === doubt) {
+        this.toast(
+          'This day may already be closed. Get signal and tap Close out to check before selling more.',
+          'warn'
+        );
+        return;
+      }
       recordSale(pay, freebie);
       this.setState((s: { sales: EventSale[] }) => {
         const sales = withUniqueNewestId(s.sales);
@@ -1288,7 +1316,20 @@ export class OpsRuntime extends OpsProvider {
     return 'started';
   }
 
-  /** S3: what this phone has not sent yet (sales, voids, expenses). A day is not closed, or let go of, over any of it. */
+  /** S3: kept on the phone so a reload does not forget that a close of the day may have landed. */
+  private setCloseInDoubt(dayId: string | null): void {
+    try {
+      if (dayId) localStorage.setItem(CLOSE_IN_DOUBT, dayId);
+      else localStorage.removeItem(CLOSE_IN_DOUBT);
+    } catch {
+      /* private mode: a sale after the close is refused by the database and stays on the phone, unsent */
+    }
+  }
+
+  /**
+   * S3: what this phone has not sent yet, as the screen shows it (sales, and the queue's own count when it was read).
+   * The close and the drop of a day count the queue itself (`pendingCount`).
+   */
   private unsentForDay(): number {
     return Math.max(Number(this.state.unsynced) || 0, this.operationsQueue, 0);
   }
@@ -1320,9 +1361,18 @@ export class OpsRuntime extends OpsProvider {
    * never through the engine's `resetEvent`: that would put what is left on the table into the shop's baked stock, and
    * those cookies were carried over, sent to the shop or written off by her count.
    */
-  private dropClosedDay(dayId: string): void {
+  private async dropClosedDay(dayId: string): Promise<void> {
     if ((this.state.event as LiveEvent | null)?.dayId !== dayId) return;
     if (this.unsentForDay() > 0) return;
+    // The queue itself decides: anything it has not sent (or a queue that cannot be read) keeps the day on the phone.
+    let unsent: number;
+    try {
+      unsent = await pendingCount();
+    } catch {
+      return;
+    }
+    if (unsent > 0 || (this.state.event as LiveEvent | null)?.dayId !== dayId) return;
+    this.setCloseInDoubt(null);
     this.setState(
       {
         event: null,
@@ -1373,7 +1423,8 @@ export class OpsRuntime extends OpsProvider {
     }
     const day = data.days.find((d) => d.id === event.dayId);
     if (this.unmounted || !day) return;
-    if (day.state === 'closed') return this.dropClosedDay(day.id);
+    this.setCloseInDoubt(null);
+    if (day.state === 'closed') return void (await this.dropClosedDay(day.id));
     this.setState((s) => {
       const now = s.event as LiveEvent | null;
       if (now?.dayId !== day.id) return null;

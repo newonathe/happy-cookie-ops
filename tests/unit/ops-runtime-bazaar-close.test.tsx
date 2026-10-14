@@ -213,6 +213,7 @@ describe('after the day is closed', () => {
     act(() => vals(runtime).askClose());
     await settle();
     act(() => runtime.setState({ unsynced: 1 } as never));
+    store.set('void-1', { clientId: 'void-1', state: 'pending', at: 1 });
     const review = liveBazaar(runtime)!.review!;
     expect(review.close!.blocked).toMatch(/still on this phone/);
     let words: string | null = null;
@@ -222,6 +223,18 @@ describe('after the day is closed', () => {
     expect(words).toMatch(/still on this phone/);
     expect(db.rpc.mock.calls.filter((c) => c[0] === 'close_bazaar_day')).toHaveLength(0);
     expect((runtime.state.event as { dayId?: string }).dayId).toBe(DAY);
+  });
+});
+
+describe('a close whose answer was lost', () => {
+  it('pauses selling the day on this phone, also after a reload', async () => {
+    const { runtime } = await startedDay();
+    localStorage.setItem('hc-close-in-doubt', DAY);
+    const before = (runtime.state.sales as unknown[]).length;
+    act(() => (runtime as unknown as { recordSale: (pay: string) => void }).recordSale('Cash'));
+    expect(JSON.stringify(runtime.state.toast)).toMatch(/may already be closed/);
+    expect((runtime.state.sales as unknown[]).length).toBe(before);
+    // Mutation: selling on would ring up sales the database refuses after the close.
   });
 });
 

@@ -74,6 +74,13 @@ export interface BazaarDaysDeps {
   ) => Promise<'started' | 'offline' | 'refused'>;
   /** The day is closed on the database: a phone that holds it lets go of it, once it has sent everything. */
   dayClosed: (dayId: string) => void;
+  /** Counts what this phone's queue has not sent (sales, voids, expenses); null when the queue cannot be read. */
+  countUnsent: () => Promise<number | null>;
+  /**
+   * A close of this day was sent and its answer never came: it may have landed. The till stops selling the day until a
+   * read settles it (null clears it), since a sale after a close is refused by the database.
+   */
+  closeInDoubt: (dayId: string | null) => void;
   /** A loss was recorded: the till has that many fewer to sell. */
   lossSaved: (dayId: string, productId: string, qty: number) => void;
   /** Stock was added: the till has `qty` more, and the day now holds `loaded` of the flavour. */
@@ -116,7 +123,11 @@ const COPY = {
   stale:
     'The day changed since you looked: a sale, a loss or a fee arrived. It has been read again. Check the figures, then close it.',
   closeNeedsSignal: 'Closing a day needs signal.',
-  closeOffline: 'The day could not be closed. Check the signal and try again.',
+  queueUnread:
+    'This phone could not check what it has not sent yet. Try again; if it keeps happening, reload the app with signal.',
+  closeInDoubt:
+    'The answer did not come back, so the day may already be closed. Selling is paused on this phone until it is read again with signal: tap Close out again.',
+  repeat: 'That was already recorded: its first answer was lost on the way.',
   closeRefused:
     'The day could not be closed. Check each count, and that no sale was made after you started closing.',
   dayClosed: 'Day closed.',
@@ -226,8 +237,10 @@ export class BazaarDays {
       this.reading = 'read';
       // A day this phone still holds that the database has closed (from another phone): the phone lets go of it.
       const held = this.deps.held();
-      if (held && data.days.some((d) => d.id === held.dayId && d.state === 'closed'))
-        this.deps.dayClosed(held.dayId);
+      const heldDay = held ? data.days.find((d) => d.id === held.dayId) : undefined;
+      if (heldDay?.state === 'closed') this.deps.dayClosed(heldDay.id);
+      // A read settles a close whose answer was lost: closed, or still open.
+      if (heldDay && heldDay.state !== 'planned') this.deps.closeInDoubt(null);
       this.deps.rerender();
       return true;
     } catch {
@@ -658,7 +671,12 @@ export class BazaarDays {
     const client = this.deps.client();
     if (!client || !this.deps.online()) return COPY.closeNeedsSignal;
     const held = this.deps.held();
-    if (held?.dayId === day.id && held.unsent > 0) return this.unsentText(held.unsent);
+    if (held?.dayId === day.id) {
+      // The queue itself, not the count on screen: a void or an expense still on the phone blocks the close too.
+      const unsent = await this.deps.countUnsent();
+      if (unsent === null) return COPY.queueUnread;
+      if (unsent > 0) return this.unsentText(unsent);
+    }
     const result = closeFromForm(day, input, lastDay, this.names());
     if (!result.ok) return result.error;
     const key = 'close:' + JSON.stringify([day.id, day.hash, result.lines, result.countedCents]);
@@ -672,7 +690,13 @@ export class BazaarDays {
         lines: result.lines,
         expected: day.hash
       });
-      if (outcome === 'offline') return COPY.closeOffline;
+      if (outcome === 'offline') {
+        if (held?.dayId === day.id) this.deps.closeInDoubt(day.id);
+        if (this.reviewing) this.reviewing.notice = COPY.closeInDoubt;
+        // If the close did land, the read shows the day closed and the phone lets go of it.
+        await this.reload();
+        return COPY.closeInDoubt;
+      }
       this.pending.delete(key);
       if (outcome === 'saved') {
         if (this.reviewing) this.reviewing.notice = null;
@@ -686,6 +710,8 @@ export class BazaarDays {
         await this.reload();
         return COPY.stale;
       }
+      // Read again: a refusal can be a close that already landed with another count.
+      await this.reload();
       return COPY.closeRefused;
     } finally {
       this.busy = false;
@@ -709,7 +735,7 @@ export class BazaarDays {
         return `Only ${onTable} left on the table on this phone. A loss cannot be more than that.`;
     }
     const reason = input.reason.trim();
-    const key = 'loss:' + JSON.stringify([day.id, input.productId, qty, reason]);
+    const key = 'loss:' + day.id;
     const p = this.pendingFor(key);
     const fields = {
       clientId: 'loss:' + p.clientId,
@@ -729,9 +755,13 @@ export class BazaarDays {
       const outcome = await saveBazaarLoss(client, fields);
       if (outcome === 'offline') return COPY.moneyOffline;
       this.pending.delete(key);
-      if (outcome !== 'saved') return COPY.lossRefused;
+      if (outcome !== 'saved' && outcome !== 'repeat') {
+        await this.reload();
+        return COPY.lossRefused;
+      }
+      // A repeat is a loss whose first answer was lost: the phone never applied it, so it does now.
       this.deps.lossSaved(day.id, input.productId, qty);
-      this.deps.toast(COPY.lossSaved);
+      this.deps.toast(outcome === 'repeat' ? COPY.repeat : COPY.lossSaved);
       await this.reload();
       return null;
     } finally {
@@ -750,11 +780,11 @@ export class BazaarDays {
     if (qty === null) return 'How many is a whole number, 1 or more.';
     if (!day.lines.some((l) => l.productId === input.productId)) return 'Choose the flavour.';
     const kind = input.kind === 'carried' ? 'carried' : 'made';
-    const key = 'stock:' + JSON.stringify([day.id, input.productId, qty, kind]);
+    const key = 'stock:' + day.id;
     const p = this.pendingFor(key);
     this.busy = true;
     try {
-      const { result, loaded } = await addBazaarDayStock(client, {
+      const { result, loaded, duplicate } = await addBazaarDayStock(client, {
         clientId: p.clientId,
         dayId: day.id,
         productId: input.productId,
@@ -763,9 +793,12 @@ export class BazaarDays {
       });
       if (result === 'offline') return COPY.moneyOffline;
       this.pending.delete(key);
-      if (result !== 'saved' || loaded === null) return COPY.stockRefused;
+      if (result !== 'saved' || loaded === null) {
+        await this.reload();
+        return COPY.stockRefused;
+      }
       this.deps.stockAdded(day.id, input.productId, qty, loaded);
-      this.deps.toast(COPY.stockSaved);
+      this.deps.toast(duplicate ? COPY.repeat : COPY.stockSaved);
       await this.reload();
       return null;
     } finally {
@@ -784,7 +817,7 @@ export class BazaarDays {
     if (cents === null || cents < 1) return 'The amount must be like 250 or 250.50.';
     const label = input.label.trim();
     const day = data.days.find((d) => d.id === input.dayId);
-    const key = 'fee:' + JSON.stringify([data.booking.id, input.dayId, label, cents]);
+    const key = 'fee:' + data.booking.id;
     const p = this.pendingFor(key);
     const fields = {
       clientId: 'fee:' + p.clientId,
@@ -806,8 +839,11 @@ export class BazaarDays {
       const outcome = await saveBazaarFee(client, fields);
       if (outcome === 'offline') return COPY.moneyOffline;
       this.pending.delete(key);
-      if (outcome !== 'saved') return COPY.feeRefused;
-      this.deps.toast(COPY.feeSaved);
+      if (outcome !== 'saved' && outcome !== 'repeat') {
+        await this.reload();
+        return COPY.feeRefused;
+      }
+      this.deps.toast(outcome === 'repeat' ? COPY.repeat : COPY.feeSaved);
       await this.reload();
       return null;
     } finally {

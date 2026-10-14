@@ -848,6 +848,15 @@ function classifyMoney(error: { code?: string } | null): MoneyOutcome {
   return 'offline';
 }
 
+/**
+ * `repeat`: the database already had this change under its id (an earlier reply was lost) and answered it without
+ * applying it again. The phone, which never heard the first answer, applies it now.
+ */
+function withRepeat(result: MoneyOutcome, data: unknown): MoneyOutcome | 'repeat' {
+  const row = Array.isArray(data) ? (data[0] as unknown) : null;
+  return result === 'saved' && isObj(row) && row.duplicate === true ? 'repeat' : result;
+}
+
 const CONTROL = /[\u0000-\u001f\u007f-\u009f]/;
 const validAt = (at: number): boolean =>
   Number.isInteger(at) && at >= 100_000_000_000 && at <= 99_999_999_999_999;
@@ -886,9 +895,12 @@ export function feeError(f: FeeFields): string | null {
   return null;
 }
 
-export async function saveBazaarFee(client: BazaarClient, f: FeeFields): Promise<MoneyOutcome> {
+export async function saveBazaarFee(
+  client: BazaarClient,
+  f: FeeFields
+): Promise<MoneyOutcome | 'repeat'> {
   try {
-    const { error } = await client.rpc('save_bazaar_fee', {
+    const { data, error } = await client.rpc('save_bazaar_fee', {
       p_fee: {
         client_id: f.clientId,
         scheduled_id: f.scheduledId,
@@ -899,7 +911,7 @@ export async function saveBazaarFee(client: BazaarClient, f: FeeFields): Promise
         paid_on: f.paidOn
       }
     });
-    return classifyMoney(error);
+    return withRepeat(classifyMoney(error), data);
   } catch {
     return 'offline';
   }
@@ -928,9 +940,12 @@ export function lossError(f: LossFields): string | null {
   return null;
 }
 
-export async function saveBazaarLoss(client: BazaarClient, f: LossFields): Promise<MoneyOutcome> {
+export async function saveBazaarLoss(
+  client: BazaarClient,
+  f: LossFields
+): Promise<MoneyOutcome | 'repeat'> {
   try {
-    const { error } = await client.rpc('save_bazaar_loss', {
+    const { data, error } = await client.rpc('save_bazaar_loss', {
       p_loss: {
         client_id: f.clientId,
         day_id: f.dayId,
@@ -940,7 +955,7 @@ export async function saveBazaarLoss(client: BazaarClient, f: LossFields): Promi
         at: f.at
       }
     });
-    return classifyMoney(error);
+    return withRepeat(classifyMoney(error), data);
   } catch {
     return 'offline';
   }
@@ -1001,9 +1016,9 @@ export interface StockAddFields {
 export async function addBazaarDayStock(
   client: BazaarClient,
   f: StockAddFields
-): Promise<{ result: MoneyOutcome; loaded: number | null }> {
+): Promise<{ result: MoneyOutcome; loaded: number | null; duplicate: boolean }> {
   if (!UUID.test(f.clientId) || !UUID.test(f.dayId) || !whole(f.qty, 1, 9999))
-    return { result: 'refused', loaded: null };
+    return { result: 'refused', loaded: null, duplicate: false };
   try {
     const { data, error } = await client.rpc('add_bazaar_day_stock', {
       p_day: f.dayId,
@@ -1017,9 +1032,13 @@ export async function addBazaarDayStock(
     const loaded =
       result === 'saved' && isObj(row) && whole(row.loaded, 0, 19_998) ? row.loaded : null;
     // Saved only when the reply says what the day now holds.
-    return { result: result === 'saved' && loaded === null ? 'offline' : result, loaded };
+    return {
+      result: result === 'saved' && loaded === null ? 'offline' : result,
+      loaded,
+      duplicate: isObj(row) && row.duplicate === true
+    };
   } catch {
-    return { result: 'offline', loaded: null };
+    return { result: 'offline', loaded: null, duplicate: false };
   }
 }
 

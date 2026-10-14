@@ -417,7 +417,11 @@ describe('losses, fees, costs, the target and more stock', () => {
     const ok = client({
       data: [{ product_id: 'mp0s-a', made_qty: 12, carried_qty: 8, loaded: 20, duplicate: false }]
     });
-    expect(await addBazaarDayStock(ok.client, add)).toEqual({ result: 'saved', loaded: 20 });
+    expect(await addBazaarDayStock(ok.client, add)).toEqual({
+      result: 'saved',
+      loaded: 20,
+      duplicate: false
+    });
     expect(ok.rpc).toHaveBeenCalledWith('add_bazaar_day_stock', {
       p_day: DAY1,
       p_product: 'mp0s-a',
@@ -427,7 +431,8 @@ describe('losses, fees, costs, the target and more stock', () => {
     });
     expect(await addBazaarDayStock(client({ data: [] }).client, add)).toEqual({
       result: 'offline',
-      loaded: null
+      loaded: null,
+      duplicate: false
     });
   });
 });
