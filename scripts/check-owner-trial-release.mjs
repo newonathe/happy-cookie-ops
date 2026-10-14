@@ -25,12 +25,9 @@ export const APPROVED_EMAIL_MAX = 6;
 // Access session lengths the release accepts, for the application and for its policy.
 // Add a value only after reading it back from the live policy: Cloudflare does not publish
 // the string its API returns, and a guess fails the release or admits a longer session.
-// When Ethan sets "1 week" in the dashboard, the next failed release prints the value it
-// found; put exactly that string in the second entry below and delete the comment marks.
-export const ALLOWED_SESSION_DURATIONS = Object.freeze([
-  '8h'
-  // , 'FILL FROM THE POLICY: the value reported after choosing "1 week" (final-plan.md section 12)'
-]);
+// "168h" is "1 week", read back from the live application on 14 October 2026 (final-plan.md
+// section 12), when Ethan set it so Cine is not asked for an email code each morning at a stall.
+export const ALLOWED_SESSION_DURATIONS = Object.freeze(['8h', '168h']);
 
 const api = 'https://api.cloudflare.com/client/v4';
 const hash = (s) => createHash('sha256').update(s.trim().toLowerCase()).digest('hex');
