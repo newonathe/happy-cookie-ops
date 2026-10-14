@@ -10,10 +10,12 @@ import {
   saveBazaarFee,
   saveBazaarLoss,
   saveBazaarTarget,
+  voidBazaarEntry,
   type Bazaar,
   type BazaarClient,
   type BazaarDay,
-  type BazaarSummary
+  type BazaarSummary,
+  type TillFigures
 } from '@/lib/data/bazaar-days';
 import { dateRange, upcomingEvents, type ScheduledEvent } from '@/lib/data/scheduled-events';
 import type {
@@ -66,6 +68,8 @@ export interface BazaarDaysDeps {
     dayId: string;
     scheduledId: string;
     unsent: number;
+    /** S3.1: sales of the day the server refused outright. Kept on the phone for review; they no longer hold the close. */
+    refused: number;
     stock: Readonly<Record<string, number>>;
   } | null;
   begin: (
@@ -74,8 +78,12 @@ export interface BazaarDaysDeps {
   ) => Promise<'started' | 'offline' | 'refused'>;
   /** The day is closed on the database: a phone that holds it lets go of it, once it has sent everything. */
   dayClosed: (dayId: string) => void;
-  /** Counts what this phone's queue has not sent (sales, voids, expenses); null when the queue cannot be read. */
-  countUnsent: () => Promise<number | null>;
+  /**
+   * S3.1: for the day this phone holds, what its queue has not sent (refused rows left out) and the till's own figures
+   * (sales that are not voided or refused, and their cash), which the close gives the server to check. Null when the queue
+   * cannot be read.
+   */
+  tillFigures: () => Promise<({ unsent: number } & TillFigures) | null>;
   /**
    * A close of this day was sent and its answer never came: it may have landed. The till stops selling the day until a
    * read settles it (null clears it), since a sale after a close is refused by the database.
@@ -83,6 +91,8 @@ export interface BazaarDaysDeps {
   closeInDoubt: (dayId: string | null) => void;
   /** A loss was recorded: the till has that many fewer to sell. */
   lossSaved: (dayId: string, productId: string, qty: number) => void;
+  /** S3.1: a loss was taken back: the till has those cookies to sell again. */
+  lossVoided: (dayId: string, productId: string, qty: number) => void;
   /** Stock was added: the till has `qty` more, and the day now holds `loaded` of the flavour. */
   stockAdded: (dayId: string, productId: string, qty: number, loaded: number) => void;
   /** The drop that cookies sent to the shop are written to as a batch. */
@@ -103,6 +113,26 @@ const WORD: Record<BazaarDay['state'], DayWord> = {
   closed: 'Closed'
 };
 
+const PENDING_KEY = 'hc-bazaar-pending';
+type PendingBody = { productId: string; qty: number; kind: 'made' | 'carried' } | null;
+interface PendingChange {
+  clientId: string;
+  at: number;
+  body: PendingBody;
+}
+const isStockBody = (b: unknown): b is NonNullable<PendingBody> =>
+  !!b &&
+  typeof b === 'object' &&
+  typeof (b as { productId?: unknown }).productId === 'string' &&
+  Number.isInteger((b as { qty?: unknown }).qty) &&
+  ((b as { kind?: unknown }).kind === 'made' || (b as { kind?: unknown }).kind === 'carried');
+const isPendingChange = (v: unknown): v is PendingChange =>
+  !!v &&
+  typeof v === 'object' &&
+  typeof (v as { clientId?: unknown }).clientId === 'string' &&
+  Number.isInteger((v as { at?: unknown }).at) &&
+  ((v as { body?: unknown }).body === null || isStockBody((v as { body?: unknown }).body));
+
 const COPY = {
   saved: 'Plan saved.',
   conflict: 'This day was changed somewhere else. It has been read again: check it and save.',
@@ -121,7 +151,15 @@ const COPY = {
   notCounted:
     'A day is still selling, so cookie cost covers every cookie made so far, sold or not.',
   stale:
-    'The day changed since you looked: a sale, a loss or a fee arrived. It has been read again. Check the figures, then close it.',
+    'The day changed since you looked, or a sale on the till has not reached the server yet. It has been read again. On the selling phone tap Sync now, check the figures, then close it.',
+  refusedSales: (n: number) =>
+    (n === 1 ? '1 sale on this phone was' : n + ' sales on this phone were') +
+    ' refused by the server and is kept here, unsent. Void it on the till if it was a mistake; otherwise tell Ethan before closing.',
+  earlierStockSent:
+    'An earlier stock change whose answer was lost was sent first. Check the stock, then add this one again.',
+  removed: 'Removed.',
+  removeRefused:
+    'That could not be removed. A loss can only be taken back while its day is selling.',
   closeNeedsSignal: 'Closing a day needs signal.',
   queueUnread:
     'This phone could not check what it has not sent yet. Try again; if it keeps happening, reload the app with signal.',
@@ -145,7 +183,7 @@ const COPY = {
   finaliseNeedsSignal: 'Closing the event needs signal.',
   finaliseOpenDay: 'Close the day that is still selling first.',
   finaliseStale:
-    'The event changed since you looked. It has been read again. Check the figures, then close it.',
+    'The event changed since you looked, or a sale on this phone has not reached the server yet. It has been read again. Tap Sync now on the till, check the figures, then close it.',
   finaliseRefused:
     'The event could not be closed. Every started day must be closed, and a flavour sent to the shop needs a recipe.',
   finalised: 'Event closed. It now counts in the books.',
@@ -181,8 +219,12 @@ export class BazaarDays {
   private editing: { dayId: string; ymd: string; stamp: string | null } | null = null;
   /** The day whose review is open, where it was opened from, and words from the last close that was not taken. */
   private reviewing: { dayId: string; from: 'till' | 'event'; notice: string | null } | null = null;
-  /** A change whose answer never came keeps its id and time, so saying it again exactly is the same change, never a second. */
-  private pending = new Map<string, { clientId: string; at: number }>();
+  /**
+   * A change whose answer never came keeps its id, time and body, so saying it again is the same change, never a second.
+   * S3.1 (L2): kept in localStorage too, so a reload or a closed app does not mint a new id for a change that may have landed.
+   */
+  private pending = new Map<string, PendingChange>();
+  private pendingRead = false;
   private busy = false;
 
   constructor(private readonly deps: BazaarDaysDeps) {}
@@ -331,6 +373,10 @@ export class BazaarDays {
       notices,
       fees: shown.fees.parts.map((f) => ({
         id: f.clientId,
+        remove:
+          !data.finalised && !f.atTheTill && !f.clientId.startsWith('rent:')
+            ? () => this.removeEntry('fee', f.clientId, null)
+            : null,
         text:
           f.label +
           ' · ' +
@@ -549,6 +595,7 @@ export class BazaarDays {
     if (r.notice) notices.push(r.notice);
     if (open && !mine) notices.push(COPY.otherPhone);
     if (day.changedAfterClose) notices.push(COPY.changedAfter);
+    if (mine && held.refused > 0) notices.push(COPY.refusedSales(held.refused));
     let blocked: string | null = null;
     if (!online) blocked = COPY.closeNeedsSignal;
     else if (mine && held.unsent > 0) blocked = this.unsentText(held.unsent);
@@ -564,7 +611,15 @@ export class BazaarDays {
         .filter((o) => o.dayId === day.id)
         .map((o) => ({
           id: o.clientId,
-          text: `${o.qty} ${names.get(o.productId) ?? o.productId} · ${o.reason} · ${stamp(o.at)}`
+          text: `${o.qty} ${names.get(o.productId) ?? o.productId} · ${o.reason} · ${stamp(o.at)}`,
+          remove: open
+            ? () =>
+                this.removeEntry('loss', o.clientId, {
+                  dayId: day.id,
+                  productId: o.productId,
+                  qty: o.qty
+                })
+            : null
         })),
       dayFigures: dayFiguresOf(data, day),
       eventFigures: eventFiguresOf(data),
@@ -597,14 +652,85 @@ export class BazaarDays {
     );
   }
 
-  /** The id and time a change keeps until it is answered, so a repeat after a lost reply is the same change. */
-  private pendingFor(key: string): { clientId: string; at: number } {
+  /**
+   * The id, time and body a change keeps until it is answered, so a repeat after a lost reply is the same change. The
+   * first body given is the one kept: a later call under the same key gets it back and sends it, not its own.
+   */
+  private pendingFor(key: string, body: PendingBody = null): PendingChange {
+    this.readPending();
     let p = this.pending.get(key);
     if (!p) {
-      p = { clientId: this.deps.newId(), at: this.deps.now() };
+      p = { clientId: this.deps.newId(), at: this.deps.now(), body };
       this.pending.set(key, p);
+      this.writePending();
     }
     return p;
+  }
+
+  /** The change under `key` was answered (saved, repeated or refused): its id is not needed again. */
+  private settle(key: string): void {
+    this.readPending();
+    this.pending.delete(key);
+    this.writePending();
+  }
+
+  /** Read once, on first use and never in the constructor (it runs before hydration); a store that throws leaves memory only. */
+  private readPending(): void {
+    if (this.pendingRead) return;
+    this.pendingRead = true;
+    try {
+      const raw = globalThis.localStorage?.getItem(PENDING_KEY);
+      const saved: unknown = raw ? JSON.parse(raw) : null;
+      if (!saved || typeof saved !== 'object') return;
+      for (const [key, value] of Object.entries(saved as Record<string, unknown>)) {
+        if (!this.pending.has(key) && isPendingChange(value)) this.pending.set(key, value);
+      }
+    } catch {
+      /* private mode or a damaged entry: the ids live in memory for this session */
+    }
+  }
+
+  private writePending(): void {
+    try {
+      if (this.pending.size)
+        globalThis.localStorage?.setItem(
+          PENDING_KEY,
+          JSON.stringify(Object.fromEntries(this.pending))
+        );
+      else globalThis.localStorage?.removeItem(PENDING_KEY);
+    } catch {
+      /* as above */
+    }
+  }
+
+  /**
+   * S3.1 (M3): takes back a fee or a loss. The row stays on the server, flagged. A loss on the day this phone sells gives
+   * the till its cookies back, once: only when this read still listed it, so a repeat after a lost answer adds nothing twice.
+   */
+  private async removeEntry(
+    kind: 'fee' | 'loss',
+    clientId: string,
+    loss: { dayId: string; productId: string; qty: number } | null
+  ): Promise<string | null> {
+    if (this.busy) return COPY.busy;
+    const client = this.deps.client();
+    if (!client || !this.deps.online()) return COPY.moneyOffline;
+    const listed = kind === 'loss' && !!this.data?.losses.some((o) => o.clientId === clientId);
+    this.busy = true;
+    try {
+      const outcome = await voidBazaarEntry(client, kind, clientId);
+      if (outcome === 'offline') return COPY.moneyOffline;
+      if (outcome !== 'saved') {
+        await this.reload();
+        return COPY.removeRefused;
+      }
+      if (loss && listed) this.deps.lossVoided(loss.dayId, loss.productId, loss.qty);
+      this.deps.toast(COPY.removed);
+      await this.reload();
+      return null;
+    } finally {
+      this.busy = false;
+    }
   }
 
   private async save(
@@ -674,11 +800,14 @@ export class BazaarDays {
     const client = this.deps.client();
     if (!client || !this.deps.online()) return COPY.closeNeedsSignal;
     const held = this.deps.held();
+    let till: TillFigures | null = null;
     if (held?.dayId === day.id) {
-      // The queue itself, not the count on screen: a void or an expense still on the phone blocks the close too.
-      const unsent = await this.deps.countUnsent();
-      if (unsent === null) return COPY.queueUnread;
-      if (unsent > 0) return this.unsentText(unsent);
+      // The queue itself, not the count on screen: a void or an expense still on the phone blocks the close too. A sale the
+      // server refused does not (S3.1); the server checks the till's own figures instead, which leave it out.
+      const figures = await this.deps.tillFigures();
+      if (figures === null) return COPY.queueUnread;
+      if (figures.unsent > 0) return this.unsentText(figures.unsent);
+      till = { salesCount: figures.salesCount, cashCents: figures.cashCents };
     }
     const result = closeFromForm(day, input, lastDay, this.names());
     if (!result.ok) return result.error;
@@ -691,7 +820,8 @@ export class BazaarDays {
         at,
         countedCents: result.countedCents,
         lines: result.lines,
-        expected: day.hash
+        expected: day.hash,
+        till
       });
       if (outcome === 'offline') {
         if (held?.dayId === day.id) this.deps.closeInDoubt(day.id);
@@ -700,7 +830,7 @@ export class BazaarDays {
         await this.reload();
         return COPY.closeInDoubt;
       }
-      this.pending.delete(key);
+      this.settle(key);
       if (outcome === 'saved') {
         if (this.reviewing) this.reviewing.notice = null;
         // No sale on this day from now on: the pause lasts until the phone has let go of the day.
@@ -757,7 +887,7 @@ export class BazaarDays {
     try {
       const outcome = await saveBazaarLoss(client, fields);
       if (outcome === 'offline') return COPY.moneyOffline;
-      this.pending.delete(key);
+      this.settle(key);
       if (outcome !== 'saved' && outcome !== 'repeat') {
         await this.reload();
         return COPY.lossRefused;
@@ -784,26 +914,31 @@ export class BazaarDays {
     if (!day.lines.some((l) => l.productId === input.productId)) return 'Choose the flavour.';
     const kind = input.kind === 'carried' ? 'carried' : 'made';
     const key = 'stock:' + day.id;
-    const p = this.pendingFor(key);
+    // The call adds and the server keeps no body for it, so a change whose answer was lost is sent again exactly as it was.
+    const p = this.pendingFor(key, { productId: input.productId, qty, kind });
+    const sent: NonNullable<PendingBody> = isStockBody(p.body)
+      ? p.body
+      : { productId: input.productId, qty, kind };
+    const earlier = sent.productId !== input.productId || sent.qty !== qty || sent.kind !== kind;
     this.busy = true;
     try {
       const { result, loaded, duplicate } = await addBazaarDayStock(client, {
         clientId: p.clientId,
         dayId: day.id,
-        productId: input.productId,
-        qty,
-        kind
+        productId: sent.productId,
+        qty: sent.qty,
+        kind: sent.kind
       });
       if (result === 'offline') return COPY.moneyOffline;
-      this.pending.delete(key);
+      this.settle(key);
       if (result !== 'saved' || loaded === null) {
         await this.reload();
         return COPY.stockRefused;
       }
-      this.deps.stockAdded(day.id, input.productId, qty, loaded);
+      this.deps.stockAdded(day.id, sent.productId, sent.qty, loaded);
       this.deps.toast(duplicate ? COPY.repeat : COPY.stockSaved);
       await this.reload();
-      return null;
+      return earlier ? COPY.earlierStockSent : null;
     } finally {
       this.busy = false;
     }
@@ -839,7 +974,7 @@ export class BazaarDays {
     try {
       const outcome = await saveBazaarFee(client, fields);
       if (outcome === 'offline') return COPY.moneyOffline;
-      this.pending.delete(key);
+      this.settle(key);
       if (outcome !== 'saved' && outcome !== 'repeat') {
         await this.reload();
         return COPY.feeRefused;
@@ -900,9 +1035,23 @@ export class BazaarDays {
     const client = this.deps.client();
     if (!client || !this.deps.online()) return COPY.finaliseNeedsSignal;
     if (data.days.some((d) => d.state === 'open')) return COPY.finaliseOpenDay;
+    // S3.1: a closed day this phone still holds (it has something unsent) is checked against the till's own figures.
+    const held = this.deps.held();
+    let till: ({ dayId: string } & TillFigures) | null = null;
+    if (held && data.days.some((d) => d.id === held.dayId)) {
+      const figures = await this.deps.tillFigures();
+      if (figures === null) return COPY.queueUnread;
+      till = { dayId: held.dayId, salesCount: figures.salesCount, cashCents: figures.cashCents };
+    }
     this.busy = true;
     try {
-      const outcome = await finaliseBazaar(client, data.booking.id, data.hash, this.deps.dropNo());
+      const outcome = await finaliseBazaar(
+        client,
+        data.booking.id,
+        data.hash,
+        this.deps.dropNo(),
+        till
+      );
       if (outcome === 'offline') return COPY.finaliseNeedsSignal;
       if (outcome === 'saved') {
         this.deps.finalised();

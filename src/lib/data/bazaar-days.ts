@@ -1059,6 +1059,17 @@ export interface DayClose {
   lines: Record<string, CloseLine>;
   /** The day's hash from the read she was shown. */
   expected: string;
+  /**
+   * S3.1: the selling phone's own count of the day's sales (voided ones out, refused ones out) and their cash, which the
+   * server must hold too or it refuses (40001). Null from a phone that is not selling the day: it closes it without the till.
+   */
+  till: TillFigures | null;
+}
+
+/** What the selling phone holds of one day: its sales that are not voided, and the cash among them, in centavos. */
+export interface TillFigures {
+  salesCount: number;
+  cashCents: number;
 }
 
 /** The body `close_bazaar_day` is given: exactly these keys, and nothing the screen did not show. */
@@ -1079,7 +1090,9 @@ export function closeBody(c: DayClose) {
     at: c.at,
     counted_cents: c.countedCents,
     lines,
-    expected: c.expected
+    expected: c.expected,
+    sales_count: c.till ? c.till.salesCount : null,
+    cash_cents: c.till ? c.till.cashCents : null
   };
 }
 
@@ -1087,6 +1100,7 @@ export function closeBody(c: DayClose) {
 export async function closeBazaarDay(client: BazaarClient, c: DayClose): Promise<MoneyOutcome> {
   if (!UUID.test(c.dayId) || !HASH.test(c.expected) || !validAt(c.at)) return 'refused';
   if (c.countedCents !== null && !whole(c.countedCents, 0, 999_999_999_999)) return 'refused';
+  if (c.till && !tillOk(c.till)) return 'refused';
   try {
     const { data, error } = await client.rpc('close_bazaar_day', { p_close: closeBody(c) });
     const result = classifyMoney(error);
@@ -1097,23 +1111,56 @@ export async function closeBazaarDay(client: BazaarClient, c: DayClose): Promise
   }
 }
 
+const tillOk = (t: TillFigures): boolean =>
+  whole(t.salesCount, 0, 999_999) && whole(t.cashCents, 0, 999_999_999_999);
+
 /**
  * Closes the event, once: only now do its fees, rent, cash differences and stock use reach the books. `expected` is the
- * hash of the summary she was shown; `dropNo` is the drop the cookies sent to the shop are written to as a batch.
+ * hash of the summary she was shown; `dropNo` is the drop the cookies sent to the shop are written to as a batch. `till`
+ * (S3.1): a closed day this phone still holds, with its own figures for it, which the server must hold too (40001).
  */
 export async function finaliseBazaar(
   client: BazaarClient,
   bookingId: string,
   expected: string,
-  dropNo: number
+  dropNo: number,
+  till: ({ dayId: string } & TillFigures) | null = null
 ): Promise<MoneyOutcome> {
   if (!UUID.test(bookingId) || !HASH.test(expected) || !whole(dropNo, 0, 100_000)) return 'refused';
+  if (till && (!UUID.test(till.dayId) || !tillOk(till))) return 'refused';
   try {
     const { data, error } = await client.rpc('finalise_bazaar', {
       p_booking: bookingId,
       p_expected: expected,
-      p_drop: dropNo
+      p_drop: dropNo,
+      p_till: (till
+        ? { day_id: till.dayId, sales_count: till.salesCount, cash_cents: till.cashCents }
+        : null) as Json
     });
+    const result = classifyMoney(error);
+    return result === 'saved' && !isObj(data) ? 'offline' : result;
+  } catch {
+    return 'offline';
+  }
+}
+
+/**
+ * S3.1: takes back a fee (`void_bazaar_fee`) or a loss (`void_bazaar_loss`) by its client id. The row stays on the server,
+ * flagged, and no figure counts it. The same call again is answered.
+ */
+export async function voidBazaarEntry(
+  client: BazaarClient,
+  kind: 'fee' | 'loss',
+  clientId: string
+): Promise<MoneyOutcome> {
+  if (clientId.length < 1 || clientId.length > (kind === 'fee' ? 150 : 160)) return 'refused';
+  try {
+    const { data, error } = await client.rpc(
+      kind === 'fee' ? 'void_bazaar_fee' : 'void_bazaar_loss',
+      {
+        p_client_id: clientId
+      }
+    );
     const result = classifyMoney(error);
     return result === 'saved' && !isObj(data) ? 'offline' : result;
   } catch {

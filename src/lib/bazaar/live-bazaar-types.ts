@@ -94,7 +94,7 @@ export interface DayReviewView {
   notices: string[];
   stock: ReviewStockRow[];
   /** "1 Double Chocolate Fudge · Dropped · 24 Oct, 2:15 PM" */
-  losses: Array<{ id: string; text: string }>;
+  losses: Array<{ id: string; text: string; remove: (() => Promise<string | null>) | null }>;
   /** The day's own figures: revenue, cash, fees. */
   dayFigures: ReviewFigure[];
   /** The event so far: revenue, fees, cookie cost, profit, against the target. */
@@ -142,7 +142,13 @@ export interface BazaarEventView {
   /** Words she must read first (closed, changed after it was closed); none is an empty list. */
   notices: string[];
   /** The fees with the stall rent first: "Permit · Whole event · Oct 24" and its amount. */
-  fees: Array<{ id: string; text: string; amountText: string }>;
+  fees: Array<{
+    id: string;
+    text: string;
+    amountText: string;
+    /** S3.1: takes the fee back. Null for the rent, a till expense, and once the event is closed. */
+    remove: (() => Promise<string | null>) | null;
+  }>;
   feesTotalText: string;
   /** What a new fee can be for: the whole event (null) or one of its days. */
   feeFor: Array<{ dayId: string | null; text: string }>;

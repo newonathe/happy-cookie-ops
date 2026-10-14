@@ -213,7 +213,14 @@ describe('after the day is closed', () => {
     act(() => vals(runtime).askClose());
     await settle();
     act(() => runtime.setState({ unsynced: 1 } as never));
-    store.set('void-1', { clientId: 'void-1', state: 'pending', at: 1 });
+    // A void whose sale row is gone cannot be placed in an event, so it holds every day (S3.1).
+    store.set('void:gone', {
+      clientId: 'void:gone',
+      kind: 'void',
+      saleClientId: 'gone',
+      state: 'pending',
+      at: 1
+    });
     const review = liveBazaar(runtime)!.review!;
     expect(review.close!.blocked).toMatch(/still on this phone/);
     let words: string | null = null;
@@ -229,7 +236,14 @@ describe('after the day is closed', () => {
 describe('a day the database has closed while this phone still holds something for it', () => {
   it('keeps the day on the phone and pauses selling it until the queue is sent', async () => {
     const { runtime, db } = await startedDay();
-    store.set('void-1', { clientId: 'void-1', state: 'pending', at: 1 });
+    // A void whose sale row is gone cannot be placed in an event, so it holds every day (S3.1).
+    store.set('void:gone', {
+      clientId: 'void:gone',
+      kind: 'void',
+      saleClientId: 'gone',
+      state: 'pending',
+      at: 1
+    });
     act(() => vals(runtime).askClose());
     await settle();
     await act(async () => void (await liveBazaar(runtime)!.review!.close!.submit(count)));

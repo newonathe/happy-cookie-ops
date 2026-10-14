@@ -9,21 +9,23 @@ of the app, and what is rung up there is the real record.
 ## Go / no-go for 24 October
 
 **Today: no-go until the rehearsal passes.** Migration 68 is on the trial (68 of 68) and the S3 build is deployed
-(version `1b6c876c`, 14 October).
+(version `1b6c876c`, 14 October). S3.1 (migration 69, `20260101006800_bazaar_hardening.sql`) is built locally and not
+applied: row 2a.
 
-| #   | What                                                                                                                                                                                                        | Owner       | State on 14 October                                            |
-| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- | -------------------------------------------------------------- |
-| 1   | **Migration 68 on the trial**, rehearsed first from a scratch folder, the schema fingerprint equal to local.                                                                                                | Ethan       | Done 14 October: 68 of 68, fingerprint equal to local          |
-| 2   | **The S3 build is live**: free the Actions artifact storage, merge, let CI deploy, open the app and see the event list under Sell › Bazaar.                                                                 | Ethan       | Done 14 October: deployed, version `1b6c876c`                  |
-| 3   | **The booking.** The 24 to 25 October event exists under Bazaar events with its rent. Each day needs a plan (flavours, how many, price, float) before it can start.                                         | Cine, Ethan | 4 bookings on the trial; no day planned                        |
-| 4   | **A cost per cookie for each flavour.** A recipe counts only when every line has a cost; almost none does yet. Type one on the event page, or profit reads "Cost pending" (selling and closing still work). | Cine        | Not typed                                                      |
-| 5   | **Who signs in.** Planning, starting, reviewing and closing are the owner's. The server takes a sale from an owner sign-in only.                                                                            | Ethan       | 1 active owner. If it is not Cine's, she needs one, and Access |
-| 6   | Cine's two addresses in Cloudflare Access and the digest variable, one sitting; Access session set to one week.                                                                                             | Ethan       | Variable holds two digests; session not confirmed              |
-| 7   | The phone rehearsal below passes, every step, on the selling iPhone.                                                                                                                                        | Ethan       | Not run                                                        |
-| 8   | `RELEASE_HOLD=true` from the day the rehearsal passes to 26 October. No database writes and no merges in between.                                                                                           | Ethan       | Not set                                                        |
-| 9   | Backups are off. Download the CSV each evening and keep the paper tally, or decide custody and switch the jobs on.                                                                                          | Ethan       | Off                                                            |
-| 10  | Display name on each owner profile (it is the name under "Rung up by").                                                                                                                                     | Ethan       | The one owner has a name                                       |
-| 11  | Open the app with signal on 23 October (the keep-alive job is off) and plan both days then.                                                                                                                 | Cine        | —                                                              |
+| #   | What                                                                                                                                                                                                                                                                              | Owner       | State on 14 October                                            |
+| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- | -------------------------------------------------------------- |
+| 1   | **Migration 68 on the trial**, rehearsed first from a scratch folder, the schema fingerprint equal to local.                                                                                                                                                                      | Ethan       | Done 14 October: 68 of 68, fingerprint equal to local          |
+| 2   | **The S3 build is live**: free the Actions artifact storage, merge, let CI deploy, open the app and see the event list under Sell › Bazaar.                                                                                                                                       | Ethan       | Done 14 October: deployed, version `1b6c876c`                  |
+| 2a  | **Migration 69 and its build ship together** (S3.1). The deployed `1b6c876c` close and finalise are refused by 69 (a close lacks the till figures; finalise has a new argument), and the S3.1 build is refused by 68. Apply 69 from a scratch folder, then deploy, then rehearse. | Ethan       | Built and tested locally 14 October; not applied               |
+| 3   | **The booking.** The 24 to 25 October event exists under Bazaar events with its rent. Each day needs a plan (flavours, how many, price, float) before it can start.                                                                                                               | Cine, Ethan | 4 bookings on the trial; no day planned                        |
+| 4   | **A cost per cookie for each flavour.** A recipe counts only when every line has a cost; almost none does yet. Type one on the event page, or profit reads "Cost pending" (selling and closing still work).                                                                       | Cine        | Not typed                                                      |
+| 5   | **Who signs in.** Planning, starting, reviewing and closing are the owner's. The server takes a sale from an owner sign-in only.                                                                                                                                                  | Ethan       | 1 active owner. If it is not Cine's, she needs one, and Access |
+| 6   | Cine's two addresses in Cloudflare Access and the digest variable, one sitting; Access session set to one week.                                                                                                                                                                   | Ethan       | Variable holds two digests; session not confirmed              |
+| 7   | The phone rehearsal below passes, every step, on the selling iPhone.                                                                                                                                                                                                              | Ethan       | Not run                                                        |
+| 8   | `RELEASE_HOLD=true` from the day the rehearsal passes to 26 October. No database writes and no merges in between.                                                                                                                                                                 | Ethan       | Not set                                                        |
+| 9   | Backups are off. Download the CSV each evening and keep the paper tally, or decide custody and switch the jobs on.                                                                                                                                                                | Ethan       | Off                                                            |
+| 10  | Display name on each owner profile (it is the name under "Rung up by").                                                                                                                                                                                                           | Ethan       | The one owner has a name                                       |
+| 11  | Open the app with signal on 23 October (the keep-alive job is off) and plan both days then.                                                                                                                                                                                       | Cine        | —                                                              |
 
 ## How an event runs
 
@@ -32,7 +34,8 @@ of the app, and what is rung up there is the real record.
 2. **Start this day**, with signal, on the phone that will sell. The till opens with that day's cookies and prices.
 3. **Sell.** No signal is needed. Sales save on the phone and send when there is signal.
 4. **Close out** (on the till) opens the day's review. It needs signal, and every sale on the phone must have been
-   sent first (**Sync now**). The review shows what should be left, the losses, the takings, the cash expected and the
+   sent first (**Sync now**). A sale the server refused is not "unsent": the review lists it instead (rule 6). The
+   close sends the till's own count of sales and cash, and the server refuses it until it holds the same. The review shows what should be left, the losses, the takings, the cash expected and the
    event so far; each figure opens to show how it was worked out. Record a loss or add stock there.
 5. **Close the day.** Count each flavour and split what is left: carried over, to the shop, written off. Count the cash
    (or leave it blank). If a sale arrived while you were counting, it says so and shows the day again: check and close.
@@ -52,10 +55,14 @@ of the app, and what is rung up there is the real record.
    reviewing and closing all need signal.
 5. **Count what was made.** A flavour cannot be left with more than was put on the table. If more was made than the
    plan says, add it under "Add stock" in the review first.
-6. **A sale the server refused** ("Send again" on its row) blocks the close on that phone. Send it again, or void it.
-   If its day is closed anyway (from another phone), that phone stays on the closed day with selling paused: start the
-   next day on another phone and tell Ethan. If a close's answer is lost, selling pauses too until the day is read
-   again with signal (tap **Close out**).
+6. **A sale the server refused** ("Send again" on its row) stays on the phone, never deleted, and the review lists it.
+   Sending it again cannot help: the server refuses the same body again. It no longer blocks the close, but the close
+   sends the till's own count of sales and cash, which still include it, and the server refuses a close that does not
+   match what it holds ("the day changed… tap Sync now"). If the sale was a mistake, void it on the till and close; if it
+   was real money, write it on the paper tally, void it, close, and tell Ethan. A phone that holds a closed day lets go
+   of it once only refused sales are left. If a close's answer is lost, selling pauses until the day is read again with
+   signal (tap **Close out**). A fee or a loss recorded by mistake can be removed (**Remove** on its row): a fee until
+   the event is closed, a loss while its day is selling.
 7. **Cookies sent to the shop need a recipe** for that flavour; without one, write them off instead, or closing the
    event is refused.
 8. **If the app hangs on opening** (weak signal), switch to aeroplane mode: it opens from the copy on the phone and
@@ -93,11 +100,11 @@ Anything that fails is fixed and the whole list is run again before 20 October.
 
 ## What proves each step without the phone
 
-| Step     | Tests                                                                                                                          | Only the phone proves                       |
-| -------- | ------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------- |
-| 1        | `bazaar-live`, `bazaar-plan`, `ops-runtime-bazaar` (start), role suite `bazaar-days`, the live smoke suite                     | The plan form on a small screen             |
-| 2, 3, 10 | `offline-queue`, `live-gate-offline`, `ops-runtime-bazaar`, e2e OFFLINE-01 (Chromium), `ops-runtime-names`                     | Safari selling and reopening with radio off |
-| 4 to 6   | `bazaar-close`, `bazaar-review`, `bazaar-store`, `ops-runtime-bazaar-close`, `bazaar-screens`; the smoke suite closes day 1    | The figures against paper                   |
-| 7, 8     | `bazaar-store` (carry-in), `ops-runtime-bazaar-close` (the float after a reload); the smoke suite sells day 2 through a reload | iOS keeping its storage                     |
-| 9        | Role suite `bazaar-days` (the hand-worked example, finalise, the books' hold), `bazaar-close`; the smoke suite reads the books | The books on the trial                      |
-| 11       | `sign-out-guard`, `sign-out-control`, `live-gate-signout-control`                                                              | —                                           |
+| Step     | Tests                                                                                                                                                                                                                          | Only the phone proves                       |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------- |
+| 1        | `bazaar-live`, `bazaar-plan`, `ops-runtime-bazaar` (start), role suite `bazaar-days`, the live smoke suite                                                                                                                     | The plan form on a small screen             |
+| 2, 3, 10 | `offline-queue`, `live-gate-offline`, `ops-runtime-bazaar`, e2e OFFLINE-01 (Chromium), `ops-runtime-names`                                                                                                                     | Safari selling and reopening with radio off |
+| 4 to 6   | `bazaar-close`, `bazaar-review`, `bazaar-store`, `ops-runtime-bazaar-close`, `bazaar-screens`, `offline-queue-event` (S3.1); role suite `bazaar-days` (the till check, removing a fee or a loss); the smoke suite closes day 1 | The figures against paper                   |
+| 7, 8     | `bazaar-store` (carry-in), `ops-runtime-bazaar-close` (the float after a reload); the smoke suite sells day 2 through a reload                                                                                                 | iOS keeping its storage                     |
+| 9        | Role suite `bazaar-days` (the hand-worked example, finalise and its till check, no sale or void after it, the books' hold), `bazaar-close`; the smoke suite reads the books                                                    | The books on the trial                      |
+| 11       | `sign-out-guard`, `sign-out-control`, `live-gate-signout-control`                                                                                                                                                              | —                                           |
