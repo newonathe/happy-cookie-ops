@@ -21,15 +21,14 @@ Read this page first in a new session. It is kept short on purpose.
 wider research. It replaces finish-plan.md as the forward plan. The Bazaar defect B1 found is
 fixed (below). S1 to S3 of [bazaar-days.md](bazaar-days.md) are built (Ethan put the bazaar's new flow ahead of B6 on
 13 October, with no fallback), migration 68 is on the trial and the code is merged (14 October). The next step is the
-phone rehearsal by 20 October ([bazaar-run-sheet.md](bazaar-run-sheet.md)), once the release run has deployed.
+phone rehearsal by 20 October ([bazaar-run-sheet.md](bazaar-run-sheet.md)): the release is deployed.
 
 **Release, 14 October (at Ethan's word):** migration 68 applied to the trial from a scratch folder (dry run first: only
 that file); the trial is at 68 of 68. Schema fingerprint equal to local (columns, policies, row security, table grants,
 functions), apart from Postgres 17 quoting `json_value` in three settings functions and the platform's `rls_auto_enable`.
-PR #21 merged into the working branch at `de78fdc`. CI run 38517366460: every test job green (performance budget red, as
-before), but the release did not deploy: the artifact storage quota is hit (the repository holds one 4.2 MB artifact,
-so the quota is account-wide or not recalculated yet). After it recalculates: `gh run rerun 38517366460 --failed`.
-The trial's database is at 68 while it still runs the 8 October build: do not rehearse until the deploy is done.
+PR #21 merged into the working branch at `de78fdc`. Its release could not upload its build (the account's artifact
+storage quota), so PR #22 (Ethan's choice) builds the trial assets in the deploy job instead; run 38521932811 deployed
+version `1b6c876c` to the trial, 14 October. The trial now runs S1 to S3 on a database at 68.
 
 **S3, 14 October (built; merged in PR #21):** losses, more stock, the day review with each figure
 openable, "Close the day" with the leftover split, carrying over, fees, target, typed cost, "Close the event", and the books'
@@ -121,9 +120,8 @@ All in [decision-register.md](decision-register.md), the section for 5 October.
   the items with no cost, then `select public.apply_cost_cutover('<its hash and total>');`. An opening count after it is
   refused. Until then the books stay on "bought".
 - **No more database writes after the phone rehearsal passes**; set the release hold then.
-- **The trial still runs the 8 October build.** The release job could not upload its build: the GitHub Actions artifact
-  storage is full (run 38403473210). Delete old artifacts, or wait for the quota to be worked out again, then re-run the
-  release of the newest run. Its database is already at 67.
+- **The Actions storage quota is still full** (artifacts are about 5 MB across the account, so probably Packages). Releases
+  no longer need it (PR #22); the performance-budget job still fails on its upload. Clear it in Settings, Billing.
 - **Do not save a recipe in the Recipes screen yet.** It sends no line kind, so a saved recipe's packaging lines become
   ingredients (slice B6, New Recipes). Reading is safe.
 - A1 is built (the release check takes two to six addresses; Cine is not added yet). Add her
