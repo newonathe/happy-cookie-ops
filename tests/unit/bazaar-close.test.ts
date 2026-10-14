@@ -274,9 +274,12 @@ describe('closeBazaarDay', () => {
   it('S3.1: sends the selling phone sale count and cash, and nulls from another phone', async () => {
     const { rpc, client: c } = client({ data: {} });
     await closeBazaarDay(c, close({ till: { salesCount: 4, cashCents: 50000 } }));
-    const body = (rpc.mock.calls[0] as unknown as [string, { p_close: Record<string, unknown> }])[1].p_close;
+    const body = (rpc.mock.calls[0] as unknown as [string, { p_close: Record<string, unknown> }])[1]
+      .p_close;
     expect([body.sales_count, body.cash_cents]).toEqual([4, 50000]);
-    expect(await closeBazaarDay(c, close({ till: { salesCount: 1.5, cashCents: 0 } }))).toBe('refused');
+    expect(await closeBazaarDay(c, close({ till: { salesCount: 1.5, cashCents: 0 } }))).toBe(
+      'refused'
+    );
     expect(rpc).toHaveBeenCalledTimes(1);
   });
 
