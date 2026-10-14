@@ -27,6 +27,7 @@ import { BazaarLive } from '@/components/live/bazaar/bazaar-live';
 import { clearBazaar } from '@/lib/offline/bazaar-state';
 import { dayEventId } from '@/lib/data/bazaar-days';
 import type { Role } from '@/store/engine/ops-engine';
+import { answerFacts, dayFacts, lineFacts, summaryFacts } from '../fixtures/bazaar-answer';
 
 /**
  * S2: the live Bazaar screen. With no event on the phone it is the owner's event list, an event's page and a day's plan;
@@ -56,6 +57,7 @@ interface Fake {
   stamps: Array<Record<string, unknown>>;
 }
 const plannedDay = (over: Record<string, unknown> = {}) => ({
+  ...dayFacts(),
   id: DAY1,
   day: '2026-10-24',
   event_id: null,
@@ -68,7 +70,8 @@ const plannedDay = (over: Record<string, unknown> = {}) => ({
       name: 'Double Chocolate Fudge',
       made: 20,
       carried: 0,
-      price_cents: 12500
+      price_cents: 12500,
+      ...lineFacts
     }
   ],
   ...over
@@ -84,11 +87,11 @@ const summary = (f: Fake) => ({
       rent_cents: booking.rent_cents,
       active: true
     },
+    ...summaryFacts(250000, 'no cost'),
     days: f.days,
-    fees: { total_cents: 250000 },
-    profit: { cents: null, why: 'no cost' },
     hash: HASH
   },
+  ...answerFacts(),
   target_profit_cents: null,
   finalised_at: null,
   stamps: f.stamps
@@ -111,7 +114,8 @@ function fakeClient(f: Fake) {
               name: 'Double Chocolate Fudge',
               made: l.made_qty,
               carried: l.carried_qty,
-              price_cents: l.price_cents
+              price_cents: l.price_cents,
+              ...lineFacts
             })
           )
         })

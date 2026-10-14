@@ -35,13 +35,100 @@ export interface BazaarDayRow {
   /** Only a planned day can be changed. */
   edit: (() => void) | null;
   /**
-   * `start`: a planned day, started with signal. Null for a day that is open or closed: an open day is sold on the phone
-   * that started it (one this phone holds is drawn as the till, never as a row) and closed from its review (S3).
+   * `start`: a planned day, started with signal. `review`: an open day this phone does not hold, reviewed and closed here
+   * (one this phone holds is drawn as the till, never as a row, and reviewed from "Close out"). `see`: a closed day's review.
    */
-  action: 'start' | null;
+  action: 'start' | 'review' | 'see' | null;
   /** Why the action is not available now, in words; null when it is. */
   actionNote: string | null;
+  /** Words under the row that block nothing: where an open day is selling, how a closed day was counted. */
+  hint: string | null;
   run: () => void;
+}
+
+/** One figure of a review or of the event, with the parts that open under it. Every text is already words. */
+export interface ReviewFigure {
+  key: string;
+  label: string;
+  /** "₱880", or "Cost pending" for a figure that is not known: never ₱0 for an unknown. */
+  valueText: string;
+  /** Words under the figure (why it is pending, what it covers); null for none. */
+  note: string | null;
+  parts: Array<{ label: string; detail: string | null; valueText: string }>;
+}
+
+export interface ReviewStockRow {
+  productId: string;
+  name: string;
+  /** "20 made · 8 carried over" */
+  onTableText: string;
+  /** "5 sold · 1 given away · 1 lost" */
+  goneText: string;
+  /** What should be left before she counts: on the table less sold, given away and lost. */
+  shouldBeLeft: number;
+  /** A closed day: "13 left: 8 carried over, 3 to the shop, 2 written off · 1 not accounted". Null while open. */
+  countText: string | null;
+}
+
+/** What she types to close a day: text, whole cookies and pesos. A blank is 0, except `left` of a flavour with cookies. */
+export interface CloseInput {
+  countedPesos: string;
+  rows: Array<{
+    productId: string;
+    left: string;
+    carryNext: string;
+    toShop: string;
+    writtenOff: string;
+  }>;
+}
+
+/** A day's review: what is left, what was lost, the takings, the cash, and the event so far. Drawn ahead of the till. */
+export interface DayReviewView {
+  dayId: string;
+  /** "Sat, Oct 24" */
+  dateText: string;
+  eventName: string;
+  state: 'open' | 'closed';
+  online: boolean;
+  /** Words she must read first: selling on another phone, changed after the close, read again. */
+  notices: string[];
+  stock: ReviewStockRow[];
+  /** "1 Double Chocolate Fudge · Dropped · 24 Oct, 2:15 PM" */
+  losses: Array<{ id: string; text: string }>;
+  /** The day's own figures: revenue, cash, fees. */
+  dayFigures: ReviewFigure[];
+  /** The event so far: revenue, fees, cookie cost, profit, against the target. */
+  eventFigures: ReviewFigure[];
+  /** Words over the event's figures while a day is still open; null otherwise. */
+  eventNote: string | null;
+  /** The flavours of the day, for the loss and the add-stock forms. */
+  flavours: Array<{ id: string; name: string }>;
+  /** Null when the day is closed. Each returns null when saved, otherwise the words for what is wrong. */
+  addLoss:
+    ((input: { productId: string; qty: string; reason: string }) => Promise<string | null>) | null;
+  addStock:
+    | ((input: {
+        productId: string;
+        qty: string;
+        kind: 'made' | 'carried';
+      }) => Promise<string | null>)
+    | null;
+  /** Carried-over cookies can be added only when an earlier day of the booking set some aside. */
+  canAddCarried: boolean;
+  /** Null for a closed day. */
+  close: {
+    /** Nothing carries over from the booking's last day: the field is not offered. */
+    lastDay: boolean;
+    /** "₱1,000" */
+    cashExpectedText: string;
+    /** Why the day cannot be closed now, in words; null when it can. */
+    blocked: string | null;
+    /** Null when the day is closed; otherwise the words for what is wrong (the form stays as it is). */
+    submit: (input: CloseInput) => Promise<string | null>;
+  } | null;
+  /** "Back to the till" or "Back to the event". */
+  backText: string;
+  back: () => void;
 }
 
 export interface BazaarEventView {
@@ -52,6 +139,46 @@ export interface BazaarEventView {
   /** "Stall rent ₱2,500" */
   rentText: string;
   days: BazaarDayRow[];
+  /** Words she must read first (closed, changed after it was closed); none is an empty list. */
+  notices: string[];
+  /** The fees with the stall rent first: "Permit · Whole event · Oct 24" and its amount. */
+  fees: Array<{ id: string; text: string; amountText: string }>;
+  feesTotalText: string;
+  /** What a new fee can be for: the whole event (null) or one of its days. */
+  feeFor: Array<{ dayId: string | null; text: string }>;
+  /** Null once the event is closed. Returns null when saved, otherwise the words for what is wrong. */
+  addFee:
+    | ((input: { label: string; amount: string; dayId: string | null }) => Promise<string | null>)
+    | null;
+  /** "₱500", or "No target set". */
+  targetText: string;
+  /** The target as the input shows it; blank for none. */
+  targetPesos: string;
+  /** Null once the event is closed. Blank sets no target. */
+  saveTarget: ((pesos: string) => Promise<string | null>) | null;
+  /**
+   * Each flavour of a started day with its cost per cookie in words ("₱12.005 per cookie · from the recipe",
+   * "₱28.7525 per cookie · typed by you", or "Cost pending"). `save` takes her typed pesos, or blank to go back to the
+   * recipe's; null once the event is closed.
+   */
+  costs: Array<{
+    productId: string;
+    name: string;
+    text: string;
+    typedPesos: string;
+    save: ((pesos: string) => Promise<string | null>) | null;
+  }>;
+  /** The event's figures, each openable: revenue, fees, cookie cost, profit, against the target. Empty before a day starts. */
+  figures: ReviewFigure[];
+  /** Words over the figures while a day is still open; null otherwise. */
+  figuresNote: string | null;
+  /** "Close the event". Null once it is closed, and before any day has started. */
+  finalise: {
+    /** Why it cannot be closed now, in words; null when it can. */
+    blocked: string | null;
+    /** Null when closed; otherwise the words for what is wrong. */
+    run: () => Promise<string | null>;
+  } | null;
   /** Dates of the booking that have no plan yet, soonest first, as `YYYY-MM-DD` with their words. */
   unplanned: Array<{ ymd: string; text: string }>;
   planDay: (ymd: string) => void;
@@ -79,6 +206,11 @@ export interface DayPlanEditor {
   showCarried: boolean;
   /** The day before's float and lines, for "Copy the day before"; null when there is none. */
   copy: { floatPesos: string; flavours: PlanFlavour[]; dateText: string } | null;
+  /**
+   * What the latest closed earlier day set aside to carry over, by flavour (only those above 0), with that day's date;
+   * null when no earlier day is closed. Carrying in more than this is refused when the day starts.
+   */
+  carryIn: { dateText: string; byFlavour: Record<string, number> } | null;
   /** Null when saved; otherwise the words for what is wrong (the form stays as it is). */
   save: (input: { floatPesos: string; flavours: PlanFlavour[] }) => Promise<string | null>;
   back: () => void;
@@ -93,6 +225,14 @@ export interface LiveBazaarVals {
   list: BazaarListRow[];
   event: BazaarEventView | null;
   editor: DayPlanEditor | null;
+  /**
+   * True while a day's review is open (from the till's "Close out", or from an open or closed day's row): the screen draws
+   * it ahead of the till. `review` is null while it is being read or when it could not be read (`state` says which).
+   */
+  reviewing: boolean;
+  review: DayReviewView | null;
+  /** Leaves a review that is still being read or could not be read. */
+  closeReview: () => void;
   /** The existing "Bazaar events" form: where a booking is added. */
   add: () => void;
   retry: () => void;

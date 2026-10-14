@@ -48,7 +48,9 @@ import { BazaarDays } from '@/store/bazaar-days';
 import {
   dayEventId,
   engineStateForDay,
+  fetchBazaar,
   startBazaarDay,
+  type Bazaar,
   type BazaarClient
 } from '@/lib/data/bazaar-days';
 import { readStallCopy, saveStallCopy } from '@/lib/offline/stall-copy';
@@ -606,6 +608,8 @@ interface LiveEvent {
   /** S2: set when the event is a started bazaar day. */
   dayId?: string;
   scheduledId?: string;
+  /** S3: the day's drawer float. The saved copy of the bazaar keeps the event and not the drawer. */
+  floatCents?: number;
 }
 
 /** Whole, positive counts of the flavours the server knows for this event. */
@@ -717,7 +721,8 @@ export class OpsRuntime extends OpsProvider {
   private scheduledRows: ScheduledEvent[] | null = null;
   private scheduledClient: ScheduledClient | null = null;
   private bazaarDays = new BazaarDays({
-    client: () => this.scheduledClient,
+    // After a reload at the stall the bookings may not have been read yet: the review still reads its day.
+    client: () => (this.scheduledClient ?? this.salesTarget()) as unknown as BazaarClient | null,
     online: () => Boolean(this.state.online),
     bookings: () => this.scheduledRows ?? [],
     bookingsRead: () => this.scheduledRows !== null,
@@ -728,7 +733,26 @@ export class OpsRuntime extends OpsProvider {
         priceCents: pesosToCentavos(Number((this as unknown as TotalActions).priceOf(p.id)) || 0)
       })),
     holdsEvent: () => !!this.state.event,
+    held: () => {
+      const event = this.state.event as LiveEvent | null;
+      if (!event?.dayId || !event.scheduledId) return null;
+      return {
+        dayId: event.dayId,
+        scheduledId: event.scheduledId,
+        unsent: this.unsentForDay(),
+        stock: (this.state.eventStock ?? {}) as Record<string, number>
+      };
+    },
     begin: (booking, day) => this.beginBazaarDay(booking, day),
+    dayClosed: (dayId) => this.dropClosedDay(dayId),
+    lossSaved: (dayId, pid, qty) => this.moveDayStock(dayId, pid, -qty, null),
+    stockAdded: (dayId, pid, qty, loaded) => this.moveDayStock(dayId, pid, qty, loaded),
+    dropNo: () => (this.state as unknown as { dropNo: number }).dropNo,
+    finalised: () => {
+      void this.loadBooks(null);
+      void this.loadProduction(null);
+    },
+    now: () => Date.now(),
     rerender: () => {
       if (!this.unmounted) this.forceUpdate();
     },
@@ -1262,6 +1286,103 @@ export class OpsRuntime extends OpsProvider {
       eventPrices: { ...(s.eventPrices as object), ...patch.eventPrices }
     }));
     return 'started';
+  }
+
+  /** S3: what this phone has not sent yet (sales, voids, expenses). A day is not closed, or let go of, over any of it. */
+  private unsentForDay(): number {
+    return Math.max(Number(this.state.unsynced) || 0, this.operationsQueue, 0);
+  }
+
+  /**
+   * S3: "Close out" on a started day opens the day's review instead of the old close-out. The review is the owner's and
+   * is read from the database, so it needs signal; selling carries on without it.
+   */
+  private openDayReview(): void {
+    const event = this.state.event as LiveEvent | null;
+    if (!event?.dayId || !event.scheduledId) return;
+    if (this.state.role !== 'owner') {
+      this.toast('The owner closes the day from its review.', 'warn');
+      return;
+    }
+    if (!this.state.online) {
+      this.toast(
+        'Closing the day needs signal. Keep selling: sales are saved on this phone.',
+        'warn'
+      );
+      return;
+    }
+    this.bazaarDays.openReview(event.scheduledId, event.dayId, 'till');
+    this.forceUpdate();
+  }
+
+  /**
+   * S3: the database has closed this day. The phone lets go of it, but only once it has nothing left to send for it, and
+   * never through the engine's `resetEvent`: that would put what is left on the table into the shop's baked stock, and
+   * those cookies were carried over, sent to the shop or written off by her count.
+   */
+  private dropClosedDay(dayId: string): void {
+    if ((this.state.event as LiveEvent | null)?.dayId !== dayId) return;
+    if (this.unsentForDay() > 0) return;
+    this.setState(
+      {
+        event: null,
+        sales: [],
+        cart: {},
+        unsynced: 0,
+        syncState: 'idle',
+        syncTried: false,
+        drawer: null,
+        cartDiscount: 0,
+        saleRef: '',
+        tendered: '',
+        eventStock: {},
+        eventLoaded: {}
+      } as never,
+      // After the state has landed, so a save in between cannot put the day back.
+      () => clearBazaar()
+    );
+  }
+
+  /** S3: a loss (below zero) or more stock (above) on the day this phone is selling: the table follows. */
+  private moveDayStock(dayId: string, pid: string, by: number, loaded: number | null): void {
+    this.setState((s) => {
+      if ((s.event as LiveEvent | null)?.dayId !== dayId) return null;
+      const stock = (s.eventStock ?? {}) as Record<string, number>;
+      const patch: Record<string, unknown> = {
+        eventStock: { ...stock, [pid]: Math.max(0, (stock[pid] ?? 0) + by) }
+      };
+      if (loaded !== null)
+        patch.eventLoaded = { ...(s.eventLoaded as Record<string, number>), [pid]: loaded };
+      return patch as never;
+    });
+  }
+
+  /**
+   * S3: with signal, the day this phone holds is read from the database. Its float is the day's own (the saved copy on
+   * the phone keeps the event, not the drawer), and a day that was closed from another phone is let go of.
+   */
+  private async confirmHeldDay(): Promise<void> {
+    const event = this.state.event as LiveEvent | null;
+    const client = this.scheduledClient as unknown as BazaarClient | null;
+    if (!event?.dayId || !event.scheduledId || !client || this.state.role !== 'owner') return;
+    let data: Bazaar;
+    try {
+      data = await fetchBazaar(client, event.scheduledId);
+    } catch {
+      return;
+    }
+    const day = data.days.find((d) => d.id === event.dayId);
+    if (this.unmounted || !day) return;
+    if (day.state === 'closed') return this.dropClosedDay(day.id);
+    this.setState((s) => {
+      const now = s.event as LiveEvent | null;
+      if (now?.dayId !== day.id) return null;
+      const counted = (s.drawer as { counted?: unknown } | null)?.counted ?? '';
+      return {
+        event: { ...now, floatCents: day.floatCents },
+        drawer: { float: centavosToPesos(day.floatCents), counted }
+      } as never;
+    });
   }
 
   /**
@@ -1908,7 +2029,16 @@ export class OpsRuntime extends OpsProvider {
     if (isLiveMode()) {
       clearStoredBooks();
       const bazaar = readBazaar();
-      if (bazaar) this.setState(bazaar);
+      if (bazaar) {
+        // S3: the saved copy keeps the event and not the drawer. A started day carries its float on the event, so the
+        // drawer comes back with no signal; with signal it is confirmed from the day (`confirmHeldDay`).
+        const floatCents = (bazaar.event as LiveEvent | null)?.floatCents;
+        this.setState(
+          typeof floatCents === 'number' && Number.isInteger(floatCents) && floatCents >= 0
+            ? { ...bazaar, drawer: { float: centavosToPesos(floatCents), counted: '' } }
+            : bazaar
+        );
+      }
       this.afterRestore();
       return;
     }
@@ -2313,6 +2443,10 @@ export class OpsRuntime extends OpsProvider {
       liveStockItems: this.liveStockItemsVals(),
       liveStock: this.liveStockVals(),
       liveBazaar: isLiveMode() && this.state.role === 'owner' ? this.bazaarDays.vals() : null,
+      // S3: on a started day "Close out" opens the day's review, never the old close-out sheet (which the database refuses).
+      ...((this.state.event as LiveEvent | null)?.dayId
+        ? { askClose: () => this.openDayReview() }
+        : {}),
       liveStockSuppliers: this.liveStockSuppliersVals(),
       liveRecipeDrafts: this.liveRecipeDraftsVals(),
       // S2: the ported start list is never offered in live mode: a day is started from the Bazaar page (`liveBazaar`).
@@ -2688,6 +2822,7 @@ export class OpsRuntime extends OpsProvider {
     }
     this.forceUpdate();
     void this.retryPendingLink(use);
+    void this.confirmHeldDay();
     return true;
   }
 
@@ -4537,6 +4672,18 @@ export class OpsRuntime extends OpsProvider {
           (u.why ? ' · ' + u.why : '') +
           ' · ' +
           formatManila(u.at, { day: 'numeric', month: 'short' }, 'en-PH')
+      })),
+      // S3: a bazaar that is not closed yet is left out of the books; this says so, with what is held back.
+      held: books.held.map((h) => ({
+        id: h.scheduledId,
+        name: h.name,
+        detail:
+          plural(h.count, 'record', 'records') +
+          ' · ' +
+          pesoText(h.revenueCents) +
+          ' taken · ' +
+          pesoText(h.expenseCents) +
+          ' spent at the till'
       })),
       setBasis: (b) => void this.liveSetBasis(b),
       correct: (movementId, pesos) => void this.liveCorrect(movementId, pesos),

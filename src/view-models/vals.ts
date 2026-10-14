@@ -264,6 +264,7 @@ export interface OpsVals {
     receipts: Array<{ movementId: string; label: string }>;
     /** Stock used or wasted with no cost known (B3b-2): the item, then its quantity, why and date in one line. */
     uncosted?: Array<{ id: string; item: string; detail: string }>;
+    held?: Array<{ id: string; name: string; detail: string }>;
     /** Orders still owed money (null until the orders are read). */
     unpaid: {
       summary: string;
