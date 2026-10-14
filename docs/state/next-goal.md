@@ -1,35 +1,24 @@
-# Next goal — the bazaar days release (on Ethan's word only)
+# Next goal — release S3.1 (migration 69 and its build), on Ethan's word only
 
-One goal per package, each in a fresh conversation opened in the repository root. Paste
-one block. Where things stand: [current.md](current.md). The design and what was built:
-[bazaar-days.md](bazaar-days.md). Earlier goals are in [current-history.md](current-history.md) and in Git (S2: `fbae1e0`,
-this file).
+S3.1 is built and tested locally (14 October, `a18a9da`): migration 69 is `20260101006800_bazaar_hardening.sql`. **Nothing
+is applied to the trial.** The trial is at 68 and runs build `1b6c876c`. 69 and its build ship together: the old build's
+close and finalise are refused by 69, and the new build's are refused by 68 ([run sheet](bazaar-run-sheet.md) row 2a).
 
-S1 to S3 are built on branch `claude/bazaar-days-s3`, local only. The bazaar sells on the new flow on 24 to 25 October,
-with no fallback, so it must reach the trial and pass the phone rehearsal by 20 October. Every step below changes the
-hosted trial: run it only after Ethan says so in that conversation. The one-time set-up (S4, S5:
-[cine-set-up.md](cine-set-up.md)) follows, then B6 (New Recipes; its goal is in Git at `3597c19`, this file).
+**Proved locally:** `pnpm verify`; the SQL role suite (3,294 cases on each of two resets, all 1,516 mutants caught); one
+Opus review, with its two should-fix items (the trigger now takes the booking's lock; removing a fee again after the
+finalise is answered) fixed. **Still to prove:** `pnpm test:e2e`, and the two new **Remove** buttons (fees on the event page,
+losses in the day review) in the browser pane at phone width.
 
-## The release — migration 68, merge, deploy
-
-| Setting         | Value                                                                                            |
-| --------------- | ------------------------------------------------------------------------------------------------ |
-| Model, effort   | Claude Opus, high (hosted database and a release: no workers)                                    |
-| Plan mode       | On: state each hosted step and wait for Ethan's word                                             |
-| Permission mode | Default: every hosted write asks                                                                 |
-| Review          | None new: S3's reviews are in its commits                                                        |
-| Browser QA      | The trial at 320 px after the deploy: the event list, a plan, the review of a test day           |
-| Tools           | Node 24.20.0 and pnpm 9.12.3 from `happy-cookie-tools`; Docker, local Supabase, the Supabase MCP |
-| Stop            | The trial at 68 of 68 with an equal fingerprint, deployed; 25 turns; two failed fix attempts     |
-
-```text
-/goal Release the bazaar days (S1 to S3 of docs/state/bazaar-days.md) to the trial for The Happy Cookie Ops in
-C:\Users\ethan\dev\happy-cookie-ops-g0, on Ethan's word only. Read first: AGENTS.md, docs/state/current.md,
-docs/state/bazaar-run-sheet.md (rows 1 and 2), the saved notes on the trial upgrade. Ask Ethan before each hosted step.
-1. From a scratch folder (never the repository folder): copy the trial's schema to a scratch local database, apply
-   migration 20260101006700 there, run the bazaar-days role suite. 2. With his word: apply it to the trial, read the
-   migration list (68 of 68) and compare the schema fingerprint with local. 3. Free the Actions artifact storage or
-   wait for it, open a PR from claude/bazaar-days-s3, and with his word merge and let CI deploy. 4. Open the trial at
-   320 px: the event list, a plan, a review. Set RELEASE_HOLD only after the phone rehearsal passes. Update current.md
-   and the run sheet's go/no-go table. Stop after 25 turns or two failed fix attempts.
 ```
+/goal Release S3.1 to the trial in C:\Users\ethan\dev\happy-cookie-ops-g0, only after Ethan says "apply 69". Read
+AGENTS.md, docs/state/current.md, this file, bazaar-run-sheet.md row 2a. Pinned toolchain (Node 24.20.0, pnpm 9.12.3).
+1 pnpm test:e2e, output to a file; fix or stop.
+2 Browser-pane QA of the Remove buttons at 375 px.
+3 Apply 20260101006800 from a scratch folder holding only that file (dry run first), compare the schema fingerprint with
+  local, then push the branch so CI deploys the matching build; confirm the version on the trial.
+4 Update the run sheet rows 1, 2 and 2a, and current.md. Then the phone rehearsal.
+Stop and ask before any hosted write other than step 3.
+```
+
+Model Opus, effort high, a new conversation, plan mode off. Not in S3.1: an expense added at the till (`event_expenses`)
+cannot be removed yet.

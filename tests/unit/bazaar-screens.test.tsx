@@ -68,7 +68,9 @@ const review = (over: Partial<DayReviewView> = {}): DayReviewView => ({
   online: true,
   notices: [],
   stock: [stockRow(), emptyRow],
-  losses: [{ id: 'l1', text: '1 Double Chocolate Fudge · Dropped · 24 Oct, 2:15 PM' }],
+  losses: [
+    { id: 'l1', text: '1 Double Chocolate Fudge · Dropped · 24 Oct, 2:15 PM', remove: null }
+  ],
   dayFigures: [revenue, cost],
   eventFigures: [
     {
@@ -375,8 +377,8 @@ const eventView = (over: Partial<BazaarEventView> = {}): BazaarEventView => ({
   ],
   notices: ['This event was changed after it was closed.'],
   fees: [
-    { id: 'rent', text: 'Stall rent · Whole event', amountText: '₱2,500' },
-    { id: 'f1', text: 'Permit · Whole event · Oct 24', amountText: '₱200' }
+    { id: 'rent', text: 'Stall rent · Whole event', amountText: '₱2,500', remove: null },
+    { id: 'f1', text: 'Permit · Whole event · Oct 24', amountText: '₱200', remove: null }
   ],
   feesTotalText: '₱2,700',
   feeFor: [

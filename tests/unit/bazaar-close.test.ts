@@ -227,6 +227,7 @@ const close = (over: Partial<DayClose> = {}): DayClose => ({
   dayId: DAY1,
   at: 1_792_846_800_000,
   countedCents: 99500,
+  till: null,
   lines: {
     'mp0s-a': { left: 13, carryNext: 8, toShop: 3, writtenOff: 2 },
     'mp0s-d': { left: 0, carryNext: 0, toShop: 0, writtenOff: 0 }
@@ -253,17 +254,33 @@ describe('closeBazaarDay', () => {
           'mp0s-a': { left: 13, carry_next: 8, to_shop: 3, written_off: 2 },
           'mp0s-d': { left: 0, carry_next: 0, to_shop: 0, written_off: 0 }
         },
-        expected: HASH
+        expected: HASH,
+        sales_count: null,
+        cash_cents: null
       }
     });
     expect(Object.keys(closeBody(close())).sort()).toEqual([
       'at',
+      'cash_cents',
       'counted_cents',
       'day_id',
       'expected',
-      'lines'
+      'lines',
+      'sales_count'
     ]);
     // Mutation: an extra key, or a line renamed, is refused by the database (22023): it fails the exact body here first.
+  });
+
+  it('S3.1: sends the selling phone sale count and cash, and nulls from another phone', async () => {
+    const { rpc, client: c } = client({ data: {} });
+    await closeBazaarDay(c, close({ till: { salesCount: 4, cashCents: 50000 } }));
+    const body = (rpc.mock.calls[0] as unknown as [string, { p_close: Record<string, unknown> }])[1]
+      .p_close;
+    expect([body.sales_count, body.cash_cents]).toEqual([4, 50000]);
+    expect(await closeBazaarDay(c, close({ till: { salesCount: 1.5, cashCents: 0 } }))).toBe(
+      'refused'
+    );
+    expect(rpc).toHaveBeenCalledTimes(1);
   });
 
   it('sends no count as null, never as 0', async () => {
@@ -313,8 +330,24 @@ describe('finaliseBazaar', () => {
     expect(rpc).toHaveBeenCalledWith('finalise_bazaar', {
       p_booking: BOOKING,
       p_expected: HASH,
-      p_drop: 32
+      p_drop: 32,
+      p_till: null
     });
+  });
+
+  it('S3.1: sends the till figures of a closed day the phone still holds, and refuses bad ones here', async () => {
+    const { rpc, client: c } = client({ data: { hash: HASH } });
+    const till = { dayId: DAY1, salesCount: 4, cashCents: 50000 };
+    expect(await finaliseBazaar(c, BOOKING, HASH, 32, till)).toBe('saved');
+    expect(rpc).toHaveBeenLastCalledWith('finalise_bazaar', {
+      p_booking: BOOKING,
+      p_expected: HASH,
+      p_drop: 32,
+      p_till: { day_id: DAY1, sales_count: 4, cash_cents: 50000 }
+    });
+    expect(await finaliseBazaar(c, BOOKING, HASH, 32, { ...till, salesCount: -1 })).toBe('refused');
+    expect(await finaliseBazaar(c, BOOKING, HASH, 32, { ...till, dayId: 'nope' })).toBe('refused');
+    expect(rpc).toHaveBeenCalledTimes(1);
   });
 
   it('a changed event is stale, a day still open is refused', async () => {

@@ -40,8 +40,9 @@ import {
   enqueueCommand,
   enqueueVoid,
   isSaleKey,
-  pendingCount,
   pendingSales,
+  splitForEvent,
+  unsentForEvent,
   type CommandKind
 } from '@/lib/offline/queue';
 import { clearBazaar, readBazaar, saveBazaar } from '@/lib/offline/bazaar-state';
@@ -751,20 +752,36 @@ export class OpsRuntime extends OpsProvider {
         dayId: event.dayId,
         scheduledId: event.scheduledId,
         unsent: this.unsentForDay(),
+        refused: this.dayQueue?.refused.size ?? 0,
         stock: (this.state.eventStock ?? {}) as Record<string, number>
       };
     },
     begin: (booking, day) => this.beginBazaarDay(booking, day),
     dayClosed: (dayId) => void this.dropClosedDay(dayId),
-    countUnsent: async () => {
+    tillFigures: async () => {
+      const event = this.state.event as LiveEvent | null;
+      if (!event?.id) return null;
       try {
-        return await pendingCount();
+        const { blocking, refused } = await unsentForEvent(event.id);
+        const out = new Set(refused.map((row) => row.clientId));
+        // The engine drops a voided sale from its list, so what is left is the day's sales that are not voided.
+        const sales = (this.state.sales as EventSale[]).filter(
+          (sale) => !out.has(clientIdFor({ saleId: sale.id, at: sale.at }))
+        );
+        return {
+          unsent: blocking.length,
+          salesCount: sales.length,
+          cashCents: sales
+            .filter((sale) => sale.pay === 'Cash')
+            .reduce((sum, sale) => sum + pesosToCentavos(sale.total), 0)
+        };
       } catch {
         return null;
       }
     },
     closeInDoubt: (dayId) => this.setCloseInDoubt(dayId),
     lossSaved: (dayId, pid, qty) => this.moveDayStock(dayId, pid, -qty, null),
+    lossVoided: (dayId, pid, qty) => this.moveDayStock(dayId, pid, qty, null),
     stockAdded: (dayId, pid, qty, loaded) => this.moveDayStock(dayId, pid, qty, loaded),
     dropNo: () => (this.state as unknown as { dropNo: number }).dropNo,
     finalised: () => {
@@ -810,6 +827,8 @@ export class OpsRuntime extends OpsProvider {
   private operationsPhase: HealthPhase = 'loading';
   private operationsLoadSeq = 0;
   private operationsQueue = -1;
+  /** S3.1: the held event's share of the queue, as last read: rows still to send, and the client ids the server refused. */
+  private dayQueue: { blocking: number; refused: Set<string> } | null = null;
   private pendingExpenses = new Map<string, ExpenseFields>();
   private pendingDraws = new Map<string, DrawFields>();
   private pendingCorrections = new Map<string, CorrectionFields>();
@@ -1328,10 +1347,16 @@ export class OpsRuntime extends OpsProvider {
 
   /**
    * S3: what this phone has not sent yet, as the screen shows it (sales, and the queue's own count when it was read).
-   * The close and the drop of a day count the queue itself (`pendingCount`).
+   * The close and the drop of a day count the queue itself (`unsentForEvent`).
    */
   private unsentForDay(): number {
-    return Math.max(Number(this.state.unsynced) || 0, this.operationsQueue, 0);
+    const day = this.dayQueue;
+    if (!day) return Math.max(Number(this.state.unsynced) || 0, this.operationsQueue, 0);
+    // S3.1: only the held event's rows, and a sale the server refused outright no longer holds the day (it stays queued).
+    const onScreen = (this.state.sales as EventSale[]).filter(
+      (sale) => !sale.synced && !day.refused.has(clientIdFor({ saleId: sale.id, at: sale.at }))
+    ).length;
+    return Math.max(onScreen, day.blocking, 0);
   }
 
   /**
@@ -1364,10 +1389,13 @@ export class OpsRuntime extends OpsProvider {
   private async dropClosedDay(dayId: string): Promise<void> {
     if ((this.state.event as LiveEvent | null)?.dayId !== dayId) return;
     if (this.unsentForDay() > 0) return;
-    // The queue itself decides: anything it has not sent (or a queue that cannot be read) keeps the day on the phone.
+    // The queue itself decides: anything of this day it has not sent (or a queue that cannot be read) keeps the day on the
+    // phone. A sale the server refused outright does not (S3.1): it stays in the queue, listed, and is never deleted.
+    const eventId = (this.state.event as LiveEvent | null)?.id;
+    if (!eventId) return;
     let unsent: number;
     try {
-      unsent = await pendingCount();
+      unsent = (await unsentForEvent(eventId)).blocking.length;
     } catch {
       return;
     }
@@ -6187,10 +6215,19 @@ export class OpsRuntime extends OpsProvider {
       queue = await allSales();
     } catch {
       this.operationsQueue = -1;
+      this.dayQueue = null;
       this.setState({});
       return;
     }
     this.operationsQueue = queue.filter((row) => row.state !== 'sent').length;
+    const heldId = (this.state.event as LiveEvent | null)?.id;
+    const split = heldId ? splitForEvent(queue, heldId) : null;
+    this.dayQueue = split
+      ? {
+          blocking: split.blocking.length,
+          refused: new Set(split.refused.map((row) => row.clientId))
+        }
+      : null;
     const states = new Map(queue.map((row) => [row.clientId, row.state]));
     this.setState((s) => {
       const sales = (s.sales as EventSale[]).map((sale) => {

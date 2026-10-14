@@ -44,7 +44,8 @@ ORDER_MIGRATIONS = [ROOT / 'supabase/migrations/20260101003500_place_order.sql',
                     ROOT / 'supabase/migrations/20260101006400_cutover_guard.sql',
                     ROOT / 'supabase/migrations/20260101006500_count_shrinkage.sql',
                     ROOT / 'supabase/migrations/20260101006600_item_movements.sql',
-                    ROOT / 'supabase/migrations/20260101006700_bazaar_days.sql']
+                    ROOT / 'supabase/migrations/20260101006700_bazaar_days.sql',
+                    ROOT / 'supabase/migrations/20260101006800_bazaar_hardening.sql']
 _OUT = 'order outcome differs: anon / '
 _CHK = 'order check differs: anon / '
 _LOOK = 'lookup check differs: anon / '
@@ -1059,6 +1060,29 @@ BAZAAR_DAY_MUTATIONS = {
     'text_bz_cash_only': ('bazaar_summary', 'text', ("s.pay_method = 'Cash'), 0)::bigint as cash", "true), 0)::bigint as cash"), _BZC + 'day_one_takings / '),
     'text_bz_voided_counts_nowhere': ('bazaar_line_facts', 'text', ("where s.event_id = d.event_id and s.voided_at is null and i.product_id", "where s.event_id = d.event_id and i.product_id"), _BZC + 'day_one_stock / '),
     'text_bz_zero_total_is_given': ('bazaar_line_facts', 'text', ("filter (where s.total_cents = 0) as given", "filter (where false) as given"), _BZC + 'day_one_stock / '),
+    # S3.1 (migration 69): the till check, taking back a fee or a loss, no sale after the finalise, no stock load on a bazaar day.
+    'rule_bz_close_till': ('close_bazaar_day', 'rule', 'close-till', _BZO + 'close_till_count_off / '),
+    'rule_bz_fin_till_shape': ('finalise_bazaar', 'rule', 'fin-till-shape', _BZO + 'finalise_till_shape / '),
+    'rule_bz_fin_till_day': ('finalise_bazaar', 'rule', 'fin-till-day', _BZO + 'finalise_till_other_booking / '),
+    'rule_bz_fin_till': ('finalise_bazaar', 'rule', 'fin-till', _BZO + 'finalise_till_count_off / '),
+    'rule_bz_fee_void_shape': ('void_bazaar_fee', 'rule', 'fee-void-shape', _BZO + 'fee_void_shape / '),
+    'rule_bz_fee_void_missing': ('void_bazaar_fee', 'rule', 'fee-void-missing', _BZO + 'fee_void_missing / '),
+    'rule_bz_fee_void_finalised': ('void_bazaar_fee', 'rule', 'fee-void-finalised', _BZO + 'fee_void_after_finalise / '),
+    'rule_bz_loss_void_shape': ('void_bazaar_loss', 'rule', 'loss-void-shape', _BZO + 'loss_void_shape / '),
+    'rule_bz_loss_void_missing': ('void_bazaar_loss', 'rule', 'loss-void-missing', _BZO + 'loss_void_missing / '),
+    'rule_bz_loss_void_day_closed': ('void_bazaar_loss', 'rule', 'loss-void-day-closed', _BZO + 'loss_void_day_closed / '),
+    'rule_bz_sale_finalised': ('refuse_finalised_bazaar_sale', 'rule', 'sale-finalised', _BZO + 'sale_after_finalise / '),
+    'rule_bz_load_bazaar_day': ('load_event_stock', 'rule', 'load-bazaar-day', _BZO + 'load_stock_on_a_bazaar_day / '),
+    'text_bz_void_fee_listed': ('bazaar_summary', 'text', ('where f.scheduled_id = p_booking and f.voided_at is null', 'where f.scheduled_id = p_booking'),
+                                _BZC + 'void_leaves_the_figures / '),
+    'text_bz_void_fee_of_the_day': ('bazaar_summary', 'text', ('where f.day_id = v_d.id and f.voided_at is null;', 'where f.day_id = v_d.id;'),
+                                    _BZC + 'void_leaves_the_figures / '),
+    'text_bz_void_loss_counted': ('bazaar_line_facts', 'text', ('\n                                              and o.voided_at is null) x on true', ') x on true'),
+                                  _BZC + 'void_leaves_the_figures / '),
+    'text_bz_void_loss_listed': ('get_bazaar', 'text', ('where d.scheduled_id = p_booking and o.voided_at is null),', 'where d.scheduled_id = p_booking),'),
+                                 _BZC + 'void_leaves_the_figures / '),
+    'text_bz_void_fee_posted': ('finalise_bazaar', 'text', ('and f.ledger_id is null and f.voided_at is null', 'and f.ledger_id is null'),
+                                _BZC + 'finalise_skips_a_voided_fee / '),
     'text_bz_incomplete_recipe': ('start_bazaar_day', 'text', ("where r ->> 'product_id' = l.product_id and (r ->> 'complete')::boolean),", "where r ->> 'product_id' = l.product_id),"), _BZC + 'incomplete_recipe_is_no_cost / '),
     'text_bz_held_lines': ('get_books', 'text', ("select coalesce(array_agg(h.ledger_id), '{}'::uuid[]) into v_held_ids", "select '{}'::uuid[] into v_held_ids"), _BZC + 'books_hold_an_open_bazaar / '),
     'text_bz_held_period': ('get_books', 'text', ("where l.occurred_at >= p_from and l.occurred_at < p_to\n           group by h.scheduled_id", "where true\n           group by h.scheduled_id"), _BZC + 'books_held_follows_the_period / '),
@@ -1072,8 +1096,8 @@ BAZAAR_DAY_MUTATIONS = {
 }
 BAZAAR_DAY_ACL = ('get_bazaar(uuid)', 'save_bazaar_day(jsonb,timestamptz)', 'save_bazaar_fee(jsonb)', 'save_bazaar_loss(jsonb)',
                   'save_bazaar_cost(uuid,text,numeric)', 'save_bazaar_target(uuid,bigint)', 'start_bazaar_day(uuid,text,uuid)',
-                  'add_bazaar_day_stock(uuid,text,integer,text,uuid)', 'close_bazaar_day(jsonb)', 'finalise_bazaar(uuid,text,integer)',
-                  'bazaar_summary(uuid)', 'bazaar_line_facts(uuid)', 'bazaar_held_ledger()', 'recipe_stock_plan(text,numeric,text,jsonb)')
+                  'add_bazaar_day_stock(uuid,text,integer,text,uuid)', 'close_bazaar_day(jsonb)', 'finalise_bazaar(uuid,text,integer,jsonb)',
+                  'void_bazaar_fee(text)', 'void_bazaar_loss(text)', 'refuse_finalised_bazaar_sale()', 'bazaar_summary(uuid)', 'bazaar_line_facts(uuid)', 'bazaar_held_ledger()', 'recipe_stock_plan(text,numeric,text,jsonb)')
 SUITES = (
     ('public-catalog.sql', ('catalog_raw_read','catalog_view_update'), 'catalog boundary', 41),
     ('private-role-authority.sql', ('private_orders_select','private_stock_update'), 'private authority', 103),
@@ -1129,7 +1153,7 @@ SUITES = (
     ('imports.sql', IMPORT_ACL + tuple(IMPORT_MUTATIONS), 'forbidden import call succeeded', 261),
     ('operations.sql', tuple(OPERATIONS_MUTATIONS), 'forbidden operations call succeeded', 14),
     ('bazaar-closeout.sql', ('event_summary(uuid)', 'load_event_stock(uuid,jsonb,bigint)', 'add_event_expense(jsonb)', 'close_event(jsonb)'), 'forbidden closeout call succeeded', 80),
-    ('bazaar-days.sql', BAZAAR_DAY_ACL + tuple(BAZAAR_DAY_MUTATIONS), 'forbidden bazaar day call succeeded', 211),
+    ('bazaar-days.sql', BAZAAR_DAY_ACL + tuple(BAZAAR_DAY_MUTATIONS), 'forbidden bazaar day call succeeded', 245),
     ('shop-identity.sql', ('save_shop_identity(jsonb,timestamptz)', 'business_clock(timestamptz)') + tuple(IDENTITY_MUTATIONS) + tuple(IDENTITY_RULES),
      'forbidden identity call succeeded', IDENTITY_ROWS),
     ('policies.sql', tuple(POLICY_MUTATIONS), 'policy', 42),
@@ -1484,7 +1508,7 @@ def main():
                 h.fail(filename + ' did not return its complete role matrix')
             results.extend(rows)
             assert_empty()
-        if len(set(results)) != 3260:
+        if len(set(results)) != 3294:
             h.fail('combined role matrix has missing or duplicate cases: %d rows, %d unique (duplicates: %s)' % (len(results), len(set(results)), sorted({r for r in results if results.count(r) > 1})[:5]))
         assert_functions()
         assert_catalog_wide()
@@ -1497,10 +1521,10 @@ def main():
     try:
         code = h.main(after_reset=check)
         if (code == 0 and len(report["runs"]) == 2 and report["runs"][0] == report["runs"][1]
-                and len(report['regressions_detected']) == 1476 and report['sequence_restorations'] == 10
+                and len(report['regressions_detected']) == 1516 and report['sequence_restorations'] == 10
                 and report['upgrade_runs'] == 2 and report['pair_guard_runs'] == 2 and report['function_guard_runs'] == 4
                 and report['catalog_guard_runs'] == 4 and report['catalog_guard_red_runs'] == 4):
-            report.update(status="passed", cases_per_reset=3260, resets=2, matrix_equal=True, rollback_verified=True,
+            report.update(status="passed", cases_per_reset=3294, resets=2, matrix_equal=True, rollback_verified=True,
                           sql_sha256={name: hashlib.sha256((ROOT / 'tests/integration/security' / name).read_bytes()).hexdigest() for name, _, _, _ in SUITES},
                           harness_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
     except (RuntimeError, OSError, ValueError) as error:

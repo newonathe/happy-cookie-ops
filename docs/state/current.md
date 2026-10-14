@@ -4,7 +4,7 @@ Read this page first in a new session. It is kept short on purpose.
 
 | If you need                                        | Read                                                                                                                                                     |
 | -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| The goal to run next                               | [bazaar-days.md](bazaar-days.md), its S3 block (next-goal.md still holds S2)                                                                             |
+| The goal to run next                               | [bazaar-days.md](bazaar-days.md), its S3 block (next-goal.md holds S3.1)                                                                                 |
 | The plan, approved 5 October                       | [final-plan.md](final-plan.md), version 2                                                                                                                |
 | The rules every agent follows                      | [AGENTS.md](../../AGENTS.md)                                                                                                                             |
 | Ethan's and Cine's decisions                       | [decision-register.md](decision-register.md)                                                                                                             |
@@ -15,6 +15,12 @@ Read this page first in a new session. It is kept short on purpose.
 | Older checkpoints, verbatim                        | [current-history.md](current-history.md)                                                                                                                 |
 
 ## Where things stand — 7 October 2026
+
+**S3.1 bazaar hardening (14 October): built and tested locally, not applied.** Migration 69 (`20260101006800_bazaar_hardening.sql`;
+the goal's "006900" would break the contiguous-version check) and its client: a refused sale no longer blocks the close; close and
+finalise check the till's count and cash (40001); a fee or a loss can be removed; no sale or void lands on a finalised event; no stock
+load on a bazaar day; retry ids survive a reload. 69 and its build ship together ([run sheet](bazaar-run-sheet.md) row 2a); the
+rehearsal waits for both. Next: [next-goal.md](next-goal.md).
 
 **The plan is approved; stage A (A1 to A4) and slices B1 to B3b-2, B4a, B4b and B5 are built.** Ethan approved
 [final-plan.md](final-plan.md), version 2, on 5 October after a re-audit, a debate and
@@ -34,15 +40,6 @@ version `1b6c876c` to the trial, 14 October. The trial now runs S1 to S3 on a da
 openable, "Close the day" with the leftover split, carrying over, fees, target, typed cost, "Close the event", and the books'
 "Bazaar in progress" line. No new migration. The smoke suite closes day 1, carries into day 2, sells through an offline
 reload, closes, finalises and reads the books. Decisions as built: [bazaar-days.md](bazaar-days.md), "S3 as built".
-
-**S1, 13 October (built, local only; the trial stays at 67):** migration 68 holds a booking's days, fees, losses, costs,
-start, close and finalise, held to a hand-worked example to the centavo; the books count an open bazaar in `held`.
-Contracts as built, and Ethan's answers of 14 October (shop cookies are a batch of the drop): [bazaar-days.md](bazaar-days.md).
-
-**S2, 14 October (built, local only; branch claude/bazaar-days-s2):** the Bazaar screen is the owner's event list, event page, day plan
-and "Start this day" (`src/components/live/bazaar/`); with an event on the phone it draws the ported till unchanged, so a helper and a
-phone with no signal still sell. The old one-tap start and the ported start list are closed in live mode; "Leave" and the old close-out
-refuse on a started day (S3 closes it from a review). The smoke suite plans, starts and sells day 1 at its own price, online and offline.
 
 **Her data and the database, 13 October:** at Ethan's instruction the trial went from migration 55 to 67 of 67 (through
 B5), rehearsed first on the local database, and her data is in: 23 recipes with packaging lines, 72 prices, the items

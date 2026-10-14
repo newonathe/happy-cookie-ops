@@ -82,7 +82,7 @@ async function flushOnce(client: EventSalesClient | null): Promise<FlushResult> 
       await markSent([row.clientId]);
       sent.push(row.clientId);
     } else {
-      await markFailed(row.clientId, outcome.error);
+      await markFailed(row.clientId, outcome.error, outcome.permanent === true);
       failed.push({
         clientId: row.clientId,
         error: outcome.error,
