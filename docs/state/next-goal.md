@@ -1,7 +1,11 @@
 # Next goal — release S3.1 (migration 69 and its build), on Ethan's word only
 
-S3.1 is built and tested locally (14 October, `a18a9da`): migration 69 is `20260101006800_bazaar_hardening.sql`. **Nothing
-is applied to the trial.** The trial is at 68 and runs build `1b6c876c`. 69 and its build ship together: the old build's
+**Update 14 October, 13:45 UTC:** steps 1 to 3 are done up to the deploy. 69 is applied (69 of 69, fingerprint equal to
+local) and PR #24 is merged (`3cf4a36`), but GitHub refused to start the deploy job of run 38571263630 (account payment
+or spending limit). Left: fix billing, rerun that job, confirm the version, then step 4.
+
+S3.1 is built and tested locally (14 October, `a18a9da`): migration 69 is `20260101006800_bazaar_hardening.sql`. The
+trial ran build `1b6c876c` on 68. 69 and its build ship together: the old build's
 close and finalise are refused by 69, and the new build's are refused by 68 ([run sheet](bazaar-run-sheet.md) row 2a).
 
 **Proved locally:** `pnpm verify`; the SQL role suite (3,294 cases on each of two resets, all 1,516 mutants caught); one

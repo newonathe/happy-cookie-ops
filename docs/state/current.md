@@ -16,7 +16,7 @@ Read this page first in a new session. It is kept short on purpose.
 
 ## Where things stand — 7 October 2026
 
-**S3.1 bazaar hardening (14 October): built and tested locally, not applied.** Migration 69 (`20260101006800_bazaar_hardening.sql`;
+**S3.1 bazaar hardening (14 October): 69 applied to the trial, its build NOT deployed.** GitHub refused to start run 38571263630's deploy job ("recent account payments have failed or your spending limit needs to be increased"); until it reruns, the trial's build `1b6c876c` cannot close a day or the event. Migration 69 (`20260101006800_bazaar_hardening.sql`;
 the goal's "006900" would break the contiguous-version check) and its client: a refused sale no longer blocks the close; close and
 finalise check the till's count and cash (40001); a fee or a loss can be removed; no sale or void lands on a finalised event; no stock
 load on a bazaar day; retry ids survive a reload. 69 and its build ship together ([run sheet](bazaar-run-sheet.md) row 2a); the
