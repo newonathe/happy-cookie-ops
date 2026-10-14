@@ -26,8 +26,10 @@ phone rehearsal by 20 October ([bazaar-run-sheet.md](bazaar-run-sheet.md)), once
 **Release, 14 October (at Ethan's word):** migration 68 applied to the trial from a scratch folder (dry run first: only
 that file); the trial is at 68 of 68. Schema fingerprint equal to local (columns, policies, row security, table grants,
 functions), apart from Postgres 17 quoting `json_value` in three settings functions and the platform's `rls_auto_enable`.
-PR #21 merged into the working branch at `de78fdc`; CI run 38517366460 started. Check it deployed (artifact storage was
-full on 13 October) before rehearsing.
+PR #21 merged into the working branch at `de78fdc`. CI run 38517366460: every test job green (performance budget red, as
+before), but the release did not deploy: the artifact storage quota is hit (the repository holds one 4.2 MB artifact,
+so the quota is account-wide or not recalculated yet). After it recalculates: `gh run rerun 38517366460 --failed`.
+The trial's database is at 68 while it still runs the 8 October build: do not rehearse until the deploy is done.
 
 **S3, 14 October (built; merged in PR #21):** losses, more stock, the day review with each figure
 openable, "Close the day" with the leftover split, carrying over, fees, target, typed cost, "Close the event", and the books'
