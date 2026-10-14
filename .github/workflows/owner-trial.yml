@@ -104,6 +104,10 @@ jobs:
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.TRIAL_SUPABASE_PUBLISHABLE_KEY }}
           NEXT_PUBLIC_HARNESS: '0'
           NEXT_PUBLIC_APP_MODE: live
+      # The QR step draws its placeholders in Chromium, which the quality job has from its Playwright container.
+      - name: Install Chromium for the QR placeholders
+        if: steps.hold.outputs.deploy == 'true'
+        run: pnpm exec playwright install --with-deps chromium
       - name: Remove real payment QR images from closed trial assets
         if: steps.hold.outputs.deploy == 'true'
         run: node scripts/preview-placeholder-qr.mjs

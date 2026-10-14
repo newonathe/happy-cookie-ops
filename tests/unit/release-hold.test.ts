@@ -87,6 +87,12 @@ describe('owner-trial workflow: hold on means no deploy', () => {
     expect(building[0]).not.toContain('CLOUDFLARE');
     const qr = steps.findIndex((step) => step.includes('preview-placeholder-qr.mjs'));
     const deploy = steps.findIndex((step) => step.includes('check-owner-trial-release.mjs'));
+    // The QR step needs Chromium, which the bare deploy runner does not have until it is installed, behind the gate.
+    const browser = steps.findIndex((step) =>
+      step.includes('playwright install --with-deps chromium')
+    );
+    expect(browser).toBeGreaterThan(holdAt);
+    expect(browser).toBeLessThan(qr);
     // The real payment QR images are removed before anything is deployed.
     expect(qr).toBeGreaterThan(steps.indexOf(building[0]));
     expect(qr).toBeLessThan(deploy);
