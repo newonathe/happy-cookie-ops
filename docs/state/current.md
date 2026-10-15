@@ -18,7 +18,7 @@ Read this page first in a new session. It is kept short on purpose.
 
 **Bazaar v2 (15 October): in progress.** Ethan's 13-point review of the bazaar screens (design, flow, motion)
 is planned as 10 slices, D0 to U9, in [bazaar-v2.md](bazaar-v2.md); everything lands before the bazaar, one release, then the
-rehearsal by 22 October. D0 approved 15 Oct ([spec](../design/bazaar-v2.md)). U1 built 15 Oct (tokens, 16 components, `peso()`, motion helpers; live money now shows two decimals). U2 built 15 Oct (branch `claude/bazaar-v2-u2`: leave and return to the till, sold-out tiles hidden, Add cookies; Ateneo B1, B2). U6 built 15 Oct, local only (migration 70 in the repo, not on the trial, still 69 of 69; Opus review and database suites noted in [bazaar-v2.md](bazaar-v2.md), "U6 as built"). Next: U3, with U5 in a second conversation ([next-goal.md](next-goal.md)). The
+rehearsal by 22 October. D0 approved 15 Oct ([spec](../design/bazaar-v2.md)). U1 built 15 Oct (tokens, 16 components, `peso()`, motion helpers; live money now shows two decimals). U2 built 15 Oct (branch `claude/bazaar-v2-u2`: leave and return to the till, sold-out tiles hidden, Add cookies; Ateneo B1, B2). U6 built 15 Oct, local only (migration 70 in the repo, not on the trial, still 69 of 69; Opus review and database suites noted in [bazaar-v2.md](bazaar-v2.md), "U6 as built"). U3 built 15 Oct (branch `claude/bazaar-v2-u3`, from `-u2`: the events hub, the add-event sheet, a status pill per row; "U3 as built" in bazaar-v2.md). Next: U5 (review and close) in its own conversation, then U4 ([next-goal.md](next-goal.md)). The
 Ateneo test audit (15 Oct, in bazaar-v2.md) found 13 issues. Ethan chose migration 70 before the bazaar and a reviewed
 reversal of the Ateneo test (its rent, over, sales and stock use are in October's books until then).
 
@@ -81,6 +81,7 @@ Found by reading code or the trial, not by running. Each has a slice in the plan
 | Cost per cookie: 22 of 23 recipes are complete (all 7 menu flavours, read 15 October); no per-flavour override yet. | U6     |
 | A mistyped delivery quantity cannot be undone, and under a running average it lingers. Needs a decision.            | Ethan  |
 | Every page, the shop included, loads the whole staff app.                                                           | C8     |
+| Home's next-event card can show a closed event whose dates are ahead (it trusts `started`, which days never set).   | U4     |
 
 ### Decisions in force
 

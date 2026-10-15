@@ -94,7 +94,8 @@ function harness(first: Wire) {
     today: () => '2026-10-24',
     now: () => clock,
     newId: () => `00000000-0000-4000-8000-${String(++ids).padStart(12, '0')}`,
-    openAdd: () => {}
+    openAdd: () => {},
+    refreshBookings: vi.fn(async () => true)
   } satisfies BazaarDaysDeps;
   const store = new BazaarDays(deps);
   const calls = (name: string) =>

@@ -314,6 +314,9 @@ const livePanel = (over: Partial<LiveBazaarVals> = {}): LiveBazaarVals => ({
   review: null,
   closeReview: noop,
   add: noop,
+  readHub: noop,
+  addEvent: async () => null,
+  justAdded: null,
   retry: noop,
   back: noop,
   ...over

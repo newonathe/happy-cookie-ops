@@ -40,6 +40,7 @@
  *   - the flavour `dcf` is set published and on the order form (the only existing row it changes);
  *   - one `production_records` batch row, written directly so the stall has baked stock: no
  *     ingredients are taken for it;
+ *   - one more booking, added through the events hub's sheet (U3), and
  *   - one booking with its two days, their five sales, one loss, one fee, a typed cost and a target, closed as an event:
  *     its rent, fee and drawer difference are in the ledger, its stock use is taken (shortfalls recorded), and one cookie
  *     is written as a batch when the flavour has a recipe. Repeated runs add one booking each; `pnpm db:reset` clears them.
@@ -115,6 +116,9 @@ const manilaPlus = (days) =>
   new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Manila' }).format(
     new Date(Date.now() + days * 86_400_000)
   );
+// U3: the event added through the hub's sheet, a month ahead so it sits under Upcoming on any run.
+const ADDED_NAME = 'Smoke added ' + bookingId.slice(0, 8);
+const ADDED_DAY = manilaPlus(30);
 
 // Values of the prototype that must be on no live page (audit H1 to H6, H14, and the ported
 // payment channels). The local seed holds none of them as a real record; two that it does
@@ -422,6 +426,12 @@ try {
           visited += 1;
           if (entry.screen) {
             await check(page, at, SCREEN_LABEL[entry.screen]);
+            if (entry.label === 'Bazaar events') {
+              // U3: the sub-tab opens the hub; the multi-row form is the hub's "Edit or switch off events".
+              await page.getByRole('button', { name: 'Edit or switch off events' }).click();
+              await sheetShown(page, at);
+              await closeSheet(page);
+            }
           } else if (entry.label.startsWith('Preview')) {
             // A preview leaves the staff app for a customer page, which has no strip: come back.
             await page.waitForFunction(() =>
@@ -527,6 +537,51 @@ try {
     await page.waitForFunction((n) => (window.__hcOps.state.sales ?? []).length === n, wanted);
   };
   let eventId = '';
+
+  // U3: one event added from the hub's sheet. It is a second booking, far enough ahead to sit under Upcoming.
+  await step(
+    'Bazaar: an event is added in the sheet, listed under Upcoming, and saved once',
+    async () => {
+      await page.goto(`${base}/bazaar`, { waitUntil: 'networkidle' });
+      await check(page, 'Bazaar events hub', 'Bazaar');
+      await page.getByRole('button', { name: 'Add an event' }).click();
+      const sheet = page.getByRole('dialog', { name: 'Add an event' });
+      await sheet.waitFor();
+      // Saved empty, it points at the fields and sends nothing.
+      await sheet.getByRole('button', { name: 'Save the event' }).click();
+      await page.getByText('There is a problem').waitFor();
+      assert(
+        (await sheet.getByLabel('Name', { exact: true }).getAttribute('aria-invalid')) === 'true',
+        'The empty name is not marked invalid.'
+      );
+      await sheet.getByLabel('Name', { exact: true }).fill(ADDED_NAME);
+      await sheet.getByLabel('Place', { exact: true }).fill('Smoke court');
+      await sheet.getByLabel('First day', { exact: true }).fill(ADDED_DAY);
+      assert(
+        (await sheet.getByLabel('Last day', { exact: true }).inputValue()) === ADDED_DAY,
+        'The last day did not follow the first.'
+      );
+      await sheet.getByLabel('Stall rent', { exact: true }).fill('1,250.50');
+      await sheet.getByRole('button', { name: 'Save the event' }).click();
+      await sheet.waitFor({ state: 'detached' });
+      await page
+        .getByRole('list', { name: 'Upcoming events' })
+        .getByRole('button', { name: new RegExp(ADDED_NAME) })
+        .waitFor();
+      const saved = await admin.from('scheduled_events').select('*').eq('name', ADDED_NAME);
+      assert(!saved.error && saved.data.length === 1, `scheduled_events: ${saved.error?.message}`);
+      const added = saved.data[0];
+      assert(
+        added.place === 'Smoke court' &&
+          added.starts_on === ADDED_DAY &&
+          added.ends_on === ADDED_DAY &&
+          Number(added.rent_cents) === 125050 &&
+          added.active === true &&
+          added.event_id === null,
+        `The saved event is not what was typed: ${JSON.stringify(added)}`
+      );
+    }
+  );
 
   await step(
     'Bazaar: day 1 is planned, started at its own price and stock, and one sale goes through',

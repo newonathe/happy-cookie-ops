@@ -8,17 +8,31 @@
  * Add to it only together with both sides.
  */
 
+import type { EventFormInput } from '@/lib/bazaar/event-form';
+
 /** A day's state as a word first: the colour never says it alone. */
 export type DayWord = 'Planned' | 'Selling' | 'Closed';
 
 export interface BazaarListRow {
   id: string;
   name: string;
-  /** "Sat, Oct 24 – Sun, Oct 25" */
+  /** "Sat, 24 Oct – Sun, 25 Oct" */
   datesText: string;
   /** The place, or "No place set". */
   placeText: string;
   open: () => void;
+  /** U3: where the hub draws it. Active is pinned; Upcoming and Past sit behind the filter chips. */
+  group: 'active' | 'upcoming' | 'past';
+  /** U3: the pill. The word always shows with it; the colour is never the only signal. */
+  status: 'today' | 'selling' | 'planned' | 'closed' | 'past' | 'costPending';
+  /** U3: its read is still out. It is placed by its dates and drawn without a status it may not have. */
+  reading: boolean;
+  /** U3: "Today", "Tomorrow", "In 9 days"; null once it is over. */
+  whenText: string | null;
+  /** U3: today's takings and cookies sold, only for an active event that was read; never a ₱0.00 for an unknown. */
+  figures: { revenueText: string; soldText: string } | null;
+  /** U3: words under the row that block nothing (its read failed). */
+  note: string | null;
 }
 
 export interface BazaarDayRow {
@@ -261,8 +275,17 @@ export interface LiveBazaarVals {
   tillPanel: TillPanelView | null;
   /** Leaves a review that is still being read or could not be read. */
   closeReview: () => void;
-  /** The existing "Bazaar events" form: where a booking is added. */
+  /** The existing "Bazaar events" form, with a row for every booking: where one is changed or switched off (until U4 moves editing to the event page). */
   add: () => void;
+  /** U3: reads the started events that are under way, so the hub can place each one. Call when the hub is shown; it is safe to repeat. */
+  readHub: () => void;
+  /**
+   * U3: adds one event from the sheet. Returns null once it is saved and listed, otherwise the words for what is wrong (no
+   * signal, a refusal). The sheet checks each field itself with `validateEventForm`; this checks again before sending.
+   */
+  addEvent: (input: EventFormInput) => Promise<string | null>;
+  /** U3: the id of the event added last, so its row can rise and show a ring. Null once she opens an event or leaves. */
+  justAdded: string | null;
   retry: () => void;
   /** From a booking that could not be read (or any view of one) back to the list. */
   back: () => void;
