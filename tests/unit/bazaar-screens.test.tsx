@@ -7,6 +7,7 @@ import type {
   DayPlanEditor,
   DayReviewView,
   LiveBazaarVals,
+  PlanFlavour,
   ReviewFigure
 } from '@/lib/bazaar/live-bazaar-types';
 import type { OpsVals } from '@/view-models/vals';
@@ -564,7 +565,7 @@ describe('the Bazaar screen with a review open', () => {
 
 const dayRow = (over: Partial<BazaarDayRow> = {}): BazaarDayRow => ({
   id: 'day1',
-  dateText: 'Sat, Oct 24',
+  dateText: 'Sat, 24 Oct',
   word: 'Selling',
   cookiesText: '25 cookies on the table',
   floatText: 'Float ₱500',
@@ -573,7 +574,22 @@ const dayRow = (over: Partial<BazaarDayRow> = {}): BazaarDayRow => ({
   action: 'review',
   actionNote: null,
   hint: 'Selling on Ethan’s phone.',
+  outcome: null,
+  startPrompt: null,
+  start: noop,
   run: noop,
+  ...over
+});
+
+const closedDay = (over: Partial<BazaarDayRow> = {}) =>
+  dayRow({ word: 'Closed', action: 'see', hint: null, ...over });
+
+const finalise = (over: Partial<NonNullable<BazaarEventView['finalise']>> = {}) => ({
+  blocked: null,
+  stranded: [],
+  strandedFor: null,
+  costPending: [],
+  run: vi.fn(async (): Promise<string | null> => null),
   ...over
 });
 
@@ -581,24 +597,52 @@ const eventView = (over: Partial<BazaarEventView> = {}): BazaarEventView => ({
   id: 'b1',
   name: 'Katipunan market',
   placeText: 'Katipunan Ave, QC',
-  datesText: 'Sat, Oct 24 – Sun, Oct 25',
+  datesText: 'Sat, 24 Oct – Sun, 25 Oct',
   rentText: 'Stall rent ₱2,500',
+  rentCents: 250000,
+  status: 'selling',
+  soldCount: 13,
+  profitCents: 30000,
+  targetCents: 50000,
   days: [
     dayRow(),
-    dayRow({ id: 'day2', dateText: 'Sun, Oct 25', word: 'Closed', action: 'see', hint: null })
+    closedDay({
+      id: 'day2',
+      dateText: 'Sun, 25 Oct',
+      outcome: {
+        soldText: '13 sold',
+        revenueText: '₱1,640.00',
+        leftText: '8 left',
+        carriedText: '5 carried over',
+        drawerText: '₱5.00 short'
+      }
+    })
   ],
   notices: ['This event was changed after it was closed.'],
   fees: [
-    { id: 'rent', text: 'Stall rent · Whole event', amountText: '₱2,500', remove: null },
-    { id: 'f1', text: 'Permit · Whole event · Oct 24', amountText: '₱200', remove: null }
+    {
+      id: 'rent',
+      text: 'Stall rent · Whole event',
+      amountText: '₱2,500.00',
+      amountCents: 250000,
+      remove: null
+    },
+    {
+      id: 'f1',
+      text: 'Permit · Whole event · Sat, 24 Oct',
+      amountText: '₱200.00',
+      amountCents: 20000,
+      remove: null
+    }
   ],
-  feesTotalText: '₱2,700',
+  feesTotalText: '₱2,700.00',
+  feesTotalCents: 270000,
   feeFor: [
     { dayId: null, text: 'The whole event' },
-    { dayId: 'day1', text: 'Sat, Oct 24' }
+    { dayId: 'day1', text: 'Sat, 24 Oct' }
   ],
   addFee: vi.fn(async () => null),
-  targetText: '₱500',
+  targetText: '₱500.00',
   targetPesos: '500',
   saveTarget: vi.fn(async () => null),
   costs: [
@@ -607,39 +651,105 @@ const eventView = (over: Partial<BazaarEventView> = {}): BazaarEventView => ({
       name: 'Double Chocolate Fudge',
       text: '₱12.005 per cookie · from the recipe',
       typedPesos: '',
-      save: vi.fn(async () => null)
+      save: vi.fn(async () => null),
+      unitText: '₱12.005',
+      sourceText: 'from the recipe',
+      breakdown: [
+        { label: 'Ingredients', valueText: '₱8.50' },
+        { label: 'Packaging', valueText: '₱3.505' },
+        { label: 'Recipe cost per cookie', valueText: '₱12.005' }
+      ],
+      breakdownNote: null
     }
   ],
   figures: [revenue],
   figuresNote: 'A day is still open.',
-  finalise: { blocked: null, run: vi.fn(async () => null) },
+  finalise: finalise(),
   unplanned: [],
   planDay: noop,
   back: noop,
   ...over
 });
 
+/** The "Close the event" the page offers (its hero, or its own section): the first of them. */
+const openCloseSheet = async () => {
+  fireEvent.click(
+    screen.getAllByRole('button', {
+      name: 'Close the event'
+    })[0] as HTMLElement
+  );
+  return screen.findByRole('dialog');
+};
+
 describe('the event page', () => {
-  it('draws the notices, the day hints and the two review actions', () => {
+  it('draws the notices, the hero, the day hints and one primary action', () => {
     render(<EventPage event={eventView()} />);
     expect(screen.getByText('This event was changed after it was closed.')).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'Katipunan market' })).toBeTruthy();
     expect(screen.getByText('Selling on Ethan’s phone.')).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'Review and close' })).toBeTruthy();
+    // The selling day's action is the page's one primary button, and is not drawn a second time on its row.
+    expect(screen.getAllByRole('button', { name: /Review and close/ })).toHaveLength(1);
     expect(screen.getByRole('button', { name: 'See the review' })).toBeTruthy();
   });
 
-  it('draws the fees, adds one with the typed strings, and clears the form when saved', async () => {
+  it('shows a closed day by what happened, not by its plan (B4)', () => {
+    render(<EventPage event={eventView()} />);
+    expect(screen.getByText('₱1,640.00')).toBeTruthy();
+    expect(
+      screen.getByText('13 sold · 8 left · 5 carried over · Drawer: ₱5.00 short')
+    ).toBeTruthy();
+    // Only the selling day still shows its plan.
+    expect(screen.getAllByText(/cookies on the table/)).toHaveLength(1);
+  });
+
+  it('puts one primary action first for each state', () => {
+    const planned = dayRow({
+      id: 'p',
+      word: 'Planned',
+      action: 'start',
+      hint: null
+    });
+    const first = render(<EventPage event={eventView({ days: [planned] })} />);
+    expect(screen.getByRole('button', { name: 'Start the day →' })).toBeTruthy();
+    first.unmount();
+    const second = render(
+      <EventPage
+        event={eventView({
+          days: [closedDay()],
+          unplanned: [{ ymd: '2026-10-25', text: 'Sun, 25 Oct' }]
+        })}
+      />
+    );
+    expect(screen.getByRole('button', { name: 'Plan Sun, 25 Oct →' })).toBeTruthy();
+    second.unmount();
+    render(<EventPage event={eventView({ days: [closedDay()] })} />);
+    expect(screen.getAllByRole('button', { name: 'Close the event' }).length).toBeGreaterThan(0);
+  });
+
+  it('draws the fees as a receipt, adds one with the typed strings, and clears the form when saved', async () => {
     const addFee = vi.fn(async (): Promise<string | null> => null);
     render(<EventPage event={eventView({ addFee })} />);
-    expect(screen.getByText('Permit · Whole event · Oct 24')).toBeTruthy();
-    expect(screen.getByText('Total ₱2,700')).toBeTruthy();
+    const table = screen.getByRole('table', { name: 'Fees' });
+    expect(within(table).getByText('Permit')).toBeTruthy();
+    expect(within(table).getByText('Whole event · Sat, 24 Oct')).toBeTruthy();
+    expect(within(table).getAllByText('₱2,700.00')).toHaveLength(1);
     const form = screen.getByRole('form', { name: 'Add a fee' });
-    fireEvent.change(within(form).getByLabelText('What for'), { target: { value: 'Parking' } });
-    fireEvent.change(within(form).getByLabelText('Amount (₱)'), { target: { value: '150' } });
-    fireEvent.change(within(form).getByLabelText('For'), { target: { value: 'day1' } });
+    fireEvent.change(within(form).getByLabelText('What for'), {
+      target: { value: 'Parking' }
+    });
+    fireEvent.change(within(form).getByLabelText('Amount'), {
+      target: { value: '150' }
+    });
+    fireEvent.change(within(form).getByLabelText('For'), {
+      target: { value: 'day1' }
+    });
     fireEvent.click(within(form).getByRole('button', { name: 'Add the fee' }));
     await waitFor(() =>
-      expect(addFee).toHaveBeenCalledWith({ label: 'Parking', amount: '150', dayId: 'day1' })
+      expect(addFee).toHaveBeenCalledWith({
+        label: 'Parking',
+        amount: '150',
+        dayId: 'day1'
+      })
     );
     await waitFor(() =>
       expect((within(form).getByLabelText('What for') as HTMLInputElement).value).toBe('')
@@ -650,35 +760,93 @@ describe('the event page', () => {
     const addFee = vi.fn(async (): Promise<string | null> => null);
     render(<EventPage event={eventView({ addFee })} />);
     const form = screen.getByRole('form', { name: 'Add a fee' });
-    fireEvent.change(within(form).getByLabelText('What for'), { target: { value: 'Tarp' } });
-    fireEvent.change(within(form).getByLabelText('Amount (₱)'), { target: { value: '90' } });
+    fireEvent.change(within(form).getByLabelText('What for'), {
+      target: { value: 'Tarp' }
+    });
+    fireEvent.change(within(form).getByLabelText('Amount'), {
+      target: { value: '90' }
+    });
     fireEvent.click(within(form).getByRole('button', { name: 'Add the fee' }));
     await waitFor(() =>
-      expect(addFee).toHaveBeenCalledWith({ label: 'Tarp', amount: '90', dayId: null })
+      expect(addFee).toHaveBeenCalledWith({
+        label: 'Tarp',
+        amount: '90',
+        dayId: null
+      })
     );
+  });
+
+  it('points at the red fields of a fee, sends nothing, and clears a red field as she types', () => {
+    const addFee = vi.fn(async (): Promise<string | null> => null);
+    render(<EventPage event={eventView({ addFee })} />);
+    const form = screen.getByRole('form', { name: 'Add a fee' });
+    fireEvent.click(within(form).getByRole('button', { name: 'Add the fee' }));
+    const summary = within(form).getByRole('alert');
+    expect(within(summary).getByText('There is a problem')).toBeTruthy();
+    const links = within(summary).getAllByRole('link');
+    expect(links.map((l) => l.textContent)).toEqual([
+      'Say what the fee is for, like "Permit".',
+      'Enter the amount in pesos, like 250 or 250.50.'
+    ]);
+    const label = within(form).getByLabelText('What for');
+    expect(label.getAttribute('aria-invalid')).toBe('true');
+    expect(label.getAttribute('aria-describedby')).toBeTruthy();
+    expect(addFee).not.toHaveBeenCalled();
+    fireEvent.click(links[0] as HTMLElement);
+    expect(document.activeElement).toBe(label);
+    fireEvent.change(label, { target: { value: 'Permit' } });
+    expect(label.getAttribute('aria-invalid')).toBeNull();
   });
 
   it('draws the target and saves what is typed', async () => {
     const saveTarget = vi.fn(async (): Promise<string | null> => null);
     render(<EventPage event={eventView({ saveTarget })} />);
     const form = screen.getByRole('form', { name: 'Target profit' });
-    const target = within(form).getByLabelText('Target (₱)') as HTMLInputElement;
+    const target = within(form).getByLabelText('Target') as HTMLInputElement;
     expect(target.value).toBe('500');
     fireEvent.change(target, { target: { value: '800' } });
     fireEvent.click(within(form).getByRole('button', { name: 'Save the target' }));
     await waitFor(() => expect(saveTarget).toHaveBeenCalledWith('800'));
   });
 
-  it('draws each cost per cookie with its own form', async () => {
+  it('refuses a target that is not an amount, on the field', () => {
+    const saveTarget = vi.fn(async (): Promise<string | null> => null);
+    render(<EventPage event={eventView({ saveTarget })} />);
+    const form = screen.getByRole('form', { name: 'Target profit' });
+    fireEvent.change(within(form).getByLabelText('Target'), {
+      target: { value: 'lots' }
+    });
+    fireEvent.click(within(form).getByRole('button', { name: 'Save the target' }));
+    expect(within(form).getAllByText(/Enter the target profit in pesos/).length).toBeGreaterThan(0);
+    expect(saveTarget).not.toHaveBeenCalled();
+  });
+
+  it('draws each cost per cookie as a receipt with its own form', async () => {
     const save = vi.fn(async (): Promise<string | null> => null);
     const e = eventView();
     const first = e.costs[0];
     if (!first) throw new Error('a cost');
     render(<EventPage event={{ ...e, costs: [{ ...first, save }] }} />);
-    expect(screen.getByText('₱12.005 per cookie · from the recipe')).toBeTruthy();
-    const form = screen.getByRole('form', { name: 'Cost per cookie for Double Chocolate Fudge' });
+    expect(screen.getByText('per cookie · from the recipe')).toBeTruthy();
+    const table = screen.getByRole('table', {
+      name: 'Recipe cost per cookie for Double Chocolate Fudge'
+    });
+    expect(within(table).getByText('Ingredients').nextElementSibling?.textContent).toBe('₱8.50');
+    expect(within(table).getByText('Packaging').nextElementSibling?.textContent).toBe('₱3.505');
+    expect(within(table).getByText('Recipe cost per cookie').nextElementSibling?.textContent).toBe(
+      '₱12.005'
+    );
+    const form = screen.getByRole('form', {
+      name: 'Cost per cookie for Double Chocolate Fudge'
+    });
     expect(within(form).getByText("Leave blank to use the recipe's cost.")).toBeTruthy();
-    fireEvent.change(within(form).getByLabelText('Your cost per cookie (₱)'), {
+    fireEvent.change(within(form).getByLabelText('Your cost per cookie'), {
+      target: { value: 'abc' }
+    });
+    fireEvent.click(within(form).getByRole('button', { name: 'Save the cost' }));
+    expect(save).not.toHaveBeenCalled();
+    expect(within(form).getAllByText(/at most four decimals/).length).toBeGreaterThan(0);
+    fireEvent.change(within(form).getByLabelText('Your cost per cookie'), {
       target: { value: '28.75' }
     });
     fireEvent.click(within(form).getByRole('button', { name: 'Save the cost' }));
@@ -689,7 +857,7 @@ describe('the event page', () => {
     const { unmount } = render(<EventPage event={eventView()} />);
     expect(screen.getByRole('heading', { name: 'The event' })).toBeTruthy();
     expect(screen.getByText('A day is still open.')).toBeTruthy();
-    expect(screen.getByText('₱880.00')).toBeTruthy();
+    expect(screen.getAllByText('₱880.00').length).toBeGreaterThan(0);
     unmount();
     render(
       <EventPage
@@ -708,74 +876,389 @@ describe('the event page', () => {
     expect(screen.queryAllByRole('form')).toHaveLength(0);
   });
 
-  it('closes the event in two steps', async () => {
+  it('asks before it closes the event, and says what the run refused', async () => {
     const run = vi.fn(async (): Promise<string | null> => 'Close the open day first.');
-    render(<EventPage event={eventView({ finalise: { blocked: null, run } })} />);
+    render(<EventPage event={eventView({ days: [closedDay()], finalise: finalise({ run }) })} />);
+    const sheet = await openCloseSheet();
     expect(
-      screen.getByText(
+      within(sheet).getByText(
         'Closing the event counts its sales, fees and stock in the books. It cannot be undone.'
       )
     ).toBeTruthy();
-    fireEvent.click(screen.getByRole('button', { name: 'Close the event' }));
     expect(run).not.toHaveBeenCalled();
-    fireEvent.click(screen.getByRole('button', { name: 'Not yet' }));
-    expect(screen.getByRole('button', { name: 'Close the event' })).toBeTruthy();
-    fireEvent.click(screen.getByRole('button', { name: 'Close the event' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Yes, close the event' }));
-    await waitFor(() => expect(run).toHaveBeenCalledTimes(1));
-    expect((await screen.findByRole('alert')).textContent).toBe('Close the open day first.');
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Not yet' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    const again = await openCloseSheet();
+    fireEvent.click(within(again).getByRole('button', { name: 'Close the event' }));
+    await waitFor(() =>
+      expect(run).toHaveBeenCalledWith({
+        toShop: {},
+        costs: {},
+        withoutCost: false
+      })
+    );
+    expect(await within(again).findByText('Close the open day first.')).toBeTruthy();
+  });
+
+  it('asks where the stranded cookies go, suggests the shop with a recipe, and sends the split (A1)', async () => {
+    const run = vi.fn(async (): Promise<string | null> => null);
+    render(
+      <EventPage
+        event={eventView({
+          days: [closedDay()],
+          finalise: finalise({
+            run,
+            strandedFor: 'Sun, 25 Oct',
+            stranded: [
+              {
+                productId: 'dcf',
+                name: 'Double Chocolate Fudge',
+                qty: 5,
+                hasRecipe: true,
+                suggestedToShop: 5
+              },
+              {
+                productId: 'ns',
+                name: 'Nutella Stuffed',
+                qty: 3,
+                hasRecipe: false,
+                suggestedToShop: 0
+              }
+            ]
+          })
+        })}
+      />
+    );
+    const sheet = await openCloseSheet();
+    expect(
+      within(sheet).getByText(
+        '8 cookies were carried over for Sun, 25 Oct, which has not started. Where do they go?'
+      )
+    ).toBeTruthy();
+    expect(shown(sheet, 'Double Chocolate Fudge: to the shop')).toBe('5');
+    expect(shown(sheet, 'Double Chocolate Fudge: written off')).toBe('0');
+    expect(shown(sheet, 'Nutella Stuffed: written off')).toBe('3');
+    // Moving one side moves the other: the parts always add up.
+    fireEvent.click(
+      within(sheet).getByRole('button', {
+        name: 'More Double Chocolate Fudge: written off'
+      })
+    );
+    expect(shown(sheet, 'Double Chocolate Fudge: to the shop')).toBe('4');
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Close the event' }));
+    await waitFor(() =>
+      expect(run).toHaveBeenCalledWith({
+        toShop: { dcf: 4, ns: 0 },
+        costs: {},
+        withoutCost: false
+      })
+    );
+  });
+
+  it('names a flavour without a cost, wants its cost or an explicit close without it (A5)', async () => {
+    const run = vi.fn(async (): Promise<string | null> => null);
+    render(
+      <EventPage
+        event={eventView({
+          days: [closedDay()],
+          finalise: finalise({
+            run,
+            costPending: [{ productId: 'dcf', name: 'Double Chocolate Fudge', sold: 18 }]
+          })
+        })}
+      />
+    );
+    const sheet = await openCloseSheet();
+    expect(within(sheet).getByText(/has no cost per cookie. It sold 18 here./)).toBeTruthy();
+    // Blank: refused on the field, nothing sent.
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Save and close' }));
+    expect(within(sheet).getByText('There is a problem')).toBeTruthy();
+    expect(run).not.toHaveBeenCalled();
+    fireEvent.change(within(sheet).getByLabelText('Cost per cookie'), {
+      target: { value: '12.5' }
+    });
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Save and close' }));
+    await waitFor(() =>
+      expect(run).toHaveBeenCalledWith({
+        toShop: {},
+        costs: { dcf: '12.5' },
+        withoutCost: false
+      })
+    );
+  });
+
+  it('closes without cost only when she says so', async () => {
+    const run = vi.fn(async (): Promise<string | null> => null);
+    render(
+      <EventPage
+        event={eventView({
+          days: [closedDay()],
+          finalise: finalise({
+            run,
+            costPending: [{ productId: 'dcf', name: 'Double Chocolate Fudge', sold: 18 }]
+          })
+        })}
+      />
+    );
+    const sheet = await openCloseSheet();
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Close without cost' }));
+    await waitFor(() =>
+      expect(run).toHaveBeenCalledWith({
+        toShop: {},
+        costs: {},
+        withoutCost: true
+      })
+    );
   });
 
   it('disables closing the event and says why when it is blocked', () => {
     render(
       <EventPage
         event={eventView({
-          finalise: { blocked: 'A day is still open.', run: vi.fn(async () => null) }
+          days: [closedDay()],
+          finalise: finalise({ blocked: 'A day is still open.' })
         })}
       />
     );
-    expect(
-      (screen.getByRole('button', { name: 'Close the event' }) as HTMLButtonElement).disabled
-    ).toBe(true);
+    for (const b of screen.getAllByRole('button', { name: 'Close the event' }))
+      expect((b as HTMLButtonElement).disabled).toBe(true);
     expect(screen.getAllByText('A day is still open.').length).toBeGreaterThan(0);
   });
+
+  it('asks before it starts a day that is not today (A2), and starts it only when she confirms', async () => {
+    const start = vi.fn();
+    const planned = dayRow({
+      id: 'p',
+      word: 'Planned',
+      action: 'start',
+      hint: null,
+      startPrompt: {
+        title: 'Start a day that is not today?',
+        body: 'This day is Mon, 19 Oct. Today is Thu, 15 Oct. Sales will be dated today.'
+      },
+      start
+    });
+    render(<EventPage event={eventView({ days: [planned] })} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Start the day →' }));
+    expect(start).not.toHaveBeenCalled();
+    const sheet = await screen.findByRole('dialog');
+    expect(
+      within(sheet).getByText(
+        'This day is Mon, 19 Oct. Today is Thu, 15 Oct. Sales will be dated today.'
+      )
+    ).toBeTruthy();
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Cancel' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    expect(start).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: 'Start the day →' }));
+    const again = await screen.findByRole('dialog');
+    fireEvent.click(within(again).getByRole('button', { name: 'Start anyway' }));
+    expect(start).toHaveBeenCalledWith(true);
+  });
+
+  it('starts a day that is today with no question', () => {
+    const start = vi.fn();
+    render(
+      <EventPage
+        event={eventView({
+          days: [
+            dayRow({
+              id: 'p',
+              word: 'Planned',
+              action: 'start',
+              hint: null,
+              start
+            })
+          ]
+        })}
+      />
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Start the day →' }));
+    expect(start).toHaveBeenCalledWith(false);
+    expect(screen.queryByRole('dialog')).toBeNull();
+  });
+});
+
+const planFlavour = (over: Partial<PlanFlavour> = {}): PlanFlavour => ({
+  id: 'dcf',
+  name: 'Double Chocolate Fudge',
+  made: '',
+  carried: '',
+  price: '125',
+  photo: 'assets/double-chocolate-fudge.png',
+  onMenu: true,
+  menuPrice: '125',
+  ...over
 });
 
 const planEditor = (over: Partial<DayPlanEditor> = {}): DayPlanEditor => ({
   dayId: 'day2',
+  eventName: 'Katipunan market',
   key: 'k1',
-  dateText: 'Sun, Oct 25',
+  dateText: 'Sun, 25 Oct',
   isNew: true,
   floatPesos: '',
   flavours: [
-    { id: 'dcf', name: 'Double Chocolate Fudge', made: '', carried: '', price: '125' },
-    { id: 'ns', name: 'Nutella Stuffed', made: '', carried: '', price: '140' }
+    planFlavour(),
+    planFlavour({
+      id: 'ns',
+      name: 'Nutella Stuffed',
+      price: '140',
+      menuPrice: '140'
+    })
   ],
   showCarried: true,
   copy: null,
-  carryIn: { dateText: 'Sat, Oct 24', byFlavour: { dcf: 8 } },
+  carryIn: { dateText: 'Sat, 24 Oct', byFlavour: { dcf: 8 } },
   save: vi.fn(async () => null),
   back: noop,
   ...over
 });
 
-describe('the day plan with cookies carried over', () => {
-  const carriedInputs = () => screen.getAllByLabelText('Carried over') as HTMLInputElement[];
+/** The number a stepper of the plan shows. */
+const planValue = (name: string): string | null =>
+  within(screen.getByRole('group', { name })).getByRole('button', {
+    name: /Tap to type a number/
+  }).textContent;
 
+describe('the day plan', () => {
+  it('draws the menu flavours as tiles with steppers, the others under More flavours (B5)', () => {
+    const e = planEditor({
+      flavours: [
+        planFlavour(),
+        planFlavour({
+          id: 'off',
+          name: 'Oat',
+          onMenu: false,
+          menuPrice: '115',
+          price: '115'
+        })
+      ]
+    });
+    render(<DayPlan editor={e} online />);
+    const tiles = screen.getByRole('list', { name: 'Flavours' });
+    expect(within(tiles).getByText('Double Chocolate Fudge')).toBeTruthy();
+    expect(within(tiles).queryByText('Oat')).toBeNull();
+    expect(screen.queryByRole('list', { name: 'More flavours' })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'More flavours (1)' }));
+    expect(
+      within(screen.getByRole('list', { name: 'More flavours' })).getByText('Oat')
+    ).toBeTruthy();
+  });
+
+  it('totals the table in the footer from the steppers, with prices from the menu', () => {
+    render(<DayPlan editor={planEditor({ carryIn: null })} online />);
+    expect(screen.getByText('Nothing on the table yet')).toBeTruthy();
+    const more = (name: string) => screen.getByRole('button', { name: `More ${name}` });
+    fireEvent.click(more('Double Chocolate Fudge made'));
+    fireEvent.click(more('Double Chocolate Fudge made'));
+    fireEvent.click(more('Nutella Stuffed made'));
+    expect(screen.getByText('3 cookies · ₱390.00 at full sale')).toBeTruthy();
+    expect(planValue('Double Chocolate Fudge made')).toBe('2');
+  });
+
+  it('steps the float by ₱100', () => {
+    render(<DayPlan editor={planEditor({ floatPesos: '500' })} online />);
+    expect(planValue('Drawer float')).toBe('₱500.00');
+    fireEvent.click(screen.getByRole('button', { name: 'More Drawer float' }));
+    expect(planValue('Drawer float')).toBe('₱600.00');
+  });
+
+  it('sends what the steppers show, in the strings the runtime reads', async () => {
+    const save = vi.fn(async (): Promise<string | null> => null);
+    render(<DayPlan editor={planEditor({ carryIn: null, floatPesos: '500', save })} online />);
+    fireEvent.click(screen.getByRole('button', { name: 'More Double Chocolate Fudge made' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Save the plan →' }));
+    await waitFor(() => expect(save).toHaveBeenCalledTimes(1));
+    const sent = (
+      save.mock.calls[0] as unknown as [{ floatPesos: string; flavours: PlanFlavour[] }]
+    )[0];
+    expect(sent.floatPesos).toBe('500');
+    expect(sent.flavours.find((f) => f.id === 'dcf')).toMatchObject({
+      made: '1',
+      price: '125'
+    });
+  });
+
+  it('points at the stepper when nothing is on the table, and sends nothing', () => {
+    const save = vi.fn(async (): Promise<string | null> => null);
+    render(<DayPlan editor={planEditor({ carryIn: null, save })} online />);
+    fireEvent.click(screen.getByRole('button', { name: 'Save the plan →' }));
+    const summary = screen.getByRole('alert');
+    const link = within(summary).getByRole('link', {
+      name: 'Put at least one cookie on the table to plan this day.'
+    });
+    fireEvent.click(link);
+    expect(document.activeElement?.id).toBe('plan-made-dcf');
+    expect(save).not.toHaveBeenCalled();
+  });
+
+  it('turns a price of 0 on a flavour with cookies red, with the price field opened', () => {
+    const save = vi.fn(async (): Promise<string | null> => null);
+    render(
+      <DayPlan
+        editor={planEditor({
+          carryIn: null,
+          save,
+          flavours: [planFlavour({ made: '4', price: '0' })]
+        })}
+        online
+      />
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Save the plan →' }));
+    const field = screen.getByLabelText('Double Chocolate Fudge price');
+    expect(field.getAttribute('aria-invalid')).toBe('true');
+    expect(screen.getAllByText(/the price must be more than ₱0/).length).toBeGreaterThan(0);
+    expect(save).not.toHaveBeenCalled();
+  });
+
+  it('says what the server refused', async () => {
+    const save = vi.fn(async (): Promise<string | null> => 'The plan could not be saved.');
+    render(
+      <DayPlan
+        editor={planEditor({
+          carryIn: null,
+          save,
+          flavours: [planFlavour({ made: '4' })]
+        })}
+        online
+      />
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Save the plan →' }));
+    expect(await screen.findByText('The plan could not be saved.')).toBeTruthy();
+  });
+
+  it('cannot be saved with no signal, and says why', () => {
+    render(<DayPlan editor={planEditor()} online={false} />);
+    expect(
+      (
+        screen.getByRole('button', {
+          name: 'Save the plan →'
+        }) as HTMLButtonElement
+      ).disabled
+    ).toBe(true);
+    expect(screen.getByText('Saving a plan needs signal.')).toBeTruthy();
+  });
+});
+
+describe('the day plan with cookies carried over', () => {
   it('fills a new day from what was set aside and says where it came from', () => {
     render(<DayPlan editor={planEditor()} online />);
-    expect(carriedInputs().map((i) => i.value)).toEqual(['8', '']);
-    expect(screen.getByText('8 set aside on Sat, Oct 24')).toBeTruthy();
-    expect(screen.queryByText(/set aside.*Nutella/)).toBeNull();
+    expect(planValue('Double Chocolate Fudge carried over')).toBe('8');
+    expect(screen.getByText('8 set aside on Sat, 24 Oct')).toBeTruthy();
+    expect(screen.queryByRole('group', { name: 'Nutella Stuffed carried over' })).toBeNull();
+    expect(screen.getByText('Carried: 8')).toBeTruthy();
   });
 
   it('leaves a saved plan as it is, and refills on the button', () => {
     render(<DayPlan editor={planEditor({ isNew: false })} online />);
-    expect(carriedInputs().map((i) => i.value)).toEqual(['', '']);
+    expect(planValue('Double Chocolate Fudge carried over')).toBe('0');
     fireEvent.click(
-      screen.getByRole('button', { name: 'Use what was carried over from Sat, Oct 24' })
+      screen.getByRole('button', {
+        name: 'Use what was carried over from Sat, 24 Oct'
+      })
     );
-    expect(carriedInputs().map((i) => i.value)).toEqual(['8', '']);
+    expect(planValue('Double Chocolate Fudge carried over')).toBe('8');
   });
 
   it('copies the day before with the carried-over numbers, not blanks', () => {
@@ -783,30 +1266,35 @@ describe('the day plan with cookies carried over', () => {
       isNew: false,
       copy: {
         floatPesos: '500',
-        dateText: 'Sat, Oct 24',
+        dateText: 'Sat, 24 Oct',
         flavours: [
-          { id: 'dcf', name: 'Double Chocolate Fudge', made: '20', carried: '3', price: '125' },
-          { id: 'ns', name: 'Nutella Stuffed', made: '10', carried: '2', price: '140' }
+          planFlavour({ made: '20', carried: '3' }),
+          planFlavour({
+            id: 'ns',
+            name: 'Nutella Stuffed',
+            made: '10',
+            carried: '2',
+            price: '140',
+            menuPrice: '140'
+          })
         ]
       }
     });
     render(<DayPlan editor={e} online />);
-    fireEvent.click(screen.getByRole('button', { name: 'Copy the day before (Sat, Oct 24)' }));
-    expect(carriedInputs().map((i) => i.value)).toEqual(['8', '']);
-    expect((screen.getAllByLabelText('Made') as HTMLInputElement[]).map((i) => i.value)).toEqual([
-      '20',
-      '10'
-    ]);
+    fireEvent.click(screen.getByRole('button', { name: 'Copy the day before (Sat, 24 Oct)' }));
+    expect(planValue('Double Chocolate Fudge carried over')).toBe('8');
+    expect(planValue('Double Chocolate Fudge made')).toBe('20');
+    expect(planValue('Nutella Stuffed made')).toBe('10');
+    expect(planValue('Drawer float')).toBe('₱500.00');
   });
 
   it('changes nothing with no carry-in', () => {
     render(<DayPlan editor={planEditor({ carryIn: null })} online />);
-    expect(carriedInputs().map((i) => i.value)).toEqual(['', '']);
+    expect(screen.queryByRole('group', { name: /carried over/ })).toBeNull();
     expect(screen.queryByText(/set aside on/)).toBeNull();
     expect(screen.queryByRole('button', { name: /Use what was carried over/ })).toBeNull();
   });
 });
-
 describe('the books form', () => {
   const books = (held?: Array<{ id: string; name: string; detail: string }>) =>
     ({

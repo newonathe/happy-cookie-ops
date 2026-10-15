@@ -8,6 +8,8 @@ export interface ReceiptLine {
   detail?: string;
   /** Whole centavos; written with two decimals. */
   value: number;
+  /** The value already written, for an amount `peso` cannot write: a cost per cookie to four decimals ("₱12.005"). */
+  valueText?: string;
   /** Shown as a Remove button; its name carries the line's label. */
   onRemove?: () => void;
 }
@@ -18,6 +20,8 @@ export interface ReceiptTableProps {
   lines: ReceiptLine[];
   subtotal?: number;
   total: number;
+  /** The total already written, as `valueText` is for a line. */
+  totalText?: string;
   /** Names the last row; "Total" unless it is something else ("Expected"). */
   totalLabel?: string;
   note?: string;
@@ -31,6 +35,7 @@ export function ReceiptTable({
   lines,
   subtotal,
   total,
+  totalText,
   totalLabel = 'Total',
   note,
   emptyText = 'Nothing yet'
@@ -56,7 +61,7 @@ export function ReceiptTable({
                   ) : null}
                 </th>
                 <td className="py-2.5 text-right font-semibold text-ink tabular-nums">
-                  {peso(line.value)}
+                  {line.valueText ?? peso(line.value)}
                 </td>
                 {lines.some((l) => l.onRemove) ? (
                   <td className="w-px py-1.5 pl-2 text-right">
@@ -95,7 +100,7 @@ export function ReceiptTable({
               {totalLabel}
             </th>
             <td className="pt-2 text-right text-body font-bold text-ink tabular-nums">
-              {peso(total)}
+              {totalText ?? peso(total)}
             </td>
           </tr>
         </tfoot>

@@ -739,11 +739,14 @@ export class OpsRuntime extends OpsProvider {
       PRODUCTS.map((p) => ({
         id: p.id,
         name: p.short,
-        priceCents: pesosToCentavos(Number((this as unknown as TotalActions).priceOf(p.id)) || 0)
+        priceCents: pesosToCentavos(Number((this as unknown as TotalActions).priceOf(p.id)) || 0),
+        photo: p.img,
+        onMenu: (this.state.dropActive as Record<string, boolean> | undefined)?.[p.id] !== false
       })),
     holdsEvent: () => !!this.state.event,
     hasRecipe: (productId) =>
       this.recipeRows === null ? null : this.recipeRows.some((r) => r.productId === productId),
+    recipeCost: (productId) => this.recipeCosts.get(productId) ?? null,
     held: () => {
       const event = this.state.event as LiveEvent | null;
       if (!event?.dayId || !event.scheduledId) return null;
@@ -2541,6 +2544,7 @@ export class OpsRuntime extends OpsProvider {
       liveStockItems: this.liveStockItemsVals(),
       liveStock: this.liveStockVals(),
       liveBazaar: isLiveMode() && this.state.role === 'owner' ? this.bazaarDays.vals() : null,
+      ...this.liveToastVals(starved),
       // S3: on a started day "Close out" opens the day's review, never the old close-out sheet (which the database refuses).
       ...((this.state.event as LiveEvent | null)?.dayId
         ? { askClose: () => this.openDayReview() }
@@ -2921,6 +2925,8 @@ export class OpsRuntime extends OpsProvider {
     this.forceUpdate();
     void this.retryPendingLink(use);
     void this.confirmHeldDay();
+    // Home's next-event card must not offer a closed event: only a read of each event can say so (U4).
+    if (this.state.role === 'owner') void this.bazaarDays.readHub();
     return true;
   }
 
@@ -5674,6 +5680,16 @@ export class OpsRuntime extends OpsProvider {
    * sold-out ones back, dimmed. Only a started bazaar day: an event from before the days existed keeps the ported list.
    * `bzSell` has no flavour id, so each row is matched to its flavour by position before anything is dropped.
    */
+  /**
+   * U4: on a phone the ported toast sits 96 px from the bottom, over the day plan's sticky footer. While that footer is on
+   * screen the toast is lifted above it (spec rule 8). Only the value is changed; the locked frame draws it as before.
+   */
+  private liveToastVals(starved: OpsVals): { toastStyle?: string } {
+    if (!isLiveMode() || this.state.role !== 'owner' || this.state.screen !== 'bazaar') return {};
+    if (this.state.device !== 'mobile' || !this.bazaarDays.hasStickyFooter()) return {};
+    return { toastStyle: String(starved.toastStyle).replace(/bottom: \d+px/, 'bottom: 196px') };
+  }
+
   private liveTillVals(
     vals: OpsVals
   ): Pick<OpsVals, 'liveTill'> & Partial<Pick<OpsVals, 'bzSell' | 'openEventExpense'>> {

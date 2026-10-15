@@ -14,6 +14,10 @@ export interface StepperProps {
   size?: 'sm' | 'md';
   /** Writes the number (for example as pesos). The keypad still takes plain digits. */
   format?: (n: number) => string;
+  /** The id of the number: an error summary links to it, and it takes the focus. */
+  id?: string;
+  /** What is wrong and how to fix it (a rule of the form, not of the keypad). Turns the number red. */
+  error?: string;
 }
 
 const FIRST_REPEAT_MS = 450;
@@ -31,11 +35,14 @@ export function Stepper({
   label,
   onChange,
   size = 'md',
-  format
+  format,
+  id,
+  error: outside
 }: StepperProps) {
   const [typing, setTyping] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const errorId = useId();
+  const outsideId = useId();
   const latest = useRef({ value, min, max, step, onChange });
   useEffect(() => {
     latest.current = { value, min, max, step, onChange };
@@ -132,14 +139,17 @@ export function Stepper({
         {typing === null ? (
           <button
             ref={numberButton}
+            id={id}
             type="button"
             aria-label={`${label}: ${display}. Tap to type a number`}
+            aria-describedby={outside ? outsideId : undefined}
             onClick={() => {
               setTyping(String(value));
               setError(null);
             }}
             className={cx(
               'min-w-12 rounded-control px-2 text-center font-bold text-ink tabular-nums hover:bg-inset',
+              outside && 'border border-danger border-l-4',
               small ? 'min-h-9 text-body' : 'min-h-11 text-title'
             )}
           >
@@ -150,6 +160,7 @@ export function Stepper({
             // Opened by the tap that asked for it, so taking focus here is what the person just did.
             // eslint-disable-next-line jsx-a11y/no-autofocus
             autoFocus
+            id={id}
             type="text"
             inputMode="numeric"
             pattern="[0-9]*"
@@ -187,6 +198,10 @@ export function Stepper({
       {error ? (
         <span id={errorId} role="alert" className="text-caption text-danger">
           {error}
+        </span>
+      ) : outside ? (
+        <span id={outsideId} className="text-caption font-semibold text-danger">
+          {outside}
         </span>
       ) : null}
     </div>

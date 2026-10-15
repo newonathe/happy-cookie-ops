@@ -59,7 +59,7 @@ export function StatTile({
   const size =
     written.length <= 5
       ? 'text-display'
-      : written.length <= 8
+      : written.length <= 7
         ? 'text-[30px] leading-none font-bold tracking-tight'
         : written.length <= 10
           ? 'text-[24px] leading-none font-bold tracking-tight'
@@ -69,7 +69,9 @@ export function StatTile({
       <span className={cx('text-caption font-semibold text-ink-soft', hasParts && 'pr-5')}>
         {label}
       </span>
-      <span className={cx('flex items-baseline gap-1.5 text-ink tabular-nums', size)}>
+      <span
+        className={cx('flex items-baseline gap-1.5 whitespace-nowrap text-ink tabular-nums', size)}
+      >
         {pending ? (
           <span aria-label="Not known yet">—</span>
         ) : typeof value === 'number' ? (

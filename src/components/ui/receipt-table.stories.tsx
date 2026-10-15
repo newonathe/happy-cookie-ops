@@ -31,3 +31,16 @@ export const WithRemove: Story = {
     note: 'Rent is booked when the first day starts.'
   }
 };
+
+export const CostPerCookie: Story = {
+  args: {
+    caption: 'Cost per cookie',
+    lines: [
+      { label: 'Ingredients', value: 0, valueText: '₱8.50' },
+      { label: 'Packaging', value: 0, valueText: '₱3.505' }
+    ],
+    total: 0,
+    totalText: '₱12.005',
+    totalLabel: 'Recipe cost per cookie'
+  }
+};
