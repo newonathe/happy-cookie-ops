@@ -189,7 +189,11 @@ describe('the day review', () => {
     expect(shown(form, 'Double Chocolate Fudge: written off')).toBe('0');
     expect(shown(form, 'Nutella Stuffed: left')).toBe('0');
     expect(shown(form, 'Nutella Stuffed: carried over')).toBe('0');
-    expect((within(form).getByLabelText('Cash counted (₱)') as HTMLInputElement).value).toBe('');
+    // The cash is pre-filled with what the drawer should hold (Ethan, 16 Oct).
+    expect((within(form).getByLabelText('Cash counted (₱)') as HTMLInputElement).value).toBe(
+      '1000.00'
+    );
+    expect(within(form).getByText('Matches')).toBeTruthy();
     expect(within(form).getByText('Cash expected in the drawer: ₱1,000.00')).toBeTruthy();
     expect(within(form).getByText('Leave blank if you did not count it.')).toBeTruthy();
   });
@@ -198,11 +202,6 @@ describe('the day review', () => {
     const r = review();
     render(<DayReview review={r} />);
     const form = screen.getByRole('form', { name: 'Close the day' });
-    fireEvent.click(within(form).getByRole('button', { name: 'It matches' }));
-    expect((within(form).getByLabelText('Cash counted (₱)') as HTMLInputElement).value).toBe(
-      '1000.00'
-    );
-    expect(within(form).getByText('Matches')).toBeTruthy();
     fireEvent.click(within(form).getByRole('button', { name: 'Close the day' }));
     await waitFor(() => expect(r.close?.submit).toHaveBeenCalledTimes(1));
     const sent = vi.mocked(r.close?.submit ?? vi.fn()).mock.calls[0]?.[0] as CloseInput;
@@ -215,9 +214,10 @@ describe('the day review', () => {
     });
   });
 
-  it('a close without a cash count sends it blank, never the expected amount', async () => {
+  it('clearing the cash sends it blank: not counted', async () => {
     const r = review();
     render(<DayReview review={r} />);
+    fireEvent.change(screen.getByLabelText('Cash counted (₱)'), { target: { value: '' } });
     fireEvent.click(screen.getByRole('button', { name: 'Close the day' }));
     await waitFor(() => expect(r.close?.submit).toHaveBeenCalledTimes(1));
     const sent = vi.mocked(r.close?.submit ?? vi.fn()).mock.calls[0]?.[0] as CloseInput;
@@ -928,6 +928,31 @@ describe('a closed day (U5)', () => {
     expect(
       (fresh.container.querySelector('ul[aria-label="This day"]') as HTMLElement).className
     ).not.toContain('motion-settle');
+  });
+});
+
+describe('the pre-filled cash (U5)', () => {
+  it('follows the expected cash until she changes it, and It matches puts it back', () => {
+    const r = review();
+    const { rerender } = render(<DayReview review={r} />);
+    const cash = () => screen.getByLabelText('Cash counted (₱)') as HTMLInputElement;
+    const moved = {
+      ...r,
+      close: {
+        ...(r.close as NonNullable<typeof r.close>),
+        cashExpectedCents: 80000,
+        cashExpectedPesos: '800.00',
+        cashExpectedText: '₱800.00'
+      }
+    };
+    rerender(<DayReview review={moved} />);
+    expect(cash().value).toBe('800.00'); // untouched: follows the new expected cash
+    fireEvent.change(cash(), { target: { value: '795' } });
+    expect(screen.getByText('Short ₱5.00')).toBeTruthy();
+    rerender(<DayReview review={r} />);
+    expect(cash().value).toBe('795'); // touched: kept
+    fireEvent.click(screen.getByRole('button', { name: 'It matches' }));
+    expect(cash().value).toBe('1000.00');
   });
 });
 

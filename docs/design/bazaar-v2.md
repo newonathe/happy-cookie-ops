@@ -283,6 +283,8 @@ a plan, add or edit an event, fees, the cost, close the day, close the event, le
 Approved as drawn on 15 October 2026, with no changes. Decisions 1 to 8 in section 6 stand as recommended:
 
 - Cash counted starts empty, with **It matches** (not pre-filled; this replaces U5's "Cash counted = cash expected").
+  **Reversed by Ethan on 16 October (U5):** it is pre-filled with the cash expected after all, as the plan said; It matches
+  puts that back after an edit, and clearing the field means "not counted".
 - The leftover suggestion: carried on a non-last day; on the last day to the shop with a recipe, else written off.
 - Stranded carried cookies at "Close the event": suggested to the shop.
 - The proposed U1 tokens in 2.2.
