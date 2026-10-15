@@ -221,9 +221,11 @@ Interface only, no migration. Rules are pure and tested first (`src/lib/bazaar/r
 `centsToPesosText`, `dayReportOf`; `tests/unit/bazaar-close-u5.test.ts`); screens are `close-form.tsx`, `day-tiles.tsx`,
 `day-report.tsx` and `day-review.tsx`. Commits `3d816a8` (rules) and `739b4d2` (screens).
 
-- **Cash counted starts blank, with "It matches"** (D0 section 7, which replaced this slice's "cash counted = cash expected"):
-  a pre-filled count would make the count-again check unreachable. `cashExpectedCents` and `cashExpectedPesos` are on the view.
-  A blank count is sent blank (not counted), never the expected amount.
+- **Cash counted is pre-filled with the cash expected** (Ethan, 16 Oct, asked directly: this follows the goal text and
+  replaces D0 section 7's blank field with "It matches"). The field follows the expected cash until she changes it; clearing it
+  sends "not counted"; "It matches" puts the expected cash back. The known cost: an untouched field books the drawer as exact,
+  and Ateneo A3 fires only once she edits it (a ₱99,999 entry still blocks the close until she keeps it).
+  `cashExpectedCents` and `cashExpectedPesos` are on the view.
 - **Pre-filled close:** Left = what should be left (never below 0). The rest sits in one field that follows Left and the
   other fields she typed: carried over (not the last day), else the shop (flavour has a recipe), else written off. With the
   recipes not read yet (`hasRecipe: null`, from the runtime's `recipeRows`) the last day suggests nothing and says so. The
@@ -241,9 +243,11 @@ Interface only, no migration. Rules are pure and tested first (`src/lib/bazaar/r
   Everything else held: pesos round trip, blank count, totals, no unknown shown as ₱0.
 - **Left as drawn before, for U4/U9:** the per-flavour list is cards, not a compact table; the close is inline, not a sheet;
   the "Day closed." toast overlaps the bottom of a long review (U1 layout rule, U9).
-- **Checks:** `pnpm verify` 136 files, 2462 tests; the live smoke passes 16 steps (day 1 closes with the defaults, a
-  ₱99,999 difference blocks the close, day 2 types a written-off count and the shop's share follows); screenshots at 375 and
-  1440 px (`SMOKE_SHOTS=<dir>`) checked. Not run: Docker visual, axe beyond the smoke's own pass, a phone.
+- **Checks:** `pnpm verify` 136 files, 2462 tests; the live smoke passes 16 steps (day 1 closes with the defaults and nothing
+  typed or tapped, a ₱99,999 difference blocks the close, day 2 types a written-off count and the shop's share follows);
+  screenshots at 375 and 1440 px (`SMOKE_SHOTS=<dir>`); and the browser pane at both widths on the paused smoke
+  (`SMOKE_PAUSE_FILE=<file>` holds the run at day 2's open review and writes the address and sign-in there; delete the file
+  to go on): no sideways scroll, no clipped numeral, the count-again banner and its focus. Not run: Docker visual, a phone.
 
 ### U4: event page and day plan (Sonnet; interface)
 

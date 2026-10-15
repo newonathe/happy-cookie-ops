@@ -19,13 +19,16 @@ const num = (text: string): number => (/^[0-9]{1,5}$/.test(text.trim()) ? Number
 /**
  * The count at the end of a day (U5). Every field starts at a fact, not blank: Left is what should be left, the rest of it
  * sits in one field (carried over, else the shop when the flavour has a recipe, else written off), and she changes what is
- * not so. What is sent is exactly what is shown (`closeRowOf`). The cash starts blank, with "It matches", so a count she
- * did not make is never booked. A difference above the line asks her to count again first (Ateneo A3).
+ * not so. What is sent is exactly what is shown (`closeRowOf`). The cash is pre-filled with what the drawer should hold
+ * (Ethan, 16 Oct: this replaces D0's blank field); she changes it to what she counted, or clears it for "not counted", and
+ * "It matches" puts the expected cash back. A difference above the line asks her to count again first (Ateneo A3).
  * Only what she has changed is kept, so a re-read of the day moves what she has not touched. Keyed on the day by its parent.
  */
 export function CloseForm({ stock, close }: { stock: DayReviewView['stock']; close: Close }) {
   const [typed, setTyped] = useState<Record<string, CloseTyped>>({});
-  const [cash, setCash] = useState('');
+  // Null while she has not touched it: the field then follows the cash the drawer should hold.
+  const [typedCash, setTypedCash] = useState<string | null>(null);
+  const cash = typedCash ?? close.cashExpectedPesos;
   // What she kept: the amount AND the cash it was kept against, so a re-read that moves the expected cash asks again.
   const [kept, setKept] = useState<string | null>(null);
   const { error, saving, run } = useSave();
@@ -132,11 +135,11 @@ export function CloseForm({ stock, close }: { stock: DayReviewView['stock']; clo
               inputMode="decimal"
               autoComplete="off"
               aria-describedby={lineId}
-              onChange={(e) => setCash(e.target.value)}
+              onChange={(e) => setTypedCash(e.target.value)}
               className="min-h-12 w-full min-w-0 rounded-control border border-line-strong bg-surface px-3 text-[16px] font-semibold text-ink"
             />
           </label>
-          <Button variant="secondary" onClick={() => setCash(close.cashExpectedPesos)}>
+          <Button variant="secondary" onClick={() => setTypedCash(null)}>
             It matches
           </Button>
         </div>

@@ -47,7 +47,7 @@
  * It deletes nothing but the account it made and the shop details it saved.
  */
 import { randomBytes, randomUUID } from 'node:crypto';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
 import { chromium } from '@playwright/test';
 import { createClient } from '@supabase/supabase-js';
 import { assert, localStack, serveLiveBuild } from './lib/live-stack.mjs';
@@ -1041,8 +1041,9 @@ try {
       );
 
       const close = page.getByRole('form', { name: 'Close the day' });
-      // U5: the close starts from what should be left, all of it carried over, and the cash is counted with "It matches".
-      // Nothing is typed: the day closes with the defaults, and the database is held to what the form showed.
+      // U5: the close starts from what should be left, all of it carried over, and the cash is pre-filled with what the
+      // drawer should hold. Nothing is typed or tapped: the day closes with the defaults, and the database is held to what
+      // the form showed.
       const shouldBe = flavour.short_name;
       assert(
         (await stepperValue(close, `${shouldBe}: left`)) === String(CARRIED) &&
@@ -1052,14 +1053,9 @@ try {
         'The close does not start from what should be left.'
       );
       assert(
-        (await close.getByLabel('Cash counted (₱)').inputValue()) === '',
-        'The cash count was filled in before she counted.'
-      );
-      await close.getByRole('button', { name: 'It matches', exact: true }).click();
-      assert(
         (await close.getByLabel('Cash counted (₱)').inputValue()) ===
           (DAY_FLOAT_PESOS + taken).toFixed(2),
-        '"It matches" did not fill the expected cash.'
+        'The cash count does not start at the cash the drawer should hold.'
       );
       await close.getByRole('button', { name: 'Close the day', exact: true }).click();
       await page.waitForFunction(() => !window.__hcOps.state.event);
@@ -1220,6 +1216,17 @@ try {
     await bazaarFits('Bazaar day review, open', 'Bazaar day review');
     await paneShots('u5-review-open');
     await paneShots('u5-tiles-open', 'ul[aria-label="This day"]');
+    // For a look in the browser pane: with SMOKE_PAUSE_FILE set, the run waits here (up to 30 minutes) with the day open,
+    // the owner signed in elsewhere, and writes the address and sign-in to that file. Delete the file to go on.
+    if (process.env.SMOKE_PAUSE_FILE) {
+      writeFileSync(
+        process.env.SMOKE_PAUSE_FILE,
+        JSON.stringify({ base, email: owner.email, secret })
+      );
+      for (let i = 0; i < 360 && existsSync(process.env.SMOKE_PAUSE_FILE); i++)
+        await page.waitForTimeout(5000);
+      if (existsSync(process.env.SMOKE_PAUSE_FILE)) unlinkSync(process.env.SMOKE_PAUSE_FILE);
+    }
     // The day's figures on screen are the database's own, to the centavo.
     const open = (await summaryNow()).days.find((d) => d.state === 'open');
     await figureSays('This day', 'Revenue', pesoOf(open.revenue_cents / 100));
