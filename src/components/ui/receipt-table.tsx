@@ -18,6 +18,8 @@ export interface ReceiptTableProps {
   lines: ReceiptLine[];
   subtotal?: number;
   total: number;
+  /** Names the last row; "Total" unless it is something else ("Expected"). */
+  totalLabel?: string;
   note?: string;
   /** What shows when there are no lines: "No fees yet". */
   emptyText?: string;
@@ -29,6 +31,7 @@ export function ReceiptTable({
   lines,
   subtotal,
   total,
+  totalLabel = 'Total',
   note,
   emptyText = 'Nothing yet'
 }: ReceiptTableProps) {
@@ -89,7 +92,7 @@ export function ReceiptTable({
           ) : null}
           <tr>
             <th scope="row" className="pt-2 pr-3 text-left text-body font-bold text-ink">
-              Total
+              {totalLabel}
             </th>
             <td className="pt-2 text-right text-body font-bold text-ink tabular-nums">
               {peso(total)}

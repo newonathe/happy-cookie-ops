@@ -363,7 +363,7 @@ export interface DrawerCheck {
 
 /**
  * What she typed for the drawer against what it should hold (U5). The line is strictly above the larger of ₱100.00 and
- * 10 % of expected (rounded up to the centavo), in whole centavos, so a difference exactly at the line is let through.
+ * 10 % of expected, in whole centavos and not rounded, so a difference exactly at the line is let through.
  */
 export function drawerCheck(expectedCents: number, countedText: string): DrawerCheck {
   const t = countedText.trim();
@@ -374,8 +374,8 @@ export function drawerCheck(expectedCents: number, countedText: string): DrawerC
     return { kind: 'invalid', countedCents: null, diffCents: 0, text: '', recount: false };
   const diff = countedCents - expectedCents;
   const diffCents = Math.abs(diff);
-  const line = Math.max(RECOUNT_FLOOR_CENTS, Math.ceil(Math.max(0, expectedCents) / 10));
-  const recount = diffCents > line;
+  // Strictly above both ₱100.00 and a tenth of expected, in whole centavos and without rounding the tenth.
+  const recount = diffCents > RECOUNT_FLOOR_CENTS && diffCents * 10 > Math.max(0, expectedCents);
   if (diff === 0) return { kind: 'matches', countedCents, diffCents, text: 'Matches', recount };
   return diff > 0
     ? { kind: 'over', countedCents, diffCents, text: 'Over ' + peso(diffCents), recount }

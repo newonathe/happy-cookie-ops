@@ -53,18 +53,22 @@ export function StatTile({
   const partsId = useId();
   const pending = value === null || value === undefined;
   const hasParts = Boolean(parts && parts.length > 0);
-  // The display numeral is 40 px. A figure with two decimals ("₱1,640.00") is wider than a half-width phone tile, so
-  // a long one steps down rather than wrapping or running out of the tile.
+  // The display numeral is 40 px. A figure with two decimals ("₱280.00", "₱1,640.00") is wider than a half-width phone
+  // tile (about 136 px of room), so a long one steps down rather than wrapping or running out of the tile.
   const written = pending ? '—' : typeof value === 'number' ? format(value) : value;
   const size =
-    written.length <= 7
+    written.length <= 5
       ? 'text-display'
-      : written.length <= 10
+      : written.length <= 8
         ? 'text-[30px] leading-none font-bold tracking-tight'
-        : 'text-[24px] leading-none font-bold tracking-tight';
+        : written.length <= 10
+          ? 'text-[24px] leading-none font-bold tracking-tight'
+          : 'text-[20px] leading-none font-bold tracking-tight';
   const head = (
     <>
-      <span className="text-caption font-semibold text-ink-soft">{label}</span>
+      <span className={cx('text-caption font-semibold text-ink-soft', hasParts && 'pr-5')}>
+        {label}
+      </span>
       <span className={cx('flex items-baseline gap-1.5 text-ink tabular-nums', size)}>
         {pending ? (
           <span aria-label="Not known yet">—</span>
@@ -97,7 +101,7 @@ export function StatTile({
             setOpen(next);
             onOpen?.(next);
           }}
-          className="motion-press relative flex w-full flex-col items-start gap-1 rounded-card p-4 pr-10 text-left"
+          className="motion-press relative flex w-full flex-col items-start gap-1 rounded-card p-4 text-left"
         >
           {head}
           <svg

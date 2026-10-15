@@ -380,6 +380,10 @@
   .motion-ring {
     animation: hcRing 600ms var(--ease-standard) both;
   }
+  /* A day closes: the stat tiles come back from a dimmer state to full (U5). */
+  .motion-settle {
+    animation: hcSettle var(--dur-base) var(--ease-standard) both;
+  }
   .motion-shimmer {
     background: linear-gradient(
       90deg,
@@ -406,6 +410,14 @@
   }
   to {
     box-shadow: 0 0 0 3px transparent;
+  }
+}
+@keyframes hcSettle {
+  from {
+    opacity: 0.6;
+  }
+  to {
+    opacity: 1;
   }
 }
 @keyframes hcShimmer {

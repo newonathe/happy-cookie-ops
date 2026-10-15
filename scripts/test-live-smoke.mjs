@@ -789,6 +789,21 @@ try {
     return text;
   };
   const review = page.locator('[data-screen-label="Bazaar day review"]');
+  /** U5: the close form's steppers. The number is read from the button that opens it for typing, and set by typing it. */
+  const stepperOf = (scope, name) => scope.getByRole('group', { name, exact: true });
+  const stepperValue = async (scope, name) =>
+    (
+      await stepperOf(scope, name)
+        .getByRole('button', { name: /Tap to type a number/ })
+        .innerText()
+    ).trim();
+  const setStepper = async (scope, name, value) => {
+    const group = stepperOf(scope, name);
+    await group.getByRole('button', { name: /Tap to type a number/ }).click();
+    const input = group.getByRole('textbox', { name, exact: true });
+    await input.fill(String(value));
+    await input.press('Enter');
+  };
   /** S3: the review and the event page, as the stock screens are held: no serious axe violation, and no sideways scroll at 320 px with the text at 200%. */
   const bazaarFits = async (at, label) => {
     await page.evaluate(
@@ -816,6 +831,23 @@ try {
     await page.evaluate(() => (document.documentElement.style.fontSize = ''));
     await page.setViewportSize({ width: 390, height: 844 });
     assert(wide <= 0, `${at}: scrolls sideways at 320 px and 200% text (${wide} px).`);
+  };
+  /** U5: with SMOKE_SHOTS set, the screen at 375 and 1440 px (full page), for the visual check beside the approved mockups. */
+  const paneShots = async (name, scrollTo = null) => {
+    if (!process.env.SMOKE_SHOTS) return;
+    for (const [w, h] of [
+      [375, 812],
+      [1440, 900]
+    ]) {
+      await page.setViewportSize({ width: w, height: h });
+      if (scrollTo) await page.locator(scrollTo).scrollIntoViewIfNeeded();
+      await page.waitForTimeout(700);
+      await page.screenshot({
+        path: `${process.env.SMOKE_SHOTS}/${name}-${w}.png`,
+        fullPage: true
+      });
+    }
+    await page.setViewportSize({ width: 390, height: 844 });
   };
   /** Whether the books say this run's bazaar is in progress (its sales held back). Leaves the Bazaar page. */
   const booksHoldIt = async () => {
@@ -975,7 +1007,7 @@ try {
       await figureSays('This day', 'Revenue', pesoOf(taken));
       await figureSays('This day', 'Cash expected in the drawer', pesoOf(DAY_FLOAT_PESOS + taken));
       // Every figure opens into its parts.
-      await figure('This day', 'Revenue').locator('summary').click();
+      await figure('This day', 'Revenue').getByRole('button').click();
       await figure('This day', 'Revenue').getByText('Before discounts and freebies').waitFor();
       // A flavour with no cost per cookie: profit is pending, in words, never a zero.
       const costs = await admin
@@ -1009,9 +1041,26 @@ try {
       );
 
       const close = page.getByRole('form', { name: 'Close the day' });
-      await close.getByLabel('Left', { exact: true }).fill(String(CARRIED));
-      await close.getByLabel('Carried over', { exact: true }).fill(String(CARRIED));
-      await close.getByLabel('Cash counted (₱)').fill(String(DAY_FLOAT_PESOS + taken));
+      // U5: the close starts from what should be left, all of it carried over, and the cash is counted with "It matches".
+      // Nothing is typed: the day closes with the defaults, and the database is held to what the form showed.
+      const shouldBe = flavour.short_name;
+      assert(
+        (await stepperValue(close, `${shouldBe}: left`)) === String(CARRIED) &&
+          (await stepperValue(close, `${shouldBe}: carried over`)) === String(CARRIED) &&
+          (await stepperValue(close, `${shouldBe}: to the shop`)) === '0' &&
+          (await stepperValue(close, `${shouldBe}: written off`)) === '0',
+        'The close does not start from what should be left.'
+      );
+      assert(
+        (await close.getByLabel('Cash counted (₱)').inputValue()) === '',
+        'The cash count was filled in before she counted.'
+      );
+      await close.getByRole('button', { name: 'It matches', exact: true }).click();
+      assert(
+        (await close.getByLabel('Cash counted (₱)').inputValue()) ===
+          (DAY_FLOAT_PESOS + taken).toFixed(2),
+        '"It matches" did not fill the expected cash.'
+      );
       await close.getByRole('button', { name: 'Close the day', exact: true }).click();
       await page.waitForFunction(() => !window.__hcOps.state.event);
       await review.getByText('Closed', { exact: true }).waitFor();
@@ -1169,6 +1218,8 @@ try {
     const close = page.getByRole('form', { name: 'Close the day' });
     await close.waitFor();
     await bazaarFits('Bazaar day review, open', 'Bazaar day review');
+    await paneShots('u5-review-open');
+    await paneShots('u5-tiles-open', 'ul[aria-label="This day"]');
     // The day's figures on screen are the database's own, to the centavo.
     const open = (await summaryNow()).days.find((d) => d.state === 'open');
     await figureSays('This day', 'Revenue', pesoOf(open.revenue_cents / 100));
@@ -1182,15 +1233,50 @@ try {
       (await close.getByLabel('Carried over', { exact: true }).count()) === 0,
       "The booking's last day offers a carry-over."
     );
-    await close.getByLabel('Left', { exact: true }).fill(String(left));
-    await close.getByLabel('To the shop', { exact: true }).fill(String(toShop));
-    await close.getByLabel('Written off', { exact: true }).fill(String(left - toShop));
+    // U5: on the last day the leftover starts in one place (the shop with a recipe, else written off), and the form holds
+    // the whole count already. One cookie goes to the shop and the rest is written off: typing the written-off count moves
+    // the shop's share, which follows it.
+    const shouldBe = flavour.short_name;
+    assert(
+      (await stepperValue(close, `${shouldBe}: left`)) === String(left),
+      'The last day does not start from what should be left.'
+    );
+    assert(
+      (await stepperValue(close, `${shouldBe}: to the shop`)) ===
+        (recipe.data.length ? String(left) : '0'),
+      "The last day's leftover is not suggested for the shop when the flavour has a recipe."
+    );
+    if (recipe.data.length) await setStepper(close, `${shouldBe}: written off`, left - toShop);
+    assert(
+      (await stepperValue(close, `${shouldBe}: to the shop`)) === String(toShop),
+      'The rest did not follow the written-off count.'
+    );
+    // Ateneo A3: a drawer far from the expected cash asks to count again, and the day does not close until she keeps it.
+    await close.getByLabel('Cash counted (₱)').fill('99999');
+    await page.getByRole('alert').filter({ hasText: 'Count the drawer again?' }).waitFor();
+    await paneShots('u5-review-recount');
+    await close.getByRole('button', { name: 'Close the day', exact: true }).click();
+    await page.waitForTimeout(500);
+    assert(
+      await page.evaluate(() => !!window.__hcOps.state.event),
+      'The day closed while the drawer was ₱99,999 off and the question was unanswered.'
+    );
     await close.getByLabel('Cash counted (₱)').fill(String(DAY2_FLOAT_PESOS + taken + 5));
+    assert(
+      (await page.getByRole('alert').filter({ hasText: 'Count the drawer again?' }).count()) === 0,
+      'A drawer ₱5 over still asks to count again.'
+    );
     await close.getByRole('button', { name: 'Close the day', exact: true }).click();
     await page.waitForFunction(() => !window.__hcOps.state.event);
     // The phone lets go of the day at once; the review shows the closed day once it has been read again.
     await review.getByText('Closed', { exact: true }).waitFor();
     await figureSays('This day', 'Cash', pesoOf(5) + ' over');
+    // U5: the closed day is a receipt whose totals are the database's own.
+    const summary = page.getByRole('region', { name: 'Day summary' });
+    await summary.waitFor();
+    await summary.getByRole('table', { name: 'Drawer' }).waitFor();
+    await paneShots('u5-review-closed');
+    await paneShots('u5-tiles-closed', 'ul[aria-label="This day"]');
     await page.getByRole('button', { name: /Back to the event/ }).click();
     await page.getByRole('heading', { level: 1, name: BOOKING_NAME }).waitFor();
     await check(page, 'Bazaar event page, both days closed', 'Bazaar');
