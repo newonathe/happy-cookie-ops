@@ -174,7 +174,11 @@ export function eventFiguresOf(s: BazaarSummary): ReviewFigure[] {
           ? ''
           : ', at ' +
             unitCostText(l.unitCents) +
-            (l.source === 'typed' ? ' typed by you' : ' from the recipe')),
+            (l.source === 'typed'
+              ? ' typed by you'
+              : l.source === 'flavour'
+                ? ' typed by you for the flavour'
+                : ' from the recipe')),
       valueText: moneyText(l.costCents)
     });
   }

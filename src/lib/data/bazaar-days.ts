@@ -100,7 +100,8 @@ export interface CostLine {
   name: string;
   /** Centavos with up to four decimals; null when there is none. */
   unitCents: number | null;
-  source: 'typed' | 'recipe' | null;
+  /** Where the cost came from: hers for this booking, hers for the flavour, or the recipe's (read at the flavour's first day). */
+  source: 'typed' | 'flavour' | 'recipe' | null;
   uncosted: boolean;
   made: number;
   toShop: number;
@@ -145,6 +146,11 @@ export interface BazaarSummary {
     voided: number;
   };
   cash: { overCents: number; shortCents: number };
+  /**
+   * What the latest started day set aside to carry over that no later day took (the event ended early); [] when none, and for a
+   * summary stored before migration 70. Closing the event needs a final split for exactly these (`FinalSplit`).
+   */
+  stranded: StrandedCookies[];
   fees: { totalCents: number; eventCents: number; parts: FeePart[] };
   cookieCost: {
     cents: number | null;
@@ -167,6 +173,17 @@ export interface BazaarSummary {
   hash: string;
 }
 
+/** Cookies a day set aside to carry over that nothing took. */
+export interface StrandedCookies {
+  productId: string;
+  name: string;
+  dayId: string;
+  qty: number;
+}
+
+/** The final split, by flavour: where the stranded cookies go. Each flavour's two parts together are what was stranded. */
+export type FinalSplit = Record<string, { toShop: number; writtenOff: number }>;
+
 export interface BazaarLoss {
   clientId: string;
   dayId: string;
@@ -186,6 +203,10 @@ export interface Bazaar extends BazaarSummary {
   losses: BazaarLoss[];
   /** What was booked when the event was closed; null until then. */
   finalSummary: BazaarSummary | null;
+  /** The final split the event was closed with (null until then, and for one closed before migration 70). */
+  finalSplit: FinalSplit | null;
+  /** ISO time the event's books and stock use were reversed as a test; null for a real event. */
+  reversedAt: string | null;
 }
 
 export interface BazaarPlan {
@@ -380,7 +401,12 @@ function parseCostLine(l: unknown): CostLine | null {
     !PRODUCT.test(l.product_id) ||
     !str(l.name, 120) ||
     !decimalOrNull(l.unit_cents) ||
-    !(l.source === null || l.source === 'typed' || l.source === 'recipe') ||
+    !(
+      l.source === null ||
+      l.source === 'typed' ||
+      l.source === 'flavour' ||
+      l.source === 'recipe'
+    ) ||
     typeof l.uncosted !== 'boolean' ||
     !whole(l.made, 0, 1_000_000) ||
     !whole(l.to_shop, 0, 1_000_000) ||
@@ -461,6 +487,25 @@ export function parseSummary(
     const day = parseDay(d, stamps.get(id) ?? (stored ? '' : undefined));
     if (!day) return null;
     days.push(day);
+  }
+
+  // Absent in a summary stored before migration 70: nothing was stranded then that anyone was asked about.
+  const stranded: StrandedCookies[] = [];
+  if (sum.stranded !== undefined) {
+    if (!Array.isArray(sum.stranded)) return null;
+    for (const x of sum.stranded) {
+      if (
+        !isObj(x) ||
+        typeof x.product_id !== 'string' ||
+        !PRODUCT.test(x.product_id) ||
+        !str(x.name, 120) ||
+        typeof x.day_id !== 'string' ||
+        !UUID.test(x.day_id) ||
+        !whole(x.qty, 1, 99_999)
+      )
+        return null;
+      stranded.push({ productId: x.product_id, name: x.name, dayId: x.day_id, qty: x.qty });
+    }
   }
 
   const r = sum.revenue;
@@ -577,6 +622,7 @@ export function parseSummary(
       voided: r.voided
     },
     cash: { overCents: cash.over_cents, shortCents: cash.short_cents },
+    stranded,
     fees: { totalCents: fees.total_cents, eventCents: fees.event_cents, parts: feeParts },
     cookieCost: {
       cents: cc.cents,
@@ -658,6 +704,23 @@ export function parseBazaar(json: Json | null | undefined): Bazaar | null {
     finalSummary = parseSummary(json.final_summary, stamps, true);
     if (!finalSummary) return null;
   }
+  // Both absent from an answer older than migration 70.
+  const reversedAt = json.reversed_at ?? null;
+  if (reversedAt !== null && typeof reversedAt !== 'string') return null;
+  let finalSplit: FinalSplit | null = null;
+  if (isObj(json.final_split)) {
+    finalSplit = {};
+    for (const [pid, v] of Object.entries(json.final_split)) {
+      if (
+        !PRODUCT.test(pid) ||
+        !isObj(v) ||
+        !whole(v.to_shop, 0, 99_999) ||
+        !whole(v.written_off, 0, 99_999)
+      )
+        return null;
+      finalSplit[pid] = { toShop: v.to_shop, writtenOff: v.written_off };
+    }
+  } else if (json.final_split !== undefined && json.final_split !== null) return null;
   return {
     ...summary,
     targetCents: target as number | null,
@@ -665,7 +728,9 @@ export function parseBazaar(json: Json | null | undefined): Bazaar | null {
     feesCents: summary.fees.totalCents,
     costs,
     losses,
-    finalSummary
+    finalSummary,
+    finalSplit,
+    reversedAt
   };
 }
 
@@ -1118,16 +1183,20 @@ const tillOk = (t: TillFigures): boolean =>
  * Closes the event, once: only now do its fees, rent, cash differences and stock use reach the books. `expected` is the
  * hash of the summary she was shown; `dropNo` is the drop the cookies sent to the shop are written to as a batch. `till`
  * (S3.1): a closed day this phone still holds, with its own figures for it, which the server must hold too (40001).
+ * `finalSplit` (U6): where the cookies the last day set aside to carry over go, to the shop or written off, for exactly
+ * the flavours of `summary.stranded`; null when none were stranded. Another split on a repeat is refused.
  */
 export async function finaliseBazaar(
   client: BazaarClient,
   bookingId: string,
   expected: string,
   dropNo: number,
-  till: ({ dayId: string } & TillFigures) | null = null
+  till: ({ dayId: string } & TillFigures) | null = null,
+  finalSplit: FinalSplit | null = null
 ): Promise<MoneyOutcome> {
   if (!UUID.test(bookingId) || !HASH.test(expected) || !whole(dropNo, 0, 100_000)) return 'refused';
   if (till && (!UUID.test(till.dayId) || !tillOk(till))) return 'refused';
+  if (finalSplit && !splitOk(finalSplit)) return 'refused';
   try {
     const { data, error } = await client.rpc('finalise_bazaar', {
       p_booking: bookingId,
@@ -1135,6 +1204,9 @@ export async function finaliseBazaar(
       p_drop: dropNo,
       p_till: (till
         ? { day_id: till.dayId, sales_count: till.salesCount, cash_cents: till.cashCents }
+        : null) as Json,
+      p_final: (finalSplit && Object.keys(finalSplit).length > 0
+        ? splitBody(finalSplit)
         : null) as Json
     });
     const result = classifyMoney(error);
@@ -1143,6 +1215,17 @@ export async function finaliseBazaar(
     return 'offline';
   }
 }
+
+const splitOk = (s: FinalSplit): boolean =>
+  Object.entries(s).every(
+    ([pid, v]) => PRODUCT.test(pid) && whole(v.toShop, 0, 99_999) && whole(v.writtenOff, 0, 99_999)
+  );
+
+/** The wire form of a final split: exactly to_shop and written_off for each flavour. */
+const splitBody = (s: FinalSplit): Record<string, { to_shop: number; written_off: number }> =>
+  Object.fromEntries(
+    Object.entries(s).map(([pid, v]) => [pid, { to_shop: v.toShop, written_off: v.writtenOff }])
+  );
 
 /**
  * S3.1: takes back a fee (`void_bazaar_fee`) or a loss (`void_bazaar_loss`) by its client id. The row stays on the server,
@@ -1161,6 +1244,82 @@ export async function voidBazaarEntry(
         p_client_id: clientId
       }
     );
+    const result = classifyMoney(error);
+    return result === 'saved' && !isObj(data) ? 'offline' : result;
+  } catch {
+    return 'offline';
+  }
+}
+
+/** Her typed cost per cookie for a flavour, in centavos (at most four decimals), or null to take it away (U6). Owner only. */
+export async function saveFlavourCost(
+  client: BazaarClient,
+  productId: string,
+  cents: number | null
+): Promise<MoneyOutcome> {
+  if (!PRODUCT.test(productId)) return 'refused';
+  if (cents !== null && !(Number.isFinite(cents) && cents >= 0 && cents <= 100_000_000))
+    return 'refused';
+  try {
+    const { error } = await client.rpc('save_flavour_cost', {
+      p_product: productId,
+      p_cents: cents as number
+    });
+    return classifyMoney(error);
+  } catch {
+    return 'offline';
+  }
+}
+
+export interface FlavourCost {
+  productId: string;
+  costCents: number;
+  /** Milliseconds since the epoch. */
+  typedAt: number;
+}
+
+/** Strict: anything unexpected is no answer at all. */
+export function parseFlavourCosts(json: Json | null | undefined): FlavourCost[] | null {
+  if (!Array.isArray(json)) return null;
+  const out: FlavourCost[] = [];
+  for (const c of json) {
+    if (
+      !isObj(c) ||
+      typeof c.product_id !== 'string' ||
+      !PRODUCT.test(c.product_id) ||
+      typeof c.cost_cents !== 'number' ||
+      !decimalOrNull(c.cost_cents) ||
+      !whole(c.typed_at, 0, 99_999_999_999_999)
+    )
+      return null;
+    out.push({ productId: c.product_id, costCents: c.cost_cents, typedAt: c.typed_at });
+  }
+  return out;
+}
+
+/** Every flavour that has a typed cost. Null when the answer is not understood. */
+export async function fetchFlavourCosts(client: BazaarClient): Promise<FlavourCost[] | null> {
+  const { data, error } = await client.rpc('get_flavour_costs');
+  if (error) throw new Error('get_flavour_costs failed: ' + (error.code ?? 'unknown'));
+  return parseFlavourCosts(data);
+}
+
+/**
+ * Reverses the books and the stock use of a finalised event that was only a test (U6). `name` must be the booking's name
+ * exactly. Appends reversing lines, deletes nothing, and refuses a booking whose books do not add up to its summary. A
+ * repeat is answered. 'refused' covers a wrong name, a booking that was not finalised or sent cookies to the shop.
+ */
+export async function reverseBazaarTest(
+  client: BazaarClient,
+  bookingId: string,
+  name: string
+): Promise<MoneyOutcome> {
+  if (!UUID.test(bookingId) || name.length < 1 || name.length > 80) return 'refused';
+  try {
+    const { data, error } = await client.rpc('reverse_bazaar_test', {
+      p_booking: bookingId,
+      p_confirm_name: name
+    });
     const result = classifyMoney(error);
     return result === 'saved' && !isObj(data) ? 'offline' : result;
   } catch {

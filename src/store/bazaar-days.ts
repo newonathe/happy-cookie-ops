@@ -550,7 +550,11 @@ export class BazaarDays {
             ? COST_COPY.pending
             : unitCostText(line.unitCents) +
               ' per cookie · ' +
-              (line.source === 'typed' ? 'typed by you' : 'from the recipe');
+              (line.source === 'typed'
+                ? 'typed by you'
+                : line.source === 'flavour'
+                  ? 'typed by you for the flavour'
+                  : 'from the recipe');
       else
         text =
           typed === null

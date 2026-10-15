@@ -61,6 +61,22 @@
 --   void -13000) and the Tape cost stop being held: revenue lines 54700, expense lines 41500.
 --   Stock taken for A's 12 cookies: flour 250 x 12 / 10 = 300.0 g (280 on hand: 280 taken, 20 short); eggs 3 x 12 / 10 = 3.6 -> 4;
 --   pouches 12. B has no recipe: a shortfall, why "no recipe". Bags: one per sale that is not voided = 2 (1 on hand: 1 taken, 1 short).
+--
+-- U6 (migration 70). Since then the drawer over is no longer a sale: Y's 700 is an ADJUSTMENT of +700 in 'Cash variance', which get_books reads
+-- as a negative expense. So the books for Y (revenue lines 54000, no longer 54700) are: revenue 26000 + 28000 + 13000 - 13000 = 54000, expense
+-- 30000 + 4000 + 6000 + 1500 - 700 = 40800 (the Tape and the three fees are costs, the over is 700 less cost).
+-- A flavour's typed cost sits between the booking's and the recipe's. Y's A made 12: recipe 1200.5 -> 14406; flavour 1250 -> 15000 (source
+-- 'flavour'); booking-typed 1300 -> 15600 (source 'typed'), which wins over both.
+-- Reversing Y (A6): it wrote 9 ledger lines (4 sale lines with the void, rent -30000, Ice -4000, Permit -6000, Tape -1500, over +700); their
+-- sum is 54000 - 41500 + 700 = 13200. Each gets a line of the same kind, category and date with the amount negated. The books over the same
+-- period then lose 54000 of revenue and 40800 of expense (the sums above), and a period holding only the rent's date shows the rent and its
+-- reversal, 0 and 0. Stock use taken from Y: flour 280 (20 were short and never left), eggs 4, pouches 12, bags 1: those four go back.
+--
+-- Booking W "Early fair", two days of which only the first is held. Day 1: A made 10 at 130.00, float 0; one A sold for cash 130.00, counted 130.00.
+-- She counts 9 left = 4 carried over + 2 to the shop + 3 written off. Day 2 is never started, so the 4 set aside are stranded (the summary
+-- lists them). Her final split: 3 to the shop, 1 written off. A is typed at 1000 for W.
+--   A: made 10, to the shop 2 + 3 = 5, sold 1, written off 3 + 1 = 4, not accounted 10 - 5 - 1 - 4 = 0 (without the split: 4).
+--   Cost made 10000, to the shop 5000: cookie cost 5000 = sold 1000 + written off 4000. Revenue 13000: profit 13000 - 0 - 5000 = 8000.
 begin;
 create temporary table authority_results (operation text, actor text, outcome text);
 grant insert on authority_results to anon, authenticated, service_role;
@@ -149,6 +165,10 @@ end $$;
 create function pg_temp.bx() returns text language sql immutable as $$ select 'b0d0b000-0000-4000-8000-000000000001'::text $$;
 create function pg_temp.bqy() returns text language sql immutable as $$ select 'b0d0b000-0000-4000-8000-000000000002'::text $$;
 create function pg_temp.bz() returns text language sql immutable as $$ select 'b0d0b000-0000-4000-8000-000000000003'::text $$;
+create function pg_temp.bw() returns text language sql immutable as $$ select 'b0d0b000-0000-4000-8000-000000000004'::text $$;
+create function pg_temp.oh_all() returns jsonb language sql stable security definer as $$
+  select jsonb_object_agg(i.id, i.on_hand) from public.inventory_items i
+$$;
 create function pg_temp.dy(n integer) returns text language sql immutable as $$ select 'b0d0d000-0000-4000-8000-0000000000' || n::text $$;
 create function pg_temp.ev(n integer) returns text language sql immutable as $$ select 'b0d0e000-0000-4000-8000-0000000000' || n::text $$;
 create function pg_temp.d(n integer) returns text language sql stable as $$ select (current_date + n)::text $$;
@@ -222,7 +242,8 @@ declare
 begin
   foreach sig in array array['get_bazaar(uuid)', 'save_bazaar_day(jsonb,timestamptz)', 'save_bazaar_fee(jsonb)', 'save_bazaar_loss(jsonb)',
     'save_bazaar_cost(uuid,text,numeric)', 'save_bazaar_target(uuid,bigint)', 'start_bazaar_day(uuid,text,uuid)',
-    'add_bazaar_day_stock(uuid,text,integer,text,uuid)', 'close_bazaar_day(jsonb)', 'finalise_bazaar(uuid,text,integer,jsonb)', 'void_bazaar_fee(text)', 'void_bazaar_loss(text)',
+    'add_bazaar_day_stock(uuid,text,integer,text,uuid)', 'close_bazaar_day(jsonb)', 'finalise_bazaar(uuid,text,integer,jsonb,jsonb)', 'void_bazaar_fee(text)', 'void_bazaar_loss(text)',
+    'save_flavour_cost(text,numeric)', 'get_flavour_costs()', 'reverse_bazaar_test(uuid,text)',
     'refuse_finalised_bazaar_sale()',
     'bazaar_summary(uuid)', 'bazaar_line_facts(uuid)', 'bazaar_held_ledger()', 'recipe_stock_plan(text,numeric,text,jsonb)'] loop
     if has_function_privilege('anon', 'public.' || sig, 'EXECUTE') then
@@ -250,6 +271,10 @@ begin
   perform pg_temp.expect(actor, 'void_bazaar_fee', 'select public.void_bazaar_fee(''f-permit'')', '42501');
   perform pg_temp.expect(actor, 'void_bazaar_loss', 'select public.void_bazaar_loss(''devA:L1'')', '42501');
   perform pg_temp.expect(actor, 'finalise_bazaar', 'select public.finalise_bazaar(' || f || ', repeat(''0'', 64), 7, null)', '42501');
+  perform pg_temp.expect(actor, 'finalise_bazaar_with_a_split', 'select public.finalise_bazaar(' || f || ', repeat(''0'', 64), 7, null, ''{}''::jsonb)', '42501');
+  perform pg_temp.expect(actor, 'save_flavour_cost', 'select * from public.save_flavour_cost(''mp0s-a'', 1)', '42501');
+  perform pg_temp.expect(actor, 'get_flavour_costs', 'select public.get_flavour_costs()', '42501');
+  perform pg_temp.expect(actor, 'reverse_bazaar_test', 'select public.reverse_bazaar_test(' || f || ', ''Second fair'')', '42501');
 end $$;
 
 create function pg_temp.assert_owner() returns void language plpgsql security invoker as $$
@@ -259,6 +284,9 @@ declare
   b jsonb;
   r record;
   h text;
+  st jsonb;
+  rv jsonb;
+  b0 jsonb;
   l1 jsonb := jsonb_build_array(pg_temp.line('mp0s-a', 20, 0, 13000), pg_temp.line('mp0s-b', 10, 0, 15000),
     pg_temp.line('mp0s-c', 6, 0, 9000), pg_temp.line('mp0s-d', 0, 0, 8000));
   l2 jsonb := jsonb_build_array(pg_temp.line('mp0s-a', 10, 8, 12000), pg_temp.line('mp0s-b', 0, 6, 15000), pg_temp.line('mp0s-c', 0, 5, 9000));
@@ -648,6 +676,36 @@ begin
   perform public.save_bazaar_cost(pg_temp.bqy()::uuid, 'mp0s-a', null);
   perform pg_temp.confirm(pg_temp.cc(pg_temp.sm(pg_temp.bqy()), 'mp0s-a') @> '{"unit_cents": 1200.5, "source": "recipe", "made_cents": 14406}',
     a, 'null_goes_back_to_the_recipe', 'recipe_cost_kept');
+  -- U6: a flavour's own typed cost.
+  perform pg_temp.expect(a, 'fcost_negative', $q$select * from public.save_flavour_cost('mp0s-a', -1)$q$, '22023');
+  perform pg_temp.expect(a, 'fcost_five_decimals', $q$select * from public.save_flavour_cost('mp0s-a', 1250.00001)$q$, '22023');
+  perform pg_temp.expect(a, 'fcost_flavour_null', $q$select * from public.save_flavour_cost(null, 1)$q$, '22023');
+  perform pg_temp.expect(a, 'fcost_flavour_missing', $q$select * from public.save_flavour_cost('mp0s-zzz', 1)$q$, '22023');
+  perform pg_temp.confirm(public.get_flavour_costs() = '[]'::jsonb, a, 'fcost_none_yet', 'empty_list');
+  select * into r from public.save_flavour_cost('mp0s-a', 1250);
+  perform pg_temp.confirm(r.cost_cents = 1250 and pg_temp.q($q$(select count(*) = 1 from public.audit_log where action = 'flavour.cost_typed')$q$),
+    a, 'fcost_typed', 'stored_and_audited');
+  perform pg_temp.expect(a, 'fcost_repeat_answered', $q$select * from public.save_flavour_cost('mp0s-a', 1250)$q$, '00000');
+  perform pg_temp.confirm(pg_temp.q($q$(select count(*) = 1 from public.audit_log where action = 'flavour.cost_typed')$q$)
+    and jsonb_array_length(public.get_flavour_costs()) = 1 and public.get_flavour_costs() -> 0 ->> 'product_id' = 'mp0s-a'
+    and (public.get_flavour_costs() -> 0 ->> 'cost_cents')::numeric = 1250,
+    a, 'fcost_repeat_adds_nothing', 'one_audit_one_row');
+  perform pg_temp.confirm(pg_temp.cc(pg_temp.sm(pg_temp.bqy()), 'mp0s-a') @> '{"unit_cents": 1250, "source": "flavour", "made_cents": 15000}',
+    a, 'flavour_cost_beats_the_recipe', 'marked_flavour');
+  perform public.save_bazaar_cost(pg_temp.bqy()::uuid, 'mp0s-a', 1300);
+  perform pg_temp.confirm(pg_temp.cc(pg_temp.sm(pg_temp.bqy()), 'mp0s-a') @> '{"unit_cents": 1300, "source": "typed", "made_cents": 15600}',
+    a, 'booking_cost_beats_the_flavour_cost', 'marked_typed');
+  perform public.save_bazaar_cost(pg_temp.bqy()::uuid, 'mp0s-a', null);
+  -- The flavour's cost counts for a flavour the booking holds no cost row for at all (the join is not through that row).
+  perform pg_temp.x($q$create temporary table bz_keep as select * from public.bazaar_costs where scheduled_id = 'b0d0b000-0000-4000-8000-000000000002' and product_id = 'mp0s-a'$q$);
+  perform pg_temp.x($q$delete from public.bazaar_costs where scheduled_id = 'b0d0b000-0000-4000-8000-000000000002' and product_id = 'mp0s-a'$q$);
+  perform pg_temp.confirm(pg_temp.cc(pg_temp.sm(pg_temp.bqy()), 'mp0s-a') @> '{"unit_cents": 1250, "source": "flavour", "made_cents": 15000}',
+    a, 'flavour_cost_without_a_booking_row', 'still_found');
+  perform pg_temp.x($q$insert into public.bazaar_costs select * from bz_keep$q$);
+  perform public.save_flavour_cost('mp0s-a', null);
+  perform pg_temp.confirm(public.get_flavour_costs() = '[]'::jsonb
+    and pg_temp.cc(pg_temp.sm(pg_temp.bqy()), 'mp0s-a') @> '{"unit_cents": 1200.5, "source": "recipe", "made_cents": 14406}',
+    a, 'fcost_null_takes_it_away', 'recipe_again');
   perform public.record_event_sale(pg_temp.sale(pg_temp.ev(21), 'devA:U1:1', '{"mp0s-a": 2}', 0, 26000, 'Cash'));
   perform public.record_event_sale(pg_temp.sale(pg_temp.ev(21), 'devA:U2:1', '{"mp0s-a": 1, "mp0s-b": 1}', 0, 28000, 'GCash'));
   perform public.record_event_sale(pg_temp.sale(pg_temp.ev(21), 'devA:U3:1', '{"mp0s-a": 1}', 0, 13000, 'Cash') || jsonb_build_object('at', pg_temp.now_ms() + 120000));
@@ -711,10 +769,10 @@ begin
     and pg_temp.q($q$(select count(*) = 3 from public.bazaar_fees where scheduled_id = pg_temp.bx()::uuid and ledger_id is null)$q$),
     a, 'finalise_posts_rent_and_fees', 'each_once_dated_the_day_paid');
   perform pg_temp.confirm(
-    pg_temp.q($q$(select count(*) = 1 from public.ledger_entries where kind = 'sale' and category = 'Bazaar' and amount_cents = 700
+    pg_temp.q($q$(select count(*) = 1 from public.ledger_entries where kind = 'adjustment' and category = 'Cash variance' and amount_cents = 700
         and memo = 'Second fair ' || pg_temp.d(14) || ' — drawer over')$q$)
-    and pg_temp.q($q$(select count(*) = 0 from public.ledger_entries where category = 'Cash variance')$q$),
-    a, 'finalise_posts_the_cash_variance', 'over_is_takings');
+    and pg_temp.q($q$(select count(*) = 0 from public.ledger_entries where kind = 'sale' and category = 'Bazaar' and memo like '%drawer%')$q$),
+    a, 'finalise_posts_the_cash_variance', 'over_is_an_adjustment_not_a_sale');
   perform pg_temp.confirm(
     pg_temp.q($q$(select on_hand = 0 from public.inventory_items where id = 'bzi-flour')$q$) and pg_temp.q($q$(select on_hand = 6 from public.inventory_items where id = 'bzi-egg')$q$)
     and pg_temp.q($q$(select on_hand = 88 from public.inventory_items where id = 'bzi-pouch')$q$) and pg_temp.q($q$(select on_hand = 0 from public.inventory_items where id = 'bzi-bag')$q$)
@@ -736,7 +794,7 @@ begin
     and pg_temp.q($q$(select count(*) = 1 from public.audit_log where action = 'bazaar.finalised')$q$), a, 'finalise_repeat_adds_nothing', 'posted_once');
   perform pg_temp.expect(a, 'finalise_again_other_hash', $q$select public.finalise_bazaar(pg_temp.bqy()::uuid, repeat('0', 64), 7, null)$q$, '23505');
   b := pg_temp.books();
-  perform pg_temp.confirm(pg_temp.sumk(b, 'revenue') = 54700 and pg_temp.sumk(b, 'expense') = 41500 and jsonb_array_length(b -> 'lines') = 9
+  perform pg_temp.confirm(pg_temp.sumk(b, 'revenue') = 54000 and pg_temp.sumk(b, 'expense') = 40800 and jsonb_array_length(b -> 'lines') = 9
     and jsonb_array_length(b -> 'held') = 1 and pg_temp.held(b, pg_temp.bx()) @> '{"count": 7, "revenue_cents": 175000}',
     a, 'books_count_a_finalised_bazaar', 'its_lines_are_in_and_the_open_one_stays_held');
   -- Once finalised, nothing of it changes.
@@ -763,7 +821,7 @@ begin
   perform pg_temp.expect(a, 'void_after_finalise', $q$select * from public.void_event_sale(pg_temp.void('devA:U1:1'))$q$, '55000');
   b := pg_temp.books();
   s := public.get_bazaar(pg_temp.bqy()::uuid);
-  perform pg_temp.confirm(pg_temp.sumk(b, 'revenue') = 54700 and (s #>> '{summary,revenue,revenue_cents}')::bigint = 54000
+  perform pg_temp.confirm(pg_temp.sumk(b, 'revenue') = 54000 and (s #>> '{summary,revenue,revenue_cents}')::bigint = 54000
     and (s #>> '{summary,fees,total_cents}')::bigint = 41500 and s #>> '{summary,hash}' = s ->> 'final_hash'
     and pg_temp.dayj(s -> 'summary', pg_temp.dy(21)) @> '{"changed_after_close": false}',
     a, 'late_void_after_finalise', 'refused_and_nothing_moves');
@@ -795,6 +853,141 @@ begin
         where m.item_id = 'bzi-egg' and r.kind = 'sale' and r.product_id = 'mp0s-a' and r.ref = 'bazaar:' || pg_temp.bx())$q$)
     and pg_temp.q($q$(select on_hand = 0 from public.inventory_items where id = 'bzi-egg')$q$),
     a, 'finalise_shop_cookies_take_ingredients_once', 'eggs_4_for_the_batch_6_for_the_rest');
+
+  -- ---- U6, A6: Y was only a test. Reversing it appends lines and stock; nothing is deleted.
+  b0 := pg_temp.books();
+  st := pg_temp.oh_all();
+  perform pg_temp.expect(a, 'reverse_shape', $q$select public.reverse_bazaar_test(null, 'Second fair')$q$, '22023');
+  perform pg_temp.expect(a, 'reverse_booking_missing',
+    $q$select public.reverse_bazaar_test('b0d0c105-0000-4000-8000-0000000000ff', 'Second fair')$q$, 'P0002');
+  perform pg_temp.expect(a, 'reverse_wrong_name', $q$select public.reverse_bazaar_test(pg_temp.bqy()::uuid, 'second fair')$q$, '22023');
+  perform pg_temp.expect(a, 'reverse_not_finalised', $q$select public.reverse_bazaar_test(pg_temp.bz()::uuid, 'Off fair')$q$, '55000');
+  perform pg_temp.expect(a, 'reverse_sent_cookies_to_the_shop', $q$select public.reverse_bazaar_test(pg_temp.bx()::uuid, 'Fixture fair')$q$, '55000');
+  perform pg_temp.x($q$insert into public.cost_cutover(at, total_cents, items, payload_hash, cut_seq, cut_corr_seq) values (now(), 0, '[]', repeat('a', 64), 0, 0)$q$);
+  perform pg_temp.expect(a, 'reverse_after_a_cost_cutover', $q$select public.reverse_bazaar_test(pg_temp.bqy()::uuid, 'Second fair')$q$, '55000');
+  perform pg_temp.x($q$delete from public.cost_cutover$q$);
+  perform pg_temp.x($q$insert into public.stock_movements(id, item_id, kind, qty_delta, counted, at, payload_hash)
+    values ('b0d0f000-0000-4000-8000-000000000001', 'bzi-bag', 'count', 0, 0, now(), repeat('b', 64))$q$);
+  perform pg_temp.expect(a, 'reverse_after_a_count', $q$select public.reverse_bazaar_test(pg_temp.bqy()::uuid, 'Second fair')$q$, '55000');
+  perform pg_temp.x($q$delete from public.stock_movements where id = 'b0d0f000-0000-4000-8000-000000000001'$q$);
+  -- Books touched by hand are not reversed: one centavo off a fee, a sale or the drawer line, and the lines no longer add up to the summary.
+  perform pg_temp.x($q$update public.ledger_entries set amount_cents = amount_cents - 1 where memo = 'Second fair — Ice'$q$);
+  perform pg_temp.expect(a, 'reverse_ledger_off_by_a_centavo', $q$select public.reverse_bazaar_test(pg_temp.bqy()::uuid, 'Second fair')$q$, '22023');
+  perform pg_temp.x($q$update public.ledger_entries set amount_cents = amount_cents + 1 where memo = 'Second fair — Ice'$q$);
+  perform pg_temp.x($q$update public.ledger_entries set amount_cents = amount_cents + 1 where id = (select l.id from public.ledger_entries l
+    join public.event_sales es on es.id = l.sale_id where es.client_id = 'devA:U1:1')$q$);
+  perform pg_temp.expect(a, 'reverse_sales_off_by_a_centavo', $q$select public.reverse_bazaar_test(pg_temp.bqy()::uuid, 'Second fair')$q$, '22023');
+  perform pg_temp.x($q$update public.ledger_entries set amount_cents = amount_cents - 1 where id = (select l.id from public.ledger_entries l
+    join public.event_sales es on es.id = l.sale_id where es.client_id = 'devA:U1:1')$q$);
+  perform pg_temp.x($q$update public.ledger_entries set amount_cents = amount_cents + 1 where memo = 'Second fair ' || (current_date + 14) || ' — drawer over'$q$);
+  perform pg_temp.expect(a, 'reverse_drawer_off_by_a_centavo', $q$select public.reverse_bazaar_test(pg_temp.bqy()::uuid, 'Second fair')$q$, '22023');
+  perform pg_temp.x($q$update public.ledger_entries set amount_cents = amount_cents - 1 where memo = 'Second fair ' || (current_date + 14) || ' — drawer over'$q$);
+  perform pg_temp.confirm(pg_temp.q($q$(select count(*) = 0 from public.ledger_entries where memo like 'Reversal%')$q$)
+    and pg_temp.q($q$(select count(*) = 0 from public.stock_movements where kind = 'adjust')$q$)
+    and pg_temp.q($q$(select reversed_at is null from public.scheduled_events where id = pg_temp.bqy()::uuid)$q$)
+    and pg_temp.oh_all() = st,
+    a, 'reverse_refusals_leave_nothing', 'no_lines_no_stock_not_marked');
+  rv := public.reverse_bazaar_test(pg_temp.bqy()::uuid, 'Second fair');
+  perform pg_temp.confirm(rv @> '{"ledger_lines": 9, "ledger_total_cents": 13200, "stock_movements": 4}' and (rv ->> 'reversed_at')::bigint > 0,
+    a, 'reverse_second_fair', 'nine_lines_four_stock_movements');
+  perform pg_temp.confirm(
+    pg_temp.q($q$(select count(*) = 9 from public.ledger_entries o join public.ledger_entries r on r.id = md5('reverse:' || o.id::text)::uuid
+        where r.kind = o.kind and r.category = o.category and r.amount_cents = -o.amount_cents and r.memo = 'Reversal — ' || o.memo)$q$)
+    and pg_temp.q($q$(select count(*) = 9 from public.ledger_entries where memo like 'Reversal — %')$q$),
+    a, 'reverse_negates_each_line', 'same_kind_and_category');
+  perform pg_temp.confirm(
+    pg_temp.q($q$(select count(*) = 9 from public.ledger_entries o join public.ledger_entries r on r.id = md5('reverse:' || o.id::text)::uuid
+        where r.occurred_at = o.occurred_at)$q$)
+    and pg_temp.q($q$(select count(*) = 1 from public.ledger_entries r where r.memo = 'Reversal — Second fair — Stall rent'
+        and r.occurred_at = ((current_date + 13) + time '12:00') at time zone 'UTC' and r.amount_cents = 30000)$q$),
+    a, 'reverse_keeps_the_dates', 'each_on_the_day_of_the_original');
+  b := pg_temp.books();
+  perform pg_temp.confirm(pg_temp.sumk(b, 'revenue') - pg_temp.sumk(b0, 'revenue') = -54000
+    and pg_temp.sumk(b, 'expense') - pg_temp.sumk(b0, 'expense') = -40800
+    and jsonb_array_length(b -> 'lines') - jsonb_array_length(b0 -> 'lines') = 9,
+    a, 'reverse_nets_the_books', 'minus_54000_revenue_minus_40800_expense_nine_lines');
+  b := public.get_books(((current_date + 13) + time '00:00') at time zone 'UTC', ((current_date + 14) + time '00:00') at time zone 'UTC');
+  perform pg_temp.confirm(jsonb_array_length(b -> 'lines') = 2 and pg_temp.sumk(b, 'revenue') = 0 and pg_temp.sumk(b, 'expense') = 0,
+    a, 'reverse_nets_to_zero_in_the_period_of_the_rent', 'the_rent_and_its_reversal');
+  perform pg_temp.confirm((pg_temp.oh_all() ->> 'bzi-flour')::numeric - (st ->> 'bzi-flour')::numeric = 280
+    and (pg_temp.oh_all() ->> 'bzi-egg')::numeric - (st ->> 'bzi-egg')::numeric = 4
+    and (pg_temp.oh_all() ->> 'bzi-pouch')::numeric - (st ->> 'bzi-pouch')::numeric = 12
+    and (pg_temp.oh_all() ->> 'bzi-bag')::numeric - (st ->> 'bzi-bag')::numeric = 1
+    and (pg_temp.oh_all() ->> 'bzi-sprinkle')::numeric = (st ->> 'bzi-sprinkle')::numeric
+    and pg_temp.q($q$(select count(*) = 4 from public.stock_movements m join public.stock_movements u on m.id = md5('reverse:' || u.id::text)::uuid
+        where m.kind = 'adjust' and m.qty_delta = -u.qty_delta and m.reason = 'Reversal of a test event' and u.kind = 'use')$q$),
+    a, 'reverse_restores_stock', 'only_what_was_taken');
+  s := public.get_bazaar(pg_temp.bqy()::uuid);
+  perform pg_temp.confirm(s ->> 'reversed_at' is not null and s -> 'reversal' = rv and s ->> 'final_hash' = h and s ->> 'finalised_at' is not null
+    and pg_temp.q($q$(select reversed_by = 'b0d00000-0000-4000-8000-000000000001'::uuid from public.scheduled_events where id = pg_temp.bqy()::uuid)$q$)
+    and pg_temp.q($q$(select count(*) = 1 from public.audit_log where action = 'bazaar.reversed')$q$),
+    a, 'reverse_marks_the_booking', 'reversed_and_the_summary_kept');
+  perform pg_temp.expect(a, 'reverse_repeat_answered', $q$select public.reverse_bazaar_test(pg_temp.bqy()::uuid, 'Second fair')$q$, '00000');
+  perform pg_temp.confirm(public.reverse_bazaar_test(pg_temp.bqy()::uuid, 'Second fair') = rv
+    and pg_temp.q($q$(select count(*) = 9 from public.ledger_entries where memo like 'Reversal — %')$q$)
+    and pg_temp.q($q$(select count(*) = 4 from public.stock_movements where kind = 'adjust')$q$)
+    and pg_temp.q($q$(select count(*) = 1 from public.audit_log where action = 'bazaar.reversed')$q$),
+    a, 'reverse_repeat_adds_nothing', 'the_first_answer_nine_lines_four_movements');
+
+  -- ---- U6, A1 and A7: booking W ends after its first day. The 4 cookies it set aside to carry over never go anywhere unless she says.
+  perform pg_temp.x($q$insert into public.scheduled_events(id, name, starts_on, ends_on, place, rent_cents, active)
+    values ('b0d0b000-0000-4000-8000-000000000004', 'Early fair', current_date + 25, current_date + 26, 'Park', 0, true)$q$);
+  perform public.save_bazaar_day(pg_temp.plan(pg_temp.dy(41), pg_temp.bw(), 25, 0, jsonb_build_array(pg_temp.line('mp0s-a', 10, 0, 13000))), null);
+  perform public.save_bazaar_day(pg_temp.plan(pg_temp.dy(42), pg_temp.bw(), 26, 0, jsonb_build_array(pg_temp.line('mp0s-a', 0, 4, 13000))), null);
+  perform public.save_bazaar_cost(pg_temp.bw()::uuid, 'mp0s-a', 1000);
+  perform public.start_bazaar_day(pg_temp.dy(41)::uuid, 'devA', pg_temp.ev(41)::uuid);
+  perform public.record_event_sale(pg_temp.sale(pg_temp.ev(41), 'devA:W1:1', '{"mp0s-a": 1}', 0, 13000, 'Cash'));
+  s := public.close_bazaar_day(pg_temp.closing(pg_temp.bw(), pg_temp.dy(41), '13000', jsonb_build_object('mp0s-a', pg_temp.cl(9, 4, 2, 3))));
+  perform pg_temp.confirm(s -> 'stranded' = jsonb_build_array(jsonb_build_object('product_id', 'mp0s-a', 'name', 'Fixture A', 'day_id', pg_temp.dy(41), 'qty', 4))
+    and pg_temp.dc(s, pg_temp.dy(41), 'mp0s-a') @> '{"left": 9, "carry_next": 4, "to_shop": 2, "written_off": 3}'
+    and pg_temp.cc(s, 'mp0s-a') @> '{"made": 10, "to_shop": 2, "sold": 1, "written_off": 3, "not_accounted": 4}'
+    and pg_temp.sm(pg_temp.bx()) -> 'stranded' = '[]'::jsonb,
+    a, 'stranded_cookies_are_listed', 'four_not_accounted_until_she_splits_them');
+  h := pg_temp.sm(pg_temp.bw()) ->> 'hash';
+  perform pg_temp.expect(a, 'finalise_stranded_without_a_split', format($q$select public.finalise_bazaar(pg_temp.bw()::uuid, %L, 9, null)$q$, h), '22023');
+  perform pg_temp.expect(a, 'finalise_split_shape', format($q$select public.finalise_bazaar(pg_temp.bw()::uuid, %L, 9, null, '{"mp0s-a": {"to_shop": 3}}')$q$, h), '22023');
+  perform pg_temp.expect(a, 'finalise_split_fraction',
+    format($q$select public.finalise_bazaar(pg_temp.bw()::uuid, %L, 9, null, '{"mp0s-a": {"to_shop": 3.5, "written_off": 0.5}}')$q$, h), '22023');
+  perform pg_temp.expect(a, 'finalise_split_other_flavour',
+    format($q$select public.finalise_bazaar(pg_temp.bw()::uuid, %L, 9, null, '{"mp0s-b": {"to_shop": 3, "written_off": 1}}')$q$, h), '22023');
+  perform pg_temp.expect(a, 'finalise_split_does_not_add_up',
+    format($q$select public.finalise_bazaar(pg_temp.bw()::uuid, %L, 9, null, '{"mp0s-a": {"to_shop": 3, "written_off": 2}}')$q$, h), '22023');
+  perform pg_temp.expect(a, 'finalise_split_names_a_flavour_not_stranded',
+    format($q$select public.finalise_bazaar(pg_temp.bw()::uuid, %L, 9, null, '{"mp0s-a": {"to_shop": 3, "written_off": 1}, "mp0s-b": {"to_shop": 1, "written_off": 0}}')$q$, h), '22023');
+  perform pg_temp.confirm(pg_temp.q($q$(select finalised_at is null from public.scheduled_events where id = pg_temp.bw()::uuid)$q$)
+    and pg_temp.q($q$(select carry_next_qty = 4 and to_shop_qty = 2 and written_off_qty = 3 from public.bazaar_day_lines
+        where day_id = pg_temp.dy(41)::uuid and product_id = 'mp0s-a')$q$),
+    a, 'finalise_split_refusals_leave_nothing', 'the_line_is_as_she_closed_it');
+  -- Y was reversed and has been finalised: with no stranded cookies a null split is the same call as before.
+  perform pg_temp.x($q$delete from public.packaging_rules where container = 'bazaar_sale'$q$);
+  s := public.finalise_bazaar(pg_temp.bw()::uuid, h, 9, null, '{"mp0s-a": {"to_shop": 3, "written_off": 1}}');
+  perform pg_temp.confirm(s -> 'stranded' = '[]'::jsonb
+    and pg_temp.dc(s, pg_temp.dy(41), 'mp0s-a') @> '{"left": 9, "carry_next": 0, "to_shop": 5, "written_off": 4, "not_accounted": 0}'
+    and pg_temp.cc(s, 'mp0s-a') @> '{"unit_cents": 1000, "source": "typed", "made": 10, "to_shop": 5, "sold": 1, "written_off": 4, "not_accounted": 0,
+        "made_cents": 10000, "to_shop_cents": 5000, "sold_cents": 1000, "written_off_cents": 4000, "not_accounted_cents": 0, "cost_cents": 5000, "rounding_cents": 0}'
+    and s -> 'profit' @> '{"cents": 8000}' and s -> 'cash' = '{"over_cents": 0, "short_cents": 0}'
+    and pg_temp.q(format($q$(select finalised_at is not null and final_hash = %L and final_summary = %L::jsonb
+        and final_split = '{"mp0s-a": {"to_shop": 3, "written_off": 1}}' from public.scheduled_events where id = pg_temp.bw()::uuid)$q$, h, s))
+    and pg_temp.q($q$(select carry_next_qty = 0 and to_shop_qty = 5 and written_off_qty = 4 and left_qty = 9 from public.bazaar_day_lines
+        where day_id = pg_temp.dy(41)::uuid and product_id = 'mp0s-a')$q$),
+    a, 'finalise_with_a_final_split', 'the_cookies_move_and_the_figures_follow');
+  perform pg_temp.confirm(
+    pg_temp.q($q$(select r.qty = 5 and r.drop_no = 9 from public.production_records r where r.kind = 'batch' and r.product_id = 'mp0s-a'
+        and r.ref = 'bazaar:' || pg_temp.bw())$q$)
+    and pg_temp.q($q$(select r.qty = 5 from public.production_records r where r.kind = 'sale' and r.product_id = 'mp0s-a' and r.ref = 'bazaar:' || pg_temp.bw())$q$),
+    a, 'final_split_cookies_to_the_shop_are_a_batch', 'five_in_the_batch_five_for_the_rest');
+  perform pg_temp.confirm(pg_temp.q($q$(select count(*) = 0 from public.production_records r where r.ref = 'bazaar:' || pg_temp.bw() and r.product_id is null)$q$)
+    and pg_temp.q($q$(select count(*) = 1 from public.audit_log where action = 'bazaar.finalised' and detail -> 'split' = '{"mp0s-a": {"to_shop": 3, "written_off": 1}}'
+        and detail -> 'stranded' -> 0 ->> 'qty' = '4')$q$),
+    a, 'finalise_with_no_packaging_rule_writes_nothing', 'no_record_no_shortfall');
+  perform pg_temp.expect(a, 'finalise_split_repeat_answered',
+    format($q$select public.finalise_bazaar(pg_temp.bw()::uuid, %L, 9, null, '{"mp0s-a": {"to_shop": 3, "written_off": 1}}')$q$, h), '00000');
+  perform pg_temp.expect(a, 'finalise_again_other_split',
+    format($q$select public.finalise_bazaar(pg_temp.bw()::uuid, %L, 9, null, '{"mp0s-a": {"to_shop": 4, "written_off": 0}}')$q$, h), '23505');
+  perform pg_temp.expect(a, 'finalise_again_no_split', format($q$select public.finalise_bazaar(pg_temp.bw()::uuid, %L, 9, null)$q$, h), '23505');
+  perform pg_temp.confirm(pg_temp.q($q$(select count(*) = 1 from public.audit_log where action = 'bazaar.finalised' and entity_id = pg_temp.bw())$q$)
+    and pg_temp.q($q$(select count(*) = 1 from public.production_records r where r.kind = 'batch' and r.ref = 'bazaar:' || pg_temp.bw())$q$),
+    a, 'finalise_split_repeat_adds_nothing', 'posted_once');
 end $$;
 
 -- A day cannot start once its bazaar is finalised (the later day planned and never started above).
@@ -811,7 +1004,7 @@ grant execute on function pg_temp.set_subject(integer, text), pg_temp.expect(tex
   pg_temp.sale(text, text, jsonb, bigint, bigint, text), pg_temp.void(text), pg_temp.sm(text), pg_temp.dayj(jsonb, text),
   pg_temp.dl(jsonb, text, text), pg_temp.dc(jsonb, text, text), pg_temp.cc(jsonb, text), pg_temp.part(jsonb, text),
   pg_temp.stamp(text, text), pg_temp.cl(integer, integer, integer, integer), pg_temp.closing(text, text, jsonb, jsonb),
-  pg_temp.books(), pg_temp.sumk(jsonb, text), pg_temp.held(jsonb, text), pg_temp.assert_anon_acl(), pg_temp.assert_denied(text),
+  pg_temp.bw(), pg_temp.oh_all(), pg_temp.books(), pg_temp.sumk(jsonb, text), pg_temp.held(jsonb, text), pg_temp.assert_anon_acl(), pg_temp.assert_denied(text),
   pg_temp.assert_owner(), pg_temp.assert_owner_after() to anon, authenticated, service_role;
 
 set local role anon;

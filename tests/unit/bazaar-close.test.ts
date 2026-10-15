@@ -5,9 +5,13 @@ import {
   closeBody,
   feeError,
   finaliseBazaar,
+  fetchFlavourCosts,
   lossError,
   parseBazaar,
+  parseFlavourCosts,
+  reverseBazaarTest,
   saveBazaarCost,
+  saveFlavourCost,
   saveBazaarFee,
   saveBazaarLoss,
   saveBazaarTarget,
@@ -331,7 +335,8 @@ describe('finaliseBazaar', () => {
       p_booking: BOOKING,
       p_expected: HASH,
       p_drop: 32,
-      p_till: null
+      p_till: null,
+      p_final: null
     });
   });
 
@@ -343,7 +348,8 @@ describe('finaliseBazaar', () => {
       p_booking: BOOKING,
       p_expected: HASH,
       p_drop: 32,
-      p_till: { day_id: DAY1, sales_count: 4, cash_cents: 50000 }
+      p_till: { day_id: DAY1, sales_count: 4, cash_cents: 50000 },
+      p_final: null
     });
     expect(await finaliseBazaar(c, BOOKING, HASH, 32, { ...till, salesCount: -1 })).toBe('refused');
     expect(await finaliseBazaar(c, BOOKING, HASH, 32, { ...till, dayId: 'nope' })).toBe('refused');
@@ -505,5 +511,133 @@ describe("the books' hold", () => {
       parseBooks({ ...wire, held: [{ ...held[0], revenue_cents: '88000' }] } as never)
     ).toBeNull();
     // Mutation: skipping an unreadable row (as `uncosted` does) would show totals with money silently missing.
+  });
+});
+
+describe('U6: the final split, a flavour cost, the reversal of a test', () => {
+  const root = () => clone() as unknown as Record<string, unknown>;
+  const summaryOf = (j: Record<string, unknown>) => j.summary as Record<string, unknown>;
+  const stranded = [{ product_id: 'mp0s-a', name: 'Fixture A', day_id: DAY1, qty: 4 }];
+
+  it('finaliseBazaar sends the final split in the database form, exact keys, and refuses a bad one here', async () => {
+    const { rpc, client: c } = client({ data: { hash: HASH } });
+    const split = { 'mp0s-a': { toShop: 3, writtenOff: 1 } };
+    expect(await finaliseBazaar(c, BOOKING, HASH, 9, null, split)).toBe('saved');
+    expect(rpc).toHaveBeenLastCalledWith('finalise_bazaar', {
+      p_booking: BOOKING,
+      p_expected: HASH,
+      p_drop: 9,
+      p_till: null,
+      p_final: { 'mp0s-a': { to_shop: 3, written_off: 1 } }
+    });
+    // Nothing stranded: an empty split is no split (null), the call the database has always had.
+    expect(await finaliseBazaar(c, BOOKING, HASH, 9, null, {})).toBe('saved');
+    expect(rpc).toHaveBeenLastCalledWith('finalise_bazaar', {
+      p_booking: BOOKING,
+      p_expected: HASH,
+      p_drop: 9,
+      p_till: null,
+      p_final: null
+    });
+    expect(
+      await finaliseBazaar(c, BOOKING, HASH, 9, null, { 'mp0s-a': { toShop: 3.5, writtenOff: 0 } })
+    ).toBe('refused');
+    expect(
+      await finaliseBazaar(c, BOOKING, HASH, 9, null, { 'Bad Id': { toShop: 1, writtenOff: 0 } })
+    ).toBe('refused');
+    expect(rpc).toHaveBeenCalledTimes(2);
+    // A repeat with another split is a conflict the database refuses (23505): refused, never offline.
+    expect(
+      await finaliseBazaar(client({ error: { code: '23505' } }).client, BOOKING, HASH, 9, null, split)
+    ).toBe('refused');
+  });
+
+  it('reads the cookies no day took, the split the event was closed with and a reversal', () => {
+    const j = root();
+    summaryOf(j).stranded = stranded;
+    j.final_split = { 'mp0s-a': { to_shop: 3, written_off: 1 } };
+    j.reversed_at = '2026-10-16T02:00:00+00:00';
+    const b = parseBazaar(j as never)!;
+    expect(b.stranded).toEqual([{ productId: 'mp0s-a', name: 'Fixture A', dayId: DAY1, qty: 4 }]);
+    expect(b.finalSplit).toEqual({ 'mp0s-a': { toShop: 3, writtenOff: 1 } });
+    expect(b.reversedAt).toBe('2026-10-16T02:00:00+00:00');
+  });
+
+  it('an answer from before migration 70 has none of them, and is still understood', () => {
+    const b = parseBazaar(example as never)!;
+    expect(b.stranded).toEqual([]);
+    expect(b.finalSplit).toBeNull();
+    expect(b.reversedAt).toBeNull();
+  });
+
+  it('stranded cookies, a split or a reversal that cannot be read are no answer at all', () => {
+    for (const bad of [
+      (j: Record<string, unknown>) => (summaryOf(j).stranded = 'x'),
+      (j: Record<string, unknown>) => (summaryOf(j).stranded = [{ ...stranded[0], qty: 0 }]),
+      (j: Record<string, unknown>) => (summaryOf(j).stranded = [{ ...stranded[0], day_id: 'nope' }]),
+      (j: Record<string, unknown>) => (j.final_split = { 'mp0s-a': { to_shop: 1 } }),
+      (j: Record<string, unknown>) => (j.final_split = 'x'),
+      (j: Record<string, unknown>) => (j.reversed_at = 5)
+    ]) {
+      const j = root();
+      bad(j);
+      expect(parseBazaar(j as never)).toBeNull();
+    }
+    // Mutation: skipping an unreadable stranded row would let a split be asked for a smaller quantity than the database holds.
+  });
+
+  it('a cost line can come from the flavour\'s own typed cost', () => {
+    const j = root();
+    const lines = (summaryOf(j).cookie_cost as { lines: Array<Record<string, unknown>> }).lines;
+    lines[0]!.source = 'flavour';
+    expect(parseBazaar(j as never)!.cookieCost.lines[0]!.source).toBe('flavour');
+    lines[0]!.source = 'invented';
+    expect(parseBazaar(j as never)).toBeNull();
+  });
+
+  it('saveFlavourCost sends the flavour and its cost, null takes it away, and refuses a bad one here', async () => {
+    const { rpc, client: c } = client({ data: [{ product_id: 'mp0s-a', cost_cents: 1250 }] });
+    expect(await saveFlavourCost(c, 'mp0s-a', 1250.5)).toBe('saved');
+    expect(rpc).toHaveBeenLastCalledWith('save_flavour_cost', { p_product: 'mp0s-a', p_cents: 1250.5 });
+    expect(await saveFlavourCost(c, 'mp0s-a', null)).toBe('saved');
+    expect(rpc).toHaveBeenLastCalledWith('save_flavour_cost', { p_product: 'mp0s-a', p_cents: null });
+    expect(await saveFlavourCost(c, 'mp0s-a', -1)).toBe('refused');
+    expect(await saveFlavourCost(c, 'mp0s-a', Number.NaN)).toBe('refused');
+    expect(await saveFlavourCost(c, 'Not A Flavour', 1)).toBe('refused');
+    expect(rpc).toHaveBeenCalledTimes(2);
+    expect(await saveFlavourCost(client({ error: { code: '42501' } }).client, 'mp0s-a', 1)).toBe('refused');
+    expect(await saveFlavourCost(client({ error: { code: '08006' } }).client, 'mp0s-a', 1)).toBe('offline');
+  });
+
+  it('reads the typed costs strictly', async () => {
+    const rows = [{ product_id: 'mp0s-a', cost_cents: 1250.5, typed_at: 1760580000000 }];
+    expect(parseFlavourCosts(rows as never)).toEqual([
+      { productId: 'mp0s-a', costCents: 1250.5, typedAt: 1760580000000 }
+    ]);
+    expect(parseFlavourCosts([] as never)).toEqual([]);
+    expect(parseFlavourCosts(null)).toBeNull();
+    expect(parseFlavourCosts([{ ...rows[0], cost_cents: '1' }] as never)).toBeNull();
+    expect(parseFlavourCosts([{ ...rows[0], cost_cents: -1 }] as never)).toBeNull();
+    expect(parseFlavourCosts([{ ...rows[0], product_id: 'No Good' }] as never)).toBeNull();
+    const { rpc, client: c } = client({ data: rows });
+    expect(await fetchFlavourCosts(c)).toHaveLength(1);
+    expect(rpc).toHaveBeenCalledWith('get_flavour_costs');
+    await expect(fetchFlavourCosts(client({ error: { code: '42501' } }).client)).rejects.toThrow('42501');
+  });
+
+  it('reverseBazaarTest names the booking and its exact name, and a refusal is refused', async () => {
+    const { rpc, client: c } = client({ data: { ledger_lines: 9 } });
+    expect(await reverseBazaarTest(c, BOOKING, 'Fixture fair')).toBe('saved');
+    expect(rpc).toHaveBeenCalledWith('reverse_bazaar_test', {
+      p_booking: BOOKING,
+      p_confirm_name: 'Fixture fair'
+    });
+    expect(await reverseBazaarTest(c, 'nope', 'Fixture fair')).toBe('refused');
+    expect(await reverseBazaarTest(c, BOOKING, '')).toBe('refused');
+    expect(rpc).toHaveBeenCalledTimes(1);
+    for (const code of ['22023', '55000', '42501'])
+      expect(await reverseBazaarTest(client({ error: { code } }).client, BOOKING, 'x')).toBe('refused');
+    // Not acknowledged unless the answer says what was done.
+    expect(await reverseBazaarTest(client({ data: null }).client, BOOKING, 'x')).toBe('offline');
   });
 });
