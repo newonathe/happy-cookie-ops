@@ -49,7 +49,9 @@ import { peso } from '@/lib/money/format';
 import {
   amountCents,
   closeFromForm,
+  centsToPesosText,
   dayFiguresOf,
+  dayReportOf,
   eventFiguresOf,
   stockRowsOf,
   typedCostCents,
@@ -77,6 +79,11 @@ export interface BazaarDaysDeps {
   flavours: () => ReadonlyArray<{ id: string; name: string; priceCents: number }>;
   /** True while this phone holds an event (a started day, or one from before): a second cannot start. */
   holdsEvent: () => boolean;
+  /**
+   * U5: whether a flavour has a recipe (the database refuses a flavour with none sent to the shop); null while the recipes
+   * have not been read. Only chooses where the last day's leftover is suggested to go.
+   */
+  hasRecipe?: (productId: string) => boolean | null;
   /**
    * The bazaar day this phone is selling, if any: how much the till has not sent yet (sales, voids and expenses), and
    * what it holds of each flavour.
@@ -853,7 +860,7 @@ export class BazaarDays {
       state: day.state,
       online,
       notices,
-      stock: stockRowsOf(day, names),
+      stock: stockRowsOf(day, names, (id) => this.deps.hasRecipe?.(id) ?? null),
       losses: data.losses
         .filter((o) => o.dayId === day.id)
         .map((o) => ({
@@ -869,6 +876,7 @@ export class BazaarDays {
             : null
         })),
       dayFigures: dayFiguresOf(data, day),
+      report: day.state === 'closed' ? dayReportOf(data, day) : null,
       eventFigures: eventFiguresOf(data),
       eventNote: data.counted ? null : COPY.notCounted,
       flavours: day.lines.map((l) => ({
@@ -883,6 +891,8 @@ export class BazaarDays {
         ? {
             lastDay,
             cashExpectedText: peso(day.cashExpectedCents),
+            cashExpectedCents: day.cashExpectedCents,
+            cashExpectedPesos: centsToPesosText(day.cashExpectedCents),
             blocked,
             submit: (input) => this.closeDay(day, lastDay, input)
           }

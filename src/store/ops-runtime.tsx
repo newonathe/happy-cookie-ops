@@ -742,6 +742,8 @@ export class OpsRuntime extends OpsProvider {
         priceCents: pesosToCentavos(Number((this as unknown as TotalActions).priceOf(p.id)) || 0)
       })),
     holdsEvent: () => !!this.state.event,
+    hasRecipe: (productId) =>
+      this.recipeRows === null ? null : this.recipeRows.some((r) => r.productId === productId),
     held: () => {
       const event = this.state.event as LiveEvent | null;
       if (!event?.dayId || !event.scheduledId) return null;

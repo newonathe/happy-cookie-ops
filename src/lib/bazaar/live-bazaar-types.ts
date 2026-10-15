@@ -69,6 +69,8 @@ export interface ReviewFigure {
   /** Words under the figure (why it is pending, what it covers); null for none. */
   note: string | null;
   parts: Array<{ label: string; detail: string | null; valueText: string }>;
+  /** U5: the amount in centavos for a figure that is one (so a tile can count up to it); absent for words. */
+  cents?: number;
 }
 
 export interface ReviewStockRow {
@@ -82,6 +84,39 @@ export interface ReviewStockRow {
   shouldBeLeft: number;
   /** A closed day: "13 left: 8 carried over, 3 to the shop, 2 written off · 1 not accounted". Null while open. */
   countText: string | null;
+  /**
+   * U5: whether the flavour has a recipe (the database refuses a flavour with none sent to the shop); null while the recipes
+   * have not been read, when no split is suggested for the last day.
+   */
+  hasRecipe: boolean | null;
+  /** U5: the numbers behind the words above, for the tiles and the per-flavour table. */
+  made: number;
+  carried: number;
+  sold: number;
+  given: number;
+  lost: number;
+  /** U5: her count of a closed day; null while open. */
+  countedLeft: number | null;
+}
+
+/** One line of a Z-report table, in centavos. */
+export interface ReportLine {
+  label: string;
+  detail?: string;
+  cents: number;
+}
+
+/** One table of a day's Z-report: lines, and the total the database gives. The lines add up to the total. */
+export interface ReportTable {
+  caption: string;
+  lines: ReportLine[];
+  totalCents: number;
+  note?: string;
+}
+
+/** U5: a closed day as a receipt: takings, how it was paid, fees and the drawer. */
+export interface DayReport {
+  tables: ReportTable[];
 }
 
 /** What she types to close a day: text, whole cookies and pesos. A blank is 0, except `left` of a flavour with cookies. */
@@ -111,6 +146,8 @@ export interface DayReviewView {
   losses: Array<{ id: string; text: string; remove: (() => Promise<string | null>) | null }>;
   /** The day's own figures: revenue, cash, fees. */
   dayFigures: ReviewFigure[];
+  /** U5: the day as a receipt, once it is closed; null while it is selling. */
+  report: DayReport | null;
   /** The event so far: revenue, fees, cookie cost, profit, against the target. */
   eventFigures: ReviewFigure[];
   /** Words over the event's figures while a day is still open; null otherwise. */
@@ -135,6 +172,9 @@ export interface DayReviewView {
     lastDay: boolean;
     /** "₱1,000" */
     cashExpectedText: string;
+    /** U5: what the drawer should hold, in centavos, and as the pesos "It matches" puts in the field ("1640.00"). */
+    cashExpectedCents: number;
+    cashExpectedPesos: string;
     /** Why the day cannot be closed now, in words; null when it can. */
     blocked: string | null;
     /** Null when the day is closed; otherwise the words for what is wrong (the form stays as it is). */
