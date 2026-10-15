@@ -23,6 +23,10 @@ insert into public.profiles(id, role, display_name, active) values
   ('b3d00000-0000-4000-8000-000000000003', 'support', 'Cost support', true),
   ('b3d00000-0000-4000-8000-000000000004', 'owner', 'Cost inactive owner', false);
 
+-- B3b cutover: these cases are about the stamped costs, not about where "when used" starts; the books here have no cutover date, so every
+-- use is expensed as it always was (the cutover has its own cases, cost-cutover.sql).
+update public.books_settings set used_from = null where id;
+
 -- One stock item, one flavour and one recipe (10 g per 10 cookies) for each case.
 insert into public.inventory_items(id, name, unit) values
   ('k3i-a', 'K3 Alpha', 'g'), ('k3i-b1', 'K3 Bravo1', 'g'), ('k3i-b2', 'K3 Bravo2', 'g'), ('k3i-b3', 'K3 Bravo3', 'g'),
