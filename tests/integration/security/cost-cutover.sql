@@ -1,4 +1,4 @@
--- B3b cost cutover by apply order (migration 20260101006200) with real SQL roles; all data rolls back.
+-- B3b cost cutover by apply order and by value (migrations 20260101006200 and 20260101006300) with real SQL roles; all data rolls back.
 --
 -- "When used" starts from a CUTOVER that is the order rows were applied in, not a date: set_cost_basis takes it the first time the owner
 -- chooses used (books_settings.used_from_seq = the highest stock_movements.seq then, books_cutover = what is on hand then). get_books
@@ -6,6 +6,13 @@
 -- delivery applied after it is expensed when used, and so is its correction (the share of stock already used). What was on hand at the
 -- cutover is an allowance that every movement applied after it which takes stock away (a use, a waste, a count that found less, an
 -- adjustment down) draws on in seq order; only a use or a waste is expensed. A line is never dated before the cutover day.
+--
+-- Migration 20260101006300 makes the allowance a VALUE, not a quantity: what was on hand at the cutover was expensed already, at its cost at
+-- the cutover (books_cutover.unit_cost), and the books never expense that value a second time whatever price the stock is later used at.
+-- A use or a waste is covered by the allowance up to its value; a count or an adjustment down draws the cutover cost of what it took away,
+-- one up gives back no more than the downs drew; a correction made after the cutover of a delivery applied by it moves the allowance by its
+-- share of stock on hand (its full ledger line counts). The second phase (phase_value) works those cases by hand; its oracle is that, once
+-- all the stock bought has been used, the "used" total of an item equals its "bought" total.
 --
 -- Every case goes through the real owner RPCs (record_stock_movement, record_production, record_cost_correction, set_cost_basis) with made-up
 -- items; a recipe line takes 10 g per 10 cookies, so a batch of N cookies uses exactly N g. The money is worked by hand in the comment above
@@ -43,7 +50,9 @@ create temporary table c4_items (sfx text primary key, name text not null);
 insert into c4_items values
   ('a', 'C4 Alpha'), ('p1', 'C4 Papa'), ('p2', 'C4 Quebec'), ('b', 'C4 Bravo'), ('c', 'C4 Charlie'), ('d', 'C4 Delta'), ('d2', 'C4 Dingo'),
   ('e', 'C4 Echo'), ('f', 'C4 Foxtrot'), ('g', 'C4 Golf'), ('h', 'C4 Hotel'), ('h2', 'C4 India'), ('k', 'C4 Kilo'), ('o', 'C4 Oscar'),
-  ('w', 'C4 Whiskey'), ('u', 'C4 Uniform');
+  ('w', 'C4 Whiskey'), ('u', 'C4 Uniform'),
+  ('va', 'C4 Vdrift'), ('vb', 'C4 Vrecount'), ('vc', 'C4 Vcorrect'), ('vd', 'C4 Vdrop'), ('ve', 'C4 Vnull'), ('vf', 'C4 Vmixed'), ('vg', 'C4 Vdebt'),
+  ('vh', 'C4 Vsnap'), ('vi', 'C4 Vfound'), ('vj', 'C4 Vlater'), ('vk', 'C4 Vnostamp'), ('vl', 'C4 Vopening');
 insert into public.inventory_items(id, name, unit, category, active, on_hand)
 select 'c4i-' || s.sfx, s.name, 'g', 'Ingredients', true, 0 from c4_items s;
 insert into public.books_cutover(item_id, qty) values ('c4i-a', 999);
@@ -105,6 +114,8 @@ create function pg_temp.cut_state() returns jsonb language sql stable security d
   select jsonb_build_object('used_from', (select b.used_from from public.books_settings b where b.id),
     'used_from_seq', (select b.used_from_seq from public.books_settings b where b.id),
     'snapshot', coalesce((select jsonb_object_agg(c.item_id, c.qty) from public.books_cutover c), '{}'::jsonb)) $$;
+create function pg_temp.cut_costs() returns jsonb language sql stable security definer as $$
+  select coalesce(jsonb_object_agg(c.item_id, c.unit_cost), '{}'::jsonb) from public.books_cutover c $$;
 create function pg_temp.max_seq() returns bigint language sql stable security definer as $$
   select coalesce(max(m.seq), 0) from public.stock_movements m $$;
 create function pg_temp.on_hand_now() returns jsonb language sql stable security definer as $$
@@ -238,6 +249,11 @@ begin
   perform pg_temp.assert_ok(a, 'cut_first_choice_takes_the_snapshot',
     st -> 'snapshot' = pg_temp.on_hand_now() and (st -> 'snapshot' ->> 'c4i-a')::numeric = 100 and (st -> 'snapshot' ->> 'c4i-p1')::numeric = 60
     and (st -> 'snapshot' ->> 'c4i-p2')::numeric = 0 and (st -> 'snapshot' ->> 'c4i-h')::numeric = 30 and (st -> 'snapshot' ->> 'c4i-b')::numeric = 0);
+  -- the cost of one unit at the cutover is kept with each item's quantity (the average of what was paid; none for stock with no cost known)
+  perform pg_temp.assert_ok(a, 'cutval_snapshot_takes_the_cost_per_unit',
+    (pg_temp.cut_costs() ->> 'c4i-a')::numeric = 100 and (pg_temp.cut_costs() ->> 'c4i-p1')::numeric = 100 and (pg_temp.cut_costs() ->> 'c4i-g')::numeric = 100
+    and (pg_temp.cut_costs() ->> 'c4i-w')::numeric = 10 and pg_temp.cut_costs() -> 'c4i-h' = 'null'::jsonb and pg_temp.cut_costs() -> 'c4i-b' = 'null'::jsonb
+    and pg_temp.cut_costs() -> 'c4i-u' = 'null'::jsonb);
   -- at the cutover nothing is expensed but what the ledger says: seven deliveries, two plain costs
   j := pg_temp.books();
   perform pg_temp.assert_ok(a, 'cut_nothing_is_expensed_at_the_cutover',
@@ -342,9 +358,11 @@ begin
   -- the allowance is drawn in seq order: whiskey has 50; the 120 written first takes it (70 x 10 = 700), then the 80 (800)
   perform pg_temp.assert_ok(a, 'cut_allowance_is_consumed_in_seq_order',
     pg_temp.amt(j, pg_temp.mu('w_a', 'w')) = 700 and pg_temp.amt(j, pg_temp.mu('w_b', 'w')) = 800 and pg_temp.item_total(j, 'C4 Whiskey') = 500 + 700 + 800);
-  -- a delivery after the cutover used beyond the allowance is expensed at the cost stamped on the use (110, the average), not the delivery's price
+  -- a delivery after the cutover used beyond the allowance: golf had 20 at 100 (2000 expensed already), 80 came for 9000, the 100 used are
+  -- worth 100 x 110 = 11000 at the average: the allowance covers its 2000 and the rest, 9000, is what the delivery cost. Not 80 x 110 = 8800: the
+  -- allowance is a value, so a stock that moved to another price never expenses more or less than was paid (2000 + 9000 = 11000)
   perform pg_temp.assert_ok(a, 'cut_use_beyond_the_allowance_is_expensed_in_part',
-    pg_temp.amt(j, pg_temp.mu('g_u', 'g')) = 8800 and not pg_temp.has(j, pg_temp.rl('g_r2')) and pg_temp.item_total(j, 'C4 Golf') = 2000 + 8800);
+    pg_temp.amt(j, pg_temp.mu('g_u', 'g')) = 9000 and not pg_temp.has(j, pg_temp.rl('g_r2')) and pg_temp.item_total(j, 'C4 Golf') = 2000 + 9000);
   -- what was short was not in stock, so the allowance never covers it: 100 taken (all covered), 30 short at 100
   perform pg_temp.assert_ok(a, 'cut_short_part_is_expensed_with_allowance_left',
     pg_temp.amt(j, pg_temp.mu('e_u', 'e')) = 3000 and pg_temp.short(j, pg_temp.mu('e_u', 'e')) = 30 and pg_temp.item_total(j, 'C4 Echo') = 13000);
@@ -375,9 +393,9 @@ begin
   perform pg_temp.assert_ok(a, 'cut_uncosted_bake_that_took_no_stock_is_listed', pg_temp.pp('ug_post', 0) = any (pg_temp.uncosted_ids(j)));
 
   -- the whole book: plain costs 2000 + 1500 + 800, alpha 5000, papa 5000, quebec 6000, charlie 12000, bravo 10000, delta 20000, dingo 6000,
-  -- echo 13000, foxtrot 5000, golf 10800, whiskey 2000, kilo 2000
+  -- echo 13000, foxtrot 5000, golf 11000, whiskey 2000, kilo 2000
   perform pg_temp.assert_ok(a, 'cut_total_expense',
-    pg_temp.sumk(j, 'expense') = 2000 + 1500 + 800 + 5000 + 5000 + 6000 + 12000 + 10000 + 20000 + 6000 + 13000 + 5000 + 10800 + 2000 + 2000);
+    pg_temp.sumk(j, 'expense') = 2000 + 1500 + 800 + 5000 + 5000 + 6000 + 12000 + 10000 + 20000 + 6000 + 13000 + 5000 + 11000 + 2000 + 2000);
   -- a plain cost linked to no stock counts whenever it is dated
   perform pg_temp.assert_ok(a, 'cut_plain_costs_count_before_and_after',
     pg_temp.amt(j, 'l:' || pg_temp.lg(1)) = 2000 and pg_temp.amt(j, 'l:' || pg_temp.lg(2)) = 1500 and pg_temp.amt(j, 'l:' || pg_temp.lg(3)) = 800);
@@ -419,8 +437,158 @@ begin
   perform pg_temp.fixture('update public.inventory_items set on_hand = 0 where id = ''c4i-k''');
 end $$;
 
+
+-- ================================================================ the allowance is a value (migration 20260101006300)
+-- A second cutover on fresh items: the books go back to bought with nothing taken, the stock is received, and the owner chooses used again.
+-- Every cost is centavos per unit. The oracle of each case: once all the stock bought has been used, the cost the books give the item on
+-- used equals what it cost on bought (every ledger line, corrections included). Hours are from the cutover.
+--   vdrift   100 for 5000 at the cutover; after it 100 for 15000, then 200 wasted
+--   vrecount 100 for 10000; after it a count to 40 (wrong), a count back to 100, then 100 wasted
+--   vcorrect 100 for 10000; after it 100 for 10000, the first delivery corrected to 5000, then 200 wasted
+--   vdrop    100 for 10000; after it 100 for 5000, then 200 wasted (the average falls)
+--   vnull    an opening of 30 with no cost; after it 100 for 10000, then 80 wasted
+--   vmixed   100 for 10000 and 100 for 16000 (the average 130), 50 baked: 150 on hand; after it a count to 120 and back to 150, 100 for
+--            18000 (the average 150), 60 baked, the first delivery corrected to 9000, and the 190 left wasted
+--   vdebt    100 for 10000; after it 100 for 10000, 100 wasted, the first delivery corrected to 5000, and the 100 left wasted
+--   vsnap    100 for 10000 corrected to 5000 BEFORE the cutover (the correction is the last thing written before it); after it 100 wasted
+--   vfound   100 for 10000; after it a count to 90, a count to 130 (40 more than the count took), and 130 wasted
+--   vlater   100 for 10000; after it 100 for 10000, that delivery corrected to 5000, and 200 wasted
+--   vnostamp 100 for 10000; its average is lost after the cutover, so nothing is stamped on the 130 baked (100 taken, 30 short)
+--   vopening an opening of 40 after the cutover, a count to 10, a count back to 40, and 40 wasted (nothing is stamped on them)
+create function pg_temp.phase_value(a text) returns void language plpgsql security invoker as $$
+declare j jsonb; jb jsonb;
+begin
+  perform pg_temp.expect(a, 'v_switch_bought', 'select public.set_cost_basis(''bought'')', '00000');
+  perform pg_temp.fixture('update public.books_settings set used_from = null, used_from_seq = null where id');
+  perform pg_temp.fixture('delete from public.books_cutover');
+  perform pg_temp.mv(a, 'va_r', 'va', 'receipt', 100, 5000, -3);
+  perform pg_temp.mv(a, 'vb_r', 'vb', 'receipt', 100, 10000, -3);
+  perform pg_temp.mv(a, 'vc_r', 'vc', 'receipt', 100, 10000, -3);
+  perform pg_temp.mv(a, 'vd_r', 'vd', 'receipt', 100, 10000, -3);
+  perform pg_temp.mv(a, 've_o', 've', 'opening', 30, null, -3);
+  perform pg_temp.mv(a, 'vf_a', 'vf', 'receipt', 100, 10000, -4);
+  perform pg_temp.mv(a, 'vf_b', 'vf', 'receipt', 100, 16000, -3);
+  perform pg_temp.batch(a, 'vf_pre', 'vf', 50, -2);
+  perform pg_temp.mv(a, 'vg_r', 'vg', 'receipt', 100, 10000, -3);
+  perform pg_temp.mv(a, 'vi_r', 'vi', 'receipt', 100, 10000, -3);
+  perform pg_temp.mv(a, 'vj_r', 'vj', 'receipt', 100, 10000, -3);
+  perform pg_temp.mv(a, 'vk_r', 'vk', 'receipt', 100, 10000, -3);
+  perform pg_temp.mv(a, 'vh_r', 'vh', 'receipt', 100, 10000, -3);
+  perform pg_temp.cor(a, 'vh_c', 'vh_r', 5000, -1); -- the last thing written before the cutover: a correction
+  perform pg_temp.expect(a, 'v_switch_used', 'select public.set_cost_basis(''used'')', '00000');
+  perform pg_temp.assert_ok(a, 'cutval_a_new_cutover_keeps_each_cost_per_unit',
+    (pg_temp.cut_costs() ->> 'c4i-va')::numeric = 50 and (pg_temp.cut_costs() ->> 'c4i-vb')::numeric = 100 and (pg_temp.cut_costs() ->> 'c4i-vf')::numeric = 130
+    and pg_temp.cut_costs() -> 'c4i-ve' = 'null'::jsonb and pg_temp.cut_costs() -> 'c4i-vg' = '100'::jsonb
+    and (pg_temp.cut_costs() ->> 'c4i-vh')::numeric = 50);
+  perform pg_temp.fixture('update public.inventory_items set avg_cost = null where id = ''c4i-vk'''); -- the average of vnostamp is lost
+
+  -- after the cutover
+  perform pg_temp.mv(a, 'va_r2', 'va', 'receipt', 100, 15000, 1.0 / 24);
+  perform pg_temp.mv(a, 'va_w', 'va', 'waste', 200, null, 2.0 / 24, 'Dropped');
+  perform pg_temp.mv(a, 'vb_c1', 'vb', 'count', 40, null, 1.0 / 24);
+  perform pg_temp.mv(a, 'vb_c2', 'vb', 'count', 100, null, 2.0 / 24);
+  perform pg_temp.mv(a, 'vb_w', 'vb', 'waste', 100, null, 3.0 / 24, 'Dropped');
+  perform pg_temp.mv(a, 'vc_r2', 'vc', 'receipt', 100, 10000, 1.0 / 24);
+  perform pg_temp.cor(a, 'vc_c', 'vc_r', 5000, 2.0 / 24);
+  perform pg_temp.mv(a, 'vc_w', 'vc', 'waste', 200, null, 3.0 / 24, 'Dropped');
+  perform pg_temp.mv(a, 'vd_r2', 'vd', 'receipt', 100, 5000, 1.0 / 24);
+  perform pg_temp.mv(a, 'vd_w', 'vd', 'waste', 200, null, 2.0 / 24, 'Dropped');
+  perform pg_temp.mv(a, 've_r', 've', 'receipt', 100, 10000, 1.0 / 24);
+  perform pg_temp.mv(a, 've_w', 've', 'waste', 80, null, 2.0 / 24, 'Dropped');
+  perform pg_temp.mv(a, 'vf_c1', 'vf', 'count', 120, null, 1.0 / 24);
+  perform pg_temp.mv(a, 'vf_c2', 'vf', 'count', 150, null, 2.0 / 24);
+  perform pg_temp.mv(a, 'vf_r3', 'vf', 'receipt', 100, 18000, 3.0 / 24);
+  perform pg_temp.batch(a, 'vf_u', 'vf', 60, 4.0 / 24);
+  perform pg_temp.cor(a, 'vf_c', 'vf_a', 9000, 5.0 / 24);
+  perform pg_temp.mv(a, 'vf_w', 'vf', 'waste', 190, null, 6.0 / 24, 'Dropped');
+  perform pg_temp.mv(a, 'vg_r2', 'vg', 'receipt', 100, 10000, 1.0 / 24);
+  perform pg_temp.mv(a, 'vg_w1', 'vg', 'waste', 100, null, 2.0 / 24, 'Dropped');
+  perform pg_temp.cor(a, 'vg_c', 'vg_r', 5000, 3.0 / 24);
+  perform pg_temp.mv(a, 'vg_w2', 'vg', 'waste', 100, null, 4.0 / 24, 'Dropped');
+  perform pg_temp.mv(a, 'vh_w', 'vh', 'waste', 100, null, 1.0 / 24, 'Dropped');
+  perform pg_temp.mv(a, 'vi_c1', 'vi', 'count', 90, null, 1.0 / 24);
+  perform pg_temp.mv(a, 'vi_c2', 'vi', 'count', 130, null, 2.0 / 24);
+  perform pg_temp.mv(a, 'vi_w', 'vi', 'waste', 130, null, 3.0 / 24, 'Dropped');
+  perform pg_temp.mv(a, 'vj_r2', 'vj', 'receipt', 100, 10000, 1.0 / 24);
+  perform pg_temp.cor(a, 'vj_c', 'vj_r2', 5000, 2.0 / 24);
+  perform pg_temp.mv(a, 'vj_w', 'vj', 'waste', 200, null, 3.0 / 24, 'Dropped');
+  perform pg_temp.batch(a, 'vk_u', 'vk', 130, 1.0 / 24);
+  perform pg_temp.mv(a, 'vl_o', 'vl', 'opening', 40, null, 1.0 / 24);
+  perform pg_temp.mv(a, 'vl_c1', 'vl', 'count', 10, null, 2.0 / 24);
+  perform pg_temp.mv(a, 'vl_c2', 'vl', 'count', 40, null, 3.0 / 24);
+  perform pg_temp.mv(a, 'vl_w', 'vl', 'waste', 40, null, 4.0 / 24, 'Dropped');
+  j := pg_temp.books();
+
+  -- (P1-A) the 100 at the cutover cost 5000 (50 a unit) and the books hold it expensed; 100 more came for 15000 and the average is 100: the
+  -- 200 wasted are worth 20000, the allowance 5000 covers its share, 15000 is expensed, whatever the price they left at (not 200 x 100 less
+  -- 100 x 100 = 10000, and not 20000 - 5000 once the average moves)
+  perform pg_temp.assert_ok(a, 'cutval_stock_that_moved_to_a_dearer_price_is_expensed_once',
+    pg_temp.amt(j, pg_temp.mm('va_w')) = 15000 and pg_temp.item_total(j, 'C4 Vdrift') = 5000 + 15000);
+  -- (P1-B) a count down takes 6000 from the allowance, the count back gives it back, and 100 wasted are covered in full: nothing is expensed
+  perform pg_temp.assert_ok(a, 'cutval_a_count_back_up_gives_the_allowance_back',
+    not pg_temp.has(j, pg_temp.mm('vb_w')) and pg_temp.item_total(j, 'C4 Vrecount') = 10000);
+  -- (P1-C) 10000 + 5000 cut off the first delivery: its full line -5000 counts, and its share of the stock on hand (all 100 + 100 are on hand:
+  -- -5000) lowers the allowance to 5000, so the 200 wasted at the new average (75, worth 15000) expense 10000: 10000 - 5000 + 10000 = 15000,
+  -- the 15000 the two deliveries cost
+  perform pg_temp.assert_ok(a, 'cutval_a_correction_of_an_earlier_delivery_moves_the_allowance',
+    pg_temp.amt(j, pg_temp.cl('vc_c')) = -5000 and not pg_temp.has(j, pg_temp.cc('vc_c')) and pg_temp.amt(j, pg_temp.mm('vc_w')) = 10000
+    and pg_temp.item_total(j, 'C4 Vcorrect') = 15000);
+  -- the price falls: 100 at 100, 100 at 50, the average 75: 200 wasted are worth 15000, the allowance 10000: 5000 is expensed
+  perform pg_temp.assert_ok(a, 'cutval_stock_that_moved_to_a_cheaper_price_is_expensed_once',
+    pg_temp.amt(j, pg_temp.mm('vd_w')) = 5000 and pg_temp.item_total(j, 'C4 Vdrop') = 10000 + 5000);
+  -- no cost was known at the cutover (an opening): the allowance is its quantity, 30, at the cost of each use: 80 wasted at 100, 50 expensed
+  perform pg_temp.assert_ok(a, 'cutval_no_cost_at_the_cutover_falls_back_to_quantity',
+    pg_temp.amt(j, pg_temp.mm('ve_w')) = 5000 and pg_temp.item_total(j, 'C4 Vnull') = 5000);
+  -- a mixed history. The cutover: 150 at 130 (19500 of allowance). A count to 120 draws 3900, the count back to 150 gives 3900 back. 100 for
+  -- 18000: 250 at 150. 60 baked at 150 = 9000, covered. The first delivery 10000 -> 9000: a share of 456 of the -1000 stays in the 190 on hand
+  -- (-456 off the allowance: 10500 - 456 = 10044; the average 147.6). The 190 wasted are worth 28044; 28044 - 10044 = 18000. In all
+  -- 10000 + 16000 - 1000 + 18000 = 43000, which is what the three deliveries cost (9000 + 16000 + 18000)
+  perform pg_temp.assert_ok(a, 'cutval_mixed_history_costs_what_was_bought',
+    pg_temp.amt(j, pg_temp.cl('vf_c')) = -1000 and not pg_temp.has(j, pg_temp.mu('vf_u', 'vf')) and pg_temp.amt(j, pg_temp.mm('vf_w')) = 18000
+    and pg_temp.item_total(j, 'C4 Vmixed') = 43000);
+  -- a correction made after the allowance was used up: the first 100 wasted are covered (the allowance 0), the correction takes 2500 more off
+  -- (the allowance is -2500: a debt), and the last 100, at the average 75 (7500), are expensed with it: 10000. 10000 - 5000 + 10000 = 15000
+  perform pg_temp.assert_ok(a, 'cutval_a_correction_after_the_allowance_is_used_is_expensed_later',
+    not pg_temp.has(j, pg_temp.mm('vg_w1')) and pg_temp.amt(j, pg_temp.mm('vg_w2')) = 10000 and pg_temp.item_total(j, 'C4 Vdebt') = 15000);
+  -- a correction made BEFORE the cutover is in the snapshot (the cost at the cutover is already 50 a unit): it moves nothing after it, and 100
+  -- wasted are covered by the 5000 of allowance: 10000 - 5000 = 5000 in all, the cost of the delivery
+  perform pg_temp.assert_ok(a, 'cutval_a_correction_before_the_cutover_is_in_the_snapshot',
+    not pg_temp.has(j, pg_temp.mm('vh_w')) and pg_temp.amt(j, pg_temp.cl('vh_c')) = -5000 and pg_temp.item_total(j, 'C4 Vsnap') = 5000);
+  -- the count back up gives back no more than the count down took: 10 units (1000) went, 40 came back (4000), 1000 is given back: 130 wasted
+  -- are worth 13000, 10000 is covered, and the 30 units that were found are expensed (3000)
+  perform pg_temp.assert_ok(a, 'cutval_a_count_up_gives_back_no_more_than_the_downs_took',
+    pg_temp.amt(j, pg_temp.mm('vi_w')) = 3000 and pg_temp.item_total(j, 'C4 Vfound') = 13000);
+  -- a correction after the cutover of a delivery applied after it moves no allowance (that stock was never expensed): 100 + 100 at 100, the
+  -- second corrected to 5000 (the average 75), 200 wasted are worth 15000, 10000 covered, 5000 expensed: 10000 + 5000 = 15000, what they cost
+  perform pg_temp.assert_ok(a, 'cutval_a_correction_of_a_later_delivery_does_not_move_the_allowance',
+    pg_temp.amt(j, pg_temp.mm('vj_w')) = 5000 and not pg_temp.has(j, pg_temp.cl('vj_c')) and not pg_temp.has(j, pg_temp.cc('vj_c'))
+    and pg_temp.item_total(j, 'C4 Vlater') = 10000 + 5000);
+  -- nothing is stamped on the baked 130 (the cost of a unit is lost): valued at the cutover cost (100) they draw the allowance: the 100 taken
+  -- are covered, no line is written, and only the 30 that were short are uncosted
+  perform pg_temp.assert_ok(a, 'cutval_a_use_with_no_cost_draws_the_allowance_at_the_cutover_cost',
+    not pg_temp.has(j, pg_temp.mu('vk_u', 'vk')) and pg_temp.uncosted_qty(j, pg_temp.mu('vk_u', 'vk')) = 30);
+  -- an opening after the cutover is a quantity allowance a recount gives back too: 40, a count to 10 takes 30, the count to 40 gives 30 back,
+  -- the 40 wasted are covered: nothing is uncosted
+  perform pg_temp.assert_ok(a, 'cutval_a_count_back_up_gives_a_quantity_allowance_back',
+    not (pg_temp.mm('vl_w') = any (pg_temp.uncosted_ids(j))));
+  -- no use or waste is ever a line of nothing, or a credit
+  perform pg_temp.assert_ok(a, 'cutval_no_line_of_stock_used_is_negative',
+    not exists (select 1 from jsonb_array_elements(j -> 'lines') l where l ->> 'id' like 'm:%' and (l ->> 'amount_cents')::bigint <= 0));
+
+  -- the oracle: on bought every ledger line counts; every item used up costs the same on used
+  perform pg_temp.expect(a, 'v_switch_bought_again', 'select public.set_cost_basis(''bought'')', '00000');
+  jb := pg_temp.books();
+  perform pg_temp.assert_ok(a, 'cutval_used_up_costs_the_same_on_used_as_on_bought',
+    pg_temp.item_total(jb, 'C4 Vdrift') = pg_temp.item_total(j, 'C4 Vdrift') and pg_temp.item_total(jb, 'C4 Vrecount') = pg_temp.item_total(j, 'C4 Vrecount')
+    and pg_temp.item_total(jb, 'C4 Vcorrect') = pg_temp.item_total(j, 'C4 Vcorrect') and pg_temp.item_total(jb, 'C4 Vdrop') = pg_temp.item_total(j, 'C4 Vdrop')
+    and pg_temp.item_total(jb, 'C4 Vmixed') = pg_temp.item_total(j, 'C4 Vmixed') and pg_temp.item_total(jb, 'C4 Vdebt') = pg_temp.item_total(j, 'C4 Vdebt')
+    and pg_temp.item_total(jb, 'C4 Vsnap') = pg_temp.item_total(j, 'C4 Vsnap') and pg_temp.item_total(jb, 'C4 Vlater') = pg_temp.item_total(j, 'C4 Vlater')
+    and pg_temp.item_total(jb, 'C4 Vdrift') = 20000 and pg_temp.item_total(jb, 'C4 Vmixed') = 43000);
+  perform pg_temp.expect(a, 'v_switch_used_again', 'select public.set_cost_basis(''used'')', '00000');
+end $$;
+
 grant execute on function
-  pg_temp.fixture(text), pg_temp.cut_state(), pg_temp.max_seq(), pg_temp.on_hand_now(), pg_temp.table_closed(),
+  pg_temp.fixture(text), pg_temp.cut_state(), pg_temp.cut_costs(), pg_temp.max_seq(), pg_temp.on_hand_now(), pg_temp.table_closed(),
   pg_temp.rl(text), pg_temp.cl(text), pg_temp.cc(text), pg_temp.mm(text), pg_temp.mu(text, text), pg_temp.pp(text, integer), pg_temp.lg(integer),
   pg_temp.books(), pg_temp.past(), pg_temp.sumk(jsonb, text), pg_temp.has(jsonb, text), pg_temp.amt(jsonb, text), pg_temp.at_of(jsonb, text),
   pg_temp.short(jsonb, text), pg_temp.n(jsonb, text), pg_temp.item_total(jsonb, text), pg_temp.uncosted_ids(jsonb), pg_temp.uncosted_qty(jsonb, text),
@@ -428,7 +596,7 @@ grant execute on function
   pg_temp.mv(text, text, text, text, numeric, numeric, numeric, text), pg_temp.batch(text, text, text, numeric, numeric),
   pg_temp.cor(text, text, text, numeric, numeric),
   pg_temp.set_subject(integer, text), pg_temp.expect(text, text, text, text), pg_temp.assert_ok(text, text, boolean),
-  pg_temp.assert_table(text), pg_temp.assert_refused(text), pg_temp.phase_owner(text)
+  pg_temp.assert_table(text), pg_temp.assert_refused(text), pg_temp.phase_owner(text), pg_temp.phase_value(text)
   to anon, authenticated, service_role;
 
 -- ================================================================ the run
@@ -451,6 +619,7 @@ select pg_temp.assert_refused('inactive_owner');
 select pg_temp.set_subject(1);
 select pg_temp.assert_table('active_owner');
 select pg_temp.phase_owner('active_owner');
+select pg_temp.phase_value('active_owner');
 reset role;
 
 select 'SEC_RESULT|' || operation || '|' || actor || '|' || outcome

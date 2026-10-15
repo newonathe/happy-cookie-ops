@@ -116,14 +116,17 @@ export type Database = {
         Row: {
           item_id: string
           qty: number
+          unit_cost: number | null
         }
         Insert: {
           item_id: string
           qty: number
+          unit_cost?: number | null
         }
         Update: {
           item_id?: string
           qty?: number
+          unit_cost?: number | null
         }
         Relationships: [
           {
@@ -1656,6 +1659,7 @@ export type Database = {
           movement_id: string
           payload_hash: string
           received_at: string
+          seq: number
           used_cents: number
         }
         Insert: {
@@ -1667,6 +1671,7 @@ export type Database = {
           movement_id: string
           payload_hash: string
           received_at?: string
+          seq?: number
           used_cents?: number
         }
         Update: {
@@ -1678,6 +1683,7 @@ export type Database = {
           movement_id?: string
           payload_hash?: string
           received_at?: string
+          seq?: number
           used_cents?: number
         }
         Relationships: [
