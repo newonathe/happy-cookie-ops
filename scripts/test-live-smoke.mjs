@@ -1204,6 +1204,16 @@ try {
         Number(rent.data[0].amount_cents) === -RENT_PESOS * 100,
       `The rent is not in the books once: ${JSON.stringify(rent.data)}`
     );
+    // U6 (A4): the drawer difference is booked in its own category, never as a sale.
+    const drawer = await admin
+      .from('ledger_entries')
+      .select('kind, category, memo')
+      .like('memo', BOOKING_NAME + '%drawer%');
+    assert(
+      !drawer.error &&
+        drawer.data.every((l) => l.category === 'Cash variance' && l.kind !== 'sale'),
+      `The drawer difference is not in its own category: ${JSON.stringify(drawer.data)}`
+    );
     if (toShop) {
       const batch = await admin
         .from('production_records')

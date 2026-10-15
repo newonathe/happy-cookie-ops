@@ -394,7 +394,13 @@ describe("the event's page", () => {
     expect(event.finalise!.blocked).toBeNull();
     expect(await event.finalise!.run()).toBeNull();
     expect(h.calls('finalise_bazaar')).toEqual([
-      { p_booking: BOOKING, p_expected: example.summary.hash, p_drop: 32, p_till: null }
+      {
+        p_booking: BOOKING,
+        p_expected: example.summary.hash,
+        p_drop: 32,
+        p_till: null,
+        p_final: null
+      }
     ]);
     expect(h.deps.finalised).toHaveBeenCalledTimes(1);
   });
