@@ -15,14 +15,17 @@ import tomllib
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-SUPABASE = ROOT / "node_modules/.pnpm/@supabase+cli-windows-x64@2.116.0/node_modules/@supabase/cli-windows-x64/bin/supabase.exe"
+# The pinned CLI (2.116.0) for this platform: Windows on the owner's machine, Linux in a cloud session.
+SUPABASE = ROOT / ("node_modules/.pnpm/@supabase+cli-windows-x64@2.116.0/node_modules/@supabase/cli-windows-x64/bin/supabase.exe"
+                   if sys.platform == "win32" else
+                   "node_modules/.pnpm/@supabase+cli-linux-x64@2.116.0/node_modules/@supabase/cli-linux-x64/bin/supabase")
 MIGRATIONS = ROOT / "supabase/migrations"
 ASSERTIONS = ROOT / "tests/integration/db/bootstrap.sql"
 PINS = ROOT / "tests/fixtures/mp08g-source-pins.json"
 PREFIX = ".hcb-bootstrap-"
 DOCKER = ["docker", "--context", "default"]
 LOCAL_ENV = {key: value for key, value in __import__("os").environ.items() if key.upper() in {"PATH", "SYSTEMROOT", "WINDIR", "TEMP", "TMP", "USERPROFILE", "LOCALAPPDATA", "APPDATA", "COMSPEC", "PATHEXT"}}
-LOCAL_ENV["DOCKER_HOST"] = "npipe:////./pipe/docker_engine"
+LOCAL_ENV["DOCKER_HOST"] = "npipe:////./pipe/docker_engine" if sys.platform == "win32" else "unix:///var/run/docker.sock"
 REPORT = ROOT / "docs/state/evidence/MP-05a-bootstrap.json"
 IMAGE = "public.ecr.aws/supabase/postgres:15.8.1.085"
 LABEL = "io.happy-cookie.bootstrap"
@@ -69,7 +72,7 @@ def docker(args: list[str], *, cwd: Path, timeout: int, input_text: str | None =
 def require_local_docker(workdir: Path) -> None:
     host = docker(["context", "inspect", "default", "--format", "{{.Endpoints.docker.Host}}"], cwd=workdir, timeout=30).strip().lower()
     if host != LOCAL_ENV["DOCKER_HOST"]:
-        fail("Docker default context does not match the pinned Windows local endpoint")
+        fail("Docker default context does not match the pinned local endpoint")
     docker(["version", "--format", "{{.Server.Version}}"], cwd=workdir, timeout=20)
 
 def local_ports() -> tuple[int, int, int]:
