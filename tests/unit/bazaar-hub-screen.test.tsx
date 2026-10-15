@@ -187,6 +187,40 @@ function Host({ addEvent }: { addEvent: LiveBazaarVals['addEvent'] }) {
   return <EventList bazaar={vals({ list, addEvent })} />;
 }
 
+describe('the ring on a row just added, under reduced motion', () => {
+  const reduced = (on: boolean) =>
+    vi.stubGlobal('matchMedia', (query: string) => ({
+      matches: on && query.includes('reduce'),
+      media: query,
+      addEventListener: () => undefined,
+      removeEventListener: () => undefined
+    }));
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.useRealTimers();
+  });
+
+  it('is shown still for a second, then dropped, with no fade to rely on', () => {
+    vi.useFakeTimers();
+    reduced(true);
+    render(<EventList bazaar={vals({ list: LIST, justAdded: 'u2' })} />);
+    const item = screen.getByRole('button', { name: /Fair after/ });
+    expect(item.className).toContain('ring-[3px]');
+    expect(item.className).not.toContain('motion-ring');
+    act(() => void vi.advanceTimersByTime(1100));
+    expect(screen.getByRole('button', { name: /Fair after/ }).className).not.toContain(
+      'ring-[3px]'
+    );
+    // Mutation: leaving it to the global rule shows no ring at all (it cuts the fade to nothing).
+  });
+
+  it('is the 600 ms fade otherwise', () => {
+    reduced(false);
+    render(<EventList bazaar={vals({ list: LIST, justAdded: 'u2' })} />);
+    expect(screen.getByRole('button', { name: /Fair after/ }).className).toContain('motion-ring');
+  });
+});
+
 describe('the add-event sheet', () => {
   const open = () => fireEvent.click(screen.getByRole('button', { name: 'Add an event' }));
   const type = (label: string, value: string) =>

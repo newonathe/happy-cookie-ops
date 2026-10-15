@@ -212,7 +212,7 @@ Interface only, no migration. Files: `event-list.tsx` (the hub), `event-form.tsx
 - **Editing stays reachable:** until U4 puts editing on the event page, the hub ends with a quiet "Edit or switch off events" that opens the old multi-row form (`liveBazaar.add`).
 - **Dates** in the hub are `dayRange` ("Sat, 24 Oct – Sun, 25 Oct"); Home's next-event card uses it too. `dateRange` (US order) stays for the event page, which U4 rebuilds.
 - **Known, left for U4:** Home's next-event card (`nextEvent`, U2) still uses `upcomingEvents`, which filters on `started`. That flag is never set by bazaar days, so a closed event whose dates are still ahead (the Ateneo test) can show on Home as the next event. The hub does not have this flaw; Home should take its next event from the same read (`hubPlace`) or from the hub's list.
-- **Reduced motion, left for U9:** the D0 table's "ring shown 1 s, no movement" for the new row is not built; the global reduced-motion rule removes the ring.
+- **Reduced motion:** the new row's ring is shown still for 1 s and then dropped (`useRing`), as the D0 table says; the global rule would otherwise cut the fade to nothing.
 - Tests: `bazaar-hub.test.ts` (rules, validator against `scheduledEventError`), `bazaar-hub-store.test.ts`, `bazaar-hub-screen.test.tsx`; a smoke step adds an event through the sheet and reads the row back.
 
 ### U4: event page and day plan (Sonnet; interface)
