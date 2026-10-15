@@ -42,7 +42,7 @@ export function BazaarLive({ v }: { v: OpsVals }) {
     <section
       aria-label="Bazaar"
       data-screen-label="Bazaar"
-      style={{ ...screenStyle, paddingBottom: '72px' }}
+      style={{ ...screenStyle, paddingBottom: '96px' }}
     >
       {!bazaar ? (
         <NoDays />

@@ -10,7 +10,7 @@ import { COST_COPY } from '@/lib/orders/staff-copy';
 import { costPesosToCentavos, pesosToCentavos } from '@/lib/money';
 import { cookiesText } from '@/lib/bazaar/plan';
 import { peso, pesoUnit } from '@/lib/money/format';
-import { dateRange } from '@/lib/data/scheduled-events';
+import { dayRange } from '@/lib/date/day-text';
 
 /**
  * A bazaar day's review and an event's summary, as words (S3). Every figure here is `bazaar_summary`'s, formatted: nothing
@@ -158,7 +158,7 @@ function whyText(s: BazaarSummary): string | null {
 
 /** The event's figures: revenue, fees, cookie cost, profit, against the target. Each opens into the database's own parts. */
 export function eventFiguresOf(s: BazaarSummary): ReviewFigure[] {
-  const dayText = new Map(s.days.map((d) => [d.id, dateRange(d.day, d.day)]));
+  const dayText = new Map(s.days.map((d) => [d.id, dayRange(d.day, d.day)]));
   const why = whyText(s);
   const cc = s.cookieCost;
   const costParts: Part[] = [];

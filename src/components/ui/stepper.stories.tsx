@@ -35,3 +35,13 @@ export const Float: Story = {
     <Controlled {...args} label="Float" value={10000} step={10000} max={1000000} format={peso} />
   )
 };
+export const WithFormError: Story = {
+  render: (args) => (
+    <Controlled
+      {...args}
+      id="made-story"
+      value={0}
+      error="Classic Chocolate Chip: put at least one cookie on the table."
+    />
+  )
+};

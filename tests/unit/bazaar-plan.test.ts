@@ -12,6 +12,9 @@ const flavour = (over: Partial<PlanFlavour> = {}): PlanFlavour => ({
   made: '20',
   carried: '',
   price: '125',
+  photo: 'assets/double-chocolate-fudge.png',
+  onMenu: true,
+  menuPrice: '125',
   ...over
 });
 
@@ -85,7 +88,13 @@ describe('planFromForm', () => {
     });
     expect(r).toEqual({
       ok: false,
-      error: 'Happy Camper: cookies made must be a whole number from 0 to 9,999.'
+      error: 'Happy Camper: cookies made must be a whole number from 0 to 9,999.',
+      errors: [
+        {
+          field: 'plan-made-hc',
+          message: 'Happy Camper: cookies made must be a whole number from 0 to 9,999.'
+        }
+      ]
     });
   });
 
