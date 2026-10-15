@@ -10,6 +10,7 @@ import { SectionHeader } from '@/components/ui/section-header';
 import { Skeleton } from '@/components/ui/skeleton';
 import { StatusPill } from '@/components/ui/status-pill';
 import { cx } from '@/components/ui/cx';
+import { usePrefersReducedMotion } from '@/components/ui/motion';
 import { mutedStyle } from '@/components/live/stock/stock-shared';
 import { EventForm } from './event-form';
 
@@ -153,6 +154,22 @@ export function EventList({ bazaar }: { bazaar: LiveBazaarVals }) {
   );
 }
 
+/**
+ * The welcome of a row that was just added (D0 motion table): a warm ring that fades over 600 ms. Under reduced motion the
+ * ring does not fade (the global rule would cut it to nothing): it is shown still for 1 s, then dropped.
+ */
+function useRing(ringed: boolean): string | false {
+  const reduced = usePrefersReducedMotion();
+  const [done, setDone] = useState(false);
+  useEffect(() => {
+    if (!ringed || !reduced) return;
+    const timer = window.setTimeout(() => setDone(true), 1000);
+    return () => window.clearTimeout(timer);
+  }, [ringed, reduced]);
+  if (!ringed) return false;
+  return reduced ? !done && 'ring-[3px] ring-warm-accent' : 'motion-ring';
+}
+
 /** The pill, or while the event's read is out a placeholder: nothing is claimed that may be wrong. */
 function Pill({ row }: { row: BazaarListRow }) {
   if (row.reading)
@@ -171,6 +188,7 @@ const whenOf = (row: BazaarListRow): string | null =>
 
 /** An event that is on now, or whose days are under way: the large accent card (spec 5.2). */
 function ActiveCard({ row, ringed }: { row: BazaarListRow; ringed: boolean }) {
+  const ring = useRing(ringed);
   if (row.reading)
     return (
       <Card variant="accent" aria-busy="true">
@@ -183,7 +201,7 @@ function ActiveCard({ row, ringed }: { row: BazaarListRow; ringed: boolean }) {
       variant="accent"
       as="article"
       aria-label={row.name}
-      className={cx('motion-enter flex flex-col gap-3', ringed && 'motion-ring')}
+      className={cx('motion-enter flex flex-col gap-3', ring)}
     >
       <div className="flex min-w-0 flex-wrap items-center gap-2">
         <Pill row={row} />
@@ -212,13 +230,14 @@ function ActiveCard({ row, ringed }: { row: BazaarListRow; ringed: boolean }) {
 
 /** A compact row for the Upcoming and Past lists: the name on one line, the dates, the place, and the pill. */
 function EventRow({ row, ringed }: { row: BazaarListRow; ringed: boolean }) {
+  const ring = useRing(ringed);
   return (
     <button
       type="button"
       onClick={row.open}
       className={cx(
         'motion-enter motion-press flex min-h-11 w-full min-w-0 flex-col gap-1 rounded-card border border-line bg-surface p-3 text-left text-ink hover:bg-inset',
-        ringed && 'motion-ring'
+        ring
       )}
     >
       <span className="flex min-w-0 items-center justify-between gap-2">
