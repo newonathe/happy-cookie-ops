@@ -241,6 +241,16 @@ const COPY = {
     'Changed after it was closed: a sale or a void arrived later. The figures below are the ones that were booked.'
 } as const;
 
+/** What she was shown that a typed cost cannot change: the sales, the takings, the fees and the stranded cookies. */
+function shownTotals(d: Bazaar): string {
+  return JSON.stringify([
+    d.revenue.sales,
+    d.revenue.revenueCents,
+    d.fees.totalCents,
+    d.stranded.map((x) => [x.productId, x.qty])
+  ]);
+}
+
 /** `YYYY-MM-DD` from `a` to `b` inclusive. The bookings are at most 15 days (`scheduledEventError`). */
 function datesBetween(a: string, b: string): string[] {
   const out: string[] = [];
@@ -1162,7 +1172,8 @@ export class BazaarDays {
     asks: boolean
   ): Promise<void> {
     if (this.busy) return;
-    if (asks && !confirmed) return;
+    // Worked out again here: a page drawn before midnight and tapped after it must still ask.
+    if ((asks || day.day !== this.deps.today()) && !confirmed) return;
     this.busy = true;
     try {
       const outcome = await this.deps.begin(
@@ -1430,16 +1441,17 @@ export class BazaarDays {
     const asks = this.finaliseAsks(data, names);
     const checked = validateFinalise({ ...asks, value: input });
     if (!checked.ok) return checked.errors[0]?.message ?? COPY.finaliseRefused;
-    // S3.1: a closed day this phone still holds (it has something unsent) is checked against the till's own figures.
-    const held = this.deps.held();
-    let till: ({ dayId: string } & TillFigures) | null = null;
-    if (held && data.days.some((d) => d.id === held.dayId)) {
-      const figures = await this.deps.tillFigures();
-      if (figures === null) return COPY.queueUnread;
-      till = { dayId: held.dayId, salesCount: figures.salesCount, cashCents: figures.cashCents };
-    }
+    // Busy from here, so a second tap cannot start a second close while the first waits on the till's figures.
     this.busy = true;
     try {
+      // S3.1: a closed day this phone still holds (it has something unsent) is checked against the till's own figures.
+      const held = this.deps.held();
+      let till: ({ dayId: string } & TillFigures) | null = null;
+      if (held && data.days.some((d) => d.id === held.dayId)) {
+        const figures = await this.deps.tillFigures();
+        if (figures === null) return COPY.queueUnread;
+        till = { dayId: held.dayId, salesCount: figures.salesCount, cashCents: figures.cashCents };
+      }
       let fresh = data;
       if (checked.costs.length > 0) {
         for (const c of checked.costs) {
@@ -1457,6 +1469,9 @@ export class BazaarDays {
         }
         this.data = fresh;
         this.deps.rerender();
+        // A cost changes the hash, and the close is given the new one. That must not also take in something else that
+        // changed since she looked (a sale, a fee, a different stranded count): she closes it again herself.
+        if (shownTotals(fresh) !== shownTotals(data)) return COPY.finaliseStale;
         // What was asked may have changed with the read: the split is checked again against it.
         const asks2 = this.finaliseAsks(fresh, names);
         // A cost that was saved but is not in the fresh summary would close the event with no profit after she chose to

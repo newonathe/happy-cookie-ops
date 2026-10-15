@@ -290,8 +290,14 @@ then the store and contract (`bazaar-days.ts`, `live-bazaar-types.ts`), then the
   are red, day 2 starts from day 1's float and carry, starting tomorrow asks and holds until confirmed, a tap on Add the fee straight from a bad Amount submits, closing the event asks, and with day 1's cookies set aside and day 2 only planned the real summary's `stranded` names them: A1 against migration 70, not a fixture);
   screenshots at 375 and 1440 px (`SMOKE_SHOTS`); the browser pane at 375 px on the paused smoke
   (`SMOKE_PAUSE_EVENT_FILE` with `SMOKE_PAUSE_EVENT_AT=closed|planned`): the red cost field with its summary and focus, no
-  sideways scroll. The independent review the repo asks of money changes was not run in this session (the finalise path and the
-  plan totals are the parts to read): do it before U9.
+  sideways scroll. **Review (Opus, read-only, 16 Oct): safe to merge; three mediums fixed.** (1) Closing after a typed cost closed on the fresh hash,
+  which would also take in a late sale or a changed stranded count: it now refuses with the stale message unless sales, takings, fees
+  and stranded cookies are unchanged. (2) The not-today check was worked out when the page was drawn: it is now also worked out in
+  `start`. (3) A second tap could pass the busy check while the till's figures were awaited: busy is set first. Held, with hand-worked
+  numbers: the split always adds up; 38.44 x 15 = 57,660 centavos; "12.5" is 1250 and "28.7525" is 2875.25 centavos; commas and limits match
+  the database. **Open for Ethan:** the cost typed in the close sheet is the FLAVOUR's (design 5.10), and in migration 70 it wins
+  over the recipe's for every other bazaar, open or later; the per-event cost (`saveBazaarCost`) would touch only this event.
+  Left as is: when the recipes are unread she may send a flavour to the shop that has none, and the database refuses with a general message
 
 ### U4: event page and day plan (Sonnet; interface)
 
