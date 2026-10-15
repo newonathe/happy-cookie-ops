@@ -847,6 +847,30 @@ describe('U4: the event page asks what the books need before it closes, and star
     expect(h.calls('finalise_bazaar')).toHaveLength(0);
   });
 
+  it('A5: stops when something other than the cost changed between the page and the re-read', async () => {
+    const { h, event } = await open(costPending());
+    const fresh = clone();
+    fresh.summary.hash = 'd'.repeat(64);
+    fresh.summary.revenue.revenue_cents += 5000; // a late sale
+    h.answer(fresh);
+    expect(await event.finalise!.run({ ...NO_CHOICES, costs: { 'mp0s-b': '12.5' } })).toMatch(
+      /changed since you looked/
+    );
+    expect(h.calls('finalise_bazaar')).toHaveLength(0);
+  });
+
+  it('A2: a day drawn before midnight and tapped after it still asks', async () => {
+    const w = planned(planned(clone(), 1), 0);
+    const { h, event } = await open(w);
+    const day = event.days[0]!;
+    expect(day.startPrompt).toBeNull();
+    // The clock moves on to the next day after the page was drawn.
+    (h.deps as unknown as { today: () => string }).today = () => '2026-10-25';
+    day.start(false);
+    await settle();
+    expect(h.deps.begin).not.toHaveBeenCalled();
+  });
+
   it('A5: closing without cost saves nothing', async () => {
     const { h, event } = await open(costPending());
     expect(await event.finalise!.run({ ...NO_CHOICES, withoutCost: true })).toBeNull();
