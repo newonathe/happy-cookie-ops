@@ -34,9 +34,24 @@ export interface ReceiptRow {
   at: number;
 }
 
+/** A use or write-off of stock that has no cost (yet): the books leave it out of the totals and say so, never as a zero. */
+export interface UncostedUse {
+  id: string;
+  kind: 'use' | 'waste';
+  item: string;
+  qty: number;
+  unit: string;
+  /** Epoch milliseconds. */
+  at: number;
+  /** Why a production line could not be taken at all, when the database says. */
+  why?: string;
+}
+
 export interface Books {
   basis: CostBasis;
   lines: BookLine[];
+  /** Empty on a database from before the list existed. */
+  uncosted: UncostedUse[];
   receipts: ReceiptRow[];
 }
 
@@ -68,6 +83,33 @@ export function parseBooks(json: Json | null | undefined): Books | null {
       at: l.at
     });
   }
+  // Absent on an older database (no list, so nothing to say); present but malformed is no answer at all.
+  const uncosted: UncostedUse[] = [];
+  if (json.uncosted !== undefined) {
+    if (!Array.isArray(json.uncosted)) return null;
+    for (const u of json.uncosted) {
+      if (
+        !isObj(u) ||
+        typeof u.id !== 'string' ||
+        (u.kind !== 'use' && u.kind !== 'waste') ||
+        typeof u.item !== 'string' ||
+        typeof u.qty !== 'number' ||
+        typeof u.unit !== 'string' ||
+        typeof u.at !== 'number' ||
+        (u.why !== undefined && u.why !== null && typeof u.why !== 'string')
+      )
+        return null;
+      uncosted.push({
+        id: u.id,
+        kind: u.kind,
+        item: u.item,
+        qty: u.qty,
+        unit: u.unit,
+        at: u.at,
+        ...(typeof u.why === 'string' && u.why ? { why: u.why } : {})
+      });
+    }
+  }
   const receipts: ReceiptRow[] = [];
   for (const r of json.receipts) {
     if (
@@ -89,7 +131,7 @@ export function parseBooks(json: Json | null | undefined): Books | null {
       at: r.at
     });
   }
-  return { basis: json.basis, lines, receipts };
+  return { basis: json.basis, lines, uncosted, receipts };
 }
 
 export async function fetchBooks(

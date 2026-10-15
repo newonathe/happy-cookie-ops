@@ -321,6 +321,13 @@ describe('A3: the catalogue reaches the ported screens (live mode)', () => {
       } as never);
     });
     expect(runtime.renderVals().productRows[0].costText).toBe('₱0.00 cost');
+    // B3b: one packaging item losing its price makes the cost pending, whichever item it is (no item is named in the check).
+    prices[prices.length - 1].active = false;
+    await act(async () => {
+      await runtime.loadStockCatalogue(client as never);
+    });
+    expect(runtime.renderVals().productRows[0].costText).toBe('Cost pending');
+    prices[prices.length - 1].active = true;
     prices[0].pack_label = 'Different pack';
     await act(async () => {
       await runtime.loadStockCatalogue(client as never);

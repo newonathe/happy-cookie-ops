@@ -101,6 +101,7 @@ const LOADERS = [
   'loadOperationsHealth',
   'loadOrders',
   'loadRecipes',
+  'loadCosts',
   'reloadOrders',
   'reloadShopStatus'
 ];

@@ -202,6 +202,13 @@ export const BOOKS_COPY = {
   used: 'When used',
   basisSaved: (b: string) =>
     'Stock now counts as a cost ' + (b === 'used' ? 'when it is used.' : 'when it is bought.'),
+  uncostedTitle: 'Stock with no cost yet',
+  uncostedCount: (n: number) => (n === 1 ? '1 use' : n + ' uses') + ' with no cost yet',
+  uncostedNote:
+    'These are left out of the books until they have a cost. They are not counted as nothing: give the item a price and they appear.',
+  plUncosted: (n: number) =>
+    'Left out: ' + (n === 1 ? '1 use' : n + ' uses') + ' of stock with no cost yet.',
+  uncostedMore: (n: number) => 'and ' + n + ' more',
   unpaidTitle: 'Waiting on payment',
   unpaidNone: 'Nobody owes you anything right now.',
   unpaidSummary: (n: number, total: string) =>

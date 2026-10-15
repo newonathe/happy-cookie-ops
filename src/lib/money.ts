@@ -36,6 +36,18 @@ export function centavosToPesos(centavos: Centavos): Pesos {
 }
 
 /**
+ * A cost rate (centavos per unit, or per cookie) to pesos. Unlike a whole amount of money, a rate legitimately carries
+ * fractional centavos (the database holds item costs to six places: 0.42 centavos a gram), so it is not required to be an
+ * integer and is never rounded here; whoever shows it rounds once, as a whole-centavo amount, through `centavosToPesos`.
+ */
+export function centavosRateToPesos(centavos: Centavos): Pesos {
+  if (!Number.isFinite(centavos)) {
+    throw new TypeError(`centavosRateToPesos: expected a finite number, got ${centavos}`);
+  }
+  return centavos / 100;
+}
+
+/**
  * Postgres returns `bigint` columns as strings through the JS client, because a bigint
  * can exceed `Number.MAX_SAFE_INTEGER`. Ours cannot — a hundred trillion pesos is not a
  * concern for a cookie business — but the string still arrives, and `'3844' / 100` is a
