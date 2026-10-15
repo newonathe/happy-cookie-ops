@@ -17,6 +17,14 @@ export interface RecipeLine {
   unit: string;
 }
 
+/** One packaging line of a flavour (B3b): a stock item and the quantity one cookie takes of it. Absent from an older database's answer. */
+export interface RecipePackagingLine {
+  name: string;
+  itemId: string;
+  qty: number;
+  unit: string;
+}
+
 export interface RecipeVersion {
   version: number;
   yield: number;
@@ -29,6 +37,8 @@ export interface Recipe {
   version: number;
   updatedAt: string;
   lines: RecipeLine[];
+  /** The packaging one cookie takes (B3b); empty when the database does not send it. */
+  packaging: RecipePackagingLine[];
   /** Earlier versions, oldest first. */
   history: RecipeVersion[];
 }
@@ -43,7 +53,7 @@ const CONTROL = /[\u0000-\u001f\u007f-\u009f]/;
 
 const isObj = (v: unknown): v is Record<string, unknown> =>
   typeof v === 'object' && v !== null && !Array.isArray(v);
-const decimal3 = (v: unknown, min: number, max: number): v is number =>
+export const decimal3 = (v: unknown, min: number, max: number): v is number =>
   typeof v === 'number' &&
   Number.isFinite(v) &&
   v >= min &&
@@ -67,6 +77,25 @@ function parseLines(json: unknown): RecipeLine[] | null {
   return out;
 }
 
+function parsePackaging(json: unknown): RecipePackagingLine[] | null {
+  if (json === undefined || json === null) return [];
+  if (!Array.isArray(json)) return null;
+  const out: RecipePackagingLine[] = [];
+  for (const l of json) {
+    if (
+      !isObj(l) ||
+      typeof l.name !== 'string' ||
+      typeof l.item_id !== 'string' ||
+      typeof l.qty !== 'number' ||
+      !Number.isFinite(l.qty) ||
+      typeof l.unit !== 'string'
+    )
+      return null;
+    out.push({ name: l.name, itemId: l.item_id, qty: l.qty, unit: l.unit });
+  }
+  return out;
+}
+
 /** Strict: anything unexpected is no list at all, so the recipes screen never shows a half-read recipe. */
 export function parseRecipes(json: Json | null | undefined): Recipe[] | null {
   if (!Array.isArray(json)) return null;
@@ -84,7 +113,8 @@ export function parseRecipes(json: Json | null | undefined): Recipe[] | null {
     )
       return null;
     const lines = parseLines(r.lines);
-    if (!lines) return null;
+    const packaging = parsePackaging(r.packaging);
+    if (!lines || !packaging) return null;
     const history: RecipeVersion[] = [];
     for (const h of r.history) {
       const hl = isObj(h) ? parseLines(h.lines) : null;
@@ -98,6 +128,7 @@ export function parseRecipes(json: Json | null | undefined): Recipe[] | null {
       version: r.version as number,
       updatedAt: r.updated_at,
       lines,
+      packaging,
       history
     });
   }

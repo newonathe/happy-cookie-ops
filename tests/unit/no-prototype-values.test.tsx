@@ -48,6 +48,7 @@ import type { OpsEngineState } from '@/store/engine/ops-engine';
 import { OpsRuntime } from '@/store/ops-runtime';
 import { AppFrame } from '@/components/shell/app-frame';
 import { SCREEN_KEYS, type ScreenKey } from '@/lib/screens';
+import { PACKAGING_COPY } from '@/lib/orders/staff-copy';
 import { fillDemoCatalogue } from '@/lib/data/engine-catalogue';
 import { clearBazaar } from '@/lib/offline/bazaar-state';
 import { rememberCheck } from '@/lib/auth/offline-trust';
@@ -597,6 +598,7 @@ function makeWorld(spec: WorldSpec, viewer: StaffRole | null) {
     get_stock_catalogue: catalogue,
     get_last_paid: [],
     get_recipes: [],
+    get_packaging_rules: { updated_at: null, rules: [] },
     get_recipe_drafts: [],
     get_production: { batches: [], dough: [], baked: [], shortfalls: [] },
     get_books: { basis: 'bought', lines: [], receipts: [] },
@@ -824,6 +826,22 @@ async function drawSettingsRows(runtime: OpsRuntime, terms: readonly Term[], int
   }
 }
 
+/** The packaging form (B3b), opened from its Tools entry: the owner's records only, so an empty shop shows empty states. */
+async function drawPackaging(runtime: OpsRuntime, terms: readonly Term[], into: Rendered) {
+  act(() => runtime.setState({ screen: 'settings', device: 'desktop', sheet: null }));
+  const entry = runtime.liveToolEntries().find((item) => item.label === PACKAGING_COPY.title);
+  if (!entry) {
+    into.crashes.push('owner:packaging: no Tools entry named ' + PACKAGING_COPY.title);
+    return;
+  }
+  await act(async () => {
+    entry.go();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  });
+  drawAndScan(runtime, 'packaging form', 'owner', terms, into);
+  act(() => runtime.closeSheet());
+}
+
 /** The Bazaar payment sheet with one cookie in the cart, set up through the engine's own actions. */
 function drawBazaarPay(
   runtime: OpsRuntime,
@@ -871,6 +889,7 @@ async function drawEverything(
   drawScreens(owner, 'owner', SCREEN_KEYS, 'desktop', terms, rendered);
   drawScreens(owner, 'owner', ['today'], 'mobile', terms, rendered);
   await drawSettingsRows(owner, terms, rendered);
+  await drawPackaging(owner, terms, rendered);
   // A shop with no flavour has nothing to put in a cart, so no payment sheet to open.
   const firstFlavour = spec.flavours[0]?.id;
   if (firstFlavour) drawBazaarPay(owner, firstFlavour, terms, rendered);

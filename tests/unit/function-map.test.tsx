@@ -67,10 +67,10 @@ describe('the function map (final-plan.md section 8.1)', () => {
       expect([place.id, place.entries.length + place.routes.length > 0]).toEqual([place.id, true]);
   });
 
-  it('gives each of the 33 All tools entries exactly one home', () => {
+  it('gives each of the 34 All tools entries exactly one home', () => {
     const entries = liveOwnerEntries();
-    expect(entries).toHaveLength(33);
-    expect(new Set(entries).size).toBe(33);
+    expect(entries).toHaveLength(34);
+    expect(new Set(entries).size).toBe(34);
     for (const label of entries) expect([label, count(mappedEntries, label)]).toEqual([label, 1]);
     // And the map names nothing the app does not have.
     expect([...mappedEntries].sort()).toEqual([...entries].sort());

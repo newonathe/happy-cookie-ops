@@ -113,6 +113,55 @@ export const EXTRAS_COPY = {
   save: 'Save boxes & add-ons'
 } as const;
 
+/** The packaging form (B3b): container rules and each flavour's packaging per cookie. PLACEHOLDER, like the rest of this file. */
+export const PACKAGING_COPY = {
+  title: 'Packaging',
+  sub: 'What each box, order and cookie takes off stock',
+  intro:
+    'Choose the stock items a container takes. A pack or a bazaar sale takes only what is listed here; a container with no line takes nothing and says so.',
+  missing: 'Packaging needs the database update before it can be edited here.',
+  offline: 'Offline. Changes here will not save until this device is back online.',
+  rulesHeading: 'Container rules',
+  containers: {
+    box: 'Boxes',
+    loose: 'Loose cookies',
+    order: 'Whole order',
+    bazaar_sale: 'Bazaar sale'
+  },
+  boxOf: (size: number) => 'Box of ' + size,
+  boxSizeLabel: 'Box size (cookies)',
+  addBoxSize: 'Add box size',
+  boxSizeBad: 'A box size is a whole number of cookies from 2 to 48.',
+  item: 'Item',
+  chooseItem: 'Choose an item',
+  itemOff: '(switched off)',
+  qty: 'Quantity',
+  qtyPerCookie: 'Quantity per cookie',
+  per: 'Per',
+  perContainer: 'container',
+  perCookie: 'cookie',
+  addLine: 'Add a line',
+  remove: 'Remove',
+  noRules: 'No lines yet.',
+  noItems: 'No stock items to choose from yet. Add them under Stock items.',
+  incomplete: 'Choose an item and a quantity above 0 for every line.',
+  saveRules: 'Save container rules',
+  flavoursHeading: 'Packaging for each cookie',
+  flavoursHelp: 'What one cookie of the flavour takes. Saving a change makes a new recipe version.',
+  noFlavours: 'No flavours yet.',
+  noRecipe: 'This flavour has no recipe yet. Save its recipe first, then add its packaging.',
+  noLines: 'No packaging lines.',
+  saveLines: (name: string) => 'Save ' + name,
+  close: 'Close',
+  rulesSaved: 'Container rules saved.',
+  linesSaved: (name: string) => 'Packaging for ' + name + ' saved.',
+  linesUnchanged: 'Nothing changed, so there is no new version.',
+  rulesConflict: 'Someone else changed the container rules just now. Showing their version.',
+  linesConflict: 'Someone else changed this recipe just now. Showing their version.',
+  refused: 'That could not be saved: ',
+  missingToast: 'Packaging needs the database update before it can be saved.'
+} as const;
+
 /** The upcoming bazaars form and the Bazaar screen's list (D4). PLACEHOLDER, like the rest of this file. */
 /** PLACEHOLDER wording (A4): saving a recipe in live mode. */
 export const RECIPE_COPY = {
