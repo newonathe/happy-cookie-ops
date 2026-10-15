@@ -230,7 +230,7 @@ describe('B1: the sub-tab strip, drawn through the screen slot', () => {
     );
     expect([...offered].sort()).toEqual([...wanted].sort());
     expect(new Set(offered).size).toBe(offered.length);
-    expect(offered).toHaveLength(31);
+    expect(offered).toHaveLength(32);
     // The other two: Notifications is behind the bell, Form queue is retired.
     const all = runtime.liveToolEntries().map((item) => String(item.label));
     expect(all.filter((label) => !offered.includes(label)).sort()).toEqual([
@@ -290,8 +290,8 @@ describe('B1: the sub-tab strip, drawn through the screen slot', () => {
     act(() => runtime.go('more'));
     const groups = runtime.renderVals().toolGroups;
     const shown = groups.flatMap((group) => group.items.map((item) => String(item.label)));
-    expect(shown).toHaveLength(32);
-    expect(new Set(shown).size).toBe(32);
+    expect(shown).toHaveLength(33);
+    expect(new Set(shown).size).toBe(33);
     expect(shown).not.toContain('Form queue');
     expect(groups.map((group) => group.title)).toEqual([
       'Sell · Orders',

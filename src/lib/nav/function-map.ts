@@ -117,7 +117,11 @@ export const PLACES: readonly Place[] = [
     home: 'stock',
     label: 'Inventory',
     screen: 'inventory',
-    entries: [{ label: 'Inventory', screen: 'inventory' }, { label: 'Stock items' }],
+    entries: [
+      { label: 'Inventory', screen: 'inventory' },
+      { label: 'Stock items' },
+      { label: 'Packaging' }
+    ],
     routes: ['inventory', 'stocktake']
   },
   {

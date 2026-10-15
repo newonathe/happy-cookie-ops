@@ -10,6 +10,7 @@ import { BooksForm } from '@/components/live/books-form';
 import { StockItemsForm } from '@/components/live/stock-items-form';
 import { StockSuppliersForm } from '@/components/live/stock-suppliers-form';
 import { OrderRulesForm } from '@/components/live/order-rules-form';
+import { PackagingForm } from '@/components/live/packaging-form';
 import {
   inputStyle,
   labelStyle,
@@ -44,6 +45,8 @@ export function LiveFormHost({ v }: { v: OpsVals }) {
   if (v.liveTexts) return <ShopTextsForm liveTexts={v.liveTexts} />;
   if (v.liveMessages) return <OrderMessages liveMessages={v.liveMessages} />;
   if (v.liveOrderRules) return <OrderRulesForm liveOrderRules={v.liveOrderRules} />;
+  if (v.livePackaging)
+    return <PackagingForm livePackaging={v.livePackaging} />;
   if (v.liveOrderExtras) return <OrderExtrasForm liveOrderExtras={v.liveOrderExtras} />;
   if (v.liveScheduled) return <ScheduledEventsForm liveScheduled={v.liveScheduled} />;
   if (v.liveBooks) return <BooksForm liveBooks={v.liveBooks} />;

@@ -53,6 +53,7 @@ import type {
   LiveFlavourFormFields,
   LiveOrderExtrasFields,
   LiveOrderRulesFields,
+  LivePackagingRule,
   LiveScheduledRow,
   LiveStockItemEdit,
   LiveStockPriceRow,
@@ -112,6 +113,7 @@ import {
   STAFF_COPY,
   PRODUCTION_COPY,
   BOOKS_COPY,
+  PACKAGING_COPY,
   STOCK_COPY
 } from '@/lib/orders/staff-copy';
 import {
@@ -222,6 +224,14 @@ import {
   type ItemCost,
   type RecipeCost
 } from '@/lib/data/costs';
+import {
+  fetchPackagingRules,
+  packagingLinesError,
+  packagingRulesError,
+  savePackagingLines,
+  savePackagingRules,
+  type PackagingRead
+} from '@/lib/data/packaging';
 import {
   FLAVOUR_TOASTS,
   FlavourSync,
@@ -734,6 +744,9 @@ export class OpsRuntime extends OpsProvider {
   private costAppliedSeq = 0;
   /** The last cost read failed: until one succeeds, every cost is pending (a stale or engine figure is never shown as final). */
   private costFailed = false;
+  /** B3b: what the packaging form last read (rules and their stamp), and the recipe stamps it was drawn against. */
+  private packagingRead: PackagingRead | null = null;
+  private packagingStamps: Record<string, string> = {};
   private operationsClient: OperationsClient | null = null;
   private operationsHealth: OperationsHealth | null = null;
   private operationsPhase: HealthPhase = 'loading';
@@ -2206,6 +2219,7 @@ export class OpsRuntime extends OpsProvider {
       liveMessages: this.liveMessagesVals(),
       ...(this.orderSync ? { od: this.liveOrderDetail(starved.od) } : {}),
       liveOrderRules: this.liveOrderRulesVals(),
+      livePackaging: this.livePackagingVals(),
       liveOrderExtras: this.liveOrderExtrasVals(),
       liveScheduled: this.liveScheduledVals(),
       liveBooks: this.liveBooksVals(),
@@ -2494,6 +2508,154 @@ export class OpsRuntime extends OpsProvider {
       this.toast(RULES_COPY.conflict, 'warn');
       await this.openOrderRules();
     } else this.toast(outcome === 'refused' ? RULES_COPY.refused : STAFF_COPY.offline, 'warn');
+  }
+
+  // ------------------------------------------------------------------ B3b: the packaging form
+
+  /** Applies a read of the packaging records: each recipe's stamp is the one the form was drawn against (the form re-reads a section when its stamp moves). */
+  private applyPackaging(read: PackagingRead): void {
+    this.packagingRead = read;
+    this.packagingStamps = Object.fromEntries(
+      (this.recipeRows ?? []).map((r) => [r.productId, r.updatedAt])
+    );
+    this.setState({});
+  }
+
+  /** Reads the recipes (their packaging and stamps) and the rules fresh, so what the form shows and the stamps it saves against agree. False when the rules could not be read. */
+  private async refreshPackaging(): Promise<boolean> {
+    const client = this.recipeClient;
+    if (!client) return false;
+    await this.loadRecipes(null);
+    const read = await fetchPackagingRules(client);
+    if (read.status === 'failed') return false;
+    this.applyPackaging(read);
+    return true;
+  }
+
+  private openPackaging = async (): Promise<void> => {
+    if (!(await this.refreshPackaging())) return void this.toast(STAFF_COPY.offline, 'warn');
+    this.sheet('packaging', {});
+  };
+
+  private livePackagingVals(): OpsVals['livePackaging'] {
+    const sh = this.state.sheet as StockSheetState | null;
+    const read = this.packagingRead;
+    if (
+      this.state.role !== 'owner' ||
+      sh?.kind !== 'packaging' ||
+      !read ||
+      read.status === 'failed'
+    )
+      return null;
+    const online = this.state.online && (typeof navigator === 'undefined' || navigator.onLine);
+    const close = () => this.closeSheet();
+    const none = {
+      online,
+      available: false,
+      rulesStamp: null,
+      items: [],
+      rules: [],
+      flavours: [],
+      saveRules: () => undefined,
+      saveLines: () => undefined,
+      close
+    };
+    if (read.status === 'missing') return none;
+    return {
+      ...none,
+      available: true,
+      rulesStamp: read.data.updatedAt,
+      items: (this.stockCatalogue?.items ?? []).map((i) => ({
+        id: i.id,
+        name: i.name,
+        unit: i.unit,
+        category: i.category,
+        active: i.active
+      })),
+      rules: read.data.rules.map((r): LivePackagingRule => ({
+        container: r.container,
+        boxSize: r.boxSize,
+        itemId: r.itemId,
+        itemName: r.itemName,
+        qty: r.qty,
+        per: r.per
+      })),
+      flavours: PRODUCTS.map((p) => {
+        const recipe = this.recipeRows?.find((r) => r.productId === p.id);
+        return {
+          productId: p.id,
+          name: p.short,
+          hasRecipe: !!recipe,
+          stamp: this.packagingStamps[p.id] ?? null,
+          lines: (recipe?.packaging ?? []).map((l) => ({
+            itemId: l.itemId,
+            name: l.name,
+            qty: l.qty
+          }))
+        };
+      }),
+      saveRules: (rules) => void this.savePackagingRulesForm(rules),
+      saveLines: (productId, lines) => void this.savePackagingLinesForm(productId, lines)
+    };
+  }
+
+  private async savePackagingRulesForm(
+    rules: Array<Omit<LivePackagingRule, 'itemName'>>
+  ): Promise<void> {
+    const problem = packagingRulesError(rules);
+    if (problem) return void this.toast(problem, 'warn');
+    const client = this.recipeClient;
+    const read = this.packagingRead;
+    if (this.state.role !== 'owner' || !client || read?.status !== 'ok')
+      return void this.toast(STAFF_COPY.offline, 'warn');
+    const out = await savePackagingRules(client, rules, read.data.updatedAt);
+    if (out.outcome === 'saved') {
+      this.toast(PACKAGING_COPY.rulesSaved);
+      await this.refreshPackaging();
+    } else if (out.outcome === 'conflict') {
+      this.toast(PACKAGING_COPY.rulesConflict, 'warn');
+      await this.refreshPackaging();
+    } else if (out.outcome === 'refused') this.toast(PACKAGING_COPY.refused + out.message, 'warn');
+    else
+      this.toast(
+        out.outcome === 'missing' ? PACKAGING_COPY.missingToast : STAFF_COPY.offline,
+        'warn'
+      );
+  }
+
+  private async savePackagingLinesForm(
+    productId: string,
+    lines: Array<{ itemId: string; qty: number }>
+  ): Promise<void> {
+    const problem = packagingLinesError(lines);
+    if (problem) return void this.toast(problem, 'warn');
+    const client = this.recipeClient;
+    const stamp = this.packagingStamps[productId];
+    if (this.state.role !== 'owner' || !client || !stamp)
+      return void this.toast(STAFF_COPY.offline, 'warn');
+    const was = this.recipeRows?.find((r) => r.productId === productId);
+    const name = PRODUCTS.find((p) => p.id === productId)?.short ?? productId;
+    const out = await savePackagingLines(client, productId, lines, stamp);
+    if (out.outcome === 'saved') {
+      this.toast(
+        out.version !== null && out.version === was?.version
+          ? PACKAGING_COPY.linesUnchanged
+          : PACKAGING_COPY.linesSaved(name)
+      );
+      // The recipe moved on a version: the recipes screen and what a cookie costs read it again.
+      // Not as a refresh of this flavour: that would discard a recipe edit she has open on the Recipes screen.
+      if (!(await this.loadRecipes(null))) await this.loadCosts(null);
+      await this.refreshPackaging();
+    } else if (out.outcome === 'conflict') {
+      this.toast(PACKAGING_COPY.linesConflict, 'warn');
+      await this.loadRecipes(null);
+      await this.refreshPackaging();
+    } else if (out.outcome === 'refused') this.toast(PACKAGING_COPY.refused + out.message, 'warn');
+    else
+      this.toast(
+        out.outcome === 'missing' ? PACKAGING_COPY.missingToast : STAFF_COPY.offline,
+        'warn'
+      );
   }
 
   // ------------------------------------------------------------------ B4: the boxes and add-ons form
@@ -4781,6 +4943,13 @@ export class OpsRuntime extends OpsProvider {
               },
               {
                 icon: this.IC.cookie,
+                label: PACKAGING_COPY.title,
+                sub: PACKAGING_COPY.sub,
+                badge: null,
+                go: () => void this.openPackaging()
+              },
+              {
+                icon: this.IC.cookie,
                 label: EXTRAS_COPY.title,
                 sub: 'Box sizes, add-ons, sampler, same-day extra',
                 badge: null,
@@ -5067,6 +5236,8 @@ export class OpsRuntime extends OpsProvider {
       return { ...sheet, liveForm: true, title: MESSAGE_SHEET.title };
     if (this.state.role === 'owner' && sh?.kind === 'orderrules')
       return { ...sheet, liveForm: true, title: 'Order rules' };
+    if (this.state.role === 'owner' && sh?.kind === 'packaging')
+      return { ...sheet, liveForm: true, title: PACKAGING_COPY.title };
     if (this.state.role === 'owner' && sh?.kind === 'orderextras')
       return { ...sheet, liveForm: true, title: EXTRAS_COPY.title };
     if (this.state.role === 'owner' && sh?.kind === 'scheduledevents')

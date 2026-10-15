@@ -47,6 +47,17 @@ export interface LiveOrderRulesFields {
   campusTo: string;
 }
 
+/** One container rule the packaging form shows and saves (B3b). `boxSize` is null unless the container is a box. */
+export interface LivePackagingRule {
+  container: 'box' | 'loose' | 'order' | 'bazaar_sale';
+  boxSize: number | null;
+  itemId: string;
+  /** The item's name as the database read it, for an item the loaded catalogue no longer lists. */
+  itemName: string;
+  qty: number;
+  per: 'container' | 'cookie';
+}
+
 /** The boxes and add-ons form's fields (B4). Money is pesos here; the runtime converts to centavos. */
 export interface LiveOrderExtrasFields {
   sameDayEnabled: boolean;
@@ -253,6 +264,35 @@ export interface OpsVals {
     online: boolean;
     rules: LiveOrderRulesFields;
     save: (fields: LiveOrderRulesFields) => void;
+    close: (event?: unknown) => void;
+  } | null;
+  /** Live owner only (B3b): the packaging form: the container rules, and each flavour's packaging per cookie. */
+  livePackaging?: {
+    online: boolean;
+    /** False on a database without the packaging functions: the form shows one note and no editor. */
+    available: boolean;
+    /** The rules' stamp as read: when it changes (a save, a conflict, another device), the form re-reads the rules section only. */
+    rulesStamp: string | null;
+    /** The stock items a line can name, with `active`; an inactive one is offered only where a line already uses it. */
+    items: Array<{
+      id: string;
+      name: string;
+      unit: string;
+      category: string;
+      active: boolean;
+    }>;
+    rules: LivePackagingRule[];
+    flavours: Array<{
+      productId: string;
+      name: string;
+      /** A flavour with no saved recipe has no packaging to edit yet. */
+      hasRecipe: boolean;
+      /** The recipe's stamp as read: when it changes, only this flavour's lines are re-read (typing elsewhere is kept). */
+      stamp: string | null;
+      lines: Array<{ itemId: string; name: string; qty: number }>;
+    }>;
+    saveRules: (rules: Array<Omit<LivePackagingRule, 'itemName'>>) => void;
+    saveLines: (productId: string, lines: Array<{ itemId: string; qty: number }>) => void;
     close: (event?: unknown) => void;
   } | null;
   /** Live owner only (E1): the books settings: cost basis, a correction to a delivery cost, the CSV. */

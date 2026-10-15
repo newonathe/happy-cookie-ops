@@ -52,6 +52,8 @@ describe('parseRecipes', () => {
           { name: 'Unsalted butter', qty: 320, unit: 'g' },
           { name: 'Eggs', qty: 2, unit: 'pcs' }
         ],
+        // The wire above has no packaging (an older database): none.
+        packaging: [],
         history: [
           { version: 1, yield: 24, lines: [{ name: 'Unsalted butter', qty: 300, unit: 'g' }] },
           { version: 2, yield: 20, lines: [{ name: 'Unsalted butter', qty: 310.5, unit: 'g' }] }
