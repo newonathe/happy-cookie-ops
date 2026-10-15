@@ -99,7 +99,7 @@ end $$;
 
 create function pg_temp.no_cutover() returns void language plpgsql security definer as $$
 begin
-  update public.books_settings set used_from = null where id;
+  update public.books_settings set used_from = null, used_from_seq = null where id;
   delete from public.books_cutover;
 end $$;
 
@@ -297,6 +297,17 @@ begin
   perform pg_temp.assert_ok(a, 'cor_latest_is_the_one_saved_last', (pg_temp.paid('C3 Flour') ->> 'cost_cents')::bigint = 5500);
   -- 5500 against 6000 is -500, 0.92 of it on hand: -460 to the average (10.2 - 460 / 1150 = 9.8) and -40 cost already used
   perform pg_temp.assert_ok(a, 'cor_third_correction_moves_the_average', pg_temp.flour_avg() = 9.8);
+
+  -- B3b cutover by seq: with the real cutover (the owner's first choice of used, taken now), everything written so far is applied before it
+  -- and reads exactly as it does on bought: every delivery's line and every correction's line, no stock used
+  perform pg_temp.expect(a, 'basis_bought_before_real_cutover', 'select public.set_cost_basis(''bought'')', '00000');
+  j := pg_temp.books();
+  perform pg_temp.expect(a, 'basis_used_real_cutover', 'select public.set_cost_basis(''used'')', '00000');
+  perform pg_temp.assert_ok(a, 'real_cutover_reads_the_past_as_bought',
+    pg_temp.books() ->> 'basis' = 'used' and (pg_temp.books() ->> 'used_from') is not null and pg_temp.sumk(pg_temp.books(), 'expense') = pg_temp.sumk(j, 'expense')
+    and pg_temp.sumk(j, 'expense') > 0 and jsonb_array_length(pg_temp.books() -> 'lines') = jsonb_array_length(j -> 'lines')
+    and not exists (select 1 from jsonb_array_elements(pg_temp.books() -> 'lines') l where l ->> 'id' like 'm:%' or l ->> 'id' like 'c:%')
+    and pg_temp.books() -> 'uncosted' = '[]'::jsonb);
 
   -- the trigger stamps when an order is paid and refunded
   perform pg_temp.assert_ok(a, 'trigger_stamps_paid_at', pg_temp.stamp_paid());

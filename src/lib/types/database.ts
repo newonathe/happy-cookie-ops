@@ -141,18 +141,21 @@ export type Database = {
           id: boolean
           updated_at: string
           used_from: string | null
+          used_from_seq: number | null
         }
         Insert: {
           cost_basis?: string
           id?: boolean
           updated_at?: string
           used_from?: string | null
+          used_from_seq?: number | null
         }
         Update: {
           cost_basis?: string
           id?: boolean
           updated_at?: string
           used_from?: string | null
+          used_from_seq?: number | null
         }
         Relationships: []
       }

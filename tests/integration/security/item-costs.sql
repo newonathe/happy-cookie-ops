@@ -23,9 +23,9 @@ insert into public.profiles(id, role, display_name, active) values
   ('b3d00000-0000-4000-8000-000000000003', 'support', 'Cost support', true),
   ('b3d00000-0000-4000-8000-000000000004', 'owner', 'Cost inactive owner', false);
 
--- B3b cutover: these cases are about the stamped costs, not about where "when used" starts; the books here have no cutover date, so every
--- use is expensed as it always was (the cutover has its own cases, cost-cutover.sql).
-update public.books_settings set used_from = null where id;
+-- B3b cutover: these cases are about the stamped costs, not about where "when used" starts; the books here have no cutover, so every use is
+-- expensed as it always was; the last case takes the real cutover once (the cutover has its own cases, cost-cutover.sql).
+update public.books_settings set used_from = null, used_from_seq = null where id;
 
 -- One stock item, one flavour and one recipe (10 g per 10 cookies) for each case.
 insert into public.inventory_items(id, name, unit) values
@@ -33,15 +33,15 @@ insert into public.inventory_items(id, name, unit) values
   ('k3i-b4', 'K3 Bravo4', 'g'), ('k3i-c', 'K3 Charlie', 'g'), ('k3i-d', 'K3 Delta', 'g'), ('k3i-e', 'K3 Echo', 'g'),
   ('k3i-f', 'K3 Foxtrot', 'g'), ('k3i-o1', 'K3 Order1', 'g'), ('k3i-o2', 'K3 Order2', 'g'), ('k3i-p', 'K3 Price', 'g'),
   ('k3i-g1', 'K3 Golf1', 'g'), ('k3i-g2', 'K3 Golf2', 'g'), ('k3i-h1', 'K3 Hotel1', 'g'), ('k3i-h2', 'K3 Hotel2', 'g'),
-  ('k3i-h4', 'K3 Hotel4', 'g'), ('k3i-h5', 'K3 Hotel5', 'g'), ('k3i-y', 'K3 Yankee', 'g'), ('k3i-z', 'K3 Zulu', 'g');
+  ('k3i-h4', 'K3 Hotel4', 'g'), ('k3i-h5', 'K3 Hotel5', 'g'), ('k3i-y', 'K3 Yankee', 'g'), ('k3i-z', 'K3 Zulu', 'g'), ('k3i-cut', 'K3 Cut', 'g');
 insert into public.products(id, name, short_name, price_cents, kind)
-select 'k3p-' || s, 'K3 cookie ' || s, 'K3-' || s, 100, 'cookie' from unnest(array['a', 'b1', 'b2', 'b3', 'b4', 'c', 'd', 'e', 'f', 'o1', 'o2']) s;
+select 'k3p-' || s, 'K3 cookie ' || s, 'K3-' || s, 100, 'cookie' from unnest(array['a', 'b1', 'b2', 'b3', 'b4', 'c', 'd', 'e', 'f', 'o1', 'o2', 'cut']) s;
 insert into public.recipes(product_id, yield_count)
-select 'k3p-' || s, 10 from unnest(array['a', 'b1', 'b2', 'b3', 'b4', 'c', 'd', 'e', 'f', 'o1', 'o2']) s;
+select 'k3p-' || s, 10 from unnest(array['a', 'b1', 'b2', 'b3', 'b4', 'c', 'd', 'e', 'f', 'o1', 'o2', 'cut']) s;
 insert into public.recipe_ingredients(product_id, item_name, qty, unit, position)
 select 'k3p-' || m.s, m.n, 10, 'g', 0
   from (values ('a', 'K3 Alpha'), ('b1', 'K3 Bravo1'), ('b2', 'K3 Bravo2'), ('b3', 'K3 Bravo3'), ('b4', 'K3 Bravo4'), ('c', 'K3 Charlie'),
-               ('d', 'K3 Delta'), ('e', 'K3 Echo'), ('f', 'K3 Foxtrot'), ('o1', 'K3 Order1'), ('o2', 'K3 Order2')) m(s, n);
+               ('d', 'K3 Delta'), ('e', 'K3 Echo'), ('f', 'K3 Foxtrot'), ('o1', 'K3 Order1'), ('o2', 'K3 Order2'), ('cut', 'K3 Cut')) m(s, n);
 -- A flavour whose lines are not all takeable from stock: a linked line, a legacy line that names no stock item, a line linked to
 -- an item that is switched off (50 g on hand), and a line in ml linked to an item stocked in g.
 insert into public.inventory_items(id, name, unit, active, on_hand) values
@@ -101,6 +101,11 @@ begin
 end $$;
 
 -- ---- readers (as the fixture owner: an API role cannot read these tables)
+create function pg_temp.no_cutover() returns void language plpgsql security definer as $$
+begin
+  update public.books_settings set used_from = null, used_from_seq = null where id;
+  delete from public.books_cutover;
+end $$;
 create function pg_temp.moves(sfx text) returns jsonb language sql stable security definer as $$
   select coalesce(jsonb_agg(jsonb_build_object('kind', m.kind, 'qty', m.qty_delta, 'cost', m.unit_cost, 'src', m.cost_source, 'short', m.short_qty) order by m.seq), '[]'::jsonb)
     from public.stock_movements m where m.item_id = 'k3i-' || sfx $$;
@@ -213,6 +218,7 @@ begin
   -- the books default to used (B3b: the screen that shows the uncosted list shipped, DP-04); these cases need used
   perform pg_temp.assert_ok(a, 'cost_default_basis_is_used', public.get_books(now() - interval '1 day', now()) ->> 'basis' = 'used');
   perform pg_temp.expect(a, 'cost_choose_used', 'select public.set_cost_basis(''used'')', '00000');
+  perform pg_temp.no_cutover(); -- choosing used took the first cutover (now); these cases are about the stamps, so the books have none
 
   -- A, two deliveries: 1000 g for 400 pesos (40 c/g), 400 g used at 40 = 16000; 600 g for 300 pesos with 600 g on hand: the average
   -- is (600 x 40 + 30000) / 1200 = 45; 300 g used at 45 = 13500.
@@ -469,10 +475,20 @@ begin
     and j -> 'missing' = '[{"name": "K3 R nocost", "why": "no cost", "kind": "ingredient"}]'::jsonb);
   perform pg_temp.assert_ok(a, 'rc_one_per_recipe', jsonb_array_length(public.get_recipe_costs()) >= 2
     and (select count(*) from jsonb_array_elements(public.get_recipe_costs()) x where x ->> 'product_id' = 'k3p-r') = 1);
+
+  -- B3b cutover by seq: with the real cutover (the first choice of used, taken now) a delivery written after it is no cost of its own, and the
+  -- 40 g used of it cost the stamp, 100 a gram: 4000
+  perform pg_temp.expect(a, 'cut_real_first_used', 'select public.set_cost_basis(''used'')', '00000');
+  perform pg_temp.mv(a, 'cut_receipt', 'cut', 'receipt', 100, 10000, 0);
+  perform pg_temp.batch(a, 'cut_batch', 'cut', 40, 0);
+  perform pg_temp.assert_ok(a, 'cost_cut_real_cutover_expenses_what_is_used_after_it',
+    pg_temp.total('K3 Cut') = 4000 and pg_temp.line_amounts('K3 Cut') = '[4000]'::jsonb and pg_temp.uncosted('K3 Cut') = '[]'::jsonb
+    and not exists (select 1 from jsonb_array_elements(public.get_books(now() - interval '30 days', now() + interval '1 day') -> 'lines') l
+                     where l ->> 'kind' = 'expense' and (l ->> 'label') = 'K3 Cut'));
 end $$;
 
 grant execute on function
-  pg_temp.moves(text), pg_temp.avg(text), pg_temp.onhand(text), pg_temp.corr_used(text), pg_temp.audit_n(text), pg_temp.today_txt(integer),
+  pg_temp.no_cutover(), pg_temp.moves(text), pg_temp.avg(text), pg_temp.onhand(text), pg_temp.corr_used(text), pg_temp.audit_n(text), pg_temp.today_txt(integer),
   pg_temp.total(text), pg_temp.line_amounts(text), pg_temp.uncosted(text), pg_temp.ic(text), pg_temp.rc(text),
   pg_temp.mv(text, text, text, text, numeric, numeric, numeric, text), pg_temp.batch_body(text, text, numeric, numeric),
   pg_temp.batch(text, text, text, numeric, numeric), pg_temp.cor(text, text, text, numeric),
