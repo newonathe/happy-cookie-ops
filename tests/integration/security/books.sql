@@ -4,6 +4,11 @@
 -- are all refused; anon does not even hold EXECUTE; the new tables have no API grant). The harness neutralises each `-- rule:` line of
 -- supabase/migrations/20260101004900_books.sql in turn (scripts/test-db-security.py, BOOKS_MUTATIONS) and requires the named case here to
 -- fail. Outcome messages carry no quote character: the harness redacts quoted literals.
+--
+-- B3b cutover: choosing "used" after "bought" now takes a cutover date (now) and a snapshot of what is on hand, and only stock used from then
+-- is expensed. The cases below are about the receipts, the stamped costs and the corrections of a shop whose stock was all written in the
+-- past, so at the start and after each choice of "used" the fixture removes the cutover (no date, no snapshot): the books then expense every use as they did
+-- before the cutover existed. Where "when used" starts has its own cases in cost-cutover.sql.
 begin;
 create temporary table authority_results (operation text, actor text, outcome text);
 grant insert on authority_results to anon, authenticated, service_role;
@@ -92,6 +97,12 @@ begin
   return ok;
 end $$;
 
+create function pg_temp.no_cutover() returns void language plpgsql security definer as $$
+begin
+  update public.books_settings set used_from = null where id;
+  delete from public.books_cutover;
+end $$;
+
 create function pg_temp.paid_at_o1() returns timestamptz language sql stable security definer as $$
   select paid_at from public.orders where id = 'c3-o1' $$;
 create function pg_temp.books() returns jsonb language sql stable as $$
@@ -174,6 +185,8 @@ begin
   perform pg_temp.expect(a, 'books_period_reversed', 'select public.get_books(now(), now() - interval ''1 day'')', '22023');
   perform pg_temp.expect(a, 'books_period_too_long', 'select public.get_books(now() - interval ''500 days'', now())', '22023');
 
+  -- B3b cutover: no cutover date here (see the header), so a use written in the past is expensed on the used basis, as before the cutover
+  perform pg_temp.no_cutover();
   -- B3b: the books now start on the stock used (DP-04); these cases are about the delivery receipts, so the owner chooses bought first
   perform pg_temp.assert_ok(a, 'books_default_basis_is_used', public.get_books(now() - interval '1 day', now()) ->> 'basis' = 'used');
   perform pg_temp.expect(a, 'basis_bought_first', 'select public.set_cost_basis(''bought'')', '00000');
@@ -226,6 +239,7 @@ begin
   -- the cost basis
   perform pg_temp.expect(a, 'basis_bad', 'select public.set_cost_basis(''sometimes'')', '22023');
   perform pg_temp.expect(a, 'basis_used', 'select public.set_cost_basis(''used'')', '00000');
+  perform pg_temp.no_cutover();
   -- used: receipts are not costs; the stock used and wasted is, at the cost stamped on it when it was written. Was: the price of the latest
   -- receipt up to then (10 c/g, then 15 c/g) = 3000 + 50000 + 2000 + 500 + 1500. Now: 200 g and 50 g at 10, 100 g at the average 12 = 1200,
   -- and the 10 g used before any costed delivery has no cost, so it is listed as uncosted and is not a line (never a zero line).
@@ -263,6 +277,7 @@ begin
   perform pg_temp.assert_ok(a, 'cor_second_correction_builds_on_the_first', pg_temp.sumk(pg_temp.books(), 'expense') = 68000);
   -- used again, with the corrected prices (9 c/g, then 12 c/g): the correcting entries are not costs of their own
   perform pg_temp.expect(a, 'basis_used_again', 'select public.set_cost_basis(''used'')', '00000');
+  perform pg_temp.no_cutover();
   -- Was: the corrected prices (9 c/g, then 12 c/g) re-priced the uses = 3000 + 50000 + 1800 + 450 + 1200. Now a stamp is never changed: the
   -- uses stay 2000 + 500 + 1200, and each correction adds the share of its change that belongs to stock already used. 1150 g are on hand:
   -- the first correction (-1000) leaves 0.69 of the delivery on hand (1150/1250 x 750/800 x 800/1000), so -690 goes to the average and
@@ -289,7 +304,7 @@ begin
 end $$;
 
 grant execute on function
-  pg_temp.paid_at_o1(), pg_temp.stamp_paid(), pg_temp.stamp_refund(), pg_temp.books(), pg_temp.sumk(jsonb, text), pg_temp.eid(integer),
+  pg_temp.no_cutover(), pg_temp.paid_at_o1(), pg_temp.stamp_paid(), pg_temp.stamp_refund(), pg_temp.books(), pg_temp.sumk(jsonb, text), pg_temp.eid(integer),
   pg_temp.ex(integer, text, text, numeric, jsonb, text[]), pg_temp.exp(text, text, jsonb, text),
   pg_temp.dw(integer, text, numeric, jsonb, text[]), pg_temp.draw(text, text, jsonb, text),
   pg_temp.co(integer, text, numeric, jsonb, text[]), pg_temp.cor(text, text, jsonb, text), pg_temp.paid(text), pg_temp.flour_avg(),

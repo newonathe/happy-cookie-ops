@@ -36,7 +36,8 @@ ORDER_MIGRATIONS = [ROOT / 'supabase/migrations/20260101003500_place_order.sql',
                     ROOT / 'supabase/migrations/20260101005600_item_costs.sql',
                     ROOT / 'supabase/migrations/20260101005700_clock_policies.sql',
                     ROOT / 'supabase/migrations/20260101005800_batch_correction.sql',
-                    ROOT / 'supabase/migrations/20260101005900_packaging_records.sql']
+                    ROOT / 'supabase/migrations/20260101005900_packaging_records.sql',
+                    ROOT / 'supabase/migrations/20260101006100_cost_cutover.sql']
 _OUT = 'order outcome differs: anon / '
 _CHK = 'order check differs: anon / '
 _LOOK = 'lookup check differs: anon / '
@@ -449,7 +450,7 @@ BOOKS_MUTATIONS = {
                                     _BKC + 'books_bought_expenses'),
     'text_last_paid_corrected': ('get_last_paid', 'text', ('public.receipt_cost(m.id) as cost_cents', 'm.cost_cents as cost_cents'),
                                  _BKC + 'last_paid_uses_the_corrected_cost'),
-    'text_price_latest_receipt': ('get_books', 'text', ('round((-m.qty_delta + m.short_qty) * m.unit_cost)', 'round((-m.qty_delta + m.short_qty) * 10)'),
+    'text_price_latest_receipt': ('get_books', 'text', ('round((v_used ->> m.id::text)::numeric * m.unit_cost)', 'round((v_used ->> m.id::text)::numeric * 10)'),
                                   _BKC + 'used_excludes_receipts_and_prices_use'),
     'text_correction_saved_order': ('receipt_cost', 'text', ('order by c.received_at desc, c.id desc limit 1', 'order by c.at desc, c.received_at desc limit 1'),
                                     _BKC + 'cor_latest_is_the_one_saved_last'),
@@ -464,6 +465,83 @@ BOOKS_MUTATIONS = {
 }
 BOOKS_TABLE_MUTATIONS = {
     'settings_table_select': ('grant select on public.books_settings to anon;', 'books outcome differs: anon / settings_select / '),
+}
+# B3b: the cost cutover (cost-cutover.sql), acting on the last migration that defines each function (20260101006100). No refusal was added,
+# so there is no `-- rule:` line to neutralise: every changed clause of get_books and set_cost_basis is one text change here, and the named
+# case must fail. The money is worked by hand in the suite.
+_CUO = 'cutover outcome differs: active_owner / '
+_CUC = 'cutover check differs: active_owner / '
+_SW = "v_switch := p_basis = 'used' and v_prev = 'bought';"
+_ALLOW = 'coalesce(a.qty, 0) + coalesce(o.qty, 0)'
+_FROM_M = '(v_used_from is null or m.at >= v_used_from)'
+_COVERED_LINE = 'and v_used ? m.id::text -- B3b cutover: a movement the allowance covered in full writes no line'
+_COVERED_UNCOSTED = 'and v_used ? m.id::text -- B3b cutover: only what was expensed (not what the allowance covered)'
+CUTOVER_MUTATIONS = {
+    'text_cut_ledger_before_counts': ('get_books', 'text', ('or l.occurred_at < v_used_from', 'or false'), _CUC + 'cut_past_period_counts_the_ledger'),
+    'text_cut_ledger_delivery_line_left_out': ('get_books', 'text',
+                                               ('or (not exists (select 1 from public.stock_movements m where m.ledger_id = l.id)', 'or (true'),
+                                               _CUC + 'cut_later_ledger_follows_the_used_rule'),
+    'text_cut_ledger_correction_line_left_out': ('get_books', 'text',
+                                                 ('and not exists (select 1 from public.stock_cost_corrections c where c.ledger_id = l.id)))', 'and true))'),
+                                                 _CUC + 'cut_later_ledger_follows_the_used_rule'),
+    'text_cut_stock_from_the_cutover': ('get_books', 'text', (_FROM_M, 'true'), _CUC + 'cut_past_period_counts_the_ledger'),
+    'text_cut_stock_at_the_cutover_counts': ('get_books', 'text', (_FROM_M, '(v_used_from is null or m.at > v_used_from)'),
+                                             _CUC + 'cut_the_cutover_moment_counts_as_used'),
+    'text_cut_stock_without_a_cutover': ('get_books', 'text', (_FROM_M, 'm.at >= v_used_from'), _CUC + 'cut_none_means_no_cutover_lines'),
+    'text_cut_snapshot_is_an_allowance': ('get_books', 'text', (_ALLOW, 'coalesce(o.qty, 0)'),
+                                          _CUC + 'cut_stock_on_hand_at_the_cutover_is_not_expensed_again'),
+    'text_cut_opening_after_adds': ('get_books', 'text', (_ALLOW, 'coalesce(a.qty, 0)'),
+                                    _CUC + 'cut_opening_after_the_cutover_adds_to_the_allowance'),
+    'text_cut_opening_before_does_not_add': ('get_books', 'text',
+                                             ("where x.kind = 'opening' and x.at >= v_used_from", "where x.kind = 'opening'"),
+                                             _CUC + 'cut_opening_after_the_cutover_adds_to_the_allowance'),
+    'text_cut_allowance_in_seq_order': ('get_books', 'text', ('order by m.seq', 'order by m.at'), _CUC + 'cut_allowance_is_consumed_in_seq_order'),
+    'text_cut_allowance_is_drawn_down': ('get_books', 'text',
+                                         ('rows between unbounded preceding and 1 preceding', 'rows between unbounded preceding and current row'),
+                                         _CUC + 'cut_use_beyond_the_snapshot_is_expensed_in_part'),
+    'text_cut_covered_is_at_most_taken': ('get_books', 'text', ('- least(-m.qty_delta,', '- greatest(-m.qty_delta,'),
+                                          _CUC + 'cut_use_beyond_the_snapshot_is_expensed_in_part'),
+    'text_cut_short_is_never_covered': ('get_books', 'text', ('+ m.short_qty as qty', '+ 0 as qty'),
+                                        _CUC + 'cut_short_part_is_expensed_with_allowance_left'),
+    'text_cut_no_allowance_without_a_cutover': ('get_books', 'text',
+                                                ('case when v_used_from is null then 0 else', 'case when false then 0 else'),
+                                                _CUC + 'cut_none_means_no_cutover_lines'),
+    'text_cut_line_is_the_part_expensed': ('get_books', 'text',
+                                           ('round((v_used ->> m.id::text)::numeric * m.unit_cost)', 'round((-m.qty_delta + m.short_qty) * m.unit_cost)'),
+                                           _CUC + 'cut_use_beyond_the_snapshot_is_expensed_in_part'),
+    'text_cut_covered_use_writes_no_line': ('get_books', 'text', (_COVERED_LINE, ''),
+                                            _CUC + 'cut_past_period_has_no_stock_used'),
+    'text_cut_covered_use_is_not_uncosted': ('get_books', 'text', (_COVERED_UNCOSTED, ''),
+                                             _CUC + 'cut_covered_use_with_no_cost_is_not_uncosted'),
+    'text_cut_production_why_from_the_cutover': ('get_books', 'text',
+                                                 ('and (v_used_from is null or v_used_from <= r.at)', 'and true'),
+                                                 _CUC + 'cut_uncosted_lists_only_what_was_expensed'),
+    'text_cut_correction_of_an_earlier_delivery': ('get_books', 'text',
+                                                   ('and (v_used_from is null or r.at >= v_used_from)', 'and true'),
+                                                   _CUC + 'cut_correction_of_a_later_delivery_counts'),
+    'text_cut_output_says_where_it_starts': ('get_books', 'text',
+                                             ("'used_from', case when v_used_from is null then null else (extract(epoch from v_used_from) * 1000)::bigint end",
+                                              "'used_from', null"),
+                                             _CUC + 'cut_books_report_the_cutover'),
+    'text_cut_switch_only_from_bought': ('set_cost_basis', 'text', (_SW, "v_switch := p_basis = 'used';"),
+                                         _CUC + 'basis_used_to_used_keeps_the_cutover'),
+    'text_cut_switch_only_to_used': ('set_cost_basis', 'text', (_SW, "v_switch := v_prev = 'bought';"),
+                                     _CUC + 'basis_bought_to_bought_keeps_the_cutover'),
+    'text_cut_switch_takes_a_new_date': ('set_cost_basis', 'text',
+                                         ('used_from = case when v_switch then now() else b.used_from end', 'used_from = b.used_from'),
+                                         _CUC + 'basis_bought_to_used_takes_a_new_cutover_date'),
+    'text_cut_switch_takes_a_snapshot': ('set_cost_basis', 'text', ('if v_switch then --', 'if false then --'),
+                                         _CUC + 'basis_bought_to_used_replaces_the_snapshot'),
+    'text_cut_switch_replaces_the_snapshot': ('set_cost_basis', 'text', ('delete from public.books_cutover c where true;', 'null;'),
+                                              _CUO + 'switch_bought_to_used / '),
+    'text_cut_snapshot_is_what_is_on_hand': ('set_cost_basis', 'text',
+                                             ('greatest(i.on_hand, 0) from public.inventory_items i;', '0 from public.inventory_items i;'),
+                                             _CUC + 'basis_bought_to_used_replaces_the_snapshot'),
+}
+CUTOVER_TABLE_MUTATIONS = {
+    'cutover_table_anon_select': ('grant select on public.books_cutover to anon;', 'cutover outcome differs: anon / cutover_select / '),
+    'cutover_table_authenticated_select': ('grant select on public.books_cutover to authenticated;', 'cutover outcome differs: active_helper / cutover_select / '),
+    'cutover_table_rls_off': ('alter table public.books_cutover disable row level security;', _CUC + 'cut_table_has_no_api_grant_and_rls_on'),
 }
 # B3a: the cost core (item-costs.sql), acting on the last migration that defines each function. The money cases are worked by hand in the suite.
 _CS = 'item cost outcome differs: active_owner / '
@@ -487,7 +565,7 @@ COST_MUTATIONS = {
     'text_cost_correction_share': ('record_cost_correction', 'text', ('v_f := least(1, greatest(0, v_f * v_h_after / v_h_before));', 'v_f := v_f;'),
                                    _CSC + 'cost_d_average_and_used'),
     'text_cost_used_line_counts_the_short': ('get_books', 'text',
-                                             ('round((-m.qty_delta + m.short_qty) * m.unit_cost)', 'round(-m.qty_delta * m.unit_cost)'),
+                                             ('round((v_used ->> m.id::text)::numeric * m.unit_cost)', 'round(-m.qty_delta * m.unit_cost)'),
                                              _CSC + 'cost_c_line'),
     'text_cost_correction_counts_only_use_waste': ('record_cost_correction', 'text',
                                                    ('if v_mv.qty_delta < 0 then', "if v_mv.kind in ('use', 'waste') and v_mv.qty_delta < 0 then"),
@@ -673,7 +751,7 @@ OPERATIONS_MUTATIONS = {
 
 def order_mutant(name):
     """The migration's one function, changed in exactly one place, as SQL to run inside the suite."""
-    function, kind, argument, _ = (ORDER_MUTATIONS | LOOKUP_MUTATIONS | STAFF_MUTATIONS | SHOP_MUTATIONS | EXTRAS_MUTATIONS | SCHEDULED_MUTATIONS | STOCK_MUTATIONS | RECIPE_MUTATIONS | LEDGER_MUTATIONS | PRODUCTION_MUTATIONS | BOOKS_MUTATIONS | OPERATIONS_MUTATIONS | IDENTITY_RULES | LINK_MUTATIONS | COST_MUTATIONS | BATCH_CORRECTION_MUTATIONS | PACKAGING_MUTATIONS)[name]
+    function, kind, argument, _ = (ORDER_MUTATIONS | LOOKUP_MUTATIONS | STAFF_MUTATIONS | SHOP_MUTATIONS | EXTRAS_MUTATIONS | SCHEDULED_MUTATIONS | STOCK_MUTATIONS | RECIPE_MUTATIONS | LEDGER_MUTATIONS | PRODUCTION_MUTATIONS | BOOKS_MUTATIONS | OPERATIONS_MUTATIONS | IDENTITY_RULES | LINK_MUTATIONS | COST_MUTATIONS | BATCH_CORRECTION_MUTATIONS | PACKAGING_MUTATIONS | CUTOVER_MUTATIONS)[name]
     marker = 'create or replace function public.' + function + '('
     text = [m.read_text(encoding='utf-8') for m in ORDER_MIGRATIONS if marker in m.read_text(encoding='utf-8')][-1]
     start = text.index('create or replace function public.' + function + '(')
@@ -769,6 +847,7 @@ SUITES = (
                   + tuple(BOOKS_MUTATIONS) + tuple(BOOKS_TABLE_MUTATIONS), 'forbidden books call succeeded', 109),
     ('item-costs.sql', ('save_item_price(jsonb)', 'get_item_costs()', 'get_recipe_costs()') + tuple(COST_MUTATIONS),
      'forbidden cost call succeeded', 172),
+    ('cost-cutover.sql', tuple(CUTOVER_MUTATIONS) + tuple(CUTOVER_TABLE_MUTATIONS), 'forbidden cutover call succeeded', 56),
     ('batch-correction.sql', ('record_batch_correction(jsonb)',) + tuple(BATCH_CORRECTION_MUTATIONS), 'forbidden correction call succeeded', 110),
     ('packaging.sql', ('get_packaging_rules()', 'save_packaging_rules(jsonb,timestamptz)', 'save_recipe_packaging(jsonb,timestamptz)')
                       + tuple(PACKAGING_MUTATIONS) + tuple(PACKAGING_TABLE_MUTATIONS), 'forbidden packaging call succeeded', 168),
@@ -813,7 +892,7 @@ PAYMENT_MUTATIONS = {
 REPORT = ROOT / "docs/state/evidence/MP-06l-security.json"
 EMPTY_FIXTURES = 'select ' + ' and '.join(
     'not exists(select 1 from public.' + table + ')'
-    for table in ('orders', 'order_items', 'products', 'drops', 'settings', 'rate_limits', 'profiles', 'audit_log', 'ledger_entries', 'event_sales', 'event_sale_items', 'inventory_items', 'bake_batches', 'recipes', 'recipe_ingredients', 'suppliers', 'supplier_prices', 'events', 'erasure_requests', 'payment_methods', 'shop_texts', 'shop_identity', 'waitlist_entries', 'order_add_ons', 'order_boxes', 'scheduled_events', 'recipe_versions', 'stock_movements', 'item_prices', 'packaging_rules', 'packaging_rules_state')) + " and not exists(select 1 from auth.users) and to_regnamespace('mp06f_probe') is null and to_regnamespace('mp06g_probe') is null and to_regclass('public.mp06g_future') is null and to_regclass('public.mp06g_future_id_seq') is null;"
+    for table in ('orders', 'order_items', 'products', 'drops', 'settings', 'rate_limits', 'profiles', 'audit_log', 'ledger_entries', 'event_sales', 'event_sale_items', 'inventory_items', 'bake_batches', 'recipes', 'recipe_ingredients', 'suppliers', 'supplier_prices', 'events', 'erasure_requests', 'payment_methods', 'shop_texts', 'shop_identity', 'waitlist_entries', 'order_add_ons', 'order_boxes', 'scheduled_events', 'recipe_versions', 'stock_movements', 'item_prices', 'packaging_rules', 'packaging_rules_state', 'books_cutover')) + " and not exists(select 1 from auth.users) and to_regnamespace('mp06f_probe') is null and to_regnamespace('mp06g_probe') is null and to_regclass('public.mp06g_future') is null and to_regclass('public.mp06g_future_id_seq') is null;"
 
 
 def main():
@@ -954,6 +1033,13 @@ def main():
                     elif signature in BOOKS_TABLE_MUTATIONS:
                         unsafe, expected_error = BOOKS_TABLE_MUTATIONS[signature]
                         broken = sql.replace('begin;', 'begin;' + chr(10) + unsafe, 1)
+                if filename == 'cost-cutover.sql':
+                    if signature in CUTOVER_MUTATIONS:
+                        broken = sql.replace('begin;', 'begin;' + chr(10) + order_mutant(signature), 1)
+                        expected_error = CUTOVER_MUTATIONS[signature][3]
+                    elif signature in CUTOVER_TABLE_MUTATIONS:
+                        unsafe, expected_error = CUTOVER_TABLE_MUTATIONS[signature]
+                        broken = sql.replace('begin;', 'begin;' + chr(10) + unsafe, 1)
                 if filename == 'batch-correction.sql' and signature in BATCH_CORRECTION_MUTATIONS:
                     broken = sql.replace('begin;', 'begin;' + chr(10) + order_mutant(signature), 1)
                     expected_error = BATCH_CORRECTION_MUTATIONS[signature][3]
@@ -1081,7 +1167,7 @@ def main():
                 h.fail(filename + ' did not return its complete role matrix')
             results.extend(rows)
             assert_empty()
-        if len(set(results)) != 2626:
+        if len(set(results)) != 2682:
             h.fail('combined role matrix has missing or duplicate cases: %d rows, %d unique (duplicates: %s)' % (len(results), len(set(results)), sorted({r for r in results if results.count(r) > 1})[:5]))
         assert_functions()
         assert_catalog_wide()
@@ -1094,10 +1180,10 @@ def main():
     try:
         code = h.main(after_reset=check)
         if (code == 0 and len(report["runs"]) == 2 and report["runs"][0] == report["runs"][1]
-                and len(report['regressions_detected']) == 948 and report['sequence_restorations'] == 10
+                and len(report['regressions_detected']) == 1006 and report['sequence_restorations'] == 10
                 and report['upgrade_runs'] == 2 and report['function_guard_runs'] == 4
                 and report['catalog_guard_runs'] == 4 and report['catalog_guard_red_runs'] == 4):
-            report.update(status="passed", cases_per_reset=2626, resets=2, matrix_equal=True, rollback_verified=True,
+            report.update(status="passed", cases_per_reset=2682, resets=2, matrix_equal=True, rollback_verified=True,
                           sql_sha256={name: hashlib.sha256((ROOT / 'tests/integration/security' / name).read_bytes()).hexdigest() for name, _, _, _ in SUITES},
                           harness_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
     except (RuntimeError, OSError, ValueError) as error:

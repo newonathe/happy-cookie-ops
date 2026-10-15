@@ -112,21 +112,47 @@ export type Database = {
           },
         ]
       }
+      books_cutover: {
+        Row: {
+          item_id: string
+          qty: number
+        }
+        Insert: {
+          item_id: string
+          qty: number
+        }
+        Update: {
+          item_id?: string
+          qty?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "books_cutover_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: true
+            referencedRelation: "inventory_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       books_settings: {
         Row: {
           cost_basis: string
           id: boolean
           updated_at: string
+          used_from: string | null
         }
         Insert: {
           cost_basis?: string
           id?: boolean
           updated_at?: string
+          used_from?: string | null
         }
         Update: {
           cost_basis?: string
           id?: boolean
           updated_at?: string
+          used_from?: string | null
         }
         Relationships: []
       }
