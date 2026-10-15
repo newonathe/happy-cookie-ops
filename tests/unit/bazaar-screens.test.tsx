@@ -23,12 +23,19 @@ import { BOOKS_COPY } from '@/lib/orders/staff-copy';
  */
 afterEach(cleanup);
 
+/** The number a stepper of the close form is showing, read from the button she would tap to type it. */
+const shown = (form: HTMLElement, name: string): string | null =>
+  within(within(form).getByRole('group', { name })).getByRole('button', {
+    name: /Tap to type a number/
+  }).textContent;
+
 const noop = () => undefined;
 
 const revenue: ReviewFigure = {
-  key: 'revenue',
+  key: 'day-revenue',
   label: 'Revenue',
-  valueText: '₱880',
+  valueText: '₱880.00',
+  cents: 88000,
   note: null,
   parts: [
     { label: 'Cash sales', detail: '4 sales', valueText: '₱500' },
@@ -50,6 +57,13 @@ const stockRow = (over: Partial<DayReviewView['stock'][number]> = {}) => ({
   goneText: '5 sold · 1 given away · 1 lost',
   shouldBeLeft: 21,
   countText: null,
+  hasRecipe: true as boolean | null,
+  made: 20,
+  carried: 8,
+  sold: 5,
+  given: 1,
+  lost: 1,
+  countedLeft: null as number | null,
   ...over
 });
 const emptyRow = stockRow({
@@ -57,7 +71,12 @@ const emptyRow = stockRow({
   name: 'Nutella Stuffed',
   onTableText: '10 made',
   goneText: '10 sold',
-  shouldBeLeft: 0
+  shouldBeLeft: 0,
+  made: 10,
+  carried: 0,
+  sold: 10,
+  given: 0,
+  lost: 0
 });
 
 const review = (over: Partial<DayReviewView> = {}): DayReviewView => ({
@@ -72,6 +91,7 @@ const review = (over: Partial<DayReviewView> = {}): DayReviewView => ({
     { id: 'l1', text: '1 Double Chocolate Fudge · Dropped · 24 Oct, 2:15 PM', remove: null }
   ],
   dayFigures: [revenue, cost],
+  report: null,
   eventFigures: [
     {
       key: 'profit',
@@ -91,7 +111,9 @@ const review = (over: Partial<DayReviewView> = {}): DayReviewView => ({
   canAddCarried: true,
   close: {
     lastDay: false,
-    cashExpectedText: '₱1,000',
+    cashExpectedText: '₱1,000.00',
+    cashExpectedCents: 100000,
+    cashExpectedPesos: '1000.00',
     blocked: null,
     submit: vi.fn(async () => null)
   },
@@ -113,81 +135,265 @@ describe('the day review', () => {
     expect(screen.getByText(/Dropped/)).toBeTruthy();
   });
 
-  it('draws every figure with its value, and its parts once the details is opened', () => {
+  it('draws the day as stat tiles, each opening to its parts, and the event as figures', () => {
     const { container } = render(<DayReview review={review()} />);
-    for (const label of ['Revenue', 'Cookie cost', 'Profit so far']) {
-      expect(screen.getByText(label)).toBeTruthy();
+    const tiles = within(screen.getByRole('list', { name: 'This day' }));
+    for (const label of ['Revenue', 'Cookie cost', 'Sold', 'Should be left', 'Lost']) {
+      expect(tiles.getByText(label), label).toBeTruthy();
     }
-    expect(screen.getByText('₱880')).toBeTruthy();
+    expect(screen.getAllByText('₱880.00').length).toBeGreaterThan(0);
     expect(screen.getByText('₱120')).toBeTruthy();
     expect(screen.getByText('Another day is still open, so these will change.')).toBeTruthy();
-    const details = [...container.querySelectorAll('details')];
-    expect(details).toHaveLength(2);
-    expect(details[0]?.open).toBe(false);
-    fireEvent.click(within(details[0] as HTMLElement).getByText('Revenue'));
-    expect(details[0]?.open).toBe(true);
-    expect(screen.getByText('Cash sales')).toBeTruthy();
-    expect(screen.getByText('4 sales')).toBeTruthy();
+    // The event so far is still a figure that opens; the day's own figures are tiles.
+    expect(container.querySelectorAll('details')).toHaveLength(1);
+    const revenueTile = tiles.getByRole('button', { name: /Revenue/ });
+    expect(revenueTile.getAttribute('aria-expanded')).toBe('false');
+    fireEvent.click(revenueTile);
+    expect(revenueTile.getAttribute('aria-expanded')).toBe('true');
+    expect(screen.getByText('Cash sales · 4 sales')).toBeTruthy();
     expect(screen.getByText('₱500')).toBeTruthy();
     expect(screen.getByText('GCash sales')).toBeTruthy();
+  });
+
+  it('adds up the sold, left and lost tiles from the flavours, and opens them by flavour', () => {
+    render(<DayReview review={review()} />);
+    const tiles = within(screen.getByRole('list', { name: 'This day' }));
+    // 5 + 10 sold, 21 + 0 should be left, 1 + 0 lost.
+    expect(tiles.getByRole('button', { name: 'Sold 15 1 given away' })).toBeTruthy();
+    expect(tiles.getByRole('button', { name: 'Should be left 21' })).toBeTruthy();
+    expect(tiles.getByRole('button', { name: 'Lost 1' })).toBeTruthy();
+    fireEvent.click(tiles.getByRole('button', { name: 'Sold 15 1 given away' }));
+    expect(tiles.getByText('Nutella Stuffed').nextSibling?.textContent).toBe('10');
   });
 
   it('shows "Cost pending" in words, with its note, and never a peso zero', () => {
     const { container } = render(<DayReview review={review()} />);
     expect(screen.getByText('Cost pending')).toBeTruthy();
     expect(screen.getByText('Add a cost per cookie to see this.')).toBeTruthy();
-    expect(container.textContent).not.toContain('₱0');
+    // The count-up starts from 0 for an amount that is known; the unknown cost is words and has none.
+    const tile = screen.getByText('Cookie cost').closest('[data-state]') as HTMLElement;
+    expect(tile.textContent).not.toContain('₱');
+    expect(container.textContent).not.toContain('₱0.00 Cost');
   });
 
-  it('offers a close row for a flavour that should have none left, and submits every row in order as typed', async () => {
+  it('pre-fills the close: every flavour starts with what should be left, all of it carried over', () => {
     const r = review();
     render(<DayReview review={r} />);
     const form = screen.getByRole('form', { name: 'Close the day' });
-    const cards = within(form).getAllByRole('listitem');
-    expect(cards).toHaveLength(2);
-    expect(within(cards[1] as HTMLElement).getByText('Nutella Stuffed')).toBeTruthy();
-    expect(within(cards[1] as HTMLElement).getByText('Should be left: 0')).toBeTruthy();
-    const left1 = within(cards[0] as HTMLElement).getByLabelText('Left') as HTMLInputElement;
-    const left2 = within(cards[1] as HTMLElement).getByLabelText('Left') as HTMLInputElement;
-    expect(left1.value).toBe('');
-    expect(left2.value).toBe('0');
-    expect(left1.inputMode).toBe('numeric');
-    fireEvent.change(left1, { target: { value: '13' } });
-    fireEvent.change(within(cards[0] as HTMLElement).getByLabelText('Carried over'), {
-      target: { value: '8' }
-    });
-    fireEvent.change(within(cards[0] as HTMLElement).getByLabelText('To the shop'), {
-      target: { value: '3' }
-    });
-    fireEvent.change(within(cards[0] as HTMLElement).getByLabelText('Written off'), {
-      target: { value: '2' }
-    });
-    fireEvent.change(within(form).getByLabelText('Cash counted (₱)'), {
-      target: { value: '1,010.50' }
-    });
-    expect(within(form).getByText('Cash expected in the drawer: ₱1,000')).toBeTruthy();
+    expect(within(form).getAllByRole('listitem')).toHaveLength(2);
+    expect(within(form).getByText('Nutella Stuffed')).toBeTruthy();
+    expect(within(form).getByText('Should be left: 0')).toBeTruthy();
+    expect(shown(form, 'Double Chocolate Fudge: left')).toBe('21');
+    expect(shown(form, 'Double Chocolate Fudge: carried over')).toBe('21');
+    expect(shown(form, 'Double Chocolate Fudge: to the shop')).toBe('0');
+    expect(shown(form, 'Double Chocolate Fudge: written off')).toBe('0');
+    expect(shown(form, 'Nutella Stuffed: left')).toBe('0');
+    expect(shown(form, 'Nutella Stuffed: carried over')).toBe('0');
+    expect((within(form).getByLabelText('Cash counted (₱)') as HTMLInputElement).value).toBe('');
+    expect(within(form).getByText('Cash expected in the drawer: ₱1,000.00')).toBeTruthy();
     expect(within(form).getByText('Leave blank if you did not count it.')).toBeTruthy();
+  });
+
+  it('closes with the defaults: what is sent is what is shown', async () => {
+    const r = review();
+    render(<DayReview review={r} />);
+    const form = screen.getByRole('form', { name: 'Close the day' });
+    fireEvent.click(within(form).getByRole('button', { name: 'It matches' }));
+    expect((within(form).getByLabelText('Cash counted (₱)') as HTMLInputElement).value).toBe(
+      '1000.00'
+    );
+    expect(within(form).getByText('Matches')).toBeTruthy();
     fireEvent.click(within(form).getByRole('button', { name: 'Close the day' }));
     await waitFor(() => expect(r.close?.submit).toHaveBeenCalledTimes(1));
     const sent = vi.mocked(r.close?.submit ?? vi.fn()).mock.calls[0]?.[0] as CloseInput;
     expect(sent).toEqual({
-      countedPesos: '1,010.50',
+      countedPesos: '1000.00',
       rows: [
-        { productId: 'dcf', left: '13', carryNext: '8', toShop: '3', writtenOff: '2' },
-        { productId: 'ns', left: '0', carryNext: '', toShop: '', writtenOff: '' }
+        { productId: 'dcf', left: '21', carryNext: '21', toShop: '0', writtenOff: '0' },
+        { productId: 'ns', left: '0', carryNext: '0', toShop: '0', writtenOff: '0' }
       ]
     });
   });
 
-  it('keeps what she typed when the review is drawn again with new figures', () => {
+  it('a close without a cash count sends it blank, never the expected amount', async () => {
+    const r = review();
+    render(<DayReview review={r} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Close the day' }));
+    await waitFor(() => expect(r.close?.submit).toHaveBeenCalledTimes(1));
+    const sent = vi.mocked(r.close?.submit ?? vi.fn()).mock.calls[0]?.[0] as CloseInput;
+    expect(sent.countedPesos).toBe('');
+  });
+
+  it('the rest follows what she changes, and the close sends exactly what the steppers show', async () => {
+    const r = review();
+    render(<DayReview review={r} />);
+    const form = screen.getByRole('form', { name: 'Close the day' });
+    const press = (name: string) => fireEvent.click(within(form).getByRole('button', { name }));
+    press('Fewer Double Chocolate Fudge: left'); // 20 left, all carried
+    expect(shown(form, 'Double Chocolate Fudge: carried over')).toBe('20');
+    press('More Double Chocolate Fudge: to the shop'); // 1 to the shop, 19 carried
+    press('More Double Chocolate Fudge: written off'); // 1 written off, 18 carried
+    expect(shown(form, 'Double Chocolate Fudge: left')).toBe('20');
+    expect(shown(form, 'Double Chocolate Fudge: carried over')).toBe('18');
+    expect(shown(form, 'Double Chocolate Fudge: to the shop')).toBe('1');
+    expect(shown(form, 'Double Chocolate Fudge: written off')).toBe('1');
+    fireEvent.click(within(form).getByRole('button', { name: 'Close the day' }));
+    await waitFor(() => expect(r.close?.submit).toHaveBeenCalledTimes(1));
+    const sent = vi.mocked(r.close?.submit ?? vi.fn()).mock.calls[0]?.[0] as CloseInput;
+    expect(sent.rows[0]).toEqual({
+      productId: 'dcf',
+      left: '20',
+      carryNext: '18',
+      toShop: '1',
+      writtenOff: '1'
+    });
+  });
+
+  it('says so, in words, when the parts she set do not add up to what is left', () => {
+    render(<DayReview review={review()} />);
+    const form = screen.getByRole('form', { name: 'Close the day' });
+    // 21 left; 20 to the shop leaves 1 carried over, which is fine. Lowering Left under what she sent away does not add up.
+    for (let i = 0; i < 21; i++)
+      fireEvent.click(
+        within(form).getByRole('button', { name: 'More Double Chocolate Fudge: to the shop' })
+      );
+    for (let i = 0; i < 5; i++)
+      fireEvent.click(
+        within(form).getByRole('button', { name: 'Fewer Double Chocolate Fudge: left' })
+      );
+    expect(
+      within(form).getByText(
+        'The 16 left must be split into carried over, to the shop and written off. These add up to 21.'
+      )
+    ).toBeTruthy();
+  });
+
+  it('keeps what she changed when the review is drawn again with new figures, and moves the rest', () => {
     const r = review();
     const { rerender } = render(<DayReview review={r} />);
-    fireEvent.change(screen.getAllByLabelText('Left')[0] as HTMLElement, {
-      target: { value: '7' }
-    });
+    const form = () => screen.getByRole('form', { name: 'Close the day' });
+    fireEvent.click(
+      within(form()).getByRole('button', { name: 'More Double Chocolate Fudge: written off' })
+    );
     rerender(<DayReview review={{ ...r, stock: [stockRow({ shouldBeLeft: 19 }), emptyRow] }} />);
-    expect((screen.getAllByLabelText('Left')[0] as HTMLInputElement).value).toBe('7');
+    expect(shown(form(), 'Double Chocolate Fudge: written off')).toBe('1');
+    // Untouched: Left follows the new "should be left", and the rest of it is carried over.
+    expect(shown(form(), 'Double Chocolate Fudge: left')).toBe('19');
+    expect(shown(form(), 'Double Chocolate Fudge: carried over')).toBe('18');
     expect(screen.getAllByText('Should be left: 19')).toHaveLength(2);
+  });
+
+  it('on the last day: no carried over, and the leftover goes to the shop when the flavour has a recipe', async () => {
+    const base = review();
+    const r = review({
+      stock: [stockRow({ hasRecipe: true }), stockRow({ ...emptyRow, hasRecipe: false })],
+      close: { ...(base.close as NonNullable<typeof base.close>), lastDay: true }
+    });
+    render(<DayReview review={r} />);
+    const form = screen.getByRole('form', { name: 'Close the day' });
+    expect(within(form).queryByRole('group', { name: /carried over/ })).toBeNull();
+    expect(shown(form, 'Double Chocolate Fudge: to the shop')).toBe('21');
+    expect(shown(form, 'Double Chocolate Fudge: written off')).toBe('0');
+    fireEvent.click(within(form).getByRole('button', { name: 'Close the day' }));
+    await waitFor(() => expect(r.close?.submit).toHaveBeenCalled());
+    const sent = vi.mocked(r.close?.submit ?? vi.fn()).mock.calls[0]?.[0] as CloseInput;
+    expect(sent.rows[0]).toEqual({
+      productId: 'dcf',
+      left: '21',
+      carryNext: '',
+      toShop: '21',
+      writtenOff: '0'
+    });
+  });
+
+  it('on the last day, a flavour with no recipe is written off, and an unknown one asks her to choose', () => {
+    const base = review();
+    const close = { ...(base.close as NonNullable<typeof base.close>), lastDay: true };
+    const { unmount } = render(
+      <DayReview review={review({ stock: [stockRow({ hasRecipe: false }), emptyRow], close })} />
+    );
+    const form = screen.getByRole('form', { name: 'Close the day' });
+    expect(shown(form, 'Double Chocolate Fudge: to the shop')).toBe('0');
+    expect(shown(form, 'Double Chocolate Fudge: written off')).toBe('21');
+    unmount();
+    render(
+      <DayReview review={review({ stock: [stockRow({ hasRecipe: null }), emptyRow], close })} />
+    );
+    expect(
+      screen.getByText('Choose where the 21 left go: to the shop or written off.')
+    ).toBeTruthy();
+  });
+
+  describe('the drawer', () => {
+    const form = () => screen.getByRole('form', { name: 'Close the day' });
+    const cash = () => within(form()).getByLabelText('Cash counted (₱)') as HTMLInputElement;
+    const type = (value: string) => fireEvent.change(cash(), { target: { value } });
+    const closeButton = () => within(form()).getByRole('button', { name: 'Close the day' });
+
+    it('says over, short or matches as she types', () => {
+      render(<DayReview review={review()} />);
+      type('1020');
+      expect(within(form()).getByText('Over ₱20.00')).toBeTruthy();
+      type('980.50');
+      expect(within(form()).getByText('Short ₱19.50')).toBeTruthy();
+      type('1000');
+      expect(within(form()).getByText('Matches')).toBeTruthy();
+      type('');
+      expect(within(form()).queryByText(/Over|Short|Matches/)).toBeNull();
+    });
+
+    it('lets a difference at the line through without a question', async () => {
+      const r = review();
+      render(<DayReview review={r} />);
+      type('1100'); // exactly ₱100.00 over ₱1,000.00
+      expect(screen.queryByRole('alert')).toBeNull();
+      fireEvent.click(closeButton());
+      await waitFor(() => expect(r.close?.submit).toHaveBeenCalledTimes(1));
+    });
+
+    it('asks to count again above the line, and does not close until she keeps the amount', async () => {
+      const r = review();
+      render(<DayReview review={r} />);
+      type('2000');
+      const alert = screen.getByRole('alert');
+      expect(alert.textContent).toContain('That is ₱1,000.00 over. Count the drawer again?');
+      fireEvent.click(closeButton());
+      fireEvent.submit(form());
+      expect(r.close?.submit).not.toHaveBeenCalled();
+      fireEvent.click(within(alert).getByRole('button', { name: 'Keep ₱2,000.00' }));
+      expect(screen.queryByRole('alert')).toBeNull();
+      fireEvent.click(closeButton());
+      await waitFor(() => expect(r.close?.submit).toHaveBeenCalledTimes(1));
+      const sent = vi.mocked(r.close?.submit ?? vi.fn()).mock.calls[0]?.[0] as CloseInput;
+      expect(sent.countedPesos).toBe('2000');
+    });
+
+    it('count again moves her back to the field, and a different amount asks again', () => {
+      render(<DayReview review={review()} />);
+      type('2000');
+      fireEvent.click(screen.getByRole('button', { name: 'Count again' }));
+      expect(document.activeElement).toBe(cash());
+      fireEvent.click(screen.getByRole('button', { name: 'Keep ₱2,000.00' }));
+      expect(screen.queryByRole('alert')).toBeNull();
+      type('3000');
+      expect(screen.getByRole('alert').textContent).toContain('That is ₱2,000.00 over');
+    });
+
+    it('asks when nothing was expected and ₱1,000.00 is typed (Ateneo A3)', () => {
+      const base = review();
+      const close = {
+        ...(base.close as NonNullable<typeof base.close>),
+        cashExpectedCents: 0,
+        cashExpectedPesos: '0.00',
+        cashExpectedText: '₱0.00'
+      };
+      render(<DayReview review={review({ close })} />);
+      type('1000');
+      expect(screen.getByRole('alert').textContent).toContain(
+        'That is ₱1,000.00 over. Count the drawer again?'
+      );
+      expect(screen.getByRole('button', { name: 'Keep ₱1,000.00' })).toBeTruthy();
+    });
   });
 
   it('leaves out "Carried over" on the last day and sends it blank', async () => {
@@ -197,7 +403,7 @@ describe('the day review', () => {
     });
     render(<DayReview review={r} />);
     const form = screen.getByRole('form', { name: 'Close the day' });
-    expect(within(form).queryByLabelText('Carried over')).toBeNull();
+    expect(within(form).queryByRole('group', { name: /carried over/ })).toBeNull();
     fireEvent.click(within(form).getByRole('button', { name: 'Close the day' }));
     await waitFor(() => expect(r.close?.submit).toHaveBeenCalled());
     const sent = vi.mocked(r.close?.submit ?? vi.fn()).mock.calls[0]?.[0] as CloseInput;
@@ -238,13 +444,15 @@ describe('the day review', () => {
       submit: vi.fn(async () => 'Count the cookies first.')
     };
     render(<DayReview review={review({ close })} />);
-    fireEvent.change(screen.getAllByLabelText('Left')[0] as HTMLElement, {
-      target: { value: '4' }
-    });
+    const form = screen.getByRole('form', { name: 'Close the day' });
+    for (let i = 0; i < 4; i++)
+      fireEvent.click(
+        within(form).getByRole('button', { name: 'Fewer Double Chocolate Fudge: left' })
+      );
     fireEvent.click(screen.getByRole('button', { name: 'Close the day' }));
     const alert = await screen.findByRole('alert');
     expect(alert.textContent).toBe('Count the cookies first.');
-    expect((screen.getAllByLabelText('Left')[0] as HTMLInputElement).value).toBe('4');
+    expect(shown(form, 'Double Chocolate Fudge: left')).toBe('17');
   });
 
   it('draws no form at all for a closed day, and its count in words', () => {
@@ -481,7 +689,7 @@ describe('the event page', () => {
     const { unmount } = render(<EventPage event={eventView()} />);
     expect(screen.getByRole('heading', { name: 'The event' })).toBeTruthy();
     expect(screen.getByText('A day is still open.')).toBeTruthy();
-    expect(screen.getByText('₱880')).toBeTruthy();
+    expect(screen.getByText('₱880.00')).toBeTruthy();
     unmount();
     render(
       <EventPage
@@ -628,5 +836,115 @@ describe('the books form', () => {
   it('shows no such card when nothing is held', () => {
     render(<BooksForm liveBooks={books()} />);
     expect(screen.queryByText(BOOKS_COPY.heldTitle)).toBeNull();
+  });
+});
+
+describe('a closed day (U5)', () => {
+  const report = {
+    tables: [
+      {
+        caption: 'Takings',
+        lines: [
+          { label: 'Before discounts and freebies', detail: '9 sales', cents: 104000 },
+          { label: 'Discounts', cents: -1000 },
+          { label: 'Given away', detail: 'At their price', cents: -15000 }
+        ],
+        totalCents: 88000
+      },
+      {
+        caption: 'How it was paid',
+        lines: [
+          { label: 'Cash', cents: 50000 },
+          { label: 'GCash', cents: 38000 }
+        ],
+        totalCents: 88000
+      },
+      { caption: 'Fees', lines: [], totalCents: 0 },
+      {
+        caption: 'Drawer',
+        lines: [
+          { label: 'Float', cents: 50000 },
+          { label: 'Cash sales', cents: 50000 }
+        ],
+        totalCents: 100000,
+        note: 'Counted ₱995.00 · ₱5.00 short'
+      }
+    ]
+  };
+  const closedReview = (over: Partial<DayReviewView> = {}) =>
+    review({
+      state: 'closed',
+      stock: [stockRow({ countText: '13 left', countedLeft: 13 }), emptyRow],
+      addLoss: null,
+      addStock: null,
+      close: null,
+      report,
+      ...over
+    });
+
+  it('draws the Z-report as receipts whose lines add up to the totals', () => {
+    render(<DayReview review={closedReview()} />);
+    const section = within(screen.getByRole('region', { name: 'Day summary' }));
+    for (const caption of ['Takings', 'How it was paid', 'Fees', 'Drawer'])
+      expect(section.getByRole('table', { name: caption }), caption).toBeTruthy();
+    const takings = within(section.getByRole('table', { name: 'Takings' }));
+    expect(takings.getByText('Before discounts and freebies')).toBeTruthy();
+    expect(takings.getByText('₱1,040.00')).toBeTruthy();
+    expect(takings.getByText('-₱10.00')).toBeTruthy();
+    expect(takings.getByText('-₱150.00')).toBeTruthy();
+    expect(takings.getByText('Revenue').nextSibling?.textContent).toBe('₱880.00');
+    const drawer = section.getByRole('table', { name: 'Drawer' });
+    expect(within(drawer).getByText('Expected').nextSibling?.textContent).toBe('₱1,000.00');
+    expect(section.getByText('Counted ₱995.00 · ₱5.00 short')).toBeTruthy();
+    expect(section.getByText('No fees for this day')).toBeTruthy();
+    const flavours = within(section.getByRole('table', { name: /by flavour/i }));
+    expect(flavours.getByText('Double Chocolate Fudge')).toBeTruthy();
+  });
+
+  it('shows the Closed pill, the counted left as a tile, and no close form', () => {
+    const { container } = render(<DayReview review={closedReview()} />);
+    expect(container.querySelector('[data-status="closed"]')?.textContent).toBe('Closed');
+    expect(container.querySelector('[data-status="selling"]')).toBeNull();
+    const tiles = within(screen.getByRole('list', { name: 'This day' }));
+    expect(tiles.getByRole('button', { name: 'Left 13' })).toBeTruthy();
+    expect(screen.queryByRole('form', { name: 'Close the day' })).toBeNull();
+  });
+
+  it('an open day shows the Selling pill and no summary', () => {
+    const { container } = render(<DayReview review={review()} />);
+    expect(container.querySelector('[data-status="selling"]')?.textContent).toBe('Selling');
+    expect(screen.queryByRole('region', { name: 'Day summary' })).toBeNull();
+  });
+
+  it('settles the tiles once when the day closes while the review is open, and not for a day opened closed', () => {
+    const open = review();
+    const { rerender, container } = render(<DayReview review={open} />);
+    const tiles = () => container.querySelector('ul[aria-label="This day"]') as HTMLElement;
+    expect(tiles().className).not.toContain('motion-settle');
+    rerender(<DayReview review={closedReview()} />);
+    expect(tiles().className).toContain('motion-settle');
+    cleanup();
+    const fresh = render(<DayReview review={closedReview()} />);
+    expect(
+      (fresh.container.querySelector('ul[aria-label="This day"]') as HTMLElement).className
+    ).not.toContain('motion-settle');
+  });
+});
+
+describe('Keep is for the cash it was kept against (U5 review)', () => {
+  it('asks again when a re-read moves the expected cash', () => {
+    const r = review();
+    const { rerender } = render(<DayReview review={r} />);
+    fireEvent.change(screen.getByLabelText('Cash counted (₱)'), { target: { value: '2000' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Keep ₱2,000.00' }));
+    expect(screen.queryByRole('alert')).toBeNull();
+    const close = {
+      ...(r.close as NonNullable<typeof r.close>),
+      cashExpectedCents: 80000,
+      cashExpectedPesos: '800.00',
+      cashExpectedText: '₱800.00'
+    };
+    rerender(<DayReview review={{ ...r, close }} />);
+    expect(screen.getByRole('alert').textContent).toContain('That is ₱1,200.00 over');
   });
 });

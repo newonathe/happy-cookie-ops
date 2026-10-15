@@ -2,7 +2,7 @@
 
 import { useId, useState } from 'react';
 import type * as React from 'react';
-import type { CloseInput, DayReviewView } from '@/lib/bazaar/live-bazaar-types';
+import type { DayReviewView } from '@/lib/bazaar/live-bazaar-types';
 import {
   buttonBase,
   cardStyle,
@@ -10,17 +10,16 @@ import {
   h2Style,
   listStyle,
   mutedStyle,
-  primaryBase,
   screenStyle,
   textStyle
 } from '@/components/live/stock/stock-shared';
 import { ErrorText, Field, Notices, RemoveButton, SelectField } from './field';
+import { StatusPill } from '@/components/ui/status-pill';
+import { CloseForm } from './close-form';
+import { DayReport } from './day-report';
+import { DayTiles } from './day-tiles';
 import { Figures } from './figure';
 import { useSave } from './use-save';
-
-type Close = NonNullable<DayReviewView['close']>;
-type Row = CloseInput['rows'][number];
-type Typed = Partial<Omit<Row, 'productId'>>;
 
 const section: React.CSSProperties = { display: 'flex', flexDirection: 'column', gap: '8px' };
 const formCard: React.CSSProperties = {
@@ -135,120 +134,17 @@ export function StockForm({
   );
 }
 
-/**
- * The count at the end of a day. Only what she has typed is kept: a row she has not touched follows what the review says
- * should be left, so a re-read changes nothing she wrote. The form is keyed on the day by its parent.
- */
-function CloseForm({ stock, close }: { stock: DayReviewView['stock']; close: Close }) {
-  const [typed, setTyped] = useState<Record<string, Typed>>({});
-  const [cash, setCash] = useState('');
-  const { error, saving, run } = useSave();
-  const errorId = useId();
-  const blockedId = useId();
-
-  const rowOf = (s: DayReviewView['stock'][number]): Row => ({
-    productId: s.productId,
-    left: s.shouldBeLeft > 0 ? '' : '0',
-    carryNext: '',
-    toShop: '',
-    writtenOff: '',
-    ...typed[s.productId]
-  });
-  const set = (productId: string, patch: Typed) =>
-    setTyped((all) => ({ ...all, [productId]: { ...all[productId], ...patch } }));
-  const blocked = close.blocked !== null;
-  const submit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    if (blocked) return;
-    await run(() =>
-      close.submit({
-        countedPesos: cash,
-        rows: stock.map((s) => {
-          const row = rowOf(s);
-          return { ...row, carryNext: close.lastDay ? '' : row.carryNext };
-        })
-      })
-    );
-  };
-
-  return (
-    <form
-      onSubmit={(e) => void submit(e)}
-      aria-label="Close the day"
-      style={{ ...section, gap: '12px' }}
-      noValidate
-    >
-      <ul aria-label="Count by flavour" style={listStyle}>
-        {stock.map((s) => {
-          const row = rowOf(s);
-          return (
-            <li key={s.productId} style={formCard}>
-              <span style={{ ...textStyle, fontWeight: 700 }}>{s.name}</span>
-              <span style={mutedStyle}>Should be left: {s.shouldBeLeft}</span>
-              <span style={fieldRow}>
-                <Field
-                  label="Left"
-                  value={row.left}
-                  mode="numeric"
-                  onChange={(left) => set(s.productId, { left })}
-                />
-                {close.lastDay ? null : (
-                  <Field
-                    label="Carried over"
-                    value={row.carryNext}
-                    mode="numeric"
-                    onChange={(carryNext) => set(s.productId, { carryNext })}
-                  />
-                )}
-                <Field
-                  label="To the shop"
-                  value={row.toShop}
-                  mode="numeric"
-                  onChange={(toShop) => set(s.productId, { toShop })}
-                />
-                <Field
-                  label="Written off"
-                  value={row.writtenOff}
-                  mode="numeric"
-                  onChange={(writtenOff) => set(s.productId, { writtenOff })}
-                />
-              </span>
-            </li>
-          );
-        })}
-      </ul>
-      <div style={formCard}>
-        <p style={{ ...textStyle, fontWeight: 700 }}>
-          Cash expected in the drawer: {close.cashExpectedText}
-        </p>
-        <Field label="Cash counted (₱)" value={cash} mode="decimal" onChange={setCash} />
-        <p style={mutedStyle}>Leave blank if you did not count it.</p>
-      </div>
-      {close.blocked ? (
-        <p id={blockedId} role="status" style={{ ...textStyle, fontWeight: 700 }}>
-          {close.blocked}
-        </p>
-      ) : null}
-      <ErrorText error={error} id={errorId} />
-      <button
-        type="submit"
-        disabled={saving || blocked}
-        aria-describedby={blocked ? blockedId : error ? errorId : undefined}
-        style={{
-          ...primaryBase,
-          minHeight: '48px',
-          ...(saving || blocked ? disabledLook : {})
-        }}
-      >
-        {saving ? 'Saving…' : 'Close the day'}
-      </button>
-    </form>
-  );
-}
-
 /** A day's review: what is left, what was lost, the takings and cash, the event so far, and (for an open day) the close. */
 export function DayReview({ review }: { review: DayReviewView }) {
   const open = review.state === 'open';
+  // The day has just been closed while this is on screen: the tiles settle once (the D0 motion table). A day opened
+  // already closed does not play it.
+  const [seen, setSeen] = useState(review.state);
+  const [settled, setSettled] = useState(false);
+  if (seen !== review.state) {
+    setSeen(review.state);
+    setSettled(review.state === 'closed');
+  }
   return (
     <section
       aria-label={'Review of ' + review.dateText}
@@ -265,7 +161,9 @@ export function DayReview({ review }: { review: DayReviewView }) {
       </button>
       <h1 style={h1Style}>Review · {review.dateText}</h1>
       <p style={mutedStyle}>{review.eventName}</p>
-      <p style={{ ...textStyle, fontWeight: 700 }}>{open ? 'Selling' : 'Closed'}</p>
+      <span style={{ alignSelf: 'flex-start' }}>
+        <StatusPill status={open ? 'selling' : 'closed'} />
+      </span>
       <Notices notices={review.notices} />
 
       <section aria-labelledby="review-cookies" style={section}>
@@ -339,8 +237,17 @@ export function DayReview({ review }: { review: DayReviewView }) {
         <h2 id="review-day" style={h2Style}>
           This day
         </h2>
-        <Figures figures={review.dayFigures} label="This day" />
+        <DayTiles review={review} settled={settled} />
       </section>
+
+      {review.report ? (
+        <section aria-labelledby="review-report" style={section}>
+          <h2 id="review-report" style={h2Style}>
+            Day summary
+          </h2>
+          <DayReport review={review} />
+        </section>
+      ) : null}
 
       <section aria-labelledby="review-event" style={section}>
         <h2 id="review-event" style={h2Style}>

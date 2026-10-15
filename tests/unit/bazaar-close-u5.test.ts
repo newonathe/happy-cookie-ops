@@ -222,10 +222,11 @@ describe('the drawer check (Ateneo A3)', () => {
     expect(check.text).toBe('Over ₱1,000.00');
   });
 
-  it('rounds 10 % up to the centavo, so a rounding never crosses the line', () => {
-    // 10 % of ₱1,000.05 is ₱100.005; the line is ₱100.01, so ₱100.01 over is exactly at it.
-    expect(drawerCheck(100005, '1100.06').recount).toBe(false);
-    expect(drawerCheck(100005, '1100.07').recount).toBe(true);
+  it('does not round the tenth: a centavo past ₱100.005 is past the line', () => {
+    // 10 % of ₱1,000.05 is ₱100.005. ₱100.00 over is at the ₱100.00 floor and under the tenth; ₱100.01 is past both.
+    expect(drawerCheck(100005, '1100.05').recount).toBe(false);
+    expect(drawerCheck(100005, '1100.06').recount).toBe(true);
+    expect(drawerCheck(100005, '900.04').recount).toBe(true);
   });
 });
 
