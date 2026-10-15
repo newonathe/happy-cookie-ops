@@ -174,6 +174,10 @@ begin
   perform pg_temp.expect(a, 'books_period_reversed', 'select public.get_books(now(), now() - interval ''1 day'')', '22023');
   perform pg_temp.expect(a, 'books_period_too_long', 'select public.get_books(now() - interval ''500 days'', now())', '22023');
 
+  -- B3b: the books now start on the stock used (DP-04); these cases are about the delivery receipts, so the owner chooses bought first
+  perform pg_temp.assert_ok(a, 'books_default_basis_is_used', public.get_books(now() - interval '1 day', now()) ->> 'basis' = 'used');
+  perform pg_temp.expect(a, 'basis_bought_first', 'select public.set_cost_basis(''bought'')', '00000');
+
   -- bought: revenue is when an order was paid (less refunds) and stall sales; costs are each receipt and the event cost
   j := pg_temp.books();
   perform pg_temp.assert_ok(a, 'books_revenue_paid_orders_and_sales', pg_temp.sumk(j, 'revenue') = 55000);
