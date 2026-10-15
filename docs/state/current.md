@@ -16,23 +16,11 @@ Read this page first in a new session. It is kept short on purpose.
 
 ## Where things stand — 7 October 2026
 
-**Bazaar v2 (15 October): planned, not started.** Ethan's 13-point review of the bazaar screens (design, flow, motion)
+**Bazaar v2 (15 October): in progress.** Ethan's 13-point review of the bazaar screens (design, flow, motion)
 is planned as 10 slices, D0 to U9, in [bazaar-v2.md](bazaar-v2.md); everything lands before the bazaar, one release, then the
-rehearsal by 22 October. D0 approved 15 Oct ([spec](../design/bazaar-v2.md)). U1 built 15 Oct (tokens, 16 components, `peso()`, motion helpers; live money now shows two decimals). U2 built 15 Oct (branch `claude/bazaar-v2-u2`: leave and return to the till, sold-out tiles hidden, Add cookies; Ateneo B1, B2). Next: U6 ([next-goal.md](next-goal.md)). The
+rehearsal by 22 October. D0 approved 15 Oct ([spec](../design/bazaar-v2.md)). U1 built 15 Oct (tokens, 16 components, `peso()`, motion helpers; live money now shows two decimals). U2 built 15 Oct (branch `claude/bazaar-v2-u2`: leave and return to the till, sold-out tiles hidden, Add cookies; Ateneo B1, B2). U6 built 15 Oct, local only (migration 70 in the repo, not on the trial, still 69 of 69; Opus review and database suites noted in [bazaar-v2.md](bazaar-v2.md), "U6 as built"). Next: U3, with U5 in a second conversation ([next-goal.md](next-goal.md)). The
 Ateneo test audit (15 Oct, in bazaar-v2.md) found 13 issues. Ethan chose migration 70 before the bazaar and a reviewed
 reversal of the Ateneo test (its rent, over, sales and stock use are in October's books until then).
-
-**S3.1 bazaar hardening (14 October): released to the trial.** Migration 69 (`20260101006800_bazaar_hardening.sql`) and its
-client: a refused sale no longer blocks the close; close and finalise check the till's count and cash (40001); a fee or a loss can be
-removed; no sale or void lands on a finalised event; no stock load on a bazaar day; retry ids survive a reload. Before release:
-`pnpm test:e2e` (90 passed; the capacity parity spec 25 of 25 on the local database), the live smoke suite (14 steps), the role suite
-(3,294 cases on each of two resets) and the **Remove** buttons in the browser pane at 375 px. At Ethan's word: 69 applied from a
-scratch folder (the CLI needs every applied version present, so all 69 files were exported from the commit; the dry run listed only
-69); the trial is at 69 of 69, its fingerprint equal to local apart from `json_value` quoting in three settings functions and
-`rls_auto_enable`. PR #24 merged (`3cf4a36`); the deploy job was refused twice for GitHub billing (free private-repo minutes used
-up), so **Ethan made the repository public** (Cine agreed: her name, GCash number and payment QR codes are in its history) and the
-rerun deployed version `2eda3738`; anonymous requests still go to Cloudflare Access. Same day, run sheet rows 5, 6 and 10: Cine's two addresses are active owners named "Cine" (the admin one is "Ethan"), Access admits four addresses, and its session is one week (`168h`, now allowed by the release guard; PR #26 redeployed the same app as `fbfd8860`). Next: the phone rehearsal
-([run sheet](bazaar-run-sheet.md) row 7, [next-goal.md](next-goal.md)).
 
 **The plan is approved; stage A (A1 to A4) and slices B1 to B3b-2, B4a, B4b and B5 are built.** Ethan approved
 [final-plan.md](final-plan.md), version 2, on 5 October after a re-audit, a debate and
