@@ -37,8 +37,11 @@ ORDER_MIGRATIONS = [ROOT / 'supabase/migrations/20260101003500_place_order.sql',
                     ROOT / 'supabase/migrations/20260101005700_clock_policies.sql',
                     ROOT / 'supabase/migrations/20260101005800_batch_correction.sql',
                     ROOT / 'supabase/migrations/20260101005900_packaging_records.sql',
-                    ROOT / 'supabase/migrations/20260101006100_cost_cutover.sql']
+                    ROOT / 'supabase/migrations/20260101006100_cost_cutover.sql',
+                    ROOT / 'supabase/migrations/20260101006200_cost_cutover_by_seq.sql']
 _OUT = 'order outcome differs: anon / '
+# the line a used or wasted stock writes in get_books: the quantity expensed (20260101006200) at the cost stamped on it
+_LINE_Q = "round((v_used -> m.id::text ->> 'q')::numeric * m.unit_cost)"
 _CHK = 'order check differs: anon / '
 _LOOK = 'lookup check differs: anon / '
 ORDER_MUTATIONS = {
@@ -450,7 +453,7 @@ BOOKS_MUTATIONS = {
                                     _BKC + 'books_bought_expenses'),
     'text_last_paid_corrected': ('get_last_paid', 'text', ('public.receipt_cost(m.id) as cost_cents', 'm.cost_cents as cost_cents'),
                                  _BKC + 'last_paid_uses_the_corrected_cost'),
-    'text_price_latest_receipt': ('get_books', 'text', ('round((v_used ->> m.id::text)::numeric * m.unit_cost)', 'round((v_used ->> m.id::text)::numeric * 10)'),
+    'text_price_latest_receipt': ('get_books', 'text', (_LINE_Q, "round((v_used -> m.id::text ->> 'q')::numeric * 10)"),
                                   _BKC + 'used_excludes_receipts_and_prices_use'),
     'text_correction_saved_order': ('receipt_cost', 'text', ('order by c.received_at desc, c.id desc limit 1', 'order by c.at desc, c.received_at desc limit 1'),
                                     _BKC + 'cor_latest_is_the_one_saved_last'),
@@ -466,77 +469,105 @@ BOOKS_MUTATIONS = {
 BOOKS_TABLE_MUTATIONS = {
     'settings_table_select': ('grant select on public.books_settings to anon;', 'books outcome differs: anon / settings_select / '),
 }
-# B3b: the cost cutover (cost-cutover.sql), acting on the last migration that defines each function (20260101006100). No refusal was added,
-# so there is no `-- rule:` line to neutralise: every changed clause of get_books and set_cost_basis is one text change here, and the named
-# case must fail. The money is worked by hand in the suite.
+# B3b: the cost cutover by apply order (cost-cutover.sql), acting on the last migration that defines each function (20260101006200). No
+# refusal was added, so there is no `-- rule:` line to neutralise: every changed clause of get_books and set_cost_basis is one text change
+# here, and the named case must fail. The money is worked by hand in the suite. Not mutation-tested (one session cannot observe a lock):
+# the catalogue and item locks set_cost_basis takes before it reads the highest seq and the stock on hand. Not listed (equivalent): the
+# `v_used ? m.id::text` guards of the line and uncosted arms, which the period test on the same expensed date already implies.
 _CUO = 'cutover outcome differs: active_owner / '
 _CUC = 'cutover check differs: active_owner / '
-_SW = "v_switch := p_basis = 'used' and v_prev = 'bought';"
 _ALLOW = 'coalesce(a.qty, 0) + coalesce(o.qty, 0)'
-_FROM_M = '(v_used_from is null or m.at >= v_used_from)'
-_COVERED_LINE = 'and v_used ? m.id::text -- B3b cutover: a movement the allowance covered in full writes no line'
-_COVERED_UNCOSTED = 'and v_used ? m.id::text -- B3b cutover: only what was expensed (not what the allowance covered)'
+_LATE_USE = '(case when v_cut is null then m.at else greatest(m.at, v_used_from) end) as at'
+_LATE_COR = '(case when v_cut is null then c.at else greatest(c.at, v_used_from) end), 0'
+_LATE_BAKE = "(case when v_cut is null then r.at else greatest(r.at, v_used_from) end), e.value ->> 'why'"
 CUTOVER_MUTATIONS = {
-    'text_cut_ledger_before_counts': ('get_books', 'text', ('or l.occurred_at < v_used_from', 'or false'), _CUC + 'cut_past_period_counts_the_ledger'),
-    'text_cut_ledger_delivery_line_left_out': ('get_books', 'text',
-                                               ('or (not exists (select 1 from public.stock_movements m where m.ledger_id = l.id)', 'or (true'),
-                                               _CUC + 'cut_later_ledger_follows_the_used_rule'),
-    'text_cut_ledger_correction_line_left_out': ('get_books', 'text',
-                                                 ('and not exists (select 1 from public.stock_cost_corrections c where c.ledger_id = l.id)))', 'and true))'),
-                                                 _CUC + 'cut_later_ledger_follows_the_used_rule'),
-    'text_cut_stock_from_the_cutover': ('get_books', 'text', (_FROM_M, 'true'), _CUC + 'cut_past_period_counts_the_ledger'),
-    'text_cut_stock_at_the_cutover_counts': ('get_books', 'text', (_FROM_M, '(v_used_from is null or m.at > v_used_from)'),
-                                             _CUC + 'cut_the_cutover_moment_counts_as_used'),
-    'text_cut_stock_without_a_cutover': ('get_books', 'text', (_FROM_M, 'm.at >= v_used_from'), _CUC + 'cut_none_means_no_cutover_lines'),
+    'text_cut_ledger_delivery_by_date': ('get_books', 'text', ('m.ledger_id = l.id and m.seq <= v_cut', 'm.ledger_id = l.id and m.at < v_used_from'),
+                                         _CUC + 'cut_past_period_is_unchanged_by_what_follows'),
+    'text_cut_ledger_delivery_line_always': ('get_books', 'text', ('m.ledger_id = l.id and m.seq <= v_cut', 'm.ledger_id = l.id'),
+                                             _CUC + 'cut_past_period_is_unchanged_by_what_follows'),
+    'text_cut_ledger_delivery_line_never': ('get_books', 'text', ('m.ledger_id = l.id and m.seq <= v_cut', 'm.ledger_id = l.id and false'),
+                                            _CUC + 'cut_nothing_is_expensed_at_the_cutover'),
+    'text_cut_ledger_correction_line_never': ('get_books', 'text', ('where c.ledger_id = l.id and r.seq <= v_cut', 'where c.ledger_id = l.id and false'),
+                                              _CUC + 'cut_correction_of_an_earlier_delivery_counts_in_full'),
+    'text_cut_ledger_correction_line_always': ('get_books', 'text', ('where c.ledger_id = l.id and r.seq <= v_cut', 'where c.ledger_id = l.id'),
+                                               _CUC + 'cut_past_period_is_unchanged_by_what_follows'),
+    'text_cut_ledger_unlinked_line': ('get_books', 'text', ('(v_cut is not null\n                  and (exists', '(false\n                  and (exists'),
+                                      _CUC + 'cut_nothing_is_expensed_at_the_cutover'),
+    'text_cut_correction_share_of_an_earlier_delivery': ('get_books', 'text',
+                                                         ('and (v_cut is null or r.seq > v_cut) -- B3b cutover', 'and true -- B3b cutover'),
+                                                         _CUC + 'cut_correction_of_an_earlier_delivery_counts_in_full'),
+    'text_cut_correction_share_of_a_later_delivery': ('get_books', 'text',
+                                                      ('and (v_cut is null or r.seq > v_cut) -- B3b cutover', 'and (v_cut is null or r.seq < 0) -- B3b cutover'),
+                                                      _CUC + 'cut_correction_of_a_later_delivery_is_cost_used'),
+    'text_cut_stock_applied_by_the_cutover': ('get_books', 'text', ("where (v_cut is null or m.seq > v_cut) and (m.kind", "where true and (m.kind"),
+                                              _CUC + 'cut_nothing_is_expensed_at_the_cutover'),
     'text_cut_snapshot_is_an_allowance': ('get_books', 'text', (_ALLOW, 'coalesce(o.qty, 0)'),
-                                          _CUC + 'cut_stock_on_hand_at_the_cutover_is_not_expensed_again'),
-    'text_cut_opening_after_adds': ('get_books', 'text', (_ALLOW, 'coalesce(a.qty, 0)'),
-                                    _CUC + 'cut_opening_after_the_cutover_adds_to_the_allowance'),
-    'text_cut_opening_before_does_not_add': ('get_books', 'text',
-                                             ("where x.kind = 'opening' and x.at >= v_used_from", "where x.kind = 'opening'"),
-                                             _CUC + 'cut_opening_after_the_cutover_adds_to_the_allowance'),
+                                          _CUC + 'cut_offline_use_dated_before_the_cutover_is_drawn_from_the_allowance'),
+    'text_cut_opening_after_adds': ('get_books', 'text', (_ALLOW, 'coalesce(a.qty, 0)'), _CUC + 'cut_uncosted_lists_only_what_was_expensed'),
+    'text_cut_opening_before_does_not_add': ('get_books', 'text', ("where x.kind = 'opening' and x.seq > v_cut", "where x.kind = 'opening'"),
+                                             _CUC + 'cut_uncosted_lists_only_what_was_expensed'),
     'text_cut_allowance_in_seq_order': ('get_books', 'text', ('order by m.seq', 'order by m.at'), _CUC + 'cut_allowance_is_consumed_in_seq_order'),
     'text_cut_allowance_is_drawn_down': ('get_books', 'text',
                                          ('rows between unbounded preceding and 1 preceding', 'rows between unbounded preceding and current row'),
-                                         _CUC + 'cut_use_beyond_the_snapshot_is_expensed_in_part'),
+                                         _CUC + 'cut_offline_use_dated_before_the_cutover_is_drawn_from_the_allowance'),
     'text_cut_covered_is_at_most_taken': ('get_books', 'text', ('- least(-m.qty_delta,', '- greatest(-m.qty_delta,'),
-                                          _CUC + 'cut_use_beyond_the_snapshot_is_expensed_in_part'),
+                                          _CUC + 'cut_backdated_receipt_entered_after_is_expensed_once'),
     'text_cut_short_is_never_covered': ('get_books', 'text', ('+ m.short_qty as qty', '+ 0 as qty'),
-                                        _CUC + 'cut_short_part_is_expensed_with_allowance_left'),
-    'text_cut_no_allowance_without_a_cutover': ('get_books', 'text',
-                                                ('case when v_used_from is null then 0 else', 'case when false then 0 else'),
+                                        _CUC + 'cut_offline_use_dated_before_the_cutover_is_drawn_from_the_allowance'),
+    'text_cut_count_draws_the_allowance': ('get_books', 'text', ("(m.kind in ('use', 'waste') or m.qty_delta < 0)", "(m.kind in ('use', 'waste'))"),
+                                           _CUC + 'cut_stock_removed_by_a_count_is_no_allowance'),
+    'text_cut_no_allowance_without_a_cutover': ('get_books', 'text', ('case when v_cut is null then 0 else', 'case when false then 0 else'),
                                                 _CUC + 'cut_none_means_no_cutover_lines'),
-    'text_cut_line_is_the_part_expensed': ('get_books', 'text',
-                                           ('round((v_used ->> m.id::text)::numeric * m.unit_cost)', 'round((-m.qty_delta + m.short_qty) * m.unit_cost)'),
-                                           _CUC + 'cut_use_beyond_the_snapshot_is_expensed_in_part'),
-    'text_cut_covered_use_writes_no_line': ('get_books', 'text', (_COVERED_LINE, ''),
-                                            _CUC + 'cut_past_period_has_no_stock_used'),
-    'text_cut_covered_use_is_not_uncosted': ('get_books', 'text', (_COVERED_UNCOSTED, ''),
-                                             _CUC + 'cut_covered_use_with_no_cost_is_not_uncosted'),
-    'text_cut_production_why_from_the_cutover': ('get_books', 'text',
-                                                 ('and (v_used_from is null or v_used_from <= r.at)', 'and true'),
-                                                 _CUC + 'cut_uncosted_lists_only_what_was_expensed'),
-    'text_cut_correction_of_an_earlier_delivery': ('get_books', 'text',
-                                                   ('and (v_used_from is null or r.at >= v_used_from)', 'and true'),
-                                                   _CUC + 'cut_correction_of_a_later_delivery_counts'),
+    'text_cut_line_is_the_part_expensed': ('get_books', 'text', (_LINE_Q, 'round((-m.qty_delta + m.short_qty) * m.unit_cost)'),
+                                           _CUC + 'cut_offline_use_dated_before_the_cutover_is_drawn_from_the_allowance'),
+    'text_cut_late_use_is_dated_at_the_cutover': ('get_books', 'text', (_LATE_USE, 'm.at as at'), _CUC + 'cut_past_period_is_unchanged_by_what_follows'),
+    'text_cut_late_use_period_end_inclusive': ('get_books', 'text',
+                                               ("::timestamptz >= p_from and (v_used -> m.id::text ->> 'at')::timestamptz < p_to",
+                                                "::timestamptz >= p_from and (v_used -> m.id::text ->> 'at')::timestamptz <= p_to"),
+                                               _CUC + 'cut_past_period_is_unchanged_by_what_follows'),
+    'text_cut_late_uncosted_period_end_inclusive': ('get_books', 'text',
+                                                    ("\n         and (v_used -> m.id::text ->> 'at')::timestamptz < p_to", "\n         and (v_used -> m.id::text ->> 'at')::timestamptz <= p_to"),
+                                                    _CUC + 'cut_past_period_is_unchanged_by_what_follows'),
+    'text_cut_correction_is_dated_at_the_cutover': ('get_books', 'text', (_LATE_COR, 'c.at, 0'), _CUC + 'cut_correction_is_never_dated_before_the_cutover'),
+    'text_cut_correction_period_end': ('get_books', 'text', ('else greatest(c.at, v_used_from) end) < p_to', 'else c.at end) < p_to'),
+                                       _CUC + 'cut_past_period_is_unchanged_by_what_follows'),
+    'text_cut_bake_is_dated_at_the_cutover': ('get_books', 'text', (_LATE_BAKE, "r.at, e.value ->> 'why'"),
+                                          _CUC + 'cut_uncosted_bake_is_dated_no_earlier_than_the_cutover'),
+    'text_cut_bake_period_end': ('get_books', 'text', ('else greatest(r.at, v_used_from) end) < p_to', 'else r.at end) < p_to'),
+                                 _CUC + 'cut_past_period_is_unchanged_by_what_follows'),
+    'text_cut_bake_by_its_movements': ('get_books', 'text',
+                                       ('or exists (select 1 from public.stock_movements s where s.production_id = r.id and s.seq > v_cut)', 'or false'),
+                                       _CUC + 'cut_uncosted_lists_only_what_was_expensed'),
+    'text_cut_bake_without_movements_by_receipt': ('get_books', 'text', ('and r.received_at >= v_used_from)', 'and false)'),
+                                                   _CUC + 'cut_uncosted_lists_only_what_was_expensed'),
+    'text_cut_bake_before_the_cutover': ('get_books', 'text',
+                                         ('or (not exists (select 1 from public.stock_movements s where s.production_id = r.id) and', 'or (true and'),
+                                         _CUC + 'cut_nothing_is_expensed_at_the_cutover'),
     'text_cut_output_says_where_it_starts': ('get_books', 'text',
                                              ("'used_from', case when v_used_from is null then null else (extract(epoch from v_used_from) * 1000)::bigint end",
                                               "'used_from', null"),
                                              _CUC + 'cut_books_report_the_cutover'),
-    'text_cut_switch_only_from_bought': ('set_cost_basis', 'text', (_SW, "v_switch := p_basis = 'used';"),
-                                         _CUC + 'basis_used_to_used_keeps_the_cutover'),
-    'text_cut_switch_only_to_used': ('set_cost_basis', 'text', (_SW, "v_switch := v_prev = 'bought';"),
-                                     _CUC + 'basis_bought_to_bought_keeps_the_cutover'),
-    'text_cut_switch_takes_a_new_date': ('set_cost_basis', 'text',
-                                         ('used_from = case when v_switch then now() else b.used_from end', 'used_from = b.used_from'),
-                                         _CUC + 'basis_bought_to_used_takes_a_new_cutover_date'),
-    'text_cut_switch_takes_a_snapshot': ('set_cost_basis', 'text', ('if v_switch then --', 'if false then --'),
-                                         _CUC + 'basis_bought_to_used_replaces_the_snapshot'),
+    'text_cut_switch_only_the_first_choice': ('set_cost_basis', 'text', ("select b.used_from is null into v_first", "select b.cost_basis = 'bought' into v_first"),
+                                              _CUC + 'cut_second_switch_keeps_the_first_cutover'),
+    'text_cut_switch_only_to_used': ('set_cost_basis', 'text', ("v_first := v_first and p_basis = 'used';", 'v_first := v_first;'),
+                                     _CUC + 'basis_bought_before_the_first_choice_takes_no_cutover'),
+    'text_cut_switch_once': ('set_cost_basis', 'text', ("v_first := v_first and p_basis = 'used';", "v_first := p_basis = 'used';"),
+                             _CUC + 'basis_used_to_used_keeps_the_cutover'),
+    'text_cut_switch_takes_a_new_date': ('set_cost_basis', 'text', ('used_from = case when v_first then now() else b.used_from end', 'used_from = b.used_from'),
+                                         _CUC + 'cut_first_choice_takes_the_cutover_date'),
+    'text_cut_switch_takes_the_order_mark': ('set_cost_basis', 'text',
+                                             ('used_from_seq = case when v_first then coalesce((select max(m.seq) from public.stock_movements m), 0) else b.used_from_seq end',
+                                              'used_from_seq = b.used_from_seq'),
+                                             _CUC + 'cut_first_choice_takes_the_order_mark'),
+    'text_cut_switch_order_mark_is_the_highest_seq': ('set_cost_basis', 'text', ('coalesce((select max(m.seq) from', 'coalesce((select min(m.seq) from'),
+                                                      _CUC + 'cut_first_choice_takes_the_order_mark'),
+    'text_cut_switch_takes_a_snapshot': ('set_cost_basis', 'text', ('if v_first then\n', 'if false then\n'),
+                                         _CUC + 'cut_first_choice_takes_the_snapshot'),
     'text_cut_switch_replaces_the_snapshot': ('set_cost_basis', 'text', ('delete from public.books_cutover c where true;', 'null;'),
-                                              _CUO + 'switch_bought_to_used / '),
+                                              _CUO + 'switch_first_used / '),
     'text_cut_snapshot_is_what_is_on_hand': ('set_cost_basis', 'text',
                                              ('greatest(i.on_hand, 0) from public.inventory_items i;', '0 from public.inventory_items i;'),
-                                             _CUC + 'basis_bought_to_used_replaces_the_snapshot'),
+                                             _CUC + 'cut_first_choice_takes_the_snapshot'),
 }
 CUTOVER_TABLE_MUTATIONS = {
     'cutover_table_anon_select': ('grant select on public.books_cutover to anon;', 'cutover outcome differs: anon / cutover_select / '),
@@ -565,7 +596,7 @@ COST_MUTATIONS = {
     'text_cost_correction_share': ('record_cost_correction', 'text', ('v_f := least(1, greatest(0, v_f * v_h_after / v_h_before));', 'v_f := v_f;'),
                                    _CSC + 'cost_d_average_and_used'),
     'text_cost_used_line_counts_the_short': ('get_books', 'text',
-                                             ('round((v_used ->> m.id::text)::numeric * m.unit_cost)', 'round(-m.qty_delta * m.unit_cost)'),
+                                             (_LINE_Q, 'round(-m.qty_delta * m.unit_cost)'),
                                              _CSC + 'cost_c_line'),
     'text_cost_correction_counts_only_use_waste': ('record_cost_correction', 'text',
                                                    ('if v_mv.qty_delta < 0 then', "if v_mv.kind in ('use', 'waste') and v_mv.qty_delta < 0 then"),
@@ -592,8 +623,8 @@ COST_MUTATIONS = {
     'text_cost_base_falls_back_to_usual': ('record_stock_movement', 'text', ('if v_base is null and v_item.on_hand > 0 then', 'if false then'),
                                            _CSC + 'cost_b4_first_costed_delivery'),
     'text_cost_uncosted_is_not_a_line': ('get_books', 'text',
-                                         ("where v_basis = 'used' and m.kind in ('use', 'waste') and m.unit_cost is not null and m.at >= p_from",
-                                          "where v_basis = 'used' and m.kind in ('use', 'waste') and m.at >= p_from"),
+                                         ("where v_basis = 'used' and m.kind in ('use', 'waste') and m.unit_cost is not null",
+                                          "where v_basis = 'used' and m.kind in ('use', 'waste')"),
                                          _CSC + 'cost_b3_is_never_a_line'),
 }
 # B3a: batch corrections (batch-correction.sql), acting on the last migration that defines each function. The money cases are worked by
@@ -844,10 +875,10 @@ SUITES = (
     ('production.sql', ('record_production(jsonb)', 'record_pack(text,integer)', 'get_production(integer)', 'record_discard(jsonb)')
                        + tuple(PRODUCTION_MUTATIONS) + tuple(PRODUCTION_TABLE_MUTATIONS), 'forbidden production call succeeded', 129),
     ('books.sql', ('get_books(timestamptz,timestamptz)', 'record_expense(jsonb)', 'record_cost_correction(jsonb)', 'set_cost_basis(text)', 'record_draw(jsonb)')
-                  + tuple(BOOKS_MUTATIONS) + tuple(BOOKS_TABLE_MUTATIONS), 'forbidden books call succeeded', 109),
+                  + tuple(BOOKS_MUTATIONS) + tuple(BOOKS_TABLE_MUTATIONS), 'forbidden books call succeeded', 112),
     ('item-costs.sql', ('save_item_price(jsonb)', 'get_item_costs()', 'get_recipe_costs()') + tuple(COST_MUTATIONS),
-     'forbidden cost call succeeded', 172),
-    ('cost-cutover.sql', tuple(CUTOVER_MUTATIONS) + tuple(CUTOVER_TABLE_MUTATIONS), 'forbidden cutover call succeeded', 56),
+     'forbidden cost call succeeded', 176),
+    ('cost-cutover.sql', tuple(CUTOVER_MUTATIONS) + tuple(CUTOVER_TABLE_MUTATIONS), 'forbidden cutover call succeeded', 118),
     ('batch-correction.sql', ('record_batch_correction(jsonb)',) + tuple(BATCH_CORRECTION_MUTATIONS), 'forbidden correction call succeeded', 110),
     ('packaging.sql', ('get_packaging_rules()', 'save_packaging_rules(jsonb,timestamptz)', 'save_recipe_packaging(jsonb,timestamptz)')
                       + tuple(PACKAGING_MUTATIONS) + tuple(PACKAGING_TABLE_MUTATIONS), 'forbidden packaging call succeeded', 168),
@@ -1167,7 +1198,7 @@ def main():
                 h.fail(filename + ' did not return its complete role matrix')
             results.extend(rows)
             assert_empty()
-        if len(set(results)) != 2682:
+        if len(set(results)) != 2751:
             h.fail('combined role matrix has missing or duplicate cases: %d rows, %d unique (duplicates: %s)' % (len(results), len(set(results)), sorted({r for r in results if results.count(r) > 1})[:5]))
         assert_functions()
         assert_catalog_wide()
@@ -1180,10 +1211,10 @@ def main():
     try:
         code = h.main(after_reset=check)
         if (code == 0 and len(report["runs"]) == 2 and report["runs"][0] == report["runs"][1]
-                and len(report['regressions_detected']) == 1006 and report['sequence_restorations'] == 10
+                and len(report['regressions_detected']) == 1032 and report['sequence_restorations'] == 10
                 and report['upgrade_runs'] == 2 and report['function_guard_runs'] == 4
                 and report['catalog_guard_runs'] == 4 and report['catalog_guard_red_runs'] == 4):
-            report.update(status="passed", cases_per_reset=2682, resets=2, matrix_equal=True, rollback_verified=True,
+            report.update(status="passed", cases_per_reset=2751, resets=2, matrix_equal=True, rollback_verified=True,
                           sql_sha256={name: hashlib.sha256((ROOT / 'tests/integration/security' / name).read_bytes()).hexdigest() for name, _, _, _ in SUITES},
                           harness_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
     except (RuntimeError, OSError, ValueError) as error:
