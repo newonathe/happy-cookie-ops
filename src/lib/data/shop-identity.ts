@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database, Json } from '@/lib/types/database';
 import type { SaveResult } from '@/lib/data/settings';
+import { isMissingFunction } from '@/lib/data/rpc-missing';
 
 /**
  * The shop's own identity: name, owner, one contact line and a tagline (B2, migration
@@ -84,9 +85,7 @@ export async function fetchShopIdentity(client: IdentityClient): Promise<Identit
   try {
     const { data, error, status } = await client.rpc('get_shop_identity');
     if (error) {
-      const code = error.code;
-      if (code === 'PGRST202' || code === '42883' || status === 404) return { status: 'missing' };
-      return { status: 'failed' };
+      return { status: isMissingFunction(error, status) ? 'missing' : 'failed' };
     }
     const identity = parseShopIdentity(data);
     return identity ? { status: 'ok', identity } : { status: 'failed' };

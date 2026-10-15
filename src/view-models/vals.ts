@@ -260,6 +260,8 @@ export interface OpsVals {
     online: boolean;
     basis: 'bought' | 'used';
     receipts: Array<{ movementId: string; label: string }>;
+    /** Stock used or written off that has no cost yet (B3b), one line each. Empty or absent: nothing is uncosted. */
+    uncosted?: Array<{ id: string; label: string }>;
     /** Orders still owed money (null until the orders are read). */
     unpaid: {
       summary: string;

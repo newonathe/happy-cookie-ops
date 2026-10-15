@@ -444,6 +444,8 @@ export function LiveGate({
           if (owner && !cancelled && loaded !== false) void engine.loadOrders(supabase);
           // A4: the owner's recipes, for the flavours the list just brought in.
           if (owner && !cancelled && loaded !== false) void engine.loadRecipes(supabase);
+          // B3b: what things cost, from the database's one cost function (the engine's own figures where it has none).
+          if (owner && !cancelled && loaded !== false) void engine.loadCosts(supabase);
         });
       }
     }

@@ -11,6 +11,9 @@ import {
 
 type LiveBooks = NonNullable<OpsVals['liveBooks']>;
 
+/** The list is short on purpose: the count above it is the whole truth. */
+const UNCOSTED_SHOWN = 6;
+
 const card = {
   display: 'flex',
   flexDirection: 'column' as const,
@@ -26,6 +29,7 @@ const card = {
  */
 export function BooksForm({ liveBooks }: { liveBooks: LiveBooks }) {
   const { basis, receipts, online, unpaid } = liveBooks;
+  const uncosted = liveBooks.uncosted ?? [];
   const onCorrect = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const form = event.currentTarget;
@@ -60,6 +64,25 @@ export function BooksForm({ liveBooks }: { liveBooks: LiveBooks }) {
               <span style={{ fontWeight: 600 }}>{r.amount}</span>
             </div>
           ))}
+        </div>
+      ) : null}
+      {uncosted.length ? (
+        <div style={card}>
+          <span style={smallLabel}>{C.uncostedTitle}</span>
+          <span style={{ fontSize: '13px', fontWeight: 600, color: '#3A1F14' }}>
+            {C.uncostedCount(uncosted.length)}
+          </span>
+          <span style={{ fontSize: '12px', color: '#66524A' }}>{C.uncostedNote}</span>
+          {uncosted.slice(0, UNCOSTED_SHOWN).map((u) => (
+            <span key={u.id} style={{ fontSize: '12px', color: '#3A1F14' }}>
+              {u.label}
+            </span>
+          ))}
+          {uncosted.length > UNCOSTED_SHOWN ? (
+            <span style={{ fontSize: '12px', color: '#66524A' }}>
+              {C.uncostedMore(uncosted.length - UNCOSTED_SHOWN)}
+            </span>
+          ) : null}
         </div>
       ) : null}
       <div style={card}>

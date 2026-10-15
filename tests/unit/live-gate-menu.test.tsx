@@ -29,6 +29,7 @@ const { FakeRuntime } = vi.hoisted(() => ({
     loadBooks = vi.fn();
     loadOperationsHealth = vi.fn();
     loadRecipes = vi.fn();
+    loadCosts = vi.fn();
     loadShopStatus = vi.fn();
     reloadShopStatus = vi.fn();
   }
@@ -183,6 +184,11 @@ describe('LiveGate: the owner’s orders (B3)', () => {
     expect(engine.loadRecipes.mock.invocationCallOrder[0]).toBeGreaterThan(
       engine.loadFlavours.mock.invocationCallOrder[0]
     );
+    // B3b: and what things cost, beside the recipes.
+    expect(engine.loadCosts).toHaveBeenCalledExactlyOnceWith(client);
+    expect(engine.loadCosts.mock.invocationCallOrder[0]).toBeGreaterThan(
+      engine.loadFlavours.mock.invocationCallOrder[0]
+    );
     // Mutation: dropping the owner test reads the orders for a helper, who is refused every order RPC.
   });
 
@@ -192,6 +198,7 @@ describe('LiveGate: the owner’s orders (B3)', () => {
     expect(engine.loadFlavours).toHaveBeenCalledOnce();
     expect(engine.loadOrders).not.toHaveBeenCalled();
     expect(engine.loadRecipes).not.toHaveBeenCalled();
+    expect(engine.loadCosts).not.toHaveBeenCalled();
     // Mutation: ignoring the result loads orders whose flavours the screens do not know.
   });
 
