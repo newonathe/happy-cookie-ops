@@ -32,7 +32,10 @@ from decimal import Decimal
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-SUPABASE = ROOT / "node_modules/.pnpm/@supabase+cli-windows-x64@2.116.0/node_modules/@supabase/cli-windows-x64/bin/supabase.exe"
+# The pinned CLI (2.116.0) for this platform: Windows on the owner's machine, Linux in a cloud session.
+SUPABASE = ROOT / ("node_modules/.pnpm/@supabase+cli-windows-x64@2.116.0/node_modules/@supabase/cli-windows-x64/bin/supabase.exe"
+                   if sys.platform == "win32" else
+                   "node_modules/.pnpm/@supabase+cli-linux-x64@2.116.0/node_modules/@supabase/cli-linux-x64/bin/supabase")
 M56 = ROOT / "supabase/migrations/20260101005500_identity_links.sql"
 M57 = ROOT / "supabase/migrations/20260101005600_item_costs.sql"
 LOG = ROOT / "build/b3a/57-upgrade.txt"
