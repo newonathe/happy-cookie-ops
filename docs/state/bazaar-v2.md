@@ -215,6 +215,36 @@ Interface only, no migration. Files: `event-list.tsx` (the hub), `event-form.tsx
 - **Reduced motion:** the new row's ring is shown still for 1 s and then dropped (`useRing`), as the D0 table says; the global rule would otherwise cut the fade to nothing.
 - Tests: `bazaar-hub.test.ts` (rules, validator against `scheduledEventError`), `bazaar-hub-store.test.ts`, `bazaar-hub-screen.test.tsx`; a smoke step adds an event through the sheet and reads the row back.
 
+#### U5 as built (16 October; branch `claude/bazaar-v2-u3`)
+
+Interface only, no migration. Rules are pure and tested first (`src/lib/bazaar/review.ts`: `closeRowOf`, `drawerCheck`,
+`centsToPesosText`, `dayReportOf`; `tests/unit/bazaar-close-u5.test.ts`); screens are `close-form.tsx`, `day-tiles.tsx`,
+`day-report.tsx` and `day-review.tsx`. Commits `3d816a8` (rules) and `739b4d2` (screens).
+
+- **Cash counted starts blank, with "It matches"** (D0 section 7, which replaced this slice's "cash counted = cash expected"):
+  a pre-filled count would make the count-again check unreachable. `cashExpectedCents` and `cashExpectedPesos` are on the view.
+  A blank count is sent blank (not counted), never the expected amount.
+- **Pre-filled close:** Left = what should be left (never below 0). The rest sits in one field that follows Left and the
+  other fields she typed: carried over (not the last day), else the shop (flavour has a recipe), else written off. With the
+  recipes not read yet (`hasRecipe: null`, from the runtime's `recipeRows`) the last day suggests nothing and says so. The
+  server's rule is a row in `public.recipes` (`rule:fin-shop-no-recipe`, at "Close the event"). What is sent is what the
+  steppers show; a split that does not add up says so under the row and the close refuses it in words.
+- **Ateneo A3:** a drawer difference strictly above the larger of ₱100.00 and a tenth of expected (compared in whole
+  centavos, the tenth not rounded) shows "That is ₱x over. Count the drawer again?" with Count again and Keep. Keep is for
+  that amount and that expected cash: a re-read that moves the expected cash asks again. Enter cannot bypass it.
+- **Tiles:** revenue, cash, fees, sold, left (should be left while open), lost; each opens to its parts; a pill
+  (Selling, then Closed); the tiles settle once when a day closes while the review is open. `StatTile` numerals step down
+  earlier so two-decimal pesos fit a phone tile; `ReceiptTable` gained `totalLabel`.
+- **Z-report** (closed day): Takings, How it was paid, Fees and Drawer as receipts whose lines add up to the database's own
+  totals (tested), then Sold, Given, Lost by flavour as counts (pesos per flavour cannot be reconciled with revenue).
+- **Review (Opus, different model):** two real findings, both fixed (rounded tenth; Keep not tied to the expected cash).
+  Everything else held: pesos round trip, blank count, totals, no unknown shown as ₱0.
+- **Left as drawn before, for U4/U9:** the per-flavour list is cards, not a compact table; the close is inline, not a sheet;
+  the "Day closed." toast overlaps the bottom of a long review (U1 layout rule, U9).
+- **Checks:** `pnpm verify` 136 files, 2462 tests; the live smoke passes 16 steps (day 1 closes with the defaults, a
+  ₱99,999 difference blocks the close, day 2 types a written-off count and the shop's share follows); screenshots at 375 and
+  1440 px (`SMOKE_SHOTS=<dir>`) checked. Not run: Docker visual, axe beyond the smoke's own pass, a phone.
+
 ### U4: event page and day plan (Sonnet; interface)
 
 - **Event page:**
