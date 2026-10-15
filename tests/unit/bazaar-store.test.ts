@@ -141,6 +141,37 @@ describe('the review is drawn from a read made when it opens', () => {
   });
 });
 
+describe('the review carries what the pre-filled close needs (U5)', () => {
+  it('gives the cash expected in centavos and as the pesos the field takes', async () => {
+    const h = harness(day2Open());
+    const review = await reviewing(h);
+    expect(review.close!.cashExpectedCents).toBeGreaterThan(0);
+    expect(review.close!.cashExpectedPesos).toBe(
+      (review.close!.cashExpectedCents / 100).toFixed(2)
+    );
+    expect(review.report).toBeNull();
+  });
+
+  it('asks the runtime whether each flavour has a recipe, and says unknown when it cannot tell', async () => {
+    const h = harness(day2Open());
+    expect((await reviewing(h)).stock.every((s) => s.hasRecipe === null)).toBe(true);
+    const known = harness(day2Open());
+    const store = new BazaarDays({ ...known.deps, hasRecipe: (id) => id === 'mp0s-a' });
+    store.openReview(BOOKING, DAY2, 'till');
+    await settle();
+    const stock = store.vals().review!.stock;
+    expect(stock.find((s) => s.productId === 'mp0s-a')?.hasRecipe).toBe(true);
+    expect(stock.find((s) => s.productId === 'mp0s-b')?.hasRecipe).toBe(false);
+  });
+
+  it('a closed day carries its Z-report, with the database totals', async () => {
+    const h = harness(clone());
+    const review = await reviewing(h, 'event');
+    const drawer = review.report!.tables.find((t) => t.caption === 'Drawer')!;
+    expect(drawer.lines.reduce((n, l) => n + l.cents, 0)).toBe(drawer.totalCents);
+  });
+});
+
 describe('closing a day', () => {
   it('sends the hash and the flavours of the read she was shown, with her count', async () => {
     const h = harness(day2Open('4'.repeat(64)));
