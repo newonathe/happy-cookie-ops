@@ -1038,6 +1038,59 @@ export type Database = {
           },
         ]
       }
+      packaging_rules: {
+        Row: {
+          box_size: number | null
+          container: string
+          id: string
+          item_id: string
+          per: string
+          position: number
+          qty: number
+        }
+        Insert: {
+          box_size?: number | null
+          container: string
+          id?: string
+          item_id: string
+          per: string
+          position: number
+          qty: number
+        }
+        Update: {
+          box_size?: number | null
+          container?: string
+          id?: string
+          item_id?: string
+          per?: string
+          position?: number
+          qty?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "packaging_rules_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      packaging_rules_state: {
+        Row: {
+          id: boolean
+          updated_at: string
+        }
+        Insert: {
+          id?: boolean
+          updated_at: string
+        }
+        Update: {
+          id?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       payment_methods: {
         Row: {
           account_name: string
@@ -1307,6 +1360,7 @@ export type Database = {
           id: string
           item_id: string | null
           item_name: string
+          kind: string
           position: number
           product_id: string
           qty: number
@@ -1316,6 +1370,7 @@ export type Database = {
           id?: string
           item_id?: string | null
           item_name: string
+          kind?: string
           position?: number
           product_id: string
           qty: number
@@ -1325,6 +1380,7 @@ export type Database = {
           id?: string
           item_id?: string | null
           item_name?: string
+          kind?: string
           position?: number
           product_id?: string
           qty?: number
@@ -2141,6 +2197,7 @@ export type Database = {
           updated_at: string
         }[]
       }
+      get_packaging_rules: { Args: never; Returns: Json }
       get_payment_methods: {
         Args: never
         Returns: {
@@ -2368,6 +2425,12 @@ export type Database = {
           updated_at: string
         }[]
       }
+      save_packaging_rules: {
+        Args: { p_expected_updated_at: string; p_rules: Json }
+        Returns: {
+          updated_at: string
+        }[]
+      }
       save_payment_method: {
         Args: { p_expected_updated_at: string; p_id: string; p_method: Json }
         Returns: {
@@ -2392,6 +2455,14 @@ export type Database = {
         }
         Returns: {
           updated_at: string
+        }[]
+      }
+      save_recipe_packaging: {
+        Args: { p_expected_updated_at: string; p_recipe: Json }
+        Returns: {
+          product_id: string
+          updated_at: string
+          version: number
         }[]
       }
       save_scheduled_event: {

@@ -47,6 +47,14 @@ select public.apply_identity_links(public.preview_identity_links() -> 'counts');
 insert into public.orders(id, customer_name, phone) values
   ('C2-ORD-1', 'Pack Me', '09170000001'), ('C2-ORD-EMPTY', 'Nothing', '09170000002');
 insert into public.order_items(order_id, product_id, qty, unit_price_cents) values ('C2-ORD-1', 'c2p1', 13, 10000);
+-- B3b: what a pack and a bazaar sale take is the owner's packaging rules (records), no longer code. The fixture enters the ported rule as
+-- records, so every assertion below is the one it always was: an order's boxes are its own (13 cookies in two boxes of 6, one loose); a
+-- box takes a box, a sticker and a card; a loose cookie takes a pouch and a sticker; a bazaar sale takes a pouch a cookie and a bag.
+insert into public.order_boxes(order_id, size, qty, charge_cents) values ('C2-ORD-1', 6, 2, 0);
+insert into public.packaging_rules(container, box_size, item_id, qty, per, position) values
+  ('box', 6, 'c2i-box', 1, 'container', 0), ('box', 6, 'c2i-sticker', 1, 'container', 1), ('box', 6, 'c2i-card', 1, 'container', 2),
+  ('loose', null, 'c2i-pouch', 1, 'container', 0), ('loose', null, 'c2i-sticker', 1, 'container', 1),
+  ('bazaar_sale', null, 'c2i-pouch', 1, 'cookie', 0), ('bazaar_sale', null, 'c2i-bag', 1, 'container', 1);
 insert into public.events(id, name, starts_at, selling_device, price_snapshot)
 values ('c2e0c105-0000-4000-8000-000000000001', 'C2 stall', now() - interval '1 hour', 'devP', '{"c2p1": 10000}');
 

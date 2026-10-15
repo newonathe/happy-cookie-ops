@@ -206,8 +206,8 @@ end $$;
 create function pg_temp.phase_owner(a text) returns void language plpgsql security invoker as $$
 declare r record; j jsonb; n bigint;
 begin
-  -- the books still default to bought (the flip to used ships with the screen that shows the uncosted list); these cases need used
-  perform pg_temp.assert_ok(a, 'cost_default_basis_is_bought', public.get_books(now() - interval '1 day', now()) ->> 'basis' = 'bought');
+  -- the books default to used (B3b: the screen that shows the uncosted list shipped, DP-04); these cases need used
+  perform pg_temp.assert_ok(a, 'cost_default_basis_is_used', public.get_books(now() - interval '1 day', now()) ->> 'basis' = 'used');
   perform pg_temp.expect(a, 'cost_choose_used', 'select public.set_cost_basis(''used'')', '00000');
 
   -- A, two deliveries: 1000 g for 400 pesos (40 c/g), 400 g used at 40 = 16000; 600 g for 300 pesos with 600 g on hand: the average
@@ -449,7 +449,7 @@ begin
   perform pg_temp.assert_ok(a, 'rc_incomplete_recipe',
     (j ->> 'version')::int = 1 and (j ->> 'yield')::int = 4 and (j ->> 'batch_cents')::numeric = 100 and (j ->> 'per_cookie_cents')::numeric = 25
     and not (j ->> 'complete')::boolean
-    and j -> 'missing' = '[{"name": "K3 R nocost", "why": "no cost"}, {"name": "K3 R ghost", "why": "not a stock item"}, {"name": "K3 R unit", "why": "unit differs"}]'::jsonb);
+    and j -> 'missing' = '[{"name": "K3 R nocost", "why": "no cost", "kind": "ingredient"}, {"name": "K3 R ghost", "why": "not a stock item", "kind": "ingredient"}, {"name": "K3 R unit", "why": "unit differs", "kind": "ingredient"}]'::jsonb);
   perform pg_temp.assert_ok(a, 'rc_lines',
     jsonb_array_length(j -> 'lines') = 4 and j -> 'lines' -> 0 ->> 'name' = 'K3 R costed' and j -> 'lines' -> 0 ->> 'item_id' = 'k3i-rc'
     and (j -> 'lines' -> 0 ->> 'qty')::numeric = 8 and j -> 'lines' -> 0 ->> 'unit' = 'g' and (j -> 'lines' -> 0 ->> 'unit_cost')::numeric = 12.5
@@ -462,7 +462,7 @@ begin
   j := pg_temp.rc('k3p-r3');
   perform pg_temp.assert_ok(a, 'rc_no_costed_line_is_null_not_zero',
     j -> 'batch_cents' = 'null'::jsonb and j -> 'per_cookie_cents' = 'null'::jsonb and not (j ->> 'complete')::boolean
-    and j -> 'missing' = '[{"name": "K3 R nocost", "why": "no cost"}]'::jsonb);
+    and j -> 'missing' = '[{"name": "K3 R nocost", "why": "no cost", "kind": "ingredient"}]'::jsonb);
   perform pg_temp.assert_ok(a, 'rc_one_per_recipe', jsonb_array_length(public.get_recipe_costs()) >= 2
     and (select count(*) from jsonb_array_elements(public.get_recipe_costs()) x where x ->> 'product_id' = 'k3p-r') = 1);
 end $$;

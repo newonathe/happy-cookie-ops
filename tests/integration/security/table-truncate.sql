@@ -117,7 +117,7 @@ truncate table public.audit_log, public.bake_batches, public.drops, public.erasu
   public.ledger_entries, public.order_items, public.orders, public.products, public.profiles,
   public.rate_limits, public.recipe_drafts, public.recipe_ingredients, public.recipes, public.settings,
   public.supplier_prices, public.suppliers, public.event_expenses, public.order_swaps,
-  public.order_extras, public.order_add_ons, public.order_boxes, public.scheduled_events, public.recipe_versions, public.stock_movements, public.production_records, public.stock_cost_corrections, public.item_prices, public.books_settings;
+  public.order_extras, public.order_add_ons, public.order_boxes, public.scheduled_events, public.recipe_versions, public.stock_movements, public.production_records, public.stock_cost_corrections, public.item_prices, public.books_settings, public.packaging_rules, public.packaging_rules_state;
 reset role;
 do $$ declare relation_name text; populated boolean;
 begin
