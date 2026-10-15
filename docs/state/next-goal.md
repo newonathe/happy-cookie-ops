@@ -5,9 +5,11 @@ one block. Where things stand: [current.md](current.md). The plan these come fro
 [final-plan.md](final-plan.md), version 2, section 9, stage B. Earlier goals are in
 [current-history.md](current-history.md).
 
-B3b is built (15 October): packaging as records, the screens read the database's cost, the
-books cost what is used from a cutover. Migrations 60 to 63, none on the trial. Ethan chose
+B3b is built (15 October): packaging as records, and the screens read the database's cost
+(migration 60). The books' "when used" cutover (61 to 63) is built but not to be applied. None is on the trial. Ethan chose
 (15 October) to undo a mistyped delivery as its own small slice, B3c, before B4.
+**First, Ethan decides the books cutover** ([current.md](current.md), Waiting on Ethan): B3c touches the
+average and the books, so it is planned on that decision.
 
 ## B3c — undo a delivery
 
@@ -44,5 +46,5 @@ this block with B4 below. No merge, deploy, release hold or automatic runner.
 Final-plan section 9, B4: each import previewed and approved before it writes: her usual
 prices, recipes (lines by stock item), flavours, photos, newer sales, bookings and her
 per-cookie packaging lines. Model: Opus to plan, Sonnet to build. Ethan decided on 15 October
-that her per-cookie packaging lines go on the trial in the same sitting as migrations 60 to 63,
+that her per-cookie packaging lines go on the trial in the same sitting as migration 60,
 with the bazaar-sale rule cut to the bag only. Write the full block when B3c closes.

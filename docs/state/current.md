@@ -4,7 +4,7 @@ Read this page first in a new session. It is kept short on purpose.
 
 | If you need                                        | Read                                                                                                                                                     |
 | -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| The goal to run next                               | [next-goal.md](next-goal.md) (slice B3b)                                                                                                                 |
+| The goal to run next                               | [next-goal.md](next-goal.md) (B3c, after Ethan's cutover decision below)                                                                                 |
 | The plan, approved 5 October                       | [final-plan.md](final-plan.md), version 2                                                                                                                |
 | The rules every agent follows                      | [AGENTS.md](../../AGENTS.md)                                                                                                                             |
 | Ethan's and Cine's decisions                       | [decision-register.md](decision-register.md)                                                                                                             |
@@ -14,20 +14,21 @@ Read this page first in a new session. It is kept short on purpose.
 | Cine's trial checklist                             | [F2-owner-trial.md](F2-owner-trial.md)                                                                                                                   |
 | Older checkpoints, verbatim                        | [current-history.md](current-history.md)                                                                                                                 |
 
-## Where things stand — 7 October 2026
+## Where things stand — 15 October 2026
 
-**The plan is approved; stage A (A1 to A4) and slices B1, B2 and B3a are built.** Ethan approved
+**The plan is approved; stage A (A1 to A4) and slices B1, B2, B3a and B3b are built.** Ethan approved
 [final-plan.md](final-plan.md), version 2, on 5 October after a re-audit, a debate and
 wider research. It replaces finish-plan.md as the forward plan. The Bazaar defect B1 found is
-fixed (below). The next step is slice B3b.
+fixed (below). Next: Ethan's decision on the books cutover (below), then slice B3c.
 
-**B3a, 7 October:** the database half of B3, four migrations (56 to 59), **none on the trial**.
-Recipe lines and supplier prices point at their stock item by id, after a step that is previewed
-and counted; one cost function (average, else her usual price, else best quote per unit, else
-unknown) stamps every use; a shortfall is costed; a recorded batch can be corrected. No client
-code changed. What it did with each finding: [system-audit.md](system-audit.md), section 10.
+**B3b, 15 October** (branch `claude/b3b-packaging-costs`, migrations 60 to 63, **none on the trial**):
+packaging is records (her per-cookie lines, a rule per container, a Packaging form; no item name in SQL;
+a bazaar sale writes the same rows as today, `record_event_sale` untouched); the screens read the
+database's cost and say "Cost pending", never zero; a database without the functions keeps today's path.
+**Migration 60 is accepted. 61 to 63 (books "when used" with a cutover) are NOT to be applied:** the
+review found three money errors left in the cutover (a recount, price drift, a correction with newer stock).
 
-Stage A and slices B1 and B2, as each was recorded when it closed, are in [current-history.md](current-history.md), the section moved on 7 October.
+Stage A and slices B1, B2 and B3a, as each was recorded when it closed, are in [current-history.md](current-history.md).
 
 **Package:** F2, the owner trial, stays open but does not start until everything in the
 plan is built (Ethan, 5 October). F3 (launch) stays closed until Cine accepts a real week.
@@ -66,10 +67,8 @@ Found by reading code or the trial, not by running. Each has a slice in the plan
 | Bazaar Mode offers a fixed list of wallets; Home's "Drop 32" starts from the engine's number.                | C7, C3 |
 | An empty menu cannot get its first flavour (the trial has 26, so nobody meets it).                           | B6     |
 | Almost every cost per cookie is unknown: 8 of 72 items have a price, no costed delivery, no measured recipe. | B4     |
-| The screens still work out cost in the engine; the database's one cost function is not shown anywhere yet.   | B3b    |
-| The cost basis is "when bought"; "when used" was decided. It moves with the screen that shows uncosted uses. | B3b    |
-| Packaging item names are still written in `record_pack`, `record_sale_packaging` and the completeness check. | B3b    |
-| A mistyped delivery quantity cannot be undone, and under a running average it lingers. Needs a decision.     | Ethan  |
+| The books stay "when bought" on the trial: the "when used" cutover (61 to 63) still misstates three cases.   | Ethan  |
+| A mistyped delivery quantity cannot be undone, and under a running average it lingers.                       | B3c    |
 | Every page, the shop included, loads the whole staff app.                                                    | C8     |
 
 ### Decisions in force
@@ -104,9 +103,13 @@ All in [decision-register.md](decision-register.md), the section for 5 October.
   owner again. A recipe line still listed as unmatched takes no stock when baked: fix it in
   Recipes before baking. `python scripts/test-b3a-upgrade.py` rehearses steps 2 to 4 on the
   local database.
-- **Decide, for B3b:** whether today's packaging rule (a pouch per cookie, a bag per bazaar
-  sale) is entered by hand or seeded as an unconfirmed default; when her per-cookie packaging
-  lines may reach the trial; and how a mistyped delivery quantity is undone.
+- **Decide the books cutover (B3b review, 15 October):** stock on hand when "when used" starts was
+  already expensed. Either (1) a cutover by value (each item's quantity times its cost then, drawn
+  at each use's cost; one more database slice, recommended), or (2) accept a bounded error and record
+  it in the decision register. Until then apply only migrations 56 to 60; the books stay "when bought".
+- **At the migration sitting (after 27 October):** apply 56 to 60, then in Business tools, Packaging,
+  enter the container rules (bazaar sale: the bag only) and her per-cookie lines before any sale or
+  packing: with no rule, nothing is taken and each record says "no packaging rule" (Ethan, 15 Oct).
 - A1 is built (the release check takes two to six addresses; Cine is not added yet). Add her
   two addresses to Cloudflare Access and the approved-digest variable in one sitting, or the
   next deploy fails. Set the session to one week: that deploy then fails once and prints the

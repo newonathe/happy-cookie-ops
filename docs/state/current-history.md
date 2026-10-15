@@ -59,6 +59,14 @@ same day, at Ethan's instruction ("migrate everything").
 The status page as it stood at the end of 5 October, before it was rewritten around the
 approved plan ([final-plan.md](final-plan.md), version 2).
 
+## B3a, as recorded when it closed (moved 15 October)
+
+**B3a, 7 October:** the database half of B3, four migrations (56 to 59), **none on the trial**.
+Recipe lines and supplier prices point at their stock item by id, after a step that is previewed
+and counted; one cost function (average, else her usual price, else best quote per unit, else
+unknown) stamps every use; a shortfall is costed; a recorded batch can be corrected. No client
+code changed. What it did with each finding: [system-audit.md](system-audit.md), section 10.
+
 ## Where things stand — 5 October 2026
 
 > **Change of direction, 5 October (Ethan):** Cine's updated workbook, recipe document and
