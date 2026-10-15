@@ -201,6 +201,20 @@ D0 ─▶ U1 ─┬▶ U2 ─┬▶ U3 ─┐
 - The "Bazaar events" sub-tab (`src/lib/nav/function-map.ts:65`) points at this hub.
 - **Motion:** the sheet rises (`--animate-sheet`); a new event card enters with a rise and highlight; chip switches cross-fade through the view-transition hook.
 
+#### U3 as built (15 October; branch `claude/bazaar-v2-u3`, cut from `-u2`)
+
+Interface only, no migration. Files: `event-list.tsx` (the hub), `event-form.tsx` (the sheet), and the pure `src/lib/bazaar/hub.ts` and `event-form.ts`; `bazaar-days.ts` gained `readHub` and `addEvent`; `dayRange` sits beside `dayText`.
+
+- **Where a booking is drawn** (`hubPlace`): Active when a day of it is open or started, or today is inside its dates; Upcoming when it is still ahead; Past once it has ended or been closed. A switched-off booking is not listed.
+- **The list cannot say "closed", and `started` is no help.** `get_scheduled_events` returns only `active` and `started`, and `started` belongs to the old one-tap start: the Ateneo test (days started, closed, dates still ahead) says `started: false`. So every switched-on booking that is not over is read once with `get_bazaar` when the hub opens (one parallel read each; none offline; the last answer stays while a new one is out): a day open gives **Selling**; a closed event goes under Past as **Closed** (or **Cost pending** when the booked profit was unknown); days started and none open is under way (**Today**, or **Planned** if its dates are ahead); nothing started is placed by its dates. Until the read comes, or if it fails or there is no signal, a row is placed by its dates and claims nothing more (a placeholder pill; an Active card says "so it may already be closed"). A booking that is over is Past with no read. Active cards show today's takings and cookies sold only from a read, never a ₱0.00 for an unknown.
+- **Add an event** (top right, dark): a single-event `Sheet`: name, place, first and last day (the last follows the first), stall rent (commas accepted). Nothing pre-filled that is a decision. Errors as rule 7 (summary with links, red fields, validated on blur and submit). It sends `save_scheduled_event` with no stamp and the sheet's own id, kept until it closes; whatever the answer, the bookings are read again, and an event that is now listed counts as saved. On success the sheet closes, the chip returns to Upcoming and the new row carries the ring. Disabled with its reason while offline or before the events are read.
+- **Sub-tab:** "Bazaar events" now opens the hub (`openBazaarEvents`: reset, go to Bazaar, read the bookings) and is the entry the strip marks there (the strip is drawn only while no event is on the phone). `function-map.ts` gives it `screen: 'bazaar'`, as "Backups & export" shares System health.
+- **Editing stays reachable:** until U4 puts editing on the event page, the hub ends with a quiet "Edit or switch off events" that opens the old multi-row form (`liveBazaar.add`).
+- **Dates** in the hub are `dayRange` ("Sat, 24 Oct – Sun, 25 Oct"); Home's next-event card uses it too. `dateRange` (US order) stays for the event page, which U4 rebuilds.
+- **Known, left for U4:** Home's next-event card (`nextEvent`, U2) still uses `upcomingEvents`, which filters on `started`. That flag is never set by bazaar days, so a closed event whose dates are still ahead (the Ateneo test) can show on Home as the next event. The hub does not have this flaw; Home should take its next event from the same read (`hubPlace`) or from the hub's list.
+- **Reduced motion, left for U9:** the D0 table's "ring shown 1 s, no movement" for the new row is not built; the global reduced-motion rule removes the ring.
+- Tests: `bazaar-hub.test.ts` (rules, validator against `scheduledEventError`), `bazaar-hub-store.test.ts`, `bazaar-hub-screen.test.tsx`; a smoke step adds an event through the sheet and reads the row back.
+
 ### U4: event page and day plan (Sonnet; interface)
 
 - **Event page:**
@@ -259,6 +273,7 @@ Migration 70 is `20260101006900_flavour_cost_closing_reversal.sql` (its header c
 - A7: no packaging record when there is no bazaar-sale rule. Flavour cost: `flavour_costs`, `save_flavour_cost`, `get_flavour_costs`; the recipe book (U7) is its screen.
 
 **U6 review (Opus, read-only, 15 October): safe to merge after two fixes, not yet applied.** Hand-worked numbers all check out (Y reversal 13,200 / −54,000 / −40,800, stock 280 / 4 / 12 / 1; W cost 5,000, profit 8,000).
+
 - Medium: in `reverse_bazaar_test`, move `pg_advisory_xact_lock('stock_catalogue:items')` and `lock_stock_item_ids(v_items)` above the `rev-counted` check. A count committing between the check and the locks would be raised by the restored stock.
 - Low: in `finalise_bazaar`, make the `fin-final-sum` check NULL-safe (`is distinct from`, or `coalesce(…, -1)`), so a missing part cannot pass and write NULL into `to_shop_qty` and `written_off_qty` if `fin-final-flavours` were ever skipped.
 - Add role-suite cases: reversing a booking with a short drawer, and one with an old-format over (kind `sale`, category `Bazaar`). Cosmetic: the engine's P&L may show 'Cash variance' as a negative expense after an over.

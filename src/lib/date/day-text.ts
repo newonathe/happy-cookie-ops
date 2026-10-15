@@ -34,3 +34,10 @@ export function dayText(ymd: string, now: Date = new Date()): string {
   const text = `${WEEKDAYS[date.getUTCDay()]}, ${day} ${MONTHS[month - 1]}`;
   return year === now.getFullYear() ? text : `${text} ${year}`;
 }
+
+/** `Sat, 24 Oct` for one day, `Sat, 24 Oct – Sun, 25 Oct` for a run of days (each end written by `dayText`). */
+export function dayRange(startsOn: string, endsOn: string, now: Date = new Date()): string {
+  return startsOn === endsOn
+    ? dayText(startsOn, now)
+    : `${dayText(startsOn, now)} – ${dayText(endsOn, now)}`;
+}

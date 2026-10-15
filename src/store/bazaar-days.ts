@@ -17,7 +17,22 @@ import {
   type BazaarSummary,
   type TillFigures
 } from '@/lib/data/bazaar-days';
-import { dateRange, upcomingEvents, type ScheduledEvent } from '@/lib/data/scheduled-events';
+import {
+  dateRange,
+  saveScheduledEvent,
+  upcomingEvents,
+  type ScheduledEvent
+} from '@/lib/data/scheduled-events';
+import { dayRange } from '@/lib/date/day-text';
+import { validateEventForm, type EventFormInput } from '@/lib/bazaar/event-form';
+import {
+  hubFactsOf,
+  hubNeedsRead,
+  hubOrder,
+  hubPlace,
+  type HubFacts,
+  type HubRead
+} from '@/lib/bazaar/hub';
 import type {
   BazaarDayRow,
   BazaarEventView,
@@ -107,6 +122,8 @@ export interface BazaarDaysDeps {
   now: () => number;
   newId: () => string;
   openAdd: () => void;
+  /** U3: reads the owner's bookings again (after one was added). Whether the read worked. */
+  refreshBookings: () => Promise<boolean>;
 }
 
 const WORD: Record<BazaarDay['state'], DayWord> = {
@@ -141,6 +158,12 @@ const COPY = {
   refused: 'The plan could not be saved. Check the cookies, the prices and the float.',
   offline: 'Planning needs signal. Try again when you are back online.',
   needSignal: 'Needs signal',
+  eventAdded: 'Event added.',
+  eventOffline: 'Adding an event needs signal. Try again when you are back online.',
+  eventRefused:
+    'The event could not be saved. Check the name, the dates (at most 15 days) and the rent.',
+  eventConflict:
+    'That event may already be saved, or changed somewhere else. The list has been read again: check it before adding it again.',
   noStock: 'Plan some cookies first',
   anotherOpen: 'Close the day that is still open first',
   holding: 'This phone is already selling an event',
@@ -234,11 +257,16 @@ export class BazaarDays {
    * it lets the booking go again, so the list is what is drawn once the day has gone.
    */
   private tillPanel: 'fees' | 'cookies' | null = null;
+  /** U3: what the last read of each booking that is not over said, and which reads are out or failed. Screen state only. */
+  private hubFacts = new Map<string, HubFacts>();
+  private hubState = new Map<string, 'reading' | 'failed'>();
+  private justAdded: string | null = null;
 
   constructor(private readonly deps: BazaarDaysDeps) {}
 
   /** The owner's way out of every view: back to the list, nothing kept. */
   reset(): void {
+    this.justAdded = null;
     this.bookingId = null;
     this.data = null;
     this.editing = null;
@@ -249,6 +277,7 @@ export class BazaarDays {
   }
 
   open(bookingId: string): void {
+    this.justAdded = null;
     this.bookingId = bookingId;
     this.data = null;
     this.editing = null;
@@ -329,13 +358,7 @@ export class BazaarDays {
       online: this.deps.online(),
       eventsRead: this.deps.bookingsRead(),
       state: this.bookingId && !this.data ? this.reading : 'read',
-      list: upcomingEvents(this.deps.bookings(), this.deps.today()).map((b) => ({
-        id: b.id,
-        name: b.name,
-        datesText: dateRange(b.startsOn, b.endsOn),
-        placeText: b.place || 'No place set',
-        open: () => this.open(b.id)
-      })),
+      list: this.hubList(),
       event,
       editor: event && this.editing ? this.editorView(booking!, this.data!) : null,
       reviewing: this.reviewing !== null,
@@ -343,9 +366,118 @@ export class BazaarDays {
       tillPanel: this.tillPanelView(),
       closeReview: this.leaveReview,
       add: () => this.deps.openAdd(),
+      readHub: () => void this.readHub(),
+      addEvent: (input) => this.addEvent(input),
+      justAdded: this.justAdded,
       retry: () => (this.bookingId ? void this.reload() : this.deps.rerender()),
       back: this.back
     };
+  }
+
+  /** U3: every switched-on booking with its group and pill, active first, then upcoming, then past. */
+  private hubList(): LiveBazaarVals['list'] {
+    const today = this.deps.today();
+    const now = new Date(this.deps.now());
+    const online = this.deps.online();
+    const placed = this.deps.bookings().flatMap((b) => {
+      // A booking nobody has asked about yet is "reading" only while a read can still come.
+      const read: HubRead =
+        this.hubFacts.get(b.id) ?? this.hubState.get(b.id) ?? (online ? undefined : 'failed');
+      const place = hubPlace(b, today, read);
+      return place ? [{ b, place, read }] : [];
+    });
+    const rank = { active: 0, upcoming: 1, past: 2 } as const;
+    placed.sort(
+      (x, y) => rank[x.place.group] - rank[y.place.group] || hubOrder(x.place.group, x.b, y.b)
+    );
+    return placed.map(({ b, place, read }) => {
+      const facts = typeof read === 'object' ? read : null;
+      return {
+        id: b.id,
+        name: b.name,
+        datesText: dayRange(b.startsOn, b.endsOn, now),
+        placeText: b.place || 'No place set',
+        open: () => this.open(b.id),
+        group: place.group,
+        status: place.status,
+        reading: place.reading,
+        whenText: place.group === 'past' ? null : eventWhen(b.startsOn, b.endsOn, today),
+        figures:
+          place.group === 'active' && facts?.today
+            ? {
+                revenueText: peso(facts.today.revenueCents),
+                soldText: facts.today.sold + ' sold'
+              }
+            : null,
+        note:
+          read === 'failed' && place.group === 'active'
+            ? 'Its figures could not be read, so it may already be closed.'
+            : null
+      };
+    });
+  }
+
+  /**
+   * U3: reads each switched-on booking that is not over, so the hub can say which are selling and which are closed (the
+   * bookings list cannot: see `hub.ts`). The last answer stays on screen while a new one is out. With no signal nothing is
+   * asked, and those bookings are placed by their dates, without a status they cannot prove.
+   */
+  async readHub(): Promise<void> {
+    const client = this.deps.client();
+    const today = this.deps.today();
+    const wanted = this.deps.bookings().filter((b) => hubNeedsRead(b, today));
+    if (!client || !this.deps.online()) {
+      for (const b of wanted) if (!this.hubFacts.has(b.id)) this.hubState.set(b.id, 'failed');
+      this.deps.rerender();
+      return;
+    }
+    const asked = wanted.filter((b) => this.hubState.get(b.id) !== 'reading');
+    for (const b of asked) this.hubState.set(b.id, 'reading');
+    if (asked.length === 0) return;
+    this.deps.rerender();
+    await Promise.all(
+      asked.map(async (b) => {
+        try {
+          this.hubFacts.set(b.id, hubFactsOf(await fetchBazaar(client, b.id), today));
+          this.hubState.delete(b.id);
+        } catch {
+          // The last answer, if there was one, still stands.
+          this.hubState.set(b.id, 'failed');
+        }
+      })
+    );
+    this.deps.rerender();
+  }
+
+  /**
+   * U3: adds one event. The id is the sheet's own, kept while it is open, so a retry after a lost reply is the same event.
+   * Whatever the answer, the bookings are read again: an event that is now listed was saved, whatever the reply said.
+   */
+  async addEvent(input: EventFormInput): Promise<string | null> {
+    const checked = validateEventForm(input, new Date(this.deps.now()));
+    if (!checked.ok) return checked.errors[0]?.message ?? COPY.eventRefused;
+    const client = this.deps.client();
+    if (!client || !this.deps.online()) return COPY.eventOffline;
+    const outcome = await saveScheduledEvent(client, checked.fields, null);
+    await this.deps.refreshBookings();
+    const listed = this.deps.bookings().some((b) => b.id === checked.fields.id);
+    if (outcome !== 'saved' && !listed) {
+      if (outcome === 'conflict') return COPY.eventConflict;
+      return outcome === 'refused' ? COPY.eventRefused : COPY.eventOffline;
+    }
+    // An event that was just created has no day and is not closed: that is known without a read, so its row is placed at once.
+    this.hubFacts.set(checked.fields.id, {
+      finalised: false,
+      sellingNow: false,
+      dayStarted: false,
+      costPending: false,
+      today: null
+    });
+    this.hubState.delete(checked.fields.id);
+    this.justAdded = checked.fields.id;
+    this.deps.toast(COPY.eventAdded);
+    this.deps.rerender();
+    return null;
   }
 
   /** U2: opens the fee form or the add-cookies form over the till. Needs signal, and a day this phone is selling. */
@@ -435,7 +567,7 @@ export class BazaarDays {
     if (!b) return null;
     return {
       name: b.name,
-      datesText: dateRange(b.startsOn, b.endsOn),
+      datesText: dayRange(b.startsOn, b.endsOn, new Date(this.deps.now())),
       whenText: eventWhen(b.startsOn, b.endsOn, today),
       open: () => this.open(b.id)
     };

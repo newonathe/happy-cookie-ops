@@ -792,7 +792,8 @@ export class OpsRuntime extends OpsProvider {
     toast: (text, kind) => this.toast(text, kind),
     today: () => manilaToday(),
     newId: () => crypto.randomUUID(),
-    openAdd: () => void this.openScheduled()
+    openAdd: () => void this.openScheduled(),
+    refreshBookings: () => this.loadScheduledEvents(null)
   });
   /** U2: the day whose "Show sold out (n)" is on. Screen state only: never saved, and any other day starts hidden. */
   private tillShowSoldOut: string | null = null;
@@ -2952,6 +2953,14 @@ export class OpsRuntime extends OpsProvider {
       else this.toast(SCHEDULED_COPY.rentBooked(peso(rentCents)));
     });
   }
+
+  /** U3: the "Bazaar events" sub-tab opens the events hub: the list of bookings, not an event's page, and not the form. */
+  private openBazaarEvents = (): void => {
+    this.bazaarDays.reset();
+    this.go('bazaar');
+    this.forceUpdate();
+    void this.loadScheduledEvents(null);
+  };
 
   private openScheduled = async (): Promise<void> => {
     if (!(await this.loadScheduledEvents(null)) || !this.scheduledRows) {
@@ -5235,9 +5244,9 @@ export class OpsRuntime extends OpsProvider {
               {
                 icon: this.IC.cookie,
                 label: SCHEDULED_COPY.title,
-                sub: 'Your upcoming bazaars: dates, place and stall rent',
+                sub: 'Your bazaars: on now, coming up and past',
                 badge: null,
-                go: () => void this.openScheduled()
+                go: () => this.openBazaarEvents()
               },
               {
                 icon: this.IC.cookie,
@@ -5405,7 +5414,12 @@ export class OpsRuntime extends OpsProvider {
       ...placesOf(tab.id),
       ...(tab.id === 'home' ? PLACES.filter((item) => item.home === 'account') : [])
     ];
-    const opened = place.entries.find((entry) => entry.screen === screen);
+    // Bazaar Mode and Bazaar events open the same screen, and this strip is drawn only while no event is on the phone,
+    // where that screen is the events hub (U3): that is the entry to mark.
+    const opened =
+      place.id === 'bazaar'
+        ? place.entries.find((entry) => entry.label === 'Bazaar events')
+        : place.entries.find((entry) => entry.screen === screen);
     return {
       label: tab.label,
       places: row.map((item) => {

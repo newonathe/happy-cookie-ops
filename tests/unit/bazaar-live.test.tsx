@@ -239,7 +239,8 @@ describe('S2: with no event on the phone', () => {
     expect(runtime).not.toBe(ref.current);
     expect(screen.getByText('Reading your events…')).toBeTruthy();
     expect(screen.queryByText(/No upcoming events yet/)).toBeNull();
-    expect(screen.queryByRole('button', { name: 'Add an event' })).toBeNull();
+    // The button is there but cannot be pressed until the read is in.
+    expect(screen.getByRole('button', { name: 'Add an event' }).hasAttribute('disabled')).toBe(true);
     act(() => ref.current!.setState({ online: false }));
     expect(screen.getByText(/need signal to load/)).toBeTruthy();
     // Mutation: "No upcoming events yet" before the read lets her add a booking that is already there.
