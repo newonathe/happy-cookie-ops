@@ -103,6 +103,19 @@ describe('validatePlan returns {field, message}[] keyed by the inputs', () => {
     expect(r.ok).toBe(false);
   });
 
+  it('points at the first flavour on the menu, not one hidden under More flavours, and refuses an empty list', () => {
+    const r = validatePlan({
+      floatPesos: '',
+      flavours: [flavour({ id: 'off', onMenu: false }), flavour({ id: 'on' })]
+    });
+    expect(r).toMatchObject({ ok: false, errors: [{ field: 'plan-made-on' }] });
+    const none = validatePlan({ floatPesos: '', flavours: [] });
+    expect(none).toMatchObject({
+      ok: false,
+      errors: [{ message: 'Put at least one cookie on the table to plan this day.' }]
+    });
+  });
+
   it('a valid plan is whole centavos and whole cookies', () => {
     const r = validatePlan({
       floatPesos: '500.50',

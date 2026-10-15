@@ -824,7 +824,7 @@ describe('U4: the event page asks what the books need before it closes, and star
     expect(h.calls('save_flavour_cost')).toHaveLength(0);
     expect(h.calls('finalise_bazaar')).toHaveLength(0);
     // The cost changes the summary: the database answers the next read with a new hash, and the close is given that one.
-    const fresh = costPending();
+    const fresh = clone();
     fresh.summary.hash = 'f'.repeat(64);
     h.answer(fresh);
     const reads = h.calls('get_bazaar').length;
@@ -832,6 +832,19 @@ describe('U4: the event page asks what the books need before it closes, and star
     expect(h.calls('save_flavour_cost')).toEqual([{ p_product: 'mp0s-b', p_cents: 1250 }]);
     expect(h.calls('get_bazaar').length).toBeGreaterThan(reads);
     expect(h.calls('finalise_bazaar')[0]!.p_expected).toBe('f'.repeat(64));
+  });
+
+  it('A5: stops when a saved cost is still missing from the fresh summary, and closes nothing', async () => {
+    const { h, event } = await open(costPending());
+    // The fresh read still has no cost for B: the event must not close with a profit she asked to give.
+    const fresh = costPending();
+    fresh.summary.hash = 'e'.repeat(64);
+    h.answer(fresh);
+    expect(await event.finalise!.run({ ...NO_CHOICES, costs: { 'mp0s-b': '12.5' } })).toMatch(
+      /still has no cost for B/
+    );
+    expect(h.calls('save_flavour_cost')).toHaveLength(1);
+    expect(h.calls('finalise_bazaar')).toHaveLength(0);
   });
 
   it('A5: closing without cost saves nothing', async () => {
