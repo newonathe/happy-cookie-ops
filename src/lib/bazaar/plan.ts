@@ -117,12 +117,14 @@ export function validatePlan(input: {
       priceCents: pesosToCentavos(Number(price))
     });
   }
-  const first = input.flavours[0];
-  if (errors.length === 0 && lines.length === 0 && first)
+  if (errors.length === 0 && lines.length === 0) {
+    // Point at the first flavour on the menu (the first tile she sees), not at one hidden under "More flavours".
+    const first = input.flavours.find((f) => f.onMenu) ?? input.flavours[0];
     errors.push({
-      field: planIds.made(first.id),
+      field: first ? planIds.made(first.id) : planIds.float,
       message: 'Put at least one cookie on the table to plan this day.'
     });
+  }
   const head = errors[0];
   if (head) return { ok: false, error: head.message, errors };
   return { ok: true, plan: { floatCents: pesosToCentavos(floatPesos), lines } };
@@ -172,7 +174,8 @@ export function menuFirst(flavours: readonly PlanFlavour[]): { main: string[]; m
   const main: string[] = [];
   const more: string[] = [];
   for (const f of flavours) {
-    const onTable = (COUNT.test(f.made.trim()) && Number(f.made) > 0) ||
+    const onTable =
+      (COUNT.test(f.made.trim()) && Number(f.made) > 0) ||
       (COUNT.test(f.carried.trim()) && Number(f.carried) > 0);
     (f.onMenu || onTable ? main : more).push(f.id);
   }

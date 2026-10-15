@@ -311,3 +311,64 @@ describe('adding one event', () => {
     // Mutation: trusting the reply alone leaves the sheet open on an event that was saved, and she saves it twice.
   });
 });
+
+describe("Home's next-event card (U4)", () => {
+  it('offers the event under way or the next one, placed by its dates until it is read', () => {
+    const h = harness(
+      [
+        row({ id: 'p', name: 'Earlier', startsOn: '2026-09-01', endsOn: '2026-09-02' }),
+        row({
+          id: 'u',
+          name: 'Later',
+          startsOn: '2026-12-12',
+          endsOn: '2026-12-13',
+          started: false
+        })
+      ],
+      'throw'
+    );
+    h.state.online = false;
+    expect(h.store.nextEvent()).toMatchObject({ name: 'Later', whenText: 'In 49 days' });
+  });
+
+  it('never offers a closed event whose dates are still ahead, which the booking list alone cannot tell', async () => {
+    // The booking list says started: false for an event whose days were started and closed (the Ateneo test).
+    const h = harness(
+      [
+        row({
+          id: 'b0d0b000-0000-4000-8000-0000000000a1',
+          name: 'Closed ahead',
+          startsOn: '2026-10-30',
+          endsOn: '2026-10-31',
+          started: false
+        }),
+        row({
+          id: 'b0d0b000-0000-4000-8000-0000000000a2',
+          name: 'Next real',
+          startsOn: '2026-11-05',
+          endsOn: '2026-11-06',
+          started: false
+        })
+      ],
+      closed()
+    );
+    // Before the read both are placed by their dates, and the first is offered.
+    expect(h.store.nextEvent()?.name).toBe('Closed ahead');
+    await h.store.readHub();
+    await settle();
+    // Both reads answer "closed" here, so nothing is offered; one that is not closed is.
+    expect(h.store.nextEvent()).toBeNull();
+    h.state.answer = clone();
+    h.state.answer.summary.days = [];
+    await h.store.readHub();
+    await settle();
+    expect(h.store.nextEvent()?.name).toBe('Closed ahead');
+    // Mutation: filtering the booking list on `started` offers the closed event on Home.
+  });
+
+  it('offers nothing before the bookings are read', () => {
+    const h = harness([row()], 'throw');
+    (h.store as unknown as { deps: BazaarDaysDeps }).deps.bookingsRead = () => false;
+    expect(h.store.nextEvent()).toBeNull();
+  });
+});

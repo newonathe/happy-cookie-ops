@@ -30,8 +30,11 @@ export function useIssues(validate: () => FieldIssue[]) {
     onPointerDownCapture: (event: PointerEvent) => {
       if ((event.target as HTMLElement).closest('button')) pressing.current = true;
     },
-    onPointerUpCapture: () => void setTimeout(() => (pressing.current = false), 0),
-    onPointerCancelCapture: () => (pressing.current = false)
+    // On touch the browser's own mouse events (which move focus and so blur the field) arrive after the finger is up: the flag
+    // is cleared by the click that follows, with a timeout as the safety if no click comes (a press dragged away).
+    onClickCapture: () => void (pressing.current = false),
+    onPointerUpCapture: () => void setTimeout(() => (pressing.current = false), 600),
+    onPointerCancelCapture: () => void (pressing.current = false)
   };
   /** Checks one field when she leaves it. */
   const blur = (field: string) => {

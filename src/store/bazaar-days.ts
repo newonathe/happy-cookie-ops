@@ -18,10 +18,7 @@ import {
   type BazaarSummary,
   type TillFigures
 } from '@/lib/data/bazaar-days';
-import {
-  saveScheduledEvent,
-  type ScheduledEvent
-} from '@/lib/data/scheduled-events';
+import { saveScheduledEvent, type ScheduledEvent } from '@/lib/data/scheduled-events';
 import { dayRange, dayText as dayWords } from '@/lib/date/day-text';
 import { validateEventForm, type EventFormInput } from '@/lib/bazaar/event-form';
 import {
@@ -629,7 +626,9 @@ export class BazaarDays {
     const started = data.days.some((d) => d.state !== 'planned');
     const online = this.deps.online();
     const names = this.names();
-    const dayText = new Map(data.days.map((d) => [d.id, dayRange(d.day, d.day, new Date(this.deps.now()))]));
+    const dayText = new Map(
+      data.days.map((d) => [d.id, dayRange(d.day, d.day, new Date(this.deps.now()))])
+    );
     // A closed event shows what was booked; if rows changed afterwards it says so.
     const shown = data.finalSummary ?? data;
     const notices: string[] = [];
@@ -645,7 +644,9 @@ export class BazaarDays {
       datesText: dayRange(data.booking.startsOn, data.booking.endsOn, new Date(this.deps.now())),
       rentText: 'Stall rent ' + peso(data.booking.rentCents),
       rentCents: data.booking.rentCents,
-      status: hubPlace(booking, this.deps.today(), hubFactsOf(data, this.deps.today()))?.status ?? 'planned',
+      status:
+        hubPlace(booking, this.deps.today(), hubFactsOf(data, this.deps.today()))?.status ??
+        'planned',
       soldCount: shown.days.reduce((n, d) => n + d.lines.reduce((m, l) => m + l.sold, 0), 0),
       profitCents: shown.profit.cents,
       targetCents: data.targetCents,
@@ -767,7 +768,10 @@ export class BazaarDays {
               valueText: pesoUnit(recipe.ingredientPerCookie * 100)
             });
           if (recipe.packagingPerCookie !== null && recipe.packagingPerCookie > 0)
-            lines.push({ label: 'Packaging', valueText: pesoUnit(recipe.packagingPerCookie * 100) });
+            lines.push({
+              label: 'Packaging',
+              valueText: pesoUnit(recipe.packagingPerCookie * 100)
+            });
           lines.push({ label: 'Recipe cost per cookie', valueText: pesoUnit(recipeCents) });
           breakdown = lines;
           if (!usingRecipe) breakdownNote = "For comparison: the recipe's cost today.";
@@ -791,10 +795,7 @@ export class BazaarDays {
   private finaliseAsks(
     data: Bazaar,
     names: ReadonlyMap<string, string>
-  ): Pick<
-    NonNullable<BazaarEventView['finalise']>,
-    'stranded' | 'strandedFor' | 'costPending'
-  > {
+  ): Pick<NonNullable<BazaarEventView['finalise']>, 'stranded' | 'strandedFor' | 'costPending'> {
     const nameOf = (id: string, fallback: string) => names.get(id) ?? fallback;
     const stranded = strandedRowsOf(
       data.stranded,
@@ -944,7 +945,10 @@ export class BazaarDays {
       floatPesos: !own && before ? pesoInput(before.floatCents) : form.floatPesos,
       flavours: form.flavours,
       showCarried: !!before,
-      copy: before && copy ? { ...copy, dateText: dayRange(before.day, before.day, new Date(this.deps.now())) } : null,
+      copy:
+        before && copy
+          ? { ...copy, dateText: dayRange(before.day, before.day, new Date(this.deps.now())) }
+          : null,
       carryIn: this.carryIn(data, editing.ymd),
       save: (input) => this.save(booking, input),
       back: () => {
@@ -1454,8 +1458,17 @@ export class BazaarDays {
         this.data = fresh;
         this.deps.rerender();
         // What was asked may have changed with the read: the split is checked again against it.
+        const asks2 = this.finaliseAsks(fresh, names);
+        // A cost that was saved but is not in the fresh summary would close the event with no profit after she chose to
+        // give one: stop and say so.
+        if (asks2.costPending.length > 0)
+          return (
+            'The cost was saved, but the event still has no cost for ' +
+            asks2.costPending.map((p) => p.name).join(', ') +
+            '. Check it on the event page, or close without cost.'
+          );
         const again = validateFinalise({
-          ...this.finaliseAsks(fresh, names),
+          ...asks2,
           value: { ...input, withoutCost: true }
         });
         if (!again.ok) return again.errors[0]?.message ?? COPY.finaliseRefused;

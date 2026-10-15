@@ -240,6 +240,7 @@ try {
   browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({
     viewport: { width: 390, height: 844 },
+    hasTouch: true,
     timezoneId: 'Asia/Manila',
     serviceWorkers: 'allow'
   });
@@ -583,6 +584,53 @@ try {
     }
   );
 
+  /** U5: the close form's steppers. The number is read from the button that opens it for typing, and set by typing it. */
+  const stepperOf = (scope, name) => scope.getByRole('group', { name, exact: true });
+  const stepperValue = async (scope, name) =>
+    (
+      await stepperOf(scope, name)
+        .getByRole('button', { name: /Tap to type a number/ })
+        .innerText()
+    ).trim();
+  const setStepper = async (scope, name, value) => {
+    const group = stepperOf(scope, name);
+    await group.getByRole('button', { name: /Tap to type a number/ }).click();
+    const input = group.getByRole('textbox', { name, exact: true });
+    await input.fill(String(value));
+    await input.press('Enter');
+  };
+
+  /**
+   * For a look in the browser pane (U4): with SMOKE_PAUSE_EVENT_FILE set and SMOKE_PAUSE_EVENT_AT naming this point
+   * ("closed": the event page with day 1 closed, before its forms are used; "planned": day 2 planned, with its fees, target
+   * and costs), the run waits (up to 30 minutes), writes the address and sign-in to that file, and goes on when the file is
+   * deleted. Do not close the event from the pane: day 1 set cookies aside, so it would ask where they go.
+   */
+  const pauseForPane = async (at) => {
+    const file = process.env.SMOKE_PAUSE_EVENT_FILE;
+    if (!file || process.env.SMOKE_PAUSE_EVENT_AT !== at) return;
+    writeFileSync(file, JSON.stringify({ base, email: owner.email, secret }));
+    for (let i = 0; i < 360 && existsSync(file); i++) await page.waitForTimeout(5000);
+    if (existsSync(file)) unlinkSync(file);
+  };
+  /** U5: with SMOKE_SHOTS set, the screen at 375 and 1440 px (full page), for the visual check beside the approved mockups. */
+  const paneShots = async (name, scrollTo = null) => {
+    if (!process.env.SMOKE_SHOTS) return;
+    for (const [w, h] of [
+      [375, 812],
+      [1440, 900]
+    ]) {
+      await page.setViewportSize({ width: w, height: h });
+      if (scrollTo) await page.locator(scrollTo).scrollIntoViewIfNeeded();
+      await page.waitForTimeout(700);
+      await page.screenshot({
+        path: `${process.env.SMOKE_SHOTS}/${name}-${w}.png`,
+        fullPage: true
+      });
+    }
+    await page.setViewportSize({ width: 390, height: 844 });
+  };
+
   await step(
     'Bazaar: day 1 is planned, started at its own price and stock, and one sale goes through',
     async () => {
@@ -598,21 +646,30 @@ try {
       await page.getByRole('heading', { level: 1, name: BOOKING_NAME }).waitFor();
       await check(page, 'Bazaar event page', 'Bazaar');
       // Day 1 is today: the first date still without a plan.
-      await page.locator('[aria-labelledby="bazaar-plan"] button').first().click();
+      // U4: the page's one forward action plans the first date without a plan.
+      await page.getByRole('button', { name: /^Plan .* →$/ }).click();
       const form = page.getByRole('form', { name: /^Plan for / });
       await form.waitFor();
       assert(
-        (await form.getByLabel('Carried over').count()) === 0,
+        (await form.getByRole('group', { name: /carried over/ }).count()) === 0,
         'Day 1 offers cookies carried over.'
       );
       await check(page, 'Bazaar day plan', 'Bazaar day plan');
-      await form.getByLabel('Drawer float (₱)').fill(String(DAY_FLOAT_PESOS));
-      const card = form
-        .getByText(flavour.short_name, { exact: true })
-        .locator('xpath=ancestor::li[1]');
-      await card.getByLabel('Made').fill(String(DAY_COOKIES));
-      await card.getByLabel('Price (₱)').fill(String(DAY_PRICE_PESOS));
-      await form.getByRole('button', { name: 'Save the plan' }).click();
+      await paneShots('u4-plan-empty');
+      // Saving with nothing on the table points at the stepper (U4): a red field, a summary, focus on the summary.
+      await form.getByRole('button', { name: 'Save the plan →' }).click();
+      await form.getByText('There is a problem').waitFor();
+      assert(
+        (await form.getByRole('link', { name: /at least one cookie/ }).count()) === 1,
+        'The empty plan does not name its problem.'
+      );
+      await paneShots('u4-plan-error');
+      await setStepper(form, 'Drawer float', DAY_FLOAT_PESOS);
+      await setStepper(form, `${flavour.short_name} made`, DAY_COOKIES);
+      await form.getByRole('button', { name: `Change the price of ${flavour.short_name}` }).click();
+      await form.getByLabel(`${flavour.short_name} price`).fill(String(DAY_PRICE_PESOS));
+      await paneShots('u4-plan-filled');
+      await form.getByRole('button', { name: 'Save the plan →' }).click();
       await page.getByText(`${DAY_COOKIES} cookies on the table`).waitFor();
       const planned = await admin
         .from('bazaar_days')
@@ -633,7 +690,9 @@ try {
         (id) => window.__hcOps.state.baked?.[id] ?? 0,
         FLAVOUR
       );
-      await page.getByRole('button', { name: 'Start this day', exact: true }).click();
+      await paneShots('u4-event-planned');
+      // Day 1 is today: it starts with no question (A2).
+      await page.getByRole('button', { name: 'Start the day →', exact: true }).click();
       await page.waitForFunction(() => window.__hcOps.state.event?.dayId);
       await page.locator('[data-screen-label="Bazaar Mode"]').waitFor();
       eventId = await page.evaluate(() => window.__hcOps.state.event.id);
@@ -669,7 +728,7 @@ try {
       // With an event on the phone, the Bazaar screen is the ported till: no strip, no planning.
       assert((await row(page, 'places').count()) === 0, 'The strip is drawn over an open event.');
       assert(
-        (await page.getByRole('button', { name: 'Start this day' }).count()) === 0,
+        (await page.getByRole('button', { name: /^Start (this|the) day/ }).count()) === 0,
         'Planning is drawn over the till.'
       );
       await sellOne(1);
@@ -789,21 +848,6 @@ try {
     return text;
   };
   const review = page.locator('[data-screen-label="Bazaar day review"]');
-  /** U5: the close form's steppers. The number is read from the button that opens it for typing, and set by typing it. */
-  const stepperOf = (scope, name) => scope.getByRole('group', { name, exact: true });
-  const stepperValue = async (scope, name) =>
-    (
-      await stepperOf(scope, name)
-        .getByRole('button', { name: /Tap to type a number/ })
-        .innerText()
-    ).trim();
-  const setStepper = async (scope, name, value) => {
-    const group = stepperOf(scope, name);
-    await group.getByRole('button', { name: /Tap to type a number/ }).click();
-    const input = group.getByRole('textbox', { name, exact: true });
-    await input.fill(String(value));
-    await input.press('Enter');
-  };
   /** S3: the review and the event page, as the stock screens are held: no serious axe violation, and no sideways scroll at 320 px with the text at 200%. */
   const bazaarFits = async (at, label) => {
     await page.evaluate(
@@ -831,23 +875,6 @@ try {
     await page.evaluate(() => (document.documentElement.style.fontSize = ''));
     await page.setViewportSize({ width: 390, height: 844 });
     assert(wide <= 0, `${at}: scrolls sideways at 320 px and 200% text (${wide} px).`);
-  };
-  /** U5: with SMOKE_SHOTS set, the screen at 375 and 1440 px (full page), for the visual check beside the approved mockups. */
-  const paneShots = async (name, scrollTo = null) => {
-    if (!process.env.SMOKE_SHOTS) return;
-    for (const [w, h] of [
-      [375, 812],
-      [1440, 900]
-    ]) {
-      await page.setViewportSize({ width: w, height: h });
-      if (scrollTo) await page.locator(scrollTo).scrollIntoViewIfNeeded();
-      await page.waitForTimeout(700);
-      await page.screenshot({
-        path: `${process.env.SMOKE_SHOTS}/${name}-${w}.png`,
-        fullPage: true
-      });
-    }
-    await page.setViewportSize({ width: 390, height: 844 });
   };
   /** Whether the books say this run's bazaar is in progress (its sales held back). Leaves the Bazaar page. */
   const booksHoldIt = async () => {
@@ -981,7 +1008,7 @@ try {
         (await page.evaluate(() => window.__hcOps.state.sheet?.kind ?? null)) === null,
         'The old expense sheet opened on a bazaar day.'
       );
-      await fees.getByText(/^Total ₱/).waitFor();
+      await fees.getByRole('table', { name: 'Fees' }).waitFor();
       await fees.getByRole('button', { name: 'Done' }).click();
       await fees.waitFor({ state: 'detached' });
       await check(page, 'Bazaar, after Add cookies', 'Bazaar Mode');
@@ -1109,17 +1136,30 @@ try {
       assert(await booksHoldIt(), 'The books do not say this bazaar is in progress.');
       await openBooking();
       await check(page, 'Bazaar event page, day 1 closed', 'Bazaar');
+      await pauseForPane('closed');
       const cost = page.getByRole('form', { name: /^Cost per cookie for / });
-      await cost.getByLabel('Your cost per cookie (₱)').fill(String(COST_PESOS));
+      // A bad cost is red on its field (U4) and nothing is sent.
+      await cost.getByLabel('Your cost per cookie').fill('abc');
       await cost.getByRole('button', { name: 'Save the cost' }).click();
-      await page.getByText(`${pesoOf(COST_PESOS)} per cookie · typed by you`).waitFor();
+      await cost.getByText('There is a problem').waitFor();
+      await cost.getByLabel('Your cost per cookie').fill(String(COST_PESOS));
+      await cost.getByRole('button', { name: 'Save the cost' }).click();
+      await page.getByText('per cookie · typed by you', { exact: true }).waitFor();
       const fee = page.getByRole('form', { name: 'Add a fee' });
       await fee.getByLabel('What for').fill('Permit');
-      await fee.getByLabel('Amount (₱)').fill(String(FEE_PESOS));
       await fee.getByRole('button', { name: 'Add the fee' }).click();
-      await page.getByText(/Permit · Whole event/).waitFor();
+      await fee.getByText('There is a problem').waitFor();
+      // On a phone, tapping the button straight from a field must still submit: the field's message must not push the
+      // button away between the press and the release (U4).
+      await fee.getByLabel('What for').fill('Permit');
+      await fee.getByLabel('Amount').fill('abc');
+      await fee.getByRole('button', { name: 'Add the fee' }).tap();
+      await fee.getByText('Enter the amount in pesos, like 250 or 250.50.').first().waitFor();
+      await fee.getByLabel('Amount').fill(String(FEE_PESOS));
+      await fee.getByRole('button', { name: 'Add the fee' }).click();
+      await page.getByRole('table', { name: 'Fees' }).getByText('Permit').waitFor();
       const target = page.getByRole('form', { name: 'Target profit' });
-      await target.getByLabel('Target (₱)').fill('500');
+      await target.getByLabel('Target').fill('500');
       await target.getByRole('button', { name: 'Save the target' }).click();
       await assertEventually(async () => {
         const { data } = await admin
@@ -1130,20 +1170,26 @@ try {
         return Number(data?.target_profit_cents) === 50000;
       }, 'the target profit');
 
-      await page.locator('[aria-labelledby="bazaar-plan"] button').first().click();
+      await paneShots('u4-event-day1-closed');
+      await page.getByRole('button', { name: /^Plan .* →$/ }).click();
       const form = page.getByRole('form', { name: /^Plan for / });
       await form.waitFor();
-      const card = form
-        .getByText(flavour.short_name, { exact: true })
-        .locator('xpath=ancestor::li[1]');
       assert(
-        (await card.getByLabel('Carried over').inputValue()) === String(CARRIED),
+        (await stepperValue(form, `${flavour.short_name} carried over`)) === String(CARRIED),
         'Day 2 does not start from what day 1 set aside.'
       );
-      await form.getByLabel('Drawer float (₱)').fill(String(DAY2_FLOAT_PESOS));
-      await card.getByLabel('Made').fill(String(DAY2_MADE));
-      await card.getByLabel('Price (₱)').fill(String(DAY2_PRICE_PESOS));
-      await form.getByRole('button', { name: 'Save the plan' }).click();
+      // U4: a new day starts with the float of the day before it.
+      assert(
+        (await stepperValue(form, 'Drawer float')).replace(/[^0-9.]/g, '') ===
+          DAY_FLOAT_PESOS.toFixed(2),
+        "Day 2 does not start from day 1's float."
+      );
+      await paneShots('u4-plan-day2');
+      await setStepper(form, 'Drawer float', DAY2_FLOAT_PESOS);
+      await setStepper(form, `${flavour.short_name} made`, DAY2_MADE);
+      await form.getByRole('button', { name: `Change the price of ${flavour.short_name}` }).click();
+      await form.getByLabel(`${flavour.short_name} price`).fill(String(DAY2_PRICE_PESOS));
+      await form.getByRole('button', { name: 'Save the plan →' }).click();
       // Day 1 also had this many on its table: read day 2's own card.
       await page
         .getByRole('list', { name: 'Days', exact: true })
@@ -1151,7 +1197,36 @@ try {
         .nth(1)
         .getByText(`${DAY2_MADE + CARRIED} cookies on the table`)
         .waitFor();
-      await page.getByRole('button', { name: 'Start this day', exact: true }).click();
+      await paneShots('u4-event-day2-planned');
+      await pauseForPane('planned');
+      // A1 against the real summary (migration 70): day 1 set cookies aside for a day that has not started, so closing the
+      // event now would strand them. The sheet names them and asks where they go; nothing is closed.
+      await page.getByRole('button', { name: 'Close the event', exact: true }).click();
+      const stranded = page.getByRole('dialog');
+      await stranded
+        .getByText(
+          /^\d+ cookies? were carried over for .+, which has not started\. Where do they go\?$/
+        )
+        .waitFor();
+      assert(
+        (await stranded.getByRole('group', { name: /: to the shop$/ }).count()) >= 1,
+        'The stranded cookies are not offered a split.'
+      );
+      await stranded.getByRole('button', { name: 'Not yet' }).click();
+      await stranded.waitFor({ state: 'detached' });
+      // Tomorrow is not today: starting it asks first (A2), and nothing starts until she says so.
+      await page.getByRole('button', { name: 'Start the day →', exact: true }).click();
+      const ask = page.getByRole('dialog');
+      await ask.getByText(/Sales will be dated today/).waitFor();
+      assert(
+        (await page.evaluate(
+          (d) => !window.__hcOps.state.event?.dayId || window.__hcOps.state.event.dayId === d,
+          day1
+        )) === true,
+        'Day 2 started before she confirmed it.'
+      );
+      await paneShots('u4-start-asks');
+      await ask.getByRole('button', { name: 'Start anyway' }).click();
       await page.waitForFunction((d) => {
         const event = window.__hcOps.state.event;
         return !!event?.dayId && event.dayId !== d;
@@ -1326,7 +1401,10 @@ try {
       'The rent reached the books before the event was closed.'
     );
     await page.getByRole('button', { name: 'Close the event', exact: true }).click();
-    await page.getByRole('button', { name: 'Yes, close the event', exact: true }).click();
+    const closing = page.getByRole('dialog');
+    await closing.getByText(/It cannot be undone/).waitFor();
+    await paneShots('u4-close-event');
+    await closing.getByRole('button', { name: 'Close the event', exact: true }).click();
     await page.getByText(/This event is closed\./).waitFor();
     await check(page, 'Bazaar event page, closed', 'Bazaar');
     await bazaarFits('Bazaar event page, closed', 'Bazaar');

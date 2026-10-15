@@ -249,6 +249,50 @@ Interface only, no migration. Rules are pure and tested first (`src/lib/bazaar/r
   (`SMOKE_PAUSE_FILE=<file>` holds the run at day 2's open review and writes the address and sign-in there; delete the file
   to go on): no sideways scroll, no clipped numeral, the count-again banner and its focus. Not run: Docker visual, a phone.
 
+#### U4 as built (16 October; branch `claude/bazaar-v2-u4`, cut from `-u3` at `c846d17`)
+
+Interface only, no migration. Rules first and tested (`src/lib/bazaar/plan.ts`: `validatePlan`, `planTotals`, `menuFirst`;
+`forms.ts`: fee, loss, cost and target validators; `event-rules.ts`: A1, A2, A5, B4 and the primary action; `tests/unit/bazaar-u4.test.ts`),
+then the store and contract (`bazaar-days.ts`, `live-bazaar-types.ts`), then the screens: `event-page.tsx`, `day-plan.tsx`,
+`close-event-sheet.tsx`, `start-day-sheet.tsx`, the loss form in `day-review.tsx`, and the hook `use-issues.ts`.
+
+- **Red fields:** every validator returns `{field, message}[]` keyed by the input's id. A form shows the summary and the red
+  fields on submit (focus moves to the summary; each line focuses its input), checks one field on blur, and clears its red as
+  she types. The summary line and the field say the same words. The stepper gained `id` and `error`. A new rule: a flavour
+  with cookies and a price of 0 is refused. A press on a button of the form skips the blur check (`formProps`): the
+  message used to push the button down between press and release, and the click was lost (found in the smoke).
+- **Event page:** hero with status pill, one primary button by state (review a selling day, else start the first planned day,
+  else plan the next date, else Close the event), a stat row (revenue, profit or "Cost pending", cookies sold, profit against the
+  target), a days timeline, the fees as a `ReceiptTable` with Remove, the target, the cost per cookie as a receipt per flavour.
+  Dates are `Sat, 24 Oct` (`dayRange`) on the event page, the plan and the review (B6).
+- **Day plan:** photo tiles with steppers for made and carried, the menu's flavours first and the rest under "More flavours (n)",
+  prices from the menu (editable; the menu price is shown when changed), a float stepper in ₱100 steps that starts from the day
+  before's float, and a sticky footer ("50 cookies · ₱6,050.00 at full sale"). Totals are whole centavos. The footer stands
+  above the phone dock and stops short of the floating button; the runtime lifts the toast above it (`liveToastVals`, a value
+  only; the locked frame is untouched). Event pages reserve 96 px at the bottom.
+- **Ateneo:** A1, "Close the event" is a sheet that asks where stranded carried cookies go (to the shop with a recipe, written
+  off without; nothing suggested while the recipes are unread; the two steppers always add up). A5, flavours with cookies and
+  no cost per cookie get an inline cost field in the same sheet, with "Close without cost" as the explicit alternative.
+  The store saves each typed cost, reads the event again, re-checks, and closes against the fresh hash with `p_final`.
+  **A1 and A5 need migration 70** (`finalise_bazaar(p_final)`, `save_flavour_cost`): local only until U9, so on the trial (69) a
+  stranded close and the flavour-cost save are refused. A2, a day that is not today asks ("Start anyway"); the rule is in
+  the store (`start(confirmed)`), so any caller is held to it, and the rent clause appears only when this start books it. B4, a
+  closed day shows sold, revenue, left, carried and the drawer. B5, menu flavours first.
+- **Cost receipt:** `get_recipe_costs` has only aggregates (ingredients and packaging per cookie, and the total), so the receipt
+  shows those, only when they are the cost this event is using; if the recipe has changed since, a note says what it costs
+  today. No per-line amounts are worked out in the app. The per-event typed cost form stays beside it.
+- **Home's next-event card** takes its event from the hub's read (`nextEvent` uses `hubList`; the hub is read when the bookings
+  load), so a closed event whose dates are ahead is no longer offered.
+- **Left:** the hub's "Edit or switch off events" fallback stays (editing an event is not on its page yet); the add-stock form
+  and the close form keep their older error text; the per-flavour review list is still cards; "The event" figures list repeats
+  the stat row (the smoke reads it). The Docker visual run and a phone were not run.
+- **Checks:** `pnpm verify` green; the live smoke passes 16 steps, on a touch context (empty plan points at its stepper, a bad cost and an empty fee
+  are red, day 2 starts from day 1's float and carry, starting tomorrow asks and holds until confirmed, a tap on Add the fee straight from a bad Amount submits, closing the event asks, and with day 1's cookies set aside and day 2 only planned the real summary's `stranded` names them: A1 against migration 70, not a fixture);
+  screenshots at 375 and 1440 px (`SMOKE_SHOTS`); the browser pane at 375 px on the paused smoke
+  (`SMOKE_PAUSE_EVENT_FILE` with `SMOKE_PAUSE_EVENT_AT=closed|planned`): the red cost field with its summary and focus, no
+  sideways scroll. The independent review the repo asks of money changes was not run in this session (the finalise path and the
+  plan totals are the parts to read): do it before U9.
+
 ### U4: event page and day plan (Sonnet; interface)
 
 - **Event page:**
