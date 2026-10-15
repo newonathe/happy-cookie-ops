@@ -14,8 +14,8 @@ bazaar-v2.md). **Conversation: U7**, the goal block in [bazaar-v2.md](bazaar-v2.
 conversation, plan mode off). It is the screen for the flavour cost that U4's close sheet already saves (`save_flavour_cost`),
 and the place the event page's cost receipt points at. Cut line: U7 and U8 move after 26 October if not green by the evening of 19 October.
 
-The money paths U4 touched were reviewed by Opus on 16 October ("U4 as built" in bazaar-v2.md). Open for Ethan: should the cost typed
-when closing an event be the flavour's (design 5.10, as built) or this event's only? Migration 70 still has two review fixes pending
+The money paths U4 touched were reviewed by Opus on 16 October ("U4 as built" in bazaar-v2.md). Decided by Ethan (16 Oct): the cost typed
+when closing an event is the flavour's (design 5.10, as built). Migration 70 still has two review fixes pending
 ("U6 review" in bazaar-v2.md) and the hosted apply waits for U9.
 
 | Setting      | Value                                                                                |

@@ -295,7 +295,7 @@ then the store and contract (`bazaar-days.ts`, `live-bazaar-types.ts`), then the
   and stranded cookies are unchanged. (2) The not-today check was worked out when the page was drawn: it is now also worked out in
   `start`. (3) A second tap could pass the busy check while the till's figures were awaited: busy is set first. Held, with hand-worked
   numbers: the split always adds up; 38.44 x 15 = 57,660 centavos; "12.5" is 1250 and "28.7525" is 2875.25 centavos; commas and limits match
-  the database. **Open for Ethan:** the cost typed in the close sheet is the FLAVOUR's (design 5.10), and in migration 70 it wins
+  the database. **Decided by Ethan, 16 Oct: keep it as built.** The cost typed in the close sheet is the FLAVOUR's (design 5.10), and in migration 70 it wins
   over the recipe's for every other bazaar, open or later; the per-event cost (`saveBazaarCost`) would touch only this event.
   Left as is: when the recipes are unread she may send a flavour to the shop that has none, and the database refuses with a general message
 
