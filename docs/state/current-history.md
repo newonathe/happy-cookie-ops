@@ -2193,3 +2193,17 @@ Contracts as built, and Ethan's answers of 14 October (shop cookies are a batch 
 and "Start this day" (`src/components/live/bazaar/`); with an event on the phone it draws the ported till unchanged, so a helper and a
 phone with no signal still sell. The old one-tap start and the ported start list are closed in live mode; "Leave" and the old close-out
 refuse on a started day (S3 closes it from a review). The smoke suite plans, starts and sells day 1 at its own price, online and offline.
+
+## S3.1 bazaar hardening, moved from current.md on 15 October 2026
+
+**S3.1, 14 October (released to the trial):** Migration 69 (`20260101006800_bazaar_hardening.sql`) and its
+client: a refused sale no longer blocks the close; close and finalise check the till's count and cash (40001); a fee or a loss can be
+removed; no sale or void lands on a finalised event; no stock load on a bazaar day; retry ids survive a reload. Before release:
+`pnpm test:e2e` (90 passed; the capacity parity spec 25 of 25 on the local database), the live smoke suite (14 steps), the role suite
+(3,294 cases on each of two resets) and the **Remove** buttons in the browser pane at 375 px. At Ethan's word: 69 applied from a
+scratch folder (the CLI needs every applied version present, so all 69 files were exported from the commit; the dry run listed only
+69); the trial is at 69 of 69, its fingerprint equal to local apart from `json_value` quoting in three settings functions and
+`rls_auto_enable`. PR #24 merged (`3cf4a36`); the deploy job was refused twice for GitHub billing (free private-repo minutes used
+up), so **Ethan made the repository public** (Cine agreed: her name, GCash number and payment QR codes are in its history) and the
+rerun deployed version `2eda3738`; anonymous requests still go to Cloudflare Access. Same day, run sheet rows 5, 6 and 10: Cine's two addresses are active owners named "Cine" (the admin one is "Ethan"), Access admits four addresses, and its session is one week (`168h`, now allowed by the release guard; PR #26 redeployed the same app as `fbfd8860`). Next: the phone rehearsal
+([run sheet](bazaar-run-sheet.md) row 7, [next-goal.md](next-goal.md)).

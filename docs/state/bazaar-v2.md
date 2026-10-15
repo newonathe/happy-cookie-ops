@@ -240,6 +240,24 @@ D0 ─▶ U1 ─┬▶ U2 ─┬▶ U3 ─┐
 - Rehearse locally, then apply hosted from a scratch folder exported from the commit (dry run first), then the fingerprint check. Same method as 69.
 - **Cut:** if not green by 19 Oct, it moves after 26 Oct and U4 keeps the per-event cost.
 
+#### U6 as built (15 October; local only, branch `claude/bazaar-v2-u2`)
+
+Migration 70 is `20260101006900_flavour_cost_closing_reversal.sql` (its header comment is the full contract). Not applied anywhere: the trial stays at 69 of 69 until U9's release.
+
+- **Costs:** `flavour_costs`, `save_flavour_cost` (owner only) and `get_flavour_costs`; a cookie is costed by the booking's typed cost, then the flavour's, then the complete recipe.
+- **Stranded cookies (A1):** "stranded" means the cookies the latest started day set aside to carry over, when no later day was started. `finalise_bazaar` takes `p_final`, a split per stranded flavour into `to_shop` and `written_off` that together equal the stranded quantity. `bazaar_summary` lists them under the key `stranded`. The screen that asks for the split belongs to U4 ("Close the event"); until then the call refuses a finalise with stranded cookies and no split.
+- **Drawer (A4):** an over is an adjustment and a short is a cost, both in the category 'Cash variance', so an over is no longer revenue. A bazaar sale writes a packaging record only when a `bazaar_sale` packaging rule exists (A7).
+- **Reversal (A6):** `reverse_bazaar_test(p_booking, p_confirm_name)` is owner only and appends reversing lines and stock corrections; it deletes nothing. "Real-looking mismatch" means the booking's ledger lines do not equal its stored summary to the centavo (revenue, fees, one drawer line per day with an over or short); a booking touched by hand is refused. It also refuses a booking that sent cookies to the shop, any cost cutover on record, and an item counted since the use.
+- **Review:** one Opus subagent (codex refuses its models on this account) read the migration and the new role-suite cases against hand-worked numbers: stranded 4 splits into 3 to the shop and 1 written off, cost 10 × 1000, profit 8000; a nine-line reversal totalling 13,200, revenue −54,000, expense −40,800 (centavos).
+- **Run on the trial only on Ethan's explicit go-ahead.** The reversal of the audited test event runs only after he says "yes, reverse" it (U9 step 3); the books are shown before and after. The hosted apply waits for U9 (scratch folder, dry run, fingerprint).
+
+**U6 as built (15 October).** Migration 70 `20260101006900_flavour_cost_closing_reversal.sql`, on branch `claude/bazaar-v2-u2`; not on the trial (hosted apply waits for U9: scratch folder, dry run, fingerprint). Left open when the session stopped: the full role harness (row counts fixed to 312 for the suite and 3,361 for the matrix, not yet re-run to green), the live smoke suite, and the different-model review.
+
+- A1: `finalise_bazaar(…, p_till, p_final default null)`; `bazaar_summary.stranded` is the latest started day's `carry_next` when that day is closed and no later day started. The split must name exactly those flavours, its parts together equal the quantity, and it moves them on that day's line to `to_shop_qty` and `written_off_qty`. The split UI is U4's.
+- A4: an over is an `adjustment` in 'Cash variance' (a short stays a cost). `close_event`, the legacy close, still books an over as a sale.
+- A6 `reverse_bazaar_test`: "real-looking mismatch" is read as: the booking's ledger lines must equal its stored summary to the centavo (revenue, fees, one drawer line per day with a difference). It refuses a booking with cookies sent to the shop, any cost cutover, or a later count. It appends lines at the originals' dates and positive stock adjustments; it deletes nothing. No screen calls it: run it on the trial only after Ethan's "yes, reverse Ateneo".
+- A7: no packaging record when there is no bazaar-sale rule. Flavour cost: `flavour_costs`, `save_flavour_cost`, `get_flavour_costs`; the recipe book (U7) is its screen.
+
 ### U7: recipe book (Sonnet; interface; needs U6)
 
 - A live screen registered for `recipes` (`src/components/live/live-screens.ts`):
