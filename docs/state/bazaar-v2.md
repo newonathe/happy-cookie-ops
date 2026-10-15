@@ -258,6 +258,12 @@ Migration 70 is `20260101006900_flavour_cost_closing_reversal.sql` (its header c
 - A6 `reverse_bazaar_test`: "real-looking mismatch" is read as: the booking's ledger lines must equal its stored summary to the centavo (revenue, fees, one drawer line per day with a difference). It refuses a booking with cookies sent to the shop, any cost cutover, or a later count. It appends lines at the originals' dates and positive stock adjustments; it deletes nothing. No screen calls it: run it on the trial only after Ethan's "yes, reverse Ateneo".
 - A7: no packaging record when there is no bazaar-sale rule. Flavour cost: `flavour_costs`, `save_flavour_cost`, `get_flavour_costs`; the recipe book (U7) is its screen.
 
+**U6 review (Opus, read-only, 15 October): safe to merge after two fixes, not yet applied.** Hand-worked numbers all check out (Y reversal 13,200 / −54,000 / −40,800, stock 280 / 4 / 12 / 1; W cost 5,000, profit 8,000).
+- Medium: in `reverse_bazaar_test`, move `pg_advisory_xact_lock('stock_catalogue:items')` and `lock_stock_item_ids(v_items)` above the `rev-counted` check. A count committing between the check and the locks would be raised by the restored stock.
+- Low: in `finalise_bazaar`, make the `fin-final-sum` check NULL-safe (`is distinct from`, or `coalesce(…, -1)`), so a missing part cannot pass and write NULL into `to_shop_qty` and `written_off_qty` if `fin-final-flavours` were ever skipped.
+- Add role-suite cases: reversing a booking with a short drawer, and one with an old-format over (kind `sale`, category `Bazaar`). Cosmetic: the engine's P&L may show 'Cash variance' as a negative expense after an over.
+- A migration change means: re-pin the sha256 in `mp08g-source-pins.json`, `pnpm db:reset`, regenerate `body_md5` in `function-authority.json`, re-run the harness and the smoke suite.
+
 ### U7: recipe book (Sonnet; interface; needs U6)
 
 - A live screen registered for `recipes` (`src/components/live/live-screens.ts`):
