@@ -27,6 +27,7 @@ import { OpsRuntime } from '@/store/ops-runtime';
 import type { Role } from '@/store/engine/ops-engine';
 import { registerLiveStockScreens } from '@/components/live/stock/register';
 import { registerLiveBazaarScreens } from '@/components/live/bazaar/register';
+import { registerLiveRecipeScreens } from '@/components/live/recipes/register';
 import { OfflineHold } from './offline-hold';
 import { SignOutControl } from './sign-out-control';
 
@@ -34,6 +35,8 @@ import { SignOutControl } from './sign-out-control';
 registerLiveStockScreens();
 // The live Bazaar (S2) takes the `bazaar` slot too; it draws the ported till itself while this phone holds an event.
 registerLiveBazaarScreens();
+// The live recipe book (U7) takes the `recipes` slot; the ported Recipes screen is drawn inside it, for editing a recipe.
+registerLiveRecipeScreens();
 
 /** How long one identity check may take before the gate treats the server as unreachable. */
 export const CHECK_TIMEOUT_MS = 8_000;

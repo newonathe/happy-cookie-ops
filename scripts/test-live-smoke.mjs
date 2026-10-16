@@ -603,7 +603,7 @@ try {
   /**
    * For a look in the browser pane (U4): with SMOKE_PAUSE_EVENT_FILE set and SMOKE_PAUSE_EVENT_AT naming this point
    * ("closed": the event page with day 1 closed, before its forms are used; "planned": day 2 planned, with its fees, target
-   * and costs), the run waits (up to 30 minutes), writes the address and sign-in to that file, and goes on when the file is
+   * and costs; U7: "recipes": the flavour page with a typed cost), the run waits (up to 30 minutes), writes the address and sign-in to that file, and goes on when the file is
    * deleted. Do not close the event from the pane: day 1 set cookies aside, so it would ask where they go.
    */
   const pauseForPane = async (at) => {
@@ -1127,6 +1127,78 @@ try {
         after.baked === bakedBefore,
         "The day's leftovers were put into the shop's baked stock."
       );
+    }
+  );
+
+  // U7: the recipe book. A flavour's page saves its cost per cookie (blank takes it away), and the event page, which reads the
+  // summary, uses it: the booking's own typed cost (typed next) still wins over it, so the sums below are unchanged.
+  const FLAVOUR_COST_PESOS = 35;
+  /** The typed costs as the owner reads them (`get_flavour_costs`): the table itself is closed to every role. */
+  const flavourCostsNow = async () => {
+    const db = createClient(url, process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, {
+      auth: { persistSession: false, autoRefreshToken: false }
+    });
+    const signed = await db.auth.signInWithPassword({ email: owner.email, password: secret });
+    assert(!signed.error, `owner sign-in for the flavour costs: ${signed.error?.message}`);
+    const read = await db.rpc('get_flavour_costs');
+    await db.auth.signOut({ scope: 'local' });
+    assert(!read.error && Array.isArray(read.data), `get_flavour_costs: ${read.error?.message}`);
+    return read.data;
+  };
+  await step(
+    'the recipe book lists the flavours, saves a flavour cost, and the event page uses it',
+    async () => {
+      await page.goto(`${base}/recipes`, { waitUntil: 'networkidle' });
+      await page.getByRole('heading', { level: 1, name: 'Recipe book' }).waitFor();
+      await check(page, 'Recipe book', 'Recipes');
+      await paneShots('u7-recipe-book');
+      await page.getByRole('button', { name: /^All/ }).click();
+      await page.getByLabel('Search flavours').fill(flavour.short_name);
+      const tile = page
+        .getByRole('list', { name: 'Flavours' })
+        .getByRole('button', { name: new RegExp(flavour.short_name) });
+      assert((await tile.count()) === 1, 'The search does not leave the one flavour.');
+      await tile.click();
+      await page.getByRole('heading', { level: 1, name: flavour.short_name }).waitFor();
+      await check(page, 'Recipe book, flavour page', 'Recipes');
+      const form = page.getByRole('form', { name: /^Cost per cookie for / });
+      const field = form.getByLabel('Cost per cookie', { exact: true });
+      // Nothing is saved before it is changed; a bad cost is red on its field and nothing is sent.
+      assert(
+        await form.getByRole('button', { name: 'Save the cost' }).isDisabled(),
+        'Save is on before the cost was changed.'
+      );
+      await field.fill('abc');
+      await form.getByRole('button', { name: 'Save the cost' }).click();
+      await form.getByText('There is a problem').waitFor();
+      await field.fill(String(FLAVOUR_COST_PESOS));
+      await form.getByRole('button', { name: 'Save the cost' }).click();
+      await page.getByText(/^Typed by you on \d{1,2} [A-Z][a-z]{2}: ₱35\.00 a cookie\.$/).waitFor();
+      await paneShots('u7-flavour-page');
+      await pauseForPane('recipes');
+      await assertEventually(async () => {
+        const rows = (await flavourCostsNow()).filter((r) => r.product_id === FLAVOUR);
+        return rows.length === 1 && Number(rows[0].cost_cents) === FLAVOUR_COST_PESOS * 100;
+      }, "the flavour's typed cost");
+      // The event page reads it: the cost line says it is the flavour's.
+      await openBooking();
+      await page.getByText('per cookie · typed by you for the flavour', { exact: true }).waitFor();
+      assert(
+        (await page.getByText(`₱${FLAVOUR_COST_PESOS}.00`, { exact: true }).count()) >= 1,
+        "The event page does not show the flavour's cost."
+      );
+      // Blank takes it away again, so the rest of the run costs as it did.
+      await page.goto(`${base}/recipes`, { waitUntil: 'networkidle' });
+      await page.getByRole('button', { name: /^All/ }).click();
+      await page.getByLabel('Search flavours').fill(flavour.short_name);
+      await page
+        .getByRole('list', { name: 'Flavours' })
+        .getByRole('button', { name: new RegExp(flavour.short_name) })
+        .click();
+      await page.getByRole('button', { name: 'Use the recipe’s cost' }).click();
+      await assertEventually(async () => {
+        return (await flavourCostsNow()).every((r) => r.product_id !== FLAVOUR);
+      }, "the flavour's typed cost taken away");
     }
   );
 

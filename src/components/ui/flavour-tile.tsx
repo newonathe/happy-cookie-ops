@@ -17,6 +17,10 @@ export interface FlavourTileProps {
   /** A small label on the photo: "Carried: 12". */
   badge?: string;
   state?: FlavourTileState;
+  /** Small facts under the price (the recipe book's cost and margin). */
+  meta?: ReactNode;
+  /** Names the photo for a view transition, so it morphs into the same photo on the next page (the recipe book). */
+  photoName?: string;
   /** A stepper (or any control) drawn under the price. A tile with this is not itself pressable. */
   stepper?: ReactNode;
   /** Tapping the tile (the till). Ignored for a sold-out tile. */
@@ -30,6 +34,8 @@ export function FlavourTile({
   price,
   count,
   badge,
+  meta,
+  photoName,
   state = 'idle',
   stepper,
   onPress
@@ -43,7 +49,10 @@ export function FlavourTile({
         aria-hidden="true"
         data-photo={url ? 'yes' : 'none'}
         className="relative block aspect-[4/3] w-full overflow-hidden rounded-control bg-chip bg-cover bg-center"
-        style={url ? { backgroundImage: `url(${url})` } : undefined}
+        style={{
+          ...(url ? { backgroundImage: `url(${url})` } : {}),
+          ...(photoName ? { viewTransitionName: photoName } : {})
+        }}
       >
         {!url ? (
           <span className="grid size-full place-items-center text-title text-ink-faint">
@@ -69,6 +78,7 @@ export function FlavourTile({
       <span className="flex flex-col items-start gap-0.5 text-left">
         <span className="text-body font-bold text-ink">{name}</span>
         <span className="text-caption font-semibold text-ink-soft tabular-nums">{price}</span>
+        {meta}
         {soldOut ? <span className="text-caption font-bold text-danger">Sold out</span> : null}
         {state === 'offMenu' ? (
           <span className="text-caption font-semibold text-ink-mute">Not on the menu</span>

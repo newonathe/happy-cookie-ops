@@ -47,6 +47,7 @@ import {
 } from '@/lib/offline/queue';
 import { clearBazaar, readBazaar, saveBazaar } from '@/lib/offline/bazaar-state';
 import { BazaarDays } from '@/store/bazaar-days';
+import { RecipeBook } from '@/store/recipe-book';
 import {
   dayEventId,
   engineStateForDay,
@@ -799,6 +800,29 @@ export class OpsRuntime extends OpsProvider {
     newId: () => crypto.randomUUID(),
     openAdd: () => void this.openScheduled(),
     refreshBookings: () => this.loadScheduledEvents(null)
+  });
+  /** U7: the recipe book: each flavour's price, cost per cookie (hers or the recipe's), margin and cost receipt. */
+  private recipeBook = new RecipeBook({
+    client: () => (this.scheduledClient ?? this.salesTarget()) as unknown as BazaarClient | null,
+    online: () => Boolean(this.state.online),
+    flavours: () =>
+      PRODUCTS.map((p) => ({
+        id: p.id,
+        name: p.short,
+        priceCents: pesosToCentavos(Number((this as unknown as TotalActions).priceOf(p.id)) || 0),
+        photo: p.img,
+        onMenu: (this.state.dropActive as Record<string, boolean> | undefined)?.[p.id] !== false
+      })),
+    recipeCost: (productId) => this.recipeCosts.get(productId) ?? null,
+    recipeCostsState: () => this.costReads,
+    batchYield: (productId) =>
+      this.recipeRows?.find((r) => r.productId === productId)?.yield ?? null,
+    openRecipe: (productId) =>
+      (this as unknown as { openRecipe: (pid: string) => void }).openRecipe(productId),
+    toast: (text, kind) => this.toast(text, kind),
+    rerender: () => {
+      if (!this.unmounted) this.forceUpdate();
+    }
   });
   /** U2: the day whose "Show sold out (n)" is on. Screen state only: never saved, and any other day starts hidden. */
   private tillShowSoldOut: string | null = null;
@@ -2544,6 +2568,7 @@ export class OpsRuntime extends OpsProvider {
       liveStockItems: this.liveStockItemsVals(),
       liveStock: this.liveStockVals(),
       liveBazaar: isLiveMode() && this.state.role === 'owner' ? this.bazaarDays.vals() : null,
+      liveRecipes: isLiveMode() && this.state.role === 'owner' ? this.recipeBook.vals() : null,
       ...this.liveToastVals(starved),
       // S3: on a started day "Close out" opens the day's review, never the old close-out sheet (which the database refuses).
       ...((this.state.event as LiveEvent | null)?.dayId

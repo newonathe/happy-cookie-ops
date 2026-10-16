@@ -299,6 +299,37 @@ then the store and contract (`bazaar-days.ts`, `live-bazaar-types.ts`), then the
   over the recipe's for every other bazaar, open or later; the per-event cost (`saveBazaarCost`) would touch only this event.
   Left as is: when the recipes are unread she may send a flavour to the shop that has none, and the database refuses with a general message
 
+#### U7 as built (16 October; branch `claude/bazaar-v2-u7`, cut from `-u4` at `49dab2c`)
+
+Interface only, no migration (it uses U6's `save_flavour_cost` and `get_flavour_costs`, local until U9). Rules first and tested
+(`src/lib/recipes/book.ts`; `tests/unit/recipe-book.test.ts`), then the store (`src/store/recipe-book.ts`, `RecipeBook`, wired into
+`OpsRuntime` as `liveRecipes`), then the screens (`src/components/live/recipes/`, registered for the key `recipes`).
+
+- **Cost and margin:** a flavour's cost is hers for the flavour when she typed one, else the complete recipe's, else "Cost pending"
+  (a recipe with a missing item is never shown as a cookie's cost). Margin is (price - cost) / price, `ok` at or above 65 % and `warn`
+  below, compared before rounding (64.99 % reads 64.9 %, never "65%"). The 65 % is a constant (`MARGIN_FLOOR_PERCENT`) until B7 makes it
+  a setting; nothing in the repo held it before. A tile shows a mark and a word as well as colour.
+- **Book:** `FlavourTile` grid (the tile gained `meta` and `photoName`), search, `FilterChips` On the menu (n) / All (n). The costs are read
+  when the book opens (`refresh`, a stable function: a new one per render made the book read in a loop, found in the first smoke run).
+- **Flavour page:** photo hero, price, cost, margin with what a cookie keeps, the cost field (starts at her cost or the recipe's, Save waits
+  until it is changed so one tap cannot freeze the recipe's cost as hers, blank or "Use the recipe's cost" takes hers away; same words and
+  red fields as the event page), and the receipt: ingredients and packaging per cookie, the total, the batch (yield and its ingredients
+  cost) and the items with no cost. `get_recipe_costs` has only aggregates, so no per-line amount is worked out in the app. With a typed
+  cost the receipt is marked "for comparison". On a database without migration 70 the field is off with its reason.
+- **Recipe editing** stays in the ported Recipes screen, drawn inside the book under "Back to the recipe book"; the button says it is the
+  older screen and that saving there is on hold (B6). It opens on the flavour (`openRecipe`).
+- **Motion:** tile to page through `useViewTransition`; the tile's photo and the hero carry one `view-transition-name` (only the pressed
+  tile holds it when the old picture is taken). Where the browser has no view transition, or under reduced motion, the page fades in
+  (`motion-enter`, instant under reduced motion). Focus moves to the flavour's heading.
+- **Left:** the event page shows a flavour's typed cost only once a day of that flavour has started (it reads the summary); a planned-only
+  flavour still shows the per-event cost or the recipe's. The ported P&L and Products margins still use the recipe's cost, not hers. The
+  Docker visual run, axe on the new screen, 320 px and a phone were not run.
+- **Checks:** `pnpm verify` green (140 files, 2,579 tests before the final small edits; rerun below); the live smoke passes 17 steps (the book
+  lists the flavours, a bad cost is red and sends nothing, a typed cost is read back by `get_flavour_costs`, the event page says "typed by you
+  for the flavour" with its cost, blank takes it away); the browser pane at 375 and 1440 px on the paused smoke
+  (`SMOKE_PAUSE_EVENT_FILE` with `SMOKE_PAUSE_EVENT_AT=recipes`): no sideways scroll, ok and warn tiles, the red field with its summary, the
+  older screen opening on the flavour.
+
 ### U4: event page and day plan (Sonnet; interface)
 
 - **Event page:**
