@@ -2207,3 +2207,38 @@ scratch folder (the CLI needs every applied version present, so all 69 files wer
 up), so **Ethan made the repository public** (Cine agreed: her name, GCash number and payment QR codes are in its history) and the
 rerun deployed version `2eda3738`; anonymous requests still go to Cloudflare Access. Same day, run sheet rows 5, 6 and 10: Cine's two addresses are active owners named "Cine" (the admin one is "Ethan"), Access admits four addresses, and its session is one week (`168h`, now allowed by the release guard; PR #26 redeployed the same app as `fbfd8860`). Next: the phone rehearsal
 ([run sheet](bazaar-run-sheet.md) row 7, [next-goal.md](next-goal.md)).
+
+## Bazaar v2 build log, 15 to 16 October 2026 (moved from current.md on 16 October)
+
+Ethan's 13-point review of the bazaar screens (design, flow, motion) was planned as 10 slices, D0 to U9, in
+[bazaar-v2.md](bazaar-v2.md). D0 approved 15 Oct ([spec](../design/bazaar-v2.md)). U1 (tokens, 16 components, `peso()`, motion
+helpers; live money shows two decimals), U2 (leave and return to the till, sold-out tiles hidden, Add cookies; Ateneo B1, B2),
+U3 (events hub, add-event sheet, a status pill per row), U4 (event page, day plan; Ateneo A1, A2, A5, B4, B5), U5 (review and
+close), U6 (migration 70, with Opus review and the database suites in "U6 as built") and U7 (recipe book and flavour page, its
+cost save) were built 15 to 16 Oct on stacked branches `claude/bazaar-v2-u2` to `-u7`; each has an "as built" section in
+bazaar-v2.md. The Ateneo test audit (15 Oct, in bazaar-v2.md) found 13 issues; Ethan chose migration 70 before the bazaar and a
+reviewed reversal of the Ateneo test (its rent, over, sales and stock use are in October's books until then).
+
+**S3, 14 October (built; merged in PR #21):** losses, more stock, the day review with each figure openable, "Close the day" with
+the leftover split, carrying over, fees, target, typed cost, "Close the event", and the books' "Bazaar in progress" line. No new
+migration. The smoke suite closes day 1, carries into day 2, sells through an offline reload, closes, finalises and reads the
+books. Decisions as built: [bazaar-days.md](bazaar-days.md), "S3 as built".
+
+**Her data and the database, 13 October:** at Ethan's instruction the trial went from migration 55 to 67 of 67 (through B5),
+rehearsed first on the local database, and her data is in: 23 recipes with packaging lines, 72 prices, the items Oats, Egg and
+Sauce Tub, 4 bookings. The cost cutover is not applied (it needs her opening count), so the books stay on "bought" and equal the
+ledger.
+
+**Release records before U9:** the early 6 October pushes (A3 at `79b8e97`, A4 at `851e95e`) did not release (GitHub could not give
+their jobs a hosted runner: runs 37370848143 and 37372795892); B1 was pushed later that day at `23e02b3` and released (run
+37424595177). The trial moved from the A2 build straight to A3, A4 and B1.
+
+**U9, 16 October (released):** U1 to U7 and the U9 motion pass with 44 px targets were merged into
+`agent/codex/MP-04-g1-feasibility` and deployed: head `ea0ba7f`, Cloudflare version `7d7d8414`, every CI job green except the
+known red "Performance budget" (artifact quota). Migration 70 (`20260101006900_flavour_cost_closing_reversal.sql`) was applied by
+Ethan's approval from a scratch folder after a dry run that listed only that file; the trial is at 70 of 70 and the function body
+hashes equal local. Opus reviewed it twice (cutover check after the locks; no false "changed after close" for events finalised
+before 70); one low finding is left: a flavour cost saved mid-close can be stored with a stale hash. Local role suite 3,366 cases
+a reset (two resets), live smoke 17 steps, `pnpm verify` 2,588 tests, e2e 90 passed. U8 (two decimals in ported screens) is
+skipped: Ethan kept whole pesos on the till. A clean browser pass at four widths is not done: layout QA found 36 px targets
+(fixed to 44 px) and a possible 16 px toast and footer overlap at 320 px on the day plan (unconfirmed).
