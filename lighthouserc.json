@@ -77,7 +77,7 @@
             "total-byte-weight": [
               "error",
               {
-                "maxNumericValue": 1050000
+                "maxNumericValue": 980000
               }
             ]
           }
@@ -127,7 +127,7 @@
             "total-byte-weight": [
               "error",
               {
-                "maxNumericValue": 1270000
+                "maxNumericValue": 1210000
               }
             ]
           }
@@ -177,7 +177,7 @@
             "total-byte-weight": [
               "error",
               {
-                "maxNumericValue": 720000
+                "maxNumericValue": 655000
               }
             ]
           }
