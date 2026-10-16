@@ -173,6 +173,15 @@ describe('the cost field', () => {
     expect(startingCostText(flavour({ recipe: null }))).toBe('');
   });
 
+  it('starts a recipe cost with more than four decimals at a value the field accepts: 310 over 24 is 12.916667', () => {
+    // Mutation: six decimals in the field would open with a value its own check refuses.
+    expect(costFieldText(1291.6667)).toBe('12.9167');
+    const start = startingCostText(flavour({ recipe: recipe({ perCookie: 12.916667 }) }));
+    expect(start).toBe('12.9167');
+    expect(parseCostField(start)).toEqual({ cents: 1291.67, error: null });
+    expect(costFieldChanged(start, start)).toBe(false);
+  });
+
   it('reads what she types: blank goes back to the recipe, a peso sign and commas are allowed', () => {
     expect(parseCostField('')).toEqual({ cents: null, error: null });
     expect(parseCostField('   ')).toEqual({ cents: null, error: null });

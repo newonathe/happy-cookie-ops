@@ -140,10 +140,13 @@ export function bookCounts(rows: readonly { onMenu: boolean }[]): { menu: number
   return { menu: rows.filter((r) => r.onMenu).length, all: rows.length };
 }
 
-/** A cost per cookie as it is typed into the field: pesos, no trailing zeros ("31.25", "28.7525", "12"). */
+/**
+ * A cost per cookie as it is typed into the field: pesos to four decimals, no trailing zeros ("31.25", "28.7525", "12"). Four is all
+ * the field accepts, so a recipe cost of 12.916667 starts as 12.9167 rather than a value the field would refuse.
+ */
 export function costFieldText(cents: number | null): string {
   const pesos = costCentavosToPesos(cents);
-  return pesos === null ? '' : String(Math.round(pesos * 1_000_000) / 1_000_000);
+  return pesos === null ? '' : String(Math.round(pesos * 10_000) / 10_000);
 }
 
 /** What the cost field starts with: her cost if she typed one, else the recipe's, so the recipe's is what she sees. */

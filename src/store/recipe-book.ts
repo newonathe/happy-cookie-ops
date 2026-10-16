@@ -46,6 +46,8 @@ export interface RecipeBookDeps {
   recipeCostsState: () => 'unread' | 'ok' | 'missing' | 'failed';
   /** Cookies one batch of the saved recipe makes; null when the recipes were not read or the flavour has none. */
   batchYield: (productId: string) => number | null;
+  /** Reads the database's recipe costs again (the runtime's `loadCosts`). */
+  reloadCosts: () => void;
   /** Opens the older Recipes screen on a flavour. */
   openRecipe: (productId: string) => void;
   toast: (text: string, kind?: 'ok' | 'warn') => void;
@@ -84,7 +86,10 @@ export class RecipeBook {
    * `read` as a value that stays the same between renders: the book reads when it opens, and an effect that depends on a
    * new function every render would read again after every read.
    */
-  private readonly refresh = (): void => void this.read();
+  private readonly refresh = (): void => {
+    void this.read();
+    this.deps.reloadCosts();
+  };
 
   /** Reads her typed costs. Never throws. A newer read replaces an older one still out. */
   async read(): Promise<void> {
@@ -126,6 +131,13 @@ export class RecipeBook {
       const outcome = await saveFlavourCost(client, productId, parsed.cents);
       if (outcome === 'offline') return BOOK_COPY.offline;
       if (outcome !== 'saved') return BOOK_COPY.refused;
+      // What was just saved is shown at once: a read that fails after it must not leave the old figure on the page.
+      if (this.costs !== null) {
+        const next = new Map(this.costs);
+        if (parsed.cents === null) next.delete(productId);
+        else next.set(productId, { productId, costCents: parsed.cents, typedAt: Date.now() });
+        this.costs = next;
+      }
       await this.read();
       this.deps.toast(BOOK_COPY.saved);
       return null;
