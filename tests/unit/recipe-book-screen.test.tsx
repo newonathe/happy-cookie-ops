@@ -85,6 +85,15 @@ const draw = (b: LiveRecipesVals) =>
   render(<RecipeBookLive v={{ liveRecipes: b } as unknown as OpsVals} />);
 const tiles = () => within(screen.getByRole('list', { name: 'Flavours' })).getAllByRole('listitem');
 
+describe('anyone but the owner', () => {
+  it('keeps the ported Recipes screen, not a blank one: the book has nothing for them', () => {
+    // Mutation: returning nothing for a null book would blank the screen for a role that may open it.
+    render(<RecipeBookLive v={{ liveRecipes: null } as unknown as OpsVals} />);
+    expect(screen.getByTestId('old-recipes')).toBeTruthy();
+    expect(screen.queryByRole('heading', { name: 'Recipe book' })).toBeNull();
+  });
+});
+
 describe('the book', () => {
   it('opens on the menu with its count, and each tile shows price, cost and margin', () => {
     draw(book());

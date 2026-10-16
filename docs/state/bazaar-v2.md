@@ -321,14 +321,16 @@ Interface only, no migration (it uses U6's `save_flavour_cost` and `get_flavour_
 - **Motion:** tile to page through `useViewTransition`; the tile's photo and the hero carry one `view-transition-name` (only the pressed
   tile holds it when the old picture is taken). Where the browser has no view transition, or under reduced motion, the page fades in
   (`motion-enter`, instant under reduced motion). Focus moves to the flavour's heading.
+- **Roles and cost:** anyone but the owner keeps the ported Recipes screen (the book returns it when `liveRecipes` is null); the runtime works
+  the book out only while the Recipes screen is open.
 - **Left:** the event page shows a flavour's typed cost only once a day of that flavour has started (it reads the summary); a planned-only
   flavour still shows the per-event cost or the recipe's. The ported P&L and Products margins still use the recipe's cost, not hers. The
-  Docker visual run, axe on the new screen, 320 px and a phone were not run.
-- **Checks:** `pnpm verify` green (140 files, 2,579 tests before the final small edits; rerun below); the live smoke passes 17 steps (the book
-  lists the flavours, a bad cost is red and sends nothing, a typed cost is read back by `get_flavour_costs`, the event page says "typed by you
-  for the flavour" with its cost, blank takes it away); the browser pane at 375 and 1440 px on the paused smoke
-  (`SMOKE_PAUSE_EVENT_FILE` with `SMOKE_PAUSE_EVENT_AT=recipes`): no sideways scroll, ok and warn tiles, the red field with its summary, the
-  older screen opening on the flavour.
+  Docker visual run and a phone were not run. No independent review yet: an Opus read of `src/store/recipe-book.ts` before U9.
+- **Checks:** `pnpm verify` green (140 files, 2,581 tests); the live smoke passes 17 steps (the book lists the flavours, axe finds no serious
+  violation and nothing scrolls sideways at 320 px with 200 % text on the book and on a flavour page, a bad cost is red and sends nothing,
+  a typed cost is read back by `get_flavour_costs`, the event page says "typed by you for the flavour" with its cost, blank takes it away);
+  the browser pane at 375 and 1440 px on the paused smoke (`SMOKE_PAUSE_EVENT_FILE` with `SMOKE_PAUSE_EVENT_AT=recipes`): no sideways scroll,
+  ok and warn tiles, the red field with its summary, the older screen opening on the flavour.
 
 ### U4: event page and day plan (Sonnet; interface)
 
