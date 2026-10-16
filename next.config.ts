@@ -41,5 +41,15 @@ export default withSentryConfig(config, {
   // The source maps are uploaded to Sentry; shipping them to the browser as well would
   // hand the whole codebase to anyone who opens dev tools.
   sourcemaps: { deleteSourcemapsAfterUpload: true },
-  webpack: { treeshake: { removeDebugLogging: true } }
+  // Tracing and session replay are off everywhere (sample rates 0), so their SDK code is dead
+  // weight on every cold start: about 57 KB gzipped of the browser's first load (T-18).
+  webpack: {
+    treeshake: {
+      removeDebugLogging: true,
+      removeTracing: true,
+      excludeReplayIframe: true,
+      excludeReplayShadowDOM: true,
+      excludeReplayCompressionWorker: true
+    }
+  }
 });
