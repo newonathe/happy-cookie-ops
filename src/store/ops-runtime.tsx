@@ -672,7 +672,7 @@ export class OpsRuntime extends OpsProvider {
   private stopViewportTracking?: () => void;
   private resetNoticeTimer?: ReturnType<typeof setTimeout>;
   private healthTimer?: ReturnType<typeof setInterval>;
-  /** Async work that finishes after unmount must not toast or set state: its timer would outlive the tree. */
+  /** Async work that finishes after unmount must not toast (its timer would outlive the tree) or start more work. */
   private unmounted = false;
   private settingsSync?: SettingsSync;
   private flavourSync?: FlavourSync;
@@ -744,6 +744,11 @@ export class OpsRuntime extends OpsProvider {
    */
   constructor(props: OpsEngineProps) {
     super(props);
+    // Every toast goes through here, so none (and no timer behind it) starts after unmount.
+    const engineToast = this.toast;
+    this.toast = (message, tone, undo) => {
+      if (!this.unmounted) engineToast(message, tone, undo);
+    };
     const bazaar = this as unknown as BazaarActions;
     const { recordSale, voidSale, startEvent } = bazaar;
     bazaar.recordSale = (pay, freebie) => {
@@ -1797,6 +1802,9 @@ export class OpsRuntime extends OpsProvider {
       clearStoredBooks();
       const bazaar = readBazaar();
       if (bazaar) this.setState(bazaar);
+      // The saved copy can predate a sync that finished while unmounted: the queue is the truth.
+      if (this.state.syncState === 'syncing') this.setState({ syncState: 'idle' });
+      void this.reflectQueue();
       this.afterRestore();
       return;
     }
@@ -5412,7 +5420,7 @@ export class OpsRuntime extends OpsProvider {
     const result = await flushQueue(this.saleClient);
     await this.reflectQueue();
     // A sale that reached the server used its pouches and bag there (stock only: no batch or dough changed): show what stock the database holds.
-    if (result.sent.length > 0 && this.state.role === 'owner') {
+    if (result.sent.length > 0 && this.state.role === 'owner' && !this.unmounted) {
       void this.loadStockCatalogue(null);
       void this.loadBooks(null);
     }
@@ -5425,10 +5433,12 @@ export class OpsRuntime extends OpsProvider {
     try {
       queue = await allSales();
     } catch {
+      if (this.unmounted) return;
       this.operationsQueue = -1;
       this.setState({});
       return;
     }
+    if (this.unmounted) return;
     this.operationsQueue = queue.filter((row) => row.state !== 'sent').length;
     const states = new Map(queue.map((row) => [row.clientId, row.state]));
     this.setState((s) => {
@@ -5451,7 +5461,6 @@ export class OpsRuntime extends OpsProvider {
       return;
     }
     const queued = await pendingSales();
-    if (this.unmounted) return;
     const pending = queued.length || this.state.sales.filter((sale) => !sale.synced).length;
     if (!pending) {
       this.toast('Nothing waiting to sync.');
@@ -5459,8 +5468,8 @@ export class OpsRuntime extends OpsProvider {
     }
 
     this.setState({ syncState: 'syncing' });
+    // After a real unmount setState is a no-op; after a StrictMode remount the result must land.
     const result = await this.flushSales();
-    if (this.unmounted) return;
     if (result.skipped) {
       this.setState({ syncState: 'partial', syncTried: true });
       this.toast(
@@ -5475,7 +5484,6 @@ export class OpsRuntime extends OpsProvider {
 
     if (failed) {
       await requestBackgroundSync();
-      if (this.unmounted) return;
       this.setState((s) => ({
         syncState: 'partial',
         syncTried: true,

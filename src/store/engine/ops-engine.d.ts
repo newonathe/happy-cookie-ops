@@ -45,7 +45,7 @@ export interface OpsEngineState {
   online: boolean;
   sales: EventSale[];
   unsynced: number;
-  syncState: 'syncing' | 'partial' | 'synced' | null;
+  syncState: 'idle' | 'syncing' | 'partial' | 'synced';
   syncTried: boolean;
   event: { id?: string; name?: string; stage?: string } | null;
   restored?: boolean;
