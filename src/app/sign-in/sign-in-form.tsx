@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { returnPathFromSearch } from '@/lib/auth/return-path';
 import { clearIdleSpent } from '@/lib/auth/offline-trust';
@@ -14,7 +14,6 @@ import { clearStaffName } from '@/lib/auth/staff-name';
  */
 export function SignInForm() {
   const router = useRouter();
-  const next = returnPathFromSearch(useSearchParams());
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -37,7 +36,9 @@ export function SignInForm() {
     clearIdleSpent();
     // B2: nor is it the person this phone last remembered. Their name is read from the profile.
     clearStaffName();
-    router.replace(next);
+    // Read at submit, not render: useSearchParams() would suspend the prerender and leave the
+    // static page empty until the JavaScript ran (T-18: LCP 6.2 s on the phone profile).
+    router.replace(returnPathFromSearch(new URLSearchParams(window.location.search)));
   }
 
   const field: React.CSSProperties = {
