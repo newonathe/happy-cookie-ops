@@ -1,9 +1,16 @@
 import type { BazaarDay, BazaarSummary, CloseLine } from '@/lib/data/bazaar-days';
-import type { CloseInput, ReviewFigure, ReviewStockRow } from '@/lib/bazaar/live-bazaar-types';
+import type {
+  CloseInput,
+  DayReport,
+  ReportLine,
+  ReviewFigure,
+  ReviewStockRow
+} from '@/lib/bazaar/live-bazaar-types';
 import { COST_COPY } from '@/lib/orders/staff-copy';
-import { costCentavosToPesos, costPesosToCentavos, pesosToCentavos } from '@/lib/money';
-import { cookiesText, pesoText } from '@/lib/bazaar/plan';
-import { dateRange } from '@/lib/data/scheduled-events';
+import { costPesosToCentavos, pesosToCentavos } from '@/lib/money';
+import { cookiesText } from '@/lib/bazaar/plan';
+import { peso, pesoUnit } from '@/lib/money/format';
+import { dayRange } from '@/lib/date/day-text';
 
 /**
  * A bazaar day's review and an event's summary, as words (S3). Every figure here is `bazaar_summary`'s, formatted: nothing
@@ -15,19 +22,16 @@ const MONEY = /^[0-9]{1,7}(\.[0-9]{1,2})?$/;
 const COST = /^[0-9]{1,6}(\.[0-9]{1,4})?$/;
 const COUNT = /^[0-9]{1,5}$/;
 
-/** "₱880", "-₱5", or "Cost pending" for an amount that is not known. */
+/** "₱880.00", "-₱5.00", or "Cost pending" for an amount that is not known. */
 export function moneyText(cents: number | null): string {
-  if (cents === null) return COST_COPY.pending;
-  return cents < 0 ? '-' + pesoText(-cents) : pesoText(cents);
+  return cents === null ? COST_COPY.pending : peso(cents);
 }
 
 /** "₱12.005", from centavos with up to four decimals; "Cost pending" when there is none. */
 export function unitCostText(unitCents: number | null): string {
-  const pesos = costCentavosToPesos(unitCents);
-  if (pesos === null) return COST_COPY.pending;
-  return (
-    '₱' + pesos.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 6 })
-  );
+  return unitCents === null || !Number.isFinite(unitCents)
+    ? COST_COPY.pending
+    : pesoUnit(unitCents);
 }
 
 const plural = (n: number, one: string, many: string) =>
@@ -72,6 +76,7 @@ function revenueFigure(
     key,
     label: 'Revenue',
     valueText: moneyText(r.revenueCents),
+    cents: r.revenueCents,
     note: r.voided
       ? plural(r.voided, 'voided sale is', 'voided sales are') + ' not counted.'
       : null,
@@ -117,6 +122,7 @@ export function dayFiguresOf(s: BazaarSummary, day: BazaarDay): ReviewFigure[] {
       key: 'day-cash',
       label: 'Cash expected in the drawer',
       valueText: moneyText(day.cashExpectedCents),
+      cents: day.cashExpectedCents,
       note: null,
       parts: cashParts
     };
@@ -152,7 +158,7 @@ function whyText(s: BazaarSummary): string | null {
 
 /** The event's figures: revenue, fees, cookie cost, profit, against the target. Each opens into the database's own parts. */
 export function eventFiguresOf(s: BazaarSummary): ReviewFigure[] {
-  const dayText = new Map(s.days.map((d) => [d.id, dateRange(d.day, d.day)]));
+  const dayText = new Map(s.days.map((d) => [d.id, dayRange(d.day, d.day)]));
   const why = whyText(s);
   const cc = s.cookieCost;
   const costParts: Part[] = [];
@@ -176,7 +182,11 @@ export function eventFiguresOf(s: BazaarSummary): ReviewFigure[] {
           ? ''
           : ', at ' +
             unitCostText(l.unitCents) +
-            (l.source === 'typed' ? ' typed by you' : ' from the recipe')),
+            (l.source === 'typed'
+              ? ' typed by you'
+              : l.source === 'flavour'
+                ? ' typed by you for the flavour'
+                : ' from the recipe')),
       valueText: moneyText(l.costCents)
     });
   }
@@ -251,8 +261,16 @@ export function shouldBeLeft(l: BazaarDay['lines'][number]): number {
   return l.made + l.carried - l.sold - l.given - l.lost;
 }
 
-/** Each flavour of the day: what was on the table, where it went, and her count once the day is closed. */
-export function stockRowsOf(day: BazaarDay, names: ReadonlyMap<string, string>): ReviewStockRow[] {
+/**
+ * Each flavour of the day: what was on the table, where it went and her count once the day is closed. `hasRecipe` says
+ * whether the flavour has a recipe (null when that is not known), which only chooses where the last day's leftover is
+ * suggested to go.
+ */
+export function stockRowsOf(
+  day: BazaarDay,
+  names: ReadonlyMap<string, string>,
+  hasRecipe: (productId: string) => boolean | null = () => null
+): ReviewStockRow[] {
   return day.lines.map((l) => {
     const c = day.count?.find((x) => x.productId === l.productId);
     return {
@@ -267,9 +285,167 @@ export function stockRowsOf(day: BazaarDay, names: ReadonlyMap<string, string>):
       countText: c
         ? `${c.left} left: ${c.carryNext} carried over, ${c.toShop} to the shop, ${c.writtenOff} written off` +
           (c.notAccounted ? ` · ${c.notAccounted} not accounted` : '')
-        : null
+        : null,
+      hasRecipe: hasRecipe(l.productId),
+      made: l.made,
+      carried: l.carried,
+      sold: l.sold,
+      given: l.given,
+      lost: l.lost,
+      countedLeft: c ? c.left : null
     };
   });
+}
+
+type CloseRow = CloseInput['rows'][number];
+/** What she has typed into a row; a field she has not touched is absent and follows the default. */
+export type CloseTyped = Partial<Omit<CloseRow, 'productId'>>;
+
+/** A typed count as a number for the defaults: a blank or a bad entry is 0 (the close itself refuses a bad one). */
+const typedCount = (text: string | undefined): number => {
+  const t = (text ?? '').trim();
+  return COUNT.test(t) ? Number(t) : 0;
+};
+
+/**
+ * The close row as the form shows it, and so as it is sent (U5). Left starts as what should be left. The rest of it goes to
+ * ONE field: carried over on a day that is not the last, else to the shop when the flavour has a recipe, else written off.
+ * That field follows Left and is the remainder after what she typed in the others, so a lower Left or a part moved to
+ * another field keeps the split adding up. On the last day with the recipe not known nothing is suggested: she picks.
+ * A field she typed stays as she typed it.
+ */
+export function closeRowOf(s: ReviewStockRow, lastDay: boolean, typed: CloseTyped = {}): CloseRow {
+  const left = typed.left ?? String(Math.max(0, s.shouldBeLeft));
+  const receiver: 'carryNext' | 'toShop' | 'writtenOff' | null = !lastDay
+    ? 'carryNext'
+    : s.hasRecipe === true
+      ? 'toShop'
+      : s.hasRecipe === false
+        ? 'writtenOff'
+        : null;
+  const others = (['carryNext', 'toShop', 'writtenOff'] as const).filter(
+    (f) => f !== receiver && !(lastDay && f === 'carryNext')
+  );
+  const rest = Math.max(0, typedCount(left) - others.reduce((n, f) => n + typedCount(typed[f]), 0));
+  const field = (f: 'carryNext' | 'toShop' | 'writtenOff'): string =>
+    typed[f] ?? (f === receiver ? String(rest) : lastDay && f === 'carryNext' ? '' : '0');
+  return {
+    productId: s.productId,
+    left,
+    carryNext: field('carryNext'),
+    toShop: field('toShop'),
+    writtenOff: field('writtenOff')
+  };
+}
+
+/** Whole centavos as the pesos a field takes: 164035 is "1640.35". Exact: no fraction is ever worked out. */
+export function centsToPesosText(cents: number): string {
+  const whole = Math.abs(Math.round(cents));
+  return (
+    (cents < 0 ? '-' : '') + Math.floor(whole / 100) + '.' + String(whole % 100).padStart(2, '0')
+  );
+}
+
+/** Ateneo A3: a drawer difference above the larger of this and a tenth of what was expected asks to count again. */
+export const RECOUNT_FLOOR_CENTS = 10000;
+
+export interface DrawerCheck {
+  /** `blank`: nothing counted; `invalid`: not an amount (the close refuses it in words). */
+  kind: 'blank' | 'invalid' | 'matches' | 'over' | 'short';
+  countedCents: number | null;
+  /** How far off, always 0 or more. */
+  diffCents: number;
+  /** "Over ₱20.00", "Short ₱20.00", "Matches"; empty when there is nothing to say. */
+  text: string;
+  /** True when the difference is above the line: she is asked to count the drawer again before it is booked. */
+  recount: boolean;
+}
+
+/**
+ * What she typed for the drawer against what it should hold (U5). The line is strictly above the larger of ₱100.00 and
+ * 10 % of expected, in whole centavos and not rounded, so a difference exactly at the line is let through.
+ */
+export function drawerCheck(expectedCents: number, countedText: string): DrawerCheck {
+  const t = countedText.trim();
+  if (t === '')
+    return { kind: 'blank', countedCents: null, diffCents: 0, text: '', recount: false };
+  const countedCents = amountCents(t);
+  if (countedCents === null)
+    return { kind: 'invalid', countedCents: null, diffCents: 0, text: '', recount: false };
+  const diff = countedCents - expectedCents;
+  const diffCents = Math.abs(diff);
+  // Strictly above both ₱100.00 and a tenth of expected, in whole centavos and without rounding the tenth.
+  const recount = diffCents > RECOUNT_FLOOR_CENTS && diffCents * 10 > Math.max(0, expectedCents);
+  if (diff === 0) return { kind: 'matches', countedCents, diffCents, text: 'Matches', recount };
+  return diff > 0
+    ? { kind: 'over', countedCents, diffCents, text: 'Over ' + peso(diffCents), recount }
+    : { kind: 'short', countedCents, diffCents, text: 'Short ' + peso(diffCents), recount };
+}
+
+/**
+ * A closed day as a receipt (U5). Every total is the database's own figure and the lines are its parts, so each table adds
+ * up; nothing is worked out again here. By flavour is counts, which the per-flavour table shows.
+ */
+export function dayReportOf(s: BazaarSummary, day: BazaarDay): DayReport {
+  const takings: ReportLine[] = [
+    {
+      label: 'Before discounts and freebies',
+      detail: plural(day.sales, 'sale', 'sales'),
+      cents: day.grossCents
+    }
+  ];
+  if (day.discountCents) takings.push({ label: 'Discounts', cents: -day.discountCents });
+  if (day.freebieCents)
+    takings.push({ label: 'Given away', detail: 'At their price', cents: -day.freebieCents });
+  const drawerNote =
+    day.countedCents === null
+      ? 'Not counted'
+      : 'Counted ' +
+        peso(day.countedCents) +
+        (day.shortCents
+          ? ' · ' + peso(day.shortCents) + ' short'
+          : day.overCents
+            ? ' · ' + peso(day.overCents) + ' over'
+            : ' · Matches');
+  return {
+    tables: [
+      {
+        caption: 'Takings',
+        lines: takings,
+        totalCents: day.revenueCents,
+        ...(day.voided
+          ? { note: plural(day.voided, 'voided sale is', 'voided sales are') + ' not counted.' }
+          : {})
+      },
+      {
+        caption: 'How it was paid',
+        lines: Object.keys(day.byPay)
+          .sort()
+          .map((method) => ({ label: method, cents: day.byPay[method] ?? 0 })),
+        totalCents: day.revenueCents
+      },
+      {
+        caption: 'Fees',
+        lines: s.fees.parts
+          .filter((f) => f.dayId === day.id)
+          .map((f) => ({
+            label: f.label,
+            ...(f.atTheTill ? { detail: 'Added at the till' } : {}),
+            cents: f.amountCents
+          })),
+        totalCents: day.feesCents
+      },
+      {
+        caption: 'Drawer',
+        lines: [
+          { label: 'Float', cents: day.floatCents },
+          { label: 'Cash sales', cents: day.cashSalesCents }
+        ],
+        totalCents: day.cashExpectedCents,
+        note: drawerNote
+      }
+    ]
+  };
 }
 
 /** A whole count from text. A blank is `blank`; anything but digits is null. */

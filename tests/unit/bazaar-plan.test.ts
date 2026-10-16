@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { cookiesText, pesoInput, pesoText, planFromForm } from '@/lib/bazaar/plan';
+import { cookiesText, eventWhen, pesoInput, planFromForm } from '@/lib/bazaar/plan';
 import type { PlanFlavour } from '@/lib/bazaar/live-bazaar-types';
 
 /**
@@ -12,6 +12,9 @@ const flavour = (over: Partial<PlanFlavour> = {}): PlanFlavour => ({
   made: '20',
   carried: '',
   price: '125',
+  photo: 'assets/double-chocolate-fudge.png',
+  onMenu: true,
+  menuPrice: '125',
   ...over
 });
 
@@ -85,7 +88,13 @@ describe('planFromForm', () => {
     });
     expect(r).toEqual({
       ok: false,
-      error: 'Happy Camper: cookies made must be a whole number from 0 to 9,999.'
+      error: 'Happy Camper: cookies made must be a whole number from 0 to 9,999.',
+      errors: [
+        {
+          field: 'plan-made-hc',
+          message: 'Happy Camper: cookies made must be a whole number from 0 to 9,999.'
+        }
+      ]
     });
   });
 
@@ -99,13 +108,22 @@ describe('planFromForm', () => {
 });
 
 describe('texts', () => {
-  it('shows whole pesos without decimals and others with two', () => {
-    expect(pesoText(12500)).toBe('₱125');
-    expect(pesoText(12550)).toBe('₱125.50');
-    expect(pesoText(250000)).toBe('₱2,500');
+  it('writes input text and counts (money text is src/lib/money/format.ts, tested in money-format.test.ts)', () => {
     expect(pesoInput(12500)).toBe('125');
     expect(pesoInput(12550)).toBe('125.5');
     expect(cookiesText(1)).toBe('1 cookie');
     expect(cookiesText(1200)).toBe('1,200 cookies');
+  });
+});
+
+describe('eventWhen', () => {
+  it('says when an event is, from its dates and today (Manila dates, YYYY-MM-DD)', () => {
+    expect(eventWhen('2026-10-24', '2026-10-25', '2026-10-24')).toBe('Today');
+    expect(eventWhen('2026-10-24', '2026-10-25', '2026-10-25')).toBe('Today');
+    expect(eventWhen('2026-10-24', '2026-10-25', '2026-10-23')).toBe('Tomorrow');
+    expect(eventWhen('2026-10-24', '2026-10-25', '2026-10-15')).toBe('In 9 days');
+    // Across a month end.
+    expect(eventWhen('2026-11-02', '2026-11-02', '2026-10-30')).toBe('In 3 days');
+    // Mutation: counting from the end date says "In 10 days" for a two-day event.
   });
 });

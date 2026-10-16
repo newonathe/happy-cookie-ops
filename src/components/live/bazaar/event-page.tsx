@@ -1,88 +1,160 @@
 'use client';
 
-import { useId, useState } from 'react';
+import { useState } from 'react';
 import type * as React from 'react';
 import type { BazaarDayRow, BazaarEventView } from '@/lib/bazaar/live-bazaar-types';
-import {
-  Facts,
-  INK_SOFT,
-  LINE,
-  buttonBase,
-  cardStyle,
-  h1Style,
-  h2Style,
-  listStyle,
-  mutedStyle,
-  primaryBase,
-  textStyle,
-  wrapRow
-} from '@/components/live/stock/stock-shared';
-import { ErrorText, Field, Notices, RemoveButton, SelectField } from './field';
+import { primaryActionOf, type PrimaryAction } from '@/lib/bazaar/event-rules';
+import { formIds, validateCostForm, validateFeeForm, validateTargetForm } from '@/lib/bazaar/forms';
+import { peso } from '@/lib/money/format';
+import { Banner } from '@/components/ui/banner';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { ErrorSummary } from '@/components/ui/error-summary';
+import { Field, SelectField } from '@/components/ui/field';
+import { ProgressBar } from '@/components/ui/progress-bar';
+import { ReceiptTable } from '@/components/ui/receipt-table';
+import { SectionHeader } from '@/components/ui/section-header';
+import { StatTile } from '@/components/ui/stat-tile';
+import { StatusPill } from '@/components/ui/status-pill';
+import { Notices } from './field';
 import { Figures } from './figure';
+import { CloseEventSheet } from './close-event-sheet';
+import { StartDaySheet } from './start-day-sheet';
+import { useIssues } from './use-issues';
 import { useSave } from './use-save';
 
-const ACTION_WORD: Record<NonNullable<BazaarDayRow['action']>, string> = {
-  start: 'Start this day',
-  review: 'Review and close',
-  see: 'See the review'
-};
+const DAY_PILL = { Planned: 'planned', Selling: 'selling', Closed: 'closed' } as const;
 
-const section: React.CSSProperties = { display: 'flex', flexDirection: 'column', gap: '8px' };
-const formCard: React.CSSProperties = {
-  ...cardStyle,
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '8px'
-};
-const disabledLook: React.CSSProperties = { opacity: 0.6, cursor: 'not-allowed' };
+/** What the event page needs signal for, said once under the action it disables (spec rule 9). */
+const NEEDS_SIGNAL = 'Starting a day needs signal. Selling does not.';
 
-function DayCard({ day }: { day: BazaarDayRow }) {
+function figureOf(event: BazaarEventView, key: string) {
+  return event.figures.find((f) => f.key === key);
+}
+
+/** The stat row: revenue, profit (or "Cost pending"), cookies sold, and the profit against the target. */
+function Stats({ event }: { event: BazaarEventView }) {
+  const revenue = figureOf(event, 'revenue');
+  const profit = figureOf(event, 'profit');
+  const target = figureOf(event, 'target');
+  const partsOf = (f: typeof revenue) =>
+    f?.parts.map((p) => ({
+      label: p.detail ? `${p.label} · ${p.detail}` : p.label,
+      value: p.valueText
+    }));
+  const pending = event.profitCents === null;
+  const goal = event.targetCents;
+  const barLabel =
+    goal === null
+      ? 'No target set'
+      : event.profitCents === null
+        ? `Profit not known yet · target ${peso(goal)}`
+        : `${peso(Math.max(0, event.profitCents))} of ${peso(goal)} target profit`;
+  return (
+    <div className="grid grid-cols-2 items-start gap-3 lg:grid-cols-4">
+      <StatTile
+        label="Revenue"
+        value={event.figures.length ? (revenue?.cents ?? revenue?.valueText ?? null) : null}
+        format={peso}
+        parts={partsOf(revenue)}
+      />
+      <StatTile
+        label="Profit"
+        value={event.figures.length ? (pending ? 'Cost pending' : event.profitCents) : null}
+        format={peso}
+        tone={pending && event.figures.length ? 'warn' : undefined}
+        detail={profit?.note ?? undefined}
+        parts={partsOf(profit)}
+      />
+      <StatTile label="Cookies sold" value={event.figures.length ? event.soldCount : null} />
+      <div className="flex min-w-0 flex-col gap-2 rounded-card border border-line bg-surface p-4">
+        <span className="text-caption font-semibold text-ink-soft">Against the target</span>
+        <ProgressBar
+          value={Math.max(0, event.profitCents ?? 0)}
+          max={goal ?? 0}
+          label={barLabel}
+          overBy={
+            goal !== null && event.profitCents !== null ? peso(event.profitCents - goal) : undefined
+          }
+        />
+        {target && target.valueText !== 'No target set' ? (
+          <span className="text-caption text-ink-mute">{target.valueText}</span>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+/** One row of the days timeline: the plan for a day that has not run, what happened for a day that has. */
+function DayRow({
+  day,
+  primary,
+  onStart
+}: {
+  day: BazaarDayRow;
+  primary: boolean;
+  onStart: (day: BazaarDayRow) => void;
+}) {
   const noteId = 'day-note-' + day.id;
   const blocked = day.actionNote !== null;
-  const base = day.action === 'start' ? primaryBase : buttonBase;
-  const look: React.CSSProperties = blocked
-    ? { ...base, background: LINE, color: INK_SOFT, cursor: 'not-allowed' }
-    : base;
+  const o = day.outcome;
   return (
-    <li style={{ ...cardStyle, display: 'flex', flexDirection: 'column', gap: '8px' }}>
-      <span style={{ ...wrapRow, justifyContent: 'space-between' }}>
-        <span style={{ ...textStyle, fontWeight: 700 }}>{day.dateText}</span>
-        <span style={{ ...textStyle, fontWeight: 700 }}>{day.word}</span>
-      </span>
-      <span style={wrapRow}>
-        <span style={textStyle}>{day.cookiesText}</span>
-        <span style={mutedStyle}>{day.floatText}</span>
-      </span>
-      {day.lines.length ? (
-        <ul aria-label={'Plan for ' + day.dateText} style={{ ...listStyle, gap: '2px' }}>
-          {day.lines.map((line) => (
-            <li key={line} style={mutedStyle}>
-              {line}
-            </li>
-          ))}
-        </ul>
-      ) : null}
-      {day.hint ? <p style={mutedStyle}>{day.hint}</p> : null}
-      <span style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-        {day.action ? (
-          <button
-            type="button"
-            onClick={day.run}
+    <li className="flex flex-col gap-2 rounded-card border border-line bg-surface p-4">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <span className="text-body font-bold text-ink">{day.dateText}</span>
+        <StatusPill status={DAY_PILL[day.word]} />
+      </div>
+      {o ? (
+        <div className="flex flex-col gap-1">
+          <span className="text-body font-bold text-ink tabular-nums">{o.revenueText}</span>
+          <span className="text-caption text-ink-soft">
+            {[o.soldText, o.leftText, o.carriedText, o.drawerText && `Drawer: ${o.drawerText}`]
+              .filter(Boolean)
+              .join(' · ')}
+          </span>
+        </div>
+      ) : (
+        <>
+          <span className="flex flex-wrap gap-x-3 text-body text-ink">
+            <span>{day.cookiesText}</span>
+            <span className="text-ink-mute">{day.floatText}</span>
+          </span>
+          {day.lines.length ? (
+            <ul aria-label={'Plan for ' + day.dateText} className="m-0 list-none p-0">
+              {day.lines.map((line) => (
+                <li key={line} className="text-caption text-ink-mute">
+                  {line}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </>
+      )}
+      {day.hint ? <p className="m-0 text-caption text-ink-mute">{day.hint}</p> : null}
+      <span className="flex flex-wrap gap-2">
+        {day.action && !primary ? (
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={day.action === 'start' ? () => onStart(day) : day.run}
             disabled={blocked}
             aria-describedby={blocked ? noteId : undefined}
-            style={look}
           >
-            {ACTION_WORD[day.action]}
-          </button>
+            {day.action === 'start'
+              ? 'Start this day'
+              : day.action === 'review'
+                ? 'Review and close'
+                : 'See the review'}
+          </Button>
         ) : null}
         {day.edit ? (
-          <button type="button" onClick={day.edit} style={buttonBase}>
+          <Button variant="ghost" size="sm" onClick={day.edit}>
             Change the plan
-          </button>
+          </Button>
         ) : null}
       </span>
-      {day.actionNote ? (
-        <p id={noteId} style={mutedStyle}>
+      {day.actionNote && !primary ? (
+        <p id={noteId} className="m-0 text-caption text-ink-mute">
           {day.actionNote}
         </p>
       ) : null}
@@ -91,66 +163,102 @@ function DayCard({ day }: { day: BazaarDayRow }) {
 }
 
 /** The fees of the event, with the stall rent first, and a form to add one. */
-function FeesSection({ event }: { event: BazaarEventView }) {
+export function FeesSection({ event }: { event: BazaarEventView }) {
   const [label, setLabel] = useState('');
   const [amount, setAmount] = useState('');
   const [dayId, setDayId] = useState('');
   const { error, saving, run } = useSave();
-  const errorId = useId();
+  const [removeError, setRemoveError] = useState<string | null>(null);
+  const issues = useIssues(() => validateFeeForm({ label, amount }));
   const { addFee } = event;
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!addFee) return;
+    if (!addFee || !issues.submit()) return;
     const saved = await run(() => addFee({ label, amount, dayId: dayId === '' ? null : dayId }));
     if (saved) {
       setLabel('');
       setAmount('');
+      issues.clear();
     }
   };
+  const lines = event.fees.map((f) => {
+    const [name = f.text, ...rest] = f.text.split(' · ');
+    return {
+      label: name,
+      detail: rest.join(' · ') || undefined,
+      value: f.amountCents,
+      onRemove: f.remove
+        ? () => {
+            const remove = f.remove;
+            setRemoveError(null);
+            if (remove) void remove().then(setRemoveError);
+          }
+        : undefined
+    };
+  });
   return (
-    <section aria-labelledby="bazaar-fees" style={section}>
-      <h2 id="bazaar-fees" style={h2Style}>
-        Fees
-      </h2>
-      <ul aria-label="Fees" style={listStyle}>
-        {event.fees.map((f) => (
-          <li
-            key={f.id}
-            style={{
-              ...cardStyle,
-              ...textStyle,
-              display: 'flex',
-              flexWrap: 'wrap',
-              justifyContent: 'space-between',
-              gap: '2px 12px'
-            }}
-          >
-            <span style={{ minWidth: 0, overflowWrap: 'anywhere' }}>{f.text}</span>
-            <span style={{ fontWeight: 700, textAlign: 'right' }}>{f.amountText}</span>
-            {f.remove ? <RemoveButton label={f.text} remove={f.remove} /> : null}
-          </li>
-        ))}
-      </ul>
-      <p style={{ ...textStyle, fontWeight: 700 }}>Total {event.feesTotalText}</p>
+    <section aria-labelledby="bazaar-fees" className="flex flex-col gap-2">
+      <SectionHeader title={<span id="bazaar-fees">Fees</span>} count={event.fees.length} />
+      {removeError ? <Banner tone="danger" title={removeError} /> : null}
+      <ReceiptTable
+        caption="Fees"
+        lines={lines}
+        total={event.feesTotalCents}
+        emptyText="No fees yet"
+        note="The stall rent is booked when the first day starts."
+      />
       {addFee ? (
-        <form onSubmit={(e) => void submit(e)} aria-label="Add a fee" style={formCard} noValidate>
-          <Field label="What for" value={label} mode="text" onChange={setLabel} />
-          <Field label="Amount (₱)" value={amount} mode="decimal" onChange={setAmount} />
+        <form
+          {...issues.formProps}
+          onSubmit={(e) => void submit(e)}
+          aria-label="Add a fee"
+          noValidate
+          className="flex flex-col gap-3 rounded-card border border-line bg-surface p-4 md:max-w-xl"
+        >
+          <ErrorSummary errors={issues.summary} focusKey={issues.focusKey} />
+          {error ? <Banner tone="danger" title={error} /> : null}
+          <Field
+            id={formIds.feeLabel}
+            label="What for"
+            value={label}
+            maxLength={80}
+            autoComplete="off"
+            error={issues.messageOf(formIds.feeLabel)}
+            onChange={(e) => {
+              setLabel(e.target.value);
+              issues.touch(formIds.feeLabel);
+            }}
+            onBlur={() => issues.blur(formIds.feeLabel)}
+          />
+          <Field
+            id={formIds.feeAmount}
+            label="Amount"
+            mode="decimal"
+            prefix="₱"
+            value={amount}
+            autoComplete="off"
+            error={issues.messageOf(formIds.feeAmount)}
+            onChange={(e) => {
+              setAmount(e.target.value);
+              issues.touch(formIds.feeAmount);
+            }}
+            onBlur={() => issues.blur(formIds.feeAmount)}
+          />
           <SelectField
             label="For"
             value={dayId}
-            options={event.feeFor.map((o) => ({ value: o.dayId ?? '', text: o.text }))}
-            onChange={setDayId}
+            options={event.feeFor.map((o) => ({ value: o.dayId ?? '', label: o.text }))}
+            onChange={(e) => setDayId(e.target.value)}
           />
-          <ErrorText error={error} id={errorId} />
-          <button
+          <Button
             type="submit"
-            disabled={saving}
-            aria-describedby={error ? errorId : undefined}
-            style={{ ...buttonBase, ...(saving ? disabledLook : {}) }}
+            variant="secondary"
+            busy={saving}
+            busyLabel="Saving…"
+            className="self-start"
           >
-            {saving ? 'Saving…' : 'Add the fee'}
-          </button>
+            Add the fee
+          </Button>
         </form>
       ) : null}
     </section>
@@ -160,210 +268,297 @@ function FeesSection({ event }: { event: BazaarEventView }) {
 function TargetSection({ event }: { event: BazaarEventView }) {
   const [pesos, setPesos] = useState(event.targetPesos);
   const { error, saving, run } = useSave();
-  const errorId = useId();
+  const issues = useIssues(() => validateTargetForm({ pesos }));
   const { saveTarget } = event;
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (saveTarget) await run(() => saveTarget(pesos));
+    if (saveTarget && issues.submit()) await run(() => saveTarget(pesos));
   };
   return (
-    <section aria-labelledby="bazaar-target" style={section}>
-      <h2 id="bazaar-target" style={h2Style}>
-        Target profit
-      </h2>
-      <p style={textStyle}>{event.targetText}</p>
+    <section aria-labelledby="bazaar-target" className="flex flex-col gap-2">
+      <SectionHeader title={<span id="bazaar-target">Target profit</span>} />
+      <p className="m-0 text-body text-ink">{event.targetText}</p>
       {saveTarget ? (
         <form
+          {...issues.formProps}
           onSubmit={(e) => void submit(e)}
           aria-label="Target profit"
-          style={formCard}
           noValidate
+          className="flex flex-col gap-3 rounded-card border border-line bg-surface p-4 md:max-w-xl"
         >
-          <Field label="Target (₱)" value={pesos} mode="decimal" onChange={setPesos} />
-          <ErrorText error={error} id={errorId} />
-          <button
+          <ErrorSummary errors={issues.summary} focusKey={issues.focusKey} />
+          {error ? <Banner tone="danger" title={error} /> : null}
+          <Field
+            id={formIds.target}
+            label="Target"
+            mode="decimal"
+            prefix="₱"
+            hint="Leave blank for no target."
+            value={pesos}
+            autoComplete="off"
+            error={issues.messageOf(formIds.target)}
+            onChange={(e) => {
+              setPesos(e.target.value);
+              issues.touch(formIds.target);
+            }}
+            onBlur={() => issues.blur(formIds.target)}
+          />
+          <Button
             type="submit"
-            disabled={saving}
-            aria-describedby={error ? errorId : undefined}
-            style={{ ...buttonBase, ...(saving ? disabledLook : {}) }}
+            variant="secondary"
+            busy={saving}
+            busyLabel="Saving…"
+            className="self-start"
           >
-            {saving ? 'Saving…' : 'Save the target'}
-          </button>
+            Save the target
+          </Button>
         </form>
       ) : null}
     </section>
   );
 }
 
+/** One flavour's cost per cookie as a receipt: what it is, where it came from, how the recipe makes it up. */
 function CostCard({ cost }: { cost: BazaarEventView['costs'][number] }) {
   const [pesos, setPesos] = useState(cost.typedPesos);
   const { error, saving, run } = useSave();
-  const errorId = useId();
+  const field = formIds.cost(cost.productId);
+  const issues = useIssues(() => validateCostForm({ field, pesos }));
   const { save } = cost;
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (save) await run(() => save(pesos));
+    if (save && issues.submit()) await run(() => save(pesos));
   };
   return (
-    <li style={formCard}>
-      <span style={{ ...textStyle, fontWeight: 700 }}>{cost.name}</span>
-      <span style={textStyle}>{cost.text}</span>
+    <li className="flex flex-col gap-2 rounded-card border border-line bg-surface p-4">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-3">
+        <span className="text-body font-bold text-ink">{cost.name}</span>
+        <span className="text-body font-bold text-ink tabular-nums">{cost.unitText}</span>
+      </div>
+      <span className="text-caption text-ink-mute">
+        {cost.unitText === 'Cost pending'
+          ? 'No cost per cookie yet'
+          : `per cookie · ${cost.sourceText}`}
+      </span>
+      {cost.breakdown ? (
+        <details className="text-body">
+          <summary className="cursor-pointer text-caption font-semibold text-brand-deep">
+            How the recipe makes it up
+          </summary>
+          <div className="pt-2">
+            <ReceiptTable
+              caption={'Recipe cost per cookie for ' + cost.name}
+              lines={cost.breakdown.slice(0, -1).map((l) => ({
+                label: l.label,
+                value: 0,
+                valueText: l.valueText
+              }))}
+              total={0}
+              totalText={cost.breakdown[cost.breakdown.length - 1]?.valueText}
+              totalLabel={cost.breakdown[cost.breakdown.length - 1]?.label}
+              note={cost.breakdownNote ?? undefined}
+            />
+          </div>
+        </details>
+      ) : cost.breakdownNote ? (
+        <p className="m-0 text-caption text-ink-mute">{cost.breakdownNote}</p>
+      ) : null}
       {save ? (
         <form
+          {...issues.formProps}
           onSubmit={(e) => void submit(e)}
           aria-label={'Cost per cookie for ' + cost.name}
-          style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}
           noValidate
+          className="flex flex-col gap-3"
         >
+          <ErrorSummary errors={issues.summary} focusKey={issues.focusKey} />
+          {error ? <Banner tone="danger" title={error} /> : null}
           <Field
-            label="Your cost per cookie (₱)"
-            value={pesos}
+            id={field}
+            label="Your cost per cookie"
             mode="decimal"
-            onChange={setPesos}
+            prefix="₱"
+            hint="Leave blank to use the recipe's cost."
+            value={pesos}
+            autoComplete="off"
+            error={issues.messageOf(field)}
+            onChange={(e) => {
+              setPesos(e.target.value);
+              issues.touch(field);
+            }}
+            onBlur={() => issues.blur(field)}
           />
-          <p style={mutedStyle}>Leave blank to use the recipe&apos;s cost.</p>
-          <ErrorText error={error} id={errorId} />
-          <button
+          <Button
             type="submit"
-            disabled={saving}
-            aria-describedby={error ? errorId : undefined}
-            style={{ ...buttonBase, ...(saving ? disabledLook : {}) }}
+            variant="secondary"
+            size="sm"
+            busy={saving}
+            busyLabel="Saving…"
+            className="self-start"
           >
-            {saving ? 'Saving…' : 'Save the cost'}
-          </button>
+            Save the cost
+          </Button>
         </form>
       ) : null}
     </li>
   );
 }
 
-/** Closing the event is a count in the books that cannot be undone: it asks twice. */
-function FinaliseSection({ finalise }: { finalise: NonNullable<BazaarEventView['finalise']> }) {
-  const [confirming, setConfirming] = useState(false);
-  const { error, saving, run } = useSave();
-  const errorId = useId();
-  const blocked = finalise.blocked !== null;
-  const off = blocked || saving;
-  return (
-    <section aria-labelledby="bazaar-finalise" style={section}>
-      <h2 id="bazaar-finalise" style={h2Style}>
+/** The one forward action of the page, in the words of the state the event is in. */
+function PrimaryButton({
+  event,
+  action,
+  onStart,
+  onClose
+}: {
+  event: BazaarEventView;
+  action: PrimaryAction;
+  onStart: (day: BazaarDayRow) => void;
+  onClose: () => void;
+}) {
+  const day = (id: string) => event.days.find((d) => d.id === id);
+  if (action.kind === 'close') {
+    return (
+      <Button
+        variant="dark"
+        size="lg"
+        onClick={onClose}
+        disabled={event.finalise?.blocked != null}
+        reason={event.finalise?.blocked ?? undefined}
+        className="self-start"
+      >
         Close the event
-      </h2>
-      <p style={mutedStyle}>
-        Closing the event counts its sales, fees and stock in the books. It cannot be undone.
-      </p>
-      {finalise.blocked ? (
-        <p role="status" style={{ ...textStyle, fontWeight: 700 }}>
-          {finalise.blocked}
-        </p>
-      ) : null}
-      <ErrorText error={error} id={errorId} />
-      {confirming && !blocked ? (
-        <span style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-          <button
-            type="button"
-            disabled={saving}
-            onClick={() =>
-              void run(finalise.run).then((saved) => {
-                if (!saved) setConfirming(false);
-              })
-            }
-            style={{ ...primaryBase, minHeight: '48px', ...(saving ? disabledLook : {}) }}
-          >
-            {saving ? 'Closing…' : 'Yes, close the event'}
-          </button>
-          <button
-            type="button"
-            disabled={saving}
-            onClick={() => setConfirming(false)}
-            style={buttonBase}
-          >
-            Not yet
-          </button>
-        </span>
-      ) : (
-        <button
-          type="button"
-          disabled={off}
-          aria-describedby={error ? errorId : undefined}
-          onClick={() => setConfirming(true)}
-          style={{
-            ...primaryBase,
-            minHeight: '48px',
-            alignSelf: 'flex-start',
-            ...(off ? disabledLook : {})
-          }}
-        >
-          Close the event
-        </button>
-      )}
-    </section>
+      </Button>
+    );
+  }
+  if (action.kind === 'plan') {
+    const when = event.unplanned.find((u) => u.ymd === action.ymd)?.text ?? '';
+    return (
+      <Button
+        variant="primary"
+        size="lg"
+        onClick={() => event.planDay(action.ymd)}
+        className="self-start"
+      >
+        {`Plan ${when} →`}
+      </Button>
+    );
+  }
+  const d = day(action.dayId);
+  if (!d) return null;
+  const blocked = d.actionNote !== null;
+  if (action.kind === 'start') {
+    return (
+      <Button
+        variant="primary"
+        size="lg"
+        onClick={() => onStart(d)}
+        disabled={blocked}
+        reason={
+          blocked
+            ? d.actionNote === 'Needs signal'
+              ? NEEDS_SIGNAL
+              : (d.actionNote ?? undefined)
+            : undefined
+        }
+        className="self-start"
+      >
+        {`Start the day →`}
+      </Button>
+    );
+  }
+  return (
+    <Button
+      variant="primary"
+      size="lg"
+      onClick={d.run}
+      disabled={blocked}
+      reason={blocked ? (d.actionNote ?? undefined) : undefined}
+      className="self-start"
+    >
+      {`Review and close →`}
+    </Button>
   );
 }
 
-/** One booking: its details, then its days. A day is planned here and started here. */
+/** One booking: its hero and figures, then its days, fees, target and costs. A day is planned and started here. */
 export function EventPage({ event }: { event: BazaarEventView }) {
+  const [starting, setStarting] = useState<BazaarDayRow | null>(null);
+  const [closing, setClosing] = useState(false);
+  const primary = primaryActionOf(event);
+  const startDay = (day: BazaarDayRow) => {
+    if (day.startPrompt) setStarting(day);
+    else day.start(false);
+  };
+  // The primary action is not drawn a second time on its day's row.
+  const primaryDayId = primary && 'dayId' in primary ? primary.dayId : null;
   return (
     <>
-      <button
-        type="button"
-        onClick={event.back}
-        style={{ ...buttonBase, alignSelf: 'flex-start', minHeight: '44px' }}
-      >
+      <Button variant="ghost" onClick={event.back} className="self-start">
         <span aria-hidden="true">← </span>Back to the events
-      </button>
-      <h1 style={h1Style}>{event.name}</h1>
-      <Notices notices={event.notices} />
-      <section aria-label="Event details" style={cardStyle}>
-        <Facts
-          rows={[
-            ['Dates', event.datesText],
-            ['Place', event.placeText],
-            ['Stall rent', event.rentText.replace(/^Stall rent /, '')]
-          ]}
-        />
-      </section>
-      <section aria-labelledby="bazaar-days" style={section}>
-        <h2 id="bazaar-days" style={h2Style}>
-          Days
-        </h2>
+      </Button>
+      <Card variant="accent" as="section" aria-label="Event" className="flex flex-col gap-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <h1 className="m-0 min-w-0 text-title text-ink">{event.name}</h1>
+          <StatusPill status={event.status} />
+        </div>
+        <span className="text-body text-ink-soft">
+          {event.placeText} · {event.datesText}
+        </span>
+        <span className="text-caption text-ink-mute">{event.rentText}</span>
+        <Notices notices={event.notices} />
+        {primary ? (
+          <div className="flex flex-col gap-1">
+            <PrimaryButton
+              event={event}
+              action={primary}
+              onStart={startDay}
+              onClose={() => setClosing(true)}
+            />
+          </div>
+        ) : null}
+      </Card>
+      <Stats event={event} />
+      <section aria-labelledby="bazaar-days" className="flex flex-col gap-2">
+        <SectionHeader title={<span id="bazaar-days">Days</span>} count={event.days.length} />
         {event.days.length === 0 ? (
-          <p style={mutedStyle}>No day is planned yet.</p>
+          <p className="m-0 text-body text-ink-mute">No day is planned yet.</p>
         ) : (
-          <ul aria-label="Days" style={listStyle}>
+          <ol aria-label="Days" className="m-0 flex list-none flex-col gap-2 p-0">
             {event.days.map((day) => (
-              <DayCard key={day.id} day={day} />
+              <DayRow key={day.id} day={day} primary={day.id === primaryDayId} onStart={startDay} />
             ))}
-          </ul>
+          </ol>
         )}
+        {event.unplanned.length ? (
+          <div className="flex flex-col gap-2">
+            <span className="text-caption font-semibold text-ink-soft">
+              {event.days.length === 0 ? 'Plan a day' : 'Plan another day'}
+            </span>
+            <span className="flex flex-wrap gap-2">
+              {event.unplanned.map((u) => (
+                <Button
+                  key={u.ymd}
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => event.planDay(u.ymd)}
+                >
+                  {u.text}
+                </Button>
+              ))}
+            </span>
+          </div>
+        ) : null}
       </section>
-      {event.unplanned.length ? (
-        <section aria-labelledby="bazaar-plan" style={section}>
-          <h2 id="bazaar-plan" style={h2Style}>
-            Plan a day
-          </h2>
-          <span style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-            {event.unplanned.map((u) => (
-              <button
-                key={u.ymd}
-                type="button"
-                onClick={() => event.planDay(u.ymd)}
-                style={buttonBase}
-              >
-                {u.text}
-              </button>
-            ))}
-          </span>
-        </section>
-      ) : null}
       <FeesSection event={event} />
       <TargetSection event={event} />
       {event.costs.length > 0 ? (
-        <section aria-labelledby="bazaar-costs" style={section}>
-          <h2 id="bazaar-costs" style={h2Style}>
-            Cost per cookie
-          </h2>
-          <ul aria-label="Cost per cookie" style={listStyle}>
+        <section aria-labelledby="bazaar-costs" className="flex flex-col gap-2">
+          <SectionHeader
+            title={<span id="bazaar-costs">Cost per cookie</span>}
+            count={event.costs.length}
+          />
+          <ul aria-label="Cost per cookie" className="m-0 flex list-none flex-col gap-2 p-0">
             {event.costs.map((c) => (
               <CostCard key={c.productId} cost={c} />
             ))}
@@ -371,15 +566,44 @@ export function EventPage({ event }: { event: BazaarEventView }) {
         </section>
       ) : null}
       {event.figures.length > 0 ? (
-        <section aria-labelledby="bazaar-figures" style={section}>
-          <h2 id="bazaar-figures" style={h2Style}>
-            The event
-          </h2>
-          {event.figuresNote ? <p style={mutedStyle}>{event.figuresNote}</p> : null}
+        <section aria-labelledby="bazaar-figures" className="flex flex-col gap-2">
+          <SectionHeader title={<span id="bazaar-figures">The event</span>} />
+          {event.figuresNote ? (
+            <p className="m-0 text-caption text-ink-mute">{event.figuresNote}</p>
+          ) : null}
           <Figures figures={event.figures} label="The event" />
         </section>
       ) : null}
-      {event.finalise ? <FinaliseSection finalise={event.finalise} /> : null}
+      {event.finalise && primary?.kind !== 'close' ? (
+        <section aria-labelledby="bazaar-finalise" className="flex flex-col gap-2">
+          <SectionHeader title={<span id="bazaar-finalise">Close the event</span>} />
+          <p className="m-0 text-caption text-ink-mute">
+            Closing the event counts its sales, fees and stock in the books. It cannot be undone.
+          </p>
+          <Button
+            variant="dark"
+            onClick={() => setClosing(true)}
+            disabled={event.finalise.blocked !== null}
+            reason={event.finalise.blocked ?? undefined}
+            className="self-start"
+          >
+            Close the event
+          </Button>
+        </section>
+      ) : null}
+      {starting?.startPrompt ? (
+        <StartDaySheet
+          prompt={starting.startPrompt}
+          onConfirm={() => {
+            starting.start(true);
+            setStarting(null);
+          }}
+          onClose={() => setStarting(null)}
+        />
+      ) : null}
+      {closing && event.finalise ? (
+        <CloseEventSheet finalise={event.finalise} onClose={() => setClosing(false)} />
+      ) : null}
     </>
   );
 }

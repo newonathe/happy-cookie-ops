@@ -352,6 +352,56 @@
       "detail": null
     },
     {
+      "check": "approved_shop_tagline_once:scripts/port-baseline.json:0",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "approved_screen_slot_once:scripts/port-baseline.json:0",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "approved_home_card_once:scripts/port-baseline.json:0",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "approved_dock_label_once:scripts/port-baseline.json:0",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "approved_live_frame_once:scripts/port-baseline.json:0",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "approved_live_frame_once:scripts/port-baseline.json:1",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "approved_flavour_exception_once:scripts/port-baseline.json:0",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "approved_flavour_exception_once:scripts/port-baseline.json:1",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "approved_checkout_exception_once:scripts/port-baseline.json:0",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "approved_lookup_exception_once:scripts/port-baseline.json:0",
+      "passed": true,
+      "detail": null
+    },
+    {
       "check": "protected_delivery_bytes:scripts/port-baseline.json",
       "passed": true,
       "detail": null
@@ -373,6 +423,16 @@
     },
     {
       "check": "delivery_file_present:supabase/seed.sql",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "approved_identity_seed_once:supabase/seed.sql:0",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "approved_flavour_exception_once:supabase/seed.sql:0",
       "passed": true,
       "detail": null
     },
@@ -468,6 +528,21 @@
     },
     {
       "check": "delivery_file_present:supabase/migrations/20260101000000_init.sql",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "approved_bootstrap_function_present",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "approved_bootstrap_open_quote",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "approved_bootstrap_close_quote",
       "passed": true,
       "detail": null
     },
@@ -632,6 +707,16 @@
       "detail": null
     },
     {
+      "check": "approved_flavour_exception_once:src/store/engine/ops-engine.js:0",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "approved_flavour_exception_once:src/store/engine/ops-engine.js:1",
+      "passed": true,
+      "detail": null
+    },
+    {
       "check": "protected_delivery_bytes:src/store/engine/ops-engine.js",
       "passed": true,
       "detail": null
@@ -757,6 +842,26 @@
       "detail": null
     },
     {
+      "check": "approved_checkout_exception_once:src/components/screens/checkout.tsx:0",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "approved_checkout_exception_once:src/components/screens/checkout.tsx:1",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "approved_checkout_exception_once:src/components/screens/checkout.tsx:2",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "approved_checkout_exception_once:src/components/screens/checkout.tsx:3",
+      "passed": true,
+      "detail": null
+    },
+    {
       "check": "protected_delivery_bytes:src/components/screens/checkout.tsx",
       "passed": true,
       "detail": null
@@ -773,6 +878,31 @@
     },
     {
       "check": "delivery_file_present:src/components/screens/find-my-order.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "approved_lookup_exception_once:src/components/screens/find-my-order.tsx:0",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "approved_lookup_exception_once:src/components/screens/find-my-order.tsx:1",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "approved_lookup_exception_once:src/components/screens/find-my-order.tsx:2",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "approved_lookup_exception_once:src/components/screens/find-my-order.tsx:3",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "approved_lookup_exception_once:src/components/screens/find-my-order.tsx:4",
       "passed": true,
       "detail": null
     },
@@ -803,6 +933,11 @@
     },
     {
       "check": "delivery_file_present:src/components/screens/home.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "approved_home_card_once:src/components/screens/home.tsx:0",
       "passed": true,
       "detail": null
     },
@@ -843,6 +978,21 @@
     },
     {
       "check": "delivery_file_present:src/components/screens/order-status.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "approved_live_frame_once:src/components/screens/order-status.tsx:0",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "approved_live_frame_once:src/components/screens/order-status.tsx:1",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "approved_live_frame_once:src/components/screens/order-status.tsx:2",
       "passed": true,
       "detail": null
     },
@@ -897,6 +1047,16 @@
       "detail": null
     },
     {
+      "check": "approved_pnl_caption_once:src/components/screens/profit-and-loss.tsx:0",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "approved_pnl_caption_once:src/components/screens/profit-and-loss.tsx:1",
+      "passed": true,
+      "detail": null
+    },
+    {
       "check": "protected_delivery_bytes:src/components/screens/profit-and-loss.tsx",
       "passed": true,
       "detail": null
@@ -933,6 +1093,46 @@
     },
     {
       "check": "delivery_file_present:src/components/screens/shop.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "approved_shop_tagline_once:src/components/screens/shop.tsx:0",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "approved_shop_tagline_once:src/components/screens/shop.tsx:1",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "approved_live_frame_once:src/components/screens/shop.tsx:0",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "approved_live_frame_once:src/components/screens/shop.tsx:1",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "approved_live_frame_once:src/components/screens/shop.tsx:2",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "approved_flavour_exception_once:src/components/screens/shop.tsx:0",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "approved_flavour_exception_once:src/components/screens/shop.tsx:1",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "approved_flavour_exception_once:src/components/screens/shop.tsx:2",
       "passed": true,
       "detail": null
     },
@@ -1278,6 +1478,51 @@
     },
     {
       "check": "delivery_file_present:src/components/shell/app-frame.tsx",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "approved_screen_slot_once:src/components/shell/app-frame.tsx:0",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "approved_screen_slot_once:src/components/shell/app-frame.tsx:1",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "approved_dock_label_once:src/components/shell/app-frame.tsx:0",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "approved_live_frame_once:src/components/shell/app-frame.tsx:0",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "approved_live_frame_once:src/components/shell/app-frame.tsx:1",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "approved_live_frame_once:src/components/shell/app-frame.tsx:2",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "approved_live_frame_once:src/components/shell/app-frame.tsx:3",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "approved_flavour_exception_once:src/components/shell/app-frame.tsx:0",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "approved_flavour_exception_once:src/components/shell/app-frame.tsx:1",
       "passed": true,
       "detail": null
     },
@@ -5877,6 +6122,16 @@
       "detail": null
     },
     {
+      "check": "approved_pg17_settings_quotes_three",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "check": "approved_pg17_settings_original_bytes",
+      "passed": true,
+      "detail": null
+    },
+    {
       "check": "agent_authority_notices_aligned",
       "passed": true,
       "detail": null
@@ -5890,7 +6145,7 @@
       "check": "current_and_master_local_document_links",
       "passed": true,
       "detail": {
-        "checked": 287,
+        "checked": 1034,
         "broken": []
       }
     },
@@ -5911,40 +6166,150 @@
     }
   ],
   "changed_delivery_files": [
+    ".env.example",
+    ".gitignore",
     ".nvmrc",
+    ".prettierignore",
     "AGENTS.md",
     "CLAUDE.md",
     "Dockerfile",
     "eslint.config.mjs",
+    "HANDOFF.md",
     "instrumentation-client.ts",
+    "lighthouserc.json",
     "MASTER-PLAN.md",
     "next.config.ts",
+    "NEXT.md",
     "package.json",
     "playwright.config.ts",
     "prettier.config.mjs",
+    "README.md",
     "sentry.edge.config.ts",
     "sentry.server.config.ts",
+    "START-HERE.md",
     "tsconfig.json",
+    "vercel.json",
+    ".claude/settings.json",
+    ".codex/config.toml",
+    ".github/dependabot.yml",
+    ".github/pull_request_template.md",
     ".husky/pre-commit",
+    "docs/ARCHITECTURE.md",
+    "docs/BUILD-LOG.md",
+    "docs/CODEX.md",
+    "docs/CONTRACTS.md",
+    "docs/DATA.md",
+    "docs/DEPLOY.md",
+    "docs/ENVIRONMENTS.md",
+    "docs/FREE-TIER.md",
+    "docs/GAPS.md",
+    "docs/MESSAGING.md",
+    "docs/OBSERVABILITY.md",
+    "docs/OFFLINE.md",
+    "docs/PORTING.md",
+    "docs/PROMPTS.md",
+    "docs/RUNBOOK.md",
+    "docs/SCREENS.md",
     "docs/SESSIONS.md",
+    "docs/STAGING.md",
+    "docs/TASKS.md",
+    "docs/TECH-DEBT.md",
     "docs/TESTING.md",
+    "docs/WORKFLOW.md",
+    "public/sw.js",
+    "scripts/check-engine-contract.mjs",
     "scripts/check-port-integrity.mjs",
+    "scripts/gen-seed.mjs",
+    "scripts/port-baseline.json",
+    "src/middleware.ts",
+    "supabase/config.toml",
+    "supabase/seed.sql",
     "tests/e2e/bazaar-offline.spec.ts",
+    "tests/e2e/capacity-parity.spec.ts",
     "tests/e2e/screens.spec.ts",
     "tests/e2e/visual.spec.ts",
+    "tests/fixtures/capacity-cases.json",
     "tests/load/drop-open.js",
+    "tests/unit/capacity-parity.test.ts",
+    "tests/unit/css.test.ts",
+    "tests/unit/idempotency.test.ts",
+    "tests/unit/money-conversion.test.ts",
+    "tests/unit/offline-queue.test.ts",
+    "tests/unit/order-rules.test.ts",
     "tests/unit/scrub.test.ts",
+    "supabase/migrations/20260101000000_init.sql",
+    "src/app/error.tsx",
+    "src/app/globals.css",
+    "src/app/layout.tsx",
+    "src/app/not-found.tsx",
+    "src/components/tokens.stories.tsx",
+    "src/lib/money.ts",
+    "src/lib/rate-limit.ts",
+    "src/lib/screens.ts",
+    "src/store/ops-runtime.tsx",
     "src/view-models/vals.ts",
+    "src/store/engine/ops-engine.d.ts",
+    "src/store/engine/ops-engine.js",
+    "src/lib/messaging/templates.ts",
     "src/lib/observability/scrub.ts",
+    "src/lib/offline/idb.ts",
     "src/lib/offline/queue.ts",
+    "src/lib/offline/sync.ts",
+    "src/lib/rules/capacity.ts",
+    "src/lib/supabase/client.ts",
+    "src/lib/supabase/config.ts",
+    "src/lib/supabase/server.ts",
+    "src/lib/supabase/service.ts",
     "src/lib/types/database.ts",
+    "src/components/app/offline-bridge.tsx",
+    "src/components/app/ops-app.tsx",
+    "src/components/app/route-sync.tsx",
+    "src/components/app/screen-boundary.tsx",
+    "src/components/screens/checkout.tsx",
+    "src/components/screens/find-my-order.tsx",
+    "src/components/screens/home.tsx",
+    "src/components/screens/order-status.tsx",
+    "src/components/screens/profit-and-loss.tsx",
+    "src/components/screens/shop.tsx",
     "src/components/sheets/add-inv.tsx",
     "src/components/sheets/edit-price.tsx",
     "src/components/sheets/inv-edit.tsx",
     "src/components/sheets/proof.tsx",
     "src/components/sheets/why.tsx",
-    ".github/workflows/ci.yml"
+    "src/components/shell/app-frame.tsx",
+    "src/components/ui/pressable.stories.tsx",
+    "src/components/ui/pressable.tsx",
+    "src/app/sign-in/sign-in-form.tsx",
+    "src/app/api/sync/route.ts",
+    "docs/prompts/00-session-protocol.md",
+    "docs/prompts/01-foundation.md",
+    "docs/prompts/02-identity.md",
+    "docs/prompts/03-test-net.md",
+    "docs/prompts/04-postgres.md",
+    "docs/prompts/05-quality.md",
+    "docs/prompts/06-production.md",
+    "docs/prompts/07-review-library.md",
+    "docs/prompts/08-recovery.md",
+    "docs/prompts/09-maintenance.md",
+    "docs/prompts/README.md",
+    ".github/workflows/ci.yml",
+    ".github/workflows/uptime.yml",
+    ".codex/agents/port-auditor.toml",
+    ".codex/agents/security-reviewer.toml",
+    ".codex/agents/test-author.toml",
+    ".claude/agents/port-auditor.md",
+    ".claude/agents/security-reviewer.md",
+    ".claude/agents/test-author.md",
+    ".claude/commands/handoff.md",
+    ".claude/commands/review.md",
+    ".claude/commands/task.md",
+    ".claude/commands/verify.md",
+    ".claude/hooks/format-and-typecheck.sh",
+    ".claude/hooks/remind-verify.sh",
+    ".agents/skills/source-command-handoff/SKILL.md",
+    ".agents/skills/source-command-review/SKILL.md",
+    ".agents/skills/source-command-verify/SKILL.md"
   ],
-  "generator_scratch": "C:\\Users\\ethan\\AppData\\Local\\Temp\\happy-cookie-catalog-3tt5zlyf",
+  "generator_scratch": "C:\\Users\\ethan\\AppData\\Local\\Temp\\happy-cookie-catalog-idyid86e",
   "failures": []
 }

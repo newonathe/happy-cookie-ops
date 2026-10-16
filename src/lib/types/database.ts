@@ -838,6 +838,49 @@ export type Database = {
         }
         Relationships: []
       }
+      flavour_costs: {
+        Row: {
+          cost_cents: number
+          product_id: string
+          typed_at: string
+          typed_by: string | null
+        }
+        Insert: {
+          cost_cents: number
+          product_id: string
+          typed_at?: string
+          typed_by?: string | null
+        }
+        Update: {
+          cost_cents?: number
+          product_id?: string
+          typed_at?: string
+          typed_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flavour_costs_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: true
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flavour_costs_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: true
+            referencedRelation: "shop_products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flavour_costs_typed_by_fkey"
+            columns: ["typed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       inventory_items: {
         Row: {
           active: boolean
@@ -1870,12 +1913,16 @@ export type Database = {
           ends_on: string
           event_id: string | null
           final_hash: string | null
+          final_split: Json | null
           final_summary: Json | null
           finalised_at: string | null
           id: string
           name: string
           place: string
           rent_cents: number
+          reversal: Json | null
+          reversed_at: string | null
+          reversed_by: string | null
           starts_on: string
           target_profit_cents: number | null
           updated_at: string
@@ -1885,12 +1932,16 @@ export type Database = {
           ends_on: string
           event_id?: string | null
           final_hash?: string | null
+          final_split?: Json | null
           final_summary?: Json | null
           finalised_at?: string | null
           id: string
           name: string
           place?: string
           rent_cents?: number
+          reversal?: Json | null
+          reversed_at?: string | null
+          reversed_by?: string | null
           starts_on: string
           target_profit_cents?: number | null
           updated_at?: string
@@ -1900,12 +1951,16 @@ export type Database = {
           ends_on?: string
           event_id?: string | null
           final_hash?: string | null
+          final_split?: Json | null
           final_summary?: Json | null
           finalised_at?: string | null
           id?: string
           name?: string
           place?: string
           rent_cents?: number
+          reversal?: Json | null
+          reversed_at?: string | null
+          reversed_by?: string | null
           starts_on?: string
           target_profit_cents?: number | null
           updated_at?: string
@@ -1916,6 +1971,13 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scheduled_events_reversed_by_fkey"
+            columns: ["reversed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -2623,6 +2685,7 @@ export type Database = {
           p_booking: string
           p_drop: number
           p_expected: string
+          p_final?: Json
           p_till: Json
         }
         Returns: Json
@@ -2633,6 +2696,7 @@ export type Database = {
       }
       get_bazaar: { Args: { p_booking: string }; Returns: Json }
       get_books: { Args: { p_from: string; p_to: string }; Returns: Json }
+      get_flavour_costs: { Args: never; Returns: Json }
       get_flavours: {
         Args: never
         Returns: {
@@ -2923,6 +2987,10 @@ export type Database = {
           on_hand: number
         }[]
       }
+      reverse_bazaar_test: {
+        Args: { p_booking: string; p_confirm_name: string }
+        Returns: Json
+      }
       run_import_bookings: { Args: { p_rows: Json }; Returns: Json }
       run_import_flavours: { Args: { p_rows: Json }; Returns: Json }
       run_import_items: { Args: { p_rows: Json }; Returns: Json }
@@ -2966,6 +3034,13 @@ export type Database = {
         Returns: {
           id: string
           updated_at: string
+        }[]
+      }
+      save_flavour_cost: {
+        Args: { p_cents: number; p_product: string }
+        Returns: {
+          cost_cents: number
+          product_id: string
         }[]
       }
       save_item_price: {

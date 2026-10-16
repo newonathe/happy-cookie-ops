@@ -201,6 +201,142 @@ D0 ─▶ U1 ─┬▶ U2 ─┬▶ U3 ─┐
 - The "Bazaar events" sub-tab (`src/lib/nav/function-map.ts:65`) points at this hub.
 - **Motion:** the sheet rises (`--animate-sheet`); a new event card enters with a rise and highlight; chip switches cross-fade through the view-transition hook.
 
+#### U3 as built (15 October; branch `claude/bazaar-v2-u3`, cut from `-u2`)
+
+Interface only, no migration. Files: `event-list.tsx` (the hub), `event-form.tsx` (the sheet), and the pure `src/lib/bazaar/hub.ts` and `event-form.ts`; `bazaar-days.ts` gained `readHub` and `addEvent`; `dayRange` sits beside `dayText`.
+
+- **Where a booking is drawn** (`hubPlace`): Active when a day of it is open or started, or today is inside its dates; Upcoming when it is still ahead; Past once it has ended or been closed. A switched-off booking is not listed.
+- **The list cannot say "closed", and `started` is no help.** `get_scheduled_events` returns only `active` and `started`, and `started` belongs to the old one-tap start: the Ateneo test (days started, closed, dates still ahead) says `started: false`. So every switched-on booking that is not over is read once with `get_bazaar` when the hub opens (one parallel read each; none offline; the last answer stays while a new one is out): a day open gives **Selling**; a closed event goes under Past as **Closed** (or **Cost pending** when the booked profit was unknown); days started and none open is under way (**Today**, or **Planned** if its dates are ahead); nothing started is placed by its dates. Until the read comes, or if it fails or there is no signal, a row is placed by its dates and claims nothing more (a placeholder pill; an Active card says "so it may already be closed"). A booking that is over is Past with no read. Active cards show today's takings and cookies sold only from a read, never a ₱0.00 for an unknown.
+- **Add an event** (top right, dark): a single-event `Sheet`: name, place, first and last day (the last follows the first), stall rent (commas accepted). Nothing pre-filled that is a decision. Errors as rule 7 (summary with links, red fields, validated on blur and submit). It sends `save_scheduled_event` with no stamp and the sheet's own id, kept until it closes; whatever the answer, the bookings are read again, and an event that is now listed counts as saved. On success the sheet closes, the chip returns to Upcoming and the new row carries the ring. Disabled with its reason while offline or before the events are read.
+- **Sub-tab:** "Bazaar events" now opens the hub (`openBazaarEvents`: reset, go to Bazaar, read the bookings) and is the entry the strip marks there (the strip is drawn only while no event is on the phone). `function-map.ts` gives it `screen: 'bazaar'`, as "Backups & export" shares System health.
+- **Editing stays reachable:** until U4 puts editing on the event page, the hub ends with a quiet "Edit or switch off events" that opens the old multi-row form (`liveBazaar.add`).
+- **Dates** in the hub are `dayRange` ("Sat, 24 Oct – Sun, 25 Oct"); Home's next-event card uses it too. `dateRange` (US order) stays for the event page, which U4 rebuilds.
+- **Known, left for U4:** Home's next-event card (`nextEvent`, U2) still uses `upcomingEvents`, which filters on `started`. That flag is never set by bazaar days, so a closed event whose dates are still ahead (the Ateneo test) can show on Home as the next event. The hub does not have this flaw; Home should take its next event from the same read (`hubPlace`) or from the hub's list.
+- **Reduced motion:** the new row's ring is shown still for 1 s and then dropped (`useRing`), as the D0 table says; the global rule would otherwise cut the fade to nothing.
+- Tests: `bazaar-hub.test.ts` (rules, validator against `scheduledEventError`), `bazaar-hub-store.test.ts`, `bazaar-hub-screen.test.tsx`; a smoke step adds an event through the sheet and reads the row back.
+
+#### U5 as built (16 October; branch `claude/bazaar-v2-u3`)
+
+Interface only, no migration. Rules are pure and tested first (`src/lib/bazaar/review.ts`: `closeRowOf`, `drawerCheck`,
+`centsToPesosText`, `dayReportOf`; `tests/unit/bazaar-close-u5.test.ts`); screens are `close-form.tsx`, `day-tiles.tsx`,
+`day-report.tsx` and `day-review.tsx`. Commits `3d816a8` (rules) and `739b4d2` (screens).
+
+- **Cash counted is pre-filled with the cash expected** (Ethan, 16 Oct, asked directly: this follows the goal text and
+  replaces D0 section 7's blank field with "It matches"). The field follows the expected cash until she changes it; clearing it
+  sends "not counted"; "It matches" puts the expected cash back. The known cost: an untouched field books the drawer as exact,
+  and Ateneo A3 fires only once she edits it (a ₱99,999 entry still blocks the close until she keeps it).
+  `cashExpectedCents` and `cashExpectedPesos` are on the view.
+- **Pre-filled close:** Left = what should be left (never below 0). The rest sits in one field that follows Left and the
+  other fields she typed: carried over (not the last day), else the shop (flavour has a recipe), else written off. With the
+  recipes not read yet (`hasRecipe: null`, from the runtime's `recipeRows`) the last day suggests nothing and says so. The
+  server's rule is a row in `public.recipes` (`rule:fin-shop-no-recipe`, at "Close the event"). What is sent is what the
+  steppers show; a split that does not add up says so under the row and the close refuses it in words.
+- **Ateneo A3:** a drawer difference strictly above the larger of ₱100.00 and a tenth of expected (compared in whole
+  centavos, the tenth not rounded) shows "That is ₱x over. Count the drawer again?" with Count again and Keep. Keep is for
+  that amount and that expected cash: a re-read that moves the expected cash asks again. Enter cannot bypass it.
+- **Tiles:** revenue, cash, fees, sold, left (should be left while open), lost; each opens to its parts; a pill
+  (Selling, then Closed); the tiles settle once when a day closes while the review is open. `StatTile` numerals step down
+  earlier so two-decimal pesos fit a phone tile; `ReceiptTable` gained `totalLabel`.
+- **Z-report** (closed day): Takings, How it was paid, Fees and Drawer as receipts whose lines add up to the database's own
+  totals (tested), then Sold, Given, Lost by flavour as counts (pesos per flavour cannot be reconciled with revenue).
+- **Review (Opus, different model):** two real findings, both fixed (rounded tenth; Keep not tied to the expected cash).
+  Everything else held: pesos round trip, blank count, totals, no unknown shown as ₱0.
+- **Left as drawn before, for U4/U9:** the per-flavour list is cards, not a compact table; the close is inline, not a sheet;
+  the "Day closed." toast overlaps the bottom of a long review (U1 layout rule, U9).
+- **Checks:** `pnpm verify` 136 files, 2462 tests; the live smoke passes 16 steps (day 1 closes with the defaults and nothing
+  typed or tapped, a ₱99,999 difference blocks the close, day 2 types a written-off count and the shop's share follows);
+  screenshots at 375 and 1440 px (`SMOKE_SHOTS=<dir>`); and the browser pane at both widths on the paused smoke
+  (`SMOKE_PAUSE_FILE=<file>` holds the run at day 2's open review and writes the address and sign-in there; delete the file
+  to go on): no sideways scroll, no clipped numeral, the count-again banner and its focus. Not run: Docker visual, a phone.
+
+#### U4 as built (16 October; branch `claude/bazaar-v2-u4`, cut from `-u3` at `c846d17`)
+
+Interface only, no migration. Rules first and tested (`src/lib/bazaar/plan.ts`: `validatePlan`, `planTotals`, `menuFirst`;
+`forms.ts`: fee, loss, cost and target validators; `event-rules.ts`: A1, A2, A5, B4 and the primary action; `tests/unit/bazaar-u4.test.ts`),
+then the store and contract (`bazaar-days.ts`, `live-bazaar-types.ts`), then the screens: `event-page.tsx`, `day-plan.tsx`,
+`close-event-sheet.tsx`, `start-day-sheet.tsx`, the loss form in `day-review.tsx`, and the hook `use-issues.ts`.
+
+- **Red fields:** every validator returns `{field, message}[]` keyed by the input's id. A form shows the summary and the red
+  fields on submit (focus moves to the summary; each line focuses its input), checks one field on blur, and clears its red as
+  she types. The summary line and the field say the same words. The stepper gained `id` and `error`. A new rule: a flavour
+  with cookies and a price of 0 is refused. A press on a button of the form skips the blur check (`formProps`): the
+  message used to push the button down between press and release, and the click was lost (found in the smoke).
+- **Event page:** hero with status pill, one primary button by state (review a selling day, else start the first planned day,
+  else plan the next date, else Close the event), a stat row (revenue, profit or "Cost pending", cookies sold, profit against the
+  target), a days timeline, the fees as a `ReceiptTable` with Remove, the target, the cost per cookie as a receipt per flavour.
+  Dates are `Sat, 24 Oct` (`dayRange`) on the event page, the plan and the review (B6).
+- **Day plan:** photo tiles with steppers for made and carried, the menu's flavours first and the rest under "More flavours (n)",
+  prices from the menu (editable; the menu price is shown when changed), a float stepper in ₱100 steps that starts from the day
+  before's float, and a sticky footer ("50 cookies · ₱6,050.00 at full sale"). Totals are whole centavos. The footer stands
+  above the phone dock and stops short of the floating button; the runtime lifts the toast above it (`liveToastVals`, a value
+  only; the locked frame is untouched). Event pages reserve 96 px at the bottom.
+- **Ateneo:** A1, "Close the event" is a sheet that asks where stranded carried cookies go (to the shop with a recipe, written
+  off without; nothing suggested while the recipes are unread; the two steppers always add up). A5, flavours with cookies and
+  no cost per cookie get an inline cost field in the same sheet, with "Close without cost" as the explicit alternative.
+  The store saves each typed cost, reads the event again, re-checks, and closes against the fresh hash with `p_final`.
+  **A1 and A5 need migration 70** (`finalise_bazaar(p_final)`, `save_flavour_cost`): local only until U9, so on the trial (69) a
+  stranded close and the flavour-cost save are refused. A2, a day that is not today asks ("Start anyway"); the rule is in
+  the store (`start(confirmed)`), so any caller is held to it, and the rent clause appears only when this start books it. B4, a
+  closed day shows sold, revenue, left, carried and the drawer. B5, menu flavours first.
+- **Cost receipt:** `get_recipe_costs` has only aggregates (ingredients and packaging per cookie, and the total), so the receipt
+  shows those, only when they are the cost this event is using; if the recipe has changed since, a note says what it costs
+  today. No per-line amounts are worked out in the app. The per-event typed cost form stays beside it.
+- **Home's next-event card** takes its event from the hub's read (`nextEvent` uses `hubList`; the hub is read when the bookings
+  load), so a closed event whose dates are ahead is no longer offered.
+- **Left:** the hub's "Edit or switch off events" fallback stays (editing an event is not on its page yet); the add-stock form
+  and the close form keep their older error text; the per-flavour review list is still cards; "The event" figures list repeats
+  the stat row (the smoke reads it). The Docker visual run and a phone were not run.
+- **Checks:** `pnpm verify` green; the live smoke passes 16 steps, on a touch context (empty plan points at its stepper, a bad cost and an empty fee
+  are red, day 2 starts from day 1's float and carry, starting tomorrow asks and holds until confirmed, a tap on Add the fee straight from a bad Amount submits, closing the event asks, and with day 1's cookies set aside and day 2 only planned the real summary's `stranded` names them: A1 against migration 70, not a fixture);
+  screenshots at 375 and 1440 px (`SMOKE_SHOTS`); the browser pane at 375 px on the paused smoke
+  (`SMOKE_PAUSE_EVENT_FILE` with `SMOKE_PAUSE_EVENT_AT=closed|planned`): the red cost field with its summary and focus, no
+  sideways scroll. **Review (Opus, read-only, 16 Oct): safe to merge; three mediums fixed.** (1) Closing after a typed cost closed on the fresh hash,
+  which would also take in a late sale or a changed stranded count: it now refuses with the stale message unless sales, takings, fees
+  and stranded cookies are unchanged. (2) The not-today check was worked out when the page was drawn: it is now also worked out in
+  `start`. (3) A second tap could pass the busy check while the till's figures were awaited: busy is set first. Held, with hand-worked
+  numbers: the split always adds up; 38.44 x 15 = 57,660 centavos; "12.5" is 1250 and "28.7525" is 2875.25 centavos; commas and limits match
+  the database. **Decided by Ethan, 16 Oct: keep it as built.** The cost typed in the close sheet is the FLAVOUR's (design 5.10), and in migration 70 it wins
+  over the recipe's for every other bazaar, open or later; the per-event cost (`saveBazaarCost`) would touch only this event.
+  Left as is: when the recipes are unread she may send a flavour to the shop that has none, and the database refuses with a general message
+
+#### U7 as built (16 October; branch `claude/bazaar-v2-u7`, cut from `-u4` at `49dab2c`)
+
+Interface only, no migration (it uses U6's `save_flavour_cost` and `get_flavour_costs`, local until U9). Rules first and tested
+(`src/lib/recipes/book.ts`; `tests/unit/recipe-book.test.ts`), then the store (`src/store/recipe-book.ts`, `RecipeBook`, wired into
+`OpsRuntime` as `liveRecipes`), then the screens (`src/components/live/recipes/`, registered for the key `recipes`).
+
+- **Cost and margin:** a flavour's cost is hers for the flavour when she typed one, else the complete recipe's, else "Cost pending"
+  (a recipe with a missing item is never shown as a cookie's cost). Margin is (price - cost) / price, `ok` at or above 65 % and `warn`
+  below, compared before rounding (64.99 % reads 64.9 %, never "65%"). The 65 % is a constant (`MARGIN_FLOOR_PERCENT`) until B7 makes it
+  a setting; nothing in the repo held it before. A tile shows a mark and a word as well as colour.
+- **Book:** `FlavourTile` grid (the tile gained `meta` and `photoName`), search, `FilterChips` On the menu (n) / All (n). The costs are read
+  when the book opens (`refresh`, a stable function: a new one per render made the book read in a loop, found in the first smoke run).
+- **Flavour page:** photo hero, price, cost, margin with what a cookie keeps, the cost field (starts at her cost or the recipe's, Save waits
+  until it is changed so one tap cannot freeze the recipe's cost as hers, blank or "Use the recipe's cost" takes hers away; same words and
+  red fields as the event page), and the receipt: ingredients and packaging per cookie, the total, the batch (yield and its ingredients
+  cost) and the items with no cost. `get_recipe_costs` has only aggregates, so no per-line amount is worked out in the app. With a typed
+  cost the receipt is marked "for comparison". On a database without migration 70 the field is off with its reason.
+- **Recipe editing** stays in the ported Recipes screen, drawn inside the book under "Back to the recipe book"; the button says it is the
+  older screen and that saving there is on hold (B6). It opens on the flavour (`openRecipe`).
+- **Motion:** tile to page through `useViewTransition`; the tile's photo and the hero carry one `view-transition-name` (only the pressed
+  tile holds it when the old picture is taken). Where the browser has no view transition, or under reduced motion, the page fades in
+  (`motion-enter`, instant under reduced motion). Focus moves to the flavour's heading.
+- **Roles and cost:** anyone but the owner keeps the ported Recipes screen (the book returns it when `liveRecipes` is null); the runtime works
+  the book out only while the Recipes screen is open.
+- **Left:** the event page shows a flavour's typed cost only once a day of that flavour has started (it reads the summary); a planned-only
+  flavour still shows the per-event cost or the recipe's. The ported P&L and Products margins still use the recipe's cost, not hers. The
+  Docker visual run and a phone were not run. **Review (Opus, read-only, 16 Oct): nothing serious; two mediums and a low fixed.**
+  (1) A recipe cost such as 12.916667 (310 over 24 cookies) opened the cost field with six decimals, which its own check refuses: the field now
+  starts at four decimals (12.9167). (2) After a save the old figure stayed when the read that follows failed: the saved cost is now kept at
+  once, and the flavour page shows the "could not be read" note. (3) "Try again" on the recipe-costs note now reads them again. Left:
+  `RecipeBook.reset()` is not called anywhere (sign-out reloads the page). Held, with hand-worked numbers: ₱125 at her ₱40 keeps 68 %;
+  64.96 % reads 64.9 % and warns; an unchanged field saves nothing; only the owner reaches `save_flavour_cost`.
+- **Checks:** `pnpm verify` green (140 files, 2,581 tests); the live smoke passes 17 steps (the book lists the flavours, axe finds no serious
+  violation and nothing scrolls sideways at 320 px with 200 % text on the book and on a flavour page, a bad cost is red and sends nothing,
+  a typed cost is read back by `get_flavour_costs`, the event page says "typed by you for the flavour" with its cost, blank takes it away);
+  the browser pane at 375 and 1440 px on the paused smoke (`SMOKE_PAUSE_EVENT_FILE` with `SMOKE_PAUSE_EVENT_AT=recipes`): no sideways scroll,
+  ok and warn tiles, the red field with its summary, the older screen opening on the flavour.
+
 ### U4: event page and day plan (Sonnet; interface)
 
 - **Event page:**
@@ -239,6 +375,31 @@ D0 ─▶ U1 ─┬▶ U2 ─┬▶ U3 ─┐
 - Pins in `tests/fixtures/mp08g-source-pins.json` and `function-authority.json`; role-suite cases in `tests/integration/security/bazaar-days.sql`; regenerate types.
 - Rehearse locally, then apply hosted from a scratch folder exported from the commit (dry run first), then the fingerprint check. Same method as 69.
 - **Cut:** if not green by 19 Oct, it moves after 26 Oct and U4 keeps the per-event cost.
+
+#### U6 as built (15 October; local only, branch `claude/bazaar-v2-u2`)
+
+Migration 70 is `20260101006900_flavour_cost_closing_reversal.sql` (its header comment is the full contract). Not applied anywhere: the trial stays at 69 of 69 until U9's release.
+
+- **Costs:** `flavour_costs`, `save_flavour_cost` (owner only) and `get_flavour_costs`; a cookie is costed by the booking's typed cost, then the flavour's, then the complete recipe.
+- **Stranded cookies (A1):** "stranded" means the cookies the latest started day set aside to carry over, when no later day was started. `finalise_bazaar` takes `p_final`, a split per stranded flavour into `to_shop` and `written_off` that together equal the stranded quantity. `bazaar_summary` lists them under the key `stranded`. The screen that asks for the split belongs to U4 ("Close the event"); until then the call refuses a finalise with stranded cookies and no split.
+- **Drawer (A4):** an over is an adjustment and a short is a cost, both in the category 'Cash variance', so an over is no longer revenue. A bazaar sale writes a packaging record only when a `bazaar_sale` packaging rule exists (A7).
+- **Reversal (A6):** `reverse_bazaar_test(p_booking, p_confirm_name)` is owner only and appends reversing lines and stock corrections; it deletes nothing. "Real-looking mismatch" means the booking's ledger lines do not equal its stored summary to the centavo (revenue, fees, one drawer line per day with an over or short); a booking touched by hand is refused. It also refuses a booking that sent cookies to the shop, any cost cutover on record, and an item counted since the use.
+- **Review:** one Opus subagent (codex refuses its models on this account) read the migration and the new role-suite cases against hand-worked numbers: stranded 4 splits into 3 to the shop and 1 written off, cost 10 × 1000, profit 8000; a nine-line reversal totalling 13,200, revenue −54,000, expense −40,800 (centavos).
+- **Run on the trial only on Ethan's explicit go-ahead.** The reversal of the audited test event runs only after he says "yes, reverse" it (U9 step 3); the books are shown before and after. The hosted apply waits for U9 (scratch folder, dry run, fingerprint).
+
+**U6 as built (15 October).** Migration 70 `20260101006900_flavour_cost_closing_reversal.sql`, on branch `claude/bazaar-v2-u2`; not on the trial (hosted apply waits for U9: scratch folder, dry run, fingerprint). Left open when the session stopped: the full role harness (row counts fixed to 312 for the suite and 3,361 for the matrix, not yet re-run to green), the live smoke suite, and the different-model review.
+
+- A1: `finalise_bazaar(…, p_till, p_final default null)`; `bazaar_summary.stranded` is the latest started day's `carry_next` when that day is closed and no later day started. The split must name exactly those flavours, its parts together equal the quantity, and it moves them on that day's line to `to_shop_qty` and `written_off_qty`. The split UI is U4's.
+- A4: an over is an `adjustment` in 'Cash variance' (a short stays a cost). `close_event`, the legacy close, still books an over as a sale.
+- A6 `reverse_bazaar_test`: "real-looking mismatch" is read as: the booking's ledger lines must equal its stored summary to the centavo (revenue, fees, one drawer line per day with a difference). It refuses a booking with cookies sent to the shop, any cost cutover, or a later count. It appends lines at the originals' dates and positive stock adjustments; it deletes nothing. No screen calls it: run it on the trial only after Ethan's "yes, reverse Ateneo".
+- A7: no packaging record when there is no bazaar-sale rule. Flavour cost: `flavour_costs`, `save_flavour_cost`, `get_flavour_costs`; the recipe book (U7) is its screen.
+
+**U6 review (Opus, read-only, 15 October): safe to merge after two fixes, not yet applied.** Hand-worked numbers all check out (Y reversal 13,200 / −54,000 / −40,800, stock 280 / 4 / 12 / 1; W cost 5,000, profit 8,000).
+
+- Medium: in `reverse_bazaar_test`, move `pg_advisory_xact_lock('stock_catalogue:items')` and `lock_stock_item_ids(v_items)` above the `rev-counted` check. A count committing between the check and the locks would be raised by the restored stock.
+- Low: in `finalise_bazaar`, make the `fin-final-sum` check NULL-safe (`is distinct from`, or `coalesce(…, -1)`), so a missing part cannot pass and write NULL into `to_shop_qty` and `written_off_qty` if `fin-final-flavours` were ever skipped.
+- Add role-suite cases: reversing a booking with a short drawer, and one with an old-format over (kind `sale`, category `Bazaar`). Cosmetic: the engine's P&L may show 'Cash variance' as a negative expense after an over.
+- A migration change means: re-pin the sha256 in `mp08g-source-pins.json`, `pnpm db:reset`, regenerate `body_md5` in `function-authority.json`, re-run the harness and the smoke suite.
 
 ### U7: recipe book (Sonnet; interface; needs U6)
 
