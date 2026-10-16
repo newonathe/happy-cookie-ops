@@ -251,6 +251,16 @@ function shownTotals(d: Bazaar): string {
   ]);
 }
 
+/**
+ * Whether the live figures still equal the ones booked. The hash is not used: it covers every field of the summary, so a summary
+ * stored before a field was added (migration 70: stranded cookies, the flavour's cost) would always differ with nothing changed.
+ */
+function sameBooks(booked: BazaarSummary, live: BazaarSummary): boolean {
+  const books = (d: BazaarSummary) =>
+    JSON.stringify([d.revenue.sales, d.revenue.revenueCents, d.fees.totalCents]);
+  return books(booked) === books(live);
+}
+
 /** `YYYY-MM-DD` from `a` to `b` inclusive. The bookings are at most 15 days (`scheduledEventError`). */
 function datesBetween(a: string, b: string): string[] {
   const out: string[] = [];
@@ -644,7 +654,7 @@ export class BazaarDays {
     const notices: string[] = [];
     if (data.finalised) {
       notices.push(COPY.finalisedNotice);
-      if (data.finalSummary && data.finalSummary.hash !== data.hash)
+      if (data.finalSummary && !sameBooks(data.finalSummary, data))
         notices.push(COPY.finalisedChanged);
     }
     return {

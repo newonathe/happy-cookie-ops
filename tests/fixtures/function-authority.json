@@ -2154,7 +2154,7 @@
         "search_path=\"\""
       ],
       "returns": "jsonb",
-      "body_md5": "a8785ebc4b83dd0a522fd758c0b7431d",
+      "body_md5": "a600307b286ad542d8a76320a5030e93",
       "identity": "p_booking uuid, p_expected text, p_drop integer, p_till jsonb, p_final jsonb",
       "execute_anon": false,
       "security_definer": true,
@@ -2319,7 +2319,7 @@
         "search_path=\"\""
       ],
       "returns": "jsonb",
-      "body_md5": "fd092ff0ca1009ed697b32d510b92a45",
+      "body_md5": "0b472830db1edc008f7dc3472a8dded1",
       "identity": "p_booking uuid, p_confirm_name text",
       "execute_anon": false,
       "security_definer": true,
