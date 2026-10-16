@@ -5513,11 +5513,14 @@ export class OpsRuntime extends OpsProvider {
       return;
     }
 
+    // Live: flushSales already reflected the queue, so a sale recorded during the flush stays unsynced.
     this.setState((s) => ({
       syncState: 'synced',
       syncTried: true,
-      unsynced: 0,
-      sales: s.sales.map((sale: EventSale) => ({ ...sale, synced: true, failed: false }))
+      unsynced: isLiveMode() ? s.unsynced : 0,
+      sales: isLiveMode()
+        ? s.sales
+        : s.sales.map((sale: EventSale) => ({ ...sale, synced: true, failed: false }))
     }));
     this.toast(plural(sentSales || pending, 'sale', 'sales') + ' synced.');
   }
