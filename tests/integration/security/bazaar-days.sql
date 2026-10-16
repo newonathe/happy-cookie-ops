@@ -166,6 +166,8 @@ create function pg_temp.bx() returns text language sql immutable as $$ select 'b
 create function pg_temp.bqy() returns text language sql immutable as $$ select 'b0d0b000-0000-4000-8000-000000000002'::text $$;
 create function pg_temp.bz() returns text language sql immutable as $$ select 'b0d0b000-0000-4000-8000-000000000003'::text $$;
 create function pg_temp.bw() returns text language sql immutable as $$ select 'b0d0b000-0000-4000-8000-000000000004'::text $$;
+create function pg_temp.bv() returns text language sql immutable as $$ select 'b0d0b000-0000-4000-8000-000000000005'::text $$;
+create function pg_temp.bu() returns text language sql immutable as $$ select 'b0d0b000-0000-4000-8000-000000000006'::text $$;
 create function pg_temp.oh_all() returns jsonb language sql stable security definer as $$
   select jsonb_object_agg(i.id, i.on_hand) from public.inventory_items i
 $$;
@@ -929,6 +931,41 @@ begin
     and pg_temp.q($q$(select count(*) = 1 from public.audit_log where action = 'bazaar.reversed')$q$),
     a, 'reverse_repeat_adds_nothing', 'the_first_answer_nine_lines_four_movements');
 
+  -- ---- U9 (review of A6): a short drawer and an old-format over are reversed line for line, as the original wrote them.
+  perform pg_temp.x($q$insert into public.scheduled_events(id, name, starts_on, ends_on, place, rent_cents, active)
+    values ('b0d0b000-0000-4000-8000-000000000005', 'Short fair', current_date + 30, current_date + 30, 'Park', 0, true),
+           ('b0d0b000-0000-4000-8000-000000000006', 'Old fair', current_date + 32, current_date + 32, 'Park', 0, true)$q$);
+  perform public.save_bazaar_day(pg_temp.plan(pg_temp.dy(51), pg_temp.bv(), 30, 0, jsonb_build_array(pg_temp.line('mp0s-a', 10, 0, 13000))), null);
+  perform public.save_bazaar_cost(pg_temp.bv()::uuid, 'mp0s-a', 1000);
+  perform public.start_bazaar_day(pg_temp.dy(51)::uuid, 'devA', pg_temp.ev(51)::uuid);
+  perform public.record_event_sale(pg_temp.sale(pg_temp.ev(51), 'devA:V1:1', '{"mp0s-a": 1}', 0, 13000, 'Cash'));
+  perform public.close_bazaar_day(pg_temp.closing(pg_temp.bv(), pg_temp.dy(51), '12000', jsonb_build_object('mp0s-a', pg_temp.cl(9, 0, 0, 9))));
+  perform public.finalise_bazaar(pg_temp.bv()::uuid, pg_temp.sm(pg_temp.bv()) ->> 'hash', 10, null);
+  perform pg_temp.confirm(pg_temp.q($q$(select count(*) = 1 from public.ledger_entries where memo like 'Short fair%drawer short'
+        and kind = 'cost' and category = 'Cash variance' and amount_cents = -1000)$q$),
+    a, 'short_fair_drawer_is_a_cost', 'minus_1000_in_cash_variance');
+  rv := public.reverse_bazaar_test(pg_temp.bv()::uuid, 'Short fair');
+  perform pg_temp.confirm(rv @> '{"ledger_lines": 2, "ledger_total_cents": 12000}', a, 'reverse_short_drawer_totals', 'two_lines_twelve_thousand');
+  perform pg_temp.confirm(pg_temp.q($q$(select count(*) = 1 from public.ledger_entries r where r.memo like 'Reversal — Short fair%drawer short'
+        and r.kind = 'cost' and r.category = 'Cash variance' and r.amount_cents = 1000)$q$),
+    a, 'reverse_short_drawer', 'the_short_comes_back');
+  perform pg_temp.confirm(pg_temp.q($q$(select count(*) = 1 from public.ledger_entries r where r.memo like 'Reversal — %' and r.kind = 'sale' and r.amount_cents = -13000
+        and r.id = md5('reverse:' || (select l.id::text from public.ledger_entries l join public.event_sales es on es.id = l.sale_id where es.client_id = 'devA:V1:1'))::uuid)$q$),
+    a, 'reverse_short_fair_sale', 'the_sale_goes');
+  perform public.save_bazaar_day(pg_temp.plan(pg_temp.dy(52), pg_temp.bu(), 32, 0, jsonb_build_array(pg_temp.line('mp0s-a', 10, 0, 13000))), null);
+  perform public.save_bazaar_cost(pg_temp.bu()::uuid, 'mp0s-a', 1000);
+  perform public.start_bazaar_day(pg_temp.dy(52)::uuid, 'devA', pg_temp.ev(52)::uuid);
+  perform public.record_event_sale(pg_temp.sale(pg_temp.ev(52), 'devA:U1:2', '{"mp0s-a": 1}', 0, 13000, 'Cash'));
+  perform public.close_bazaar_day(pg_temp.closing(pg_temp.bu(), pg_temp.dy(52), '14000', jsonb_build_object('mp0s-a', pg_temp.cl(9, 0, 0, 9))));
+  perform public.finalise_bazaar(pg_temp.bu()::uuid, pg_temp.sm(pg_temp.bu()) ->> 'hash', 10, null);
+  -- The format migration 69 wrote: an over was a sale in the category Bazaar.
+  perform pg_temp.x($q$update public.ledger_entries set kind = 'sale', category = 'Bazaar' where memo like 'Old fair%drawer over'$q$);
+  rv := public.reverse_bazaar_test(pg_temp.bu()::uuid, 'Old fair');
+  perform pg_temp.confirm(rv @> '{"ledger_lines": 2, "ledger_total_cents": 14000}'
+    and pg_temp.q($q$(select count(*) = 1 from public.ledger_entries r where r.memo like 'Reversal — Old fair%drawer over'
+        and r.kind = 'sale' and r.category = 'Bazaar' and r.amount_cents = -1000)$q$),
+    a, 'reverse_old_format_over', 'a_sale_in_bazaar_is_negated_as_it_was');
+
   -- ---- U6, A1 and A7: booking W ends after its first day. The 4 cookies it set aside to carry over never go anywhere unless she says.
   perform pg_temp.x($q$insert into public.scheduled_events(id, name, starts_on, ends_on, place, rent_cents, active)
     values ('b0d0b000-0000-4000-8000-000000000004', 'Early fair', current_date + 25, current_date + 26, 'Park', 0, true)$q$);
@@ -1004,7 +1041,7 @@ grant execute on function pg_temp.set_subject(integer, text), pg_temp.expect(tex
   pg_temp.sale(text, text, jsonb, bigint, bigint, text), pg_temp.void(text), pg_temp.sm(text), pg_temp.dayj(jsonb, text),
   pg_temp.dl(jsonb, text, text), pg_temp.dc(jsonb, text, text), pg_temp.cc(jsonb, text), pg_temp.part(jsonb, text),
   pg_temp.stamp(text, text), pg_temp.cl(integer, integer, integer, integer), pg_temp.closing(text, text, jsonb, jsonb),
-  pg_temp.bw(), pg_temp.oh_all(), pg_temp.books(), pg_temp.sumk(jsonb, text), pg_temp.held(jsonb, text), pg_temp.assert_anon_acl(), pg_temp.assert_denied(text),
+  pg_temp.bw(), pg_temp.bv(), pg_temp.bu(), pg_temp.oh_all(), pg_temp.books(), pg_temp.sumk(jsonb, text), pg_temp.held(jsonb, text), pg_temp.assert_anon_acl(), pg_temp.assert_denied(text),
   pg_temp.assert_owner(), pg_temp.assert_owner_after() to anon, authenticated, service_role;
 
 set local role anon;

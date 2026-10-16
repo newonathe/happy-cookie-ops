@@ -1105,8 +1105,8 @@ BAZAAR_DAY_MUTATIONS = {
                                            _BZC + 'booking_cost_beats_the_flavour_cost / '),
     'text_bz_flavour_cost_without_row': ('bazaar_summary', 'text', ("left join public.flavour_costs fc on fc.product_id = f.product_id", "left join public.flavour_costs fc on k.product_id is not null and fc.product_id = f.product_id"),
                                          _BZC + 'flavour_cost_without_a_booking_row / '),
-    'rule_bz_fin_final_shape': ('finalise_bazaar', 'rule', 'fin-final-shape', _BZO + 'finalise_split_shape / '),
-    'rule_bz_fin_final_flavours': ('finalise_bazaar', 'rule', 'fin-final-flavours', _BZO + 'finalise_stranded_without_a_split / '),
+    'rule_bz_fin_final_shape': ('finalise_bazaar', 'rule', 'fin-final-shape', _BZO + 'finalise_split_fraction / '),  # the NULL-safe sum check (U9) now refuses a missing part first, so the shape rule is first needed for a fraction
+    'rule_bz_fin_final_flavours': ('finalise_bazaar', 'rule', 'fin-final-flavours', _BZO + 'finalise_split_names_a_flavour_not_stranded / '),
     'rule_bz_fin_final_sum': ('finalise_bazaar', 'rule', 'fin-final-sum', _BZO + 'finalise_split_does_not_add_up / '),
     'rule_bz_fin_replay_split': ('finalise_bazaar', 'rule', 'fin-replay-split', _BZO + 'finalise_again_other_split / '),
     'text_bz_final_split_to_the_shop': ('finalise_bazaar', 'text', ("to_shop_qty = l.to_shop_qty + (v_final -> (v_sx ->> 'product_id') ->> 'to_shop')::integer,", "to_shop_qty = l.to_shop_qty,"),
@@ -1191,7 +1191,7 @@ SUITES = (
     ('imports.sql', IMPORT_ACL + tuple(IMPORT_MUTATIONS), 'forbidden import call succeeded', 261),
     ('operations.sql', tuple(OPERATIONS_MUTATIONS), 'forbidden operations call succeeded', 14),
     ('bazaar-closeout.sql', ('event_summary(uuid)', 'load_event_stock(uuid,jsonb,bigint)', 'add_event_expense(jsonb)', 'close_event(jsonb)'), 'forbidden closeout call succeeded', 80),
-    ('bazaar-days.sql', BAZAAR_DAY_ACL + tuple(BAZAAR_DAY_MUTATIONS), 'forbidden bazaar day call succeeded', 312),
+    ('bazaar-days.sql', BAZAAR_DAY_ACL + tuple(BAZAAR_DAY_MUTATIONS), 'forbidden bazaar day call succeeded', 317),
     ('shop-identity.sql', ('save_shop_identity(jsonb,timestamptz)', 'business_clock(timestamptz)') + tuple(IDENTITY_MUTATIONS) + tuple(IDENTITY_RULES),
      'forbidden identity call succeeded', IDENTITY_ROWS),
     ('policies.sql', tuple(POLICY_MUTATIONS), 'policy', 42),
@@ -1546,7 +1546,7 @@ def main():
                 h.fail(filename + ' did not return its complete role matrix')
             results.extend(rows)
             assert_empty()
-        if len(set(results)) != 3361:
+        if len(set(results)) != 3366:
             h.fail('combined role matrix has missing or duplicate cases: %d rows, %d unique (duplicates: %s)' % (len(results), len(set(results)), sorted({r for r in results if results.count(r) > 1})[:5]))
         assert_functions()
         assert_catalog_wide()
@@ -1559,10 +1559,10 @@ def main():
     try:
         code = h.main(after_reset=check)
         if (code == 0 and len(report["runs"]) == 2 and report["runs"][0] == report["runs"][1]
-                and len(report['regressions_detected']) == 1516 and report['sequence_restorations'] == 10
+                and len(report['regressions_detected']) == 1578 and report['sequence_restorations'] == 10
                 and report['upgrade_runs'] == 2 and report['pair_guard_runs'] == 2 and report['function_guard_runs'] == 4
                 and report['catalog_guard_runs'] == 4 and report['catalog_guard_red_runs'] == 4):
-            report.update(status="passed", cases_per_reset=3361, resets=2, matrix_equal=True, rollback_verified=True,
+            report.update(status="passed", cases_per_reset=3366, resets=2, matrix_equal=True, rollback_verified=True,
                           sql_sha256={name: hashlib.sha256((ROOT / 'tests/integration/security' / name).read_bytes()).hexdigest() for name, _, _, _ in SUITES},
                           harness_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
     except (RuntimeError, OSError, ValueError) as error:

@@ -495,7 +495,7 @@ begin
     raise exception 'the cookies set aside to carry over need a final split: to the shop or written off, for exactly those flavours' using errcode = '22023';
   end if;
   v_bad := exists (select 1 from jsonb_array_elements(v_str) x
-                    where (v_final -> (x ->> 'product_id') ->> 'to_shop')::integer + (v_final -> (x ->> 'product_id') ->> 'written_off')::integer
+                    where coalesce((v_final -> (x ->> 'product_id') ->> 'to_shop')::integer + (v_final -> (x ->> 'product_id') ->> 'written_off')::integer, -1)
                           <> (x ->> 'qty')::integer);
   if v_bad then -- rule:fin-final-sum
     raise exception 'a flavour''s final split is what it set aside to carry over, together' using errcode = '22023';
@@ -717,13 +717,18 @@ begin
   if coalesce((v_sum -> 'cookie_cost' ->> 'to_shop')::integer, 0) > 0 then -- rule:rev-shop
     raise exception 'that bazaar sent cookies to the shop: their batch is in the baked stock and is not reversed here' using errcode = '55000';
   end if;
-  if exists (select 1 from public.cost_cutover) then -- rule:rev-cutover
-    raise exception 'the cost cutover has been applied: stock is counted without these cookies' using errcode = '55000';
-  end if;
 
   select min(m.seq), coalesce(array_agg(distinct m.item_id), '{}'::text[]) into v_first, v_items
     from public.stock_movements m join public.production_records r on r.id = m.production_id
    where r.ref = 'bazaar:' || p_booking::text and m.kind = 'use';
+  -- The catalogue's lock, then the item locks in id order, before the count check: a count committing after the check would otherwise be
+  -- raised by the restored stock.
+  perform pg_advisory_xact_lock(hashtextextended('stock_catalogue:items', 0));
+  perform public.lock_stock_item_ids(v_items);
+  -- Read under the locks: a cutover committing while this waited is seen, not missed.
+  if exists (select 1 from public.cost_cutover) then -- rule:rev-cutover
+    raise exception 'the cost cutover has been applied: stock is counted without these cookies' using errcode = '55000';
+  end if;
   v_bad := exists (select 1 from public.stock_movements c
                     where c.kind in ('count', 'opening') and c.item_id = any (v_items) and c.seq > v_first);
   if v_bad then -- rule:rev-counted
@@ -782,9 +787,7 @@ begin
     from public.ledger_entries l where l.id = any (coalesce(v_led, '{}'::uuid[]));
   get diagnostics v_n_led = row_count;
 
-  -- Stock: what each use took (not the shortfall, which never left stock) goes back. The catalogue's lock, then the item locks in id order.
-  perform pg_advisory_xact_lock(hashtextextended('stock_catalogue:items', 0));
-  perform public.lock_stock_item_ids(v_items);
+  -- Stock: what each use took (not the shortfall, which never left stock) goes back. The locks are already held (above).
   for v_m in select m.id, m.item_id, -m.qty_delta as take
                from public.stock_movements m join public.production_records r on r.id = m.production_id
               where r.ref = 'bazaar:' || p_booking::text and m.kind = 'use' and m.qty_delta < 0 order by m.item_id, m.seq loop
