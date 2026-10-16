@@ -66,6 +66,10 @@ full-resolution art):
 | `/shop`   | 6.5 s | 1.06 MB     | 0.69       | 9.5 s                   |
 | `/bazaar` | 4.5 s | 0.60 MB     | 0.71       | 5.7 s                   |
 
+Dropping Sentry's unused tracing and replay code (`next.config.ts`) then took 55 KB off every
+page (0.81 / 1.00 / 0.54 MB). LCP moved by under 0.2 s: the app's own bundle, not Sentry, is
+the critical path to first paint.
+
 The target is LCP under 4 s, and every page misses it for one reason: `OpsApp` renders
 nothing on the server (`src/components/app/ops-app.tsx`), because the demo engine seeds
 dates from `Date.now()` at load and a server render would not hydrate once the clock moved.
