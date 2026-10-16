@@ -70,9 +70,18 @@ The target is LCP under 4 s, and every page misses it for one reason: `OpsApp` r
 nothing on the server (`src/components/app/ops-app.tsx`), because the demo engine seeds
 dates from `Date.now()` at load and a server render would not hydrate once the clock moved.
 So no screen paints until the JavaScript has run (about 4–6 s of render delay on this
-profile), whatever the page holds. The live build behaves the same way: its `/sign-in`
-measured 6.2 s. Closing the gap means server-rendering the frame, which is a separate slice
-for the owner to approve. Until then, the CI limits are a regression guard: about 1.2× these
+profile), whatever the page holds. The live build's `/sign-in` (not an `OpsApp` page)
+measured 6.2 s for a different reason: `useSearchParams()` suspended its prerender, so its
+static page was empty. It now reads the return path at submit and prerenders whole: 1.9 s,
+perf score 0.99.
+
+What server-rendering the frame can and cannot fix: in live mode, `LiveGate` draws nothing on
+a staff screen until the session check has answered, a network round trip after the
+JavaScript runs. The server (a static export) cannot know the session, so a server-rendered
+frame would only help the demo build and the customer screens (`/shop`, order status), and
+those show data fetched after load. The gap to 4 s on staff screens is JavaScript boot plus
+that check, so it is a code-size and caching question (service worker, smaller first bundle),
+not a rendering one. Until then, the CI limits are a regression guard: about 1.2× these
 numbers per page, plus 800 ms of blocking time, because blocking time varies by about 40%
 between runners.
 
