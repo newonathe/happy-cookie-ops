@@ -281,6 +281,7 @@ import {
   type ShopFlavourRow
 } from '@/lib/data/flavours';
 import { CUSTOMER_SCREENS, type ScreenKey } from '@/lib/screens';
+import { SettledCounter } from '@/store/settled-counter';
 import { liveScreenFor } from '@/components/live/live-screens';
 import { PLACES, TABS, placeOfRoute, placesOf, tabOf, type Place } from '@/lib/nav/function-map';
 import type { LiveHomeNext, LiveHomeTill, LiveTabs, LiveTillVals } from '@/view-models/vals';
@@ -704,6 +705,9 @@ const SALES_LOG_ICON =
   'M6.5 4.5h11v15l-2.2-1.5-1.7 1.5-1.6-1.5-1.6 1.5-1.7-1.5-2.2 1.5zM9.5 9h5M9.5 12.5h5';
 
 export class OpsRuntime extends OpsProvider {
+  /** The engine's Counter can stick part way when a total returns to its old value mid-tween; see settled-counter.tsx. */
+  Counter = SettledCounter;
+
   /**
    * Where bazaar sales go. Null uses the signed-in browser client, or nothing at all in a
    * build with no backend (sales then stay queued). A test may set it on the instance.
