@@ -548,7 +548,14 @@ describe('U6: the final split, a flavour cost, the reversal of a test', () => {
     expect(rpc).toHaveBeenCalledTimes(2);
     // A repeat with another split is a conflict the database refuses (23505): refused, never offline.
     expect(
-      await finaliseBazaar(client({ error: { code: '23505' } }).client, BOOKING, HASH, 9, null, split)
+      await finaliseBazaar(
+        client({ error: { code: '23505' } }).client,
+        BOOKING,
+        HASH,
+        9,
+        null,
+        split
+      )
     ).toBe('refused');
   });
 
@@ -574,7 +581,8 @@ describe('U6: the final split, a flavour cost, the reversal of a test', () => {
     for (const bad of [
       (j: Record<string, unknown>) => (summaryOf(j).stranded = 'x'),
       (j: Record<string, unknown>) => (summaryOf(j).stranded = [{ ...stranded[0], qty: 0 }]),
-      (j: Record<string, unknown>) => (summaryOf(j).stranded = [{ ...stranded[0], day_id: 'nope' }]),
+      (j: Record<string, unknown>) =>
+        (summaryOf(j).stranded = [{ ...stranded[0], day_id: 'nope' }]),
       (j: Record<string, unknown>) => (j.final_split = { 'mp0s-a': { to_shop: 1 } }),
       (j: Record<string, unknown>) => (j.final_split = 'x'),
       (j: Record<string, unknown>) => (j.reversed_at = 5)
@@ -586,7 +594,7 @@ describe('U6: the final split, a flavour cost, the reversal of a test', () => {
     // Mutation: skipping an unreadable stranded row would let a split be asked for a smaller quantity than the database holds.
   });
 
-  it('a cost line can come from the flavour\'s own typed cost', () => {
+  it("a cost line can come from the flavour's own typed cost", () => {
     const j = root();
     const lines = (summaryOf(j).cookie_cost as { lines: Array<Record<string, unknown>> }).lines;
     lines[0]!.source = 'flavour';
@@ -598,15 +606,25 @@ describe('U6: the final split, a flavour cost, the reversal of a test', () => {
   it('saveFlavourCost sends the flavour and its cost, null takes it away, and refuses a bad one here', async () => {
     const { rpc, client: c } = client({ data: [{ product_id: 'mp0s-a', cost_cents: 1250 }] });
     expect(await saveFlavourCost(c, 'mp0s-a', 1250.5)).toBe('saved');
-    expect(rpc).toHaveBeenLastCalledWith('save_flavour_cost', { p_product: 'mp0s-a', p_cents: 1250.5 });
+    expect(rpc).toHaveBeenLastCalledWith('save_flavour_cost', {
+      p_product: 'mp0s-a',
+      p_cents: 1250.5
+    });
     expect(await saveFlavourCost(c, 'mp0s-a', null)).toBe('saved');
-    expect(rpc).toHaveBeenLastCalledWith('save_flavour_cost', { p_product: 'mp0s-a', p_cents: null });
+    expect(rpc).toHaveBeenLastCalledWith('save_flavour_cost', {
+      p_product: 'mp0s-a',
+      p_cents: null
+    });
     expect(await saveFlavourCost(c, 'mp0s-a', -1)).toBe('refused');
     expect(await saveFlavourCost(c, 'mp0s-a', Number.NaN)).toBe('refused');
     expect(await saveFlavourCost(c, 'Not A Flavour', 1)).toBe('refused');
     expect(rpc).toHaveBeenCalledTimes(2);
-    expect(await saveFlavourCost(client({ error: { code: '42501' } }).client, 'mp0s-a', 1)).toBe('refused');
-    expect(await saveFlavourCost(client({ error: { code: '08006' } }).client, 'mp0s-a', 1)).toBe('offline');
+    expect(await saveFlavourCost(client({ error: { code: '42501' } }).client, 'mp0s-a', 1)).toBe(
+      'refused'
+    );
+    expect(await saveFlavourCost(client({ error: { code: '08006' } }).client, 'mp0s-a', 1)).toBe(
+      'offline'
+    );
   });
 
   it('reads the typed costs strictly', async () => {
@@ -622,7 +640,9 @@ describe('U6: the final split, a flavour cost, the reversal of a test', () => {
     const { rpc, client: c } = client({ data: rows });
     expect(await fetchFlavourCosts(c)).toHaveLength(1);
     expect(rpc).toHaveBeenCalledWith('get_flavour_costs');
-    await expect(fetchFlavourCosts(client({ error: { code: '42501' } }).client)).rejects.toThrow('42501');
+    await expect(fetchFlavourCosts(client({ error: { code: '42501' } }).client)).rejects.toThrow(
+      '42501'
+    );
   });
 
   it('reverseBazaarTest names the booking and its exact name, and a refusal is refused', async () => {
@@ -636,7 +656,9 @@ describe('U6: the final split, a flavour cost, the reversal of a test', () => {
     expect(await reverseBazaarTest(c, BOOKING, '')).toBe('refused');
     expect(rpc).toHaveBeenCalledTimes(1);
     for (const code of ['22023', '55000', '42501'])
-      expect(await reverseBazaarTest(client({ error: { code } }).client, BOOKING, 'x')).toBe('refused');
+      expect(await reverseBazaarTest(client({ error: { code } }).client, BOOKING, 'x')).toBe(
+        'refused'
+      );
     // Not acknowledged unless the answer says what was done.
     expect(await reverseBazaarTest(client({ data: null }).client, BOOKING, 'x')).toBe('offline');
   });
