@@ -10,7 +10,7 @@ Text removed from `AGENTS.md` on 2026-10-07 (Ethan asked for the rule files to b
 
 The owner's later 2026-09-08 message also authorizes publishing this work to a private GitHub repository and preparing a Vercel development preview so they can follow progress. This is demo-only development visibility; no production credentials, real transactions, paid plan upgrade, or runner activation is authorized. See docs/state/current.md for evidence and remaining limits. Record implementation status in docs/state/task-status.json; generated historical tasks.json and prompts retain planned status.
 
-On this Windows installation, use headless command-line Playwright only. Never invoke the in-app Browser or Chrome-control plugins until the owner confirms the Codex GPU crash has been fixed.
+On this Windows installation, use headless command-line Playwright only. Never invoke the in-app Browser or Chrome-control plugins until the owner confirms the Codex GPU crash has been fixed. (Never lifted: Ethan confirmed on 16 October that it is still in force, and it is back in AGENTS.md.)
 
 Current authorization (2026-09-26): finish the product under the approved [lean plan](lean-plan.md) and architecture A, one `/goal` per package from [next-goal.md](next-goal.md). G1-plan.md and the MP-*-plan files are history. Preserve all protected-source rules. The automatic runner, production deployment and any hosted resource still need Ethan's explicit approval.
 
