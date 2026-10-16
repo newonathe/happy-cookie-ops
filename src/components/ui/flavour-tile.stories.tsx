@@ -34,6 +34,20 @@ export const InCart: Story = {
 };
 export const SoldOut: Story = { decorators: oneTile, args: { state: 'soldOut' } };
 export const OffMenu: Story = { decorators: oneTile, args: { state: 'offMenu' } };
+export const WithCostAndMargin: Story = {
+  decorators: oneTile,
+  args: {
+    onPress: () => undefined,
+    meta: (
+      <>
+        <span className="text-caption font-semibold text-ink-soft tabular-nums">Cost ₱31.25</span>
+        <span className="rounded-tag border border-ok-line bg-ok-fill px-1.5 py-0.5 text-caption font-semibold text-ok">
+          ✓ 75% margin
+        </span>
+      </>
+    )
+  }
+};
 export const NoPhoto: Story = { decorators: oneTile, args: { photo: '', badge: 'Carried: 12' } };
 export const WithStepper: Story = {
   decorators: oneTile,

@@ -65,6 +65,12 @@ export function usePresence(
 
 type Transitioning = Document & { startViewTransition?: (update: () => void) => unknown };
 
+/** True where the browser can run a view transition (and the person has not asked for less motion). */
+export function supportsViewTransition(): boolean {
+  const doc = typeof document === 'undefined' ? null : (document as Transitioning);
+  return !!doc && typeof doc.startViewTransition === 'function' && !reducedMotionNow();
+}
+
 /**
  * `run(update)` calls `update` inside `document.startViewTransition` where the browser has it, and plain otherwise:
  * in older Safari, in jsdom, and always under reduced motion. `update` must change the DOM synchronously (for example

@@ -18,7 +18,7 @@ Read this page first in a new session. It is kept short on purpose.
 
 **Bazaar v2 (15 October): in progress.** Ethan's 13-point review of the bazaar screens (design, flow, motion)
 is planned as 10 slices, D0 to U9, in [bazaar-v2.md](bazaar-v2.md); everything lands before the bazaar, one release, then the
-rehearsal by 22 October. D0 approved 15 Oct ([spec](../design/bazaar-v2.md)). U1 built 15 Oct (tokens, 16 components, `peso()`, motion helpers; live money now shows two decimals). U2 built 15 Oct (branch `claude/bazaar-v2-u2`: leave and return to the till, sold-out tiles hidden, Add cookies; Ateneo B1, B2). U6 built 15 Oct, local only (migration 70 in the repo, not on the trial, still 69 of 69; Opus review and database suites noted in [bazaar-v2.md](bazaar-v2.md), "U6 as built"). U3 built 15 Oct (branch `claude/bazaar-v2-u3`, from `-u2`: the events hub, the add-event sheet, a status pill per row; "U3 as built" in bazaar-v2.md). U5 built 16 Oct (review and close; "U5 as built" in bazaar-v2.md). U4 built 16 Oct (event page, day plan, Ateneo A1, A2, A5, B4, B5; branch `claude/bazaar-v2-u4`, cut from `-u3`; "U4 as built" in bazaar-v2.md; A1 and A5 need migration 70). Next: U7, the recipe book ([next-goal.md](next-goal.md)). The
+rehearsal by 22 October. D0 approved 15 Oct ([spec](../design/bazaar-v2.md)). U1 built 15 Oct (tokens, 16 components, `peso()`, motion helpers; live money now shows two decimals). U2 built 15 Oct (branch `claude/bazaar-v2-u2`: leave and return to the till, sold-out tiles hidden, Add cookies; Ateneo B1, B2). U6 built 15 Oct, local only (migration 70 in the repo, not on the trial, still 69 of 69; Opus review and database suites noted in [bazaar-v2.md](bazaar-v2.md), "U6 as built"). U3 built 15 Oct (branch `claude/bazaar-v2-u3`, from `-u2`: the events hub, the add-event sheet, a status pill per row; "U3 as built" in bazaar-v2.md). U5 built 16 Oct (review and close; "U5 as built" in bazaar-v2.md). U4 built 16 Oct (event page, day plan, Ateneo A1, A2, A5, B4, B5; branch `claude/bazaar-v2-u4`, cut from `-u3`; "U4 as built" in bazaar-v2.md; A1 and A5 need migration 70). U7 built 16 Oct (the recipe book and flavour page; branch `claude/bazaar-v2-u7`, cut from `-u4`; "U7 as built" in bazaar-v2.md; its cost save needs migration 70). Next: U8 (needs Ethan's yes) and U9 ([next-goal.md](next-goal.md)). The
 Ateneo test audit (15 Oct, in bazaar-v2.md) found 13 issues. Ethan chose migration 70 before the bazaar and a reviewed
 reversal of the Ateneo test (its rent, over, sales and stock use are in October's books until then).
 
@@ -71,16 +71,16 @@ plan is built (Ethan, 5 October). F3 (launch) stays closed until Cine accepts a 
 
 Found by reading code or the trial, not by running. Each has a slice in the plan.
 
-| What                                                                                                                | Slice  |
-| ------------------------------------------------------------------------------------------------------------------- | ------ |
-| The backup, retention and keep-alive jobs are written but off: nothing is backed up yet.                            | Ethan  |
-| Account has no button of its own: it is a chip on Home's strip. Customers and Expenses open a sheet.                | C6, C5 |
-| Until the flavour list arrives, or if it cannot be read, staff screens show the engine's six flavours.              | B6     |
-| Bazaar Mode offers a fixed list of wallets; Home's "Drop 32" starts from the engine's number.                       | C7, C3 |
-| An empty menu cannot get its first flavour (the trial has 26, so nobody meets it).                                  | B6     |
-| Cost per cookie: 22 of 23 recipes are complete (all 7 menu flavours, read 15 October); no per-flavour override yet. | U6     |
-| A mistyped delivery quantity cannot be undone, and under a running average it lingers. Needs a decision.            | Ethan  |
-| Every page, the shop included, loads the whole staff app.                                                           | C8     |
+| What                                                                                                                                                                          | Slice  |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| The backup, retention and keep-alive jobs are written but off: nothing is backed up yet.                                                                                      | Ethan  |
+| Account has no button of its own: it is a chip on Home's strip. Customers and Expenses open a sheet.                                                                          | C6, C5 |
+| Until the flavour list arrives, or if it cannot be read, staff screens show the engine's six flavours.                                                                        | B6     |
+| Bazaar Mode offers a fixed list of wallets; Home's "Drop 32" starts from the engine's number.                                                                                 | C7, C3 |
+| An empty menu cannot get its first flavour (the trial has 26, so nobody meets it).                                                                                            | B6     |
+| Cost per cookie: 22 of 23 recipes are complete (all 7 menu flavours, read 15 October); the recipe book (U7) types a per-flavour cost, once migration 70 is on the trial (U9). | U9     |
+| A mistyped delivery quantity cannot be undone, and under a running average it lingers. Needs a decision.                                                                      | Ethan  |
+| Every page, the shop included, loads the whole staff app.                                                                                                                     | C8     |
 
 ### Decisions in force
 
