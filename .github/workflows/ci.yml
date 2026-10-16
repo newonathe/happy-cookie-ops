@@ -4,7 +4,7 @@ name: CI
 # private repo the free allowance is 2,000 Actions minutes a month and a full run is
 # roughly 8 of them, so an agent pushing twenty times a day would spend it in a fortnight.
 #
-# Run `pnpm verify` locally instead — it is the same gate and it is instant.
+# Run `pnpm verify` locally instead â€” it is the same gate and it is instant.
 on:
   push:
     branches: [main, agent/codex/MP-04-g1-feasibility]
@@ -145,9 +145,8 @@ jobs:
     name: Performance budget
     runs-on: ubuntu-latest
     needs: build
-    # Advisory until T-18 sets a real baseline from measurement. A budget invented
-    # without numbers gets switched off the first time it is inconvenient.
-    continue-on-error: true
+    # Blocking since T-18 (2026-10-16): per-page limits in lighthouserc.json sit about 1.2x above
+    # the measured baseline in docs/ARCHITECTURE.md, so this catches regressions, not the 4 s goal.
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
