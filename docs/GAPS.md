@@ -234,8 +234,10 @@ audits are permanently off (`unused-javascript`, `legacy-javascript`): the app s
 screens in one tree by design, so they would always fail, and permanent failures train
 everyone to ignore the report.
 
-**What is left.** The 4 s LCP target. Every page misses it because the frame renders only in
-the browser (`OpsApp` returns null on the server). Server-rendering it is an owner decision.
+**What is left.** The 4 s LCP target on the app's screens (`/sign-in` meets it: 1.9 s). They
+paint after the JavaScript runs and, in live mode, after the session check; see
+`docs/ARCHITECTURE.md` (Rendering and performance) for why server rendering alone would not
+close it.
 
 ### 3.4 ● Visual regression
 
