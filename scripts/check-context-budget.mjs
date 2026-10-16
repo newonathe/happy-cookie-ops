@@ -5,9 +5,19 @@
  * as the growth, and say why in the message; the better fix is to move history to a history file.
  */
 import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const bytes = (p) => statSync(p).size;
-const count = (dir) => readdirSync(dir).length;
+// Paths resolve from the repository root, whatever directory the check runs from.
+const root = fileURLToPath(new URL('..', import.meta.url));
+const at = (p) => join(root, p);
+const bytes = (p) => statSync(at(p)).size;
+// OS litter (.DS_Store, Thumbs.db, desktop.ini) is not a receipt; files in subfolders are.
+const litter = (name) => name.startsWith('.') || /^(thumbs\.db|desktop\.ini)$/i.test(name);
+const count = (dir) =>
+  readdirSync(at(dir), { recursive: true, withFileTypes: true }).filter(
+    (e) => e.isFile() && !litter(e.name)
+  ).length;
 
 // Loaded by every Claude Code session (CLAUDE.md imports AGENTS.md) and read first by every goal.
 const FILE_LIMITS = {
@@ -16,7 +26,7 @@ const FILE_LIMITS = {
   'docs/state/next-goal.md': [['docs/state/next-goal.md'], 6_000]
 };
 // Receipts are frozen: the lean plan records results in commits, not new evidence files.
-const DIR_LIMITS = { 'docs/state/evidence': 936, 'docs/master-plan/evidence': 54 };
+const DIR_LIMITS = { 'docs/state/evidence': 940, 'docs/master-plan/evidence': 260 };
 
 const failures = [];
 for (const [name, [files, limit]] of Object.entries(FILE_LIMITS)) {
@@ -32,9 +42,13 @@ for (const [dir, limit] of Object.entries(DIR_LIMITS)) {
     );
 }
 // A subagent without a model inherits the parent's, the most expensive one.
-for (const f of readdirSync('.claude/agents').filter((f) => f.endsWith('.md'))) {
-  const head = readFileSync(`.claude/agents/${f}`, 'utf8').split('---')[1] ?? '';
-  if (!/^model:\s*\S+/m.test(head)) failures.push(`.claude/agents/${f} has no pinned model.`);
+for (const f of readdirSync(at('.claude/agents')).filter((f) => f.endsWith('.md'))) {
+  const front = /^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/.exec(
+    readFileSync(at(`.claude/agents/${f}`), 'utf8')
+  );
+  if (!front) failures.push(`.claude/agents/${f} has no front matter, so no pinned model.`);
+  else if (!/^model:[ \t]*\S+/m.test(front[1]))
+    failures.push(`.claude/agents/${f} has no pinned model.`);
 }
 
 if (failures.length) {
