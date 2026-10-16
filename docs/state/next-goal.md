@@ -1,30 +1,29 @@
-# Next goal — Bazaar v2, slices U8 and U9
+# Next goal — after Bazaar v2: the phone rehearsal
 
-D0 is approved (Ethan, 15 October): the spec is [docs/design/bazaar-v2.md](../design/bazaar-v2.md) and the mockups are the
-private artifact linked at its top. The plan is [bazaar-v2.md](bazaar-v2.md), slices D0 to U9, each its own `/goal` in a new
-conversation. Everything lands before the bazaar in **one** release (U9), then the phone rehearsal **by 22 October**, then
-`RELEASE_HOLD=true`. Cut line: U8 moves after 26 October if not green by the evening of 19 October.
+**U9 is released (16 October).** Bazaar v2 (U1 to U7 plus the U9 motion pass and 44 px targets) is live on the private trial:
+head `ea0ba7f`, Cloudflare version `7d7d8414`, migration 70 applied (70 of 70, function bodies equal local), every CI job green
+except the known red "Performance budget" (artifact quota). U8 (two decimals in ported screens) is skipped: Ethan kept whole
+pesos on the till. The plan and the as-built notes are in [bazaar-v2.md](bazaar-v2.md) and [docs/design/bazaar-v2.md](../design/bazaar-v2.md).
+The repository is public: secret scan before every push, and no real event names or figures in any committed file.
 
-The trial today: migration 69 of 69, version `fbfd8860` (S3.1). The repository is public: secret scan before every push, and no
-real event names or figures in any committed file.
+**The next goals, in order:**
 
-U1 to U7 are built: the design system (`claude/bazaar-v2-u1`), the till's freedom and migration 70 (`-u2`; migration 70 is
-local only), the events hub, review and close, the event page and day plan (`-u4`), and now U7, the recipe book and flavour page
-(`claude/bazaar-v2-u7`, cut from `-u4`; "U7 as built" in bazaar-v2.md; its cost save needs migration 70). **Conversation: U8**
-(only after Ethan says "approve PESO") **or U9**, the goal blocks in [bazaar-v2.md](bazaar-v2.md), "Goal blocks" (Sonnet high builds,
-Opus signs off U9, new conversation, plan mode off). U9 is the release: it merges the slice branches, applies migration 70 to the
-trial (two review fixes pending, "U6 review"), runs the full QA and deploys. Cut line: U8 moves after 26 October if not green by the
-evening of 19 October.
+1. **The phone rehearsal, by 22 October**, on the selling iPhone: [bazaar-run-sheet.md](bazaar-run-sheet.md), "The rehearsal"
+   (25 steps) and the "Stall-day checklist". Ethan runs it; anything that fails is fixed and the list is run again before
+   23 October. `RELEASE_HOLD=true` the day it passes. The bazaar is 24 to 25 October.
+2. **The earlier test event's reversal** (`reverse_bazaar_test`): only on Ethan's separate yes, then run and reviewed. Its rent,
+   over, sales and stock use stay in October's books until then.
+3. **Optional: the 320 px toast check.** Open the day plan at 320 px with the toast showing and see whether the toast overlaps
+   the sticky footer by about 16 px (unconfirmed). A clean browser pass at four widths (320, 375, 768, 1440) has not been done.
 
-The money paths U4 touched were reviewed by Opus on 16 October ("U4 as built" in bazaar-v2.md). Decided by Ethan (16 Oct): the cost typed
-when closing an event is the flavour's (design 5.10, as built), and U7's cost field saves the same `save_flavour_cost`. U7 itself has had
-no independent review: it adds no new write, but ask Opus to read `src/store/recipe-book.ts` before U9.
+Not done and not part of these: the cost cutover (after Cine's opening count, and Ethan's separate yes). One low finding is left
+from the migration 70 review: a flavour cost saved mid-close can be stored with a stale hash.
 
-| Setting      | Value                                                                                      |
-| ------------ | ------------------------------------------------------------------------------------------ |
-| Model        | Sonnet high builds; Opus signs off (and reviews any money or close change)                 |
-| Plan mode    | off                                                                                        |
-| Conversation | new                                                                                        |
-| Read         | AGENTS.md, current.md, bazaar-v2.md (U8 or U9), the design spec, the files the block names |
+| Setting      | Value                                                                                        |
+| ------------ | -------------------------------------------------------------------------------------------- |
+| Model        | Sonnet high for the 320 px check or any fix; Opus signs off any money or close change        |
+| Plan mode    | off                                                                                          |
+| Conversation | new                                                                                          |
+| Read         | AGENTS.md, current.md, bazaar-run-sheet.md; for the 320 px check, `day-plan.tsx` and its CSS |
 
-The review of U2, U5 and U6 used an Opus subagent, because `codex` refuses its models on this ChatGPT account. After U8 (if approved): U9 releases.
+The review of U2, U5, U6 and U7 used an Opus subagent, because `codex` refuses its models on this ChatGPT account.
