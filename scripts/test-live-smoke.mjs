@@ -1151,6 +1151,7 @@ try {
       await page.goto(`${base}/recipes`, { waitUntil: 'networkidle' });
       await page.getByRole('heading', { level: 1, name: 'Recipe book' }).waitFor();
       await check(page, 'Recipe book', 'Recipes');
+      await bazaarFits('Recipe book', 'Recipes');
       await paneShots('u7-recipe-book');
       await page.getByRole('button', { name: /^All/ }).click();
       await page.getByLabel('Search flavours').fill(flavour.short_name);
@@ -1161,6 +1162,7 @@ try {
       await tile.click();
       await page.getByRole('heading', { level: 1, name: flavour.short_name }).waitFor();
       await check(page, 'Recipe book, flavour page', 'Recipes');
+      await bazaarFits('Recipe book, flavour page', 'Recipes');
       const form = page.getByRole('form', { name: /^Cost per cookie for / });
       const field = form.getByLabel('Cost per cookie', { exact: true });
       // Nothing is saved before it is changed; a bad cost is red on its field and nothing is sent.

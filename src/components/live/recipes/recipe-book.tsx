@@ -68,7 +68,8 @@ export function RecipeBookLive({ v }: { v: OpsVals }) {
     refresh?.();
   }, [refresh]);
 
-  if (!book) return null;
+  // Anyone but the owner has no recipe book (`liveRecipes` is null): they keep the ported Recipes screen as it was.
+  if (!book) return <RecipesScreen v={v} />;
 
   const go = (next: View, name: string | null) => {
     // The old picture is taken before the update, so the tile holds its name first.

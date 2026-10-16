@@ -2568,7 +2568,11 @@ export class OpsRuntime extends OpsProvider {
       liveStockItems: this.liveStockItemsVals(),
       liveStock: this.liveStockVals(),
       liveBazaar: isLiveMode() && this.state.role === 'owner' ? this.bazaarDays.vals() : null,
-      liveRecipes: isLiveMode() && this.state.role === 'owner' ? this.recipeBook.vals() : null,
+      // Worked out only on the Recipes screen: nothing else reads it, and the till must not pay for it.
+      liveRecipes:
+        isLiveMode() && this.state.role === 'owner' && this.state.screen === 'recipes'
+          ? this.recipeBook.vals()
+          : null,
       ...this.liveToastVals(starved),
       // S3: on a started day "Close out" opens the day's review, never the old close-out sheet (which the database refuses).
       ...((this.state.event as LiveEvent | null)?.dayId
