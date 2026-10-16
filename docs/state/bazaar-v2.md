@@ -325,7 +325,12 @@ Interface only, no migration (it uses U6's `save_flavour_cost` and `get_flavour_
   the book out only while the Recipes screen is open.
 - **Left:** the event page shows a flavour's typed cost only once a day of that flavour has started (it reads the summary); a planned-only
   flavour still shows the per-event cost or the recipe's. The ported P&L and Products margins still use the recipe's cost, not hers. The
-  Docker visual run and a phone were not run. No independent review yet: an Opus read of `src/store/recipe-book.ts` before U9.
+  Docker visual run and a phone were not run. **Review (Opus, read-only, 16 Oct): nothing serious; two mediums and a low fixed.**
+  (1) A recipe cost such as 12.916667 (310 over 24 cookies) opened the cost field with six decimals, which its own check refuses: the field now
+  starts at four decimals (12.9167). (2) After a save the old figure stayed when the read that follows failed: the saved cost is now kept at
+  once, and the flavour page shows the "could not be read" note. (3) "Try again" on the recipe-costs note now reads them again. Left:
+  `RecipeBook.reset()` is not called anywhere (sign-out reloads the page). Held, with hand-worked numbers: ₱125 at her ₱40 keeps 68 %;
+  64.96 % reads 64.9 % and warns; an unchanged field saves nothing; only the owner reaches `save_flavour_cost`.
 - **Checks:** `pnpm verify` green (140 files, 2,581 tests); the live smoke passes 17 steps (the book lists the flavours, axe finds no serious
   violation and nothing scrolls sideways at 320 px with 200 % text on the book and on a flavour page, a bad cost is red and sends nothing,
   a typed cost is read back by `get_flavour_costs`, the event page says "typed by you for the flavour" with its cost, blank takes it away);

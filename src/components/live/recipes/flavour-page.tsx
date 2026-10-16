@@ -100,11 +100,14 @@ export function FlavourPage({
   item,
   onBack,
   onEditRecipe,
+  note,
   fade
 }: {
   item: RecipeBookItem;
   onBack: () => void;
   onEditRecipe: () => void;
+  /** What could not be read, said above the page (the book's note). */
+  note?: string | null;
   /** True where there is no view transition: the page fades in instead. */
   fade: boolean;
 }) {
@@ -117,6 +120,7 @@ export function FlavourPage({
   const margin = item.tone === 'none' ? undefined : item.tone;
   return (
     <div className={fade ? 'motion-enter flex flex-col gap-4' : 'flex flex-col gap-4'}>
+      {note ? <Banner tone="warn" title={note} /> : null}
       <Button variant="ghost" onClick={onBack} className="self-start">
         <span aria-hidden="true">← </span>Back to the recipe book
       </Button>

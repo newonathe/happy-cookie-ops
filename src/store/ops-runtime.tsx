@@ -817,6 +817,7 @@ export class OpsRuntime extends OpsProvider {
     recipeCostsState: () => this.costReads,
     batchYield: (productId) =>
       this.recipeRows?.find((r) => r.productId === productId)?.yield ?? null,
+    reloadCosts: () => void this.loadCosts(),
     openRecipe: (productId) =>
       (this as unknown as { openRecipe: (pid: string) => void }).openRecipe(productId),
     toast: (text, kind) => this.toast(text, kind),

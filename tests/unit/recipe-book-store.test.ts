@@ -46,6 +46,7 @@ function harness(
   const toast = vi.fn();
   const rerender = vi.fn();
   const openRecipe = vi.fn();
+  const reloadCosts = vi.fn();
   const recipes = opts.recipes ?? { classic: recipe(), velvet: recipe({ perCookie: 40 }) };
   const deps: RecipeBookDeps = {
     client: () => (state.client ? ({ rpc } as unknown as BazaarClient) : null),
@@ -58,13 +59,14 @@ function harness(
     recipeCostsState: () => state.costsState,
     batchYield: (id) => (id === 'classic' ? 24 : null),
     openRecipe,
+    reloadCosts,
     toast,
     rerender
   };
   const book = new RecipeBook(deps);
   const calls = (name: string) => rpc.mock.calls.filter((c) => c[0] === name).length;
   const item = (id: string) => book.vals().items.find((i) => i.id === id)!;
-  return { book, state, rpc, toast, rerender, openRecipe, calls, item };
+  return { book, state, rpc, toast, rerender, openRecipe, reloadCosts, calls, item };
 }
 
 describe('reading her typed costs', () => {
@@ -179,6 +181,14 @@ describe('the refresh the book calls when it opens', () => {
   });
 });
 
+describe('refreshing', () => {
+  it('also reads the recipe costs again, so Try again on that banner does something', () => {
+    const h = harness();
+    h.book.vals().refresh();
+    expect(h.reloadCosts).toHaveBeenCalledTimes(1);
+  });
+});
+
 describe('the recipe’s cost', () => {
   it('is pending when the recipe is incomplete, and when the costs were not read', async () => {
     const part = recipe({ complete: false, missing: [{ name: 'Flour', why: 'no cost' }] });
@@ -224,6 +234,24 @@ describe('saving the cost', () => {
     expect(h.toast).toHaveBeenCalledWith(BOOK_COPY.saved);
     // The read after the save is what the page shows.
     expect(h.item('classic')).toMatchObject({ costSource: 'typed', costText: '₱34.505' });
+  });
+
+  it('shows what was saved even when the read after it fails', async () => {
+    const h = harness();
+    await h.book.read();
+    h.state.replies.get_flavour_costs = 'throw';
+    expect(await h.item('classic').save('34')).toBeNull();
+    // Mutation: leaving the old map would show the recipe's cost beside a toast that says "Cost saved."
+    expect(h.item('classic')).toMatchObject({ costSource: 'typed', costText: '₱34.00' });
+    expect(h.book.vals().note).toBe(BOOK_COPY.readFailed);
+  });
+
+  it('takes her cost away at once when blank is saved and the read fails', async () => {
+    const h = harness({ typed: [{ product_id: 'classic', cost_cents: 4000, typed_at: TYPED_AT }] });
+    await h.book.read();
+    h.state.replies.get_flavour_costs = 'throw';
+    expect(await h.item('classic').save('')).toBeNull();
+    expect(h.item('classic')).toMatchObject({ costSource: 'recipe', typed: false });
   });
 
   it('blank takes her cost away: null goes to the database', async () => {

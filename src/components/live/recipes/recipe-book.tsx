@@ -108,6 +108,7 @@ export function RecipeBookLive({ v }: { v: OpsVals }) {
           <FlavourPage
             item={item}
             fade={fade}
+            note={book.note}
             onBack={() => go({ kind: 'book' }, item.id)}
             onEditRecipe={() => {
               item.editRecipe();
