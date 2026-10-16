@@ -3,7 +3,7 @@
 import { useId, useState } from 'react';
 import type { ReactNode } from 'react';
 import { cx } from './cx';
-import { useCountUp } from './motion';
+import { useCountUp, usePresence } from './motion';
 
 export interface StatPart {
   label: string;
@@ -53,6 +53,8 @@ export function StatTile({
   const partsId = useId();
   const pending = value === null || value === undefined;
   const hasParts = Boolean(parts && parts.length > 0);
+  // The parts stay mounted for their 150 ms exit after the tile is closed.
+  const shown = usePresence(hasParts && open, 150);
   // The display numeral is 40 px. A figure with two decimals ("₱280.00", "₱1,640.00") is wider than a half-width phone
   // tile (about 136 px of room), so a long one steps down rather than wrapping or running out of the tile.
   const written = pending ? '—' : typeof value === 'number' ? format(value) : value;
@@ -120,10 +122,11 @@ export function StatTile({
       ) : (
         <div className="flex flex-col items-start gap-1 p-4">{head}</div>
       )}
-      {hasParts && open ? (
+      {hasParts && shown.mounted ? (
         <dl
           id={partsId}
-          className="motion-rise m-0 flex flex-col gap-1.5 border-t border-divide px-4 py-3"
+          data-leaving={shown.leaving}
+          className="motion-parts m-0 flex flex-col gap-1.5 border-t border-divide px-4 py-3"
         >
           {parts?.map((part) => (
             <div key={part.label} className="flex justify-between gap-3 text-caption">

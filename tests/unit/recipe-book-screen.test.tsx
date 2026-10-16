@@ -200,7 +200,8 @@ describe('the flavour page', () => {
     expect(names).toEqual(['flavour-photo']);
     expect(photo()?.style.viewTransitionName).toBe('flavour-photo');
     // With a transition the page does not also fade.
-    expect(document.querySelector('.motion-enter')).toBeNull();
+    // (Receipt rows rise in by themselves; the page wrapper is the one that must not.)
+    expect(document.querySelector('div.motion-enter')).toBeNull();
   });
 
   it('fades the page in when the browser has no view transition', () => {

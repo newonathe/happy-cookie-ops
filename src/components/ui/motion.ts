@@ -63,6 +63,48 @@ export function usePresence(
   return { mounted: present || (mounted && !instant), leaving: !present && mounted && !instant };
 }
 
+export interface LeavingRow<T> {
+  item: T;
+  key: string;
+  /** True for a row that was removed and is playing its exit; draw it inert (no controls, aria-hidden). */
+  leaving: boolean;
+}
+
+/**
+ * A list that plays the exit of a removed row (opacity and scale .98 over `exitMs`, the `motion-leave` class with
+ * `data-leaving`). The rows are the current items plus, for `exitMs` after a removal, the removed row at its old place.
+ * Under reduced motion a removed row is gone at once. `keyOf` must give each row a stable, unique key.
+ */
+export function useLeavingRows<T>(
+  items: readonly T[],
+  keyOf: (item: T) => string,
+  exitMs = 150
+): LeavingRow<T>[] {
+  const rows = items.map((item) => ({ item, key: keyOf(item) }));
+  const signature = JSON.stringify(rows.map((r) => r.key));
+  const [seen, setSeen] = useState({ signature, rows });
+  const [ghosts, setGhosts] = useState<{ item: T; key: string; index: number }[]>([]);
+  // Adjusting state while rendering: rows that were there last render and are not now start their exit.
+  if (seen.signature !== signature) {
+    const now = new Set(rows.map((r) => r.key));
+    const gone = seen.rows.map((r, index) => ({ ...r, index })).filter((r) => !now.has(r.key));
+    setSeen({ signature, rows });
+    setGhosts(reducedMotionNow() ? [] : [...ghosts.filter((g) => !now.has(g.key)), ...gone]);
+  }
+  useEffect(() => {
+    if (ghosts.length === 0) return;
+    const timer = window.setTimeout(() => setGhosts([]), exitMs);
+    return () => window.clearTimeout(timer);
+  }, [ghosts, exitMs]);
+  const out: LeavingRow<T>[] = rows.map((r) => ({ ...r, leaving: false }));
+  const live = new Set(rows.map((r) => r.key));
+  for (const g of ghosts) {
+    if (live.has(g.key)) continue;
+    out.splice(Math.min(g.index, out.length), 0, { item: g.item, key: g.key, leaving: true });
+  }
+  return out;
+}
+
 type Transitioning = Document & { startViewTransition?: (update: () => void) => unknown };
 
 /** True where the browser can run a view transition (and the person has not asked for less motion). */

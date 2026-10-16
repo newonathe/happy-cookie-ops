@@ -210,7 +210,7 @@ function ActiveCard({ row, ringed }: { row: BazaarListRow; ringed: boolean }) {
         ) : null}
       </div>
       <div className="flex min-w-0 flex-col gap-1">
-        <h3 className="m-0 truncate text-title text-ink">{row.name}</h3>
+        <h3 className="m-0 line-clamp-2 text-title break-words text-ink">{row.name}</h3>
         <span className="text-body text-ink-soft">{row.datesText}</span>
         <span className="truncate text-caption text-ink-mute">{row.placeText}</span>
       </div>
@@ -241,7 +241,7 @@ function EventRow({ row, ringed }: { row: BazaarListRow; ringed: boolean }) {
       )}
     >
       <span className="flex min-w-0 items-center justify-between gap-2">
-        <span className="min-w-0 truncate text-body font-bold">{row.name}</span>
+        <span className="line-clamp-2 min-w-0 text-body font-bold break-words">{row.name}</span>
         <Pill row={row} />
       </span>
       <span className="text-caption text-ink-soft">{row.datesText}</span>

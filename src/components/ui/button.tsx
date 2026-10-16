@@ -28,11 +28,11 @@ const VARIANT: Record<ButtonVariant, string> = {
   icon: 'bg-chip text-ink hover:bg-divide'
 };
 const SIZE: Record<ButtonSize, string> = {
-  sm: 'min-h-9 px-3 text-caption',
+  sm: 'min-h-11 px-3 text-caption',
   md: 'min-h-11 px-4 text-body',
   lg: 'min-h-12 px-5 text-body'
 };
-const ICON_SIZE: Record<ButtonSize, string> = { sm: 'size-9', md: 'size-11', lg: 'size-12' };
+const ICON_SIZE: Record<ButtonSize, string> = { sm: 'size-11', md: 'size-11', lg: 'size-12' };
 
 /**
  * The button of the live screens (docs/design/bazaar-v2.md, sections 1 and 3). Pressing scales it to 0.97 over 100 ms

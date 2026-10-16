@@ -2,6 +2,7 @@ import { act, cleanup, render, renderHook, screen } from '@testing-library/react
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   useCountUp,
+  useLeavingRows,
   usePresence,
   usePrefersReducedMotion,
   useViewTransition
@@ -80,6 +81,41 @@ describe('usePresence', () => {
   it('starts unmounted and never shows when it was never present', () => {
     const { result } = renderHook(() => usePresence(false));
     expect(result.current).toEqual({ mounted: false, leaving: false });
+  });
+});
+
+describe('useLeavingRows', () => {
+  beforeEach(() => vi.useFakeTimers());
+  const ids = (rows: { key: string; leaving: boolean }[]) =>
+    rows.map((r) => r.key + (r.leaving ? '*' : ''));
+
+  it('keeps a removed row at its place for the exit, then drops it', () => {
+    const { result, rerender } = renderHook(({ items }) => useLeavingRows(items, (x) => x, 150), {
+      initialProps: { items: ['a', 'b', 'c'] }
+    });
+    expect(ids(result.current)).toEqual(['a', 'b', 'c']);
+    rerender({ items: ['a', 'c'] });
+    expect(ids(result.current)).toEqual(['a', 'b*', 'c']);
+    act(() => void vi.advanceTimersByTime(151));
+    expect(ids(result.current)).toEqual(['a', 'c']);
+  });
+
+  it('does not keep a removed row under reduced motion', () => {
+    setReducedMotion(true);
+    const { result, rerender } = renderHook(({ items }) => useLeavingRows(items, (x) => x), {
+      initialProps: { items: ['a', 'b'] }
+    });
+    rerender({ items: ['a'] });
+    expect(ids(result.current)).toEqual(['a']);
+  });
+
+  it('drops a leaving row that comes back', () => {
+    const { result, rerender } = renderHook(({ items }) => useLeavingRows(items, (x) => x), {
+      initialProps: { items: ['a', 'b'] }
+    });
+    rerender({ items: ['a'] });
+    rerender({ items: ['a', 'b'] });
+    expect(ids(result.current)).toEqual(['a', 'b']);
   });
 });
 

@@ -102,7 +102,7 @@ export function Stepper({
   const small = size === 'sm';
   const button = cx(
     'motion-press grid shrink-0 place-items-center rounded-control border border-line-strong bg-surface font-bold text-ink hover:bg-inset disabled:cursor-not-allowed disabled:opacity-40',
-    small ? 'size-9 text-body' : 'size-11 text-title'
+    small ? 'size-11 text-body' : 'size-11 text-title'
   );
   const display = format ? format(value) : value.toLocaleString('en-PH');
 
@@ -150,7 +150,7 @@ export function Stepper({
             className={cx(
               'min-w-12 rounded-control px-2 text-center font-bold text-ink tabular-nums hover:bg-inset',
               outside && 'border border-danger border-l-4',
-              small ? 'min-h-9 text-body' : 'min-h-11 text-title'
+              small ? 'min-h-11 text-body' : 'min-h-11 text-title'
             )}
           >
             {display}
@@ -189,7 +189,7 @@ export function Stepper({
             className={cx(
               'w-16 rounded-control border bg-surface text-center font-bold text-ink tabular-nums',
               error ? 'border-danger border-l-4' : 'border-line-strong',
-              small ? 'min-h-9 text-[16px]' : 'min-h-11 text-[16px]'
+              small ? 'min-h-11 text-[16px]' : 'min-h-11 text-[16px]'
             )}
           />
         )}

@@ -302,6 +302,34 @@
     transform: scale(0.98);
     pointer-events: none;
   }
+  /* A row that arrives and later leaves (a list line): rises in over 250 ms, fades out over 150 ms. */
+  .motion-enter.motion-leave {
+    transition:
+      opacity var(--dur-base) var(--ease-enter),
+      transform var(--dur-base) var(--ease-enter);
+  }
+  .motion-enter.motion-leave[data-leaving='true'] {
+    transition-duration: var(--dur-fast);
+    transition-timing-function: var(--ease-exit);
+  }
+  /* The figures behind a stat tile: rise 4 px with a fade on open (250 ms), back out on close (150 ms). */
+  .motion-parts {
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity var(--dur-base) var(--ease-enter),
+      transform var(--dur-base) var(--ease-enter);
+    @starting-style {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+  }
+  .motion-parts[data-leaving='true'] {
+    opacity: 0;
+    transform: translateY(4px);
+    transition-duration: var(--dur-fast);
+    transition-timing-function: var(--ease-exit);
+  }
   /* Rises from 8 px with a fade: the error summary, the stat parts. */
   .motion-rise {
     animation: hcRise var(--dur-base) var(--ease-enter) both;
@@ -429,6 +457,17 @@
   }
 }
 
+/* View transitions: a filter chip or any other swap cross-fades over 250 ms; the recipe photo morphs over 400 ms.
+   The old and new images inherit the group's duration. */
+::view-transition-group(*) {
+  animation-duration: var(--dur-base);
+  animation-timing-function: var(--ease-standard);
+}
+::view-transition-group(flavour-photo) {
+  animation-duration: var(--dur-slow);
+  animation-timing-function: var(--ease-enter);
+}
+
 /* The global rule above does not reach the view-transition pseudo-elements; this does.
    useViewTransition also skips document.startViewTransition under reduced motion. */
 @media (prefers-reduced-motion: reduce) {
@@ -439,6 +478,8 @@
   }
   .motion-press:active:not(:disabled) {
     transform: none;
+    /* The pressed state is a fill instead of a scale. */
+    box-shadow: inset 0 0 0 999px color-mix(in srgb, var(--color-ink) 12%, transparent);
   }
   .motion-shimmer {
     animation: none;
