@@ -2,6 +2,7 @@
 
 import { peso } from '@/lib/money/format';
 import { Button } from './button';
+import { useLeavingRows } from './motion';
 
 export interface ReceiptLine {
   label: string;
@@ -29,7 +30,18 @@ export interface ReceiptTableProps {
   emptyText?: string;
 }
 
-/** Lines, a subtotal and a total, in pesos with two decimals. */
+/** A stable key for a line: its text and amount, numbered when the same line appears twice. */
+function lineKeys(lines: ReceiptLine[]): string[] {
+  const seen = new Map<string, number>();
+  return lines.map((line) => {
+    const base = `${line.label}|${line.detail ?? ''}|${line.valueText ?? line.value}`;
+    const n = seen.get(base) ?? 0;
+    seen.set(base, n + 1);
+    return `${base}#${n}`;
+  });
+}
+
+/** Lines, a subtotal and a total, in pesos with two decimals. A new line rises in; a removed one fades out. */
 export function ReceiptTable({
   caption,
   lines,
@@ -40,18 +52,29 @@ export function ReceiptTable({
   note,
   emptyText = 'Nothing yet'
 }: ReceiptTableProps) {
+  const keys = lineKeys(lines);
+  const rows = useLeavingRows(
+    lines.map((line, index) => ({ line, key: keys[index] })),
+    (row) => row.key
+  );
+  const removable = lines.some((l) => l.onRemove);
   return (
     <div className="flex flex-col gap-2">
       <table className="w-full border-collapse text-body">
         <caption className="sr-only">{caption}</caption>
         <tbody>
-          {lines.length === 0 ? (
+          {rows.length === 0 ? (
             <tr>
               <td className="py-3 text-ink-mute">{emptyText}</td>
             </tr>
           ) : (
-            lines.map((line, index) => (
-              <tr key={`${line.label}-${index}`} className="border-b border-divide">
+            rows.map(({ item: { line }, key, leaving }) => (
+              <tr
+                key={key}
+                data-leaving={leaving}
+                aria-hidden={leaving || undefined}
+                className="motion-enter motion-leave border-b border-divide"
+              >
                 <th scope="row" className="py-2.5 pr-3 text-left font-semibold text-ink">
                   {line.label}
                   {line.detail ? (
@@ -63,9 +86,9 @@ export function ReceiptTable({
                 <td className="py-2.5 text-right font-semibold text-ink tabular-nums">
                   {line.valueText ?? peso(line.value)}
                 </td>
-                {lines.some((l) => l.onRemove) ? (
+                {removable ? (
                   <td className="w-px py-1.5 pl-2 text-right">
-                    {line.onRemove ? (
+                    {line.onRemove && !leaving ? (
                       <Button
                         size="sm"
                         variant="danger"

@@ -18,6 +18,7 @@ import { StatusPill } from '@/components/ui/status-pill';
 import { Banner } from '@/components/ui/banner';
 import { Button } from '@/components/ui/button';
 import { ErrorSummary } from '@/components/ui/error-summary';
+import { useLeavingRows } from '@/components/ui/motion';
 import { Field as UiField, SelectField as UiSelectField } from '@/components/ui/field';
 import { formIds, validateLossForm } from '@/lib/bazaar/forms';
 import { useIssues } from './use-issues';
@@ -182,6 +183,8 @@ export function StockForm({
 /** A day's review: what is left, what was lost, the takings and cash, the event so far, and (for an open day) the close. */
 export function DayReview({ review }: { review: DayReviewView }) {
   const open = review.state === 'open';
+  // A loss taken back fades out (150 ms) instead of vanishing.
+  const lossRows = useLeavingRows(review.losses, (l) => l.id);
   // The day has just been closed while this is on screen: the tiles settle once (the D0 motion table). A day opened
   // already closed does not play it.
   const [seen, setSeen] = useState(review.state);
@@ -236,11 +239,14 @@ export function DayReview({ review }: { review: DayReviewView }) {
         <h2 id="review-losses" style={h2Style}>
           Losses
         </h2>
-        {review.losses.length ? (
+        {lossRows.length ? (
           <ul aria-label="Losses" style={listStyle}>
-            {review.losses.map((l) => (
+            {lossRows.map(({ item: l, key, leaving }) => (
               <li
-                key={l.id}
+                key={key}
+                data-leaving={leaving}
+                aria-hidden={leaving || undefined}
+                className="motion-enter motion-leave"
                 style={{
                   ...cardStyle,
                   ...textStyle,
@@ -252,7 +258,7 @@ export function DayReview({ review }: { review: DayReviewView }) {
                 }}
               >
                 <span style={{ minWidth: 0, overflowWrap: 'anywhere' }}>{l.text}</span>
-                {l.remove ? <RemoveButton label={l.text} remove={l.remove} /> : null}
+                {l.remove && !leaving ? <RemoveButton label={l.text} remove={l.remove} /> : null}
               </li>
             ))}
           </ul>

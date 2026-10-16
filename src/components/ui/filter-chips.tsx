@@ -39,7 +39,7 @@ export function FilterChips({ label, options, value, onChange }: FilterChipsProp
               run(() => flushSync(() => onChange(option.id)));
             }}
             className={cx(
-              'motion-press inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-control px-3 text-caption font-semibold whitespace-nowrap',
+              'motion-press inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-control px-3 text-caption font-semibold whitespace-nowrap',
               selected
                 ? 'border-2 border-brand bg-warm-high text-brand-deep'
                 : 'border border-line-strong bg-surface text-ink hover:bg-inset'
