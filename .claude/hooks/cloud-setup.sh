@@ -13,26 +13,29 @@ esac
 name="node-v$v-linux-$arch"
 cache="$HOME/.cache"
 dir="$cache/$name"
+# One setup at a time: a second session waits, then finds Node and the install already done.
+mkdir -p "$cache"
+exec 9> "$cache/.cloud-setup.lock"
+flock 9
 # Pinned SHA-256s from nodejs.org/dist/v$v/SHASUMS256.txt. The marker is written only after the
 # verified tree is moved into place in one step, so a cut download never counts as installed.
 if [ ! -f "$dir/.verified" ]; then
-  mkdir -p "$cache"
   tmp="$(mktemp -d "$cache/.node-XXXXXX")"
   trap 'rm -rf "$tmp"' EXIT
-  curl -sSfL --retry 3 -o "$tmp/$name.tar.xz" "https://nodejs.org/dist/v$v/$name.tar.xz"
+  curl -sSfL --retry 3 --retry-all-errors -o "$tmp/$name.tar.xz" "https://nodejs.org/dist/v$v/$name.tar.xz"
   echo "$sha  $tmp/$name.tar.xz" | sha256sum -c --status - ||
     { echo "cloud-setup: checksum mismatch for $name.tar.xz" >&2; exit 1; }
   tar -xJf "$tmp/$name.tar.xz" -C "$tmp"
   touch "$tmp/$name/.verified"
   rm -rf "$dir"
-  mv "$tmp/$name" "$dir"
+  mv -T "$tmp/$name" "$dir"
 fi
 export PATH="$dir/bin:$PATH"
 if [ -n "${CLAUDE_ENV_FILE:-}" ]; then echo "export PATH=\"$dir/bin:\$PATH\"" >> "$CLAUDE_ENV_FILE"; fi
 cd "$CLAUDE_PROJECT_DIR"
-# Install only when the lockfile or Node changed since the last good install.
+# Install only when Node, pnpm or the lockfile changed since the last good install.
 stamp="node_modules/.cloud-setup-stamp"
-want="$(node -v) $(sha256sum pnpm-lock.yaml | cut -d' ' -f1)"
+want="$(node -v) pnpm-$(pnpm -v) $(sha256sum pnpm-lock.yaml | cut -d' ' -f1)"
 if [ -f "$stamp" ] && [ "$(cat "$stamp")" = "$want" ]; then
   echo "cloud-setup: Node $(node -v), dependencies up to date"
   exit 0
