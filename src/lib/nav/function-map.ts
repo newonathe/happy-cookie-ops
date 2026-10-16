@@ -62,7 +62,10 @@ export const PLACES: readonly Place[] = [
     home: 'sell',
     label: 'Bazaar',
     screen: 'bazaar',
-    entries: [{ label: 'Bazaar Mode', screen: 'bazaar' }, { label: 'Bazaar events' }],
+    entries: [
+      { label: 'Bazaar Mode', screen: 'bazaar' },
+      { label: 'Bazaar events', screen: 'bazaar' }
+    ],
     routes: ['bazaar']
   },
   {

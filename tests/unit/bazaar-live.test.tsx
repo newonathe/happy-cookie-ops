@@ -171,6 +171,17 @@ const click = async (name: RegExp | string) => {
   fireEvent.click(screen.getByRole('button', { name }));
   await settle();
 };
+/** Types a number into a stepper the way she would: tap the number, type, Enter. */
+const setStepper = (group: string, value: string) => {
+  fireEvent.click(
+    within(screen.getByRole('group', { name: group })).getByRole('button', {
+      name: /Tap to type a number/
+    })
+  );
+  const input = within(screen.getByRole('group', { name: group })).getByRole('textbox');
+  fireEvent.change(input, { target: { value } });
+  fireEvent.keyDown(input, { key: 'Enter' });
+};
 
 beforeEach(() => {
   live = true;
@@ -239,7 +250,10 @@ describe('S2: with no event on the phone', () => {
     expect(runtime).not.toBe(ref.current);
     expect(screen.getByText('Reading your events…')).toBeTruthy();
     expect(screen.queryByText(/No upcoming events yet/)).toBeNull();
-    expect(screen.queryByRole('button', { name: 'Add an event' })).toBeNull();
+    // The button is there but cannot be pressed until the read is in.
+    expect(screen.getByRole('button', { name: 'Add an event' }).hasAttribute('disabled')).toBe(
+      true
+    );
     act(() => ref.current!.setState({ online: false }));
     expect(screen.getByText(/need signal to load/)).toBeTruthy();
     // Mutation: "No upcoming events yet" before the read lets her add a booking that is already there.
@@ -258,14 +272,19 @@ describe('S2: with no event on the phone', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'Katipunan market' })).toBeTruthy();
     expect(screen.getByText('No day is planned yet.')).toBeTruthy();
 
-    await click(/Sat, Oct 24/);
-    const form = screen.getByRole('form', { name: /Plan for Sat, Oct 24/ });
-    expect(within(form).queryByLabelText('Carried over')).toBeNull(); // day 1 carries nothing
-    fireEvent.change(within(form).getByLabelText('Drawer float (₱)'), { target: { value: '500' } });
-    const dcf = within(within(form).getByText('Double Chocolate Fudge').closest('li')!);
-    fireEvent.change(dcf.getByLabelText('Made'), { target: { value: '20' } });
-    fireEvent.change(dcf.getByLabelText('Price (₱)'), { target: { value: '125' } });
-    fireEvent.click(within(form).getByRole('button', { name: 'Save the plan' }));
+    await click('Plan Sat, 24 Oct →');
+    const form = screen.getByRole('form', { name: /Plan for Sat, 24 Oct/ });
+    expect(within(form).queryByRole('group', { name: /carried over/ })).toBeNull(); // day 1 carries nothing
+    setStepper('Drawer float', '500');
+    setStepper('Double Chocolate Fudge made', '20');
+    // The price is the menu's until she changes it.
+    fireEvent.click(
+      within(form).getByRole('button', { name: 'Change the price of Double Chocolate Fudge' })
+    );
+    fireEvent.change(within(form).getByLabelText('Double Chocolate Fudge price'), {
+      target: { value: '125' }
+    });
+    fireEvent.click(within(form).getByRole('button', { name: 'Save the plan →' }));
     await settle();
 
     const [[, saved]] = calls(rpc, 'save_bazaar_day');
@@ -282,23 +301,29 @@ describe('S2: with no event on the phone', () => {
     expect(screen.getByText('20 cookies on the table')).toBeTruthy();
     const dayId = (saved!.p_day as { id: string }).id;
 
-    // Start: the server is asked once, for this day, under the event id the day always has.
-    await click('Start this day');
+    // Start: this day is not today (A2), so it asks first; the server is asked once, for this day, under the event id the day
+    // always has.
+    await click('Start the day →');
+    expect(calls(rpc, 'start_bazaar_day')).toHaveLength(0);
+    expect(
+      screen.getByText(/This day is Sat, 24 Oct\. Today is Tue, 20 Oct\. Sales will be dated today/)
+    ).toBeTruthy();
+    await click('Start anyway');
     const [[, start]] = calls(rpc, 'start_bazaar_day');
     expect(start).toEqual({ p_day: dayId, p_device: 'dev1', p_event_id: await dayEventId(dayId) });
     expect(runtime.state.event).toMatchObject({ stage: 'selling', dayId });
     // The ported till is drawn, once, and the planning screen has gone.
     expect(label('Bazaar Mode')).toHaveLength(1);
     expect(label('Bazaar')).toHaveLength(0);
-    expect(screen.queryByRole('button', { name: 'Start this day' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Start the day →' })).toBeNull();
     // Mutation: starting through the old path would sell at the menu prices with no plan behind them.
   });
 
   it('says what is wrong with a plan in words, and sends nothing', async () => {
     const { rpc } = await mount('owner');
     await click(/Katipunan market/);
-    await click(/Sat, Oct 24/);
-    fireEvent.click(screen.getByRole('button', { name: 'Save the plan' }));
+    await click('Plan Sat, 24 Oct →');
+    fireEvent.click(screen.getByRole('button', { name: 'Save the plan →' }));
     await settle();
     expect(screen.getByRole('alert').textContent).toMatch(/at least one cookie/);
     expect(calls(rpc, 'save_bazaar_day')).toHaveLength(0);
@@ -311,9 +336,9 @@ describe('S2: with no event on the phone', () => {
     });
     await click(/Katipunan market/);
     act(() => runtime.setState({ online: false }));
-    const start = screen.getByRole('button', { name: 'Start this day' }) as HTMLButtonElement;
+    const start = screen.getByRole('button', { name: 'Start the day →' }) as HTMLButtonElement;
     expect(start.disabled).toBe(true);
-    expect(screen.getByText('Needs signal')).toBeTruthy();
+    expect(screen.getByText('Starting a day needs signal. Selling does not.')).toBeTruthy();
     fireEvent.click(start);
     await settle();
     expect(calls(rpc, 'start_bazaar_day')).toHaveLength(0);
@@ -326,7 +351,7 @@ describe('S2: with no event on the phone', () => {
     });
     await click(/Katipunan market/);
     expect(
-      (screen.getByRole('button', { name: 'Start this day' }) as HTMLButtonElement).disabled
+      (screen.getByRole('button', { name: 'Start the day →' }) as HTMLButtonElement).disabled
     ).toBe(true);
     expect(screen.getByText('Plan some cookies first')).toBeTruthy();
   });

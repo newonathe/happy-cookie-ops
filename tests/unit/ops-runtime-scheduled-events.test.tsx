@@ -231,7 +231,7 @@ describe('D4: the Bazaar screen lists the owner’s bookings (live mode)', () =>
     expect(called(up.rpc, 'link_scheduled_event').map((c) => c[1].p_scheduled)).toEqual([ID1, ID2]);
     expect(localStorage.getItem('hc-pending-link')).toBeNull();
     expect(rentRows(runtime)).toEqual([]);
-    expect(toasts(runtime)).toContain('₱2,500 stall rent booked as an event expense');
+    expect(toasts(runtime)).toContain('₱2,500.00 stall rent booked as an event expense');
     // Mutation: one saved slot loses the first booking's link (and its rent) when a second start fails.
   });
 });
@@ -248,11 +248,26 @@ describe('D4: the owner’s form', () => {
     vi.useRealTimers();
   });
 
+  // U3: the sub-tab opens the hub; this multi-row form is reached from the hub's "Edit or switch off events".
   const open = async (r: OpsRuntime) => {
-    await act(async () => entry(r)!.go());
+    act(() => r.go('bazaar'));
+    await act(async () => r.renderVals().liveBazaar!.add());
     await settle();
     return r.renderVals().liveScheduled!;
   };
+
+  it('the Bazaar events sub-tab opens the hub: the list of bookings, not the form', async () => {
+    const { runtime } = await mounted('owner', fresh());
+    await act(async () => entry(runtime)!.go());
+    await settle();
+    expect(runtime.state.screen).toBe('bazaar');
+    expect(runtime.renderVals().liveScheduled ?? null).toBeNull();
+    expect(runtime.renderVals().liveBazaar?.list.map((r) => r.name)).toEqual(['Katipunan market']);
+    // The strip marks the entry she opened, not Bazaar Mode: with no event on the phone this screen is the hub.
+    const strip = runtime.renderVals().liveScreen?.tabs?.entries ?? [];
+    expect(strip.filter((e) => e.active).map((e) => e.label)).toEqual(['Bazaar events']);
+    // Mutation: pointing the sub-tab at the old sheet leaves the hub reachable only by its other name.
+  });
 
   it('is the owner’s alone', async () => {
     const helper = await mounted('helper', fresh());
@@ -401,7 +416,8 @@ describe('D4: the owner’s form', () => {
         rpc: vi.fn(async () => ({ data: null, error: { code: '57014' } }))
       } as never);
     });
-    await act(async () => entry(ref.current!)!.go());
+    act(() => ref.current!.go('bazaar'));
+    await act(async () => ref.current!.renderVals().liveBazaar?.add());
     await settle();
     expect(ref.current!.renderVals().liveScheduled ?? null).toBeNull();
     expect(toasts(ref.current!)).toContain('Offline');

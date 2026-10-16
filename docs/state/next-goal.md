@@ -1,33 +1,30 @@
-# Next goal — Bazaar v2, slice D0 (design spec and mockups)
+# Next goal — Bazaar v2, slices U8 and U9
 
-Ethan reviewed the live bazaar screens on 15 October (13 points: design, flow, motion, forms, costs). The approved plan is
-[bazaar-v2.md](bazaar-v2.md): 10 slices, D0 to U9, each its own `/goal` in a new conversation (blocks at the end of that
-file). Everything lands before the bazaar in **one** release (U9), then the phone rehearsal **by 22 October**, then
-`RELEASE_HOLD=true`. After the Ateneo audit (bazaar-v2.md, read that section first) Ethan chose: migration 70 (U6) before the bazaar,
-with the cost edit, the leftover split and a reviewed reversal of the Ateneo test (run only on his "yes, reverse Ateneo"). Cut line: U7 and U8 move after 26 October if not green by the evening of 19 October.
+D0 is approved (Ethan, 15 October): the spec is [docs/design/bazaar-v2.md](../design/bazaar-v2.md) and the mockups are the
+private artifact linked at its top. The plan is [bazaar-v2.md](bazaar-v2.md), slices D0 to U9, each its own `/goal` in a new
+conversation. Everything lands before the bazaar in **one** release (U9), then the phone rehearsal **by 22 October**, then
+`RELEASE_HOLD=true`. Cut line: U8 moves after 26 October if not green by the evening of 19 October.
 
-The trial today: migration 69 of 69, version `fbfd8860` (S3.1). Cine's two sign-ins are owners; Access admits four
-addresses for one week. The repository is public: secret scan before every push.
+The trial today: migration 69 of 69, version `fbfd8860` (S3.1). The repository is public: secret scan before every push, and no
+real event names or figures in any committed file.
 
-```
-/goal Bazaar v2 slice D0 (design spec and mockups) in C:\Users\ethan\dev\happy-cookie-ops-g0. Read AGENTS.md,
-docs/state/current.md, docs/state/bazaar-v2.md (Revision after the Ateneo audit, Audit, Research, D0). Look at src/app/globals.css @theme,
-docs/reference/screens/states/06-sheet-closeout.png, docs/master-plan/evidence/ui/chromium-phone/01-home.png.
-1 Write docs/design/bazaar-v2.md: the rules, each component with its props and states, the motion table (element,
-  trigger, property, duration, curve, reduced-motion fallback), and the anatomy of every screen.
-2 Publish one artifact page of mockups at 375 and 1440 px, @theme tokens only, no new hex: Home card, events hub,
-  add-event sheet, event page, day plan tile grid, till frame (Home, Add cookies, sold-out hidden), review with
-  pre-filled close, recipe book and cost receipt, error summary and red fields, and the Ateneo prompts (start a
-  day that is not today, count again, stranded carried cookies, cost-pending close); live motion demos.
-3 Stop for Ethan's approval; write his changes into the doc. No app code in this slice.
-```
+U1 to U7 are built: the design system (`claude/bazaar-v2-u1`), the till's freedom and migration 70 (`-u2`; migration 70 is
+local only), the events hub, review and close, the event page and day plan (`-u4`), and now U7, the recipe book and flavour page
+(`claude/bazaar-v2-u7`, cut from `-u4`; "U7 as built" in bazaar-v2.md; its cost save needs migration 70). **Conversation: U8**
+(only after Ethan says "approve PESO") **or U9**, the goal blocks in [bazaar-v2.md](bazaar-v2.md), "Goal blocks" (Sonnet high builds,
+Opus signs off U9, new conversation, plan mode off). U9 is the release: it merges the slice branches, applies migration 70 to the
+trial (two review fixes pending, "U6 review"), runs the full QA and deploys. Cut line: U8 moves after 26 October if not green by the
+evening of 19 October.
 
-| Setting      | Value                                                          |
-| ------------ | -------------------------------------------------------------- |
-| Model        | Opus                                                           |
-| Effort       | high                                                           |
-| Plan mode    | off                                                            |
-| Conversation | new                                                            |
-| Read         | AGENTS.md, current.md, bazaar-v2.md (Audit, Research, D0 only) |
+The money paths U4 touched were reviewed by Opus on 16 October ("U4 as built" in bazaar-v2.md). Decided by Ethan (16 Oct): the cost typed
+when closing an event is the flavour's (design 5.10, as built), and U7's cost field saves the same `save_flavour_cost`. U7 itself has had
+no independent review: it adds no new write, but ask Opus to read `src/store/recipe-book.ts` before U9.
 
-After D0 is approved: U1, then U2 with U6 in two conversations, then U3 with U5, then U4, U7, U8 and U9.
+| Setting      | Value                                                                                      |
+| ------------ | ------------------------------------------------------------------------------------------ |
+| Model        | Sonnet high builds; Opus signs off (and reviews any money or close change)                 |
+| Plan mode    | off                                                                                        |
+| Conversation | new                                                                                        |
+| Read         | AGENTS.md, current.md, bazaar-v2.md (U8 or U9), the design spec, the files the block names |
+
+The review of U2, U5 and U6 used an Opus subagent, because `codex` refuses its models on this ChatGPT account. After U8 (if approved): U9 releases.

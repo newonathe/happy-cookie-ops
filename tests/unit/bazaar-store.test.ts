@@ -94,7 +94,8 @@ function harness(first: Wire) {
     today: () => '2026-10-24',
     now: () => clock,
     newId: () => `00000000-0000-4000-8000-${String(++ids).padStart(12, '0')}`,
-    openAdd: () => {}
+    openAdd: () => {},
+    refreshBookings: vi.fn(async () => true)
   } satisfies BazaarDaysDeps;
   const store = new BazaarDays(deps);
   const calls = (name: string) =>
@@ -128,6 +129,8 @@ async function reviewing(h: ReturnType<typeof harness>, from: 'till' | 'event' =
   return review;
 }
 
+const NO_CHOICES = { toShop: {}, costs: {}, withoutCost: false };
+
 describe('the review is drawn from a read made when it opens', () => {
   it('reads get_bazaar once and draws nothing before the answer', async () => {
     const h = harness(day2Open());
@@ -137,6 +140,37 @@ describe('the review is drawn from a read made when it opens', () => {
     await settle();
     expect(h.calls('get_bazaar')).toEqual([{ p_booking: BOOKING }]);
     expect(h.store.vals().review).toMatchObject({ dayId: DAY2, state: 'open' });
+  });
+});
+
+describe('the review carries what the pre-filled close needs (U5)', () => {
+  it('gives the cash expected in centavos and as the pesos the field takes', async () => {
+    const h = harness(day2Open());
+    const review = await reviewing(h);
+    expect(review.close!.cashExpectedCents).toBeGreaterThan(0);
+    expect(review.close!.cashExpectedPesos).toBe(
+      (review.close!.cashExpectedCents / 100).toFixed(2)
+    );
+    expect(review.report).toBeNull();
+  });
+
+  it('asks the runtime whether each flavour has a recipe, and says unknown when it cannot tell', async () => {
+    const h = harness(day2Open());
+    expect((await reviewing(h)).stock.every((s) => s.hasRecipe === null)).toBe(true);
+    const known = harness(day2Open());
+    const store = new BazaarDays({ ...known.deps, hasRecipe: (id) => id === 'mp0s-a' });
+    store.openReview(BOOKING, DAY2, 'till');
+    await settle();
+    const stock = store.vals().review!.stock;
+    expect(stock.find((s) => s.productId === 'mp0s-a')?.hasRecipe).toBe(true);
+    expect(stock.find((s) => s.productId === 'mp0s-b')?.hasRecipe).toBe(false);
+  });
+
+  it('a closed day carries its Z-report, with the database totals', async () => {
+    const h = harness(clone());
+    const review = await reviewing(h, 'event');
+    const drawer = review.report!.tables.find((t) => t.caption === 'Drawer')!;
+    expect(drawer.lines.reduce((n, l) => n + l.cents, 0)).toBe(drawer.totalCents);
   });
 });
 
@@ -370,9 +404,9 @@ describe("the event's page", () => {
 
   it('shows the fees, the target and each cost per cookie in words, an unknown one as pending', async () => {
     const { event } = await page(clone());
-    expect(event.feesTotalText).toBe('₱800');
-    expect(event.fees.map((f) => f.amountText)).toEqual(['₱500', '₱250', '₱50']);
-    expect(event.targetText).toBe('₱500');
+    expect(event.feesTotalText).toBe('₱800.00');
+    expect(event.fees.map((f) => f.amountText)).toEqual(['₱500.00', '₱250.00', '₱50.00']);
+    expect(event.targetText).toBe('₱500.00');
     expect(event.costs.map((c) => c.text)).toEqual([
       '₱12.005 per cookie · from the recipe',
       '₱28.7525 per cookie · typed by you',
@@ -392,9 +426,15 @@ describe("the event's page", () => {
   it('closes the event with the hash she was shown and the drop for the shop cookies', async () => {
     const { h, event } = await page(clone());
     expect(event.finalise!.blocked).toBeNull();
-    expect(await event.finalise!.run()).toBeNull();
+    expect(await event.finalise!.run(NO_CHOICES)).toBeNull();
     expect(h.calls('finalise_bazaar')).toEqual([
-      { p_booking: BOOKING, p_expected: example.summary.hash, p_drop: 32, p_till: null }
+      {
+        p_booking: BOOKING,
+        p_expected: example.summary.hash,
+        p_drop: 32,
+        p_till: null,
+        p_final: null
+      }
     ]);
     expect(h.deps.finalised).toHaveBeenCalledTimes(1);
   });
@@ -402,11 +442,11 @@ describe("the event's page", () => {
   it('a changed event is read again and not closed; an open day blocks the close', async () => {
     const { h, event } = await page(clone());
     h.reply('finalise_bazaar', { error: { code: '40001' } });
-    expect(await event.finalise!.run()).toMatch(/changed since you looked/);
+    expect(await event.finalise!.run(NO_CHOICES)).toMatch(/changed since you looked/);
     expect(h.deps.finalised).not.toHaveBeenCalled();
     const open = await page(day2Open());
     expect(open.event.finalise!.blocked).toMatch(/still selling/);
-    expect(await open.event.finalise!.run()).toMatch(/still selling/);
+    expect(await open.event.finalise!.run(NO_CHOICES)).toMatch(/still selling/);
     expect(open.h.calls('finalise_bazaar')).toHaveLength(0);
     expect(open.event.days[1]!.action).toBe('review');
   });
@@ -472,7 +512,7 @@ describe('S3.1: refused sales, till figures, taking back, and ids that outlive a
     h.state.till = { salesCount: 3, cashCents: 48000 };
     h.store.open(BOOKING);
     await settle();
-    expect(await h.store.vals().event!.finalise!.run()).toBeNull();
+    expect(await h.store.vals().event!.finalise!.run(NO_CHOICES)).toBeNull();
     expect(h.calls('finalise_bazaar')[0]!.p_till).toEqual({
       day_id: DAY2,
       sales_count: 3,
@@ -564,5 +604,340 @@ describe('S3.1: refused sales, till figures, taking back, and ids that outlive a
       spy.mockRestore();
       set.mockRestore();
     }
+  });
+});
+
+describe('U2: the till adds cookies and fees without a review open', () => {
+  const heldDay2 = () => ({ dayId: DAY2, scheduledId: BOOKING, unsent: 0, refused: 0, stock: {} });
+  const input = { productId: 'mp0s-a', qty: '2', kind: 'made' as const };
+
+  it('reads the held day itself and adds under the same stock key as the review', async () => {
+    const h = harness(day2Open());
+    h.state.held = heldDay2();
+    h.reply('add_bazaar_day_stock', { data: [{ loaded: 22 }] });
+    expect(await h.store.addHeldStock(input)).toBeNull();
+    expect(h.calls('get_bazaar')).toHaveLength(1);
+    expect(h.calls('add_bazaar_day_stock')[0]).toMatchObject({
+      p_day: DAY2,
+      p_product: 'mp0s-a',
+      p_qty: 2,
+      p_kind: 'made'
+    });
+    expect(h.deps.stockAdded).toHaveBeenCalledWith(DAY2, 'mp0s-a', 2, 22);
+    expect(localStorage.getItem('hc-bazaar-pending')).toBeNull();
+    // It leaves no booking open behind it: the list is what she sees once the day is gone.
+    expect(h.store.vals().event).toBeNull();
+  });
+
+  it("a lost reply is sent again as the same change, and the key is the review's", async () => {
+    const h = harness(day2Open());
+    h.state.held = heldDay2();
+    h.reply('add_bazaar_day_stock', 'throw', { data: [{ loaded: 22, duplicate: true }] });
+    expect(await h.store.addHeldStock(input)).toMatch(/needs signal/);
+    const first = h.calls('add_bazaar_day_stock')[0]!;
+    expect(localStorage.getItem('hc-bazaar-pending')).toContain('stock:' + DAY2);
+    // A different amount typed after the lost reply is still the first change.
+    const words = await h.store.addHeldStock({ ...input, qty: '9' });
+    expect(words).toMatch(/earlier stock change/);
+    expect(h.calls('add_bazaar_day_stock')[1]).toEqual(first);
+    expect(h.deps.stockAdded).toHaveBeenCalledWith(DAY2, 'mp0s-a', 2, 22);
+    // Mutation: a fresh key per call books the cookies twice.
+  });
+
+  it('sends nothing when this phone holds no day, or the flavour is not on the day', async () => {
+    const h = harness(day2Open());
+    expect(await h.store.addHeldStock(input)).toMatch(/day/i);
+    h.state.held = heldDay2();
+    expect(await h.store.addHeldStock({ ...input, productId: 'mp0s-zzz' })).toBe(
+      'Choose the flavour.'
+    );
+    expect(h.calls('add_bazaar_day_stock')).toHaveLength(0);
+  });
+
+  it("the fee panel is the event's own fee form, read for the held day, and closing it leaves nothing open", async () => {
+    const h = harness(day2Open());
+    h.state.held = heldDay2();
+    expect(h.store.vals().tillPanel).toBeNull();
+    h.store.openTillPanel('fees');
+    expect(h.store.vals().tillPanel).toMatchObject({ kind: 'fees', status: 'loading' });
+    await settle();
+    const panel = h.store.vals().tillPanel!;
+    expect(panel).toMatchObject({ kind: 'fees', status: 'loaded' });
+    expect(panel.event!.addFee).not.toBeNull();
+    expect(panel.event!.feeFor.map((o) => o.dayId)).toContain(DAY2);
+    h.store.closeTillPanel();
+    expect(h.store.vals().tillPanel).toBeNull();
+    expect(h.store.vals().event).toBeNull();
+  });
+
+  it('the cookies panel offers the flavours of the held day, and its add is addHeldStock', async () => {
+    const h = harness(day2Open());
+    h.state.held = heldDay2();
+    h.store.openTillPanel('cookies');
+    await settle();
+    const stockForm = h.store.vals().tillPanel!.stock!;
+    expect(stockForm.flavours.map((f) => f.id)).toEqual(['mp0s-a', 'mp0s-b', 'mp0s-c']);
+    expect(stockForm.canAddCarried).toBe(true);
+    h.reply('add_bazaar_day_stock', { data: [{ loaded: 22 }] });
+    expect(await stockForm.addStock(input)).toBeNull();
+    expect(h.calls('add_bazaar_day_stock')[0]).toMatchObject({ p_day: DAY2 });
+  });
+
+  it('draws the fee form from the day read itself when the bookings list was never read', async () => {
+    const h = harness(day2Open());
+    h.state.held = heldDay2();
+    const store = new BazaarDays({ ...h.deps, bookings: () => [], bookingsRead: () => false });
+    store.openTillPanel('fees');
+    await settle();
+    const panel = store.vals().tillPanel!;
+    expect(panel.status).toBe('loaded');
+    expect(panel.event).toMatchObject({ id: BOOKING, name: 'Fixture fair' });
+    // Mutation: building the event from the bookings list leaves "could not be read" with no way out.
+  });
+
+  it('opens nothing when this phone holds no day or has no signal', async () => {
+    const h = harness(day2Open());
+    h.store.openTillPanel('fees');
+    expect(h.store.vals().tillPanel).toBeNull();
+    h.state.held = heldDay2();
+    h.state.online = false;
+    h.store.openTillPanel('fees');
+    expect(h.store.vals().tillPanel).toBeNull();
+    expect(h.calls('get_bazaar')).toHaveLength(0);
+  });
+
+  it('a day closed from another phone closes the panel and lets the phone go', async () => {
+    const h = harness(clone());
+    h.state.held = heldDay2();
+    h.store.openTillPanel('fees');
+    await settle();
+    expect(h.deps.dayClosed).toHaveBeenCalledWith(DAY2);
+    expect(h.store.vals().tillPanel).toBeNull();
+    expect(h.store.vals().event).toBeNull();
+  });
+
+  it('a review opened over the panel replaces it', async () => {
+    const h = harness(day2Open());
+    h.state.held = heldDay2();
+    h.store.openTillPanel('cookies');
+    await settle();
+    h.store.openReview(BOOKING, DAY2, 'till');
+    expect(h.store.vals().tillPanel).toBeNull();
+    await settle();
+    expect(h.store.vals().review).not.toBeNull();
+  });
+});
+
+describe('U4: the event page asks what the books need before it closes, and starts only a day she meant', () => {
+  const open = async (w: Wire, recipe: (id: string) => boolean | null = () => null) => {
+    const h = harness(w);
+    (h.deps as unknown as BazaarDaysDeps).hasRecipe = recipe;
+    h.store.open(BOOKING);
+    await settle();
+    const event = h.store.vals().event;
+    if (!event) throw new Error('the event page was not drawn');
+    return { h, event };
+  };
+  /** The example's last day set aside 4 of A to carry to a day that never ran. */
+  const stranded = (): Wire => {
+    const w = clone();
+    (w.summary as Record<string, unknown>).stranded = [
+      { product_id: 'mp0s-a', name: 'Fixture A', day_id: DAY2, qty: 4 }
+    ];
+    return w;
+  };
+  /** B has cookies and no cost per cookie, so the event has no profit. */
+  const costPending = (): Wire => {
+    const w = clone();
+    const lines = w.summary.cookie_cost.lines as Array<Record<string, unknown>>;
+    const b = lines.find((l) => l.product_id === 'mp0s-b')!;
+    Object.assign(b, {
+      unit_cents: null,
+      source: null,
+      uncosted: true,
+      made_cents: null,
+      to_shop_cents: null,
+      sold_cents: null,
+      given_cents: null,
+      lost_cents: null,
+      written_off_cents: null,
+      not_accounted_cents: null,
+      cost_cents: null,
+      rounding_cents: null
+    });
+    return w;
+  };
+  const planned = (w: Wire, index: number): Wire => {
+    Object.assign(w.summary.days[index] as Record<string, unknown>, {
+      state: 'planned',
+      event_id: null,
+      count: null,
+      closed_at: null,
+      counted_cents: null,
+      over_cents: null,
+      short_cents: null
+    });
+    return w;
+  };
+
+  it('A1: names the stranded cookies, suggests the shop only for a flavour with a recipe, and sends the split', async () => {
+    const { h, event } = await open(stranded(), (id) => id === 'mp0s-a');
+    expect(event.finalise!.stranded).toEqual([
+      { productId: 'mp0s-a', name: 'A', qty: 4, hasRecipe: true, suggestedToShop: 4 }
+    ]);
+    expect(event.finalise!.strandedFor).toBe('Mon, 26 Oct');
+    // The recipes unread: nothing is suggested, so nothing is sent.
+    const unread = await open(stranded());
+    expect(unread.event.finalise!.stranded[0]!.suggestedToShop).toBeNull();
+    expect(await unread.event.finalise!.run(NO_CHOICES)).toMatch(/choose where the 4 cookies go/);
+    expect(unread.h.calls('finalise_bazaar')).toHaveLength(0);
+    // The suggestion is sent as it stands; a changed split is sent as changed.
+    expect(await event.finalise!.run(NO_CHOICES)).toBeNull();
+    expect(h.calls('finalise_bazaar')[0]!.p_final).toEqual({
+      'mp0s-a': { to_shop: 4, written_off: 0 }
+    });
+    const again = await open(stranded(), () => true);
+    expect(await again.event.finalise!.run({ ...NO_CHOICES, toShop: { 'mp0s-a': 3 } })).toBeNull();
+    expect(again.h.calls('finalise_bazaar')[0]!.p_final).toEqual({
+      'mp0s-a': { to_shop: 3, written_off: 1 }
+    });
+    // Mutation: sending no split with stranded cookies is refused by the database (migration 70).
+  });
+
+  it('A1: refuses cookies sent to the shop for a flavour with no recipe, in words, before it asks the database', async () => {
+    const { h, event } = await open(stranded(), () => false);
+    expect(event.finalise!.stranded[0]).toMatchObject({ hasRecipe: false, suggestedToShop: 0 });
+    expect(await event.finalise!.run({ ...NO_CHOICES, toShop: { 'mp0s-a': 2 } })).toMatch(
+      /has no recipe, so it cannot go to the shop/
+    );
+    expect(h.calls('finalise_bazaar')).toHaveLength(0);
+    expect(await event.finalise!.run(NO_CHOICES)).toBeNull();
+    expect(h.calls('finalise_bazaar')[0]!.p_final).toEqual({
+      'mp0s-a': { to_shop: 0, written_off: 4 }
+    });
+  });
+
+  it('A5: wants the cost of a flavour without one, saves it for the flavour, reads the event again, and closes against the fresh hash', async () => {
+    const { h, event } = await open(costPending());
+    expect(event.finalise!.costPending).toEqual([{ productId: 'mp0s-b', name: 'B', sold: 3 }]);
+    expect(await event.finalise!.run(NO_CHOICES)).toMatch(/B has no cost yet/);
+    expect(h.calls('save_flavour_cost')).toHaveLength(0);
+    expect(h.calls('finalise_bazaar')).toHaveLength(0);
+    // The cost changes the summary: the database answers the next read with a new hash, and the close is given that one.
+    const fresh = clone();
+    fresh.summary.hash = 'f'.repeat(64);
+    h.answer(fresh);
+    const reads = h.calls('get_bazaar').length;
+    expect(await event.finalise!.run({ ...NO_CHOICES, costs: { 'mp0s-b': '12.5' } })).toBeNull();
+    expect(h.calls('save_flavour_cost')).toEqual([{ p_product: 'mp0s-b', p_cents: 1250 }]);
+    expect(h.calls('get_bazaar').length).toBeGreaterThan(reads);
+    expect(h.calls('finalise_bazaar')[0]!.p_expected).toBe('f'.repeat(64));
+  });
+
+  it('A5: stops when a saved cost is still missing from the fresh summary, and closes nothing', async () => {
+    const { h, event } = await open(costPending());
+    // The fresh read still has no cost for B: the event must not close with a profit she asked to give.
+    const fresh = costPending();
+    fresh.summary.hash = 'e'.repeat(64);
+    h.answer(fresh);
+    expect(await event.finalise!.run({ ...NO_CHOICES, costs: { 'mp0s-b': '12.5' } })).toMatch(
+      /still has no cost for B/
+    );
+    expect(h.calls('save_flavour_cost')).toHaveLength(1);
+    expect(h.calls('finalise_bazaar')).toHaveLength(0);
+  });
+
+  it('A5: stops when something other than the cost changed between the page and the re-read', async () => {
+    const { h, event } = await open(costPending());
+    const fresh = clone();
+    fresh.summary.hash = 'd'.repeat(64);
+    fresh.summary.revenue.revenue_cents += 5000; // a late sale
+    h.answer(fresh);
+    expect(await event.finalise!.run({ ...NO_CHOICES, costs: { 'mp0s-b': '12.5' } })).toMatch(
+      /changed since you looked/
+    );
+    expect(h.calls('finalise_bazaar')).toHaveLength(0);
+  });
+
+  it('A2: a day drawn before midnight and tapped after it still asks', async () => {
+    const w = planned(planned(clone(), 1), 0);
+    const { h, event } = await open(w);
+    const day = event.days[0]!;
+    expect(day.startPrompt).toBeNull();
+    // The clock moves on to the next day after the page was drawn.
+    (h.deps as unknown as { today: () => string }).today = () => '2026-10-25';
+    day.start(false);
+    await settle();
+    expect(h.deps.begin).not.toHaveBeenCalled();
+  });
+
+  it('A5: closing without cost saves nothing', async () => {
+    const { h, event } = await open(costPending());
+    expect(await event.finalise!.run({ ...NO_CHOICES, withoutCost: true })).toBeNull();
+    expect(h.calls('save_flavour_cost')).toHaveLength(0);
+    expect(h.calls('finalise_bazaar')).toHaveLength(1);
+  });
+
+  it('A5: a cost that is refused stops the close', async () => {
+    const { h, event } = await open(costPending());
+    h.reply('save_flavour_cost', { error: { code: '42501' } });
+    expect(await event.finalise!.run({ ...NO_CHOICES, costs: { 'mp0s-b': '12.5' } })).toMatch(
+      /could not be saved/
+    );
+    expect(h.calls('finalise_bazaar')).toHaveLength(0);
+  });
+
+  it('B4: a closed day says what happened, from the summary: sold, revenue, left, carried, drawer', async () => {
+    const { event } = await open(clone());
+    expect(event.days[0]!.outcome).toEqual({
+      soldText: '7 sold',
+      revenueText: '₱880.00',
+      leftText: '26 left',
+      carriedText: '18 carried over',
+      drawerText: '₱5.00 short'
+    });
+    expect(event.days[1]!.outcome).toMatchObject({ revenueText: '₱870.00', drawerText: 'Matches' });
+    // Mutation: showing the plan instead (the old cookiesText line) hides the outcome.
+  });
+
+  it('A2: a day that is not today asks first, and is not started until she confirms; today asks nothing', async () => {
+    const { h, event } = await open(planned(clone(), 1));
+    const day = event.days[1]!;
+    // The booking runs 24 to 25 Oct and the harness' today is the 24th.
+    expect(day.startPrompt).toEqual({
+      title: 'Start a day that is not today?',
+      body: 'This day is Sun, 25 Oct. Today is Sat, 24 Oct. Sales will be dated today.'
+    });
+    day.start(false);
+    day.run();
+    await settle();
+    expect(h.deps.begin).not.toHaveBeenCalled();
+    day.start(true);
+    await settle();
+    expect(h.deps.begin).toHaveBeenCalledTimes(1);
+    // Day 1 is today's.
+    const w = planned(planned(clone(), 1), 0);
+    const today = await open(w);
+    expect(today.event.days[0]!.startPrompt).toBeNull();
+    today.event.days[0]!.start(false);
+    await settle();
+    expect(today.h.deps.begin).toHaveBeenCalledTimes(1);
+  });
+
+  it('A2: the rent is named only when this start books it (no day of the event started yet)', async () => {
+    const started = await open(planned(clone(), 1));
+    expect(started.event.days[1]!.startPrompt!.body).not.toMatch(/rent/);
+    const fresh = await open(planned(planned(clone(), 1), 0));
+    expect(fresh.event.days[1]!.startPrompt!.body).toMatch(
+      /the stall rent will be booked on Sun, 25 Oct\.$/
+    );
+  });
+
+  it('the plan is read with its event, the menu flavours and the flavour photos', async () => {
+    const { h, event } = await open(planned(clone(), 1));
+    event.days[1]!.edit!();
+    const editor = h.store.vals().editor!;
+    expect(editor.eventName).toBe('Fixture fair');
+    expect(editor.flavours[0]).toMatchObject({ photo: '', onMenu: true, menuPrice: '100' });
   });
 });
