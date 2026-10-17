@@ -69,6 +69,9 @@ full-resolution art):
 Dropping Sentry's unused tracing and replay code (`next.config.ts`) then took 55 KB off every
 page (0.81 / 1.00 / 0.54 MB). LCP moved by under 0.2 s: the app's own bundle, not Sentry, is
 the critical path to first paint.
+Sentry itself now starts after `load` (`instrumentation-client.ts`), with errors thrown
+before then buffered (20 at most) and reported through the same scrub: 28 KB less again,
+LCP / 5.8 s and `/bazaar` 4.2 s locally.
 
 The target is LCP under 4 s, and every page misses it for one reason: `OpsApp` renders
 nothing on the server (`src/components/app/ops-app.tsx`), because the demo engine seeds
