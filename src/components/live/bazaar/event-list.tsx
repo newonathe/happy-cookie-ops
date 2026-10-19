@@ -44,20 +44,40 @@ export function EventList({ bazaar }: { bazaar: LiveBazaarVals }) {
 
   return (
     <>
-      <div className="flex items-start justify-between gap-3">
-        <h1 className="m-0 text-title text-ink">Bazaar</h1>
-        <Button
-          variant="dark"
-          onClick={openSheet}
-          disabled={!bazaar.online || !eventsRead}
-          reason={
-            bazaar.online
-              ? 'You can add one once your events are read.'
-              : 'Adding an event needs signal.'
-          }
-        >
-          Add an event
-        </Button>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <span className="flex min-w-0 flex-col gap-0.5">
+          <h1 className="m-0 text-title text-ink">Bazaar</h1>
+          <span className="text-caption text-ink-mute">
+            {bazaar.online
+              ? 'Starting a day needs signal. Selling does not.'
+              : 'Starting a day needs signal: it is read from the server.'}
+          </span>
+        </span>
+        <span className="flex flex-wrap items-center gap-2">
+          {eventsRead && bazaar.list.length > 0 ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={bazaar.add}
+              disabled={!bazaar.online}
+              reason="Changing an event needs signal."
+            >
+              Edit or switch off events
+            </Button>
+          ) : null}
+          <Button
+            variant="dark"
+            onClick={openSheet}
+            disabled={!bazaar.online || !eventsRead}
+            reason={
+              bazaar.online
+                ? 'You can add one once your events are read.'
+                : 'Adding an event needs signal.'
+            }
+          >
+            Add an event
+          </Button>
+        </span>
       </div>
 
       {!eventsRead ? (
@@ -118,25 +138,6 @@ export function EventList({ bazaar }: { bazaar: LiveBazaarVals }) {
           </section>
         </>
       )}
-
-      <p style={mutedStyle}>
-        {bazaar.online
-          ? 'Starting a day needs signal. Selling does not.'
-          : 'Starting a day needs signal: it is read from the server.'}
-      </p>
-      {eventsRead && bazaar.list.length > 0 ? (
-        <div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={bazaar.add}
-            disabled={!bazaar.online}
-            reason="Changing an event needs signal."
-          >
-            Edit or switch off events
-          </Button>
-        </div>
-      ) : null}
 
       {sheet ? (
         <EventForm
@@ -245,9 +246,14 @@ function EventRow({ row, ringed }: { row: BazaarListRow; ringed: boolean }) {
         <Pill row={row} />
       </span>
       <span className="text-caption text-ink-soft">{row.datesText}</span>
-      <span className="truncate text-caption text-ink-mute">
-        {row.placeText}
-        {whenOf(row) ? ' · ' + whenOf(row) : ''}
+      <span className="flex min-w-0 items-center justify-between gap-2">
+        <span className="truncate text-caption text-ink-mute">
+          {row.placeText}
+          {whenOf(row) ? ' · ' + whenOf(row) : ''}
+        </span>
+        <span aria-hidden="true" className="text-caption font-semibold text-brand-deep">
+          Open →
+        </span>
       </span>
     </button>
   );

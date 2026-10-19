@@ -92,7 +92,8 @@ describe('the hub', () => {
   it('Add an event is at the top, before the list; a row opens its event', () => {
     const open = vi.fn();
     render(<EventList bazaar={vals({ list: [row({ open })] })} />);
-    const header = screen.getByRole('heading', { name: 'Bazaar' }).parentElement!;
+    // The header row holds the title (with its signal line) and the actions.
+    const header = screen.getByRole('heading', { name: 'Bazaar' }).closest('div')!;
     expect(within(header).getByRole('button', { name: 'Add an event' })).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: /Fixture fair/ }));
     expect(open).toHaveBeenCalledTimes(1);
