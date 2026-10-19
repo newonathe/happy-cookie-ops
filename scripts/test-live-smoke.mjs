@@ -531,7 +531,10 @@ try {
   /** The consolidated till (19 October): leaving, adding cookies, fees and the close sit behind its ⋯ menu. */
   const tillMenu = async (item) => {
     await page.getByRole('button', { name: 'Till menu', exact: true }).click();
-    await page.getByRole('dialog').getByRole('button', { name: new RegExp(item) }).click();
+    await page
+      .getByRole('dialog')
+      .getByRole('button', { name: new RegExp(item) })
+      .click();
   };
   const sellOne = async (wanted) => {
     await page
@@ -938,7 +941,8 @@ try {
         );
         // The box that scrolls the screen (the frame's, not the document): its content must be taller than the screen.
         let box = charge?.parentElement ?? null;
-        while (box && !/(auto|scroll)/.test(getComputedStyle(box).overflowY)) box = box.parentElement;
+        while (box && !/(auto|scroll)/.test(getComputedStyle(box).overflowY))
+          box = box.parentElement;
         const scroller = box ?? document.scrollingElement;
         return {
           bottom: charge?.getBoundingClientRect().bottom ?? Infinity,
@@ -1001,7 +1005,10 @@ try {
         'Back to the till did not return to the same till.'
       );
       // Put the cookie back: the cart was only there to prove it survived.
-      await till.getByRole('button', { name: /^One less/ }).first().click();
+      await till
+        .getByRole('button', { name: /^One less/ })
+        .first()
+        .click();
 
       // Sold out: three cookies in one sale empty the table, the tile leaves the grid and the till says so.
       for (let i = 0; i < 3; i++) await addOne.first().click();
