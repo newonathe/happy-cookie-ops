@@ -177,8 +177,9 @@ export function DayPlan({ editor, online }: { editor: DayPlanEditor; online: boo
                 </div>
               ) : (
                 <Button
-                  variant="ghost"
+                  variant="secondary"
                   size="sm"
+                  className="rounded-full"
                   aria-label={`Change the price of ${f.name}`}
                   onClick={() => setPricing((all) => [...all, id])}
                 >
@@ -241,8 +242,17 @@ export function DayPlan({ editor, online }: { editor: DayPlanEditor; online: boo
           ) : null}
         </div>
       ) : null}
-      <Card as="section" aria-label="Drawer float" className="flex flex-col gap-2">
-        <span className="text-body font-bold text-ink">Drawer float</span>
+      <Card
+        as="section"
+        aria-label="Drawer float"
+        className="flex flex-row flex-wrap items-center justify-between gap-x-4 gap-y-2"
+      >
+        <span className="flex min-w-0 flex-1 basis-40 flex-col gap-0.5">
+          <span className="text-body font-bold text-ink">Drawer float</span>
+          <span className="text-caption text-ink-mute">
+            The cash in the drawer before the first sale. In ₱100 steps; tap the number to type it.
+          </span>
+        </span>
         <Stepper
           id={planIds.float}
           label="Drawer float"
@@ -257,9 +267,6 @@ export function DayPlan({ editor, online }: { editor: DayPlanEditor; online: boo
             issues.touch(planIds.float);
           }}
         />
-        <span className="text-caption text-ink-mute">
-          The cash in the drawer before the first sale. In ₱100 steps; tap the number to type it.
-        </span>
       </Card>
       <section aria-labelledby="plan-flavours" className="flex flex-col gap-3">
         <SectionHeader
