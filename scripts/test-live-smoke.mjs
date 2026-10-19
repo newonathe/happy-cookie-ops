@@ -528,6 +528,11 @@ try {
     assert(!error, `event_sales: ${error?.message}`);
     return data;
   };
+  /** The consolidated till (19 October): leaving, adding cookies, fees and the close sit behind its ⋯ menu. */
+  const tillMenu = async (item) => {
+    await page.getByRole('button', { name: 'Till menu', exact: true }).click();
+    await page.getByRole('dialog').getByRole('button', { name: new RegExp(item) }).click();
+  };
   const sellOne = async (wanted) => {
     await page
       .getByRole('button', { name: new RegExp(flavour.short_name) })
@@ -603,7 +608,7 @@ try {
   /**
    * For a look in the browser pane (U4): with SMOKE_PAUSE_EVENT_FILE set and SMOKE_PAUSE_EVENT_AT naming this point
    * ("closed": the event page with day 1 closed, before its forms are used; "planned": day 2 planned, with its fees, target
-   * and costs; U7: "recipes": the flavour page with a typed cost), the run waits (up to 30 minutes), writes the address and sign-in to that file, and goes on when the file is
+   * and costs; U7: "recipes": the flavour page with a typed cost; "till": the consolidated till with three sales), the run waits (up to 30 minutes), writes the address and sign-in to that file, and goes on when the file is
    * deleted. Do not close the event from the pane: day 1 set cookies aside, so it would ask where they go.
    */
   const pauseForPane = async (at) => {
@@ -913,14 +918,18 @@ try {
   await step(
     'Bazaar: leave the till and come back, sold out hidden then back after a void, Add cookies, the fee form',
     async () => {
-      const till = page.locator('[data-screen-label="Bazaar Mode"]');
-      const tile = till.getByRole('button', { name: new RegExp(flavour.short_name) });
+      const till = page.locator('[data-till="consolidated"]');
+      // The flavour's tile on the grid (its box: a sold-out tile is not a button), and the button that adds one.
+      const tile = till.locator('[data-part="tile"]', { hasText: flavour.short_name });
+      const addOne = tile.locator('[data-state] button');
       const stockOf = () => page.evaluate((id) => window.__hcOps.state.eventStock[id], FLAVOUR);
       assert((await stockOf()) === DAY_COOKIES - 3, 'Day 1 does not hold the three cookies left.');
+      await pauseForPane('till');
+      await paneShots('till-consolidated');
 
       // Home: the day, its stock and the cart stay; Home shows the selling card; the way back is the card's button.
-      await tile.first().click();
-      await page.getByRole('button', { name: '← Home' }).click();
+      await addOne.first().click();
+      await tillMenu('Back to Home');
       await page.waitForFunction(() => window.__hcOps.state.screen === 'today');
       await check(page, 'Home, a day selling', 'Home');
       const held = await page.evaluate(() => ({
@@ -948,10 +957,10 @@ try {
         'Back to the till did not return to the same till.'
       );
       // Put the cookie back: the cart was only there to prove it survived.
-      await till.getByRole('button', { name: 'One less' }).first().click();
+      await till.getByRole('button', { name: /^One less/ }).first().click();
 
       // Sold out: three cookies in one sale empty the table, the tile leaves the grid and the till says so.
-      for (let i = 0; i < 3; i++) await tile.first().click();
+      for (let i = 0; i < 3; i++) await addOne.first().click();
       await page.getByRole('button', { name: 'Charge', exact: true }).click();
       await page.getByRole('button', { name: /^Cash/ }).last().click();
       await page.waitForFunction(() => (window.__hcOps.state.sales ?? []).length === 4);
@@ -965,7 +974,9 @@ try {
       assert((await tile.count()) === 0, 'Hide sold out left the tile on the grid.');
 
       // A void gives the cookies back: the tile returns on its own, and the empty state goes.
-      await till.getByRole('button', { name: 'Void' }).first().click();
+      // A sale is voided from its own sheet, after a confirm.
+      await till.locator('[data-part="sale"]').first().getByRole('button').first().click();
+      await page.getByRole('button', { name: 'Void this sale', exact: true }).click();
       await page.waitForFunction(() => (window.__hcOps.state.sales ?? []).length === 3);
       await page.getByText('Everything on the table is sold').waitFor({ state: 'detached' });
       await tile.first().waitFor();
@@ -977,7 +988,7 @@ try {
       }, 'the void of the sold-out sale');
 
       // Add cookies from the till: the day holds them on the database and the table has them.
-      await page.getByRole('button', { name: 'Add cookies', exact: true }).first().click();
+      await tillMenu('Add cookies');
       const adding = page.getByRole('dialog', { name: 'Add cookies' });
       const addForm = adding.getByRole('form', { name: 'Add stock' });
       await addForm.waitFor();
@@ -1001,7 +1012,7 @@ try {
       await adding.waitFor({ state: 'detached' });
 
       // The expense "Add" opens the day's fee form, never the old expense sheet.
-      await till.getByRole('button', { name: 'Add', exact: true }).click();
+      await tillMenu('Fees and expenses');
       const fees = page.getByRole('dialog', { name: 'Event fees' });
       await fees.getByRole('form', { name: 'Add a fee' }).waitFor();
       assert(
@@ -1023,7 +1034,7 @@ try {
         (id) => window.__hcOps.state.baked?.[id] ?? 0,
         FLAVOUR
       );
-      await page.getByRole('button', { name: 'Close out', exact: true }).click();
+      await tillMenu('Review and close the day');
       await review.waitFor();
       await check(page, 'Bazaar day review', 'Bazaar day review');
       assert(
@@ -1358,7 +1369,7 @@ try {
     const taken = DAY2_PRICE_PESOS * 2;
     await page.goto(`${base}/bazaar`, { waitUntil: 'networkidle' });
     await page.locator('[data-screen-label="Bazaar Mode"]').waitFor();
-    await page.getByRole('button', { name: 'Close out', exact: true }).click();
+    await tillMenu('Review and close the day');
     await review.waitFor();
     const close = page.getByRole('form', { name: 'Close the day' });
     await close.waitFor();

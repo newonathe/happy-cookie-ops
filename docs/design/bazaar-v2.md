@@ -290,3 +290,13 @@ Approved as drawn on 15 October 2026, with no changes. Decisions 1 to 8 in secti
 - The proposed U1 tokens in 2.2.
 - The Home card above the greeting, through the live slot; no protected exception for Home.
 - Two decimals on live screens only; the till keeps whole pesos until "approve PESO" (U8).
+
+**19 October 2026 (Ethan): the consolidated till, live before the 24 October bazaar.** "Everything to look exactly like the
+design but more consolidated", feature by feature from Bazaar; he chose to ship before the bazaar over waiting until 26
+October. Mockups: private canvas <https://claude.ai/artifact/K5nHQS8GjtBYGseDtYZDnZ> (approved "Approved. Start building
+the new till first, with the classic-till switch."). The till (5.6) becomes `src/components/live/bazaar/till.tsx`: photo
+tiles that add on tap with a minus on the tile, one sticky sale bar (Freebie, Charge), the sync line on screen, a ⋯ menu
+(Add cookies, Fees and expenses, Review and close the day, Back to Home, Use the classic till), and a sale voided from its
+own sheet after a confirm. Only the look changed: every control calls the ported screen's handler from the same `v`. The
+ported till stays as the classic till (a per-app choice, `till-choice.ts`) and as the fallback if the new one throws.
+The day plan, review and event screens follow in their own slices.

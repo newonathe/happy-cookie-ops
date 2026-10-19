@@ -34,6 +34,9 @@ import type { TillPanelView } from '@/lib/bazaar/live-bazaar-types';
  */
 type Till = NonNullable<OpsVals['liveTill']>;
 const till = (over: Partial<Till> = {}): Till => ({
+  photos: [],
+  classic: false,
+  setClassic: vi.fn(),
   soldOutCount: 0,
   showSoldOut: false,
   toggleSoldOut: vi.fn(),
@@ -200,14 +203,15 @@ beforeEach(() => {
 describe('leaving the till and coming back, in the frame', () => {
   it('Home leaves the day open, shows the selling card, and Back to the till returns to the same till', () => {
     const runtime = mountFrame();
-    // The ported till is under the bar, with the sold-out Double Chocolate Fudge hidden.
-    expect(document.querySelector('[data-screen-label="Bazaar Mode"]')).toBeTruthy();
+    // The consolidated till is drawn (19 October), with the sold-out Double Chocolate Fudge hidden.
+    expect(document.querySelector('[data-till="consolidated"]')).toBeTruthy();
     expect(screen.queryByText('Double Chocolate Fudge')).toBeNull();
     expect(screen.getByText('White Chocolate Biscoff')).toBeTruthy();
     // Show sold out brings it back.
     fireEvent.click(screen.getByRole('button', { name: 'Show sold out (1)' }));
     expect(screen.getByText('Double Chocolate Fudge')).toBeTruthy();
-    fireEvent.click(screen.getByRole('button', { name: '← Home' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Till menu' }));
+    fireEvent.click(screen.getByRole('button', { name: /Back to Home/ }));
     expect(runtime.state.screen).toBe('today');
     expect(runtime.state.event).toMatchObject({ dayId: DAY });
     const card = screen.getByRole('region', { name: 'Bazaar' });
