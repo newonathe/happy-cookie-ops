@@ -112,21 +112,416 @@ export type Database = {
           },
         ]
       }
+      bazaar_costs: {
+        Row: {
+          product_id: string
+          recipe_cents: number | null
+          recipe_read_at: string | null
+          scheduled_id: string
+          typed_at: string | null
+          typed_by: string | null
+          typed_cents: number | null
+        }
+        Insert: {
+          product_id: string
+          recipe_cents?: number | null
+          recipe_read_at?: string | null
+          scheduled_id: string
+          typed_at?: string | null
+          typed_by?: string | null
+          typed_cents?: number | null
+        }
+        Update: {
+          product_id?: string
+          recipe_cents?: number | null
+          recipe_read_at?: string | null
+          scheduled_id?: string
+          typed_at?: string | null
+          typed_by?: string | null
+          typed_cents?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bazaar_costs_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bazaar_costs_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "shop_products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bazaar_costs_scheduled_id_fkey"
+            columns: ["scheduled_id"]
+            isOneToOne: false
+            referencedRelation: "scheduled_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bazaar_costs_typed_by_fkey"
+            columns: ["typed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bazaar_day_lines: {
+        Row: {
+          carried_qty: number
+          carry_next_qty: number | null
+          day_id: string
+          left_qty: number | null
+          made_qty: number
+          price_cents: number
+          product_id: string
+          to_shop_qty: number | null
+          written_off_qty: number | null
+        }
+        Insert: {
+          carried_qty: number
+          carry_next_qty?: number | null
+          day_id: string
+          left_qty?: number | null
+          made_qty: number
+          price_cents: number
+          product_id: string
+          to_shop_qty?: number | null
+          written_off_qty?: number | null
+        }
+        Update: {
+          carried_qty?: number
+          carry_next_qty?: number | null
+          day_id?: string
+          left_qty?: number | null
+          made_qty?: number
+          price_cents?: number
+          product_id?: string
+          to_shop_qty?: number | null
+          written_off_qty?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bazaar_day_lines_day_id_fkey"
+            columns: ["day_id"]
+            isOneToOne: false
+            referencedRelation: "bazaar_days"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bazaar_day_lines_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bazaar_day_lines_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "shop_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bazaar_days: {
+        Row: {
+          closed_hash: string | null
+          closed_review: Json | null
+          day: string
+          event_id: string | null
+          float_cents: number
+          id: string
+          plan_hash: string
+          scheduled_id: string
+          updated_at: string
+        }
+        Insert: {
+          closed_hash?: string | null
+          closed_review?: Json | null
+          day: string
+          event_id?: string | null
+          float_cents?: number
+          id: string
+          plan_hash: string
+          scheduled_id: string
+          updated_at?: string
+        }
+        Update: {
+          closed_hash?: string | null
+          closed_review?: Json | null
+          day?: string
+          event_id?: string | null
+          float_cents?: number
+          id?: string
+          plan_hash?: string
+          scheduled_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bazaar_days_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: true
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bazaar_days_scheduled_id_fkey"
+            columns: ["scheduled_id"]
+            isOneToOne: false
+            referencedRelation: "scheduled_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bazaar_fees: {
+        Row: {
+          amount_cents: number
+          category: string
+          client_id: string
+          day_id: string | null
+          label: string
+          ledger_id: string | null
+          paid_on: string
+          payload_hash: string
+          received_at: string
+          scheduled_id: string
+          voided_at: string | null
+          voided_by: string | null
+        }
+        Insert: {
+          amount_cents: number
+          category: string
+          client_id: string
+          day_id?: string | null
+          label: string
+          ledger_id?: string | null
+          paid_on: string
+          payload_hash: string
+          received_at?: string
+          scheduled_id: string
+          voided_at?: string | null
+          voided_by?: string | null
+        }
+        Update: {
+          amount_cents?: number
+          category?: string
+          client_id?: string
+          day_id?: string | null
+          label?: string
+          ledger_id?: string | null
+          paid_on?: string
+          payload_hash?: string
+          received_at?: string
+          scheduled_id?: string
+          voided_at?: string | null
+          voided_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bazaar_fees_day_id_fkey"
+            columns: ["day_id"]
+            isOneToOne: false
+            referencedRelation: "bazaar_days"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bazaar_fees_ledger_id_fkey"
+            columns: ["ledger_id"]
+            isOneToOne: false
+            referencedRelation: "ledger_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bazaar_fees_scheduled_id_fkey"
+            columns: ["scheduled_id"]
+            isOneToOne: false
+            referencedRelation: "scheduled_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bazaar_fees_voided_by_fkey"
+            columns: ["voided_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bazaar_losses: {
+        Row: {
+          at: string
+          client_id: string
+          day_id: string
+          payload_hash: string
+          product_id: string
+          qty: number
+          reason: string
+          received_at: string
+          voided_at: string | null
+          voided_by: string | null
+        }
+        Insert: {
+          at: string
+          client_id: string
+          day_id: string
+          payload_hash: string
+          product_id: string
+          qty: number
+          reason: string
+          received_at?: string
+          voided_at?: string | null
+          voided_by?: string | null
+        }
+        Update: {
+          at?: string
+          client_id?: string
+          day_id?: string
+          payload_hash?: string
+          product_id?: string
+          qty?: number
+          reason?: string
+          received_at?: string
+          voided_at?: string | null
+          voided_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bazaar_losses_day_id_fkey"
+            columns: ["day_id"]
+            isOneToOne: false
+            referencedRelation: "bazaar_days"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bazaar_losses_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bazaar_losses_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "shop_products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bazaar_losses_voided_by_fkey"
+            columns: ["voided_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bazaar_stock_adds: {
+        Row: {
+          at: string
+          client_id: string
+          day_id: string
+          kind: string
+          product_id: string
+          qty: number
+        }
+        Insert: {
+          at?: string
+          client_id: string
+          day_id: string
+          kind: string
+          product_id: string
+          qty: number
+        }
+        Update: {
+          at?: string
+          client_id?: string
+          day_id?: string
+          kind?: string
+          product_id?: string
+          qty?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bazaar_stock_adds_day_id_fkey"
+            columns: ["day_id"]
+            isOneToOne: false
+            referencedRelation: "bazaar_days"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bazaar_stock_adds_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bazaar_stock_adds_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "shop_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       books_settings: {
         Row: {
           cost_basis: string
           id: boolean
           updated_at: string
+          used_from: string | null
         }
         Insert: {
           cost_basis?: string
           id?: boolean
           updated_at?: string
+          used_from?: string | null
         }
         Update: {
           cost_basis?: string
           id?: boolean
           updated_at?: string
+          used_from?: string | null
+        }
+        Relationships: []
+      }
+      cost_cutover: {
+        Row: {
+          at: string
+          created_by: string | null
+          cut_corr_seq: number
+          cut_seq: number
+          id: boolean
+          items: Json
+          payload_hash: string
+          total_cents: number
+        }
+        Insert: {
+          at: string
+          created_by?: string | null
+          cut_corr_seq: number
+          cut_seq: number
+          id?: boolean
+          items: Json
+          payload_hash: string
+          total_cents: number
+        }
+        Update: {
+          at?: string
+          created_by?: string | null
+          cut_corr_seq?: number
+          cut_seq?: number
+          id?: boolean
+          items?: Json
+          payload_hash?: string
+          total_cents?: number
         }
         Relationships: []
       }
@@ -442,6 +837,49 @@ export type Database = {
           variance_cents?: number | null
         }
         Relationships: []
+      }
+      flavour_costs: {
+        Row: {
+          cost_cents: number
+          product_id: string
+          typed_at: string
+          typed_by: string | null
+        }
+        Insert: {
+          cost_cents: number
+          product_id: string
+          typed_at?: string
+          typed_by?: string | null
+        }
+        Update: {
+          cost_cents?: number
+          product_id?: string
+          typed_at?: string
+          typed_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flavour_costs_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: true
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flavour_costs_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: true
+            referencedRelation: "shop_products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flavour_costs_typed_by_fkey"
+            columns: ["typed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       inventory_items: {
         Row: {
@@ -1038,6 +1476,57 @@ export type Database = {
           },
         ]
       }
+      packaging_rules: {
+        Row: {
+          box_size: number | null
+          container: string
+          id: string
+          item_id: string
+          per: string
+          position: number
+          qty: number
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          box_size?: number | null
+          container: string
+          id?: string
+          item_id: string
+          per: string
+          position: number
+          qty: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          box_size?: number | null
+          container?: string
+          id?: string
+          item_id?: string
+          per?: string
+          position?: number
+          qty?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "packaging_rules_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "packaging_rules_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payment_methods: {
         Row: {
           account_name: string
@@ -1307,6 +1796,7 @@ export type Database = {
           id: string
           item_id: string | null
           item_name: string
+          kind: string
           position: number
           product_id: string
           qty: number
@@ -1316,6 +1806,7 @@ export type Database = {
           id?: string
           item_id?: string | null
           item_name: string
+          kind?: string
           position?: number
           product_id: string
           qty: number
@@ -1325,6 +1816,7 @@ export type Database = {
           id?: string
           item_id?: string | null
           item_name?: string
+          kind?: string
           position?: number
           product_id?: string
           qty?: number
@@ -1420,33 +1912,57 @@ export type Database = {
           active: boolean
           ends_on: string
           event_id: string | null
+          final_hash: string | null
+          final_split: Json | null
+          final_summary: Json | null
+          finalised_at: string | null
           id: string
           name: string
           place: string
           rent_cents: number
+          reversal: Json | null
+          reversed_at: string | null
+          reversed_by: string | null
           starts_on: string
+          target_profit_cents: number | null
           updated_at: string
         }
         Insert: {
           active?: boolean
           ends_on: string
           event_id?: string | null
+          final_hash?: string | null
+          final_split?: Json | null
+          final_summary?: Json | null
+          finalised_at?: string | null
           id: string
           name: string
           place?: string
           rent_cents?: number
+          reversal?: Json | null
+          reversed_at?: string | null
+          reversed_by?: string | null
           starts_on: string
+          target_profit_cents?: number | null
           updated_at?: string
         }
         Update: {
           active?: boolean
           ends_on?: string
           event_id?: string | null
+          final_hash?: string | null
+          final_split?: Json | null
+          final_summary?: Json | null
+          finalised_at?: string | null
           id?: string
           name?: string
           place?: string
           rent_cents?: number
+          reversal?: Json | null
+          reversed_at?: string | null
+          reversed_by?: string | null
           starts_on?: string
+          target_profit_cents?: number | null
           updated_at?: string
         }
         Relationships: [
@@ -1455,6 +1971,13 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scheduled_events_reversed_by_fkey"
+            columns: ["reversed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1571,6 +2094,7 @@ export type Database = {
           movement_id: string
           payload_hash: string
           received_at: string
+          seq: number
           used_cents: number
         }
         Insert: {
@@ -1582,6 +2106,7 @@ export type Database = {
           movement_id: string
           payload_hash: string
           received_at?: string
+          seq?: never
           used_cents?: number
         }
         Update: {
@@ -1593,6 +2118,7 @@ export type Database = {
           movement_id?: string
           payload_hash?: string
           received_at?: string
+          seq?: never
           used_cents?: number
         }
         Relationships: [
@@ -1904,6 +2430,22 @@ export type Database = {
       }
     }
     Functions: {
+      add_bazaar_day_stock: {
+        Args: {
+          p_client_id: string
+          p_day: string
+          p_kind: string
+          p_product: string
+          p_qty: number
+        }
+        Returns: {
+          carried_qty: number
+          duplicate: boolean
+          loaded: number
+          made_qty: number
+          product_id: string
+        }[]
+      }
       add_event_expense: {
         Args: { p_expense: Json }
         Returns: {
@@ -1915,7 +2457,59 @@ export type Database = {
         Args: { p_note?: string; p_phone: string }
         Returns: number
       }
+      apply_cost_cutover: { Args: { p_expected: Json }; Returns: Json }
       apply_identity_links: { Args: { p_expected: Json }; Returns: Json }
+      apply_import_bookings: {
+        Args: { p_expected: Json; p_rows: Json }
+        Returns: Json
+      }
+      apply_import_flavours: {
+        Args: { p_expected: Json; p_rows: Json }
+        Returns: Json
+      }
+      apply_import_items: {
+        Args: { p_expected: Json; p_rows: Json }
+        Returns: Json
+      }
+      apply_import_prices: {
+        Args: { p_expected: Json; p_rows: Json }
+        Returns: Json
+      }
+      apply_import_recipes: {
+        Args: { p_expected: Json; p_rows: Json }
+        Returns: Json
+      }
+      apply_packaging_rule: { Args: { p_rule: Json }; Returns: Json }
+      bazaar_held_ledger: {
+        Args: never
+        Returns: {
+          ledger_id: string
+          name: string
+          scheduled_id: string
+        }[]
+      }
+      bazaar_line_facts: {
+        Args: { p_booking: string }
+        Returns: {
+          carried: number
+          carry_next: number
+          closed: boolean
+          day: string
+          day_id: string
+          event_id: string
+          given: number
+          left_qty: number
+          lost: number
+          made: number
+          name: string
+          price_cents: number
+          product_id: string
+          sold: number
+          to_shop: number
+          written_off: number
+        }[]
+      }
+      bazaar_summary: { Args: { p_booking: string }; Returns: Json }
       bff_session_acquire_refresh: {
         Args: { p_session_hash: string }
         Returns: {
@@ -2030,6 +2624,7 @@ export type Database = {
         Args: { p_capacity: number; p_committed: number; p_requested: number }
         Returns: boolean
       }
+      close_bazaar_day: { Args: { p_close: Json }; Returns: Json }
       close_event: {
         Args: { p_close: Json }
         Returns: {
@@ -2085,11 +2680,23 @@ export type Database = {
           voided_count: number
         }[]
       }
+      finalise_bazaar: {
+        Args: {
+          p_booking: string
+          p_drop: number
+          p_expected: string
+          p_final?: Json
+          p_till: Json
+        }
+        Returns: Json
+      }
       find_order: {
         Args: { p_order_no: string; p_phone: string }
         Returns: string
       }
+      get_bazaar: { Args: { p_booking: string }; Returns: Json }
       get_books: { Args: { p_from: string; p_to: string }; Returns: Json }
+      get_flavour_costs: { Args: never; Returns: Json }
       get_flavours: {
         Args: never
         Returns: {
@@ -2111,6 +2718,10 @@ export type Database = {
         }[]
       }
       get_item_costs: { Args: never; Returns: Json }
+      get_item_movements: {
+        Args: { p_item: string; p_limit: number }
+        Returns: Json
+      }
       get_last_paid: { Args: never; Returns: Json }
       get_operating_settings: {
         Args: never
@@ -2141,6 +2752,7 @@ export type Database = {
           updated_at: string
         }[]
       }
+      get_packaging_rules: { Args: never; Returns: Json }
       get_payment_methods: {
         Args: never
         Returns: {
@@ -2178,6 +2790,24 @@ export type Database = {
       get_shop_status: { Args: never; Returns: Json }
       get_staff_orders: { Args: never; Returns: Json }
       get_stock_catalogue: { Args: never; Returns: Json }
+      import_expected_ok: {
+        Args: { p_count_keys: string[]; p_expected: Json }
+        Returns: boolean
+      }
+      import_keys_ok: {
+        Args: { p_optional: string[]; p_required: string[]; p_row: Json }
+        Returns: boolean
+      }
+      import_name_ok: { Args: { p_name: string }; Returns: boolean }
+      import_result: {
+        Args: {
+          p_removals: Json
+          p_same: Json
+          p_unmatched: Json
+          p_write: Json
+        }
+        Returns: Json
+      }
       is_owner: { Args: never; Returns: boolean }
       is_staff: { Args: never; Returns: boolean }
       item_unit_cost: {
@@ -2245,7 +2875,13 @@ export type Database = {
           total_cents: number
         }[]
       }
+      preview_cost_cutover: { Args: never; Returns: Json }
       preview_identity_links: { Args: never; Returns: Json }
+      preview_import_bookings: { Args: { p_rows: Json }; Returns: Json }
+      preview_import_flavours: { Args: { p_rows: Json }; Returns: Json }
+      preview_import_items: { Args: { p_rows: Json }; Returns: Json }
+      preview_import_prices: { Args: { p_rows: Json }; Returns: Json }
+      preview_import_recipes: { Args: { p_rows: Json }; Returns: Json }
       prune_personal_data: { Args: { p_retain_days?: number }; Returns: number }
       prune_rate_limits: { Args: never; Returns: number }
       publish_flavours: {
@@ -2257,6 +2893,15 @@ export type Database = {
         }[]
       }
       receipt_cost: { Args: { p_movement: string }; Returns: number }
+      recipe_stock_plan: {
+        Args: {
+          p_adj: Json
+          p_cookies: number
+          p_kind: string
+          p_product: string
+        }
+        Returns: Json
+      }
       record_batch_correction: {
         Args: { p_corr: Json }
         Returns: {
@@ -2342,11 +2987,60 @@ export type Database = {
           on_hand: number
         }[]
       }
+      reverse_bazaar_test: {
+        Args: { p_booking: string; p_confirm_name: string }
+        Returns: Json
+      }
+      run_import_bookings: { Args: { p_rows: Json }; Returns: Json }
+      run_import_flavours: { Args: { p_rows: Json }; Returns: Json }
+      run_import_items: { Args: { p_rows: Json }; Returns: Json }
+      run_import_prices: { Args: { p_rows: Json }; Returns: Json }
+      run_import_recipes: { Args: { p_rows: Json }; Returns: Json }
+      save_bazaar_cost: {
+        Args: { p_booking: string; p_product: string; p_typed_cents: number }
+        Returns: {
+          product_id: string
+          recipe_cents: number
+          typed_cents: number
+        }[]
+      }
+      save_bazaar_day: {
+        Args: { p_day: Json; p_expected_updated_at: string }
+        Returns: {
+          id: string
+          updated_at: string
+        }[]
+      }
+      save_bazaar_fee: {
+        Args: { p_fee: Json }
+        Returns: {
+          client_id: string
+          duplicate: boolean
+        }[]
+      }
+      save_bazaar_loss: {
+        Args: { p_loss: Json }
+        Returns: {
+          client_id: string
+          duplicate: boolean
+        }[]
+      }
+      save_bazaar_target: {
+        Args: { p_booking: string; p_cents: number }
+        Returns: number
+      }
       save_flavour: {
         Args: { p_expected_updated_at: string; p_flavour: Json; p_id: string }
         Returns: {
           id: string
           updated_at: string
+        }[]
+      }
+      save_flavour_cost: {
+        Args: { p_cents: number; p_product: string }
+        Returns: {
+          cost_cents: number
+          product_id: string
         }[]
       }
       save_item_price: {
@@ -2368,6 +3062,7 @@ export type Database = {
           updated_at: string
         }[]
       }
+      save_packaging_rule: { Args: { p_rule: Json }; Returns: Json }
       save_payment_method: {
         Args: { p_expected_updated_at: string; p_id: string; p_method: Json }
         Returns: {
@@ -2583,6 +3278,17 @@ export type Database = {
           updated_at: string
         }[]
       }
+      start_bazaar_day: {
+        Args: { p_day: string; p_device: string; p_event_id: string }
+        Returns: {
+          event_id: string
+          float_cents: number
+          loaded: Json
+          prices: Json
+          selling_device: string
+          starts_at: string
+        }[]
+      }
       start_event: {
         Args: {
           p_device: string
@@ -2651,12 +3357,51 @@ export type Database = {
         }
         Returns: number
       }
+      void_bazaar_fee: { Args: { p_client_id: string }; Returns: Json }
+      void_bazaar_loss: { Args: { p_client_id: string }; Returns: Json }
       void_event_sale: {
         Args: { p_void: Json }
         Returns: {
           client_id: string
           duplicate: boolean
           sale_known: boolean
+        }[]
+      }
+      write_flavour: {
+        Args: { p_expected_updated_at: string; p_flavour: Json; p_id: string }
+        Returns: {
+          id: string
+          updated_at: string
+        }[]
+      }
+      write_item_price: {
+        Args: { p_price: Json }
+        Returns: {
+          duplicate: boolean
+          price_id: string
+        }[]
+      }
+      write_packaging_rule: { Args: { p_rule: Json }; Returns: Json }
+      write_recipe: {
+        Args: { p_expected_updated_at: string; p_recipe: Json }
+        Returns: {
+          product_id: string
+          updated_at: string
+          version: number
+        }[]
+      }
+      write_scheduled_event: {
+        Args: { p_event: Json; p_expected_updated_at: string }
+        Returns: {
+          id: string
+          updated_at: string
+        }[]
+      }
+      write_stock_item: {
+        Args: { p_expected_updated_at: string; p_item: Json }
+        Returns: {
+          id: string
+          updated_at: string
         }[]
       }
     }

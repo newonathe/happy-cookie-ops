@@ -7,6 +7,20 @@
  * every tab, sub-tab and entry of the function map, every route by its address, and one Bazaar
  * sale online, two with no network (one of them after a reload), all three in the database once.
  *
+ * Slice S2 (bazaar days) changed the Bazaar part: the stall's day is planned on the Bazaar page (a booking, then
+ * day 1 with its own float, cookies and price), started with signal, and sold at that price.
+ *
+ * Slice S3 added the rest of the event: day 1 is reviewed from "Close out" (a loss recorded, every figure openable, an
+ * unknown cost in words), closed with cookies carried over; a cost, a fee and a target are typed on the event page; day 2
+ * starts with the carried cookies, sells through a reload with no network (the drawer float comes back), and closes; the
+ * event is closed; and the books hold the bazaar back until then and count it after. The figures on screen are held to
+ * the run's own sums.
+ *
+ * Bazaar v2 slice U2 added one step on day 1: the owner leaves the till for Home and comes back (the day, its stock and the
+ * open sale stay), a flavour that sells out leaves the grid and returns after a void, two cookies are added from the till (they
+ * change the day's carried count and its cookie cost, which the later sums include), and the till's expense "Add" opens the
+ * day's fee form.
+ *
  * Slice B2 added: no prototype value on any page it visits (`PROTOTYPE`, below); the signed-in
  * person's own name on Home and on every sale, the offline ones included; the owner's shop
  * details saved through the form and shown to a signed-out customer; and a control in every
@@ -26,10 +40,14 @@
  *   - the flavour `dcf` is set published and on the order form (the only existing row it changes);
  *   - one `production_records` batch row, written directly so the stall has baked stock: no
  *     ingredients are taken for it;
- *   - one event, left open, and its three sales. Repeated runs add one open event each.
+ *   - one more booking, added through the events hub's sheet (U3), and
+ *   - one booking with its two days, their five sales, one loss, one fee, a typed cost and a target, closed as an event:
+ *     its rent, fee and drawer difference are in the ledger, its stock use is taken (shortfalls recorded), and one cookie
+ *     is written as a batch when the flavour has a recipe. Repeated runs add one booking each; `pnpm db:reset` clears them.
  * It deletes nothing but the account it made and the shop details it saved.
  */
 import { randomBytes, randomUUID } from 'node:crypto';
+import { existsSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
 import { chromium } from '@playwright/test';
 import { createClient } from '@supabase/supabase-js';
 import { assert, localStack, serveLiveBuild } from './lib/live-stack.mjs';
@@ -62,7 +80,7 @@ const SCREEN_LABEL = {
   stocktake: 'Inventory',
   more: 'All tools',
   grocery: 'Grocery list',
-  bazaar: 'Bazaar Mode',
+  bazaar: 'Bazaar',
   pnl: 'P and L',
   formqueue: 'Form queue',
   health: 'System health',
@@ -82,6 +100,25 @@ const FLAVOUR = 'dcf';
 const BATCH_REF = 'B1 smoke suite';
 const OWNER_NAME = 'Smoke Owner Reyes';
 const DETAILS = { name: 'Smoke Test Bakes', tagline: 'Checked by the smoke suite, 137 ways.' };
+// S2: day 1's own plan. The price is not the menu's, so a sale at the menu price would fail the check below.
+const DAY_PRICE_PESOS = 150;
+const DAY_FLOAT_PESOS = 500;
+const DAY_COOKIES = 6;
+// U2: cookies added to the table from the till on day 1, after the plan was saved and the day started.
+const ADDED_COOKIES = 2;
+// One booking a run, named for it, so a run on a database a run has been on before finds its own.
+const bookingId = randomUUID();
+const BOOKING_NAME = 'Smoke bazaar ' + bookingId.slice(0, 8);
+/** Today on the business clock, as YYYY-MM-DD. */
+const manilaToday = () =>
+  new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Manila' }).format(new Date());
+const manilaPlus = (days) =>
+  new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Manila' }).format(
+    new Date(Date.now() + days * 86_400_000)
+  );
+// U3: the event added through the hub's sheet, a month ahead so it sits under Upcoming on any run.
+const ADDED_NAME = 'Smoke added ' + bookingId.slice(0, 8);
+const ADDED_DAY = manilaPlus(30);
 
 // Values of the prototype that must be on no live page (audit H1 to H6, H14, and the ported
 // payment channels). The local seed holds none of them as a real record; two that it does
@@ -155,6 +192,19 @@ async function seedWorld() {
       payload_hash: randomBytes(32).toString('hex')
     })
   );
+  // S2: the booking whose day 1 the stall sells (today to tomorrow, so its day is inside its dates on any run).
+  ok(
+    'bazaar booking',
+    await admin.from('scheduled_events').insert({
+      id: bookingId,
+      name: BOOKING_NAME,
+      starts_on: manilaToday(),
+      ends_on: manilaPlus(1),
+      place: 'Smoke hall',
+      rent_cents: 100000,
+      active: true
+    })
+  );
   const { data, error } = await admin
     .from('products')
     .select('short_name, name, price_cents')
@@ -190,6 +240,7 @@ try {
   browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({
     viewport: { width: 390, height: 844 },
+    hasTouch: true,
     timezoneId: 'Asia/Manila',
     serviceWorkers: 'allow'
   });
@@ -376,6 +427,12 @@ try {
           visited += 1;
           if (entry.screen) {
             await check(page, at, SCREEN_LABEL[entry.screen]);
+            if (entry.label === 'Bazaar events') {
+              // U3: the sub-tab opens the hub; the multi-row form is the hub's "Edit or switch off events".
+              await page.getByRole('button', { name: 'Edit or switch off events' }).click();
+              await sheetShown(page, at);
+              await closeSheet(page);
+            }
           } else if (entry.label.startsWith('Preview')) {
             // A preview leaves the staff app for a customer page, which has no strip: come back.
             await page.waitForFunction(() =>
@@ -471,6 +528,14 @@ try {
     assert(!error, `event_sales: ${error?.message}`);
     return data;
   };
+  /** The consolidated till (19 October): leaving, adding cookies, fees and the close sit behind its ⋯ menu. */
+  const tillMenu = async (item) => {
+    await page.getByRole('button', { name: 'Till menu', exact: true }).click();
+    await page
+      .getByRole('dialog')
+      .getByRole('button', { name: new RegExp(item) })
+      .click();
+  };
   const sellOne = async (wanted) => {
     await page
       .getByRole('button', { name: new RegExp(flavour.short_name) })
@@ -482,28 +547,198 @@ try {
   };
   let eventId = '';
 
+  // U3: one event added from the hub's sheet. It is a second booking, far enough ahead to sit under Upcoming.
   await step(
-    'Bazaar Mode: an event opens on the server, the table is loaded, one sale goes through',
+    'Bazaar: an event is added in the sheet, listed under Upcoming, and saved once',
     async () => {
-      // The app counts as baked what was baked for its current drop. The seeded batch is given
-      // that number here: on a freshly reset database nothing else carries it, and the table
-      // would have nothing to load.
-      const dropNo = await page.evaluate(() => window.__hcOps.state.dropNo);
-      const stamped = await admin
-        .from('production_records')
-        .update({ drop_no: dropNo })
-        .eq('ref', BATCH_REF);
-      assert(!stamped.error, `baked stock drop: ${stamped.error?.message}`);
       await page.goto(`${base}/bazaar`, { waitUntil: 'networkidle' });
-      await check(page, 'Bazaar bookings', 'Bazaar Mode');
-      await page.getByText('Start without a booking').click();
-      await page.waitForFunction(() => window.__hcOps.state.event?.id);
+      await check(page, 'Bazaar events hub', 'Bazaar');
+      await page.getByRole('button', { name: 'Add an event' }).click();
+      const sheet = page.getByRole('dialog', { name: 'Add an event' });
+      await sheet.waitFor();
+      // Saved empty, it points at the fields and sends nothing.
+      await sheet.getByRole('button', { name: 'Save the event' }).click();
+      await page.getByText('There is a problem').waitFor();
+      assert(
+        (await sheet.getByLabel('Name', { exact: true }).getAttribute('aria-invalid')) === 'true',
+        'The empty name is not marked invalid.'
+      );
+      await sheet.getByLabel('Name', { exact: true }).fill(ADDED_NAME);
+      await sheet.getByLabel('Place', { exact: true }).fill('Smoke court');
+      await sheet.getByLabel('First day', { exact: true }).fill(ADDED_DAY);
+      assert(
+        (await sheet.getByLabel('Last day', { exact: true }).inputValue()) === ADDED_DAY,
+        'The last day did not follow the first.'
+      );
+      await sheet.getByLabel('Stall rent', { exact: true }).fill('1,250.50');
+      await sheet.getByRole('button', { name: 'Save the event' }).click();
+      await sheet.waitFor({ state: 'detached' });
+      await page
+        .getByRole('list', { name: 'Upcoming events' })
+        .getByRole('button', { name: new RegExp(ADDED_NAME) })
+        .waitFor();
+      const saved = await admin.from('scheduled_events').select('*').eq('name', ADDED_NAME);
+      assert(!saved.error && saved.data.length === 1, `scheduled_events: ${saved.error?.message}`);
+      const added = saved.data[0];
+      assert(
+        added.place === 'Smoke court' &&
+          added.starts_on === ADDED_DAY &&
+          added.ends_on === ADDED_DAY &&
+          Number(added.rent_cents) === 125050 &&
+          added.active === true &&
+          added.event_id === null,
+        `The saved event is not what was typed: ${JSON.stringify(added)}`
+      );
+    }
+  );
+
+  /** U5: the close form's steppers. The number is read from the button that opens it for typing, and set by typing it. */
+  const stepperOf = (scope, name) => scope.getByRole('group', { name, exact: true });
+  const stepperValue = async (scope, name) =>
+    (
+      await stepperOf(scope, name)
+        .getByRole('button', { name: /Tap to type a number/ })
+        .innerText()
+    ).trim();
+  const setStepper = async (scope, name, value) => {
+    const group = stepperOf(scope, name);
+    await group.getByRole('button', { name: /Tap to type a number/ }).click();
+    const input = group.getByRole('textbox', { name, exact: true });
+    await input.fill(String(value));
+    await input.press('Enter');
+  };
+
+  /**
+   * For a look in the browser pane (U4): with SMOKE_PAUSE_EVENT_FILE set and SMOKE_PAUSE_EVENT_AT naming this point
+   * ("closed": the event page with day 1 closed, before its forms are used; "planned": day 2 planned, with its fees, target
+   * and costs; U7: "recipes": the flavour page with a typed cost; "till": the consolidated till with three sales), the run waits (up to 30 minutes), writes the address and sign-in to that file, and goes on when the file is
+   * deleted. Do not close the event from the pane: day 1 set cookies aside, so it would ask where they go.
+   */
+  const pauseForPane = async (at) => {
+    const file = process.env.SMOKE_PAUSE_EVENT_FILE;
+    if (!file || process.env.SMOKE_PAUSE_EVENT_AT !== at) return;
+    writeFileSync(file, JSON.stringify({ base, email: owner.email, secret }));
+    for (let i = 0; i < 360 && existsSync(file); i++) await page.waitForTimeout(5000);
+    if (existsSync(file)) unlinkSync(file);
+  };
+  /** U5: with SMOKE_SHOTS set, the screen at 375 and 1440 px (full page), for the visual check beside the approved mockups. */
+  const paneShots = async (name, scrollTo = null) => {
+    if (!process.env.SMOKE_SHOTS) return;
+    for (const [w, h] of [
+      [375, 812],
+      [1440, 900]
+    ]) {
+      await page.setViewportSize({ width: w, height: h });
+      if (scrollTo) await page.locator(scrollTo).scrollIntoViewIfNeeded();
+      await page.waitForTimeout(700);
+      await page.screenshot({
+        path: `${process.env.SMOKE_SHOTS}/${name}-${w}.png`,
+        fullPage: true
+      });
+    }
+    await page.setViewportSize({ width: 390, height: 844 });
+  };
+
+  await step(
+    'Bazaar: day 1 is planned, started at its own price and stock, and one sale goes through',
+    async () => {
+      await page.goto(`${base}/bazaar`, { waitUntil: 'networkidle' });
+      await check(page, 'Bazaar bookings', 'Bazaar');
+      // The ported start list is gone: no prototype event, no one-tap start.
+      assert(
+        (await page.getByText('Start without a booking').count()) === 0 &&
+          (await page.getByText('Start an event').count()) === 0,
+        'The old start is still offered.'
+      );
+      await page.getByRole('button', { name: new RegExp(BOOKING_NAME) }).click();
+      await page.getByRole('heading', { level: 1, name: BOOKING_NAME }).waitFor();
+      await check(page, 'Bazaar event page', 'Bazaar');
+      // Day 1 is today: the first date still without a plan.
+      // U4: the page's one forward action plans the first date without a plan.
+      await page.getByRole('button', { name: /^Plan .* →$/ }).click();
+      const form = page.getByRole('form', { name: /^Plan for / });
+      await form.waitFor();
+      assert(
+        (await form.getByRole('group', { name: /carried over/ }).count()) === 0,
+        'Day 1 offers cookies carried over.'
+      );
+      await check(page, 'Bazaar day plan', 'Bazaar day plan');
+      await paneShots('u4-plan-empty');
+      // Saving with nothing on the table points at the stepper (U4): a red field, a summary, focus on the summary.
+      await form.getByRole('button', { name: 'Save the plan →' }).click();
+      await form.getByText('There is a problem').waitFor();
+      assert(
+        (await form.getByRole('link', { name: /at least one cookie/ }).count()) === 1,
+        'The empty plan does not name its problem.'
+      );
+      await paneShots('u4-plan-error');
+      await setStepper(form, 'Drawer float', DAY_FLOAT_PESOS);
+      await setStepper(form, `${flavour.short_name} made`, DAY_COOKIES);
+      await form.getByRole('button', { name: `Change the price of ${flavour.short_name}` }).click();
+      await form.getByLabel(`${flavour.short_name} price`).fill(String(DAY_PRICE_PESOS));
+      await paneShots('u4-plan-filled');
+      await form.getByRole('button', { name: 'Save the plan →' }).click();
+      await page.getByText(`${DAY_COOKIES} cookies on the table`).waitFor();
+      const planned = await admin
+        .from('bazaar_days')
+        .select('id, float_cents, event_id, bazaar_day_lines(product_id, made_qty, price_cents)')
+        .eq('scheduled_id', bookingId);
+      assert(!planned.error && planned.data.length === 1, `bazaar_days: ${planned.error?.message}`);
+      const planRow = planned.data[0];
+      assert(
+        planRow.event_id === null &&
+          Number(planRow.float_cents) === DAY_FLOAT_PESOS * 100 &&
+          planRow.bazaar_day_lines.length === 1 &&
+          Number(planRow.bazaar_day_lines[0].price_cents) === DAY_PRICE_PESOS * 100 &&
+          planRow.bazaar_day_lines[0].made_qty === DAY_COOKIES,
+        `The saved plan is not what was typed: ${JSON.stringify(planRow)}`
+      );
+      await check(page, 'Bazaar planned day', 'Bazaar');
+      const bakedBefore = await page.evaluate(
+        (id) => window.__hcOps.state.baked?.[id] ?? 0,
+        FLAVOUR
+      );
+      await paneShots('u4-event-planned');
+      // Day 1 is today: it starts with no question (A2).
+      await page.getByRole('button', { name: 'Start the day →', exact: true }).click();
+      await page.waitForFunction(() => window.__hcOps.state.event?.dayId);
+      await page.locator('[data-screen-label="Bazaar Mode"]').waitFor();
       eventId = await page.evaluate(() => window.__hcOps.state.event.id);
-      // With an event on the phone, the Bazaar screen is exactly as before B1: no strip.
+      const started = await page.evaluate((id) => {
+        const s = window.__hcOps.state;
+        return {
+          stage: s.event.stage,
+          day: s.event.dayId,
+          price: s.eventPrices[id],
+          stock: s.eventStock[id],
+          baked: s.baked?.[id] ?? 0,
+          float: s.drawer?.float
+        };
+      }, FLAVOUR);
+      assert(
+        started.stage === 'selling' &&
+          started.day === planRow.id &&
+          started.price === DAY_PRICE_PESOS &&
+          started.stock === DAY_COOKIES &&
+          started.float === DAY_FLOAT_PESOS,
+        `The started day is not the planned one: ${JSON.stringify(started)}`
+      );
+      assert(
+        started.baked === bakedBefore,
+        "The day's cookies were taken from the shop's baked stock."
+      );
+      const opened = await admin
+        .from('events')
+        .select('id, price_snapshot')
+        .eq('id', eventId)
+        .single();
+      assert(!opened.error, `events: ${opened.error?.message}`);
+      // With an event on the phone, the Bazaar screen is the ported till: no strip, no planning.
       assert((await row(page, 'places').count()) === 0, 'The strip is drawn over an open event.');
-      await page.getByLabel(`Cookies on the table for ${flavour.name}`).fill('6');
-      await page.getByRole('button', { name: /^Open the table/ }).click();
-      await page.waitForFunction(() => window.__hcOps.state.event?.stage === 'selling');
+      assert(
+        (await page.getByRole('button', { name: /^Start (this|the) day/ }).count()) === 0,
+        'Planning is drawn over the till.'
+      );
       await sellOne(1);
       await check(page, 'Bazaar selling', 'Bazaar Mode');
       await assertEventually(
@@ -550,13 +785,14 @@ try {
     // Stands in for the browser's own event, which headless Chromium does not always fire.
     await page.evaluate(() => window.dispatchEvent(new Event('online')));
     await assertEventually(async () => (await salesInDb(eventId)).length === 3, 'the queued sales');
-    const cents = Number(flavour.price_cents);
+    // Day 1's own price, not the menu's.
+    const cents = DAY_PRICE_PESOS * 100;
     const settled = async (when) => {
       const rows = await salesInDb(eventId);
       assert(rows.length === 3, `${when}: ${rows.length} sales in the database, wanted 3.`);
       assert(
         rows.every((r) => Number(r.total_cents) === cents),
-        `${when}: sale totals differ from the menu price: ${JSON.stringify(rows)}`
+        `${when}: sale totals differ from the day's price: ${JSON.stringify(rows)}`
       );
       // Two of the three were rung up with no network, one of those after a reload.
       assert(
@@ -591,6 +827,848 @@ try {
     );
     await check(page, 'Bazaar, back online', 'Bazaar Mode');
   });
+
+  // S3: day 1 is closed from its review with cookies carried over, day 2 sells them (through a reload with no
+  // network), the event is closed, and only then do the books count it. The figures on screen are held to this
+  // run's own sums: 3 cookies at day 1's price, 2 at day 2's, the rent, one fee, a typed cost and ₱5 over.
+  const DAY2_PRICE_PESOS = 140;
+  const DAY2_FLOAT_PESOS = 300;
+  const DAY2_MADE = 4;
+  const COST_PESOS = 40;
+  const FEE_PESOS = 100;
+  const RENT_PESOS = 1000;
+  const CARRIED = DAY_COOKIES + ADDED_COOKIES - 3 - 1; // made and added, less the three sold and the one lost
+  const pesoOf = (pesos) =>
+    (pesos < 0 ? '-₱' : '₱') +
+    Math.abs(pesos).toLocaleString('en-PH', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+  // A figure is a row of its list whose text begins with its label; its parts stay hidden until it is opened.
+  const figure = (list, label) =>
+    page
+      .getByRole('list', { name: list, exact: true })
+      .locator(':scope > li')
+      .filter({ hasText: new RegExp('^' + label) });
+  const figureSays = async (list, label, wanted) => {
+    const text = (await figure(list, label).innerText()).replace(/\s+/g, ' ');
+    assert(text.includes(wanted), `${list} › ${label} reads "${text}", wanted ${wanted}.`);
+    return text;
+  };
+  const review = page.locator('[data-screen-label="Bazaar day review"]');
+  /** S3: the review and the event page, as the stock screens are held: no serious axe violation, and no sideways scroll at 320 px with the text at 200%. */
+  const bazaarFits = async (at, label) => {
+    await page.evaluate(
+      readFileSync(new URL('../node_modules/axe-core/axe.min.js', import.meta.url), 'utf8')
+    );
+    const found = await page.evaluate(async (screenLabel) => {
+      const region = document.querySelector(`[data-screen-label="${screenLabel}"]`);
+      const result = await window.axe.run(region, { resultTypes: ['violations'] });
+      return result.violations
+        .filter((v) => v.impact === 'serious' || v.impact === 'critical')
+        .map((v) => `${v.impact} ${v.id}: ${v.nodes.map((n) => n.target.join(' ')).join(', ')}`);
+    }, label);
+    assert(found.length === 0, `${at}: axe found ${found.join(' | ')}`);
+    await page.setViewportSize({ width: 320, height: 640 });
+    if (process.env.SMOKE_SHOTS)
+      await page.screenshot({
+        path: `${process.env.SMOKE_SHOTS}/${label.replace(/ /g, '-')}.png`,
+        fullPage: true
+      });
+    await page.evaluate(() => (document.documentElement.style.fontSize = '200%'));
+    await page.waitForTimeout(250);
+    const wide = await page.evaluate(
+      () => document.documentElement.scrollWidth - document.documentElement.clientWidth
+    );
+    await page.evaluate(() => (document.documentElement.style.fontSize = ''));
+    await page.setViewportSize({ width: 390, height: 844 });
+    assert(wide <= 0, `${at}: scrolls sideways at 320 px and 200% text (${wide} px).`);
+  };
+  /** Whether the books say this run's bazaar is in progress (its sales held back). Leaves the Bazaar page. */
+  const booksHoldIt = async () => {
+    await page.getByRole('button', { name: 'Money', exact: true }).click();
+    await chip(page, 'places', 'Expenses').click();
+    await sheetShown(page, 'Money › Expenses › Books & costs');
+    const held =
+      (await page.getByText('Bazaar in progress: not counted yet').count()) > 0 &&
+      (await page.getByText(BOOKING_NAME, { exact: true }).count()) > 0;
+    await closeSheet(page);
+    return held;
+  };
+  const openBooking = async () => {
+    await page.goto(`${base}/bazaar`, { waitUntil: 'networkidle' });
+    await page.getByRole('button', { name: new RegExp(BOOKING_NAME) }).click();
+    await page.getByRole('heading', { level: 1, name: BOOKING_NAME }).waitFor();
+  };
+  let day1 = '';
+  /** The bazaar as the database works it out (`get_bazaar`), read as the owner on a connection of its own. */
+  const summaryNow = async () => {
+    const db = createClient(url, process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, {
+      auth: { persistSession: false, autoRefreshToken: false }
+    });
+    const signed = await db.auth.signInWithPassword({ email: owner.email, password: secret });
+    assert(!signed.error, `owner sign-in for the summary: ${signed.error?.message}`);
+    const read = await db.rpc('get_bazaar', { p_booking: bookingId });
+    // Only this connection's session: the default scope would sign the owner out of the browser too.
+    await db.auth.signOut({ scope: 'local' });
+    assert(!read.error && read.data?.summary, `get_bazaar: ${read.error?.message}`);
+    return read.data.summary;
+  };
+
+  // U2: the owner leaves the till and comes back to it, a flavour that sells out leaves the grid and returns after a void,
+  // cookies are added from the till, and the till's expense "Add" opens the day's fee form. Day 1 still has three cookies and
+  // three sales; the sale and its void net to zero, and the void is sent before the review reads the day.
+  await step(
+    'Bazaar: leave the till and come back, sold out hidden then back after a void, Add cookies, the fee form',
+    async () => {
+      const till = page.locator('[data-till="consolidated"]');
+      // The flavour's tile on the grid (its box: a sold-out tile is not a button), and the button that adds one.
+      const tile = till.locator('[data-part="tile"]', { hasText: flavour.short_name });
+      const addOne = tile.locator('[data-state] button');
+      const stockOf = () => page.evaluate((id) => window.__hcOps.state.eventStock[id], FLAVOUR);
+      assert((await stockOf()) === DAY_COOKIES - 3, 'Day 1 does not hold the three cookies left.');
+      await pauseForPane('till');
+      await paneShots('till-consolidated');
+      // The sale bar stays on screen while the tiles scroll (run sheet): on a short phone screen, scrolled to the top,
+      // Charge is still inside the viewport. A bar confined by a clipping parent would sit below the fold instead.
+      const viewport = page.viewportSize();
+      await page.setViewportSize({ width: 375, height: 480 });
+      const pinned = await page.evaluate(() => {
+        for (const el of [document.scrollingElement, ...document.querySelectorAll('*')])
+          if (el && el.scrollTop > 0) el.scrollTop = 0;
+        const charge = [...document.querySelectorAll('[data-till="consolidated"] button')].find(
+          (b) => b.textContent.trim() === 'Charge'
+        );
+        // The box that scrolls the screen (the frame's, not the document): its content must be taller than the screen.
+        let box = charge?.parentElement ?? null;
+        while (box && !/(auto|scroll)/.test(getComputedStyle(box).overflowY))
+          box = box.parentElement;
+        const scroller = box ?? document.scrollingElement;
+        return {
+          bottom: charge?.getBoundingClientRect().bottom ?? Infinity,
+          h: innerHeight,
+          content: scroller.scrollHeight,
+          shown: scroller.clientHeight
+        };
+      });
+      assert(
+        pinned.content > pinned.shown && pinned.bottom <= pinned.h,
+        `The sale bar is not pinned on a phone: ${JSON.stringify(pinned)}`
+      );
+      if (process.env.SMOKE_SHOTS) {
+        const shot = (name) =>
+          page.screenshot({ path: `${process.env.SMOKE_SHOTS}/${name}-375.png` });
+        await page.setViewportSize({ width: 375, height: 812 });
+        await shot('till-viewport');
+        await page.getByRole('button', { name: 'Till menu', exact: true }).click();
+        await page.getByRole('dialog').waitFor();
+        await page.waitForTimeout(500);
+        await shot('till-menu');
+        await page.keyboard.press('Escape');
+        await page.getByRole('dialog').waitFor({ state: 'detached' });
+        await till.locator('[data-part="sale"]').first().getByRole('button').first().click();
+        await page.getByRole('dialog').waitFor();
+        await page.waitForTimeout(500);
+        await shot('till-sale');
+        await page.getByRole('button', { name: 'Keep it', exact: true }).click();
+        await page.getByRole('dialog').waitFor({ state: 'detached' });
+      }
+      if (viewport) await page.setViewportSize(viewport);
+
+      // Home: the day, its stock and the cart stay; Home shows the selling card; the way back is the card's button.
+      await addOne.first().click();
+      await tillMenu('Back to Home');
+      await page.waitForFunction(() => window.__hcOps.state.screen === 'today');
+      await check(page, 'Home, a day selling', 'Home');
+      const held = await page.evaluate(() => ({
+        day: window.__hcOps.state.event?.dayId ?? null,
+        cart: window.__hcOps.state.cart
+      }));
+      assert(held.day, 'Leaving the till let go of the day: ' + JSON.stringify(held));
+      assert(Object.values(held.cart).reduce((a, n) => a + n, 0) === 1, 'The open sale was lost.');
+      const card = page.getByRole('region', { name: 'Bazaar' });
+      await card.getByText(BOOKING_NAME, { exact: true }).waitFor();
+      await card.getByText(pesoOf(DAY_PRICE_PESOS * 3)).waitFor();
+      assert((await stockOf()) === DAY_COOKIES - 3, 'Leaving the till moved the stock.');
+      // Another screen carries the banner, not the card.
+      await page.evaluate(() => window.__hcOps.go('pnl'));
+      await page.getByRole('button', { name: 'Back to the till', exact: true }).waitFor();
+      assert(
+        (await page.getByRole('region', { name: 'Bazaar' }).count()) === 0,
+        'Card on P and L.'
+      );
+      await page.getByRole('button', { name: 'Back to the till', exact: true }).click();
+      await till.waitFor();
+      assert(
+        (await page.evaluate(() => window.__hcOps.state.screen)) === 'bazaar' &&
+          (await tile.count()) > 0,
+        'Back to the till did not return to the same till.'
+      );
+      // Put the cookie back: the cart was only there to prove it survived.
+      await till
+        .getByRole('button', { name: /^One less/ })
+        .first()
+        .click();
+
+      // Sold out: three cookies in one sale empty the table, the tile leaves the grid and the till says so.
+      for (let i = 0; i < 3; i++) await addOne.first().click();
+      await page.getByRole('button', { name: 'Charge', exact: true }).click();
+      await page.getByRole('button', { name: /^Cash/ }).last().click();
+      await page.waitForFunction(() => (window.__hcOps.state.sales ?? []).length === 4);
+      await page.getByText('Everything on the table is sold').waitFor();
+      assert((await tile.count()) === 0, 'A sold-out flavour is still on the grid.');
+      await page.getByRole('button', { name: 'Show sold out (1)' }).click();
+      await till.getByText('Sold out', { exact: true }).waitFor();
+      assert((await tile.count()) > 0, 'Show sold out did not bring the tile back.');
+      await check(page, 'Bazaar, sold out shown', 'Bazaar Mode');
+      await page.getByRole('button', { name: 'Hide sold out' }).click();
+      assert((await tile.count()) === 0, 'Hide sold out left the tile on the grid.');
+
+      // A void gives the cookies back: the tile returns on its own, and the empty state goes.
+      // A sale is voided from its own sheet, after a confirm.
+      await till.locator('[data-part="sale"]').first().getByRole('button').first().click();
+      await page.getByRole('button', { name: 'Void this sale', exact: true }).click();
+      await page.waitForFunction(() => (window.__hcOps.state.sales ?? []).length === 3);
+      await page.getByText('Everything on the table is sold').waitFor({ state: 'detached' });
+      await tile.first().waitFor();
+      assert((await stockOf()) === DAY_COOKIES - 3, 'The void did not return the cookies.');
+      // The void goes up before anything reads the day: its sale is flagged on the database.
+      await assertEventually(async () => {
+        const rows = await admin.from('event_sales').select('voided_at').eq('event_id', eventId);
+        return !rows.error && rows.data.filter((r) => r.voided_at !== null).length === 1;
+      }, 'the void of the sold-out sale');
+
+      // Add cookies from the till: the day holds them on the database and the table has them.
+      await tillMenu('Add cookies');
+      const adding = page.getByRole('dialog', { name: 'Add cookies' });
+      const addForm = adding.getByRole('form', { name: 'Add stock' });
+      await addForm.waitFor();
+      await addForm.getByLabel('How many').fill(String(ADDED_COOKIES));
+      await addForm.getByRole('button', { name: 'Add to the table' }).click();
+      await page.waitForFunction(
+        ([id, want]) => window.__hcOps.state.eventStock[id] === want,
+        [FLAVOUR, DAY_COOKIES - 3 + ADDED_COOKIES]
+      );
+      const dayRow = await admin
+        .from('bazaar_day_lines')
+        .select('made_qty, carried_qty')
+        .eq('day_id', held.day)
+        .eq('product_id', FLAVOUR)
+        .single();
+      assert(
+        !dayRow.error && dayRow.data.made_qty === DAY_COOKIES + ADDED_COOKIES,
+        `The day does not hold the added cookies: ${JSON.stringify(dayRow)}`
+      );
+      await adding.getByRole('button', { name: 'Done' }).click();
+      await adding.waitFor({ state: 'detached' });
+
+      // The expense "Add" opens the day's fee form, never the old expense sheet.
+      await tillMenu('Fees and expenses');
+      const fees = page.getByRole('dialog', { name: 'Event fees' });
+      await fees.getByRole('form', { name: 'Add a fee' }).waitFor();
+      assert(
+        (await page.evaluate(() => window.__hcOps.state.sheet?.kind ?? null)) === null,
+        'The old expense sheet opened on a bazaar day.'
+      );
+      await fees.getByRole('table', { name: 'Fees' }).waitFor();
+      await fees.getByRole('button', { name: 'Done' }).click();
+      await fees.waitFor({ state: 'detached' });
+      await check(page, 'Bazaar, after Add cookies', 'Bazaar Mode');
+    }
+  );
+
+  await step(
+    'Bazaar: day 1 is reviewed, a loss is recorded, and it closes with cookies carried over',
+    async () => {
+      day1 = await page.evaluate(() => window.__hcOps.state.event.dayId);
+      const bakedBefore = await page.evaluate(
+        (id) => window.__hcOps.state.baked?.[id] ?? 0,
+        FLAVOUR
+      );
+      await tillMenu('Review and close the day');
+      await review.waitFor();
+      await check(page, 'Bazaar day review', 'Bazaar day review');
+      assert(
+        (await page.evaluate(() => window.__hcOps.state.sheet?.kind ?? null)) !== 'closeout',
+        'The old close-out opened on a bazaar day.'
+      );
+      const taken = DAY_PRICE_PESOS * 3;
+      await figureSays('This day', 'Revenue', pesoOf(taken));
+      await figureSays('This day', 'Cash expected in the drawer', pesoOf(DAY_FLOAT_PESOS + taken));
+      // Every figure opens into its parts.
+      await figure('This day', 'Revenue').getByRole('button').click();
+      await figure('This day', 'Revenue').getByText('Before discounts and freebies').waitFor();
+      // A flavour with no cost per cookie: profit is pending, in words, never a zero.
+      const costs = await admin
+        .from('bazaar_costs')
+        .select('recipe_cents, typed_cents')
+        .eq('scheduled_id', bookingId)
+        .eq('product_id', FLAVOUR)
+        .single();
+      assert(!costs.error, `bazaar_costs: ${costs.error?.message}`);
+      if (costs.data.recipe_cents === null && costs.data.typed_cents === null) {
+        const profit = await figureSays('Event so far', 'Profit', 'Cost pending');
+        assert(
+          !/₱0(\.00)?(?![\d,])/.test(profit),
+          `An unknown profit is shown as a zero: "${profit}".`
+        );
+      }
+
+      const loss = page.getByRole('form', { name: 'Record a loss' });
+      await loss.getByLabel('How many').fill('1');
+      await loss.getByLabel('What happened').fill('Dropped at the stall');
+      await loss.getByRole('button', { name: 'Record the loss' }).click();
+      await review.getByText(/Dropped at the stall/).waitFor();
+      const lost = await admin.from('bazaar_losses').select('qty, product_id').eq('day_id', day1);
+      assert(
+        !lost.error && lost.data.length === 1 && lost.data[0].qty === 1,
+        `bazaar_losses: ${lost.error?.message ?? JSON.stringify(lost.data)}`
+      );
+      assert(
+        (await page.evaluate((id) => window.__hcOps.state.eventStock[id], FLAVOUR)) === CARRIED,
+        'The till still offers the cookie that was lost.'
+      );
+
+      const close = page.getByRole('form', { name: 'Close the day' });
+      // U5: the close starts from what should be left, all of it carried over, and the cash is pre-filled with what the
+      // drawer should hold. Nothing is typed or tapped: the day closes with the defaults, and the database is held to what
+      // the form showed.
+      const shouldBe = flavour.short_name;
+      assert(
+        (await stepperValue(close, `${shouldBe}: left`)) === String(CARRIED) &&
+          (await stepperValue(close, `${shouldBe}: carried over`)) === String(CARRIED) &&
+          (await stepperValue(close, `${shouldBe}: to the shop`)) === '0' &&
+          (await stepperValue(close, `${shouldBe}: written off`)) === '0',
+        'The close does not start from what should be left.'
+      );
+      assert(
+        (await close.getByLabel('Cash counted (₱)').inputValue()) ===
+          (DAY_FLOAT_PESOS + taken).toFixed(2),
+        'The cash count does not start at the cash the drawer should hold.'
+      );
+      await close.getByRole('button', { name: 'Close the day', exact: true }).click();
+      await page.waitForFunction(() => !window.__hcOps.state.event);
+      await review.getByText('Closed', { exact: true }).waitFor();
+      await figureSays('This day', 'Cash', 'Exact');
+      await check(page, 'Bazaar day review, closed', 'Bazaar day review');
+      const closed = await admin
+        .from('events')
+        .select('closed_at, counted_cents, variance_cents')
+        .eq('id', eventId)
+        .single();
+      assert(
+        !closed.error &&
+          closed.data.closed_at !== null &&
+          Number(closed.data.counted_cents) === (DAY_FLOAT_PESOS + taken) * 100 &&
+          Number(closed.data.variance_cents) === 0,
+        `The day did not close as counted: ${JSON.stringify(closed.data)}`
+      );
+      const counted = await admin
+        .from('bazaar_day_lines')
+        .select('left_qty, carry_next_qty, to_shop_qty, written_off_qty')
+        .eq('day_id', day1)
+        .single();
+      assert(
+        !counted.error &&
+          counted.data.left_qty === CARRIED &&
+          counted.data.carry_next_qty === CARRIED &&
+          counted.data.to_shop_qty === 0 &&
+          counted.data.written_off_qty === 0,
+        `Her count was not stored as typed: ${JSON.stringify(counted.data)}`
+      );
+      // The phone let go of the day, and what was left did not go into the shop's baked stock.
+      const after = await page.evaluate(
+        (id) => ({
+          saved: localStorage.getItem('hc-live-bazaar'),
+          baked: window.__hcOps.state.baked?.[id] ?? 0
+        }),
+        FLAVOUR
+      );
+      assert(after.saved === null, 'The closed day is still saved on the phone.');
+      assert(
+        after.baked === bakedBefore,
+        "The day's leftovers were put into the shop's baked stock."
+      );
+    }
+  );
+
+  // U7: the recipe book. A flavour's page saves its cost per cookie (blank takes it away), and the event page, which reads the
+  // summary, uses it: the booking's own typed cost (typed next) still wins over it, so the sums below are unchanged.
+  const FLAVOUR_COST_PESOS = 35;
+  /** The typed costs as the owner reads them (`get_flavour_costs`): the table itself is closed to every role. */
+  const flavourCostsNow = async () => {
+    const db = createClient(url, process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, {
+      auth: { persistSession: false, autoRefreshToken: false }
+    });
+    const signed = await db.auth.signInWithPassword({ email: owner.email, password: secret });
+    assert(!signed.error, `owner sign-in for the flavour costs: ${signed.error?.message}`);
+    const read = await db.rpc('get_flavour_costs');
+    await db.auth.signOut({ scope: 'local' });
+    assert(!read.error && Array.isArray(read.data), `get_flavour_costs: ${read.error?.message}`);
+    return read.data;
+  };
+  await step(
+    'the recipe book lists the flavours, saves a flavour cost, and the event page uses it',
+    async () => {
+      await page.goto(`${base}/recipes`, { waitUntil: 'networkidle' });
+      await page.getByRole('heading', { level: 1, name: 'Recipe book' }).waitFor();
+      await check(page, 'Recipe book', 'Recipes');
+      await bazaarFits('Recipe book', 'Recipes');
+      await paneShots('u7-recipe-book');
+      await page.getByRole('button', { name: /^All/ }).click();
+      await page.getByLabel('Search flavours').fill(flavour.short_name);
+      const tile = page
+        .getByRole('list', { name: 'Flavours' })
+        .getByRole('button', { name: new RegExp(flavour.short_name) });
+      assert((await tile.count()) === 1, 'The search does not leave the one flavour.');
+      await tile.click();
+      await page.getByRole('heading', { level: 1, name: flavour.short_name }).waitFor();
+      await check(page, 'Recipe book, flavour page', 'Recipes');
+      await bazaarFits('Recipe book, flavour page', 'Recipes');
+      const form = page.getByRole('form', { name: /^Cost per cookie for / });
+      const field = form.getByLabel('Cost per cookie', { exact: true });
+      // Nothing is saved before it is changed; a bad cost is red on its field and nothing is sent.
+      assert(
+        await form.getByRole('button', { name: 'Save the cost' }).isDisabled(),
+        'Save is on before the cost was changed.'
+      );
+      await field.fill('abc');
+      await form.getByRole('button', { name: 'Save the cost' }).click();
+      await form.getByText('There is a problem').waitFor();
+      await field.fill(String(FLAVOUR_COST_PESOS));
+      await form.getByRole('button', { name: 'Save the cost' }).click();
+      await page.getByText(/^Typed by you on \d{1,2} [A-Z][a-z]{2}: ₱35\.00 a cookie\.$/).waitFor();
+      await paneShots('u7-flavour-page');
+      await pauseForPane('recipes');
+      await assertEventually(async () => {
+        const rows = (await flavourCostsNow()).filter((r) => r.product_id === FLAVOUR);
+        return rows.length === 1 && Number(rows[0].cost_cents) === FLAVOUR_COST_PESOS * 100;
+      }, "the flavour's typed cost");
+      // The event page reads it: the cost line says it is the flavour's.
+      await openBooking();
+      await page.getByText('per cookie · typed by you for the flavour', { exact: true }).waitFor();
+      assert(
+        (await page.getByText(`₱${FLAVOUR_COST_PESOS}.00`, { exact: true }).count()) >= 1,
+        "The event page does not show the flavour's cost."
+      );
+      // Blank takes it away again, so the rest of the run costs as it did.
+      await page.goto(`${base}/recipes`, { waitUntil: 'networkidle' });
+      await page.getByRole('button', { name: /^All/ }).click();
+      await page.getByLabel('Search flavours').fill(flavour.short_name);
+      await page
+        .getByRole('list', { name: 'Flavours' })
+        .getByRole('button', { name: new RegExp(flavour.short_name) })
+        .click();
+      await page.getByRole('button', { name: 'Use the recipe’s cost' }).click();
+      await assertEventually(async () => {
+        return (await flavourCostsNow()).every((r) => r.product_id !== FLAVOUR);
+      }, "the flavour's typed cost taken away");
+    }
+  );
+
+  await step(
+    'the books hold the open bazaar back; day 2 carries the cookies in and sells through an offline reload',
+    async () => {
+      assert(await booksHoldIt(), 'The books do not say this bazaar is in progress.');
+      await openBooking();
+      await check(page, 'Bazaar event page, day 1 closed', 'Bazaar');
+      await pauseForPane('closed');
+      const cost = page.getByRole('form', { name: /^Cost per cookie for / });
+      // A bad cost is red on its field (U4) and nothing is sent.
+      await cost.getByLabel('Your cost per cookie').fill('abc');
+      await cost.getByRole('button', { name: 'Save the cost' }).click();
+      await cost.getByText('There is a problem').waitFor();
+      await cost.getByLabel('Your cost per cookie').fill(String(COST_PESOS));
+      await cost.getByRole('button', { name: 'Save the cost' }).click();
+      await page.getByText('per cookie · typed by you', { exact: true }).waitFor();
+      const fee = page.getByRole('form', { name: 'Add a fee' });
+      await fee.getByLabel('What for').fill('Permit');
+      await fee.getByRole('button', { name: 'Add the fee' }).click();
+      await fee.getByText('There is a problem').waitFor();
+      // On a phone, tapping the button straight from a field must still submit: the field's message must not push the
+      // button away between the press and the release (U4).
+      await fee.getByLabel('What for').fill('Permit');
+      await fee.getByLabel('Amount').fill('abc');
+      await fee.getByRole('button', { name: 'Add the fee' }).tap();
+      await fee.getByText('Enter the amount in pesos, like 250 or 250.50.').first().waitFor();
+      await fee.getByLabel('Amount').fill(String(FEE_PESOS));
+      await fee.getByRole('button', { name: 'Add the fee' }).click();
+      await page.getByRole('table', { name: 'Fees' }).getByText('Permit').waitFor();
+      const target = page.getByRole('form', { name: 'Target profit' });
+      await target.getByLabel('Target').fill('500');
+      await target.getByRole('button', { name: 'Save the target' }).click();
+      await assertEventually(async () => {
+        const { data } = await admin
+          .from('scheduled_events')
+          .select('target_profit_cents')
+          .eq('id', bookingId)
+          .single();
+        return Number(data?.target_profit_cents) === 50000;
+      }, 'the target profit');
+
+      await paneShots('u4-event-day1-closed');
+      await page.getByRole('button', { name: /^Plan .* →$/ }).click();
+      const form = page.getByRole('form', { name: /^Plan for / });
+      await form.waitFor();
+      assert(
+        (await stepperValue(form, `${flavour.short_name} carried over`)) === String(CARRIED),
+        'Day 2 does not start from what day 1 set aside.'
+      );
+      // U4: a new day starts with the float of the day before it.
+      assert(
+        (await stepperValue(form, 'Drawer float')).replace(/[^0-9.]/g, '') ===
+          DAY_FLOAT_PESOS.toFixed(2),
+        "Day 2 does not start from day 1's float."
+      );
+      await paneShots('u4-plan-day2');
+      await setStepper(form, 'Drawer float', DAY2_FLOAT_PESOS);
+      await setStepper(form, `${flavour.short_name} made`, DAY2_MADE);
+      await form.getByRole('button', { name: `Change the price of ${flavour.short_name}` }).click();
+      await form.getByLabel(`${flavour.short_name} price`).fill(String(DAY2_PRICE_PESOS));
+      await form.getByRole('button', { name: 'Save the plan →' }).click();
+      // Day 1 also had this many on its table: read day 2's own card.
+      await page
+        .getByRole('list', { name: 'Days', exact: true })
+        .locator(':scope > li')
+        .nth(1)
+        .getByText(`${DAY2_MADE + CARRIED} cookies on the table`)
+        .waitFor();
+      await paneShots('u4-event-day2-planned');
+      await pauseForPane('planned');
+      // A1 against the real summary (migration 70): day 1 set cookies aside for a day that has not started, so closing the
+      // event now would strand them. The sheet names them and asks where they go; nothing is closed.
+      await page.getByRole('button', { name: 'Close the event', exact: true }).click();
+      const stranded = page.getByRole('dialog');
+      await stranded
+        .getByText(
+          /^\d+ cookies? were carried over for .+, which has not started\. Where do they go\?$/
+        )
+        .waitFor();
+      assert(
+        (await stranded.getByRole('group', { name: /: to the shop$/ }).count()) >= 1,
+        'The stranded cookies are not offered a split.'
+      );
+      await stranded.getByRole('button', { name: 'Not yet' }).click();
+      await stranded.waitFor({ state: 'detached' });
+      // Tomorrow is not today: starting it asks first (A2), and nothing starts until she says so.
+      await page.getByRole('button', { name: 'Start the day →', exact: true }).click();
+      const ask = page.getByRole('dialog');
+      await ask.getByText(/Sales will be dated today/).waitFor();
+      assert(
+        (await page.evaluate(
+          (d) => !window.__hcOps.state.event?.dayId || window.__hcOps.state.event.dayId === d,
+          day1
+        )) === true,
+        'Day 2 started before she confirmed it.'
+      );
+      await paneShots('u4-start-asks');
+      await ask.getByRole('button', { name: 'Start anyway' }).click();
+      await page.waitForFunction((d) => {
+        const event = window.__hcOps.state.event;
+        return !!event?.dayId && event.dayId !== d;
+      }, day1);
+      await page.locator('[data-screen-label="Bazaar Mode"]').waitFor();
+      const day2Event = await page.evaluate(() => window.__hcOps.state.event.id);
+      assert(day2Event !== eventId, "Day 2 is selling on day 1's event.");
+      const started = await page.evaluate(
+        (id) => ({
+          stock: window.__hcOps.state.eventStock[id],
+          price: window.__hcOps.state.eventPrices[id],
+          float: window.__hcOps.state.drawer?.float
+        }),
+        FLAVOUR
+      );
+      assert(
+        started.stock === DAY2_MADE + CARRIED &&
+          started.price === DAY2_PRICE_PESOS &&
+          started.float === DAY2_FLOAT_PESOS,
+        `Day 2 did not start as planned: ${JSON.stringify(started)}`
+      );
+      await sellOne(1);
+      await assertEventually(async () => (await salesInDb(day2Event)).length === 1, "day 2's sale");
+
+      offline = true;
+      await context.setOffline(true);
+      await page.reload({ waitUntil: 'domcontentloaded' });
+      await page.locator('[data-screen-label="Bazaar Mode"]').waitFor();
+      await page.waitForFunction(() => (window.__hcOps?.state.sales ?? []).length === 1);
+      // The saved copy of the bazaar does not keep the drawer: the float comes back from the day.
+      assert(
+        (await page.evaluate(() => window.__hcOps.state.drawer?.float)) === DAY2_FLOAT_PESOS,
+        'The drawer float was lost in the reload.'
+      );
+      await sellOne(2);
+      await check(page, 'Bazaar day 2, offline after a reload', 'Bazaar Mode');
+      await context.setOffline(false);
+      offline = false;
+      await page.evaluate(() => window.dispatchEvent(new Event('online')));
+      await assertEventually(
+        async () => (await salesInDb(day2Event)).length === 2,
+        "day 2's offline sale"
+      );
+      await page.waitForFunction(() => window.__hcOps.state.unsynced === 0);
+      eventId = day2Event;
+    }
+  );
+
+  await step('day 2 closes, the event is closed, and only then do the books count it', async () => {
+    const recipe = await admin.from('recipes').select('product_id').eq('product_id', FLAVOUR);
+    assert(!recipe.error, `recipes: ${recipe.error?.message}`);
+    // A flavour is sent to the shop only when it has a recipe: the cookies become a batch of the drop.
+    const toShop = recipe.data.length ? 1 : 0;
+    const left = DAY2_MADE + CARRIED - 2;
+    const taken = DAY2_PRICE_PESOS * 2;
+    await page.goto(`${base}/bazaar`, { waitUntil: 'networkidle' });
+    await page.locator('[data-screen-label="Bazaar Mode"]').waitFor();
+    await tillMenu('Review and close the day');
+    await review.waitFor();
+    const close = page.getByRole('form', { name: 'Close the day' });
+    await close.waitFor();
+    await bazaarFits('Bazaar day review, open', 'Bazaar day review');
+    await paneShots('u5-review-open');
+    await paneShots('u5-tiles-open', 'ul[aria-label="This day"]');
+    // For a look in the browser pane: with SMOKE_PAUSE_FILE set, the run waits here (up to 30 minutes) with the day open,
+    // the owner signed in elsewhere, and writes the address and sign-in to that file. Delete the file to go on.
+    if (process.env.SMOKE_PAUSE_FILE) {
+      writeFileSync(
+        process.env.SMOKE_PAUSE_FILE,
+        JSON.stringify({ base, email: owner.email, secret })
+      );
+      for (let i = 0; i < 360 && existsSync(process.env.SMOKE_PAUSE_FILE); i++)
+        await page.waitForTimeout(5000);
+      if (existsSync(process.env.SMOKE_PAUSE_FILE)) unlinkSync(process.env.SMOKE_PAUSE_FILE);
+    }
+    // The day's figures on screen are the database's own, to the centavo.
+    const open = (await summaryNow()).days.find((d) => d.state === 'open');
+    await figureSays('This day', 'Revenue', pesoOf(open.revenue_cents / 100));
+    await figureSays(
+      'This day',
+      'Cash expected in the drawer',
+      pesoOf(open.cash_expected_cents / 100)
+    );
+    await figureSays('This day', 'Fees for this day', pesoOf(open.fees_cents / 100));
+    assert(
+      (await close.getByLabel('Carried over', { exact: true }).count()) === 0,
+      "The booking's last day offers a carry-over."
+    );
+    // U5: on the last day the leftover starts in one place (the shop with a recipe, else written off), and the form holds
+    // the whole count already. One cookie goes to the shop and the rest is written off: typing the written-off count moves
+    // the shop's share, which follows it.
+    const shouldBe = flavour.short_name;
+    assert(
+      (await stepperValue(close, `${shouldBe}: left`)) === String(left),
+      'The last day does not start from what should be left.'
+    );
+    assert(
+      (await stepperValue(close, `${shouldBe}: to the shop`)) ===
+        (recipe.data.length ? String(left) : '0'),
+      "The last day's leftover is not suggested for the shop when the flavour has a recipe."
+    );
+    if (recipe.data.length) await setStepper(close, `${shouldBe}: written off`, left - toShop);
+    assert(
+      (await stepperValue(close, `${shouldBe}: to the shop`)) === String(toShop),
+      'The rest did not follow the written-off count.'
+    );
+    // Ateneo A3: a drawer far from the expected cash asks to count again, and the day does not close until she keeps it.
+    await close.getByLabel('Cash counted (₱)').fill('99999');
+    await page.getByRole('alert').filter({ hasText: 'Count the drawer again?' }).waitFor();
+    await paneShots('u5-review-recount');
+    await close.getByRole('button', { name: 'Close the day', exact: true }).click();
+    await page.waitForTimeout(500);
+    assert(
+      await page.evaluate(() => !!window.__hcOps.state.event),
+      'The day closed while the drawer was ₱99,999 off and the question was unanswered.'
+    );
+    await close.getByLabel('Cash counted (₱)').fill(String(DAY2_FLOAT_PESOS + taken + 5));
+    assert(
+      (await page.getByRole('alert').filter({ hasText: 'Count the drawer again?' }).count()) === 0,
+      'A drawer ₱5 over still asks to count again.'
+    );
+    await close.getByRole('button', { name: 'Close the day', exact: true }).click();
+    await page.waitForFunction(() => !window.__hcOps.state.event);
+    // The phone lets go of the day at once; the review shows the closed day once it has been read again.
+    await review.getByText('Closed', { exact: true }).waitFor();
+    await figureSays('This day', 'Cash', pesoOf(5) + ' over');
+    // U5: the closed day is a receipt whose totals are the database's own.
+    const summary = page.getByRole('region', { name: 'Day summary' });
+    await summary.waitFor();
+    await summary.getByRole('table', { name: 'Drawer' }).waitFor();
+    await paneShots('u5-review-closed');
+    await paneShots('u5-tiles-closed', 'ul[aria-label="This day"]');
+    await page.getByRole('button', { name: /Back to the event/ }).click();
+    await page.getByRole('heading', { level: 1, name: BOOKING_NAME }).waitFor();
+    await check(page, 'Bazaar event page, both days closed', 'Bazaar');
+
+    // The event, against this run's own sums.
+    const revenue = DAY_PRICE_PESOS * 3 + taken;
+    const fees = RENT_PESOS + FEE_PESOS;
+    const cookieCost = (DAY_COOKIES + ADDED_COOKIES + DAY2_MADE - toShop) * COST_PESOS;
+    const profit = revenue - fees - cookieCost + 5;
+    await figureSays('The event', 'Revenue', pesoOf(revenue));
+    await figureSays('The event', 'Fees', pesoOf(fees));
+    await figureSays('The event', 'Cookie cost', pesoOf(cookieCost));
+    await figureSays('The event', 'Profit', pesoOf(profit));
+    await figureSays(
+      'The event',
+      'Against the target',
+      profit < 500 ? pesoOf(500 - profit) + ' under the target' : pesoOf(profit - 500) + ' over'
+    );
+
+    // Each figure on screen is the database's own summary, to the centavo, and that summary equals this run's sums.
+    const sum = await summaryNow();
+    assert(
+      sum.revenue.revenue_cents === revenue * 100 &&
+        sum.fees.total_cents === fees * 100 &&
+        sum.cookie_cost.cents === cookieCost * 100 &&
+        sum.profit.cents === profit * 100,
+      `The database's summary differs from this run's sums: ${JSON.stringify({ revenue: sum.revenue.revenue_cents, fees: sum.fees.total_cents, cost: sum.cookie_cost.cents, profit: sum.profit.cents })}`
+    );
+    await figureSays('The event', 'Revenue', pesoOf(sum.revenue.revenue_cents / 100));
+    await figureSays('The event', 'Fees', pesoOf(sum.fees.total_cents / 100));
+    await figureSays('The event', 'Cookie cost', pesoOf(sum.cookie_cost.cents / 100));
+    await figureSays('The event', 'Profit', pesoOf(sum.profit.cents / 100));
+    const before = await admin
+      .from('ledger_entries')
+      .select('id')
+      .eq('category', 'Bazaar rent')
+      .like('memo', BOOKING_NAME + '%');
+    assert(
+      !before.error && before.data.length === 0,
+      'The rent reached the books before the event was closed.'
+    );
+    await page.getByRole('button', { name: 'Close the event', exact: true }).click();
+    const closing = page.getByRole('dialog');
+    await closing.getByText(/It cannot be undone/).waitFor();
+    await paneShots('u4-close-event');
+    await closing.getByRole('button', { name: 'Close the event', exact: true }).click();
+    await page.getByText(/This event is closed\./).waitFor();
+    await check(page, 'Bazaar event page, closed', 'Bazaar');
+    await bazaarFits('Bazaar event page, closed', 'Bazaar');
+    const booked = await admin
+      .from('scheduled_events')
+      .select('finalised_at, final_hash')
+      .eq('id', bookingId)
+      .single();
+    assert(
+      !booked.error &&
+        booked.data.finalised_at !== null &&
+        /^[0-9a-f]{64}$/.test(booked.data.final_hash),
+      `The event was not closed: ${JSON.stringify(booked.data)}`
+    );
+    const rent = await admin
+      .from('ledger_entries')
+      .select('amount_cents')
+      .eq('category', 'Bazaar rent')
+      .like('memo', BOOKING_NAME + '%');
+    assert(
+      !rent.error &&
+        rent.data.length === 1 &&
+        Number(rent.data[0].amount_cents) === -RENT_PESOS * 100,
+      `The rent is not in the books once: ${JSON.stringify(rent.data)}`
+    );
+    // U6 (A4): the drawer difference is booked in its own category, never as a sale.
+    const drawer = await admin
+      .from('ledger_entries')
+      .select('kind, category, memo')
+      .like('memo', BOOKING_NAME + '%drawer%');
+    assert(
+      !drawer.error &&
+        drawer.data.every((l) => l.category === 'Cash variance' && l.kind !== 'sale'),
+      `The drawer difference is not in its own category: ${JSON.stringify(drawer.data)}`
+    );
+    if (toShop) {
+      const batch = await admin
+        .from('production_records')
+        .select('kind, qty')
+        .eq('ref', 'bazaar:' + bookingId)
+        .eq('kind', 'batch');
+      assert(
+        !batch.error && batch.data.length === 1 && Number(batch.data[0].qty) === toShop,
+        `The cookies sent to the shop are not a batch: ${JSON.stringify(batch.data)}`
+      );
+    }
+    // The books: nothing held back any more, and the bazaar's lines are counted.
+    assert(!(await booksHoldIt()), 'The books still hold the closed bazaar back.');
+    const counted = await page.evaluate(
+      (name) =>
+        (window.__hcOps.state.ledger ?? []).filter((l) => String(l.label).includes(name)).length,
+      BOOKING_NAME
+    );
+    assert(
+      counted >= 2,
+      `The closed bazaar's rent and fee are not in the books (${counted} lines).`
+    );
+  });
+
+  // B5: the New Stock screens, in a real browser. axe finds what jsdom cannot (real colour contrast), and the
+  // layout is held to 320 px wide at 200% text with no sideways scroll. Skip with SMOKE_SKIP_STOCK_A11Y=1, so a
+  // build without these screens cannot fail the checks above. The scan is limited to the screen's own region.
+  if (process.env.SMOKE_SKIP_STOCK_A11Y === '1') {
+    console.log(
+      '  skip  the New Stock screens: accessibility and layout (SMOKE_SKIP_STOCK_A11Y=1)'
+    );
+  } else {
+    const axeSource = readFileSync(
+      new URL('../node_modules/axe-core/axe.min.js', import.meta.url),
+      'utf8'
+    );
+    /** Serious or critical axe violations inside the open screen's region, as short lines. */
+    const axeProblems = async (at, label) => {
+      await page.evaluate(axeSource);
+      const found = await page.evaluate(async (screenLabel) => {
+        const region = document.querySelector(`[data-screen-label="${screenLabel}"]`);
+        const result = await window.axe.run(region, { resultTypes: ['violations'] });
+        return result.violations
+          .filter((v) => v.impact === 'serious' || v.impact === 'critical')
+          .map((v) => `${v.impact} ${v.id}: ${v.nodes.map((n) => n.target.join(' ')).join(', ')}`);
+      }, label);
+      assert(found.length === 0, `${at}: axe found ${found.join(' | ')}`);
+    };
+    /** No sideways scroll at 320 px wide with the text at 200%. */
+    const fitsNarrow = async (at) => {
+      await page.setViewportSize({ width: 320, height: 640 });
+      await page.evaluate(() => (document.documentElement.style.fontSize = '200%'));
+      await page.waitForTimeout(250);
+      const wide = await page.evaluate(() => ({
+        page: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+        body: document.body.scrollWidth - document.documentElement.clientWidth
+      }));
+      await page.evaluate(() => (document.documentElement.style.fontSize = ''));
+      await page.setViewportSize({ width: 390, height: 844 });
+      assert(
+        wide.page <= 0 && wide.body <= 0,
+        `${at}: scrolls sideways at 320 px and 200% text (${JSON.stringify(wide)}).`
+      );
+    };
+    /** Opens a screen by its address and waits for the new screen, not the ported one, with its stock read in. */
+    const openStock = async (route, label, mark) => {
+      await page.goto(`${base}/${route}`, { waitUntil: 'networkidle' });
+      await page.locator(`[data-screen-label="${label}"]`).waitFor();
+      await page.locator(mark).first().waitFor();
+      await page.getByText('Stock is loading.').waitFor({ state: 'detached' });
+    };
+
+    await step(
+      'Inventory and Grocery: no serious axe violation, and they fit 320 px at 200% text',
+      async () => {
+        await openStock('inventory', 'Inventory', '[aria-label="Stock counts"]');
+        await axeProblems('Inventory list', 'Inventory');
+        await fitsNarrow('Inventory list');
+        const first = page.locator('[aria-label="Stock items"] button').first();
+        if ((await first.count()) > 0) {
+          await first.click();
+          await page.getByRole('button', { name: 'Back to all items' }).waitFor();
+          await axeProblems('Inventory item page', 'Inventory');
+          await fitsNarrow('Inventory item page');
+        } else {
+          console.log('      the stock catalogue is empty: the item page was not scanned.');
+        }
+        await openStock('grocery', 'Grocery list', '[aria-label="Totals"]');
+        await axeProblems('Grocery list', 'Grocery list');
+        await fitsNarrow('Grocery list');
+      }
+    );
+  }
 
   await step('no errors, no CSP violations and no foreign origin, start to finish', async () => {
     assert(problems.length === 0, `Browser errors: ${JSON.stringify(problems)}`);

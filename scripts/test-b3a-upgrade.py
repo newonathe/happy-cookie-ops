@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""B3a populated-upgrade proof (migrations 20260101005500 identity links and 20260101005600 item costs).
+"""B3a populated-upgrade proof (migrations 20260101005500 identity links and 20260101005600 item costs), and B3b-1 (migration 20260101005900).
 
 LOCAL STACK ONLY, AND IT RESETS THE LOCAL DATABASE (twice: to migration 20260101005400 at the start, to the current migrations at the end).
 It refuses unless the Docker engine is local and the project is this repository's own local Supabase stack, takes no arguments, and makes
@@ -14,6 +14,11 @@ What it proves, with a small made-up shop written the OLD way (before B3a):
   4. migration 57 is applied in one transaction: every old use and waste carries the stamp the old rule gave, seq is dense and in
      (received_at, at, id) order, each item's average equals the hand-worked value below, get_books totals on both bases are EQUAL to the
      recorded ones (the uses before any costed receipt now sit in `uncosted`), the cost basis is unchanged, get_last_paid is unchanged.
+
+  5. (B3b-1) migrations 58, 59 and 60 are applied in turn, each in one transaction. Before today's packaging rule is entered, packing an
+     order takes NO packaging and says so (a shortfall with why "no packaging rule" for the box, the loose cookie and the order). The
+     upgrade step scripts/packaging-rule-today.sql is run; the rule is read back and equals today's (7 lines in 4 containers, by name);
+     running it a second time changes nothing; and packing the next order takes exactly its boxes, pouch, stickers and card off stock.
 
 Hand-worked values (made-up shop). Flour: opening 10 g and 10 g used (no cost yet), 1000 g for 10000 centavos (corrected to 9000), 200 g
 used and 50 g wasted (the old rule priced both at the corrected 9 c/g), 500 g for 7500 (15 c/g), 100 g used at 15. Butter: 500 g for 5000,
@@ -35,6 +40,10 @@ ROOT = Path(__file__).resolve().parents[1]
 SUPABASE = ROOT / "node_modules/.pnpm/@supabase+cli-windows-x64@2.116.0/node_modules/@supabase/cli-windows-x64/bin/supabase.exe"
 M56 = ROOT / "supabase/migrations/20260101005500_identity_links.sql"
 M57 = ROOT / "supabase/migrations/20260101005600_item_costs.sql"
+M58 = ROOT / "supabase/migrations/20260101005700_clock_policies.sql"
+M59 = ROOT / "supabase/migrations/20260101005800_batch_correction.sql"
+M60 = ROOT / "supabase/migrations/20260101005900_packaging_rules.sql"
+STEP = ROOT / "scripts/packaging-rule-today.sql"
 LOG = ROOT / "build/b3a/57-upgrade.txt"
 OWNER = "b3a00000-0000-4000-8000-0000000000a0"
 lines_out: list[str] = []
@@ -107,7 +116,10 @@ insert into public.profiles(id, role, display_name, active) values ('{OWNER}', '
 insert into public.suppliers(id, name) values ('us1', 'U Supplier');
 insert into public.inventory_items(id, name, unit, category, on_hand) values
   ('u-flour', 'U Flour', 'g', 'Ingredients', 1150), ('u-butter', 'U Butter', 'g', 'Ingredients', 400), ('u-sugar', 'U Sugar', 'g', 'Ingredients', 50),
-  ('u-twin-a', 'U Twin', 'g', 'Ingredients', 0), ('u-twin-b', '  u twin ', 'g', 'Ingredients', 0);
+  ('u-twin-a', 'U Twin', 'g', 'Ingredients', 0), ('u-twin-b', '  u twin ', 'g', 'Ingredients', 0),
+  ('u-box6', 'Box of 6', 'pcs', 'Packaging', 10), ('u-pouch', 'Single cookie pouch', 'pcs', 'Packaging', 10),
+  ('u-sticker', 'Brand sticker', 'pcs', 'Packaging', 10), ('u-card', 'Thank-you card', 'pcs', 'Packaging', 10),
+  ('u-bag', 'Paper bag', 'pcs', 'Packaging', 10);
 -- prices by name: one matching, one unmatched, one ambiguous
 insert into public.supplier_prices(supplier_id, item_name, pack_label, price_cents) values
   ('us1', 'U Flour', '1 kg', 12000), ('us1', 'U Nothing', '1 pack', 100), ('us1', 'U Twin', '2 kg', 500);
@@ -118,6 +130,10 @@ insert into public.recipe_ingredients(product_id, item_name, qty, unit, position
   ('u1', 'U Flour', 100, 'g', 0), ('u1', 'U Butter', 50, 'g', 1),
   ('u2', 'U Flour', 80, 'g', 0), ('u2', 'U Ghost', 5, 'g', 1),
   ('u3', 'U Twin', 20, 'g', 0);
+-- two orders of 7 cookies, each one box of 6 and one loose cookie, to be packed before and after today's packaging rule is entered
+insert into public.orders(id, customer_name, phone) values ('u-ord-1', 'Before', '09170000101'), ('u-ord-2', 'After', '09170000102');
+insert into public.order_items(order_id, product_id, qty, unit_price_cents) values ('u-ord-1', 'u1', 7, 100), ('u-ord-2', 'u1', 7, 100);
+insert into public.order_boxes(order_id, size, qty, charge_cents) values ('u-ord-1', 6, 1, 0), ('u-ord-2', 6, 1, 0);
 insert into public.production_records(id, kind, product_id, qty, target, rejects, dough_used, recipe_version, drop_no, at, payload_hash)
 values ('a1d00000-0000-4000-8000-000000000001', 'batch', 'u1', 10, 10, 0, 0, 1, 1, now() - interval '15 days', repeat('d', 64));
 insert into public.ledger_entries(id, kind, category, memo, amount_cents, occurred_at) values
@@ -236,11 +252,41 @@ def main() -> int:
         check("get_last_paid is unchanged", as_owner("select public.get_last_paid()::text;") == paid_before)
         check("the shop's existing correction booked nothing as used", scalar("select used_cents from public.stock_cost_corrections") == "0")
 
+        say("applying migrations 20260101005700, 20260101005800 and 20260101005900 (steps 5 and the packaging rule), each in one transaction")
+        for migration in (M58, M59, M60):
+            psql(migration.read_text(encoding="utf-8"), single_transaction=True)
+        check("no packaging rule is entered yet", scalar("select count(*) from public.packaging_rules") == "0")
+        stock_before = scalar("select string_agg(id || '=' || on_hand::text, ',' order by id) from public.inventory_items where category = 'Packaging'")
+        flagged = json.loads(as_owner("select shortfall::text from public.record_pack('u-ord-1', 1);"))
+        check("before the rule, packing takes nothing and says so",
+              sorted((x["name"], x["why"]) for x in flagged) == [("Box of 6", "no packaging rule"), ("Loose cookies", "no packaging rule"), ("Order", "no packaging rule")]
+              and scalar("select string_agg(id || '=' || on_hand::text, ',' order by id) from public.inventory_items where category = 'Packaging'") == stock_before
+              and scalar("select count(*) from public.stock_movements where production_id = md5('pack:u-ord-1')::uuid") == "0", flagged)
+
+        say("running the upgrade step scripts/packaging-rule-today.sql")
+        readback_sql = ("select string_agg(r.container || ':' || coalesce(r.box_size::text, '-') || ':' || r.position || ':' || i.name || ':' || r.qty::text || ':' || r.per, ' | ' "
+                        "order by case r.container when 'box' then 1 when 'loose' then 2 when 'order' then 3 else 4 end, r.position) "
+                        "from public.packaging_rules r join public.inventory_items i on i.id = r.item_id;")
+        psql(STEP.read_text(encoding="utf-8"))
+        today = ("box:6:1:Box of 6:1.000:container | box:6:2:Brand sticker:1.000:container | loose:-:1:Single cookie pouch:1.000:cookie | "
+                 "loose:-:2:Brand sticker:1.000:cookie | order:-:1:Thank-you card:1.000:container | bazaar_sale:-:1:Single cookie pouch:1.000:cookie | "
+                 "bazaar_sale:-:2:Paper bag:1.000:container")
+        check("the rule read back is today's rule, by name", scalar(readback_sql) == today, scalar(readback_sql))
+        check("seven lines in four containers", scalar("select count(*) || '/' || count(distinct container) from public.packaging_rules") == "7/4")
+        check("no ingredient line names an item the rule takes", scalar("select count(*) from public.recipe_ingredients i where i.kind = 'ingredient' and i.item_id in (select item_id from public.packaging_rules)") == "0")
+        psql(STEP.read_text(encoding="utf-8"))
+        check("running the step again changes nothing", scalar(readback_sql) == today and scalar("select count(*) from public.packaging_rules") == "7")
+        check("each container's entry is audited", scalar("select count(*) from public.audit_log where action = 'packaging.rule_saved'") == "8")
+
+        packed = json.loads(as_owner("select shortfall::text from public.record_pack('u-ord-2', 1);"))
+        taken = scalar("select string_agg(item_id || '=' || (-qty_delta)::text, ',' order by item_id) from public.stock_movements where production_id = md5('pack:u-ord-2')::uuid")
+        check("with the rule, packing takes the box, pouch, stickers and card", packed == [] and taken == "u-box6=1.000,u-card=1.000,u-pouch=1.000,u-sticker=2.000", (packed, taken))
+
         say("RESETTING THE LOCAL DATABASE to the current migrations and seed")
         final = run([str(SUPABASE), "db", "reset", "--local", "--yes", "--workdir", str(ROOT)])
         if final.returncode != 0:
             fail("the final supabase db reset failed: " + (final.stderr or final.stdout).strip()[-500:])
-        summary = {"status": "passed", "checks": checks, "scope": "local stack only: populated upgrade through migrations 56 and 57"}
+        summary = {"status": "passed", "checks": checks, "scope": "local stack only: populated upgrade through migrations 56 and 57, then 58, 59 and the packaging rule (60)"}
     except (RuntimeError, OSError, subprocess.TimeoutExpired, KeyError, ValueError) as error:
         summary = {"status": "failed", "checks": checks, "error": str(error)}
     say(json.dumps(summary))

@@ -1,0 +1,220 @@
+# Bazaar days — the design Ethan approved on 13 October 2026
+
+An event with its own stock, fees, daily review and a traceable P&L. Three slices, S1 to S3; S1's goal is in
+[next-goal.md](next-goal.md), the other two are at the end of this page. Decisions: [decision-register.md](decision-register.md),
+13 October. This is real money: where this page and the code disagree, stop and say so.
+
+## What Ethan asked for
+
+Bazaar Mode works without recording a bake. Cine adds an event, its details and what she paid for it (for a day or for
+the whole event, never ingredients or packaging). For **each day** she sets the flavours and products, how many, and
+their prices. She sells. Before closing a day she rechecks stock left, losses, revenue and profit against a target. When
+the event ends, and only then, its sales, costs and stock use count in the main books. Every figure shows how it was
+worked out, and the inputs are hers to change.
+
+His four answers: the new flow **replaces** the old start (no fallback); each day Cine decides how many leftovers carry
+over, go to the shop or are written off; she may type a cost per cookie, marked as hers; bazaar first, set-up after.
+
+## What is reused and must not change
+
+`record_event_sale` (body md5 `8cf2bd63…`) and `void_event_sale`; the tables `events`, `event_sales`, `event_sale_items`,
+`event_expenses`; `add_event_expense`; the till (`src/components/screens/bazaar-mode.tsx`, `sheets/pay.tsx`); the offline
+queue and its tests (`src/lib/offline/`, `tests/unit/offline-queue.test.ts`); `src/lib/auth/`; `public/sw.js`; the engine.
+
+## The model
+
+A **booking** (`scheduled_events`: name, place, dates, rent) is the event. Each **day** becomes one `events` row when it
+starts: `price_snapshot` is that day's prices, `loaded` is that day's stock, `selling_device` is the phone that started
+it. The till and `record_event_sale` then work as they do today, because they already read only those columns.
+
+Planning, starting a day, adding stock, review, close and finalise need signal. Selling does not.
+
+## Migration 68: `supabase/migrations/20260101006700_bazaar_days.sql`
+
+Every table: row security on, no policy, no API grant. Every function: `SECURITY DEFINER`, `search_path = ''`, an owner
+check inside, explicit grants, exact keys, whole centavos, each refusal one `if … then -- rule:name` line, and a repeat
+of the same call answered, not refused. Follow the SQL-slice rules in the saved notes (pins, function authority, the
+suite's counts).
+
+| Table              | Columns                                                                                                                                                               |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `bazaar_days`      | `id`, `scheduled_id`, `day` (unique with the booking, inside its dates), `float_cents`, `event_id` (unique, null until started), `closed_review` jsonb, `closed_hash` |
+| `bazaar_day_lines` | `day_id`, `product_id`, `made_qty`, `carried_qty`, `price_cents`; set at close: `left_qty`, `carry_next_qty`, `to_shop_qty`, `written_off_qty`                        |
+| `bazaar_costs`     | `scheduled_id`, `product_id`, `recipe_cents` numeric(14,4) or null, `recipe_read_at`, `typed_cents` or null, `typed_by`, `typed_at`                                   |
+| `bazaar_fees`      | `client_id`, `scheduled_id`, `day_id` or null (the whole event), `label`, `category`, `amount_cents`, `paid_on`, `ledger_id` (null until finalised)                   |
+| `bazaar_losses`    | `client_id`, `day_id`, `product_id`, `qty`, `reason`, `at`                                                                                                            |
+
+`scheduled_events` gains `target_profit_cents`, `finalised_at`, `final_summary` jsonb, `final_hash`. Its `rent_cents` is
+the first fee, shown as "Stall rent" and posted at finalise under the client id `rent:<booking id>`, the key the old
+link used, so the two flows can never both book it.
+
+| Function                                          | Contract                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `get_bazaar(booking)`                             | Everything the screens show: the booking, fees, target, costs, each day with its lines and state, and `bazaar_summary`.                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `save_bazaar_day(day, stamp)`                     | Create or change a day's plan (lines, float). Refused once the day has started. A flavour must exist; quantities are whole, 0 to 9,999; a price is 0 or more.                                                                                                                                                                                                                                                                                                                                                            |
+| `save_bazaar_fee`, `save_bazaar_loss`             | Keyed on a client id and a body hash, as `add_event_expense` is. A fee is refused once the event is finalised; a loss once its day is closed. A loss may not take a flavour below zero left.                                                                                                                                                                                                                                                                                                                             |
+| `save_bazaar_cost(booking, product, typed_cents)` | Her typed cost per cookie, or null to go back to the recipe's. Refused once finalised. Audited.                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| `save_bazaar_target(booking, cents)`              | Her target profit. Refused once finalised.                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| `start_bazaar_day(day, device, event_id)`         | Refused unless: the booking is active and not finalised; no earlier day of it is still open; the day has at least one line with stock; each `carried_qty` is at most the previous closed day's `carry_next_qty` for that flavour (0 on the first day). Inserts the `events` row (name: booking and date), `price_snapshot`, `loaded`, `opened_at`, `drawer_float_cents`; writes `recipe_cents` for a flavour not yet in `bazaar_costs`. Returns what `start_event` returns, plus `loaded` and the float.                 |
+| `add_bazaar_day_stock(day, product, qty, kind)`   | Open days only. Adds to `made_qty` (or `carried_qty`, within the same bound) and to `events.loaded`. The flavour must have a price on that day.                                                                                                                                                                                                                                                                                                                                                                          |
+| `bazaar_summary(booking)`                         | Internal. The one computation, below. Stable for the same rows.                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| `close_bazaar_day(close)`                         | Body: day, time, counted cash or null, per flavour `left`, `carry_next`, `to_shop`, `written_off`, and `expected` (the day's hash from the summary she was shown). Works the day out again; refused when the hash differs, when `left <> carry_next + to_shop + written_off`, when `carry_next > 0` on the booking's last day, or when a flavour would be negative. Sets `events.closed_at`, `counted_cents`, `variance_cents`, `returned` (the `left` map); stores the review and its hash. Posts nothing to the books. |
+| `finalise_bazaar(booking, expected)`              | Once. Refused while a started day is open, or when `expected` is not the summary's hash. In one transaction: each fee and the rent become an `event_expenses` row and a ledger cost dated `paid_on`; each day's cash variance becomes a ledger line as `close_event` books it; stock is taken (below); `to_shop` cookies enter baked stock; the summary and hash are stored; one audit row.                                                                                                                              |
+
+Redefined whole, exactly as last defined, with **one** change each, and a rule mutation in the suite:
+
+- `record_sale_packaging`: when the sale's event is a bazaar day, take nothing and record no shortfall. Finalise takes it.
+- `get_books`: a ledger line that belongs to a bazaar day of a booking not yet finalised (through `event_sales` or
+  `event_expenses`) is left out of `lines`; a new key `held` carries their count, revenue and expense sums and the
+  booking names. With none, `held` is an empty list and every other key is unchanged.
+
+**Stock at finalise.** For each flavour: cookies made less cookies sent to the shop. Ingredients by the current recipe,
+scaled as `record_production` scales a batch (same rounding: pieces up, others to one decimal), and the recipe's
+per-cookie packaging lines, through `use_stock_item`. The bazaar-sale container rule is taken once per non-voided sale.
+A shortfall is recorded with its why; it never refuses the finalise. Do not copy the scaling rule: move it into one
+internal function that `record_production` also calls, and keep the production suite green.
+
+**To the shop.** Check first how the app derives baked stock from `get_production` (`src/store/ops-runtime.tsx`, the
+production patch). The cookies must appear there without taking ingredients a second time. If that cannot be done
+without changing how baked stock is read, stop and report: do not invent a second stock count.
+
+## S1 as built (13 October): where the migration differs from the tables above
+
+Read this before S2 and S3. Each is in the migration's header too.
+
+- **`add_bazaar_day_stock(day, product, qty, kind, client_id)`** takes a client id (a uuid the phone mints), kept in
+  `bazaar_stock_adds`: the call adds, so a repeat after a lost reply could not be told from a second add without a key.
+- **`bazaar_days`** also has `updated_at` (the stamp `save_bazaar_day` is given; `get_bazaar` returns it in `stamps`)
+  and `plan_hash` (the same body again is answered).
+- **Bodies are snake_case, exact keys.** Day: `id, scheduled_id, day, float_cents, lines[product_id, made_qty,
+carried_qty, price_cents]`. Fee: `client_id, scheduled_id, day_id, label, category, amount_cents, paid_on`. Loss:
+  `client_id, day_id, product_id, qty, reason, at`. Close: `day_id, at, counted_cents, lines{product: {left,
+carry_next, to_shop, written_off}}, expected`; `lines` names every flavour of the day.
+- **`get_bazaar`** returns `summary` (with `hash`; each day has its own `hash`, the close's `expected`), `stamps`,
+  `costs`, `losses`, `stock_adds`, `target_profit_cents`, and after finalise `final_summary` and `final_hash`.
+- **Rounding.** Each cost line is rounded half up per flavour. Cookie cost is made less to the shop; its five parts are
+  rounded lines too, and the few centavos between them and the total are a sixth part, "Rounding", so the parts add up.
+- **A recipe's cost counts only when the recipe is complete**; a partial figure is stored as no cost and she types one.
+- **Not accounted, for the event,** is what is left of made after to the shop, sold, given, lost and written off. It
+  includes a cookie set aside to carry over that never arrived the next day. `counted` is false while a day is open.
+- **A stale `expected`** (close or finalise) is refused with `40001`: read again. A started day cannot start while
+  another day of the booking is open. A fee id starting `rent:` is refused. A fee cannot be removed once saved.
+- **`get_books`** was redefined from migration 65 (`20260101006500`), its last definition. `held` is a list per booking:
+  `scheduled_id, name, count, revenue_cents, expense_cents`, for the period asked.
+- **`close_event` (the old close-out) refuses a bazaar day's event** (`55000`): it would book the drawer difference at
+  once and finalise would book it again. A fourth redefinition, not in the list above. A cost is dated noon UTC of the
+  day it was paid (the same calendar day in the shop's zone, which only `business_clock` names).
+- **An expense added at the till** (`add_event_expense` on a day's event) is a fee of that day in the summary and in
+  the day's hash; its ledger line is held with the sales. A fee's `paid_on` is within a year of the booking. Days start
+  in date order. A day never counted has `over_cents` and `short_cents` null.
+- **Finalise writes stock use on `production_records` of kind `sale`** (one per flavour, one for the sale containers),
+  so shortfalls reach the books' uncosted list. It needs at least one started day.
+- **Cookies to the shop (Ethan, 14 October):** `finalise_bazaar(booking, expected, drop)` takes the drop number (the phone's) and
+  writes those cookies as an ordinary `batch` record of that drop, taking its ingredients once; the stock use of the rest
+  is made less to the shop. A flavour sent to the shop needs a recipe (`55000`). Recipe packaging is taken for every
+  cookie made, not those sent to the shop (packed later with `record_pack`). S3 passes the drop number.
+- **Kept as the design says (Ethan, 14 October):** a day cannot close with a negative "not accounted" (add the stock
+  that was made first); recipe packaging is for every cookie made.
+- `void_event_sale` and `record_event_sale` are untouched, so a void or a queued sale can still arrive after a close or
+  a finalise: the summary is worked out again from the rows, and a day says `changed_after_close`.
+
+## S3 as built (14 October): the app half after selling
+
+No new migration: S3 calls what migration 68 already has.
+
+- **The review only formats `bazaar_summary`** (`src/lib/bazaar/review.ts`). Profit and the target are the event's,
+  shown as "Event so far"; no figure is worked out in the app. The one sum made there, "should be left", only bounds
+  what she may type. An unknown cost reads "Cost pending", never ₱0.
+- **The close.** "Close out" on a started day opens the review (the engine's `askClose` is overridden in the live
+  vals; `bazaar-mode.tsx` is unchanged). The review is drawn only from a read made when it opens; the close sends
+  that read's day hash with her count for every flavour of the day (zero-stock ones too), and keeps its time for a
+  retry. A changed day (40001) is read again and she closes it again herself. It is refused on the phone while it
+  has changes unsent (sales, voids, expenses). A closed day leaves the phone by a runtime patch, never through the
+  engine's `resetEvent`, which would put the leftovers into baked stock.
+- **An open day this phone does not hold** (decided in S3): any owner phone with signal reviews and closes it from
+  the event page. The review warns that sales still on the selling phone are not in the figures; whatever arrives
+  later shows as "Changed after it was closed". Selling is never taken over. A phone that still holds a day closed
+  elsewhere lets go of it once it has nothing left to send.
+- **The drawer float** rides on the saved event (`event.floatCents`), so it comes back after a reload with no signal,
+  and is confirmed from the day when the bookings are read with signal.
+- **The four small forms** (Ethan, 14 October): a fee (paid on its day, or the event's first day), the target, a typed
+  cost per cookie (blank goes back to the recipe's), and more stock on an open day (made, or carried within what the
+  day before set aside). A loss lowers the till's stock; added stock raises it.
+- **Closing the event** passes the phone's drop number, sends the hash of the summary she was shown, then reads the
+  books and production again. A closed event shows the summary that was booked, and says so if rows changed since.
+- **The books** show "Bazaar in progress: not counted yet" with each held booking's record count and sums.
+- **No bake is recorded for bazaar cookies** (Ethan, 14 October): the day's plan is the stock; only cookies sent to the
+  shop become a batch, at the close of the event.
+
+## The computation
+
+Whole centavos. A cost per cookie is numeric with four decimals; a cost line is `quantity × cost`, rounded half up to the
+centavo **per flavour line**, then summed. Write a hand-worked two-day example first, in the suite's header, and hold
+`bazaar_summary` to it to the centavo.
+
+Per flavour, per day: `made + carried = sold + given + lost + left + not_accounted`. `sold` and `given` come from the
+non-voided sale items (a sale with a zero total is given). `left` is her count; `not_accounted` is what remains, shown to
+her, 0 or more; a negative is a refusal. Before she counts, `left` is unknown and the day reads "not counted yet".
+
+| Figure             | How                                                                                                                            |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
+| Revenue            | Non-voided sale totals. Beside it: gross, discounts, freebies at their price, by how paid.                                     |
+| Cash               | Expected = float + cash sales. Counted. Over or short.                                                                         |
+| Fees               | Rent plus fees, for the event and by day.                                                                                      |
+| Cost per cookie    | Her typed cost if set, else the recipe's `per_cookie_cents` read at the flavour's first day. Each says which.                  |
+| Cookie cost        | Cost of cookies made − cost of cookies sent to the shop. Its parts must add up: sold, given, lost, written off, not accounted. |
+| Profit             | Revenue − fees − cookie cost + cash over − cash short.                                                                         |
+| Against the target | Profit − target; and the revenue still needed.                                                                                 |
+
+If a flavour with cookies made has no cost, cookie cost and profit are **null and say why**; never 0. Every figure
+returns its parts (label, quantity, unit figure, amount), so the screen can open it.
+
+## App
+
+- `src/lib/data/bazaar-days.ts`: the calls and a strict parser. Centavos become pesos only through `src/lib/money.ts`.
+- `src/components/live/bazaar/`: event list and "Add an event"; event page (details, fees, target, costs, days); day plan
+  (copies the day before); "Start this day"; day review; "Close the day"; event summary; "Close the event". Registered
+  under the `bazaar` key in `src/components/app/live-gate.tsx`, as `registerLiveStockScreens` is. While a day is selling
+  it renders the ported till component unchanged; with no signal that is all it renders.
+- `src/store/ops-runtime.tsx`, subclass only: a started day is put into the engine's state exactly as `startLiveEvent`
+  does (event with its id and `snapshot`, `eventPrices`, `eventStock`, `eventLoaded`, the drawer float, no sales), so
+  `saveBazaar` and the offline gate work unchanged. "Close out" on the till opens the day review. The ported start list
+  and the ported close-out are not offered in live mode.
+- `src/lib/data/books.ts` and `src/components/live/books-form.tsx`: read `held` (absent means none) and say "Bazaar in
+  progress: not counted yet" with the sums.
+- Tokens from `src/app/globals.css`; no new hex; 44 px targets; every figure a word and a number, never colour alone.
+
+## S2 — the plan, the start and the till
+
+```text
+/goal Slice S2 of docs/state/bazaar-days.md for The Happy Cookie Ops in C:\Users\ethan\dev\happy-cookie-ops-g0: the
+data layer, the runtime and the screens up to selling. S1 (migration 68) is built and on the local database; it reaches
+the trial only on Ethan's word. Read first: AGENTS.md, docs/state/current.md, docs/state/bazaar-days.md, migration
+20260101006700, src/components/live/stock/ (the pattern), src/store/ops-runtime.tsx (startLiveEvent, liveBazaarEvents,
+liveScreenVals), src/lib/offline/bazaar-state.ts. Say what exists before building.
+Tests first: the parser refuses a malformed answer; a started day lands in the engine's state with its own prices and
+stock and survives a reload; a second start of the same day is the same event. Build src/lib/data/bazaar-days.ts, the
+event list, event page, day plan and "Start this day", and the screen registration; the till is the ported component,
+unchanged. Extend scripts/test-live-smoke.mjs: plan two days, start day 1 at its own prices, sell online and offline,
+reload, each sale arrives once. No change to src/components/screens|sheets|shell, the engine, src/lib/offline,
+src/lib/auth or public/sw.js. Sonnet builds, at most two workers; port-auditor confirms the locked files; security-
+reviewer on the runtime diff. pnpm verify before every commit; browser QA at 320 px. Update current.md (five lines) and
+task-status.json (one note). Do not merge or deploy. Stop after 25 turns or two failed fix attempts.
+```
+
+## S3 — losses, review, close, finalise
+
+```text
+/goal Slice S3 of docs/state/bazaar-days.md for The Happy Cookie Ops in C:\Users\ethan\dev\happy-cookie-ops-g0: losses,
+the day review, closing a day, carrying over, finalising the event and the books' hold. S1 and S2 are built. Read first:
+AGENTS.md, docs/state/current.md, docs/state/bazaar-days.md (the computation), migration 20260101006700,
+src/components/live/bazaar/, src/lib/data/books.ts. Say what exists before building.
+Tests first: every figure on the review equals bazaar_summary for the hand-worked example, to the centavo; an unknown
+cost reads "Cost pending" and never 0; the close sends exactly what she was shown; the books leave an open event out
+and count it after finalise. Build the loss form, the review with each figure openable, "Close the day" with the
+leftover split, the event summary, "Close the event", and the books caption. Extend the smoke suite: close day 1,
+carry into day 2, sell, close, finalise, read the books. Rewrite docs/state/bazaar-run-sheet.md for the new flow
+(a two-day rehearsal with a reload offline on day 2). Reviews as S2. Then, on Ethan's word only: rehearse and apply
+migration 68 to the trial from a scratch folder (never the repository folder), compare the schema fingerprint with
+local, merge and let CI deploy. Stop after 25 turns or two failed fix attempts.
+```

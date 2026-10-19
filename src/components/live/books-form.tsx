@@ -26,6 +26,8 @@ const card = {
  */
 export function BooksForm({ liveBooks }: { liveBooks: LiveBooks }) {
   const { basis, receipts, online, unpaid } = liveBooks;
+  const uncosted = liveBooks.uncosted ?? [];
+  const held = liveBooks.held ?? [];
   const onCorrect = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const form = event.currentTarget;
@@ -36,6 +38,26 @@ export function BooksForm({ liveBooks }: { liveBooks: LiveBooks }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
       {!online ? <span style={{ fontSize: '12px', color: '#A8231B' }}>{C.offline}</span> : null}
+      {held.length ? (
+        <div style={card}>
+          <span style={smallLabel}>{C.heldTitle}</span>
+          <span style={{ fontSize: '12px', color: '#66524A' }}>{C.heldNote}</span>
+          {held.map((h) => (
+            <div
+              key={h.id}
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                fontSize: '12px',
+                color: '#3A1F14'
+              }}
+            >
+              <span style={{ fontWeight: 600 }}>{h.name}</span>
+              <span style={{ color: '#66524A' }}>{h.detail}</span>
+            </div>
+          ))}
+        </div>
+      ) : null}
       {unpaid ? (
         <div style={card}>
           <span style={smallLabel}>{C.unpaidTitle}</span>
@@ -58,6 +80,26 @@ export function BooksForm({ liveBooks }: { liveBooks: LiveBooks }) {
                 <span style={{ color: '#66524A' }}>{r.detail}</span>
               </span>
               <span style={{ fontWeight: 600 }}>{r.amount}</span>
+            </div>
+          ))}
+        </div>
+      ) : null}
+      {uncosted.length ? (
+        <div style={card}>
+          <span style={smallLabel}>{C.uncostedTitle}</span>
+          <span style={{ fontSize: '12px', color: '#66524A' }}>{C.uncostedNote}</span>
+          {uncosted.map((u) => (
+            <div
+              key={u.id}
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                fontSize: '12px',
+                color: '#3A1F14'
+              }}
+            >
+              <span style={{ fontWeight: 600 }}>{u.item}</span>
+              <span style={{ color: '#66524A' }}>{u.detail}</span>
             </div>
           ))}
         </div>

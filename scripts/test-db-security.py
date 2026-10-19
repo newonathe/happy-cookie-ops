@@ -35,7 +35,18 @@ ORDER_MIGRATIONS = [ROOT / 'supabase/migrations/20260101003500_place_order.sql',
                     ROOT / 'supabase/migrations/20260101005500_identity_links.sql',
                     ROOT / 'supabase/migrations/20260101005600_item_costs.sql',
                     ROOT / 'supabase/migrations/20260101005700_clock_policies.sql',
-                    ROOT / 'supabase/migrations/20260101005800_batch_correction.sql']
+                    ROOT / 'supabase/migrations/20260101005800_batch_correction.sql',
+                    ROOT / 'supabase/migrations/20260101005900_packaging_rules.sql',
+                    ROOT / 'supabase/migrations/20260101006000_books_used.sql',
+                    ROOT / 'supabase/migrations/20260101006100_cost_cutover.sql',
+                    ROOT / 'supabase/migrations/20260101006200_cost_cutover_fix.sql',
+                    ROOT / 'supabase/migrations/20260101006300_her_data_imports.sql',
+                    ROOT / 'supabase/migrations/20260101006400_cutover_guard.sql',
+                    ROOT / 'supabase/migrations/20260101006500_count_shrinkage.sql',
+                    ROOT / 'supabase/migrations/20260101006600_item_movements.sql',
+                    ROOT / 'supabase/migrations/20260101006700_bazaar_days.sql',
+                    ROOT / 'supabase/migrations/20260101006800_bazaar_hardening.sql',
+                    ROOT / 'supabase/migrations/20260101006900_flavour_cost_closing_reversal.sql']
 _OUT = 'order outcome differs: anon / '
 _CHK = 'order check differs: anon / '
 _LOOK = 'lookup check differs: anon / '
@@ -227,13 +238,13 @@ EXTRAS_TABLE_MUTATIONS = {
 # D4: the owner's scheduled bazaar events (scheduled-events.sql), acting on the last migration that defines each function.
 _SC = 'scheduled outcome differs: active_owner / '
 SCHEDULED_MUTATIONS = {
-    'rule_sched_keys': ('save_scheduled_event', 'rule', 'keys', _SC + 'save_keys_missing / '),
-    'rule_sched_text': ('save_scheduled_event', 'rule', 'text', _SC + 'save_name_blank / '),
-    'rule_sched_dates': ('save_scheduled_event', 'rule', 'dates', _SC + 'save_ends_before_start / '),
-    'rule_sched_rent': ('save_scheduled_event', 'rule', 'rent', _SC + 'save_rent_negative / '),
-    'rule_sched_create_stamp': ('save_scheduled_event', 'rule', 'create-stamp', _SC + 'create_with_stamp_unknown / '),
-    'rule_sched_replay': ('save_scheduled_event', 'rule', 'replay', _SC + 'create_replay / '),
-    'rule_sched_stale': ('save_scheduled_event', 'rule', 'stale', _SC + 'change_stale / '),
+    'rule_sched_keys': ('write_scheduled_event', 'rule', 'keys', _SC + 'save_keys_missing / '),
+    'rule_sched_text': ('write_scheduled_event', 'rule', 'text', _SC + 'save_name_blank / '),
+    'rule_sched_dates': ('write_scheduled_event', 'rule', 'dates', _SC + 'save_ends_before_start / '),
+    'rule_sched_rent': ('write_scheduled_event', 'rule', 'rent', _SC + 'save_rent_negative / '),
+    'rule_sched_create_stamp': ('write_scheduled_event', 'rule', 'create-stamp', _SC + 'create_with_stamp_unknown / '),
+    'rule_sched_replay': ('write_scheduled_event', 'rule', 'replay', _SC + 'create_replay / '),
+    'rule_sched_stale': ('write_scheduled_event', 'rule', 'stale', _SC + 'change_stale / '),
     'rule_sched_link_missing': ('link_scheduled_event', 'rule', 'link-missing', _SC + 'link_booking_missing / '),
     'rule_sched_link_event': ('link_scheduled_event', 'rule', 'link-event', _SC + 'link_event_missing / '),
     'rule_sched_link_conflict': ('link_scheduled_event', 'rule', 'link-conflict', _SC + 'link_other_event / '),
@@ -258,19 +269,19 @@ STOCK_MUTATIONS = {
     'rule_supplier_create_stamp': ('save_supplier', 'rule', 'supplier-create-stamp', _ST + 'sup_create_with_stamp_unknown / '),
     'rule_supplier_replay': ('save_supplier', 'rule', 'supplier-replay', _ST + 'sup_create_replay / '),
     'rule_supplier_stale': ('save_supplier', 'rule', 'supplier-stale', _ST + 'sup_change_stale / '),
-    'rule_item_keys': ('save_stock_item', 'rule', 'item-keys', _ST + 'item_keys_missing / '),
-    'rule_item_id': ('save_stock_item', 'rule', 'item-id', _ST + 'item_id_bad / '),
-    'rule_item_text': ('save_stock_item', 'rule', 'item-text', _ST + 'item_name_blank / '),
-    'rule_item_category': ('save_stock_item', 'rule', 'item-category', _ST + 'item_category_bad / '),
-    'rule_item_numbers': ('save_stock_item', 'rule', 'item-numbers', _ST + 'item_par_negative / '),
-    'rule_item_useby': ('save_stock_item', 'rule', 'item-useby', _ST + 'item_useby_zero / '),
-    'rule_item_supplier': ('save_stock_item', 'rule', 'item-supplier', _ST + 'item_supplier_unknown / '),
-    'rule_item_name_taken': ('save_stock_item', 'rule', 'item-name-taken', _ST + 'item_name_taken / '),
-    'rule_item_create_stamp': ('save_stock_item', 'rule', 'item-create-stamp', _ST + 'item_create_with_stamp_unknown / '),
-    'rule_item_replay': ('save_stock_item', 'rule', 'item-replay', _ST + 'item_create_replay / '),
-    'rule_item_stale': ('save_stock_item', 'rule', 'item-stale', _ST + 'item_change_stale / '),
-    'rule_item_rename_referenced': ('save_stock_item', 'rule', 'item-rename-referenced', _ST + 'item_rename_referenced / '),
-    'rule_item_unit_referenced': ('save_stock_item', 'rule', 'item-unit-referenced', _ST + 'item_unit_change_referenced / '),
+    'rule_item_keys': ('write_stock_item', 'rule', 'item-keys', _ST + 'item_keys_missing / '),
+    'rule_item_id': ('write_stock_item', 'rule', 'item-id', _ST + 'item_id_bad / '),
+    'rule_item_text': ('write_stock_item', 'rule', 'item-text', _ST + 'item_name_blank / '),
+    'rule_item_category': ('write_stock_item', 'rule', 'item-category', _ST + 'item_category_bad / '),
+    'rule_item_numbers': ('write_stock_item', 'rule', 'item-numbers', _ST + 'item_par_negative / '),
+    'rule_item_useby': ('write_stock_item', 'rule', 'item-useby', _ST + 'item_useby_zero / '),
+    'rule_item_supplier': ('write_stock_item', 'rule', 'item-supplier', _ST + 'item_supplier_unknown / '),
+    'rule_item_name_taken': ('write_stock_item', 'rule', 'item-name-taken', _ST + 'item_name_taken / '),
+    'rule_item_create_stamp': ('write_stock_item', 'rule', 'item-create-stamp', _ST + 'item_create_with_stamp_unknown / '),
+    'rule_item_replay': ('write_stock_item', 'rule', 'item-replay', _ST + 'item_create_replay / '),
+    'rule_item_stale': ('write_stock_item', 'rule', 'item-stale', _ST + 'item_change_stale / '),
+    'rule_item_rename_referenced': ('write_stock_item', 'rule', 'item-rename-referenced', _ST + 'item_rename_referenced / '),
+    'rule_item_unit_referenced': ('write_stock_item', 'rule', 'item-unit-referenced', _ST + 'item_unit_change_referenced / '),
     'rule_price_keys': ('save_supplier_price', 'rule', 'price-keys', _ST + 'price_keys_missing / '),
     'rule_price_text': ('save_supplier_price', 'rule', 'price-text', _ST + 'price_label_blank / '),
     'rule_price_cents': ('save_supplier_price', 'rule', 'price-cents', _ST + 'price_cents_negative / '),
@@ -296,20 +307,20 @@ STOCK_TABLE_MUTATIONS = {
 _RC = 'recipe outcome differs: active_owner / '
 _RCC = 'recipe check differs: active_owner / '
 RECIPE_MUTATIONS = {
-    'rule_recipe_keys': ('save_recipe', 'rule', 'recipe-keys', _RC + 'recipe_keys_missing / '),
-    'rule_recipe_yield': ('save_recipe', 'rule', 'recipe-yield', _RC + 'recipe_yield_zero / '),
-    'rule_recipe_size': ('save_recipe', 'rule', 'recipe-size', _RC + 'recipe_too_many_lines / '),
-    'rule_line_keys': ('save_recipe', 'rule', 'line-keys', _RC + 'line_keys_missing / '),
-    'rule_line_name': ('save_recipe', 'rule', 'line-name', _RC + 'line_name_blank / '),
-    'rule_line_qty': ('save_recipe', 'rule', 'line-qty', _RC + 'line_qty_zero / '),
-    'rule_line_unit': ('save_recipe', 'rule', 'line-unit', _RC + 'line_unit_kg / '),
-    'rule_line_duplicate': ('save_recipe', 'rule', 'line-duplicate', _RC + 'line_duplicate / '),
-    'rule_line_unit_match': ('save_recipe', 'rule', 'line-unit-match', _RC + 'line_unit_mismatch / '),
-    'rule_line_item_unknown': ('save_recipe', 'rule', 'line-item-unknown', _RC + 'line_item_unknown / '),
-    'rule_recipe_product': ('save_recipe', 'rule', 'recipe-product', _RC + 'recipe_product_unknown / '),
-    'rule_recipe_create_stamp': ('save_recipe', 'rule', 'recipe-create-stamp', _RC + 'recipe_create_with_stamp_unknown / '),
-    'rule_recipe_noop': ('save_recipe', 'rule', 'recipe-noop', _RC + 'recipe_create_replay / '),
-    'rule_recipe_stale': ('save_recipe', 'rule', 'recipe-stale', _RC + 'recipe_change_stale / '),
+    'rule_recipe_keys': ('write_recipe', 'rule', 'recipe-keys', _RC + 'recipe_keys_missing / '),
+    'rule_recipe_yield': ('write_recipe', 'rule', 'recipe-yield', _RC + 'recipe_yield_zero / '),
+    'rule_recipe_size': ('write_recipe', 'rule', 'recipe-size', _RC + 'recipe_too_many_lines / '),
+    'rule_line_keys': ('write_recipe', 'rule', 'line-keys', _RC + 'line_keys_missing / '),
+    'rule_line_name': ('write_recipe', 'rule', 'line-name', _RC + 'line_name_blank / '),
+    'rule_line_qty': ('write_recipe', 'rule', 'line-qty', _RC + 'line_qty_zero / '),
+    'rule_line_unit': ('write_recipe', 'rule', 'line-unit', _RC + 'line_unit_kg / '),
+    'rule_line_duplicate': ('write_recipe', 'rule', 'line-duplicate', _RC + 'line_duplicate / '),
+    'rule_line_unit_match': ('write_recipe', 'rule', 'line-unit-match', _RC + 'line_unit_mismatch / '),
+    'rule_line_item_unknown': ('write_recipe', 'rule', 'line-item-unknown', _RC + 'line_item_unknown / '),
+    'rule_recipe_product': ('write_recipe', 'rule', 'recipe-product', _RC + 'recipe_product_unknown / '),
+    'rule_recipe_create_stamp': ('write_recipe', 'rule', 'recipe-create-stamp', _RC + 'recipe_create_with_stamp_unknown / '),
+    'rule_recipe_noop': ('write_recipe', 'rule', 'recipe-noop', _RC + 'recipe_create_replay / '),
+    'rule_recipe_stale': ('write_recipe', 'rule', 'recipe-stale', _RC + 'recipe_change_stale / '),
 }
 RECIPE_TABLE_MUTATIONS = {
     'recipes_table_update': ('grant update on public.recipes to anon;', 'recipe outcome differs: anon / recipes_update / '),
@@ -382,11 +393,11 @@ PRODUCTION_MUTATIONS = {
                             _PDC + 'prod_batch_takes_what_is_there'),
     'text_dough_first': ('record_production', 'text', ('v_used := least(greatest(v_bal, 0), v_qty)::integer;', 'v_used := 0;'),
                          _PDC + 'prod_batch_uses_dough_first'),
-    'text_pcs_round_up': ('record_production', 'text', ('ceil(v_raw)', 'round(v_raw, 1)'),
+    'text_pcs_round_up': ('recipe_stock_plan', 'text', ('ceil(v_raw)', 'round(v_raw, 1)'),
                           _PDC + 'prod_dough_takes_the_scaled_lines'),
-    'text_multiply_first': ('record_production', 'text', ('v_raw := v_line.qty * v_mixed / v_recipe.yield_count;', 'v_raw := v_line.qty * (v_mixed / v_recipe.yield_count);'),
+    'text_multiply_first': ('recipe_stock_plan', 'text', ('v_raw := v_line.qty * v_mixed / v_recipe.yield_count;', 'v_raw := v_line.qty * (v_mixed / v_recipe.yield_count);'),
                             _PDC + 'prod_dough_pieces_not_rounded_up'),
-    'text_ml_step': ('record_production', 'text', ("when 'ml' then 5", "when 'ml' then 10"), _PDC + 'prod_ml_step_and_rounding'),
+    'text_ml_step': ('recipe_stock_plan', 'text', ("when 'ml' then 5", "when 'ml' then 10"), _PDC + 'prod_ml_step_and_rounding'),
     'rule_disc_keys': ('record_discard', 'rule', 'disc-keys', _PD + 'disc_keys_missing / '),
     'rule_disc_id': ('record_discard', 'rule', 'disc-id', _PD + 'disc_id_bad / '),
     'rule_disc_kind': ('record_discard', 'rule', 'disc-kind', _PD + 'disc_kind_bad / '),
@@ -401,16 +412,99 @@ PRODUCTION_MUTATIONS = {
                                 _PDC + 'get_production_dough_after_discard'),
     'text_discard_baked_read': ('get_production', 'text', ("select r.product_id, -r.qty from public.production_records r where r.kind = 'discard_baked'", "select r.product_id, 0 from public.production_records r where r.kind = 'discard_baked'"),
                                 _PDC + 'get_production_baked_after_discard'),
-    'text_use_stock_never_costs_the_short': ('use_stock', 'text', ('p_at, false)', 'p_at, true)'), _PDC + 'sale_pin_empty_movements'),
+    'text_sale_never_costs_the_short': ('record_sale_packaging', 'text', ("'Bazaar sale', p_at, false)", "'Bazaar sale', p_at, true)"), _PDC + 'sale_pin_empty_movements'),
     'text_pack_once': ('record_pack', 'text', ("v_id := md5('pack:' || p_order)::uuid;", 'v_id := gen_random_uuid();'),
                        _PDC + 'pack_twice_takes_nothing_more'),
-    'text_pack_boxes': ('record_pack', 'text', ('v_boxes := v_count / 6;', 'v_boxes := v_count / 12;'),
-                        _PDC + 'pack_takes_the_packaging'),
     'text_baked_minus_packed': ('get_production', 'text', ('select oi.product_id, -oi.qty from public.production_records r', 'select oi.product_id, 0 from public.production_records r'),
                                 _PDC + 'get_production_baked_not_packed'),
 }
 PRODUCTION_TABLE_MUTATIONS = {
     'records_table_select': ('grant select on public.production_records to anon;', 'production outcome differs: anon / records_select / '),
+}
+
+
+# B3b-1: packaging as records (packaging.sql), acting on migration 60. The rule mutants neutralise one tagged refusal; the text
+# mutants restate one line of the plan. Each expected text is the first case of the suite that must then fail.
+_PK = 'packaging outcome differs: '
+_PKC = 'packaging check differs: '
+PACKAGING_MUTATIONS = {
+    'rule_packrule_keys': ('write_packaging_rule', 'rule', 'packrule-keys', _PK + 'active_owner / rule_keys_missing / '),
+    'rule_packrule_container': ('write_packaging_rule', 'rule', 'packrule-container', _PK + 'active_owner / rule_container_bad / '),
+    'rule_packrule_box_size': ('write_packaging_rule', 'rule', 'packrule-box-size', _PK + 'active_owner / rule_box_size_missing / '),
+    'rule_packrule_lines_max': ('write_packaging_rule', 'rule', 'packrule-lines-max', _PK + 'active_owner / rule_lines_max / '),
+    'rule_packrule_item_missing': ('write_packaging_rule', 'rule', 'packrule-item-missing', _PK + 'active_owner / rule_item_missing / '),
+    'rule_packrule_qty': ('write_packaging_rule', 'rule', 'packrule-qty', _PK + 'operator / apply_validates_like_save / '),
+    'rule_packrule_per': ('write_packaging_rule', 'rule', 'packrule-per', _PK + 'active_owner / rule_per_bad / '),
+    'rule_packrule_dup': ('write_packaging_rule', 'rule', 'packrule-dup', _PK + 'active_owner / rule_item_twice / '),
+    'rule_packrule_double': ('write_packaging_rule', 'rule', 'packrule-double', _PK + 'active_owner / rule_double_take_cookie / '),
+    'rule_packrule_ingredient': ('write_packaging_rule', 'rule', 'packrule-ingredient', _PK + 'operator / packrule_ingredient_refused_apply / '),
+    'rule_packrule_double_order': ('write_packaging_rule', 'rule', 'packrule-double-order', _PK + 'active_owner / rule_double_take_order_vs_loose / '),
+    'rule_packrule_name_keys': ('apply_packaging_rule', 'rule', 'packrule-name-keys', _PK + 'operator / apply_keys_extra / '),
+    'rule_packrule_apply_dup': ('apply_packaging_rule', 'rule', 'packrule-apply-dup', _PK + 'operator / apply_container_twice / '),
+    'rule_packrule_name': ('apply_packaging_rule', 'rule', 'packrule-name', _PK + 'operator / apply_name_several / '),
+    'rule_recipe_kind': ('write_recipe', 'rule', 'recipe-kind', _PK + 'active_owner / recipe_kind_bad / '),
+    'rule_recipe_pack_double': ('write_recipe', 'rule', 'recipe-pack-double', _PK + 'active_owner / recipe_pack_double / '),
+    'rule_pack_no_loose_rule': ('record_pack', 'rule', 'pack-no-loose-rule', _PKC + 'active_owner / pack_flags_loose_without_a_rule'),
+    'rule_pack_no_order_rule': ('record_pack', 'rule', 'pack-no-order-rule', _PKC + 'active_owner / pack_flags_order_without_a_rule'),
+    'rule_sale_no_rule': ('record_sale_packaging', 'rule', 'sale-no-rule', _PKC + 'active_owner / sale_without_rule_flagged'),
+    'text_pack_loose_is_the_rest': ('record_pack', 'text', ('v_loose := greatest(v_count - v_boxed, 0);', 'v_loose := v_count;'),
+                                    _PKC + 'active_owner / pack_takes_by_the_boxes'),
+    'text_pack_box_per_cookie': ('record_pack', 'text', ("when 'cookie' then bx.size * bx.n else bx.n end", "when 'cookie' then bx.n else bx.n end"),
+                                 _PKC + 'active_owner / pack_per_cookie_lines_count_the_cookies'),
+    'text_pack_order_per_cookie': ('record_pack', 'text', ("case r.per when 'cookie' then v_count else 1 end", "case r.per when 'cookie' then 1 else 1 end"),
+                                   _PKC + 'active_owner / pack_per_cookie_lines_count_the_cookies'),
+    'text_pack_recipe_lines_per_cookie': ('record_pack', 'text', ('select 4, 0, l.position, l.item_id, l.qty * oi.q', 'select 4, 0, l.position, l.item_id, l.qty'),
+                                          _PKC + 'active_owner / pack_takes_the_recipe_packaging'),
+    'text_pack_flags_box_without_rule': ('record_pack', 'text',
+                                         ("where not exists (select 1 from public.packaging_rules r where r.container = 'box' and r.box_size = bx.size)",
+                                          "where false and not exists (select 1 from public.packaging_rules r where r.container = 'box' and r.box_size = bx.size)"),
+                                         _PKC + 'active_owner / pack_box_without_a_rule_is_flagged'),
+    'text_pack_never_costs_the_short': ('record_pack', 'text', ("'Packed order ' || p_order, v_at, false)", "'Packed order ' || p_order, v_at, true)"),
+                                        _PKC + 'active_owner / pack_all_loose'),
+    'text_sale_in_position_order': ('record_sale_packaging', 'text', ('row_number() over (order by x.src, x.pos, x.item_id)', 'row_number() over (order by x.src, x.pos desc, x.item_id)'),
+                                    _PKC + 'active_owner / sale_with_rule_keeps_the_movement_ids'),
+    'text_sale_per_cookie': ('record_sale_packaging', 'text', ("r.qty * case r.per when 'cookie' then p_cookies else 1 end", 'r.qty * 1'),
+                             _PKC + 'active_owner / sale_with_rule_takes_in_order'),
+    'text_sale_recipe_lines_per_cookie': ('record_sale_packaging', 'text', ('select 2, l.position, l.item_id, l.qty * si.q', 'select 2, l.position, l.item_id, l.qty'),
+                                          _PKC + 'active_owner / sale_without_rule_takes_recipe_packaging'),
+    'text_bake_skips_packaging': ('recipe_stock_plan', 'text', ("where i.product_id = v_pid and i.kind = 'ingredient' order by i.position, i.id loop", 'where i.product_id = v_pid order by i.position, i.id loop'),
+                                  _PKC + 'active_owner / bake_skips_packaging'),
+    'text_bake_adj_ingredients_only': ('record_production', 'text', ("where i.product_id = v_pid and i.kind = 'ingredient' and i.item_name = k));", 'where i.product_id = v_pid and i.item_name = k));'),
+                                       _PK + 'active_owner / bake_adj_names_a_packaging_line / '),
+    'text_recipe_pack_double_loose': ('write_recipe', 'text', ("(r.per = 'cookie' or r.container = 'loose')", "r.per = 'cookie'"),
+                                      _PK + 'active_owner / recipe_pack_double_loose_container / '),
+    'text_recipes_read_the_kind': ('get_recipes', 'text', ("'item_id', i.item_id, 'kind', i.kind)", "'item_id', i.item_id, 'kind', 'ingredient')"),
+                                   _PKC + 'active_owner / get_recipes_lines_have_a_kind'),
+    'text_recipe_stores_the_kind': ('write_recipe', 'text', ("|| case when l ->> 'kind' = 'packaging' then jsonb_build_object('kind', 'packaging') else '{}'::jsonb end", "|| '{}'::jsonb"),
+                                    # B4a: without the stored kind, recipe-ingredient-on-rule refuses the card line (an ingredient on a rule) too
+                                    # and the pack-double refusal is still answered 22023; the first case to differ is the one that saves it.
+                                    _PK + 'active_owner / recipe_with_kinds_ok / '),
+    'text_recipe_noop_sees_the_kind': ('write_recipe', 'text', ("|| case when i.kind = 'packaging' then jsonb_build_object('kind', 'packaging') else '{}'::jsonb end", "|| '{}'::jsonb"),
+                                       _PKC + 'active_owner / recipe_same_again_made_no_version'),
+    'text_cost_adds_the_packaging': ('get_recipe_costs', 'text', ('t.batch / r.yield_count + coalesce(t.pack, 0)', 't.batch / r.yield_count'),
+                                     _PKC + 'active_owner / cost_per_cookie_adds_both'),
+    'text_cost_packaging_alone_is_unknown': ('get_recipe_costs', 'text', ("'per_cookie_cents', round(t.batch / r.yield_count + coalesce(t.pack, 0), 4)", "'per_cookie_cents', round(coalesce(t.batch, 0) / r.yield_count + coalesce(t.pack, 0), 4)"),
+                                             _PKC + 'active_owner / cost_packaging_alone_is_not_a_cookie_cost'),
+    'text_cost_batch_is_ingredients': ('get_recipe_costs', 'text', ("sum(l.cents) filter (where l.kind = 'ingredient') as batch", 'sum(l.cents) as batch'),
+                                       _PKC + 'active_owner / cost_batch_is_the_ingredients_only'),
+    'text_cost_unknown_packaging_is_null': ('get_recipe_costs', 'text', ('case when t.pack_n = 0 then 0 else round(t.pack, 4) end', 'coalesce(round(t.pack, 4), 0)'),
+                                            _PKC + 'active_owner / cost_unknown_packaging_is_null_not_zero'),
+    'text_cost_incomplete_packaging': ('get_recipe_costs', 'text', ("'complete', t.ing_n > 0 and t.miss = 0", "'complete', t.ing_n > 0"),
+                                       _PKC + 'active_owner / cost_packaging_without_a_cost_is_incomplete'),
+    # B3b-2 (migration 61): get_books lists a pack and a bazaar sale that took nothing, with its why, beside the dough and batch lines.
+    'text_books_uncosted_pack_arm': ('get_books', 'text', ("r.kind in ('dough', 'batch', 'pack', 'sale')", "r.kind in ('dough', 'batch', 'sale')"),
+                                     _PKC + 'active_owner / books_pack_no_rule_is_uncosted'),
+    'text_books_uncosted_sale_arm': ('get_books', 'text', ("r.kind in ('dough', 'batch', 'pack', 'sale')", "r.kind in ('dough', 'batch', 'pack')"),
+                                     _PKC + 'active_owner / books_sale_no_rule_is_uncosted'),
+    'text_books_uncosted_needs_a_why': ('get_books', 'text', ("(e.value ? 'why')", 'true'),
+                                        _PKC + 'active_owner / books_pack_short_without_why_is_not_a_production_line'),
+    'text_books_uncosted_made_upper_bound': ('get_books', 'text', ("(e.value ? 'why') and r.at >= p_from and r.at < p_to", "(e.value ? 'why') and r.at >= p_from and r.at <= p_to"),
+                                             _PKC + 'active_owner / books_pack_and_sale_follow_the_period'),
+    'text_books_uncosted_made_lower_bound': ('get_books', 'text', ("(e.value ? 'why') and r.at >= p_from", "(e.value ? 'why') and r.at > p_from"),
+                                             _PKC + 'active_owner / books_pack_and_sale_follow_the_period'),
+}
+PACKAGING_TABLE_MUTATIONS = {
+    'rules_table_select': ('grant select on public.packaging_rules to anon;', 'packaging outcome differs: anon / rules_select / '),
 }
 
 
@@ -461,19 +555,217 @@ BOOKS_MUTATIONS = {
 }
 BOOKS_TABLE_MUTATIONS = {
     'settings_table_select': ('grant select on public.books_settings to anon;', 'books outcome differs: anon / settings_select / '),
+    # B4a (migration 62): a fresh database counts stock as it is bought until the cost cutover; the row and the column default say so.
+    'basis_row_is_used': ("update public.books_settings set cost_basis = 'used' where id;", _BKC + 'books_default_basis_is_bought'),
+    'basis_default_is_used': ("alter table public.books_settings alter column cost_basis set default 'used';", _BKC + 'books_column_default_is_bought'),
+}
+# B4a-1: the cost cutover (cutover.sql), acting on migration 62. The rule mutants neutralise one tagged refusal; the text mutants restate one
+# line of the plan (the use arm starts at the cutover, the opening credit is a credit, a purchase before the cutover is still an expense).
+# Each expected text is the first case of the suite that must then fail.
+_CU = 'cutover outcome differs: '
+_CUC = 'cutover check differs: '
+COST_CUTOVER_MUTATIONS = {
+    'rule_cutover_expected': ('apply_cost_cutover', 'rule', 'cutover-expected', _CU + 'operator / cutover_keys_null / '),
+    'rule_cutover_once': ('apply_cost_cutover', 'rule', 'cutover-once', _CU + 'operator / cutover_once / '),
+    'rule_cutover_changed': ('apply_cost_cutover', 'rule', 'cutover-changed', _CU + 'operator / cutover_changed_after_preview / '),
+    'rule_basis_needs_cutover': ('set_cost_basis', 'rule', 'basis-needs-cutover', _CU + 'active_owner / basis_needs_cutover / '),
+    'rule_recipe_ingredient_on_rule': ('write_recipe', 'rule', 'recipe-ingredient-on-rule', _CU + 'active_owner / recipe_ingredient_on_rule / '),
+    # B4a-2: the unvalued refusal, the instant and the creation order the apply takes, and the side of each row (by order of writing, not date).
+    'rule_cutover_unvalued': ('apply_cost_cutover', 'rule', 'cutover-unvalued', _CU + 'operator / cutover_unvalued_refused / '),
+    'text_cutover_clock': ('apply_cost_cutover', 'text', ('v_at := clock_timestamp();', 'v_at := now();'), _CUC + 'operator / cutover_apply_sets_used'),
+    'text_cutover_cut_seq': ('apply_cost_cutover', 'text', ('select coalesce(max(m.seq), 0) into v_cut_seq from public.stock_movements m;', 'select 0 into v_cut_seq;'),
+                             _CUC + 'operator / cutover_apply_records_the_sequence'),
+    'text_cutover_cut_corr_seq': ('apply_cost_cutover', 'text', ('select coalesce(max(c.seq), 0) into v_cut_cseq from public.stock_cost_corrections c;', 'select 0 into v_cut_cseq;'),
+                                  _CUC + 'operator / cutover_apply_records_the_sequence'),
+    'text_cutover_use_bound': ('get_books', 'text', ("and m.seq > v_cut_seq\n      union all\n      select 'c:'", "\n      union all\n      select 'c:'"),
+                               _CUC + 'active_owner / books_before_cutover_is_bought'),
+    'text_cutover_use_by_date': ('get_books', 'text', ("and m.seq > v_cut_seq\n      union all\n      select 'c:'", "and m.at >= v_cut\n      union all\n      select 'c:'"),
+                                 _CUC + 'active_owner / late_use_before_cutover_date'),
+    'text_cutover_correction_bound': ('get_books', 'text', (" and c.seq > v_cut_cseq\n      union all\n      select 'k:opening'", "\n      union all\n      select 'k:opening'"),
+                                      _CUC + 'active_owner / books_before_cutover_is_bought'),
+    'text_cutover_correction_by_date': ('get_books', 'text', (" and c.seq > v_cut_cseq\n      union all\n      select 'k:opening'", " and c.at >= v_cut\n      union all\n      select 'k:opening'"),
+                                        _CUC + 'active_owner / late_correction_counted_once'),
+    'text_cutover_opening_sign': ('get_books', 'text', ('-k.total_cents', 'k.total_cents'), _CUC + 'active_owner / books_opening_credit_once'),
+    'text_cutover_receipt_side': ('get_books', 'text', ('then not exists (select 1 from public.stock_movements m where m.ledger_id = l.id and m.seq > v_cut_seq)', 'then false'),
+                                  _CUC + 'active_owner / books_before_cutover_is_bought'),
+    'text_cutover_receipt_by_date': ('get_books', 'text', ('where m.ledger_id = l.id and m.seq > v_cut_seq)', 'where m.ledger_id = l.id and m.at >= v_cut)'),
+                                     _CUC + 'active_owner / late_delivery_after_cutover'),
+    'text_cutover_correction_line_side': ('get_books', 'text', ('then not exists (select 1 from public.stock_cost_corrections c where c.ledger_id = l.id and c.seq > v_cut_cseq)', 'then true'),
+                                          _CUC + 'active_owner / late_correction_counted_once'),
+    'text_cutover_correction_line_by_date': ('get_books', 'text', ('where c.ledger_id = l.id and c.seq > v_cut_cseq)', 'where c.ledger_id = l.id and c.at >= v_cut)'),
+                                             _CUC + 'active_owner / late_correction_counted_once'),
+    'text_cutover_uncosted_bound': ('get_books', 'text', ("and m.seq > v_cut_seq\n      union all\n      select 'p:'", "\n      union all\n      select 'p:'"),
+                                    _CUC + 'active_owner / books_uncosted_only_after_cutover'),
+    'text_cutover_uncosted_by_date': ('get_books', 'text', ("and m.seq > v_cut_seq\n      union all\n      select 'p:'", "and m.at >= v_cut\n      union all\n      select 'p:'"),
+                                      _CUC + 'active_owner / late_uncosted_use_is_listed'),
+    'text_cutover_production_bound': ('get_books', 'text', (' and r.at < p_to and r.at >= v_cut', ' and r.at < p_to'), _CUC + 'active_owner / books_uncosted_only_after_cutover'),
+    # B4a-4 (migration 64): an opening quantity is refused after the cutover, a cutover cleared by hand is read as the bought basis, and the preview
+    # lists the active items that have never had a movement (listed, counted and in the hash).
+    'rule_mv_opening_after_cutover': ('record_stock_movement', 'rule', 'mv-opening-after-cutover', _CU + 'active_owner / opening_after_cutover / '),
+    'text_cutover_null_cut_is_bought': ('get_books', 'text', ("  if v_cut is null then v_basis := 'bought'; end if;\n", ''),
+                                        _CUC + 'active_owner / books_hand_cleared_cutover_is_bought'),
+    'text_cutover_not_counted_hash': ('preview_cost_cutover', 'text', ('v_items::text || v_notcounted::text ||', 'v_items::text ||'),
+                                      _CUC + 'operator / cutover_hash_follows_not_counted'),
+    'text_cutover_not_counted_active': ('preview_cost_cutover', 'text', ('where i.active and not exists', 'where not exists'),
+                                        _CUC + 'operator / cutover_preview_counts_and_hash'),
+    'text_cutover_not_counted_movement': ('preview_cost_cutover', 'text', (" and not exists (select 1 from public.stock_movements m where m.item_id = i.id and m.kind in ('opening', 'receipt', 'count', 'adjust'))", ''),
+                                          _CUC + 'operator / cutover_preview_counts_and_hash'),
+    'text_cutover_not_counted_kind': ('preview_cost_cutover', 'text', (" and m.kind in ('opening', 'receipt', 'count', 'adjust'))", ')'),
+                                      _CUC + 'operator / cutover_preview_counts_and_hash'),
+    'text_cutover_not_counted_count': ('preview_cost_cutover', 'text', ("'unvalued', v_n - v_valued, 'not_counted', v_nc_n)", "'unvalued', v_n - v_valued, 'not_counted', 0)"),
+                                       _CUC + 'operator / cutover_preview_counts_and_hash'),
+    'text_cutover_not_counted_listed': ('preview_cost_cutover', 'text', ("'not_counted', v_notcounted,", "'not_counted', '[]'::jsonb,"),
+                                        _CUC + 'operator / cutover_preview_lists_not_counted'),
+    # B4b-1 (migration 65): after the cutover a count that finds less, and a negative adjustment, are stamped with the cost known when they are written
+    # and booked as an expense of the change x that cost, by order of writing; none known is listed as uncosted; more, the same and an adjustment up book nothing.
+    'text_count_stamp_off': ('record_stock_movement', 'text', ("if v_kind in ('count', 'adjust') and v_delta < 0 then", 'if false then'),
+                             _CUC + 'active_owner / b4b1_count_down_is_stamped'),
+    'text_count_stamp_count_only': ('record_stock_movement', 'text', ("if v_kind in ('count', 'adjust') and v_delta < 0 then", "if v_kind = 'count' and v_delta < 0 then"),
+                                    _CUC + 'active_owner / b4b1_count_down_is_stamped'),
+    'text_count_stamp_adjust_only': ('record_stock_movement', 'text', ("if v_kind in ('count', 'adjust') and v_delta < 0 then", "if v_kind = 'adjust' and v_delta < 0 then"),
+                                     _CUC + 'active_owner / b4b1_count_down_is_stamped'),
+    'text_count_stamp_the_same': ('record_stock_movement', 'text', ("if v_kind in ('count', 'adjust') and v_delta < 0 then", "if v_kind in ('count', 'adjust') and v_delta <= 0 then"),
+                                  _CUC + 'active_owner / b4b1_count_up_same_adjust_up_not_stamped'),
+    'text_count_stamp_the_raise': ('record_stock_movement', 'text', ("if v_kind in ('count', 'adjust') and v_delta < 0 then", "if v_kind in ('count', 'adjust') and v_delta <> 0 then"),
+                                   _CUC + 'active_owner / b4b1_count_up_same_adjust_up_not_stamped'),
+    'text_count_line_off': ('get_books', 'text', ("m.kind in ('count', 'adjust') and m.qty_delta < 0 and m.unit_cost is not null", 'false'),
+                            _CUC + 'active_owner / b4b1_count_down_is_an_expense'),
+    'text_count_line_sign': ('get_books', 'text', ('round(-m.qty_delta * m.unit_cost)::bigint, m.at, 0', 'round(m.qty_delta * m.unit_cost)::bigint, m.at, 0'),
+                             _CUC + 'active_owner / b4b1_count_down_is_an_expense'),
+    'text_count_line_label': ('get_books', 'text', ("(case m.kind when 'count' then 'Count: ' else 'Adjustment: ' end)", "'Count: '"),
+                              _CUC + 'active_owner / b4b1_adjust_down_is_an_expense'),
+    'text_count_line_raise': ('get_books', 'text', ("m.kind in ('count', 'adjust') and m.qty_delta < 0 and m.unit_cost is not null", "m.kind in ('count', 'adjust') and m.unit_cost is not null"),
+                              _CUC + 'active_owner / b4b1_stamped_count_up_books_nothing'),
+    'text_count_line_basis': ('get_books', 'text', ("where v_basis = 'used' and m.kind in ('count', 'adjust') and m.qty_delta < 0 and m.unit_cost is not null",
+                                                    "where m.kind in ('count', 'adjust') and m.qty_delta < 0 and m.unit_cost is not null"),
+                              _CUC + 'active_owner / b4b1_bought_basis_books_no_count'),
+    'text_count_line_bound': ("get_books", 'text', ("m.unit_cost is not null and m.at >= p_from and m.at < p_to\n         and m.seq > v_cut_seq\n      union all\n      select 'm:' || m.id::text, 'expense', i.category, (case m.kind when 'use'",
+                                                    "m.unit_cost is not null and m.at >= p_from and m.at < p_to\n      union all\n      select 'm:' || m.id::text, 'expense', i.category, (case m.kind when 'use'"),
+                              _CUC + 'active_owner / b4b1_count_before_cutover_books_nothing'),
+    'text_count_line_by_date': ('get_books', 'text', ("m.unit_cost is not null and m.at >= p_from and m.at < p_to\n         and m.seq > v_cut_seq\n      union all\n      select 'm:' || m.id::text, 'expense', i.category, (case m.kind when 'use'",
+                                                      "m.unit_cost is not null and m.at >= p_from and m.at < p_to\n         and m.at >= v_cut\n      union all\n      select 'm:' || m.id::text, 'expense', i.category, (case m.kind when 'use'"),
+                               _CUC + 'active_owner / b4b1_count_dated_before_cutover_is_written_after'),
+    'text_count_uncosted_off': ('get_books', 'text', ("m.kind in ('count', 'adjust') and m.qty_delta < 0 and m.unit_cost is null", 'false'),
+                                _CUC + 'active_owner / b4b1_count_down_no_cost_is_listed'),
+    'text_count_uncosted_costed': ('get_books', 'text', ("m.kind in ('count', 'adjust') and m.qty_delta < 0 and m.unit_cost is null", "m.kind in ('count', 'adjust') and m.qty_delta < 0"),
+                                   _CUC + 'active_owner / b4b1_costed_movements_are_not_uncosted'),
+    'text_count_uncosted_raise': ('get_books', 'text', ("m.kind in ('count', 'adjust') and m.qty_delta < 0 and m.unit_cost is null", "m.kind in ('count', 'adjust') and m.unit_cost is null"),
+                                  _CUC + 'active_owner / b4b1_count_up_same_adjust_up_book_nothing'),
+    'text_count_uncosted_kind': ('get_books', 'text', ("select 'm:' || m.id::text, m.kind, i.name, -m.qty_delta", "select 'm:' || m.id::text, 'count', i.name, -m.qty_delta"),
+                                 _CUC + 'active_owner / b4b1_adjust_down_no_cost_is_listed'),
+    'text_count_uncosted_qty': ('get_books', 'text', ("m.kind, i.name, -m.qty_delta, i.unit", "m.kind, i.name, m.qty_delta, i.unit"),
+                                _CUC + 'active_owner / b4b1_count_down_no_cost_is_listed'),
+    'text_count_uncosted_basis': ('get_books', 'text', ("m.unit_cost is null and v_basis = 'used' and m.at >= p_from and m.at < p_to\n         and m.seq > v_cut_seq\n", "m.unit_cost is null and m.at >= p_from and m.at < p_to\n         and m.seq > v_cut_seq\n"),
+                                 _CUC + 'active_owner / b4b1_bought_basis_books_no_count'),
+    'text_count_uncosted_bound': ('get_books', 'text', ("where m.kind in ('count', 'adjust') and m.qty_delta < 0 and m.unit_cost is null and v_basis = 'used' and m.at >= p_from and m.at < p_to\n         and m.seq > v_cut_seq",
+                                                       "where m.kind in ('count', 'adjust') and m.qty_delta < 0 and m.unit_cost is null and v_basis = 'used' and m.at >= p_from and m.at < p_to"),
+                                  _CUC + 'active_owner / b4b1_count_before_cutover_is_not_uncosted'),
+    'text_count_uncosted_by_date': ('get_books', 'text', ("m.unit_cost is null and v_basis = 'used' and m.at >= p_from and m.at < p_to\n         and m.seq > v_cut_seq\n", "m.unit_cost is null and v_basis = 'used' and m.at >= p_from and m.at < p_to\n         and m.at >= v_cut\n"),
+                                    _CUC + 'active_owner / b4b1_late_dated_no_cost_count_is_listed'),
+}
+COST_CUTOVER_TABLE_MUTATIONS = {
+    'cutover_table_select': ('grant select on public.cost_cutover to anon;', _CU + 'anon / cutover_select / '),
 }
 # B3a: the cost core (item-costs.sql), acting on the last migration that defines each function. The money cases are worked by hand in the suite.
 _CS = 'item cost outcome differs: active_owner / '
 _CSC = 'item cost check differs: active_owner / '
+# B4a-3: her-data imports (imports.sql), acting on migration 63. The rule mutants neutralise one tagged refusal of a run_ or apply_ function; the text
+# mutants restate one line (the category default, the rule an import removes, the rollback of a preview, the hash). The writers under them keep their
+# own rules, which the earlier suites mutate (the write_ names above).
+_IMO = 'import outcome differs: operator / '
+_IMC = 'import check differs: operator / '
+IMPORT_MUTATIONS = {
+    'rule_import_items_rows': ('run_import_items', 'rule', 'import-items-rows', _IMO + 'imp_items_rows_empty_list / '),
+    'rule_import_items_row': ('run_import_items', 'rule', 'import-items-row', _IMC + 'imp_items_preview_counts'),
+    'rule_import_items_unit': ('run_import_items', 'rule', 'import-items-unit', _IMC + 'imp_items_preview_counts'),
+    'rule_import_items_ambiguous': ('run_import_items', 'rule', 'import-items-ambiguous', _IMC + 'imp_items_why_several'),
+    'rule_import_items_unit_differs': ('run_import_items', 'rule', 'import-items-unit-differs', _IMC + 'imp_items_preview_counts'),
+    'rule_import_items_expected': ('apply_import_items', 'rule', 'import-items-expected', _IMO + 'imp_items_expected_null / '),
+    'rule_import_items_changed': ('apply_import_items', 'rule', 'import-items-changed', _IMO + 'imp_items_stale_hash / '),
+    'rule_import_prices_rows': ('run_import_prices', 'rule', 'import-prices-rows', _IMO + 'imp_prices_rows_empty_list / '),
+    'rule_import_prices_row': ('run_import_prices', 'rule', 'import-prices-row', _IMC + 'imp_prices_why_row_keys'),
+    'rule_import_prices_item_none': ('run_import_prices', 'rule', 'import-prices-item-none', _IMC + 'imp_prices_why_none'),
+    'rule_import_prices_item_several': ('run_import_prices', 'rule', 'import-prices-item-several', _IMC + 'imp_prices_preview_counts'),
+    'rule_import_prices_unit': ('run_import_prices', 'rule', 'import-prices-unit', _IMC + 'imp_prices_preview_counts'),
+    'rule_import_prices_expected': ('apply_import_prices', 'rule', 'import-prices-expected', _IMO + 'imp_prices_expected_null / '),
+    'rule_import_prices_changed': ('apply_import_prices', 'rule', 'import-prices-changed', _IMO + 'imp_prices_stale_hash / '),
+    'rule_import_recipes_rows': ('run_import_recipes', 'rule', 'import-recipes-rows', _IMO + 'imp_recipes_rows_empty_list / '),
+    'rule_import_recipes_row': ('run_import_recipes', 'rule', 'import-recipes-row', _IMC + 'imp_recipes_preview_counts'),
+    'rule_import_recipes_product_none': ('run_import_recipes', 'rule', 'import-recipes-product-none', _IMC + 'imp_recipes_why_product_none'),
+    'rule_import_recipes_product_several': ('run_import_recipes', 'rule', 'import-recipes-product-several', _IMC + 'imp_recipes_preview_counts'),
+    'rule_import_recipes_line_none': ('run_import_recipes', 'rule', 'import-recipes-line-none', _IMC + 'imp_recipes_one_bad_line_holds_the_recipe'),
+    'rule_import_recipes_line_several': ('run_import_recipes', 'rule', 'import-recipes-line-several', _IMC + 'imp_recipes_why_line_several'),
+    'rule_import_recipes_line_unit': ('run_import_recipes', 'rule', 'import-recipes-line-unit', _IMC + 'imp_recipes_why_line_unit'),
+    'rule_import_recipes_held': ('run_import_recipes', 'rule', 'import-recipes-held', _IMC + 'imp_recipes_one_bad_line_holds_the_recipe'),
+    'rule_import_recipes_expected': ('apply_import_recipes', 'rule', 'import-recipes-expected', _IMO + 'imp_recipes_expected_null / '),
+    'rule_import_recipes_changed': ('apply_import_recipes', 'rule', 'import-recipes-changed', _IMO + 'imp_recipes_stale_hash / '),
+    'rule_import_flavours_rows': ('run_import_flavours', 'rule', 'import-flavours-rows', _IMO + 'imp_flavours_rows_empty_list / '),
+    'rule_import_flavours_row': ('run_import_flavours', 'rule', 'import-flavours-row', _IMC + 'imp_flavours_why_row_keys'),
+    'rule_import_flavours_product_none': ('run_import_flavours', 'rule', 'import-flavours-product-none', _IMC + 'imp_flavours_why_none'),
+    'rule_import_flavours_product_several': ('run_import_flavours', 'rule', 'import-flavours-product-several', _IMC + 'imp_flavours_preview_counts'),
+    'rule_import_flavours_expected': ('apply_import_flavours', 'rule', 'import-flavours-expected', _IMO + 'imp_flavours_expected_null / '),
+    'rule_import_flavours_changed': ('apply_import_flavours', 'rule', 'import-flavours-changed', _IMO + 'imp_flavours_stale_hash / '),
+    'rule_import_bookings_rows': ('run_import_bookings', 'rule', 'import-bookings-rows', _IMO + 'imp_bookings_rows_empty_list / '),
+    'rule_import_bookings_row': ('run_import_bookings', 'rule', 'import-bookings-row', _IMC + 'imp_bookings_why_row_keys'),
+    'rule_import_bookings_several': ('run_import_bookings', 'rule', 'import-bookings-several', _IMC + 'imp_bookings_preview_counts'),
+    'rule_import_bookings_expected': ('apply_import_bookings', 'rule', 'import-bookings-expected', _IMO + 'imp_bookings_expected_null / '),
+    'rule_import_bookings_changed': ('apply_import_bookings', 'rule', 'import-bookings-changed', _IMO + 'imp_bookings_stale_hash / '),
+    'text_import_items_category_default': ('run_import_items', 'text', ("v_cat := coalesce(v_row ->> 'category', 'Ingredients');", "v_cat := coalesce(v_row ->> 'category', 'Packaging');"),
+                                           _IMC + 'imp_items_will_write_names'),
+    'text_import_prices_latest_pack': ('run_import_prices', 'text', ('or (v_last.id is not null and v_last.price_cents = v_cents and v_last.pack_size = v_pack);',
+                                                                     'or (v_last.id is not null and v_last.price_cents = v_cents);'), _IMC + 'imp_prices_other_pack_is_a_change'),
+    'text_import_recipes_removes_only_per_cookie': ('run_import_recipes', 'text', ("where r.item_id = any (v_pack_ids) and (r.per = 'cookie' or r.container = 'loose')\n                    order by r.container",
+                                                                                   "where r.item_id = any (v_pack_ids)\n                    order by r.container"),
+                                                    _IMC + 'imp_recipes_audit_rows'),
+    'text_import_recipes_removes_first': ('run_import_recipes', 'text', ("perform public.write_packaging_rule(jsonb_build_object('container', v_c.container, 'box_size', v_c.box_size, 'lines', v_keep));", 'null;'),
+                                          _IMC + 'imp_recipes_preview_counts'),
+    'text_import_recipes_unchanged_removes_nothing': ('run_import_recipes', 'text', ('if v_res.version is not distinct from v_before then', 'if false then'),
+                                                      _IMC + 'imp_recipes_preview_counts'),
+    'text_import_flavours_keeps_the_stamp': ('run_import_flavours', 'text', ("'tag', v_p.tag), v_p.updated_at);", "'tag', v_p.tag), null);"), _IMC + 'imp_flavours_preview_counts'),
+    'text_import_hash_is_of_will_write': ('import_result', 'text', ("'hash', encode(sha256(convert_to(v_write::text, 'UTF8')), 'hex'));", "'hash', encode(sha256(convert_to(v_same::text, 'UTF8')), 'hex'));"),
+                                          _IMC + 'imp_items_hash_is_of_will_write'),
+    'text_import_apply_audits_only_a_write': ('apply_import_items', 'text', ("if (v_res -> 'counts' ->> 'will_write')::integer > 0 then", 'if true then'),
+                                              _IMC + 'imp_items_reapply_writes_nothing'),
+    'text_import_preview_items_keeps_its_work': ('preview_import_items', 'text', ("raise exception '%', v_out::text using errcode = 'P0099';", 'return v_out;'),
+                                                 _IMC + 'imp_items_preview_writes_nothing'),
+    # Review fixes (migration 63): an invisible space or a name not in composed form, two prices for one item on one day, one flavour twice in a
+    # recipes call, the fields an unchanged entry hides, and the will_write list in the audit row.
+    'rule_import_items_invisible': ('run_import_items', 'rule', 'import-items-invisible', _IMC + 'imp_items_invisible_names_are_listed'),
+    'rule_import_prices_invisible': ('run_import_prices', 'rule', 'import-prices-invisible', _IMC + 'imp_prices_invisible_name_is_listed'),
+    'rule_import_prices_same_day': ('run_import_prices', 'rule', 'import-prices-same-day', _IMC + 'imp_prices_same_day_other_price'),
+    'rule_import_recipes_product_invisible': ('run_import_recipes', 'rule', 'import-recipes-product-invisible', _IMC + 'imp_recipes_invisible_flavour_is_listed'),
+    'rule_import_recipes_line_invisible': ('run_import_recipes', 'rule', 'import-recipes-line-invisible', _IMC + 'imp_recipes_invisible_line_item_holds_the_recipe'),
+    'rule_import_recipes_flavour_twice': ('run_import_recipes', 'rule', 'import-recipes-flavour-twice', _IMC + 'imp_recipes_flavour_twice'),
+    'rule_import_flavours_invisible': ('run_import_flavours', 'rule', 'import-flavours-invisible', _IMC + 'imp_flavours_invisible_name_is_listed'),
+    'rule_import_bookings_invisible': ('run_import_bookings', 'rule', 'import-bookings-invisible', _IMC + 'imp_bookings_invisible_name_is_listed'),
+    'text_import_name_ok_hidden_characters': ('import_name_ok', 'text', ('\\u00ad\\u034f\\u115f\\u1160\\u1680\\u180e', ''), _IMC + 'imp_items_more_invisible_characters'),
+    'text_import_items_unchanged_category': ('run_import_items', 'text', (", 'unit', v_item.unit, 'category', v_item.category));", ", 'unit', v_item.unit));"),
+                                             _IMC + 'imp_items_unchanged_shows_category'),
+    'text_import_bookings_unchanged_fields': ('run_import_bookings', 'text', (",\n          'place', v_old.place, 'rent_cents', v_old.rent_cents, 'active', v_old.active));", "));"),
+                                               _IMC + 'imp_bookings_unchanged_shows_what_it_keeps'),
+    'text_import_items_audit_will_write': ('apply_import_items', 'text', (", 'will_write', v_res -> 'will_write'", ''), _IMC + 'imp_items_one_audit_row'),
+    'text_import_prices_audit_will_write': ('apply_import_prices', 'text', (", 'will_write', v_res -> 'will_write'", ''), _IMC + 'imp_prices_one_audit_row'),
+    'text_import_recipes_audit_will_write': ('apply_import_recipes', 'text', (", 'will_write', v_res -> 'will_write'", ''), _IMC + 'imp_recipes_audit_rows'),
+    'text_import_flavours_audit_will_write': ('apply_import_flavours', 'text', (", 'will_write', v_res -> 'will_write'", ''), _IMC + 'imp_flavours_one_audit_row'),
+    'text_import_bookings_audit_will_write': ('apply_import_bookings', 'text', (", 'will_write', v_res -> 'will_write'", ''), _IMC + 'imp_bookings_one_audit_row'),
+    'text_import_preview_recipes_keeps_its_work': ('preview_import_recipes', 'text', ("raise exception '%', v_out::text using errcode = 'P0099';", 'return v_out;'),
+                                                   _IMC + 'imp_recipes_preview_writes_nothing'),
+}
+IMPORT_ACL = ('preview_import_items(jsonb)', 'apply_import_items(jsonb,jsonb)', 'preview_import_prices(jsonb)', 'apply_import_prices(jsonb,jsonb)',
+              'preview_import_recipes(jsonb)', 'apply_import_recipes(jsonb,jsonb)', 'preview_import_flavours(jsonb)', 'apply_import_flavours(jsonb,jsonb)',
+              'preview_import_bookings(jsonb)', 'apply_import_bookings(jsonb,jsonb)',
+              'run_import_items(jsonb)', 'run_import_prices(jsonb)', 'run_import_recipes(jsonb)', 'run_import_flavours(jsonb)', 'run_import_bookings(jsonb)',
+              'write_stock_item(jsonb,timestamptz)', 'write_item_price(jsonb)', 'write_recipe(jsonb,timestamptz)', 'write_flavour(text,jsonb,timestamptz)',
+              'write_scheduled_event(jsonb,timestamptz)', 'import_result(jsonb,jsonb,jsonb,jsonb)', 'import_expected_ok(jsonb,text[])', 'import_keys_ok(jsonb,text[],text[])', 'import_name_ok(text)')
 COST_MUTATIONS = {
-    'rule_itemprice_keys': ('save_item_price', 'rule', 'itemprice-keys', _CS + 'ip_keys_missing / '),
-    'rule_itemprice_id': ('save_item_price', 'rule', 'itemprice-id', _CS + 'ip_id_bad / '),
-    'rule_itemprice_cents': ('save_item_price', 'rule', 'itemprice-cents', _CS + 'ip_cents_zero / '),
-    'rule_itemprice_pack': ('save_item_price', 'rule', 'itemprice-pack', _CS + 'ip_pack_zero / '),
-    'rule_itemprice_date': ('save_item_price', 'rule', 'itemprice-date', _CS + 'ip_date_format / '),
-    'rule_itemprice_future': ('save_item_price', 'rule', 'itemprice-future', _CS + 'ip_date_future / '),
-    'rule_itemprice_replay_conflict': ('save_item_price', 'rule', 'itemprice-replay-conflict', _CS + 'ip_replay_other_body / '),
-    'rule_itemprice_item_missing': ('save_item_price', 'rule', 'itemprice-item-missing', _CS + 'ip_item_missing / '),
+    'rule_itemprice_keys': ('write_item_price', 'rule', 'itemprice-keys', _CS + 'ip_keys_missing / '),
+    'rule_itemprice_id': ('write_item_price', 'rule', 'itemprice-id', _CS + 'ip_id_bad / '),
+    'rule_itemprice_cents': ('write_item_price', 'rule', 'itemprice-cents', _CS + 'ip_cents_zero / '),
+    'rule_itemprice_pack': ('write_item_price', 'rule', 'itemprice-pack', _CS + 'ip_pack_zero / '),
+    'rule_itemprice_date': ('write_item_price', 'rule', 'itemprice-date', _CS + 'ip_date_format / '),
+    'rule_itemprice_future': ('write_item_price', 'rule', 'itemprice-future', _CS + 'ip_date_future / '),
+    'rule_itemprice_replay_conflict': ('write_item_price', 'rule', 'itemprice-replay-conflict', _CS + 'ip_replay_other_body / '),
+    'rule_itemprice_item_missing': ('write_item_price', 'rule', 'itemprice-item-missing', _CS + 'ip_item_missing / '),
     'text_cost_average_formula': ('record_stock_movement', 'text',
                                   ('v_avg := (v_item.on_hand * v_base + v_cost) / (v_item.on_hand + v_qty);', 'v_avg := v_cost / v_qty;'),
                                   _CSC + 'cost_a_stamps'),
@@ -593,7 +885,7 @@ OPERATIONS_MUTATIONS = {
 
 def order_mutant(name):
     """The migration's one function, changed in exactly one place, as SQL to run inside the suite."""
-    function, kind, argument, _ = (ORDER_MUTATIONS | LOOKUP_MUTATIONS | STAFF_MUTATIONS | SHOP_MUTATIONS | EXTRAS_MUTATIONS | SCHEDULED_MUTATIONS | STOCK_MUTATIONS | RECIPE_MUTATIONS | LEDGER_MUTATIONS | PRODUCTION_MUTATIONS | BOOKS_MUTATIONS | OPERATIONS_MUTATIONS | IDENTITY_RULES | LINK_MUTATIONS | COST_MUTATIONS | BATCH_CORRECTION_MUTATIONS)[name]
+    function, kind, argument, _ = (ORDER_MUTATIONS | LOOKUP_MUTATIONS | STAFF_MUTATIONS | SHOP_MUTATIONS | EXTRAS_MUTATIONS | SCHEDULED_MUTATIONS | STOCK_MUTATIONS | RECIPE_MUTATIONS | LEDGER_MUTATIONS | PRODUCTION_MUTATIONS | BOOKS_MUTATIONS | OPERATIONS_MUTATIONS | IDENTITY_RULES | LINK_MUTATIONS | COST_MUTATIONS | BATCH_CORRECTION_MUTATIONS | PACKAGING_MUTATIONS | COST_CUTOVER_MUTATIONS | IMPORT_MUTATIONS | MOVEMENT_MUTATIONS | BAZAAR_DAY_MUTATIONS)[name]
     marker = 'create or replace function public.' + function + '('
     text = [m.read_text(encoding='utf-8') for m in ORDER_MIGRATIONS if marker in m.read_text(encoding='utf-8')][-1]
     start = text.index('create or replace function public.' + function + '(')
@@ -643,6 +935,207 @@ POLICY_MUTATIONS = {
     'policy_added': ("create policy \"leak\" on public.settings for select using (true);",
                      'policy count differs'),
 }
+# B5-1: the owner's read of an item's movements (item-movements.sql), acting on migration 66. The rule mutants neutralise one tagged refusal; the text
+# mutants restate one line (the owner check, each way the order or the limit could go wrong, a person column, a null cost turned into 0, a stamp or a
+# paid total dropped, seconds for milliseconds).
+_MVO = 'item movement outcome differs: '
+_MVC = 'item movement check differs: '
+_MVS = "order by m.seq desc\n       limit p_limit"
+MOVEMENT_MUTATIONS = {
+    'rule_movements_limit': ('get_item_movements', 'rule', 'movements-limit', _MVO + 'active_owner / movements_limit_zero / '),
+    'rule_movements_item': ('get_item_movements', 'rule', 'movements-item', _MVO + 'active_owner / movements_item_unknown / '),
+    'text_movements_owner': ('get_item_movements', 'text', ('if not public.is_owner() then', 'if false then'), _MVO + 'active_helper / movements_refused'),
+    'text_movements_order_outer': ('get_item_movements', 'text', ('jsonb_agg(x.j order by x.seq desc)', 'jsonb_agg(x.j order by x.seq)'),
+                                   _MVC + 'active_owner / movements_newest_first'),
+    'text_movements_order_outer_by_date': ('get_item_movements', 'text', ('jsonb_agg(x.j order by x.seq desc)', "jsonb_agg(x.j order by (x.j ->> 'at')::bigint desc)"),
+                                           _MVC + 'active_owner / movements_newest_first'),
+    'text_movements_order_inner': ('get_item_movements', 'text', (_MVS, "order by m.seq\n       limit p_limit"),
+                                   _MVC + 'active_owner / movements_limit_keeps_the_newest'),
+    'text_movements_order_inner_by_date': ('get_item_movements', 'text', (_MVS, "order by m.at desc\n       limit p_limit"),
+                                           _MVC + 'active_owner / movements_limit_keeps_the_newest'),
+    'text_movements_limit_ignored': ('get_item_movements', 'text', ("\n       limit p_limit", ''),
+                                     _MVC + 'active_owner / movements_limit_keeps_the_newest'),
+    'text_movements_person': ('get_item_movements', 'text', ("'paid_cents', m.cost_cents,", "'paid_cents', m.cost_cents, 'created_by', m.created_by,"),
+                              _MVC + 'active_owner / movements_row_keys'),
+    'text_movements_stamp_dropped': ('get_item_movements', 'text', ("'unit_cost', round(m.unit_cost, 6)", "'unit_cost', null"),
+                                     _MVC + 'active_owner / movements_stamped_cost_shows'),
+    'text_movements_null_cost_zero': ('get_item_movements', 'text', ("'unit_cost', round(m.unit_cost, 6)", "'unit_cost', coalesce(round(m.unit_cost, 6), 0)"),
+                                      _MVC + 'active_owner / movements_unknown_cost_stays_null'),
+    'text_movements_paid_dropped': ('get_item_movements', 'text', ("'paid_cents', m.cost_cents", "'paid_cents', null"),
+                                    _MVC + 'active_owner / movements_receipt_paid_and_supplier'),
+    'text_movements_at_seconds': ('get_item_movements', 'text', ('* 1000)::bigint', '* 1)::bigint'),
+                                  _MVC + 'active_owner / movements_at_is_epoch_milliseconds'),
+}
+# S1: bazaar days (bazaar-days.sql), acting on migration 68. The rule mutants neutralise one tagged line; the text mutants restate one line of
+# the computation. Each expected text is the first case of the suite that must then fail. The figures are worked by hand in the suite's header.
+_BZO = 'bazaar day outcome differs: active_owner / '
+_BZC = 'bazaar day check differs: active_owner / '
+BAZAAR_DAY_MUTATIONS = {
+    'rule_bz_get_booking_missing': ('get_bazaar', 'rule', 'get-booking-missing', _BZO + 'get_booking_missing / '),
+    'rule_bz_day_shape': ('save_bazaar_day', 'rule', 'day-shape', _BZO + 'day_shape_extra_key / '),
+    'rule_bz_day_line_shape': ('save_bazaar_day', 'rule', 'day-line-shape', _BZO + 'day_line_extra_key / '),
+    'rule_bz_day_line_values': ('save_bazaar_day', 'rule', 'day-line-values', _BZO + 'day_line_qty_too_big / '),
+    'rule_bz_day_line_duplicate': ('save_bazaar_day', 'rule', 'day-line-duplicate', _BZO + 'day_line_twice / '),
+    'rule_bz_day_booking_missing': ('save_bazaar_day', 'rule', 'day-booking-missing', _BZO + 'day_booking_missing / '),
+    'rule_bz_day_replay': ('save_bazaar_day', 'rule', 'day-replay', _BZO + 'day_repeat_answered / '),
+    'rule_bz_day_finalised': ('save_bazaar_day', 'rule', 'day-finalised', _BZO + 'day_plan_after_finalise / '),
+    'rule_bz_day_started': ('save_bazaar_day', 'rule', 'day-started', _BZO + 'day_plan_after_start / '),
+    'rule_bz_day_id_taken': ('save_bazaar_day', 'rule', 'day-id-taken', _BZO + 'day_id_of_another_booking / '),
+    'rule_bz_day_outside': ('save_bazaar_day', 'rule', 'day-outside', _BZO + 'day_outside_the_booking / '),
+    'rule_bz_day_flavour': ('save_bazaar_day', 'rule', 'day-flavour', _BZO + 'day_flavour_missing / '),
+    'rule_bz_day_create_stamp': ('save_bazaar_day', 'rule', 'day-create-stamp', _BZO + 'day_create_with_a_stamp / '),
+    'rule_bz_day_stale': ('save_bazaar_day', 'rule', 'day-stale', _BZO + 'day_create_again_other_body / '),
+    'rule_bz_fee_shape': ('save_bazaar_fee', 'rule', 'fee-shape', _BZO + 'fee_shape_extra_key / '),
+    'rule_bz_fee_client': ('save_bazaar_fee', 'rule', 'fee-client', _BZO + 'fee_rent_id / '),
+    'rule_bz_fee_replay_conflict': ('save_bazaar_fee', 'rule', 'fee-replay-conflict', _BZO + 'fee_same_id_other_body / '),
+    'rule_bz_fee_booking_missing': ('save_bazaar_fee', 'rule', 'fee-booking-missing', _BZO + 'fee_booking_missing / '),
+    'rule_bz_fee_finalised': ('save_bazaar_fee', 'rule', 'fee-finalised', _BZO + 'fee_after_finalise / '),
+    'rule_bz_fee_day': ('save_bazaar_fee', 'rule', 'fee-day', _BZO + 'fee_day_of_another_booking / '),
+    'rule_bz_loss_shape': ('save_bazaar_loss', 'rule', 'loss-shape', _BZO + 'loss_shape_extra_key / '),
+    'rule_bz_loss_at': ('save_bazaar_loss', 'rule', 'loss-at', _BZO + 'loss_in_the_future / '),
+    'rule_bz_loss_day_missing': ('save_bazaar_loss', 'rule', 'loss-day-missing', _BZO + 'loss_day_missing / '),
+    'rule_bz_loss_replay_conflict': ('save_bazaar_loss', 'rule', 'loss-replay-conflict', _BZO + 'loss_same_id_other_body / '),
+    'rule_bz_loss_day_open': ('save_bazaar_loss', 'rule', 'loss-day-open', _BZO + 'loss_before_the_day_starts / '),
+    'rule_bz_loss_flavour': ('save_bazaar_loss', 'rule', 'loss-flavour', _BZO + 'loss_flavour_not_on_the_day / '),
+    'rule_bz_loss_below_zero': ('save_bazaar_loss', 'rule', 'loss-below-zero', _BZO + 'loss_below_zero / '),
+    'rule_bz_cost_value': ('save_bazaar_cost', 'rule', 'cost-value', _BZO + 'cost_negative / '),
+    'rule_bz_cost_booking_missing': ('save_bazaar_cost', 'rule', 'cost-booking-missing', _BZO + 'cost_booking_missing / '),
+    'rule_bz_cost_flavour': ('save_bazaar_cost', 'rule', 'cost-flavour', _BZO + 'cost_flavour_missing / '),
+    'rule_bz_cost_finalised': ('save_bazaar_cost', 'rule', 'cost-finalised', _BZO + 'cost_after_finalise / '),
+    'rule_bz_target_value': ('save_bazaar_target', 'rule', 'target-value', _BZO + 'target_negative / '),
+    'rule_bz_target_booking_missing': ('save_bazaar_target', 'rule', 'target-booking-missing', _BZO + 'target_booking_missing / '),
+    'rule_bz_target_replay': ('save_bazaar_target', 'rule', 'target-replay', _BZO + 'target_repeat_after_finalise / '),
+    'rule_bz_target_finalised': ('save_bazaar_target', 'rule', 'target-finalised', _BZO + 'target_after_finalise / '),
+    'rule_bz_start_shape': ('start_bazaar_day', 'rule', 'start-shape', _BZO + 'day_start_bad_device / '),
+    'rule_bz_start_day_missing': ('start_bazaar_day', 'rule', 'start-day-missing', _BZO + 'start_day_missing / '),
+    'rule_bz_start_replay_conflict': ('start_bazaar_day', 'rule', 'start-replay-conflict', _BZO + 'start_again_other_event / '),
+    'rule_bz_start_event_used': ('start_bazaar_day', 'rule', 'start-event-used', _BZO + 'start_event_id_used / '),
+    'rule_bz_start_booking': ('start_bazaar_day', 'rule', 'start-booking', _BZO + 'start_booking_off / '),
+    'rule_bz_start_finalised': ('start_bazaar_day', 'rule', 'start-finalised', _BZO + 'start_after_finalise / '),
+    'rule_bz_start_other_open': ('start_bazaar_day', 'rule', 'start-other-open', _BZO + 'start_while_another_day_is_open / '),
+    'rule_bz_start_empty': ('start_bazaar_day', 'rule', 'start-empty', _BZO + 'start_no_stock / '),
+    'rule_bz_start_carry': ('start_bazaar_day', 'rule', 'start-carry', _BZO + 'start_carries_more_than_set_aside / '),
+    'rule_bz_add_shape': ('add_bazaar_day_stock', 'rule', 'add-shape', _BZO + 'add_zero / '),
+    'rule_bz_add_day_missing': ('add_bazaar_day_stock', 'rule', 'add-day-missing', _BZO + 'add_day_missing / '),
+    'rule_bz_add_replay_conflict': ('add_bazaar_day_stock', 'rule', 'add-replay-conflict', _BZO + 'add_same_id_other_body / '),
+    'rule_bz_add_day_open': ('add_bazaar_day_stock', 'rule', 'add-day-open', _BZO + 'add_before_the_day_starts / '),
+    'rule_bz_add_flavour': ('add_bazaar_day_stock', 'rule', 'add-flavour', _BZO + 'add_flavour_without_a_price / '),
+    'rule_bz_add_max': ('add_bazaar_day_stock', 'rule', 'add-max', _BZO + 'add_over_the_most / '),
+    'rule_bz_add_carry': ('add_bazaar_day_stock', 'rule', 'add-carry', _BZO + 'add_carries_more_than_set_aside / '),
+    'rule_bz_close_shape': ('close_bazaar_day', 'rule', 'close-shape', _BZO + 'close_shape_extra_key / '),
+    'rule_bz_close_line_shape': ('close_bazaar_day', 'rule', 'close-line-shape', _BZO + 'close_line_extra_key / '),
+    'rule_bz_close_day_missing': ('close_bazaar_day', 'rule', 'close-day-missing', _BZO + 'close_day_missing / '),
+    'rule_bz_close_not_started': ('close_bazaar_day', 'rule', 'close-not-started', _BZO + 'close_before_the_day_starts / '),
+    'rule_bz_close_replay_conflict': ('close_bazaar_day', 'rule', 'close-replay-conflict', _BZO + 'close_again_other_count / '),
+    'rule_bz_close_at': ('close_bazaar_day', 'rule', 'close-at', _BZO + 'close_in_the_future / '),
+    'rule_bz_close_stale': ('close_bazaar_day', 'rule', 'close-stale', _BZO + 'close_stale_hash / '),
+    'rule_bz_close_lines': ('close_bazaar_day', 'rule', 'close-lines', _BZO + 'close_a_flavour_missing / '),
+    'rule_bz_close_split': ('close_bazaar_day', 'rule', 'close-split', _BZO + 'close_split_does_not_add_up / '),
+    'rule_bz_close_carry_last_day': ('close_bazaar_day', 'rule', 'close-carry-last-day', _BZO + 'close_carries_from_the_last_day / '),
+    'rule_bz_close_negative': ('close_bazaar_day', 'rule', 'close-negative', _BZO + 'close_more_left_than_there / '),
+    'rule_bz_close_sale_after': ('close_bazaar_day', 'rule', 'close-sale-after', _BZO + 'day_close_before_a_recorded_sale / '),
+    'rule_bz_fin_shape': ('finalise_bazaar', 'rule', 'fin-shape', _BZO + 'finalise_bad_hash / '),
+    'rule_bz_fin_booking_missing': ('finalise_bazaar', 'rule', 'fin-booking-missing', _BZO + 'finalise_booking_missing / '),
+    'rule_bz_fin_replay_conflict': ('finalise_bazaar', 'rule', 'fin-replay-conflict', _BZO + 'finalise_again_other_hash / '),
+    'rule_bz_fin_no_day': ('finalise_bazaar', 'rule', 'fin-no-day', _BZO + 'finalise_no_day_started / '),
+    'rule_bz_fin_open_day': ('finalise_bazaar', 'rule', 'fin-open-day', _BZO + 'finalise_while_a_day_is_open / '),
+    'rule_bz_fin_shop_no_recipe': ('finalise_bazaar', 'rule', 'fin-shop-no-recipe', _BZO + 'finalise_shop_flavour_without_recipe / '),
+    'rule_bz_fin_drop': ('finalise_bazaar', 'rule', 'fin-drop', _BZO + 'finalise_bad_drop / '),
+    'rule_bz_fin_stale': ('finalise_bazaar', 'rule', 'fin-stale', _BZO + 'finalise_stale_hash / '),
+    'rule_bz_close_event_bazaar_day': ('close_event', 'rule', 'close-event-bazaar-day', _BZO + 'old_close_refused_on_a_bazaar_day / '),
+    'rule_bz_fee_date': ('save_bazaar_fee', 'rule', 'fee-date', _BZO + 'fee_paid_on_far / '),
+    'rule_bz_start_later_started': ('start_bazaar_day', 'rule', 'start-later-started', _BZO + 'start_before_a_started_day / '),
+    'text_bz_till_expense_counts': ('bazaar_summary', 'text', ("where d.scheduled_id = p_booking and x.client_id <> 'rent:' || p_booking::text", 'where false'),
+                                    _BZC + 'second_fair_summary / '),
+    'text_bz_finalise_rows_not_twice': ('bazaar_summary', 'text',
+                                        ('\n             and not exists (select 1 from public.bazaar_fees bf where bf.scheduled_id = p_booking and bf.ledger_id = x.ledger_id)', ''),
+                                        _BZC + 'late_void_after_finalise / '),
+    'rule_bz_cost_replay': ('save_bazaar_cost', 'rule', 'cost-replay', _BZC + 'cost_repeat_adds_nothing / '),
+    'rule_bz_fin_rent': ('finalise_bazaar', 'rule', 'fin-rent', _BZC + 'finalise_posts_rent_and_fees / '),
+    'rule_bz_fin_no_recipe': ('finalise_bazaar', 'rule', 'fin-no-recipe', _BZC + 'finalise_records_each_shortfall / '),
+    'rule_bz_sale_packaging_bazaar_day': ('record_sale_packaging', 'rule', 'sale-packaging-bazaar-day', _BZC + 'bazaar_day_sale_takes_no_packaging / '),
+    'text_bz_half_up': ('bazaar_summary', 'text', ("coalesce(round(x.made * x.unit_cents), 0)", "coalesce(trunc(x.made * x.unit_cents), 0)"), _BZC + 'example_while_c_has_no_cost / '),
+    'text_bz_made_less_to_the_shop': ('bazaar_summary', 'text', ("y.made_cents - y.to_shop_cents as cost_cents", "y.made_cents as cost_cents"), _BZC + 'example_while_c_has_no_cost / '),
+    'text_bz_typed_wins': ('bazaar_summary', 'text', ("coalesce(k.typed_cents, fc.cost_cents, k.recipe_cents) as cents", "coalesce(k.recipe_cents, fc.cost_cents, k.typed_cents) as cents"), _BZC + 'typed_cost_wins_over_the_recipe / '),
+    'text_bz_profit_sign': ('bazaar_summary', 'text', ("- v_cookie + v_over - v_short;", "- v_cookie - v_over + v_short;"), _BZC + 'example_profit_and_target / '),
+    'text_bz_cash_only': ('bazaar_summary', 'text', ("s.pay_method = 'Cash'), 0)::bigint as cash", "true), 0)::bigint as cash"), _BZC + 'day_one_takings / '),
+    'text_bz_voided_counts_nowhere': ('bazaar_line_facts', 'text', ("where s.event_id = d.event_id and s.voided_at is null and i.product_id", "where s.event_id = d.event_id and i.product_id"), _BZC + 'day_one_stock / '),
+    'text_bz_zero_total_is_given': ('bazaar_line_facts', 'text', ("filter (where s.total_cents = 0) as given", "filter (where false) as given"), _BZC + 'day_one_stock / '),
+    # S3.1 (migration 69): the till check, taking back a fee or a loss, no sale after the finalise, no stock load on a bazaar day.
+    'rule_bz_close_till': ('close_bazaar_day', 'rule', 'close-till', _BZO + 'close_till_count_off / '),
+    'rule_bz_fin_till_shape': ('finalise_bazaar', 'rule', 'fin-till-shape', _BZO + 'finalise_till_shape / '),
+    'rule_bz_fin_till_day': ('finalise_bazaar', 'rule', 'fin-till-day', _BZO + 'finalise_till_other_booking / '),
+    'rule_bz_fin_till': ('finalise_bazaar', 'rule', 'fin-till', _BZO + 'finalise_till_count_off / '),
+    'rule_bz_fee_void_shape': ('void_bazaar_fee', 'rule', 'fee-void-shape', _BZO + 'fee_void_shape / '),
+    'rule_bz_fee_void_missing': ('void_bazaar_fee', 'rule', 'fee-void-missing', _BZO + 'fee_void_missing / '),
+    'rule_bz_fee_void_finalised': ('void_bazaar_fee', 'rule', 'fee-void-finalised', _BZO + 'fee_void_after_finalise / '),
+    'rule_bz_loss_void_shape': ('void_bazaar_loss', 'rule', 'loss-void-shape', _BZO + 'loss_void_shape / '),
+    'rule_bz_loss_void_missing': ('void_bazaar_loss', 'rule', 'loss-void-missing', _BZO + 'loss_void_missing / '),
+    'rule_bz_loss_void_day_closed': ('void_bazaar_loss', 'rule', 'loss-void-day-closed', _BZO + 'loss_void_day_closed / '),
+    'rule_bz_sale_finalised': ('refuse_finalised_bazaar_sale', 'rule', 'sale-finalised', _BZO + 'sale_after_finalise / '),
+    'rule_bz_load_bazaar_day': ('load_event_stock', 'rule', 'load-bazaar-day', _BZO + 'load_stock_on_a_bazaar_day / '),
+    'text_bz_void_fee_listed': ('bazaar_summary', 'text', ('where f.scheduled_id = p_booking and f.voided_at is null', 'where f.scheduled_id = p_booking'),
+                                _BZC + 'void_leaves_the_figures / '),
+    'text_bz_void_fee_of_the_day': ('bazaar_summary', 'text', ('where f.day_id = v_d.id and f.voided_at is null;', 'where f.day_id = v_d.id;'),
+                                    _BZC + 'void_leaves_the_figures / '),
+    'text_bz_void_loss_counted': ('bazaar_line_facts', 'text', ('\n                                              and o.voided_at is null) x on true', ') x on true'),
+                                  _BZC + 'void_leaves_the_figures / '),
+    'text_bz_void_loss_listed': ('get_bazaar', 'text', ('where d.scheduled_id = p_booking and o.voided_at is null),', 'where d.scheduled_id = p_booking),'),
+                                 _BZC + 'void_leaves_the_figures / '),
+    'text_bz_void_fee_posted': ('finalise_bazaar', 'text', ('and f.ledger_id is null and f.voided_at is null', 'and f.ledger_id is null'),
+                                _BZC + 'finalise_skips_a_voided_fee / '),
+    'text_bz_incomplete_recipe': ('start_bazaar_day', 'text', ("where r ->> 'product_id' = l.product_id and (r ->> 'complete')::boolean),", "where r ->> 'product_id' = l.product_id),"), _BZC + 'incomplete_recipe_is_no_cost / '),
+    'text_bz_held_lines': ('get_books', 'text', ("select coalesce(array_agg(h.ledger_id), '{}'::uuid[]) into v_held_ids", "select '{}'::uuid[] into v_held_ids"), _BZC + 'books_hold_an_open_bazaar / '),
+    'text_bz_held_period': ('get_books', 'text', ("where l.occurred_at >= p_from and l.occurred_at < p_to\n           group by h.scheduled_id", "where true\n           group by h.scheduled_id"), _BZC + 'books_held_follows_the_period / '),
+    'text_bz_variance_sign': ('finalise_bazaar', 'text', ("v_d.over - v_d.short, v_d.closed_at", "v_d.short - v_d.over, v_d.closed_at"), _BZC + 'finalise_posts_the_cash_variance / '),
+    'text_bz_packaging_per_cookie': ('finalise_bazaar', 'text', ("l.qty * v_p.qty as amount", "l.qty as amount"), _BZC + 'finalise_takes_stock / '),
+    'text_bz_shop_batch_drop': ('finalise_bazaar', 'text', ('v_p.qty, v_p.qty, 0, 0, r.version, p_drop, v_at,', 'v_p.qty, v_p.qty, 0, 0, r.version, 0, v_at,'),
+                                _BZC + 'finalise_shop_batch_enters_baked_stock / '),
+    'text_bz_shop_not_taken_twice': ('finalise_bazaar', 'text', ("(l ->> 'made')::integer - (l ->> 'to_shop')::integer as qty", "(l ->> 'made')::integer as qty"),
+                                     _BZC + 'finalise_shop_cookies_take_ingredients_once / '),
+    'text_bz_bag_per_sale': ('finalise_bazaar', 'text', ("else v_sales end as amount", "else 1 end as amount"), _BZC + 'finalise_records_each_shortfall / '),
+    # U6 (migration 70): a flavour's typed cost, the final split of the cookies no day took, the drawer as an adjustment, no packaging record without
+    # a rule, and the reversal of a test event.
+    'rule_bz_fcost_value': ('save_flavour_cost', 'rule', 'fcost-value', _BZO + 'fcost_negative / '),
+    'rule_bz_fcost_flavour': ('save_flavour_cost', 'rule', 'fcost-flavour', _BZO + 'fcost_flavour_missing / '),
+    'rule_bz_fcost_replay': ('save_flavour_cost', 'rule', 'fcost-replay', _BZC + 'fcost_repeat_adds_nothing / '),
+    'text_bz_flavour_cost_between': ('bazaar_summary', 'text', ("coalesce(k.typed_cents, fc.cost_cents, k.recipe_cents) as cents", "coalesce(k.typed_cents, k.recipe_cents, fc.cost_cents) as cents"),
+                                     _BZC + 'flavour_cost_beats_the_recipe / '),
+    'text_bz_booking_cost_beats_flavour': ('bazaar_summary', 'text', ("coalesce(k.typed_cents, fc.cost_cents, k.recipe_cents) as cents", "coalesce(fc.cost_cents, k.typed_cents, k.recipe_cents) as cents"),
+                                           _BZC + 'booking_cost_beats_the_flavour_cost / '),
+    'text_bz_flavour_cost_without_row': ('bazaar_summary', 'text', ("left join public.flavour_costs fc on fc.product_id = f.product_id", "left join public.flavour_costs fc on k.product_id is not null and fc.product_id = f.product_id"),
+                                         _BZC + 'flavour_cost_without_a_booking_row / '),
+    'rule_bz_fin_final_shape': ('finalise_bazaar', 'rule', 'fin-final-shape', _BZO + 'finalise_split_fraction / '),  # the NULL-safe sum check (U9) now refuses a missing part first, so the shape rule is first needed for a fraction
+    'rule_bz_fin_final_flavours': ('finalise_bazaar', 'rule', 'fin-final-flavours', _BZO + 'finalise_split_names_a_flavour_not_stranded / '),
+    'rule_bz_fin_final_sum': ('finalise_bazaar', 'rule', 'fin-final-sum', _BZO + 'finalise_split_does_not_add_up / '),
+    'rule_bz_fin_replay_split': ('finalise_bazaar', 'rule', 'fin-replay-split', _BZO + 'finalise_again_other_split / '),
+    'text_bz_final_split_to_the_shop': ('finalise_bazaar', 'text', ("to_shop_qty = l.to_shop_qty + (v_final -> (v_sx ->> 'product_id') ->> 'to_shop')::integer,", "to_shop_qty = l.to_shop_qty,"),
+                                        'bazaar_day_lines_split'),
+    'text_bz_final_split_recomputes': ('finalise_bazaar', 'text', ("    -- Every figure below, the shop batch included, is read from the lines as they are now.\n    select public.bazaar_summary(p_booking) into v_sum;\n",
+                                                                  "    -- Every figure below, the shop batch included, is read from the lines as they are now.\n"),
+                                       _BZC + 'finalise_with_a_final_split / '),
+    'text_bz_over_is_not_a_sale': ('finalise_bazaar', 'text', ("else 'adjustment'::public.ledger_kind end,", "else 'sale'::public.ledger_kind end,"), _BZC + 'finalise_posts_the_cash_variance / '),
+    'text_bz_no_rule_no_packaging_record': ('finalise_bazaar', 'text', ("if v_sales > 0 and exists (select 1 from public.packaging_rules r where r.container = 'bazaar_sale') then", "if v_sales > 0 then"),
+                                            _BZC + 'finalise_with_no_packaging_rule_writes_nothing / '),
+    'rule_bz_rev_shape': ('reverse_bazaar_test', 'rule', 'rev-shape', _BZO + 'reverse_shape / '),
+    'rule_bz_rev_booking_missing': ('reverse_bazaar_test', 'rule', 'rev-booking-missing', _BZO + 'reverse_booking_missing / '),
+    'rule_bz_rev_name': ('reverse_bazaar_test', 'rule', 'rev-name', _BZO + 'reverse_wrong_name / '),
+    'rule_bz_rev_not_finalised': ('reverse_bazaar_test', 'rule', 'rev-not-finalised', _BZO + 'reverse_not_finalised / '),
+    'rule_bz_rev_shop': ('reverse_bazaar_test', 'rule', 'rev-shop', _BZO + 'reverse_sent_cookies_to_the_shop / '),
+    'rule_bz_rev_cutover': ('reverse_bazaar_test', 'rule', 'rev-cutover', _BZO + 'reverse_after_a_cost_cutover / '),
+    'rule_bz_rev_counted': ('reverse_bazaar_test', 'rule', 'rev-counted', _BZO + 'reverse_after_a_count / '),
+    'rule_bz_rev_ledger': ('reverse_bazaar_test', 'rule', 'rev-ledger', _BZO + 'reverse_ledger_off_by_a_centavo / '),
+    'rule_bz_rev_replay': ('reverse_bazaar_test', 'rule', 'rev-replay', _BZO + 'reverse_repeat_answered / '),
+    'text_bz_reverse_negates': ('reverse_bazaar_test', 'text', ("-l.amount_cents, l.occurred_at, auth.uid()", "l.amount_cents, l.occurred_at, auth.uid()"), _BZC + 'reverse_negates_each_line / '),
+    'text_bz_reverse_keeps_the_date': ('reverse_bazaar_test', 'text', ("-l.amount_cents, l.occurred_at, auth.uid()", "-l.amount_cents, now(), auth.uid()"), _BZC + 'reverse_keeps_the_dates / '),
+    'text_bz_reverse_only_what_was_taken': ('reverse_bazaar_test', 'text', ("-m.qty_delta as take", "-m.qty_delta + m.short_qty as take"), _BZC + 'reverse_restores_stock / '),
+    'text_bz_reverse_checks_revenue': ('reverse_bazaar_test', 'text', ("           or v_sales <> (v_sum -> 'revenue' ->> 'revenue_cents')::bigint\n", ""), _BZO + 'reverse_sales_off_by_a_centavo / '),
+    'text_bz_reverse_checks_fees': ('reverse_bazaar_test', 'text', ("           or v_costs <> (v_sum -> 'fees' ->> 'total_cents')::bigint\n", ""), _BZO + 'reverse_ledger_off_by_a_centavo / '),
+}
+BAZAAR_DAY_ACL = ('get_bazaar(uuid)', 'save_bazaar_day(jsonb,timestamptz)', 'save_bazaar_fee(jsonb)', 'save_bazaar_loss(jsonb)',
+                  'save_bazaar_cost(uuid,text,numeric)', 'save_bazaar_target(uuid,bigint)', 'start_bazaar_day(uuid,text,uuid)',
+                  'add_bazaar_day_stock(uuid,text,integer,text,uuid)', 'close_bazaar_day(jsonb)', 'finalise_bazaar(uuid,text,integer,jsonb,jsonb)',
+                  'void_bazaar_fee(text)', 'void_bazaar_loss(text)', 'save_flavour_cost(text,numeric)', 'get_flavour_costs()', 'reverse_bazaar_test(uuid,text)', 'refuse_finalised_bazaar_sale()', 'bazaar_summary(uuid)', 'bazaar_line_facts(uuid)', 'bazaar_held_ledger()', 'recipe_stock_plan(text,numeric,text,jsonb)')
 SUITES = (
     ('public-catalog.sql', ('catalog_raw_read','catalog_view_update'), 'catalog boundary', 41),
     ('private-role-authority.sql', ('private_orders_select','private_stock_update'), 'private authority', 103),
@@ -686,12 +1179,19 @@ SUITES = (
     ('production.sql', ('record_production(jsonb)', 'record_pack(text,integer)', 'get_production(integer)', 'record_discard(jsonb)')
                        + tuple(PRODUCTION_MUTATIONS) + tuple(PRODUCTION_TABLE_MUTATIONS), 'forbidden production call succeeded', 129),
     ('books.sql', ('get_books(timestamptz,timestamptz)', 'record_expense(jsonb)', 'record_cost_correction(jsonb)', 'set_cost_basis(text)', 'record_draw(jsonb)')
-                  + tuple(BOOKS_MUTATIONS) + tuple(BOOKS_TABLE_MUTATIONS), 'forbidden books call succeeded', 107),
+                  + tuple(BOOKS_MUTATIONS) + tuple(BOOKS_TABLE_MUTATIONS), 'forbidden books call succeeded', 110),
     ('item-costs.sql', ('save_item_price(jsonb)', 'get_item_costs()', 'get_recipe_costs()') + tuple(COST_MUTATIONS),
      'forbidden cost call succeeded', 172),
+    ('item-movements.sql', ('get_item_movements(text,integer)',) + tuple(MOVEMENT_MUTATIONS), 'forbidden movements call succeeded', 31),
     ('batch-correction.sql', ('record_batch_correction(jsonb)',) + tuple(BATCH_CORRECTION_MUTATIONS), 'forbidden correction call succeeded', 110),
+    ('packaging.sql', ('get_packaging_rules()', 'save_packaging_rule(jsonb)', 'write_packaging_rule(jsonb)', 'apply_packaging_rule(jsonb)')
+                      + tuple(PACKAGING_MUTATIONS) + tuple(PACKAGING_TABLE_MUTATIONS), 'forbidden packaging call succeeded', 146),
+    ('cutover.sql', ('preview_cost_cutover()', 'apply_cost_cutover(jsonb)') + tuple(COST_CUTOVER_MUTATIONS) + tuple(COST_CUTOVER_TABLE_MUTATIONS),
+     'forbidden cutover call succeeded', 152),
+    ('imports.sql', IMPORT_ACL + tuple(IMPORT_MUTATIONS), 'forbidden import call succeeded', 261),
     ('operations.sql', tuple(OPERATIONS_MUTATIONS), 'forbidden operations call succeeded', 14),
     ('bazaar-closeout.sql', ('event_summary(uuid)', 'load_event_stock(uuid,jsonb,bigint)', 'add_event_expense(jsonb)', 'close_event(jsonb)'), 'forbidden closeout call succeeded', 80),
+    ('bazaar-days.sql', BAZAAR_DAY_ACL + tuple(BAZAAR_DAY_MUTATIONS), 'forbidden bazaar day call succeeded', 317),
     ('shop-identity.sql', ('save_shop_identity(jsonb,timestamptz)', 'business_clock(timestamptz)') + tuple(IDENTITY_MUTATIONS) + tuple(IDENTITY_RULES),
      'forbidden identity call succeeded', IDENTITY_ROWS),
     ('policies.sql', tuple(POLICY_MUTATIONS), 'policy', 42),
@@ -731,13 +1231,13 @@ PAYMENT_MUTATIONS = {
 REPORT = ROOT / "docs/state/evidence/MP-06l-security.json"
 EMPTY_FIXTURES = 'select ' + ' and '.join(
     'not exists(select 1 from public.' + table + ')'
-    for table in ('orders', 'order_items', 'products', 'drops', 'settings', 'rate_limits', 'profiles', 'audit_log', 'ledger_entries', 'event_sales', 'event_sale_items', 'inventory_items', 'bake_batches', 'recipes', 'recipe_ingredients', 'suppliers', 'supplier_prices', 'events', 'erasure_requests', 'payment_methods', 'shop_texts', 'shop_identity', 'waitlist_entries', 'order_add_ons', 'order_boxes', 'scheduled_events', 'recipe_versions', 'stock_movements', 'item_prices')) + " and not exists(select 1 from auth.users) and to_regnamespace('mp06f_probe') is null and to_regnamespace('mp06g_probe') is null and to_regclass('public.mp06g_future') is null and to_regclass('public.mp06g_future_id_seq') is null;"
+    for table in ('orders', 'order_items', 'products', 'drops', 'settings', 'rate_limits', 'profiles', 'audit_log', 'ledger_entries', 'event_sales', 'event_sale_items', 'inventory_items', 'packaging_rules', 'cost_cutover', 'bake_batches', 'recipes', 'recipe_ingredients', 'suppliers', 'supplier_prices', 'events', 'erasure_requests', 'payment_methods', 'shop_texts', 'shop_identity', 'waitlist_entries', 'order_add_ons', 'order_boxes', 'scheduled_events', 'recipe_versions', 'stock_movements', 'item_prices')) + " and not exists(select 1 from auth.users) and to_regnamespace('mp06f_probe') is null and to_regnamespace('mp06g_probe') is null and to_regclass('public.mp06g_future') is null and to_regclass('public.mp06g_future_id_seq') is null;"
 
 
 def main():
     if len(sys.argv) != 1:
         h.fail("security fixture accepts no URLs, project refs or arguments")
-    report = {"status": "failed", "scope": "Local SQL-role containment and erasure authority/effects; not JWT/API, hosted erasure or full MP-06 acceptance", "runs": [], "regressions_detected": [], "upgrade_runs": 0, "legacy_regression_diagnostics": [], "sequence_restorations": 0, "function_guard_runs": 0, "catalog_guard_runs": 0, "catalog_guard_red_runs": 0}
+    report = {"status": "failed", "scope": "Local SQL-role containment and erasure authority/effects; not JWT/API, hosted erasure or full MP-06 acceptance", "runs": [], "regressions_detected": [], "upgrade_runs": 0, "legacy_regression_diagnostics": [], "sequence_restorations": 0, "function_guard_runs": 0, "pair_guard_runs": 0, "catalog_guard_runs": 0, "catalog_guard_red_runs": 0}
 
     def check(db_id, workdir, password, fixture_report):
         def assert_functions():
@@ -792,6 +1292,37 @@ def main():
                 if json.loads(h.psql(db_id, workdir, state_sql)) != before:
                     h.fail('owned audit sequence restoration failed')
                 report['sequence_restorations'] += 1
+        assert_empty()
+        def assert_pair_guard():
+            # B4a-2 (P2): migration 63 stops, listing the pairs, when a packaging rule already takes an item that a recipe takes as an ingredient.
+            # The guard is the migration's first `do` block; it runs here on its own over a rolled-back fixture, once with no pair (a packaging
+            # line may share its item with a rule) and once with a pair.
+            text = (ROOT / 'supabase/migrations/20260101006200_cost_cutover_fix.sql').read_text(encoding='utf-8')
+            start = text.index('do $$')
+            guard = text[start:text.index('end $$;', start) + len('end $$;')]
+            fixture = (
+                "insert into public.products(id, name, short_name, price_cents, kind) values ('pgp1', 'PG cookie', 'PG-1', 100, 'cookie');\n"
+                "insert into public.inventory_items(id, name, unit, category, active, on_hand) values ('pgi-a', 'PG A', 'g', 'Ingredients', true, 1), ('pgi-b', 'PG B', 'pcs', 'Packaging', true, 1);\n"
+                "insert into public.recipes(product_id, yield_count) values ('pgp1', 1);\n"
+                "insert into public.recipe_ingredients(product_id, item_name, qty, unit, position, item_id, kind) values "
+                "('pgp1', 'PG A', 1, 'g', 0, 'pgi-a', 'ingredient'), ('pgp1', 'PG B', 1, 'pcs', 1, 'pgi-b', 'packaging');\n"
+                "insert into public.packaging_rules(container, item_id, qty, per, position) values ('order', 'pgi-b', 1, 'container', 1);\n")
+            green = 'begin;\n' + fixture + guard + "\nselect 'PAIR_GUARD_PASSED';\nrollback;"
+            if 'PAIR_GUARD_PASSED' not in h.psql(db_id, workdir, green):
+                h.fail('pair guard stopped a database with no rule/ingredient pair')
+            red = ('begin;\n' + fixture
+                   + "insert into public.packaging_rules(container, item_id, qty, per, position) values ('loose', 'pgi-a', 1, 'cookie', 1);\n"
+                   + guard + "\nselect 'PAIR_GUARD_PASSED';\nrollback;")
+            try:
+                out = h.psql(db_id, workdir, red)
+            except RuntimeError as error:
+                message = str(error)
+                if 'an item that a recipe takes as an ingredient' not in message or 'recipe pgp1' not in message or 'item pgi-a' not in message or 'pgi-b' in message:
+                    h.fail('pair guard stopped without listing exactly the pair: ' + message[:300])
+            else:
+                h.fail('pair guard let a rule/ingredient pair through: ' + out[:200])
+            report['pair_guard_runs'] += 1
+        assert_pair_guard()
         assert_empty()
         upgrade = (ROOT / 'tests/integration/security/profile-upgrade.sql').read_text(encoding='utf-8')
         migration = (ROOT / 'supabase/migrations/20260101001100_active_profile_authority.sql').read_text(encoding='utf-8')
@@ -875,6 +1406,29 @@ def main():
                 if filename == 'batch-correction.sql' and signature in BATCH_CORRECTION_MUTATIONS:
                     broken = sql.replace('begin;', 'begin;' + chr(10) + order_mutant(signature), 1)
                     expected_error = BATCH_CORRECTION_MUTATIONS[signature][3]
+                if filename == 'packaging.sql':
+                    if signature in PACKAGING_MUTATIONS:
+                        broken = sql.replace('begin;', 'begin;' + chr(10) + order_mutant(signature), 1)
+                        expected_error = PACKAGING_MUTATIONS[signature][3]
+                    elif signature in PACKAGING_TABLE_MUTATIONS:
+                        unsafe, expected_error = PACKAGING_TABLE_MUTATIONS[signature]
+                        broken = sql.replace('begin;', 'begin;' + chr(10) + unsafe, 1)
+                if filename == 'cutover.sql':
+                    if signature in COST_CUTOVER_MUTATIONS:
+                        broken = sql.replace('begin;', 'begin;' + chr(10) + order_mutant(signature), 1)
+                        expected_error = COST_CUTOVER_MUTATIONS[signature][3]
+                    elif signature in COST_CUTOVER_TABLE_MUTATIONS:
+                        unsafe, expected_error = COST_CUTOVER_TABLE_MUTATIONS[signature]
+                        broken = sql.replace('begin;', 'begin;' + chr(10) + unsafe, 1)
+                if filename == 'imports.sql' and signature in IMPORT_MUTATIONS:
+                    broken = sql.replace('begin;', 'begin;' + chr(10) + order_mutant(signature), 1)
+                    expected_error = IMPORT_MUTATIONS[signature][3]
+                if filename == 'item-movements.sql' and signature in MOVEMENT_MUTATIONS:
+                    broken = sql.replace('begin;', 'begin;' + chr(10) + order_mutant(signature), 1)
+                    expected_error = MOVEMENT_MUTATIONS[signature][3]
+                if filename == 'bazaar-days.sql' and signature in BAZAAR_DAY_MUTATIONS:
+                    broken = sql.replace('begin;', 'begin;' + chr(10) + order_mutant(signature), 1)
+                    expected_error = BAZAAR_DAY_MUTATIONS[signature][3]
                 if filename == 'item-costs.sql' and signature in COST_MUTATIONS:
                     broken = sql.replace('begin;', 'begin;' + chr(10) + order_mutant(signature), 1)
                     expected_error = COST_MUTATIONS[signature][3]
@@ -992,7 +1546,7 @@ def main():
                 h.fail(filename + ' did not return its complete role matrix')
             results.extend(rows)
             assert_empty()
-        if len(set(results)) != 2456:
+        if len(set(results)) != 3366:
             h.fail('combined role matrix has missing or duplicate cases: %d rows, %d unique (duplicates: %s)' % (len(results), len(set(results)), sorted({r for r in results if results.count(r) > 1})[:5]))
         assert_functions()
         assert_catalog_wide()
@@ -1005,10 +1559,10 @@ def main():
     try:
         code = h.main(after_reset=check)
         if (code == 0 and len(report["runs"]) == 2 and report["runs"][0] == report["runs"][1]
-                and len(report['regressions_detected']) == 856 and report['sequence_restorations'] == 10
-                and report['upgrade_runs'] == 2 and report['function_guard_runs'] == 4
+                and len(report['regressions_detected']) == 1578 and report['sequence_restorations'] == 10
+                and report['upgrade_runs'] == 2 and report['pair_guard_runs'] == 2 and report['function_guard_runs'] == 4
                 and report['catalog_guard_runs'] == 4 and report['catalog_guard_red_runs'] == 4):
-            report.update(status="passed", cases_per_reset=2456, resets=2, matrix_equal=True, rollback_verified=True,
+            report.update(status="passed", cases_per_reset=3366, resets=2, matrix_equal=True, rollback_verified=True,
                           sql_sha256={name: hashlib.sha256((ROOT / 'tests/integration/security' / name).read_bytes()).hexdigest() for name, _, _, _ in SUITES},
                           harness_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
     except (RuntimeError, OSError, ValueError) as error:
