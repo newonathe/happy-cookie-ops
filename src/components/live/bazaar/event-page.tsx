@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type * as React from 'react';
 import type { BazaarDayRow, BazaarEventView } from '@/lib/bazaar/live-bazaar-types';
 import { primaryActionOf, type PrimaryAction } from '@/lib/bazaar/event-rules';
@@ -163,12 +163,25 @@ function DayRow({
   );
 }
 
+type OnSaving = ((saving: boolean) => void) | undefined;
+
+/** Tells the sheet around a form when a save starts and ends, so the sheet stays open until the answer is shown. */
+function useReportSaving(saving: boolean, onSaving: OnSaving) {
+  const last = useRef(false);
+  useEffect(() => {
+    if (last.current === saving) return;
+    last.current = saving;
+    onSaving?.(saving);
+  }, [saving, onSaving]);
+}
+
 /** The fees of the event, with the stall rent first, and a form to add one. */
-export function FeesSection({ event }: { event: BazaarEventView }) {
+export function FeesSection({ event, onSaving }: { event: BazaarEventView; onSaving?: OnSaving }) {
   const [label, setLabel] = useState('');
   const [amount, setAmount] = useState('');
   const [dayId, setDayId] = useState('');
   const { error, saving, run } = useSave();
+  useReportSaving(saving, onSaving);
   const [removeError, setRemoveError] = useState<string | null>(null);
   const issues = useIssues(() => validateFeeForm({ label, amount }));
   const { addFee } = event;
@@ -266,9 +279,10 @@ export function FeesSection({ event }: { event: BazaarEventView }) {
   );
 }
 
-function TargetSection({ event }: { event: BazaarEventView }) {
+function TargetSection({ event, onSaving }: { event: BazaarEventView; onSaving?: OnSaving }) {
   const [pesos, setPesos] = useState(event.targetPesos);
   const { error, saving, run } = useSave();
+  useReportSaving(saving, onSaving);
   const issues = useIssues(() => validateTargetForm({ pesos }));
   const { saveTarget } = event;
   const submit = async (e: React.FormEvent) => {
@@ -320,9 +334,16 @@ function TargetSection({ event }: { event: BazaarEventView }) {
 }
 
 /** One flavour's cost per cookie as a receipt: what it is, where it came from, how the recipe makes it up. */
-function CostCard({ cost }: { cost: BazaarEventView['costs'][number] }) {
+function CostCard({
+  cost,
+  onSaving
+}: {
+  cost: BazaarEventView['costs'][number];
+  onSaving?: OnSaving;
+}) {
   const [pesos, setPesos] = useState(cost.typedPesos);
   const { error, saving, run } = useSave();
+  useReportSaving(saving, onSaving);
   const field = formIds.cost(cost.productId);
   const issues = useIssues(() => validateCostForm({ field, pesos }));
   const { save } = cost;
@@ -490,6 +511,12 @@ type CostsPanel = 'fees' | 'target' | 'costs';
  */
 function CostsCard({ event }: { event: BazaarEventView }) {
   const [open, setOpen] = useState<CostsPanel | null>(null);
+  // How many of the open sheet's forms are saving: the sheet stays open until each answer (or refusal) is on screen.
+  const [saving, setSaving] = useState(0);
+  const onSaving = (on: boolean) => setSaving((n) => Math.max(0, n + (on ? 1 : -1)));
+  const close = () => {
+    if (saving === 0) setOpen(null);
+  };
   const n = event.fees.length;
   const k = event.costs.length;
   const rows: Array<{ key: CostsPanel; label: string; detail: string; value: string }> = [
@@ -549,21 +576,26 @@ function CostsCard({ event }: { event: BazaarEventView }) {
       {open ? (
         <Sheet
           title={title[open]}
-          onClose={() => setOpen(null)}
+          onClose={close}
           footer={
-            <Button variant="secondary" onClick={() => setOpen(null)}>
+            <Button
+              variant="secondary"
+              onClick={close}
+              disabled={saving > 0}
+              reason="Saving… The sheet closes once it is saved."
+            >
               Done
             </Button>
           }
         >
           {open === 'fees' ? (
-            <FeesSection event={event} />
+            <FeesSection event={event} onSaving={onSaving} />
           ) : open === 'target' ? (
-            <TargetSection event={event} />
+            <TargetSection event={event} onSaving={onSaving} />
           ) : (
             <ul aria-label="Cost per cookie" className="m-0 flex list-none flex-col gap-2 p-0">
               {event.costs.map((c) => (
-                <CostCard key={c.productId} cost={c} />
+                <CostCard key={c.productId} cost={c} onSaving={onSaving} />
               ))}
             </ul>
           )}
