@@ -36,7 +36,7 @@ Next: the rehearsal on the selling iPhone (row 7, steps below).
    price for that day, and the drawer float. The plan can be changed until the day starts.
 2. **Start this day**, with signal, on the phone that will sell. The till opens with that day's cookies and prices.
 3. **Sell.** No signal is needed. Sales save on the phone and send when there is signal.
-4. **Close out** (on the till) opens the day's review. It needs signal, and every sale on the phone must have been
+4. **⋯** › **Review and close the day** (on the till) opens the day's review. It needs signal, and every sale on the phone must have been
    sent first (**Sync now**). A sale the server refused is not "unsent": the review lists it instead (rule 6). The
    close sends the till's own count of sales and cash, and the server refuses it until it holds the same. The review shows what should be left, the losses, the takings, the cash expected and the
    event so far; each figure opens to show how it was worked out. Record a loss or add stock there.
@@ -64,7 +64,7 @@ Next: the rehearsal on the selling iPhone (row 7, steps below).
    match what it holds ("the day changed… tap Sync now"). If the sale was a mistake, void it on the till and close; if it
    was real money, write it on the paper tally, void it, close, and tell Ethan. A phone that holds a closed day lets go
    of it once only refused sales are left. If a close's answer is lost, selling pauses until the day is read again with
-   signal (tap **Close out**). A fee or a loss recorded by mistake can be removed (**Remove** on its row): a fee until
+   signal (**⋯** › **Review and close the day**). A fee or a loss recorded by mistake can be removed (**Remove** on its row): a fee until
    the event is closed, a loss while its day is selling.
 7. **Cookies sent to the shop need a recipe** for that flavour; without one, write them off instead, or closing the
    event is refused.
@@ -73,14 +73,27 @@ Next: the rehearsal on the selling iPhone (row 7, steps below).
 9. **The iPhone sends only while the app is open.** Each evening open it on Wi-Fi and wait for "Synced".
 10. **Paper tally all day**, one line per sale: flavours, total, how paid.
 
-## What is new on the phone (Bazaar v2, 16 October)
+## What is new on the phone (19 October): the consolidated till
 
-- **Leave and return to the till.** On the till, **← Home** (top left of the till tools) leaves it without closing the day.
+- **One screen to sell from.** Tap a cookie's photo to add one; a **−** on the photo takes one off. The bar at the bottom
+  holds the sale, **Freebie** and **Charge**, and stays on screen while you scroll. The sync line and **Sync now** sit at the top.
+- **The ⋯ button** (top right of the till) holds the rest: **Add cookies**, **Fees and expenses**, **Review and close the
+  day**, **Back to Home** and **Use the classic till**. Home and Add cookies show only for the owner, with signal.
+- **Void a sale:** tap the sale in "Sales today", then **Void this sale**. **Keep it** changes nothing. A sale that could
+  not be sent keeps **Send again** on its row.
+- **The classic till is one tap away:** **⋯** › **Use the classic till** brings back the till from before (16 October),
+  with its own buttons; **Use the new till** at its top returns. Both sell the same way and keep the same sales. The choice
+  is per app: the Home Screen app and Safari each remember their own. If the new till ever fails to draw, the classic
+  one appears by itself.
+
+## What was new on the phone (Bazaar v2, 16 October)
+
+- **Leave and return to the till.** On the till, **⋯** › **Back to Home** leaves it without closing the day.
   Home then shows a **Bazaar** card with the day's takings and **Back to the till →**; every other screen shows a banner
   "(event) is selling" with **Back to the till**. Nothing is lost by leaving.
 - **Sold-out cookies hide.** A flavour that reaches 0 slides off the till. **Show sold out (n)** brings it back; a void
   brings it back by itself. When everything is gone the till says so.
-- **Add cookies** (owner, top right of the till tools): add cookies to a flavour mid-day without leaving the till.
+- **Add cookies** (owner, **⋯** on the till): add cookies to a flavour mid-day without leaving the till.
 - **Events hub.** Sell › Bazaar events: **Add an event** (top right), **Active** pinned on top, **Upcoming** and **Past** under
   chips, a status pill on each row (Planned, Selling, Today, Closed, Cost pending).
 - **Event page.** One main button for the state (review a selling day, start the first planned day, plan the next date, or
@@ -128,12 +141,13 @@ was.
    should see:** the footer at the bottom reads "10 cookies" with a peso total, and it is not hidden behind the bottom
    tabs. Tap **Start this day**. (If it asks "Start anyway", the date is not today: tap it only if you chose another date on
    purpose.)
-7. **You should see:** the till (Bazaar Mode) with those two flavours at 5 each and your prices, and no old "Start an
-   event" list.
+7. **You should see:** the consolidated till: two photo tiles at 5 each with your prices, a **⋯** button top right, and
+   the sale bar with **Charge** at the bottom. If you see the older till instead (separate **Close out** and **Void**
+   buttons), the phone has the old version: close the app, open it once with signal, and check again.
 
 **Part B: leave the till and come back**
 
-8. At the top of the till, tap **← Home**. **You should see:** Home, with a "Bazaar" card at the top showing "Rehearsal"
+8. On the till, tap **⋯**, then **Back to Home**. **You should see:** Home, with a "Bazaar" card at the top showing "Rehearsal"
    with a **Selling** pill and a **Back to the till →** button.
 9. Tap **Sell**. **You should see:** a banner "Rehearsal is selling" with **Back to the till**. Tap **Back to the till**.
    **You should see:** the till again, as you left it.
@@ -143,27 +157,27 @@ was.
 10. Tap one flavour's tile 5 times, tap **Charge**, then **Cash**, type an amount in "Cash handed over", and confirm. Write
     the sale on the paper tally. **You should see:** the sale in the list, and that flavour's tile slides away (it is sold
     out) with a button **Show sold out (1)**. Tap it: the tile comes back marked sold out; tap **Hide sold out**.
-11. Tap **Add cookies**, add 3 to that flavour, and confirm. **You should see:** the tile is back with 3.
+11. Tap **⋯** › **Add cookies**, add 3 to that flavour, and confirm. **You should see:** the tile is back with 3.
 12. Swipe down from the top right corner of the screen to open the Control Centre and tap the aeroplane. Close the Control
-    Centre. Ring up 4 sales of mixed flavours, then tap **Freebie** for one more, and **Void** one of the sales. **You should
+    Centre. Ring up 4 sales of mixed flavours, then tap **Freebie** for one more, and void one of the sales (tap it in "Sales today", then **Void this sale**). **You should
     see:** "Offline · sales are being saved on this device"; the list matches your tally; the voided cookies are back on
     their tile.
 13. Still in aeroplane mode: swipe up from the bottom edge and hold to see the open apps, and flick the app up to close it.
     Tap its icon on the Home Screen. **You should see:** it opens on Bazaar Mode, the same day, the same sales, and no
     sign-in page. Tap **Charge** and read the last line: it says "Rung up by" with the signed-in person's own name. Close
     the payment sheet without charging.
-14. Tap **Close out**. **You should see:** "Closing the day needs signal. Keep selling…" and the till stays. Nothing is closed.
+14. Tap **⋯** › **Review and close the day**. **You should see:** "Closing the day needs signal. Keep selling…" and the till stays. Nothing is closed.
 15. Open the Control Centre and tap the aeroplane off. Tap **Sync now** and wait. **You should see:** "Synced".
 
 **Part D: review and close day 1**
 
-16. Tap **Close out**. **You should see:** the day's review with tiles Revenue, Cash, Fees, Sold, Left and Lost. Tap
+16. Tap **⋯** › **Review and close the day**. **You should see:** the day's review with tiles Revenue, Cash, Fees, Sold, Left and Lost. Tap
     **Revenue**: it opens to show how it was worked out. Compare Revenue, Cash and Sold with your paper tally. **They
     should equal it.**
 17. Scroll to the loss form (**Record a loss**) and record a loss of 1 cookie with a reason. **You should see:** a Lost
     count of 1.
 18. Go back to the till (**Back to the till**) and void the remaining sales, one at a time. Tap **Sync now**, wait for
-    "Synced", then **Close out** again. **You should see:** Revenue 0.00.
+    "Synced", then **⋯** › **Review and close the day** again. **You should see:** Revenue 0.00.
 19. Scroll to the close form. **You should see:** it is already filled in: the cookies left are going to the next day, and
     **Cash counted** shows the cash expected. In **Cash counted** type `99999`. **You should see:** "That is ₱… over. Count
     the drawer again?" with **Count again** and **Keep**. Tap **Count again**, then tap **It matches**. Then write off 1 of
@@ -177,7 +191,7 @@ was.
 21. On the event page tap tomorrow's date. **You should see:** the plan, with the carried-over cookies already filled in.
     Tap + to add 3 more of one flavour. Tap **Start this day**. Turn aeroplane mode on, close the app and open it again as in
     step 13, and ring up 2 sales. **You should see:** the till with day 2's cookies, no sign-in page, the sales in the list.
-    Turn aeroplane mode off and tap **Sync now**. Void the sales. Tap **Close out**. **You should see:** no "carried over"
+    Turn aeroplane mode off and tap **Sync now**. Void the sales. Tap **⋯** › **Review and close the day**. **You should see:** no "carried over"
     field (it is the last day). Send 1 cookie to the shop for a flavour with a recipe, write off the rest, and tap **Close
     the day**. **You should see:** "Day closed."
 
@@ -226,11 +240,11 @@ Anything that fails is fixed and the whole list is run again before 23 October.
 
 - [ ] Paper tally, one line per sale. No signal is fine: sales save on the phone.
 - [ ] More cookies than planned: **Add cookies** (a flavour cannot be left with more than was made).
-- [ ] A mistake in a sale: **Void** it on the till. A dropped cookie: record the loss in the review.
+- [ ] A mistake in a sale: tap it in "Sales today" and **Void this sale**. A dropped cookie: record the loss in the review.
 
 **Each evening (with good signal)**
 
-- [ ] **Sync now**, wait for "Synced", then **Close out**; compare Revenue, Cash and Sold with the tally.
+- [ ] **Sync now**, wait for "Synced", then **⋯** › **Review and close the day**; compare Revenue, Cash and Sold with the tally.
 - [ ] Count the drawer and type it in **Cash counted** (tap **It matches** only if it truly matches); **Close the day**.
 - [ ] Plan the next day before leaving the signal. Download the CSV and keep the paper tally.
 - [ ] Open the app on Wi-Fi once more so nothing waits unsent.
