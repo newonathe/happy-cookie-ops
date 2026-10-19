@@ -181,6 +181,18 @@ describe('the consolidated till calls the ported handlers', () => {
     expect(v.bzSales[0]!.void).toHaveBeenCalledTimes(1);
   });
 
+  it('a sale arriving while a sale is open does not change which sale is voided', () => {
+    const older = sale({ summary: '2× White Chocolate Biscoff' });
+    const first = vals({ bzSales: [older] });
+    const { rerender } = render(<ConsolidatedTill v={first} till={till()} panel={null} />);
+    fireEvent.click(screen.getByRole('button', { name: /2× White Chocolate Biscoff/ }));
+    const newer = sale({ summary: '1× Double Chocolate Fudge' });
+    rerender(<ConsolidatedTill v={vals({ bzSales: [newer, older] })} till={till()} panel={null} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Void this sale' }));
+    expect(older.void).toHaveBeenCalledTimes(1);
+    expect(newer.void).not.toHaveBeenCalled();
+  });
+
   it('a sale that could not be sent keeps "Send again" on its row', () => {
     const bad = sale({ bad: true, ok: false });
     const v = vals({ bzSales: [bad] });

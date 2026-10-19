@@ -34,10 +34,12 @@ export function ConsolidatedTill({
   panel: TillPanelView | null | undefined;
 }) {
   const [menu, setMenu] = useState(false);
-  const [saleIndex, setSaleIndex] = useState<number | null>(null);
+  // The open sale, counted from the oldest: the list is newest first, so a sale arriving cannot move it.
+  const [saleFromOldest, setSaleFromOldest] = useState<number | null>(null);
   const [allSales, setAllSales] = useState(false);
   const sales = v.bzSales ?? [];
-  const sale = saleIndex === null ? undefined : sales[saleIndex];
+  const sale = saleFromOldest === null ? undefined : sales[sales.length - 1 - saleFromOldest];
+  const closeSale = () => setSaleFromOldest(null);
   const shown = allSales ? sales : sales.slice(0, SALES_SHOWN);
   const pick = (run: () => void) => () => {
     setMenu(false);
@@ -169,7 +171,7 @@ export function ConsolidatedTill({
             </span>
           </div>
           {shown.map((sl, i) => (
-            <SaleRow key={i} sale={sl} open={() => setSaleIndex(i)} />
+            <SaleRow key={i} sale={sl} open={() => setSaleFromOldest(sales.length - 1 - i)} />
           ))}
           {sales.length > SALES_SHOWN ? (
             <button
@@ -219,19 +221,19 @@ export function ConsolidatedTill({
       {sale ? (
         <Sheet
           title="This sale"
-          onClose={() => setSaleIndex(null)}
+          onClose={closeSale}
           footer={
             <div className="flex flex-col gap-2">
               <Button
                 variant="danger"
                 onClick={() => {
-                  setSaleIndex(null);
+                  closeSale();
                   sale.void();
                 }}
               >
                 Void this sale
               </Button>
-              <Button variant="ghost" onClick={() => setSaleIndex(null)}>
+              <Button variant="ghost" onClick={closeSale}>
                 Keep it
               </Button>
             </div>
