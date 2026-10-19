@@ -104,9 +104,16 @@ export function FlavourTile({
           {body}
         </button>
       ) : (
-        <div className={shell}>{body}</div>
+        // A tile's controls sit inside its card, under the price (Ethan, 19 October: nothing spills out of a tile).
+        <div className={shell}>
+          {body}
+          {stepper ? (
+            <div data-part="controls" className="flex justify-center border-t border-divide pt-2">
+              {stepper}
+            </div>
+          ) : null}
+        </div>
       )}
-      {stepper ? <div className="flex justify-center">{stepper}</div> : null}
     </div>
   );
 }

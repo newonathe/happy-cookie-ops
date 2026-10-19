@@ -86,6 +86,14 @@ Next: the rehearsal on the selling iPhone (row 7, steps below).
   is per app: the Home Screen app and Safari each remember their own. If the new till ever fails to draw, the classic
   one appears by itself.
 
+**Also new (20 October), the planning screens:**
+
+- **Event page:** one summary card (status, place and dates, the four figures and the one main button), the days side by
+  side, then one **Costs** card: **Fees**, **Target profit** and **Cost per cookie**, each showing its figure. Tap a row to
+  open its form; **Done** closes it.
+- **Day plan:** each flavour's **Made**, **Carried over** and price sit inside its tile; the drawer float is one row.
+- **Events list:** **Edit or switch off events** sits beside **Add an event**; each event card says **Open →**.
+
 ## What was new on the phone (Bazaar v2, 16 October)
 
 - **Leave and return to the till.** On the till, **⋯** › **Back to Home** leaves it without closing the day.
@@ -197,8 +205,8 @@ was.
 
 **Part F: the event, the money, the recipe book**
 
-22. On the event page, type a cost per cookie for one flavour in its cost field (use `5`) and save it, add a fee (name,
-    amount), and set a target. **You should see:** Profit with its parts, and the fee in the fees table with a **Remove**
+22. On the event page, under **Costs**: tap **Cost per cookie**, type a cost for one flavour (use `5`), save it and tap
+    **Done**; tap **Fees**, add a fee (name, amount) and tap **Done**; tap **Target profit** and set a target. **You should see:** Profit with its parts, and the fee in the fees table with a **Remove**
     button. Tap **Remove** on the fee. (To leave the books untouched, stop here.) Tap **Close the event**. **You should
     see:** a sheet; if cookies were carried to a day that never started it asks where they go (choose), and if a flavour
     has no cost it offers a cost field or **Close without cost**. Tap the final button. **You should see:** "This event is

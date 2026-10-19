@@ -300,3 +300,10 @@ tiles that add on tap with a minus on the tile, one sticky sale bar (Freebie, Ch
 own sheet after a confirm. Only the look changed: every control calls the ported screen's handler from the same `v`. The
 ported till stays as the classic till (a per-app choice, `till-choice.ts`) and as the fallback if the new one throws.
 The day plan, review and event screens follow in their own slices.
+
+**20 October 2026 (Ethan): the planning screens, before the rehearsal; review and close after the 25th.** "Consolidate the
+events list, event page and day plan as on the mockups before the rehearsal; leave review and close for after the 25th."
+Event page: the stat tiles and the one main button inside the summary card, days side by side, and one Costs card whose
+rows (Fees, Target profit, Cost per cookie) open the unchanged forms in a sheet. Day plan: a tile's controls sit inside its
+card (`FlavourTile`), the float is one row. Events list: both actions in the header, an "Open →" on each card. No handler,
+rule or copy of a form changed.
