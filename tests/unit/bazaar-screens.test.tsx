@@ -729,6 +729,8 @@ describe('the event page', () => {
   it('draws the fees as a receipt, adds one with the typed strings, and clears the form when saved', async () => {
     const addFee = vi.fn(async (): Promise<string | null> => null);
     render(<EventPage event={eventView({ addFee })} />);
+    // Fees, the target and the costs open from the Costs card (19 October).
+    fireEvent.click(screen.getByRole('button', { name: /^Fees/ }));
     const table = screen.getByRole('table', { name: 'Fees' });
     expect(within(table).getByText('Permit')).toBeTruthy();
     expect(within(table).getByText('Whole event · Sat, 24 Oct')).toBeTruthy();
@@ -759,6 +761,8 @@ describe('the event page', () => {
   it('sends a fee for the whole event with a null day', async () => {
     const addFee = vi.fn(async (): Promise<string | null> => null);
     render(<EventPage event={eventView({ addFee })} />);
+    // Fees, the target and the costs open from the Costs card (19 October).
+    fireEvent.click(screen.getByRole('button', { name: /^Fees/ }));
     const form = screen.getByRole('form', { name: 'Add a fee' });
     fireEvent.change(within(form).getByLabelText('What for'), {
       target: { value: 'Tarp' }
@@ -779,6 +783,8 @@ describe('the event page', () => {
   it('points at the red fields of a fee, sends nothing, and clears a red field as she types', () => {
     const addFee = vi.fn(async (): Promise<string | null> => null);
     render(<EventPage event={eventView({ addFee })} />);
+    // Fees, the target and the costs open from the Costs card (19 October).
+    fireEvent.click(screen.getByRole('button', { name: /^Fees/ }));
     const form = screen.getByRole('form', { name: 'Add a fee' });
     fireEvent.click(within(form).getByRole('button', { name: 'Add the fee' }));
     const summary = within(form).getByRole('alert');
@@ -801,6 +807,7 @@ describe('the event page', () => {
   it('draws the target and saves what is typed', async () => {
     const saveTarget = vi.fn(async (): Promise<string | null> => null);
     render(<EventPage event={eventView({ saveTarget })} />);
+    fireEvent.click(screen.getByRole('button', { name: /^Target profit/ }));
     const form = screen.getByRole('form', { name: 'Target profit' });
     const target = within(form).getByLabelText('Target') as HTMLInputElement;
     expect(target.value).toBe('500');
@@ -812,6 +819,7 @@ describe('the event page', () => {
   it('refuses a target that is not an amount, on the field', () => {
     const saveTarget = vi.fn(async (): Promise<string | null> => null);
     render(<EventPage event={eventView({ saveTarget })} />);
+    fireEvent.click(screen.getByRole('button', { name: /^Target profit/ }));
     const form = screen.getByRole('form', { name: 'Target profit' });
     fireEvent.change(within(form).getByLabelText('Target'), {
       target: { value: 'lots' }
@@ -827,6 +835,7 @@ describe('the event page', () => {
     const first = e.costs[0];
     if (!first) throw new Error('a cost');
     render(<EventPage event={{ ...e, costs: [{ ...first, save }] }} />);
+    fireEvent.click(screen.getByRole('button', { name: /^Cost per cookie/ }));
     expect(screen.getByText('per cookie · from the recipe')).toBeTruthy();
     const table = screen.getByRole('table', {
       name: 'Recipe cost per cookie for Double Chocolate Fudge'
@@ -851,6 +860,19 @@ describe('the event page', () => {
     });
     fireEvent.click(within(form).getByRole('button', { name: 'Save the cost' }));
     await waitFor(() => expect(save).toHaveBeenCalledWith('28.75'));
+  });
+
+  it('sums the fees, the target and the costs on one card of rows', () => {
+    render(<EventPage event={eventView()} />);
+    const card = screen.getByRole('list', { name: 'Costs' });
+    const rows = within(card).getAllByRole('button');
+    expect(rows).toHaveLength(3);
+    expect(rows[0]?.textContent).toMatch(/^Fees/);
+    expect(rows[1]?.textContent).toMatch(/^Target profit/);
+    expect(rows[2]?.textContent).toMatch(/^Cost per cookie/);
+    // No form is on the page itself: each opens in a sheet.
+    expect(screen.queryByRole('form', { name: 'Add a fee' })).toBeNull();
+    expect(screen.queryByRole('form', { name: 'Target profit' })).toBeNull();
   });
 
   it('draws the event figures and leaves out the sections that have nothing', () => {

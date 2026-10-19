@@ -536,6 +536,19 @@ try {
       .getByRole('button', { name: new RegExp(item) })
       .click();
   };
+  /** The event page's Costs card (19 October): Fees, Target profit and Cost per cookie each open in a sheet. */
+  const openCosts = async (row) => {
+    await page
+      .getByRole('list', { name: 'Costs' })
+      .getByRole('button', { name: new RegExp('^' + row) })
+      .click();
+    await page.getByRole('dialog', { name: row }).waitFor();
+  };
+  const closeCosts = async (row) => {
+    const sheet = page.getByRole('dialog', { name: row });
+    await sheet.getByRole('button', { name: 'Done', exact: true }).click();
+    await sheet.waitFor({ state: 'detached' });
+  };
   const sellOne = async (wanted) => {
     await page
       .getByRole('button', { name: new RegExp(flavour.short_name) })
@@ -589,6 +602,22 @@ try {
           added.event_id === null,
         `The saved event is not what was typed: ${JSON.stringify(added)}`
       );
+      // The events list at 375 and 1440 for the visual check (the shot helper is defined further down).
+      if (process.env.SMOKE_SHOTS) {
+        const before = page.viewportSize();
+        for (const [w, h] of [
+          [375, 812],
+          [1440, 900]
+        ]) {
+          await page.setViewportSize({ width: w, height: h });
+          await page.waitForTimeout(500);
+          await page.screenshot({
+            path: `${process.env.SMOKE_SHOTS}/hub-list-${w}.png`,
+            fullPage: true
+          });
+        }
+        if (before) await page.setViewportSize(before);
+      }
     }
   );
 
@@ -1246,11 +1275,13 @@ try {
       }, "the flavour's typed cost");
       // The event page reads it: the cost line says it is the flavour's.
       await openBooking();
+      await openCosts('Cost per cookie');
       await page.getByText('per cookie · typed by you for the flavour', { exact: true }).waitFor();
       assert(
         (await page.getByText(`₱${FLAVOUR_COST_PESOS}.00`, { exact: true }).count()) >= 1,
         "The event page does not show the flavour's cost."
       );
+      await closeCosts('Cost per cookie');
       // Blank takes it away again, so the rest of the run costs as it did.
       await page.goto(`${base}/recipes`, { waitUntil: 'networkidle' });
       await page.getByRole('button', { name: /^All/ }).click();
@@ -1273,6 +1304,7 @@ try {
       await openBooking();
       await check(page, 'Bazaar event page, day 1 closed', 'Bazaar');
       await pauseForPane('closed');
+      await openCosts('Cost per cookie');
       const cost = page.getByRole('form', { name: /^Cost per cookie for / });
       // A bad cost is red on its field (U4) and nothing is sent.
       await cost.getByLabel('Your cost per cookie').fill('abc');
@@ -1281,6 +1313,8 @@ try {
       await cost.getByLabel('Your cost per cookie').fill(String(COST_PESOS));
       await cost.getByRole('button', { name: 'Save the cost' }).click();
       await page.getByText('per cookie · typed by you', { exact: true }).waitFor();
+      await closeCosts('Cost per cookie');
+      await openCosts('Fees');
       const fee = page.getByRole('form', { name: 'Add a fee' });
       await fee.getByLabel('What for').fill('Permit');
       await fee.getByRole('button', { name: 'Add the fee' }).click();
@@ -1294,6 +1328,8 @@ try {
       await fee.getByLabel('Amount').fill(String(FEE_PESOS));
       await fee.getByRole('button', { name: 'Add the fee' }).click();
       await page.getByRole('table', { name: 'Fees' }).getByText('Permit').waitFor();
+      await closeCosts('Fees');
+      await openCosts('Target profit');
       const target = page.getByRole('form', { name: 'Target profit' });
       await target.getByLabel('Target').fill('500');
       await target.getByRole('button', { name: 'Save the target' }).click();
@@ -1305,6 +1341,7 @@ try {
           .single();
         return Number(data?.target_profit_cents) === 50000;
       }, 'the target profit');
+      await closeCosts('Target profit');
 
       await paneShots('u4-event-day1-closed');
       await page.getByRole('button', { name: /^Plan .* →$/ }).click();
