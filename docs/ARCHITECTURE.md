@@ -55,6 +55,43 @@ the values are plain, and there is no virtual list anywhere. Memoising was measu
 unnecessary and would have added a dependency-array bug surface across 53 files. If a
 future screen renders hundreds of rows, memoise that screen — not the frame.
 
+**Baseline (T-18, 16 October 2026).** Lighthouse in CI (`lighthouserc.json`): the server
+build, a 412 px phone at 1.6 Mbps with a 4× CPU slowdown. This is a lab profile, not a real
+phone. Best of three runs, after the logos were right-sized (they had been 716 KB of
+full-resolution art):
+
+| Page      | LCP   | Page weight | Perf score | LCP before the logo fix |
+| --------- | ----- | ----------- | ---------- | ----------------------- |
+| `/`       | 6.0 s | 0.87 MB     | 0.64       | 7.2 s                   |
+| `/shop`   | 6.5 s | 1.06 MB     | 0.69       | 9.5 s                   |
+| `/bazaar` | 4.5 s | 0.60 MB     | 0.71       | 5.7 s                   |
+
+Dropping Sentry's unused tracing and replay code (`next.config.ts`) then took 55 KB off every
+page (0.81 / 1.00 / 0.54 MB). LCP moved by under 0.2 s: the app's own bundle, not Sentry, is
+the critical path to first paint.
+Sentry itself now starts after `load` (`instrumentation-client.ts`), with errors thrown
+before then buffered (20 at most) and reported through the same scrub: 28 KB less again,
+LCP / 5.8 s and `/bazaar` 4.2 s locally.
+
+The target is LCP under 4 s, and every page misses it for one reason: `OpsApp` renders
+nothing on the server (`src/components/app/ops-app.tsx`), because the demo engine seeds
+dates from `Date.now()` at load and a server render would not hydrate once the clock moved.
+So no screen paints until the JavaScript has run (about 4–6 s of render delay on this
+profile), whatever the page holds. The live build's `/sign-in` (not an `OpsApp` page)
+measured 6.2 s for a different reason: `useSearchParams()` suspended its prerender, so its
+static page was empty. It now reads the return path at submit and prerenders whole: 1.9 s,
+perf score 0.99.
+
+What server-rendering the frame can and cannot fix: in live mode, `LiveGate` draws nothing on
+a staff screen until the session check has answered, a network round trip after the
+JavaScript runs. The server (a static export) cannot know the session, so a server-rendered
+frame would only help the demo build and the customer screens (`/shop`, order status), and
+those show data fetched after load. The gap to 4 s on staff screens is JavaScript boot plus
+that check, so it is a code-size and caching question (service worker, smaller first bundle),
+not a rendering one. Until then, the CI limits are a regression guard: about 1.2× these
+numbers per page, plus 800 ms of blocking time, because blocking time varies by about 40%
+between runners.
+
 ## Security posture
 
 - Staff screens sit behind Supabase auth, enforced in `src/middleware.ts`. The four

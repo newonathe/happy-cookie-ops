@@ -1,13 +1,14 @@
 import { afterEach, expect, it, vi } from 'vitest';
 import * as Sentry from '@sentry/nextjs';
-vi.mock('@sentry/nextjs', () => ({ init: vi.fn(), captureRouterTransitionStart: vi.fn() }));
+vi.mock('@sentry/nextjs', () => ({ init: vi.fn(), captureException: vi.fn() }));
 afterEach(() => {
   vi.unstubAllEnvs();
   vi.clearAllMocks();
   vi.resetModules();
 });
 const loaders = [
-  ['browser', () => import('../../instrumentation-client')],
+  // The browser SDK starts after load (instrumentation-client.ts): wait for it.
+  ['browser', () => import('../../instrumentation-client').then((m) => m.sentryReady)],
   ['server', () => import('../../sentry.server.config')],
   ['edge', () => import('../../sentry.edge.config')]
 ] as const;

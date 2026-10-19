@@ -228,13 +228,16 @@ orders.
 **Resolved as a mechanism.** `lighthouserc.json` plus a CI job, throttled to 1.6 Mbps and
 a 4× CPU slowdown — a mid-range Android phone on Philippine mobile data, not a laptop.
 
-Advisory (`continue-on-error`) until T-18 sets real numbers from measurement, because a
-budget invented without data gets switched off the first time it is inconvenient. Two
+Blocking since T-18 (16 October 2026). The limits are per page and sit about 1.2× above the
+measured baseline in `docs/ARCHITECTURE.md`, so the job catches regressions. Two
 audits are permanently off (`unused-javascript`, `legacy-javascript`): the app ships all 24
 screens in one tree by design, so they would always fail, and permanent failures train
 everyone to ignore the report.
 
-**What is left.** T-18 measures, then the thresholds get real values.
+**What is left.** The 4 s LCP target on the app's screens (`/sign-in` meets it: 1.9 s). They
+paint after the JavaScript runs and, in live mode, after the session check; see
+`docs/ARCHITECTURE.md` (Rendering and performance) for why server rendering alone would not
+close it.
 
 ### 3.4 ● Visual regression
 

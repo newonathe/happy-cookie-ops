@@ -722,7 +722,7 @@ export class OpsRuntime extends OpsProvider {
   private stopViewportTracking?: () => void;
   private resetNoticeTimer?: ReturnType<typeof setTimeout>;
   private healthTimer?: ReturnType<typeof setInterval>;
-  /** Async work that finishes after unmount must not toast or set state: its timer would outlive the tree. */
+  /** Async work that finishes after unmount must not toast (its timer would outlive the tree) or start more work. */
   private unmounted = false;
   private settingsSync?: SettingsSync;
   private flavourSync?: FlavourSync;
@@ -912,6 +912,11 @@ export class OpsRuntime extends OpsProvider {
    */
   constructor(props: OpsEngineProps) {
     super(props);
+    // Every toast goes through here, so none (and no timer behind it) starts after unmount.
+    const engineToast = this.toast;
+    this.toast = (message, tone, undo) => {
+      if (!this.unmounted) engineToast(message, tone, undo);
+    };
     const bazaar = this as unknown as BazaarActions;
     const { recordSale, voidSale } = bazaar;
     bazaar.recordSale = (pay, freebie) => {
@@ -2172,6 +2177,9 @@ export class OpsRuntime extends OpsProvider {
             : bazaar
         );
       }
+      // The saved copy can predate a sync that finished while unmounted: the queue is the truth.
+      if (this.state.syncState === 'syncing') this.setState({ syncState: 'idle' });
+      void this.reflectQueue();
       this.afterRestore();
       return;
     }
@@ -6431,7 +6439,7 @@ export class OpsRuntime extends OpsProvider {
     const result = await flushQueue(this.saleClient);
     await this.reflectQueue();
     // A sale that reached the server used its pouches and bag there (stock only: no batch or dough changed): show what stock the database holds.
-    if (result.sent.length > 0 && this.state.role === 'owner') {
+    if (result.sent.length > 0 && this.state.role === 'owner' && !this.unmounted) {
       void this.loadStockCatalogue(null);
       void this.loadBooks(null);
     }
@@ -6444,11 +6452,13 @@ export class OpsRuntime extends OpsProvider {
     try {
       queue = await allSales();
     } catch {
+      if (this.unmounted) return;
       this.operationsQueue = -1;
       this.dayQueue = null;
       this.setState({});
       return;
     }
+    if (this.unmounted) return;
     this.operationsQueue = queue.filter((row) => row.state !== 'sent').length;
     const heldId = (this.state.event as LiveEvent | null)?.id;
     const split = heldId ? splitForEvent(queue, heldId) : null;
@@ -6479,7 +6489,6 @@ export class OpsRuntime extends OpsProvider {
       return;
     }
     const queued = await pendingSales();
-    if (this.unmounted) return;
     const pending = queued.length || this.state.sales.filter((sale) => !sale.synced).length;
     if (!pending) {
       this.toast('Nothing waiting to sync.');
@@ -6487,8 +6496,8 @@ export class OpsRuntime extends OpsProvider {
     }
 
     this.setState({ syncState: 'syncing' });
+    // After a real unmount setState is a no-op; after a StrictMode remount the result must land.
     const result = await this.flushSales();
-    if (this.unmounted) return;
     if (result.skipped) {
       this.setState({ syncState: 'partial', syncTried: true });
       this.toast(
@@ -6503,7 +6512,6 @@ export class OpsRuntime extends OpsProvider {
 
     if (failed) {
       await requestBackgroundSync();
-      if (this.unmounted) return;
       this.setState((s) => ({
         syncState: 'partial',
         syncTried: true,
@@ -6533,11 +6541,14 @@ export class OpsRuntime extends OpsProvider {
       return;
     }
 
+    // Live: flushSales already reflected the queue, so a sale recorded during the flush stays unsynced.
     this.setState((s) => ({
       syncState: 'synced',
       syncTried: true,
-      unsynced: 0,
-      sales: s.sales.map((sale: EventSale) => ({ ...sale, synced: true, failed: false }))
+      unsynced: isLiveMode() ? s.unsynced : 0,
+      sales: isLiveMode()
+        ? s.sales
+        : s.sales.map((sale: EventSale) => ({ ...sale, synced: true, failed: false }))
     }));
     this.toast(plural(sentSales || pending, 'sale', 'sales') + ' synced.');
   }
