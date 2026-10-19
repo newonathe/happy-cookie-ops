@@ -31,53 +31,158 @@
       }
     },
     "assert": {
-      "assertions": {
-        "categories:performance": [
-          "warn",
-          {
-            "minScore": 0.75
+      "assertMatrix": [
+        {
+          "matchingUrlPattern": "http://localhost:3000/$",
+          "assertions": {
+            "categories:performance": [
+              "warn",
+              {
+                "minScore": 0.75
+              }
+            ],
+            "categories:accessibility": [
+              "warn",
+              {
+                "minScore": 0.9
+              }
+            ],
+            "categories:best-practices": [
+              "warn",
+              {
+                "minScore": 0.9
+              }
+            ],
+            "total-blocking-time": [
+              "error",
+              {
+                "maxNumericValue": 800
+              }
+            ],
+            "cumulative-layout-shift": [
+              "error",
+              {
+                "maxNumericValue": 0.1
+              }
+            ],
+            "unused-javascript": "off",
+            "legacy-javascript": "off",
+            "uses-responsive-images": "off",
+            "largest-contentful-paint": [
+              "error",
+              {
+                "maxNumericValue": 7300
+              }
+            ],
+            "total-byte-weight": [
+              "error",
+              {
+                "maxNumericValue": 980000
+              }
+            ]
           }
-        ],
-        "categories:accessibility": [
-          "warn",
-          {
-            "minScore": 0.9
+        },
+        {
+          "matchingUrlPattern": "/shop$",
+          "assertions": {
+            "categories:performance": [
+              "warn",
+              {
+                "minScore": 0.75
+              }
+            ],
+            "categories:accessibility": [
+              "warn",
+              {
+                "minScore": 0.9
+              }
+            ],
+            "categories:best-practices": [
+              "warn",
+              {
+                "minScore": 0.9
+              }
+            ],
+            "total-blocking-time": [
+              "error",
+              {
+                "maxNumericValue": 800
+              }
+            ],
+            "cumulative-layout-shift": [
+              "error",
+              {
+                "maxNumericValue": 0.1
+              }
+            ],
+            "unused-javascript": "off",
+            "legacy-javascript": "off",
+            "uses-responsive-images": "off",
+            "largest-contentful-paint": [
+              "error",
+              {
+                "maxNumericValue": 7800
+              }
+            ],
+            "total-byte-weight": [
+              "error",
+              {
+                "maxNumericValue": 1210000
+              }
+            ]
           }
-        ],
-        "categories:best-practices": [
-          "warn",
-          {
-            "minScore": 0.9
+        },
+        {
+          "matchingUrlPattern": "/bazaar$",
+          "assertions": {
+            "categories:performance": [
+              "warn",
+              {
+                "minScore": 0.75
+              }
+            ],
+            "categories:accessibility": [
+              "warn",
+              {
+                "minScore": 0.9
+              }
+            ],
+            "categories:best-practices": [
+              "warn",
+              {
+                "minScore": 0.9
+              }
+            ],
+            "total-blocking-time": [
+              "error",
+              {
+                "maxNumericValue": 800
+              }
+            ],
+            "cumulative-layout-shift": [
+              "error",
+              {
+                "maxNumericValue": 0.1
+              }
+            ],
+            "unused-javascript": "off",
+            "legacy-javascript": "off",
+            "uses-responsive-images": "off",
+            "largest-contentful-paint": [
+              "error",
+              {
+                "maxNumericValue": 5500
+              }
+            ],
+            "total-byte-weight": [
+              "error",
+              {
+                "maxNumericValue": 655000
+              }
+            ]
           }
-        ],
-        "largest-contentful-paint": [
-          "error",
-          {
-            "maxNumericValue": 4000
-          }
-        ],
-        "total-blocking-time": [
-          "error",
-          {
-            "maxNumericValue": 600
-          }
-        ],
-        "cumulative-layout-shift": [
-          "error",
-          {
-            "maxNumericValue": 0.1
-          }
-        ],
-        "total-byte-weight": [
-          "error",
-          {
-            "maxNumericValue": 1600000
-          }
-        ],
-        "unused-javascript": "off",
-        "legacy-javascript": "off",
-        "uses-responsive-images": "off"
-      }
+        }
+      ]
     },
     "upload": {
       "target": "filesystem",
