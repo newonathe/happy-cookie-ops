@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type * as React from 'react';
 import type { BazaarDayRow, BazaarEventView } from '@/lib/bazaar/live-bazaar-types';
 import { primaryActionOf, type PrimaryAction } from '@/lib/bazaar/event-rules';
@@ -13,6 +13,7 @@ import { ErrorSummary } from '@/components/ui/error-summary';
 import { Field, SelectField } from '@/components/ui/field';
 import { ProgressBar } from '@/components/ui/progress-bar';
 import { ReceiptTable } from '@/components/ui/receipt-table';
+import { Sheet } from '@/components/ui/sheet';
 import { SectionHeader } from '@/components/ui/section-header';
 import { StatTile } from '@/components/ui/stat-tile';
 import { StatusPill } from '@/components/ui/status-pill';
@@ -162,12 +163,25 @@ function DayRow({
   );
 }
 
+type OnSaving = ((saving: boolean) => void) | undefined;
+
+/** Tells the sheet around a form when a save starts and ends, so the sheet stays open until the answer is shown. */
+function useReportSaving(saving: boolean, onSaving: OnSaving) {
+  const last = useRef(false);
+  useEffect(() => {
+    if (last.current === saving) return;
+    last.current = saving;
+    onSaving?.(saving);
+  }, [saving, onSaving]);
+}
+
 /** The fees of the event, with the stall rent first, and a form to add one. */
-export function FeesSection({ event }: { event: BazaarEventView }) {
+export function FeesSection({ event, onSaving }: { event: BazaarEventView; onSaving?: OnSaving }) {
   const [label, setLabel] = useState('');
   const [amount, setAmount] = useState('');
   const [dayId, setDayId] = useState('');
   const { error, saving, run } = useSave();
+  useReportSaving(saving, onSaving);
   const [removeError, setRemoveError] = useState<string | null>(null);
   const issues = useIssues(() => validateFeeForm({ label, amount }));
   const { addFee } = event;
@@ -265,9 +279,10 @@ export function FeesSection({ event }: { event: BazaarEventView }) {
   );
 }
 
-function TargetSection({ event }: { event: BazaarEventView }) {
+function TargetSection({ event, onSaving }: { event: BazaarEventView; onSaving?: OnSaving }) {
   const [pesos, setPesos] = useState(event.targetPesos);
   const { error, saving, run } = useSave();
+  useReportSaving(saving, onSaving);
   const issues = useIssues(() => validateTargetForm({ pesos }));
   const { saveTarget } = event;
   const submit = async (e: React.FormEvent) => {
@@ -319,9 +334,16 @@ function TargetSection({ event }: { event: BazaarEventView }) {
 }
 
 /** One flavour's cost per cookie as a receipt: what it is, where it came from, how the recipe makes it up. */
-function CostCard({ cost }: { cost: BazaarEventView['costs'][number] }) {
+function CostCard({
+  cost,
+  onSaving
+}: {
+  cost: BazaarEventView['costs'][number];
+  onSaving?: OnSaving;
+}) {
   const [pesos, setPesos] = useState(cost.typedPesos);
   const { error, saving, run } = useSave();
+  useReportSaving(saving, onSaving);
   const field = formIds.cost(cost.productId);
   const issues = useIssues(() => validateCostForm({ field, pesos }));
   const { save } = cost;
@@ -481,6 +503,108 @@ function PrimaryButton({
   );
 }
 
+type CostsPanel = 'fees' | 'target' | 'costs';
+
+/**
+ * Fees, the target and the cost per cookie as one card of three rows (Ethan, 19 October: consolidated, mockups
+ * K5nHQS8GjtBYGseDtYZDnZ). Each row says its figure and opens its form, unchanged, in a sheet.
+ */
+function CostsCard({ event }: { event: BazaarEventView }) {
+  const [open, setOpen] = useState<CostsPanel | null>(null);
+  // How many of the open sheet's forms are saving: the sheet stays open until each answer (or refusal) is on screen.
+  const [saving, setSaving] = useState(0);
+  const onSaving = (on: boolean) => setSaving((n) => Math.max(0, n + (on ? 1 : -1)));
+  const close = () => {
+    if (saving === 0) setOpen(null);
+  };
+  const n = event.fees.length;
+  const k = event.costs.length;
+  const rows: Array<{ key: CostsPanel; label: string; detail: string; value: string }> = [
+    {
+      key: 'fees',
+      label: 'Fees',
+      detail: n === 0 ? 'None yet' : n === 1 ? '1 fee' : `${n} fees`,
+      value: event.feesTotalText
+    },
+    {
+      key: 'target',
+      label: 'Target profit',
+      detail: event.saveTarget ? 'Tap to set or change it' : '',
+      value: event.targetText
+    },
+    ...(k > 0
+      ? [
+          {
+            key: 'costs' as const,
+            label: 'Cost per cookie',
+            detail: k === 1 ? '1 flavour on the table' : `${k} flavours on the table`,
+            value: ''
+          }
+        ]
+      : [])
+  ];
+  const title = { fees: 'Fees', target: 'Target profit', costs: 'Cost per cookie' };
+  return (
+    <section aria-labelledby="bazaar-costs" className="flex flex-col gap-2">
+      <SectionHeader title={<span id="bazaar-costs">Costs</span>} />
+      <ul
+        aria-label="Costs"
+        className="m-0 list-none overflow-hidden rounded-card border border-line bg-surface p-0"
+      >
+        {rows.map((r) => (
+          <li key={r.key} className="border-b border-divide last:border-b-0">
+            <button
+              type="button"
+              aria-haspopup="dialog"
+              onClick={() => setOpen(r.key)}
+              className="flex min-h-14 w-full items-center gap-3 px-4 py-2.5 text-left hover:bg-raise"
+            >
+              <span className="flex min-w-0 flex-1 flex-col">
+                <span className="text-body font-bold text-ink">{r.label}</span>
+                {r.detail ? <span className="text-caption text-ink-mute">{r.detail}</span> : null}
+              </span>
+              {r.value ? (
+                <span className="text-body font-bold text-ink tabular-nums">{r.value}</span>
+              ) : null}
+              <span aria-hidden="true" className="text-ink-faint">
+                ›
+              </span>
+            </button>
+          </li>
+        ))}
+      </ul>
+      {open ? (
+        <Sheet
+          title={title[open]}
+          onClose={close}
+          footer={
+            <Button
+              variant="secondary"
+              onClick={close}
+              disabled={saving > 0}
+              reason="Saving… The sheet closes once it is saved."
+            >
+              Done
+            </Button>
+          }
+        >
+          {open === 'fees' ? (
+            <FeesSection event={event} onSaving={onSaving} />
+          ) : open === 'target' ? (
+            <TargetSection event={event} onSaving={onSaving} />
+          ) : (
+            <ul aria-label="Cost per cookie" className="m-0 flex list-none flex-col gap-2 p-0">
+              {event.costs.map((c) => (
+                <CostCard key={c.productId} cost={c} onSaving={onSaving} />
+              ))}
+            </ul>
+          )}
+        </Sheet>
+      ) : null}
+    </section>
+  );
+}
+
 /** One booking: its hero and figures, then its days, fees, target and costs. A day is planned and started here. */
 export function EventPage({ event }: { event: BazaarEventView }) {
   const [starting, setStarting] = useState<BazaarDayRow | null>(null);
@@ -507,6 +631,7 @@ export function EventPage({ event }: { event: BazaarEventView }) {
         </span>
         <span className="text-caption text-ink-mute">{event.rentText}</span>
         <Notices notices={event.notices} />
+        <Stats event={event} />
         {primary ? (
           <div className="flex flex-col gap-1">
             <PrimaryButton
@@ -518,13 +643,12 @@ export function EventPage({ event }: { event: BazaarEventView }) {
           </div>
         ) : null}
       </Card>
-      <Stats event={event} />
       <section aria-labelledby="bazaar-days" className="flex flex-col gap-2">
         <SectionHeader title={<span id="bazaar-days">Days</span>} count={event.days.length} />
         {event.days.length === 0 ? (
           <p className="m-0 text-body text-ink-mute">No day is planned yet.</p>
         ) : (
-          <ol aria-label="Days" className="m-0 flex list-none flex-col gap-2 p-0">
+          <ol aria-label="Days" className="m-0 grid list-none grid-cols-1 gap-2 p-0 sm:grid-cols-2">
             {event.days.map((day) => (
               <DayRow key={day.id} day={day} primary={day.id === primaryDayId} onStart={startDay} />
             ))}
@@ -550,21 +674,7 @@ export function EventPage({ event }: { event: BazaarEventView }) {
           </div>
         ) : null}
       </section>
-      <FeesSection event={event} />
-      <TargetSection event={event} />
-      {event.costs.length > 0 ? (
-        <section aria-labelledby="bazaar-costs" className="flex flex-col gap-2">
-          <SectionHeader
-            title={<span id="bazaar-costs">Cost per cookie</span>}
-            count={event.costs.length}
-          />
-          <ul aria-label="Cost per cookie" className="m-0 flex list-none flex-col gap-2 p-0">
-            {event.costs.map((c) => (
-              <CostCard key={c.productId} cost={c} />
-            ))}
-          </ul>
-        </section>
-      ) : null}
+      <CostsCard event={event} />
       {event.figures.length > 0 ? (
         <section aria-labelledby="bazaar-figures" className="flex flex-col gap-2">
           <SectionHeader title={<span id="bazaar-figures">The event</span>} />

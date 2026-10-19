@@ -5,6 +5,26 @@ is in [current.md](current.md). Sections were moved here from `current.md` on 20
 again, with the earlier goals from `next-goal.md`, on 2026-10-05, and again on 2026-10-06. Add nothing here by hand;
 move a checkpoint here when it leaves `current.md`.
 
+# Moved from current.md on 2026-10-20
+
+## Where things stood — 16 October 2026
+
+**Bazaar v2 (U1 to U7 and the U9 motion pass) is live on the trial.** Merged into `agent/codex/MP-04-g1-feasibility` and
+deployed: head `ea0ba7f`, Cloudflare version `7d7d8414`, every CI job green except the known red "Performance budget" (artifact
+quota). Migration 70 is applied (70 of 70, function body hashes equal local; Opus reviewed it, one low left: a flavour cost saved
+mid-close can be stored with a stale hash). U8 (two decimals in ported screens) is skipped: Ethan kept whole pesos on the till.
+The build log, the S3 notes and the 13 October data load are in [current-history.md](current-history.md), the section moved on
+16 October; the design is in [bazaar-v2.md](bazaar-v2.md).
+
+**What remains, in order:**
+
+1. The **phone rehearsal by 22 October** on the selling iPhone ([bazaar-run-sheet.md](bazaar-run-sheet.md), "The rehearsal").
+2. **The Ateneo test reversal** (`reverse_bazaar_test`): its rent, over, sales and stock use sit in October's books until then.
+   Needs Ethan's separate yes.
+3. **The cost cutover**, only after Cine's opening count and Ethan's separate yes (below).
+4. `RELEASE_HOLD=true` once the rehearsal passes. Not set yet.
+5. Optional: check the day plan at 320 px (a possible 16 px toast and footer overlap, unconfirmed).
+
 # Moved from current.md on 2026-10-15
 
 Two "Waiting on Ethan" items, verbatim, done on 14 October (run sheet rows 5, 6 and 10).
