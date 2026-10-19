@@ -1,3 +1,4 @@
+import { act } from 'react';
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type {
@@ -873,6 +874,22 @@ describe('the event page', () => {
     // No form is on the page itself: each opens in a sheet.
     expect(screen.queryByRole('form', { name: 'Add a fee' })).toBeNull();
     expect(screen.queryByRole('form', { name: 'Target profit' })).toBeNull();
+  });
+
+  it('keeps the Fees sheet open while a fee is saving, so a refusal is seen', async () => {
+    let answer: (v: string | null) => void = () => undefined;
+    const addFee = vi.fn(() => new Promise<string | null>((r) => (answer = r)));
+    render(<EventPage event={eventView({ addFee })} />);
+    fireEvent.click(screen.getByRole('button', { name: /^Fees/ }));
+    const form = screen.getByRole('form', { name: 'Add a fee' });
+    fireEvent.change(within(form).getByLabelText('What for'), { target: { value: 'Ice' } });
+    fireEvent.change(within(form).getByLabelText('Amount'), { target: { value: '80' } });
+    fireEvent.click(within(form).getByRole('button', { name: 'Add the fee' }));
+    const done = () => screen.getByRole('button', { name: 'Done' }) as HTMLButtonElement;
+    await waitFor(() => expect(done().disabled).toBe(true));
+    await act(async () => answer('The server refused the fee.'));
+    await waitFor(() => expect(done().disabled).toBe(false));
+    expect(screen.getByText('The server refused the fee.')).toBeTruthy();
   });
 
   it('draws the event figures and leaves out the sections that have nothing', () => {
