@@ -406,7 +406,16 @@ describe('S2: with an event on the phone, the ported till is drawn unchanged', (
     });
   }
 
-  it('Leave does not close the day, and its stock stays on the table', async () => {
+  it('the consolidated till has no Leave: it never clears the day from the phone', async () => {
+    const { runtime } = await mount('owner');
+    seedDay(runtime);
+    expect(document.querySelector('[data-till="consolidated"]')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Leave' })).toBeNull();
+  });
+
+  it('on the classic till, Leave does not close the day, and its stock stays on the table', async () => {
+    // The phone chose the classic till (19 October): it is restored on mount.
+    localStorage.setItem('hc-live-classic-till', '1');
     const { runtime } = await mount('owner');
     seedDay(runtime);
     fireEvent.click(screen.getByRole('button', { name: 'Leave' }));

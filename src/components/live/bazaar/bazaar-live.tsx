@@ -16,6 +16,7 @@ import { EventPage } from './event-page';
 import { DayPlan } from './day-plan';
 import { DayReview } from './day-review';
 import { TillBar } from './till-bar';
+import { ConsolidatedTill, TillBoundary } from './till';
 
 /** `liveBazaar` as the runtime provides it. Typed through the contract so this compiles before and after vals.ts widens. */
 export function liveBazaarOf(v: OpsVals): LiveBazaarVals | null {
@@ -30,13 +31,23 @@ export function liveBazaarOf(v: OpsVals): LiveBazaarVals | null {
 export function BazaarLive({ v }: { v: OpsVals }) {
   const bazaar = liveBazaarOf(v);
   // A review ahead of the till: it is the owner's close-out of a day, and the till stays under it.
-  if (!bazaar?.reviewing && v.event)
-    return (
+  if (!bazaar?.reviewing && v.event) {
+    const ported = (
       <>
         <TillBar till={v.liveTill} panel={bazaar?.tillPanel} />
         <BazaarModeScreen v={v} />
       </>
     );
+    // The consolidated till only for a started day that is selling, unless this phone chose the classic one. Everything
+    // else (setting up, closed, an event from before the days existed) keeps the ported screen, as does a crash.
+    const till = v.liveTill;
+    if (!till || !v.event.stage2 || till.classic) return ported;
+    return (
+      <TillBoundary fallback={ported}>
+        <ConsolidatedTill v={v} till={till} panel={bazaar?.tillPanel} />
+      </TillBoundary>
+    );
+  }
   return (
     // The room at the bottom keeps the last control clear of the app's floating add button.
     <section

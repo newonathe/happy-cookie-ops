@@ -523,6 +523,11 @@ export class BazaarDays {
     return null;
   }
 
+  /** A day's review is open (it is drawn ahead of the till). */
+  isReviewing(): boolean {
+    return this.reviewing !== null;
+  }
+
   /** U4: the day plan is open, and it stands on a sticky footer (a phone lifts its toast above it). */
   hasStickyFooter(): boolean {
     return this.editing !== null && this.reviewing === null && this.bookingId !== null;
