@@ -16,31 +16,25 @@ Read this page first in a new session. It is kept short on purpose.
 
 ## Where things stand — 20 October 2026
 
-**The consolidated till is built, not released.** Ethan (19 October): the prototype's look, consolidated, feature by
-feature from Bazaar, live before the 24 October bazaar. Mockups approved (private canvas K5nHQS8GjtBYGseDtYZDnZ). Branch
-`claude/bazaar-till-v3` (from the deployed head): `src/components/live/bazaar/till.tsx`, the ported till kept as the
-classic till and as the crash fallback. `pnpm verify` 142 files / 2,606 tests, `pnpm test:e2e` 90 passed, the live smoke
-17 of 17 on the new till (plus a pinned-sale-bar check), an independent Sonnet review with nothing blocking (one low fixed).
-Releasing it (merge into the deploy branch) needs Ethan's yes; the rehearsal then runs on it. The day plan, review and
-event screens follow as their own slices, only if released and rehearsed by 22 October; otherwise after 25 October.
-
-## Where things stood — 16 October 2026
-
-**Bazaar v2 (U1 to U7 and the U9 motion pass) is live on the trial.** Merged into `agent/codex/MP-04-g1-feasibility` and
-deployed: head `ea0ba7f`, Cloudflare version `7d7d8414`, every CI job green except the known red "Performance budget" (artifact
-quota). Migration 70 is applied (70 of 70, function body hashes equal local; Opus reviewed it, one low left: a flavour cost saved
-mid-close can be stored with a stale hash). U8 (two decimals in ported screens) is skipped: Ethan kept whole pesos on the till.
-The build log, the S3 notes and the 13 October data load are in [current-history.md](current-history.md), the section moved on
-16 October; the design is in [bazaar-v2.md](bazaar-v2.md).
+**The consolidated till is live on the trial** (Ethan, 19 October: the prototype's look, consolidated, feature by feature
+from Bazaar, live before the 24 October bazaar). #37 (the till) and #39 (main's #32 to #36, among them the live-sync fix
+`51298e0`) are merged into the deploy branch and deployed: merge `94aa105`, Cloudflare version `50f46e2c`, every CI job
+green, Performance budget included (blocking since T-18). #40 merged the deploy branch into `main` (`d6494f7`): both now
+hold the same work. The ported till stays as the classic till (**⋯** › Use the classic till) and as the crash fallback.
+Mockups: private canvas K5nHQS8GjtBYGseDtYZDnZ; the decision is in [docs/design/bazaar-v2.md](../design/bazaar-v2.md) section 7.
+Bazaar v2 (16 October) and its notes are in [current-history.md](current-history.md), moved on 20 October.
 
 **What remains, in order:**
 
-1. The **phone rehearsal by 22 October** on the selling iPhone ([bazaar-run-sheet.md](bazaar-run-sheet.md), "The rehearsal").
-2. **The Ateneo test reversal** (`reverse_bazaar_test`): its rent, over, sales and stock use sit in October's books until then.
+1. The **phone rehearsal by 22 October** on the selling iPhone, on the new till ([bazaar-run-sheet.md](bazaar-run-sheet.md),
+   "The rehearsal"; step 7 checks the phone has the new till). The bazaar is 24 to 25 October.
+2. `RELEASE_HOLD=true` once the rehearsal passes. Not set yet.
+3. **The Ateneo test reversal** (`reverse_bazaar_test`): its rent, over, sales and stock use sit in October's books until then.
    Needs Ethan's separate yes.
-3. **The cost cutover**, only after Cine's opening count and Ethan's separate yes (below).
-4. `RELEASE_HOLD=true` once the rehearsal passes. Not set yet.
-5. Optional: check the day plan at 320 px (a possible 16 px toast and footer overlap, unconfirmed).
+4. **The cost cutover**, only after Cine's opening count and Ethan's separate yes.
+5. **The rest of the consolidated design**, one slice each: Bazaar's day plan, review and close, event page and events list,
+   then the recipe book and the other features. After 25 October, unless one is released and rehearsed by 22 October.
+6. Optional: check the day plan at 320 px (a possible 16 px toast and footer overlap, unconfirmed).
 
 **The plan is approved; stage A and slices B1 to B3b-2, B4a, B4b and B5 are built.** Ethan approved
 [final-plan.md](final-plan.md), version 2, on 5 October; it replaces finish-plan.md as the forward plan. S1 to S3 of
@@ -60,11 +54,11 @@ plan is built (Ethan, 5 October). F3 (launch) stays closed until Cine accepts a 
   validator passes 1,232 checks; the database role suite passes 3,260 cases a reset (S1, local).
 - **The private trial site** is live for owners only:
   <https://happy-cookie-owner-trial.admin-kethai.workers.dev>. Cloudflare Access sends an
-  email code to two approved mailboxes. The shop is closed and the menu is unpublished.
-- **On the trial** (16 October): 70 of 70 migrations; version `7d7d8414` (head `ea0ba7f`); 75 stock items, 72 priced; 26
+  email code to four approved addresses (three have an app account, all owners). The shop is closed and the menu is unpublished.
+- **On the trial** (20 October): 70 of 70 migrations; version `50f46e2c` (merge `94aa105`); 75 stock items, 72 priced; 26
   flavours, 7 on the menu, 23 with a recipe; 4 bookings; 835 historical book lines; no orders, no bake, no sale.
 - **CI/CD:** a green push to `agent/codex/MP-04-g1-feasibility` redeploys the trial; a push that changes only documents does
-  not. The performance-budget job is red (artifact quota, slice C8). Open the trial once before the rehearsal.
+  not. The performance-budget job is blocking since T-18 and passed on this release. Open the trial once before the rehearsal.
 
 ### Known not to work yet
 
