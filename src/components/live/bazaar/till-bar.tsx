@@ -24,7 +24,7 @@ export function TillBar({
   panel: TillPanelView | null | undefined;
 }) {
   if (!till) return null;
-  const hasControls = till.home || till.soldOutCount > 0 || till.addCookies;
+  const hasControls = till.home || till.soldOutCount > 0 || till.addCookies || till.classic;
   return (
     <>
       {hasControls ? (
@@ -49,6 +49,11 @@ export function TillBar({
               Add cookies
             </Button>
           ) : null}
+          {till.classic ? (
+            <Button size="sm" variant="ghost" onClick={() => till.setClassic(false)}>
+              Use the new till
+            </Button>
+          ) : null}
         </div>
       ) : null}
       {till.allGone ? (
@@ -68,7 +73,7 @@ export function TillBar({
 }
 
 /** The fee form or the add-cookies form, over the till. The day is read when it opens; closing leaves the till as it was. */
-function TillPanel({ panel }: { panel: TillPanelView }) {
+export function TillPanel({ panel }: { panel: TillPanelView }) {
   const fees = panel.kind === 'fees';
   return (
     <Sheet

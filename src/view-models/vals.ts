@@ -209,6 +209,11 @@ export interface LiveHomeNext {
 
 /** U2: what the live till adds to the ported Bazaar Mode screen, for every role: the sold-out chip and the empty state. */
 export interface LiveTillVals {
+  /** Each drawn `bzSell` row's flavour photo, already resolved, in the same order. */
+  photos: string[];
+  /** This phone draws the classic (ported) till instead of the consolidated one. */
+  classic: boolean;
+  setClassic: (on: boolean) => void;
   soldOutCount: number;
   showSoldOut: boolean;
   toggleSoldOut: () => void;

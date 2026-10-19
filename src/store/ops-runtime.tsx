@@ -46,6 +46,7 @@ import {
   type CommandKind
 } from '@/lib/offline/queue';
 import { clearBazaar, readBazaar, saveBazaar } from '@/lib/offline/bazaar-state';
+import { readClassicTill, rememberClassicTill } from '@/lib/offline/till-choice';
 import { BazaarDays } from '@/store/bazaar-days';
 import { RecipeBook } from '@/store/recipe-book';
 import {
@@ -831,6 +832,8 @@ export class OpsRuntime extends OpsProvider {
   });
   /** U2: the day whose "Show sold out (n)" is on. Screen state only: never saved, and any other day starts hidden. */
   private tillShowSoldOut: string | null = null;
+  /** The classic (ported) till instead of the consolidated one, on this phone (`till-choice.ts`). Restored on mount. */
+  private tillClassic = false;
   /** U2: the live gate has narrowed the app to Bazaar Mode (no signal to the server): nothing may leave the till. */
   private gateNarrow = false;
   private scheduledNewId = '';
@@ -2157,6 +2160,7 @@ export class OpsRuntime extends OpsProvider {
     this.unmounted = false;
     if (isLiveMode()) {
       clearStoredBooks();
+      this.tillClassic = readClassicTill();
       const bazaar = readBazaar();
       if (bazaar) {
         // S3: the saved copy keeps the event and not the drawer. A started day carries its float on the event, so the
@@ -5719,9 +5723,24 @@ export class OpsRuntime extends OpsProvider {
    * screen the toast is lifted above it (spec rule 8). Only the value is changed; the locked frame draws it as before.
    */
   private liveToastVals(starved: OpsVals): { toastStyle?: string } {
-    if (!isLiveMode() || this.state.role !== 'owner' || this.state.screen !== 'bazaar') return {};
-    if (this.state.device !== 'mobile' || !this.bazaarDays.hasStickyFooter()) return {};
+    if (!isLiveMode() || this.state.screen !== 'bazaar' || this.state.device !== 'mobile')
+      return {};
+    // The consolidated till stands on a sticky sale bar: its toast goes above the bar, for every role (spec rule 8).
+    if (this.consolidatedTillShowing())
+      return { toastStyle: String(starved.toastStyle).replace(/bottom: \d+px/, 'bottom: 104px') };
+    if (this.state.role !== 'owner' || !this.bazaarDays.hasStickyFooter()) return {};
     return { toastStyle: String(starved.toastStyle).replace(/bottom: \d+px/, 'bottom: 196px') };
+  }
+
+  /** A started day is selling on this phone, under the consolidated till (not the classic one, not a review). */
+  private consolidatedTillShowing(): boolean {
+    const event = this.state.event as (LiveEvent & { stage?: unknown }) | null;
+    return (
+      Boolean(event?.dayId) &&
+      event?.stage === 'selling' &&
+      !this.tillClassic &&
+      !this.bazaarDays.isReviewing()
+    );
   }
 
   private liveTillVals(
@@ -5743,7 +5762,19 @@ export class OpsRuntime extends OpsProvider {
       return !gone || showSoldOut;
     });
     const owner = this.canLeaveTill();
+    // The engine's flavour image is already resolved (`flavours.ts`); matched to the drawn rows by the same position.
+    const photos = rows
+      .map((row, i) => ({ row, img: String(PRODUCTS[i]!.img ?? '') }))
+      .filter(({ row }) => drawn.includes(row))
+      .map(({ img }) => img);
     const liveTill: LiveTillVals = {
+      photos,
+      classic: this.tillClassic,
+      setClassic: (on: boolean) => {
+        this.tillClassic = on;
+        rememberClassicTill(on);
+        this.forceUpdate();
+      },
       soldOutCount,
       showSoldOut,
       toggleSoldOut: () => {

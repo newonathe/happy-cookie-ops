@@ -10,6 +10,11 @@ export interface FlavourTileProps {
   name: string;
   /** A stored image path (`assets/…` or a bucket path); resolved by `resolveImagePath`. */
   photo: string;
+  /**
+   * An image URL already resolved by `resolveImagePath` (the engine's flavour image, which the till has instead of the
+   * stored path). Used as it is, in place of `photo`: resolving a bucket URL a second time would give no image.
+   */
+  resolvedPhoto?: string;
   /** Already written: "₱125.00". */
   price: string;
   /** How many are in the cart, or made. Shown as a badge when above 0. */
@@ -31,6 +36,7 @@ export interface FlavourTileProps {
 export function FlavourTile({
   name,
   photo,
+  resolvedPhoto,
   price,
   count,
   badge,
@@ -40,7 +46,7 @@ export function FlavourTile({
   stepper,
   onPress
 }: FlavourTileProps) {
-  const url = resolveImagePath(photo);
+  const url = resolvedPhoto ?? resolveImagePath(photo);
   const soldOut = state === 'soldOut';
   const pressable = Boolean(onPress) && !stepper && !soldOut;
   const body = (

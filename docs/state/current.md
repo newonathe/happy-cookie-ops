@@ -14,7 +14,17 @@ Read this page first in a new session. It is kept short on purpose.
 | Cine's trial checklist                             | [F2-owner-trial.md](F2-owner-trial.md)                                                                                                                   |
 | Older checkpoints, verbatim                        | [current-history.md](current-history.md)                                                                                                                 |
 
-## Where things stand — 16 October 2026
+## Where things stand — 20 October 2026
+
+**The consolidated till is built, not released.** Ethan (19 October): the prototype's look, consolidated, feature by
+feature from Bazaar, live before the 24 October bazaar. Mockups approved (private canvas K5nHQS8GjtBYGseDtYZDnZ). Branch
+`claude/bazaar-till-v3` (from the deployed head): `src/components/live/bazaar/till.tsx`, the ported till kept as the
+classic till and as the crash fallback. `pnpm verify` 142 files / 2,606 tests, `pnpm test:e2e` 90 passed, the live smoke
+17 of 17 on the new till (plus a pinned-sale-bar check), an independent Sonnet review with nothing blocking (one low fixed).
+Releasing it (merge into the deploy branch) needs Ethan's yes; the rehearsal then runs on it. The day plan, review and
+event screens follow as their own slices, only if released and rehearsed by 22 October; otherwise after 25 October.
+
+## Where things stood — 16 October 2026
 
 **Bazaar v2 (U1 to U7 and the U9 motion pass) is live on the trial.** Merged into `agent/codex/MP-04-g1-feasibility` and
 deployed: head `ea0ba7f`, Cloudflare version `7d7d8414`, every CI job green except the known red "Performance budget" (artifact

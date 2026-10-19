@@ -6,6 +6,9 @@ except the known red "Performance budget" (artifact quota). U8 (two decimals in 
 pesos on the till. The plan and the as-built notes are in [bazaar-v2.md](bazaar-v2.md) and [docs/design/bazaar-v2.md](../design/bazaar-v2.md).
 The repository is public: secret scan before every push, and no real event names or figures in any committed file.
 
+**20 October: the consolidated till** (`claude/bazaar-till-v3`, see current.md) waits for Ethan's yes to release. Once
+released, the rehearsal below runs on it (the run sheet already names its buttons; step 7 checks the phone has it).
+
 **The next goals, in order:**
 
 1. **The phone rehearsal, by 22 October**, on the selling iPhone: [bazaar-run-sheet.md](bazaar-run-sheet.md), "The rehearsal"
