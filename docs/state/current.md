@@ -4,7 +4,7 @@ Read this page first in a new session. It is kept short on purpose.
 
 | If you need                                        | Read                                                                                                                                                     |
 | -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| The goal to run next                               | [next-goal.md](next-goal.md) (slice B3b)                                                                                                                 |
+| The goal to run next                               | [next-goal.md](next-goal.md)                                                                                                                             |
 | The plan, approved 5 October                       | [final-plan.md](final-plan.md), version 2                                                                                                                |
 | The rules every agent follows                      | [AGENTS.md](../../AGENTS.md)                                                                                                                             |
 | Ethan's and Cine's decisions                       | [decision-register.md](decision-register.md)                                                                                                             |
@@ -14,18 +14,38 @@ Read this page first in a new session. It is kept short on purpose.
 | Cine's trial checklist                             | [F2-owner-trial.md](F2-owner-trial.md)                                                                                                                   |
 | Older checkpoints, verbatim                        | [current-history.md](current-history.md)                                                                                                                 |
 
-## Where things stand — 7 October 2026
+## Where things stand — 20 October 2026
 
-**The plan is approved; stage A (A1 to A4) and slices B1, B2 and B3a are built.** Ethan approved
-[final-plan.md](final-plan.md), version 2, on 5 October after a re-audit, a debate and
-wider research. It replaces finish-plan.md as the forward plan. The Bazaar defect B1 found is
-fixed (below). The next step is slice B3b.
+**The consolidated till is built, not released.** Ethan (19 October): the prototype's look, consolidated, feature by
+feature from Bazaar, live before the 24 October bazaar. Mockups approved (private canvas K5nHQS8GjtBYGseDtYZDnZ). Branch
+`claude/bazaar-till-v3` (from the deployed head): `src/components/live/bazaar/till.tsx`, the ported till kept as the
+classic till and as the crash fallback. `pnpm verify` 142 files / 2,606 tests, `pnpm test:e2e` 90 passed, the live smoke
+17 of 17 on the new till (plus a pinned-sale-bar check), an independent Sonnet review with nothing blocking (one low fixed).
+Releasing it (merge into the deploy branch) needs Ethan's yes; the rehearsal then runs on it. The day plan, review and
+event screens follow as their own slices, only if released and rehearsed by 22 October; otherwise after 25 October.
 
-**B3a, 7 October:** the database half of B3, four migrations (56 to 59), **none on the trial**.
-Recipe lines and supplier prices point at their stock item by id, after a step that is previewed
-and counted; one cost function (average, else her usual price, else best quote per unit, else
-unknown) stamps every use; a shortfall is costed; a recorded batch can be corrected. No client
-code changed. What it did with each finding: [system-audit.md](system-audit.md), section 10.
+## Where things stood — 16 October 2026
+
+**Bazaar v2 (U1 to U7 and the U9 motion pass) is live on the trial.** Merged into `agent/codex/MP-04-g1-feasibility` and
+deployed: head `ea0ba7f`, Cloudflare version `7d7d8414`, every CI job green except the known red "Performance budget" (artifact
+quota). Migration 70 is applied (70 of 70, function body hashes equal local; Opus reviewed it, one low left: a flavour cost saved
+mid-close can be stored with a stale hash). U8 (two decimals in ported screens) is skipped: Ethan kept whole pesos on the till.
+The build log, the S3 notes and the 13 October data load are in [current-history.md](current-history.md), the section moved on
+16 October; the design is in [bazaar-v2.md](bazaar-v2.md).
+
+**What remains, in order:**
+
+1. The **phone rehearsal by 22 October** on the selling iPhone ([bazaar-run-sheet.md](bazaar-run-sheet.md), "The rehearsal").
+2. **The Ateneo test reversal** (`reverse_bazaar_test`): its rent, over, sales and stock use sit in October's books until then.
+   Needs Ethan's separate yes.
+3. **The cost cutover**, only after Cine's opening count and Ethan's separate yes (below).
+4. `RELEASE_HOLD=true` once the rehearsal passes. Not set yet.
+5. Optional: check the day plan at 320 px (a possible 16 px toast and footer overlap, unconfirmed).
+
+**The plan is approved; stage A and slices B1 to B3b-2, B4a, B4b and B5 are built.** Ethan approved
+[final-plan.md](final-plan.md), version 2, on 5 October; it replaces finish-plan.md as the forward plan. S1 to S3 of
+[bazaar-days.md](bazaar-days.md) are built and released. **Bazaar: still no-go until the rehearsal passes**, and a sale needs an
+owner sign-in. What Cine sets once: [cine-set-up.md](cine-set-up.md).
 
 Stage A and slices B1 and B2, as each was recorded when it closed, are in [current-history.md](current-history.md), the section moved on 7 October.
 
@@ -36,41 +56,30 @@ plan is built (Ethan, 5 October). F3 (launch) stays closed until Cine accepts a 
 
 - **The product** is built through E1: menu and settings, checkout and owner orders,
   bazaar selling with offline close-out, stock, recipes and production, books, P&L and
-  CSV, backups and health. `pnpm verify` passes 98 files / 1,813 tests; the planning
-  validator passes 1,232 checks; the database role suite passes 2,456 cases a reset.
+  CSV, backups and health. `pnpm verify` passes 110 files / 1,991 tests; the planning
+  validator passes 1,232 checks; the database role suite passes 3,260 cases a reset (S1, local).
 - **The private trial site** is live for owners only:
   <https://happy-cookie-owner-trial.admin-kethai.workers.dev>. Cloudflare Access sends an
   email code to two approved mailboxes. The shop is closed and the menu is unpublished.
-- **On the trial** (read 5 October; migrations 54 and 55 added 6 October): 55 of the
-  repository's 59 migrations applied (56 to 59 wait for Ethan, below); 72 stock items, 26
-  flavours, 804 historical book lines, no orders.
-- **CI/CD:** a green push to `agent/codex/MP-04-g1-feasibility` redeploys the trial; a push
-  that changes only documents does not. The last runs that completed were green (A1 and A2).
-  **The two early 6 October pushes (A3 at `79b8e97`, A4 at `851e95e`) did not release:** GitHub
-  could not give their jobs a hosted runner (runs 37370848143 and 37372795892). **B1 was pushed
-  later that day at `23e02b3`, and that run released** (run 37424595177: unit, visual
-  regression, browser flows, build and Storybook green; the trial's quality and deploy jobs
-  green). The trial moved from the A2 build straight to A3, A4 and B1: the sign-out pill and
-  the five tabs arrived together. The performance-budget job is red, as it was on the last
-  green run (slice C8). Open the trial once before the rehearsal.
+- **On the trial** (16 October): 70 of 70 migrations; version `7d7d8414` (head `ea0ba7f`); 75 stock items, 72 priced; 26
+  flavours, 7 on the menu, 23 with a recipe; 4 bookings; 835 historical book lines; no orders, no bake, no sale.
+- **CI/CD:** a green push to `agent/codex/MP-04-g1-feasibility` redeploys the trial; a push that changes only documents does
+  not. The performance-budget job is red (artifact quota, slice C8). Open the trial once before the rehearsal.
 
 ### Known not to work yet
 
 Found by reading code or the trial, not by running. Each has a slice in the plan.
 
-| What                                                                                                         | Slice  |
-| ------------------------------------------------------------------------------------------------------------ | ------ |
-| The backup, retention and keep-alive jobs are written but off: nothing is backed up yet.                     | Ethan  |
-| Account has no button of its own: it is a chip on Home's strip. Customers and Expenses open a sheet.         | C6, C5 |
-| Until the flavour list arrives, or if it cannot be read, staff screens show the engine's six flavours.       | B6     |
-| Bazaar Mode offers a fixed list of wallets; Home's "Drop 32" starts from the engine's number.                | C7, C3 |
-| An empty menu cannot get its first flavour (the trial has 26, so nobody meets it).                           | B6     |
-| Almost every cost per cookie is unknown: 8 of 72 items have a price, no costed delivery, no measured recipe. | B4     |
-| The screens still work out cost in the engine; the database's one cost function is not shown anywhere yet.   | B3b    |
-| The cost basis is "when bought"; "when used" was decided. It moves with the screen that shows uncosted uses. | B3b    |
-| Packaging item names are still written in `record_pack`, `record_sale_packaging` and the completeness check. | B3b    |
-| A mistyped delivery quantity cannot be undone, and under a running average it lingers. Needs a decision.     | Ethan  |
-| Every page, the shop included, loads the whole staff app.                                                    | C8     |
+| What                                                                                                                                                                                              | Slice  |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| The backup, retention and keep-alive jobs are written but off: nothing is backed up yet.                                                                                                          | Ethan  |
+| Account has no button of its own: it is a chip on Home's strip. Customers and Expenses open a sheet.                                                                                              | C6, C5 |
+| Until the flavour list arrives, or if it cannot be read, staff screens show the engine's six flavours.                                                                                            | B6     |
+| Bazaar Mode offers a fixed list of wallets; Home's "Drop 32" starts from the engine's number.                                                                                                     | C7, C3 |
+| An empty menu cannot get its first flavour (the trial has 26, so nobody meets it).                                                                                                                | B6     |
+| Cost per cookie: 22 of 23 recipes are complete (all 7 menu flavours); the recipe book types a per-flavour cost (migration 70 is on the trial). The books stay on "bought" until the cost cutover. | Ethan  |
+| A mistyped delivery quantity cannot be undone, and under a running average it lingers. Needs a decision.                                                                                          | Ethan  |
+| Every page, the shop included, loads the whole staff app.                                                                                                                                         | C8     |
 
 ### Decisions in force
 
@@ -94,42 +103,17 @@ All in [decision-register.md](decision-register.md), the section for 5 October.
 
 ### Waiting on Ethan
 
-- **Migrations 56 to 59 (B3a) are not on the trial, and nothing in the bazaar needs them.**
-  Recommended: not before 27 October. When you say so, in one quiet sitting and in this order,
-  each file as one transaction: (1) read the owner and grants of `business_clock`, `place_order`
-  and `join_waitlist`, and the 40 policies against `tests/fixtures/policies-before-58.json`;
-  (2) apply 56; (3) run `select public.preview_identity_links();`, read what is unmatched or
-  ambiguous, then `select public.apply_identity_links('<its counts>');`; (4) apply 57, which
-  refuses to run until step 3 is done; (5) apply 58 and 59, then read the three functions'
-  owner again. A recipe line still listed as unmatched takes no stock when baked: fix it in
-  Recipes before baking. `python scripts/test-b3a-upgrade.py` rehearses steps 2 to 4 on the
-  local database.
-- **Decide, for B3b:** whether today's packaging rule (a pouch per cookie, a bag per bazaar
-  sale) is entered by hand or seeded as an unconfirmed default; when her per-cookie packaging
-  lines may reach the trial; and how a mistyped delivery quantity is undone.
-- A1 is built (the release check takes two to six addresses; Cine is not added yet). Add her
-  two addresses to Cloudflare Access and the approved-digest variable in one sitting, or the
-  next deploy fails. Set the session to one week: that deploy then fails once and prints the
-  value; put it in `ALLOWED_SESSION_DURATIONS`, push, then invite her.
-- Done on the trial on 6 October, at Ethan's instruction, through the database connector:
-  migration `20260101005300_offline_open_hours.sql` applied (54 of 54; the three function
-  bodies match the committed hashes); the test event of 5 October closed through
-  `close_event` (no sales, no stock, nothing booked); the owner's idle time set to 480
-  minutes through `save_setting`. Put the idle time back to 60 in Settings after the bazaar
-  if wanted. No workflow applies migrations: the next one is again a step by hand.
-- Done on the trial on 6 October, at Ethan's instruction ("migrate everything"), through the
-  database connector: migration `20260101005400_business_clock_shop_identity.sql` applied (55
-  of 55; it was the only one pending; its history row renamed to the repository's version
-  number). Read back: the three function bodies match the committed hashes, grants are as
-  pinned (`business_clock` has no browser grant, anyone reads `get_shop_identity`, only a
-  signed-in owner saves), the table has row security on, no policy, no API grant and no row,
-  and the clock answers the shared cases. The security advisor shows the new objects only in
-  the classes it already reports by design. Shop details now save; they are empty until set
-  (Sell, Shop, Shop texts).
-- **Display names.** From this deploy the app greets each person, and records each bazaar
-  sale, under their profile's `display_name`. No form edits it yet (C6). Check yours, Cine's
-  and each helper's before 20 October: Supabase dashboard, Table editor, `profiles`, or say
-  the word and it is done through the connector. The trial's profiles were not read.
+- **The Ateneo test reversal** (`reverse_bazaar_test`): say yes and it is run and reviewed; not done.
+- **The rehearsal event on the trial.** Closing it leaves its records (voided sales, stock use as shortfalls). Run the closing
+  step of the run sheet, or stop before it and leave the event open: your call.
+- **The cost cutover**, once, after Cine's opening count: `select public.preview_cost_cutover();`, read `not_counted` and
+  the items with no cost, then `select public.apply_cost_cutover('<its hash and total>');`. An opening count after it is
+  refused. Until then the books stay on "bought".
+- **No more database writes after the phone rehearsal passes**; set the release hold then.
+- **The Actions storage quota is still full** (artifacts are about 5 MB across the account, so probably Packages). Releases
+  no longer need it (PR #22); the performance-budget job still fails on its upload. Clear it in Settings, Billing.
+- **Do not save a recipe in the Recipes screen yet.** It sends no line kind, so a saved recipe's packaging lines become
+  ingredients (slice B6, New Recipes). Reading is safe.
 - **The rehearsal gains one step** (B2): with the radio off, reload, sell, and read the name
   under "Rung up by" on the payment sheet. It must be the signed-in person's name, the same
   as with signal. Each helper's profile needs the display name they want on their sales.
@@ -141,8 +125,7 @@ All in [decision-register.md](decision-register.md), the section for 5 October.
   the repository's Settings, Secrets and variables, Actions, Variables, add `RELEASE_HOLD` =
   `true`. A push then builds and tests but does not deploy, and the run says so. Delete it or
   set it to `false` to lift. Any value that is not clearly "off" holds.
-- The phone rehearsal by **20 October** ([final-plan.md](final-plan.md) section 11.1).
-- Approve each import preview.
+- The phone rehearsal by **22 October**: Bazaar v2 is live, so it can start ([run sheet](bazaar-run-sheet.md)).
 
 ### Waiting on Cine
 
@@ -159,6 +142,6 @@ set-up screen and seven dates for her week.
 
 ### Dates
 
-Rehearsal by **20 October**; bazaar **24 to 25 October**; releases held from the
+Rehearsal by **22 October**; bazaar **24 to 25 October**; releases held from the
 rehearsal to 26 October. Everything built: mid-November at the earliest, early December
 more likely. Cine's week follows the wording pass. Second bazaar 12 to 13 December.

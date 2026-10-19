@@ -41,12 +41,25 @@ import {
   enqueueVoid,
   isSaleKey,
   pendingSales,
+  splitForEvent,
+  unsentForEvent,
   type CommandKind
 } from '@/lib/offline/queue';
 import { clearBazaar, readBazaar, saveBazaar } from '@/lib/offline/bazaar-state';
+import { readClassicTill, rememberClassicTill } from '@/lib/offline/till-choice';
+import { BazaarDays } from '@/store/bazaar-days';
+import { RecipeBook } from '@/store/recipe-book';
+import {
+  dayEventId,
+  engineStateForDay,
+  fetchBazaar,
+  startBazaarDay,
+  type Bazaar,
+  type BazaarClient
+} from '@/lib/data/bazaar-days';
 import { readStallCopy, saveStallCopy } from '@/lib/offline/stall-copy';
 import { requestPersistentStorage } from '@/lib/offline/persist';
-import { isEventUuid, startEventOnServer, type EventSalesClient } from '@/lib/data/event-sales';
+import { isEventUuid, type EventSalesClient } from '@/lib/data/event-sales';
 import { deviceId } from '@/lib/device';
 import { plural } from '@/store/engine/ops-engine';
 import type {
@@ -99,7 +112,6 @@ import {
   linkScheduledEvent,
   saveScheduledEvent,
   scheduledEventError,
-  upcomingEvents,
   type ScheduledClient,
   type ScheduledEvent
 } from '@/lib/data/scheduled-events';
@@ -112,8 +124,42 @@ import {
   STAFF_COPY,
   PRODUCTION_COPY,
   BOOKS_COPY,
+  COST_COPY,
   STOCK_COPY
 } from '@/lib/orders/staff-copy';
+import {
+  fetchItemMovements,
+  type ItemMovement,
+  type MovementsClient
+} from '@/lib/data/item-movements';
+import {
+  changeText,
+  formatPesos,
+  formatPesosShort,
+  formatQuantity,
+  lastCountedText,
+  lastPaidText,
+  levelText,
+  lineCost,
+  ratePerUnitText,
+  stockStatus,
+  sumKnown,
+  totalText,
+  unitCostText
+} from '@/lib/stock/stock-status';
+import type {
+  GroceryRowView,
+  LiveStockVals,
+  StockItemView,
+  StockMovementView
+} from '@/lib/stock/live-stock-types';
+import {
+  fetchItemCosts,
+  fetchRecipeCosts,
+  type CostsClient,
+  type ItemCosts,
+  type RecipeCost
+} from '@/lib/data/costs';
 import {
   engineRecipes,
   fetchRecipes,
@@ -124,7 +170,9 @@ import {
 } from '@/lib/data/recipes';
 import { fetchRecipeDrafts, saveRecipeDraft, type RecipeDraft } from '@/lib/data/recipe-drafts';
 import {
+  engineBestBuy,
   engineInventory,
+  engineSuppliers,
   fetchStockCatalogue,
   itemError,
   priceError,
@@ -135,7 +183,8 @@ import {
   type ItemFields,
   type PriceFields,
   type StockCatalogue,
-  type StockClient
+  type StockClient,
+  type StockItem
 } from '@/lib/data/stock-catalogue';
 import {
   currentSuppliers,
@@ -214,6 +263,7 @@ import { clearStoredBooks, liveBaseState } from '@/lib/data/live-state';
 import { STATE_LEVEL_KEYS, type SettingsClient } from '@/lib/data/settings';
 import { SettingsSync } from '@/lib/data/settings-sync';
 import { centavosFromDb, centavosToPesos, pesosToCentavos } from '@/lib/money';
+import { peso } from '@/lib/money/format';
 import {
   FLAVOUR_TOASTS,
   FlavourSync,
@@ -232,9 +282,10 @@ import {
   type ShopFlavourRow
 } from '@/lib/data/flavours';
 import { CUSTOMER_SCREENS, type ScreenKey } from '@/lib/screens';
+import { SettledCounter } from '@/store/settled-counter';
 import { liveScreenFor } from '@/components/live/live-screens';
 import { PLACES, TABS, placeOfRoute, placesOf, tabOf, type Place } from '@/lib/nav/function-map';
-import type { LiveTabs } from '@/view-models/vals';
+import type { LiveHomeNext, LiveHomeTill, LiveTabs, LiveTillVals } from '@/view-models/vals';
 import { helperMoneyView } from '@/lib/auth/helper-money';
 import {
   IDLE_MINUTES_MAX,
@@ -355,6 +406,34 @@ type PortedActions = {
   ingCost: (pid: string) => number;
 };
 
+/**
+ * The engine's cost path (instance fields the typings do not list). In live mode, for the owner, they answer from the database's
+ * cost (`get_item_costs`, `get_recipe_costs`): NaN when it is not known, so that a figure no one handled shows up as NaN in a
+ * test, never as a silent 0. `packCostPerCookie` takes a flavour here (the engine's takes none).
+ */
+type CostActions = {
+  costPerUnit: (name: string) => number;
+  ingCost: (pid: string) => number;
+  packCostPerCookie: (pid?: string) => number;
+  unitCost: (pid: string) => number;
+};
+
+/** What the last read of the database's costs came to: not asked yet, no such functions (migration 55), failed, or read. */
+type CostReads = 'unread' | 'missing' | 'failed' | 'ok';
+
+/**
+ * The engine words an amount for the grocery list ("1.25 kg" for 1,250 g); the number back in the item's own unit, or null when the text is
+ * not one it knows (the caller then shows the engine's own text).
+ */
+function engineAmount(text: string, unit: string): number | null {
+  const m = /^(-?[\d,]*\.?\d+) (\S+)$/.exec(text);
+  if (!m) return null;
+  const n = Number((m[1] ?? '').replace(/,/g, ''));
+  if (!Number.isFinite(n)) return null;
+  if (m[2] === unit) return n;
+  return m[2] === 'kg' && unit === 'g' ? Math.round(n * 1000) : null;
+}
+
 /** What each role can open in the live app: fixed by design (final-plan.md, section 6.7). */
 const STAFF_ACCESS: Record<Role, { can: string; extra: string }> = {
   owner: { can: 'Everything, including P&L, costs and margins', extra: '' },
@@ -431,6 +510,7 @@ interface BazaarActions {
   addEventExpense: (label: string, amount: unknown, cat?: string) => void;
   closeEvent: () => void;
   reopenEvent: () => void;
+  resetEvent: () => void;
 }
 
 /** The engine's inventory actions (instance fields the typings do not list), replaced in live mode by A3. */
@@ -528,9 +608,15 @@ const BAKED_FOR = ['Payment review', 'Confirmed', 'Preparing'];
 
 interface LiveEvent {
   id?: string;
+  name?: string;
   stage?: string;
   snapshot?: string[];
   closedAt?: number;
+  /** S2: set when the event is a started bazaar day. */
+  dayId?: string;
+  scheduledId?: string;
+  /** S3: the day's drawer float. The saved copy of the bazaar keeps the event and not the drawer. */
+  floatCents?: number;
 }
 
 /** Whole, positive counts of the flavours the server knows for this event. */
@@ -555,55 +641,23 @@ function withUniqueNewestId(sales: EventSale[]): EventSale[] | null {
   return [{ ...newest, id: 'S' + (highest + 1) }, ...sales.slice(1)];
 }
 
-const EVENT_ATTEMPT = 'hc-event-attempt';
-
-/** A start that lost its reply is retried under the same event id, so it cannot open a second event. */
-function eventAttemptId(name: string): string {
-  try {
-    const saved = JSON.parse(localStorage.getItem(EVENT_ATTEMPT) ?? 'null') as {
-      name?: string;
-      id?: string;
-      at?: number;
-    } | null;
-    if (
-      saved &&
-      saved.name === name &&
-      typeof saved.id === 'string' &&
-      Date.now() - (saved.at ?? 0) < 600_000
-    )
-      return saved.id;
-  } catch {
-    /* unreadable: start a fresh attempt */
-  }
-  const id = crypto.randomUUID();
-  try {
-    localStorage.setItem(EVENT_ATTEMPT, JSON.stringify({ name, id, at: Date.now() }));
-  } catch {
-    /* private mode: a retry after a lost reply may open a second event */
-  }
-  return id;
-}
-
-function clearEventAttempt(): void {
-  try {
-    localStorage.removeItem(EVENT_ATTEMPT);
-  } catch {
-    /* nothing to clear */
-  }
-}
-
 const PENDING_LINK = 'hc-pending-link';
+/** S3: the day whose close was sent with no answer back. */
+const CLOSE_IN_DOUBT = 'hc-close-in-doubt';
+
+function readCloseInDoubt(): string | null {
+  try {
+    return localStorage.getItem(CLOSE_IN_DOUBT);
+  } catch {
+    return null;
+  }
+}
 
 interface PendingLink {
   scheduledId: string;
   eventId: string;
   rentCents: number;
   at: number;
-}
-
-/** `₱2,500`, from centavos. */
-function pesoText(cents: number): string {
-  return '₱' + centavosToPesos(cents).toLocaleString('en-PH');
 }
 
 function readPendingLinks(): PendingLink[] {
@@ -633,13 +687,6 @@ function writePendingLinks(links: PendingLink[]): void {
   }
 }
 
-function savePendingLink(link: PendingLink): void {
-  writePendingLinks([
-    ...readPendingLinks().filter((l) => l.scheduledId !== link.scheduledId),
-    link
-  ]);
-}
-
 function clearPendingLink(link: PendingLink): void {
   writePendingLinks(readPendingLinks().filter((l) => l.scheduledId !== link.scheduledId));
 }
@@ -659,6 +706,9 @@ const SALES_LOG_ICON =
   'M6.5 4.5h11v15l-2.2-1.5-1.7 1.5-1.6-1.5-1.6 1.5-1.7-1.5-2.2 1.5zM9.5 9h5M9.5 12.5h5';
 
 export class OpsRuntime extends OpsProvider {
+  /** The engine's Counter can stick part way when a total returns to its old value mid-tween; see settled-counter.tsx. */
+  Counter = SettledCounter;
+
   /**
    * Where bazaar sales go. Null uses the signed-in browser client, or nothing at all in a
    * build with no backend (sales then stay queued). A test may set it on the instance.
@@ -685,11 +735,118 @@ export class OpsRuntime extends OpsProvider {
   /** D4: the owner's bookings (null until read), the client they were read with, the booking being started, and the id the blank form row will use. */
   private scheduledRows: ScheduledEvent[] | null = null;
   private scheduledClient: ScheduledClient | null = null;
-  private pendingSchedule: ScheduledEvent | null = null;
+  private bazaarDays = new BazaarDays({
+    // After a reload at the stall the bookings may not have been read yet: the review still reads its day.
+    client: () => (this.scheduledClient ?? this.salesTarget()) as unknown as BazaarClient | null,
+    online: () => Boolean(this.state.online),
+    bookings: () => this.scheduledRows ?? [],
+    bookingsRead: () => this.scheduledRows !== null,
+    flavours: () =>
+      PRODUCTS.map((p) => ({
+        id: p.id,
+        name: p.short,
+        priceCents: pesosToCentavos(Number((this as unknown as TotalActions).priceOf(p.id)) || 0),
+        photo: p.img,
+        onMenu: (this.state.dropActive as Record<string, boolean> | undefined)?.[p.id] !== false
+      })),
+    holdsEvent: () => !!this.state.event,
+    hasRecipe: (productId) =>
+      this.recipeRows === null ? null : this.recipeRows.some((r) => r.productId === productId),
+    recipeCost: (productId) => this.recipeCosts.get(productId) ?? null,
+    held: () => {
+      const event = this.state.event as LiveEvent | null;
+      if (!event?.dayId || !event.scheduledId) return null;
+      return {
+        dayId: event.dayId,
+        scheduledId: event.scheduledId,
+        unsent: this.unsentForDay(),
+        refused: this.dayQueue?.refused.size ?? 0,
+        stock: (this.state.eventStock ?? {}) as Record<string, number>
+      };
+    },
+    begin: (booking, day) => this.beginBazaarDay(booking, day),
+    dayClosed: (dayId) => void this.dropClosedDay(dayId),
+    tillFigures: async () => {
+      const event = this.state.event as LiveEvent | null;
+      if (!event?.id) return null;
+      try {
+        const { blocking, refused } = await unsentForEvent(event.id);
+        const out = new Set(refused.map((row) => row.clientId));
+        // The engine drops a voided sale from its list, so what is left is the day's sales that are not voided.
+        const sales = (this.state.sales as EventSale[]).filter(
+          (sale) => !out.has(clientIdFor({ saleId: sale.id, at: sale.at }))
+        );
+        return {
+          unsent: blocking.length,
+          salesCount: sales.length,
+          cashCents: sales
+            .filter((sale) => sale.pay === 'Cash')
+            .reduce((sum, sale) => sum + pesosToCentavos(sale.total), 0)
+        };
+      } catch {
+        return null;
+      }
+    },
+    closeInDoubt: (dayId) => this.setCloseInDoubt(dayId),
+    lossSaved: (dayId, pid, qty) => this.moveDayStock(dayId, pid, -qty, null),
+    lossVoided: (dayId, pid, qty) => this.moveDayStock(dayId, pid, qty, null),
+    stockAdded: (dayId, pid, qty, loaded) => this.moveDayStock(dayId, pid, qty, loaded),
+    dropNo: () => (this.state as unknown as { dropNo: number }).dropNo,
+    finalised: () => {
+      void this.loadBooks(null);
+      void this.loadProduction(null);
+    },
+    now: () => Date.now(),
+    rerender: () => {
+      if (!this.unmounted) this.forceUpdate();
+    },
+    toast: (text, kind) => this.toast(text, kind),
+    today: () => manilaToday(),
+    newId: () => crypto.randomUUID(),
+    openAdd: () => void this.openScheduled(),
+    refreshBookings: () => this.loadScheduledEvents(null)
+  });
+  /** U7: the recipe book: each flavour's price, cost per cookie (hers or the recipe's), margin and cost receipt. */
+  private recipeBook = new RecipeBook({
+    client: () => (this.scheduledClient ?? this.salesTarget()) as unknown as BazaarClient | null,
+    online: () => Boolean(this.state.online),
+    flavours: () =>
+      PRODUCTS.map((p) => ({
+        id: p.id,
+        name: p.short,
+        priceCents: pesosToCentavos(Number((this as unknown as TotalActions).priceOf(p.id)) || 0),
+        photo: p.img,
+        onMenu: (this.state.dropActive as Record<string, boolean> | undefined)?.[p.id] !== false
+      })),
+    recipeCost: (productId) => this.recipeCosts.get(productId) ?? null,
+    recipeCostsState: () => this.costReads,
+    batchYield: (productId) =>
+      this.recipeRows?.find((r) => r.productId === productId)?.yield ?? null,
+    reloadCosts: () => void this.loadCosts(),
+    openRecipe: (productId) =>
+      (this as unknown as { openRecipe: (pid: string) => void }).openRecipe(productId),
+    toast: (text, kind) => this.toast(text, kind),
+    rerender: () => {
+      if (!this.unmounted) this.forceUpdate();
+    }
+  });
+  /** U2: the day whose "Show sold out (n)" is on. Screen state only: never saved, and any other day starts hidden. */
+  private tillShowSoldOut: string | null = null;
+  /** The classic (ported) till instead of the consolidated one, on this phone (`till-choice.ts`). Restored on mount. */
+  private tillClassic = false;
+  /** U2: the live gate has narrowed the app to Bazaar Mode (no signal to the server): nothing may leave the till. */
+  private gateNarrow = false;
   private scheduledNewId = '';
   private scheduledVersion = 0;
   private stockCatalogue: StockCatalogue | null = null;
   private stockClient: StockClient | null = null;
+  /** B5-1: each opened item's movements (owner only) as the item page shows them, and the latest read's token per item. */
+  private movementReads = new Map<
+    string,
+    { state: 'loading' | 'ready' | 'unavailable'; rows: ItemMovement[] }
+  >();
+  private movementTokens = new Map<string, number>();
+  private movementToken = 0;
   /** A movement whose answer never came is kept, so repeating it exactly sends the same id and time: the database answers it, never applies it twice. */
   private pendingMovements = new Map<string, MovementFields>();
   /** When each item's count was entered on the open stocktake, so a count is measured at its own moment. */
@@ -709,6 +866,8 @@ export class OpsRuntime extends OpsProvider {
   private operationsPhase: HealthPhase = 'loading';
   private operationsLoadSeq = 0;
   private operationsQueue = -1;
+  /** S3.1: the held event's share of the queue, as last read: rows still to send, and the client ids the server refused. */
+  private dayQueue: { blocking: number; refused: Set<string> } | null = null;
   private pendingExpenses = new Map<string, ExpenseFields>();
   private pendingDraws = new Map<string, DrawFields>();
   private pendingCorrections = new Map<string, CorrectionFields>();
@@ -724,6 +883,15 @@ export class OpsRuntime extends OpsProvider {
   /** The stamp of each flavour's saved recipe as its screen last showed it: what an edit is saved against. */
   private recipeBaseStamp: Record<string, string | null> = {};
   private recipeLoadSeq = 0;
+  /** B3b-2: the database's cost of each item and recipe (owner only), what the last read came to, and the read in flight. */
+  private costReads: CostReads = 'unread';
+  private itemCosts: ItemCosts | null = null;
+  private recipeCosts: ReadonlyMap<string, RecipeCost> = new Map();
+  private costLoadSeq = 0;
+  /** The engine's own cost path, kept when the overrides were installed: a database before B3b still costs with it. */
+  private engineCost: CostActions | null = null;
+  /** While set, the item names the engine's packaging cost asks for are written here (see `completeRecipeCost`). */
+  private capturePackNames: string[] | null = null;
   private recipeDraftRows: RecipeDraft[] | null = null;
   private recipeDraftLoading = false;
   private recipeDraftBusy = false;
@@ -750,8 +918,17 @@ export class OpsRuntime extends OpsProvider {
       if (!this.unmounted) engineToast(message, tone, undo);
     };
     const bazaar = this as unknown as BazaarActions;
-    const { recordSale, voidSale, startEvent } = bazaar;
+    const { recordSale, voidSale } = bazaar;
     bazaar.recordSale = (pay, freebie) => {
+      // S3: a close of this day whose answer was lost may have landed, and the database refuses a sale after a close.
+      const doubt = readCloseInDoubt();
+      if (doubt && (this.state.event as LiveEvent | null)?.dayId === doubt) {
+        this.toast(
+          'This day may already be closed. Get signal and tap Close out to check before selling more.',
+          'warn'
+        );
+        return;
+      }
       recordSale(pay, freebie);
       this.setState((s: { sales: EventSale[] }) => {
         const sales = withUniqueNewestId(s.sales);
@@ -825,6 +1002,8 @@ export class OpsRuntime extends OpsProvider {
     totals.boxTotal = (items, priced) =>
       Object.keys(items).reduce((t, k) => t + totals.priceOf(k, priced) * (items[k] ?? 0), 0) +
       Number(priced?.[EXTRAS_KEY] ?? 0);
+    // B3b-2: the cost of a cookie, an item and a recipe is the database's (`loadCosts`), not the engine's own sum.
+    this.installCostOverrides();
     // B2: a live checkout places real orders; the engine's local order list plays no part. The
     // form fields still live in `state.cust`, so the ported setters and reset actions are kept.
     this.custSubmit = () => {
@@ -852,9 +1031,10 @@ export class OpsRuntime extends OpsProvider {
       if (field) this.orderFlow?.clearError(field);
       custSet(key, value);
     };
-    // DP-20: an event sells at the menu prices it started with, taken by the server.
-    bazaar.startEvent = (ev) => {
-      void this.startLiveEvent(ev, startEvent);
+    // S2: a live event is only ever a started bazaar day (`beginBazaarDay`): planned, then started with its own prices and
+    // stock. The old one-tap start, at the menu prices with no plan, is closed to every caller.
+    bazaar.startEvent = () => {
+      this.toast('Start a bazaar day from the Bazaar page: plan the day, then start it.', 'warn');
     };
     bazaar.setEventPrice = () => {
       this.toast('Bazaar prices are the menu prices from the moment the event starts.', 'warn');
@@ -912,6 +1092,12 @@ export class OpsRuntime extends OpsProvider {
       });
     };
     bazaar.closeEvent = () => {
+      // S2: a bazaar day is closed from its day review (S3), never by the old close-out: the database refuses it (55000), so
+      // it would wait in the queue as a failed sync for the whole rehearsal.
+      if ((this.state.event as LiveEvent | null)?.dayId) {
+        this.toast('Close this day from its review on the Bazaar page.', 'warn');
+        return;
+      }
       const before = this.state;
       const counted = (before.drawer as { counted?: unknown } | null)?.counted;
       const pesos = counted === '' || counted == null ? NaN : Number(counted);
@@ -938,6 +1124,16 @@ export class OpsRuntime extends OpsProvider {
           cashCents
         });
       });
+    };
+    // S2: "Leave" would put the day's cookies back into the shop's baked stock and forget the day while it is open on the
+    // server. A started day is left by closing it, from its review (S3).
+    const { resetEvent } = bazaar;
+    bazaar.resetEvent = () => {
+      if ((this.state.event as LiveEvent | null)?.dayId) {
+        this.toast('A bazaar day stays open until you close it from its review.', 'warn');
+        return;
+      }
+      resetEvent();
     };
     // A closed event stays closed: the server has (or will have) its count and its books.
     bazaar.reopenEvent = () => {
@@ -988,7 +1184,10 @@ export class OpsRuntime extends OpsProvider {
           pid,
           kind
         );
-      if (pid && kind) return keep.logSpoilage(name, qty, why, pid, kind);
+      if (pid && kind) {
+        keep.logSpoilage(name, qty, why, pid, kind);
+        return this.unknownDiscardCost();
+      }
       void this.liveWaste(name, qty, why);
     };
     inv.confirmReceive = (e, item) => {
@@ -1041,6 +1240,11 @@ export class OpsRuntime extends OpsProvider {
     // start (no event) is never saved, so it cannot overwrite the event before it is read back.
     this.persist = () => saveBazaar(this.state);
     this.resetData = () => {
+      // The phone's copy of a started day is the only way to keep selling it: it is not cleared while the day is open.
+      if ((this.state.event as LiveEvent | null)?.dayId) {
+        this.toast('A bazaar day is open on this phone. Close it before starting over.', 'warn');
+        return;
+      }
       clearStoredBooks();
       clearBazaar();
       const fresh = liveBaseState() as Record<string, unknown>;
@@ -1115,46 +1319,207 @@ export class OpsRuntime extends OpsProvider {
     }
   }
 
-  /** Online only: the server snapshots the prices and names this phone the selling device. */
-  private async startLiveEvent(
-    ev: { name: string; date: string },
-    begin: (ev: { name: string; date: string }) => void
-  ): Promise<void> {
-    const pending = this.pendingSchedule;
-    this.pendingSchedule = null;
+  /**
+   * S2: starts a planned bazaar day. Online only: the server opens it as one event with the day's own prices and stock and
+   * names this phone the selling device. The event id comes from the day, so a retry, a cleared tab or a second tap is
+   * answered with the same event. The till then sells exactly as before. Never calls `link_scheduled_event`.
+   */
+  async beginBazaarDay(
+    booking: { id: string; name: string },
+    day: { id: string; day: string }
+  ): Promise<'started' | 'offline' | 'refused'> {
     const target = this.state.online ? this.salesTarget() : null;
     if (!target) {
-      this.toast('Start the event while you have signal. Sales can go offline after that.', 'warn');
-      return;
+      this.toast('Start the day while you have signal. Sales can go offline after that.', 'warn');
+      return 'offline';
     }
-    const outcome = await startEventOnServer(target, {
-      name: ev.name,
-      deviceId: deviceId(),
-      eventId: eventAttemptId(pending ? 'booking:' + pending.id : ev.name)
-    });
+    const outcome = await startBazaarDay(
+      target as unknown as BazaarClient,
+      day.id,
+      deviceId(),
+      await dayEventId(day.id)
+    );
     if (!outcome.ok) {
-      this.toast('The event could not be started. Try again.', 'warn');
-      return;
-    }
-    clearEventAttempt();
-    // A2: this phone now holds the day's sales, so ask the browser not to evict its storage.
-    void requestPersistentStorage();
-    begin(ev);
-    const unsellable = PRODUCTS.filter((p) => !(p.id in outcome.prices)).length;
-    if (unsellable) {
       this.toast(
-        plural(unsellable, 'flavour is', 'flavours are') +
-          ' not on the menu, so ' +
-          (unsellable === 1 ? 'it' : 'they') +
-          ' cannot be sold at this event.',
+        outcome.error === 'refused'
+          ? 'This day cannot be started now. Check the plan and any day still open.'
+          : 'The day could not be started. Try again.',
         'warn'
       );
+      return outcome.error === 'refused' ? 'refused' : 'offline';
     }
+    // A repeat of a start is answered with the day as it first started, selling device included. A day that another phone
+    // is selling is not taken over here: every sale rung up on this phone would be refused by the server.
+    if (outcome.started.sellingDevice !== deviceId()) {
+      this.toast(
+        'This day is being sold on another phone. Sales rung up here would be refused.',
+        'warn'
+      );
+      return 'refused';
+    }
+    // A2: this phone now holds the day's sales, so ask the browser not to evict its storage.
+    void requestPersistentStorage();
+    const patch = engineStateForDay(
+      outcome.started,
+      {
+        name: booking.name,
+        date: dateRange(day.day, day.day),
+        dayId: day.id,
+        scheduledId: booking.id
+      },
+      PRODUCTS.map((p) => p.id),
+      centavosToPesos
+    );
     this.setState((s) => ({
-      event: { ...(s.event ?? {}), id: outcome.eventId, snapshot: Object.keys(outcome.prices) },
-      eventPrices: { ...(s.eventPrices as Record<string, number>), ...outcome.prices }
+      // The engine's own startEvent sets syncState 'idle' (it means nothing to sync), which its state type does not list.
+      ...(patch as Omit<typeof patch, 'syncState'>),
+      syncState: 'idle' as never,
+      eventPrices: { ...(s.eventPrices as object), ...patch.eventPrices }
     }));
-    if (pending) void this.afterScheduledStart(pending, outcome.eventId);
+    return 'started';
+  }
+
+  /** S3: kept on the phone so a reload does not forget that a close of the day may have landed. */
+  private setCloseInDoubt(dayId: string | null): void {
+    try {
+      if (dayId) localStorage.setItem(CLOSE_IN_DOUBT, dayId);
+      else localStorage.removeItem(CLOSE_IN_DOUBT);
+    } catch {
+      /* private mode: a sale after the close is refused by the database and stays on the phone, unsent */
+    }
+  }
+
+  /**
+   * S3: what this phone has not sent yet, as the screen shows it (sales, and the queue's own count when it was read).
+   * The close and the drop of a day count the queue itself (`unsentForEvent`).
+   */
+  private unsentForDay(): number {
+    const day = this.dayQueue;
+    if (!day) return Math.max(Number(this.state.unsynced) || 0, this.operationsQueue, 0);
+    // S3.1: only the held event's rows, and a sale the server refused outright no longer holds the day (it stays queued).
+    const onScreen = (this.state.sales as EventSale[]).filter(
+      (sale) => !sale.synced && !day.refused.has(clientIdFor({ saleId: sale.id, at: sale.at }))
+    ).length;
+    return Math.max(onScreen, day.blocking, 0);
+  }
+
+  /**
+   * S3: "Close out" on a started day opens the day's review instead of the old close-out. The review is the owner's and
+   * is read from the database, so it needs signal; selling carries on without it.
+   */
+  private openDayReview(): void {
+    const event = this.state.event as LiveEvent | null;
+    if (!event?.dayId || !event.scheduledId) return;
+    if (this.state.role !== 'owner') {
+      this.toast('The owner closes the day from its review.', 'warn');
+      return;
+    }
+    if (!this.state.online) {
+      this.toast(
+        'Closing the day needs signal. Keep selling: sales are saved on this phone.',
+        'warn'
+      );
+      return;
+    }
+    this.bazaarDays.openReview(event.scheduledId, event.dayId, 'till');
+    this.forceUpdate();
+  }
+
+  /**
+   * S3: the database has closed this day. The phone lets go of it, but only once it has nothing left to send for it, and
+   * never through the engine's `resetEvent`: that would put what is left on the table into the shop's baked stock, and
+   * those cookies were carried over, sent to the shop or written off by her count.
+   */
+  private async dropClosedDay(dayId: string): Promise<void> {
+    if ((this.state.event as LiveEvent | null)?.dayId !== dayId) return;
+    if (this.unsentForDay() > 0) return;
+    // The queue itself decides: anything of this day it has not sent (or a queue that cannot be read) keeps the day on the
+    // phone. A sale the server refused outright does not (S3.1): it stays in the queue, listed, and is never deleted.
+    const eventId = (this.state.event as LiveEvent | null)?.id;
+    if (!eventId) return;
+    let unsent: number;
+    try {
+      unsent = (await unsentForEvent(eventId)).blocking.length;
+    } catch {
+      return;
+    }
+    // Checked again after the wait: nothing may have reached the till or the queue meanwhile.
+    if (
+      unsent > 0 ||
+      this.unsentForDay() > 0 ||
+      (this.state.event as LiveEvent | null)?.dayId !== dayId
+    )
+      return;
+    this.setState(
+      {
+        event: null,
+        sales: [],
+        cart: {},
+        unsynced: 0,
+        syncState: 'idle',
+        syncTried: false,
+        drawer: null,
+        cartDiscount: 0,
+        saleRef: '',
+        tendered: '',
+        eventStock: {},
+        eventLoaded: {}
+      } as never,
+      // After the state has landed, so a save in between cannot put the day back; the pause ends with the day.
+      () => {
+        clearBazaar();
+        this.setCloseInDoubt(null);
+        // A form left open over the till must not come back over the next day's.
+        this.bazaarDays.closeTillPanel();
+      }
+    );
+  }
+
+  /** S3: a loss (below zero) or more stock (above) on the day this phone is selling: the table follows. */
+  private moveDayStock(dayId: string, pid: string, by: number, loaded: number | null): void {
+    this.setState((s) => {
+      if ((s.event as LiveEvent | null)?.dayId !== dayId) return null;
+      const stock = (s.eventStock ?? {}) as Record<string, number>;
+      const patch: Record<string, unknown> = {
+        eventStock: { ...stock, [pid]: Math.max(0, (stock[pid] ?? 0) + by) }
+      };
+      if (loaded !== null)
+        patch.eventLoaded = { ...(s.eventLoaded as Record<string, number>), [pid]: loaded };
+      return patch as never;
+    });
+  }
+
+  /**
+   * S3: with signal, the day this phone holds is read from the database. Its float is the day's own (the saved copy on
+   * the phone keeps the event, not the drawer), and a day that was closed from another phone is let go of.
+   */
+  private async confirmHeldDay(): Promise<void> {
+    const event = this.state.event as LiveEvent | null;
+    const client = this.scheduledClient as unknown as BazaarClient | null;
+    if (!event?.dayId || !event.scheduledId || !client || this.state.role !== 'owner') return;
+    let data: Bazaar;
+    try {
+      data = await fetchBazaar(client, event.scheduledId);
+    } catch {
+      return;
+    }
+    const day = data.days.find((d) => d.id === event.dayId);
+    if (this.unmounted || !day) return;
+    // A closed day pauses selling until the phone has let go of it; an open one settles any doubt.
+    if (day.state === 'closed') {
+      this.setCloseInDoubt(day.id);
+      return void (await this.dropClosedDay(day.id));
+    }
+    this.setCloseInDoubt(null);
+    this.setState((s) => {
+      const now = s.event as LiveEvent | null;
+      if (now?.dayId !== day.id) return null;
+      const counted = (s.drawer as { counted?: unknown } | null)?.counted ?? '';
+      return {
+        event: { ...now, floatCents: day.floatCents },
+        drawer: { float: centavosToPesos(day.floatCents), counted }
+      } as never;
+    });
   }
 
   /**
@@ -1494,20 +1859,20 @@ export class OpsRuntime extends OpsProvider {
     const sample = PRODUCTS.slice(0, 3) as Array<{ id: string; short: string }>;
     const sum = sample.reduce((t, p) => t + e.priceOf(p.id) * 2, 0);
     const mode = String((preview as { mode?: unknown }).mode ?? '');
+    // The cost of the sample: unknown when any of the three is, and then the example says so instead of a total.
+    const cost = sample.reduce((t, p) => t + e.ingCost(p.id) * 2, 0);
     const total =
       mode === 'Flat price per box'
         ? e.flatBox()
         : mode === 'Menu prices + packaging fee'
           ? sum + e.packFee()
           : mode === 'Cookie cost × multiplier + packaging'
-            ? Math.round(
-                sample.reduce((t, p) => t + e.ingCost(p.id) * 2, 0) * e.cogsMult() + e.packFee()
-              )
+            ? Math.round(cost * e.cogsMult() + e.packFee())
             : sum;
     return {
       ...preview,
       items: sample.length ? sample.map((p) => '2 ' + p.short).join(' · ') : 'No flavours yet',
-      total: PESO2(total)
+      total: Number.isFinite(total) ? PESO2(total) : COST_COPY.pending
     };
   }
 
@@ -1800,8 +2165,18 @@ export class OpsRuntime extends OpsProvider {
     this.unmounted = false;
     if (isLiveMode()) {
       clearStoredBooks();
+      this.tillClassic = readClassicTill();
       const bazaar = readBazaar();
-      if (bazaar) this.setState(bazaar);
+      if (bazaar) {
+        // S3: the saved copy keeps the event and not the drawer. A started day carries its float on the event, so the
+        // drawer comes back with no signal; with signal it is confirmed from the day (`confirmHeldDay`).
+        const floatCents = (bazaar.event as LiveEvent | null)?.floatCents;
+        this.setState(
+          typeof floatCents === 'number' && Number.isInteger(floatCents) && floatCents >= 0
+            ? { ...bazaar, drawer: { float: centavosToPesos(floatCents), counted: '' } }
+            : bazaar
+        );
+      }
       // The saved copy can predate a sync that finished while unmounted: the queue is the truth.
       if (this.state.syncState === 'syncing') this.setState({ syncState: 'idle' });
       void this.reflectQueue();
@@ -2146,11 +2521,13 @@ export class OpsRuntime extends OpsProvider {
       recipe: starved.recipe
         ? {
             ...starved.recipe,
-            costText: this.completeRecipeCost(this.state.recipeOpen)
+            costText: this.costKnown(this.state.recipeOpen)
               ? starved.recipe.costText
-              : 'Cost pending'
+              : COST_COPY.pending
           }
         : starved.recipe,
+      pl: this.livePnl(starved.pl),
+      bzCloseout: this.liveCloseout(starved.bzCloseout),
       invRows: (starved.invRows ?? []).map((row) => {
         const item = this.stockCatalogue?.items.find((i) => i.name === row.name);
         return ['Ingredients', 'Packaging'].includes(String(this.state.invTab)) &&
@@ -2159,6 +2536,7 @@ export class OpsRuntime extends OpsProvider {
           : row;
       }),
       sheet: this.liveSheet(starved.sheet),
+      ...this.liveTillVals(starved),
       ...this.liveScreenVals(starved, ownerTools),
       liveForm: this.liveFormVals(),
       livePay: this.livePayVals(),
@@ -2205,10 +2583,22 @@ export class OpsRuntime extends OpsProvider {
         ? { exportNow: () => this.toast('Only the owner can export the books.', 'warn') }
         : {}),
       liveStockItems: this.liveStockItemsVals(),
+      liveStock: this.liveStockVals(),
+      liveBazaar: isLiveMode() && this.state.role === 'owner' ? this.bazaarDays.vals() : null,
+      // Worked out only on the Recipes screen: nothing else reads it, and the till must not pay for it.
+      liveRecipes:
+        isLiveMode() && this.state.role === 'owner' && this.state.screen === 'recipes'
+          ? this.recipeBook.vals()
+          : null,
+      ...this.liveToastVals(starved),
+      // S3: on a started day "Close out" opens the day's review, never the old close-out sheet (which the database refuses).
+      ...((this.state.event as LiveEvent | null)?.dayId
+        ? { askClose: () => this.openDayReview() }
+        : {}),
       liveStockSuppliers: this.liveStockSuppliersVals(),
       liveRecipeDrafts: this.liveRecipeDraftsVals(),
-      // D4: in live mode the Bazaar list is the owner's bookings, never the ported prototype events.
-      events: this.liveBazaarEvents(),
+      // S2: the ported start list is never offered in live mode: a day is started from the Bazaar page (`liveBazaar`).
+      events: [] as OpsVals['events'],
       cust: this.liveStatusCust(this.livePayCust(starved.cust)),
       openLookup: () => this.openLookupSheet(),
       openWaitlist: () => this.openWaitlist(),
@@ -2580,6 +2970,9 @@ export class OpsRuntime extends OpsProvider {
     }
     this.forceUpdate();
     void this.retryPendingLink(use);
+    void this.confirmHeldDay();
+    // Home's next-event card must not offer a closed event: only a read of each event can say so (U4).
+    if (this.state.role === 'owner') void this.bazaarDays.readHub();
     return true;
   }
 
@@ -2611,9 +3004,17 @@ export class OpsRuntime extends OpsProvider {
       const event = this.state.event as LiveEvent | null;
       if (event?.id === eventId && this.localEventExpense)
         this.localEventExpense(SCHEDULED_COPY.rentLabel, centavosToPesos(rentCents), 'Bazaar rent');
-      else this.toast(SCHEDULED_COPY.rentBooked(pesoText(rentCents)));
+      else this.toast(SCHEDULED_COPY.rentBooked(peso(rentCents)));
     });
   }
+
+  /** U3: the "Bazaar events" sub-tab opens the events hub: the list of bookings, not an event's page, and not the form. */
+  private openBazaarEvents = (): void => {
+    this.bazaarDays.reset();
+    this.go('bazaar');
+    this.forceUpdate();
+    void this.loadScheduledEvents(null);
+  };
 
   private openScheduled = async (): Promise<void> => {
     if (!(await this.loadScheduledEvents(null)) || !this.scheduledRows) {
@@ -2701,49 +3102,6 @@ export class OpsRuntime extends OpsProvider {
     this.closeSheet();
   }
 
-  /**
-   * The Bazaar screen's "Start an event" list in live mode: the owner's upcoming bookings, then one row to start an
-   * event that was never booked. The ported list (two prototype events) is never shown.
-   */
-  private liveBazaarEvents(): OpsVals['events'] {
-    const bazaar = this as unknown as BazaarActions;
-    const today = manilaToday();
-    const rows = upcomingEvents(this.scheduledRows ?? [], today).map((row) => ({
-      name: row.name,
-      date: dateRange(row.startsOn, row.endsOn),
-      place: row.place || SCHEDULED_COPY.unbookedPlace,
-      go: () => {
-        this.pendingSchedule = row;
-        bazaar.startEvent({ name: row.name, date: dateRange(row.startsOn, row.endsOn) });
-      }
-    }));
-    const label = dateRange(today, today);
-    rows.push({
-      name: SCHEDULED_COPY.unbookedTitle,
-      date: label,
-      place: SCHEDULED_COPY.unbookedPlace,
-      go: () => {
-        this.pendingSchedule = null;
-        bazaar.startEvent({ name: 'Bazaar · ' + label, date: label });
-      }
-    });
-    return rows;
-  }
-
-  /** The event is open: record which booking it was, and book the stall rent as an event expense, once. */
-  private async afterScheduledStart(row: ScheduledEvent, eventId: string): Promise<void> {
-    const client = this.scheduledClient;
-    const linked = client ? await linkScheduledEvent(client, row.id, eventId) : 'failed';
-    if (linked === 'failed') {
-      // The database books the rent with the first link; keep the pair until a retry is confirmed.
-      savePendingLink({ scheduledId: row.id, eventId, rentCents: row.rentCents, at: Date.now() });
-      this.toast(SCHEDULED_COPY.linkPending, 'warn');
-    } else if (linked === 'first') {
-      this.showRentBooked(eventId, row.rentCents);
-    }
-    await this.loadScheduledEvents(null);
-  }
-
   // ------------------------------------------------------------------ A4: the owner's recipes
 
   /**
@@ -2772,6 +3130,7 @@ export class OpsRuntime extends OpsProvider {
       if (first || !dirty[p.id] || p.id === refresh)
         this.recipeBaseStamp[p.id] = rows.find((r) => r.productId === p.id)?.updatedAt ?? null;
     this.setState((s) => this.recipesPatch(s as unknown as RecipeState, refresh, first));
+    void this.loadCosts(); // a saved recipe changes what a cookie costs; a slow answer never holds this read up
     return true;
   }
 
@@ -3051,6 +3410,8 @@ export class OpsRuntime extends OpsProvider {
       return false;
     }
     this.applyStockCatalogue();
+    // B5-1: a movement or a reload may have changed an item's history; the open page reads it again.
+    this.refreshMovements();
     // What was last paid for each item, which the cost per unit is worked out from (a failed read leaves what was there).
     try {
       const paid = enginePaid(await fetchLastPaid(use as LedgerClient));
@@ -3058,7 +3419,87 @@ export class OpsRuntime extends OpsProvider {
     } catch {
       /* the catalogue's own best-buy prices stand in */
     }
+    void this.loadCosts(); // a stock movement or a price changes what an item and a cookie cost
     return true;
+  }
+
+  // ------------------------------------------------------------------ B3b-2: what things cost
+
+  /**
+   * Reads the database's cost of every item and recipe (owner only: it refuses anyone else), after anything that changes a cost: a
+   * stock movement, a delivery, a price, a saved recipe, production. If either function is missing (a database before B3b) the
+   * whole read is `missing` and the engine's own path stands. A failed read is not kept as a cost: it is unknown. Never throws.
+   */
+  async loadCosts(): Promise<void> {
+    const use = (this.stockClient ?? this.recipeClient) as CostsClient | null;
+    if (!isLiveMode() || !use || this.state.role !== 'owner') return;
+    const seq = (this.costLoadSeq += 1);
+    const [items, recipes] = await Promise.all([fetchItemCosts(use), fetchRecipeCosts(use)]);
+    // A newer read started meanwhile: it will apply, an older answer must not bring back an older cost.
+    if (seq !== this.costLoadSeq) return;
+    if (items.status === 'ok' && recipes.status === 'ok') {
+      this.costReads = 'ok';
+      this.itemCosts = items;
+      this.recipeCosts = recipes.byProduct;
+    } else {
+      this.costReads =
+        items.status === 'missing' || recipes.status === 'missing' ? 'missing' : 'failed';
+      this.itemCosts = null;
+      this.recipeCosts = new Map();
+    }
+    this.setState({});
+  }
+
+  /** Whether a cost is the database's: the owner, once a cost function exists. Anyone else, or an older database, keeps the engine's own path. */
+  private costsFromDatabase(): boolean {
+    return this.state.role === 'owner' && this.costReads !== 'missing';
+  }
+
+  /** A recipe's cost row, only when it is known: complete and not being edited (the database costs the saved recipe). */
+  private knownRecipeCost(pid: string | undefined): RecipeCost | null {
+    if (this.costReads !== 'ok' || !pid) return null;
+    if ((this.state.recipeDirty as Record<string, boolean> | undefined)?.[pid]) return null;
+    const row = this.recipeCosts.get(pid);
+    // The cost is of one saved version; once the recipe has moved on it is not this recipe's cost until the read catches up.
+    const saved = this.recipeRows?.find((r) => r.productId === pid)?.version;
+    return row?.complete && saved !== undefined && row.version === saved ? row : null;
+  }
+
+  private installCostOverrides(): void {
+    const e = this as unknown as CostActions;
+    const keep = {
+      costPerUnit: e.costPerUnit,
+      ingCost: e.ingCost,
+      packCostPerCookie: e.packCostPerCookie,
+      unitCost: e.unitCost
+    };
+    this.engineCost = keep;
+    e.costPerUnit = (name) => {
+      this.capturePackNames?.push(name);
+      if (!this.costsFromDatabase()) return keep.costPerUnit(name);
+      const cost = this.costReads === 'ok' ? this.itemCosts?.byName.get(name) : null;
+      return cost ?? NaN;
+    };
+    e.ingCost = (pid) =>
+      this.costsFromDatabase()
+        ? (this.knownRecipeCost(pid)?.ingredientPerCookie ?? NaN)
+        : keep.ingCost(pid);
+    // The engine's takes no flavour and spreads three named items over six; the database costs each recipe's own packaging lines.
+    e.packCostPerCookie = (pid) =>
+      this.costsFromDatabase()
+        ? (this.knownRecipeCost(pid)?.packagingPerCookie ?? NaN)
+        : keep.packCostPerCookie();
+    e.unitCost = (pid) => {
+      if (!this.costsFromDatabase()) return keep.unitCost(pid);
+      const perCookie = this.knownRecipeCost(pid)?.perCookie;
+      return perCookie == null ? NaN : Math.round(perCookie * 100) / 100;
+    };
+  }
+
+  /** A flavour's cost per cookie in pesos, or null when it is not known. */
+  private cookieCost(pid: string): number | null {
+    const cost = (this as unknown as CostActions).unitCost(pid);
+    return Number.isFinite(cost) ? cost : null;
   }
 
   /**
@@ -3502,16 +3943,28 @@ export class OpsRuntime extends OpsProvider {
     const n = Number(qty) || 0;
     if (!n) return void this.toast('Enter how much went to waste.', 'warn');
     if (!item) return;
-    const cost = Math.round(n * (this as unknown as InvActions).costPerUnit(name));
+    const perUnit = (this as unknown as InvActions).costPerUnit(name);
+    const cost = Number.isFinite(perUnit) ? Math.round(n * perUnit) : null;
     if (await this.recordMovement(item.id, 'waste', n, null, '', why || 'Spoiled')) {
       this.setState({ sheet: null });
+      // On the "when used" basis the waste is a cost in the books the day it happens (or listed as not costed); on the "bought"
+      // basis it was expensed when bought. Until the books are read, which basis it is is not known, so neither is said.
+      const basis = this.booksRows?.basis;
+      const effect =
+        basis === undefined
+          ? ''
+          : basis === 'bought'
+            ? ' ' + COST_COPY.wasteBought
+            : ' ' + (cost === null ? COST_COPY.wasteUsedPending : COST_COPY.wasteUsed);
       this.toast(
         n +
           ' of ' +
           name.toLowerCase() +
-          ' written off. About ₱' +
-          cost.toLocaleString('en-PH') +
-          ' of stock gone. It was already expensed when you bought it, so profit does not move twice.',
+          ' written off. ' +
+          (cost === null
+            ? COST_COPY.wastePending
+            : 'About ₱' + cost.toLocaleString('en-PH') + ' of stock gone.') +
+          effect,
         'warn'
       );
     } else this.setState({ sheet: null });
@@ -3551,6 +4004,7 @@ export class OpsRuntime extends OpsProvider {
     const names = Object.keys(counts).filter((n) => counts[n] !== undefined && counts[n] !== '');
     let corrected = 0;
     let value = 0;
+    let valued = true; // false once a corrected item has no known cost: the total would be a part of the truth
     let saved = 0;
     for (const name of names) {
       const item = this.stockItem(name);
@@ -3565,7 +4019,9 @@ export class OpsRuntime extends OpsProvider {
       delete counts[name];
       if (counted !== before) {
         corrected += 1;
-        value += (counted - before) * (this as unknown as InvActions).costPerUnit(name);
+        const perUnit = (this as unknown as InvActions).costPerUnit(name);
+        if (Number.isFinite(perUnit)) value += (counted - before) * perUnit;
+        else valued = false;
       }
     }
     if (saved < names.length) {
@@ -3583,9 +4039,11 @@ export class OpsRuntime extends OpsProvider {
       corrected === 0
         ? STOCK_COPY.counted(0)
         : STOCK_COPY.counted(corrected) +
-            (value < 0
-              ? ' ₱' + shown + ' of stock unaccounted for.'
-              : ' ₱' + shown + ' more than your records said.'),
+            (!valued
+              ? COST_COPY.stocktakePending
+              : value < 0
+                ? ' ₱' + shown + ' of stock unaccounted for.'
+                : ' ₱' + shown + ' more than your records said.'),
       corrected === 0 ? 'ok' : 'warn'
     );
   }
@@ -3621,6 +4079,285 @@ export class OpsRuntime extends OpsProvider {
     }
     this.setState({ sheet: null });
     this.toast(name + ' ' + STOCK_COPY.removedNote, 'warn');
+  }
+
+  // ------------------------------------------------------------------ B5-1: the New Stock screens' data
+
+  /** How many movements the item page asks for (the database allows 1 to 200). */
+  private static readonly MOVEMENT_LIMIT = 50;
+
+  /** Reads one item's movements for its page. A cached answer stays on show while a newer one is read; a missing function or a failed read is `unavailable`. */
+  private async loadMovements(itemId: string): Promise<void> {
+    const client = this.stockClient as MovementsClient | null;
+    if (!isLiveMode() || !client || this.state.role !== 'owner') return;
+    const token = (this.movementToken += 1);
+    this.movementTokens.set(itemId, token);
+    const read = await fetchItemMovements(client, itemId, OpsRuntime.MOVEMENT_LIMIT);
+    // A newer read of this item started meanwhile: it will apply, an older answer must not put an older history back.
+    if (this.movementTokens.get(itemId) !== token || this.unmounted) return;
+    this.movementReads.set(
+      itemId,
+      read.status === 'ok'
+        ? { state: 'ready', rows: read.rows }
+        : { state: 'unavailable', rows: [] }
+    );
+    this.setState({});
+  }
+
+  /** After a stock movement or a catalogue reload: other items' histories are dropped, the open one is read again (its rows stay on show meanwhile). */
+  private refreshMovements(): void {
+    const open = (this.state as Record<string, unknown>).liveStockOpen;
+    for (const id of [...this.movementReads.keys()]) if (id !== open) this.movementReads.delete(id);
+    if (typeof open !== 'string') return;
+    if (!this.stockCatalogue?.items.some((i) => i.id === open)) {
+      this.movementReads.delete(open);
+      this.setState({ liveStockOpen: null });
+      return;
+    }
+    void this.loadMovements(open);
+  }
+
+  private openStockItemPage(id: string): void {
+    const cached = this.movementReads.get(id);
+    if (!cached || cached.state !== 'ready')
+      this.movementReads.set(id, { state: 'loading', rows: [] });
+    this.setState({ liveStockOpen: id });
+    if (!cached || cached.state !== 'ready') void this.loadMovements(id);
+  }
+
+  /** The cost per unit and where it came from: the database's for the owner, else the engine's own (a database before B3b). Unknown is null. */
+  private stockUnitCost(item: StockItem): { perUnit: number | null; source: string | null } {
+    if (this.costsFromDatabase()) {
+      if (this.costReads !== 'ok' || !this.itemCosts) return { perUnit: null, source: null };
+      return {
+        perUnit: this.itemCosts.byId.get(item.id) ?? null,
+        source: this.itemCosts.sourceById.get(item.id) ?? null
+      };
+    }
+    const cost = (this as unknown as CostActions).costPerUnit(item.name);
+    // The engine answers 0 for an item nobody has priced: that is "unknown", never a cost of nothing.
+    return { perUnit: Number.isFinite(cost) && cost > 0 ? cost : null, source: null };
+  }
+
+  /** The existing count flow, for one item: on its tab, with only that item on the sheet. */
+  private startItemCount(item: StockItem): void {
+    this.setState({ invTab: item.category } as never, () => {
+      (this as unknown as InvActions).startStocktake();
+      this.setState((s) => ({
+        stocktake: s.stocktake ? { ...(s.stocktake as object), items: [item.name] } : s.stocktake
+      }));
+    });
+  }
+
+  private stockItemView(
+    item: StockItem,
+    supplierNames: ReadonlyMap<string, string>,
+    paid: Record<string, { price: number; at: number }>
+  ): StockItemView {
+    const cost = this.stockUnitCost(item);
+    const last = paid[item.name];
+    const engine = this as unknown as { openReceive: (name: string) => void };
+    return {
+      id: item.id,
+      name: item.name,
+      category: item.category,
+      unit: item.unit,
+      active: item.active,
+      qtyText: formatQuantity(item.onHand, item.unit),
+      status: stockStatus(item.onHand, item.parLevel),
+      levelText: levelText(item.parLevel, item.unit),
+      lastCountedText: lastCountedText(item.lastCounted),
+      costText: unitCostText(cost.perUnit, item.unit, cost.source),
+      supplier: (item.supplierId && supplierNames.get(item.supplierId)) || STOCK_COPY.noSupplier,
+      lastPaidText: last ? lastPaidText(last.price, last.at) : null,
+      open: () => this.openStockItemPage(item.id),
+      receive: () => engine.openReceive(item.name),
+      count: () => this.startItemCount(item),
+      waste: () => this.sheet('spoil', { name: item.name }),
+      adjust: () => {
+        const row = (this.state.inv as Array<{ name: string }>).find((r) => r.name === item.name);
+        if (row) this.sheet('invEdit', { ...row });
+        else
+          this.sheet('invEdit', {
+            name: item.name,
+            qty: item.onHand,
+            unit: item.unit,
+            level: item.parLevel,
+            cat: item.category,
+            supplier: supplierNames.get(item.supplierId ?? '') ?? '—'
+          });
+      },
+      edit: () => this.sheet('stockitems', { id: item.id })
+    };
+  }
+
+  private movementView(m: ItemMovement, unit: string): StockMovementView {
+    // A cost is stamped when stock goes out (a use, a waste, a count or an adjustment that took stock off); none known is pending, never 0.
+    const outgoing = m.kind === 'use' || m.kind === 'waste' || m.qtyDelta < 0;
+    const costText =
+      m.unitCost !== null
+        ? ratePerUnitText(m.unitCost, unit)
+        : m.paid !== null
+          ? formatPesos(m.paid) + ' ' + STOCK_COPY.paid
+          : outgoing
+            ? COST_COPY.pending
+            : null;
+    return {
+      id: m.id,
+      kind: m.kind,
+      changeText: changeText(m.qtyDelta, unit),
+      costText,
+      supplier: m.supplier,
+      reason: m.reason,
+      at: m.at
+    };
+  }
+
+  /** The engine's grocery plan row, as far as this reads it (the engine's file has no types for it). */
+  private groceryPlanRows(): Array<{
+    key: string;
+    reorderOnly: boolean;
+    needText: string;
+    packText: string;
+    packs: number;
+    add: number;
+    cost: number;
+    supplier: string;
+  }> {
+    try {
+      const plan = (this as unknown as { groceryPlan: (s: unknown) => unknown }).groceryPlan(
+        this.state
+      );
+      return Array.isArray(plan) ? (plan as ReturnType<OpsRuntime['groceryPlanRows']>) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  private groceryRowViews(
+    c: StockCatalogue,
+    supplierNames: ReadonlyMap<string, string>
+  ): { rows: GroceryRowView[]; lines: Array<number | null> } {
+    const plan = new Map(this.groceryPlanRows().map((p) => [p.key, p]));
+    const best = engineBestBuy(engineSuppliers(c));
+    const engine = this as unknown as { openReceive: (name: string) => void };
+    const wanted = c.items
+      .filter((i) => i.active && stockStatus(i.onHand, i.parLevel) !== 'Good')
+      .sort(
+        (a, b) =>
+          Number(stockStatus(b.onHand, b.parLevel) === 'Out') -
+            Number(stockStatus(a.onHand, a.parLevel) === 'Out') || a.name.localeCompare(b.name)
+      );
+    const rows: GroceryRowView[] = [];
+    const lines: Array<number | null> = [];
+    for (const i of wanted) {
+      const status = stockStatus(i.onHand, i.parLevel) as 'Out' | 'Low';
+      const p = plan.get(i.name);
+      const own = (i.supplierId && supplierNames.get(i.supplierId)) || STOCK_COPY.noSupplier;
+      const common = {
+        itemId: i.id,
+        name: i.name,
+        status,
+        haveText: formatQuantity(i.onHand, i.unit),
+        bought: () => engine.openReceive(i.name)
+      };
+      if (!p) {
+        // Out or Low, but the plan has nothing to buy (nothing short of what is needed, or no level to buy back to).
+        const price = best[i.name];
+        const size = i.packSize && i.packSize > 0 ? i.packSize : null;
+        rows.push({
+          ...common,
+          neededText: formatQuantity(i.parLevel, i.unit),
+          toBuyText: STOCK_COPY.nothingToBuy,
+          packText: price?.pack || i.packLabel || STOCK_COPY.noPackSet,
+          bestPriceText: ratePerUnitText(price && size ? price.price / size : null, i.unit),
+          supplier: price?.supplier ?? own,
+          lineCostText: formatPesos(0)
+        });
+        lines.push(0);
+        continue;
+      }
+      // The engine prices an item with no supplier price at 0 with the pack '—'; that is not a price.
+      const priced = p.packText !== '—' && p.cost > 0;
+      const line = priced ? p.cost : null;
+      const label = priced ? p.packText : i.packLabel;
+      const needed = p.reorderOnly ? i.parLevel : engineAmount(p.needText, i.unit);
+      rows.push({
+        ...common,
+        neededText: needed === null ? p.needText : formatQuantity(needed, i.unit),
+        toBuyText: label
+          ? p.packs + ' × ' + label + ' (' + formatQuantity(p.add, i.unit) + ')'
+          : STOCK_COPY.buy + ' ' + formatQuantity(p.add, i.unit),
+        packText: label || STOCK_COPY.noPackSet,
+        bestPriceText: ratePerUnitText(priced && p.add > 0 ? p.cost / p.add : null, i.unit),
+        supplier: priced && p.supplier !== '—' ? p.supplier : own,
+        lineCostText: line === null ? COST_COPY.pending : formatPesos(line)
+      });
+      lines.push(lineCost(1, line));
+    }
+    return { rows, lines };
+  }
+
+  private groceryView(
+    c: StockCatalogue,
+    supplierNames: ReadonlyMap<string, string>
+  ): LiveStockVals['grocery'] {
+    const { rows, lines } = this.groceryRowViews(c, supplierNames);
+    const sum = sumKnown(lines);
+    // The budget is hers: only a value she saved counts. The database's own default (and the prototype's 6,000) is not a budget.
+    const raw = this.settingsSync?.isSet('groceryBudget')
+      ? Number((this.state.cfg as Record<string, unknown> | undefined)?.groceryBudget)
+      : Number.NaN;
+    const budget = Number.isFinite(raw) && raw >= 0 ? raw : null;
+    const known = sum.centavos / 100;
+    const over = budget !== null && known > budget;
+    return {
+      rows,
+      totalText: totalText(lines),
+      budgetText: budget === null ? null : formatPesosShort(budget),
+      budgetNoteText:
+        budget === null
+          ? null
+          : over
+            ? formatPesos(known - budget) + ' ' + STOCK_COPY.budgetOver
+            : formatPesos(budget - known) +
+              ' ' +
+              (sum.pending > 0 ? STOCK_COPY.budgetLeftSoFar : STOCK_COPY.budgetLeft),
+      overBudget: over
+    };
+  }
+
+  /** The live owner's New Stock data: null for anyone else, outside live mode, and until the catalogue has been read. */
+  private liveStockVals(): LiveStockVals | null {
+    const c = this.stockCatalogue;
+    if (!isLiveMode() || this.state.role !== 'owner' || !c) return null;
+    const supplierNames = new Map(c.suppliers.map((s) => [s.id, s.name]));
+    const paid = (this.state.paid ?? {}) as Record<string, { price: number; at: number }>;
+    const items = c.items.map((i) => this.stockItemView(i, supplierNames, paid));
+    const active = items.filter((i) => i.active);
+    const openId = (this.state as Record<string, unknown>).liveStockOpen;
+    const open = typeof openId === 'string' ? items.find((i) => i.id === openId) : undefined;
+    const reads = open ? this.movementReads.get(open.id) : undefined;
+    return {
+      online: this.stockOnline(),
+      items,
+      counts: {
+        total: active.length,
+        out: active.filter((i) => i.status === 'Out').length,
+        low: active.filter((i) => i.status === 'Low').length
+      },
+      page: open
+        ? {
+            item: open,
+            movementsState: reads?.state ?? 'loading',
+            movements: (reads?.rows ?? []).map((m) => this.movementView(m, open.unit)),
+            close: () => this.setState({ liveStockOpen: null })
+          }
+        : null,
+      // After a cutover on the used basis a count that finds less stock is an expense; before it, or with the books unread, nothing is said.
+      countNote: this.booksRows?.basis === 'used' ? STOCK_COPY.countNote : null,
+      grocery: this.groceryView(c, supplierNames)
+    };
   }
 
   // ------------------------------------------------------------------ C2: production
@@ -3805,7 +4542,32 @@ export class OpsRuntime extends OpsProvider {
       return;
     }
     this.keepBookkeeping(run);
+    this.unknownDiscardCost();
     await this.refreshProduction();
+  }
+
+  /**
+   * The engine's waste record and toast work out the cost of the cookies or dough themselves. When that cost is not known (NaN) the
+   * entry keeps no cost at all (null, never NaN or 0) and the toast says so. A functional update, so it lands after the engine's own.
+   */
+  private unknownDiscardCost(): void {
+    this.setState((s) => {
+      const spoilage = (s.spoilage as Array<{ cost: number | null }>) ?? [];
+      const toast = s.toast as { msg?: string } | null;
+      return {
+        spoilage: spoilage.map((x) =>
+          x.cost === null || Number.isFinite(x.cost) ? x : { ...x, cost: null }
+        ),
+        ...(toast?.msg?.includes('NaN')
+          ? {
+              toast: {
+                ...toast,
+                msg: toast.msg.replace(/₱NaN of [a-z ]+ gone/, COST_COPY.pending.toLowerCase())
+              }
+            }
+          : {})
+      } as never;
+    });
   }
 
   /** What the database holds now, for the screens (after every production action, whatever happened). */
@@ -4051,6 +4813,36 @@ export class OpsRuntime extends OpsProvider {
           ' · ' +
           formatManila(r.at, { day: 'numeric', month: 'short' }, 'en-PH')
       })),
+      uncosted: books.uncosted.map((u) => ({
+        id: u.id,
+        item: u.item,
+        detail:
+          {
+            use: BOOKS_COPY.uncostedUse,
+            waste: BOOKS_COPY.uncostedWaste,
+            count: BOOKS_COPY.uncostedCount,
+            adjust: BOOKS_COPY.uncostedAdjust
+          }[u.kind] +
+          ' · ' +
+          u.qty +
+          ' ' +
+          u.unit +
+          (u.why ? ' · ' + u.why : '') +
+          ' · ' +
+          formatManila(u.at, { day: 'numeric', month: 'short' }, 'en-PH')
+      })),
+      // S3: a bazaar that is not closed yet is left out of the books; this says so, with what is held back.
+      held: books.held.map((h) => ({
+        id: h.scheduledId,
+        name: h.name,
+        detail:
+          plural(h.count, 'record', 'records') +
+          ' · ' +
+          peso(h.revenueCents) +
+          ' taken · ' +
+          peso(h.expenseCents) +
+          ' spent at the till'
+      })),
       setBasis: (b) => void this.liveSetBasis(b),
       correct: (movementId, pesos) => void this.liveCorrect(movementId, pesos),
       download: () => void this.liveExport(),
@@ -4062,7 +4854,6 @@ export class OpsRuntime extends OpsProvider {
   private unpaidVals(): NonNullable<OpsVals['liveBooks']>['unpaid'] {
     const orders = this.orderSync?.current();
     if (!orders) return null;
-    const peso = (cents: number) => '₱' + (cents / 100).toLocaleString('en-PH');
     const { rows, totalCents } = unpaidOrders(orders, Date.now());
     return {
       summary: rows.length
@@ -4507,9 +5298,9 @@ export class OpsRuntime extends OpsProvider {
               {
                 icon: this.IC.cookie,
                 label: SCHEDULED_COPY.title,
-                sub: 'Your upcoming bazaars: dates, place and stall rent',
+                sub: 'Your bazaars: on now, coming up and past',
                 badge: null,
-                go: () => void this.openScheduled()
+                go: () => this.openBazaarEvents()
               },
               {
                 icon: this.IC.cookie,
@@ -4677,7 +5468,12 @@ export class OpsRuntime extends OpsProvider {
       ...placesOf(tab.id),
       ...(tab.id === 'home' ? PLACES.filter((item) => item.home === 'account') : [])
     ];
-    const opened = place.entries.find((entry) => entry.screen === screen);
+    // Bazaar Mode and Bazaar events open the same screen, and this strip is drawn only while no event is on the phone,
+    // where that screen is the events hub (U3): that is the entry to mark.
+    const opened =
+      place.id === 'bazaar'
+        ? place.entries.find((entry) => entry.label === 'Bazaar events')
+        : place.entries.find((entry) => entry.screen === screen);
     return {
       label: tab.label,
       places: row.map((item) => {
@@ -4724,14 +5520,61 @@ export class OpsRuntime extends OpsProvider {
         ? {
             ...row,
             edit: () => this.openFlavourEditor(pid),
-            costText: this.completeRecipeCost(pid) ? row.costText : 'Cost pending'
+            costText: this.costKnown(pid) ? row.costText : COST_COPY.pending
           }
         : row;
     });
   }
 
+  /** Whether a flavour's cost per cookie is known and may be shown as a figure (not while it is being edited, not part of it). */
+  private costKnown(pid: unknown): boolean {
+    return this.completeRecipeCost(pid) && this.cookieCost(String(pid)) !== null;
+  }
+
+  /**
+   * P&L margins: a flavour whose cost is unknown shows "Cost pending" instead of a margin built from a part cost. The caption says
+   * how many uses of stock the books could not cost (on the "when used" basis), within the period it covers.
+   */
+  private livePnl(pl: OpsVals['pl']): OpsVals['pl'] {
+    if (!pl || this.state.role !== 'owner') return pl;
+    const uncosted = this.booksRows?.uncosted ?? [];
+    const period = this as unknown as { periodFrom: (s: OpsEngineState) => number };
+    const from = period.periodFrom(this.state as unknown as OpsEngineState);
+    const count = uncosted.filter((u) => u.at >= from && u.at <= Number(this.state.now)).length;
+    return {
+      ...pl,
+      periodText: pl.periodText + (count > 0 ? COST_COPY.notCosted(count) : ''),
+      marginRows: (pl.marginRows ?? []).map((row) => {
+        const pid = PRODUCTS.find((p) => p.short === row.name)?.id;
+        if (!pid || this.cookieCost(pid) !== null) return row;
+        return {
+          ...row,
+          eachText: COST_COPY.pending,
+          madeText: COST_COPY.pending,
+          pctText: '—',
+          barStyle: 'width:4%'
+        };
+      })
+    };
+  }
+
+  /** The bazaar close-out: cost of goods and profit read "Cost pending" when any flavour sold has no cost, and that is not a loss. */
+  private liveCloseout(closeout: OpsVals['bzCloseout']): OpsVals['bzCloseout'] {
+    if (!closeout || this.state.role !== 'owner') return closeout;
+    const unknown = (this.state.sales as EventSale[]).some((sale) =>
+      Object.keys(sale.items).some((k) => (sale.items[k] ?? 0) > 0 && this.cookieCost(k) === null)
+    );
+    return unknown
+      ? { ...closeout, cogs: COST_COPY.pending, profit: COST_COPY.pending, profitOk: true }
+      : closeout;
+  }
+
   /** Partial recipes and missing prices cannot be presented as a complete zero-peso cost. */
   private completeRecipeCost(pid: unknown): boolean {
+    if (this.costsFromDatabase()) {
+      const row = this.recipeCosts.get(String(pid));
+      return this.costReads === 'ok' && !!row && row.complete && row.perCookie !== null;
+    }
     const recipe = this.recipeRows?.find((row) => row.productId === pid);
     const catalogue = this.stockCatalogue;
     if (!recipe?.lines.length || !catalogue) return false;
@@ -4756,9 +5599,18 @@ export class OpsRuntime extends OpsProvider {
         )
       );
     };
+    // A database before B3b: every line is priced, and so is every item the engine's packaging cost asks for (found by running it, not by name).
+    const names: string[] = [];
+    this.capturePackNames = names;
+    try {
+      this.engineCost?.packCostPerCookie();
+    } finally {
+      this.capturePackNames = null;
+    }
     return (
       recipe.lines.every((line) => priced(line.name, line.unit)) &&
-      ['Box of 6', 'Brand sticker', 'Thank-you card'].every((name) => priced(name))
+      names.length > 0 &&
+      names.every((name) => priced(name))
     );
   }
 
@@ -4776,10 +5628,177 @@ export class OpsRuntime extends OpsProvider {
     const key = this.state.screen as ScreenKey;
     const replaced = !vals.denied && !!liveScreenFor(key);
     const tabs = tools ? this.liveTabs(vals, tools) : null;
+    const till = vals.denied ? null : this.liveHomeTill();
+    const next = vals.denied || till ? null : this.liveHomeNext();
     return {
-      liveScreen: replaced || tabs ? { screen: replaced ? key : null, tabs } : null,
+      liveScreen:
+        replaced || tabs || till || next
+          ? { screen: replaced ? key : null, tabs, till, next }
+          : null,
       screens: replaced ? { ...vals.screens, [key]: false } : vals.screens
     };
+  }
+
+  /**
+   * U2: Home's Bazaar card and the "Back to the till" banner. While this phone holds a started day, every screen but the
+   * till (and the customer pages) gets the way back; the money in it follows the helper rule (`helperMoneyView`).
+   */
+  private liveHomeTill(): LiveHomeTill | null {
+    const event = this.state.event as LiveEvent | null;
+    const screen = this.state.screen as ScreenKey;
+    if (!event?.dayId || event.stage !== 'selling') return null;
+    if (screen === 'bazaar' || CUSTOMER_SCREENS.includes(screen)) return null;
+    const sales = (this.state.sales ?? []) as EventSale[];
+    const seesMoney =
+      this.state.role === 'owner' ||
+      (this.state.cfg as Record<string, unknown> | undefined)?.helperSeesSales === 1;
+    const loaded = (this.state.eventLoaded ?? {}) as Record<string, number>;
+    return {
+      name: event.name ?? 'Bazaar',
+      sales: sales.length,
+      revenueText: seesMoney
+        ? peso(sales.reduce((sum, sale) => sum + pesosToCentavos(Number(sale.total) || 0), 0))
+        : null,
+      sold: sales.reduce(
+        (sum, sale) => sum + Object.values(sale.items).reduce((a, n) => a + (Number(n) || 0), 0),
+        0
+      ),
+      onTable: Object.values(loaded).reduce((a, n) => a + (Number(n) || 0), 0),
+      back: () => this.go('bazaar')
+    };
+  }
+
+  /** The live gate tells the runtime whether the full app is open (`verified`) or only Bazaar Mode is. */
+  setGateAccess(narrow: boolean): void {
+    if (this.gateNarrow === narrow) return;
+    this.gateNarrow = narrow;
+    // A form open over the till is the owner's with the whole app open: Bazaar-only mode closes it.
+    if (narrow) this.bazaarDays.closeTillPanel();
+    if (!this.unmounted) this.forceUpdate();
+  }
+
+  /** U2: the owner leaves the till for Home. The day stays open and nothing else moves: not `resetEvent`. */
+  private leaveTill = (): void => {
+    this.go('today');
+  };
+
+  /** U2: the owner, with signal, and with the whole app open. */
+  private canLeaveTill(): boolean {
+    return this.state.role === 'owner' && Boolean(this.state.online) && !this.gateNarrow;
+  }
+
+  /**
+   * U2 (Ateneo B2): the till's expense "Add" opens the day's fee form, the one list the books read, and never the old
+   * expense sheet. A helper cannot book a fee.
+   */
+  private openTillFees = (): void => {
+    if (this.state.role !== 'owner') {
+      this.toast('The owner adds fees from the event page.', 'warn');
+      return;
+    }
+    if (!this.canLeaveTill()) {
+      this.toast('Adding a fee needs signal. Try again when you are back online.', 'warn');
+      return;
+    }
+    this.bazaarDays.openTillPanel('fees');
+    this.forceUpdate();
+  };
+
+  /** U2: Home's card when no day is selling here (owner only): the event under way or the next, once the bookings are read. */
+  private liveHomeNext(): LiveHomeNext | null {
+    if (this.state.role !== 'owner' || this.state.screen !== 'today' || this.state.event)
+      return null;
+    const next = this.bazaarDays.nextEvent();
+    return next
+      ? {
+          ...next,
+          open: () => {
+            next.open();
+            this.go('bazaar');
+          }
+        }
+      : null;
+  }
+
+  /**
+   * U2: what the live till adds to the ported Bazaar Mode screen, for every role. Tiles that were never on the table (finding
+   * B1) are not drawn, a sold-out tile leaves the grid unless it is in the open sale, and "Show sold out (n)" brings the
+   * sold-out ones back, dimmed. Only a started bazaar day: an event from before the days existed keeps the ported list.
+   * `bzSell` has no flavour id, so each row is matched to its flavour by position before anything is dropped.
+   */
+  /**
+   * U4: on a phone the ported toast sits 96 px from the bottom, over the day plan's sticky footer. While that footer is on
+   * screen the toast is lifted above it (spec rule 8). Only the value is changed; the locked frame draws it as before.
+   */
+  private liveToastVals(starved: OpsVals): { toastStyle?: string } {
+    if (!isLiveMode() || this.state.screen !== 'bazaar' || this.state.device !== 'mobile')
+      return {};
+    // The consolidated till stands on a sticky sale bar: its toast goes above the bar, for every role (spec rule 8).
+    if (this.consolidatedTillShowing())
+      return { toastStyle: String(starved.toastStyle).replace(/bottom: \d+px/, 'bottom: 104px') };
+    if (this.state.role !== 'owner' || !this.bazaarDays.hasStickyFooter()) return {};
+    return { toastStyle: String(starved.toastStyle).replace(/bottom: \d+px/, 'bottom: 196px') };
+  }
+
+  /** A started day is selling on this phone, under the consolidated till (not the classic one, not a review). */
+  private consolidatedTillShowing(): boolean {
+    const event = this.state.event as (LiveEvent & { stage?: unknown }) | null;
+    return (
+      Boolean(event?.dayId) &&
+      event?.stage === 'selling' &&
+      !this.tillClassic &&
+      !this.bazaarDays.isReviewing()
+    );
+  }
+
+  private liveTillVals(
+    vals: OpsVals
+  ): Pick<OpsVals, 'liveTill'> & Partial<Pick<OpsVals, 'bzSell' | 'openEventExpense'>> {
+    const event = this.state.event as LiveEvent | null;
+    const rows = vals.bzSell ?? [];
+    if (!event?.dayId || rows.length !== PRODUCTS.length) return { liveTill: null };
+    const loaded = (this.state.eventLoaded ?? {}) as Record<string, number>;
+    const showSoldOut = this.tillShowSoldOut === event.dayId;
+    let soldOutCount = 0;
+    const drawn = rows.filter((row, i) => {
+      const pid = PRODUCTS[i]!.id;
+      const inCart = Number(row.inCart) > 0;
+      const onTable = (loaded[pid] ?? 0) > 0 || Number(row.left) > 0 || inCart;
+      if (!onTable) return false;
+      const gone = Boolean(row.soldOut) && !inCart;
+      if (gone) soldOutCount += 1;
+      return !gone || showSoldOut;
+    });
+    const owner = this.canLeaveTill();
+    // The engine's flavour image is already resolved (`flavours.ts`); matched to the drawn rows by the same position.
+    const photos = rows
+      .map((row, i) => ({ row, img: String(PRODUCTS[i]!.img ?? '') }))
+      .filter(({ row }) => drawn.includes(row))
+      .map(({ img }) => img);
+    const liveTill: LiveTillVals = {
+      photos,
+      classic: this.tillClassic,
+      setClassic: (on: boolean) => {
+        this.tillClassic = on;
+        rememberClassicTill(on);
+        this.forceUpdate();
+      },
+      soldOutCount,
+      showSoldOut,
+      toggleSoldOut: () => {
+        this.tillShowSoldOut = showSoldOut ? null : event.dayId!;
+        this.forceUpdate();
+      },
+      allGone: !showSoldOut && soldOutCount > 0 && drawn.length === 0,
+      home: owner ? this.leaveTill : null,
+      addCookies: owner
+        ? () => {
+            this.bazaarDays.openTillPanel('cookies');
+            this.forceUpdate();
+          }
+        : null
+    };
+    return { bzSell: drawn, liveTill, openEventExpense: this.openTillFees };
   }
 
   /**
@@ -5435,11 +6454,20 @@ export class OpsRuntime extends OpsProvider {
     } catch {
       if (this.unmounted) return;
       this.operationsQueue = -1;
+      this.dayQueue = null;
       this.setState({});
       return;
     }
     if (this.unmounted) return;
     this.operationsQueue = queue.filter((row) => row.state !== 'sent').length;
+    const heldId = (this.state.event as LiveEvent | null)?.id;
+    const split = heldId ? splitForEvent(queue, heldId) : null;
+    this.dayQueue = split
+      ? {
+          blocking: split.blocking.length,
+          refused: new Set(split.refused.map((row) => row.clientId))
+        }
+      : null;
     const states = new Map(queue.map((row) => [row.clientId, row.state]));
     this.setState((s) => {
       const sales = (s.sales as EventSale[]).map((sale) => {

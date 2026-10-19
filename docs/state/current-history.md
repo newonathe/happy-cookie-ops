@@ -5,6 +5,71 @@ is in [current.md](current.md). Sections were moved here from `current.md` on 20
 again, with the earlier goals from `next-goal.md`, on 2026-10-05, and again on 2026-10-06. Add nothing here by hand;
 move a checkpoint here when it leaves `current.md`.
 
+# Moved from current.md on 2026-10-15
+
+Two "Waiting on Ethan" items, verbatim, done on 14 October (run sheet rows 5, 6 and 10).
+
+- A1 is built (the release check takes two to six addresses; Cine is not added yet). Add her
+  two addresses to Cloudflare Access and the approved-digest variable in one sitting, or the
+  next deploy fails. Set the session to one week: that deploy then fails once and prints the
+  value; put it in `ALLOWED_SESSION_DURATIONS`, push, then invite her.
+- **Display names.** From this deploy the app greets each person, and records each bazaar
+  sale, under their profile's `display_name`. No form edits it yet (C6). Check yours, Cine's
+  and each helper's before 20 October: Supabase dashboard, Table editor, `profiles`, or say
+  the word and it is done through the connector. The trial's profiles were not read.
+
+# Moved from current.md on 2026-10-14
+
+The migration 68 release paragraph of "Where things stand", verbatim (superseded by the S3.1 release).
+
+**Release, 14 October (at Ethan's word):** migration 68 applied to the trial from a scratch folder (dry run first: only
+that file); the trial is at 68 of 68. Schema fingerprint equal to local (columns, policies, row security, table grants,
+functions), apart from Postgres 17 quoting `json_value` in three settings functions and the platform's `rls_auto_enable`.
+PR #21 merged into the working branch at `de78fdc`. Its release could not upload its build (the account's artifact
+storage quota), so PR #22 (Ethan's choice) builds the trial assets in the deploy job instead; run 38521932811 deployed
+version `1b6c876c` to the trial, 14 October. The trial now runs S1 to S3 on a database at 68.
+
+# Moved from current.md on 2026-10-13
+
+The closed-slice paragraph of "Where things stand", verbatim.
+
+**B4b, 12 October:** migration 65 and three offline tools, **none on the trial**. After the cutover a count that finds
+less stock is an expense at the item's cost (a count that finds more books nothing). Her recipes go in as decided: 19 of 23
+import, 4 are held for a unit clash or a missing quantity, 22 of 23 costing rows reproduce. Newer sales have an offline
+append plan; flavour photos are resized in the browser before the existing upload. Ethan's reads and her photo folder are next.
+
+# Moved from current.md on 2026-10-12
+
+The closed-slice paragraphs of "Where things stand", verbatim.
+
+**B4a, 12 October:** the database half of B4 (migrations 62 to 64), **none on the trial**. "When used" now
+starts at a previewed cutover date: stock then on hand is valued once from her price list and credited once, so
+stock already expensed in the historical lines is not expensed again (this takes back migration 61's flip; the
+basis stays "bought" until the cutover is applied). An opening count is refused after it, and the preview lists
+the items never counted. Her items, prices, recipes, flavour prices and bookings go in through `preview_import_*`
+and `apply_import_*` (operator only, hash-checked). B4b (photos, newer sales) is next.
+
+**B3b-2, 8 October:** migration 61 (`20260101006000_books_used.sql`), **not on the trial and not before
+B4's cost cutover** (final-plan.md section 11), and the runtime. The books count stock when used and list what
+has no cost, packs and bazaar sales included. The owner's screens read `get_item_costs` and `get_recipe_costs`;
+an unknown cost reads "Cost pending". On the trial (migration 55) the engine's own path stands, as today.
+
+# Moved from current.md on 2026-10-08
+
+The closed-slice paragraphs of "Where things stand", verbatim.
+
+**B3b-1, 8 October:** the database half of B3b, migration 60 (`20260101005900_packaging_rules.sql`), **not on
+the trial**. Packaging is records: a recipe line is an ingredient or packaging (per cookie, never taken at a
+bake), and a rule per container (each box size, loose, order, bazaar sale) lists the items. `record_pack` and
+`record_sale_packaging` read them and no item name is left in SQL; until today's rule is entered they take no
+packaging and say so. `get_recipe_costs` adds packaging per cookie. `record_event_sale` is untouched.
+
+**B3a, 7 October:** the database half of B3, four migrations (56 to 59), **none on the trial**.
+Recipe lines and supplier prices point at their stock item by id, after a step that is previewed
+and counted; one cost function (average, else her usual price, else best quote per unit, else
+unknown) stamps every use; a shortfall is costed; a recorded batch can be corrected. No client
+code changed. What it did with each finding: [system-audit.md](system-audit.md), section 10.
+
 # Moved from current.md on 2026-10-07
 
 The closed-slice paragraphs of "Where things stand", verbatim.
@@ -2070,3 +2135,110 @@ Stop at G0. The next product work follows G1/MP-04 onward and its decision gates
   - **Independent review:** bounded Sol review found no remaining P1/P2 code defect after correcting false backup-success reporting, target binding, Windows containment, privacy wording and post-enqueue health-read failures. Acceptance still requires recovery proof. Final port review passes; headless live health/alerts/privacy visual QA and live-checkout gate remain outstanding; no F1 completion/commit/push claimed.
   - **Continue F1, not F2.** Stop-budget reconciliation and latest gate output are in F1-checkpoint.md. Hosted activation and schedule activation still need Ethan's approval after a concrete, reviewed local result.
   - **Latest verify rerun exited 1:** port/engine/typechecks/lint passed; 75 test files / 1,455 tests passed, with one 5-second timeout at `tests/unit/sync-unavailable.test.ts:15`. Earlier green verify remains historical evidence; the latest gate is not green. No retry after the exhausted restore budget.
+
+## Moved from current.md on 13 October 2026 (the trial reached migration 67)
+
+- **Migrations 56 to 66 (B3a to B5) are not on the trial, and nothing in the bazaar needs them.** Apply 61 to 64 only together with the cutover (below).
+  Recommended: not before 27 October. When you say so, in one quiet sitting and in this order,
+  each file as one transaction: (1) read the owner and grants of `business_clock`, `place_order`
+  and `join_waitlist`, and the 40 policies against `tests/fixtures/policies-before-58.json`;
+  (2) apply 56; (3) run `select public.preview_identity_links();`, read what is unmatched or
+  ambiguous, then `select public.apply_identity_links('<its counts>');`; (4) apply 57, which
+  refuses to run until step 3 is done; (5) apply 58 and 59, then read the three functions'
+  owner again; (6) apply 60, then run `scripts/packaging-rule-today.sql` (one call, today's packaging as data;
+  a name that is not exactly one stock item is listed and nothing is written). Until it runs, a pack or bazaar
+  sale takes no packaging and is flagged. A recipe line still listed as unmatched takes no stock when baked: fix it in
+  Recipes before baking. `python scripts/test-b3a-upgrade.py` rehearses steps 2 to 6 on the
+  local database. Then (7) apply 61 to 65 and append newer sales (before 8: its guard refuses after); (8) with Cine's opening count done, run `preview_cost_cutover()`, read
+  `not_counted` and the items with no cost, then `apply_cost_cutover('<its hash and total>')` once; (9) run each
+  `preview_import_*`, read what is unmatched, and apply it with its hash and counts.
+- **Decided 8 October (B3b):** today's packaging rule is entered by hand through that script; her per-cookie
+  packaging lines reach the trial after 26 October with B4, once 56 to 60 are applied, and the pouch leaves the
+  bazaar-sale and loose rules in the same sitting; undoing an untouched delivery is built in B5 with the receive form.
+- **Decided 12 October (B4):** a cutover with one opening credit; a count down is an expense; her eight packaging items;
+  Oats, Sea salt and Sauce Tub created unpriced; unit clashes held ([register](decision-register.md)). **Yours next:** run
+  `scripts/b4b-trial-reads.sql` (three read-only queries) so newer sales can be appended; on your laptop run the photo
+  script on her folder and the browser checks listed in PR #14.
+- Done on the trial on 6 October, at Ethan's instruction, through the database connector:
+  migration `20260101005300_offline_open_hours.sql` applied (54 of 54; the three function
+  bodies match the committed hashes); the test event of 5 October closed through
+  `close_event` (no sales, no stock, nothing booked); the owner's idle time set to 480
+  minutes through `save_setting`. Put the idle time back to 60 in Settings after the bazaar
+  if wanted. No workflow applies migrations: the next one is again a step by hand.
+- Done on the trial on 6 October, at Ethan's instruction ("migrate everything"), through the
+  database connector: migration `20260101005400_business_clock_shop_identity.sql` applied (55
+  of 55; it was the only one pending; its history row renamed to the repository's version
+  number). Read back: the three function bodies match the committed hashes, grants are as
+  pinned (`business_clock` has no browser grant, anyone reads `get_shop_identity`, only a
+  signed-in owner saves), the table has row security on, no policy, no API grant and no row,
+  and the clock answers the shared cases. The security advisor shows the new objects only in
+  the classes it already reports by design. Shop details now save; they are empty until set
+  (Sell, Shop, Shop texts).
+- Approve each import preview.
+
+## B5, moved from current.md on 14 October 2026
+
+**B5, 13 October:** migration 66 (an owner-only read of an item's movements, on the trial since 13 October) and the live Inventory and
+Grocery screens. Out at 0, Low below the item's level, Good otherwise, always as a word. Grocery shows the running total;
+"left" or "over" appears only once she sets a budget. An unknown cost reads "Cost pending", never 0. Smoke, 320 px and
+keyboard checks are for the laptop (PR #14).
+
+## S1 and S2 of the bazaar days, moved from current.md on 14 October
+
+**S1, 13 October (built, local only; the trial stays at 67):** migration 68 holds a booking's days, fees, losses, costs,
+start, close and finalise, held to a hand-worked example to the centavo; the books count an open bazaar in `held`.
+Contracts as built, and Ethan's answers of 14 October (shop cookies are a batch of the drop): [bazaar-days.md](bazaar-days.md).
+
+**S2, 14 October (built, local only; branch claude/bazaar-days-s2):** the Bazaar screen is the owner's event list, event page, day plan
+and "Start this day" (`src/components/live/bazaar/`); with an event on the phone it draws the ported till unchanged, so a helper and a
+phone with no signal still sell. The old one-tap start and the ported start list are closed in live mode; "Leave" and the old close-out
+refuse on a started day (S3 closes it from a review). The smoke suite plans, starts and sells day 1 at its own price, online and offline.
+
+## S3.1 bazaar hardening, moved from current.md on 15 October 2026
+
+**S3.1, 14 October (released to the trial):** Migration 69 (`20260101006800_bazaar_hardening.sql`) and its
+client: a refused sale no longer blocks the close; close and finalise check the till's count and cash (40001); a fee or a loss can be
+removed; no sale or void lands on a finalised event; no stock load on a bazaar day; retry ids survive a reload. Before release:
+`pnpm test:e2e` (90 passed; the capacity parity spec 25 of 25 on the local database), the live smoke suite (14 steps), the role suite
+(3,294 cases on each of two resets) and the **Remove** buttons in the browser pane at 375 px. At Ethan's word: 69 applied from a
+scratch folder (the CLI needs every applied version present, so all 69 files were exported from the commit; the dry run listed only
+69); the trial is at 69 of 69, its fingerprint equal to local apart from `json_value` quoting in three settings functions and
+`rls_auto_enable`. PR #24 merged (`3cf4a36`); the deploy job was refused twice for GitHub billing (free private-repo minutes used
+up), so **Ethan made the repository public** (Cine agreed: her name, GCash number and payment QR codes are in its history) and the
+rerun deployed version `2eda3738`; anonymous requests still go to Cloudflare Access. Same day, run sheet rows 5, 6 and 10: Cine's two addresses are active owners named "Cine" (the admin one is "Ethan"), Access admits four addresses, and its session is one week (`168h`, now allowed by the release guard; PR #26 redeployed the same app as `fbfd8860`). Next: the phone rehearsal
+([run sheet](bazaar-run-sheet.md) row 7, [next-goal.md](next-goal.md)).
+
+## Bazaar v2 build log, 15 to 16 October 2026 (moved from current.md on 16 October)
+
+Ethan's 13-point review of the bazaar screens (design, flow, motion) was planned as 10 slices, D0 to U9, in
+[bazaar-v2.md](bazaar-v2.md). D0 approved 15 Oct ([spec](../design/bazaar-v2.md)). U1 (tokens, 16 components, `peso()`, motion
+helpers; live money shows two decimals), U2 (leave and return to the till, sold-out tiles hidden, Add cookies; Ateneo B1, B2),
+U3 (events hub, add-event sheet, a status pill per row), U4 (event page, day plan; Ateneo A1, A2, A5, B4, B5), U5 (review and
+close), U6 (migration 70, with Opus review and the database suites in "U6 as built") and U7 (recipe book and flavour page, its
+cost save) were built 15 to 16 Oct on stacked branches `claude/bazaar-v2-u2` to `-u7`; each has an "as built" section in
+bazaar-v2.md. The Ateneo test audit (15 Oct, in bazaar-v2.md) found 13 issues; Ethan chose migration 70 before the bazaar and a
+reviewed reversal of the Ateneo test (its rent, over, sales and stock use are in October's books until then).
+
+**S3, 14 October (built; merged in PR #21):** losses, more stock, the day review with each figure openable, "Close the day" with
+the leftover split, carrying over, fees, target, typed cost, "Close the event", and the books' "Bazaar in progress" line. No new
+migration. The smoke suite closes day 1, carries into day 2, sells through an offline reload, closes, finalises and reads the
+books. Decisions as built: [bazaar-days.md](bazaar-days.md), "S3 as built".
+
+**Her data and the database, 13 October:** at Ethan's instruction the trial went from migration 55 to 67 of 67 (through B5),
+rehearsed first on the local database, and her data is in: 23 recipes with packaging lines, 72 prices, the items Oats, Egg and
+Sauce Tub, 4 bookings. The cost cutover is not applied (it needs her opening count), so the books stay on "bought" and equal the
+ledger.
+
+**Release records before U9:** the early 6 October pushes (A3 at `79b8e97`, A4 at `851e95e`) did not release (GitHub could not give
+their jobs a hosted runner: runs 37370848143 and 37372795892); B1 was pushed later that day at `23e02b3` and released (run
+37424595177). The trial moved from the A2 build straight to A3, A4 and B1.
+
+**U9, 16 October (released):** U1 to U7 and the U9 motion pass with 44 px targets were merged into
+`agent/codex/MP-04-g1-feasibility` and deployed: head `ea0ba7f`, Cloudflare version `7d7d8414`, every CI job green except the
+known red "Performance budget" (artifact quota). Migration 70 (`20260101006900_flavour_cost_closing_reversal.sql`) was applied by
+Ethan's approval from a scratch folder after a dry run that listed only that file; the trial is at 70 of 70 and the function body
+hashes equal local. Opus reviewed it twice (cutover check after the locks; no false "changed after close" for events finalised
+before 70); one low finding is left: a flavour cost saved mid-close can be stored with a stale hash. Local role suite 3,366 cases
+a reset (two resets), live smoke 17 steps, `pnpm verify` 2,588 tests, e2e 90 passed. U8 (two decimals in ported screens) is
+skipped: Ethan kept whole pesos on the till. A clean browser pass at four widths is not done: layout QA found 36 px targets
+(fixed to 44 px) and a possible 16 px toast and footer overlap at 320 px on the day plan (unconfirmed).

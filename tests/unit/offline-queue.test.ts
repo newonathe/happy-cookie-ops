@@ -163,6 +163,40 @@ describe('flushQueue: sales', () => {
     ]);
   });
 
+  // The server takes a bazaar sale from an owner only (`record_event_sale` answers 42501 to anyone
+  // else). A sale rung up under a helper's sign-in waits on the phone and goes up, once and
+  // unchanged, when an owner's session sends the queue.
+  it('a sale refused for the signed-in role stays queued, and goes up unchanged once a session is accepted', async () => {
+    const { enqueueSale, flushQueue, allSales, pendingCount } = await load();
+    await enqueueSale(sale('S1', 1, { clerk: 'Mika' }));
+    const helper = fakeClient(() => ({
+      data: null,
+      error: { code: '42501', message: 'only the owner may record a bazaar sale' }
+    }));
+    const first = await flushQueue(helper.client);
+    await flushQueue(helper.client);
+    expect(first.sent).toEqual([]);
+    expect(first.failed).toEqual([
+      {
+        clientId: 'dev1:S1:1',
+        error: '42501 only the owner may record a bazaar sale',
+        permanent: true
+      }
+    ]);
+    expect(helper.rpc).toHaveBeenCalledTimes(2);
+    expect(await pendingCount()).toBe(1);
+
+    const owner = fakeClient();
+    const second = await flushQueue(owner.client);
+    expect(second.sent).toEqual(['dev1:S1:1']);
+    expect(owner.calls[0]!.args.p_sale).toEqual(helper.calls[0]!.args.p_sale);
+    expect((owner.calls[0]!.args.p_sale as unknown as { clerk: string }).clerk).toBe('Mika');
+    expect((await allSales())[0]!.state).toBe('sent');
+    expect(await pendingCount()).toBe(0);
+    await flushQueue(owner.client);
+    expect(owner.rpc).toHaveBeenCalledTimes(1);
+  });
+
   it('acknowledges rows one by one: a partial reply clears only the named sale', async () => {
     const { enqueueSale, flushQueue, allSales } = await load();
     await enqueueSale(sale('S1', 1));
@@ -241,6 +275,33 @@ describe('pruning', () => {
     vi.setSystemTime(200_000_000);
     await pruneSent();
     expect((await allSales()).map((r) => r.clientId)).toEqual(['dev1:S2:2', 'dev1:S3:150000000']);
+  });
+
+  // After a reload the bridge offers every sale on screen to the queue again. One whose sent row
+  // was pruned is queued afresh: the same client id and the same body, so `record_event_sale`
+  // answers "repeat" and no second sale is booked.
+  it('a sent sale pruned after a day and offered again goes under the same key and body, and a repeat reply settles it', async () => {
+    const { enqueueSale, flushQueue, allSales, pendingCount } = await load();
+    await enqueueSale(sale('S1', 1));
+    const first = fakeClient();
+    await flushQueue(first.client);
+    vi.setSystemTime(200_000_000);
+    // A flush only prunes when it has something to send.
+    await enqueueSale(sale('S2', 199_999_000));
+    await flushQueue(first.client);
+    expect((await allSales()).map((r) => r.clientId)).toEqual(['dev1:S2:199999000']);
+
+    const again = await enqueueSale(sale('S1', 1));
+    expect([again.clientId, again.state]).toEqual(['dev1:S1:1', 'pending']);
+    const second = fakeClient(({ args }) => ({
+      data: [{ client_id: args.p_sale?.clientId, sale_id: 'x', duplicate: true, voided: false }],
+      error: null
+    }));
+    const result = await flushQueue(second.client);
+    expect(result.sent).toEqual(['dev1:S1:1']);
+    expect(second.calls).toHaveLength(1);
+    expect(second.calls[0]!.args.p_sale).toEqual(first.calls[0]!.args.p_sale);
+    expect(await pendingCount()).toBe(0);
   });
 });
 

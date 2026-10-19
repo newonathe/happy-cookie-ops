@@ -3,6 +3,7 @@ import {
   engineAccounts,
   fetchPaymentMethods,
   fetchShopPaymentInfo,
+  IMAGE_TYPES,
   paymentFieldError,
   savePaymentMethod,
   saveShopTexts,
@@ -16,6 +17,7 @@ import {
   type ShopTexts,
   type UploadClient
 } from '@/lib/data/payments';
+import { resizeFlavourPhoto, type ResizeResult } from '@/lib/media/resize-image';
 
 type Accounts = ReturnType<typeof engineAccounts>;
 
@@ -33,8 +35,17 @@ export const PAYMENT_TOASTS = {
   refused: 'That could not be saved.',
   uploadType: 'Use a PNG, JPEG or WebP image.',
   uploadSize: 'That image is over 2 MB. Choose a smaller one.',
-  uploadFailed: 'The image could not be uploaded. Try again.'
+  uploadFailed: 'The image could not be uploaded. Try again.',
+  photoUnreadable: 'Could not read that picture. Choose a PNG, JPEG or WebP.',
+  photoTooBig: 'Could not make that picture small enough.'
 } as const;
+
+/** Resizes and re-encodes a picked flavour photo (drops EXIF and GPS). Injectable for tests. */
+export type FlavourResizer = (file: Blob) => Promise<ResizeResult>;
+
+export interface PaymentSyncOptions {
+  resizeFlavourPhoto?: FlavourResizer;
+}
 
 /**
  * The payment methods and shop texts the live app shows (MP-09 c2). Whatever the read gives is
@@ -48,7 +59,8 @@ export class PaymentSync {
 
   constructor(
     private readonly client: PaymentClient & UploadClient,
-    private readonly hooks: PaymentHooks
+    private readonly hooks: PaymentHooks,
+    private readonly options: PaymentSyncOptions = {}
   ) {}
 
   async loadPublic(): Promise<boolean> {
@@ -111,12 +123,39 @@ export class PaymentSync {
     return this.settle(await saveShopTexts(this.client, texts, expectedUpdatedAt));
   }
 
-  /** Uploads one image and returns its stored path, or null after telling the owner why. */
+  /**
+   * Uploads one image and returns its stored path, or null after telling the owner why. A flavour
+   * photo is resized and re-encoded first, and the copy is what is uploaded; a payment QR code is
+   * uploaded exactly as picked.
+   */
   async upload(
     folder: 'qr' | 'flavours',
     file: { type: string; size: number }
   ): Promise<string | null> {
-    const result = await uploadShopImage(this.client, folder, file);
+    let toSend = file;
+    // The type check comes first: a PDF is refused without trying to decode it.
+    if (folder === 'flavours' && IMAGE_TYPES[file.type]) {
+      const resized = await (this.options.resizeFlavourPhoto ?? resizeFlavourPhoto)(file as Blob);
+      if (!resized.ok) {
+        this.hooks.toast(
+          resized.reason === 'unreadable'
+            ? PAYMENT_TOASTS.photoUnreadable
+            : PAYMENT_TOASTS.photoTooBig,
+          'warn'
+        );
+        return null;
+      }
+      // Defence in depth: only a fresh WebP or JPEG copy may be uploaded, never the original.
+      if (
+        (resized.file as unknown) === file ||
+        (resized.file.type !== 'image/webp' && resized.file.type !== 'image/jpeg')
+      ) {
+        this.hooks.toast(PAYMENT_TOASTS.photoUnreadable, 'warn');
+        return null;
+      }
+      toSend = resized.file;
+    }
+    const result = await uploadShopImage(this.client, folder, toSend);
     if (result.ok) return result.path;
     this.hooks.toast(
       result.reason === 'type'

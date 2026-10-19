@@ -597,6 +597,9 @@ function makeWorld(spec: WorldSpec, viewer: StaffRole | null) {
     get_stock_catalogue: catalogue,
     get_last_paid: [],
     get_recipes: [],
+    // B3b-2: nothing is costed in this shop, so every cost reads "Cost pending".
+    get_item_costs: [],
+    get_recipe_costs: [],
     get_recipe_drafts: [],
     get_production: { batches: [], dough: [], baked: [], shortfalls: [] },
     get_books: { basis: 'bought', lines: [], receipts: [] },

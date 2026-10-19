@@ -77,6 +77,27 @@ describe('owner-trial workflow: hold on means no deploy', () => {
     expect(deploying[0]).toMatch(gate);
   });
 
+  it('builds the trial assets behind the gate in the deploy job, with no artifact and no deploy token in the build', () => {
+    expect(workflow).not.toContain('upload-artifact');
+    expect(workflow).not.toContain('download-artifact');
+    const building = steps.filter((step) => step.includes('pnpm build:pages:spike'));
+    expect(building).toHaveLength(1);
+    expect(building[0]).toMatch(gate);
+    expect(building[0]).toContain('NEXT_PUBLIC_APP_MODE: live');
+    expect(building[0]).not.toContain('CLOUDFLARE');
+    const qr = steps.findIndex((step) => step.includes('preview-placeholder-qr.mjs'));
+    const deploy = steps.findIndex((step) => step.includes('check-owner-trial-release.mjs'));
+    // The QR step needs Chromium, which the bare deploy runner does not have until it is installed, behind the gate.
+    const browser = steps.findIndex((step) =>
+      step.includes('playwright install --with-deps chromium')
+    );
+    expect(browser).toBeGreaterThan(holdAt);
+    expect(browser).toBeLessThan(qr);
+    // The real payment QR images are removed before anything is deployed.
+    expect(qr).toBeGreaterThan(steps.indexOf(building[0]));
+    expect(qr).toBeLessThan(deploy);
+  });
+
   it('leaves the quality job unconditioned by the hold, so a held push still builds and tests', () => {
     const quality = workflow.slice(
       workflow.indexOf('\n  quality:'),

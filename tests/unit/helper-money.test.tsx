@@ -40,6 +40,26 @@ function sale(id: string, dcf: number, total: number): EventSale {
 
 function seeded(role: Role, overrides: Record<string, unknown> = {}, seesTotals?: 0 | 1) {
   const runtime = new OpsRuntime({});
+  // B3b-2: the owner's costs are the database's; this flavour costs ₱12.35 a cookie (the read itself is tested in ops-runtime-costs).
+  Object.assign(runtime as unknown as Record<string, unknown>, {
+    costReads: 'ok',
+    itemCosts: { byId: new Map(), byName: new Map() },
+    recipeRows: [{ productId: 'dcf', version: 3 }],
+    recipeCosts: new Map([
+      [
+        'dcf',
+        {
+          version: 3,
+          perCookie: 12.35,
+          ingredientPerCookie: 10,
+          packagingPerCookie: 2.35,
+          batch: 120,
+          complete: true,
+          missing: []
+        }
+      ]
+    ])
+  });
   const cfg = { ...(runtime.state.cfg as Record<string, unknown>) };
   if (seesTotals !== undefined) cfg.helperSeesSales = seesTotals;
   runtime.state = {

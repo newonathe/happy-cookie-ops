@@ -41,12 +41,24 @@ insert into public.recipe_ingredients(product_id, item_name, qty, unit, position
   ('c2p1', 'C2 Flour', 300, 'g', 0), ('c2p1', 'C2 Butter', 100, 'g', 1), ('c2p1', 'C2 Egg', 1, 'pcs', 2),
   ('c2p2', 'C2 Flour', 100, 'g', 0), ('c2p2', 'C2 Ghost', 10, 'g', 1), ('c2p2', 'C2 Off', 20, 'g', 2),
   ('c2p4', 'C2 Yolk', 9, 'pcs', 0), ('c2p4', 'C2 Milk', 100, 'ml', 1);
+-- Today's packaging rule, entered the way the operator enters it (B3b): item names as data in one call each, no name in any function.
+-- A box of 6 takes a box and a sticker; a loose cookie a pouch and a sticker; an order a card; a bazaar sale a pouch per cookie, then a bag.
+select public.apply_packaging_rule(jsonb_build_object('container', 'box', 'box_size', 6, 'lines', jsonb_build_array(
+  jsonb_build_object('name', 'Box of 6', 'qty', 1, 'per', 'container'), jsonb_build_object('name', 'Brand sticker', 'qty', 1, 'per', 'container'))));
+select public.apply_packaging_rule(jsonb_build_object('container', 'loose', 'box_size', null, 'lines', jsonb_build_array(
+  jsonb_build_object('name', 'Single cookie pouch', 'qty', 1, 'per', 'cookie'), jsonb_build_object('name', 'Brand sticker', 'qty', 1, 'per', 'cookie'))));
+select public.apply_packaging_rule(jsonb_build_object('container', 'order', 'box_size', null, 'lines', jsonb_build_array(
+  jsonb_build_object('name', 'Thank-you card', 'qty', 1, 'per', 'container'))));
+select public.apply_packaging_rule(jsonb_build_object('container', 'bazaar_sale', 'box_size', null, 'lines', jsonb_build_array(
+  jsonb_build_object('name', 'Single cookie pouch', 'qty', 1, 'per', 'cookie'), jsonb_build_object('name', 'Paper bag', 'qty', 1, 'per', 'container'))));
 -- The fixture wrote the recipes directly, so it gives them their version rows (and item links) the way the operator does: a batch
 -- is refused unless the version it was made on has its row.
 select public.apply_identity_links(public.preview_identity_links() -> 'counts');
 insert into public.orders(id, customer_name, phone) values
   ('C2-ORD-1', 'Pack Me', '09170000001'), ('C2-ORD-EMPTY', 'Nothing', '09170000002');
 insert into public.order_items(order_id, product_id, qty, unit_price_cents) values ('C2-ORD-1', 'c2p1', 13, 10000);
+-- Packing goes by the order's boxes (B3b): two boxes of 6 and one loose cookie.
+insert into public.order_boxes(order_id, size, qty, charge_cents) values ('C2-ORD-1', 6, 2, 0);
 insert into public.events(id, name, starts_at, selling_device, price_snapshot)
 values ('c2e0c105-0000-4000-8000-000000000001', 'C2 stall', now() - interval '1 hour', 'devP', '{"c2p1": 10000}');
 
@@ -233,12 +245,13 @@ begin
   perform pg_temp.expect(a, 'stock_movement_kind_use_refused',
     'select * from public.record_stock_movement(''{"id":"c2b00000-0000-4000-8000-000000000001","item_id":"c2i-flour","kind":"use","qty":5,"cost_cents":null,"supplier":"","reason":"","at":' || (extract(epoch from now()) * 1000)::bigint || '}''::jsonb)', '22023');
 
-  -- packing an order: 13 cookies are 2 boxes and 1 pouch, 3 stickers (2 on hand), 2 cards; once per order
+  -- packing an order: 13 cookies are 2 boxes of 6 and 1 loose, so 2 boxes, 1 pouch, 3 stickers (2 on hand) and 1 card (once per order,
+  -- where it used to be one per box); packed once per order
   perform pg_temp.expect(a, 'pack_order_missing', 'select * from public.record_pack(''C2-NOPE'', 5)', 'P0002');
   perform pg_temp.expect(a, 'pack_empty', 'select * from public.record_pack(''C2-ORD-EMPTY'', 5)', '22023');
   select * into r from public.record_pack('C2-ORD-1', 5);
   perform pg_temp.assert_ok(a, 'pack_takes_the_packaging',
-    not r.duplicate and pg_temp.on_hand('c2i-box') = 8 and pg_temp.on_hand('c2i-pouch') = 9 and pg_temp.on_hand('c2i-card') = 8);
+    not r.duplicate and pg_temp.on_hand('c2i-box') = 8 and pg_temp.on_hand('c2i-pouch') = 9 and pg_temp.on_hand('c2i-card') = 9);
   perform pg_temp.assert_ok(a, 'pack_shortfall_recorded', pg_temp.on_hand('c2i-sticker') = 0 and r.shortfall = '[{"name": "Brand sticker", "by": 1, "unit": "pcs"}]'::jsonb);
   select * into r from public.record_pack('C2-ORD-1', 5);
   perform pg_temp.assert_ok(a, 'pack_twice_takes_nothing_more',

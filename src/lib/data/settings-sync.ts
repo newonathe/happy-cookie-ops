@@ -114,6 +114,12 @@ export class SettingsSync {
     return !!saved && saved.updatedAt === null;
   }
 
+  /** True for a key that was read and has been saved by someone: its value is hers, not the database's default (B5-1: the grocery budget). */
+  isSet(key: string): boolean {
+    const saved = this.saved.get(key);
+    return !!saved && saved.updatedAt !== null;
+  }
+
   /** Called after any engine action that may have changed the setting `key`. */
   queue(key: string): void {
     if (!(key in SETTING_COLUMNS)) return;

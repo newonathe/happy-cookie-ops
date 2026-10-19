@@ -43,6 +43,10 @@ insert into public.stock_movements(id, item_id, kind, qty_delta, cost_cents, sup
   ('c3b00000-0000-4000-8000-0000000000b4', 'c3i-flour', 'receipt', 500, 7500, 'Landers', '', now() - interval '3 days', 'c3a00000-0000-4000-8000-0000000000a2', repeat('4', 64), null, null),
   ('c3b00000-0000-4000-8000-0000000000b5', 'c3i-flour', 'use', -100, null, '', 'Baked', now() - interval '2 days', null, repeat('5', 64), 12, 'average');
 
+-- B4a: "when used" starts at the cutover. This fixture's cutover is long before any of its rows (as postgres: choosing the used basis is
+-- refused until used_from is set; the cutover itself is cutover.sql's), so every row below is on the used rules once the owner chooses it.
+update public.books_settings set used_from = timestamptz '2020-01-01 00:00+00' where id;
+
 create function pg_temp.set_subject(n integer, claim_role text default 'authenticated') returns void
 language plpgsql security invoker as $$
 declare subject text := case when n is null then '' else
@@ -91,6 +95,14 @@ begin
   select refunded_at is not null and paid_at is not null into ok from public.orders where id = 'c3-o3';
   return ok;
 end $$;
+
+-- B3b-2: the basis a fresh database starts on, read as the fixture owner (an API role cannot read the settings table).
+create function pg_temp.basis_row() returns text language sql stable security definer as $$
+  select cost_basis from public.books_settings where id $$;
+create function pg_temp.basis_default() returns text language sql stable security definer as $$
+  select pg_get_expr(d.adbin, d.adrelid) from pg_attrdef d
+    join pg_attribute a on a.attrelid = d.adrelid and a.attnum = d.adnum
+   where d.adrelid = 'public.books_settings'::regclass and a.attname = 'cost_basis' $$;
 
 create function pg_temp.paid_at_o1() returns timestamptz language sql stable security definer as $$
   select paid_at from public.orders where id = 'c3-o1' $$;
@@ -173,6 +185,12 @@ begin
   -- the period
   perform pg_temp.expect(a, 'books_period_reversed', 'select public.get_books(now(), now() - interval ''1 day'')', '22023');
   perform pg_temp.expect(a, 'books_period_too_long', 'select public.get_books(now() - interval ''500 days'', now())', '22023');
+
+  -- a fresh database counts stock as it is bought, until the cost cutover (B4a): the first read says so, and so does the row and the column
+  -- default; the cases below choose the used basis once the fixture's cutover has been set (above)
+  perform pg_temp.assert_ok(a, 'books_default_basis_is_bought', pg_temp.books() ->> 'basis' = 'bought' and pg_temp.basis_row() = 'bought');
+  perform pg_temp.assert_ok(a, 'books_column_default_is_bought', pg_temp.basis_default() = '''bought''::text');
+  perform pg_temp.expect(a, 'basis_bought_to_start', 'select public.set_cost_basis(''bought'')', '00000');
 
   -- bought: revenue is when an order was paid (less refunds) and stall sales; costs are each receipt and the event cost
   j := pg_temp.books();
@@ -285,7 +303,7 @@ begin
 end $$;
 
 grant execute on function
-  pg_temp.paid_at_o1(), pg_temp.stamp_paid(), pg_temp.stamp_refund(), pg_temp.books(), pg_temp.sumk(jsonb, text), pg_temp.eid(integer),
+  pg_temp.basis_row(), pg_temp.basis_default(),   pg_temp.paid_at_o1(), pg_temp.stamp_paid(), pg_temp.stamp_refund(), pg_temp.books(), pg_temp.sumk(jsonb, text), pg_temp.eid(integer),
   pg_temp.ex(integer, text, text, numeric, jsonb, text[]), pg_temp.exp(text, text, jsonb, text),
   pg_temp.dw(integer, text, numeric, jsonb, text[]), pg_temp.draw(text, text, jsonb, text),
   pg_temp.co(integer, text, numeric, jsonb, text[]), pg_temp.cor(text, text, jsonb, text), pg_temp.paid(text), pg_temp.flour_avg(),

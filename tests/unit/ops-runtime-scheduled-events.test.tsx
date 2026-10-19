@@ -26,8 +26,8 @@ import type { LiveScheduledRow } from '@/view-models/vals';
 
 /**
  * D4: the owner's upcoming bazaars. Cine adds her real bookings in a form; the Bazaar screen lists the ones still to
- * come (in live mode the ported prototype events are never shown); starting one records which booking it was and
- * has the database book the stall rent with the first link, so a retry can never book it twice. Each `Mutation:` line names a change one of these tests must catch.
+ * come (in live mode the ported prototype events are never shown); a link saved before S2 is still retried, and the database books
+ * the stall rent with the first link, so a retry can never book it twice. A day is started from the Bazaar page (S2). Each `Mutation:` line names a change one of these tests must catch.
  */
 const STAMP = '2026-09-30T02:00:00.123456+00:00';
 // Tuesday 20 Oct 2026, 11:00 in Manila.
@@ -134,61 +134,17 @@ describe('D4: the Bazaar screen lists the owner’s bookings (live mode)', () =>
     vi.useRealTimers();
   });
 
-  it('shows her upcoming bookings, then a row to start an unbooked event, and never the prototype events', async () => {
+  it('offers no start list in live mode: her bookings are planned by day on the Bazaar page, and the prototype events are never shown', async () => {
     const { runtime } = await mounted(
       'owner',
-      fresh({
-        rows: [
-          wire({
-            id: ID2,
-            name: 'Christmas bazaar',
-            starts_on: '2026-12-12',
-            ends_on: '2026-12-13',
-            place: ''
-          }),
-          wire(),
-          wire({
-            id: 'd4a00000-0000-4000-8000-000000000003',
-            name: 'Old',
-            starts_on: '2026-09-01',
-            ends_on: '2026-09-02'
-          }),
-          wire({ id: 'd4a00000-0000-4000-8000-000000000004', name: 'Switched off', active: false }),
-          wire({
-            id: 'd4a00000-0000-4000-8000-000000000005',
-            name: 'Already started',
-            started: true
-          })
-        ]
-      })
+      fresh({ rows: [wire(), wire({ id: ID2, name: 'Christmas bazaar' })] })
     );
-    const list = events(runtime);
-    expect(list.map((e) => e.name)).toEqual([
-      'Katipunan market',
-      'Christmas bazaar',
-      'Start without a booking'
-    ]);
-    expect(list[0]).toMatchObject({
-      date: 'Sat, Oct 24 – Sun, Oct 25',
-      place: 'Katipunan Ave, QC'
-    });
-    expect(list[1]!.place).toBe('A one-off event'); // no place entered
+    expect(events(runtime)).toEqual([]);
     act(() => runtime.setState({ screen: 'bazaar' }));
     const { container } = render(<BazaarModeScreen v={runtime.renderVals()} />);
     const text = container.textContent ?? '';
-    expect(text).toContain('Katipunan market');
-    expect(text).not.toMatch(/Katipunan Weekend Market|UP Town Center Pop-up/);
+    expect(text).not.toMatch(/Katipunan Weekend Market|UP Town Center Pop-up|Katipunan market/);
     // Mutation: falling back to the ported list shows two prototype events that are not hers, one tap from a real start.
-  });
-
-  it('before the list is read (or when it could not be), only the unbooked row is offered', async () => {
-    const ref: { current: OpsRuntime | null } = { current: null };
-    render(<OpsRuntime ref={(r) => void (ref.current = r)} />);
-    act(() => ref.current!.setRole('owner'));
-    expect(events(ref.current!).map((e) => e.name)).toEqual(['Start without a booking']);
-    const failing = { rpc: vi.fn(async () => ({ data: null, error: { code: '57014' } })) };
-    expect(await ref.current!.loadScheduledEvents(failing as never)).toBe(false);
-    expect(events(ref.current!).map((e) => e.name)).toEqual(['Start without a booking']);
   });
 
   it('demo mode keeps the ported list and reads nothing', async () => {
@@ -204,65 +160,32 @@ describe('D4: the Bazaar screen lists the owner’s bookings (live mode)', () =>
     ]);
   });
 
-  it('starting a booking opens the event under its name and links it; the database books the rent, the phone only says so', async () => {
-    const { runtime, rpc } = await mounted('owner', fresh());
-    act(() => events(runtime)[0]!.go());
-    await settle();
-    const [[, start]] = called(rpc, 'start_event');
-    expect(start).toMatchObject({ p_name: 'Katipunan market' });
-    const [[, link]] = called(rpc, 'link_scheduled_event');
-    expect(link).toEqual({ p_scheduled: ID1, p_event: start!.p_event_id });
-    // The event's own list and the close-out show the rent (a local, display-only row: the server already has it).
-    await vi.waitFor(
-      () =>
-        expect(rentRows(runtime)).toMatchObject([
-          { label: 'Katipunan market — Stall rent', amount: 2500 }
-        ]),
-      { timeout: 2000 }
+  it('an unconfirmed link saved by an earlier build is retried when the list loads; the first confirmed link says the rent is booked', async () => {
+    const { runtime } = await mounted('owner', fresh());
+    act(() =>
+      runtime.setState({
+        event: { id: 'e1', name: 'Katipunan market', stage: 'selling' } as never
+      })
     );
-    expect(called(rpc, 'add_event_expense')).toHaveLength(0);
-    expect(localStorage.getItem('hc-pending-link')).toBeNull();
-    // Mutation: booking the rent from the phone as well books it twice; a random client id could not tell.
-  });
-
-  it('a repeat link says nothing about rent; an unconfirmed link is kept, told without asking for the rent by hand, and retried', async () => {
-    const again = await mounted(
-      'owner',
-      fresh({ link: { data: [{ first_link: false }], error: null } })
+    localStorage.setItem(
+      'hc-pending-link',
+      JSON.stringify([{ scheduledId: ID1, eventId: 'e1', rentCents: 250000, at: Date.now() }])
     );
-    act(() => events(again.runtime)[0]!.go());
-    await settle();
-    expect(called(again.rpc, 'add_event_expense')).toHaveLength(0);
-    expect(rentRows(again.runtime)).toEqual([]);
-    expect(localStorage.getItem('hc-pending-link')).toBeNull();
-    cleanup();
-    const failed = await mounted(
-      'owner',
-      fresh({ link: { data: null, error: { code: '57014' } } })
-    );
-    act(() => events(failed.runtime)[0]!.go());
-    await settle();
-    expect(called(failed.rpc, 'add_event_expense')).toHaveLength(0);
-    expect(toasts(failed.runtime)).toContain('Do not add the stall rent by hand');
-    const [pending] = JSON.parse(localStorage.getItem('hc-pending-link')!) as Array<
-      Record<string, unknown>
-    >;
-    expect(pending).toMatchObject({ scheduledId: ID1, rentCents: 250000 });
-    const [[, start]] = called(failed.rpc, 'start_event');
-    expect(pending.eventId).toBe(start!.p_event_id);
-    // The next time the list loads, the same pair is linked again; the first confirmed link says the rent is booked.
     const later = fakeClient(fresh());
     await act(async () => {
-      await failed.runtime.loadScheduledEvents(later.client as never);
+      await runtime.loadScheduledEvents(later.client as never);
     });
     await settle();
     expect(called(later.rpc, 'link_scheduled_event')[0]![1]).toEqual({
       p_scheduled: ID1,
-      p_event: pending.eventId
+      p_event: 'e1'
     });
+    expect(called(later.rpc, 'add_event_expense')).toHaveLength(0);
     expect(localStorage.getItem('hc-pending-link')).toBeNull();
-    expect(rentRows(failed.runtime)).toMatchObject([{ amount: 2500 }]);
-    // Mutation: dropping the pending pair leaves an event that is never linked, so its rent is never booked.
+    expect(rentRows(runtime)).toMatchObject([
+      { label: 'Katipunan market — Stall rent', amount: 2500 }
+    ]);
+    // Mutation: booking the rent from the phone as well books it twice; a random client id could not tell.
   });
 
   it('a link that keeps failing stays pending, and one older than three days is dropped', async () => {
@@ -308,96 +231,8 @@ describe('D4: the Bazaar screen lists the owner’s bookings (live mode)', () =>
     expect(called(up.rpc, 'link_scheduled_event').map((c) => c[1].p_scheduled)).toEqual([ID1, ID2]);
     expect(localStorage.getItem('hc-pending-link')).toBeNull();
     expect(rentRows(runtime)).toEqual([]);
-    expect(toasts(runtime)).toContain('₱2,500 stall rent booked as an event expense');
+    expect(toasts(runtime)).toContain('₱2,500.00 stall rent booked as an event expense');
     // Mutation: one saved slot loses the first booking's link (and its rent) when a second start fails.
-  });
-
-  it('a second failed link does not replace the first one that is still waiting', async () => {
-    const { runtime } = await mounted(
-      'owner',
-      fresh({
-        rows: [
-          wire(),
-          wire({ id: ID2, name: 'Christmas', starts_on: '2026-12-12', ends_on: '2026-12-13' })
-        ],
-        link: { data: null, error: { code: '57014' } }
-      })
-    );
-    act(() => events(runtime)[0]!.go());
-    await settle();
-    act(() => runtime.setState({ event: null }));
-    act(() => events(runtime)[1]!.go());
-    await settle();
-    const saved = JSON.parse(localStorage.getItem('hc-pending-link')!) as Array<{
-      scheduledId: string;
-    }>;
-    expect(saved.map((l) => l.scheduledId).sort()).toEqual([ID1, ID2]);
-    // Mutation: one saved slot loses the first booking's link (and its rent) when a second start fails.
-  });
-
-  it('a start that lost its reply is retried under its own booking, never another booking with the same name', async () => {
-    const attempt = (name: string) =>
-      localStorage.setItem(
-        'hc-event-attempt',
-        JSON.stringify({ name, id: 'aaaaaaaa-0000-4000-8000-000000000001', at: Date.now() })
-      );
-    const two = fresh({ rows: [wire(), wire({ id: ID2 })] });
-    const own = await mounted('owner', two);
-    attempt('booking:' + ID1);
-    act(() => events(own.runtime)[0]!.go());
-    await settle();
-    expect(called(own.rpc, 'start_event')[0]![1].p_event_id).toBe(
-      'aaaaaaaa-0000-4000-8000-000000000001'
-    );
-    cleanup();
-    localStorage.clear();
-    const other = await mounted('owner', two);
-    attempt('booking:' + ID1);
-    act(() => events(other.runtime)[1]!.go());
-    await settle();
-    expect(called(other.rpc, 'start_event')[0]![1].p_event_id).not.toBe(
-      'aaaaaaaa-0000-4000-8000-000000000001'
-    );
-    cleanup();
-    localStorage.clear();
-    const byName = await mounted('owner', two);
-    attempt('Katipunan market');
-    act(() => events(byName.runtime)[1]!.go());
-    await settle();
-    expect(called(byName.rpc, 'start_event')[0]![1].p_event_id).not.toBe(
-      'aaaaaaaa-0000-4000-8000-000000000001'
-    );
-    // Mutation: keying the attempt by name links the second booking to the first booking's event.
-  });
-
-  it('a booking with no rent links but books no expense; an unbooked event links nothing', async () => {
-    const free = await mounted('owner', fresh({ rows: [wire({ rent_cents: 0 })] }));
-    act(() => events(free.runtime)[0]!.go());
-    await settle();
-    expect(called(free.rpc, 'link_scheduled_event')).toHaveLength(1);
-    expect(called(free.rpc, 'add_event_expense')).toHaveLength(0);
-    cleanup();
-    const bare = await mounted('owner', fresh());
-    act(() => events(bare.runtime).at(-1)!.go());
-    await settle();
-    expect(called(bare.rpc, 'start_event')[0]![1]).toMatchObject({
-      p_name: 'Bazaar · Tue, Oct 20'
-    });
-    expect(called(bare.rpc, 'link_scheduled_event')).toHaveLength(0);
-    expect(called(bare.rpc, 'add_event_expense')).toHaveLength(0);
-    // Mutation: leaving the pending booking set after an unbooked start links (and charges rent for) the last booking tapped.
-  });
-
-  it('a start that fails (no signal) links nothing and does not leave the booking pending for the next start', async () => {
-    const { runtime, rpc } = await mounted('owner', fresh());
-    act(() => runtime.setState({ online: false }));
-    act(() => events(runtime)[0]!.go());
-    await settle();
-    expect(called(rpc, 'start_event')).toHaveLength(0);
-    act(() => runtime.setState({ online: true }));
-    act(() => events(runtime).at(-1)!.go());
-    await settle();
-    expect(called(rpc, 'link_scheduled_event')).toHaveLength(0);
   });
 });
 
@@ -413,11 +248,26 @@ describe('D4: the owner’s form', () => {
     vi.useRealTimers();
   });
 
+  // U3: the sub-tab opens the hub; this multi-row form is reached from the hub's "Edit or switch off events".
   const open = async (r: OpsRuntime) => {
-    await act(async () => entry(r)!.go());
+    act(() => r.go('bazaar'));
+    await act(async () => r.renderVals().liveBazaar!.add());
     await settle();
     return r.renderVals().liveScheduled!;
   };
+
+  it('the Bazaar events sub-tab opens the hub: the list of bookings, not the form', async () => {
+    const { runtime } = await mounted('owner', fresh());
+    await act(async () => entry(runtime)!.go());
+    await settle();
+    expect(runtime.state.screen).toBe('bazaar');
+    expect(runtime.renderVals().liveScheduled ?? null).toBeNull();
+    expect(runtime.renderVals().liveBazaar?.list.map((r) => r.name)).toEqual(['Katipunan market']);
+    // The strip marks the entry she opened, not Bazaar Mode: with no event on the phone this screen is the hub.
+    const strip = runtime.renderVals().liveScreen?.tabs?.entries ?? [];
+    expect(strip.filter((e) => e.active).map((e) => e.label)).toEqual(['Bazaar events']);
+    // Mutation: pointing the sub-tab at the old sheet leaves the hub reachable only by its other name.
+  });
 
   it('is the owner’s alone', async () => {
     const helper = await mounted('helper', fresh());
@@ -566,7 +416,8 @@ describe('D4: the owner’s form', () => {
         rpc: vi.fn(async () => ({ data: null, error: { code: '57014' } }))
       } as never);
     });
-    await act(async () => entry(ref.current!)!.go());
+    act(() => ref.current!.go('bazaar'));
+    await act(async () => ref.current!.renderVals().liveBazaar?.add());
     await settle();
     expect(ref.current!.renderVals().liveScheduled ?? null).toBeNull();
     expect(toasts(ref.current!)).toContain('Offline');

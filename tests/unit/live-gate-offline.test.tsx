@@ -67,8 +67,19 @@ vi.mock('@/lib/supabase/client', async () => {
     rpc: async (name: string, args: Record<string, unknown>) => {
       if (!net.up) return { data: null, error: { message: 'Failed to fetch' } };
       net.rpc.push({ name, args });
-      if (name === 'start_event')
-        return { data: [{ event_id: args.p_event_id, prices: { dcf: 12500 } }], error: null };
+      if (name === 'start_bazaar_day')
+        return {
+          data: [
+            {
+              event_id: args.p_event_id,
+              selling_device: 'dev1',
+              float_cents: 50000,
+              prices: { dcf: 12500 },
+              loaded: { dcf: 5 }
+            }
+          ],
+          error: null
+        };
       if (name === 'record_event_sale') {
         const sale = args.p_sale as { clientId: string };
         return {
@@ -103,7 +114,10 @@ interface Till {
     screen: string;
   };
   setState: (patch: Record<string, unknown>) => void;
-  startEvent: (ev: { name: string; date: string }) => void;
+  beginBazaarDay: (
+    booking: { id: string; name: string },
+    day: { id: string; day: string }
+  ) => Promise<string>;
   recordSale: (pay: string) => void;
   go: (screen: string) => void;
   sheet: (kind: string) => void;
@@ -207,17 +221,17 @@ describe('the bazaar phone with no signal (A2)', () => {
     await tick();
     expect(screen.getByTestId('frame')).toHaveTextContent('bazaar');
     const one = till();
-    act(() => one.startEvent({ name: 'Katipunan', date: 'Oct 24' }));
+    await act(async () => {
+      await one.beginBazaarDay(
+        { id: 'd5b00000-0000-4000-8000-000000000001', name: 'Katipunan' },
+        { id: 'd5a00000-0000-4000-8000-000000000001', day: '2026-10-24' }
+      );
+    });
     await tick();
     const eventId = one.state.event!.id;
     expect(eventId).toMatch(/^[0-9a-f-]{36}$/);
-    act(() =>
-      one.setState({
-        event: { ...one.state.event, stage: 'selling' },
-        eventStock: { dcf: 5 },
-        cart: { dcf: 1 }
-      })
-    );
+    expect(one.state.event).toMatchObject({ stage: 'selling' });
+    act(() => one.setState({ cart: { dcf: 1 } }));
     act(() => one.recordSale('Cash'));
     await tick();
     expect(sales()).toHaveLength(1);

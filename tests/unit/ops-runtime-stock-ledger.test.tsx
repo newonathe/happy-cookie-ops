@@ -92,6 +92,9 @@ function fakeClient(state: Fake) {
   const rpc = vi.fn(async (name: string, args?: Record<string, unknown>) => {
     if (name === 'get_stock_catalogue') return { data: state.data, error: null };
     if (name === 'get_last_paid') return { data: state.lastPaid, error: null };
+    // A database before B3b has no cost functions: the engine's own cost path (last paid over quantity) stands.
+    if (name === 'get_item_costs' || name === 'get_recipe_costs')
+      return { data: null, error: { code: 'PGRST202' }, status: 404 };
     if (name === 'record_stock_movement') {
       const r = state.movements?.shift() ?? state.movement;
       if (!(r as { error: unknown }).error) {

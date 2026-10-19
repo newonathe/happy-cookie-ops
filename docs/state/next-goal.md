@@ -1,76 +1,32 @@
-# Next goal — B3b
+# Next goal — after Bazaar v2: the phone rehearsal
 
-One goal per package, each in a fresh conversation opened in the repository root. Paste
-one block. Where things stand: [current.md](current.md). The plan these come from:
-[final-plan.md](final-plan.md), version 2, section 9, stage B. Earlier goals are in
-[current-history.md](current-history.md).
+**U9 is released (16 October).** Bazaar v2 (U1 to U7 plus the U9 motion pass and 44 px targets) is live on the private trial:
+head `ea0ba7f`, Cloudflare version `7d7d8414`, migration 70 applied (70 of 70, function bodies equal local), every CI job green
+except the known red "Performance budget" (artifact quota). U8 (two decimals in ported screens) is skipped: Ethan kept whole
+pesos on the till. The plan and the as-built notes are in [bazaar-v2.md](bazaar-v2.md) and [docs/design/bazaar-v2.md](../design/bazaar-v2.md).
+The repository is public: secret scan before every push, and no real event names or figures in any committed file.
 
-B3 was split on 6 October. B3a is built (7 October): migrations 56 to 59, the database half,
-none on the trial; what it did with each finding is in [system-audit.md](system-audit.md),
-section 10. B4 (her data) follows B3b.
+**20 October: the consolidated till** (`claude/bazaar-till-v3`, see current.md) waits for Ethan's yes to release. Once
+released, the rehearsal below runs on it (the run sheet already names its buttons; step 7 checks the phone has it).
 
-## B3b — packaging as records, and the screens read the database's cost
+**The next goals, in order:**
 
-| Setting         | Value                                                                                             |
-| --------------- | ------------------------------------------------------------------------------------------------- |
-| Model, effort   | Claude Opus, high to plan and sign off; Sonnet, high to build                                     |
-| Plan mode       | On: three questions for Ethan first; list each function and each screen figure that will move     |
-| Permission mode | Auto after the plan is accepted                                                                   |
-| Review          | Required: `security-reviewer` on a different model for every migration and for the runtime change |
-| Browser QA      | Yes: the live build against the local database, and `pnpm test:live:smoke`                        |
-| Tools           | Node 24.20.0 and pnpm 9.12.3 from `happy-cookie-tools`; local Supabase                            |
-| Stop            | Evidence printed and pushed; 25 turns; two failed fix attempts                                    |
+1. **The phone rehearsal, by 22 October**, on the selling iPhone: [bazaar-run-sheet.md](bazaar-run-sheet.md), "The rehearsal"
+   (25 steps) and the "Stall-day checklist". Ethan runs it; anything that fails is fixed and the list is run again before
+   23 October. `RELEASE_HOLD=true` the day it passes. The bazaar is 24 to 25 October.
+2. **The earlier test event's reversal** (`reverse_bazaar_test`): only on Ethan's separate yes, then run and reviewed. Its rent,
+   over, sales and stock use stay in October's books until then.
+3. **Optional: the 320 px toast check.** Open the day plan at 320 px with the toast showing and see whether the toast overlaps
+   the sticky footer by about 16 px (unconfirmed). A clean browser pass at four widths (320, 375, 768, 1440) has not been done.
 
-```text
-/goal Slice B3b of docs/state/final-plan.md (version 2) for The Happy Cookie Ops in
-C:\Users\ethan\dev\happy-cookie-ops-g0: packaging as records, and the screens read the
-database's cost. B3a is built (migrations 56 to 59; none is on the trial, which is at 55). The
-bazaar is 24 to 25 October and runs on the trial: record_event_sale is not redefined (its
-pinned body hash stays 8cf2bd63), the sale queue and Bazaar Mode give the same results as
-today, and no migration goes on the trial without Ethan's word.
+Not done and not part of these: the cost cutover (after Cine's opening count, and Ethan's separate yes). One low finding is left
+from the migration 70 review: a flavour cost saved mid-close can be stored with a stale hash.
 
-Read first: AGENTS.md, docs/state/current.md, final-plan.md sections 5.2 (H12, H13), 6.1 and
-7.1 (Packaging rule, Ingredient cost), migrations 20260101005500 to 20260101005800, and in
-20260101004700 only record_pack and record_sale_packaging. Say what exists before building.
+| Setting      | Value                                                                                        |
+| ------------ | -------------------------------------------------------------------------------------------- |
+| Model        | Sonnet high for the 320 px check or any fix; Opus signs off any money or close change        |
+| Plan mode    | off                                                                                          |
+| Conversation | new                                                                                          |
+| Read         | AGENTS.md, current.md, bazaar-run-sheet.md; for the 320 px check, `day-plan.tsx` and its CSS |
 
-Ask Ethan in plan mode, one recommendation each: (a) new SQL may not name a packaging item,
-so is today's rule (a pouch per cookie and a bag per bazaar sale) entered by hand through the
-new owner action, or seeded as an unconfirmed default; (b) when her per-cookie packaging lines
-may reach the trial, because a bazaar sale then takes them too; (c) how a mistyped delivery
-quantity is undone (system-audit.md section 10).
-
-1. Packaging as records: each recipe line is an ingredient or packaging (packaging is per
-   cookie and is not taken at bake), and a rule per container (each box size on an order, a
-   loose cookie, an order, a bazaar sale) lists stock items and quantities, per container or
-   per cookie. Owner actions read and save them. record_pack and record_sale_packaging read
-   both; no item name is left in SQL. get_recipe_costs adds packaging per cookie.
-2. With today's rule entered as records, a bazaar sale writes the same stock rows as today:
-   the sale_pin cases in the role suite pass unchanged.
-3. Live mode feeds the engine's cost path from get_item_costs and get_recipe_costs by
-   replacing costPerUnit, ingCost, packCostPerCookie and unitCost in the subclass, with no
-   engine edit. Unknown is "Cost pending", never zero, on Recipes, Products, bazaar profit
-   and waste. The completeness check reads complete and missing; its three item names go.
-4. Version skew: the client works on the trial at migration 55 and at the new schema. A
-   missing function falls back to today's path, held by a unit test. No exact-key payload
-   gains a required key.
-5. The books move to "when used" (DP-04) in this slice's migration, and the P&L shows the
-   uncosted uses get_books now returns, so an unknown cost is never silent.
-
-Tests first, in the SQL role suite and pnpm verify: each refusal as a rule mutation; packing an
-order by its boxes; the bazaar pin; the cost per cookie on screen equal to get_recipe_costs
-for a worked recipe; the fallback on a database without the new functions.
-tests/unit/no-prototype-values.test.tsx stays green. Browser QA on the live build against the
-local database, and pnpm test:live:smoke.
-
-Plan and sign off in this session; build with at most two Sonnet subagents, one writer at a
-time on the database. Review: security-reviewer on a different model for every migration and
-for the runtime change; fix every P0 to P2.
-
-Update docs/state/current.md (five lines) and task-status.json (one note, by string
-insertion); replace this block with slice B4. Print: each failing test before and passing
-after, the reviewers' verdicts, the role-suite and pnpm verify summaries, the smoke-suite
-output, the commit hashes and the pushed branch.
-
-No new resources, shop opening, real customers, launch, merge or automatic runner. Do not set
-the release hold. Stop after 25 turns or two failed fix attempts and report the obstacle.
-```
+The review of U2, U5, U6 and U7 used an Opus subagent, because `codex` refuses its models on this ChatGPT account.

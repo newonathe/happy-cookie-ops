@@ -305,7 +305,105 @@ Cine's to change.
 | Correcting a batch                                        | Moves no ingredients, no dough and no books. Refused only when it lowers the count and the baked balance would go below zero.                       | The goal's stated default; raising a count must stay possible when packing has run ahead.           |
 | The cost basis                                            | Still "when bought". It moves to "when used" (DP-04) in B3b, with the screen that shows uncosted uses.                                              | Flipping it before the app can show what has no cost would overstate profit in silence.             |
 
-**Open, Ethan's:** how a mistyped delivery quantity is undone ([system-audit.md](system-audit.md), R15).
+**Open, Ethan's:** how a mistyped delivery quantity is undone ([system-audit.md](system-audit.md), R15). Decided 8 October, below.
+
+### Slice B3b-1, 8 October 2026: packaging as records
+
+Ethan decided (a), (b) and (c) on 8 October, in plan mode, and approved the split of B3b into B3b-1
+(the database, migration 60) and B3b-2 (the runtime, migration 61 and the books flip to "when used").
+No migration goes on the trial without his word.
+
+| Question                                                | Decision                                                                                                                                                                                                                                                                                                                                                                          |
+| ------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| (a) How today's packaging rule gets in                  | By hand, scripted. No item name appears in any migration or function. One upgrade step (`scripts/packaging-rule-today.sql`) enters the rule as data, in the same sitting as migration 60, rehearsed locally. Until it runs, a pack or bazaar sale takes no packaging and records a flagged shortfall (`why: no packaging rule`), never a silent zero.                             |
+| (b) When her per-cookie packaging lines reach the trial | After 26 October, with B4, once migrations 56 to 60 are applied. In the same sitting the per-cookie pouch leaves the bazaar-sale rule (the builder found the loose rule takes it per cookie too, so it leaves that rule as well). The save actions refuse an item that is both a recipe packaging line and a per-cookie container line; a loose-cookie line counts as per cookie. |
+| (c) A mistyped delivery quantity (R15)                  | Undo while untouched: write an opposite receipt, reverse its book line and back it out of the average exactly. Refused once any of that item has been used or wasted since the delivery. Built in B5 with the receive form.                                                                                                                                                       |
+| The split                                               | B3b-1 database first, then B3b-2 runtime and the books. B3b-2 sets the cost basis to "when used" with the screen that shows uncosted uses.                                                                                                                                                                                                                                        |
+
+**Defaults, not decisions.** Chosen by the builder; each is Ethan's or Cine's to change.
+
+| Rule                                                           | Default                                                                                                                                | Why                                                                       |
+| -------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| A thank-you card in an order                                   | Once per order. Before: once per box, at least one.                                                                                    | The plan's one deliberate change; the order is the thing the card is for. |
+| A container with no rule (a box size, loose cookies, an order) | Takes nothing and is flagged. There is no way yet to say "nothing on purpose".                                                         | Silence and "not entered yet" must not look the same.                     |
+| Cookies not in a box                                           | Loose. More boxed than the order holds leaves loose at 0; each box still takes its own packaging.                                      | Packing goes by the order's boxes, not by a fixed six.                    |
+| Packaging cost per cookie                                      | 0 when a recipe has no packaging lines; unknown when it has some and none has a cost. A line with no cost makes the recipe incomplete. | Unknown is never shown as 0; having nothing to cost is a fact.            |
+| A set (the sampler) when packing                               | Counts as one cookie, as before. A sampler-only order is still packable.                                                               | Carried over unchanged; a container of its own for sets is a later rule.  |
+| Recipe packaging lines at a bake                               | Never taken. Taken when the cookie is packed or sold.                                                                                  | A quantity per cookie belongs to the cookie leaving, not to the batch.    |
+
+### Slice B4a, 12 October 2026: the cutover and the split
+
+Ethan decided both questions on 12 October, in plan mode, taking the recommendation each time.
+
+| Question                                                         | Decision                                                                                                                                                                                                                                                                |
+| ---------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| How the books switch to "when used" without counting stock twice | A dated cutover with one opening credit (migration 62). "Used" starts at a previewed date; the stock then on hand is valued once from her price list and credited once; before the date the books stay on "bought". Applied once, after 26 October, by the operator.    |
+| The size of B4                                                   | Split. B4a (done): the cutover and the operator's preview and apply for items, prices, recipes, flavour prices and bookings. B4b (next, on his laptop): photos (561 MB, resized under the 2 MB limit) and newer sales (appended against the trial's exact ledger hash). |
+
+**Defaults, not decisions.** Chosen by the builder; each is Ethan's or Cine's to change.
+
+| Rule                                                          | Default                                                                                                    | Why                                                                       |
+| ------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| An item with stock but no known cost at the cutover           | Listed, credited nothing. Its uses stay expensed twice until it is priced.                                 | A credit built on a guess is worse than a visible gap.                    |
+| An opening count after the cutover                            | Refused.                                                                                                   | Its purchase is already in the historical lines and is not in the credit. |
+| An item never counted                                         | Listed in the cutover preview as not counted.                                                              | The operator sees what the credit cannot include before applying.         |
+| A name with a non-breaking or zero-width space, or not in NFC | Refused by every import.                                                                                   | It would create a second record that looks the same.                      |
+| Two price rows for one item on one date                       | Refused.                                                                                                   | The usual price would fall to an arbitrary id order.                      |
+| An import                                                     | Whole or nothing: the caller approves the preview as it stands; an unmatched row is listed and left alone. | Nothing is guessed.                                                       |
+
+**Open, Ethan's:** both questions below were answered the same day, in B4b's plan mode (next section).
+
+### Slice B4b, 12 October 2026: the count rule, her recipes, her newer sales and her photos
+
+Ethan answered four questions in plan mode on 12 October, taking the recommendation each time.
+
+| Question                                                          | Decision                                                                                                                                                  |
+| ----------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A stock count after the cutover                                   | A count that finds less is an expense at the item's cost; one that finds more is no entry. Built in migration 65.                                         |
+| Her eight packaging items                                         | All are per-cookie packaging lines: Apple Pie Box, Banoffee Pie Box, Heart-shaped box with lid, Kraft pouch, Pink box, Plastic pouch, Sauce Tub, Sticker. |
+| Recipe items missing from her master (Oats, Sea salt, Sauce Tub)  | Created as stock items with no price. A recipe using them reads "Cost pending" until it is priced.                                                        |
+| A unit that disagrees with her master (Biscoff cookies, Pink box) | The recipe is held and listed until Cine fixes the unit. Nothing is converted.                                                                            |
+
+**Defaults, not decisions.** Chosen by the builder; each is Ethan's or Cine's to change.
+
+| Rule                                                           | Default                                                                                                                                                                                                 | Why                                                              |
+| -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| A negative stock adjustment after the cutover                  | Follows the count rule: an expense at the item's cost.                                                                                                                                                  | A removal by hand is a loss the same as a count.                 |
+| A recipe line with no quantity (a Sea salt line in one recipe) | The recipe is held and listed.                                                                                                                                                                          | Nothing is guessed.                                              |
+| A flavour photo                                                | Always re-encoded in the browser to WebP (JPEG where WebP is not available), longest side 1,600 px, under 1.9 MB, location data dropped. A file over 40 MiB or a picture over 50 megapixels is refused. | The bucket is public; an 18 MB original must not freeze the tab. |
+| Newer sales                                                    | Appended before the cutover, the opening counts and the first order. A row whose date is not settled by the rules the first import was approved on is listed, not written.                              | The append guard refuses afterwards.                             |
+
+**Known, not built.** The reviewers' P3s, so nobody assumes they are covered:
+
+1. Stock counted down, then found again by a count up, then used is expensed twice: the count up books nothing and the average does not move. This follows from the rule above; Ethan can change it.
+2. The migration 65 guard (it refuses to run after a cutover with a lowering count) and the rounding of a half-centavo shortfall have no test.
+3. Flavour photos already in the bucket before 12 October may carry location data; check them once.
+4. The books' "N uses not costed" caption also counts counts and adjustments.
+5. The Sales sheet's memo is "Workbook Sales row N"; how the first import worded its memos was not found.
+
+### Slice B5, 13 October 2026: New Stock, Inventory and Grocery
+
+Ethan answered three questions in plan mode on 13 October, taking the recommendation each time.
+
+| Question                        | Decision                                                                                                                                                                                |
+| ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Item movements on the item page | Add the read now: migration 66, `get_item_movements`, owner only, no person's name returned. Not on the trial; there the page says movements are not available yet.                     |
+| Out, Low and Good               | Out at 0, Low below the item's level, Good otherwise. An item with no level is Good unless it is at 0. The word is always shown beside the colour; Grocery lists the Out and Low items. |
+| The grocery budget              | The running total always shows. "Left" or "over" appears only once she has set a budget; no built-in 6,000 is shown.                                                                    |
+
+**Defaults, not decisions.** Chosen by the builder; each is Ethan's or Cine's to change.
+
+| Rule                                                      | Default                                                                                                                     |
+| --------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| A receipt's movement line                                 | Shows what was paid (`paid_cents`), because a receipt carries no unit cost.                                                 |
+| A use, waste or stock-lowering count with no cost stamped | Reads "Cost pending" (a count before the cutover keeps reading so). An increase shows no cost.                              |
+| The item page asks for                                    | The latest 50 movements.                                                                                                    |
+| Grocery "Needed" when the plan is reorder-only            | The item's level; otherwise the engine plan's need. An item with no price reads "Cost pending", and the total says so.      |
+| Trial cost fallback (no cost function)                    | The engine's 0 for an unpriced item is treated as unknown, never shown as a cost (found in review; test written red first). |
+
+Left as recorded by the Opus review (P3, theoretical for this shop): a unit cost under half a millionth of a centavo rounds to 0 in
+the read and would mark one item's history unavailable; a rate under ₱0.00005 shows as ₱0.00; the left/over note subtracts in pesos
+(display only).
 
 ## Amended decisions (open — block the listed work)
 
@@ -433,3 +531,45 @@ Sources:
 - [OWASP ASVS 5.0 V7.3](https://cornucopia.owasp.org/taxonomy/asvs-5.0/07-session-management/03-session-timeout)
 - [NIST SP 800-63B-4 §2.1.3/§2.2.3 reauthentication](https://pages.nist.gov/800-63-4/sp800-63b.html) (checked 2026-09-26)
 - [Next.js middleware→proxy](https://nextjs.org/docs/messages/middleware-to-proxy)
+
+### Bazaar readiness and her data, 13 October 2026
+
+Ethan answered in the session of 13 October.
+
+| Question                                    | Decision                                                                                                                                                                        |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Who rings up sales at the stall             | An owner sign-in only, on the one selling phone. Signal is usual at the stall; offline is the fallback.                                                                         |
+| How much of her data goes to the trial now  | Everything that is safe and can be imported now. Done the same day, with no migration: 17 recipes (ingredients only), the item Oats and her 4 bookings. The rest stays with B4. |
+| Her workbook's names for four menu flavours | Dark chocolate is double chocolate fudge; Smores is happy camper; PB Miso is pb & miso; Biscoff is white chocolate biscoff.                                                     |
+
+**Open, Cine's or Ethan's:** none of the 17 recipes lists egg, though her price list has it; "Nutella Cookie Fries" has no
+flavour in the app; two of her bookings fall on 24 to 25 October (one marked inactive in her sheet); the date her price list
+is current from.
+
+**Later the same day** Ethan reversed the timing decided on 12 October and widened the import:
+
+| Question                             | Decision                                                                                                                                                |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| When migrations 56 to 66 apply       | Now, before the phone rehearsal, so the rehearsal tests the final state. Done 13 October. The cutover itself still waits for Cine's opening count.      |
+| A recipe with an unclear line        | Nothing is held. The unclear line is left out and listed for Cine's one-time set-up ([cine-set-up.md](cine-set-up.md)); the rest of the recipe goes in. |
+| What is not certain                  | It is configurable and hers to set once, in a one-time set-up when she first signs in. The screen is the next slice; its list is cine-set-up.md.        |
+| Nutella Cookie Fries, Egg, Sauce Tub | All in. The flavour already existed (a set, off the menu) and now has its recipe; Egg is created and priced; Sauce Tub is created with no price.        |
+
+**Defaults, not decisions.** The price list is dated 13 October 2026, the day of the import. The bazaar table still loads only
+from baked stock: that rule was not changed.
+
+### Bazaar days, 13 October 2026
+
+Ethan asked for a bazaar that needs no bake, with a plan per day, fees, losses, a review before each close and a P&L that counts
+in the books only when the event ends. Design: [bazaar-days.md](bazaar-days.md). He answered four questions in plan mode.
+
+| Question                                       | Decision                                                                                                                                                           |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| If the new flow is not rehearsed by 20 October | New flow or nothing: the old start is not offered. He did not take the recommendation (fall back to today's flow). Putting it back needs a deploy and a rehearsal. |
+| Unsold cookies                                 | Cine decides, per day and per flavour, how many carry over to the next day, how many go to the shop and how many are written off (freshness).                      |
+| A flavour whose cost is not fully known        | Cine may type a cost per cookie for the event, marked as hers beside the recipe's. Until every flavour made has a cost, profit reads "Cost pending".               |
+| Order of work                                  | Bazaar first (S1 to S3), then the one-time set-up (S4, S5), then B6.                                                                                               |
+
+**Defaults, not decisions** (the builder's, his or hers to change): one cost per flavour per event; planning, starting a day,
+review and close need signal while selling does not; a line's cost is rounded half up to the centavo per flavour; fees paid
+before the event are dated the day they were paid and count when the event is finalised.

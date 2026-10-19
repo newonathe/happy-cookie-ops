@@ -53,6 +53,9 @@ jobs:
       - name: Full release verification
         run: pnpm verify:release
       - run: pnpm format:check
+      # A check that the trial assets build with the real configuration. They are not handed to the deploy job as an
+      # artifact (14 October 2026: the account's artifact storage quota blocked every release); the deploy job builds the
+      # same commit with the same command and settings itself.
       - name: Build private trial assets
         run: pnpm build:pages:spike
         env:
@@ -62,12 +65,6 @@ jobs:
           NEXT_PUBLIC_APP_MODE: live
       - name: Remove real payment QR images from closed trial assets
         run: node scripts/preview-placeholder-qr.mjs
-      - uses: actions/upload-artifact@v4
-        with:
-          name: owner-trial-pages-assets
-          path: build/pages-spike/
-          if-no-files-found: error
-          retention-days: 1
 
   deploy:
     needs: quality
@@ -97,11 +94,23 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
         if: steps.hold.outputs.deploy == 'true'
-      - uses: actions/download-artifact@v4
+      # The assets are built here from the commit the quality job verified, exactly as it built them, instead of being
+      # downloaded: no artifact storage is needed to release. The build sees only these variables, no deploy token.
+      - name: Build private trial assets
         if: steps.hold.outputs.deploy == 'true'
-        with:
-          name: owner-trial-pages-assets
-          path: build/pages-spike/
+        run: pnpm build:pages:spike
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://enftprwcsrdbnlplfrwk.supabase.co
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.TRIAL_SUPABASE_PUBLISHABLE_KEY }}
+          NEXT_PUBLIC_HARNESS: '0'
+          NEXT_PUBLIC_APP_MODE: live
+      # The QR step draws its placeholders in Chromium, which the quality job has from its Playwright container.
+      - name: Install Chromium for the QR placeholders
+        if: steps.hold.outputs.deploy == 'true'
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Remove real payment QR images from closed trial assets
+        if: steps.hold.outputs.deploy == 'true'
+        run: node scripts/preview-placeholder-qr.mjs
       - name: Require configured release secrets
         if: steps.hold.outputs.deploy == 'true'
         shell: bash
