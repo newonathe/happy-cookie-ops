@@ -926,6 +926,50 @@ try {
       assert((await stockOf()) === DAY_COOKIES - 3, 'Day 1 does not hold the three cookies left.');
       await pauseForPane('till');
       await paneShots('till-consolidated');
+      // The sale bar stays on screen while the tiles scroll (run sheet): on a short phone screen, scrolled to the top,
+      // Charge is still inside the viewport. A bar confined by a clipping parent would sit below the fold instead.
+      const viewport = page.viewportSize();
+      await page.setViewportSize({ width: 375, height: 480 });
+      const pinned = await page.evaluate(() => {
+        for (const el of [document.scrollingElement, ...document.querySelectorAll('*')])
+          if (el && el.scrollTop > 0) el.scrollTop = 0;
+        const charge = [...document.querySelectorAll('[data-till="consolidated"] button')].find(
+          (b) => b.textContent.trim() === 'Charge'
+        );
+        // The box that scrolls the screen (the frame's, not the document): its content must be taller than the screen.
+        let box = charge?.parentElement ?? null;
+        while (box && !/(auto|scroll)/.test(getComputedStyle(box).overflowY)) box = box.parentElement;
+        const scroller = box ?? document.scrollingElement;
+        return {
+          bottom: charge?.getBoundingClientRect().bottom ?? Infinity,
+          h: innerHeight,
+          content: scroller.scrollHeight,
+          shown: scroller.clientHeight
+        };
+      });
+      assert(
+        pinned.content > pinned.shown && pinned.bottom <= pinned.h,
+        `The sale bar is not pinned on a phone: ${JSON.stringify(pinned)}`
+      );
+      if (process.env.SMOKE_SHOTS) {
+        const shot = (name) =>
+          page.screenshot({ path: `${process.env.SMOKE_SHOTS}/${name}-375.png` });
+        await page.setViewportSize({ width: 375, height: 812 });
+        await shot('till-viewport');
+        await page.getByRole('button', { name: 'Till menu', exact: true }).click();
+        await page.getByRole('dialog').waitFor();
+        await page.waitForTimeout(500);
+        await shot('till-menu');
+        await page.keyboard.press('Escape');
+        await page.getByRole('dialog').waitFor({ state: 'detached' });
+        await till.locator('[data-part="sale"]').first().getByRole('button').first().click();
+        await page.getByRole('dialog').waitFor();
+        await page.waitForTimeout(500);
+        await shot('till-sale');
+        await page.getByRole('button', { name: 'Keep it', exact: true }).click();
+        await page.getByRole('dialog').waitFor({ state: 'detached' });
+      }
+      if (viewport) await page.setViewportSize(viewport);
 
       // Home: the day, its stock and the cart stay; Home shows the selling card; the way back is the card's button.
       await addOne.first().click();
