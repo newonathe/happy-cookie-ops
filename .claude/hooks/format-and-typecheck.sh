@@ -9,6 +9,16 @@ payload=$(cat)
 file=$(printf '%s' "$payload" | grep -o '"file_path"[[:space:]]*:[[:space:]]*"[^"]*"' | head -1 | sed 's/.*"\([^"]*\)"$/\1/')
 [ -z "$file" ] && exit 0
 
+# Only format files inside this repository. Sessions started here also edit files in other folders, and
+# prettier reflowed plain-text prompt files there (merged indented lists into paragraphs, 2026-10-22).
+# Normalise both paths: JSON-escaped or single backslashes to '/', Git Bash '/c/' to 'c:/', lower case.
+norm() { printf '%s' "$1" | sed -e 's#\\\\#/#g' -e 's#\\#/#g' -e 's#^/\([a-zA-Z]\)/#\1:/#' | tr '[:upper:]' '[:lower:]'; }
+root=$(norm "${CLAUDE_PROJECT_DIR:-$(pwd)}")
+case "$(norm "$file")" in
+  "${root%/}"/*) ;;
+  *) exit 0 ;;
+esac
+
 case "$file" in
   *.ts|*.tsx|*.mjs|*.css|*.json|*.md)
     pnpm exec prettier --write "$file" >/dev/null 2>&1 || true
