@@ -112,6 +112,11 @@ function fakeClient(state: Fake) {
                 : m.kind === 'adjust'
                   ? Math.max(0, on + m.qty)
                   : on + m.qty;
+          if (Array.isArray(r.data) && r.data.length)
+            return {
+              data: [{ item_id: it.id, on_hand: it.on_hand, duplicate: false }],
+              error: null
+            };
         }
       }
       return r;

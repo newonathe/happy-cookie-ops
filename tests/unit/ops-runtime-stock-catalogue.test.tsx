@@ -143,12 +143,21 @@ interface Fake {
   lastPaid?: unknown[];
 }
 function fakeClient(state: Fake) {
-  const rpc = vi.fn(async (name: string) => {
+  const rpc = vi.fn(async (name: string, args?: Record<string, unknown>) => {
     if (name === 'get_stock_catalogue') return { data: state.data, error: null };
     if (name.startsWith('save_')) return state.save;
     if (name === 'record_stock_movement')
       return (
-        state.movement ?? { data: [{ item_id: 'x', on_hand: 0, duplicate: false }], error: null }
+        state.movement ?? {
+          data: [
+            {
+              item_id: (args?.p_movement as { item_id: string }).item_id,
+              on_hand: 0,
+              duplicate: false
+            }
+          ],
+          error: null
+        }
       );
     if (name === 'get_last_paid') return { data: state.lastPaid ?? [], error: null };
     // A database before B3b has no cost functions: the engine's own cost path stands.
