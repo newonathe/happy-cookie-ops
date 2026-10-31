@@ -67,3 +67,6 @@ needs more than approximately 400 changed lines, split it into complete smaller 
   The full pinned gate passed: 143 test files, 2,611 tests; port integrity unchanged.
   Other navigation consolidation and durable record routes remain pending.
 - All other slices remain pending. Passing mockup tests does not mark them implemented.
+- Count recovery storage validation and strict stock-operation acknowledgements pass
+  106 targeted tests and independent review. The count interface/runtime integration
+  remains pending; this foundation does not itself expose a new count workflow.

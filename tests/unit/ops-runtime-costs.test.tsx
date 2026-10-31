@@ -151,7 +151,7 @@ const world = (over: Partial<World> = {}): World => ({
   ...over
 });
 function fakeClient(w: World) {
-  const rpc = vi.fn(async (name: string): Promise<Answer> => {
+  const rpc = vi.fn(async (name: string, args?: Record<string, unknown>): Promise<Answer> => {
     if (name === 'get_stock_catalogue') return { data: w.catalogue, error: null };
     if (name === 'get_last_paid') return { data: [], error: null };
     if (name === 'get_recipes') return { data: PRODUCTS.map((p) => recipeRow(p.id)), error: null };
@@ -161,7 +161,16 @@ function fakeClient(w: World) {
     if (name === 'get_production')
       return { data: { batches: [], dough: [], baked: [], shortfalls: [] }, error: null };
     if (name === 'record_stock_movement')
-      return { data: [{ item_id: 'x', on_hand: 0, duplicate: false }], error: null };
+      return {
+        data: [
+          {
+            item_id: (args?.p_movement as { item_id: string }).item_id,
+            on_hand: 0,
+            duplicate: false
+          }
+        ],
+        error: null
+      };
     if (name === 'record_discard') return { data: [{ duplicate: false }], error: null };
     return { data: null, error: null };
   });
