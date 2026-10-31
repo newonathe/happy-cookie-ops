@@ -1,5 +1,12 @@
 # Current state — Happy Cookie Ops
 
+**Active work, 1 November 2026:** Ethan authorized implementing the completed v4 mockup
+in the actual app before owner testing. Read [implementation scope](../design/refined-workflows.md)
+and [next goal](next-goal.md). Work is on `codex/refined-workflows`; direct Bazaar navigation
+passes the pinned gate (143 files / 2,611 tests). Inventory Count is next; other refined workflows remain pending. No deployment or hosted changes
+are authorized by this instruction. The 20 October release details below are historical;
+the private comparison verified a later release on 1 November.
+
 Read this page first in a new session. It is kept short on purpose.
 
 | If you need                                        | Read                                                                                                                                                     |
