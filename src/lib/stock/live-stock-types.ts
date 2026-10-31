@@ -101,4 +101,16 @@ export interface LiveStockVals {
   /** The count flow's line about the books, or null before a cutover: a count that finds less is an expense (migration 65). */
   countNote: string | null;
   grocery: GroceryView;
+  count?: {
+    paused: boolean;
+    saving: boolean;
+    pending: boolean;
+    storageError: string | null;
+    rows: Array<{ name: string; amountText: string; error: string | null }>;
+    back: () => void;
+    resume: () => void;
+    discard: () => void;
+    save: () => Promise<string | null>;
+    recover: () => Promise<string | null>;
+  } | null;
 }
