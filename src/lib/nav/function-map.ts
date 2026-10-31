@@ -3,7 +3,7 @@ import type { ScreenKey } from '../screens';
 /**
  * One home for everything that exists (docs/state/final-plan.md, section 8.1).
  *
- * The live owner's navigation is read from this file: the five tabs, the places under
+ * The live owner's navigation is read from this file: the six tabs, the places under
  * each, and which All tools entry and which route belongs to which place. Every entry
  * and every route has exactly one home (tests/unit/function-map.test.tsx), so nothing is
  * offered twice and nothing is lost.
@@ -13,6 +13,7 @@ import type { ScreenKey } from '../screens';
  */
 export const TABS = [
   { id: 'home', label: 'Home', screen: 'today' },
+  { id: 'bazaar', label: 'Bazaar', screen: 'bazaar' },
   { id: 'sell', label: 'Sell', screen: 'orders' },
   { id: 'make', label: 'Make', screen: 'bake' },
   { id: 'stock', label: 'Stock', screen: 'inventory' },
@@ -21,7 +22,7 @@ export const TABS = [
 
 export type TabId = (typeof TABS)[number]['id'];
 
-/** Homes outside the five tabs. */
+/** Homes outside the six tabs. */
 export type OtherHome = 'account' | 'bell' | 'customer' | 'retired';
 
 /** An All tools entry, by its label, and the screen it opens when it opens one. */
@@ -59,7 +60,7 @@ export const PLACES: readonly Place[] = [
   },
   {
     id: 'bazaar',
-    home: 'sell',
+    home: 'bazaar',
     label: 'Bazaar',
     screen: 'bazaar',
     entries: [
@@ -71,7 +72,7 @@ export const PLACES: readonly Place[] = [
   {
     id: 'customers',
     home: 'sell',
-    label: 'Customers',
+    label: 'Customers/Waitlist',
     screen: null,
     entries: [{ label: 'Customers & waitlist' }],
     routes: []
@@ -205,7 +206,7 @@ export const PLACES: readonly Place[] = [
   }
 ];
 
-/** The tab with this id, or undefined for a home outside the five tabs. */
+/** The tab with this id, or undefined for a home outside the six tabs. */
 export function tabOf(home: Place['home']) {
   return TABS.find((tab) => tab.id === home);
 }
@@ -225,7 +226,7 @@ export function placeOfEntry(label: string): Place | undefined {
   return PLACES.find((place) => place.entries.some((entry) => entry.label === label));
 }
 
-/** The tab a route sits under, or null for a home outside the five tabs. */
+/** The tab a route sits under, or null for a home outside the six tabs. */
 export function tabOfRoute(route: string): TabId | null {
   const place = placeOfRoute(route);
   return (place && tabOf(place.home)?.id) ?? null;

@@ -1,4 +1,31 @@
-# Next goal — the phone rehearsal on the new till
+# Next goal — implement the approved refined workflows
+
+**1 November 2026: Ethan asked to reflect the entire completed v4 mockup in the actual
+application and test it there.** Proceed with implementation, not another mockup audit or
+owner-testing prerequisite. Read `docs/design/refined-workflows.md` for scope, order and
+the reference hash. Keep every existing financial, role and offline safeguard.
+
+Work on `codex/refined-workflows`, one tested logical slice per commit. Direct Bazaar and
+Customers/Waitlist pass the pinned gate; next repair the inventory Count dead end and preserve its return context,
+then continue Make, Stock, Bazaar, Sell/Shop, Money/Account and integration. Small slices
+do not reduce the authorized overall scope. Record actual completed versus pending work.
+
+Use the pinned Node 24.20.0 / pnpm 9.12.3 toolchain and headless command-line Playwright.
+No protected demo edits. The existing live slots are the implementation path. Independent
+review remains required for money/auth/RLS/SQL/offline changes. Never push this work to
+the auto-deploy branch. Deployment, hosted writes and business cutovers need separate
+approval after the local implementation is concrete and reviewable.
+
+Model: GPT-6.1 high; Plan mode off. Read AGENTS.md, current.md and the refined-workflows
+scope, then only the files needed by the next slice. The physical-phone rehearsal and
+closed-shop owner week remain acceptance gates after implementation; old dates below
+are historical and do not block the newly authorized work.
+
+## Historical next goal — superseded implementation order
+
+The following is the prior 20 October checkpoint, preserved for context only.
+
+### Phone rehearsal on the new till
 
 **20 October: the consolidated till is released** (#37 and #39 deployed, Cloudflare version `50f46e2c`; #40 brought `main`
 level with the deploy branch). See [current.md](current.md). The rehearsal below now runs on it: the run sheet names its
