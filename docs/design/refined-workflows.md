@@ -28,10 +28,11 @@ cost cutover, test reversal, release settings, or merging to main.
 Keep each logical slice reviewable, tested and committed separately. If a listed area
 needs more than approximately 400 changed lines, split it into complete smaller paths.
 
-1. Navigation foundation: direct Bazaar, Customers/Waitlist, correct active destinations,
-   and no lost routes, role restrictions or demo changes.
-2. Inventory count repair: render the real count task, retain the navigation shell and
-   selected item, preserve blank versus zero, review actual counts and return safely.
+1. Live frame and navigation: reproduce the approved v4 frame beside the locked demo,
+   with direct Bazaar, Customers/Waitlist, one navigation group, contextual settings,
+   correct active destinations and no lost routes, role restrictions or demo changes.
+2. Complete Stock list/item/count/review/save/return to visual and functional parity:
+   retain the selected item and origin, blank versus zero, real cost provenance and durable recovery.
 3. Make: product-centered library and exact recipe links; read/scaled ingredient and
    packaging views; kind-preserving version saves; drafts; costs/history; production
    entry/review/result with authoritative resulting stock and shortage handling.
@@ -62,6 +63,12 @@ needs more than approximately 400 changed lines, split it into complete smaller 
   After implementation, run the selling-phone rehearsal and approved closed-shop week.
 
 ## Progress
+
+- The private `happy-cookie-page-by-page-plan.md`, HTML reader and JSON cover 59 pages/child
+  flows, all 25 route keys, 33 tool entries, 35 tracked owner requirements and 57 historical
+  comparison findings, with 179 decision branches. Research includes relevant supplied Template Pack
+  sections and official POS/inventory/recipe/P&L sources with retrieval limits. These are plan
+  coverage counts, not completion claims. The frame/Stock visual port remains next.
 
 - Direct Bazaar and Customers/Waitlist are implemented on `codex/refined-workflows`.
   The full pinned gate passed: 143 test files, 2,611 tests; port integrity unchanged.

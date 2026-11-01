@@ -6,7 +6,10 @@ and [next goal](next-goal.md). Work is on `codex/refined-workflows`; direct Baza
 and the inventory Count flow are implemented. Count has item entry, review, retained drafts,
 and explicit recovery for unconfirmed saves; targeted tests and four-width headless UI checks pass.
 Count passed the pinned gate (147 files / 2,638 tests). Duplicate secondary tab rows are removed;
-Stock has one section row and direct Add to inventory. Make and the other refined workflows remain pending. No deployment or hosted changes
+Stock has one section row and direct Add to inventory. The approved live frame and complete Stock visual
+port are next: the current preview still uses the legacy frame. The private page plan covers 59 pages/child
+flows and 179 decision branches; this is planned coverage only. Make and the other refined workflows
+remain pending. No deployment or hosted changes
 are authorized by this instruction. The 20 October release details below are historical;
 the private comparison verified a later release on 1 November.
 
