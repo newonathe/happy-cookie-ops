@@ -857,6 +857,7 @@ export class OpsRuntime extends OpsProvider {
   private pendingMovements = new Map<string, MovementFields>();
   /** When each item's count was entered on the open stocktake, so a count is measured at its own moment. */
   private countedAt: Record<string, number> = {};
+  private countSaving = false;
   private countedItemIds = new Map<string, string>();
   private releaseCountLease: (() => void) | null = null;
   private countLeaseRequest: Promise<boolean> | null = null;
@@ -2475,7 +2476,36 @@ export class OpsRuntime extends OpsProvider {
   renderVals(): OpsVals {
     const vals = super.renderVals();
     if (HARNESS && !isLiveMode()) return vals;
-    const starved = { ...vals, devices: [], roles: [], showPhoneWidths: false } as OpsVals;
+    const counting =
+      isLiveMode() &&
+      this.state.role === 'owner' &&
+      this.state.screen === 'inventory' &&
+      (!!this.state.stocktake ||
+        [...this.pendingMovements.values()].some((f) => f.kind === 'count'));
+    const starved = {
+      ...vals,
+      devices: [],
+      roles: [],
+      showPhoneWidths: false,
+      ...(counting
+        ? {
+            focusMode: false,
+            showRail: this.state.device === 'desktop' || this.state.device === 'tablet',
+            showDock: this.state.device !== 'desktop' && this.state.device !== 'tablet',
+            showTopBar: true,
+            showBack: true,
+            toastStyle:
+              this.state.device !== 'desktop' && this.state.device !== 'tablet'
+                ? String(vals.toastStyle).replace('bottom: 18px', 'bottom: 96px')
+                : vals.toastStyle,
+            goBack: () => {
+              if (!this.state.liveCountPaused) this.setState({ liveCountPaused: true });
+              else if (this.state.liveStockOpen) this.setState({ liveStockOpen: null });
+              else this.go('today');
+            }
+          }
+        : {})
+    } as OpsVals;
     if (!isLiveMode()) return starved;
     const { setupPending, ...health } = this.liveHealth(this.state);
     const healthProblems = health.healthRows.filter((row) => row.bad).length;
@@ -4299,10 +4329,10 @@ export class OpsRuntime extends OpsProvider {
    * The ported stocktake: each item counted becomes a count movement, taken at the moment it was entered (a delivery received
    * after that is refused, not wiped out). It stops at the first count that cannot be saved and keeps the rest on the count sheet.
    */
-  private async liveReconcile(): Promise<void> {
+  private async liveReconcile(): Promise<boolean> {
     const stocktake = this.state.stocktake as { counts?: Record<string, string> } | null;
     const counts = { ...(stocktake?.counts ?? {}) } as Record<string, string>;
-    const names = Object.keys(counts).filter((n) => counts[n] !== undefined && counts[n] !== '');
+    const names = Object.keys(counts).filter((n) => String(counts[n] ?? '').trim() !== '');
     let corrected = 0;
     let value = 0;
     let valued = true; // false once a corrected item has no known cost: the total would be a part of the truth
@@ -4338,10 +4368,10 @@ export class OpsRuntime extends OpsProvider {
         stocktake: s.stocktake ? { ...(s.stocktake as object), counts } : s.stocktake
       }));
       this.toast(STOCK_COPY.someSaved(saved, names.length), 'warn');
-      return;
+      return false;
     }
-    this.setState({ stocktake: null });
-    if (!saved) return;
+    this.setState({ stocktake: null, liveCountPaused: false });
+    if (!saved) return true;
     const shown = Math.abs(Math.round(value)).toLocaleString('en-PH');
     this.toast(
       corrected === 0
@@ -4354,6 +4384,7 @@ export class OpsRuntime extends OpsProvider {
                 : ' ₱' + shown + ' more than your records said.'),
       corrected === 0 ? 'ok' : 'warn'
     );
+    return true;
   }
 
   /** The ported "Remove" button: the item is switched off (never deleted), so past records keep their history. */
@@ -4449,12 +4480,50 @@ export class OpsRuntime extends OpsProvider {
 
   /** The existing count flow, for one item: on its tab, with only that item on the sheet. */
   private startItemCount(item: StockItem): void {
-    this.setState({ invTab: item.category } as never, () => {
-      (this as unknown as InvActions).startStocktake();
-      this.setState((s) => ({
-        stocktake: s.stocktake ? { ...(s.stocktake as object), items: [item.name] } : s.stocktake
-      }));
-    });
+    if (this.countSaving || this.countRecoveryBusy || this.unmounted || this.state.role !== 'owner')
+      return;
+    const target = this.stockCatalogue?.items.find((row) => row.id === item.id && row.active);
+    if (!target)
+      return void this.toast('This item changed. Open the current item before counting.', 'warn');
+    if (!this.countRecoveryReady) {
+      void this.loadStockCatalogue(null).then(() =>
+        this.setState({}, () => {
+          if (this.countRecoveryReady) this.startItemCount(target);
+          else
+            this.toast(this.countRecoveryProblem ?? 'Counting is unavailable in this tab.', 'warn');
+        })
+      );
+      return;
+    }
+    if ([...this.pendingMovements.values()].some((f) => f.kind === 'count')) {
+      this.setState({ liveCountPaused: false });
+      return;
+    }
+    const current = this.state.stocktake as { items: string[]; i: number } | null;
+    if (current) {
+      const items = current.items.includes(target.name)
+        ? current.items
+        : [...current.items, target.name];
+      if (!this.countedItemIds.has(target.name)) this.countedItemIds.set(target.name, target.id);
+      this.setState({
+        invTab: target.category,
+        liveStockOpen: target.id,
+        liveCountPaused: false,
+        stocktake: { ...current, items, i: items.indexOf(target.name) }
+      });
+      return;
+    }
+    this.setState(
+      { invTab: target.category, liveStockOpen: target.id, liveCountPaused: false } as never,
+      () => {
+        (this as unknown as InvActions).startStocktake();
+        this.setState((s) => ({
+          stocktake: s.stocktake
+            ? { ...(s.stocktake as object), items: [target.name], i: 0 }
+            : s.stocktake
+        }));
+      }
+    );
   }
 
   private stockItemView(
@@ -4664,7 +4733,107 @@ export class OpsRuntime extends OpsProvider {
         : null,
       // After a cutover on the used basis a count that finds less stock is an expense; before it, or with the books unread, nothing is said.
       countNote: this.booksRows?.basis === 'used' ? STOCK_COPY.countNote : null,
-      grocery: this.groceryView(c, supplierNames)
+      grocery: this.groceryView(c, supplierNames),
+      count: this.liveStockCount()
+    };
+  }
+
+  private liveStockCount(): NonNullable<LiveStockVals['count']> | null {
+    const task = this.state.stocktake as CountRecovery['task'];
+    const pending = [...this.pendingMovements.values()].some((f) => f.kind === 'count');
+    if (!task && !pending) return null;
+    const currentName = task?.items[task.i];
+    const currentItem = currentName ? this.stockItem(currentName) : undefined;
+    const unavailable =
+      !!currentName && (!currentItem || this.countedItemIds.get(currentName) !== currentItem.id);
+    const rows = Object.entries(task?.counts ?? {})
+      .filter(([, value]) => value.trim() !== '')
+      .map(([name, value]) => {
+        const item = this.stockItem(name);
+        const error =
+          !item || this.countedItemIds.get(name) !== item.id
+            ? 'This item changed since the count started. Reopen the current item and count it again.'
+            : movementError({
+                id: '00000000-0000-4000-8000-000000000000',
+                itemId: item.id,
+                kind: 'count',
+                qty: Number(value),
+                costCents: null,
+                supplier: '',
+                reason: '',
+                at: this.countedAt[name] ?? Date.now()
+              });
+        return { name, amountText: `${value} ${item?.unit ?? ''}`.trim(), error };
+      });
+    return {
+      paused: this.state.liveCountPaused === true,
+      saving: this.countSaving || this.countRecoveryBusy,
+      pending,
+      storageError: this.countRecoveryProblem,
+      rows,
+      total: task?.items.length ?? 0,
+      unavailable,
+      skipUnavailable: () => {
+        if (
+          !task ||
+          !currentName ||
+          !unavailable ||
+          pending ||
+          this.countSaving ||
+          this.countRecoveryBusy
+        )
+          return;
+        const counts = { ...task.counts };
+        delete counts[currentName];
+        const items = [
+          ...new Set([
+            ...task.items.filter((name) => name !== currentName),
+            ...Object.keys(counts).filter((name) => counts[name]!.trim() !== '')
+          ])
+        ];
+        this.setState(
+          {
+            stocktake: items.length
+              ? { ...task, counts, items, i: Math.min(task.i, items.length - 1) }
+              : null
+          },
+          () => {
+            delete this.countedAt[currentName];
+            this.countedItemIds.delete(currentName);
+            this.persistCountRecovery();
+          }
+        );
+      },
+      back: () => this.setState({ liveCountPaused: true }),
+      resume: () => this.setState({ liveCountPaused: false }),
+      recover: () => this.recoverStockCount(),
+      discard: () => {
+        if (
+          this.countSaving ||
+          this.countRecoveryBusy ||
+          [...this.pendingMovements.values()].some((f) => f.kind === 'count')
+        )
+          return;
+        this.setState({ stocktake: null, liveCountPaused: false });
+      },
+      save: async () => {
+        if (this.countSaving || this.countRecoveryBusy) return 'The count is still being checked.';
+        if ([...this.pendingMovements.values()].some((f) => f.kind === 'count'))
+          return 'Check the previous save before sending another count.';
+        if (!rows.length) return 'Enter at least one physical count.';
+        const error = rows.find((row) => row.error)?.error;
+        if (error) return error;
+        this.countSaving = true;
+        this.setState({});
+        try {
+          return (await this.liveReconcile())
+            ? null
+            : 'Some counts were not confirmed. Your remaining entries are kept. Review them before trying again.';
+        } finally {
+          this.countSaving = false;
+          this.setState({});
+        }
+      }
     };
   }
 

@@ -1,5 +1,5 @@
 import { act } from 'react';
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 let live = true;
@@ -32,6 +32,7 @@ const ported = (label: string) => document.querySelector(`[data-screen-label="${
 
 afterEach(() => {
   cleanup();
+  localStorage.clear();
   live = true;
 });
 
@@ -71,5 +72,50 @@ describe('B5: the New Stock screens register in the live slot', () => {
     expect(runtime.renderVals().liveScreen).toBeUndefined();
     expect(screen.queryByText('Stock is loading.')).toBeNull();
     expect(ported('Inventory')).toBeTruthy();
+  });
+
+  it('opens the real count task inside Inventory and keeps navigation and its item on Back', async () => {
+    registerLiveStockScreens();
+    const runtime = mount();
+    await act(async () => {
+      await runtime.loadStockCatalogue({
+        rpc: async (name: string) => ({
+          data:
+            name === 'get_stock_catalogue'
+              ? {
+                  suppliers: [],
+                  prices: [],
+                  items: [
+                    {
+                      id: 'flour',
+                      name: 'Flour',
+                      unit: 'g',
+                      category: 'Ingredients',
+                      on_hand: 1000,
+                      par_level: 100,
+                      pack_size: null,
+                      pack_label: '',
+                      supplier_id: null,
+                      use_by_days: null,
+                      last_counted: null,
+                      active: true,
+                      updated_at: '2026-10-01T00:00:00Z'
+                    }
+                  ]
+                }
+              : [],
+          error: null
+        })
+      } as never);
+    });
+    act(() => runtime.go('inventory'));
+    act(() => runtime.renderVals().liveStock!.items[0]!.count());
+    expect(screen.getByRole('heading', { name: 'Count inventory' })).toBeTruthy();
+    fireEvent.change(screen.getByLabelText('Counted quantity (g)'), { target: { value: '0' } });
+    expect(screen.getByRole('button', { name: 'Stock' })).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Back to item' }));
+    expect(screen.getByRole('heading', { name: 'Flour', level: 1 })).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Continue count' }));
+    expect(screen.getByLabelText('Counted quantity (g)')).toHaveProperty('value', '0');
   });
 });

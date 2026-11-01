@@ -66,7 +66,10 @@ needs more than approximately 400 changed lines, split it into complete smaller 
 - Direct Bazaar and Customers/Waitlist are implemented on `codex/refined-workflows`.
   The full pinned gate passed: 143 test files, 2,611 tests; port integrity unchanged.
   Other navigation consolidation and durable record routes remain pending.
-- All other slices remain pending. Passing mockup tests does not mark them implemented.
-- Count recovery storage validation and strict stock-operation acknowledgements pass
-  106 targeted tests and independent review. The count interface/runtime integration
-  remains pending; this foundation does not itself expose a new count workflow.
+- Inventory Count is connected to the real live operation: item entry, blank versus zero,
+  review, safe Back/continue, multiple retained entries, unavailable-item recovery and
+  explicit checking of unconfirmed saves. Durable requests keep their original IDs and
+  item identities under one browser-tab lock. Independent review found no actionable issue;
+  83 targeted tests pass. Actual components pass headless entry/review/save/return checks at
+  320, 390, 768 and 1240 px using synthetic RPC data. This is not database, hosted or physical-phone proof.
+- Make and all later workflow slices remain pending. Passing mockup tests does not mark them implemented.

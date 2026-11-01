@@ -13,8 +13,8 @@ export function CountInventory({ v, stock }: { v: OpsVals; stock: LiveStockVals 
   const [review, setReview] = useState(false);
   const [discard, setDiscard] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const task = v.stock;
   const count = stock.count;
+  const task = count?.unavailable ? null : v.stock;
   if (!count) return null;
   const invalid = count.rows.find((row) => row.error)?.error;
   const save = async () => {
@@ -68,13 +68,17 @@ export function CountInventory({ v, stock }: { v: OpsVals; stock: LiveStockVals 
       ) : !task ? (
         <Card className="flex flex-col gap-3">
           <p>
-            The current item is unavailable or has changed. Your other entries are still in this
-            count.
+            {count.pending
+              ? 'This saved count needs confirmation. Its original entry is kept on this device.'
+              : 'The current item is unavailable or has changed. Your other entries are still in this count.'}
           </p>
           <p>
             Check an unconfirmed save first, or cancel to discard the unsaved entries and count
             again.
           </p>
+          {!count.pending && count.skipUnavailable ? (
+            <Button onClick={count.skipUnavailable}>Skip unavailable item</Button>
+          ) : null}
         </Card>
       ) : review ? (
         <Card className="flex flex-col gap-4">
@@ -114,9 +118,9 @@ export function CountInventory({ v, stock }: { v: OpsVals; stock: LiveStockVals 
         </Card>
       ) : (
         <Card className="flex flex-col gap-4">
-          <h2 className="text-subtitle font-semibold">{task.name}</h2>
+          <h2 className="text-subtitle font-semibold break-words">{task.name}</h2>
           <p className="text-caption text-ink-mute">
-            {task.pos} · Records say {task.expected}
+            {(count.total ?? 1) > 1 ? <>{task.pos} · </> : null}Records say {task.expected}
           </p>
           <Field
             label={`Counted quantity (${String(task.unit)})`}
@@ -132,14 +136,16 @@ export function CountInventory({ v, stock }: { v: OpsVals; stock: LiveStockVals 
           <p className="text-caption" aria-live="polite">
             {task.varianceText}
           </p>
-          <div className="flex flex-wrap gap-2">
-            <Button disabled={count.saving || count.pending} onClick={task.prev}>
-              Previous item
-            </Button>
-            <Button disabled={count.saving || count.pending} onClick={task.next}>
-              Next item
-            </Button>
-          </div>
+          {(count.total ?? 1) > 1 ? (
+            <div className="flex flex-wrap gap-2">
+              <Button disabled={count.saving || count.pending} onClick={task.prev}>
+                Previous item
+              </Button>
+              <Button disabled={count.saving || count.pending} onClick={task.next}>
+                Next item
+              </Button>
+            </div>
+          ) : null}
           <Button
             variant="primary"
             disabled={count.saving || count.pending}

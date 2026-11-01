@@ -271,7 +271,7 @@ describe('B1: the sub-tab strip, drawn through the screen slot', () => {
     expect(row('places')).toBeNull();
   });
 
-  it('draws nothing where there is no tab: the bell, All tools, customer pages, a count', () => {
+  it('keeps counts navigable while bell, All tools and customer pages have no strip', () => {
     const runtime = mount();
     for (const route of ['notifications', 'more', 'formqueue', 'shop', 'checkout'] as const) {
       act(() => runtime.go(route));
@@ -281,9 +281,11 @@ describe('B1: the sub-tab strip, drawn through the screen slot', () => {
     expect(strip(runtime)).toBeTruthy();
     // This is a shell-state test; starting a real count now requires the owner catalogue and a device lock.
     act(() => runtime.setState({ stocktake: { i: 0, items: [], counts: {} } }));
-    // Focus mode: the engine hides its own top bar, dock and sidebar too.
-    expect(runtime.renderVals().showTopBar).toBe(false);
-    expect(runtime.renderVals().liveScreen).toBeNull();
+    expect(runtime.renderVals().showTopBar).toBe(true);
+    expect(runtime.renderVals().showDock).toBe(true);
+    expect(strip(runtime)).toBeTruthy();
+    expect(marked(runtime)).toEqual(['Stock']);
+    expect(String(runtime.renderVals().toastStyle)).toContain('bottom: 96px');
   });
 
   it('keeps All tools working by address, grouped by home, without Form queue', () => {

@@ -6,8 +6,9 @@ owner-testing prerequisite. Read `docs/design/refined-workflows.md` for scope, o
 the reference hash. Keep every existing financial, role and offline safeguard.
 
 Work on `codex/refined-workflows`, one tested logical slice per commit. Direct Bazaar and
-Customers/Waitlist pass the pinned gate; next repair the inventory Count dead end and preserve its return context,
-then continue Make, Stock, Bazaar, Sell/Shop, Money/Account and integration. Small slices
+Customers/Waitlist and the inventory Count path are implemented, including retained return context and
+durable count recovery. Next continue Make (exact product/recipe links and kind-preserving recipe editing),
+then Stock, Bazaar, Sell/Shop, Money/Account and integration. Small slices
 do not reduce the authorized overall scope. Record actual completed versus pending work.
 
 Use the pinned Node 24.20.0 / pnpm 9.12.3 toolchain and headless command-line Playwright.
