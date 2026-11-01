@@ -129,7 +129,7 @@ export const PLACES: readonly Place[] = [
   {
     id: 'grocery',
     home: 'stock',
-    label: 'Grocery',
+    label: 'Shopping',
     screen: 'grocery',
     entries: [{ label: 'Grocery', screen: 'grocery' }],
     routes: ['grocery']

@@ -15,6 +15,7 @@ export function item(over: Partial<StockItemView> & { id: string; name: string }
     unit: 'g',
     active: true,
     qtyText: '1,250 g',
+    packText: '1 kg bag · 1,000 g per pack',
     status: 'Good',
     levelText: 'Low below 500 g',
     lastCountedText: 'Counted 3 Oct',

@@ -310,7 +310,7 @@ describe('B1: the sub-tab strip, drawn through the screen slot', () => {
       'Make · Bake plan',
       'Make · Recipes',
       'Stock · Inventory',
-      'Stock · Grocery',
+      'Stock · Shopping',
       'Stock · Suppliers',
       'Money · P&L',
       'Money · Sales',

@@ -28,7 +28,7 @@ describe('B5 Inventory list', () => {
     expect(within(rows[2]!).getByText('Good')).toBeTruthy();
     expect(rows[1]!.textContent).toContain('Butter');
     expect(rows[1]!.textContent).toContain('300 g');
-    expect(rows[1]!.textContent).toContain('Low below 500 g');
+    expect(rows[1]!.textContent).toContain('1 kg bag · 1,000 g per pack');
     expect(rows[1]!.textContent).toContain('Counted 3 Oct');
   });
 
@@ -39,31 +39,46 @@ describe('B5 Inventory list', () => {
     expect(rows[0]!.textContent).not.toMatch(/₱0(\.00)?(?!\.\d)/);
   });
 
-  it('chips filter, and the selected chip is aria-pressed', () => {
+  it('keeps retired items out of the working inventory and its counts', () => {
+    draw(
+      stock({
+        items: [
+          ITEMS.Good,
+          item({ id: 'retired', name: 'Old jar', active: false, category: 'Ingredients' })
+        ]
+      })
+    );
+    expect(screen.queryByRole('button', { name: /Old jar|Retired supplies/ })).toBeNull();
+    expect(screen.getByLabelText('Stock counts')).toHaveTextContent('1 item');
+  });
+
+  it('one status selector filters the current category', () => {
     draw(stock());
     const names = () =>
       within(screen.getByRole('list', { name: 'Stock items' }))
         .getAllByRole('listitem')
         .map((li) => li.textContent ?? '');
-    expect(screen.getByRole('button', { name: /^All/ }).getAttribute('aria-pressed')).toBe('true');
-    fireEvent.click(screen.getByRole('button', { name: /^Out/ }));
-    expect(screen.getByRole('button', { name: /^Out/ }).getAttribute('aria-pressed')).toBe('true');
-    expect(screen.getByRole('button', { name: /^All/ }).getAttribute('aria-pressed')).toBe('false');
+    const filter = screen.getByRole('combobox', { name: 'Stock status' });
+    expect(filter).toHaveValue('All');
+    fireEvent.change(filter, { target: { value: 'Out' } });
+    expect(filter).toHaveValue('Out');
     expect(names()).toHaveLength(1);
     expect(names()[0]).toContain('Brown sugar');
-    fireEvent.click(screen.getByRole('button', { name: /^Low/ }));
+    fireEvent.change(filter, { target: { value: 'Low' } });
     expect(names()).toHaveLength(1);
     expect(names()[0]).toContain('Butter');
-    fireEvent.click(screen.getByRole('button', { name: /^Good/ }));
+    fireEvent.change(filter, { target: { value: 'Good' } });
     expect(names()[0]).toContain('Flour');
-    fireEvent.click(screen.getByRole('button', { name: /^All/ }));
+    fireEvent.change(filter, { target: { value: 'All' } });
     expect(names()).toHaveLength(3);
   });
 
   it('a filter with no match says so, and an empty catalogue says "No items yet"', () => {
     const only = [ITEMS.Good];
     draw(stock({ items: only, counts: { total: 1, out: 0, low: 0 } }));
-    fireEvent.click(screen.getByRole('button', { name: /^Out/ }));
+    fireEvent.change(screen.getByRole('combobox', { name: 'Stock status' }), {
+      target: { value: 'Out' }
+    });
     expect(screen.getByText('No items in this view.')).toBeTruthy();
     cleanup();
     draw(stock({ items: [], counts: { total: 0, out: 0, low: 0 } }));
@@ -76,6 +91,40 @@ describe('B5 Inventory list', () => {
     draw(stock({ items: [mine], counts: { total: 1, out: 0, low: 0 } }));
     fireEvent.click(screen.getByRole('button', { name: /Oats/ }));
     expect(spy).toHaveBeenCalledTimes(1);
+  });
+
+  it('groups stock by category and retains the category and status after returning from an item', () => {
+    const pack = item({ id: 'pack', name: 'Cookie pouch', category: 'Packaging', status: 'Low' });
+    const view = stock({ items: [ITEMS.Good, pack] });
+    const { rerender } = draw(view);
+    expect(screen.queryByRole('button', { name: /Cookie pouch/ })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Packaging' }));
+    fireEvent.change(screen.getByRole('combobox', { name: 'Stock status' }), {
+      target: { value: 'Low' }
+    });
+    expect(screen.getByRole('button', { name: /Cookie pouch/ })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: /Flour/ })).toBeNull();
+    rerender(
+      <InventoryLive
+        v={valsWith({
+          ...view,
+          page: { item: pack, movementsState: 'ready', movements: [], close: vi.fn() }
+        })}
+      />
+    );
+    rerender(<InventoryLive v={valsWith(view)} />);
+    expect(screen.getByRole('button', { name: 'Packaging' })).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    );
+    expect(screen.getByRole('combobox', { name: 'Stock status' })).toHaveValue('Low');
+    expect(screen.getByRole('button', { name: /Cookie pouch/ })).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Ingredients' }));
+    expect(screen.getByText('No items in this view.')).toBeTruthy();
+    fireEvent.change(screen.getByRole('combobox', { name: 'Stock status' }), {
+      target: { value: 'All' }
+    });
+    expect(screen.getByRole('button', { name: /Flour/ })).toBeTruthy();
   });
 
   it('shows the count note on the list header when there is one, and not otherwise', () => {

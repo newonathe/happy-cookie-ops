@@ -17,6 +17,14 @@ function tabs(open: string, extra: Partial<Record<string, SubTab['badge']>> = {}
 }
 
 describe('SubTabs', () => {
+  it('the refined appearance retains the same selected destination and actions', () => {
+    const { list, go } = tabs('a');
+    render(<SubTabs label="Places" tabs={list} refined />);
+    expect(screen.getByRole('button', { name: 'Orders' })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('button', { name: 'Orders' })).toHaveStyle({ boxShadow: 'none' });
+    fireEvent.click(screen.getByRole('button', { name: 'Shop' }));
+    expect(go.c).toHaveBeenCalledOnce();
+  });
   it('renders one button per tab, in order, inside a labelled nav', () => {
     render(<SubTabs label="Places" tabs={tabs('a').list} />);
     const nav = screen.getByRole('navigation', { name: 'Places' });

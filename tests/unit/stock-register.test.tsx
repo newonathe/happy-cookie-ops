@@ -110,6 +110,11 @@ describe('B5: the New Stock screens register in the live slot', () => {
     });
     act(() => runtime.go('inventory'));
     expect(document.querySelectorAll('[data-sub-tabs]')).toHaveLength(1);
+    const title = screen.getByRole('heading', { level: 1, name: 'Inventory' });
+    expect(
+      title.compareDocumentPosition(document.querySelector('[data-sub-tabs]')!) &
+        Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy();
     expect(screen.queryByRole('button', { name: 'Stock items' })).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: 'Add to inventory' }));
     expect(runtime.renderVals().liveStockItems?.editing).toMatchObject({ isNew: true });

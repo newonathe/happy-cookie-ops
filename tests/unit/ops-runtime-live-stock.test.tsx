@@ -297,6 +297,8 @@ describe('B5-1: liveStock (live mode, owner)', () => {
   it('gives each item its status in words: Out at 0, Low below the level, Good otherwise', async () => {
     const { runtime } = await mounted(world());
     const s = stock(runtime);
+    expect(byName(runtime, 'Bread flour').packText).toBe('25 kg sack · 25,000 g per pack');
+    expect(byName(runtime, 'Brown sugar').packText).toBe('Pack size not set');
     expect(byName(runtime, 'Unsalted butter').status).toBe('Good');
     expect(byName(runtime, 'Eggs').status).toBe('Low');
     expect(byName(runtime, 'Bread flour').status).toBe('Out');
