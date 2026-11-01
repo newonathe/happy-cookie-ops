@@ -36,10 +36,16 @@ const recovery = z
     scope: z.string().min(1).max(2048),
     task: task.nullable(),
     countedAt: z.record(name, z.number().int().positive()),
+    itemIds: z.record(name, z.string().min(1).max(160)),
     openItem: z.string().max(160).nullable(),
     pending: z.array(z.object({ name, fields }).strict()).max(1000)
   })
-  .strict();
+  .strict()
+  .refine((value) =>
+    Object.entries(value.task?.counts ?? {}).every(
+      ([key, count]) => count.trim() === '' || Object.hasOwn(value.itemIds, key)
+    )
+  );
 
 export type CountRecovery = z.infer<typeof recovery>;
 export type CountRecoveryRead = {
