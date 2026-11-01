@@ -3,7 +3,7 @@ import { SubTabs } from '@/components/ui/sub-tabs';
 import { SectionTools } from './section-tools';
 
 /** A page can place its existing section links below its own title without duplicating them. */
-export function SectionNavigation({ v, refined = false }: { v: OpsVals; refined?: boolean }) {
+export function SectionNavigation({ v, refined = true }: { v: OpsVals; refined?: boolean }) {
   const tabs = v.liveScreen?.tabs;
   if (!tabs) return null;
   return (

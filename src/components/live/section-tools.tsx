@@ -28,7 +28,14 @@ export function SectionTools({ label, items }: { label: string; items: LiveTabIt
       >
         {label}
       </summary>
-      <div className="absolute right-0 z-30 mt-2 flex w-64 max-w-[calc(100vw-32px)] flex-col gap-1 rounded-card border border-line bg-surface p-2 shadow-lg">
+      <div
+        className="absolute right-0 z-30 mt-2 flex w-64 max-w-[calc(100vw-32px)] flex-col gap-1 rounded-card border border-line bg-surface p-2 shadow-lg"
+        style={{
+          background: 'var(--owner-popover-surface, var(--color-surface))',
+          backdropFilter: 'var(--owner-popover-filter, none)',
+          WebkitBackdropFilter: 'var(--owner-popover-filter, none)'
+        }}
+      >
         {items.map((item) => (
           <Button
             key={item.id}

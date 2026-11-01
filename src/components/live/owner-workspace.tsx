@@ -33,6 +33,7 @@ import { CheckoutScreen } from '@/components/screens/checkout';
 import { OrderStatusScreen } from '@/components/screens/order-status';
 import { LiveScreenHost } from './live-screen-host';
 import styles from './owner-workspace.module.css';
+import theme from './owner-theme.module.css';
 
 const screens = {
   today: HomeScreen,
@@ -194,7 +195,11 @@ export function OwnerWorkspace({
         : (v.liveStock.page?.close ?? v.goBack)
       : v.goBack;
   return (
-    <div className={styles.workspace} data-refined-frame>
+    <div
+      className={`${styles.workspace} ${theme.theme}`}
+      data-refined-frame
+      data-owner-theme="neutral-glass"
+    >
       <aside className={styles.rail}>
         <div className={styles.brand}>
           <Image src="/assets/mark.png" alt="" width={30} height={30} unoptimized />
@@ -247,7 +252,7 @@ export function OwnerWorkspace({
             </button>
           </div>
         </header>
-        <main className={styles.main}>
+        <main key={screen} className={styles.main}>
           {v.liveScreen ? <LiveScreenHost v={v} /> : null}
           {Object.entries(screens).map(([key, Screen]) =>
             v.screens[key as keyof typeof v.screens] ? <Screen key={key} v={v} /> : null

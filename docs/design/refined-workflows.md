@@ -6,14 +6,30 @@ mockup-only scope and the historical calendar order in `docs/state/next-goal.md`
 It does not authorize deployment, hosted writes, migrations applied to a hosted database,
 cost cutover, test reversal, release settings, or merging to main.
 
+## Theme direction — Ethan, 2 November 2026
+
+Neutral light with Happy Cookie character replaces the cream theme: white/cool gray surfaces,
+charcoal type, original logo/cookie images and restrained existing brand orange. Scope the new
+palette to the rebuilt live owner UI; preserve locked demo tokens/markup. Use glass for navigation,
+headers and popovers; keep inventory, recipe and money content clear and readable.
+Use 140 ms control feedback and a 220 ms fade/6 px rise with decelerating easing; reserve
+280 ms for larger entering surfaces. These timings are design choices informed by
+[Fluent motion](https://fluent2.microsoft.design/motion) and
+[Apple material hierarchy](https://developer.apple.com/design/human-interface-guidelines/materials).
+Animate opacity/transform, honor reduced motion and provide solid reduced-transparency/unsupported
+blur fallbacks. Existing operations, draft retention and acknowledgement safeguards take precedence
+over animation. Older fallback pages remain pending migration; this is not a completed all-page theme.
+
 ## Reference and boundaries
 
-- Approved local fragment: `happy-cookie-workflows-refined.html`, SHA-256
+- Workflow reference preserved as `happy-cookie-workflows-refined.v4.html`, SHA-256
   `fad61841ac098a9cb5431e382b9703589b8fc9947fe29ee0eef0476e80646aae`.
+- Current neutral-glass theme: `happy-cookie-workflows-refined.html`, SHA-256
+  `339ca1177566b8fd4d7ab41e40cde3921960ceb8e7c95a099277e6ced35f0acd`.
 - The private thread visualization folder holds the fragment, editable template,
   `gap-refinement/README.md`, original-reference checks, and v4 screenshot walkthrough.
   Keep real business data, private comparison evidence and screenshots outside Git.
-- Preserve Onest, existing design tokens, supplied assets and the six destinations:
+- Preserve Onest, supplied assets and the six destinations; use the scoped neutral owner tokens:
   Home / Bazaar / Sell / Make / Stock / Money. No global search or mandatory tutorial.
 - Implement through the existing live screen/form slots and runtime. Locked demo
   screens, sheets, shell, engine and visual baselines remain protected.
@@ -28,7 +44,7 @@ cost cutover, test reversal, release settings, or merging to main.
 Keep each logical slice reviewable, tested and committed separately. If a listed area
 needs more than approximately 400 changed lines, split it into complete smaller paths.
 
-1. Live frame and navigation: reproduce the approved v4 frame beside the locked demo,
+1. Live frame and navigation: reproduce the approved structure with the current theme beside the locked demo,
    with direct Bazaar, Customers/Waitlist, one navigation group, contextual settings,
    correct active destinations and no lost routes, role restrictions or demo changes.
 2. Complete Stock list/item/count/review/save/return to visual and functional parity:
@@ -52,7 +68,7 @@ needs more than approximately 400 changed lines, split it into complete smaller 
 
 ## Acceptance
 
-- Match the v4 jobs and visual language using actual application data. Cover all 57
+- Match the v4 jobs with the 2 November neutral-glass theme using actual application data. Cover all 57
   comparison findings; the 13 earlier Mockup gap findings are design coverage only.
 - Test the changed path first, then the pinned `pnpm verify` gate. Use headless
   command-line Playwright for browser verification; no browser-control plugins.
