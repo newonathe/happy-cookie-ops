@@ -46,6 +46,12 @@ import {
   type CommandKind
 } from '@/lib/offline/queue';
 import { clearBazaar, readBazaar, saveBazaar } from '@/lib/offline/bazaar-state';
+import {
+  readCountRecovery,
+  writeCountRecovery,
+  type CountRecovery
+} from '@/lib/stock/count-recovery';
+import { holdCountLock } from '@/lib/stock/count-lock';
 import { readClassicTill, rememberClassicTill } from '@/lib/offline/till-choice';
 import { BazaarDays } from '@/store/bazaar-days';
 import { RecipeBook } from '@/store/recipe-book';
@@ -851,6 +857,16 @@ export class OpsRuntime extends OpsProvider {
   private pendingMovements = new Map<string, MovementFields>();
   /** When each item's count was entered on the open stocktake, so a count is measured at its own moment. */
   private countedAt: Record<string, number> = {};
+  private countedItemIds = new Map<string, string>();
+  private releaseCountLease: (() => void) | null = null;
+  private countLeaseRequest: Promise<boolean> | null = null;
+  private countLeaseEpoch = 0;
+  private countRestoring = false;
+  private countRecoveryReady = false;
+  private countRecoveryProblem: string | null = null;
+  private pendingCountNames = new Map<string, string>();
+  private countRecoveryBusy = false;
+  private recoveringCountId: string | null = null;
   /** C2: the client production is read and recorded with, the read in flight, and an action whose answer never came (repeating it reuses its id and time). */
   private productionClient: ProductionClient | null = null;
   private productionLoadSeq = 0;
@@ -1167,10 +1183,29 @@ export class OpsRuntime extends OpsProvider {
     inv.adjustInv = (name, qty, dir) => void this.liveAdjustInv(name, qty, dir);
     inv.reconcile = () => void this.liveReconcile();
     inv.startStocktake = () => {
+      if (!this.countRecoveryReady || !this.releaseCountLease) {
+        this.toast(
+          this.countRecoveryProblem ??
+            'Counting is unavailable in this tab. Close other Happy Cookie tabs and try again.',
+          'warn'
+        );
+        return;
+      }
+      if (
+        this.state.stocktake ||
+        [...this.pendingMovements.values()].some((f) => f.kind === 'count')
+      ) {
+        this.setState({ liveCountPaused: false });
+        return;
+      }
       this.countedAt = {};
+      this.countedItemIds = new Map(
+        this.stockCatalogue?.items.filter((i) => i.active).map((i) => [i.name, i.id])
+      );
       keep.startStocktake();
     };
     inv.countInput = (name, v) => {
+      if (!this.state.stocktake) return;
       this.countedAt[name] = Date.now();
       keep.countInput(name, v);
     };
@@ -1238,7 +1273,10 @@ export class OpsRuntime extends OpsProvider {
     // Not the demo books: only the running bazaar (event id, snapshot prices, stall stock,
     // the day's sales) is kept, so a reload at the stall can carry on selling. The empty
     // start (no event) is never saved, so it cannot overwrite the event before it is read back.
-    this.persist = () => saveBazaar(this.state);
+    this.persist = () => {
+      saveBazaar(this.state);
+      this.persistCountRecovery();
+    };
     this.resetData = () => {
       // The phone's copy of a started day is the only way to keep selling it: it is not cleared while the day is open.
       if ((this.state.event as LiveEvent | null)?.dayId) {
@@ -2204,6 +2242,7 @@ export class OpsRuntime extends OpsProvider {
 
   componentWillUnmount(): void {
     this.unmounted = true;
+    this.dropCountOwnership();
     clearTimeout(this.resetNoticeTimer);
     this.resetNoticeTimer = undefined;
     clearInterval(this.healthTimer);
@@ -2287,6 +2326,11 @@ export class OpsRuntime extends OpsProvider {
   componentDidUpdate(...args: Parameters<NonNullable<OpsProvider['componentDidUpdate']>>): void {
     super.componentDidUpdate?.(...args);
     if (!isLiveMode()) return;
+    if (
+      (args[1] as { role?: unknown } | undefined)?.role !== this.state.role &&
+      this.state.role !== 'owner'
+    )
+      this.dropCountOwnership();
     const s = this.state;
     const backup = this.liveHealth(s).healthRows.some(
       (row) => row.bad && (row.label !== 'Bazaar sync' || !(s.unsynced > 0))
@@ -3410,6 +3454,8 @@ export class OpsRuntime extends OpsProvider {
       return false;
     }
     this.applyStockCatalogue();
+    if (this.state.role === 'owner' && (await this.takeCountOwnership()))
+      this.restoreCountRecovery();
     // B5-1: a movement or a reload may have changed an item's history; the open page reads it again.
     this.refreshMovements();
     // What was last paid for each item, which the cost per unit is worked out from (a failed read leaves what was there).
@@ -3890,14 +3936,63 @@ export class OpsRuntime extends OpsProvider {
       reason,
       at: at ?? Date.now()
     };
+    const wasPending = this.pendingMovements.has(signature);
+    if (
+      kind === 'count' &&
+      (this.unmounted || (this.countRecoveryBusy && fields.id !== this.recoveringCountId))
+    )
+      return false;
     const problem = movementError(fields);
     if (problem) {
       this.toast(problem, 'warn');
       await this.loadStockCatalogue(null);
       return false;
     }
+    if (kind === 'count') {
+      this.pendingMovements.set(signature, fields);
+      if (!this.pendingCountNames.has(fields.id))
+        this.pendingCountNames.set(
+          fields.id,
+          this.stockCatalogue?.items.find((item) => item.id === itemId)?.name ?? itemId
+        );
+      if (!this.persistCountRecovery()) {
+        if (!wasPending) {
+          this.pendingMovements.delete(signature);
+          this.pendingCountNames.delete(fields.id);
+        }
+        this.toast('This device could not keep the count safely. No count was sent.', 'warn');
+        return false;
+      }
+    }
     const result = await recordStockMovement(client, fields);
-    if (result.outcome === 'offline') this.pendingMovements.set(signature, fields);
+    if (kind === 'count') {
+      if (result.outcome === 'saved' && !this.unmounted) {
+        // Drop the acknowledged value from the task before forgetting its replay identity.
+        const name = this.pendingCountNames.get(fields.id);
+        const kept = this.persistCountRecovery(fields);
+        if (kept) {
+          if (this.pendingMovements.get(signature)?.id === fields.id)
+            this.pendingMovements.delete(signature);
+          this.pendingCountNames.delete(fields.id);
+        }
+        this.setState((s) => {
+          const task = s.stocktake as CountRecovery['task'];
+          const counts = { ...task?.counts };
+          if (
+            name &&
+            this.countedItemIds.get(name) === fields.itemId &&
+            this.countedAt[name] === fields.at &&
+            Number(counts[name]) === fields.qty
+          )
+            delete counts[name];
+          return { stocktake: task ? { ...task, counts } : null };
+        });
+      } else if (result.outcome === 'refused' && !wasPending) {
+        this.pendingMovements.delete(signature);
+        this.pendingCountNames.delete(fields.id);
+        this.persistCountRecovery();
+      }
+    } else if (result.outcome === 'offline') this.pendingMovements.set(signature, fields);
     else this.pendingMovements.delete(signature);
     await this.loadStockCatalogue(null);
     if (result.outcome !== 'saved') {
@@ -3908,6 +4003,116 @@ export class OpsRuntime extends OpsProvider {
       return false;
     }
     return true;
+  }
+
+  private countRecoveryScope(): string {
+    return process.env.NEXT_PUBLIC_SUPABASE_URL || 'unconfigured';
+  }
+
+  private async takeCountOwnership(): Promise<boolean> {
+    if (this.releaseCountLease) return true;
+    if (this.unmounted || this.state.role !== 'owner') return false;
+    if (this.countLeaseRequest) return this.countLeaseRequest;
+    const epoch = this.countLeaseEpoch;
+    this.countLeaseRequest = holdCountLock(this.countRecoveryScope()).then((release) => {
+      if (
+        !release ||
+        this.unmounted ||
+        this.state.role !== 'owner' ||
+        epoch !== this.countLeaseEpoch
+      ) {
+        release?.();
+        this.countRecoveryProblem =
+          'Counting is unavailable in this tab. Close other Happy Cookie tabs, or check browser storage, then try again.';
+        return false;
+      }
+      this.releaseCountLease = release;
+      return true;
+    });
+    try {
+      return await this.countLeaseRequest;
+    } finally {
+      this.countLeaseRequest = null;
+    }
+  }
+
+  private dropCountOwnership(): void {
+    this.countLeaseEpoch += 1;
+    this.releaseCountLease?.();
+    this.releaseCountLease = null;
+    this.countRecoveryReady = false;
+    this.countRestoring = false;
+  }
+
+  private restoreCountRecovery(): void {
+    if (
+      this.countRecoveryReady ||
+      !this.releaseCountLease ||
+      this.unmounted ||
+      this.state.role !== 'owner'
+    )
+      return;
+    const saved = readCountRecovery(this.countRecoveryScope());
+    if (saved.status === 'empty') {
+      this.countRecoveryReady = true;
+      return;
+    }
+    this.countRecoveryProblem =
+      saved.status === 'stored'
+        ? 'A saved count requires recovery. Its original entries are kept on this device.'
+        : 'The saved count could not be read. Resolve device storage before sending a count.';
+  }
+
+  private persistCountRecovery(acknowledged?: MovementFields): boolean {
+    if (
+      !isLiveMode() ||
+      this.unmounted ||
+      this.state.role !== 'owner' ||
+      !this.countRecoveryReady ||
+      !this.releaseCountLease
+    )
+      return false;
+    const current = this.state.stocktake as CountRecovery['task'];
+    const counts = { ...current?.counts };
+    const name = acknowledged ? this.pendingCountNames.get(acknowledged.id) : undefined;
+    if (
+      name &&
+      acknowledged &&
+      this.countedItemIds.get(name) === acknowledged.itemId &&
+      this.countedAt[name] === acknowledged.at &&
+      Number(counts[name]) === acknowledged.qty
+    )
+      delete counts[name];
+    const task = current ? { i: current.i, items: current.items, counts } : null;
+    const pending = [...this.pendingMovements.values()]
+      .filter((fields) => fields.kind === 'count' && fields.id !== acknowledged?.id)
+      .map((fields) => ({
+        name: this.pendingCountNames.get(fields.id) ?? fields.itemId,
+        fields: fields as CountRecovery['pending'][number]['fields']
+      }));
+    const scope = this.countRecoveryScope();
+    const ok = writeCountRecovery(
+      scope,
+      task || pending.length
+        ? {
+            version: 1,
+            scope,
+            task,
+            pending,
+            countedAt: this.countedAt,
+            itemIds: Object.fromEntries(this.countedItemIds),
+            openItem: typeof this.state.liveStockOpen === 'string' ? this.state.liveStockOpen : null
+          }
+        : null
+    );
+    const problem = ok
+      ? null
+      : 'This count could not be kept on the device. No new count will be sent until storage works.';
+    if (problem !== this.countRecoveryProblem) {
+      this.countRecoveryProblem = problem;
+      if (!this.unmounted && !acknowledged) this.forceUpdate();
+    }
+    return ok;
   }
 
   /** The ported "Set to" on an item: the total counted becomes a count movement. */
@@ -4009,6 +4214,13 @@ export class OpsRuntime extends OpsProvider {
     for (const name of names) {
       const item = this.stockItem(name);
       const counted = Number(counts[name]);
+      if (item && this.countedItemIds.get(name) !== item.id) {
+        this.toast(
+          'This item changed since the count started. Reopen the current item and count it again.',
+          'warn'
+        );
+        break;
+      }
       if (!item || !Number.isFinite(counted) || counted < 0) break;
       const before = item.onHand;
       if (

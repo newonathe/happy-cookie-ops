@@ -279,7 +279,8 @@ describe('B1: the sub-tab strip, drawn through the screen slot', () => {
     }
     act(() => runtime.go('inventory'));
     expect(strip(runtime)).toBeTruthy();
-    act(() => (runtime as unknown as { startStocktake: () => void }).startStocktake());
+    // This is a shell-state test; starting a real count now requires the owner catalogue and a device lock.
+    act(() => runtime.setState({ stocktake: { i: 0, items: [], counts: {} } }));
     // Focus mode: the engine hides its own top bar, dock and sidebar too.
     expect(runtime.renderVals().showTopBar).toBe(false);
     expect(runtime.renderVals().liveScreen).toBeNull();

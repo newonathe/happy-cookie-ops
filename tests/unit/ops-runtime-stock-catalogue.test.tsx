@@ -217,6 +217,7 @@ interface InvActions {
 
 describe('A3: the catalogue reaches the ported screens (live mode)', () => {
   beforeEach(() => {
+    localStorage.clear();
     live = true;
     store.clear();
     localStorage.clear();
@@ -427,6 +428,7 @@ describe('A3: the catalogue reaches the ported screens (live mode)', () => {
 
 describe('A3: the stock items form', () => {
   beforeEach(() => {
+    localStorage.clear();
     live = true;
     store.clear();
   });
@@ -592,6 +594,7 @@ describe('A3: the stock items form', () => {
 
 describe('A3: the suppliers and prices form', () => {
   beforeEach(() => {
+    localStorage.clear();
     live = true;
     store.clear();
   });
@@ -752,6 +755,7 @@ describe('A3: the suppliers and prices form', () => {
 
 describe('A3: reloads and lost replies', () => {
   beforeEach(() => {
+    localStorage.clear();
     live = true;
     store.clear();
   });
@@ -860,6 +864,7 @@ describe('A3: reloads and lost replies', () => {
 
 describe('A3: the ported inventory actions go to the database', () => {
   beforeEach(() => {
+    localStorage.clear();
     live = true;
     store.clear();
   });
