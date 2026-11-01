@@ -1,0 +1,32 @@
+/* Semantic aliases apply only within the rebuilt owner workspace. Original brand and status colors stay. */
+.theme {
+  --color-ink: var(--color-owner-ink);
+  --color-ink-soft: var(--color-owner-muted);
+  --color-ink-mute: var(--color-owner-muted);
+  --color-ink-faint: var(--color-owner-faint);
+  --color-app: var(--color-owner-app);
+  --color-raise: var(--color-owner-raise);
+  --color-inset: var(--color-owner-raise);
+  --color-line: var(--color-owner-line);
+  --color-line-strong: var(--color-owner-line);
+  --color-line-mute: var(--color-owner-line);
+  --color-divide: var(--color-owner-soft);
+  --color-chip: var(--color-owner-soft);
+  --color-cust-bg: var(--color-surface);
+  --color-cust-line: var(--color-owner-line);
+  --color-warm-card: var(--color-surface);
+  --color-warm-line: var(--color-owner-line);
+  --color-warm-inset: var(--color-owner-raise);
+  --color-warm-high: var(--color-owner-raise);
+  --color-warm-accent: var(--color-owner-soft);
+  --color-warm-chip: var(--color-owner-soft);
+  --owner-popover-surface: var(--color-owner-glass-strong);
+  --owner-popover-filter: blur(16px) saturate(1.1);
+  color-scheme: light;
+}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .theme { --owner-popover-surface: var(--color-surface); --owner-popover-filter: none; }
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .theme { --owner-popover-surface: var(--color-surface); --owner-popover-filter: none; }
+}

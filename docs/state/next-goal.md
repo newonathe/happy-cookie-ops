@@ -1,7 +1,8 @@
 # Next goal — implement the approved refined workflows
 
 **1 November 2026: Ethan asked to reflect the entire completed v4 mockup in the actual
-application and test it there.** Proceed with implementation, not another mockup audit or
+application and test it there; on 2 November he replaced cream with neutral light, Happy Cookie
+branding, selective glass and fluid accessible motion.** Proceed with implementation, not another mockup audit or
 owner-testing prerequisite. Read `docs/design/refined-workflows.md` for scope, order and
 the reference hash. Keep every existing financial, role and offline safeguard.
 
