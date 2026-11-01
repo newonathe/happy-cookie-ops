@@ -4481,6 +4481,38 @@ export class OpsRuntime extends OpsProvider {
     return { perUnit: Number.isFinite(cost) && cost > 0 ? cost : null, source: null };
   }
 
+  /** Category context comes from the list; measured quantities and posting stay with the existing count operation. */
+  private startCategoryCount(category: string): void {
+    if (
+      !isLiveMode() || this.state.role !== 'owner' || !this.stockCatalogue ||
+      this.unmounted || this.countSaving || this.countRecoveryBusy ||
+      (category !== 'Ingredients' && category !== 'Packaging')
+    ) return;
+    if (this.state.stocktake || [...this.pendingMovements.values()].some((f) => f.kind === 'count')) {
+      this.setState({ liveCountPaused: false });
+      return;
+    }
+    if (!this.stockCatalogue.items.some((item) => item.active && item.category === category)) {
+      this.toast(`Add an item to ${category.toLowerCase()} before counting.`, 'warn');
+      return;
+    }
+    if (!this.countRecoveryReady || !this.releaseCountLease) {
+      void this.loadStockCatalogue(null).then(() => {
+        if (this.unmounted || !isLiveMode() || this.state.role !== 'owner') return;
+        this.setState({}, () => {
+          if (this.unmounted || !isLiveMode() || this.state.role !== 'owner') return;
+          if (this.countRecoveryReady && this.releaseCountLease) this.startCategoryCount(category);
+          else this.toast(this.countRecoveryProblem ?? 'Counting is unavailable in this tab.', 'warn');
+        });
+      });
+      return;
+    }
+    this.setState({ invTab: category, liveStockOpen: null, liveCountPaused: false }, () => {
+      if (isLiveMode() && this.state.role === 'owner' && !this.unmounted)
+        (this as unknown as InvActions).startStocktake();
+    });
+  }
+
   /** The existing count flow, for one item: on its tab, with only that item on the sheet. */
   private startItemCount(item: StockItem): void {
     if (this.countSaving || this.countRecoveryBusy || this.unmounted || this.state.role !== 'owner')
@@ -4725,6 +4757,7 @@ export class OpsRuntime extends OpsProvider {
     return {
       online: this.stockOnline(),
       addItem: this.addStockItem,
+      startCount: (category) => this.startCategoryCount(category),
       manageItems: () => void this.openStockItems(),
       items,
       counts: {

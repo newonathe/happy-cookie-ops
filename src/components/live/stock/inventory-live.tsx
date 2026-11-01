@@ -281,6 +281,17 @@ export function InventoryLive({ v }: { v: OpsVals }) {
             </div>
           </header>
           <SectionNavigation v={v} refined />
+          {stock?.startCount && !stock.count ? (
+            <div className={styles.actions}>
+              <Button
+                onClick={() => stock.startCount?.(category)}
+                disabled={!stock.items.some((item) => item.active && item.category === category)}
+                reason={`Add an item to ${category.toLowerCase()} before counting.`}
+              >
+                Count stock
+              </Button>
+            </div>
+          ) : null}
           {stock ? (
             <>
               <OfflineLine online={stock.online} />

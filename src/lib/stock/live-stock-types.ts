@@ -96,6 +96,8 @@ export interface GroceryView {
 
 export interface LiveStockVals {
   addItem?: () => void;
+  /** Starts the selected ingredient/packaging category or resumes the existing count safely. */
+  startCount?: (category: string) => void;
   manageItems?: () => void;
   online: boolean;
   items: StockItemView[];

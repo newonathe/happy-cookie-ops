@@ -80,6 +80,7 @@ export function stock(over: Partial<LiveStockVals> = {}): LiveStockVals {
   const items = [ITEMS.Out, ITEMS.Low, ITEMS.Good];
   return {
     online: true,
+    startCount: vi.fn(),
     items,
     counts: { total: items.length, out: 1, low: 1 },
     page: null,
