@@ -20,6 +20,7 @@ function server() {
     active = true,
     itemId = 'flour';
   const applied = new Set<string>();
+  let beforeAck = () => {};
   const rpc = vi.fn(async (name: string, args?: Record<string, unknown>) => {
     if (name === 'get_stock_catalogue')
       return {
@@ -59,6 +60,7 @@ function server() {
         loseReply = false;
         return { data: null, error: { code: '08006' } };
       }
+      beforeAck();
       return { data: [{ item_id: f.item_id, on_hand: quantity, duplicate }], error: null };
     }
     if (name === 'get_last_paid') return { data: [], error: null };
@@ -75,6 +77,9 @@ function server() {
     },
     replace: () => {
       itemId = 'replacement-flour';
+    },
+    onAck: (run: () => void) => {
+      beforeAck = run;
     }
   };
 }
@@ -154,3 +159,80 @@ it('does not retarget a physical count when an old name belongs to another inven
   expect(s.applied.size).toBe(0);
   expect((runtime.state.stocktake as { counts: Record<string, string> }).counts.Flour).toBe('0');
 });
+
+it('restores the physical count and exact pending operation after an applied but unanswered save', async () => {
+  const s = server(),
+    first = await mount(s);
+  await sendCount(first);
+  const saved = readCountRecovery(scope).value!;
+  expect(saved.pending).toHaveLength(1);
+  expect(saved.task?.counts.Flour).toBe('0');
+  cleanup();
+  const second = await mount(s);
+  expect((second.state.stocktake as { counts: Record<string, string> }).counts.Flour).toBe('0');
+  await act(async () => {
+    expect(await second.recoverStockCount()).toBeNull();
+  });
+  const calls = s.rpc.mock.calls.filter(([name]) => name === 'record_stock_movement');
+  expect(calls).toHaveLength(2);
+  expect(calls[1]![1]).toEqual(calls[0]![1]);
+  expect(s.applied.size).toBe(1);
+  expect(second.state.stocktake).toBeNull();
+  expect(readCountRecovery(scope).status).toBe('empty');
+});
+
+it('a helper does not restore or erase the owner count', async () => {
+  const s = server();
+  await sendCount(await mount(s));
+  const copy = readCountRecovery(scope);
+  cleanup();
+  const helper = await mount(s, 'helper');
+  expect(helper.state.stocktake).toBeNull();
+  expect(readCountRecovery(scope)).toEqual(copy);
+});
+
+it('keeps the count and original identity if storage fails after the server acknowledges it', async () => {
+  const s = server(),
+    runtime = await mount(s);
+  await sendCount(runtime);
+  const original = readCountRecovery(scope).value!.pending[0]!.fields;
+  let storageFailure: ReturnType<typeof vi.spyOn> | undefined;
+  s.onAck(() => {
+    storageFailure = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new Error('storage revoked');
+    });
+  });
+  await act(async () => {
+    expect(await runtime.recoverStockCount()).toContain('unconfirmed');
+  });
+  expect((runtime.state.stocktake as { counts: Record<string, string> }).counts.Flour).toBe('0');
+  expect(readCountRecovery(scope).value!.pending[0]!.fields).toEqual(original);
+  storageFailure!.mockRestore();
+  s.onAck(() => {});
+  await act(async () => {
+    expect(await runtime.recoverStockCount()).toBeNull();
+  });
+  expect(s.applied.size).toBe(1);
+  expect(runtime.state.stocktake).toBeNull();
+});
+
+it.each(['rename', 'deactivate'] as const)(
+  'reconciles an uncertain count after the current item changes: %s',
+  async (change) => {
+    const s = server();
+    await sendCount(await mount(s));
+    const original = readCountRecovery(scope).value!.pending[0]!.fields;
+    cleanup();
+    s[change]();
+    const runtime = await mount(s);
+    expect(runtime.renderVals().stock).toBeNull();
+    await act(async () => {
+      expect(await runtime.recoverStockCount()).toBeNull();
+    });
+    expect(s.applied.size).toBe(1);
+    expect(
+      s.rpc.mock.calls.filter(([name]) => name === 'record_stock_movement')[1]![1]
+    ).toMatchObject({ p_movement: { id: original.id, item_id: original.itemId, at: original.at } });
+    expect(runtime.state.stocktake).toBeNull();
+  }
+);

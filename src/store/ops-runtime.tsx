@@ -3965,28 +3965,31 @@ export class OpsRuntime extends OpsProvider {
       }
     }
     const result = await recordStockMovement(client, fields);
+    let keptAcknowledgement = true;
     if (kind === 'count') {
       if (result.outcome === 'saved' && !this.unmounted) {
         // Drop the acknowledged value from the task before forgetting its replay identity.
         const name = this.pendingCountNames.get(fields.id);
         const kept = this.persistCountRecovery(fields);
+        keptAcknowledgement = kept;
         if (kept) {
           if (this.pendingMovements.get(signature)?.id === fields.id)
             this.pendingMovements.delete(signature);
           this.pendingCountNames.delete(fields.id);
         }
-        this.setState((s) => {
-          const task = s.stocktake as CountRecovery['task'];
-          const counts = { ...task?.counts };
-          if (
-            name &&
-            this.countedItemIds.get(name) === fields.itemId &&
-            this.countedAt[name] === fields.at &&
-            Number(counts[name]) === fields.qty
-          )
-            delete counts[name];
-          return { stocktake: task ? { ...task, counts } : null };
-        });
+        if (kept)
+          this.setState((s) => {
+            const task = s.stocktake as CountRecovery['task'];
+            const counts = { ...task?.counts };
+            if (
+              name &&
+              this.countedItemIds.get(name) === fields.itemId &&
+              this.countedAt[name] === fields.at &&
+              Number(counts[name]) === fields.qty
+            )
+              delete counts[name];
+            return { stocktake: task ? { ...task, counts } : null };
+          });
       } else if (result.outcome === 'refused' && !wasPending) {
         this.pendingMovements.delete(signature);
         this.pendingCountNames.delete(fields.id);
@@ -3995,9 +3998,13 @@ export class OpsRuntime extends OpsProvider {
     } else if (result.outcome === 'offline') this.pendingMovements.set(signature, fields);
     else this.pendingMovements.delete(signature);
     await this.loadStockCatalogue(null);
-    if (result.outcome !== 'saved') {
+    if (result.outcome !== 'saved' || !keptAcknowledgement) {
       this.toast(
-        result.outcome === 'refused' ? STOCK_COPY.movementRefused : STOCK_COPY.movementNotSaved,
+        !keptAcknowledgement
+          ? 'The server confirmed the count, but this device could not finish its saved copy. Keep the entry and check it again when storage works.'
+          : result.outcome === 'refused'
+            ? STOCK_COPY.movementRefused
+            : STOCK_COPY.movementNotSaved,
         'warn'
       );
       return false;
@@ -4047,20 +4054,72 @@ export class OpsRuntime extends OpsProvider {
   private restoreCountRecovery(): void {
     if (
       this.countRecoveryReady ||
+      this.countRestoring ||
       !this.releaseCountLease ||
       this.unmounted ||
       this.state.role !== 'owner'
     )
       return;
     const saved = readCountRecovery(this.countRecoveryScope());
-    if (saved.status === 'empty') {
-      this.countRecoveryReady = true;
+    if (saved.status === 'invalid' || saved.status === 'unavailable') {
+      this.countRecoveryProblem =
+        'The saved count could not be read. Resolve device storage before sending a count.';
       return;
     }
-    this.countRecoveryProblem =
-      saved.status === 'stored'
-        ? 'A saved count requires recovery. Its original entries are kept on this device.'
-        : 'The saved count could not be read. Resolve device storage before sending a count.';
+    for (const [key, fields] of this.pendingMovements)
+      if (fields.kind === 'count') this.pendingMovements.delete(key);
+    this.pendingCountNames.clear();
+    this.countedAt = {};
+    this.countedItemIds.clear();
+    const finishRestore = () => {
+      this.countRestoring = false;
+      this.countRecoveryReady =
+        !!this.releaseCountLease && !this.unmounted && this.state.role === 'owner';
+      this.persistCountRecovery();
+    };
+    if (!saved.value) {
+      this.countRestoring = true;
+      this.setState({ stocktake: null, liveCountPaused: false }, finishRestore);
+      return;
+    }
+    const copy = saved.value;
+    this.countedAt = { ...copy.countedAt };
+    this.countedItemIds = new Map(Object.entries(copy.itemIds));
+    for (const { name, fields } of copy.pending) {
+      this.pendingMovements.set(
+        [
+          fields.itemId,
+          fields.kind,
+          fields.qty,
+          fields.costCents,
+          fields.supplier,
+          fields.reason
+        ].join('|'),
+        fields
+      );
+      this.pendingCountNames.set(fields.id, name);
+    }
+    const task =
+      copy.task ??
+      (copy.pending.length
+        ? {
+            i: 0,
+            items: [...new Set(copy.pending.map((row) => row.name))],
+            counts: Object.fromEntries(
+              copy.pending.map((row) => [row.name, String(row.fields.qty)])
+            )
+          }
+        : null);
+    if (!copy.task)
+      for (const { name, fields } of copy.pending) {
+        this.countedAt[name] = fields.at;
+        this.countedItemIds.set(name, fields.itemId);
+      }
+    this.countRestoring = true;
+    this.setState(
+      { stocktake: task, liveStockOpen: copy.openItem, liveCountPaused: true },
+      finishRestore
+    );
   }
 
   private persistCountRecovery(acknowledged?: MovementFields): boolean {
@@ -4113,6 +4172,43 @@ export class OpsRuntime extends OpsProvider {
       if (!this.unmounted && !acknowledged) this.forceUpdate();
     }
     return ok;
+  }
+
+  /** Explicit replay of saved identities, including renamed or switched-off items. Never auto-sends on restore. */
+  async recoverStockCount(): Promise<string | null> {
+    if (this.countRecoveryBusy) return 'The previous save is still being checked.';
+    this.countRecoveryBusy = true;
+    if (!this.unmounted) this.forceUpdate();
+    try {
+      for (const fields of [...this.pendingMovements.values()].filter((f) => f.kind === 'count')) {
+        this.recoveringCountId = fields.id;
+        if (
+          !(await this.recordMovement(
+            fields.itemId,
+            fields.kind,
+            fields.qty,
+            fields.costCents,
+            fields.supplier,
+            fields.reason,
+            fields.at
+          ))
+        )
+          return 'The previous count is still unconfirmed. Its original entry is kept for another check.';
+      }
+      this.setState((s) => {
+        const task = s.stocktake as CountRecovery['task'];
+        return {
+          stocktake:
+            task && Object.values(task.counts).some((value) => value.trim() !== '') ? task : null,
+          liveCountPaused: false
+        };
+      });
+      return null;
+    } finally {
+      this.recoveringCountId = null;
+      this.countRecoveryBusy = false;
+      if (!this.unmounted) this.forceUpdate();
+    }
   }
 
   /** The ported "Set to" on an item: the total counted becomes a count movement. */
