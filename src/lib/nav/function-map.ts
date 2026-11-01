@@ -29,6 +29,8 @@ export type OtherHome = 'account' | 'bell' | 'customer' | 'retired';
 export interface Entry {
   label: string;
   screen?: ScreenKey;
+  /** A distinct daily-work page, shown alongside its parent in the one section row. */
+  section?: boolean;
 }
 
 export interface Place {
@@ -53,7 +55,7 @@ export const PLACES: readonly Place[] = [
     screen: 'orders',
     entries: [
       { label: 'Orders & payments', screen: 'orders' },
-      { label: 'Payments', screen: 'reconcile' },
+      { label: 'Payments', screen: 'reconcile', section: true },
       { label: 'Customer messages' }
     ],
     routes: ['orders', 'order', 'reconcile']
@@ -110,7 +112,7 @@ export const PLACES: readonly Place[] = [
     screen: 'recipes',
     entries: [
       { label: 'Recipes', screen: 'recipes' },
-      { label: 'Products', screen: 'products' },
+      { label: 'Products', screen: 'products', section: true },
       { label: 'Menu & flavours' },
       { label: 'Recipe drafts' }
     ],

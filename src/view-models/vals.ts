@@ -171,11 +171,13 @@ export interface LiveTabItem {
   active: boolean;
   badge: React.ReactNode | null;
   go: () => void;
+  /** Already reached by the section row; never repeat it as a contextual tool. */
+  primary?: boolean;
 }
 
 /**
- * The live owner's sub-tab strip (B1, src/lib/nav/function-map.ts): the places of the
- * open tab, and the open place's entries when it holds more than one.
+ * The live owner's one section row and contextual tools. Entries already represented
+ * in the section row are marked primary and are not repeated as tools.
  */
 export interface LiveTabs {
   label: string;

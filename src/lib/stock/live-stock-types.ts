@@ -93,6 +93,8 @@ export interface GroceryView {
 }
 
 export interface LiveStockVals {
+  addItem?: () => void;
+  manageItems?: () => void;
   online: boolean;
   items: StockItemView[];
   counts: { total: number; out: number; low: number };

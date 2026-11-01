@@ -109,6 +109,11 @@ describe('B5: the New Stock screens register in the live slot', () => {
       } as never);
     });
     act(() => runtime.go('inventory'));
+    expect(document.querySelectorAll('[data-sub-tabs]')).toHaveLength(1);
+    expect(screen.queryByRole('button', { name: 'Stock items' })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Add to inventory' }));
+    expect(runtime.renderVals().liveStockItems?.editing).toMatchObject({ isNew: true });
+    act(() => runtime.closeSheet());
     act(() => runtime.renderVals().liveStock!.items[0]!.count());
     expect(screen.getByRole('heading', { name: 'Count inventory' })).toBeTruthy();
     fireEvent.change(screen.getByLabelText('Counted quantity (g)'), { target: { value: '0' } });

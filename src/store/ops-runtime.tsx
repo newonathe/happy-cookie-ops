@@ -3616,6 +3616,12 @@ export class OpsRuntime extends OpsProvider {
     return this.state.online && (typeof navigator === 'undefined' || navigator.onLine);
   }
 
+  private addStockItem = (): void => {
+    if (!isLiveMode() || this.state.role !== 'owner' || !this.stockCatalogue) return;
+    this.stockNewId = crypto.randomUUID();
+    this.sheet('stockitems', { isNew: true });
+  };
+
   private liveStockItemsVals(): OpsVals['liveStockItems'] {
     const sh = this.state.sheet as StockSheetState | null;
     const c = this.stockCatalogue;
@@ -3664,10 +3670,7 @@ export class OpsRuntime extends OpsProvider {
       editing,
       suppliers: c.suppliers.filter((s) => s.active).map((s) => ({ id: s.id, name: s.name })),
       version: this.stockVersion,
-      add: () => {
-        this.stockNewId = crypto.randomUUID();
-        this.sheet('stockitems', { isNew: true });
-      },
+      add: this.addStockItem,
       edit: (id) => this.sheet('stockitems', { id }),
       save: (f) => void this.saveStockItemForm(f),
       back: () => this.sheet('stockitems', {}),
@@ -4717,6 +4720,8 @@ export class OpsRuntime extends OpsProvider {
     const reads = open ? this.movementReads.get(open.id) : undefined;
     return {
       online: this.stockOnline(),
+      addItem: this.addStockItem,
+      manageItems: () => void this.openStockItems(),
       items,
       counts: {
         total: active.length,
@@ -5953,20 +5958,30 @@ export class OpsRuntime extends OpsProvider {
         : place.entries.find((entry) => entry.screen === screen);
     return {
       label: tab.label,
-      places: row.map((item) => {
+      places: row.flatMap((item) => {
         const target = item.screen;
         const own = tool(item.entries[0]?.label);
-        return {
-          id: item.id,
-          label: item.label,
-          active: item.id === place.id,
-          badge:
-            item.home === 'account'
-              ? this.navCount(vals, 'more') || null
-              : this.navCount(vals, target) || null,
-          // A place with no screen of its own yet opens its one entry.
-          go: target ? () => this.go(target) : () => own?.go()
-        };
+        const pages = item.entries.filter((entry) => entry.section && entry.screen);
+        return [
+          {
+            id: item.id,
+            label: item.label,
+            active: item.id === place.id && !pages.some((entry) => entry.screen === screen),
+            badge:
+              item.home === 'account'
+                ? this.navCount(vals, 'more') || null
+                : this.navCount(vals, target) || null,
+            // A place with no screen of its own yet opens its one entry.
+            go: target ? () => this.go(target) : () => own?.go()
+          },
+          ...pages.map((entry) => ({
+            id: entry.label,
+            label: entry.label,
+            active: entry.screen === screen,
+            badge: this.navCount(vals, entry.screen ?? null) || null,
+            go: () => this.go(entry.screen as ScreenKey)
+          }))
+        ];
       }),
       placeLabel: place.label,
       entries:
@@ -5979,6 +5994,7 @@ export class OpsRuntime extends OpsProvider {
                       id: entry.label,
                       label: entry.label,
                       active: entry === opened,
+                      primary: entry.screen === place.screen || entry.section === true,
                       badge: item.badge || null,
                       go: () => item.go()
                     }

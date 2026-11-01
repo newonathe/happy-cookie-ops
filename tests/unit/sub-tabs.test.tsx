@@ -67,10 +67,11 @@ describe('SubTabs', () => {
     expect(container.firstChild).toBeNull();
   });
 
-  it('scrolls inside itself so the page cannot scroll sideways', () => {
+  it('wraps destinations so none is hidden beyond the edge of a narrow screen', () => {
     render(<SubTabs label="Places" tabs={tabs('a').list} />);
     const nav = screen.getByRole('navigation');
-    expect(nav.style.overflowX).toBe('auto');
+    expect(nav.style.flexWrap).toBe('wrap');
+    expect(nav.style.overflow).toBe('visible');
     expect(nav.style.display).toBe('flex');
     screen.getAllByRole('button').forEach((b) => {
       expect(b.style.flexShrink).toBe('0');

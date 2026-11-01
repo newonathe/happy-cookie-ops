@@ -131,13 +131,13 @@ describe('B1: the sub-tab strip, drawn through the screen slot', () => {
   it('lists the places of the open tab and marks the open one', () => {
     const runtime = mount();
     act(() => runtime.go('orders'));
-    expect(places(runtime)).toEqual(['Orders', 'Customers/Waitlist', 'Shop']);
+    expect(places(runtime)).toEqual(['Orders', 'Payments', 'Customers/Waitlist', 'Shop']);
     expect(open(strip(runtime)?.places)).toEqual(['Orders']);
     expect(entries(runtime)).toEqual(['Orders & payments', 'Payments', 'Customer messages']);
     expect(open(strip(runtime)?.entries)).toEqual(['Orders & payments']);
     // On screen, above the ported Orders screen, which still renders.
     const first = row('places')!;
-    expect(within(first as HTMLElement).getAllByRole('button')).toHaveLength(3);
+    expect(within(first as HTMLElement).getAllByRole('button')).toHaveLength(4);
     expect(
       within(first as HTMLElement)
         .getByRole('button', { name: 'Orders' })
@@ -148,14 +148,20 @@ describe('B1: the sub-tab strip, drawn through the screen slot', () => {
     expect(runtime.renderVals().liveScreen?.screen).toBeNull();
   });
 
-  it('opens a place’s other entries from the second row', () => {
+  it('opens contextual tools without a second navigation row or a duplicate Orders button', () => {
     const runtime = mount();
     act(() => runtime.go('orders'));
-    fireEvent.click(
-      within(row('entries') as HTMLElement).getByRole('button', { name: 'Payments' })
-    );
+    expect(row('entries')).toBeNull();
+    expect(screen.getAllByRole('button', { name: 'Orders' })).toHaveLength(1);
+    fireEvent.click(screen.getByText('Orders settings & tools'));
+    expect(screen.queryByRole('button', { name: 'Orders & payments' })).toBeNull();
+    expect(screen.getByRole('button', { name: 'Customer messages' })).toBeTruthy();
+    expect(
+      within(row('places') as HTMLElement).getByRole('button', { name: 'Payments' })
+    ).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Payments' }));
     expect(runtime.state.screen).toBe('reconcile');
-    expect(open(strip(runtime)?.places)).toEqual(['Orders']);
+    expect(open(strip(runtime)?.places)).toEqual(['Payments']);
     expect(open(strip(runtime)?.entries)).toEqual(['Payments']);
     expect(marked(runtime)).toEqual(['Sell']);
     // The order page belongs to Orders too; no entry is marked on it.
