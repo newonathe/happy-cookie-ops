@@ -115,3 +115,7 @@ needs more than approximately 400 changed lines, split it into complete smaller 
 - Owner messages render separately from the sheet frame, fixing the opaque page covering a
   saved result. Existing toast lifetime and Undo are preserved; warning/status announcements are
   accessible. Actual screenshot pixels confirm headings remain painted at all four widths.
+- Count stock is directly available for the selected ingredient/packaging category. It starts
+  active items with blank measurements or resumes an existing task; an unfinished/pending count
+  cannot be replaced. Empty categories explain what is missing. Entry/review/Back/resume/discard
+  are checked at four widths without posting before Save; existing identity, lease and recovery rules remain.
