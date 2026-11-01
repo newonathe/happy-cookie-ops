@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import type * as React from 'react';
 import type { OpsVals } from '@/view-models/vals';
 import type {
@@ -13,6 +13,7 @@ import type {
 } from '@/lib/stock/live-stock-types';
 import { OfflineLine, StatusWord, liveStockOf, manilaStamp } from './stock-shared';
 import { CountInventory } from './count-inventory';
+import { ItemPrices } from './item-prices';
 import { Button } from '@/components/ui/button';
 import { SectionTools } from '@/components/live/section-tools';
 import { SectionNavigation } from '@/components/live/section-navigation';
@@ -98,7 +99,7 @@ function InventoryList({
         </div>
         <label className={styles.filter}>
           Stock status
-          <select value={filter} onChange={(event) => setFilter(event.target.value as Filter)}>
+          <select aria-label="Stock status" value={filter} onChange={(event) => setFilter(event.target.value as Filter)}>
             {FILTERS.map((name) => (
               <option key={name} value={name}>
                 {name === 'All' ? 'All statuses' : name}
@@ -174,6 +175,13 @@ function Movements({ page }: { page: StockItemPage }) {
 }
 
 function ItemPage({ stock, page }: { stock: LiveStockVals; page: StockItemPage }) {
+  const pricesButtonId = useId();
+  const wasPricesOpen = useRef(false);
+  useEffect(() => {
+    if (wasPricesOpen.current && !page.pricesOpen) document.getElementById(pricesButtonId)?.focus();
+    wasPricesOpen.current = page.pricesOpen === true;
+  }, [page.pricesOpen, pricesButtonId]);
+  if (page.pricesOpen) return <ItemPrices page={page} />;
   const item = page.item;
   const facts: Array<readonly [string, string]> = [
     ['Pack', item.packText],
@@ -248,6 +256,7 @@ function ItemPage({ stock, page }: { stock: LiveStockVals; page: StockItemPage }
             </div>
           ))}
         </dl>
+        {page.openPrices ? <Button id={pricesButtonId} className="self-start" onClick={page.openPrices}>Supplier prices & history</Button> : null}
       </section>
       <Movements page={page} />
     </>
@@ -268,7 +277,7 @@ export function InventoryLive({ v }: { v: OpsVals }) {
         </Button>
       ) : null}
       {stock?.page ? (
-        <ItemPage stock={stock} page={stock.page} />
+        <ItemPage key={stock.page.item.id} stock={stock} page={stock.page} />
       ) : (
         <>
           <header className={styles.title}>

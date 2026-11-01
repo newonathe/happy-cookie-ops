@@ -11,7 +11,8 @@ and reduced-motion support (Ethan, 2 November); this supersedes cream. Older pag
 
 Stock browsing now uses a compact ingredient/packaging panel with saved pack details and retained
 filters, category counts, an editable count list, item/history retry and a vertical supplier directory.
-**Next:** finish item-to-supplier price access, production categories and unknown-stock truth,
+Items also open their saved supplier prices/history with retained Back and filters.
+**Next:** finish context-prefilled price editing, production categories and unknown-stock truth,
 then Make and the other workflows. The private plan covers 59 pages/child flows,
 238 decision branches and 224 automation field groups; these are planned coverage, not
 implemented automation. Reuse known context/calculations and ask only new facts/exceptions.

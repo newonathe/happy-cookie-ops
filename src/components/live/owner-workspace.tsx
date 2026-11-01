@@ -192,7 +192,9 @@ export function OwnerWorkspace({
     screen === 'inventory' && v.liveStock
       ? v.liveStock.count && !v.liveStock.count.paused
         ? v.liveStock.count.back
-        : (v.liveStock.page?.close ?? v.goBack)
+        : v.liveStock.page?.pricesOpen
+          ? (v.liveStock.page.closePrices ?? v.liveStock.page.close)
+          : (v.liveStock.page?.close ?? v.goBack)
       : v.goBack;
   return (
     <div

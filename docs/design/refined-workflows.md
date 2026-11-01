@@ -130,3 +130,6 @@ needs more than approximately 400 changed lines, split it into complete smaller 
   Changed items are read-only until explicitly skipped; pending saves lock editing and retain their identities.
 - Suppliers has a vertical directory, visible Add supplier, contact/price history and retained Back.
   Confirmed saves return to that page; a late acknowledgement cannot close a newer supplier draft.
+- Items open saved supplier prices/history without leaving the item/filter context; unit cost remains
+  separate. The current catalogue keys price history by item name, so historical ID provenance is not inferred.
+  Context-prefilled price editing is the next slice.
