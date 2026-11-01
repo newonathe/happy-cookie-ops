@@ -160,7 +160,7 @@ describe('B5 Inventory item page', () => {
     };
   };
 
-  it('shows the facts, a back button and the five actions that call their function', () => {
+  it('shows pack/balance facts and keeps editing, receiving, counting and stock changes reachable', () => {
     const { mine, page: p } = page();
     draw(stock({ page: p }));
     expect(screen.getByRole('heading', { level: 1, name: 'Butter' })).toBeTruthy();
@@ -172,20 +172,27 @@ describe('B5 Inventory item page', () => {
       'Counted 3 Oct',
       '₱0.09 per g · average',
       'Dairy Direct',
+      '1 kg bag · 1,000 g per pack',
       'Last paid ₱88.25 · 3 Oct'
     ])
       expect(facts.textContent).toContain(text);
-    fireEvent.click(screen.getByRole('button', { name: 'Back to all items' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Back to inventory' }));
     expect(p.close).toHaveBeenCalledTimes(1);
     for (const [label, fn] of [
       ['Receive', mine.receive],
       ['Count', mine.count],
-      ['Waste', mine.waste],
-      ['Adjust', mine.adjust],
-      ['Edit', mine.edit]
+      ['Edit item', mine.edit]
     ] as const) {
       fireEvent.click(screen.getByRole('button', { name: label }));
       expect(fn).toHaveBeenCalledTimes(1);
+    }
+    for (const [label, run] of [
+      ['Record waste', mine.waste],
+      ['Correct stock', mine.adjust]
+    ] as const) {
+      fireEvent.click(screen.getByText('Waste or correction'));
+      fireEvent.click(screen.getByRole('button', { name: label }));
+      expect(run).toHaveBeenCalledOnce();
     }
   });
 
@@ -209,14 +216,37 @@ describe('B5 Inventory item page', () => {
 
   it('movements: loading, unavailable and empty each say their line', () => {
     draw(stock({ page: page({ movementsState: 'loading' }).page }));
-    const loading = screen.getByText('Loading movements…');
+    const loading = screen.getByText('Loading stock history…');
     expect(loading.closest('[aria-live="polite"]')).toBeTruthy();
     cleanup();
     draw(stock({ page: page({ movementsState: 'unavailable' }).page }));
-    expect(screen.getByText('Movements are not available yet.')).toBeTruthy();
+    expect(screen.getByText('Stock history is unavailable.')).toBeTruthy();
     cleanup();
     draw(stock({ page: page({ movementsState: 'ready', movements: [] }).page }));
-    expect(screen.getByText('No movements yet.')).toBeTruthy();
+    expect(screen.getByText('No stock changes recorded yet.')).toBeTruthy();
+  });
+
+  it('offers Retry history without requiring the owner to leave the item', () => {
+    const retry = vi.fn();
+    draw(stock({ page: page({ movementsState: 'unavailable', retry }).page }));
+    fireEvent.click(screen.getByRole('button', { name: 'Retry history' }));
+    expect(retry).toHaveBeenCalledOnce();
+    expect(screen.getByRole('heading', { name: 'Butter', level: 1 })).toBeTruthy();
+  });
+
+  it('keeps archived history readable and editing reachable without offering stock movements', () => {
+    const archived = item({ id: 'archived', name: 'Old flour', active: false });
+    draw(
+      stock({ page: { item: archived, movementsState: 'ready', movements: [], close: vi.fn() } })
+    );
+    expect(
+      screen.getByText('This item is archived. Edit item to make it active again.')
+    ).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Receive' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Count' })).toBeNull();
+    expect(screen.queryByText('Waste or correction')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Edit item' }));
+    expect(archived.edit).toHaveBeenCalledOnce();
   });
 
   it('movements: ready lists newest first with kind, change, cost, supplier, reason and Manila date', () => {
@@ -240,7 +270,7 @@ describe('B5 Inventory item page', () => {
       })
     ];
     draw(stock({ page: page({ movements: rows }).page }));
-    const list = screen.getByRole('list', { name: 'Movements' });
+    const list = screen.getByRole('list', { name: 'Stock history' });
     const lis = within(list).getAllByRole('listitem');
     expect(lis).toHaveLength(3);
     // Order is the contract's: newest first, as given.
@@ -264,7 +294,7 @@ describe('B5 Inventory item page', () => {
     const kinds = ['opening', 'receipt', 'count', 'waste', 'adjust'] as const;
     const rows = kinds.map((kind, i) => movement({ id: `k${i}`, kind }));
     draw(stock({ page: page({ movements: rows }).page }));
-    const text = screen.getByRole('list', { name: 'Movements' }).textContent ?? '';
+    const text = screen.getByRole('list', { name: 'Stock history' }).textContent ?? '';
     for (const word of ['Opening', 'Receipt', 'Count', 'Waste', 'Adjust'])
       expect(text).toContain(word);
   });

@@ -466,6 +466,21 @@ describe('B5-1: the item page and its movements', () => {
     expect(page.movements).toEqual([]);
   });
 
+  it('retries unavailable history for the same item without posting a stock movement', async () => {
+    const w = world({ movements: { data: null, error: { code: '08006' } } });
+    const { runtime, rpc } = await mounted(w);
+    act(() => byName(runtime, 'Unsalted butter').open());
+    await settle();
+    expect(stock(runtime).page!.movementsState).toBe('unavailable');
+    w.movements = { data: MOVEMENTS, error: null };
+    act(() => stock(runtime).page!.retry!());
+    await settle();
+    expect(stock(runtime).page!.item.id).toBe('butter');
+    expect(stock(runtime).page!.movementsState).toBe('ready');
+    expect(calls(rpc, 'get_item_movements')).toHaveLength(2);
+    expect(calls(rpc, 'record_stock_movement')).toHaveLength(0);
+  });
+
   it('a failed read is unavailable too, and a malformed answer is never shown', async () => {
     for (const answer of [
       { data: null, error: { code: '500' }, status: 500 },

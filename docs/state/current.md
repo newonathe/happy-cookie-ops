@@ -10,7 +10,8 @@ The current owner frame/Stock theme is neutral light with Happy Cookie branding,
 and reduced-motion support (Ethan, 2 November); this supersedes cream. Older page bodies remain pending.
 
 Stock browsing now uses a compact ingredient/packaging panel with saved pack details and retained
-filters. **Next:** finish item/count layout, production categories and unknown-stock truth,
+filters, direct category counts and an organized item page with history retry.
+**Next:** finish bulk count layout, supplier-price/history access, production categories and unknown-stock truth,
 then Make and the other workflows. The private plan covers 59 pages/child flows,
 238 decision branches and 224 automation field groups; these are planned coverage, not
 implemented automation. Reuse known context/calculations and ask only new facts/exceptions.
@@ -35,13 +36,7 @@ Read this page first in a new session. It is kept short on purpose.
 
 ## Where things stand — 20 October 2026
 
-**The consolidated till is live on the trial** (Ethan, 19 October: the prototype's look, consolidated, feature by feature
-from Bazaar, live before the 24 October bazaar). #37 (the till) and #39 (main's #32 to #36, among them the live-sync fix
-`51298e0`) are merged into the deploy branch and deployed: merge `94aa105`, Cloudflare version `50f46e2c`, every CI job
-green, Performance budget included (blocking since T-18). #40 merged the deploy branch into `main` (`d6494f7`): both now
-hold the same work. The ported till stays as the classic till (**⋯** › Use the classic till) and as the crash fallback.
-Mockups: private canvas K5nHQS8GjtBYGseDtYZDnZ; the decision is in [docs/design/bazaar-v2.md](../design/bazaar-v2.md) section 7.
-Bazaar v2 (16 October) and its notes are in [current-history.md](current-history.md), moved on 20 October.
+The completed till release is recorded in [current history](current-history.md#20-october-release-checkpoint).
 
 **What remains, in order:**
 

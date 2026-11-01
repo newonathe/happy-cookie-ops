@@ -58,6 +58,7 @@ export interface StockItemView {
 
 export interface StockItemPage {
   item: StockItemView;
+  retry?: () => void;
   /** `loading` while the read is in flight; `unavailable` when the database has no such function yet (the trial at migration 55) or it failed. */
   movementsState: 'loading' | 'ready' | 'unavailable';
   movements: StockMovementView[];

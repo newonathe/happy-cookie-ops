@@ -4768,6 +4768,7 @@ export class OpsRuntime extends OpsProvider {
       page: open
         ? {
             item: open,
+            retry: () => this.openStockItemPage(open.id),
             movementsState: reads?.state ?? 'loading',
             movements: (reads?.rows ?? []).map((m) => this.movementView(m, open.unit)),
             close: () => this.setState({ liveStockOpen: null })

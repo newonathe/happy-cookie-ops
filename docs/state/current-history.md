@@ -2277,3 +2277,15 @@ before 70); one low finding is left: a flavour cost saved mid-close can be store
 a reset (two resets), live smoke 17 steps, `pnpm verify` 2,588 tests, e2e 90 passed. U8 (two decimals in ported screens) is
 skipped: Ethan kept whole pesos on the till. A clean browser pass at four widths is not done: layout QA found 36 px targets
 (fixed to 44 px) and a possible 16 px toast and footer overlap at 320 px on the day plan (unconfirmed).
+
+
+## 20 October release checkpoint
+
+**The consolidated till is live on the trial** (Ethan, 19 October: the prototype's look, consolidated, feature by feature
+from Bazaar, live before the 24 October bazaar). #37 (the till) and #39 (main's #32 to #36, among them the live-sync fix
+`51298e0`) are merged into the deploy branch and deployed: merge `94aa105`, Cloudflare version `50f46e2c`, every CI job
+green, Performance budget included (blocking since T-18). #40 merged the deploy branch into `main` (`d6494f7`): both now
+hold the same work. The ported till stays as the classic till (**⋯** › Use the classic till) and as the crash fallback.
+Mockups: private canvas K5nHQS8GjtBYGseDtYZDnZ; the decision is in [docs/design/bazaar-v2.md](../design/bazaar-v2.md) section 7.
+Bazaar v2 (16 October) and its notes are in [current-history.md](current-history.md), moved on 20 October.
+
