@@ -88,4 +88,7 @@ needs more than approximately 400 changed lines, split it into complete smaller 
   item identities under one browser-tab lock. Independent review found no actionable issue;
   83 targeted tests pass. Actual components pass headless entry/review/save/return checks at
   320, 390, 768 and 1240 px using synthetic RPC data. This is not database, hosted or physical-phone proof.
+- Count confirmation reuses the existing item-cost source: unpriced legacy items and failed/null
+  reads remain pending, confirmed database zero remains zero, and a partially known adjustment
+  is never shown as a complete total. No request or ledger-posting behavior changes.
 - Make and all later workflow slices remain pending. Passing mockup tests does not mark them implemented.
