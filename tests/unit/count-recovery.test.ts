@@ -11,6 +11,7 @@ const pending: CountRecovery = {
   scope,
   task: { i: 0, items: ['Flour'], counts: { Flour: '0' } },
   countedAt: { Flour: 1_790_000_000_000 },
+  itemIds: { Flour: 'flour' },
   openItem: 'flour',
   pending: [
     {
@@ -45,6 +46,12 @@ it('never exposes a different backend project copy', () => {
     value: null
   });
   expect(writeCountRecovery('https://another.example.test', pending)).toBe(false);
+});
+
+it('requires original inventory IDs for entered counts so a reused name cannot retarget a draft', () => {
+  expect(writeCountRecovery(scope, { ...pending, itemIds: {} })).toBe(false);
+  expect(writeCountRecovery(scope, pending)).toBe(true);
+  expect(readCountRecovery(scope).value?.itemIds).toEqual({ Flour: 'flour' });
 });
 
 it('rejects malformed copies, another movement kind, invalid quantities and oversized payloads', () => {
