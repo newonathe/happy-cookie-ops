@@ -116,6 +116,15 @@ export interface LiveStockVals {
     total?: number;
     unavailable?: boolean;
     skipUnavailable?: () => void;
+    entries?: Array<{
+      name: string;
+      unit: string;
+      expectedText: string;
+      value: string;
+      unavailable: boolean;
+      onInput: (value: string) => void;
+      skip?: () => void;
+    }>;
     rows: Array<{ name: string; amountText: string; error: string | null }>;
     back: () => void;
     resume: () => void;

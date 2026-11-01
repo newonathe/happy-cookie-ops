@@ -4789,6 +4789,50 @@ export class OpsRuntime extends OpsProvider {
     const currentItem = currentName ? this.stockItem(currentName) : undefined;
     const unavailable =
       !!currentName && (!currentItem || this.countedItemIds.get(currentName) !== currentItem.id);
+    const canChange = () => {
+      const current = this.state.stocktake as CountRecovery['task'];
+      return (
+        isLiveMode() &&
+        !this.unmounted &&
+        this.state.role === 'owner' &&
+        this.countRecoveryReady &&
+        !!this.releaseCountLease &&
+        !this.countSaving &&
+        !this.countRecoveryBusy &&
+        current?.items === task?.items &&
+        ![...this.pendingMovements.values()].some((f) => f.kind === 'count')
+      );
+    };
+    const skip = (name: string) => {
+      const current = this.state.stocktake as CountRecovery['task'];
+      const item = this.stockItem(name);
+      if (
+        !canChange() ||
+        !current || (!current.items.includes(name) && !Object.hasOwn(current.counts, name)) ||
+        (item && this.countedItemIds.get(name) === item.id)
+      )
+        return;
+      const counts = { ...current.counts };
+      delete counts[name];
+      const items = [
+        ...new Set([
+          ...current.items.filter((itemName) => itemName !== name),
+          ...Object.keys(counts).filter((itemName) => counts[itemName]!.trim() !== '')
+        ])
+      ];
+      this.setState(
+        {
+          stocktake: items.length
+            ? { ...current, counts, items, i: Math.min(current.i, items.length - 1) }
+            : null
+        },
+        () => {
+          delete this.countedAt[name];
+          this.countedItemIds.delete(name);
+          this.persistCountRecovery();
+        }
+      );
+    };
     const rows = Object.entries(task?.counts ?? {})
       .filter(([, value]) => value.trim() !== '')
       .map(([name, value]) => {
@@ -4814,38 +4858,35 @@ export class OpsRuntime extends OpsProvider {
       pending,
       storageError: this.countRecoveryProblem,
       rows,
-      total: task?.items.length ?? 0,
+      total: task ? new Set([...task.items, ...Object.keys(task.counts)]).size : 0,
+      entries: task ? [...new Set([...task.items, ...Object.keys(task.counts)])].map((name) => {
+        const item = this.stockItem(name);
+        const unavailable = !item || this.countedItemIds.get(name) !== item.id;
+        return {
+          name,
+          unit: item?.unit ?? '',
+          expectedText: item ? formatQuantity(item.onHand, item.unit) : '',
+          value: task.counts[name] ?? '',
+          unavailable,
+          skip: unavailable ? () => skip(name) : undefined,
+          onInput: (value: string) => {
+            const current = this.state.stocktake as CountRecovery['task'];
+            if (
+              !canChange() ||
+              !current || (!current.items.includes(name) && !Object.hasOwn(current.counts, name)) ||
+              unavailable ||
+              !item ||
+              this.stockItem(name)?.id !== item.id ||
+              this.countedItemIds.get(name) !== item.id
+            )
+              return;
+            (this as unknown as InvActions).countInput(name, value);
+          }
+        };
+      }) : undefined,
       unavailable,
       skipUnavailable: () => {
-        if (
-          !task ||
-          !currentName ||
-          !unavailable ||
-          pending ||
-          this.countSaving ||
-          this.countRecoveryBusy
-        )
-          return;
-        const counts = { ...task.counts };
-        delete counts[currentName];
-        const items = [
-          ...new Set([
-            ...task.items.filter((name) => name !== currentName),
-            ...Object.keys(counts).filter((name) => counts[name]!.trim() !== '')
-          ])
-        ];
-        this.setState(
-          {
-            stocktake: items.length
-              ? { ...task, counts, items, i: Math.min(task.i, items.length - 1) }
-              : null
-          },
-          () => {
-            delete this.countedAt[currentName];
-            this.countedItemIds.delete(currentName);
-            this.persistCountRecovery();
-          }
-        );
+        if (currentName && unavailable) skip(currentName);
       },
       back: () => this.setState({ liveCountPaused: true }),
       resume: () => this.setState({ liveCountPaused: false }),

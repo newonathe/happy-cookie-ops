@@ -5,7 +5,7 @@ vi.mock('@/lib/config/app-mode', () => ({ isLiveMode: () => true }));
 import { OpsRuntime } from '@/store/ops-runtime';
 import { useOpsVals } from '@/store/use-ops';
 import { InventoryLive } from '@/components/live/stock/inventory-live';
-import { readCountRecovery } from '@/lib/stock/count-recovery';
+import { readCountRecovery, writeCountRecovery } from '@/lib/stock/count-recovery';
 
 const scope = process.env.NEXT_PUBLIC_SUPABASE_URL || 'unconfigured';
 beforeEach(() => localStorage.clear());
@@ -69,7 +69,7 @@ async function mount(packaging = true) {
   });
   act(() => runtime.go('inventory'));
   const writes = () => rpc.mock.calls.filter(([name]) => name === 'record_stock_movement');
-  return { runtime, writes };
+  return { runtime, writes, rpc };
 }
 const task = (runtime: OpsRuntime) =>
   runtime.state.stocktake as {
@@ -77,6 +77,50 @@ const task = (runtime: OpsRuntime) =>
     counts: Record<string, string>;
     i: number;
   } | null;
+
+it.each([false, true])('restores counts outside the cursor list visibly (changed item: %s)', async (changed) => {
+  expect(writeCountRecovery(scope, {
+    version: 1, scope, task: { i: 0, items: ['Flour'], counts: { Flour: '100', Butter: '50' } },
+    countedAt: { Flour: Date.now(), Butter: Date.now() }, itemIds: { Flour: 'flour', Butter: changed ? 'old-butter' : 'butter' },
+    openItem: null, pending: []
+  })).toBe(true);
+  const { runtime, writes } = await mount();
+  fireEvent.click(screen.getByRole('button', { name: 'Continue count' }));
+  const butter = screen.getByLabelText('Counted quantity for Butter (g)');
+  expect(butter).toHaveValue('50');
+  if (changed) {
+    expect(butter).toBeDisabled();
+    fireEvent.click(screen.getByRole('button', { name: 'Skip Butter and its unsaved count' }));
+    expect(task(runtime)?.counts).toEqual({ Flour: '100' });
+  } else {
+    fireEvent.change(butter, { target: { value: '75' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Review count' }));
+    expect(screen.getByText('75 g', { exact: true })).toBeTruthy();
+  }
+  expect(writes()).toHaveLength(0);
+});
+
+it('counts several items together without filling uncounted values or sending before review', async () => {
+  const { runtime, writes } = await mount();
+  fireEvent.click(screen.getByRole('button', { name: 'Count stock' }));
+  const flour = screen.getByLabelText('Counted quantity for Flour (g)');
+  const butter = screen.getByLabelText('Counted quantity for Butter (g)');
+  expect(flour).toHaveValue('');
+  expect(butter).toHaveValue('');
+  expect(screen.getAllByText('Records say 1,000 g')).toHaveLength(2);
+  expect(screen.queryByRole('button', { name: 'Next item' })).toBeNull();
+  fireEvent.change(flour, { target: { value: '0' } });
+  expect(butter).toHaveValue('');
+  fireEvent.change(butter, { target: { value: '125' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Review count' }));
+  expect(screen.getByText('0 g', { exact: true })).toBeTruthy();
+  expect(screen.getByText('125 g', { exact: true })).toBeTruthy();
+  expect(writes()).toHaveLength(0);
+  fireEvent.click(screen.getByRole('button', { name: 'Change counts' }));
+  expect(screen.getByLabelText('Counted quantity for Flour (g)')).toHaveValue('0');
+  expect(screen.getByLabelText('Counted quantity for Butter (g)')).toHaveValue('125');
+  expect(task(runtime)?.counts).toMatchObject({ Flour: '0', Butter: '125' });
+});
 
 it('starts only active items in the selected category with blank measured quantities', async () => {
   const { runtime, writes } = await mount();
@@ -86,10 +130,7 @@ it('starts only active items in the selected category with blank measured quanti
   expect(screen.getByLabelText('Counted quantity (pcs)')).toHaveValue('');
   fireEvent.change(screen.getByLabelText('Counted quantity (pcs)'), { target: { value: '0' } });
   fireEvent.click(screen.getByRole('button', { name: 'Back to inventory' }));
-  expect(screen.getByRole('button', { name: 'Packaging' })).toHaveAttribute(
-    'aria-pressed',
-    'true'
-  );
+  expect(screen.getByRole('button', { name: 'Packaging' })).toHaveAttribute('aria-pressed', 'true');
   expect(screen.queryByRole('button', { name: 'Count stock' })).toBeNull();
   fireEvent.click(screen.getByRole('button', { name: 'Continue count' }));
   expect(screen.getByLabelText('Counted quantity (pcs)')).toHaveValue('0');
@@ -101,11 +142,13 @@ it('a stale category action resumes the existing task without replacing measured
   const start = runtime.renderVals().liveStock!.startCount!;
   fireEvent.click(screen.getByRole('button', { name: 'Count stock' }));
   expect(task(runtime)?.items).toEqual(['Flour', 'Butter']);
-  fireEvent.change(screen.getByLabelText('Counted quantity (g)'), { target: { value: '250' } });
+  fireEvent.change(screen.getByLabelText('Counted quantity for Flour (g)'), {
+    target: { value: '250' }
+  });
   fireEvent.click(screen.getByRole('button', { name: 'Back to inventory' }));
   act(() => start('Packaging'));
   expect(task(runtime)?.items).toEqual(['Flour', 'Butter']);
-  expect(screen.getByLabelText('Counted quantity (g)')).toHaveValue('250');
+  expect(screen.getByLabelText('Counted quantity for Flour (g)')).toHaveValue('250');
   fireEvent.click(screen.getByRole('button', { name: 'Review count' }));
   expect(screen.getByText('250 g', { exact: true })).toBeTruthy();
   expect(screen.queryByText('Cookie pouch', { exact: true })).toBeNull();
@@ -116,7 +159,10 @@ it('cannot replace an unconfirmed save or post another movement when a category 
   const { runtime, writes } = await mount();
   const start = runtime.renderVals().liveStock!.startCount!;
   fireEvent.click(screen.getByRole('button', { name: 'Count stock' }));
-  fireEvent.change(screen.getByLabelText('Counted quantity (g)'), { target: { value: '0' } });
+  const staleInput = runtime.renderVals().liveStock!.count!.entries![0]!.onInput;
+  fireEvent.change(screen.getByLabelText('Counted quantity for Flour (g)'), {
+    target: { value: '0' }
+  });
   fireEvent.click(screen.getByRole('button', { name: 'Review count' }));
   fireEvent.click(screen.getByRole('button', { name: 'Save count' }));
   await waitFor(() => expect(runtime.renderVals().liveStock?.count?.pending).toBe(true));
@@ -127,6 +173,41 @@ it('cannot replace an unconfirmed save or post another movement when a category 
   expect(task(runtime)?.counts.Flour).toBe('0');
   expect(task(runtime)?.items).toEqual(['Flour', 'Butter']);
   expect(writes()).toHaveLength(1);
+  act(() => staleInput('900'));
+  expect(task(runtime)?.counts.Flour).toBe('0');
+  expect(readCountRecovery(scope).value!.pending).toEqual(pending);
+  fireEvent.click(screen.getByRole('button', { name: 'Change counts' }));
+  expect(screen.getByLabelText('Counted quantity for Flour (g)')).toBeDisabled();
+});
+
+it('keeps a changed item read-only until explicitly skipped and preserves the other counts', async () => {
+  const { runtime, writes, rpc } = await mount();
+  fireEvent.click(screen.getByRole('button', { name: 'Count stock' }));
+  const entries = runtime.renderVals().liveStock!.count!.entries!;
+  act(() => {
+    entries[0]!.onInput('200');
+    entries[1]!.onInput('50');
+  });
+  const original = await rpc('get_stock_catalogue');
+  const catalogue = original.data as { items: Array<{ id: string; name: string }> };
+  catalogue.items.find((row) => row.name === 'Butter')!.id = 'replacement';
+  rpc.mockResolvedValueOnce(original);
+  await act(async () => {
+    await runtime.loadStockCatalogue(null);
+  });
+  act(() => entries[1]!.onInput('99'));
+  expect(task(runtime)?.counts.Butter).toBe('50');
+  expect(screen.getByLabelText('Counted quantity for Butter (g)')).toBeDisabled();
+  expect(screen.getByText('Item changed or unavailable')).toBeTruthy();
+  fireEvent.click(screen.getByRole('button', { name: 'Skip Butter and its unsaved count' }));
+  expect(task(runtime)?.counts).toEqual({ Flour: '200' });
+  expect(task(runtime)?.items).toEqual(['Flour']);
+  expect(writes()).toHaveLength(0);
+  const current = runtime.renderVals().liveStock!.count!.entries![0]!.onInput;
+  act(() => runtime.setRole('helper'));
+  const afterRoleLoss = task(runtime);
+  act(() => current('888'));
+  expect(task(runtime)).toEqual(afterRoleLoss);
 });
 
 it('does not start an empty category or accept an owner callback after role loss', async () => {
@@ -148,7 +229,9 @@ it('allows measuring cached inventory offline without sending a movement', async
   vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
   act(() => runtime.setState({ online: false }));
   fireEvent.click(screen.getByRole('button', { name: 'Count stock' }));
-  fireEvent.change(screen.getByLabelText('Counted quantity (g)'), { target: { value: '120' } });
+  fireEvent.change(screen.getByLabelText('Counted quantity for Flour (g)'), {
+    target: { value: '120' }
+  });
   expect(task(runtime)?.counts.Flour).toBe('120');
   expect(writes()).toHaveLength(0);
 });
