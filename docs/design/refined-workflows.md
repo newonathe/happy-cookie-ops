@@ -25,7 +25,7 @@ over animation. Older fallback pages remain pending migration; this is not a com
 - Workflow reference preserved as `happy-cookie-workflows-refined.v4.html`, SHA-256
   `fad61841ac098a9cb5431e382b9703589b8fc9947fe29ee0eef0476e80646aae`.
 - Current neutral-glass theme: `happy-cookie-workflows-refined.html`, SHA-256
-  `339ca1177566b8fd4d7ab41e40cde3921960ceb8e7c95a099277e6ced35f0acd`.
+  `ef1d069bfbd30e5dde4d750cd6315a97c3d270512e55889e9697e0e768aac51f`.
 - The private thread visualization folder holds the fragment, editable template,
   `gap-refinement/README.md`, original-reference checks, and v4 screenshot walkthrough.
   Keep real business data, private comparison evidence and screenshots outside Git.
