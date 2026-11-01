@@ -7,15 +7,18 @@ the reference hash. Keep every existing financial, role and offline safeguard.
 
 Work on `codex/refined-workflows`, one tested logical slice per commit. Direct Bazaar and
 Customers/Waitlist and the inventory Count path are partly implemented, including retained return context and
-durable count recovery. Ethan rejected the preview's visual distance from the mockup: next build the
-approved live frame beside the locked demo, then finish the complete Stock list/item/count/review/save/return
+durable count recovery. The separate live owner workspace now implements the new frame beside the locked demo.
+Next finish the complete Stock list/item/count/review/save/return
 path with matched-content visual checks. Fix Count's unknown-cost confirmation in that path.
 Then continue Make, remaining Stock, Bazaar, Sell/Shop, Money/Account and integration. Small slices
 do not reduce the authorized overall scope. Record actual completed versus pending work.
 
 The private visualization folder contains `happy-cookie-page-by-page-plan.md` and its HTML reader/JSON:
-59 page/child-flow plans, 179 decision branches and route/tool/owner/comparison traceability. This is
-planned coverage, not evidence of implemented features. Use its revised frame/Stock-first order.
+59 page/child-flow plans, 238 decision branches, 224 automation field groups and route/tool/owner/comparison
+traceability. Apply the per-page automation policy: carry linked IDs/units/context, compute totals and
+shortfalls, remember defaults, and ask only actual new facts or meaningful exceptions. Expected/quoted/planned
+values need the appropriate deliberate confirmation before becoming actual. This is planned coverage,
+not proof of implemented automation. Use its revised frame/Stock-first order; do not repeat the research.
 
 Use the pinned Node 24.20.0 / pnpm 9.12.3 toolchain and headless command-line Playwright.
 No protected demo edits. The existing live slots are the implementation path. Independent

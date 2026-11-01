@@ -2,7 +2,7 @@
 
 import { useEffect, useSyncExternalStore } from 'react';
 import { OpsRuntime } from '@/store/ops-runtime';
-import { AppFrame } from '@/components/shell/app-frame';
+import { OwnerWorkspace } from '@/components/live/owner-workspace';
 import { useOpsVals, useOpsEngine } from '@/store/use-ops';
 import { RouteSync } from './route-sync';
 import { OfflineBridge } from './offline-bridge';
@@ -29,12 +29,18 @@ function LiveOrderRoute() {
 
 function Frame() {
   const v = useOpsVals();
-  const screen = useOpsEngine().state.screen;
+  const engine = useOpsEngine();
+  const screen = engine.state.screen;
   // Keyed on the screen so recovering from an error on one screen does not leave the
   // boundary latched when the owner navigates away.
   return (
     <ScreenBoundary key={screen} screen={screen}>
-      <AppFrame v={v} />
+      <OwnerWorkspace
+        v={v}
+        screen={screen}
+        role={engine.state.role}
+        onAccount={() => engine.go('settings')}
+      />
     </ScreenBoundary>
   );
 }

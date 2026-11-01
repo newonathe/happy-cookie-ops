@@ -65,10 +65,15 @@ needs more than approximately 400 changed lines, split it into complete smaller 
 ## Progress
 
 - The private `happy-cookie-page-by-page-plan.md`, HTML reader and JSON cover 59 pages/child
-  flows, all 25 route keys, 33 tool entries, 35 tracked owner requirements and 57 historical
-  comparison findings, with 179 decision branches. Research includes relevant supplied Template Pack
+  flows, all 25 route keys, 33 tool entries, 36 tracked owner requirements and 57 historical
+  comparison findings, with 238 decision branches and 224 automation field groups. Research includes relevant supplied Template Pack
   sections and official POS/inventory/recipe/P&L sources with retrieval limits. These are plan
-  coverage counts, not completion claims. The frame/Stock visual port remains next.
+  coverage counts, not completion claims. The separate owner frame is implemented; the Stock body remains next.
+- The new frame reuses real screens and sheets without remounting the domain runtime; its title,
+  contextual Stock Back, original brand image and six destinations work at phone/tablet/desktop widths.
+  Quick add remains as a compact compatibility entry until each existing job has its final contextual home.
+  Public, helper, denied and focus/till modes keep the existing frame. Independent review found no remaining
+  material issue in this scope. Fixture component checks are not database or selling-phone proof.
 
 - Direct Bazaar and Customers/Waitlist are implemented on `codex/refined-workflows`.
   The full pinned gate passed: 143 test files, 2,611 tests; port integrity unchanged.
