@@ -4544,6 +4544,10 @@ export class OpsRuntime extends OpsProvider {
       unit: item.unit,
       active: item.active,
       qtyText: formatQuantity(item.onHand, item.unit),
+      packText:
+        item.packSize && item.packSize > 0
+          ? `${item.packLabel ? item.packLabel + ' · ' : ''}${formatQuantity(item.packSize, item.unit)} per pack`
+          : item.packLabel || 'Pack size not set',
       status: stockStatus(item.onHand, item.parLevel),
       levelText: levelText(item.parLevel, item.unit),
       lastCountedText: lastCountedText(item.lastCounted),

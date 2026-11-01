@@ -15,7 +15,6 @@ import {
   Facts,
   OfflineLine,
   StatusWord,
-  StockLoading,
   buttonBase,
   cardStyle,
   h1Style,
@@ -32,6 +31,8 @@ import {
 import { CountInventory } from './count-inventory';
 import { Button } from '@/components/ui/button';
 import { SectionTools } from '@/components/live/section-tools';
+import { SectionNavigation } from '@/components/live/section-navigation';
+import styles from './inventory.module.css';
 
 type Filter = 'All' | StockStatus;
 const FILTERS: readonly Filter[] = ['All', 'Out', 'Low', 'Good'];
@@ -45,19 +46,6 @@ const KIND_WORD: Record<StockMovementKind, string> = {
   use: 'Used'
 };
 
-const rowButton: React.CSSProperties = {
-  ...cardStyle,
-  width: '100%',
-  minHeight: '44px',
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '4px',
-  textAlign: 'left',
-  cursor: 'pointer',
-  font: 'inherit',
-  color: INK
-};
-
 function CountNote({ text }: { text: string | null }) {
   if (text === null) return null;
   return <p style={{ ...mutedStyle, color: INK }}>About counts: {text}</p>;
@@ -66,69 +54,82 @@ function CountNote({ text }: { text: string | null }) {
 function ItemRow({ item }: { item: StockItemView }) {
   return (
     <li>
-      <button type="button" onClick={item.open} style={rowButton}>
-        <span style={{ ...wrapRow, justifyContent: 'space-between' }}>
-          <span style={{ ...textStyle, fontWeight: 700 }}>{item.name}</span>
-          <StatusWord status={item.status} />
+      <button type="button" onClick={item.open} className={styles.row}>
+        <span>
+          <strong className={styles.name}>{item.name}</strong>
+          <span className={styles.detail}>{item.packText}</span>
+          <span className={styles.detail}>
+            {item.lastCountedText} · {item.costText}
+          </span>
         </span>
-        <span style={{ ...wrapRow }}>
-          <span style={textStyle}>{item.qtyText}</span>
-          <span style={mutedStyle}>{item.levelText}</span>
-        </span>
-        <span style={{ ...wrapRow }}>
-          <span style={mutedStyle}>{item.lastCountedText}</span>
-          <span style={mutedStyle}>{item.costText}</span>
+        <span className={styles.amount}>
+          {item.qtyText}
+          <span className={styles.status}>
+            <StatusWord status={item.status} />
+          </span>
         </span>
       </button>
     </li>
   );
 }
 
-function InventoryList({ stock }: { stock: LiveStockVals }) {
-  const [filter, setFilter] = useState<Filter>('All');
-  const shown = filter === 'All' ? stock.items : stock.items.filter((i) => i.status === filter);
-  const { total, out, low } = stock.counts;
+function InventoryList({
+  stock,
+  category,
+  filter,
+  setCategory,
+  setFilter
+}: {
+  stock: LiveStockVals;
+  category: string;
+  filter: Filter;
+  setCategory: (category: string) => void;
+  setFilter: (filter: Filter) => void;
+}) {
+  const active = stock.items.filter((item) => item.active);
+  const categories = [
+    ...new Set(['Ingredients', 'Packaging', ...active.map((item) => item.category)])
+  ];
+  const items = active.filter((item) => item.category === category);
+  const shown = filter === 'All' ? items : items.filter((item) => item.status === filter);
   return (
     <>
-      <div
-        role="group"
-        aria-label="Stock counts"
-        style={{ ...wrapRow, fontSize: '0.875rem', fontWeight: 600, color: INK }}
-      >
-        <span>{total === 1 ? '1 item' : `${total} items`}</span>
-        <span>{out} Out</span>
-        <span>{low} Low</span>
-      </div>
-      <CountNote text={stock.countNote} />
-      <div
-        role="group"
-        aria-label="Show items"
-        style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}
-      >
-        {FILTERS.map((name) => (
+      <div role="group" aria-label="Stock categories" className={styles.categories}>
+        {categories.map((name) => (
           <button
             key={name}
             type="button"
-            aria-pressed={filter === name}
-            onClick={() => setFilter(name)}
-            style={{
-              ...buttonBase,
-              minHeight: '44px',
-              ...(filter === name
-                ? { background: INK, color: '#FFFFFF', border: `1px solid ${INK}` }
-                : {})
-            }}
+            aria-pressed={category === name}
+            onClick={() => setCategory(name)}
           >
             {name}
           </button>
         ))}
       </div>
-      {stock.items.length === 0 ? (
-        <p style={mutedStyle}>No items yet</p>
+      <div className={styles.toolbar}>
+        <div role="group" aria-label="Stock counts" className={styles.counts}>
+          <span>{items.length === 1 ? '1 item' : `${items.length} items`}</span>
+          <span>{items.filter((item) => item.status === 'Out').length} Out</span>
+          <span>{items.filter((item) => item.status === 'Low').length} Low</span>
+        </div>
+        <label className={styles.filter}>
+          Stock status
+          <select value={filter} onChange={(event) => setFilter(event.target.value as Filter)}>
+            {FILTERS.map((name) => (
+              <option key={name} value={name}>
+                {name === 'All' ? 'All statuses' : name}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+      <CountNote text={stock.countNote} />
+      {active.length === 0 ? (
+        <p className={styles.empty}>No items yet</p>
       ) : shown.length === 0 ? (
-        <p style={mutedStyle}>No items in this view.</p>
+        <p className={styles.empty}>No items in this view.</p>
       ) : (
-        <ul aria-label="Stock items" style={listStyle}>
+        <ul aria-label="Stock items" className={styles.panel}>
           {shown.map((item) => (
             <ItemRow key={item.id} item={item} />
           ))}
@@ -235,31 +236,35 @@ function ItemPage({ stock, page }: { stock: LiveStockVals; page: StockItemPage }
   );
 }
 
-/** The live owner's Inventory (B5): the list with filter chips, and one item's page. It draws what the runtime gives it. */
+/** The live owner's inventory: list filters stay mounted while an item or count is open. */
 export function InventoryLive({ v }: { v: OpsVals }) {
+  const [category, setCategory] = useState('Ingredients');
+  const [filter, setFilter] = useState<Filter>('All');
   const stock = liveStockOf(v);
-  if (!stock) return <StockLoading title="Inventory" label="Inventory" />;
-  if (stock.count && !stock.count.paused) return <CountInventory v={v} stock={stock} />;
+  if (stock?.count && !stock.count.paused) return <CountInventory v={v} stock={stock} />;
   return (
-    <section aria-label="Inventory" data-screen-label="Inventory" style={screenStyle}>
-      {stock.count?.paused ? (
+    <section aria-label="Inventory" data-screen-label="Inventory" className={styles.screen}>
+      {stock?.count?.paused ? (
         <Button onClick={stock.count.resume}>
           {stock.count.pending ? 'Review unconfirmed count' : 'Continue count'}
         </Button>
       ) : null}
-      {stock.page ? (
+      {stock?.page ? (
         <ItemPage stock={stock} page={stock.page} />
       ) : (
         <>
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <h1 style={h1Style}>Inventory</h1>
-            <div className="flex flex-wrap items-center gap-2">
-              {stock.addItem ? (
+          <header className={styles.title}>
+            <div>
+              <h1>Inventory</h1>
+              <p className={styles.subtitle}>Ingredients and packaging.</p>
+            </div>
+            <div className={styles.actions}>
+              {stock?.addItem ? (
                 <Button variant="primary" size="sm" onClick={stock.addItem}>
                   Add to inventory
                 </Button>
               ) : null}
-              {stock.manageItems ? (
+              {stock?.manageItems ? (
                 <SectionTools
                   label="Inventory settings"
                   items={[
@@ -274,11 +279,27 @@ export function InventoryLive({ v }: { v: OpsVals }) {
                 />
               ) : null}
             </div>
-          </div>
-          <OfflineLine online={stock.online} />
-          <InventoryList stock={stock} />
+          </header>
+          <SectionNavigation v={v} refined />
+          {stock ? (
+            <>
+              <OfflineLine online={stock.online} />
+              <InventoryList
+                stock={stock}
+                category={category}
+                filter={filter}
+                setCategory={setCategory}
+                setFilter={setFilter}
+              />
+            </>
+          ) : (
+            <p style={mutedStyle} role="status">
+              Stock is loading.
+            </p>
+          )}
         </>
       )}
     </section>
   );
 }
+InventoryLive.ownsSectionNavigation = true;

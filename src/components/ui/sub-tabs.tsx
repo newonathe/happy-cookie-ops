@@ -15,6 +15,7 @@ export interface SubTabsProps {
   label: string;
   tabs: SubTab[];
   quiet?: boolean;
+  refined?: boolean;
 }
 
 const navStyle: CSSProperties = {
@@ -39,7 +40,7 @@ const badgeStyle: CSSProperties = {
   fontVariantNumeric: 'tabular-nums'
 };
 
-function tabStyle(active: boolean, quiet: boolean): CSSProperties {
+function tabStyle(active: boolean, quiet: boolean, refined: boolean): CSSProperties {
   const tone: CSSProperties = active
     ? { background: '#FDEDE5', color: '#A63C0E', boxShadow: 'inset 0 0 0 2px #E75F23' }
     : quiet
@@ -59,7 +60,20 @@ function tabStyle(active: boolean, quiet: boolean): CSSProperties {
     flexShrink: 0,
     whiteSpace: 'nowrap',
     transition: 'transform .16s cubic-bezier(.2,.8,.2,1), background-color .2s ease',
-    ...tone
+    ...tone,
+    ...(refined
+      ? {
+          minHeight: '44px',
+          padding: '10px 13px',
+          fontSize: '0.8125rem',
+          borderRadius: '11px',
+          border: '1px solid transparent',
+          boxShadow: 'none',
+          background: active ? 'var(--color-cust-bg)' : 'transparent',
+          color: active ? 'var(--color-brand)' : 'var(--color-ink-mute)',
+          fontWeight: active ? 600 : 500
+        }
+      : {})
   };
 }
 
@@ -67,7 +81,7 @@ function tabStyle(active: boolean, quiet: boolean): CSSProperties {
  * The sub-tab strip of the live interface (final-plan.md section 8). The labels and which
  * one is open come from data; destinations wrap so a narrow screen never hides them offscreen.
  */
-export function SubTabs({ label, tabs, quiet = false }: SubTabsProps) {
+export function SubTabs({ label, tabs, quiet = false, refined = false }: SubTabsProps) {
   if (tabs.length === 0) return null;
   return (
     <nav aria-label={label} data-sub-tabs={quiet ? 'entries' : 'places'} style={navStyle}>
@@ -78,8 +92,10 @@ export function SubTabs({ label, tabs, quiet = false }: SubTabsProps) {
           type="button"
           aria-current={tab.active ? 'page' : undefined}
           onClick={tab.go}
-          style={tabStyle(tab.active, quiet)}
-          hoverStyle={tab.active ? undefined : { background: '#F3EFEC' }}
+          style={tabStyle(tab.active, quiet, refined)}
+          hoverStyle={
+            tab.active ? undefined : { background: refined ? 'var(--color-raise)' : '#F3EFEC' }
+          }
           activeStyle={{ transform: 'scale(.98)' }}
           focusStyle={{ outline: '2px solid #E75F23', outlineOffset: '2px' }}
         >

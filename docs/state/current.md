@@ -7,8 +7,9 @@ sidebar/phone navigation and original brand asset. Existing screen/sheet operati
 demo, helper, denied, public and focus/till boundaries retain their existing frame. Quick add
 remains reachable while its jobs acquire contextual homes. Stock item/count Back retains context.
 
-**Next:** finish Stock's actual page layout, categories, unknown-stock/cost truth and complete
-count flow, then Make and the other workflows. The private plan covers 59 pages/child flows,
+Stock browsing now uses a compact ingredient/packaging panel with saved pack details and retained
+filters. **Next:** finish item/count layout, production categories and unknown-stock truth,
+then Make and the other workflows. The private plan covers 59 pages/child flows,
 238 decision branches and 224 automation field groups; these are planned coverage, not
 implemented automation. Reuse known context/calculations and ask only new facts/exceptions.
 

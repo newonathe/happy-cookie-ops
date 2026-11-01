@@ -63,7 +63,7 @@ describe('the function map (final-plan.md section 8.1)', () => {
       ['Bazaar'],
       ['Orders', 'Customers/Waitlist', 'Shop'],
       ['Bake plan', 'Recipes'],
-      ['Inventory', 'Grocery', 'Suppliers'],
+      ['Inventory', 'Shopping', 'Suppliers'],
       ['P&L', 'Sales', 'Expenses']
     ]);
     expect(TABS.flatMap((tab) => placesOf(tab.id))).toHaveLength(13);

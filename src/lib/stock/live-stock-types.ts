@@ -35,6 +35,8 @@ export interface StockItemView {
   active: boolean;
   /** The quantity with its unit, e.g. "1,250 g". */
   qtyText: string;
+  /** Saved pack label and base-unit quantity; never a new user question. */
+  packText: string;
   status: StockStatus;
   /** "Low below 500 g", or "No level set". */
   levelText: string;
