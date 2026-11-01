@@ -11,23 +11,7 @@ import type {
   StockMovementView,
   StockStatus
 } from '@/lib/stock/live-stock-types';
-import {
-  Facts,
-  OfflineLine,
-  StatusWord,
-  buttonBase,
-  cardStyle,
-  h1Style,
-  h2Style,
-  INK,
-  listStyle,
-  liveStockOf,
-  manilaStamp,
-  mutedStyle,
-  screenStyle,
-  textStyle,
-  wrapRow
-} from './stock-shared';
+import { OfflineLine, StatusWord, liveStockOf, manilaStamp } from './stock-shared';
 import { CountInventory } from './count-inventory';
 import { Button } from '@/components/ui/button';
 import { SectionTools } from '@/components/live/section-tools';
@@ -48,7 +32,7 @@ const KIND_WORD: Record<StockMovementKind, string> = {
 
 function CountNote({ text }: { text: string | null }) {
   if (text === null) return null;
-  return <p style={{ ...mutedStyle, color: INK }}>About counts: {text}</p>;
+  return <p className={styles.note}>About counts: {text}</p>;
 }
 
 function ItemRow({ item }: { item: StockItemView }) {
@@ -141,15 +125,15 @@ function InventoryList({
 
 function MovementRow({ move }: { move: StockMovementView }) {
   return (
-    <li style={{ ...cardStyle, display: 'flex', flexDirection: 'column', gap: '2px' }}>
-      <span style={{ ...wrapRow, justifyContent: 'space-between' }}>
-        <span style={{ ...textStyle, fontWeight: 700 }}>{KIND_WORD[move.kind]}</span>
-        <span style={{ ...textStyle, fontWeight: 600 }}>{move.changeText}</span>
-      </span>
-      {move.costText !== null ? <span style={textStyle}>{move.costText}</span> : null}
-      {move.supplier ? <span style={mutedStyle}>{move.supplier}</span> : null}
-      {move.reason ? <span style={mutedStyle}>{move.reason}</span> : null}
-      <time dateTime={new Date(move.at).toISOString()} style={mutedStyle}>
+    <li className={styles.movement}>
+      <div className={styles.historyRow}>
+        <strong>{KIND_WORD[move.kind]}</strong>
+        <strong className={styles.movementAmount}>{move.changeText}</strong>
+      </div>
+      {move.costText !== null ? <span>{move.costText}</span> : null}
+      {move.supplier ? <span className={styles.note}>{move.supplier}</span> : null}
+      {move.reason ? <span className={styles.note}>{move.reason}</span> : null}
+      <time dateTime={new Date(move.at).toISOString()} className={styles.note}>
         {manilaStamp(move.at)}
       </time>
     </li>
@@ -160,26 +144,30 @@ function Movements({ page }: { page: StockItemPage }) {
   let body: React.ReactNode;
   if (page.movementsState === 'loading')
     body = (
-      <p aria-live="polite" style={mutedStyle}>
-        Loading movements…
+      <p role="status" aria-live="polite" className={styles.historyState}>
+        Loading stock history…
       </p>
     );
   else if (page.movementsState === 'unavailable')
-    body = <p style={mutedStyle}>Movements are not available yet.</p>;
-  else if (page.movements.length === 0) body = <p style={mutedStyle}>No movements yet.</p>;
+    body = (
+      <div className={styles.historyState}>
+        <p>Stock history is unavailable.</p>
+        {page.retry ? <Button onClick={page.retry}>Retry history</Button> : null}
+      </div>
+    );
+  else if (page.movements.length === 0)
+    body = <p className={styles.historyState}>No stock changes recorded yet.</p>;
   else
     body = (
-      <ul aria-label="Movements" style={listStyle}>
-        {page.movements.map((m) => (
-          <MovementRow key={m.id} move={m} />
+      <ul aria-label="Stock history" className={styles.historyList}>
+        {page.movements.map((move) => (
+          <MovementRow key={move.id} move={move} />
         ))}
       </ul>
     );
   return (
-    <section aria-labelledby="stock-movements" style={{ ...screenStyle, gap: '8px' }}>
-      <h2 id="stock-movements" style={h2Style}>
-        Movements
-      </h2>
+    <section aria-labelledby="stock-movements" className={styles.history}>
+      <h2 id="stock-movements">Stock history</h2>
       {body}
     </section>
   );
@@ -188,48 +176,78 @@ function Movements({ page }: { page: StockItemPage }) {
 function ItemPage({ stock, page }: { stock: LiveStockVals; page: StockItemPage }) {
   const item = page.item;
   const facts: Array<readonly [string, string]> = [
-    ['On hand', item.qtyText],
-    ['Level', item.levelText],
-    ['Last counted', item.lastCountedText],
-    ['Cost', item.costText],
+    ['Pack', item.packText],
+    ['Reorder level', item.levelText],
+    ['Cost per unit', item.costText],
     ['Supplier', item.supplier]
   ];
-  if (item.lastPaidText !== null) facts.push(['Last paid', item.lastPaidText]);
-  const actions: Array<readonly [string, () => void]> = [
-    ['Receive', item.receive],
-    ['Count', item.count],
-    ['Waste', item.waste],
-    ['Adjust', item.adjust],
-    ['Edit', item.edit]
-  ];
+  if (item.lastPaidText !== null) facts.push(['Latest purchase', item.lastPaidText]);
   return (
     <>
-      <button
-        type="button"
-        onClick={page.close}
-        style={{ ...buttonBase, alignSelf: 'flex-start', minHeight: '44px' }}
-      >
-        <span aria-hidden="true">← </span>Back to all items
-      </button>
-      <h1 style={h1Style}>{item.name}</h1>
+      <Button variant="ghost" className="self-start" onClick={page.close}>
+        <span aria-hidden="true">←</span>Back to inventory
+      </Button>
+      <header className={styles.title}>
+        <div>
+          <h1>{item.name}</h1>
+          <p className={styles.subtitle}>{item.category}</p>
+        </div>
+        <Button onClick={item.edit}>Edit item</Button>
+      </header>
       <OfflineLine online={stock.online} />
-      <section aria-label="Item facts" style={cardStyle}>
-        <p style={{ margin: '0 0 8px' }}>
-          <span style={{ ...textStyle, marginRight: '8px' }}>Status</span>
-          <StatusWord status={item.status} />
+      {!item.active ? (
+        <p className={styles.note} role="status">
+          This item is archived. Edit item to make it active again.
         </p>
-        <Facts rows={facts} />
-      </section>
+      ) : null}
       <CountNote text={stock.countNote} />
-      <section
-        aria-label="Item actions"
-        style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', minWidth: 0 }}
-      >
-        {actions.map(([label, run]) => (
-          <button key={label} type="button" onClick={run} style={buttonBase}>
-            {label}
-          </button>
-        ))}
+      <section aria-label="Item facts" className={styles.itemPanel}>
+        <div className={styles.itemSummary}>
+          <div>
+            {item.active ? (
+              <StatusWord status={item.status} />
+            ) : (
+              <span className={styles.note}>Archived</span>
+            )}
+            <p className={styles.balance}>{item.qtyText}</p>
+            <p className={styles.note}>Recorded on hand · {item.lastCountedText}</p>
+          </div>
+          {item.active ? (
+            <div aria-label="Item actions" className={styles.actions}>
+              <Button variant="primary" onClick={item.receive}>
+                Receive
+              </Button>
+              <Button onClick={item.count}>Count</Button>
+              <SectionTools
+                label="Waste or correction"
+                items={[
+                  {
+                    id: 'waste',
+                    label: 'Record waste',
+                    active: false,
+                    badge: null,
+                    go: item.waste
+                  },
+                  {
+                    id: 'correct',
+                    label: 'Correct stock',
+                    active: false,
+                    badge: null,
+                    go: item.adjust
+                  }
+                ]}
+              />
+            </div>
+          ) : null}
+        </div>
+        <dl className={styles.facts}>
+          {facts.map(([label, value]) => (
+            <div key={label}>
+              <dt>{label}</dt>
+              <dd>{value}</dd>
+            </div>
+          ))}
+        </dl>
       </section>
       <Movements page={page} />
     </>
@@ -304,7 +322,7 @@ export function InventoryLive({ v }: { v: OpsVals }) {
               />
             </>
           ) : (
-            <p style={mutedStyle} role="status">
+            <p className={styles.note} role="status">
               Stock is loading.
             </p>
           )}

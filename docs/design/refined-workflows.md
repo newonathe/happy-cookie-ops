@@ -111,7 +111,8 @@ needs more than approximately 400 changed lines, split it into complete smaller 
 - The ingredient/packaging list now uses the compact panel layout, saved pack details, one status
   selector and retained category/filter when returning from an item/count. Retired items are excluded
   from the working list. Its single Inventory/Shopping/Suppliers group follows the title and uses the
-  approved quiet appearance. Item layout, production categories and unknown-stock provenance remain pending.
+  approved quiet appearance. Bulk count layout, supplier-price/history access, production categories
+  and unknown-stock provenance remain pending.
 - Owner messages render separately from the sheet frame, fixing the opaque page covering a
   saved result. Existing toast lifetime and Undo are preserved; warning/status announcements are
   accessible. Actual screenshot pixels confirm headings remain painted at all four widths.
@@ -119,3 +120,8 @@ needs more than approximately 400 changed lines, split it into complete smaller 
   active items with blank measurements or resumes an existing task; an unfinished/pending count
   cannot be replaced. Empty categories explain what is missing. Entry/review/Back/resume/discard
   are checked at four widths without posting before Save; existing identity, lease and recovery rules remain.
+- The item page groups recorded balance, pack, reorder level, true unit cost/source and supplier;
+  existing Receive/Count/Edit and contextual waste/correction actions remain reachable. Archived
+  items retain Edit/history. Unavailable history can retry for the same item without a stock write.
+  Matched-record reference and real-form checks cover four widths; supplier price/history drilldown
+  and shared unknown-stock policy remain separate pending work.

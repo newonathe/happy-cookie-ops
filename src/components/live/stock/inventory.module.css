@@ -21,4 +21,23 @@
 .amount { max-width: 120px; text-align: right; font-size: 0.875rem; font-weight: 600; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 .status { display: block; margin-top: 5px; font-size: 0.6875rem; }
 .empty { padding: 24px 16px; border: 1px solid var(--color-line); border-radius: 18px; color: var(--color-ink-mute); font-size: 0.8125rem; }
+.note { margin: 0; color: var(--color-ink-mute); font-size: .75rem; line-height: 1.5; overflow-wrap: anywhere; }
+.itemPanel { display: flex; flex-direction: column; gap: 22px; padding: 20px; border: 1px solid var(--color-line); border-radius: 18px; background: var(--color-surface); }
+.itemSummary { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px; }
+.balance { margin: 10px 0 4px; color: var(--color-ink); font-size: 1.75rem; font-weight: 600; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.facts { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 18px 16px; margin: 0; }
+.facts > div { min-width: 0; }
+.facts dt { margin-bottom: 4px; font-size: .6875rem; color: var(--color-ink-mute); }
+.facts dd { margin: 0; font-size: .8125rem; font-weight: 500; overflow-wrap: anywhere; }
+.history { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.history h2 { margin: 0; color: var(--color-ink); font-size: 1rem; font-weight: 600; }
+.historyList { margin: 0; padding: 0 16px; border: 1px solid var(--color-line); border-radius: 18px; list-style: none; background: var(--color-surface); }
+.movement { display: flex; flex-direction: column; gap: 4px; padding: 16px 0; font-size: .8125rem; overflow-wrap: anywhere; }
+.movement + .movement { border-top: 1px solid var(--color-divide); }
+.historyRow { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+.historyRow strong { font-weight: 500; }
+.movementAmount { font-variant-numeric: tabular-nums; }
+.historyState { display: flex; align-items: flex-start; flex-direction: column; gap: 12px; margin: 0; padding: 20px; border: 1px solid var(--color-line); border-radius: 18px; background: var(--color-surface); color: var(--color-ink-mute); font-size: .8125rem; }
+.historyState p { margin: 0; }
+@media (min-width: 1000px) { .facts { grid-template-columns: repeat(3,minmax(0,1fr)); } }
 @media (max-width: 650px) { .title .actions { width: 100%; } .title h1 { font-size: 1.5625rem; } .amount { max-width: 90px; } }
