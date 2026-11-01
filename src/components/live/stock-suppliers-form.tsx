@@ -240,7 +240,7 @@ export function StockSuppliersForm({ liveStock }: { liveStock: LiveStockSupplier
         Save
       </button>
       <button type="button" onClick={liveStock.back} style={secondaryButton}>
-        Back to the list
+        {liveStock.backLabel ?? 'Back to the list'}
       </button>
     </form>
   );

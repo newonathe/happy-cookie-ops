@@ -128,3 +128,5 @@ needs more than approximately 400 changed lines, split it into complete smaller 
 - Category counts use one editable list with recorded quantities, distinct item labels and a review
   of measured rows only. Back retains all values; blank remains unmeasured and zero remains explicit.
   Changed items are read-only until explicitly skipped; pending saves lock editing and retain their identities.
+- Suppliers has a vertical directory, visible Add supplier, contact/price history and retained Back.
+  Confirmed saves return to that page; a late acknowledgement cannot close a newer supplier draft.

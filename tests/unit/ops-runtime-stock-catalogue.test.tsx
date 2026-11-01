@@ -606,6 +606,64 @@ describe('A3: the suppliers and prices form', () => {
     return r.renderVals().liveStockSuppliers!;
   };
 
+  it('provides the supplier directory and real price history directly on its page', async () => {
+    const { runtime, rpc } = await mounted('owner', fresh());
+    act(() => runtime.go('suppliers'));
+    const v = runtime.renderVals().liveSupplierDirectory;
+    expect(runtime.state.sheet).toBeNull();
+    expect(runtime.renderVals().liveStockSuppliers).toBeNull();
+    expect(v).not.toBeNull();
+    expect(v!.editing).toBeNull();
+    expect(v!.rows[0]).toMatchObject({
+      id: 'sr', phone: '', notes: '',
+      prices: [{ itemName: 'Unsalted butter', pricePesos: 420, previousText: 'Before: ₱438' }]
+    });
+    act(() => v!.add());
+    expect(runtime.renderVals().liveStockSuppliers!.editing?.isNew).toBe(true);
+    expect(rpc).not.toHaveBeenCalled();
+    act(() => runtime.renderVals().liveStockSuppliers!.back());
+    expect(runtime.state.sheet).toBeNull();
+    act(() => runtime.setRole('helper'));
+    act(() => { v!.add(); v!.edit('sr'); });
+    expect(runtime.state.sheet).toBeNull();
+    expect(runtime.renderVals().liveStockSuppliers).toBeNull();
+    expect(runtime.renderVals().liveSupplierDirectory).toBeNull();
+  });
+
+  it('returns a confirmed supplier save directly to the directory page', async () => {
+    const { runtime } = await mounted('owner', fresh());
+    act(() => runtime.go('suppliers'));
+    act(() => runtime.renderVals().liveSupplierDirectory!.add());
+    const form = runtime.renderVals().liveStockSuppliers!;
+    expect(form.backLabel).toBe('Back to suppliers');
+    act(() => form.save({ ...form.editing!, name: 'Fixture supplier' }));
+    await settle();
+    expect(runtime.state.sheet).toBeNull();
+    expect(runtime.state.screen).toBe('suppliers');
+    expect(runtime.renderVals().liveSupplierDirectory).not.toBeNull();
+  });
+
+  it('a late supplier acknowledgement leaves a newer supplier draft open', async () => {
+    const { runtime, rpc } = await mounted('owner', fresh());
+    act(() => runtime.go('suppliers'));
+    const directory = runtime.renderVals().liveSupplierDirectory!;
+    act(() => directory.edit('sr'));
+    const first = runtime.renderVals().liveStockSuppliers!;
+    let release: (value: Fake['save']) => void = () => {};
+    const reply = new Promise<Fake['save']>((resolve) => { release = resolve; });
+    rpc.mockImplementationOnce(async () => reply);
+    act(() => first.save({ ...first.editing!, name: 'Changed first supplier' }));
+    act(() => first.back());
+    act(() => directory.edit('lan'));
+    const second = runtime.state.sheet;
+    const version = runtime.renderVals().liveStockSuppliers!.version;
+    await act(async () => { release(fresh().save); await reply; });
+    await settle();
+    expect(runtime.state.sheet).toBe(second);
+    expect(runtime.renderVals().liveStockSuppliers!.editing?.id).toBe('lan');
+    expect(runtime.renderVals().liveStockSuppliers!.version).toBe(version);
+  });
+
   it('lists suppliers with their price counts, and opens one with its prices and what each was before', async () => {
     const { runtime } = await mounted('owner', fresh());
     let v = await open(runtime);
