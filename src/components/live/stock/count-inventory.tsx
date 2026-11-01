@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Field } from '@/components/ui/field';
 import { Banner } from '@/components/ui/banner';
+import styles from './count-inventory.module.css';
 
 /** The existing real count operation, with a separate review and retained runtime entries. */
 export function CountInventory({ v, stock }: { v: OpsVals; stock: LiveStockVals }) {
@@ -14,7 +15,7 @@ export function CountInventory({ v, stock }: { v: OpsVals; stock: LiveStockVals 
   const [discard, setDiscard] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const count = stock.count;
-  const task = count?.unavailable ? null : v.stock;
+  const task = count?.unavailable && !count.entries?.length ? null : v.stock;
   if (!count) return null;
   const invalid = count.rows.find((row) => row.error)?.error;
   const save = async () => {
@@ -65,7 +66,7 @@ export function CountInventory({ v, stock }: { v: OpsVals; stock: LiveStockVals 
             </Button>
           </div>
         </Card>
-      ) : !task ? (
+      ) : !task && !count.entries?.length ? (
         <Card className="flex flex-col gap-3">
           <p>
             {count.pending
@@ -118,33 +119,85 @@ export function CountInventory({ v, stock }: { v: OpsVals; stock: LiveStockVals 
         </Card>
       ) : (
         <Card className="flex flex-col gap-4">
-          <h2 className="text-subtitle font-semibold break-words">{task.name}</h2>
-          <p className="text-caption text-ink-mute">
-            {(count.total ?? 1) > 1 ? <>{task.pos} · </> : null}Records say {task.expected}
-          </p>
-          <Field
-            label={`Counted quantity (${String(task.unit)})`}
-            mode="decimal"
-            value={task.value}
-            hint="Enter what you physically counted. Leave blank if not counted; enter 0 only if none remains."
-            disabled={count.saving || count.pending}
-            onChange={(event) => {
-              task.onInput(event);
-              setError(null);
-            }}
-          />
-          <p className="text-caption" aria-live="polite">
-            {task.varianceText}
-          </p>
-          {(count.total ?? 1) > 1 ? (
-            <div className="flex flex-wrap gap-2">
-              <Button disabled={count.saving || count.pending} onClick={task.prev}>
-                Previous item
-              </Button>
-              <Button disabled={count.saving || count.pending} onClick={task.next}>
-                Next item
-              </Button>
-            </div>
+          {count.entries?.length ? (
+            <>
+              <p className={styles.hint}>
+                Enter what you physically counted. Blank means not counted; 0 means none remains.
+              </p>
+              <p className={styles.progress} aria-live="polite">
+                {count.rows.length} of {count.entries.length} entered
+              </p>
+              <ul className={styles.list} aria-label="Items to count">
+                {count.entries.map((entry) => (
+                  <li key={entry.name} className={styles.row}>
+                    <div className={styles.item}>
+                      <h2>{entry.name}</h2>
+                      <p>
+                        {entry.unavailable
+                          ? 'Item changed or unavailable'
+                          : `Records say ${entry.expectedText}`}
+                      </p>
+                      {entry.skip ? (
+                        <Button
+                          variant="ghost"
+                          disabled={count.saving || count.pending}
+                          onClick={entry.skip}
+                          aria-label={`Skip ${entry.name} and its unsaved count`}
+                        >
+                          Skip item and its unsaved count
+                        </Button>
+                      ) : null}
+                    </div>
+                    <Field
+                      label={`Counted quantity (${entry.unit})`}
+                      aria-label={
+                        (count.entries?.length ?? 0) > 1
+                          ? `Counted quantity for ${entry.name} (${entry.unit})`
+                          : undefined
+                      }
+                      mode="decimal"
+                      value={entry.value}
+                      disabled={count.saving || count.pending || entry.unavailable}
+                      onChange={(event) => {
+                        entry.onInput(event.target.value);
+                        setError(null);
+                      }}
+                    />
+                  </li>
+                ))}
+              </ul>
+            </>
+          ) : task ? (
+            <>
+              <h2 className="text-subtitle font-semibold break-words">{task.name}</h2>
+              <p className="text-caption text-ink-mute">
+                {(count.total ?? 1) > 1 ? <>{task.pos} · </> : null}Records say {task.expected}
+              </p>
+              <Field
+                label={`Counted quantity (${String(task.unit)})`}
+                mode="decimal"
+                value={task.value}
+                hint="Enter what you physically counted. Leave blank if not counted; enter 0 only if none remains."
+                disabled={count.saving || count.pending}
+                onChange={(event) => {
+                  task.onInput(event);
+                  setError(null);
+                }}
+              />
+              <p className="text-caption" aria-live="polite">
+                {task.varianceText}
+              </p>
+              {(count.total ?? 1) > 1 ? (
+                <div className="flex flex-wrap gap-2">
+                  <Button disabled={count.saving || count.pending} onClick={task.prev}>
+                    Previous item
+                  </Button>
+                  <Button disabled={count.saving || count.pending} onClick={task.next}>
+                    Next item
+                  </Button>
+                </div>
+              ) : null}
+            </>
           ) : null}
           <Button
             variant="primary"
