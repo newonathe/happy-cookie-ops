@@ -5,7 +5,7 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 /**
  * Slice A2: the live gate, not the demo build. The real `OpsApp`, `OpsRuntime`, `LiveGate`,
  * `RouteSync` and `OfflineBridge` run in live mode against a faked Supabase client and a faked
- * IndexedDB; only the ported frame is replaced by a marker that prints the screen it would draw.
+ * IndexedDB; only the workspace frame is replaced by a marker that prints the screen it would draw.
  *
  * The first test is the defect: verified online with an event open, then a fresh page load
  * with no signal. Before A2 that load signed out and went to /sign-in.
@@ -93,10 +93,10 @@ vi.mock('@/lib/supabase/client', async () => {
   return { createClient: () => client };
 });
 
-vi.mock('@/components/shell/app-frame', async () => {
+vi.mock('@/components/live/owner-workspace', async () => {
   const { useOpsEngine } = await import('@/store/use-ops');
   return {
-    AppFrame: () => {
+    OwnerWorkspace: () => {
       const engine = useOpsEngine();
       net.engine = engine;
       return <div data-testid="frame">{String(engine.state.screen)}</div>;

@@ -1,17 +1,20 @@
 # Current state — Happy Cookie Ops
 
-**Active work, 1 November 2026:** Ethan authorized implementing the completed v4 mockup
-in the actual app before owner testing. Read [implementation scope](../design/refined-workflows.md)
-and [next goal](next-goal.md). Work is on `codex/refined-workflows`; direct Bazaar navigation
-and the inventory Count flow are implemented. Count has item entry, review, retained drafts,
-and explicit recovery for unconfirmed saves; targeted tests and four-width headless UI checks pass.
-Count passed the pinned gate (147 files / 2,638 tests). Duplicate secondary tab rows are removed;
-Stock has one section row and direct Add to inventory. The approved live frame and complete Stock visual
-port are next: the current preview still uses the legacy frame. The private page plan covers 59 pages/child
-flows and 179 decision branches; this is planned coverage only. Make and the other refined workflows
-remain pending. No deployment or hosted changes
-are authorized by this instruction. The 20 October release details below are historical;
-the private comparison verified a later release on 1 November.
+**Active work, 1 November 2026:** Ethan authorized implementing the complete v4 mockup
+in the actual app. Work is on `codex/refined-workflows`; see the [scope](../design/refined-workflows.md)
+and [next goal](next-goal.md). A separate owner workspace now provides the new live header,
+sidebar/phone navigation and original brand asset. Existing screen/sheet operations are reused;
+demo, helper, denied, public and focus/till boundaries retain their existing frame. Quick add
+remains reachable while its jobs acquire contextual homes. Stock item/count Back retains context.
+
+**Next:** finish Stock's actual page layout, categories, unknown-stock/cost truth and complete
+count flow, then Make and the other workflows. The private plan covers 59 pages/child flows,
+238 decision branches and 224 automation field groups; these are planned coverage, not
+implemented automation. Reuse known context/calculations and ask only new facts/exceptions.
+
+Changed-path tests, independent frame review and four-width component fixture checks pass;
+accepted commits record the pinned full gate. Database/hosted/physical-phone acceptance is
+separate. No deployment or hosted changes are authorized. The release details below are historical.
 
 Read this page first in a new session. It is kept short on purpose.
 
