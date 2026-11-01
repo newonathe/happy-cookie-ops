@@ -4476,7 +4476,7 @@ export class OpsRuntime extends OpsProvider {
     const cached = this.movementReads.get(id);
     if (!cached || cached.state !== 'ready')
       this.movementReads.set(id, { state: 'loading', rows: [] });
-    this.setState({ liveStockOpen: id });
+    this.setState({ liveStockOpen: id, liveStockPriceOpen: false });
     if (!cached || cached.state !== 'ready') void this.loadMovements(id);
   }
 
@@ -4492,6 +4492,13 @@ export class OpsRuntime extends OpsProvider {
     const cost = (this as unknown as CostActions).costPerUnit(item.name);
     // The engine answers 0 for an item nobody has priced: that is "unknown", never a cost of nothing.
     return { perUnit: Number.isFinite(cost) && cost > 0 ? cost : null, source: null };
+  }
+
+  private setItemPricesOpen(id: string, value: boolean): void {
+    if (!isLiveMode() || this.unmounted || this.state.role !== 'owner' ||
+      this.state.screen !== 'inventory' || this.state.liveStockOpen !== id ||
+      !this.stockCatalogue?.items.some((item) => item.id === id)) return;
+    this.setState({ liveStockPriceOpen: value });
   }
 
   /** Category context comes from the list; measured quantities and posting stay with the existing count operation. */
@@ -4781,10 +4788,25 @@ export class OpsRuntime extends OpsProvider {
       page: open
         ? {
             item: open,
+            pricesOpen: this.state.liveStockPriceOpen === true,
+            openPrices: () => this.setItemPricesOpen(open.id, true),
+            closePrices: () => this.setItemPricesOpen(open.id, false),
+            priceSources: c.prices.filter((price) => price.itemName === open.name).map((price) => {
+              const supplier = c.suppliers.find((row) => row.id === price.supplierId);
+              return {
+                id: price.id,
+                supplierName: supplier?.name ?? 'Supplier unavailable',
+                packText: price.packLabel || 'Pack not specified',
+                priceText: peso(price.priceCents),
+                historyText: price.previousCents.length ? 'Before: ' + price.previousCents.map(peso).join(', ') : 'First price',
+                lastBought: price.lastBought,
+                stateText: !supplier ? 'Supplier unavailable' : !supplier.active ? 'Supplier inactive' : !price.active ? 'Price not in use' : price.preferred ? 'Preferred source' : 'Saved price'
+              };
+            }),
             retry: () => this.openStockItemPage(open.id),
             movementsState: reads?.state ?? 'loading',
             movements: (reads?.rows ?? []).map((m) => this.movementView(m, open.unit)),
-            close: () => this.setState({ liveStockOpen: null })
+            close: () => this.setState({ liveStockOpen: null, liveStockPriceOpen: false })
           }
         : null,
       // After a cutover on the used basis a count that finds less stock is an expense; before it, or with the books unread, nothing is said.

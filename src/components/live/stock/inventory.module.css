@@ -1,4 +1,7 @@
 .screen { display: flex; flex-direction: column; gap: 16px; min-width: 0; color: var(--color-ink); }
+.childPage { animation: stockChildEnter var(--dur-owner-base, 220ms) var(--ease-owner, ease-out); }
+@keyframes stockChildEnter { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) { .childPage { animation: none; } }
 .title { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 14px; margin-bottom: 4px; }
 .title h1 { margin: 0; font-size: 1.6875rem; font-weight: 600; letter-spacing: -.65px; line-height: 1.2; overflow-wrap: anywhere; }
 .subtitle { margin: 6px 0 0; color: var(--color-ink-mute); font-size: 0.75rem; }

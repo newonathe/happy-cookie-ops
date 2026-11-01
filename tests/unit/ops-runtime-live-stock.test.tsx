@@ -395,6 +395,32 @@ describe('B5-1: the item page and its movements', () => {
   });
   afterEach(() => cleanup());
 
+  it('opens only the selected item prices/history and keeps cost and item identity on return', async () => {
+    const c = catalogue();
+    (c.prices as Wire[])[0]!.previous_cents = [43800];
+    (c.prices as Wire[]).push({ ...price('a3a00000-0000-4000-8000-000000000004', 'Unsalted butter', '250 g', 11050), active: false });
+    const { runtime, rpc } = await mounted(world({ catalogue: c }));
+    act(() => runtime.go('inventory'));
+    act(() => byName(runtime, 'Unsalted butter').open());
+    const page = stock(runtime).page!;
+    const cost = page.item.costText;
+    act(() => page.openPrices?.());
+    expect(stock(runtime).page?.pricesOpen).toBe(true);
+    expect(stock(runtime).page?.priceSources).toMatchObject([
+      { supplierName: 'S&R', packText: '1 kg block', priceText: '₱420.00', historyText: 'Before: ₱438.00' },
+      { packText: '250 g', priceText: '₱110.50', stateText: 'Price not in use' }
+    ]);
+    expect(stock(runtime).page?.item.costText).toBe(cost);
+    act(() => stock(runtime).page?.closePrices?.());
+    expect(stock(runtime).page?.item.id).toBe('butter');
+    expect(stock(runtime).page?.pricesOpen).toBe(false);
+    act(() => byName(runtime, 'Eggs').open());
+    act(() => page.openPrices?.());
+    expect(stock(runtime).page?.item.id).toBe('eggs');
+    expect(stock(runtime).page?.pricesOpen).toBe(false);
+    expect(rpc.mock.calls.filter(([name]) => /^(save_|record_)/.test(name))).toHaveLength(0);
+  });
+
   it('there is no page until an item is opened', async () => {
     const { runtime, rpc } = await mounted(world());
     expect(stock(runtime).page).toBeNull();
