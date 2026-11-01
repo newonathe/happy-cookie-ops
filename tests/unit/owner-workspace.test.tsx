@@ -69,3 +69,24 @@ it('keeps demo, helper/denied and customer pages on the existing frame', () => {
   act(() => runtime.go('shop'));
   expect(document.querySelector('[data-refined-frame]')).toBeNull();
 });
+
+it('announces one toast and keeps Undo bound to the existing runtime action', () => {
+  vi.useFakeTimers();
+  try {
+    const runtime = mount();
+    const undo = vi.fn();
+    act(() => runtime.setState({ toast: { msg: 'Change saved.', tone: 'ok', undo } }));
+    const notice = screen.getByRole('status');
+    expect(notice).toHaveTextContent('Change saved.');
+    expect(screen.getAllByText('Change saved.')).toHaveLength(1);
+    fireEvent.click(within(notice).getByRole('button', { name: 'Undo' }));
+    expect(undo).toHaveBeenCalledOnce();
+    expect(runtime.state.toast).toBeNull();
+    act(() => runtime.setState({ toast: { msg: 'Cost pending.', tone: 'warn', undo: null } }));
+    expect(screen.getByRole('alert')).toHaveTextContent('Cost pending.');
+    expect(screen.queryByRole('button', { name: 'Undo' })).toBeNull();
+  } finally {
+    vi.clearAllTimers();
+    vi.useRealTimers();
+  }
+});

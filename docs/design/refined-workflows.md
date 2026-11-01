@@ -96,3 +96,6 @@ needs more than approximately 400 changed lines, split it into complete smaller 
   selector and retained category/filter when returning from an item/count. Retired items are excluded
   from the working list. Its single Inventory/Shopping/Suppliers group follows the title and uses the
   approved quiet appearance. Item layout, production categories and unknown-stock provenance remain pending.
+- Owner messages render separately from the sheet frame, fixing the opaque page covering a
+  saved result. Existing toast lifetime and Undo are preserved; warning/status announcements are
+  accessible. Actual screenshot pixels confirm headings remain painted at all four widths.
