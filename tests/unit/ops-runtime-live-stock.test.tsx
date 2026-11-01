@@ -268,6 +268,7 @@ function settingsClient(budget: { cents: number; updatedAt: string | null } | nu
 
 describe('B5-1: liveStock (live mode, owner)', () => {
   beforeEach(() => {
+    localStorage.clear();
     live = true;
     store.clear();
     localStorage.clear();
@@ -385,6 +386,7 @@ describe('B5-1: liveStock (live mode, owner)', () => {
 
 describe('B5-1: the item page and its movements', () => {
   beforeEach(() => {
+    localStorage.clear();
     live = true;
     store.clear();
     localStorage.clear();
@@ -529,6 +531,7 @@ describe('B5-1: the item page and its movements', () => {
 
 describe('B5-1: the actions use the existing sheets and flows', () => {
   beforeEach(() => {
+    localStorage.clear();
     live = true;
     store.clear();
     localStorage.clear();
@@ -567,6 +570,7 @@ describe('B5-1: the actions use the existing sheets and flows', () => {
 
 describe('B5-1: the count note', () => {
   beforeEach(() => {
+    localStorage.clear();
     live = true;
     store.clear();
     localStorage.clear();
@@ -594,6 +598,7 @@ describe('B5-1: the count note', () => {
 
 describe('B5-1: the grocery list', () => {
   beforeEach(() => {
+    localStorage.clear();
     live = true;
     store.clear();
     localStorage.clear();

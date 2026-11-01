@@ -11,12 +11,7 @@ const task = z
     counts: z.record(name, z.string().max(48))
   })
   .strict()
-  .refine(
-    (v) =>
-      v.i < v.items.length &&
-      new Set(v.items).size === v.items.length &&
-      Object.keys(v.counts).every((key) => v.items.includes(key))
-  );
+  .refine((v) => v.i < v.items.length && new Set(v.items).size === v.items.length);
 const fields = z
   .object({
     id: z.string().uuid(),

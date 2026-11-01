@@ -178,6 +178,7 @@ const movement = (rpc: ReturnType<typeof fakeClient>['rpc'], i = 0) =>
 
 describe('C1: the ported stock actions record movements (live mode)', () => {
   beforeEach(() => {
+    localStorage.clear();
     live = true;
     store.clear();
     localStorage.clear();
