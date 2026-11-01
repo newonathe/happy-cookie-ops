@@ -4360,8 +4360,8 @@ export class OpsRuntime extends OpsProvider {
       delete counts[name];
       if (counted !== before) {
         corrected += 1;
-        const perUnit = (this as unknown as InvActions).costPerUnit(name);
-        if (Number.isFinite(perUnit)) value += (counted - before) * perUnit;
+        const { perUnit } = this.stockUnitCost(item);
+        if (perUnit !== null) value += (counted - before) * perUnit;
         else valued = false;
       }
     }

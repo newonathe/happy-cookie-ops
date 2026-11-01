@@ -9,7 +9,8 @@ Work on `codex/refined-workflows`, one tested logical slice per commit. Direct B
 Customers/Waitlist and the inventory Count path are partly implemented, including retained return context and
 durable count recovery. The separate live owner workspace now implements the new frame beside the locked demo.
 Next finish the complete Stock list/item/count/review/save/return
-path with matched-content visual checks. Fix Count's unknown-cost confirmation in that path.
+path with matched-content visual checks. Count's unknown-cost confirmation now reuses the existing
+cost source, preserving pending versus confirmed zero without changing ledger posting.
 Then continue Make, remaining Stock, Bazaar, Sell/Shop, Money/Account and integration. Small slices
 do not reduce the authorized overall scope. Record actual completed versus pending work.
 

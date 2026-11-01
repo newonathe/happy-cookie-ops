@@ -87,11 +87,14 @@ interface Fake {
   /** Answers to record_stock_movement in order, then `movement` for the rest. */
   movements?: Array<{ data: unknown; error: unknown }>;
   lastPaid: unknown[];
+  costs?: { data: unknown; error: unknown };
 }
 function fakeClient(state: Fake) {
   const rpc = vi.fn(async (name: string, args?: Record<string, unknown>) => {
     if (name === 'get_stock_catalogue') return { data: state.data, error: null };
     if (name === 'get_last_paid') return { data: state.lastPaid, error: null };
+    if (state.costs && name === 'get_item_costs') return state.costs;
+    if (state.costs && name === 'get_recipe_costs') return { data: [], error: null };
     // A database before B3b has no cost functions: the engine's own cost path (last paid over quantity) stands.
     if (name === 'get_item_costs' || name === 'get_recipe_costs')
       return { data: null, error: { code: 'PGRST202' }, status: 404 };
@@ -329,6 +332,105 @@ describe('C1: the ported stock actions record movements (live mode)', () => {
     expect(msg(runtime)).toContain('1 item corrected');
     expect(qty(runtime, 'Unsalted butter')).toBe(850);
     // Mutation: skipping the unchanged count leaves "last counted" old on an item that was checked.
+  });
+
+  it.each([
+    ['an unpriced legacy item', undefined, true, false],
+    [
+      'an unknown database cost',
+      {
+        data: [{ item_id: 'butter', name: 'Unsalted butter', active: true, unit_cost: null }],
+        error: null
+      },
+      true,
+      false
+    ],
+    [
+      'a confirmed database zero',
+      {
+        data: [{ item_id: 'butter', name: 'Unsalted butter', active: true, unit_cost: 0 }],
+        error: null
+      },
+      false,
+      false
+    ],
+    [
+      'a known database cost',
+      {
+        data: [{ item_id: 'butter', name: 'Unsalted butter', active: true, unit_cost: 50 }],
+        error: null
+      },
+      false,
+      true
+    ],
+    [
+      'a failed cost read despite a previous price',
+      { data: null, error: { code: 'network' } },
+      true,
+      true
+    ],
+    ['a known legacy cost', undefined, false, true]
+  ] as const)(
+    'count confirmation distinguishes %s',
+    async (_name, costs, pending, previouslyPaid) => {
+      const { runtime, rpc } = await mounted(
+        'owner',
+        fresh({
+          costs,
+          lastPaid: previouslyPaid
+            ? [
+                {
+                  item_name: 'Unsalted butter',
+                  cost_cents: 50000,
+                  qty: 1000,
+                  supplier: 'S&R Membership',
+                  at: 1_790_000_000_000
+                }
+              ]
+            : []
+        })
+      );
+      await act(async () => runtime.loadCosts());
+      act(() => acts(runtime).startStocktake());
+      act(() => acts(runtime).countInput('Unsalted butter', '850'));
+      act(() => acts(runtime).reconcile());
+      await settle();
+      expect(called(rpc, 'record_stock_movement')).toHaveLength(1);
+      expect(qty(runtime, 'Unsalted butter')).toBe(850);
+      expect(runtime.state.stocktake).toBeNull();
+      if (pending) {
+        expect(msg(runtime)).toContain('Their value is pending');
+        expect(msg(runtime)).not.toContain('₱');
+      } else {
+        expect(msg(runtime)).not.toContain('pending');
+        expect(msg(runtime)).toContain(previouslyPaid ? '₱25 of stock unaccounted for.' : '₱0');
+      }
+    }
+  );
+
+  it('does not present a partial known value as the total count adjustment', async () => {
+    const { runtime, rpc } = await mounted(
+      'owner',
+      fresh({
+        costs: {
+          data: [
+            { item_id: 'butter', name: 'Unsalted butter', active: true, unit_cost: 50 },
+            { item_id: 'flour', name: 'Bread flour', active: true, unit_cost: null }
+          ],
+          error: null
+        }
+      })
+    );
+    await act(async () => runtime.loadCosts());
+    act(() => acts(runtime).startStocktake());
+    act(() => acts(runtime).countInput('Unsalted butter', '850'));
+    act(() => acts(runtime).countInput('Bread flour', '3900'));
+    act(() => acts(runtime).reconcile());
+    await settle();
+    expect(called(rpc, 'record_stock_movement')).toHaveLength(2);
+    expect(msg(runtime)).toContain('2 items corrected');
+    expect(msg(runtime)).toContain('Their value is pending');
+    expect(msg(runtime)).not.toContain('₱');
   });
 
   it('when a change is refused or not sent, nothing changes on screen and she is told', async () => {
