@@ -19,11 +19,10 @@ export interface SubTabsProps {
 
 const navStyle: CSSProperties = {
   display: 'flex',
+  flexWrap: 'wrap',
   gap: '6px',
   padding: '2px',
-  overflowX: 'auto',
-  overflowY: 'hidden',
-  scrollbarWidth: 'none'
+  overflow: 'visible'
 };
 
 const badgeStyle: CSSProperties = {
@@ -66,7 +65,7 @@ function tabStyle(active: boolean, quiet: boolean): CSSProperties {
 
 /**
  * The sub-tab strip of the live interface (final-plan.md section 8). The labels and which
- * one is open come from data; the row scrolls inside itself instead of widening the page.
+ * one is open come from data; destinations wrap so a narrow screen never hides them offscreen.
  */
 export function SubTabs({ label, tabs, quiet = false }: SubTabsProps) {
   if (tabs.length === 0) return null;

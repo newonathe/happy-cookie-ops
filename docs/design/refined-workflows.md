@@ -66,6 +66,10 @@ needs more than approximately 400 changed lines, split it into complete smaller 
 - Direct Bazaar and Customers/Waitlist are implemented on `codex/refined-workflows`.
   The full pinned gate passed: 143 test files, 2,611 tests; port integrity unchanged.
   Other navigation consolidation and durable record routes remain pending.
+- Removed the duplicated second navigation row across the live owner sections. Payments
+  and Products are direct section links; contextual setup/tools use a disclosure with
+  keyboard support. Stock has one Inventory/Grocery/Suppliers row, visible Add to inventory,
+  and item management under Inventory settings. Further product-centered consolidation remains pending.
 - Inventory Count is connected to the real live operation: item entry, blank versus zero,
   review, safe Back/continue, multiple retained entries, unavailable-item recovery and
   explicit checking of unconfirmed saves. Durable requests keep their original IDs and

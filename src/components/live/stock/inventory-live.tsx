@@ -31,6 +31,7 @@ import {
 } from './stock-shared';
 import { CountInventory } from './count-inventory';
 import { Button } from '@/components/ui/button';
+import { SectionTools } from '@/components/live/section-tools';
 
 type Filter = 'All' | StockStatus;
 const FILTERS: readonly Filter[] = ['All', 'Out', 'Low', 'Good'];
@@ -250,7 +251,30 @@ export function InventoryLive({ v }: { v: OpsVals }) {
         <ItemPage stock={stock} page={stock.page} />
       ) : (
         <>
-          <h1 style={h1Style}>Inventory</h1>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h1 style={h1Style}>Inventory</h1>
+            <div className="flex flex-wrap items-center gap-2">
+              {stock.addItem ? (
+                <Button variant="primary" size="sm" onClick={stock.addItem}>
+                  Add to inventory
+                </Button>
+              ) : null}
+              {stock.manageItems ? (
+                <SectionTools
+                  label="Inventory settings"
+                  items={[
+                    {
+                      id: 'manage-items',
+                      label: 'Manage inventory items',
+                      active: false,
+                      badge: null,
+                      go: stock.manageItems
+                    }
+                  ]}
+                />
+              ) : null}
+            </div>
+          </div>
           <OfflineLine online={stock.online} />
           <InventoryList stock={stock} />
         </>

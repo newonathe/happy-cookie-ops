@@ -5,7 +5,8 @@ in the actual app before owner testing. Read [implementation scope](../design/re
 and [next goal](next-goal.md). Work is on `codex/refined-workflows`; direct Bazaar navigation
 and the inventory Count flow are implemented. Count has item entry, review, retained drafts,
 and explicit recovery for unconfirmed saves; targeted tests and four-width headless UI checks pass.
-The full gate result is recorded in the closing commit. Make and the other refined workflows remain pending. No deployment or hosted changes
+Count passed the pinned gate (147 files / 2,638 tests). Duplicate secondary tab rows are removed;
+Stock has one section row and direct Add to inventory. Make and the other refined workflows remain pending. No deployment or hosted changes
 are authorized by this instruction. The 20 October release details below are historical;
 the private comparison verified a later release on 1 November.
 
