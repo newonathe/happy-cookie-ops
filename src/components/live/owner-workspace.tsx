@@ -5,6 +5,7 @@ import Image from 'next/image';
 import type { OpsVals } from '@/view-models/vals';
 import { CUSTOMER_SCREENS, type ScreenKey } from '@/lib/screens';
 import { isLiveMode } from '@/lib/config/app-mode';
+import { s } from '@/lib/css';
 import { AppFrame } from '@/components/shell/app-frame';
 import { HomeScreen } from '@/components/screens/home';
 import { SalesLogScreen } from '@/components/screens/sales-log';
@@ -78,11 +79,12 @@ function Icon({ path, size, weight }: { path: string; size: number; weight: numb
   );
 }
 
-/** Keep existing sheet/quick-action/undo operations on their proven host, without its page chrome. */
+/** Keep existing sheet/quick-action operations on their proven host, without its page chrome. */
 function WorkspaceOverlays({ v }: { v: OpsVals }) {
-  if (!v.sheet && !v.quickOpen && !v.toast) return null;
+  if (!v.sheet && !v.quickOpen) return null;
   const overlayVals: OpsVals = {
     ...v,
+    toast: null,
     bareFrame: true,
     showRail: false,
     showDock: false,
@@ -99,8 +101,7 @@ function WorkspaceOverlays({ v }: { v: OpsVals }) {
     frameStyle:
       'width:100%;height:100%;display:flex;flex-direction:column;position:relative;background:transparent',
     pagePad: '0',
-    pageMax: '100%',
-    toastStyle: `${v.toastStyle};position:fixed;left:calc(var(--workspace-sidebar, 0px) + 14px);pointer-events:auto`
+    pageMax: '100%'
   };
   return (
     <div
@@ -108,6 +109,31 @@ function WorkspaceOverlays({ v }: { v: OpsVals }) {
       style={{ pointerEvents: v.sheet || v.quickOpen ? 'auto' : 'none' }}
     >
       <AppFrame v={overlayVals} />
+    </div>
+  );
+}
+
+/** Messages need no page frame behind them. Their lifetime and Undo still belong to the runtime. */
+function WorkspaceToast({ v }: { v: OpsVals }) {
+  if (!v.toast) return null;
+  return (
+    <div
+      role={v.toastWarn ? 'alert' : 'status'}
+      aria-atomic="true"
+      style={s(
+        `${v.toastStyle};position:fixed;z-index:90;left:calc(var(--workspace-sidebar, 0px) + 14px);pointer-events:none`
+      )}
+    >
+      <div className={styles.toastBox}>
+        {v.toastWarn ? <Icon path={v.ic.alert} size={18} weight={1.8} /> : null}
+        {v.toastOk ? <Icon path={v.ic.check} size={18} weight={2} /> : null}
+        <span>{v.toast.msg}</span>
+        {v.toast.undo ? (
+          <button type="button" onClick={v.runUndo}>
+            Undo
+          </button>
+        ) : null}
+      </div>
     </div>
   );
 }
@@ -230,6 +256,7 @@ export function OwnerWorkspace({
       </div>
       <Navigation items={v.dockNav} phone />
       <WorkspaceOverlays v={v} />
+      <WorkspaceToast v={v} />
     </div>
   );
 }
