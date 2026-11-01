@@ -106,6 +106,9 @@ export interface LiveStockVals {
     saving: boolean;
     pending: boolean;
     storageError: string | null;
+    total?: number;
+    unavailable?: boolean;
+    skipUnavailable?: () => void;
     rows: Array<{ name: string; amountText: string; error: string | null }>;
     back: () => void;
     resume: () => void;

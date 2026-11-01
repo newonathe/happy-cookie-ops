@@ -566,6 +566,42 @@ describe('B5-1: the actions use the existing sheets and flows', () => {
     expect(st!.items).toEqual(['Tape']);
     expect(runtime.state.invTab).toBe('Packaging');
   });
+
+  it('keeps earlier physical counts when another item is opened for counting', async () => {
+    const { runtime } = await mounted(world());
+    act(() => byName(runtime, 'Tape').count());
+    act(() => runtime.renderVals().stock!.onInput({ target: { value: '0' } } as never));
+    act(() => stock(runtime).count!.back());
+    act(() => byName(runtime, 'Unsalted butter').count());
+    expect(runtime.renderVals().stock!.name).toBe('Unsalted butter');
+    expect(stock(runtime).count).toMatchObject({
+      paused: false,
+      total: 2,
+      rows: [{ name: 'Tape', amountText: '0 pcs', error: null }]
+    });
+  });
+
+  it('skips an unavailable item without discarding other physical counts or sending a movement', async () => {
+    const w = world();
+    const { runtime, rpc } = await mounted(w);
+    act(() => byName(runtime, 'Tape').count());
+    act(() => runtime.renderVals().stock!.onInput({ target: { value: '0' } } as never));
+    act(() => byName(runtime, 'Unsalted butter').count());
+    act(() => runtime.renderVals().stock!.onInput({ target: { value: '20' } } as never));
+    act(() => runtime.renderVals().stock!.prev());
+    (w.catalogue.items as Wire[]).find((row) => row.id === 'tape')!.active = false;
+    await act(async () => {
+      await runtime.loadStockCatalogue(null);
+    });
+    expect(stock(runtime).count!.unavailable).toBe(true);
+    act(() => stock(runtime).count!.skipUnavailable!());
+    expect(stock(runtime).count).toMatchObject({
+      total: 1,
+      unavailable: false,
+      rows: [{ name: 'Unsalted butter', amountText: '20 g', error: null }]
+    });
+    expect(calls(rpc, 'record_stock_movement')).toHaveLength(0);
+  });
 });
 
 describe('B5-1: the count note', () => {

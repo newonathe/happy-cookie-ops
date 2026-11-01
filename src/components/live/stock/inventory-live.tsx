@@ -29,6 +29,8 @@ import {
   textStyle,
   wrapRow
 } from './stock-shared';
+import { CountInventory } from './count-inventory';
+import { Button } from '@/components/ui/button';
 
 type Filter = 'All' | StockStatus;
 const FILTERS: readonly Filter[] = ['All', 'Out', 'Low', 'Good'];
@@ -236,8 +238,14 @@ function ItemPage({ stock, page }: { stock: LiveStockVals; page: StockItemPage }
 export function InventoryLive({ v }: { v: OpsVals }) {
   const stock = liveStockOf(v);
   if (!stock) return <StockLoading title="Inventory" label="Inventory" />;
+  if (stock.count && !stock.count.paused) return <CountInventory v={v} stock={stock} />;
   return (
     <section aria-label="Inventory" data-screen-label="Inventory" style={screenStyle}>
+      {stock.count?.paused ? (
+        <Button onClick={stock.count.resume}>
+          {stock.count.pending ? 'Review unconfirmed count' : 'Continue count'}
+        </Button>
+      ) : null}
       {stock.page ? (
         <ItemPage stock={stock} page={stock.page} />
       ) : (
