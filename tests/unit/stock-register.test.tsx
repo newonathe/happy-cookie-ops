@@ -12,6 +12,7 @@ import { liveScreenFor } from '@/components/live/live-screens';
 import { registerLiveStockScreens } from '@/components/live/stock/register';
 import { InventoryLive } from '@/components/live/stock/inventory-live';
 import { GroceryLive } from '@/components/live/stock/grocery-live';
+import { SuppliersLive } from '@/components/live/stock/suppliers-live';
 
 function Frame() {
   return <AppFrame v={useOpsVals()} />;
@@ -42,6 +43,7 @@ describe('B5: the New Stock screens register in the live slot', () => {
     const second = registerLiveStockScreens();
     expect(liveScreenFor('inventory')).toBe(InventoryLive);
     expect(liveScreenFor('grocery')).toBe(GroceryLive);
+    expect(liveScreenFor('suppliers')).toBe(SuppliersLive);
     expect(typeof first).toBe('function');
     // Registering again leaves the same two components in place.
     expect(liveScreenFor('inventory')).toBe(InventoryLive);

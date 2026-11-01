@@ -103,6 +103,9 @@ export interface LiveStockSupplierRow {
   place: string;
   priceCount: number;
   active: boolean;
+  phone?: string;
+  notes?: string;
+  prices?: LiveStockPriceRow[];
 }
 
 /** One supplier's price for one item, in pesos on the form (A3). */
@@ -358,6 +361,8 @@ export interface OpsVals {
   /** Live owner only (B5-1): the New Stock screens' data (list, item page, grocery). Null for anyone else and before the catalogue is read. */
   liveStock?: LiveStockVals | null;
   /** Live owner only (A3): the suppliers list and edit form, with each supplier's prices. */
+  /** Read-only directory data, separate from the active supplier form slot. */
+  liveSupplierDirectory?: OpsVals['liveStockSuppliers'];
   liveStockSuppliers?: {
     online: boolean;
     rows: LiveStockSupplierRow[];
@@ -368,6 +373,7 @@ export interface OpsVals {
     add: () => void;
     edit: (id: string) => void;
     save: (supplier: LiveStockSupplierEdit) => void;
+    backLabel?: string;
     back: () => void;
     close: (event?: unknown) => void;
   } | null;

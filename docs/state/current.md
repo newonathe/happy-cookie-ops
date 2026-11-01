@@ -10,8 +10,8 @@ The current owner frame/Stock theme is neutral light with Happy Cookie branding,
 and reduced-motion support (Ethan, 2 November); this supersedes cream. Older page bodies remain pending.
 
 Stock browsing now uses a compact ingredient/packaging panel with saved pack details and retained
-filters, direct category counts, one editable count list and an organized item page with history retry.
-**Next:** finish supplier-price/history access, production categories and unknown-stock truth,
+filters, category counts, an editable count list, item/history retry and a vertical supplier directory.
+**Next:** finish item-to-supplier price access, production categories and unknown-stock truth,
 then Make and the other workflows. The private plan covers 59 pages/child flows,
 238 decision branches and 224 automation field groups; these are planned coverage, not
 implemented automation. Reuse known context/calculations and ask only new facts/exceptions.
