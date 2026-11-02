@@ -3,6 +3,7 @@ import type { Meta, StoryObj } from '@storybook/nextjs';
 import { Button } from './button';
 import { Field } from './field';
 import { Sheet } from './sheet';
+import ownerTheme from '@/components/live/owner-theme.module.css';
 
 const meta = {
   title: 'Bazaar v2/Sheet',
@@ -22,7 +23,7 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-function Demo({ side }: { side?: 'bottom' | 'right' }) {
+function Demo({ side, className }: { side?: 'bottom' | 'right'; className?: string }) {
   const [open, setOpen] = useState(false);
   return (
     <>
@@ -30,6 +31,7 @@ function Demo({ side }: { side?: 'bottom' | 'right' }) {
         Add an event
       </Button>
       <Sheet
+        className={className}
         title="Add an event"
         side={side}
         open={open}
@@ -56,3 +58,4 @@ function Demo({ side }: { side?: 'bottom' | 'right' }) {
 export const Responsive: Story = { render: () => <Demo /> };
 export const Right: Story = { render: () => <Demo side="right" /> };
 export const Bottom: Story = { render: () => <Demo side="bottom" /> };
+export const NeutralOwnerTheme: Story = { render: () => <Demo className={ownerTheme.theme} /> };

@@ -36,6 +36,40 @@ afterEach(() => {
   live = true;
 });
 
+it('opens product editing in the neutral themed modal with the existing form and close action', () => {
+  const runtime = mount();
+  act(() => runtime.setState({ sheet: { kind: 'flavours', pid: 'qa-cookie' } }));
+  const vals = runtime.renderVals();
+  const close = vi.fn();
+  cleanup();
+  render(
+    <OwnerWorkspace
+      v={{
+        ...vals,
+        sheet: { ...vals.sheet!, title: 'Edit QA cookie', liveForm: true },
+        liveForm: {
+          kind: 'flavours',
+          online: true,
+          rows: [],
+          addNew: vi.fn(),
+          publish: vi.fn(),
+          close,
+          editing: null
+        },
+        closeSheet: close
+      }}
+      screen="products"
+      role={runtime.state.role}
+      onAccount={() => undefined}
+    />
+  );
+  const modal = screen.getByRole('dialog', { name: 'Edit QA cookie' });
+  expect(modal.parentElement?.className).toMatch(/theme/);
+  expect(within(modal).getByRole('button', { name: 'Publish menu' })).toBeTruthy();
+  fireEvent.click(within(modal).getByRole('button', { name: 'Close Edit QA cookie' }));
+  expect(close).toHaveBeenCalledTimes(1);
+});
+
 it('shows the approved six destinations and real brand asset, with direct Account', () => {
   const runtime = mount();
   expect(document.querySelector('[data-refined-frame]')).toBeTruthy();

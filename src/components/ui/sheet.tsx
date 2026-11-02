@@ -8,6 +8,8 @@ import { cx } from './cx';
 import { usePresence } from './motion';
 
 export interface SheetProps {
+  /** Classes on the portal root, including any inherited theme variables. */
+  className?: string;
   title: string;
   onClose: () => void;
   /** The sheet's actions, pinned under the content. */
@@ -26,7 +28,15 @@ const FOCUSABLE =
  * A modal sheet. Focus moves into it, Tab stays inside, Escape and the backdrop close it, the page behind does not
  * scroll, and focus goes back to what opened it. It is drawn into `document.body`, so a transformed parent cannot trap it.
  */
-export function Sheet({ title, onClose, footer, side, open = true, children }: SheetProps) {
+export function Sheet({
+  title,
+  onClose,
+  footer,
+  side,
+  open = true,
+  children,
+  className
+}: SheetProps) {
   const { mounted, leaving } = usePresence(open, 150);
   // The page body once there is one (never on the server), without setting state in an effect.
   const host = useSyncExternalStore(
@@ -82,6 +92,7 @@ export function Sheet({ title, onClose, footer, side, open = true, children }: S
     <div
       className={cx(
         'fixed inset-0 z-50 flex',
+        className,
         mode === 'right' && 'justify-end',
         mode === 'bottom' && 'items-end',
         mode === 'auto' && 'items-end md:items-stretch md:justify-end'

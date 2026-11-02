@@ -55,7 +55,7 @@ export function UploadField({
         accept="image/png,image/jpeg,image/webp"
         onChange={(e) => void onChange(e)}
         disabled={busy}
-        style={{ fontSize: '13px', color: '#3A1F14' }}
+        style={{ fontSize: '13px', color: 'var(--color-ink)' }}
       />
     </label>
   );

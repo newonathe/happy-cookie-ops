@@ -7,6 +7,8 @@ import { CUSTOMER_SCREENS, type ScreenKey } from '@/lib/screens';
 import { isLiveMode } from '@/lib/config/app-mode';
 import { s } from '@/lib/css';
 import { AppFrame } from '@/components/shell/app-frame';
+import { Sheet } from '@/components/ui/sheet';
+import { LiveFormHost } from './live-form-host';
 import { HomeScreen } from '@/components/screens/home';
 import { SalesLogScreen } from '@/components/screens/sales-log';
 import { OrdersScreen } from '@/components/screens/orders';
@@ -83,6 +85,13 @@ function Icon({ path, size, weight }: { path: string; size: number; weight: numb
 /** Keep existing sheet/quick-action operations on their proven host, without its page chrome. */
 function WorkspaceOverlays({ v }: { v: OpsVals }) {
   if (!v.sheet && !v.quickOpen) return null;
+  if (v.sheet?.liveForm && v.liveForm?.kind === 'flavours' && !v.quickOpen) {
+    return (
+      <Sheet className={theme.theme} title={String(v.sheet.title)} onClose={v.closeSheet}>
+        <LiveFormHost v={v} />
+      </Sheet>
+    );
+  }
   const overlayVals: OpsVals = {
     ...v,
     toast: null,
