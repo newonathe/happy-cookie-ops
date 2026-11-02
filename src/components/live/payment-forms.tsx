@@ -18,7 +18,8 @@ function fieldValue(form: HTMLFormElement, name: string): string {
 
 /**
  * A file picker that uploads straight to the shop-media bucket and drops the returned bucket
- * path into a sibling text field. The file's own name never reaches the bucket (the runtime
+ * path into an optional uncontrolled sibling field. Controlled forms keep that path in state
+ * through their upload callback instead. The file's own name never reaches the bucket (the runtime
  * generates one); a refusal is toasted by the runtime and leaves the field as it was.
  */
 export function UploadField({
@@ -28,7 +29,7 @@ export function UploadField({
   hint = '(PNG, JPEG or WebP, up to 2 MB)'
 }: {
   upload: (file: File) => Promise<string | null>;
-  target: React.RefObject<HTMLInputElement | null>;
+  target?: React.RefObject<HTMLInputElement | null>;
   label: string;
   /** The size note after the label; flavour photos are resized for her, so theirs differs. */
   hint?: string;
@@ -41,7 +42,7 @@ export function UploadField({
     setBusy(true);
     try {
       const path = await upload(file);
-      if (path && target.current) target.current.value = path;
+      if (path && target?.current) target.current.value = path;
     } finally {
       setBusy(false);
       input.value = '';
