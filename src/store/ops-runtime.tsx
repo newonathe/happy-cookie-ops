@@ -221,6 +221,7 @@ import {
   type ProductionFields,
   type ProductionResult
 } from '@/lib/data/production';
+import type { LiveProductionStart } from '@/lib/production/live-production-types';
 import {
   booksCsv,
   correctionError,
@@ -555,6 +556,8 @@ interface InvActions {
 interface ProductionActions {
   confirmDough: () => void;
   confirmBatch: () => void;
+  startBatch: (productId: string) => void;
+  toBake: (productId: string, state: OpsEngineState) => number;
 }
 
 /** The parts of `state` the production actions read. */
@@ -874,6 +877,8 @@ export class OpsRuntime extends OpsProvider {
   private productionLoadSeq = 0;
   private productionReadState: 'loading' | 'read' | 'failed' = 'loading';
   private lastProductionDrop: number | null = null;
+  private productionEntry: (NonNullable<LiveProductionStart['draft']> & { dropNo: number }) | null = null;
+  private productionEntryGeneration = 0;
   private pendingProduction = new Map<string, ProductionFields>();
   private pendingDiscards = new Map<string, DiscardFields>();
   private discardBusy = false;
@@ -5044,7 +5049,84 @@ export class OpsRuntime extends OpsProvider {
             return { ...row, name: product?.short ?? 'Product no longer listed', photo: product?.img ?? '' };
           })
         : [],
-      refresh: this.refreshProductionView
+      refresh: this.refreshProductionView,
+      start: this.productionStartView(dropNo, !!valid)
+    };
+  }
+
+  /** An owner-only navigation draft. All recording, request identity and stock rules stay in the existing confirm action. */
+  private productionStartView(dropNo: number, valid: boolean): LiveProductionStart {
+    const generation = this.productionEntryGeneration;
+    const engine = this as unknown as ProductionActions;
+    const ready = valid && this.productionReadState === 'read' && this.stockCatalogue && this.recipeRows;
+    const products: LiveProductionStart['products'] = ready
+      ? (this.flavourSync?.current() ?? []).flatMap((row) => {
+          const recipe = this.recipeRows?.find((r) => r.productId === row.id);
+          if (!recipe || !Number.isInteger(recipe.yield) || recipe.yield < 1) return [];
+          const need = this.orderSync?.loaded ? engine.toBake(row.id, this.state) : null;
+          const needed = need !== null && Number.isInteger(need) && need >= 0 ? need : null;
+          if (!row.active && !(needed && needed > 0)) return [];
+          return [{ id: row.id, name: row.short_name || row.name, photo: row.image_path,
+            yield: recipe.yield, version: recipe.version, needed }];
+        })
+      : [];
+    const current = (): LiveProductionStart | null => {
+      if (!isLiveMode() || this.unmounted || this.state.role !== 'owner' ||
+          this.state.screen !== 'bake' || this.state.dropNo !== dropNo ||
+          generation !== this.productionEntryGeneration) return null;
+      return this.liveProductionView().start ?? null;
+    };
+    const change = (): void => this.setState({});
+    return {
+      products,
+      draft: this.productionEntry?.dropNo === dropNo ? { ...this.productionEntry } : null,
+      open: () => {
+        const fresh = current();
+        if (!fresh?.products.length || this.productionBusy) return;
+        if (this.productionEntry?.dropNo !== dropNo) {
+          this.productionEntryGeneration += 1;
+          const one = fresh.products.length === 1 ? fresh.products[0] : undefined;
+          this.productionEntry = { dropNo, productId: one?.id ?? '', version: one?.version ?? 0,
+            quantity: one?.needed ? String(one.needed) : '' };
+        }
+        change();
+      },
+      choose: (id) => {
+        const product = current()?.products.find((p) => p.id === id);
+        if (!product || this.productionBusy) return;
+        const old = this.productionEntry;
+        this.productionEntry = { dropNo, productId: id, version: product.version,
+          quantity: old?.dropNo === dropNo && old.productId === id ? old.quantity : product.needed ? String(product.needed) : '' };
+        change();
+      },
+      setQuantity: (value) => {
+        if (!current() || this.productionEntry?.dropNo !== dropNo || value.length > 32) return;
+        this.productionEntry = { ...this.productionEntry, quantity: value };
+        change();
+      },
+      cancel: () => {
+        if (!current()) return;
+        this.productionEntry = null;
+        this.productionEntryGeneration += 1;
+        change();
+      },
+      begin: () => {
+        const fresh = current(), draft = this.productionEntry;
+        const product = fresh?.products.find((p) => p.id === draft?.productId);
+        if (!draft || draft.dropNo !== dropNo || !product || product.version !== draft.version ||
+            this.productionBusy || !/^\d+$/.test(draft.quantity)) return false;
+        const quantity = Number(draft.quantity);
+        if (!Number.isInteger(quantity) || quantity < 1 || quantity > 10000) return false;
+        engine.startBatch(product.id);
+        this.productionEntry = null;
+        this.productionEntryGeneration += 1;
+        this.setState((state) => {
+          const batch = (state as unknown as ProductionState).batch;
+          return state.screen === 'batch' && batch?.pid === product.id
+            ? { batch: { ...batch, target: quantity, actual: quantity } } as never : {};
+        });
+        return true;
+      }
     };
   }
 
