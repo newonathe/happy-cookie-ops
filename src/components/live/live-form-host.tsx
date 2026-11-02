@@ -136,11 +136,22 @@ function FlavourEditForm({ editing }: { editing: Editing }) {
   const photoRef = useRef<HTMLInputElement>(null);
   const badgeHintId = useId();
   const [photoPath, setPhotoPath] = useState(editing.imagePath);
+  const photoEditSequence = useRef(0);
   const photo = resolveImagePath(photoPath);
   const uploadPhoto = async (file: File) => {
+    const sequence = ++photoEditSequence.current;
     const path = await editing.upload(file);
+    if (sequence !== photoEditSequence.current) return null;
     if (path) setPhotoPath(path);
     return path;
+  };
+  const removePhoto = () => {
+    photoEditSequence.current += 1;
+    setPhotoPath('');
+    const form = photoRef.current?.form;
+    const picker = form?.querySelector<HTMLInputElement>('input[type="file"]');
+    if (picker && !picker.disabled) picker.focus();
+    else (form?.elements.namedItem('allergens') as HTMLInputElement | null)?.focus();
   };
   const onSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -215,6 +226,11 @@ function FlavourEditForm({ editing }: { editing: Editing }) {
       </div>
       <input ref={photoRef} type="hidden" name="imagePath" value={photoPath} readOnly />
       <UploadField upload={uploadPhoto} target={photoRef} label="Change photo" hint="" />
+      {photoPath ? (
+        <button type="button" onClick={removePhoto} style={secondaryButton}>
+          Remove photo
+        </button>
+      ) : null}
       <label style={labelStyle}>
         <span style={smallLabel}>Contains</span>
         <input
