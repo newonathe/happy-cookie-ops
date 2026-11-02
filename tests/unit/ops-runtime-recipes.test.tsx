@@ -135,6 +135,7 @@ describe('A4: the recipes reach the ported recipes screen (live mode)', () => {
     expect(runtime.renderVals().liveRecipes?.recipePage?.rows[0]?.amountText).toBe('320 g');
     act(() => page!.back());
     expect(runtime.state.screen).toBe('products');
+    expect(runtime.renderVals().productRows.filter((p) => p.returnRecipeFocus).map((p) => p.name)).toEqual([product.name]);
     act(() => runtime.setRole('helper'));
     act(() => product.goRecipe());
     expect(runtime.renderVals().liveRecipes).toBeNull();
