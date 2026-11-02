@@ -12,11 +12,20 @@ Apply to every page and child flow: familiar short labels, visual controls, clea
 purposeful emphasis. Distinguish the main action, important figures, warnings and supporting detail;
 do not give everything the same card, type weight or prominence. Keep type, spacing, units, dates,
 amounts and status styles coherent with the neutral Happy Cookie design. Use labeled icons/photos,
-readable progress and useful charts where they answer a real business question from available data.
+readable progress and clear charts/bars/breakdowns throughout trackers and measurable or partitioned
+views, especially Stock, production, orders, Bazaar, P&L and Money. Treat visual tracking as required.
 No decorative/fabricated charts, technical field names, elaborate instructions or visible QA/test
 labels. Live local previews use realistic example records, preserve existing hosted features and
 update as source changes; they remain separate from hosted/device acceptance. This extends the
 complete scope and does not replace any owner requirement, operation, data or safeguard above.
+
+Keep this realistic and restrained (Ethan's follow-up): use patterns verified in current established
+POS/inventory/maker software. Start with one clear question, the important figure and its visual,
+then details/actions; avoid chart clutter, gratuitous dashboards and unnecessary customization.
+This is a design choice for Happy Cookie, informed by [Square reports](https://squareup.com/help/us/en/article/5381-in-app-summaries-and-reports),
+[Loyverse Dashboard](https://help.loyverse.com/help/using-dashboard), [Shopify analytics](https://help.shopify.com/en/manual/reports-and-analytics/shopify-reports/overview-dashboard/using-the-overview-dashboard)
+and [Craftybase's interface](https://craftybase.com/blog/craftybase-new-interface), reviewed 2 November.
+Their published documentation informs UI patterns, not our business calculations or acceptance.
 
 ## Theme direction — Ethan, 2 November 2026
 
