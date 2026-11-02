@@ -32,6 +32,39 @@ const imageField = () => form().elements.namedItem('imagePath') as HTMLInputElem
 afterEach(cleanup);
 
 describe('visual plain-language product editor', () => {
+  it('removes a photo in the draft and submits the empty photo without changing other saved fields', () => {
+    const edit = editor();
+    render(<LiveFormHost v={vals(edit)} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Remove photo' }));
+    expect(screen.getByText('No photo')).toBeTruthy();
+    expect(screen.queryByRole('img', { name: 'Product photo' })).toBeNull();
+    expect(imageField().value).toBe('');
+    expect(document.activeElement).toBe(screen.getByLabelText('Change photo'));
+    expect(edit.save).not.toHaveBeenCalled();
+    fireEvent.submit(form());
+    expect(edit.save).toHaveBeenCalledExactlyOnceWith({ ...fields, imagePath: '' });
+  });
+
+  it('does not restore a removed photo when an earlier upload returns later', async () => {
+    let finish!: (path: string) => void;
+    const edit = editor({
+      upload: vi.fn(
+        () =>
+          new Promise<string>((resolve) => {
+            finish = resolve;
+          })
+      )
+    });
+    render(<LiveFormHost v={vals(edit)} />);
+    fireEvent.change(screen.getByLabelText('Change photo'), {
+      target: { files: [new File(['fixture'], 'old.png', { type: 'image/png' })] }
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Remove photo' }));
+    await act(async () => finish('assets/happy-camper.png'));
+    expect(screen.getByText('No photo')).toBeTruthy();
+    expect(imageField().value).toBe('');
+    expect(edit.save).not.toHaveBeenCalled();
+  });
   it('shows the saved photo and familiar labels while submitting the same exact fields', () => {
     const edit = editor();
     render(<LiveFormHost v={vals(edit)} />);
