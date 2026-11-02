@@ -326,16 +326,25 @@ context, functioning real workflows and all required verification/acceptance. Un
 the full goal active and state what remains. End handoffs with concise Token notes and a precise
 Next prompt. Requested continuation setup: same chat where available, GPT-6.1 high, Plan mode off.
 
+## Hosted demo-data steering — 2 November 2026
+
+Ethan requested demo records and explicitly selected the existing hosted Happy Cookie database.
+Prepare an additive, identifiable, idempotent dataset and scoped cleanup; preserve existing records,
+settings, roles and side-effect rules. This is not permission to reset, deploy, change schema or message
+customers. Verify the real-source preview reads that database: the current4186 component preview uses
+synthetic RPC and will not reflect hosted inserts. Required independent SQL/money review still applies.
+Record execution status and exact effects in the shared next goal and private manifest, not chat alone.
+
 ## Current checkpoint to verify before continuing
 
-Before this brief: application commit `944e296`, scope follow-up `f44d80a`; accepted full pinned gate
-154 files /2698 tests pass +2 existing todo. Live build through the same application code passed all28
-pages. Frame/Stock/Products/direct saved-recipe and product-editor presentation have accepted slices;
-the complete app and tracker charts are unfinished. Actual source/worktree state remains authoritative.
+Accepted actual-source commit `61b7553` integrates saved production results in the neutral Bake plan;
+`3a1d844` adds common-scale charts/history, `9db4c75` scoped saved reads and nullable plans,
+`26a6b69`/`25e1343` supported photo removal and atomic uploaded preview/form updates.
+Pinned gate156 files /2709 tests pass +2 existing todo. Actual components pass four-width synthetic-RPC
+browser checks. The full production write flow, authoritative resulting stock and remaining full-app
+scope are still open. See next-goal.md/current.md and git for current progress and verification.
 
-Supplier-price editing is isolated at stash `7f5924a1ab69fae6f3c88c23afcfdf944645b5d2`, base82a6015.
-Read private `pending-review/context-prices/REVIEW-HERE.md` before touching it. Final independent
-review is pending; the previously reported reviewer reset is Nov6 2026 11:24AM, timezone unspecified.
-Do not assume a past availability note is current. Product acknowledged-save return, safe recipe
-kind/version saves, full production entry/results, stock truth, remaining Bazaar/Sell/Shop/Money/
-Account/integration and real acceptance remain open. Do not treat this checklist as exhaustive.
+Supplier-price editing remains isolated at stash `7f5924a1ab69fae6f3c88c23afcfdf944645b5d2`, base82a6015.
+Read private pending-review/context-prices/REVIEW-HERE.md before touching it. Required independent
+review remains pending; the previously reported reset is Nov6 2026 11:24AM, timezone unspecified.
+Do not assume an old availability note is current or bypass the owner's wait decision.
