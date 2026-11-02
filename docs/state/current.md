@@ -1,31 +1,28 @@
 # Current state — Happy Cookie Ops
 
-**Active work, 2 November 2026:** implement the full workflows in the actual app on
-`codex/refined-workflows`. Read the [shared owner/agent brief](../design/owner-workflow-brief.md),
-[scope](../design/refined-workflows.md) and [next goal](next-goal.md). The separate live workspace
-has the owner header, navigation and original brand asset, reusing existing operations. Demo,
-helper, denied, public and focus/till boundaries keep their frame. Quick add remains reachable;
-Stock item/count Back retains context. All features must remain while operation becomes simpler.
-The current owner frame/Stock theme is neutral light with Happy Cookie branding, selective glass
-and reduced-motion support (Ethan, 2 November); this supersedes cream. Older page bodies remain pending.
+**Active, 2 November 2026:** implement the full actual application on `codex/refined-workflows`.
+Read the [complete shared owner/agent brief](../design/owner-workflow-brief.md),
+[scope](../design/refined-workflows.md) and [next goal](next-goal.md). Claude and other agents
+continue through these repository files; chat memory is not the authority.
 
-Stock browsing now uses a compact ingredient/packaging panel with saved pack details and retained
-filters, category counts, an editable count list, item/history retry and a vertical supplier directory.
-Items also open their saved supplier prices/history with retained Back and filters.
-Make now opens each product's saved recipe directly, with yield/version, honest read/retry states,
-Costs & history and Back to Products. Its single section row is Bake plan / Products.
-The live product library uses neutral cards, original photos, explicit Recipe / Edit product / visibility
-actions and label explanations; recipe Back restores focus to the selected product.
-The product editor has a photo preview, simple labels and neutral modal; Cancel/close restores focus.
-Save-return still needs review. Visual hierarchy and useful charts are required across the full scope.
-**Next:** production flow/results, stock truth and other workflows.
-Context-prefilled price editing is isolated pending required independent review. The private plan covers 59 pages/child flows,
-238 decision branches and 224 automation field groups; these are planned coverage, not
-implemented automation. Reuse known context/calculations and ask only new facts/exceptions.
+Accepted work includes the separate neutral-light owner frame, Stock list/item/count return,
+vertical suppliers and saved prices/history; Products, exact saved-recipe links and contextual
+Cancel/close; neutral product editing and photo replacement/removal. Saved production now has
+scoped read states and a shared-scale planned/baked/good/reject tracker with saved history.
+Latest application commit `61b7553`; pinned gate156 files /2709 pass +2 existing todo.
+Four-width component/synthetic-RPC checks pass; database, hosted and physical-phone proof is separate.
 
-Changed-path tests, independent frame review and four-width component fixture checks pass;
-accepted commits record the pinned full gate. Database/hosted/physical-phone acceptance is
-separate. No deployment or hosted changes are authorized. The release details below are historical.
+**Immediate steering:** Ethan approved additive demo data in the existing hosted database.
+Read-only schema/function/baseline inspection completed; no demo business rows written yet.
+The component preview4186 is not database-connected. Prepare the load/cleanup and real-source
+database preview; SQL/money review remains required. Preserve existing records and settings.
+
+The full goal remains incomplete: production entry/review/confirmed resulting stock, safe recipe
+kind/version saves, save return, remaining Stock/Bazaar/Sell/Shop/Money/Account/Home/integration.
+Price editing is isolated pending review. No deployment/main merge or other hosted changes approved.
+The private59-page/238-branch/224-automation plan is planned coverage, not completed automation.
+The older release dates and cream theme below are historical; the current theme is neutral light
+with Happy Cookie branding, selective glass, restrained motion and purposeful visual tracking.
 
 Read this page first in a new session. It is kept short on purpose.
 

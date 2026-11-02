@@ -1,77 +1,75 @@
-# Next goal — implement the approved refined workflows
+# Next goal — complete the actual refined application
 
-Read the complete [shared owner/agent brief](../design/owner-workflow-brief.md); it consolidates Ethan's additions.
+**Active, 2 November 2026.** Preserve the entire original/hosted feature set while simplifying
+operation in the actual codebase. Neutral light, Happy Cookie assets, purposeful hierarchy,
+practical visual trackers and contextual automation remain required across every section.
+This is implementation, not another mockup. The full goal is still incomplete.
 
-**1 November 2026: Ethan asked to reflect the entire completed v4 mockup in the actual
-application and test it there; on 2 November he replaced cream with neutral light, Happy Cookie
-branding, selective glass and fluid accessible motion.** Proceed with implementation, not another mockup audit or
-owner-testing prerequisite. Read `docs/design/refined-workflows.md` for scope, order and
-the reference hash. Keep every existing financial, role and offline safeguard.
+## Entry point for Codex, Claude and other agents
 
-Work on `codex/refined-workflows`, one tested logical slice per commit. Direct Bazaar and
-Customers/Waitlist and the inventory Count path are partly implemented, including retained return context and
-durable count recovery. The separate live owner workspace now implements the new frame beside the locked demo.
-Next finish the complete Stock list/item/count/review/save/return
-path with matched-content visual checks. Count's unknown-cost confirmation now reuses the existing
-cost source, preserving pending versus confirmed zero without changing ledger posting.
-Then continue Make, remaining Stock, Bazaar, Sell/Shop, Money/Account and integration. Small slices
-do not reduce the authorized overall scope. Record actual completed versus pending work.
+Start in the repository root. Read AGENTS.md, [current.md](current.md), this file,
+[the complete owner brief](../design/owner-workflow-brief.md) and
+[implementation scope](../design/refined-workflows.md). CLAUDE.md imports AGENTS.md.
+Inspect branch/worktree/stashes and actual source before acting. Do not rely on chat memory.
+The old dated next goal was moved to current-history.md; it does not set today's order.
 
-The private visualization folder contains `happy-cookie-page-by-page-plan.md` and its HTML reader/JSON:
-59 page/child-flow plans, 238 decision branches, 224 automation field groups and route/tool/owner/comparison
-traceability. Apply the per-page automation policy: carry linked IDs/units/context, compute totals and
-shortfalls, remember defaults, and ask only actual new facts or meaningful exceptions. Expected/quoted/planned
-values need the appropriate deliberate confirmation before becoming actual. This is planned coverage,
-not proof of implemented automation. Use its revised frame/Stock-first order; do not repeat the research.
+## Accepted implementation
 
-Ethan's 2 November addition: every screen needs familiar words, visual controls, clear organization,
-purposeful emphasis and consistent formatting. Require clear charts/bars/progress for trackers and
-measurable/partitioned views. Follow real POS/inventory patterns with restraint; no chart clutter,
-decorative figures or visible QA labels. Keep the Chrome preview updating during work.
+Work on `codex/refined-workflows`. The owner frame, contextual Stock/count/supplier browsing,
+Products library and direct saved-recipe reader have accepted slices. Recent commits:
 
-Use the pinned Node 24.20.0 / pnpm 9.12.3 toolchain and headless command-line Playwright.
-No protected demo edits. The existing live slots are the implementation path. Independent
-review remains required for money/auth/RLS/SQL/offline changes. Never push this work to
-the auto-deploy branch. Deployment, hosted writes and business cutovers need separate
-approval after the local implementation is concrete and reviewable.
+- `26a6b69`: supported photo removal; `25e1343`: uploaded preview/form value update together.
+- `9db4c75`: saved production read state, selected-drop scope and nullable plans.
+- `3a1d844`: common-scale planned/baked/good/reject bars, honest missing plans and saved history.
+- `61b7553`: neutral Bake plan integration, existing actions and protected fallback retained.
 
-Model: GPT-6.1 high; Plan mode off. Read AGENTS.md, current.md and the refined-workflows
-scope, then only the files needed by the next slice. The physical-phone rehearsal and
-closed-shop owner week remain acceptance gates after implementation; old dates below
-are historical and do not block the newly authorized work.
+Latest application gate: pinned pnpm verify, 156 files /2709 tests pass +2 existing todo.
+Four-width headless checks cover product/recipe return, production results, empty/failure/retry,
+period scope, reduced motion and overflow. These use actual components with synthetic local RPC;
+they are not hosted-write, database, selling-phone or owner-week acceptance.
 
-## Historical next goal — superseded implementation order
+## Immediate steering — hosted demo data
 
-The following is the prior 20 October checkpoint, preserved for context only.
+Ethan explicitly requested demo records and selected the **existing hosted Happy Cookie database**
+on 2 November. This authorizes an additive demo load there; it does not authorize a reset,
+overwriting real records, schema changes, messaging customers or deployment. The backend identified
+in the verified hosted bundle is project `enftprwcsrdbnlplfrwk`. Read-only CLI schema/function
+inspection and aggregate baseline are saved privately under gap-refinement/hosted-demo-*.
+No demo business rows have been written. The hosted database already has operational records.
 
-### Phone rehearsal on the new till
+First ensure the real-source preview reads that database: localhost:4186 is a synthetic-data
+component preview and will not reflect hosted inserts. Then prepare an identifiable, idempotent
+demo manifest, exact expected effects, verification and scoped cleanup. Preserve current data,
+settings, permissions and side-effect rules. SQL/money writes still need independent review;
+Ethan previously chose to wait for the reviewer reset, reported Nov6 11:24AM, zone unspecified.
+Do not bypass that wait through another account/provider or paid usage. Reconcile current access.
 
-**20 October: the consolidated till is released** (#37 and #39 deployed, Cloudflare version `50f46e2c`; #40 brought `main`
-level with the deploy branch). See [current.md](current.md). The rehearsal below now runs on it: the run sheet names its
-buttons, and step 7 checks the phone has it. Bazaar v2 (16 October) and its notes are in [bazaar-v2.md](bazaar-v2.md) and
-[docs/design/bazaar-v2.md](../design/bazaar-v2.md). The repository is public: secret scan before every push, and no real event
-names or figures in any committed file.
+## Continue the full implementation
 
-**The next goals, in order:**
+Start production still needs planned/manual entry → review → confirmation → authoritative result
+and resulting stock, including when no orders need baking. The new charts do not fix that write flow.
+Recipe kind/version saves and acknowledged product-save return also remain open; keep the legacy
+recipe warning until the underlying issue is fixed and reviewed. Continue remaining Stock truth,
+receiving/shopping, Bazaar, Sell/Shop, Money/Account, Home and integration under the complete brief.
+Preserve every existing financial, role, offline and acknowledgement safeguard.
 
-1. **The phone rehearsal, by 22 October**, on the selling iPhone: [bazaar-run-sheet.md](bazaar-run-sheet.md), "The rehearsal"
-   (25 steps) and the "Stall-day checklist". Ethan runs it; anything that fails is fixed and the list is run again before
-   23 October. `RELEASE_HOLD=true` the day it passes. The bazaar is 24 to 25 October.
-2. **The earlier test event's reversal** (`reverse_bazaar_test`): only on Ethan's separate yes, then run and reviewed. Its rent,
-   over, sales and stock use stay in October's books until then.
-3. **The next consolidated slice** (Ethan, 19 October), after 25 October unless released and rehearsed by the 22nd: the
-   Bazaar day plan as on the mockups (canvas K5nHQS8GjtBYGseDtYZDnZ), then review and close, the event page and the events list.
-4. **Optional: the 320 px toast check.** Open the day plan at 320 px with the toast showing and see whether the toast overlaps
-   the sticky footer by about 16 px (unconfirmed). A clean browser pass at four widths (320, 375, 768, 1440) has not been done.
+Price-editor work is isolated at stash `7f5924a1ab69fae6f3c88c23afcfdf944645b5d2`, base82a6015.
+Read the private pending-review/context-prices/REVIEW-HERE.md before touching it. Do not pop it blindly.
 
-Not done and not part of these: the cost cutover (after Cine's opening count, and Ethan's separate yes). One low finding is left
-from the migration 70 review: a flavour cost saved mid-close can be stored with a stale hash.
+## References and working rules
 
-| Setting      | Value                                                                                        |
-| ------------ | -------------------------------------------------------------------------------------------- |
-| Model        | Sonnet high for the 320 px check or any fix; Opus signs off any money or close change        |
-| Plan mode    | off                                                                                          |
-| Conversation | new                                                                                          |
-| Read         | AGENTS.md, current.md, bazaar-run-sheet.md; for the 320 px check, `day-plan.tsx` and its CSS |
+Private reference/evidence root:
+`C:/Users/ethan/.codex/visualizations/2026/10/23/01a168b8-98ab-7872-9ec3-90530179bab5/`.
+Read MAKE-CHECKPOINT.md for the latest operational checkpoint. Research and page-plan paths are
+in the shared brief. The 59 pages, 238 branches and 224 automation groups describe planned coverage.
+Agents elsewhere must receive needed private files separately; never invent missing evidence.
 
-The review of U2, U5, U6 and U7 used an Opus subagent, because `codex` refuses its models on this ChatGPT account.
+Use pinned Node24.20.0/pnpm9.12.3 and headless CLI Playwright. No Browser/Chrome-control plugins.
+Keep localhost:4186 updating from actual source; localhost:4173 is only the reference mockup.
+For a stopped component server, inspect private gap-refinement/app-qa/serve.cjs before starting it.
+Preserve protected demo paths. One tested logical slice per commit, secret-scan then push this
+feature branch only. No main merge, deploy, other hosted writes/resources, cutover, reversal or
+release toggle without separate approval. Finish implementation before the separate phone/week gates.
+
+Continuation: same chat if available, GPT-6.1 high, Plan mode off. Report accepted versus unfinished
+work, review holds and proof limits in these shared files. Keep the complete goal active.
