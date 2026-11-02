@@ -1,5 +1,7 @@
 # Next goal — implement the approved refined workflows
 
+Read the complete [shared owner/agent brief](../design/owner-workflow-brief.md); it consolidates Ethan's additions.
+
 **1 November 2026: Ethan asked to reflect the entire completed v4 mockup in the actual
 application and test it there; on 2 November he replaced cream with neutral light, Happy Cookie
 branding, selective glass and fluid accessible motion.** Proceed with implementation, not another mockup audit or

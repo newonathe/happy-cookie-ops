@@ -1,11 +1,11 @@
 # Current state — Happy Cookie Ops
 
-**Active work, 2 November 2026:** Ethan authorized implementing the complete v4 workflows
-in the actual app. Work is on `codex/refined-workflows`; see the [scope](../design/refined-workflows.md)
-and [next goal](next-goal.md). A separate owner workspace now provides the new live header,
-sidebar/phone navigation and original brand asset. Existing screen/sheet operations are reused;
-demo, helper, denied, public and focus/till boundaries retain their existing frame. Quick add
-remains reachable while its jobs acquire contextual homes. Stock item/count Back retains context.
+**Active work, 2 November 2026:** implement the full workflows in the actual app on
+`codex/refined-workflows`. Read the [shared owner/agent brief](../design/owner-workflow-brief.md),
+[scope](../design/refined-workflows.md) and [next goal](next-goal.md). The separate live workspace
+has the owner header, navigation and original brand asset, reusing existing operations. Demo,
+helper, denied, public and focus/till boundaries keep their frame. Quick add remains reachable;
+Stock item/count Back retains context. All features must remain while operation becomes simpler.
 The current owner frame/Stock theme is neutral light with Happy Cookie branding, selective glass
 and reduced-motion support (Ethan, 2 November); this supersedes cream. Older page bodies remain pending.
 
