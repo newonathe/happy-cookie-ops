@@ -1359,6 +1359,7 @@ export interface OpsVals {
   }>;
   priceNote: React.ReactNode;
   productRows: Array<{
+    returnRecipeFocus?: boolean;
     costText: React.ReactNode;
     desc: React.ReactNode;
     edit: (event?: unknown) => void;

@@ -6136,9 +6136,10 @@ export class OpsRuntime extends OpsProvider {
         ? {
             ...row,
             edit: () => this.openFlavourEditor(pid),
+            returnRecipeFocus: this.state.liveProductReturnId === pid,
             goRecipe: () => {
               if (!isLiveMode() || this.unmounted || this.state.role !== 'owner') return;
-              this.setState({ liveRecipeTarget: pid }, () => {
+              this.setState({ liveRecipeTarget: pid, liveProductReturnId: null }, () => {
                 if (!this.unmounted && this.state.role === 'owner') row.goRecipe();
               });
             },
@@ -6173,7 +6174,7 @@ export class OpsRuntime extends OpsProvider {
           amountText: formatQuantity(line.qty, line.unit)
         })),
         back: () => {
-          if (current()) this.setState({ liveRecipeTarget: null }, () => this.go('products'));
+          if (current()) this.setState({ liveRecipeTarget: null, liveProductReturnId: item.id }, () => this.go('products'));
         },
         refresh: () => {
           if (current()) void this.loadRecipes(null);

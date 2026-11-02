@@ -111,7 +111,9 @@ needs more than approximately 400 changed lines, split it into complete smaller 
   recipe reads do not depend on cost-service availability. Read failure preserves the saved copy with
   Retry; Back returns to Products, and Costs & history stays reachable. Make has one Bake plan / Products
   row with recipes inside their products. Four-width component fixture checks cover this path without
-  writes; product library, production/results and kind-preserving recipe saves remain pending.
+  writes. Product cards now use the neutral theme/original photos, explicit Recipe / Edit product /
+  order-form actions and product-label help. Recipe Back focuses its selected product. Product-editor
+  return/help, production/results and kind-preserving recipe saves remain pending.
   All later workflow slices remain pending. Passing mockup tests does not mark them implemented.
 - The ingredient/packaging list now uses the compact panel layout, saved pack details, one status
   selector and retained category/filter when returning from an item/count. Retired items are excluded
