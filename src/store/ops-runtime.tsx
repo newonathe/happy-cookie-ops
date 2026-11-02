@@ -5079,10 +5079,16 @@ export class OpsRuntime extends OpsProvider {
     const change = (): void => this.setState({});
     return {
       products,
+      resume: !!(this.state as unknown as ProductionState).batch,
       draft: this.productionEntry?.dropNo === dropNo ? { ...this.productionEntry } : null,
       open: () => {
         const fresh = current();
-        if (!fresh?.products.length || this.productionBusy) return;
+        if (!fresh || this.productionBusy) return;
+        if ((this.state as unknown as ProductionState).batch) {
+          this.go('batch');
+          return;
+        }
+        if (!fresh.products.length) return;
         if (this.productionEntry?.dropNo !== dropNo) {
           this.productionEntryGeneration += 1;
           const one = fresh.products.length === 1 ? fresh.products[0] : undefined;
@@ -5113,7 +5119,8 @@ export class OpsRuntime extends OpsProvider {
       begin: () => {
         const fresh = current(), draft = this.productionEntry;
         const product = fresh?.products.find((p) => p.id === draft?.productId);
-        if (!draft || draft.dropNo !== dropNo || !product || product.version !== draft.version ||
+        if ((this.state as unknown as ProductionState).batch ||
+            !draft || draft.dropNo !== dropNo || !product || product.version !== draft.version ||
             this.productionBusy || !/^\d+$/.test(draft.quantity)) return false;
         const quantity = Number(draft.quantity);
         if (!Number.isInteger(quantity) || quantity < 1 || quantity > 10000) return false;

@@ -11,6 +11,7 @@ export interface LiveProductionStart {
     needed: number | null;
   }>;
   draft: { productId: string; quantity: string; version: number } | null;
+  resume?: boolean;
   open: () => void;
   choose: (productId: string) => void;
   setQuantity: (value: string) => void;

@@ -137,6 +137,19 @@ const noWrites = (rpc: ReturnType<typeof vi.fn>) =>
   expect(rpc.mock.calls.every(([name]) => String(name).startsWith('get_'))).toBe(true);
 
 describe('owner production entry', () => {
+  it('continues the unfinished batch without replacing its quantity or progress', async () => {
+    const { runtime, rpc } = await mounted();
+    act(() => start(runtime).open());
+    act(() => start(runtime).setQuantity('24'));
+    act(() => { expect(start(runtime).begin()).toBe(true); });
+    const pending = runtime.state.batch;
+    act(() => runtime.go('bake'));
+    expect(start(runtime).resume).toBe(true);
+    act(() => start(runtime).open());
+    expect(runtime.state.screen).toBe('batch');
+    expect(runtime.state.batch).toEqual(pending);
+    noWrites(rpc);
+  });
   it('does not let a cancelled entry change, close or start a newer draft', async () => {
     const { runtime, rpc } = await mounted();
     act(() => start(runtime).open());
