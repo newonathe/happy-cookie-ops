@@ -22,6 +22,10 @@ shortfalls, remember defaults, and ask only actual new facts or meaningful excep
 values need the appropriate deliberate confirmation before becoming actual. This is planned coverage,
 not proof of implemented automation. Use its revised frame/Stock-first order; do not repeat the research.
 
+Ethan's 2 November addition: every screen needs familiar words, visual controls, clear organization,
+purposeful emphasis and consistent formatting. Use meaningful charts/progress from real data where
+useful; no decorative figures or visible QA labels. Keep the Chrome preview updating during work.
+
 Use the pinned Node 24.20.0 / pnpm 9.12.3 toolchain and headless command-line Playwright.
 No protected demo edits. The existing live slots are the implementation path. Independent
 review remains required for money/auth/RLS/SQL/offline changes. Never push this work to

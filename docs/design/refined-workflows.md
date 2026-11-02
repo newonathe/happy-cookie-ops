@@ -6,6 +6,18 @@ mockup-only scope and the historical calendar order in `docs/state/next-goal.md`
 It does not authorize deployment, hosted writes, migrations applied to a hosted database,
 cost cutover, test reversal, release settings, or merging to main.
 
+## Visual clarity — Ethan, 2 November 2026
+
+Apply to every page and child flow: familiar short labels, visual controls, clear grouping and
+purposeful emphasis. Distinguish the main action, important figures, warnings and supporting detail;
+do not give everything the same card, type weight or prominence. Keep type, spacing, units, dates,
+amounts and status styles coherent with the neutral Happy Cookie design. Use labeled icons/photos,
+readable progress and useful charts where they answer a real business question from available data.
+No decorative/fabricated charts, technical field names, elaborate instructions or visible QA/test
+labels. Live local previews use realistic example records, preserve existing hosted features and
+update as source changes; they remain separate from hosted/device acceptance. This extends the
+complete scope and does not replace any owner requirement, operation, data or safeguard above.
+
 ## Theme direction — Ethan, 2 November 2026
 
 Neutral light with Happy Cookie character replaces the cream theme: white/cool gray surfaces,

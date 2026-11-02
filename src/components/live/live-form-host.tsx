@@ -1,4 +1,4 @@
-import { useId, useRef } from 'react';
+import { useId, useRef, useState } from 'react';
 import type * as React from 'react';
 import type { OpsVals } from '@/view-models/vals';
 import { PayEditForm, PayList, ShopTextsForm, UploadField } from '@/components/live/payment-forms';
@@ -18,6 +18,7 @@ import {
   smallLabel
 } from '@/components/live/form-styles';
 import { RecipeDraftsForm } from '@/components/live/recipe-drafts-form';
+import { resolveImagePath } from '@/lib/media/resolve-image';
 
 /**
  * The live-only owner form host (MP-09 c1c, F3, docs/state/protected-exception.md): the
@@ -29,7 +30,7 @@ export function LiveFormHost({ v }: { v: OpsVals }) {
   const { liveForm } = v;
   if (liveForm && liveForm.kind === 'flavours') {
     return liveForm.editing ? (
-      <FlavourEditForm editing={liveForm.editing} />
+      <FlavourEditForm key={liveForm.editing.id ?? 'new'} editing={liveForm.editing} />
     ) : (
       <FlavourList liveForm={liveForm} />
     );
@@ -134,6 +135,13 @@ function fieldNumber(form: HTMLFormElement, name: string): number {
 function FlavourEditForm({ editing }: { editing: Editing }) {
   const photoRef = useRef<HTMLInputElement>(null);
   const badgeHintId = useId();
+  const [photoPath, setPhotoPath] = useState(editing.imagePath);
+  const photo = resolveImagePath(photoPath);
+  const uploadPhoto = async (file: File) => {
+    const path = await editing.upload(file);
+    if (path) setPhotoPath(path);
+    return path;
+  };
   const onSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const form = event.currentTarget;
@@ -187,24 +195,28 @@ function FlavourEditForm({ editing }: { editing: Editing }) {
           }}
         />
       </label>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        {photo ? (
+          <span
+            role="img"
+            aria-label="Product photo"
+            style={{
+              width: 72,
+              height: 72,
+              borderRadius: 12,
+              flexShrink: 0,
+              background: `var(--color-chip) url(${photo}) center / cover`
+            }}
+          />
+        ) : (
+          <span style={smallLabel}>No photo</span>
+        )}
+        <span style={smallLabel}>Photo</span>
+      </div>
+      <input ref={photoRef} type="hidden" name="imagePath" value={photoPath} readOnly />
+      <UploadField upload={uploadPhoto} target={photoRef} label="Change photo" hint="" />
       <label style={labelStyle}>
-        <span style={smallLabel}>Photo path</span>
-        <input
-          ref={photoRef}
-          name="imagePath"
-          defaultValue={editing.imagePath}
-          maxLength={200}
-          style={inputStyle}
-        />
-      </label>
-      <UploadField
-        upload={editing.upload}
-        target={photoRef}
-        label="Upload a photo"
-        hint="(PNG, JPEG or WebP, any size: it is resized and stripped of location data for you)"
-      />
-      <label style={labelStyle}>
-        <span style={smallLabel}>Allergens (shown as &quot;Contains …&quot;)</span>
+        <span style={smallLabel}>Contains</span>
         <input
           name="allergens"
           defaultValue={editing.allergens}
@@ -214,13 +226,14 @@ function FlavourEditForm({ editing }: { editing: Editing }) {
         />
       </label>
       <label style={labelStyle}>
-        <span style={smallLabel}>Badge</span>
+        <span style={smallLabel}>Shop label (optional)</span>
         <input
           name="badge"
           defaultValue={editing.badge}
           maxLength={30}
           style={inputStyle}
           aria-describedby={badgeHintId}
+          placeholder="Popular or Seasonal"
         />
       </label>
       <p
@@ -232,8 +245,7 @@ function FlavourEditForm({ editing }: { editing: Editing }) {
           lineHeight: 1.5
         }}
       >
-        A short label beside this cookie in your shop, such as Popular or Seasonal. Leave blank for
-        no badge.
+        Shown beside the cookie name.
       </p>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
         <label style={labelStyle}>
@@ -253,7 +265,7 @@ function FlavourEditForm({ editing }: { editing: Editing }) {
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
         <label style={labelStyle}>
-          <span style={smallLabel}>Capacity weight (1-48)</span>
+          <span style={smallLabel}>Cookies counted toward the order limit</span>
           <input
             name="capacityWeight"
             type="number"
@@ -267,7 +279,7 @@ function FlavourEditForm({ editing }: { editing: Editing }) {
           />
         </label>
         <label style={labelStyle}>
-          <span style={smallLabel}>Sort order (0-999)</span>
+          <span style={smallLabel}>Display order</span>
           <input
             name="sortOrder"
             type="number"
@@ -282,7 +294,7 @@ function FlavourEditForm({ editing }: { editing: Editing }) {
         </label>
       </div>
       <label style={labelStyle}>
-        <span style={smallLabel}>Price</span>
+        <span style={smallLabel}>Price (₱)</span>
         <input
           name="price"
           type="number"
@@ -299,7 +311,7 @@ function FlavourEditForm({ editing }: { editing: Editing }) {
         <span style={smallLabel}>On the order form</span>
       </label>
       <button type="submit" style={primaryButton}>
-        Save flavour
+        Save product
       </button>
       <button type="button" onClick={editing.cancel} style={secondaryButton}>
         Cancel

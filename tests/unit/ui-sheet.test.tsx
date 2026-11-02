@@ -9,6 +9,14 @@ afterEach(() => {
 });
 
 describe('Sheet', () => {
+  it('keeps a supplied theme on the portal root so its content inherits that theme', () => {
+    render(
+      <Sheet title="Themed" className="owner-theme" onClose={() => undefined}>
+        Body
+      </Sheet>
+    );
+    expect(screen.getByRole('dialog').parentElement).toHaveClass('owner-theme');
+  });
   it('is a labelled modal dialog drawn into the page body, with its content and footer', () => {
     render(
       <Sheet

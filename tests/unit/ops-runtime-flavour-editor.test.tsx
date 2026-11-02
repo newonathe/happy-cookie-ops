@@ -344,7 +344,7 @@ describe('MP-09 c1c: the flavour editor and Publish menu', () => {
 
       act(() => runtime.renderVals().liveForm!.addNew());
       const add = render(<AppFrame v={runtime.renderVals()} />);
-      expect(add.container.textContent).toContain('Save flavour');
+      expect(add.container.textContent).toContain('Save product');
       expect(add.container.innerHTML).not.toMatch(/undefined|\bNaN\b/);
       add.unmount();
 
@@ -352,10 +352,10 @@ describe('MP-09 c1c: the flavour editor and Publish menu', () => {
       act(() => runtime.renderVals().productRows[i]!.edit());
       const edit = render(<AppFrame v={runtime.renderVals()} />);
       expect(edit.container.textContent).toContain(WCB.name);
-      const badge = edit.getByLabelText('Badge');
+      const badge = edit.getByLabelText('Shop label (optional)');
       expect(
         document.getElementById(badge.getAttribute('aria-describedby') ?? '')?.textContent
-      ).toContain('Leave blank for no badge.');
+      ).toContain('Shown beside the cookie name.');
       expect(edit.container.innerHTML).not.toMatch(/undefined|\bNaN\b/);
       edit.unmount();
 
