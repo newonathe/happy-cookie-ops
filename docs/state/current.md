@@ -1,33 +1,32 @@
 # Current state — Happy Cookie Ops
 
-**RESUMED, 3 November 2026.** Ethan reactivated the complete goal; review holds remain in force.
-
-**Implementation checkpoint, 2 November 2026:** implement the full actual application on `codex/refined-workflows`.
+**Active, 3 November 2026:** finish the actual application on `codex/refined-workflows`.
 Read the [complete shared owner/agent brief](../design/owner-workflow-brief.md),
-[scope](../design/refined-workflows.md) and [next goal](next-goal.md). Claude and other agents
-continue through these repository files; chat memory is not the authority.
+[scope](../design/refined-workflows.md) and [next goal](next-goal.md). Claude/other agents use these
+shared files. Keep all features/safeguards while simplifying operation; the full goal is incomplete.
 
-Accepted work includes the separate neutral-light owner frame, Stock list/item/count return,
-vertical suppliers and saved prices/history; Products, exact saved-recipe links and contextual
-Cancel/close; neutral product editing and photo replacement/removal. Saved production now has
-scoped read states and a shared-scale planned/baked/good/reject tracker with saved history.
-Latest application commit `61b7553`; pinned gate156 files /2709 pass +2 existing todo.
-Four-width component/synthetic-RPC checks pass; database, hosted and physical-phone proof is separate.
+Accepted source through `dacd216`: neutral owner frame/Stock/count/supplier return, Products/direct
+saved recipes, contextual product editing/photos, saved production charts/history and now manual/
+planned production entry. Entry retains quantities across navigation, checks recipe versions,
+returns Cancel focus and continues an unfinished batch without replacing it. It records no actual
+production. Legacy actual-count/review/result design and authoritative resulting-stock treatment
+remain pending. Next dev now preserves the shared agent files (`0f908cb`).
 
-**Immediate steering:** Ethan approved additive demo data in the existing hosted database.
-Read-only schema/function/baseline inspection completed; no demo business rows written yet.
-The actual-source live build passed all28 routes and runs at localhost:3000 against that database;
-headless sign-in/assets and Ethan's Chrome sign-in passed.4186 remains a synthetic component preview.
-A private40-row isolated Demo catalogue/recipe/order draft and guarded cleanup pass static checks;
-SQL runtime/trigger behavior and independent review remain unverified. No demo rows inserted.
-Preserve existing records/settings; SQL/money review remains required before executing the draft.
+Pinned gate158 files /2723 pass +2 existing todo; live build passed28 static pages. Four-width
+component/synthetic-RPC checks cover start/review/resume/reduced motion with no writes. Database,
+hosted, physical-phone and owner-week proof remain separate. See commits for prior gate receipts.
 
-The full goal remains incomplete: production entry/review/confirmed resulting stock, safe recipe
-kind/version saves, save return, remaining Stock/Bazaar/Sell/Shop/Money/Account/Home/integration.
-Price editing is isolated pending review. No deployment/main merge or other hosted changes approved.
-The private59-page/238-branch/224-automation plan is planned coverage, not completed automation.
-The older release dates and cream theme below are historical; the current theme is neutral light
-with Happy Cookie branding, selective glass, restrained motion and purposeful visual tracking.
+Ethan's client-feedback download matches frozen v4 exactly; use its cleaner layout as a reference
+while completing missing designs under the latest neutral Happy Cookie theme. Exact path/hash and
+proof limits are in the shared brief. No broad audit/research repeat or mockup substitution.
+
+Actual source runs at localhost:3000 with hosted data;4186 is synthetic component QA. Ethan approved
+additive demo data in the existing database. The private40-row seed/cleanup draft has static checks
+only; no load executed. SQL runtime/independent review remain pending. Preserve existing records.
+Remaining scope includes safe recipe saves/save return, Stock truth/receiving/shopping, Bazaar,
+Sell/Shop, Money/Account, Home and integration. Price editing stays isolated pending review.
+No deployment/main merge or other hosted changes approved. The59-page/238-branch/224-automation
+plan describes planned coverage. Older dates/cream below are historical; the complete goal stays active.
 
 Read this page first in a new session. It is kept short on purpose.
 

@@ -28,6 +28,17 @@ Inspect the current worktree, branch and actual implementation before relying on
 
 Use these references, with explicit proof boundaries:
 
+- Client-feedback reference: `C:/Users/ethan/Downloads/happy-cookie-workflows-refined.html`.
+  Verified 3 November: 883527 bytes, SHA256 `fad61841ac098a9cb5431e382b9703589b8fc9947fe29ee0eef0476e80646aae`.
+  It is byte-identical to the preserved private `happy-cookie-workflows-refined.v4.html`.
+  Ethan first called it `happy-cookie-mockup-walkthrough-refined.html`, then supplied this download.
+  The client reportedly found it cleaner, with designs still missing. Carry forward its cleaner
+  layout/organization and identify missing screens, states, components and hierarchy against the
+  feature map and actual source. Specific missing designs were not named; do not invent client
+  complaints or treat this as complete screen/functional acceptance. Apply findings to actual code.
+  The newer neutral-light Happy Cookie direction, original assets, selective glass, accessible
+  motion and practical trackers still apply. Keep the supplied reference intact; inspect relevant
+  screens per slice rather than repeating the broad audit or creating another mockup-only project.
 - Supplied original: `C:/Users/ethan/dev/The Happy Cookie project setup/design_handoff_happy_cookie/reference/prototype.html`.
   Rechecked 2 November: SHA256 `dc0bc1f5c65ee4461b44831509637159d4500bd9b51ff12f945612cc997e884b`.
   Also consider the supplied `prototype.dc.html` and real `reference/assets/` beside it.
@@ -340,14 +351,20 @@ Record execution status and exact effects in the shared next goal and private ma
 
 ## Current checkpoint to verify before continuing
 
-Accepted actual-source commit `61b7553` integrates saved production results in the neutral Bake plan;
-`3a1d844` adds common-scale charts/history, `9db4c75` scoped saved reads and nullable plans,
-`26a6b69`/`25e1343` supported photo removal and atomic uploaded preview/form updates.
-Pinned gate156 files /2709 tests pass +2 existing todo. Actual components pass four-width synthetic-RPC
-browser checks. The full production write flow, authoritative resulting stock and remaining full-app
-scope are still open. See next-goal.md/current.md and git for current progress and verification.
+Accepted app source through `dacd216`: manual/planned production entry, exact quantities, saved
+recipe facts, explicit recipe-version refresh, navigation draft retention, Cancel focus and
+unfinished-batch continuation. `6cdb9c3`/`cb0917d` provide its guarded runtime bridge.
+`0f908cb` prevents Next dev from rewriting the shared agent authority. Earlier accepted work
+includes the owner frame/Stock, Products/direct saved recipes, photo editing/removal and saved
+production charts/history. The legacy actual-count/review/result presentation remains pending.
 
-Supplier-price editing remains isolated at stash `7f5924a1ab69fae6f3c88c23afcfdf944645b5d2`, base82a6015.
-Read private pending-review/context-prices/REVIEW-HERE.md before touching it. Required independent
-review remains pending; the previously reported reset is Nov6 2026 11:24AM, timezone unspecified.
-Do not assume an old availability note is current or bypass the owner's wait decision.
+Pinned gate158 files /2723 tests pass +2 existing todo. The first UI gate hit an existing route-loop
+timeout; focused and full reruns passed with its assertions/timeouts unchanged. Live build passed
+28 static pages. Actual-component/synthetic-RPC checks pass four widths, review/resume, reduced
+motion and no writes. Hosted workflows, physical-phone and owner-week acceptance remain separate.
+
+No demo load executed. The private40-row SQL/cleanup draft still requires runtime validation and
+independent review. Supplier-price editing remains isolated at stash
+`7f5924a1ab69fae6f3c88c23afcfdf944645b5d2`, base82a6015; read the private review packet first.
+The previously reported reviewer reset is Nov6 2026 11:24AM, timezone unspecified; Ethan chose to
+wait. Do not bypass that hold. Keep the complete goal active; see current.md/next-goal.md and git.
