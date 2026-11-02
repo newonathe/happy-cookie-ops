@@ -896,6 +896,7 @@ export class OpsRuntime extends OpsProvider {
   private stockNewPriceId = '';
   private stockVersion = 0;
   private recipeRows: Recipe[] | null = null;
+  private recipeReaderState: 'loading' | 'read' | 'failed' = 'loading';
   private recipeClient: RecipeClient | null = null;
   /** The stamp of each flavour's saved recipe as its screen last showed it: what an edit is saved against. */
   private recipeBaseStamp: Record<string, string | null> = {};
@@ -2662,7 +2663,7 @@ export class OpsRuntime extends OpsProvider {
       // Worked out only on the Recipes screen: nothing else reads it, and the till must not pay for it.
       liveRecipes:
         isLiveMode() && this.state.role === 'owner' && this.state.screen === 'recipes'
-          ? this.recipeBook.vals()
+          ? this.liveRecipeBookView()
           : null,
       ...this.liveToastVals(starved),
       // S3: on a started day "Close out" opens the day's review, never the old close-out sheet (which the database refuses).
@@ -3189,10 +3190,16 @@ export class OpsRuntime extends OpsProvider {
     const use = client ?? this.recipeClient;
     if (!isLiveMode() || !use) return false;
     const seq = (this.recipeLoadSeq += 1);
+    this.recipeReaderState = 'loading';
+    this.setState({});
     let rows: Recipe[];
     try {
       rows = await fetchRecipes(use);
     } catch {
+      if (seq === this.recipeLoadSeq) {
+        this.recipeReaderState = 'failed';
+        this.setState({});
+      }
       return false;
     }
     // A newer read started meanwhile: it will apply, an older answer must not bring back an older stamp.
@@ -3200,6 +3207,7 @@ export class OpsRuntime extends OpsProvider {
     // Anything typed before the first read was on an empty placeholder: the saved recipe replaces it.
     const first = this.recipeRows === null;
     this.recipeRows = rows;
+    this.recipeReaderState = 'read';
     const dirty = (this.state as unknown as RecipeState).recipeDirty ?? {};
     for (const p of PRODUCTS)
       if (first || !dirty[p.id] || p.id === refresh)
@@ -6101,6 +6109,7 @@ export class OpsRuntime extends OpsProvider {
       entries:
         place.entries.length > 1
           ? place.entries.flatMap((entry) => {
+              if (entry.withinProduct) return [];
               const item = tool(entry.label);
               return item
                 ? [
@@ -6127,10 +6136,50 @@ export class OpsRuntime extends OpsProvider {
         ? {
             ...row,
             edit: () => this.openFlavourEditor(pid),
+            goRecipe: () => {
+              if (!isLiveMode() || this.unmounted || this.state.role !== 'owner') return;
+              this.setState({ liveRecipeTarget: pid }, () => {
+                if (!this.unmounted && this.state.role === 'owner') row.goRecipe();
+              });
+            },
             costText: this.costKnown(pid) ? row.costText : COST_COPY.pending
           }
         : row;
     });
+  }
+
+  private liveRecipeBookView(): NonNullable<OpsVals['liveRecipes']> {
+    const book = this.recipeBook.vals();
+    const item = book.items.find((row) => row.id === this.state.liveRecipeTarget);
+    if (!item) return book;
+    const recipe = this.recipeRows?.find((row) => row.productId === item.id);
+    const hasLines = !!recipe?.lines.length;
+    const current = () =>
+      !this.unmounted &&
+      this.state.role === 'owner' &&
+      this.state.screen === 'recipes' &&
+      this.state.liveRecipeTarget === item.id;
+    return {
+      ...book,
+      recipePage: {
+        id: item.id,
+        name: item.name,
+        photo: item.photo,
+        state: this.recipeReaderState,
+        yieldText: hasLines ? `Makes ${recipe.yield} cookies` : null,
+        versionText: hasLines ? `Version ${recipe.version}` : null,
+        rows: (recipe?.lines ?? []).map((line) => ({
+          name: line.name,
+          amountText: formatQuantity(line.qty, line.unit)
+        })),
+        back: () => {
+          if (current()) this.setState({ liveRecipeTarget: null }, () => this.go('products'));
+        },
+        refresh: () => {
+          if (current()) void this.loadRecipes(null);
+        }
+      }
+    };
   }
 
   /** Whether a flavour's cost per cookie is known and may be shown as a figure (not while it is being edited, not part of it). */

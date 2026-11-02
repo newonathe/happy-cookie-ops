@@ -224,6 +224,12 @@ describe('B1: the sub-tab strip, drawn through the screen slot', () => {
         expect([place.id, open(strip(runtime)?.places)]).toEqual([place.id, [place.label]]);
         if (place.entries.length > 1) offered.push(...entries(runtime));
         else offered.push(...place.entries.map((entry) => entry.label));
+        for (const entry of place.entries.filter((item) => item.withinProduct)) {
+          expect(entries(runtime)).not.toContain(entry.label);
+          act(() => runtime.renderVals().productRows[0]!.goRecipe());
+          expect(runtime.state.screen).toBe(entry.screen);
+          offered.push(entry.label);
+        }
       } else {
         // No screen yet: its chip is its one entry.
         act(() => runtime.go(TABS.find((tab) => tab.id === place.home)!.screen));
@@ -308,7 +314,7 @@ describe('B1: the sub-tab strip, drawn through the screen slot', () => {
       'Sell · Customers/Waitlist',
       'Sell · Shop',
       'Make · Bake plan',
-      'Make · Recipes',
+      'Make · Products',
       'Stock · Inventory',
       'Stock · Shopping',
       'Stock · Suppliers',

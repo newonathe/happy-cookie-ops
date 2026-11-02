@@ -62,7 +62,7 @@ describe('the function map (final-plan.md section 8.1)', () => {
       ['This week'],
       ['Bazaar'],
       ['Orders', 'Customers/Waitlist', 'Shop'],
-      ['Bake plan', 'Recipes'],
+      ['Bake plan', 'Products'],
       ['Inventory', 'Shopping', 'Suppliers'],
       ['P&L', 'Sales', 'Expenses']
     ]);

@@ -12,8 +12,10 @@ and reduced-motion support (Ethan, 2 November); this supersedes cream. Older pag
 Stock browsing now uses a compact ingredient/packaging panel with saved pack details and retained
 filters, category counts, an editable count list, item/history retry and a vertical supplier directory.
 Items also open their saved supplier prices/history with retained Back and filters.
-**Next:** finish context-prefilled price editing, production categories and unknown-stock truth,
-then Make and the other workflows. The private plan covers 59 pages/child flows,
+Make now opens each product's saved recipe directly, with yield/version, honest read/retry states,
+Costs & history and Back to Products. Its single section row is Bake plan / Products.
+**Next:** product-library refinement, production flow/results, stock truth and other workflows.
+Context-prefilled price editing is isolated pending required independent review. The private plan covers 59 pages/child flows,
 238 decision branches and 224 automation field groups; these are planned coverage, not
 implemented automation. Reuse known context/calculations and ask only new facts/exceptions.
 

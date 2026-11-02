@@ -38,6 +38,17 @@ export interface RecipeBookItem {
 }
 
 export interface LiveRecipesVals {
+  recipePage?: {
+    id: string;
+    name: string;
+    photo: string;
+    state: 'loading' | 'read' | 'failed';
+    yieldText: string | null;
+    versionText: string | null;
+    rows: Array<{ name: string; amountText: string }>;
+    back: () => void;
+    refresh: () => void;
+  };
   online: boolean;
   /** How the costs were read: `read`, still `loading`, or `failed` (the figures may then differ from the events'). */
   state: 'read' | 'loading' | 'failed';

@@ -15,6 +15,7 @@ import { FlavourTile } from '@/components/ui/flavour-tile';
 import { supportsViewTransition, useViewTransition } from '@/components/ui/motion';
 import { cx } from '@/components/ui/cx';
 import { FlavourPage, PHOTO_TRANSITION } from './flavour-page';
+import { RecipeReader } from './recipe-reader';
 
 /** `liveRecipes` as the runtime provides it. */
 export function liveRecipesOf(v: OpsVals): LiveRecipesVals | null {
@@ -64,9 +65,10 @@ export function RecipeBookLive({ v }: { v: OpsVals }) {
   const [named, setNamed] = useState<string | null>(null);
   const [fade, setFade] = useState(false);
   const refresh = book?.refresh;
+  const readingRecipe = !!book?.recipePage && view.kind === 'book';
   useEffect(() => {
-    refresh?.();
-  }, [refresh]);
+    if (!readingRecipe) refresh?.();
+  }, [refresh, readingRecipe]);
 
   // Anyone but the owner has no recipe book (`liveRecipes` is null): they keep the ported Recipes screen as it was.
   if (!book) return <RecipesScreen v={v} />;
@@ -93,7 +95,8 @@ export function RecipeBookLive({ v }: { v: OpsVals }) {
           onClick={() => go(item ? { kind: 'flavour', id: view.id } : { kind: 'book' }, view.id)}
           className="self-start"
         >
-          <span aria-hidden="true">← </span>Back to the recipe book
+          <span aria-hidden="true">← </span>
+          {book.recipePage ? 'Back to costs' : 'Back to the recipe book'}
         </Button>
         <RecipesScreen v={v} />
       </section>
@@ -110,6 +113,7 @@ export function RecipeBookLive({ v }: { v: OpsVals }) {
             fade={fade}
             note={book.note}
             onBack={() => go({ kind: 'book' }, item.id)}
+            backLabel={book.recipePage ? 'Back to recipe' : undefined}
             onEditRecipe={() => {
               item.editRecipe();
               go({ kind: 'editor', id: item.id }, null);
@@ -118,6 +122,16 @@ export function RecipeBookLive({ v }: { v: OpsVals }) {
         </section>
       );
   }
+
+  const recipePage = book.recipePage;
+  if (recipePage)
+    return (
+      <RecipeReader
+        key={recipePage.id}
+        page={recipePage}
+        onCosts={() => go({ kind: 'flavour', id: recipePage.id }, recipePage.id)}
+      />
+    );
 
   const counts = bookCounts(book.items);
   const shown = filterBook(book.items, filter, query);

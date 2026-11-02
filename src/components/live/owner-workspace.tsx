@@ -221,7 +221,7 @@ export function OwnerWorkspace({
       <div className={styles.work}>
         <header className={styles.header}>
           <div className={styles.location}>
-            {v.showBack ? (
+            {v.showBack && !(screen === 'recipes' && v.liveRecipes?.recipePage) ? (
               <button type="button" className={styles.back} aria-label="Back" onClick={back}>
                 <Icon path={v.ic.back} size={18} weight={1.7} />
               </button>

@@ -31,6 +31,8 @@ export interface Entry {
   screen?: ScreenKey;
   /** A distinct daily-work page, shown alongside its parent in the one section row. */
   section?: boolean;
+  /** Reached inside a selected product, rather than offered as another section link. */
+  withinProduct?: boolean;
 }
 
 export interface Place {
@@ -108,11 +110,11 @@ export const PLACES: readonly Place[] = [
   {
     id: 'recipes',
     home: 'make',
-    label: 'Recipes',
-    screen: 'recipes',
+    label: 'Products',
+    screen: 'products',
     entries: [
-      { label: 'Recipes', screen: 'recipes' },
-      { label: 'Products', screen: 'products', section: true },
+      { label: 'Products', screen: 'products' },
+      { label: 'Recipes', screen: 'recipes', withinProduct: true },
       { label: 'Menu & flavours' },
       { label: 'Recipe drafts' }
     ],
