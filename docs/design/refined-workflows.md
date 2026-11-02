@@ -107,7 +107,12 @@ needs more than approximately 400 changed lines, split it into complete smaller 
 - Count confirmation reuses the existing item-cost source: unpriced legacy items and failed/null
   reads remain pending, confirmed database zero remains zero, and a partially known adjustment
   is never shown as a complete total. No request or ledger-posting behavior changes.
-- Make and all later workflow slices remain pending. Passing mockup tests does not mark them implemented.
+- Make's product Recipe action opens the selected cookie's actual saved quantities, yield and version;
+  recipe reads do not depend on cost-service availability. Read failure preserves the saved copy with
+  Retry; Back returns to Products, and Costs & history stays reachable. Make has one Bake plan / Products
+  row with recipes inside their products. Four-width component fixture checks cover this path without
+  writes; product library, production/results and kind-preserving recipe saves remain pending.
+  All later workflow slices remain pending. Passing mockup tests does not mark them implemented.
 - The ingredient/packaging list now uses the compact panel layout, saved pack details, one status
   selector and retained category/filter when returning from an item/count. Retired items are excluded
   from the working list. Its single Inventory/Shopping/Suppliers group follows the title and uses the

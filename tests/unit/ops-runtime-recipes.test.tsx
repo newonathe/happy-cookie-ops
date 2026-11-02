@@ -19,6 +19,7 @@ vi.mock('@/lib/offline/idb', () => ({
 vi.mock('@/lib/device', () => ({ deviceId: () => 'dev1' }));
 
 import { OpsRuntime } from '@/store/ops-runtime';
+import { PRODUCTS } from '@/store/engine/ops-engine';
 import type { Role } from '@/store/engine/ops-engine';
 
 /**
@@ -108,6 +109,54 @@ async function mounted(role: Role, state: Fake) {
 }
 
 describe('A4: the recipes reach the ported recipes screen (live mode)', () => {
+  it('opens the selected product saved recipe directly and returns to Products without a write', async () => {
+    const { runtime, rpc } = await mounted('owner', fresh());
+    act(() => runtime.go('products'));
+    expect(runtime.renderVals().liveScreen?.tabs?.places.map((p) => p.label)).toEqual([
+      'Bake plan',
+      'Products'
+    ]);
+    expect(runtime.renderVals().liveScreen?.tabs?.entries.some((p) => p.label === 'Recipes')).toBe(
+      false
+    );
+    const product = runtime.renderVals().productRows[PRODUCTS.findIndex((p) => p.id === 'dcf')]!;
+    act(() => product.goRecipe());
+    const page = runtime.renderVals().liveRecipes?.recipePage;
+    expect(page).toMatchObject({
+      id: 'dcf',
+      yieldText: 'Makes 12 cookies',
+      versionText: 'Version 3',
+      rows: [
+        { name: 'Unsalted butter', amountText: '320 g' },
+        { name: 'Eggs', amountText: '2 pcs' }
+      ]
+    });
+    act(() => act$(runtime).recipeEdit('dcf', 0, 'qty', '999'));
+    expect(runtime.renderVals().liveRecipes?.recipePage?.rows[0]?.amountText).toBe('320 g');
+    act(() => page!.back());
+    expect(runtime.state.screen).toBe('products');
+    act(() => runtime.setRole('helper'));
+    act(() => product.goRecipe());
+    expect(runtime.renderVals().liveRecipes).toBeNull();
+    expect(rpc.mock.calls.filter(([name]) => /^(save_|record_)/.test(name))).toHaveLength(0);
+  });
+
+  it('keeps a saved recipe readable and marks refresh failure instead of calling it empty', async () => {
+    const { runtime } = await mounted('owner', fresh());
+    act(() => runtime.go('products'));
+    act(() =>
+      runtime.renderVals().productRows[PRODUCTS.findIndex((p) => p.id === 'dcf')]!.goRecipe()
+    );
+    await act(async () => {
+      await runtime.loadRecipes({
+        rpc: async () => ({ data: null, error: { code: '08006' } })
+      } as never);
+    });
+    expect(runtime.renderVals().liveRecipes?.recipePage).toMatchObject({
+      state: 'failed',
+      rows: [{ amountText: '320 g' }, { amountText: '2 pcs' }]
+    });
+  });
   beforeEach(() => {
     live = true;
     store.clear();
