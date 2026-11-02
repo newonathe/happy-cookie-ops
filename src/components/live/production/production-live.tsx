@@ -1,12 +1,13 @@
 'use client';
 
-import { useId } from 'react';
+import { useEffect, useId, useRef } from 'react';
 import type { OpsVals } from '@/view-models/vals';
 import { s } from '@/lib/css';
 import { BakePlanScreen } from '@/components/screens/bake-plan';
 import { Button } from '@/components/ui/button';
 import styles from './production.module.css';
 import { ProductionResults } from './production-results';
+import { ProductionStart } from './production-start';
 
 function WorkRow({ row }: { row: OpsVals['bakeRows'][number] }) {
   return (
@@ -43,56 +44,94 @@ function WorkRow({ row }: { row: OpsVals['bakeRows'][number] }) {
 export function ProductionLive({ v }: { v: OpsVals }) {
   const data = v.liveProduction,
     planNote = useId();
+  const page = useRef<HTMLElement>(null);
+  const wasStarting = useRef(false);
+  const entryOpen = !!data?.start?.draft;
+  useEffect(() => {
+    if (entryOpen) wasStarting.current = true;
+    else if (wasStarting.current) {
+      page.current?.querySelector<HTMLButtonElement>('[data-production-start]')?.focus();
+      wasStarting.current = false;
+    }
+  }, [entryOpen]);
   if (!data) return <BakePlanScreen v={v} />;
+  const canStart = data.start
+    ? !!data.start.resume || data.start.products.length > 0
+    : data.planReady;
+  const unavailable =
+    data.state === 'failed'
+      ? 'Production could not be refreshed. Use Retry production below.'
+      : data.state === 'loading'
+        ? 'Reading saved production. Please wait.'
+        : 'Check the saved products and recipes in Products before starting.';
   const active = v.bakeRows.filter((row) => row.hasWork || row.hasDough);
   const completed = v.bakeRows.filter((row) => !row.hasWork && !row.hasDough);
   return (
-    <section data-screen-label="Bake plan" className={styles.page}>
-      <header className={styles.heading}>
-        <h1>Bake plan</h1>
-        <Button
-          variant="primary"
-          onClick={v.startFirst}
-          disabled={!data.planReady}
-          aria-describedby={!data.planReady ? planNote : undefined}
-        >
-          Start production
-        </Button>
-      </header>
-      {data.planReady ? (
-        <div className={styles.plan}>
-          <strong>{v.bakeTotals.toBakeNum}</strong>
-          <span>
-            cookies to bake
-            <small>
-              {active.some((row) => row.hasWork) ? v.bakeTotals.summary : 'No orders need baking.'}
-            </small>
-          </span>
-        </div>
-      ) : (
-        <p id={planNote} className={styles.muted}>
-          The bake plan is not available yet.
-        </p>
-      )}
-      <ProductionResults data={data} />
-      {data.planReady ? (
-        <section aria-label="Baking work" className={styles.work}>
-          <h2>To make</h2>
-          {active.length ? (
-            active.map((row, i) => <WorkRow key={i} row={row} />)
+    <>
+      {entryOpen && data.start ? (
+        <ProductionStart start={data.start} period={data.periodText} />
+      ) : null}
+      <div hidden={entryOpen}>
+        <section ref={page} data-screen-label="Bake plan" className={styles.page}>
+          <header className={styles.heading}>
+            <h1>Bake plan</h1>
+            <Button
+              variant="primary"
+              data-production-start
+              onClick={data.start?.open ?? v.startFirst}
+              disabled={!canStart}
+              aria-describedby={!canStart || !data.planReady ? planNote : undefined}
+            >
+              {data.start?.resume ? 'Continue production' : 'Start production'}
+            </Button>
+          </header>
+          {data.planReady ? (
+            <div className={styles.plan}>
+              <strong>{v.bakeTotals.toBakeNum}</strong>
+              <span>
+                cookies to bake
+                <small>
+                  {active.some((row) => row.hasWork)
+                    ? v.bakeTotals.summary
+                    : 'No orders need baking.'}
+                </small>
+              </span>
+            </div>
           ) : (
-            <p className={styles.empty}>No orders to bake.</p>
+            <p id={planNote} className={styles.muted}>
+              {!data.start
+                ? 'The bake plan is not available yet.'
+                : canStart
+                  ? 'The order plan is unavailable. You can still start a manual batch.'
+                  : unavailable}
+            </p>
           )}
-          {completed.length ? (
-            <details>
-              <summary>Completed flavours ({completed.length})</summary>
-              {completed.map((row, i) => (
-                <WorkRow key={i} row={row} />
-              ))}
-            </details>
+          {data.planReady && !canStart ? (
+            <p id={planNote} className={styles.muted}>
+              {unavailable}
+            </p>
+          ) : null}
+          <ProductionResults data={data} />
+          {data.planReady ? (
+            <section aria-label="Baking work" className={styles.work}>
+              <h2>To make</h2>
+              {active.length ? (
+                active.map((row, i) => <WorkRow key={i} row={row} />)
+              ) : (
+                <p className={styles.empty}>No orders to bake.</p>
+              )}
+              {completed.length ? (
+                <details>
+                  <summary>Completed flavours ({completed.length})</summary>
+                  {completed.map((row, i) => (
+                    <WorkRow key={i} row={row} />
+                  ))}
+                </details>
+              ) : null}
+            </section>
           ) : null}
         </section>
-      ) : null}
-    </section>
+      </div>
+    </>
   );
 }
