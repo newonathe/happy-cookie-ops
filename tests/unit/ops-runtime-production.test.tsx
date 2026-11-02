@@ -179,6 +179,61 @@ const startBatch = (r: OpsRuntime, over: Wire = {}) =>
   );
 
 describe('C2: baking, mixing dough and packing record on the database (live mode)', () => {
+  it('does not substitute prototype quantities for unread production or expose the owner read to a helper', async () => {
+    const { runtime, client } = await mounted('owner', fresh(), false);
+    act(() => runtime.go('bake'));
+    expect(runtime.renderVals().liveProduction).toMatchObject({
+      state: 'loading',
+      planReady: false,
+      rows: []
+    });
+    await act(async () => {
+      await runtime.loadProduction(client as never);
+    });
+    expect(runtime.renderVals().liveProduction).toMatchObject({ state: 'read', rows: [] });
+    act(() => runtime.setRole('helper'));
+    expect(runtime.renderVals().liveProduction).toBeNull();
+  });
+  it('exposes only saved production for the current drop, with failed-read state and no write', async () => {
+    const f = fresh({
+      production: wireProduction({
+        batches: [
+          {
+            product_id: PID,
+            qty: 14,
+            target: null,
+            rejects: 2,
+            version: 3,
+            at: Date.parse('2026-10-05T01:00:00Z')
+          }
+        ]
+      })
+    });
+    const { runtime, rpc, client } = await mounted('owner', f);
+    act(() => runtime.go('bake'));
+    await act(async () => {
+      await runtime.loadProduction(client as never);
+    });
+    expect(runtime.renderVals().liveProduction).toMatchObject({
+      state: 'read',
+      periodText: 'Drop 5',
+      rows: [{ name: SHORT, qty: 14, target: null, rejects: 2 }]
+    });
+    await act(async () => {
+      await runtime.loadProduction({
+        rpc: async () => ({ data: null, error: { code: '08006' } })
+      } as never);
+    });
+    expect(runtime.renderVals().liveProduction).toMatchObject({
+      state: 'failed',
+      rows: [{ qty: 14, target: null }]
+    });
+    act(() => runtime.setState({ dropNo: 6 }));
+    expect(runtime.renderVals().liveProduction).toMatchObject({ state: 'failed', rows: [] });
+    act(() => runtime.go('products'));
+    expect(runtime.renderVals().liveProduction).toBeNull();
+    expect(called(rpc, 'record_production')).toHaveLength(0);
+  });
   beforeEach(() => {
     // The fixtures' pickup dates are fixed, and "this week" is worked out from today: without a fixed
     // clock the suite passes only until the first fixture date is in the past (it failed on 6 October).
