@@ -872,6 +872,8 @@ export class OpsRuntime extends OpsProvider {
   /** C2: the client production is read and recorded with, the read in flight, and an action whose answer never came (repeating it reuses its id and time). */
   private productionClient: ProductionClient | null = null;
   private productionLoadSeq = 0;
+  private productionReadState: 'loading' | 'read' | 'failed' = 'loading';
+  private lastProductionDrop: number | null = null;
   private pendingProduction = new Map<string, ProductionFields>();
   private pendingDiscards = new Map<string, DiscardFields>();
   private discardBusy = false;
@@ -2680,6 +2682,10 @@ export class OpsRuntime extends OpsProvider {
       liveRecipes:
         isLiveMode() && this.state.role === 'owner' && this.state.screen === 'recipes'
           ? this.liveRecipeBookView()
+          : null,
+      liveProduction:
+        this.state.role === 'owner' && this.state.screen === 'bake'
+          ? this.liveProductionView()
           : null,
       ...this.liveToastVals(starved),
       // S3: on a started day "Close out" opens the day's review, never the old close-out sheet (which the database refuses).
@@ -4988,16 +4994,58 @@ export class OpsRuntime extends OpsProvider {
     const use = client ?? this.productionClient;
     if (!isLiveMode() || !use) return false;
     const seq = (this.productionLoadSeq += 1);
+    const dropNo = (this.state as unknown as { dropNo: number }).dropNo;
+    this.productionReadState = 'loading';
+    this.setState({});
     let rows;
     try {
-      rows = await fetchProduction(use, (this.state as unknown as { dropNo: number }).dropNo);
+      rows = await fetchProduction(use, dropNo);
     } catch {
+      if (seq === this.productionLoadSeq) {
+        this.productionReadState = 'failed';
+        this.setState({});
+      }
       return false;
     }
     // A newer read started meanwhile: it will apply, an older answer must not bring back an older picture.
     if (seq !== this.productionLoadSeq) return true;
+    this.lastProductionDrop = dropNo;
+    this.productionReadState = 'read';
     this.applyProduction(rows);
     return true;
+  }
+
+  private refreshProductionView = (): void => {
+    if (!isLiveMode() || this.unmounted || this.state.role !== 'owner' || this.state.screen !== 'bake')
+      return;
+    if (this.productionClient) void this.loadProduction(null);
+    else {
+      this.productionReadState = 'failed';
+      this.setState({});
+    }
+  };
+
+  private liveProductionView(): NonNullable<OpsVals['liveProduction']> {
+    const dropNo = Number(this.state.dropNo);
+    const saved = this.lastProductionDrop === dropNo ? this.lastProduction : null;
+    const valid = saved?.batches.every(
+      (row) => Number.isInteger(row.qty) && row.qty >= 0 &&
+        Number.isInteger(row.rejects) && row.rejects >= 0 && row.rejects <= row.qty &&
+        Number.isFinite(row.at) &&
+        (row.target === null || (Number.isInteger(row.target) && row.target >= 0))
+    );
+    return {
+      state: this.productionReadState === 'read' && !valid ? 'failed' : this.productionReadState,
+      periodText: `Drop ${dropNo}`,
+      planReady: !!(valid && this.orderSync?.loaded && this.stockCatalogue && this.recipeRows),
+      rows: valid
+        ? (saved?.batches ?? []).map((row) => {
+            const product = PRODUCTS.find((p) => p.id === row.productId);
+            return { ...row, name: product?.short ?? 'Product no longer listed', photo: product?.img ?? '' };
+          })
+        : [],
+      refresh: this.refreshProductionView
+    };
   }
 
   /**
