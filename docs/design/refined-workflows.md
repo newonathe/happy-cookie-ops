@@ -43,6 +43,13 @@ over animation. Older fallback pages remain pending migration; this is not a com
 
 ## Reference and boundaries
 
+The 3 November client-feedback reference is Ethan's downloaded
+`C:/Users/ethan/Downloads/happy-cookie-workflows-refined.html`, byte-identical to the v4 hash below.
+He initially called it happy-cookie-mockup-walkthrough-refined.html. Preserve its cleaner grouping
+and presentation while completing missing designs in actual code; the specific client gaps are
+not yet named. Compare each relevant page/state with the existing feature map. The newer neutral
+theme remains in force. Positive presentation feedback is not full workflow or owner acceptance.
+
 - Workflow reference preserved as `happy-cookie-workflows-refined.v4.html`, SHA-256
   `fad61841ac098a9cb5431e382b9703589b8fc9947fe29ee0eef0476e80646aae`.
 - Current neutral-glass theme: `happy-cookie-workflows-refined.html`, SHA-256
