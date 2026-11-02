@@ -225,7 +225,7 @@ function FlavourEditForm({ editing }: { editing: Editing }) {
         <span style={smallLabel}>Photo</span>
       </div>
       <input ref={photoRef} type="hidden" name="imagePath" value={photoPath} readOnly />
-      <UploadField upload={uploadPhoto} target={photoRef} label="Change photo" hint="" />
+      <UploadField upload={uploadPhoto} label="Change photo" hint="" />
       {photoPath ? (
         <button type="button" onClick={removePhoto} style={secondaryButton}>
           Remove photo
