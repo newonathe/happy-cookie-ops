@@ -23,10 +23,8 @@ Products library and direct saved-recipe reader have accepted slices. Recent com
 - `3a1d844`: common-scale planned/baked/good/reject bars, honest missing plans and saved history.
 - `61b7553`: neutral Bake plan integration, existing actions and protected fallback retained.
 
-Latest application gate: pinned pnpm verify, 156 files /2709 tests pass +2 existing todo.
-Four-width headless checks cover product/recipe return, production results, empty/failure/retry,
-period scope, reduced motion and overflow. These use actual components with synthetic local RPC;
-they are not hosted-write, database, selling-phone or owner-week acceptance.
+Latest pinned gate: 156 files /2709 tests pass +2 existing todo. Four-width component/synthetic-RPC
+checks pass. Database, hosted, selling-phone and owner-week acceptance remain separate.
 
 ## Immediate steering — hosted demo data
 
@@ -37,10 +35,20 @@ in the verified hosted bundle is project `enftprwcsrdbnlplfrwk`. Read-only CLI s
 inspection and aggregate baseline are saved privately under gap-refinement/hosted-demo-*.
 No demo business rows have been written. The hosted database already has operational records.
 
-First ensure the real-source preview reads that database: localhost:4186 is a synthetic-data
-component preview and will not reflect hosted inserts. Then prepare an identifiable, idempotent
-demo manifest, exact expected effects, verification and scoped cleanup. Preserve current data,
-settings, permissions and side-effect rules. SQL/money writes still need independent review;
+The real-source live build passed all28 routes and now runs at **http://localhost:3000/**,
+configured for that hosted database with its existing public browser key. Headless phone/desktop
+checks passed normal sign-in/assets; Ethan confirmed successful Chrome sign-in. This is not
+proof of authenticated workflow completion. localhost:4186 remains synthetic-data component QA.
+
+A private 40-row demo draft and guarded cleanup are prepared at
+gap-refinement/hosted-demo-review/REVIEW-HERE.md. It adds an unpublished isolated Demo product,
+the original recipe's14 lines/kinds mapped to14 separate zero-balance Demo items, a supplier,
+an unpublished future drop and4 unpaid/claimed/cancelled orders. It proposes no payments,
+production or stock movements; guards roll back changes to original rows. Static mapping checks pass;
+Postgres execution/trigger behavior, repeat-load/cleanup runtime and independent review are NOT
+verified. No demo business rows have been inserted. Validate and review before applying; refresh
+the dated source/baseline before execution. Preserve current data, settings and side-effect rules.
+SQL/money writes still need independent review;
 Ethan previously chose to wait for the reviewer reset, reported Nov6 11:24AM, zone unspecified.
 Do not bypass that wait through another account/provider or paid usage. Reconcile current access.
 
@@ -65,7 +73,9 @@ in the shared brief. The 59 pages, 238 branches and 224 automation groups descri
 Agents elsewhere must receive needed private files separately; never invent missing evidence.
 
 Use pinned Node24.20.0/pnpm9.12.3 and headless CLI Playwright. No Browser/Chrome-control plugins.
-Keep localhost:4186 updating from actual source; localhost:4173 is only the reference mockup.
+Use localhost:3000 for actual source + hosted data; keep4186 for component/synthetic-data checks.
+localhost:4173 is only the reference mockup. Private run-hosted-source-preview.cjs starts the
+production standalone server; check/build/start modes. Do not replace its public key with a secret.
 For a stopped component server, inspect private gap-refinement/app-qa/serve.cjs before starting it.
 Preserve protected demo paths. One tested logical slice per commit, secret-scan then push this
 feature branch only. No main merge, deploy, other hosted writes/resources, cutover, reversal or
