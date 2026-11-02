@@ -89,6 +89,13 @@ describe('product-centered Make library', () => {
     );
   });
 
+  it('returns keyboard focus to the edited product action', () => {
+    render(<ProductsLive v={vals([product({ returnEditFocus: true })])} />);
+    expect(document.activeElement).toBe(
+      screen.getByRole('button', { name: 'Edit product QA cookie' })
+    );
+  });
+
   it('registers the owner library beside the recipe reader and preserves the demo product screen', () => {
     const undo = registerLiveRecipeScreens();
     const ref: { current: OpsRuntime | null } = { current: null };
@@ -125,17 +132,15 @@ describe('product-centered Make library', () => {
       ref.current!.setRole('owner');
       ref.current!.go('products');
     });
-    expect(
-      screen.getAllByRole('button', { name: 'Edit price' }).length
-    ).toBeGreaterThan(0);
+    expect(screen.getAllByRole('button', { name: 'Edit price' }).length).toBeGreaterThan(0);
     undo();
   });
 
   it('keeps the existing product markup outside the owner section', () => {
     render(<ProductsLive v={{ ...vals(), liveScreen: null } as OpsVals} />);
-    expect(
-      screen.getByRole('button', { name: 'Edit price' }).textContent?.trim()
-    ).toBe('Edit price');
+    expect(screen.getByRole('button', { name: 'Edit price' }).textContent?.trim()).toBe(
+      'Edit price'
+    );
     expect(screen.queryByRole('region', { name: 'Product library' })).toBeNull();
   });
 });

@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useId, useRef } from 'react';
 import type * as React from 'react';
 import type { OpsVals } from '@/view-models/vals';
 import { PayEditForm, PayList, ShopTextsForm, UploadField } from '@/components/live/payment-forms';
@@ -133,6 +133,7 @@ function fieldNumber(form: HTMLFormElement, name: string): number {
 
 function FlavourEditForm({ editing }: { editing: Editing }) {
   const photoRef = useRef<HTMLInputElement>(null);
+  const badgeHintId = useId();
   const onSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const form = event.currentTarget;
@@ -214,8 +215,26 @@ function FlavourEditForm({ editing }: { editing: Editing }) {
       </label>
       <label style={labelStyle}>
         <span style={smallLabel}>Badge</span>
-        <input name="badge" defaultValue={editing.badge} maxLength={30} style={inputStyle} />
+        <input
+          name="badge"
+          defaultValue={editing.badge}
+          maxLength={30}
+          style={inputStyle}
+          aria-describedby={badgeHintId}
+        />
       </label>
+      <p
+        id={badgeHintId}
+        style={{
+          margin: '-4px 0 0',
+          fontSize: '12px',
+          color: 'var(--color-ink-mute)',
+          lineHeight: 1.5
+        }}
+      >
+        A short label beside this cookie in your shop, such as Popular or Seasonal. Leave blank for
+        no badge.
+      </p>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
         <label style={labelStyle}>
           <span style={smallLabel}>Permanent or rotating</span>

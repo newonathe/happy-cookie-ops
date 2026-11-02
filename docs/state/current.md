@@ -16,7 +16,8 @@ Make now opens each product's saved recipe directly, with yield/version, honest 
 Costs & history and Back to Products. Its single section row is Bake plan / Products.
 The live product library uses neutral cards, original photos, explicit Recipe / Edit product / visibility
 actions and label explanations; recipe Back restores focus to the selected product.
-**Next:** product-editor return/help, production flow/results, stock truth and other workflows.
+Product-editor Cancel/close returns to its card; Badge help is inline. Save-return still needs review.
+**Next:** production flow/results, stock truth and other workflows.
 Context-prefilled price editing is isolated pending required independent review. The private plan covers 59 pages/child flows,
 238 decision branches and 224 automation field groups; these are planned coverage, not
 implemented automation. Reuse known context/calculations and ask only new facts/exceptions.

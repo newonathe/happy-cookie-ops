@@ -13,7 +13,9 @@ function ProductCard({ row }: { row: OpsVals['productRows'][number] }) {
   useEffect(() => {
     if (row.returnRecipeFocus)
       card.current?.querySelector<HTMLButtonElement>('[data-recipe-link]')?.focus();
-  }, [row.returnRecipeFocus]);
+    else if (row.returnEditFocus)
+      card.current?.querySelector<HTMLButtonElement>('[data-product-edit]')?.focus();
+  }, [row.returnRecipeFocus, row.returnEditFocus]);
   return (
     <article ref={card} className={styles.card} aria-labelledby={titleId}>
       <div className={styles.summary}>
@@ -39,7 +41,7 @@ function ProductCard({ row }: { row: OpsVals['productRows'][number] }) {
         <Button data-recipe-link onClick={row.goRecipe}>
           Recipe<span className="sr-only"> for {row.name}</span>
         </Button>
-        <Button onClick={row.edit}>
+        <Button data-product-edit onClick={row.edit}>
           Edit product<span className="sr-only"> {row.name}</span>
         </Button>
       </div>

@@ -184,6 +184,59 @@ describe('MP-09 c1c: the flavour editor and Publish menu', () => {
     expect(vals.liveForm?.editing).toMatchObject({ id: 'wcb', name: WCB.name, price: WCB.price });
   });
 
+  it('cancels product-card editing back to its product without a write or directory detour', async () => {
+    const { runtime, rpc } = await mounted('owner');
+    act(() => runtime.go('products'));
+    act(() => runtime.renderVals().productRows[PRODUCTS.findIndex((p) => p.id === 'wcb')]!.edit());
+    act(() => runtime.renderVals().liveForm!.editing!.cancel());
+    expect(runtime.state.sheet).toBeNull();
+    expect(runtime.state.screen).toBe('products');
+    expect(
+      runtime
+        .renderVals()
+        .productRows.filter((p) => p.returnEditFocus)
+        .map((p) => p.name)
+    ).toEqual([WCB.short]);
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
+  it('closes the selected product editor through the same contextual return and ignores stale Cancel', async () => {
+    const { runtime, rpc } = await mounted('owner');
+    act(() => runtime.go('products'));
+    const rows = runtime.renderVals().productRows;
+    act(() => rows[0]!.edit());
+    const oldCancel = runtime.renderVals().liveForm!.editing!.cancel;
+    act(() => rows[1]!.edit());
+    const newer = runtime.state.sheet;
+    act(() => oldCancel());
+    expect(runtime.state.sheet).toBe(newer);
+    expect(runtime.renderVals().liveForm?.editing?.id).toBe(PRODUCTS[1]!.id);
+    act(() => runtime.renderVals().closeSheet());
+    expect(runtime.state.sheet).toBeNull();
+    expect(
+      runtime
+        .renderVals()
+        .productRows.filter((p) => p.returnEditFocus)
+        .map((p) => p.name)
+    ).toEqual([rows[1]!.name]);
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
+  it('keeps directory editing Cancel in the directory even when opened from Products settings', async () => {
+    const { runtime, rpc } = await mounted('owner');
+    act(() => runtime.go('products'));
+    act(() =>
+      menuItems(runtime)
+        .find((i) => i.label === 'Menu & flavours')!
+        .go()
+    );
+    act(() => runtime.renderVals().liveForm!.rows[0]!.edit());
+    act(() => runtime.renderVals().liveForm!.editing!.cancel());
+    expect(runtime.renderVals().liveForm?.editing).toBeNull();
+    expect(runtime.renderVals().sheet?.title).toBe('Menu & flavours');
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
   it('does not touch demo mode: no liveForm, no Menu & flavours, ported Edit price still opens editPrice', () => {
     live = false;
     const ref: { current: OpsRuntime | null } = { current: null };
@@ -299,6 +352,10 @@ describe('MP-09 c1c: the flavour editor and Publish menu', () => {
       act(() => runtime.renderVals().productRows[i]!.edit());
       const edit = render(<AppFrame v={runtime.renderVals()} />);
       expect(edit.container.textContent).toContain(WCB.name);
+      const badge = edit.getByLabelText('Badge');
+      expect(
+        document.getElementById(badge.getAttribute('aria-describedby') ?? '')?.textContent
+      ).toContain('Leave blank for no badge.');
       expect(edit.container.innerHTML).not.toMatch(/undefined|\bNaN\b/);
       edit.unmount();
 

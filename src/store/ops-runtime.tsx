@@ -344,6 +344,7 @@ type FlavourSheetState = {
   pid?: string;
   isNew?: boolean;
   updatedAt?: string | null;
+  fromProduct?: boolean;
 };
 
 /** The ported people, kept so a demo runtime built after a live one shows them again. */
@@ -2121,9 +2122,20 @@ export class OpsRuntime extends OpsProvider {
    * *stale* field values — passing `save_flavour`'s conflict check and silently overwriting
    * the quick edit instead of reporting a conflict.
    */
-  private openFlavourEditor(pid: string): void {
+  private openFlavourEditor(pid: string, fromProduct = false): void {
     const updatedAt = this.flavourSync?.current().find((r) => r.id === pid)?.updated_at ?? null;
-    this.sheet('flavours', { pid, updatedAt });
+    if (fromProduct) this.setState({ liveProductReturnId: null, liveProductEditReturnId: null });
+    this.sheet('flavours', { pid, updatedAt, fromProduct });
+  }
+
+  /** Cancel returns to the editor's entry point, never closing a newer sheet. No write is sent. */
+  private cancelFlavourEditor(sheet: FlavourSheetState): void {
+    if (
+      !isLiveMode() || this.unmounted || this.state.role !== 'owner' || this.state.sheet !== sheet
+    ) return;
+    if (!sheet.fromProduct) return this.openFlavourList();
+    this.closeSheet();
+    if (this.state.screen === 'products') this.setState({ liveProductEditReturnId: sheet.pid });
   }
 
   private openNewFlavour(): void {
@@ -2539,9 +2551,13 @@ export class OpsRuntime extends OpsProvider {
             .map(healthTool)
         : null;
     const facts = this.liveFacts(starved);
+    const productEditor = this.state.sheet as FlavourSheetState | null;
+    const closeProductEditor = this.state.role === 'owner' &&
+      productEditor?.kind === 'flavours' && productEditor.fromProduct;
     return {
       ...starved,
       ...facts,
+      ...(closeProductEditor ? { closeSheet: () => this.cancelFlavourEditor(productEditor) } : {}),
       bareFrame: true,
       showFlowStrip: false,
       flow: null,
@@ -6135,13 +6151,15 @@ export class OpsRuntime extends OpsProvider {
       return pid
         ? {
             ...row,
-            edit: () => this.openFlavourEditor(pid),
+            edit: () => this.openFlavourEditor(pid, true),
             returnRecipeFocus: this.state.liveProductReturnId === pid,
+            returnEditFocus: this.state.liveProductEditReturnId === pid,
             goRecipe: () => {
               if (!isLiveMode() || this.unmounted || this.state.role !== 'owner') return;
-              this.setState({ liveRecipeTarget: pid, liveProductReturnId: null }, () => {
-                if (!this.unmounted && this.state.role === 'owner') row.goRecipe();
-              });
+              this.setState(
+                { liveRecipeTarget: pid, liveProductReturnId: null, liveProductEditReturnId: null },
+                () => { if (!this.unmounted && this.state.role === 'owner') row.goRecipe(); }
+              );
             },
             costText: this.costKnown(pid) ? row.costText : COST_COPY.pending
           }
@@ -6544,7 +6562,7 @@ export class OpsRuntime extends OpsProvider {
             active: target?.active ?? true,
             save: (fields: LiveFlavourFormFields) =>
               void this.saveFlavourForm(target?.id ?? null, fields, expectedUpdatedAt),
-            cancel: () => this.openFlavourList(),
+            cancel: () => this.cancelFlavourEditor(sh),
             upload: this.uploadImage('flavours')
           }
         : null;
