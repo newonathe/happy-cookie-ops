@@ -1,7 +1,8 @@
 # Happy Cookie — complete owner workflow and visual implementation brief
 
 Updated 2 November 2026. This is the shared implementation brief for Codex, Claude and other agents.
-The whole objective remains active. This document records requirements; its existence is not proof of completion.
+Ethan resumed the full, incomplete objective on 3 November 2026. Review holds remain in force.
+This document records requirements; its existence is not proof of completion.
 
 ## 1. Objective and meaning of success
 

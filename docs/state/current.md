@@ -1,6 +1,8 @@
 # Current state — Happy Cookie Ops
 
-**Active, 2 November 2026:** implement the full actual application on `codex/refined-workflows`.
+**RESUMED, 3 November 2026.** Ethan reactivated the complete goal; review holds remain in force.
+
+**Implementation checkpoint, 2 November 2026:** implement the full actual application on `codex/refined-workflows`.
 Read the [complete shared owner/agent brief](../design/owner-workflow-brief.md),
 [scope](../design/refined-workflows.md) and [next goal](next-goal.md). Claude and other agents
 continue through these repository files; chat memory is not the authority.
