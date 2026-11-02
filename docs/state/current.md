@@ -14,8 +14,11 @@ Four-width component/synthetic-RPC checks pass; database, hosted and physical-ph
 
 **Immediate steering:** Ethan approved additive demo data in the existing hosted database.
 Read-only schema/function/baseline inspection completed; no demo business rows written yet.
-The component preview4186 is not database-connected. Prepare the load/cleanup and real-source
-database preview; SQL/money review remains required. Preserve existing records and settings.
+The actual-source live build passed all28 routes and runs at localhost:3000 against that database;
+headless sign-in/assets and Ethan's Chrome sign-in passed.4186 remains a synthetic component preview.
+A private40-row isolated Demo catalogue/recipe/order draft and guarded cleanup pass static checks;
+SQL runtime/trigger behavior and independent review remain unverified. No demo rows inserted.
+Preserve existing records/settings; SQL/money review remains required before executing the draft.
 
 The full goal remains incomplete: production entry/review/confirmed resulting stock, safe recipe
 kind/version saves, save return, remaining Stock/Bazaar/Sell/Shop/Money/Account/Home/integration.

@@ -331,8 +331,10 @@ Next prompt. Requested continuation setup: same chat where available, GPT-6.1 hi
 Ethan requested demo records and explicitly selected the existing hosted Happy Cookie database.
 Prepare an additive, identifiable, idempotent dataset and scoped cleanup; preserve existing records,
 settings, roles and side-effect rules. This is not permission to reset, deploy, change schema or message
-customers. Verify the real-source preview reads that database: the current4186 component preview uses
-synthetic RPC and will not reflect hosted inserts. Required independent SQL/money review still applies.
+customers. Actual source now runs at localhost:3000 with the hosted database's existing public browser
+key; headless sign-in/assets and Ethan's Chrome sign-in passed.4186 remains a synthetic component
+preview and will not reflect hosted inserts. The private40-row seed/cleanup draft has static checks
+only; no demo rows inserted, SQL runtime and required independent SQL/money review remain pending.
 Record execution status and exact effects in the shared next goal and private manifest, not chat alone.
 
 ## Current checkpoint to verify before continuing
