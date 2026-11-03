@@ -536,6 +536,10 @@ describe('S2: with an event on the phone, the ported till is drawn unchanged', (
     act(() => runtime.setState({ online: false }));
     expect(label('Bazaar Mode')).toHaveLength(1);
     expect(screen.queryByRole('button', { name: 'Back to events' })).toBeNull();
+    // Signal back mid-sale: the till stays; Events opens again only when the owner chooses it.
+    act(() => runtime.setState({ online: true }));
+    expect(label('Bazaar Mode')).toHaveLength(1);
+    expect(screen.getByRole('button', { name: 'Back to events' })).toBeTruthy();
   });
 
   it('keeps helper access selling-only even with signal', async () => {

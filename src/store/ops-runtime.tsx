@@ -905,6 +905,8 @@ export class OpsRuntime extends OpsProvider {
   private completedProduction = new Map<string, { fields: ProductionFields; result: ProductionResult }>();
   private productionWorkIds = new WeakMap<object, string>();
   private productionActorEpoch = 0;
+  /** A save answered while the role had changed: the owner is told, and the counts are read, once the owner is back. */
+  private productionRecordedAway = false;
   private savingProduction = new Set<string>();
   private productionLaunching = false;
   private productionDrafts = new ProductionDrafts({
@@ -2392,6 +2394,12 @@ export class OpsRuntime extends OpsProvider {
     }
     if ((args[1] as { role?: unknown } | undefined)?.role !== this.state.role)
       this.productionActorEpoch += 1;
+    if (this.productionRecordedAway) this.noticeProductionRecordedAway();
+    // The till took over (signal lost or access narrowed): when signal returns it stays, mid-sale, until Events is chosen.
+    if (this.bazaarDirectory && !this.canLeaveTill()) {
+      this.bazaarDirectory = false;
+      this.bazaarDays.reset();
+    }
     if (
       (args[1] as { role?: unknown } | undefined)?.role !== this.state.role &&
       this.state.role !== 'owner'
@@ -5455,7 +5463,12 @@ export class OpsRuntime extends OpsProvider {
     }
     // A second tap while the first is being recorded does nothing: it would be a second record.
     if (this.savingProduction.has(workId)) return null;
-    if (this.completedProduction.has(workId)) return null;
+    // Recorded while the owner was away (the role changed mid-save): finish it now, never record it again.
+    const recorded = this.completedProduction.get(workId);
+    if (recorded) {
+      this.toast('This batch was already recorded. Showing the saved result.');
+      return recorded.result;
+    }
     // A working draft owns its unanswered request. Equal quantities never identify another batch.
     const fields: ProductionFields = this.pendingProduction.get(workId) ?? {
       ...structuredClone(f),
@@ -5482,8 +5495,15 @@ export class OpsRuntime extends OpsProvider {
     }
     if (result.outcome === 'saved') this.completedProduction.set(workId, { fields, result });
     if (result.outcome !== 'offline') this.pendingProduction.delete(workId);
-    if (this.unmounted || this.state.role !== 'owner' || actor !== this.productionActorEpoch)
+    if (this.unmounted || this.state.role !== 'owner' || actor !== this.productionActorEpoch) {
+      // The server recorded it, so it leaves In progress (it must never look unsaved and be made again).
+      if (result.outcome === 'saved' && !this.unmounted) {
+        this.productionDrafts.retire(workId);
+        this.productionRecordedAway = true;
+        this.noticeProductionRecordedAway();
+      }
       return result.outcome === 'saved' ? result : null;
+    }
     if (result.outcome === 'saved') return result;
     if (result.outcome === 'stale') void this.loadRecipes(null);
     this.toast(
@@ -5582,6 +5602,13 @@ export class OpsRuntime extends OpsProvider {
   }
 
   /** What the database holds now, for the screens (after every production action, whatever happened). */
+  private noticeProductionRecordedAway(): void {
+    if (this.unmounted || this.state.role !== 'owner') return;
+    this.productionRecordedAway = false;
+    this.toast('A batch saved while you were away is recorded. Showing the latest counts.');
+    void this.refreshProduction();
+  }
+
   private async refreshProduction(): Promise<void> {
     const actor = this.productionActorEpoch;
     const current = () => !this.unmounted && this.state.role === 'owner' && actor === this.productionActorEpoch;

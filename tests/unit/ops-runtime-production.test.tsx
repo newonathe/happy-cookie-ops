@@ -272,10 +272,41 @@ describe('production reply ownership', () => {
     const held = runtime.state.batch, screen = runtime.state.screen;
     await act(async () => reply(saved()));
     await settle();
+    // The completion that belonged to the first actor never runs: no navigation, the held batch view stays.
     expect(runtime.state.batch).toBe(held);
     expect(runtime.state.screen).toBe(screen);
+    // The server recorded it, so it leaves In progress either way; only an owner reads the counts again.
+    const pool = runtime as unknown as { productionDrafts: { list: () => unknown[] } };
+    expect(pool.productionDrafts.list()).toHaveLength(0);
+    expect(called(rpc, 'get_stock_catalogue')).toHaveLength(returnToOwner ? 1 : 0);
+    expect(called(rpc, 'record_production')).toHaveLength(1);
+  });
+
+  it('a batch recorded while a helper is signed in is announced to the owner on return, never recorded twice', async () => {
+    const { runtime, rpc } = await mounted('owner', fresh());
+    startBatch(runtime);
+    let reply!: (value: ReturnType<typeof saved>) => void;
+    rpc.mockImplementationOnce(() => new Promise(resolve => { reply = resolve; }));
+    act(() => acts(runtime).confirmBatch());
+    act(() => runtime.setRole('helper'));
+    await act(async () => reply(saved()));
+    await settle();
     expect(called(rpc, 'get_stock_catalogue')).toHaveLength(0);
-    expect(called(rpc, 'get_production')).toHaveLength(0);
+    act(() => runtime.setRole('owner'));
+    await settle();
+    const pool = runtime as unknown as { productionDrafts: { list: () => unknown[] } };
+    expect(pool.productionDrafts.list()).toHaveLength(0);
+    expect(msg(runtime)).toContain('saved while you were away is recorded');
+    expect(called(rpc, 'get_stock_catalogue')).toHaveLength(1);
+    expect(called(rpc, 'record_production')).toHaveLength(1);
+    // Mutation: the old silent return left a saved batch looking unsaved, inviting a second batch for the same cookies.
+  });
+
+  it('starting a batch for a product that is not on the menu does nothing', async () => {
+    const { runtime } = await mounted('owner', fresh());
+    act(() => (runtime as unknown as { startBatch: (pid: string) => void }).startBatch('not-a-product'));
+    expect(runtime.state.batch).toBeNull();
+    // Mutation: dropping the menu check opens a batch nobody can record.
   });
 
   it('Back retains an unanswered batch instead of discarding its retry identity', async () => {
