@@ -1,5 +1,7 @@
 'use client';
 
+import { bazaarBooking, type BazaarRoute } from '@/lib/bazaar/navigation';
+
 import {
   ALLERGENS,
   BASE_STATE,
@@ -222,7 +224,9 @@ import {
   type ProductionFields,
   type ProductionResult
 } from '@/lib/data/production';
-import type { LiveBatchCounts, LiveProductionStart } from '@/lib/production/live-production-types';
+import type { LiveBatchCounts, LiveProductionStart, LiveProductionRecipeUpdate } from '@/lib/production/live-production-types';
+import { ProductionDrafts, type ProductionProjection } from '@/lib/production/drafts';
+import type { ProductionRecipeSnapshot } from '@/lib/production/workspace';
 import {
   booksCsv,
   correctionError,
@@ -555,9 +559,14 @@ interface InvActions {
 
 /** The engine's confirm actions for dough and baking (instance fields the typings do not list), replaced in live mode by C2. */
 interface ProductionActions {
+  goBack: () => void;
+  startDough: (pid: string) => void;
+  setDoughFlavour: (pid: string) => void;
+  setDoughPortion: (kind: string) => void;
   confirmDough: () => void;
   confirmBatch: () => void;
   startBatch: (productId: string) => void;
+  setBatchFlavour: (productId: string) => void;
   batchStep: (step: number) => void;
   toBake: (productId: string, state: OpsEngineState) => number;
 }
@@ -566,7 +575,7 @@ interface ProductionActions {
 interface ProductionState {
   dropNo: number;
   recipeVer: Record<string, number>;
-  doughPrep: { pid: string; balls: number } | null;
+  doughPrep: { pid: string; balls: number; liveWorkId?: string; step?: number } | null;
   batch: {
     pid: string;
     target: number;
@@ -575,6 +584,7 @@ interface ProductionState {
     adj?: Record<string, number>;
     liveActualText?: string;
     liveRejectsText?: string;
+    liveWorkId?: string;
   } | null;
 }
 
@@ -719,6 +729,12 @@ type ToolItem = OpsVals['toolGroups'][number]['items'][number];
 const SALES_LOG_ICON =
   'M6.5 4.5h11v15l-2.2-1.5-1.7 1.5-1.6-1.5-1.6 1.5-1.7-1.5-2.2 1.5zM9.5 9h5M9.5 12.5h5';
 
+// Capture the same engine module instance as this class's base. A hot update can replace
+// the namespace export while an existing base renderer still closes over the original lookup.
+const RENDER_PRODUCTS = (engineModule as unknown as {
+  P: Record<string, { short: string } | undefined>;
+}).P;
+
 export class OpsRuntime extends OpsProvider {
   /** The engine's Counter can stick part way when a total returns to its old value mid-tween; see settled-counter.tsx. */
   Counter = SettledCounter;
@@ -764,6 +780,7 @@ export class OpsRuntime extends OpsProvider {
         onMenu: (this.state.dropActive as Record<string, boolean> | undefined)?.[p.id] !== false
       })),
     holdsEvent: () => !!this.state.event,
+    resumeTill: () => this.resumeBazaarTill(),
     hasRecipe: (productId) =>
       this.recipeRows === null ? null : this.recipeRows.some((r) => r.productId === productId),
     recipeCost: (productId) => this.recipeCosts.get(productId) ?? null,
@@ -850,6 +867,7 @@ export class OpsRuntime extends OpsProvider {
   private tillClassic = false;
   /** U2: the live gate has narrowed the app to Bazaar Mode (no signal to the server): nothing may leave the till. */
   private gateNarrow = false;
+  private bazaarDirectory = false;
   private scheduledNewId = '';
   private scheduledVersion = 0;
   private stockCatalogue: StockCatalogue | null = null;
@@ -881,9 +899,23 @@ export class OpsRuntime extends OpsProvider {
   private productionLoadSeq = 0;
   private productionReadState: 'loading' | 'read' | 'failed' = 'loading';
   private lastProductionDrop: number | null = null;
-  private productionEntry: (NonNullable<LiveProductionStart['draft']> & { dropNo: number }) | null = null;
+  private productionEntry: (NonNullable<LiveProductionStart['draft']> & { dropNo: number; batchQuantity?: string }) | null = null;
   private productionEntryGeneration = 0;
   private pendingProduction = new Map<string, ProductionFields>();
+  private completedProduction = new Map<string, { fields: ProductionFields; result: ProductionResult }>();
+  private productionWorkIds = new WeakMap<object, string>();
+  private productionActorEpoch = 0;
+  private savingProduction = new Set<string>();
+  private productionLaunching = false;
+  private productionDrafts = new ProductionDrafts({
+    identify: (value) => {
+      const id = value.liveWorkId ?? this.productionWorkIds.get(value) ?? crypto.randomUUID();
+      this.productionWorkIds.set(value, id); return id;
+    },
+    metadata: (pid, id, state) => this.productionWorkMetadata(pid, id, state),
+    locked: id => this.pendingProduction.has(id) || this.savingProduction.has(id),
+    completed: id => this.completedProduction.has(id)
+  }, () => crypto.randomUUID());
   private pendingDiscards = new Map<string, DiscardFields>();
   private discardBusy = false;
   /** E1: the client the books are read and written with, the last read, the read in flight, and entries whose answer never came (repeating one reuses its id and time). */
@@ -2351,6 +2383,15 @@ export class OpsRuntime extends OpsProvider {
   componentDidUpdate(...args: Parameters<NonNullable<OpsProvider['componentDidUpdate']>>): void {
     super.componentDidUpdate?.(...args);
     if (!isLiveMode()) return;
+    if (this.state.role === 'owner') {
+      const changed = this.productionDrafts.sync(
+        args[1] as unknown as ProductionProjection, this.state as unknown as ProductionProjection
+      );
+      if (Object.keys(changed.patch).length) this.setState(changed.patch as never);
+      else if (changed.changed) this.setState({});
+    }
+    if ((args[1] as { role?: unknown } | undefined)?.role !== this.state.role)
+      this.productionActorEpoch += 1;
     if (
       (args[1] as { role?: unknown } | undefined)?.role !== this.state.role &&
       this.state.role !== 'owner'
@@ -2501,7 +2542,7 @@ export class OpsRuntime extends OpsProvider {
     const vals = isLiveMode()
       ? renderWithSaleLabels(
           this.state.sales,
-          (engineModule as unknown as { P: Record<string, { short: string } | undefined> }).P,
+          RENDER_PRODUCTS,
           () => super.renderVals()
         )
       : super.renderVals();
@@ -2517,6 +2558,9 @@ export class OpsRuntime extends OpsProvider {
       devices: [],
       roles: [],
       showPhoneWidths: false,
+      ...(this.bazaarDirectoryShowing()
+        ? { focusMode: false, showTopBar: true, showBack: false }
+        : {}),
       ...(counting
         ? {
             focusMode: false,
@@ -2692,7 +2736,21 @@ export class OpsRuntime extends OpsProvider {
         : {}),
       liveStockItems: this.liveStockItemsVals(),
       liveStock: this.liveStockVals(),
-      liveBazaar: isLiveMode() && this.state.role === 'owner' ? this.bazaarDays.vals() : null,
+      liveBazaar:
+        isLiveMode() && this.state.role === 'owner'
+          ? {
+              ...this.bazaarDays.vals(),
+              navigation: {
+                route: this.bazaarRoute(),
+                restore: this.restoreBazaarRoute,
+                directory: this.bazaarDirectoryShowing(),
+                tillOnly: !!this.state.event && !this.canLeaveTill(),
+                events: this.state.event && this.canLeaveTill() ? this.openBazaarEvents : null,
+                resume: this.state.event ? this.resumeBazaarTill : null,
+                heldName: String((this.state.event as LiveEvent | null)?.name ?? '')
+              }
+            }
+          : null,
       // Worked out only on the Recipes screen: nothing else reads it, and the till must not pay for it.
       liveRecipes:
         isLiveMode() && this.state.role === 'owner' && this.state.screen === 'recipes'
@@ -2702,7 +2760,9 @@ export class OpsRuntime extends OpsProvider {
         this.state.role === 'owner' && this.state.screen === 'bake'
           ? this.liveProductionView()
           : null,
+      batch: this.guardedProductionBatch(starved.batch),
       liveBatchCounts: this.productionCountsView(),
+      liveDough: this.productionDoughView(starved.mix),
       ...this.liveToastVals(starved),
       // S3: on a started day "Close out" opens the day's review, never the old close-out sheet (which the database refuses).
       ...((this.state.event as LiveEvent | null)?.dayId
@@ -3124,6 +3184,8 @@ export class OpsRuntime extends OpsProvider {
 
   /** U3: the "Bazaar events" sub-tab opens the events hub: the list of bookings, not an event's page, and not the form. */
   private openBazaarEvents = (): void => {
+    if (!this.canLeaveTill()) return;
+    this.bazaarDirectory = true;
     this.bazaarDays.reset();
     this.go('bazaar');
     this.forceUpdate();
@@ -5053,8 +5115,18 @@ export class OpsRuntime extends OpsProvider {
     return {
       state: this.productionReadState === 'read' && !valid ? 'failed' : this.productionReadState,
       periodText: `Drop ${dropNo}`,
-      planReady: !!(valid && this.orderSync?.loaded && this.stockCatalogue && this.recipeRows),
+      planReady: !!(valid && this.productionReadState === 'read' && this.orderSync?.loaded && this.stockCatalogue && this.recipeRows),
       saving: this.productionBusy,
+      inProgress: this.productionDrafts.list().map(work => ({
+        id: work.id, productId: work.product.id, kind: work.draft.kind, name: work.product.name,
+        label: `${work.draft.kind === 'batch' ? 'Batch' : 'Mix'} ${work.number}`,
+        photo: work.product.photo,
+        quantityText: work.draft.kind === 'batch' ? `${work.draft.target} planned` : `${work.draft.balls} portions`,
+        status: this.savingProduction.has(work.id) ? 'Saving' as const : this.pendingProduction.has(work.id)
+          ? 'Check result' as const : work.draft.kind === 'dough' ? work.draft.step === 2 ? 'Review' as const : 'Mix' as const
+          : work.draft.step === 2 ? 'Review' as const : 'Count' as const,
+        open: () => this.openProductionWork(work.id, work.revision)
+      })),
       rows: valid
         ? (saved?.batches ?? []).map((row) => {
             const product = PRODUCTS.find((p) => p.id === row.productId);
@@ -5066,19 +5138,71 @@ export class OpsRuntime extends OpsProvider {
     };
   }
 
+  private productionWorkMetadata(pid: string, id: string, state: ProductionProjection) {
+    const request = this.pendingProduction.get(id);
+    const version = request?.recipeVersion ?? state.recipeVer[pid];
+    const row = this.recipeRows?.find(r => r.productId === pid);
+    const saved = row?.version === version ? row : row?.history.find(r => r.version === version);
+    const legacy = state.recipes[pid];
+    let recipe: ProductionRecipeSnapshot | null = null;
+    if (saved) recipe = { version, yield: saved.yield, lines: saved.lines.map(line => {
+      const kind = (line as typeof line & { kind?: unknown }).kind;
+      return { ...line, kind: kind === 'ingredient' || kind === 'packaging' ? kind : null };
+    }) };
+    else if (Number.isInteger(version) && version > 0 && legacy?.yield > 0) recipe = {
+      version, yield: legacy.yield, lines: legacy.ing.map(([name, qty, unit]) => ({ name, qty: Number(qty), unit, kind: null }))
+    };
+    const product = PRODUCTS.find(p => p.id === pid);
+    return { product: { id: pid, name: product?.short ?? 'Product no longer listed', photo: product?.img ?? '' },
+      recipe, dropNo: request?.dropNo ?? state.dropNo };
+  }
+
+  private openProductionWork(id: string, revision: number): void {
+    if (this.unmounted || this.state.role !== 'owner' || !['bake', 'batch'].includes(this.state.screen)) return;
+    const work = this.productionDrafts.pool.get(id);
+    if (!work || !PRODUCTS.some(p => p.id === work.product.id)) {
+      this.toast('This product is unavailable. Your unfinished work is kept.', 'warn'); return;
+    }
+    const patch = this.productionDrafts.open(id, revision);
+    if (patch) this.setState(patch as never);
+  }
+
+  private guardedProductionBatch(view: OpsVals['batch']): OpsVals['batch'] {
+    if (!view) return view;
+    const source = (this.state as unknown as ProductionState).batch;
+    const owned = () => !this.unmounted && this.state.role === 'owner' && this.state.screen === 'batch' &&
+      (this.state as unknown as ProductionState).batch === source;
+    const writable = () => owned() && !this.savingProduction.has(source?.liveWorkId ?? '') &&
+      !(source?.liveWorkId && this.pendingProduction.has(source.liveWorkId));
+    const guard = <T extends unknown[]>(action: (...args: T) => void) => (...args: T): void => {
+      if (writable()) action(...args);
+    };
+    return { ...view, confirm: () => { if (owned() && !this.savingProduction.has(source?.liveWorkId ?? '')) view.confirm(); },
+      exit: () => { if (owned()) { this.go('bake'); this.toast('Batch kept. Continue it from Make.'); } },
+      discard: () => { if (writable()) { if (source?.liveWorkId) this.productionDrafts.retire(source.liveWorkId); view.discard(); } },
+      setFlavour: guard(view.setFlavour),
+      setNote: guard(view.setNote), plus: guard(view.plus), minus: guard(view.minus),
+      toStep1: guard(view.toStep1), toStep2: guard(view.toStep2),
+      rows: view.rows.map((row) => ({ ...row, plus: guard(row.plus), minus: guard(row.minus) })) };
+  }
+
   private productionCountsView(): LiveBatchCounts | null {
     const { batch, dropNo } = this.state as unknown as ProductionState;
     if (!isLiveMode() || this.state.role !== 'owner' || this.state.screen !== 'batch' || !batch)
       return null;
-    const actual = batch.liveActualText ?? String(batch.actual);
-    const rejects = batch.liveRejectsText ?? String(batch.rejects ?? 0);
+    const unanswered = batch.liveWorkId ? this.pendingProduction.get(batch.liveWorkId) : undefined;
+    const work = batch.liveWorkId ? this.productionDrafts.pool.get(batch.liveWorkId) : null;
+    const saving = this.savingProduction.has(batch.liveWorkId ?? '');
+    const sourceChanged = !!work && this.productionSourceChanged(work.id, batch.pid);
+    const actual = unanswered ? String(unanswered.qty) : batch.liveActualText ?? String(batch.actual);
+    const rejects = unanswered ? String(unanswered.rejects) : batch.liveRejectsText ?? String(batch.rejects ?? 0);
     const whole = (text: string): boolean => /^\d+$/.test(text) && Number(text) <= 10000;
     const valid = whole(actual) && Number(actual) >= 1 && whole(rejects) && Number(rejects) <= Number(actual);
     const current = (state = this.state): boolean => !this.unmounted && state.role === 'owner' &&
       state.screen === 'batch' && state.dropNo === dropNo &&
-      (state as unknown as ProductionState).batch === batch && !this.productionBusy;
+      (state as unknown as ProductionState).batch === batch && !saving;
     const set = (field: 'actual' | 'rejects', value: string): void => {
-      if (!current() || value.length > 32) return;
+      if (!current() || unanswered || value.length > 32) return;
       this.setState((state) => current(state) ? {
         batch: { ...batch, [field === 'actual' ? 'liveActualText' : 'liveRejectsText']: value,
           ...(whole(value) ? { [field]: Number(value) } : {}) }
@@ -5086,15 +5210,91 @@ export class OpsRuntime extends OpsProvider {
     };
     const engine = this as unknown as ProductionActions;
     return {
-      periodText: `Drop ${dropNo}`,
-      recipeVersion: (this.state as unknown as ProductionState).recipeVer[batch.pid] ?? null,
+      periodText: `Drop ${unanswered?.dropNo ?? work?.dropNo ?? dropNo}`,
+      recipeVersion: unanswered?.recipeVersion ?? work?.recipe?.version ?? (this.state as unknown as ProductionState).recipeVer[batch.pid] ?? null,
       stock: (this.stockCatalogue?.items ?? []).filter((item) => Number.isFinite(item.onHand))
         .map((item) => ({ name: item.name, balance: item.onHand, unit: item.unit })),
-      actual, rejects, valid, saving: this.productionBusy,
+      actual, rejects, valid, saving, uncertain: !!unanswered && !saving, sourceChanged,
+      recipeUpdate: sourceChanged && work && !saving && !unanswered ? this.productionRecipeUpdate(work.id, () => current()) : null,
       setActual: (value) => set('actual', value),
       setRejects: (value) => set('rejects', value),
-      review: () => { if (current() && valid) engine.batchStep(2); },
-      confirm: () => { if (current() && valid) engine.confirmBatch(); }
+      review: () => { if (current() && valid && !unanswered) engine.batchStep(2); },
+      confirm: () => { if (current() && valid && (unanswered || !sourceChanged)) engine.confirmBatch(); }
+    };
+  }
+
+  private productionSourceChanged(id: string, pid: string): boolean {
+    const recipe = this.productionDrafts.pool.get(id)?.recipe;
+    return !recipe || !this.productionRecipeMatches(pid, recipe);
+  }
+
+  private productionRecipeMatches(pid: string, recipe: ProductionRecipeSnapshot): boolean {
+    const state = this.state as unknown as ProductionProjection;
+    const current = state.recipes[pid];
+    return state.recipeVer[pid] === recipe.version && !!current &&
+      JSON.stringify([current.yield, current.ing.map(([name, qty, unit]) => [name, Number(qty), unit])]) ===
+      JSON.stringify([recipe.yield, recipe.lines.map(line => [line.name, line.qty, line.unit])]);
+  }
+
+  private productionRecipeUpdate(id: string, owned: () => boolean): LiveProductionRecipeUpdate | null {
+    const work = this.productionDrafts.pool.get(id);
+    const row = this.recipeRows?.find(r => r.productId === work?.product.id);
+    if (!work || !row || (this.state as unknown as ProductionProjection).recipeVer[work.product.id] !== row.version) return null;
+    const next: ProductionRecipeSnapshot = { version: row.version, yield: row.yield,
+      lines: row.lines.map(line => ({ ...line, kind: line.kind ?? null })) };
+    if (!this.productionRecipeMatches(work.product.id, next)) return null;
+    const fingerprint = JSON.stringify(row);
+    const names = [...new Set([...(work.recipe?.lines ?? []).map(line => line.name), ...next.lines.map(line => line.name)])];
+    const amount = (recipe: ProductionRecipeSnapshot | null, name: string) => recipe?.lines
+      .filter(line => line.name === name).map(line => `${line.qty} ${line.unit}`).join(' + ') || 'Not in recipe';
+    return { previousVersion: work.recipe?.version ?? null, version: next.version,
+      previousYield: work.recipe?.yield ?? null, yield: next.yield,
+      rows: names.map(name => ({ name, previous: amount(work.recipe, name), current: amount(next, name) })),
+      use: () => {
+        if (!owned() || this.state.role !== 'owner' || this.pendingProduction.has(id) || this.savingProduction.has(id) ||
+            JSON.stringify(this.recipeRows?.find(r => r.productId === work.product.id)) !== fingerprint ||
+            !this.productionRecipeMatches(work.product.id, next)) return;
+        if (!this.productionDrafts.pool.useRecipe(id, work.revision, next)) return;
+        const updated = this.productionDrafts.pool.get(id);
+        const patch = updated && this.productionDrafts.open(id, updated.revision);
+        if (patch) this.setState(patch as never);
+      }
+    };
+  }
+
+  private productionDoughView(view: OpsVals['mix']): OpsVals['liveDough'] {
+    const state = this.state as unknown as ProductionProjection, dp = state.doughPrep;
+    if (!view || !dp || this.state.role !== 'owner' || state.sheet?.kind !== 'mixDough') return null;
+    const id = dp.liveWorkId ?? '', work = this.productionDrafts.pool.get(id);
+    const unanswered = this.pendingProduction.get(id), saving = this.savingProduction.has(id);
+    const changed = !!work && this.productionSourceChanged(id, dp.pid);
+    const current = () => !this.unmounted && this.state.role === 'owner' && this.state.screen === 'bake' &&
+      (this.state as unknown as ProductionState).doughPrep === dp &&
+      (this.state.sheet as { kind?: string } | null)?.kind === 'mixDough';
+    const editable = () => current() && !saving && !unanswered && !changed;
+    const engine = this as unknown as ProductionActions;
+    const step = (value: number) => { if (editable()) this.setState({ doughPrep: { ...dp, step: value } } as never); };
+    const full = work?.recipe?.yield ?? Number(view.fullBalls), half = Math.ceil(full / 2);
+    const validAmount = dp.balls > 0 && [full, half].includes(dp.balls);
+    return { id, name: work?.product.name ?? PRODUCTS.find(p => p.id === dp.pid)?.short ?? 'Dough',
+      photo: work?.product.photo ?? '', periodText: `Drop ${unanswered?.dropNo ?? work?.dropNo ?? state.dropNo}`,
+      version: unanswered?.recipeVersion ?? work?.recipe?.version ?? state.recipeVer[dp.pid] ?? null,
+      balls: unanswered?.qty ?? dp.balls, reviewing: dp.step === 2 || !!unanswered, saving,
+      uncertain: !!unanswered && !saving, sourceChanged: changed,
+      validAmount, recipeUpdate: changed && !saving && !unanswered ? this.productionRecipeUpdate(id, current) : null,
+      portions: [{ label: `Full recipe · ${full} portions`, selected: dp.balls === full,
+        choose: () => { if (editable()) engine.setDoughPortion('full'); } },
+      { label: `Half recipe · ${half} portions`, selected: dp.balls === half,
+        choose: () => { if (editable()) engine.setDoughPortion('half'); } }],
+      rows: view.rows.map(row => {
+        const item = this.stockCatalogue?.items.find(item => item.name === row.name);
+        return { name: row.name, amountText: row.amountText,
+          balanceText: item && Number.isFinite(item.onHand) ? `${item.onHand} ${item.unit} recorded` : 'Recorded balance unavailable',
+          short: !!item && !!row.short && work?.recipe?.lines.find(line => line.name === row.name)?.unit === item.unit };
+      }), review: () => { if (validAmount) step(2); }, back: () => step(1),
+      confirm: () => { if (current() && !saving && (unanswered || (!changed && validAmount))) engine.confirmDough(); },
+      close: () => { if (current()) this.setState({ sheet: null }); },
+      discard: () => { if (editable()) { this.productionDrafts.retire(id); this.setState({ doughPrep: null, sheet: null } as never); } }
     };
   }
 
@@ -5102,12 +5302,12 @@ export class OpsRuntime extends OpsProvider {
   private productionStartView(dropNo: number, valid: boolean): LiveProductionStart {
     const generation = this.productionEntryGeneration;
     const engine = this as unknown as ProductionActions;
-    const ready = valid && this.productionReadState === 'read' && this.stockCatalogue && this.recipeRows;
+    const ready = valid && this.stockCatalogue && this.recipeRows;
     const products: LiveProductionStart['products'] = ready
       ? (this.flavourSync?.current() ?? []).flatMap((row) => {
           const recipe = this.recipeRows?.find((r) => r.productId === row.id);
           if (!recipe || !Number.isInteger(recipe.yield) || recipe.yield < 1) return [];
-          const need = this.orderSync?.loaded ? engine.toBake(row.id, this.state) : null;
+          const need = this.productionReadState === 'read' && this.orderSync?.loaded ? engine.toBake(row.id, this.state) : null;
           const needed = need !== null && Number.isInteger(need) && need >= 0 ? need : null;
           if (!row.active && !(needed && needed > 0)) return [];
           return [{ id: row.id, name: row.short_name || row.name, photo: row.image_path,
@@ -5123,30 +5323,36 @@ export class OpsRuntime extends OpsProvider {
     const change = (): void => this.setState({});
     return {
       products,
-      resume: !!(this.state as unknown as ProductionState).batch,
+      resume: false,
       draft: this.productionEntry?.dropNo === dropNo ? { ...this.productionEntry } : null,
       open: () => {
         const fresh = current();
-        if (!fresh || this.productionBusy) return;
-        if ((this.state as unknown as ProductionState).batch) {
-          this.go('batch');
-          return;
-        }
+        if (!fresh) return;
         if (!fresh.products.length) return;
         if (this.productionEntry?.dropNo !== dropNo) {
           this.productionEntryGeneration += 1;
           const one = fresh.products.length === 1 ? fresh.products[0] : undefined;
-          this.productionEntry = { dropNo, productId: one?.id ?? '', version: one?.version ?? 0,
+          this.productionEntry = { dropNo, kind: 'batch', productId: one?.id ?? '', version: one?.version ?? 0,
             quantity: one?.needed ? String(one.needed) : '' };
         }
         change();
       },
       choose: (id) => {
         const product = current()?.products.find((p) => p.id === id);
-        if (!product || this.productionBusy) return;
+        if (!product) return;
         const old = this.productionEntry;
-        this.productionEntry = { dropNo, productId: id, version: product.version,
-          quantity: old?.dropNo === dropNo && old.productId === id ? old.quantity : product.needed ? String(product.needed) : '' };
+        this.productionEntry = { dropNo, kind: old?.kind ?? 'batch', productId: id, version: product.version,
+          batchQuantity: old?.productId === id ? old.batchQuantity : undefined,
+          quantity: old?.dropNo === dropNo && old.productId === id ? old.quantity
+            : old?.kind === 'dough' ? String(product.yield) : product.needed ? String(product.needed) : '' };
+        change();
+      },
+      chooseKind: (kind) => {
+        const fresh = current(), old = this.productionEntry;
+        if (!fresh || !old || old.kind === kind) return;
+        const product = fresh.products.find(p => p.id === old.productId);
+        this.productionEntry = { ...old, kind, batchQuantity: kind === 'dough' ? old.quantity : old.batchQuantity,
+          quantity: kind === 'dough' ? product ? String(product.yield) : '' : old.batchQuantity ?? '' };
         change();
       },
       setQuantity: (value) => {
@@ -5163,15 +5369,19 @@ export class OpsRuntime extends OpsProvider {
       begin: () => {
         const fresh = current(), draft = this.productionEntry;
         const product = fresh?.products.find((p) => p.id === draft?.productId);
-        if ((this.state as unknown as ProductionState).batch ||
-            !draft || draft.dropNo !== dropNo || !product || product.version !== draft.version ||
-            this.productionBusy || !/^\d+$/.test(draft.quantity)) return false;
+        if (!draft || draft.dropNo !== dropNo || !product || product.version !== draft.version ||
+            this.productionLaunching || !/^\d+$/.test(draft.quantity)) return false;
         const quantity = Number(draft.quantity);
         if (!Number.isInteger(quantity) || quantity < 1 || quantity > 10000) return false;
-        engine.startBatch(product.id);
+        if (draft.kind === 'dough' && quantity !== product.yield && quantity !== Math.ceil(product.yield / 2)) return false;
+        if (draft.kind === 'dough') engine.startDough(product.id); else engine.startBatch(product.id);
         this.productionEntry = null;
         this.productionEntryGeneration += 1;
         this.setState((state) => {
+          if (draft.kind === 'dough') {
+            const dp = (state as unknown as ProductionState).doughPrep;
+            return dp?.pid === product.id ? { doughPrep: { ...dp, balls: quantity } } as never : {};
+          }
           const batch = (state as unknown as ProductionState).batch;
           return state.screen === 'batch' && batch?.pid === product.id
             ? { batch: { ...batch, target: quantity, actual: quantity } } as never : {};
@@ -5230,9 +5440,11 @@ export class OpsRuntime extends OpsProvider {
    * her why. Nothing is re-read here: the engine's own bookkeeping runs next against the quantities it was shown.
    */
   private async recordProductionNow(
-    f: Omit<ProductionFields, 'id' | 'at'>
+    f: Omit<ProductionFields, 'id' | 'at'>,
+    workId: string
   ): Promise<ProductionResult | null> {
     const client = this.productionClient;
+    const actor = this.productionActorEpoch;
     if (this.state.role !== 'owner') {
       this.toast(PRODUCTION_COPY.ownerOnly, 'warn');
       return null;
@@ -5242,20 +5454,11 @@ export class OpsRuntime extends OpsProvider {
       return null;
     }
     // A second tap while the first is being recorded does nothing: it would be a second record.
-    if (this.productionBusy) return null;
-    // The same entry repeated after an unconfirmed answer is the same record (same id, same time), never a second one.
-    const signature = JSON.stringify([
-      f.kind,
-      f.productId,
-      f.qty,
-      f.target,
-      f.rejects,
-      Object.entries(f.adj).sort(),
-      f.recipeVersion,
-      f.dropNo
-    ]);
-    const fields: ProductionFields = this.pendingProduction.get(signature) ?? {
-      ...f,
+    if (this.savingProduction.has(workId)) return null;
+    if (this.completedProduction.has(workId)) return null;
+    // A working draft owns its unanswered request. Equal quantities never identify another batch.
+    const fields: ProductionFields = this.pendingProduction.get(workId) ?? {
+      ...structuredClone(f),
       id: crypto.randomUUID(),
       at: Date.now()
     };
@@ -5265,17 +5468,22 @@ export class OpsRuntime extends OpsProvider {
       return null;
     }
     // Kept from before the call: whatever happens to the answer, this entry keeps its id until an answer says otherwise.
-    this.pendingProduction.set(signature, fields);
+    this.pendingProduction.set(workId, fields);
+    this.savingProduction.add(workId);
     this.productionBusy = true;
     this.setState({});
     let result: ProductionResult;
     try {
       result = await recordProduction(client, fields);
     } finally {
-      this.productionBusy = false;
+      this.savingProduction.delete(workId);
+      this.productionBusy = this.savingProduction.size > 0;
       if (!this.unmounted) this.setState({});
     }
-    if (result.outcome !== 'offline') this.pendingProduction.delete(signature);
+    if (result.outcome === 'saved') this.completedProduction.set(workId, { fields, result });
+    if (result.outcome !== 'offline') this.pendingProduction.delete(workId);
+    if (this.unmounted || this.state.role !== 'owner' || actor !== this.productionActorEpoch)
+      return result.outcome === 'saved' ? result : null;
     if (result.outcome === 'saved') return result;
     if (result.outcome === 'stale') void this.loadRecipes(null);
     this.toast(
@@ -5375,7 +5583,11 @@ export class OpsRuntime extends OpsProvider {
 
   /** What the database holds now, for the screens (after every production action, whatever happened). */
   private async refreshProduction(): Promise<void> {
+    const actor = this.productionActorEpoch;
+    const current = () => !this.unmounted && this.state.role === 'owner' && actor === this.productionActorEpoch;
+    if (!current()) return;
     await this.loadStockCatalogue(null);
+    if (!current()) return;
     await this.loadProduction(null);
   }
 
@@ -5390,31 +5602,107 @@ export class OpsRuntime extends OpsProvider {
     this.setState(keep as never);
   }
 
+  /** Tag old in-memory drafts once. Count edits copy the tag; replacing work creates a new identity. */
+  private bindProductionWork<T extends object & { liveWorkId?: string }>(
+    key: 'batch' | 'doughPrep', draft: T
+  ): { id: string; draft: T } {
+    const id = draft.liveWorkId ?? this.productionWorkIds.get(draft) ?? crypto.randomUUID();
+    this.productionWorkIds.set(draft, id);
+    const tagged = draft.liveWorkId ? draft : { ...draft, liveWorkId: id };
+    if (tagged !== draft) this.setState((state) =>
+      ((state as unknown as ProductionState)[key] as unknown) === draft ? { [key]: tagged } as never : {});
+    return { id, draft: tagged };
+  }
+
+  /** Complete only the original projection; changed sources never feed the legacy calculations. */
+  private finishProductionWork(
+    key: 'batch' | 'doughPrep', work: { id: string; draft: object }, run: () => void
+  ): void {
+    this.productionDrafts.retire(work.id);
+    const s = this.state as unknown as ProductionState;
+    const fields = this.completedProduction.get(work.id)?.fields;
+    const current = s[key];
+    if (current && fields && (current === work.draft || current.liveWorkId === work.id) &&
+        current.pid === fields.productId && fields.kind === (key === 'batch' ? 'batch' : 'dough')) {
+      const sameSource = s.dropNo === fields.dropNo && s.recipeVer[fields.productId] === fields.recipeVersion;
+      const batch = s.batch;
+      const amounts = key === 'doughPrep' ? s.doughPrep?.balls === fields.qty : !!batch &&
+        batch.actual === fields.qty && batch.target === fields.target && (batch.rejects ?? 0) === fields.rejects &&
+        JSON.stringify(Object.entries(batch.adj ?? {}).filter(([, v]) => v).sort()) === JSON.stringify(Object.entries(fields.adj).sort());
+      const sheet = this.state.sheet as { kind?: string } | null;
+      const focused = key === 'batch' ? this.state.screen === 'batch' : sheet?.kind === 'mixDough';
+      if (sameSource && amounts && focused) return this.keepBookkeeping(run);
+      // Its acknowledgement is real even if the owner moved elsewhere. Close only its own projection.
+      this.setState({ [key]: null, ...(key === 'batch' && focused ? { screen: 'bake' } : {}),
+        ...(key === 'doughPrep' && focused ? { sheet: null } : {}) } as never);
+    }
+    this.toast(PRODUCTION_COPY.recorded);
+  }
+
   private installProductionOverrides(): void {
     const eng = this as unknown as ProductionActions;
     const keep = {
+      goBack: eng.goBack,
+      startDough: eng.startDough,
+      setDoughFlavour: eng.setDoughFlavour,
+      setDoughPortion: eng.setDoughPortion,
       startBatch: eng.startBatch,
       confirmDough: eng.confirmDough,
       confirmBatch: eng.confirmBatch
     };
-    // Quick add and work rows share this entry point with the live production form.
-    // Leaving a batch open must not allow another launch to replace its unfinished work.
+    eng.goBack = () => {
+      if (this.state.role === 'owner' && this.state.screen === 'batch' &&
+          (this.state as unknown as ProductionState).batch) this.go('bake');
+      else if (this.state.role === 'owner' && !this.state.stocktake &&
+          ((this.state as unknown as ProductionState).batch || (this.state as unknown as ProductionState).doughPrep)) {
+        const actor = this.productionActorEpoch;
+        this.setState({ batch: null, doughPrep: null } as never, () => {
+          if (!this.unmounted && this.state.role === 'owner' && actor === this.productionActorEpoch) keep.goBack();
+        });
+      } else keep.goBack();
+    };
+    const doughLocked = (): boolean => {
+      const dp = (this.state as unknown as ProductionState).doughPrep;
+      return !!(dp?.liveWorkId && (this.savingProduction.has(dp.liveWorkId) || this.pendingProduction.has(dp.liveWorkId)));
+    };
+    eng.startDough = (pid) => {
+      if (this.productionLaunching || this.state.role !== 'owner' || !PRODUCTS.some(p => p.id === pid)) return;
+      this.productionLaunching = true;
+      if (this.state.screen !== 'bake') this.go('bake');
+      keep.startDough(pid);
+      this.setState({ batch: null } as never, () => { this.productionLaunching = false; });
+    };
+    eng.setDoughFlavour = (pid) => {
+      if (doughLocked()) return;
+      const other = this.productionDrafts.list().find(w => w.product.id === pid && w.draft.kind === 'dough');
+      if (other) this.openProductionWork(other.id, other.revision); else eng.startDough(pid);
+    };
+    eng.setDoughPortion = (kind) => { if (!doughLocked()) keep.setDoughPortion(kind); };
+    // Every launch gets independent work; lifecycle capture retains the replaced projection.
     eng.startBatch = (pid) => {
-      if (this.productionBusy) {
-        this.toast('Production is being saved. Wait for the result before starting another batch.', 'warn');
-        return;
-      }
-      if ((this.state as unknown as ProductionState).batch) {
-        this.go('batch');
-        this.toast('Continue or discard this unfinished batch before starting another.', 'warn');
-        return;
-      }
+      if (this.productionLaunching || this.state.role !== 'owner' || !PRODUCTS.some(p => p.id === pid)) return;
+      this.productionLaunching = true;
       keep.startBatch(pid);
+      this.setState({ doughPrep: null } as never, () => { this.productionLaunching = false; });
+    };
+    eng.setBatchFlavour = (pid) => {
+      const b = (this.state as unknown as ProductionState).batch;
+      if (!b || b.pid === pid || (b.liveWorkId && this.pendingProduction.has(b.liveWorkId))) return;
+      const other = this.productionDrafts.list().find(w => w.product.id === pid && w.draft.kind === 'batch');
+      if (other) this.openProductionWork(other.id, other.revision); else eng.startBatch(pid);
     };
     eng.confirmDough = () => {
       const s = this.state as unknown as ProductionState;
       const dp = s.doughPrep;
       if (!dp) return;
+      if (this.state.role !== 'owner') return void this.toast(PRODUCTION_COPY.ownerOnly, 'warn');
+      const work = this.bindProductionWork('doughPrep', dp), actor = this.productionActorEpoch;
+      const snapshot = this.productionDrafts.pool.get(work.id);
+      if (snapshot && !this.pendingProduction.has(work.id) && this.productionSourceChanged(work.id, dp.pid))
+        return void this.toast('The recipe changed. Your dough draft is kept for review.', 'warn');
+      const full = snapshot?.recipe?.yield ?? (this.state as unknown as ProductionProjection).recipes[dp.pid]?.yield;
+      if (!this.pendingProduction.has(work.id) && (!full || ![full, Math.ceil(full / 2)].includes(dp.balls)))
+        return void this.toast('Choose full or half of the saved recipe before recording dough.', 'warn');
       void (async () => {
         const done = await this.recordProductionNow({
           kind: 'dough',
@@ -5423,15 +5711,14 @@ export class OpsRuntime extends OpsProvider {
           target: null,
           rejects: 0,
           adj: {},
-          recipeVersion: s.recipeVer[dp.pid] ?? 1,
-          dropNo: s.dropNo
-        });
+          recipeVersion: snapshot?.recipe?.version ?? s.recipeVer[dp.pid] ?? 1,
+          dropNo: snapshot?.dropNo ?? s.dropNo
+        }, work.id);
         if (!done) return;
+        if (this.unmounted || this.state.role !== 'owner' || actor !== this.productionActorEpoch) return;
         // The record is in. If the sheet is still open, the engine's own bookkeeping (the sheet, the toast) runs against the
         // quantities it showed; its own change to the dough is undone, because the database's record replaces it below.
-        if ((this.state as unknown as ProductionState).doughPrep?.pid === dp.pid)
-          this.keepBookkeeping(() => keep.confirmDough());
-        else this.toast(PRODUCTION_COPY.recorded);
+        this.finishProductionWork('doughPrep', work, () => keep.confirmDough());
         await this.refreshProduction();
       })();
     };
@@ -5439,6 +5726,11 @@ export class OpsRuntime extends OpsProvider {
       const s = this.state as unknown as ProductionState;
       const b = s.batch;
       if (!b) return;
+      if (this.state.role !== 'owner') return void this.toast(PRODUCTION_COPY.ownerOnly, 'warn');
+      const work = this.bindProductionWork('batch', b), actor = this.productionActorEpoch;
+      const snapshot = this.productionDrafts.pool.get(work.id);
+      if (snapshot && !this.pendingProduction.has(work.id) && this.productionSourceChanged(work.id, b.pid))
+        return void this.toast('The recipe changed. Your batch is kept for review.', 'warn');
       void (async () => {
         const adj: Record<string, number> = {};
         for (const [name, steps] of Object.entries(b.adj ?? {})) if (steps) adj[name] = steps;
@@ -5449,13 +5741,12 @@ export class OpsRuntime extends OpsProvider {
           target: b.target,
           rejects: b.rejects || 0,
           adj,
-          recipeVersion: s.recipeVer[b.pid] ?? 1,
-          dropNo: s.dropNo
-        });
+          recipeVersion: snapshot?.recipe?.version ?? s.recipeVer[b.pid] ?? 1,
+          dropNo: snapshot?.dropNo ?? s.dropNo
+        }, work.id);
         if (!done) return;
-        if ((this.state as unknown as ProductionState).batch?.pid === b.pid)
-          this.keepBookkeeping(() => keep.confirmBatch());
-        else this.toast(PRODUCTION_COPY.recorded);
+        if (this.unmounted || this.state.role !== 'owner' || actor !== this.productionActorEpoch) return;
+        this.finishProductionWork('batch', work, () => keep.confirmBatch());
         await this.refreshProduction();
       })();
     };
@@ -6243,7 +6534,7 @@ export class OpsRuntime extends OpsProvider {
         // What All tools carried on the dock (the backup flag, unsent sales), with Account.
         (tab.id === 'home' ? this.navCount(vals, 'more') : 0),
       active: tab.id === here,
-      go: () => this.go(tab.screen)
+      go: () => tab.id === 'bazaar' && this.canLeaveTill() ? this.openBazaarEvents() : this.go(tab.screen)
     }));
     const at = nav.findIndex((item) => item.active);
     // The engine's own pill styles, recomputed for this list.
@@ -6283,7 +6574,8 @@ export class OpsRuntime extends OpsProvider {
     const place = placeOfRoute(screen);
     const tab = this.liveTabOf(place);
     if (!place || !tab || vals.denied || !vals.showTopBar) return null;
-    if (screen === 'bazaar' && (this.state.event || readBazaar())) return null;
+    // Bazaar has one destination; its list and child pages supply their own contextual Back.
+    if (screen === 'bazaar') return null;
     const tool = (label: string | undefined) => tools.find((item) => item.label === label);
     const row = [
       ...placesOf(tab.id),
@@ -6540,7 +6832,7 @@ export class OpsRuntime extends OpsProvider {
         0
       ),
       onTable: Object.values(loaded).reduce((a, n) => a + (Number(n) || 0), 0),
-      back: () => this.go('bazaar')
+      back: this.resumeBazaarTill
     };
   }
 
@@ -6549,9 +6841,46 @@ export class OpsRuntime extends OpsProvider {
     if (this.gateNarrow === narrow) return;
     this.gateNarrow = narrow;
     // A form open over the till is the owner's with the whole app open: Bazaar-only mode closes it.
-    if (narrow) this.bazaarDays.closeTillPanel();
+    if (narrow) {
+      this.bazaarDirectory = false;
+      this.bazaarDays.reset();
+    }
     if (!this.unmounted) this.forceUpdate();
   }
+
+  private bazaarRoute(): BazaarRoute {
+    if (this.state.event && !this.bazaarDirectoryShowing()) return 'till';
+    const id = this.bazaarDays.selectedBookingId();
+    return id ? `event:${id}` : 'events';
+  }
+
+  private restoreBazaarRoute = (route: BazaarRoute): BazaarRoute => {
+    if (route === 'till' || !this.canLeaveTill()) {
+      this.bazaarDirectory = false;
+      this.bazaarDays.reset();
+    } else {
+      this.bazaarDirectory = true;
+      const id = bazaarBooking(route);
+      if (!id) this.bazaarDays.reset();
+      else if (this.bazaarDays.selectedBookingId() !== id) this.bazaarDays.open(id);
+    }
+    this.forceUpdate();
+    return this.bazaarRoute();
+  };
+
+  private bazaarDirectoryShowing(): boolean {
+    return (
+      isLiveMode() && this.state.screen === 'bazaar' &&
+      this.bazaarDirectory && this.canLeaveTill()
+    );
+  }
+
+  private resumeBazaarTill = (): void => {
+    this.bazaarDirectory = false;
+    this.bazaarDays.reset();
+    this.go('bazaar');
+    this.forceUpdate();
+  };
 
   /** U2: the owner leaves the till for Home. The day stays open and nothing else moves: not `resetEvent`. */
   private leaveTill = (): void => {
@@ -6623,6 +6952,7 @@ export class OpsRuntime extends OpsProvider {
       Boolean(event?.dayId) &&
       event?.stage === 'selling' &&
       !this.tillClassic &&
+      !this.bazaarDirectoryShowing() &&
       !this.bazaarDays.isReviewing()
     );
   }
@@ -6684,6 +7014,8 @@ export class OpsRuntime extends OpsProvider {
   private liveSheet(sheet: OpsVals['sheet']): OpsVals['sheet'] {
     if (!sheet) return sheet;
     const sh = this.state.sheet as FlavourSheetState | null;
+    if (this.state.role === 'owner' && sh?.kind === 'mixDough')
+      return { ...sheet, liveForm: true, title: 'Prepare dough' };
     const customerKind = this.customerSheetKind();
     if (customerKind)
       return {

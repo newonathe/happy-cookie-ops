@@ -15,6 +15,7 @@ export interface RecipeLine {
   name: string;
   qty: number;
   unit: string;
+  kind?: 'ingredient' | 'packaging' | null;
 }
 
 export interface RecipeVersion {
@@ -62,7 +63,9 @@ function parseLines(json: unknown): RecipeLine[] | null {
       typeof l.unit !== 'string'
     )
       return null;
-    out.push({ name: l.name, qty: l.qty, unit: l.unit });
+    if (l.kind !== undefined && l.kind !== null && l.kind !== 'ingredient' && l.kind !== 'packaging') return null;
+    out.push({ name: l.name, qty: l.qty, unit: l.unit,
+      ...(l.kind === undefined ? {} : { kind: l.kind }) });
   }
   return out;
 }

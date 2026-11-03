@@ -36,14 +36,15 @@ const vals = (d: LiveProductionVals | null = data(), over: Partial<OpsVals> = {}
 afterEach(cleanup);
 
 describe('live bake plan and saved production charts', () => {
-  it('explains an in-flight save instead of offering a Continue action that cannot run', () => {
+  it('keeps Start available while explaining another work item is saving', () => {
     const v = vals(data({ saving: true }));
     render(<ProductionLive v={v} />);
     expect(
-      (screen.getByRole('button', { name: 'Saving production…' }) as HTMLButtonElement).disabled
-    ).toBe(true);
-    expect(screen.getByRole('status').textContent).toContain('Waiting for the saved result');
-    expect(v.startFirst).not.toHaveBeenCalled();
+      (screen.getByRole('button', { name: 'Start production' }) as HTMLButtonElement).disabled
+    ).toBe(false);
+    expect(screen.getByRole('status').textContent).toContain('prepare another batch');
+    fireEvent.click(screen.getByRole('button', { name: 'Start production' }));
+    expect(v.startFirst).toHaveBeenCalledTimes(1);
   });
   it('retains the existing start, dough, batch and mixing actions', () => {
     const row = {

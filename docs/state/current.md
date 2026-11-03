@@ -3,8 +3,20 @@
 **Active again at Ethan's request, 3 November 2026.** Full actual-app goal remains incomplete.
 Read the [active Bazaar and parallel production audit/plan](../design/active-bazaar-parallel-production-plan.md).
 Events must remain reachable during an active bazaar; different products need simultaneous production.
-Both gaps were reproduced at390/1240 with controlled RPC fixtures; neither feature is implemented.
-Branch `codex/refined-workflows`, accepted source through `7c07008`; preview repairs are verified.
+Both gaps were reproduced with controlled RPC fixtures. Active-Events navigation is now a local
+uncommitted draft: both tills expose Events, own-day resume preserves selling values, and full-session/
+owner access is checked at action and render. The directory filter survives child Back; the held day
+stays pinned outside its planned dates. CLI browser round trips passed320/390/768/1240 with no writes.
+Main till/Events/event addresses now restore through RouteSync without remounting. Back/Forward,
+direct directory and event reload pass390/1240 with synthetic RPC. Plan/review subview identity,
+focus/scroll return and parallel production remain incomplete. Pinned full gate passes165 files /2762
+tests +2existing todo with four Vitest workers; live Webpack build passes28 static pages.
+Local preview recovered after further user-reported failures: fixed retained-renderer lookup binding,
+added a network-only development worker and local recovery page, and limited extension hydration
+compatibility to the outer body. The private preview launcher now uses Webpack. Ethan confirms
+Chrome opens after this restart/recovery; that is opening evidence, not full owner acceptance.
+All current changes remain uncommitted pending independent review; Ethan's reviewer-reset wait
+remains in force. Branch `codex/refined-workflows`, accepted HEAD `ea745af`.
 Read the [complete shared owner/agent brief](../design/owner-workflow-brief.md),
 [scope](../design/refined-workflows.md) and [next goal](next-goal.md). Claude/other agents use these
 shared files. Keep all features/safeguards while simplifying operation; the full goal is incomplete.

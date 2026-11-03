@@ -219,7 +219,24 @@ describe('B1: the sub-tab strip, drawn through the screen slot', () => {
     const runtime = mount();
     const offered: string[] = [];
     for (const place of PLACES.filter((p) => !['bell', 'customer', 'retired'].includes(p.home))) {
-      if (place.screen) {
+      if (place.id === 'bazaar') {
+        // Both historical names remain compatibility entries under one main destination.
+        // The actual directory/till controls are covered by bazaar-live.test.tsx.
+        act(() =>
+          dock(runtime)
+            .find((item) => item.label === 'Bazaar')!
+            .go()
+        );
+        expect(runtime.state.screen).toBe('bazaar');
+        expect(strip(runtime)).toBeNull();
+        expect(runtime.renderVals().liveBazaar?.add).toBeTypeOf('function');
+        for (const entry of place.entries) {
+          expect(
+            runtime.liveToolEntries().find((item) => item.label === entry.label)?.go
+          ).toBeTypeOf('function');
+          offered.push(entry.label);
+        }
+      } else if (place.screen) {
         act(() => runtime.go(place.screen!));
         expect([place.id, open(strip(runtime)?.places)]).toEqual([place.id, [place.label]]);
         if (place.entries.length > 1) offered.push(...entries(runtime));
@@ -254,8 +271,9 @@ describe('B1: the sub-tab strip, drawn through the screen slot', () => {
   it('draws nothing on Bazaar Mode once an event is on the phone, at any stage', () => {
     const runtime = mount();
     act(() => runtime.go('bazaar'));
-    // No event yet: the bookings list, with the way to Bazaar events.
-    expect(entries(runtime)).toEqual(['Bazaar Mode', 'Bazaar events']);
+    // The directory and focused till use contextual controls, never a redundant Bazaar strip.
+    expect(entries(runtime)).toEqual([]);
+    expect(strip(runtime)).toBeNull();
     for (const stage of ['stock', 'selling', 'closed']) {
       act(() =>
         runtime.setState({ event: { name: 'Fair', stage } as OpsEngineState['event'], sales: [] })

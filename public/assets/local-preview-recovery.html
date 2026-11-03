@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Refresh Happy Cookie local preview</title></head>
+<body><main><h1>Refreshing the local preview</h1><p id="status" role="status">Loading the current app files. Saved records and waiting sales are kept.</p></main>
+<script>
+(async () => {
+  if (!['localhost', '127.0.0.1'].includes(location.hostname)) throw new Error('This helper runs only on the local preview.');
+  if (!('serviceWorker' in navigator)) return location.replace('/');
+  const current = () => navigator.serviceWorker.controller?.scriptURL === location.origin + '/dev-sw.js';
+  await navigator.serviceWorker.register('/dev-sw.js');
+  if (!current()) await new Promise((resolve, reject) => {
+    const changed = () => { if (current()) { clearTimeout(timer); navigator.serviceWorker.removeEventListener('controllerchange', changed); resolve(); } };
+    const timer = setTimeout(() => { navigator.serviceWorker.removeEventListener('controllerchange', changed); reject(new Error('The preview controller did not update.')); }, 20000);
+    navigator.serviceWorker.addEventListener('controllerchange', changed);
+    changed();
+  });
+  location.replace('/');
+})().catch(error => { document.getElementById('status').textContent = 'Preview refresh could not finish: ' + error.message; });
+</script></body></html>

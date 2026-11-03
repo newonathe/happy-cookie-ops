@@ -1,13 +1,14 @@
 /**
  * What the live owner's Bazaar screens (S2) draw: the event list, an event's page and a day's plan. The runtime builds this
  * from the bookings it has read and `get_bazaar`; the screens in src/components/live/bazaar/ only draw it and call its
- * actions. Every text is already words for the screen. The till is not part of this: while an event is open on the phone the
- * screen draws the ported Bazaar Mode, whatever this holds.
+ * actions. Every text is already words for the screen. An owner with full access can browse Events
+ * while retaining the held till; restricted selling access cannot open the directory.
  *
  * This file is the contract between the data side (src/store/bazaar-days.ts, src/store/ops-runtime.tsx) and the screens.
  * Add to it only together with both sides.
  */
 
+import type { BazaarRoute } from '@/lib/bazaar/navigation';
 import type { EventFormInput } from '@/lib/bazaar/event-form';
 import type { HubStatus } from '@/lib/bazaar/hub';
 
@@ -73,7 +74,7 @@ export interface BazaarDayRow {
    * `start`: a planned day, started with signal. `review`: an open day this phone does not hold, reviewed and closed here
    * (one this phone holds is drawn as the till, never as a row, and reviewed from "Close out"). `see`: a closed day's review.
    */
-  action: 'start' | 'review' | 'see' | null;
+  action: 'start' | 'review' | 'see' | 'resume' | null;
   /** Why the action is not available now, in words; null when it is. */
   actionNote: string | null;
   /** Words under the row that block nothing: where an open day is selling, how a closed day was counted. */
@@ -384,12 +385,27 @@ export interface TillPanelView {
 }
 
 export interface LiveBazaarVals {
+  /** View selection never changes the held selling day. Absent in older fixtures. */
+  navigation?: {
+    route: BazaarRoute;
+    restore: (route: BazaarRoute) => BazaarRoute;
+    directory: boolean;
+    tillOnly: boolean;
+    events: (() => void) | null;
+    resume: (() => void) | null;
+    heldName: string;
+  };
   online: boolean;
   /** False until the owner's bookings have been read: the list must not say there are none before it knows. */
   eventsRead: boolean;
   /** `loading` while a read is in flight; `failed` when it could not be read (shown with a retry). */
   state: 'read' | 'loading' | 'failed';
   list: BazaarListRow[];
+  /** Ephemeral return position, not a saved business record. */
+  listPosition?: { id: string; top: number };
+  rememberListPosition?: (id: string, top: number) => void;
+  listFilter?: 'upcoming' | 'past';
+  setListFilter?: (filter: 'upcoming' | 'past') => void;
   event: BazaarEventView | null;
   editor: DayPlanEditor | null;
   /**

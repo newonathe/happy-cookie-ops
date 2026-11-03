@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useId, useRef } from 'react';
+import Image from 'next/image';
 import type { OpsVals } from '@/view-models/vals';
 import { s } from '@/lib/css';
 import { BakePlanScreen } from '@/components/screens/bake-plan';
@@ -8,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import styles from './production.module.css';
 import { ProductionResults } from './production-results';
 import { ProductionStart } from './production-start';
+import { resolveImagePath } from '@/lib/media/resolve-image';
 
 function WorkRow({ row }: { row: OpsVals['bakeRows'][number] }) {
   return (
@@ -79,19 +81,15 @@ export function ProductionLive({ v }: { v: OpsVals }) {
               variant="primary"
               data-production-start
               onClick={data.start?.open ?? v.startFirst}
-              disabled={!canStart || data.saving}
+              disabled={!canStart}
               aria-describedby={!canStart || !data.planReady ? planNote : undefined}
             >
-              {data.saving
-                ? 'Saving production…'
-                : data.start?.resume
-                  ? 'Continue production'
-                  : 'Start production'}
+              Start production
             </Button>
           </header>
           {data.saving ? (
             <p role="status" className={styles.muted}>
-              Waiting for the saved result. Please wait before starting another batch.
+              Production is saving. You can prepare another batch while you wait.
             </p>
           ) : null}
           {data.planReady ? (
@@ -119,6 +117,24 @@ export function ProductionLive({ v }: { v: OpsVals }) {
             <p id={planNote} className={styles.muted}>
               {unavailable}
             </p>
+          ) : null}
+          {data.inProgress?.length ? (
+            <section aria-label="Production in progress" className={styles.work}>
+              <h2>In progress ({data.inProgress.length})</h2>
+              {data.inProgress.map(work => {
+                const photo = resolveImagePath(work.photo);
+                return <article className={styles.workRow} key={work.id} aria-label={`${work.name}, ${work.label}`}>
+                  <div className={styles.workName}>
+                    {photo ? <Image src={photo} alt="" width={40} height={40} unoptimized className="h-10 w-10 rounded-full object-cover" /> : null}
+                    <strong>{work.name}</strong><b>{work.status}</b>
+                  </div>
+                  <p className={styles.muted}>{work.label} · {work.quantityText}</p>
+                  <Button onClick={work.open} aria-label={`Continue ${work.name}, ${work.label}`}>
+                    {work.status === 'Saving' ? 'View' : 'Continue'}
+                  </Button>
+                </article>;
+              })}
+            </section>
           ) : null}
           <ProductionResults data={data} />
           {data.planReady ? (

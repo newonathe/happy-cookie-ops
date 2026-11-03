@@ -9,7 +9,7 @@ import type { ScreenKey } from '@/lib/screens';
 import type { LiveStockVals } from '@/lib/stock/live-stock-types';
 import type { LiveBazaarVals } from '@/lib/bazaar/live-bazaar-types';
 import type { LiveRecipesVals } from '@/lib/recipes/live-recipes-types';
-import type { LiveBatchCounts, LiveProductionVals } from '@/lib/production/live-production-types';
+import type { LiveBatchCounts, LiveProductionVals, LiveDoughPreparation } from '@/lib/production/live-production-types';
 
 /** Every field the live flavour editor's form submits (MP-09 c1c), pesos not centavos. */
 export interface LiveFlavourFormFields {
@@ -361,6 +361,7 @@ export interface OpsVals {
   liveRecipes?: LiveRecipesVals | null;
   liveProduction?: LiveProductionVals | null;
   liveBatchCounts?: LiveBatchCounts | null;
+  liveDough?: LiveDoughPreparation | null;
   /** Live owner only (B5-1): the New Stock screens' data (list, item page, grocery). Null for anyone else and before the catalogue is read. */
   liveStock?: LiveStockVals | null;
   /** Live owner only (A3): the suppliers list and edit form, with each supplier's prices. */

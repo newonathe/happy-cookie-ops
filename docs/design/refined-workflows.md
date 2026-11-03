@@ -8,6 +8,11 @@ cost cutover, test reversal, release settings, or merging to main.
 
 ## Visual clarity — Ethan, 2 November 2026
 
+3November clarification: Bazaar/Events starts at the directory; till access is explicit Resume.
+Replace till Events buttons with a compact accessible Back to events control. After implementation,
+run the final researched page/flow/state critique and concrete design-plan update specified in the
+owner brief. The original/client references and latest neutral theme remain inputs to that review.
+
 Apply to every page and child flow: familiar short labels, visual controls, clear grouping and
 purposeful emphasis. Distinguish the main action, important figures, warnings and supporting detail;
 do not give everything the same card, type weight or prominence. Keep type, spacing, units, dates,
@@ -42,6 +47,18 @@ blur fallbacks. Existing operations, draft retention and acknowledgement safegua
 over animation. Older fallback pages remain pending migration; this is not a completed all-page theme.
 
 ## Reference and boundaries
+
+3November2026, current product comparison for Ethan's question: Poster POS is the closest researched
+overall workflow benchmark because its [bakery offering](https://joinposter.com/en/business/bakery)
+connects ingredients/prepared dough/finished stock, selling and online orders, with documented
+[period-based P&L](https://knowledge-base.joinposter.com/en/how-the-pl-is-generated). Loyverse is a
+secondary simplicity/stock reference: its [production workflow](https://help.loyverse.com/help/how-work-production)
+supports multiple finished products and separates production consumption from selling stock.
+This is an implementation/design judgment from current official documentation, not hands-on product
+acceptance or a verified replacement/migration recommendation. Exact Happy Cookie event/day recovery,
+Philippine payments/tax fit and full feature parity were not verified for those products. Keep the
+approved neutral Happy Cookie design and business rules; no new enterprise features or accounting
+formula changes follow from this comparison. Existing Square/Shopify/Craftybase references still apply.
 
 The 3 November client-feedback reference is Ethan's downloaded
 `C:/Users/ethan/Downloads/happy-cookie-workflows-refined.html`, byte-identical to the v4 hash below.

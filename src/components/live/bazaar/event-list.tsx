@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { BazaarListRow, LiveBazaarVals } from '@/lib/bazaar/live-bazaar-types';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -21,7 +21,31 @@ type Chip = 'upcoming' | 'past';
  * Upcoming and Past behind the filter chips. Every row says where it stands with a pill; the colour is never the only signal.
  */
 export function EventList({ bazaar }: { bazaar: LiveBazaarVals }) {
-  const [chip, setChip] = useState<Chip>('upcoming');
+  const [localChip, setLocalChip] = useState<Chip>('upcoming');
+  const root = useRef<HTMLDivElement>(null);
+  const restored = useRef(false);
+  useLayoutEffect(() => {
+    const position = bazaar.listPosition;
+    if (restored.current || !position || !bazaar.eventsRead || !root.current) return;
+    const target = [...root.current.querySelectorAll<HTMLElement>('[data-event-id]')].find(
+      (element) => element.dataset.eventId === position.id
+    );
+    // Active rows may still be placeholders. Wait, but never interrupt a new action.
+    if (!target && bazaar.list.some((item) => item.reading)) return;
+    restored.current = true;
+    const focus = target ?? root.current.querySelector<HTMLElement>('h1');
+    if (focus) {
+      if (!target) focus.tabIndex = -1;
+      focus.focus({ preventScroll: true });
+    }
+    window.scrollTo({ top: target ? position.top : 0, behavior: 'instant' });
+  });
+  const openRow = (row: BazaarListRow) => {
+    bazaar.rememberListPosition?.(row.id, window.scrollY);
+    row.open();
+  };
+  const chip = bazaar.listFilter ?? localChip;
+  const setChip = bazaar.setListFilter ?? setLocalChip;
   // The sheet stays mounted after it closes so its exit can play; a fresh key per opening gives it a fresh event id.
   const [sheet, setSheet] = useState<{ n: number; open: boolean } | null>(null);
 
@@ -43,7 +67,16 @@ export function EventList({ bazaar }: { bazaar: LiveBazaarVals }) {
   const closeSheet = () => setSheet((s) => (s ? { ...s, open: false } : s));
 
   return (
-    <>
+    <div
+      ref={root}
+      className="contents"
+      onPointerDownCapture={() => {
+        restored.current = true;
+      }}
+      onKeyDownCapture={() => {
+        restored.current = true;
+      }}
+    >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <span className="flex min-w-0 flex-col gap-0.5">
           <h1 className="m-0 text-title text-ink">Bazaar</h1>
@@ -99,7 +132,12 @@ export function EventList({ bazaar }: { bazaar: LiveBazaarVals }) {
             <section aria-label="Active" className="flex flex-col gap-3">
               <SectionHeader title="Active" count={active.length} />
               {active.map((row) => (
-                <ActiveCard key={row.id} row={row} ringed={row.id === bazaar.justAdded} />
+                <ActiveCard
+                  key={row.id}
+                  row={row}
+                  open={() => openRow(row)}
+                  ringed={row.id === bazaar.justAdded}
+                />
               ))}
             </section>
           ) : null}
@@ -130,7 +168,11 @@ export function EventList({ bazaar }: { bazaar: LiveBazaarVals }) {
               >
                 {shown.map((row) => (
                   <li key={row.id} className="min-w-0">
-                    <EventRow row={row} ringed={row.id === bazaar.justAdded} />
+                    <EventRow
+                      row={row}
+                      open={() => openRow(row)}
+                      ringed={row.id === bazaar.justAdded}
+                    />
                   </li>
                 ))}
               </ul>
@@ -151,7 +193,7 @@ export function EventList({ bazaar }: { bazaar: LiveBazaarVals }) {
           }}
         />
       ) : null}
-    </>
+    </div>
   );
 }
 
@@ -188,7 +230,15 @@ const whenOf = (row: BazaarListRow): string | null =>
   row.status === 'today' ? null : row.whenText;
 
 /** An event that is on now, or whose days are under way: the large accent card (spec 5.2). */
-function ActiveCard({ row, ringed }: { row: BazaarListRow; ringed: boolean }) {
+function ActiveCard({
+  row,
+  ringed,
+  open
+}: {
+  row: BazaarListRow;
+  ringed: boolean;
+  open: () => void;
+}) {
   const ring = useRing(ringed);
   if (row.reading)
     return (
@@ -222,7 +272,7 @@ function ActiveCard({ row, ringed }: { row: BazaarListRow; ringed: boolean }) {
         </div>
       ) : null}
       {row.note ? <p className="m-0 text-caption text-warn">{row.note}</p> : null}
-      <Button variant="primary" onClick={row.open}>
+      <Button variant="primary" data-event-id={row.id} onClick={open}>
         Open the event →<span className="sr-only"> {row.name}</span>
       </Button>
     </Card>
@@ -230,12 +280,21 @@ function ActiveCard({ row, ringed }: { row: BazaarListRow; ringed: boolean }) {
 }
 
 /** A compact row for the Upcoming and Past lists: the name on one line, the dates, the place, and the pill. */
-function EventRow({ row, ringed }: { row: BazaarListRow; ringed: boolean }) {
+function EventRow({
+  row,
+  ringed,
+  open
+}: {
+  row: BazaarListRow;
+  ringed: boolean;
+  open: () => void;
+}) {
   const ring = useRing(ringed);
   return (
     <button
       type="button"
-      onClick={row.open}
+      data-event-id={row.id}
+      onClick={open}
       className={cx(
         'motion-enter motion-press flex min-h-11 w-full min-w-0 flex-col gap-1 rounded-card border border-line bg-surface p-3 text-left text-ink hover:bg-inset',
         ring

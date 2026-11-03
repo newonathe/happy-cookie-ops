@@ -1,5 +1,5 @@
 import { act } from 'react';
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 let live = true;
@@ -184,6 +184,8 @@ const setStepper = (group: string, value: string) => {
 };
 
 beforeEach(() => {
+  // JSDOM has no layout/scroll implementation; the real viewport is checked with Playwright.
+  vi.spyOn(window, 'scrollTo').mockImplementation(() => undefined);
   live = true;
   store.clear();
   localStorage.clear();
@@ -194,6 +196,7 @@ beforeEach(() => {
 });
 afterEach(() => {
   cleanup();
+  vi.restoreAllMocks();
   vi.useRealTimers();
 });
 
@@ -309,6 +312,7 @@ describe('S2: with no event on the phone', () => {
       screen.getByText(/This day is Sat, 24 Oct\. Today is Tue, 20 Oct\. Sales will be dated today/)
     ).toBeTruthy();
     await click('Start anyway');
+    await waitFor(() => expect(calls(rpc, 'start_bazaar_day')).toHaveLength(1));
     const [[, start]] = calls(rpc, 'start_bazaar_day');
     expect(start).toEqual({ p_day: dayId, p_device: 'dev1', p_event_id: await dayEventId(dayId) });
     expect(runtime.state.event).toMatchObject({ stage: 'selling', dayId });
@@ -387,7 +391,8 @@ describe('S2: with an event on the phone, the ported till is drawn unchanged', (
           stage: 'selling',
           snapshot: ['dcf'],
           dayId: DAY1,
-          scheduledId: BOOKING
+          scheduledId: BOOKING,
+          floatCents: 50000
         } as never,
         eventStock: { dcf: 20 },
         eventPrices: { dcf: 125 }
@@ -405,6 +410,155 @@ describe('S2: with an event on the phone, the ported till is drawn unchanged', (
       // Mutation: deciding the till from the owner's data would show a helper or an offline owner the planning screen.
     });
   }
+
+  for (const classic of [false, true]) {
+    it(`opens Events first from the main navigation with a held ${classic ? 'classic' : 'new'} till`, async () => {
+      if (classic) localStorage.setItem('hc-live-classic-till', '1');
+      const { runtime, rpc } = await mount('owner'); seedDay(runtime);
+      act(() => runtime.setState({ cart: { dcf: 2 } } as never));
+      const held = runtime.state.event, cart = runtime.state.cart, stock = runtime.state.eventStock;
+      act(() => runtime.go('today'));
+      act(() => runtime.renderVals().dockNav.find(item => item.label === 'Bazaar')!.go());
+      await settle();
+      expect(screen.getByRole('heading', { name: /^Bazaar$/ })).toBeTruthy();
+      expect(screen.getByRole('button', { name: /^Return to selling$/ })).toBeTruthy();
+      expect(runtime.state.event).toBe(held); expect(runtime.state.cart).toBe(cart); expect(runtime.state.eventStock).toBe(stock);
+      await click('Return to selling');
+      expect(screen.getByRole('button', { name: /^Back to events$/ })).toBeTruthy();
+      expect(screen.queryByRole('button', { name: /^Events$/ })).toBeNull();
+      expect(rpc.mock.calls.every(([name]) => String(name).startsWith('get_'))).toBe(true);
+    });
+    it(`browses Events and resumes the same ${classic ? 'classic' : 'new'} till without posting`, async () => {
+      if (classic) localStorage.setItem('hc-live-classic-till', '1');
+      const { runtime, rpc } = await mount('owner', {
+        days: [plannedDay({ state: 'open', event_id: 'd5e00000-0000-4000-8000-000000000001' })],
+        stamps: [{ id: DAY1, updated_at: STAMP }]
+      });
+      seedDay(runtime);
+      act(() =>
+        runtime.setState({
+          cart: { dcf: 2 },
+          eventLoaded: { dcf: 20 },
+          drawer: { float: 500, counted: '610' }
+        } as never)
+      );
+      const held = runtime.state.event;
+      const cart = runtime.state.cart;
+      const stock = runtime.state.eventStock;
+      const prices = runtime.state.eventPrices;
+      const sales = runtime.state.sales;
+      const drawer = runtime.state.drawer;
+      const before = rpc.mock.calls.length;
+      await click('Back to events');
+      expect(label('Bazaar Mode')).toHaveLength(0);
+      expect(runtime.renderVals().showTopBar).toBe(true);
+      expect(screen.getAllByRole('button', { name: 'Return to selling' })).toHaveLength(1);
+      await click(/^Past/);
+      await click(/Katipunan market/);
+      await click('Back to the events');
+      expect(document.activeElement?.getAttribute('data-event-id')).toBe(BOOKING);
+      expect(window.scrollTo).toHaveBeenLastCalledWith({ top: 0, behavior: 'instant' });
+      expect(screen.getByRole('button', { name: /Past/ }).getAttribute('aria-pressed')).toBe(
+        'true'
+      );
+      await click(/Katipunan market/);
+      expect(screen.getByText('Selling on this device')).toBeTruthy();
+      expect(
+        screen.queryByText('Selling has started. Sell on the phone that started it.')
+      ).toBeNull();
+      await click('Resume selling');
+      expect(label('Bazaar Mode')).toHaveLength(1);
+      expect(runtime.state.event).toEqual(held);
+      expect(runtime.state.cart).toBe(cart);
+      expect(runtime.state.eventStock).toBe(stock);
+      expect(runtime.state.eventPrices).toBe(prices);
+      expect(runtime.state.sales).toBe(sales);
+      expect(runtime.state.drawer).toEqual(drawer);
+      expect(
+        rpc.mock.calls
+          .slice(before)
+          .every(([name]) => ['get_bazaar', 'get_scheduled_events'].includes(name))
+      ).toBe(true);
+    });
+  }
+
+  it('an unavailable direct event keeps a truthful error and the held till', async () => {
+    const { runtime } = await mount('owner');
+    seedDay(runtime);
+    const held = runtime.state.event;
+    const missing = 'd5b00000-0000-4000-8000-000000000099';
+    act(() => runtime.renderVals().liveBazaar!.navigation!.restore(`event:${missing}`));
+    await settle();
+    expect(screen.getByRole('alert').textContent).toContain('This event could not be read');
+    expect(runtime.state.event).toBe(held);
+    await click('Return to selling');
+    expect(label('Bazaar Mode')).toHaveLength(1);
+  });
+
+  it('a late event read cannot reopen browsing after the gate narrows', async () => {
+    const { runtime, rpc } = await mount('owner');
+    seedDay(runtime);
+    const held = runtime.state.event;
+    const original = rpc.getMockImplementation()!;
+    const finish: Array<() => void> = [];
+    rpc.mockImplementation(async (name, args = {}) => {
+      const result = await original(name, args);
+      if (name === 'get_bazaar') await new Promise<void>((done) => finish.push(done));
+      return result;
+    });
+    act(() => runtime.renderVals().liveBazaar!.navigation!.restore(`event:${BOOKING}`));
+    await settle();
+    expect(finish.length).toBeGreaterThan(0);
+    act(() => runtime.setGateAccess(true));
+    await act(async () => {
+      finish.forEach((done) => done());
+    });
+    act(() => runtime.setGateAccess(false));
+    expect(runtime.renderVals().liveBazaar!.navigation!.route).toBe('till');
+    expect(runtime.renderVals().liveBazaar!.event).toBeNull();
+    expect(runtime.state.event).toBe(held);
+    expect(label('Bazaar Mode')).toHaveLength(1);
+  });
+
+  it('rechecks a saved Events action and hides the directory when access narrows', async () => {
+    const { runtime } = await mount('owner');
+    seedDay(runtime);
+    const events = runtime.renderVals().liveBazaar!.navigation!.events!;
+    await click('Back to events');
+    act(() => runtime.setGateAccess(true));
+    expect(label('Bazaar Mode')).toHaveLength(1);
+    expect(screen.queryByRole('button', { name: 'Back to events' })).toBeNull();
+    act(() => events());
+    expect(label('Bazaar')).toHaveLength(0);
+    act(() => runtime.setGateAccess(false));
+    expect(label('Bazaar Mode')).toHaveLength(1);
+    await click('Back to events');
+    act(() => runtime.setState({ online: false }));
+    expect(label('Bazaar Mode')).toHaveLength(1);
+    expect(screen.queryByRole('button', { name: 'Back to events' })).toBeNull();
+  });
+
+  it('keeps helper access selling-only even with signal', async () => {
+    const { runtime } = await mount('helper');
+    seedDay(runtime);
+    act(() => runtime.setState({ online: true }));
+    expect(screen.queryByRole('button', { name: 'Back to events' })).toBeNull();
+    expect(label('Bazaar Mode')).toHaveLength(1);
+  });
+
+  it('cannot leave a close review exposed after access narrows', async () => {
+    const { runtime } = await mount('owner', {
+      days: [plannedDay({ state: 'open', event_id: 'd5e00000-0000-4000-8000-000000000001' })],
+      stamps: [{ id: DAY1, updated_at: STAMP }]
+    });
+    seedDay(runtime);
+    act(() => runtime.renderVals().askClose());
+    await settle();
+    expect(runtime.renderVals().liveBazaar!.reviewing).toBe(true);
+    act(() => runtime.setGateAccess(true));
+    expect(runtime.renderVals().liveBazaar!.reviewing).toBe(false);
+    expect(label('Bazaar Mode')).toHaveLength(1);
+  });
 
   it('the consolidated till has no Leave: it never clears the day from the phone', async () => {
     const { runtime } = await mount('owner');
@@ -436,6 +590,11 @@ describe('S2: with an event on the phone, the ported till is drawn unchanged', (
         } as never
       })
     );
+    expect(label('Bazaar Mode')).toHaveLength(1);
+    await click('Back to events');
+    expect(label('Bazaar')).toHaveLength(1);
+    await click('Return to selling');
+    expect(runtime.state.event).toMatchObject({ name: 'Fair' });
     expect(label('Bazaar Mode')).toHaveLength(1);
   });
 });

@@ -143,9 +143,11 @@ function DayRow({
           >
             {day.action === 'start'
               ? 'Start this day'
-              : day.action === 'review'
-                ? 'Review and close'
-                : 'See the review'}
+              : day.action === 'resume'
+                ? 'Resume selling'
+                : day.action === 'review'
+                  ? 'Review and close'
+                  : 'See the review'}
           </Button>
         ) : null}
         {day.edit ? (

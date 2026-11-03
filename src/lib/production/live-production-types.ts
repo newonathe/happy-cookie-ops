@@ -1,4 +1,22 @@
 import type { BatchRow } from '@/lib/data/production';
+import type { ReactNode } from 'react';
+
+export interface LiveProductionRecipeUpdate {
+  previousVersion: number | null; version: number;
+  previousYield: number | null; yield: number;
+  rows: Array<{ name: string; previous: string; current: string }>;
+  use: () => void;
+}
+
+export interface LiveDoughPreparation {
+  id: string; name: string; photo: string; periodText: string; version: number | null;
+  balls: number; reviewing: boolean; saving: boolean; uncertain: boolean; sourceChanged: boolean;
+  validAmount?: boolean;
+  recipeUpdate?: LiveProductionRecipeUpdate | null;
+  portions: Array<{ label: string; selected: boolean; choose: () => void }>;
+  rows: Array<{ name: ReactNode; amountText: ReactNode; balanceText: string; short: boolean }>;
+  review: () => void; back: () => void; confirm: () => void; discard: () => void; close: () => void;
+}
 
 /** Unconfirmed counts travel with the open batch, including blank or invalid entries. */
 export interface LiveBatchCounts {
@@ -9,6 +27,9 @@ export interface LiveBatchCounts {
   rejects: string;
   valid: boolean;
   saving: boolean;
+  uncertain?: boolean;
+  sourceChanged?: boolean;
+  recipeUpdate?: LiveProductionRecipeUpdate | null;
   setActual: (value: string) => void;
   setRejects: (value: string) => void;
   review: () => void;
@@ -25,7 +46,8 @@ export interface LiveProductionStart {
     version: number;
     needed: number | null;
   }>;
-  draft: { productId: string; quantity: string; version: number } | null;
+  draft: { productId: string; quantity: string; version: number; kind?: 'batch' | 'dough' } | null;
+  chooseKind?: (kind: 'batch' | 'dough') => void;
   resume?: boolean;
   open: () => void;
   choose: (productId: string) => void;
@@ -36,6 +58,11 @@ export interface LiveProductionStart {
 
 /** Saved owner production and an unconfirmed entry point; recording stays in the existing action. */
 export interface LiveProductionVals {
+  inProgress?: Array<{
+    id: string; label: string; productId: string; kind: 'batch' | 'dough'; name: string; photo: string;
+    quantityText: string; status: 'Count' | 'Review' | 'Mix' | 'Saving' | 'Check result';
+    open: () => void;
+  }>;
   state: 'loading' | 'read' | 'failed';
   periodText: string;
   planReady: boolean;
