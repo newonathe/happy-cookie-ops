@@ -318,7 +318,7 @@ describe('the form reads itself back', () => {
     return { save, input, submit, view, props };
   };
 
-  it('sends back exactly what it showed when nothing is touched, without the blank new rows', () => {
+  it('sends back exactly what it showed when nothing is touched', () => {
     const { save, submit } = setup();
     submit();
     expect(save).toHaveBeenCalledWith({
@@ -327,6 +327,7 @@ describe('the form reads itself back', () => {
       sameDayOnExtras: false,
       samplerProductId: '',
       samplerMaxQty: 3,
+      samplerFlavours: null,
       boxSizes: [
         { size: 6, chargePesos: 0, active: true },
         { size: 8, chargePesos: 2.5, active: false }
@@ -344,20 +345,51 @@ describe('the form reads itself back', () => {
         }
       ]
     });
-    // Mutation: not skipping the blank new rows saves an empty box size and an add-on with no name.
   });
 
-  it('reads edits: numbers, switches, the sampler choice and comma-separated choices', () => {
+  it('no longer asks for the limits the owner does not tune, and keeps their saved values', () => {
+    const { save, submit, view } = setup({
+      samplerMaxQty: 2,
+      addOns: [
+        {
+          id: 'note-card',
+          name: 'Note card',
+          pricePesos: 10,
+          active: true,
+          variants: [],
+          textLabel: 'Message',
+          textMax: 120,
+          maxQty: 1
+        }
+      ]
+    });
+    const text = view.container.textContent ?? '';
+    expect(text).not.toContain('Most sampler boxes');
+    expect(text).not.toContain('Most per order');
+    expect(text).not.toContain('comma');
+    expect(text).not.toContain('New box size');
+    expect(view.container.querySelector('[name="samplerMaxQty"]')).toBeNull();
+    expect(view.container.querySelector('[name^="aoMax"]')).toBeNull();
+    expect(view.container.querySelector('[name^="boxSize"]')).toBeNull();
+    submit();
+    const sent = save.mock.calls[0]![0] as LiveOrderExtrasFields;
+    expect(sent.samplerMaxQty).toBe(2);
+    expect(sent.addOns[0]).toMatchObject({ maxQty: 1, textMax: 120, textLabel: 'Message' });
+    // Mutation: dropping a hidden limit to a default would change what the database enforces.
+  });
+
+  it('reads edits: numbers, switches, the sampler and editable choice rows', () => {
     const { save, input, submit } = setup();
     fireEvent.change(input('sameDayPercent'), { target: { value: '25' } });
     fireEvent.click(input('sameDayEnabled'));
     fireEvent.click(input('sameDayOnExtras'));
-    fireEvent.change(input('samplerProductId'), { target: { value: 'sampler-1' } });
-    fireEvent.change(input('samplerMaxQty'), { target: { value: '2' } });
+    fireEvent.click(input('samplerOn'));
     fireEvent.change(input('boxCharge0'), { target: { value: '12.5' } });
     fireEvent.click(input('boxOn1'));
     fireEvent.change(input('aoPrice0'), { target: { value: '20' } });
-    fireEvent.change(input('aoVariants0'), { target: { value: ' A, B ,, C' } });
+    fireEvent.change(input('aoChoice0_0'), { target: { value: ' A ' } });
+    fireEvent.change(input('aoChoice0_1'), { target: { value: '' } });
+    fireEvent.click(input('aoMessage0'));
     fireEvent.change(input('aoLabel0'), { target: { value: 'Note' } });
     fireEvent.click(input('aoOn0'));
     submit();
@@ -367,7 +399,7 @@ describe('the form reads itself back', () => {
       sameDayPercent: 25,
       sameDayOnExtras: true,
       samplerProductId: 'sampler-1',
-      samplerMaxQty: 2
+      samplerMaxQty: 3
     });
     expect(sent.boxSizes).toEqual([
       { size: 6, chargePesos: 12.5, active: true },
@@ -376,33 +408,60 @@ describe('the form reads itself back', () => {
     expect(sent.addOns[0]).toMatchObject({
       id: 'sticker',
       pricePesos: 20,
-      variants: ['A', 'B', 'C'],
+      variants: ['A'],
       textLabel: 'Note',
       active: false
     });
     // Mutation: keeping the old id for a renamed add-on is right (an old order keeps its line); minting a new id from the name would orphan it.
   });
 
-  it('a filled new row becomes a new box size and a new add-on with no id yet', () => {
+  it('switching choices off sends none; an add-on needs no choices', () => {
     const { save, input, submit } = setup();
-    fireEvent.change(input('boxSize2'), { target: { value: '12' } });
-    fireEvent.change(input('boxCharge2'), { target: { value: '40' } });
+    fireEvent.click(input('aoChoices0'));
+    submit();
+    expect((save.mock.calls[0]![0] as LiveOrderExtrasFields).addOns[0]!.variants).toEqual([]);
+  });
+
+  it('adds several new add-ons with no id yet; only a new one can be removed', () => {
+    const { save, input, submit, view } = setup();
+    const addButton = () =>
+      Array.from(view.container.querySelectorAll('button')).find(
+        (b) => b.textContent === 'Add add-on'
+      )!;
+    expect(
+      Array.from(view.container.querySelectorAll('button')).filter(
+        (b) => b.textContent === 'Remove'
+      )
+    ).toHaveLength(2); // the saved add-on's two choice rows, not the add-on itself
+    fireEvent.click(addButton());
+    fireEvent.click(addButton());
     fireEvent.change(input('aoName1'), { target: { value: 'Cream ribbon' } });
     fireEvent.change(input('aoPrice1'), { target: { value: '10' } });
+    fireEvent.click(input('aoChoices1'));
+    fireEvent.change(input('aoChoice1_0'), { target: { value: 'Red' } });
+    fireEvent.change(input('aoName2'), { target: { value: 'Gift tag' } });
+    fireEvent.change(input('aoPrice2'), { target: { value: '5' } });
     submit();
     const sent = save.mock.calls[0]![0] as LiveOrderExtrasFields;
-    expect(sent.boxSizes[2]).toEqual({ size: 12, chargePesos: 40, active: true });
+    expect(sent.addOns).toHaveLength(3);
     expect(sent.addOns[1]).toMatchObject({
       id: '',
       name: 'Cream ribbon',
       pricePesos: 10,
       active: true,
+      variants: ['Red'],
       maxQty: 10
     });
+    expect(sent.addOns[2]).toMatchObject({ id: '', name: 'Gift tag', variants: [] });
   });
 
   it('a new add-on with no price stays NaN so the runtime refuses it instead of pricing it at zero', () => {
-    const { save, input, submit } = setup();
+    const { save, input, submit, view } = setup();
+    fireEvent.click(
+      Array.from(view.container.querySelectorAll('button')).find(
+        (b) => b.textContent === 'Add add-on'
+      )!
+    );
     fireEvent.change(input('aoName1'), { target: { value: 'Ribbon' } });
     submit();
     expect(
@@ -411,10 +470,165 @@ describe('the form reads itself back', () => {
     // Mutation: defaulting a blank price to 0 gives away an add-on the owner forgot to price.
   });
 
-  it('warns when offline and offers the sampler choices that exist', () => {
-    const { view } = setup({}, false);
+  it('warns when offline; turning the sampler off sends no sampler', () => {
+    const { view, save, input, submit } = setup({ samplerProductId: 'sampler-1' }, false);
     expect(view.container.textContent).toContain('Offline');
-    const options = Array.from(view.container.querySelectorAll('option')).map((o) => o.textContent);
-    expect(options).toEqual(['No sampler box', 'Sampler box']);
+    expect(view.container.textContent).toContain('Sampler box');
+    fireEvent.click(input('samplerOn'));
+    submit();
+    expect((save.mock.calls[0]![0] as LiveOrderExtrasFields).samplerProductId).toBe('');
+  });
+});
+
+describe('the boxes and add-ons page after a conflict', () => {
+  afterEach(() => cleanup());
+
+  it("shows the other device's version when the saved values are read again", async () => {
+    const { LiveFormHost } = await import('@/components/live/live-form-host');
+    const extras = (addOns: LiveOrderExtrasFields['addOns']): LiveOrderExtrasFields => ({
+      sameDayEnabled: false,
+      sameDayPercent: 20,
+      sameDayOnExtras: false,
+      samplerProductId: '',
+      samplerMaxQty: 3,
+      boxSizes: [],
+      addOns
+    });
+    const ribbon = {
+      id: 'ribbon',
+      name: 'Ribbon',
+      pricePesos: 15,
+      active: true,
+      variants: [],
+      textLabel: '',
+      textMax: 150,
+      maxQty: 10
+    };
+    const save = vi.fn();
+    const vals = (x: LiveOrderExtrasFields) =>
+      ({
+        liveOrderExtras: { online: true, extras: x, sets: [], save, close: vi.fn() }
+      }) as unknown as OpsVals;
+    const view = render(<LiveFormHost v={vals(extras([ribbon]))} />);
+    view.rerender(
+      <LiveFormHost v={vals(extras([ribbon, { ...ribbon, id: 'tag', name: 'Gift tag' }]))} />
+    );
+    fireEvent.submit(view.container.querySelector('form')!);
+    const sent = save.mock.calls[0]![0] as LiveOrderExtrasFields;
+    expect(sent.addOns.map((a) => a.id)).toEqual(['ribbon', 'tag']);
+    // Mutation: without the key the form keeps its first rows and a re-save drops "Gift tag".
+  });
+});
+
+describe('the sampler flavours (migration 20260101007000)', () => {
+  afterEach(() => cleanup());
+
+  it('reads the list when the database has it, and null when it does not', () => {
+    expect(parseOrderExtras(wire({ sampler_flavours: ['dcf', 'hc'] }))?.sampler_flavours).toEqual([
+      'dcf',
+      'hc'
+    ]);
+    expect(parseOrderExtras(wire())?.sampler_flavours).toBeNull();
+    expect(parseOrderExtras(wire({ sampler_flavours: 'dcf' }))).toBeNull();
+    expect(parseOrderExtras(wire({ sampler_flavours: [1] }))).toBeNull();
+  });
+
+  it('sends the list only to a database that has it', async () => {
+    const rpc = vi.fn(async () => ({ data: null, error: null }));
+    const client = { rpc } as unknown as OrderExtrasClient;
+    await saveOrderExtras(client, fields({ sampler_flavours: ['hc', 'dcf'] }), STAMP);
+    await saveOrderExtras(client, fields({ sampler_flavours: null }), STAMP);
+    const sent = rpc.mock.calls.map(
+      (c) => (c as unknown as [string, { p_extras: Record<string, unknown> }])[1].p_extras
+    );
+    expect(sent[0]!.sampler_flavours).toEqual(['hc', 'dcf']);
+    expect('sampler_flavours' in sent[1]!).toBe(false);
+    // Mutation: always sending the key makes every save fail on a database without the column.
+  });
+
+  it('refuses a flavour chosen twice or more than 24', () => {
+    expect(orderExtrasError(fields({ sampler_flavours: ['hc', 'hc'] }))).toMatch(/once/);
+    expect(
+      orderExtrasError(fields({ sampler_flavours: Array.from({ length: 25 }, (_, i) => 'f' + i) }))
+    ).toMatch(/24/);
+    expect(orderExtrasError(fields({ sampler_flavours: ['hc', 'dcf'] }))).toBeNull();
+  });
+
+  const props = (samplerFlavours: string[] | null, samplerProductId = 'sampler-1') => ({
+    online: true,
+    extras: {
+      sameDayEnabled: false,
+      sameDayPercent: 20,
+      sameDayOnExtras: false,
+      samplerProductId,
+      samplerMaxQty: 3,
+      samplerFlavours,
+      boxSizes: [],
+      addOns: []
+    },
+    sets: [{ id: 'sampler-1', name: 'Sampler box' }],
+    cookies: [
+      { id: 'dcf', name: 'Double Chocolate Fudge', active: true },
+      { id: 'hc', name: 'Happy Camper', active: true },
+      { id: 'pbm', name: 'PB & Miso', active: false }
+    ],
+    save: vi.fn(),
+    close: vi.fn()
+  });
+
+  it('shows every cookie with its own toggle and saves the ticked ones in menu order', () => {
+    const p = props(['hc']);
+    const view = render(<OrderExtrasForm liveOrderExtras={p} />);
+    const box = (id: string) =>
+      view.container.querySelector<HTMLInputElement>(`[name="sf_${id}"]`)!;
+    expect(box('dcf').checked).toBe(false);
+    expect(box('hc').checked).toBe(true);
+    expect(view.container.textContent).toContain('not on the order form');
+    fireEvent.click(box('pbm'));
+    fireEvent.click(box('dcf'));
+    fireEvent.submit(view.container.querySelector('form')!);
+    expect((p.save.mock.calls[0]![0] as LiveOrderExtrasFields).samplerFlavours).toEqual([
+      'dcf',
+      'hc',
+      'pbm'
+    ]);
+  });
+
+  it('switching the sampler off keeps the saved list; no list hides the toggles', () => {
+    const off = props(['hc']);
+    const view = render(<OrderExtrasForm liveOrderExtras={off} />);
+    fireEvent.click(view.container.querySelector<HTMLInputElement>('[name="samplerOn"]')!);
+    expect(view.container.querySelector('[name^="sf_"]')).toBeNull();
+    fireEvent.submit(view.container.querySelector('form')!);
+    expect(off.save.mock.calls[0]![0]).toMatchObject({
+      samplerProductId: '',
+      samplerFlavours: ['hc']
+    });
+    cleanup();
+    const old = props(null);
+    const oldView = render(<OrderExtrasForm liveOrderExtras={old} />);
+    expect(oldView.container.querySelector('[name^="sf_"]')).toBeNull();
+    expect(oldView.container.textContent).toContain('after the next update');
+    fireEvent.submit(oldView.container.querySelector('form')!);
+    expect((old.save.mock.calls[0]![0] as LiveOrderExtrasFields).samplerFlavours).toBeNull();
+  });
+
+  it('the shop read carries the flavours, and an older answer means none', async () => {
+    const { parseShopExtras } = await import('@/lib/data/order-extras');
+    const base = {
+      same_day: { enabled: false, percent: 40, on_extras: false },
+      boxes: [],
+      add_ons: []
+    };
+    expect(
+      parseShopExtras({ ...base, sampler: { product_id: 's', max_qty: 3, flavours: ['dcf'] } })
+        ?.sampler.flavours
+    ).toEqual(['dcf']);
+    expect(
+      parseShopExtras({ ...base, sampler: { product_id: 's', max_qty: 3 } })?.sampler.flavours
+    ).toEqual([]);
+    expect(
+      parseShopExtras({ ...base, sampler: { product_id: 's', max_qty: 3, flavours: 'dcf' } })
+    ).toBeNull();
   });
 });

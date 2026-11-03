@@ -297,7 +297,15 @@ import { CUSTOMER_SCREENS, type ScreenKey } from '@/lib/screens';
 import { SettledCounter } from '@/store/settled-counter';
 import { liveScreenFor } from '@/components/live/live-screens';
 import { PLACES, TABS, placeOfRoute, placesOf, tabOf, type Place } from '@/lib/nav/function-map';
-import type { LiveHomeNext, LiveHomeTill, LiveTabs, LiveTillVals } from '@/view-models/vals';
+import type {
+  LiveHomeNext,
+  LiveHome,
+  LiveHomeTill,
+  LiveMoney,
+  LiveTabs,
+  LiveTillVals,
+  MoneyPeriod
+} from '@/view-models/vals';
 import { helperMoneyView } from '@/lib/auth/helper-money';
 import {
   IDLE_MINUTES_MAX,
@@ -1938,6 +1946,241 @@ export class OpsRuntime extends OpsProvider {
     }
   }
 
+  /**
+   * The sampler card on the customer shop says which cookies are inside, from the owner's saved list
+   * (`get_shop_extras`, published cookies only). The engine builds the cards in this same filtered order.
+   */
+  private liveShopSampler(rows: OpsVals['shopFlavours']): OpsVals['shopFlavours'] {
+    const sampler = this.orderFlow?.extras?.sampler;
+    const flavours = sampler?.flavours ?? [];
+    if (!isLiveMode() || !rows || !sampler?.productId || !flavours.length) return rows;
+    const dropActive = (this.state.dropActive ?? {}) as Record<string, boolean>;
+    const shown = PRODUCTS.filter((p) => dropActive[p.id] !== false);
+    if (shown.length !== rows.length) return rows;
+    const names = flavours.flatMap((id) => {
+      const name = PRODUCTS.find((p) => p.id === id)?.short;
+      return name ? [name] : [];
+    });
+    if (!names.length) return rows;
+    return rows.map((row, i) =>
+      shown[i]?.id === sampler.productId
+        ? { ...row, desc: [row.desc, `Includes ${names.join(', ')}.`].filter(Boolean).join(' ') }
+        : row
+    );
+  }
+
+  // ------------------------------------------------------------------ Home: today's real work
+
+  /**
+   * Home's facts, each from the record that owns it: open orders by their saved status, stock by
+   * the catalogue (never counted is unknown, not zero), unfinished production from its own drafts
+   * and this month's books through `monthTotals`. A source that has not loaded is null.
+   */
+  private liveHomeVals(starved: OpsVals): LiveHome | null {
+    if (!isLiveMode() || this.state.role !== 'owner' || this.state.screen !== 'today') return null;
+    const s = this.state as unknown as OpsEngineState;
+    const orders = this.orderSync?.loaded
+      ? (() => {
+          const all = (this.state.orders ?? []) as Array<{ status?: string }>;
+          const count = (status: string) => all.filter((o) => o.status === status).length;
+          return {
+            review: count('Payment review'),
+            toPrepare: count('Confirmed') + count('Preparing'),
+            ready: count('Ready')
+          };
+        })()
+      : null;
+    const catalogue = this.stockCatalogue;
+    const stock = catalogue
+      ? (() => {
+          const items = catalogue.items.filter(
+            (i) => i.active && (i.category === 'Ingredients' || i.category === 'Packaging')
+          );
+          // The Stock page's own rule, so the two pages never disagree about an item.
+          const rows = items.map((i) => ({ item: i, status: stockStatus(i.onHand, i.parLevel) }));
+          const n = (st: string) => rows.filter((r) => r.status === st).length;
+          const order = ['Out', 'Low'];
+          return {
+            counts: {
+              ok: n('Good'),
+              low: n('Low'),
+              out: n('Out'),
+              neverCounted: items.filter((i) => i.lastCounted === null).length
+            },
+            attention: rows
+              .filter((r) => r.status !== 'Good')
+              .sort((a, b) => order.indexOf(a.status) - order.indexOf(b.status))
+              .slice(0, 4)
+              .map((r) => ({
+                name: r.item.name,
+                status: r.status as 'Out' | 'Low',
+                detail:
+                  `${r.item.onHand} ${r.item.unit} recorded · reorder at ${r.item.parLevel} ${r.item.unit}` +
+                  (r.item.lastCounted === null ? ' · never counted' : ''),
+                open: () => {
+                  this.go('inventory');
+                  this.openStockItemPage(r.item.id);
+                }
+              }))
+          };
+        })()
+      : null;
+    const month = this.booksRows ? this.monthTotals(s) : null;
+    return {
+      greeting: String(starved.greeting ?? 'Hello.'),
+      dateText: String(starved.todayDate ?? ''),
+      orders,
+      stockCounts: stock?.counts ?? null,
+      stockAttention: stock?.attention ?? [],
+      production: this.productionDrafts.list().map((work) => ({
+        id: work.id,
+        name: work.product.name,
+        detail:
+          work.draft.kind === 'batch'
+            ? `Batch ${work.number} · ${work.draft.target} planned`
+            : `Dough ${work.number} · ${work.draft.balls} portions`,
+        open: () => {
+          this.go('bake');
+          this.openProductionWork(work.id, work.revision);
+        }
+      })),
+      month: month
+        ? { revenue: month.revenue, expenses: month.totalExp, profit: month.profit }
+        : null,
+      flavours: PRODUCTS.length,
+      go: {
+        orders: () => this.go('orders'),
+        payments: () => this.go('reconcile'),
+        production: () => this.go('bake'),
+        stock: () => this.go('inventory'),
+        products: () => this.go('products'),
+        shopping: () => this.go('grocery'),
+        money: () => this.go('pnl'),
+        bazaar: () => this.go('bazaar')
+      }
+    };
+  }
+
+  // ------------------------------------------------------------------ Money: one period for the whole page
+
+  private moneyPeriod: MoneyPeriod = 'days30';
+
+  /** The start of the selected Money period. Every option lies inside the 35 days `loadBooks` reads. */
+  private moneyPeriodFrom(s: OpsEngineState): number {
+    const now = Number(s.now);
+    if (this.moneyPeriod === 'week') return manilaMidnight(manilaToday(now)) - 6 * 86_400_000;
+    if (this.moneyPeriod === 'month') return manilaMidnight(monthStart(manilaToday(now)));
+    return now - 30 * 86_400_000;
+  }
+
+  /** Runs the engine's own period sums with the selected period start, as `monthTotals` does. */
+  private inMoneyPeriod<T>(s: OpsEngineState, run: () => T): T {
+    const period = this as unknown as { periodFrom: (s: OpsEngineState) => number };
+    const ported = period.periodFrom;
+    const from = this.moneyPeriodFrom(s);
+    period.periodFrom = () => from;
+    try {
+      return run();
+    } finally {
+      period.periodFrom = ported;
+    }
+  }
+
+  private liveMoneyVals(): LiveMoney | null {
+    if (!isLiveMode() || this.state.role !== 'owner' || this.state.screen !== 'pnl') return null;
+    const s = this.state as unknown as OpsEngineState;
+    const eng = this as unknown as {
+      ledgerIn: (s: OpsEngineState) => Array<{
+        id?: string;
+        kind: LiveMoney['transactions'][number]['kind'];
+        at: number;
+        cat: string;
+        label: string;
+        amount: number;
+      }>;
+      pnlTotals: (s: OpsEngineState) => {
+        revenue: number;
+        totalExp: number;
+        profit: number;
+        draw: number;
+        refunded: number;
+        taxSetAside: number;
+        taxRate: number;
+        merged: Array<{ cat: string; amount: number; n: number }>;
+      };
+    };
+    const { totals, rows } = this.inMoneyPeriod(s, () => ({
+      totals: eng.pnlTotals(s),
+      rows: eng.ledgerIn(s)
+    }));
+    const now = Number(s.now);
+    const from = this.moneyPeriodFrom(s);
+    const day = 86_400_000;
+    const step = this.moneyPeriod === 'week' ? day : 7 * day;
+    const date = (at: number) =>
+      formatManila(at, { day: 'numeric' }) + ' ' + formatManila(at, { month: 'short' });
+    // Presentation only: the same ledger rows the totals sum, grouped by day or week.
+    const buckets: LiveMoney['buckets'] = [];
+    for (let start = from; start < now; start += step) {
+      const end = start + step;
+      const inside = rows.filter((r) => r.at >= start && (r.at < end || end > now));
+      const sum = (kind: string) =>
+        inside.filter((r) => r.kind === kind).reduce((t, r) => t + (Number(r.amount) || 0), 0);
+      buckets.push({
+        label: this.moneyPeriod === 'week' ? formatManila(start, { weekday: 'short' }) : date(start),
+        income: sum('revenue') - sum('refund'),
+        expenses: sum('expense')
+      });
+      if (end > now) break;
+    }
+    const label = { week: 'Last 7 days', days30: 'Last 30 days', month: 'This month' }[
+      this.moneyPeriod
+    ];
+    return {
+      period: this.moneyPeriod,
+      periodText: label + ' · ' + date(from) + ' to ' + date(now),
+      setPeriod: (period) => {
+        this.moneyPeriod = period;
+        this.forceUpdate();
+      },
+      loaded: !!this.booksRows,
+      revenue: totals.revenue,
+      expenses: totals.totalExp,
+      profit: totals.profit,
+      draw: totals.draw,
+      refunded: totals.refunded,
+      taxSetAside: totals.taxSetAside,
+      taxRate: totals.taxRate,
+      buckets,
+      categories: totals.merged.map((c) => ({ cat: c.cat, amount: c.amount, n: c.n })),
+      transactions: rows
+        .slice()
+        .sort((a, b) => b.at - a.at)
+        .map((r, i) => ({
+          id: r.id ?? String(i),
+          label: r.label,
+          cat: r.cat,
+          when: date(r.at),
+          kind: r.kind,
+          signed: r.kind === 'revenue' ? r.amount : -r.amount
+        })),
+      held: (this.booksRows?.held ?? []).map((h) => ({
+        name: h.name,
+        revenue: centavosToPesos(h.revenueCents),
+        expenses: centavosToPesos(h.expenseCents)
+      })),
+      uncosted: (this.booksRows?.uncosted ?? []).filter((u) => u.at >= from && u.at <= now)
+        .length,
+      recordExpense: () => this.sheet('expense'),
+      takeMoneyOut: () => this.sheet('draw'),
+      exportPeriod: () => void this.liveExport(from),
+      exportAll: () => void this.liveExport(),
+      openBooks: () => void this.openBooks(),
+      openCategories: () => this.sheet('categories'),
+      openTaxRules: () => this.sheet('rules')
+    };
+  }
+
   /** The engine's pricing example, worked on the owner's own menu (two each of her first three). */
   private pricePreview(preview: OpsVals['priceModePreview']): OpsVals['priceModePreview'] {
     if (!preview) return preview;
@@ -2705,6 +2948,8 @@ export class OpsRuntime extends OpsProvider {
       ...(this.orderSync ? { od: this.liveOrderDetail(starved.od) } : {}),
       liveOrderRules: this.liveOrderRulesVals(),
       liveOrderExtras: this.liveOrderExtrasVals(),
+      liveMoney: this.liveMoneyVals(),
+      liveHome: this.liveHomeVals(starved),
       liveScheduled: this.liveScheduledVals(),
       liveBooks: this.liveBooksVals(),
       ...health,
@@ -2788,6 +3033,7 @@ export class OpsRuntime extends OpsProvider {
       liveLookup: this.liveLookupVals(),
       liveWaitlist: this.liveWaitlistVals(),
       shopFooter: this.shopFooterVals(),
+      shopFlavours: this.liveShopSampler(starved.shopFlavours),
       // MP-09 c1b: until the published menu is read, a customer page shows no flavours
       // (the engine still holds the ported list, which is not the owner's menu).
       ...(CUSTOMER_SCREENS.includes(this.state.screen as ScreenKey) &&
@@ -3055,6 +3301,13 @@ export class OpsRuntime extends OpsProvider {
       .map((r) => ({ id: r.id, name: r.name }));
     if (x.sampler_product_id && !sets.some((s) => s.id === x.sampler_product_id))
       sets.push({ id: x.sampler_product_id, name: x.sampler_product_id });
+    const flavourRows = this.flavourSync?.current() ?? [];
+    const cookies = flavourRows
+      .filter((r) => r.item_type === 'cookie')
+      .map((r) => ({ id: r.id, name: r.short_name || r.name, active: r.active }));
+    // A saved flavour that is no longer listed stays visible, so a save never drops it unseen.
+    for (const id of x.sampler_flavours ?? [])
+      if (!cookies.some((c) => c.id === id)) cookies.push({ id, name: id, active: false });
     return {
       online: this.state.online && (typeof navigator === 'undefined' || navigator.onLine),
       extras: {
@@ -3063,6 +3316,7 @@ export class OpsRuntime extends OpsProvider {
         sameDayOnExtras: x.same_day_on_extras,
         samplerProductId: x.sampler_product_id ?? '',
         samplerMaxQty: x.sampler_max_qty,
+        samplerFlavours: x.sampler_flavours ?? null,
         boxSizes: x.box_sizes.map((b) => ({
           size: b.size,
           chargePesos: centavosToPesos(b.charge_cents),
@@ -3080,6 +3334,7 @@ export class OpsRuntime extends OpsProvider {
         }))
       },
       sets,
+      cookies,
       save: (f: LiveOrderExtrasFields) => void this.saveOrderExtrasForm(f, sh.updatedAt ?? null),
       close: () => this.closeSheet()
     };
@@ -3104,6 +3359,7 @@ export class OpsRuntime extends OpsProvider {
       same_day_on_extras: f.sameDayOnExtras,
       sampler_product_id: f.samplerProductId === '' ? null : f.samplerProductId,
       sampler_max_qty: f.samplerMaxQty,
+      sampler_flavours: f.samplerFlavours ?? null,
       box_sizes: f.boxSizes.map((b) => ({
         size: b.size,
         charge_cents: pesosToCentavos(b.chargePesos),
@@ -6059,14 +6315,14 @@ export class OpsRuntime extends OpsProvider {
   }
 
   /** The books for the last 13 months as a CSV download: read fresh from the database, so it is the same numbers as the screens. */
-  private async liveExport(): Promise<void> {
+  private async liveExport(fromMs?: number): Promise<void> {
     const client = this.booksClient;
     if (this.state.role !== 'owner') return void this.toast(BOOKS_COPY.ownerOnly, 'warn');
     if (!client) return void this.toast(STAFF_COPY.offline, 'warn');
     let books: Books;
     try {
       const now = Date.now();
-      books = await fetchBooks(client, now - 396 * 86_400_000, now + 86_400_000);
+      books = await fetchBooks(client, fromMs ?? now - 396 * 86_400_000, now + 86_400_000);
     } catch {
       return void this.toast(STAFF_COPY.offline, 'warn');
     }

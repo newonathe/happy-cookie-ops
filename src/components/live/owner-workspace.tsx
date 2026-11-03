@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, type ComponentType } from 'react';
+import { useEffect, useRef, type ComponentType } from 'react';
 import Image from 'next/image';
 import type { OpsVals } from '@/view-models/vals';
 import { CUSTOMER_SCREENS, type ScreenKey } from '@/lib/screens';
@@ -34,6 +34,7 @@ import { ShopScreen } from '@/components/screens/shop';
 import { CheckoutScreen } from '@/components/screens/checkout';
 import { OrderStatusScreen } from '@/components/screens/order-status';
 import { LiveScreenHost } from './live-screen-host';
+import { PageTitle } from '@/components/ui/owner-kit';
 import styles from './owner-workspace.module.css';
 import theme from './owner-theme.module.css';
 
@@ -86,12 +87,66 @@ function usesLiveModal(v: OpsVals) {
   return !!(v.sheet?.liveForm && (v.liveForm?.kind === 'flavours' || v.liveDough) && !v.quickOpen);
 }
 
+/**
+ * Settings forms that read as pages of their section (client v4): a title, the form and a Back to
+ * where the owner came from. Closing is the form's own close, so drafts and saves are unchanged.
+ */
+function pageFormOf(v: OpsVals): { title: string; subtitle: string; close: () => void } | null {
+  if (!v.sheet) return null;
+  if (v.liveOrderRules)
+    return {
+      title: 'Order rules',
+      subtitle: 'When customers can order and pick up.',
+      close: v.liveOrderRules.close
+    };
+  if (v.liveOrderExtras)
+    return {
+      title: 'Boxes & add-ons',
+      subtitle: 'What customers can choose in your shop.',
+      close: v.liveOrderExtras.close
+    };
+  const page = (
+    form: { close: (event?: unknown) => void } | null | undefined,
+    title: string,
+    subtitle: string
+  ) => (form ? { title, subtitle, close: () => form.close() } : null);
+  return (
+    page(v.livePay, 'Payment methods', 'How customers pay, and the details they see.') ??
+    page(v.liveTexts, 'Shop details & messages', 'Words customers see in your shop.') ??
+    page(v.liveMessages, 'Customer messages', 'Messages ready to copy and send.') ??
+    page(v.liveScheduled, 'Bazaar events', 'Upcoming events and their dates.') ??
+    page(v.liveBooks, 'Books & costs', 'How costs reach your books, and fixes to past costs.') ??
+    page(v.liveStockItems, 'Stock items', 'What you keep in stock, its unit and reorder level.') ??
+    page(v.liveStockSuppliers, 'Suppliers & prices', 'Who you buy from and what they charge.') ??
+    page(v.liveRecipeDrafts, 'Recipe drafts', 'Changes kept separate from the saved recipe.')
+  );
+}
+
+function PageForm({ v, page }: { v: OpsVals; page: NonNullable<ReturnType<typeof pageFormOf>> }) {
+  const heading = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    heading.current?.querySelector('h1')?.focus();
+  }, [page.title]);
+  return (
+    <div ref={heading} className={styles.page}>
+      <PageTitle title={page.title} subtitle={page.subtitle} />
+      <LiveFormHost v={v} />
+    </div>
+  );
+}
+
 /** Keep existing sheet/quick-action operations on their proven host, without its page chrome. */
 function WorkspaceOverlays({ v }: { v: OpsVals }) {
   if (!v.sheet && !v.quickOpen) return null;
+  const pageForm = pageFormOf(v);
+  if (pageForm && !v.quickOpen) return null;
   if (usesLiveModal(v) && v.sheet) {
     return (
-      <Sheet className={theme.theme} title={String(v.sheet.title)} onClose={v.liveDough?.close ?? v.closeSheet}>
+      <Sheet
+        className={theme.theme}
+        title={String(v.sheet.title)}
+        onClose={v.liveDough?.close ?? v.closeSheet}
+      >
         <WorkspaceToast v={v} inline />
         <LiveFormHost v={v} />
       </Sheet>
@@ -108,6 +163,8 @@ function WorkspaceOverlays({ v }: { v: OpsVals }) {
     showPhoneWidths: false,
     flow: null,
     liveScreen: null,
+    // A settings page stays on the page under Quick add; only the quick panel is drawn here.
+    ...(pageForm ? { sheet: null } : {}),
     denied: false,
     screens: Object.fromEntries(
       Object.keys(v.screens).map((key) => [key, false])
@@ -135,9 +192,13 @@ function WorkspaceToast({ v, inline = false }: { v: OpsVals; inline?: boolean })
     <div
       role={v.toastWarn ? 'alert' : 'status'}
       aria-atomic="true"
-      style={inline ? { marginBottom: 16 } : s(
-        `${v.toastStyle};position:fixed;z-index:90;left:calc(var(--workspace-sidebar, 0px) + 14px);pointer-events:none`
-      )}
+      style={
+        inline
+          ? { marginBottom: 16 }
+          : s(
+              `${v.toastStyle};position:fixed;z-index:90;left:calc(var(--workspace-sidebar, 0px) + 14px);pointer-events:none`
+            )
+      }
     >
       <div className={styles.toastBox}>
         {v.toastWarn ? <Icon path={v.ic.alert} size={18} weight={1.8} /> : null}
@@ -192,11 +253,19 @@ export function OwnerWorkspace({
     if (isLiveMode())
       document.title = title === 'The Happy Cookie' ? title : `${title} · The Happy Cookie`;
   }, [title]);
-  if (isLiveMode() && role === 'owner' && !v.denied && screen === 'batch' &&
-      v.liveBatchCounts && v.liveScreen?.screen === 'batch')
+  if (
+    isLiveMode() &&
+    role === 'owner' &&
+    !v.denied &&
+    screen === 'batch' &&
+    v.liveBatchCounts &&
+    v.liveScreen?.screen === 'batch'
+  )
     return (
       <div className={`${styles.productionFocus} ${theme.theme}`} data-owner-theme="neutral-glass">
-        <main><LiveScreenHost v={v} /></main>
+        <main>
+          <LiveScreenHost v={v} />
+        </main>
         <WorkspaceOverlays v={v} />
         <WorkspaceToast v={v} />
       </div>
@@ -211,8 +280,10 @@ export function OwnerWorkspace({
   )
     return <AppFrame v={v} />;
   const active = v.dockNav.find((item) => item.active);
-  const back =
-    screen === 'inventory' && v.liveStock
+  const pageForm = pageFormOf(v);
+  const back = pageForm
+    ? pageForm.close
+    : screen === 'inventory' && v.liveStock
       ? v.liveStock.count && !v.liveStock.count.paused
         ? v.liveStock.count.back
         : v.liveStock.page?.pricesOpen
@@ -244,7 +315,7 @@ export function OwnerWorkspace({
       <div className={styles.work}>
         <header className={styles.header}>
           <div className={styles.location}>
-            {v.showBack && !(screen === 'recipes' && v.liveRecipes?.recipePage) ? (
+            {pageForm || (v.showBack && !(screen === 'recipes' && v.liveRecipes?.recipePage)) ? (
               <button type="button" className={styles.back} aria-label="Back" onClick={back}>
                 <Icon path={v.ic.back} size={18} weight={1.7} />
               </button>
@@ -278,10 +349,14 @@ export function OwnerWorkspace({
           </div>
         </header>
         <main key={screen} className={styles.main}>
-          {v.liveScreen ? <LiveScreenHost v={v} /> : null}
-          {Object.entries(screens).map(([key, Screen]) =>
-            v.screens[key as keyof typeof v.screens] ? <Screen key={key} v={v} /> : null
-          )}
+          {pageForm ? <PageForm key={pageForm.title} v={v} page={pageForm} /> : null}
+          {/* The page under a settings form stays mounted, so its selection and scroll survive the form. */}
+          <div hidden={!!pageForm} className={styles.screenBody}>
+            {v.liveScreen ? <LiveScreenHost v={v} /> : null}
+            {Object.entries(screens).map(([key, Screen]) =>
+              v.screens[key as keyof typeof v.screens] ? <Screen key={key} v={v} /> : null
+            )}
+          </div>
         </main>
       </div>
       <Navigation items={v.dockNav} phone />

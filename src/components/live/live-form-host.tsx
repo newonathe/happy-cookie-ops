@@ -46,8 +46,21 @@ export function LiveFormHost({ v }: { v: OpsVals }) {
   }
   if (v.liveTexts) return <ShopTextsForm liveTexts={v.liveTexts} />;
   if (v.liveMessages) return <OrderMessages liveMessages={v.liveMessages} />;
-  if (v.liveOrderRules) return <OrderRulesForm liveOrderRules={v.liveOrderRules} />;
-  if (v.liveOrderExtras) return <OrderExtrasForm liveOrderExtras={v.liveOrderExtras} />;
+  // Keyed by the saved values: a re-read after a conflict shows their version, never a stale draft.
+  if (v.liveOrderRules)
+    return (
+      <OrderRulesForm
+        key={JSON.stringify(v.liveOrderRules.rules)}
+        liveOrderRules={v.liveOrderRules}
+      />
+    );
+  if (v.liveOrderExtras)
+    return (
+      <OrderExtrasForm
+        key={JSON.stringify(v.liveOrderExtras.extras)}
+        liveOrderExtras={v.liveOrderExtras}
+      />
+    );
   if (v.liveScheduled) return <ScheduledEventsForm liveScheduled={v.liveScheduled} />;
   if (v.liveBooks) return <BooksForm liveBooks={v.liveBooks} />;
   if (v.liveStockItems) return <StockItemsForm liveStock={v.liveStockItems} />;
