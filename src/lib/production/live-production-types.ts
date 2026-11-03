@@ -24,6 +24,7 @@ export interface LiveProductionVals {
   state: 'loading' | 'read' | 'failed';
   periodText: string;
   planReady: boolean;
+  saving?: boolean;
   rows: Array<BatchRow & { name: string; photo: string }>;
   refresh: () => void;
   start?: LiveProductionStart;

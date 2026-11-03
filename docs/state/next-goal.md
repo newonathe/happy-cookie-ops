@@ -22,7 +22,11 @@ Branch `codex/refined-workflows`, app source through `dacd216`:
 - Earlier: owner frame/Stock/count/suppliers, Products/direct saved recipes, product photo editing,
   saved-production read states and shared-scale plan/actual/good/reject history.
 
-Pinned gate158 files /2723 tests pass +2 existing todo. Live build passed28 static pages.
+The follow-up production slice preserves unfinished batches through Quick add, work rows,
+first-work and direct launches, and exposes the saving state on the Bake plan. Tests cover all
+four entry paths, original draft identity and blocking launches during a pending save.
+
+Pinned gate158 files /2730 tests pass +2 existing todo. Prior live build passed28 static pages.
 Four-width headless start/review/resume checks use actual components with
 synthetic RPC and no writes; this is not authenticated hosted, phone or owner-week acceptance.
 
@@ -30,7 +34,7 @@ Next finish production actual-count entry, review/confirmation/result and author
 stock. Preserve existing dough/rest, ingredient adjustments, rejects, shortage and request-identity
 rules. Inspect production-live/start, the existing production-focus screen and runtime production
 overrides; do not modify protected files. Test every entry point, including Quick add and work-row
-actions, against an unfinished batch. Initial new-entry navigation retention is proven; reload
+actions, against an unfinished batch (covered by the follow-up slice; keep this regression). Initial new-entry navigation retention is proven; reload
 retention and full result/uncertain-save recovery are not yet proven.
 
 Then continue safe recipe kind/version saves and acknowledged product-save return, remaining

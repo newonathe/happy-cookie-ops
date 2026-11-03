@@ -137,11 +137,88 @@ const noWrites = (rpc: ReturnType<typeof vi.fn>) =>
   expect(rpc.mock.calls.every(([name]) => String(name).startsWith('get_'))).toBe(true);
 
 describe('owner production entry', () => {
+  it('exposes the saving state until the recording answer arrives', async () => {
+    const { runtime, rpc } = await mounted();
+    let reply!: (value: Awaited<ReturnType<typeof rpc>>) => void;
+    rpc.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          reply = resolve;
+        })
+    );
+    act(() =>
+      runtime.setState({ batch: { pid, target: 12, actual: 12, rejects: 0, adj: {} } } as never)
+    );
+    act(() => (runtime as unknown as { confirmBatch: () => void }).confirmBatch());
+    expect(runtime.renderVals().liveProduction?.saving).toBe(true);
+    await act(async () => {
+      reply({
+        data: [{ record_id: 'saved-batch', duplicate: false, used_dough: 0, shortfall: [] }],
+        error: null
+      });
+    });
+    expect(runtime.renderVals().liveProduction?.saving).toBe(false);
+    expect(rpc.mock.calls.filter(([name]) => name === 'record_production')).toHaveLength(1);
+  });
+  it.each(['quick', 'row', 'first', 'direct'] as const)(
+    'preserves the unfinished batch when starting from %s',
+    async (entry) => {
+      const { runtime, rpc, client, source } = await mounted();
+      source.orderQty = 18;
+      await act(async () => {
+        await runtime.loadOrders(client as never);
+      });
+      act(() => {
+        runtime.setState({
+          dough: { [pid]: 24 },
+          batch: {
+            pid,
+            target: 12,
+            actual: 11,
+            rejects: 2,
+            step: 2,
+            note: 'Tray two',
+            adj: { 'Bread flour': 1 }
+          }
+        } as never);
+      });
+      const pending = runtime.state.batch;
+      const vals = runtime.renderVals();
+      await act(async () => {
+        if (entry === 'quick')
+          vals.quickActions.find((a) => a.label === 'Confirm production')!.go();
+        if (entry === 'row') vals.bakeRows.find((r) => r.name === 'Chocolate')!.act();
+        if (entry === 'first') vals.startFirst();
+        if (entry === 'direct')
+          (runtime as unknown as { startBatch: (id: string) => void }).startBatch(
+            'another-product'
+          );
+        if (entry === 'quick') await new Promise((resolve) => setTimeout(resolve, 20));
+      });
+      expect(runtime.state.screen).toBe('batch');
+      expect(runtime.state.batch).toBe(pending);
+      noWrites(rpc);
+    }
+  );
+  it('does not start or replace a batch while production is being saved', async () => {
+    const { runtime, rpc } = await mounted();
+    const engine = runtime as unknown as {
+      startBatch: (id: string) => void;
+      productionBusy: boolean;
+    };
+    engine.productionBusy = true;
+    act(() => engine.startBatch(pid));
+    expect(runtime.state.batch).toBeNull();
+    expect(runtime.state.screen).toBe('bake');
+    noWrites(rpc);
+  });
   it('continues the unfinished batch without replacing its quantity or progress', async () => {
     const { runtime, rpc } = await mounted();
     act(() => start(runtime).open());
     act(() => start(runtime).setQuantity('24'));
-    act(() => { expect(start(runtime).begin()).toBe(true); });
+    act(() => {
+      expect(start(runtime).begin()).toBe(true);
+    });
     const pending = runtime.state.batch;
     act(() => runtime.go('bake'));
     expect(start(runtime).resume).toBe(true);
