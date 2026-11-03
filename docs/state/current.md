@@ -1,6 +1,42 @@
 # Current state — Happy Cookie Ops
 
+**Claude UI slice, 3 November (late):** v4 look now reaches Home, Money and Shop rules/boxes in live
+mode via new live slots (`live/home`, `live/money`, page-mode settings forms) and a shared kit
+(`ui/owner-kit.tsx`). Owner Shop feedback done; sampler flavours added as local migration 71 (hosted
+apply awaits approval). Lossless record and feedback status: [capability ledger](../design/capability-ledger.md).
+Ethan lifted the browser guard and accepted a Sonnet reviewer (AGENTS.md). Next: Sell orders/payments/
+customers, Shop status/methods/texts, Account, section Settings buttons, production results bug.
+
 **Active again at Ethan's request, 3 November 2026.** Full actual-app goal remains incomplete.
+Latest uncommitted work connects the independent draft pool to the actual runtime and Make list.
+Different/identical cookie batches and dough mixes retain their own fields, recipe/period and step;
+per-item saves allow editing/submitting B while A saves. Acknowledgement retires only its own item.
+New manual entry offers Bake cookies/Prepare dough; dough uses existing full/half recipe portions.
+Recipe reads preserve explicit ingredient/packaging kind; the separate recipe-write issue remains.
+Eight synthetic-RPC browser checks at320/390/768/1240, both motion modes, cover two batches plus dough,
+concurrent callbacks and independent confirmation. They do not prove SQL concurrency or device use.
+Bazaar/default address now opens Events first; both tills use compact Back beside the event name.
+Eight actual-layout checks cover both tills, keyboard Back and unchanged held selling facts, with
+no till painted before explicit resume. Final all-page/state researched critique is required after
+implementation; see the shared brief. P3 durable scoped recovery, unavailable-source handling,
+authoritative saved-result/refresh truth and remaining workflows are incomplete. Pool is memory-only.
+New local draft fixes live-modal toast overlap by keeping messages/Undo in the sheet's content.
+Changed recipes now show previous/updated quantities and yield with explicit adoption. Counts/notes/
+period stay; ingredient adjustments reset with disclosure and review is required again. Dough retains
+its old amount, but invalid full/half amounts cannot be reviewed/posted. Eight headless width/motion
+checks pass without writes/errors/overflow;19focused tests pass. SQL67 refuses stale first submits
+after checking existing request replay; no SQL rule changed. Current full pinned gate passes169files /
+2802tests +2existing todo; live build28pages passes. Both previews return200. Required review still held.
+Next P2 bug is confirmed from SQL58/current source: returned qty is GOOD output, but ProductionResults
+subtracts rejects again and labels all-history batches with the selected drop. Runtime also rejects
+valid rows whose rejects exceed good output. Fix this before adding acknowledged result visuals.
+Previous full pinned gate passes169files /2799tests +2existing todo. A fixed-delay Bazaar test race now
+awaits the real RPC, preserving exact assertions; the full rerun and repeated eight production browser
+checks pass. Previous live Webpack build passes28pages; both previews return200. Parts are uncommitted.
+Events return restores row focus/scroll: eight CLI browser checks at320/390/768/1240, reduced motion,
+keyboard and browser Back; no writes/overflow/page errors. Scoped JSDOM scrolling is now asserted.
+P1's pure draft pool/tests are accepted/pushed atb23c3dd. Runtime integration is the newer local draft;
+the accepted commit alone does not provide multiple live work items or durable recovery.
 Read the [active Bazaar and parallel production audit/plan](../design/active-bazaar-parallel-production-plan.md).
 Events must remain reachable during an active bazaar; different products need simultaneous production.
 Both gaps were reproduced with controlled RPC fixtures. Active-Events navigation is now a local
@@ -9,14 +45,14 @@ owner access is checked at action and render. The directory filter survives chil
 stays pinned outside its planned dates. CLI browser round trips passed320/390/768/1240 with no writes.
 Main till/Events/event addresses now restore through RouteSync without remounting. Back/Forward,
 direct directory and event reload pass390/1240 with synthetic RPC. Plan/review subview identity,
-focus/scroll return and parallel production remain incomplete. Pinned full gate passes165 files /2762
+parallel production remain incomplete. Earlier pinned full gate passed165 files /2762
 tests +2existing todo with four Vitest workers; live Webpack build passes28 static pages.
 Local preview recovered after further user-reported failures: fixed retained-renderer lookup binding,
 added a network-only development worker and local recovery page, and limited extension hydration
 compatibility to the outer body. The private preview launcher now uses Webpack. Ethan confirms
 Chrome opens after this restart/recovery; that is opening evidence, not full owner acceptance.
-All current changes remain uncommitted pending independent review; Ethan's reviewer-reset wait
-remains in force. Branch `codex/refined-workflows`, accepted HEAD `ea745af`.
+Bazaar/history/preview changes remain uncommitted pending independent review; Ethan's reviewer-reset
+wait remains in force. Branch `codex/refined-workflows`, accepted HEAD `b23c3dd`.
 Read the [complete shared owner/agent brief](../design/owner-workflow-brief.md),
 [scope](../design/refined-workflows.md) and [next goal](next-goal.md). Claude/other agents use these
 shared files. Keep all features/safeguards while simplifying operation; the full goal is incomplete.

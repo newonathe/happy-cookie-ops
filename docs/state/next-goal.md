@@ -1,6 +1,6 @@
 # Next goal — complete the actual refined application
 
-**Active again, 3 November 2026.** Finish the full original/hosted feature set with simpler operation,
+**Active again at Ethan's request, 3 November 2026.** Finish the full original/hosted feature set with simpler operation,
 neutral Happy Cookie identity, purposeful hierarchy, practical visual trackers and contextual
 automation. Implement the actual app; the entire goal remains incomplete.
 
@@ -13,33 +13,33 @@ Inspect branch/worktree/stashes and actual code; do not depend on chat memory or
 
 ## Accepted source and next implementation
 
-Current worktree: active-Events navigation draft in live Bazaar components, controller/types and
-runtime, with regressions in bazaar-live.test.tsx. It is uncommitted pending independent review.
-Main till/Events/event history and reload now work. Finish plan/review addresses and focus/scroll return.
-Keep the existing tested Events/till round trip, permissions and held-state preservation. Then build
-P1's pure multi-item production workspace; do not bypass the existing sensitive-review wait.
+Owner steering: Events first, compact till Back; final page critique after build (owner brief).
+UI progress and the lossless rule: [capability ledger](../design/capability-ledger.md).
 
-Branch `codex/refined-workflows`; inspect the latest commit:
+Uncommitted pool/runtime adapter now supports independent cookie batches/dough mixes, Make's In
+progress list, full/half dough entry, per-item saving and own-item acknowledgements. Eight browser
+runs pass320/390/768/1240 in both motion modes with synthetic RPCs; no SQL/device acceptance.
+Recipe reads preserve line kind; writer remains unresolved. Full gate169files /2802pass +2todo;
+eight production browser reruns pass. Build status is in private LIVE-CHECKPOINT. Pool accepted atb23c3dd.
+Events return focus/scroll passes eight layout checks, keyboard/browser Back; JSDOM scroll is asserted.
+Earlier Events/history/preview drafts still require independent review. Finish B1 plan/review
+addresses, stage wording and inactive held events. Changed-source comparison/adoption and inline modal
+toasts pass eight browser checks. Next fix P2's confirmed good/reject and history-period errors
+(SQL58 versus ProductionResults), then results/refresh/source handling and P3 durable recovery.
+Gate/build and findings: private LIVE-CHECKPOINT.
+Preserve selling values, permissions and the sensitive-review wait.
 
-The follow-up production slice preserves unfinished batches through Quick add, work rows,
-first-work and direct launches, and exposes the saving state on the Bake plan. Tests cover all
-four entry paths, original draft identity and blocking launches during a pending save.
-`dd4df87` adds guarded retained raw counts. The live batch slot now replaces the legacy count/review
-presentation for the owner, with a neutral focused frame, planned/actual and good/reject bars,
-catalogue-sourced recorded balances/units, explicit unknown balances and existing ingredient actions.
-Count/review edits and confirmation are blocked while saving; leaving retains the batch.
+Branch `codex/refined-workflows`; inspect HEAD.
 
-Preview repairs (sale names, ClickUp warning and shared border feedback): see current.md.
+Accepted production entry/count presentation preserves unfinished work and raw counts; details
+and earlier commits are in current.md. Per-item saving is local and awaits required review.
 
-Current local draft includes preview recovery (Ethan confirms Chrome opens), history and hot-update
-lookup repair. Gate165 files /2762 pass +2todo (VITEST_MAX_WORKERS=4); live Webpack build passes28
-static pages. Required review remains pending.
-Four-width headless start/review/resume checks use actual components with
-synthetic RPC and no writes; this is not authenticated hosted, phone or owner-week acceptance.
+Preview repairs and Ethan's Chrome opening confirmation: see current.md. Preview/history drafts await
+review. Use four Vitest workers; no quota/provider bypass.
 
 Continue B1 under [the audited additions plan](../design/active-bazaar-parallel-production-plan.md).
-P1–P3 then add independent dough/bake drafts, recipe/period snapshots, per-item acknowledgement and
-durable uncertainty recovery. Parallel production and notes persistence remain unproven.
+Local multi-item proof covers navigation and simultaneous callbacks only; reload, cross-tab and
+identity-scoped recovery remain unproven. Notes are retained locally, not confirmed server-saved.
 
 
 Then continue safe recipe kind/version saves and acknowledged product-save return, remaining
