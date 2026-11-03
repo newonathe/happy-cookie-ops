@@ -5043,6 +5043,7 @@ export class OpsRuntime extends OpsProvider {
       state: this.productionReadState === 'read' && !valid ? 'failed' : this.productionReadState,
       periodText: `Drop ${dropNo}`,
       planReady: !!(valid && this.orderSync?.loaded && this.stockCatalogue && this.recipeRows),
+      saving: this.productionBusy,
       rows: valid
         ? (saved?.batches ?? []).map((row) => {
             const product = PRODUCTS.find((p) => p.id === row.productId);
@@ -5223,11 +5224,13 @@ export class OpsRuntime extends OpsProvider {
     // Kept from before the call: whatever happens to the answer, this entry keeps its id until an answer says otherwise.
     this.pendingProduction.set(signature, fields);
     this.productionBusy = true;
+    this.setState({});
     let result: ProductionResult;
     try {
       result = await recordProduction(client, fields);
     } finally {
       this.productionBusy = false;
+      if (!this.unmounted) this.setState({});
     }
     if (result.outcome !== 'offline') this.pendingProduction.delete(signature);
     if (result.outcome === 'saved') return result;
@@ -5346,7 +5349,25 @@ export class OpsRuntime extends OpsProvider {
 
   private installProductionOverrides(): void {
     const eng = this as unknown as ProductionActions;
-    const keep = { confirmDough: eng.confirmDough, confirmBatch: eng.confirmBatch };
+    const keep = {
+      startBatch: eng.startBatch,
+      confirmDough: eng.confirmDough,
+      confirmBatch: eng.confirmBatch
+    };
+    // Quick add and work rows share this entry point with the live production form.
+    // Leaving a batch open must not allow another launch to replace its unfinished work.
+    eng.startBatch = (pid) => {
+      if (this.productionBusy) {
+        this.toast('Production is being saved. Wait for the result before starting another batch.', 'warn');
+        return;
+      }
+      if ((this.state as unknown as ProductionState).batch) {
+        this.go('batch');
+        this.toast('Continue or discard this unfinished batch before starting another.', 'warn');
+        return;
+      }
+      keep.startBatch(pid);
+    };
     eng.confirmDough = () => {
       const s = this.state as unknown as ProductionState;
       const dp = s.doughPrep;

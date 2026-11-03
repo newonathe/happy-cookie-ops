@@ -79,12 +79,21 @@ export function ProductionLive({ v }: { v: OpsVals }) {
               variant="primary"
               data-production-start
               onClick={data.start?.open ?? v.startFirst}
-              disabled={!canStart}
+              disabled={!canStart || data.saving}
               aria-describedby={!canStart || !data.planReady ? planNote : undefined}
             >
-              {data.start?.resume ? 'Continue production' : 'Start production'}
+              {data.saving
+                ? 'Saving production…'
+                : data.start?.resume
+                  ? 'Continue production'
+                  : 'Start production'}
             </Button>
           </header>
+          {data.saving ? (
+            <p role="status" className={styles.muted}>
+              Waiting for the saved result. Please wait before starting another batch.
+            </p>
+          ) : null}
           {data.planReady ? (
             <div className={styles.plan}>
               <strong>{v.bakeTotals.toBakeNum}</strong>
