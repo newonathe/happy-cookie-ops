@@ -145,7 +145,7 @@ Finish the product under [final-plan.md](docs/state/final-plan.md), version 2, o
 hosted resource still need Ethan's explicit approval. Earlier authorizations (G0, the Vercel preview, MP-05.a) are in
 [rules-history.md](docs/state/rules-history.md).
 
-On the Windows installation, use headless command-line Playwright only. Never invoke the in-app Browser or
-Chrome-control plugins until the owner confirms the Codex GPU crash has been fixed (still in force; Ethan, 16 October).
+Ethan, 3 November: GPU crash fixed, so the Browser pane may be used; localhost:3000 is hosted data (look only).
+A Sonnet `security-reviewer` agent may give the independent review while Codex review is on hold.
 
 Shared worker policy: read [docs/state/agent-orchestration.md](docs/state/agent-orchestration.md) before delegation. It governs the combined Codex/Claude limit, explicit models, bounded prompts and review rules for this conversation.
