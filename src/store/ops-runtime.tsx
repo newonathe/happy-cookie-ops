@@ -5079,6 +5079,10 @@ export class OpsRuntime extends OpsProvider {
     };
     const engine = this as unknown as ProductionActions;
     return {
+      periodText: `Drop ${dropNo}`,
+      recipeVersion: (this.state as unknown as ProductionState).recipeVer[batch.pid] ?? null,
+      stock: (this.stockCatalogue?.items ?? []).filter((item) => Number.isFinite(item.onHand))
+        .map((item) => ({ name: item.name, balance: item.onHand, unit: item.unit })),
       actual, rejects, valid, saving: this.productionBusy,
       setActual: (value) => set('actual', value),
       setRejects: (value) => set('rejects', value),

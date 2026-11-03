@@ -2,6 +2,9 @@ import type { BatchRow } from '@/lib/data/production';
 
 /** Unconfirmed counts travel with the open batch, including blank or invalid entries. */
 export interface LiveBatchCounts {
+  periodText: string;
+  recipeVersion: number | null;
+  stock: Array<{ name: string; balance: number; unit: string }>;
   actual: string;
   rejects: string;
   valid: boolean;

@@ -13,29 +13,31 @@ Inspect branch/worktree/stashes and actual code; do not depend on chat memory or
 
 ## Accepted source and next implementation
 
-Branch `codex/refined-workflows`, app source through `dacd216`:
+Branch `codex/refined-workflows`; inspect the latest commit:
 
-- `0f908cb`: prevent Next dev from rewriting shared agent instructions.
-- `6cdb9c3`/`cb0917d`: guarded unconfirmed production entries and unfinished-batch resume.
-- `dacd216`: visible manual/planned product-and-quantity entry, saved recipe facts/version refresh,
-  draft return across navigation, Cancel focus and correct retry guidance. No stock write on entry.
-- Earlier: owner frame/Stock/count/suppliers, Products/direct saved recipes, product photo editing,
-  saved-production read states and shared-scale plan/actual/good/reject history.
+Foundation: neutral owner frame/Stock/count/suppliers, Products/direct saved recipes, photo editing,
+saved-production charts and manual/planned entry (`dacd216`). Entry makes no stock write, retains
+drafts and checks recipe versions. Next dev preserves agent files (`0f908cb`). Details: current.md.
 
 The follow-up production slice preserves unfinished batches through Quick add, work rows,
 first-work and direct launches, and exposes the saving state on the Bake plan. Tests cover all
 four entry paths, original draft identity and blocking launches during a pending save.
+`dd4df87` adds guarded retained raw counts. The live batch slot now replaces the legacy count/review
+presentation for the owner, with a neutral focused frame, planned/actual and good/reject bars,
+catalogue-sourced recorded balances/units, explicit unknown balances and existing ingredient actions.
+Count/review edits and confirmation are blocked while saving; leaving retains the batch.
 
-Pinned gate158 files /2730 tests pass +2 existing todo. Prior live build passed28 static pages.
+Pinned gate159 files /2736 tests pass +2 existing todo. Prior live build passed28 static pages.
 Four-width headless start/review/resume checks use actual components with
 synthetic RPC and no writes; this is not authenticated hosted, phone or owner-week acceptance.
 
-Next finish production actual-count entry, review/confirmation/result and authoritative resulting
-stock. Preserve existing dough/rest, ingredient adjustments, rejects, shortage and request-identity
-rules. Inspect production-live/start, the existing production-focus screen and runtime production
-overrides; do not modify protected files. Test every entry point, including Quick add and work-row
-actions, against an unfinished batch (covered by the follow-up slice; keep this regression). Initial new-entry navigation retention is proven; reload
-retention and full result/uncertain-save recovery are not yet proven.
+Next finish production acknowledgement/result and authoritative resulting stock, recipe-version/
+period snapshots, uncertain-save and reload recovery. Inspect production-focus-live, the existing
+production-focus answer key and runtime production overrides; do not modify protected files.
+Preserve dough/rest, ingredient adjustments, rejects, shortage and request-identity rules. Keep all
+entry-point and raw-count regressions. Soft navigation retention is proven; reload retention,
+recipe-change protection and full result/uncertain-save recovery are not yet proven. Batch notes
+remain the existing engine feature; verify their persistence before claiming a saved note.
 
 Then continue safe recipe kind/version saves and acknowledged product-save return, remaining
 Stock truth/receiving/shopping, Bazaar, Sell/Shop, Money/Account, Home and integration. Keep the
@@ -44,12 +46,10 @@ financial, role, offline, acknowledgement and compatibility safeguards.
 
 ## Client reference — 3 November
 
-Use `C:/Users/ethan/Downloads/happy-cookie-workflows-refined.html`; exact hash/path provenance is
-in the shared brief. It matches the archived v4. Ethan initially called it
-happy-cookie-mockup-walkthrough-refined.html. Client feedback: cleaner presentation, designs still
-missing. Preserve that clarity and fill concrete design/state/component gaps in actual code.
-Compare relevant pages per slice; specific missing designs were not named. Latest neutral-light
-branding/motion rules still apply. Positive feedback is not complete approval or functional proof.
+Use `C:/Users/ethan/Downloads/happy-cookie-workflows-refined.html`; exact provenance is in the
+shared brief. It matches archived v4. Client feedback: cleaner presentation, designs still missing.
+Compare relevant pages per slice and apply findings to actual code under the latest neutral theme.
+Specific gaps were not named; positive feedback is not complete approval or functional proof.
 
 ## Hosted demo data — authorized, not executed
 
