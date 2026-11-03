@@ -1,6 +1,6 @@
 # Next goal — complete the actual refined application
 
-**Active, 3 November 2026.** Finish the full original/hosted feature set with simpler operation,
+**Active again, 3 November 2026.** Finish the full original/hosted feature set with simpler operation,
 neutral Happy Cookie identity, purposeful hierarchy, practical visual trackers and contextual
 automation. Implement the actual app; the entire goal remains incomplete.
 
@@ -23,20 +23,21 @@ presentation for the owner, with a neutral focused frame, planned/actual and goo
 catalogue-sourced recorded balances/units, explicit unknown balances and existing ingredient actions.
 Count/review edits and confirmation are blocked while saving; leaving retains the batch.
 
-Preview crash repair: missing sale-product names are handled without altering records. See current.md
-for the separate ClickUp warning and remaining user-browser confirmation.
+Preview repairs (sale names, ClickUp warning and shared border feedback): see current.md.
 
-Pinned gate161 files /2740 tests pass +2 existing todo. Prior live build passed28 static pages.
+Accepted source7c07008: full gate162 files /2743 pass +2todo. Preview repairs and Home hover
+checks pass. Initial clock source-scan timeout passed focused and full retry without test changes.
+Prior build atf112693 passed28 static pages.
 Four-width headless start/review/resume checks use actual components with
 synthetic RPC and no writes; this is not authenticated hosted, phone or owner-week acceptance.
 
-Next finish production acknowledgement/result and authoritative resulting stock, recipe-version/
-period snapshots, uncertain-save and reload recovery. Inspect production-focus-live, the existing
-production-focus answer key and runtime production overrides; do not modify protected files.
-Preserve dough/rest, ingredient adjustments, rejects, shortage and request-identity rules. Keep all
-entry-point and raw-count regressions. Soft navigation retention is proven; reload retention,
-recipe-change protection and full result/uncertain-save recovery are not yet proven. Batch notes
-remain the existing engine feature; verify their persistence before claiming a saved note.
+Next implement B1 from [the audited additions plan](../design/active-bazaar-parallel-production-plan.md):
+visible Events/Return to selling while retaining the held day, cart and queue. Inspect BazaarLive,
+BazaarDays, till/bar and runtime view/frame/gate selection; protect narrowed offline access and
+own-phone day labels. Then P1: independent dough/bake drafts, selected working ID and safe switching.
+P2/P3 cover per-item acknowledgement/result, authoritative stock, recipe/period snapshots and
+uncertain-save/reload recovery, with required independent review. Both new capabilities are absent
+in390/1240 controlled-component checks. Keep existing regressions; notes persistence is unproven.
 
 Then continue safe recipe kind/version saves and acknowledged product-save return, remaining
 Stock truth/receiving/shopping, Bazaar, Sell/Shop, Money/Account, Home and integration. Keep the
@@ -83,4 +84,4 @@ Use pinned Node24.20.0/pnpm9.12.3, changed-path checks then pnpm verify/headless
 All protected-path, review, commit/push and hosted-approval rules in AGENTS remain binding.
 Physical-phone/owner-week acceptance follows implementation. Keep the full scope/proof in shared files.
 
-Continue in this chat if available; GPT-6.1 high, Plan mode off. Keep the full goal active.
+Resume in this chat if available; GPT-6.1 high, Plan mode off. Preserve the full goal's scope.

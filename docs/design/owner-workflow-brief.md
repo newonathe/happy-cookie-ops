@@ -4,6 +4,10 @@ Updated 2 November 2026. This is the shared implementation brief for Codex, Clau
 Ethan resumed the full, incomplete objective on 3 November 2026. Review holds remain in force.
 This document records requirements; its existence is not proof of completion.
 
+Added3November: Events stays reachable while a bazaar is active; production supports multiple
+ongoing flavours/products. Read the [source audit and plan](active-bazaar-parallel-production-plan.md).
+These extend the full brief; current singleton/focused views are not the required final behavior.
+
 ## 1. Objective and meaning of success
 
 Finish improving the **actual Happy Cookie application** so the owner can find, understand and use
