@@ -187,7 +187,16 @@ export function OwnerWorkspace({
     if (isLiveMode())
       document.title = title === 'The Happy Cookie' ? title : `${title} · The Happy Cookie`;
   }, [title]);
-  // Keep public, denied, helper and restricted selling/focus modes on their existing boundary.
+  if (isLiveMode() && role === 'owner' && !v.denied && screen === 'batch' &&
+      v.liveBatchCounts && v.liveScreen?.screen === 'batch')
+    return (
+      <div className={`${styles.productionFocus} ${theme.theme}`} data-owner-theme="neutral-glass">
+        <main><LiveScreenHost v={v} /></main>
+        <WorkspaceOverlays v={v} />
+        <WorkspaceToast v={v} />
+      </div>
+    );
+  // Keep public, denied, helper and restricted selling modes on their existing boundary.
   if (
     !isLiveMode() ||
     role !== 'owner' ||

@@ -84,3 +84,6 @@
 @media (prefers-reduced-motion: reduce) {
   .main, .navigation button, .dock button, .back, .notification, .account, .quickAdd, .toastBox { animation: none; transition: none; transform: none; }
 }
+.productionFocus { --workspace-sidebar:0px; background:var(--color-owner-app); color:var(--color-owner-ink); min-height:100dvh; padding:24px 20px 80px; box-sizing:border-box; }
+.productionFocus>main { max-width:800px; margin:0 auto; padding:24px; background:var(--color-surface); border:1px solid var(--color-owner-line); border-radius:18px; }
+@media(max-width:480px) { .productionFocus { padding:20px 14px 60px; background:var(--color-surface); }.productionFocus>main { padding:0; border:0; border-radius:0; } }

@@ -5,19 +5,25 @@ Read the [complete shared owner/agent brief](../design/owner-workflow-brief.md),
 [scope](../design/refined-workflows.md) and [next goal](next-goal.md). Claude/other agents use these
 shared files. Keep all features/safeguards while simplifying operation; the full goal is incomplete.
 
-Accepted source through `dacd216`: neutral owner frame/Stock/count/supplier return, Products/direct
+Accepted source includes neutral owner frame/Stock/count/supplier return, Products/direct
 saved recipes, contextual product editing/photos, saved production charts/history and now manual/
 planned production entry. Entry retains quantities across navigation, checks recipe versions,
 returns Cancel focus and continues an unfinished batch without replacing it. It records no actual
-production. Legacy actual-count/review/result design and authoritative resulting-stock treatment
-remain pending. Next dev now preserves the shared agent files (`0f908cb`).
+production. Next dev now preserves the shared agent files (`0f908cb`).
 
 The follow-up production slice protects unfinished batches from Quick add, work-row, first-work
 and direct launches, including their counts, rejects, ingredient adjustments, note and review step.
 The Bake plan explains an in-flight save instead of offering an ineffective Continue action.
 Recording identity, stock calculations and acknowledgement behavior remain in the existing actions.
 
-Pinned gate158 files /2730 pass +2 existing todo; prior live build passed28 static pages. Four-width
+`dd4df87` retains blank/invalid actual-count drafts with the batch and guards stale callbacks.
+The live batch slot now has neutral focused count/review screens, total-made/reject fields,
+planned/actual and good/reject bars, existing ingredient adjustments/shortages and a visible saving
+state. Catalogue balances retain their actual units; missing balances say unavailable. Confirmation
+uses the existing action. Dedicated acknowledged results, stock refresh truth, recipe snapshot and
+uncertain-save/reload recovery remain incomplete; do not claim the entire production flow finished.
+
+Pinned gate159 files /2736 pass +2 existing todo; prior live build passed28 static pages. Four-width
 component/synthetic-RPC checks cover start/review/resume/reduced motion with no writes. Database,
 hosted, physical-phone and owner-week proof remain separate. See commits for prior gate receipts.
 
