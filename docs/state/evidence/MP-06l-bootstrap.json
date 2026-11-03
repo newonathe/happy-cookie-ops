@@ -1,8 +1,8 @@
 {
   "status": "passed",
   "scope": "explicit-connection CLI reset on disposable loopback PostgreSQL; not managed --local or auth/RLS acceptance",
-  "project_id": "hcb-6ad1abbd-cd647b",
-  "workdir": "C:\\Users\\ethan\\dev\\.hcb-bootstrap-6ad1abbd-cd647b",
+  "project_id": "hcb-6aea15a4-6d1e4a",
+  "workdir": "C:\\Users\\ethan\\dev\\.hcb-bootstrap-6aea15a4-6d1e4a",
   "cleanup": "passed",
   "resets": 2,
   "harness_sha256": "a47a91d38c71ffbf52a14e597836fdfdbd1d22a3408f5c151f2b35b25459c963",
@@ -14,7 +14,7 @@
         "5432/tcp": [
           {
             "HostIp": "127.0.0.1",
-            "HostPort": "48716"
+            "HostPort": "48919"
           }
         ]
       }
@@ -25,7 +25,7 @@
         "5432/tcp": [
           {
             "HostIp": "127.0.0.1",
-            "HostPort": "48716"
+            "HostPort": "48919"
           }
         ]
       }
@@ -36,7 +36,7 @@
         "5432/tcp": [
           {
             "HostIp": "127.0.0.1",
-            "HostPort": "48716"
+            "HostPort": "48919"
           }
         ]
       }
@@ -47,7 +47,7 @@
         "5432/tcp": [
           {
             "HostIp": "127.0.0.1",
-            "HostPort": "48716"
+            "HostPort": "48919"
           }
         ]
       }
@@ -58,7 +58,7 @@
         "5432/tcp": [
           {
             "HostIp": "127.0.0.1",
-            "HostPort": "48716"
+            "HostPort": "48919"
           }
         ]
       }
@@ -69,7 +69,7 @@
         "5432/tcp": [
           {
             "HostIp": "127.0.0.1",
-            "HostPort": "48716"
+            "HostPort": "48919"
           }
         ]
       }
@@ -80,7 +80,7 @@
         "5432/tcp": [
           {
             "HostIp": "127.0.0.1",
-            "HostPort": "48716"
+            "HostPort": "48919"
           }
         ]
       }
@@ -91,7 +91,7 @@
         "5432/tcp": [
           {
             "HostIp": "127.0.0.1",
-            "HostPort": "48716"
+            "HostPort": "48919"
           }
         ]
       }
@@ -167,13 +167,14 @@
     "20260101006600_item_movements.sql": "7248d2dc922f81b7ce8ea00c9337b44e5f5b5006efbd7d95a9637af6527bba98",
     "20260101006700_bazaar_days.sql": "d48245a6318515b7365a56a9d8d643025acf08c0aa05f230541f8a7ce86e5758",
     "20260101006800_bazaar_hardening.sql": "ca93192e1374b304f2aaafb918493a2998095af3b06994b81307166aba59142e",
-    "20260101006900_flavour_cost_closing_reversal.sql": "b00f4a21c064a3897434e6d4e6c3f6f14af518881d009d9458e2c8061d294c83"
+    "20260101006900_flavour_cost_closing_reversal.sql": "b00f4a21c064a3897434e6d4e6c3f6f14af518881d009d9458e2c8061d294c83",
+    "20260101007000_sampler_flavours.sql": "04be25e77ea690f92d31bb393cd3441c4a69213601371562b43d20dfb618419c"
   },
   "database_image": "sha256:af083ef64d0408c8f098ee6f5c364a59b26f36fbc0f3a334a62c5c1d57362e9b",
   "postgres_version_num": "150008",
   "cli_version": "2.116.0",
-  "loopback_port": 48716,
-  "container_id": "8fbb070f4c0450ad960e9fe5e9a9b408081d08b37ad55c41f06b568aff3e7c81",
+  "loopback_port": 48919,
+  "container_id": "88722637fcdf019003011d60c033be9dfbb14e4e6067ecd0f7c0645a98dc79e5",
   "expected_versions": [
     "20260101000000",
     "20260101000100",
@@ -244,7 +245,8 @@
     "20260101006600",
     "20260101006700",
     "20260101006800",
-    "20260101006900"
+    "20260101006900",
+    "20260101007000"
   ],
   "catalog": [
     "function\tadd_bazaar_day_stock(p_day uuid, p_product text, p_qty integer, p_kind text, p_client_id uuid)\tTABLE(product_id text, made_qty integer, carried_qty integer, loaded integer, duplicate boolean)",
@@ -475,6 +477,7 @@
     "migration\t20260101006700\tapplied",
     "migration\t20260101006800\tapplied",
     "migration\t20260101006900\tapplied",
+    "migration\t20260101007000\tapplied",
     "settings_defaults\tsettings_effective\t29",
     "settings_overrides\tsettings\t0",
     "table_rows\taudit_log\t0",
@@ -527,9 +530,9 @@
     "table_rows\tsuppliers\t0",
     "table_rows\twaitlist_entries\t0"
   ],
-  "catalog_sha256": "8a62e35727d518ac65e1eca0b2faab1412cdb8788fa2062fbacbe398328572e4",
+  "catalog_sha256": "81fa0939786bee838cc8caba9d688eed35c7f38abeeef98430f6d638a35df541",
   "catalogs_equal": true,
-  "schema_sha256": "7f3b6478405b3887a515dd5106ed5c1266605060f70b735ae9017ec08691501b",
+  "schema_sha256": "f09dc4419fde21a3e63565038d648d4d99f79a844fab77a06180aa27b3d0deb3",
   "schemas_equal": true,
   "sentinel_removed": true
 }
