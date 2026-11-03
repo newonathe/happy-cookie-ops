@@ -1,6 +1,10 @@
 # Current state — Happy Cookie Ops
 
-**Active, 3 November 2026:** finish the actual application on `codex/refined-workflows`.
+**Active again at Ethan's request, 3 November 2026.** Full actual-app goal remains incomplete.
+Read the [active Bazaar and parallel production audit/plan](../design/active-bazaar-parallel-production-plan.md).
+Events must remain reachable during an active bazaar; different products need simultaneous production.
+Both gaps were reproduced at390/1240 with controlled RPC fixtures; neither feature is implemented.
+Branch `codex/refined-workflows`, accepted source through `7c07008`; preview repairs are verified.
 Read the [complete shared owner/agent brief](../design/owner-workflow-brief.md),
 [scope](../design/refined-workflows.md) and [next goal](next-goal.md). Claude/other agents use these
 shared files. Keep all features/safeguards while simplifying operation; the full goal is incomplete.
@@ -28,8 +32,15 @@ the current catalogue. A live-only synchronous label adapter now protects the lo
 it leaves sales, amounts, queue and sellable catalogue unchanged. Regression reproduced the exact
 2433 `P[k].short` failure first, then passed across seven destinations. ClickUp's injected body class
 caused a separate hydration warning; extension access must be adjusted in Chrome, not hidden globally.
+Ethan confirmed Chrome opens after that repair. A subsequent shared-button border warning was
+reproduced: hover removal and press/focus layering mixed border shorthand with borderColor.
+Pressable now expands canonical border layers consistently on server/client; pointer/focus
+regressions and a hydration check pass. The protected Home markup and visual values are unchanged.
 
-Pinned gate161 files /2740 pass +2 existing todo; prior live build passed28 static pages. Four-width
+Full pinned gate:162 files /2743 pass +2 existing todo at7c07008. One initial full run hit the
+existing clock source-scan5s timeout; that file14tests and an unchanged full retry passed. No test
+assertions/timeouts were weakened. Home hover/leave at390/1240 has no console/page errors.
+Prior live build atf112693 passed28 static pages. Four-width
 component/synthetic-RPC checks cover start/review/resume/reduced motion with no writes. Database,
 hosted, physical-phone and owner-week proof remain separate. See commits for prior gate receipts.
 
@@ -43,7 +54,7 @@ only; no load executed. SQL runtime/independent review remain pending. Preserve 
 Remaining scope includes safe recipe saves/save return, Stock truth/receiving/shopping, Bazaar,
 Sell/Shop, Money/Account, Home and integration. Price editing stays isolated pending review.
 No deployment/main merge or other hosted changes approved. The59-page/238-branch/224-automation
-plan describes planned coverage. Older dates/cream below are historical; the complete goal stays active.
+plan describes planned coverage. New owner requirements extend that plan, not the completion count.
 
 Read this page first in a new session. It is kept short on purpose.
 
