@@ -15,10 +15,6 @@ Inspect branch/worktree/stashes and actual code; do not depend on chat memory or
 
 Branch `codex/refined-workflows`; inspect the latest commit:
 
-Foundation: neutral owner frame/Stock/count/suppliers, Products/direct saved recipes, photo editing,
-saved-production charts and manual/planned entry (`dacd216`). Entry makes no stock write, retains
-drafts and checks recipe versions. Next dev preserves agent files (`0f908cb`). Details: current.md.
-
 The follow-up production slice preserves unfinished batches through Quick add, work rows,
 first-work and direct launches, and exposes the saving state on the Bake plan. Tests cover all
 four entry paths, original draft identity and blocking launches during a pending save.
@@ -27,7 +23,10 @@ presentation for the owner, with a neutral focused frame, planned/actual and goo
 catalogue-sourced recorded balances/units, explicit unknown balances and existing ingredient actions.
 Count/review edits and confirmation are blocked while saving; leaving retains the batch.
 
-Pinned gate159 files /2736 tests pass +2 existing todo. Prior live build passed28 static pages.
+Preview crash repair: missing sale-product names are handled without altering records. See current.md
+for the separate ClickUp warning and remaining user-browser confirmation.
+
+Pinned gate161 files /2740 tests pass +2 existing todo. Prior live build passed28 static pages.
 Four-width headless start/review/resume checks use actual components with
 synthetic RPC and no writes; this is not authenticated hosted, phone or owner-week acceptance.
 

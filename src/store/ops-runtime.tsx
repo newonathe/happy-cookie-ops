@@ -13,6 +13,7 @@ import {
   replacePayAccounts
 } from '@/store/engine/ops-engine';
 import * as engineModule from '@/store/engine/ops-engine';
+import { renderWithSaleLabels } from '@/lib/display/sale-product-labels';
 import type { EventSale, OpsEngineProps, OpsEngineState, Role } from '@/store/engine/ops-engine';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@/lib/types/database';
@@ -2497,7 +2498,13 @@ export class OpsRuntime extends OpsProvider {
   }
 
   renderVals(): OpsVals {
-    const vals = super.renderVals();
+    const vals = isLiveMode()
+      ? renderWithSaleLabels(
+          this.state.sales,
+          (engineModule as unknown as { P: Record<string, { short: string } | undefined> }).P,
+          () => super.renderVals()
+        )
+      : super.renderVals();
     if (HARNESS && !isLiveMode()) return vals;
     const counting =
       isLiveMode() &&
