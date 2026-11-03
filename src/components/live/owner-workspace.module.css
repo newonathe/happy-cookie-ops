@@ -43,6 +43,9 @@
 .notification { position: relative; display: grid; place-items: center; width: 44px; height: 44px; border: 0; background: transparent; color: var(--color-ink); }
 .alertDot { position: absolute; top: 8px; right: 8px; width: 6px; height: 6px; border-radius: 50%; background: var(--color-accent); }
 .main { display: flex; flex-direction: column; gap: 16px; min-width: 0; min-height: 570px; padding: 24px; animation: workspaceEnter var(--dur-owner-base) var(--ease-owner); }
+.page { width: 100%; max-width: 860px; }
+.screenBody { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.screenBody[hidden] { display: none; }
 .navigation button, .dock button, .back, .notification, .account, .quickAdd { transition: transform var(--dur-owner-fast) var(--ease-owner), background-color var(--dur-owner-base) ease, color var(--dur-owner-fast) ease; }
 .navigation button:active, .dock button:active, .back:active, .notification:active { transform: scale(.97); }
 @keyframes workspaceEnter { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }

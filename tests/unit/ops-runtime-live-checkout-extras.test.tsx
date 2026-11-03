@@ -210,6 +210,23 @@ describe('B4b: boxes, add-ons, the sampler and same-day on the live checkout', (
     // Mutation: a max that ignores the cookies already boxed lets one cookie sit in two boxes; the server refuses (box-fit).
   });
 
+  it("the shop's sampler card lists the cookies inside, from the owner's saved list", async () => {
+    const { runtime } = await mounted({
+      get_shop_extras: () => ({
+        data: EXTRAS({ sampler: { product_id: 'pbm', max_qty: 2, flavours: ['hc', 'dcf'] } }),
+        error: null
+      })
+    });
+    // The published menu is read (its own tests cover that); here only the card text matters.
+    (runtime as unknown as { shopMenuRead: boolean }).shopMenuRead = true;
+    act(() => runtime.setState({ screen: 'shop' }));
+    const rows = runtime.renderVals().shopFlavours;
+    const withList = rows.filter((r) => String(r.desc).includes('Includes'));
+    expect(withList).toHaveLength(1);
+    expect(String(withList[0]!.desc)).toMatch(/Includes Happy Camper, Double Chocolate Fudge\.$/);
+    // Mutation: matching cards by position without the engine's filter would label the wrong card.
+  });
+
   it('the sampler and other sets do not count toward boxes', async () => {
     const { runtime } = await mounted(
       {

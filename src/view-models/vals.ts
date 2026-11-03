@@ -59,6 +59,8 @@ export interface LiveOrderExtrasFields {
   /** A flavour id of kind `set`, or an empty string for none. */
   samplerProductId: string;
   samplerMaxQty: number;
+  /** Cookie ids in the sampler box; null while the database has no list (the toggles are then hidden). */
+  samplerFlavours?: string[] | null;
   boxSizes: Array<{ size: number; chargePesos: number; active: boolean }>;
   addOns: Array<{
     id: string;
@@ -396,12 +398,22 @@ export interface OpsVals {
     reload: () => void;
     close: () => void;
   } | null;
+  /**
+   * Live owner only: the Money page for one selected period. Every figure is the engine's own
+   * `pnlTotals`/`ledgerIn` for that period (the same swap `monthTotals` uses); nothing is summed
+   * here that the books do not already sum. `loaded` is false until the books are read.
+   */
+  liveMoney?: LiveMoney | null;
+  /** Live owner only: Home's facts, each null until its own source has loaded. */
+  liveHome?: LiveHome | null;
   /** Live owner only (B4): the boxes and add-ons form (boxes, add-ons, sampler limit, same-day extra). */
   liveOrderExtras?: {
     online: boolean;
     extras: LiveOrderExtrasFields;
     /** Items of kind `set` the owner can name as the sampler. */
     sets: Array<{ id: string; name: string }>;
+    /** Cookies the owner can put in the sampler box, in menu order (switched-off ones marked). */
+    cookies?: Array<{ id: string; name: string; active: boolean }>;
     save: (fields: LiveOrderExtrasFields) => void;
     close: (event?: unknown) => void;
   } | null;
@@ -1802,4 +1814,69 @@ export interface OpsVals {
     name: React.ReactNode;
     notContacted: unknown;
   }>;
+}
+
+export type MoneyPeriod = 'week' | 'days30' | 'month';
+
+export interface LiveMoney {
+  period: MoneyPeriod;
+  periodText: string;
+  setPeriod: (period: MoneyPeriod) => void;
+  /** False until the books have been read once; the page then says so instead of showing zero. */
+  loaded: boolean;
+  revenue: number;
+  expenses: number;
+  profit: number;
+  draw: number;
+  refunded: number;
+  taxSetAside: number;
+  taxRate: number;
+  /** Income and expenses per day (last 7 days) or per week, oldest first; they add up to the totals. */
+  buckets: Array<{ label: string; income: number; expenses: number }>;
+  categories: Array<{ cat: string; amount: number; n: number }>;
+  transactions: Array<{
+    id: string;
+    label: string;
+    cat: string;
+    when: string;
+    kind: 'revenue' | 'refund' | 'expense' | 'draw';
+    /** As it moves the result: income positive, costs negative; a draw is negative but outside the result. */
+    signed: number;
+  }>;
+  /** Open bazaars whose sales are left out of the books until the event is closed. */
+  held: Array<{ name: string; revenue: number; expenses: number }>;
+  /** Uses of stock in this period the books could not cost yet. */
+  uncosted: number;
+  recordExpense: () => void;
+  takeMoneyOut: () => void;
+  exportPeriod: () => void;
+  exportAll: () => void;
+  openBooks: () => void;
+  openCategories: () => void;
+  openTaxRules: () => void;
+}
+
+export interface LiveHome {
+  greeting: string;
+  dateText: string;
+  /** Open orders by saved status; null until the orders are read. */
+  orders: { review: number; toPrepare: number; ready: number } | null;
+  /** Ingredients and packaging by status; null until the catalogue is read. */
+  /** By the Stock page's rule (`stockStatus`); `neverCounted` is extra information, not a status. */
+  stockCounts: { ok: number; low: number; out: number; neverCounted: number } | null;
+  stockAttention: Array<{
+    name: string;
+    status: 'Out' | 'Low';
+    detail: string;
+    open: () => void;
+  }>;
+  /** Unconfirmed production work: planned only, never counted as made. */
+  production: Array<{ id: string; name: string; detail: string; open: () => void }>;
+  /** This month's books; null until they are read. */
+  month: { revenue: number; expenses: number; profit: number } | null;
+  flavours: number;
+  go: Record<
+    'orders' | 'payments' | 'production' | 'stock' | 'products' | 'shopping' | 'money' | 'bazaar',
+    () => void
+  >;
 }

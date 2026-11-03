@@ -134,7 +134,7 @@ export const STOCK_COPY = {
   suppliersTitle: 'Suppliers & prices',
   suppliersSub: 'Who you buy from and what each one charges',
   itemsIntro:
-    'Your ingredients and packaging. Nothing is deleted: switch an item off instead. How much you have is counted on the Inventory screen once the stock ledger is built.',
+    'Your ingredients and packaging. Nothing is deleted: switch an item off instead. Quantities are counted and received on the Inventory page.',
   suppliersIntro:
     'Your suppliers and their prices. Nothing is deleted: switch a supplier or a price off instead. The cheapest active price is the best buy.',
   addItem: 'Add an item',

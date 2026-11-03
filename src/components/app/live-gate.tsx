@@ -28,6 +28,8 @@ import type { Role } from '@/store/engine/ops-engine';
 import { registerLiveStockScreens } from '@/components/live/stock/register';
 import { registerLiveBazaarScreens } from '@/components/live/bazaar/register';
 import { registerLiveRecipeScreens } from '@/components/live/recipes/register';
+import { registerLiveMoneyScreens } from '@/components/live/money/register';
+import { registerLiveHomeScreens } from '@/components/live/home/register';
 import { OfflineHold } from './offline-hold';
 import { SignOutControl } from './sign-out-control';
 
@@ -37,6 +39,10 @@ registerLiveStockScreens();
 registerLiveBazaarScreens();
 // The live recipe book (U7) takes the `recipes` slot; the ported Recipes screen is drawn inside it, for editing a recipe.
 registerLiveRecipeScreens();
+// The live Money page takes the `pnl` slot: one period for every figure, chart and list.
+registerLiveMoneyScreens();
+// The live Home takes the `today` slot: real orders, stock, unfinished work and this month.
+registerLiveHomeScreens();
 
 /** How long one identity check may take before the gate treats the server as unreachable. */
 export const CHECK_TIMEOUT_MS = 8_000;
