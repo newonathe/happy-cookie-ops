@@ -23,7 +23,13 @@ state. Catalogue balances retain their actual units; missing balances say unavai
 uses the existing action. Dedicated acknowledged results, stock refresh truth, recipe snapshot and
 uncertain-save/reload recovery remain incomplete; do not claim the entire production flow finished.
 
-Pinned gate159 files /2736 pass +2 existing todo; prior live build passed28 static pages. Four-width
+Preview repair: Ethan reported a live Chrome crash when restored sales named products absent from
+the current catalogue. A live-only synchronous label adapter now protects the locked sales view;
+it leaves sales, amounts, queue and sellable catalogue unchanged. Regression reproduced the exact
+2433 `P[k].short` failure first, then passed across seven destinations. ClickUp's injected body class
+caused a separate hydration warning; extension access must be adjusted in Chrome, not hidden globally.
+
+Pinned gate161 files /2740 pass +2 existing todo; prior live build passed28 static pages. Four-width
 component/synthetic-RPC checks cover start/review/resume/reduced motion with no writes. Database,
 hosted, physical-phone and owner-week proof remain separate. See commits for prior gate receipts.
 
