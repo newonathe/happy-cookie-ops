@@ -5,6 +5,28 @@ import type { CSSProperties, ElementType, ReactNode } from 'react';
 
 type Tag = 'button' | 'a' | 'div' | 'span' | 'label' | 'li';
 
+/** Expand the prototype's width/style/color border syntax before merging interaction layers.
+ * This is deterministic on server and client; color functions and variables stay verbatim.
+ */
+function borderLonghands(style?: CSSProperties): CSSProperties | undefined {
+  if (!style || style.border === undefined) return style;
+  const value = String(style.border).trim();
+  const match = value.match(
+    /^(0|(?:\d*\.)?\d+(?:px|em|rem|pt|pc|in|cm|mm|ex|ch|vw|vh)|thin|medium|thick)\s+(none|hidden|dotted|dashed|solid|double|groove|ridge|inset|outset)(?:\s+(.+))?$/
+  );
+  if (!match && value !== '0' && value !== 'none') return style;
+  const border = {
+    borderWidth: match?.[1] ?? (value === '0' ? '0' : 'medium'),
+    borderStyle: match?.[2] ?? 'none',
+    borderColor: match?.[3] ?? 'currentColor'
+  };
+  const expanded: CSSProperties = {};
+  for (const [key, entry] of Object.entries(style)) {
+    Object.assign(expanded, key === 'border' ? border : { [key]: entry });
+  }
+  return expanded;
+}
+
 export interface PressableProps {
   as?: Tag;
   children?: ReactNode;
@@ -50,10 +72,10 @@ export function Pressable({
   };
 
   const merged: CSSProperties = {
-    ...style,
-    ...(hover && hoverStyle ? hoverStyle : null),
-    ...(focus && focusStyle ? focusStyle : null),
-    ...(press && activeStyle ? activeStyle : null)
+    ...borderLonghands(style),
+    ...(hover ? borderLonghands(hoverStyle) : null),
+    ...(focus ? borderLonghands(focusStyle) : null),
+    ...(press ? borderLonghands(activeStyle) : null)
   };
 
   const props: Record<string, unknown> = {
