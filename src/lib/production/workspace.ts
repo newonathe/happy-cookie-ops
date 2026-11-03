@@ -20,8 +20,9 @@ export type ProductionDraft =
       adj: Record<string, number>;
       note: string;
       step: number;
+      showUsed?: boolean;
     }
-  | { kind: 'dough'; balls: string; note: string };
+  | { kind: 'dough'; balls: string; note: string; step?: number };
 
 export interface NewProductionWork {
   product: { id: string; name: string; photo: string };
@@ -33,6 +34,7 @@ export interface NewProductionWork {
 
 export interface ProductionWork extends NewProductionWork {
   id: string;
+  number: number;
   revision: number;
 }
 
@@ -46,6 +48,7 @@ export class ProductionWorkspace {
   private usedIds = new Set<string>();
   private legacy = new WeakMap<object, string>();
   private selected: string | null = null;
+  private sequence = 0;
 
   constructor(private readonly mintId: () => string) {}
 
@@ -62,10 +65,13 @@ export class ProductionWorkspace {
     return item ? structuredClone(item) : null;
   }
 
-  add(input: NewProductionWork): string {
-    const id = this.mintId();
+  knows(id: string): boolean {
+    return this.usedIds.has(id);
+  }
+
+  add(input: NewProductionWork, id = this.mintId()): string {
     if (!id || this.usedIds.has(id)) throw new Error('Production work identity is not unique.');
-    this.items.set(id, { ...structuredClone(input), id, revision: 0 });
+    this.items.set(id, { ...structuredClone(input), id, number: ++this.sequence, revision: 0 });
     this.usedIds.add(id);
     this.selected = id;
     return id;
@@ -95,6 +101,16 @@ export class ProductionWorkspace {
     const item = this.items.get(id);
     if (!item || item.revision !== revision || item.draft.kind !== draft.kind) return false;
     this.items.set(id, { ...item, draft: structuredClone(draft), revision: revision + 1 });
+    return true;
+  }
+
+  /** Explicit source adoption keeps measured facts, but requires reviewing ingredient exceptions again. */
+  useRecipe(id: string, revision: number, recipe: ProductionRecipeSnapshot): boolean {
+    const item = this.items.get(id);
+    if (!item || item.revision !== revision) return false;
+    const draft: ProductionDraft = item.draft.kind === 'batch'
+      ? { ...item.draft, adj: {}, step: 1 } : { ...item.draft, step: 1 };
+    this.items.set(id, { ...item, recipe: structuredClone(recipe), draft, revision: revision + 1 });
     return true;
   }
 

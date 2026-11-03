@@ -256,17 +256,22 @@ describe('D4: the owner’s form', () => {
     return r.renderVals().liveScheduled!;
   };
 
-  it('the Bazaar events sub-tab opens the hub: the list of bookings, not the form', async () => {
+  it('the Bazaar events compatibility entry opens the hub without a duplicate strip', async () => {
     const { runtime } = await mounted('owner', fresh());
     await act(async () => entry(runtime)!.go());
     await settle();
     expect(runtime.state.screen).toBe('bazaar');
     expect(runtime.renderVals().liveScheduled ?? null).toBeNull();
     expect(runtime.renderVals().liveBazaar?.list.map((r) => r.name)).toEqual(['Katipunan market']);
-    // The strip marks the entry she opened, not Bazaar Mode: with no event on the phone this screen is the hub.
-    const strip = runtime.renderVals().liveScreen?.tabs?.entries ?? [];
-    expect(strip.filter((e) => e.active).map((e) => e.label)).toEqual(['Bazaar events']);
-    // Mutation: pointing the sub-tab at the old sheet leaves the hub reachable only by its other name.
+    expect(runtime.renderVals().liveScreen?.tabs ?? null).toBeNull();
+    expect(
+      runtime
+        .renderVals()
+        .dockNav.filter((item) => item.active)
+        .map((item) => item.label)
+    ).toEqual(['Bazaar']);
+    expect(runtime.renderVals().liveBazaar?.add).toBeTypeOf('function');
+    // Mutation: opening the old sheet would replace the directory with the editing form.
   });
 
   it('is the owner’s alone', async () => {

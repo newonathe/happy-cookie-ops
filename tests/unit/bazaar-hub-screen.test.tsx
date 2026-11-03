@@ -64,6 +64,62 @@ const LIST = [
   row({ id: 'p1', name: 'Old fair', group: 'past', status: 'closed', whenText: null })
 ];
 
+describe('returning from an event', () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  it('remembers the clicked event and returns focus and scroll to it', () => {
+    const remember = vi.fn();
+    const scroll = vi.spyOn(window, 'scrollTo').mockImplementation(() => undefined);
+    const top = window.scrollY;
+    Object.defineProperty(window, 'scrollY', { configurable: true, value: 480 });
+    try {
+      const first = render(
+        <EventList bazaar={vals({ list: LIST, rememberListPosition: remember })} />
+      );
+      fireEvent.click(screen.getByRole('button', { name: /Next fair/ }));
+      expect(remember).toHaveBeenCalledWith('u1', 480);
+      first.unmount();
+      render(<EventList bazaar={vals({ list: LIST, listPosition: { id: 'u1', top: 480 } })} />);
+      expect(document.activeElement).toBe(screen.getByRole('button', { name: /Next fair/ }));
+      expect(scroll).toHaveBeenCalledWith({ top: 480, behavior: 'instant' });
+    } finally {
+      Object.defineProperty(window, 'scrollY', { configurable: true, value: top });
+    }
+  });
+
+  it('waits for the selected active row, without claiming a loading placeholder is focusable', () => {
+    const scroll = vi.spyOn(window, 'scrollTo').mockImplementation(() => undefined);
+    const selected = row({ id: 'selected', group: 'active', name: 'Selected market' });
+    const base = { listPosition: { id: 'selected', top: 200 } };
+    const view = render(
+      <EventList bazaar={vals({ ...base, list: [{ ...selected, reading: true }] })} />
+    );
+    expect(scroll).not.toHaveBeenCalled();
+    view.rerender(<EventList bazaar={vals({ ...base, list: [selected] })} />);
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: /Selected market/ }));
+    expect(scroll).toHaveBeenCalledWith({ top: 200, behavior: 'instant' });
+  });
+
+  it('does not steal focus if the owner starts another action while rows load', () => {
+    const scroll = vi.spyOn(window, 'scrollTo').mockImplementation(() => undefined);
+    const selected = row({ id: 'selected', group: 'active', name: 'Selected market' });
+    const base = { listPosition: { id: 'selected', top: 200 } };
+    const view = render(
+      <EventList bazaar={vals({ ...base, list: [{ ...selected, reading: true }] })} />
+    );
+    fireEvent.pointerDown(screen.getByRole('button', { name: 'Add an event' }));
+    view.rerender(<EventList bazaar={vals({ ...base, list: [selected] })} />);
+    expect(scroll).not.toHaveBeenCalled();
+  });
+
+  it('returns to the heading if the original event is no longer available', () => {
+    const scroll = vi.spyOn(window, 'scrollTo').mockImplementation(() => undefined);
+    render(<EventList bazaar={vals({ list: LIST, listPosition: { id: 'removed', top: 480 } })} />);
+    expect(document.activeElement).toBe(screen.getByRole('heading', { name: 'Bazaar' }));
+    expect(scroll).toHaveBeenCalledWith({ top: 0, behavior: 'instant' });
+  });
+});
+
 describe('the hub', () => {
   it('pins Active with its pill and today’s figures; Upcoming and Past sit behind the chips', () => {
     render(<EventList bazaar={vals({ list: LIST })} />);

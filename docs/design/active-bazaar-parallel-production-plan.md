@@ -11,7 +11,7 @@ tests, and the latest local definition of `record_production` in migration 67. C
 HEAD was `91c87ed`; Pressable repair `7c07008` subsequently passed the full pinned gate. No hosted writes occurred.
 The client-approved v4, original prototype, real assets and complete shared owner brief remain
 design references; their one-at-a-time forms are not a requirement to retain a single draft.
-The owner's new requirement supersedes that limitation. Neither new workflow is implemented yet.
+The owner's new requirement supersedes that limitation. Neither addition is complete.
 
 Historical hosted deployment evidence is in the private checkpoint. This audit is not a new
 authenticated hosted-screen inspection, a database concurrency execution, or device acceptance.
@@ -21,7 +21,59 @@ controlled RPC data: a second eligible product resumed the first batch; director
 the held event/cart but still drew the till. Neither consolidated nor classic till exposed Events.
 No stock, sale or other write was posted. Private receipt: saved-requirements-audit-checks.json.
 
-## Findings in the current implementation
+## Local implementation checkpoint, 3 November
+
+Latest local draft supersedes the singleton checkpoint below: independent cookie/dough items now
+project into the legacy slots, with source/period snapshots, retained raw fields and per-item saves.
+Make shows In progress; manual entry offers cookie batches or full/half dough preparation. Eight
+real-component synthetic-RPC runs at320/390/768/1240 in both motion modes cover two batches, a mix,
+editing B during A's save, independent replies and dough confirmation. Not SQL/device acceptance.
+P3 remains unimplemented: memory-only drafts/requests, no actual identity scope, reload or tab lease.
+Source-change comparison/adoption now has a local draft: show old/updated amounts and recipe yield,
+retain counts/notes/period, explicitly reset ingredient exceptions and return to review. Dough keeps
+its prior amount and requires a valid full/half choice if the updated yield makes it incompatible.
+Late callbacks, new source reads and pending saves cannot adopt through the old action. Inline live
+modal messages retain lifetime/Undo without covering buttons. Eight width/motion browser runs pass,
+with synthetic RPC only. Current full gate/build are pending. Unavailable-source resolution and
+truthful acknowledged-result/refresh presentation remain incomplete.
+Latest owner navigation is implemented locally: plain Bazaar opens Events before till painting;
+both tills show compact Back by the name. Eight browser checks cover both layouts/held facts.
+All current sensitive layers await review; see private pending-review/multi-production-events-first.
+The final researched every-page/flow/state critique follows implementation, per the shared brief.
+
+Earlier checkpoints (read the latest status above first):
+
+B1 is a local, uncommitted draft awaiting independent review. Both tills now expose Events;
+legacy held events are supported. Directory and child pages retain the selling state, show a
+single return/resume action, and label the own day truthfully. The held event stays pinned even
+after its planned dates; the list filter survives child Back. Full owner access is rechecked
+at action/render; restricted access closes reviews and forces the till. A redundant one-item
+Bazaar section tab is removed. No close, sale, queue or stock RPC was changed.
+
+CLI headless actual-component round trips passed320/390/768/1240 for both tills, with synthetic
+RPC data only, unchanged held values and no navigation writes or horizontal overflow. These are
+not hosted/device acceptance. Till/Events/selected-event URLs now use RouteSync history without
+remounting. Direct directory, event reload and Back/Forward pass390/1240; unavailable/mismatched
+events and late reads after gate narrowing are covered. Plan/review subview addresses,
+stage-specific return wording, broader external-close checks and independent review remain.
+Existing Bazaar storage does not persist the unfinished cart on reload; soft-navigation retention
+is verified, cart reload recovery is not. Events return row focus/scroll passes eight real-layout
+checks at320/390/768/1240 with reduced motion, keyboard and browser Back; the scoped JSDOM mock
+now asserts the requested scroll. P1's independent pure draft pool has source/revision tests;
+runtime integration and P2–P4 remain incomplete. Private evidence: gap-refinement/events-*.
+
+User-reported preview failures took priority: reproduced stale development script caching and a
+retained-renderer lookup mismatch, repaired the display binding, added a separate network-only dev
+worker/local recovery page, and switched the private source launcher to Webpack. Outer-body-only
+extension compatibility retains inner hydration checks. Staff routes remain gated; only the new
+static worker is exempted. Ethan confirms Chrome opens. Independent offline/auth review still
+precedes accepting this local draft; no hosted records were changed. These preview repairs and
+B1a/B1b are separate reviewable parts, not one oversized accepted commit. Full pinned gate passes165
+files /2762 tests +2existing todo (four workers), and live Webpack build passes28 static pages.
+Default-worker run hit the unchanged business-clock source-scan5-second timeout; focused whole-file
+checks passed. No test timeout, assertion or lint rule was weakened.
+
+## Findings at the audit baseline
 
 **B1 — active selling hides the directory (high).**
 `src/components/live/bazaar/bazaar-live.tsx:35` selects a till whenever `v.event` exists, except
@@ -62,6 +114,14 @@ answer could then clear or finalize newer work. Use working-item and request IDs
 ID or payload equality, to distinguish batches. Preserve acknowledged-save-only stock effects.
 
 **P4 — drafts and unresolved production requests do not survive reload (high).**
+The local ownership/retry prerequisite now tags runtime drafts with liveWorkId, keys unanswered
+requests and completed receipts by it, clones original request fields, and guards completion against
+the exact projection and role epoch. Unknown batch fields/discard and dough quantities are guarded;
+Back from the batch retains it. Ten added regressions are in the full166-file /2782-pass gate (+2todo).
+Eight responsive/motion browser runs cover exact retry after changed week/version and leave/resume.
+Live Webpack build passes28 pages. This remains uncommitted pending review. Pool integration, per-item saving, snapshots from entry,
+durable recovery and actual account/business scoping remain incomplete; this is not parallel production.
+
 The live persistence hook saves Bazaar state and count recovery, not production drafts or the
 in-memory `pendingProduction` map. The Bazaar persistence whitelist is unrelated to production.
 Soft-navigation tests are not reload/recovery proof. Production recovery needs its own scoped,
@@ -85,8 +145,8 @@ recovery route; do not infer success by matching product, quantity or timestamps
 
 ### Bazaar
 
-1. Put a visible **Events** button in both consolidated and classic tills for the permitted owner,
-   including an older held event without a day ID. Do not depend solely on day-specific till metadata.
+1. Selecting Bazaar/Events opens the directory first. Both tills expose one compact **Back** control
+   beside the event name, accessible as Back to events, including older held events without day IDs.
 2. Open the Events directory in the ordinary owner workspace without ending the active day.
    Keep its active row pinned and show **Return to selling** with the held event/day name.
 3. Browse event details, days and permitted settings; Back returns to the directory and its
@@ -101,7 +161,7 @@ child pages can place it in their header. Avoid stacking a duplicate return bann
 
 ```mermaid
 flowchart LR
-  T[Active till] -->|Events| E[Events directory]
+  T[Active till] -->|Back to events| E[Events directory]
   E --> D[Event details]
   D -->|Back| E
   E -->|Return to selling| T
@@ -165,6 +225,9 @@ workspace. Cover all launch paths: Start, Quick add, work rows, flavour change, 
 Promote an existing unconfirmed legacy draft once rather than duplicate it on every render.
 
 **P2: independently guarded review, acknowledgement and result.**
+Fresh completion audit: the live markBaking override keeps orders unchanged until packing. Do not
+invent a Baking status while adapting legacy completion. Engine draft clearing/navigation must
+target the original work item and must not close or navigate another item's editor.
 Freeze a request UUID/time/body per working-item submission; identical batches are distinct
 requests and retries reuse their own exact request. Replace global UI saving state with per-item
 state so working on B remains possible while A saves. Overlapping RPCs may be serialized by
@@ -173,6 +236,16 @@ completion effects (including order-progress bookkeeping) through existing autho
 do not copy the stock/cost engine or run completion against whichever item happens to be selected.
 Audit named effects before replacing that adapter. Finish each item's result only from its own
 acknowledgement and authoritative refresh. Protect late replies after selection/discard/role changes.
+
+Source-change flow: Recipe changed -> Compare recipe amounts/yield -> Use updated recipe explicitly
+-> Counts/notes/period retained, ingredient exceptions visibly reset -> Review again -> Confirm.
+For dough, an incompatible old amount remains visible; choose full/half before review. A pending or
+unanswered request never rebases: Check saved result uses its original identity and payload.
+Current SQL67 checks existing request replay before its stale-recipe refusal; no historical-recipe
+posting option is invented. UI comparison/adoption does not post production or move inventory.
+This deliberately scoped pattern is informed by [Katana's official recipe-update workflow](https://support.katanamrp.com/en/articles/5967060-applying-changes-made-to-product-recipes-on-open-orders)
+(checked3November2026): changes to default recipes are applied explicitly to individual open work,
+not silently propagated. This is a design reference, not evidence of Happy Cookie backend behavior.
 
 **P3: durable recovery and cross-tab protection.**
 Persist drafts and frozen unanswered submissions under the actual user/business identity, with

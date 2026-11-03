@@ -19,6 +19,7 @@ import {
 } from '@/components/live/form-styles';
 import { RecipeDraftsForm } from '@/components/live/recipe-drafts-form';
 import { resolveImagePath } from '@/lib/media/resolve-image';
+import { ProductionDough } from '@/components/live/production/production-dough';
 
 /**
  * The live-only owner form host (MP-09 c1c, F3, docs/state/protected-exception.md): the
@@ -27,6 +28,7 @@ import { resolveImagePath } from '@/lib/media/resolve-image';
  * plug in by dispatching on `liveForm.kind` here, with no further protected-file edit.
  */
 export function LiveFormHost({ v }: { v: OpsVals }) {
+  if (v.liveDough) return <ProductionDough data={v.liveDough} />;
   const { liveForm } = v;
   if (liveForm && liveForm.kind === 'flavours') {
     return liveForm.editing ? (

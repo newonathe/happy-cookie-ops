@@ -82,12 +82,17 @@ function Icon({ path, size, weight }: { path: string; size: number; weight: numb
   );
 }
 
+function usesLiveModal(v: OpsVals) {
+  return !!(v.sheet?.liveForm && (v.liveForm?.kind === 'flavours' || v.liveDough) && !v.quickOpen);
+}
+
 /** Keep existing sheet/quick-action operations on their proven host, without its page chrome. */
 function WorkspaceOverlays({ v }: { v: OpsVals }) {
   if (!v.sheet && !v.quickOpen) return null;
-  if (v.sheet?.liveForm && v.liveForm?.kind === 'flavours' && !v.quickOpen) {
+  if (usesLiveModal(v) && v.sheet) {
     return (
-      <Sheet className={theme.theme} title={String(v.sheet.title)} onClose={v.closeSheet}>
+      <Sheet className={theme.theme} title={String(v.sheet.title)} onClose={v.liveDough?.close ?? v.closeSheet}>
+        <WorkspaceToast v={v} inline />
         <LiveFormHost v={v} />
       </Sheet>
     );
@@ -124,13 +129,13 @@ function WorkspaceOverlays({ v }: { v: OpsVals }) {
 }
 
 /** Messages need no page frame behind them. Their lifetime and Undo still belong to the runtime. */
-function WorkspaceToast({ v }: { v: OpsVals }) {
-  if (!v.toast) return null;
+function WorkspaceToast({ v, inline = false }: { v: OpsVals; inline?: boolean }) {
+  if (!v.toast || (!inline && usesLiveModal(v))) return null;
   return (
     <div
       role={v.toastWarn ? 'alert' : 'status'}
       aria-atomic="true"
-      style={s(
+      style={inline ? { marginBottom: 16 } : s(
         `${v.toastStyle};position:fixed;z-index:90;left:calc(var(--workspace-sidebar, 0px) + 14px);pointer-events:none`
       )}
     >

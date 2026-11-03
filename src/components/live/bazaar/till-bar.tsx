@@ -4,6 +4,15 @@ import type { OpsVals } from '@/view-models/vals';
 import type { TillPanelView } from '@/lib/bazaar/live-bazaar-types';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
+
+export function TillBack({ onBack }: { onBack: () => void }) {
+  return <Button size="sm" variant="ghost" onClick={onBack} aria-label="Back to events" title="Back to events">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+      <path d="m15 18-6-6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+    Back
+  </Button>;
+}
 import { Sheet } from '@/components/ui/sheet';
 import { mutedStyle, textStyle } from '@/components/live/stock/stock-shared';
 import { FeesSection } from './event-page';
@@ -18,18 +27,25 @@ type Till = NonNullable<OpsVals['liveTill']>;
  */
 export function TillBar({
   till,
-  panel
+  panel,
+  events
 }: {
+  events?: (() => void) | null;
   till: Till | null | undefined;
   panel: TillPanelView | null | undefined;
 }) {
-  if (!till) return null;
-  const hasControls = till.home || till.soldOutCount > 0 || till.addCookies || till.classic;
+  if (!till)
+    return events ? (
+        <TillBack onBack={events} />
+    ) : null;
+  const hasControls =
+    events || till.home || till.soldOutCount > 0 || till.addCookies || till.classic;
   return (
     <>
       {hasControls ? (
         <div role="toolbar" aria-label="Till tools" className="flex flex-wrap items-center gap-2">
-          {till.home ? (
+          {events ? <TillBack onBack={events} /> : null}
+          {!events && till.home ? (
             <Button size="sm" variant="secondary" onClick={till.home}>
               ← Home
             </Button>

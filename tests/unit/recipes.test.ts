@@ -41,6 +41,14 @@ const fields = (over: Partial<RecipeFields> = {}): RecipeFields => ({
 });
 
 describe('parseRecipes', () => {
+  it('retains ingredient/packaging and explicit unknown kinds in current and historical snapshots', () => {
+    const row = parseRecipes([wire({ lines: [{ name: 'Pouch', qty: 24, unit: 'pcs', kind: 'packaging' },
+      { name: 'Legacy line', qty: 1, unit: 'pcs', kind: null }],
+      history: [{ version: 1, yield: 12, lines: [{ name: 'Butter', qty: 200, unit: 'g', kind: 'ingredient' }] }] })] as never)![0];
+    expect(row.lines).toMatchObject([{ kind: 'packaging' }, { kind: null }]);
+    expect(row.history[0].lines[0]).toMatchObject({ kind: 'ingredient' });
+    expect(parseRecipes([wire({ lines: [{ name: 'Pouch', qty: 1, unit: 'pcs', kind: 'unknown-kind' }] })] as never)).toBeNull();
+  });
   it('reads a recipe with its lines and the versions it replaced, oldest first', () => {
     expect(parseRecipes([wire()])).toEqual([
       {

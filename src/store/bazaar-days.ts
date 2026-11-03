@@ -93,6 +93,7 @@ export interface BazaarDaysDeps {
   }>;
   /** True while this phone holds an event (a started day, or one from before): a second cannot start. */
   holdsEvent: () => boolean;
+  resumeTill?: () => void;
   /**
    * U5: whether a flavour has a recipe (the database refuses a flavour with none sent to the shop); null while the recipes
    * have not been read. Only chooses where the last day's leftover is suggested to go.
@@ -281,6 +282,8 @@ const stamp = (at: number): string =>
   );
 
 export class BazaarDays {
+  private listPosition: LiveBazaarVals['listPosition'];
+  private hubFilter: 'upcoming' | 'past' = 'upcoming';
   private bookingId: string | null = null;
   private data: Bazaar | null = null;
   private reading: 'read' | 'loading' | 'failed' = 'read';
@@ -317,6 +320,10 @@ export class BazaarDays {
     this.tillPanel = null;
     this.reading = 'read';
     this.seq += 1;
+  }
+
+  selectedBookingId(): string | null {
+    return this.bookingId;
   }
 
   open(bookingId: string): void {
@@ -356,6 +363,7 @@ export class BazaarDays {
     this.deps.rerender();
     try {
       const data = await fetchBazaar(client, id);
+      if (data.booking.id !== id) throw new Error('bazaar answer does not match the event');
       // A newer read, or a different booking, has taken over: this answer is stale.
       if (seq !== this.seq || id !== this.bookingId) return false;
       this.data = data;
@@ -400,8 +408,24 @@ export class BazaarDays {
     return {
       online: this.deps.online(),
       eventsRead: this.deps.bookingsRead(),
-      state: this.bookingId && !this.data ? this.reading : 'read',
+      state:
+        this.bookingId && !booking
+          ? this.deps.bookingsRead()
+            ? 'failed'
+            : 'loading'
+          : this.bookingId && !this.data
+            ? this.reading
+            : 'read',
       list: this.hubList(),
+      listPosition: this.listPosition,
+      rememberListPosition: (id, top) => {
+        this.listPosition = { id, top: Number.isFinite(top) && top > 0 ? top : 0 };
+      },
+      listFilter: this.hubFilter,
+      setListFilter: (filter) => {
+        this.hubFilter = filter;
+        this.deps.rerender();
+      },
       event,
       editor: event && this.editing ? this.editorView(booking!, this.data!) : null,
       reviewing: this.reviewing !== null,
@@ -426,7 +450,12 @@ export class BazaarDays {
       // A booking nobody has asked about yet is "reading" only while a read can still come.
       const read: HubRead =
         this.hubFacts.get(b.id) ?? this.hubState.get(b.id) ?? (online ? undefined : 'failed');
-      const place = hubPlace(b, today, read);
+      const placed = hubPlace(b, today, read);
+      // The phone's held day stays reachable even outside the booking's planned dates.
+      const place =
+        placed && this.deps.held()?.scheduledId === b.id
+          ? { ...placed, group: 'active' as const, status: 'selling' as const }
+          : placed;
       return place ? [{ b, place, read }] : [];
     });
     const rank = { active: 0, upcoming: 1, past: 2 } as const;
@@ -444,7 +473,12 @@ export class BazaarDays {
         group: place.group,
         status: place.status,
         reading: place.reading,
-        whenText: place.group === 'past' ? null : eventWhen(b.startsOn, b.endsOn, today),
+        whenText:
+          this.deps.held()?.scheduledId === b.id
+            ? 'Selling on this device'
+            : place.group === 'past'
+              ? null
+              : eventWhen(b.startsOn, b.endsOn, today),
         figures:
           place.group === 'active' && facts?.today
             ? {
@@ -864,9 +898,10 @@ export class BazaarDays {
         else if (this.deps.holdsEvent()) note = COPY.holding;
       }
     } else if (day.state === 'open') {
-      // An open day this phone does not hold (one it holds is drawn as the till): it can still be reviewed and closed here.
-      action = 'review';
-      hint = COPY.openElsewhere;
+      // Browsing does not transfer ownership: resume this phone's day, review any other day.
+      const own = this.deps.held()?.dayId === day.id && !!this.deps.resumeTill;
+      action = own ? 'resume' : 'review';
+      hint = own ? 'Selling on this device' : COPY.openElsewhere;
       if (!this.deps.online()) note = COPY.needSignal;
     } else {
       action = 'see';
@@ -901,7 +936,9 @@ export class BazaarDays {
       run: () =>
         day.state === 'planned'
           ? void this.start(booking, day, false, startPrompt !== null)
-          : this.openReview(booking.id, day.id, 'event')
+          : action === 'resume'
+            ? this.deps.resumeTill?.()
+            : this.openReview(booking.id, day.id, 'event')
     };
   }
 

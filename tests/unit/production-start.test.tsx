@@ -157,7 +157,7 @@ describe('owner production entry', () => {
     });
     expect(runtime.state.batch).toMatchObject({ step: 1 });
     act(() => runtime.go('bake'));
-    act(() => start(runtime).open());
+    act(() => runtime.renderVals().liveProduction!.inProgress![0].open());
     expect(counts().actual).toBe('');
     act(() => counts().setActual('18'));
     act(() => counts().setRejects('19'));
@@ -185,10 +185,13 @@ describe('owner production entry', () => {
       old.confirm();
     });
     expect(runtime.state.batch).toMatchObject({ actual: 18, rejects: 0, step: 1 });
-    (runtime as unknown as { productionBusy: boolean }).productionBusy = true;
+    let reply!: (value: { data: unknown; error: null }) => void;
+    rpc.mockImplementationOnce(() => new Promise(resolve => { reply = resolve; }));
+    act(() => runtime.renderVals().liveBatchCounts!.confirm());
     act(() => runtime.renderVals().liveBatchCounts!.setActual('30'));
     expect(runtime.state.batch).toMatchObject({ actual: 18 });
-    noWrites(rpc);
+    expect(rpc.mock.calls.filter(([name]) => name === 'record_production')).toHaveLength(1);
+    await act(async () => reply({ data: null, error: null }));
   });
   it('exposes the saving state until the recording answer arrives', async () => {
     const { runtime, rpc } = await mounted();
@@ -229,7 +232,7 @@ describe('owner production entry', () => {
             target: 12,
             actual: 11,
             rejects: 2,
-            step: 2,
+            step: 2, showUsed: true,
             note: 'Tray two',
             adj: { 'Bread flour': 1 }
           }
@@ -244,26 +247,36 @@ describe('owner production entry', () => {
         if (entry === 'first') vals.startFirst();
         if (entry === 'direct')
           (runtime as unknown as { startBatch: (id: string) => void }).startBatch(
-            'another-product'
+            pid
           );
         if (entry === 'quick') await new Promise((resolve) => setTimeout(resolve, 20));
       });
       expect(runtime.state.screen).toBe('batch');
-      expect(runtime.state.batch).toBe(pending);
+      expect(runtime.state.batch).not.toBe(pending);
+      act(() => runtime.go('bake'));
+      const work = runtime.renderVals().liveProduction!.inProgress!;
+      expect(work).toHaveLength(2);
+      act(() => work[0].open());
+      expect(runtime.state.batch).toMatchObject(pending as object);
       noWrites(rpc);
     }
   );
-  it('does not start or replace a batch while production is being saved', async () => {
+  it('starts independent preparation while another batch save is waiting', async () => {
     const { runtime, rpc } = await mounted();
     const engine = runtime as unknown as {
       startBatch: (id: string) => void;
-      productionBusy: boolean;
+      confirmBatch: () => void;
     };
-    engine.productionBusy = true;
+    let reply!: (value: { data: unknown; error: null }) => void;
+    rpc.mockImplementationOnce(() => new Promise(resolve => { reply = resolve; }));
+    act(() => runtime.setState({ batch: { pid, target: 12, actual: 12, rejects: 0, adj: {} } } as never));
+    act(() => engine.confirmBatch());
     act(() => engine.startBatch(pid));
-    expect(runtime.state.batch).toBeNull();
-    expect(runtime.state.screen).toBe('bake');
-    noWrites(rpc);
+    expect(runtime.state.batch).not.toBeNull();
+    expect(runtime.renderVals().liveBatchCounts!.saving).toBe(false);
+    act(() => runtime.go('bake'));
+    expect(runtime.renderVals().liveProduction!.inProgress).toHaveLength(2);
+    await act(async () => reply({ data: null, error: null }));
   });
   it('continues the unfinished batch without replacing its quantity or progress', async () => {
     const { runtime, rpc } = await mounted();
@@ -274,10 +287,10 @@ describe('owner production entry', () => {
     });
     const pending = runtime.state.batch;
     act(() => runtime.go('bake'));
-    expect(start(runtime).resume).toBe(true);
-    act(() => start(runtime).open());
+    expect(start(runtime).resume).toBe(false);
+    act(() => runtime.renderVals().liveProduction!.inProgress![0].open());
     expect(runtime.state.screen).toBe('batch');
-    expect(runtime.state.batch).toEqual(pending);
+    expect(runtime.state.batch).toMatchObject(pending as object);
     noWrites(rpc);
   });
   it('does not let a cancelled entry change, close or start a newer draft', async () => {

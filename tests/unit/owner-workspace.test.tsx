@@ -56,7 +56,8 @@ it('opens product editing in the neutral themed modal with the existing form and
           close,
           editing: null
         },
-        closeSheet: close
+        closeSheet: close,
+        toast: { msg: 'Batch kept. Continue it from Make.', undo: null }
       }}
       screen="products"
       role={runtime.state.role}
@@ -66,6 +67,10 @@ it('opens product editing in the neutral themed modal with the existing form and
   const modal = screen.getByRole('dialog', { name: 'Edit QA cookie' });
   expect(modal.parentElement?.className).toMatch(/theme/);
   expect(within(modal).getByRole('button', { name: 'Publish menu' })).toBeTruthy();
+  const notice = within(modal).getByRole('status');
+  expect(notice).toHaveTextContent('Batch kept. Continue it from Make.');
+  expect(screen.getAllByText('Batch kept. Continue it from Make.')).toHaveLength(1);
+  expect(notice.style.position).not.toBe('fixed');
   fireEvent.click(within(modal).getByRole('button', { name: 'Close Edit QA cookie' }));
   expect(close).toHaveBeenCalledTimes(1);
 });

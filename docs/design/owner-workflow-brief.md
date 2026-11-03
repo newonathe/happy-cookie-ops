@@ -10,6 +10,24 @@ These extend the full brief; current singleton/focused views are not the require
 
 ## 1. Objective and meaning of success
 
+Owner clarification,3November: selecting Bazaar/Events opens the Events directory first, including
+while an event is active. Selling resumes through an explicit action on the held event. Replace
+the large Events buttons in both tills with one compact Back control by the event name, accessible
+as Back to events. Keep held event/day, cart, stock, prices, drawer and unacknowledged sales intact;
+restricted helper/offline selling access retains its existing boundaries.
+
+After implementation, perform a fresh final review of every actual page, child flow and state.
+Research current primary documentation for relevant POS/inventory patterns, critique the implemented
+flows, and update the shared page-by-page plans with concrete intended layouts and step-by-step
+branches. Include purpose, hierarchy, primary actions, useful visuals/data truth, form automation,
+navigation/return context, draft retention, permissions, responsive/accessibility/motion behavior and
+normal/loading/empty/failed/stale/uncertain/offline states. Ground findings in actual screens and
+interactions, original prototype/client v4 and the latest neutral Happy Cookie direction. Reconcile
+the59-page baseline with all subsequently added flows. Distinguish implemented fixes, proposed
+refinements and remaining acceptance evidence. This final review follows implementation and is an
+explicit exception to earlier instructions to avoid repeating the broad audit/research. Existing
+review and hosted-change approvals remain in force.
+
 Finish improving the **actual Happy Cookie application** so the owner can find, understand and use
 all existing features through clear, organized, visually understandable workflows. Preserve the
 capabilities and business safeguards of the supplied prototype and current hosted application while

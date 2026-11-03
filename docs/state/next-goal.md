@@ -13,6 +13,12 @@ Inspect branch/worktree/stashes and actual code; do not depend on chat memory or
 
 ## Accepted source and next implementation
 
+Current worktree: active-Events navigation draft in live Bazaar components, controller/types and
+runtime, with regressions in bazaar-live.test.tsx. It is uncommitted pending independent review.
+Main till/Events/event history and reload now work. Finish plan/review addresses and focus/scroll return.
+Keep the existing tested Events/till round trip, permissions and held-state preservation. Then build
+P1's pure multi-item production workspace; do not bypass the existing sensitive-review wait.
+
 Branch `codex/refined-workflows`; inspect the latest commit:
 
 The follow-up production slice preserves unfinished batches through Quick add, work rows,
@@ -25,19 +31,16 @@ Count/review edits and confirmation are blocked while saving; leaving retains th
 
 Preview repairs (sale names, ClickUp warning and shared border feedback): see current.md.
 
-Accepted source7c07008: full gate162 files /2743 pass +2todo. Preview repairs and Home hover
-checks pass. Initial clock source-scan timeout passed focused and full retry without test changes.
-Prior build atf112693 passed28 static pages.
+Current local draft includes preview recovery (Ethan confirms Chrome opens), history and hot-update
+lookup repair. Gate165 files /2762 pass +2todo (VITEST_MAX_WORKERS=4); live Webpack build passes28
+static pages. Required review remains pending.
 Four-width headless start/review/resume checks use actual components with
 synthetic RPC and no writes; this is not authenticated hosted, phone or owner-week acceptance.
 
-Next implement B1 from [the audited additions plan](../design/active-bazaar-parallel-production-plan.md):
-visible Events/Return to selling while retaining the held day, cart and queue. Inspect BazaarLive,
-BazaarDays, till/bar and runtime view/frame/gate selection; protect narrowed offline access and
-own-phone day labels. Then P1: independent dough/bake drafts, selected working ID and safe switching.
-P2/P3 cover per-item acknowledgement/result, authoritative stock, recipe/period snapshots and
-uncertain-save/reload recovery, with required independent review. Both new capabilities are absent
-in390/1240 controlled-component checks. Keep existing regressions; notes persistence is unproven.
+Continue B1 under [the audited additions plan](../design/active-bazaar-parallel-production-plan.md).
+P1–P3 then add independent dough/bake drafts, recipe/period snapshots, per-item acknowledgement and
+durable uncertainty recovery. Parallel production and notes persistence remain unproven.
+
 
 Then continue safe recipe kind/version saves and acknowledged product-save return, remaining
 Stock truth/receiving/shopping, Bazaar, Sell/Shop, Money/Account, Home and integration. Keep the

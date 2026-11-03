@@ -12,11 +12,29 @@ const vals = () => ({
       short: true, deltaText: '+1', minus: vi.fn(), plus: vi.fn() }], anyShort: true,
     doughLine: '12 from chilled dough; 6 mixed fresh.', exit: vi.fn(), discard: vi.fn(),
     setFlavour: vi.fn(), setNote: vi.fn(), toStep1: vi.fn() },
-  liveBatchCounts: { periodText: 'Drop 5', recipeVersion: 3, actual: '18', rejects: '2', valid: true, saving: false,
+  liveBatchCounts: { periodText: 'Drop 5', recipeVersion: 3, actual: '18', rejects: '2', valid: true, saving: false, uncertain: false,
     stock: [{ name: 'Flour', balance: 100, unit: 'g' }],
     setActual: vi.fn(), setRejects: vi.fn(), review: vi.fn(), confirm: vi.fn() }
 });
 describe('live production count and review', () => {
+  it('keeps an unanswered submission immutable and offers the original result check at either step', () => {
+    const v = vals(); v.liveBatchCounts.uncertain = true;
+    const ui = render(<ProductionFocusLive v={v as unknown as OpsVals} />);
+    expect((screen.getByLabelText('Cookies made, including rejects') as HTMLInputElement).disabled).toBe(true);
+    expect((screen.getByRole('button', { name: 'Discard' }) as HTMLButtonElement).disabled).toBe(true);
+    expect(screen.getByRole('alert').textContent).toContain('Save result not confirmed');
+    expect(screen.getByText('good cookies in this submission')).toBeTruthy();
+    expect(screen.queryByText('good cookies will enter stock')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Check saved result' }));
+    expect(v.liveBatchCounts.confirm).toHaveBeenCalledTimes(1);
+    v.batch.step1 = false; v.batch.step2 = true;
+    ui.rerender(<ProductionFocusLive v={v as unknown as OpsVals} />);
+    expect(screen.queryByRole('region', { name: 'Ingredients used' })).toBeNull();
+    expect(screen.queryByText(v.batch.doughLine)).toBeNull();
+    expect((screen.getByRole('button', { name: 'Back to counts' }) as HTMLButtonElement).disabled).toBe(true);
+    fireEvent.click(screen.getByRole('button', { name: 'Check saved result' }));
+    expect(v.liveBatchCounts.confirm).toHaveBeenCalledTimes(2);
+  });
   it('separates total made, rejects and good cookies and retains the planned comparison', () => {
     const v = vals();
     render(<ProductionFocusLive v={v as unknown as OpsVals} />);

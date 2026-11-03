@@ -8,7 +8,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { FlavourTile } from '@/components/ui/flavour-tile';
 import { Sheet } from '@/components/ui/sheet';
 import { StatusPill } from '@/components/ui/status-pill';
-import { TillPanel } from './till-bar';
+import { TillPanel, TillBack } from './till-bar';
 
 type Till = NonNullable<OpsVals['liveTill']>;
 type Sale = OpsVals['bzSales'][number];
@@ -27,8 +27,10 @@ const SALES_SHOWN = 5;
 export function ConsolidatedTill({
   v,
   till,
-  panel
+  panel,
+  events
 }: {
+  events?: (() => void) | null;
   v: OpsVals;
   till: Till;
   panel: TillPanelView | null | undefined;
@@ -76,6 +78,7 @@ export function ConsolidatedTill({
         className="flex flex-col gap-3 lg:grid lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start lg:gap-x-5 lg:gap-y-3"
       >
         <div className="flex items-center gap-2.5 lg:col-span-2">
+          {events ? <TillBack onBack={events} /> : null}
           <span className="flex min-w-0 flex-1 flex-col">
             <span className="text-body font-bold text-ink">{v.event?.name}</span>
             <span className="text-caption text-ink-mute">{v.event?.date}</span>
