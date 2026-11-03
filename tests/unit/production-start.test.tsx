@@ -137,6 +137,59 @@ const noWrites = (rpc: ReturnType<typeof vi.fn>) =>
   expect(rpc.mock.calls.every(([name]) => String(name).startsWith('get_'))).toBe(true);
 
 describe('owner production entry', () => {
+  it('retains blank counts through navigation and refuses invalid review/confirmation', async () => {
+    const { runtime, rpc } = await mounted();
+    act(() => {
+      start(runtime).open();
+    });
+    act(() => {
+      start(runtime).setQuantity('24');
+    });
+    act(() => {
+      start(runtime).begin();
+    });
+    const counts = () => runtime.renderVals().liveBatchCounts!;
+    act(() => counts().setActual(''));
+    expect(counts()).toMatchObject({ actual: '', valid: false });
+    act(() => {
+      counts().review();
+      counts().confirm();
+    });
+    expect(runtime.state.batch).toMatchObject({ step: 1 });
+    act(() => runtime.go('bake'));
+    act(() => start(runtime).open());
+    expect(counts().actual).toBe('');
+    act(() => counts().setActual('18'));
+    act(() => counts().setRejects('19'));
+    expect(counts().valid).toBe(false);
+    act(() => counts().confirm());
+    act(() => counts().setRejects('2'));
+    expect(counts().valid).toBe(true);
+    expect(runtime.state.batch).toMatchObject({ actual: 18, rejects: 2, target: 24 });
+    act(() => counts().review());
+    expect(runtime.state.batch).toMatchObject({ step: 2 });
+    noWrites(rpc);
+  });
+  it('rejects stale count callbacks and count edits while saving', async () => {
+    const { runtime, rpc } = await mounted();
+    act(() => start(runtime).open());
+    act(() => start(runtime).setQuantity('24'));
+    act(() => {
+      start(runtime).begin();
+    });
+    const old = runtime.renderVals().liveBatchCounts!;
+    act(() => old.setActual('18'));
+    act(() => {
+      old.setRejects('3');
+      old.review();
+      old.confirm();
+    });
+    expect(runtime.state.batch).toMatchObject({ actual: 18, rejects: 0, step: 1 });
+    (runtime as unknown as { productionBusy: boolean }).productionBusy = true;
+    act(() => runtime.renderVals().liveBatchCounts!.setActual('30'));
+    expect(runtime.state.batch).toMatchObject({ actual: 18 });
+    noWrites(rpc);
+  });
   it('exposes the saving state until the recording answer arrives', async () => {
     const { runtime, rpc } = await mounted();
     let reply!: (value: Awaited<ReturnType<typeof rpc>>) => void;
