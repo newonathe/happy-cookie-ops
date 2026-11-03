@@ -1,5 +1,17 @@
 import type { BatchRow } from '@/lib/data/production';
 
+/** Unconfirmed counts travel with the open batch, including blank or invalid entries. */
+export interface LiveBatchCounts {
+  actual: string;
+  rejects: string;
+  valid: boolean;
+  saving: boolean;
+  setActual: (value: string) => void;
+  setRejects: (value: string) => void;
+  review: () => void;
+  confirm: () => void;
+}
+
 /** An unconfirmed plan; starting it never records production or changes stock. */
 export interface LiveProductionStart {
   products: Array<{

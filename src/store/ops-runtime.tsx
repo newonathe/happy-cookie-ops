@@ -221,7 +221,7 @@ import {
   type ProductionFields,
   type ProductionResult
 } from '@/lib/data/production';
-import type { LiveProductionStart } from '@/lib/production/live-production-types';
+import type { LiveBatchCounts, LiveProductionStart } from '@/lib/production/live-production-types';
 import {
   booksCsv,
   correctionError,
@@ -557,6 +557,7 @@ interface ProductionActions {
   confirmDough: () => void;
   confirmBatch: () => void;
   startBatch: (productId: string) => void;
+  batchStep: (step: number) => void;
   toBake: (productId: string, state: OpsEngineState) => number;
 }
 
@@ -571,6 +572,8 @@ interface ProductionState {
     actual: number;
     rejects?: number;
     adj?: Record<string, number>;
+    liveActualText?: string;
+    liveRejectsText?: string;
   } | null;
 }
 
@@ -2692,6 +2695,7 @@ export class OpsRuntime extends OpsProvider {
         this.state.role === 'owner' && this.state.screen === 'bake'
           ? this.liveProductionView()
           : null,
+      liveBatchCounts: this.productionCountsView(),
       ...this.liveToastVals(starved),
       // S3: on a started day "Close out" opens the day's review, never the old close-out sheet (which the database refuses).
       ...((this.state.event as LiveEvent | null)?.dayId
@@ -5052,6 +5056,34 @@ export class OpsRuntime extends OpsProvider {
         : [],
       refresh: this.refreshProductionView,
       start: this.productionStartView(dropNo, !!valid)
+    };
+  }
+
+  private productionCountsView(): LiveBatchCounts | null {
+    const { batch, dropNo } = this.state as unknown as ProductionState;
+    if (!isLiveMode() || this.state.role !== 'owner' || this.state.screen !== 'batch' || !batch)
+      return null;
+    const actual = batch.liveActualText ?? String(batch.actual);
+    const rejects = batch.liveRejectsText ?? String(batch.rejects ?? 0);
+    const whole = (text: string): boolean => /^\d+$/.test(text) && Number(text) <= 10000;
+    const valid = whole(actual) && Number(actual) >= 1 && whole(rejects) && Number(rejects) <= Number(actual);
+    const current = (state = this.state): boolean => !this.unmounted && state.role === 'owner' &&
+      state.screen === 'batch' && state.dropNo === dropNo &&
+      (state as unknown as ProductionState).batch === batch && !this.productionBusy;
+    const set = (field: 'actual' | 'rejects', value: string): void => {
+      if (!current() || value.length > 32) return;
+      this.setState((state) => current(state) ? {
+        batch: { ...batch, [field === 'actual' ? 'liveActualText' : 'liveRejectsText']: value,
+          ...(whole(value) ? { [field]: Number(value) } : {}) }
+      } as never : {});
+    };
+    const engine = this as unknown as ProductionActions;
+    return {
+      actual, rejects, valid, saving: this.productionBusy,
+      setActual: (value) => set('actual', value),
+      setRejects: (value) => set('rejects', value),
+      review: () => { if (current() && valid) engine.batchStep(2); },
+      confirm: () => { if (current() && valid) engine.confirmBatch(); }
     };
   }
 
