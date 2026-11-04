@@ -65,3 +65,40 @@ Private evidence root:
 
 Next: reconcile checkout ownership and review/apply only this package; measure the optimized actual
 app and signed-in read waterfalls separately, then continue the reference coverage checklist.
+
+## Optimized build measurement follow-up
+
+The isolated decc2c4 live build passes (28 pages, 182.6 seconds locally), with middleware/Sentry
+warnings and Edge-runtime warnings in Next internals. The launcher omits SENTRY_AUTH_TOKEN. The normal
+standalone server is available at `http://localhost:3001/`; it is a frozen build, not an HMR preview.
+
+Eight fresh-context CLI loads of the anonymous sign-in route at390/1440 have no page errors,
+failed local assets or overflow. On390, development page loads were1.33–1.64s; optimized0.19–1.09s.
+Transferred scripts were3,967,163bytes in development /213,039bytes optimized (decoded17.1MB/730KB).
+These compare development d21d302 with optimized decc2c4; the small display-only patch does not
+explain the development payload. Do not generalize this to signed-in data reads or a production phone.
+Evidence: `optimized-source-build.log`, `optimized-source-measurements.json` and matching screenshots.
+
+## Events directory follow-up
+
+The active coverage checklist now advances the Events directory: shared PageTitle/Panel, compact
+vertical rows and explicit Open event cues. Active selling facts, unread placeholders, filters,
+management action, new-row feedback and callbacks remain. Cancel returns focus to Add an event.
+The title is Bazaar events; the primary workspace navigation remains Bazaar.
+
+Evidence: 51 focused hub/controller tests and 24 runtime tests pass. Final full `pnpm verify` passes
+181files/2955tests+2existingTODOs (exit0), including port/engine, main/E2E typechecks and lint. The first
+run found two assertions for the previous heading; they now require Bazaar events, with the selling
+state checks unchanged. Sixteen CLI flows cover Events first, both tills, held facts, filters,
+row focus/scroll, keyboard/browser Back and motion at320/390/768/1240. Four additional320/390/768/1440
+checks capture settled empty/past layouts and Add/Cancel focus/filter retention. No business writes,
+overflow or page errors. Logs/JSON/screenshots use `events-directory-*` and `directory-*` privately.
+The refreshed live Webpack build also passes (28 static pages,85.1seconds; compiled40seconds), with
+the existing middleware/Sentry warnings. The3001 server now uses this newer build; the recorded
+mode-comparison measurements above remain the earlier decc2c4 sign-in samples.
+
+Add event still uses the existing sheet. A page conversion was inspected but not retained: making
+navigation available during saves first needs draft/request identity outside the component. Build
+that retained controller and its identity/late-reply/uncertain-save tests before replacing the sheet;
+do not merely keep the component's local UUID in a navigable page. The event-edit page and other
+Bazaar coverage gaps remain. No event save rules, RPC or business records changed in this slice.
