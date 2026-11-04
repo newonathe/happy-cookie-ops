@@ -74,6 +74,39 @@ export function Panel({
 }
 
 /** A heading between panels. */
+/** The look every headed panel shares: a section with edge-to-edge rows inside. */
+export const PANEL_CLASS = 'overflow-hidden rounded-card border border-line bg-surface';
+
+/** The heading every panel shares, with room for one thing on the right. */
+export function PanelHead({ title, children }: { title: string; children?: ReactNode }) {
+  return (
+    <div className="flex min-h-[52px] flex-wrap items-center justify-between gap-x-3 border-b border-divide px-4 py-1">
+      <h2 className="text-[15px] font-semibold text-ink">{title}</h2>
+      {children}
+    </div>
+  );
+}
+
+/** A named panel whose content runs edge to edge, so its rows can carry their own hover and dividers. */
+export function HeadedPanel({
+  title,
+  action,
+  className,
+  children
+}: {
+  title: string;
+  action?: ReactNode;
+  className?: string;
+  children: ReactNode;
+}) {
+  return (
+    <section aria-label={title} className={cx(PANEL_CLASS, 'min-w-0', className)}>
+      <PanelHead title={title}>{action}</PanelHead>
+      {children}
+    </section>
+  );
+}
+
 export function SectionHeading({ children, action }: { children: ReactNode; action?: ReactNode }) {
   return (
     <div className="mt-6 mb-3 flex items-center justify-between gap-3">

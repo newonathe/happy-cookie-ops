@@ -16,10 +16,18 @@ export function LiveScreenHost({ v }: { v: OpsVals }) {
   const registered = key ? liveScreenFor(key) : undefined;
   const till = v.liveScreen?.till;
   const next = v.liveScreen?.next;
+  // A registered Home places these itself, under its greeting.
+  const homeDrawsCards = key === 'today' && !!registered;
   return (
     <>
-      {till ? v.screens.today ? <SellingCard till={till} /> : <TillBanner till={till} /> : null}
-      {next ? <NextEventCard next={next} /> : null}
+      {till && !homeDrawsCards ? (
+        v.screens.today ? (
+          <SellingCard till={till} />
+        ) : (
+          <TillBanner till={till} />
+        )
+      ) : null}
+      {next && !homeDrawsCards ? <NextEventCard next={next} /> : null}
       {!registered?.ownsSectionNavigation ? <SectionNavigation v={v} /> : null}
       {registered ? createElement(registered, { v }) : null}
     </>

@@ -32,6 +32,45 @@ export function FactRow({
 }
 
 /** A name, one line of detail and one button: the reference's settings row. */
+/** A panel head's link to the whole of what the panel summarises, its words lined up with the panel's right edge. */
+export function PanelLink({ onOpen, children }: { onOpen: () => void; children: ReactNode }) {
+  return (
+    <Button variant="ghost" size="sm" className="-mr-3" onClick={onOpen}>
+      {children}
+    </Button>
+  );
+}
+
+/** A row that is itself the button: a name, one line of detail, an optional mark, and a chevron. */
+export function ListRow({
+  title,
+  detail,
+  trailing,
+  onOpen
+}: {
+  title: ReactNode;
+  detail?: ReactNode;
+  trailing?: ReactNode;
+  onOpen: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      className="flex min-h-14 w-full items-center gap-3 px-4 py-2.5 text-left hover:bg-raise focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brand"
+    >
+      <span className="flex min-w-0 flex-1 flex-col">
+        <span className="text-[14px] font-semibold text-ink">{title}</span>
+        {detail ? <span className="text-caption text-ink-mute">{detail}</span> : null}
+      </span>
+      {trailing ? <span className="shrink-0">{trailing}</span> : null}
+      <span aria-hidden="true" className="shrink-0 text-ink-faint">
+        ›
+      </span>
+    </button>
+  );
+}
+
 export function OpenRow({
   title,
   detail,

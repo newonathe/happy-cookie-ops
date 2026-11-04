@@ -1,43 +1,31 @@
 'use client';
 
-import type { ReactNode } from 'react';
 import type { LiveHome, OpsVals } from '@/view-models/vals';
+import { NextEventCard, SellingCard } from '@/components/live/bazaar/home-card';
 import { Button } from '@/components/ui/button';
 import { cx } from '@/components/ui/cx';
-import { PageTitle, Panel, SectionHeading, SignedMoney, TaskRow } from '@/components/ui/owner-kit';
+import { HeadedPanel, PageTitle, SignedMoney } from '@/components/ui/owner-kit';
+import { ListRow, PanelLink, StackedBar } from '@/components/ui/owner-patterns';
 
-const STOCK_LOOK: Record<'ok' | 'low' | 'out', { bar: string; label: string }> = {
-  ok: { bar: 'bg-ok', label: 'In stock' },
-  low: { bar: 'bg-warn', label: 'Low' },
-  out: { bar: 'bg-danger', label: 'Out' }
-};
-
-function Tile({
-  title,
-  detail,
-  onOpen,
-  emphasis
-}: {
-  title: string;
-  detail: ReactNode;
-  onOpen: () => void;
-  emphasis?: boolean;
-}) {
+/** Why a stock item is on Home, marked by more than colour. */
+function StockTag({ status }: { status: string }) {
   return (
-    <button
-      type="button"
-      onClick={onOpen}
+    <span
       className={cx(
-        'flex min-h-24 flex-col items-start justify-between gap-2 rounded-[16px] border bg-surface p-4 text-left transition-[transform,background-color] duration-[140ms] hover:bg-raise focus-visible:outline-2 focus-visible:outline-brand active:scale-[0.99] motion-reduce:transform-none',
-        emphasis ? 'border-brand' : 'border-line'
+        'rounded-full border px-2 py-0.5 text-[11px] font-semibold',
+        status === 'Out'
+          ? 'border-danger-line text-danger'
+          : status === 'Low'
+            ? 'border-warm-line text-warn'
+            : 'border-line text-ink-mute'
       )}
     >
-      <span className="text-[15px] font-semibold text-ink">{title}</span>
-      <span className="text-caption text-ink-mute">{detail}</span>
-    </button>
+      {status}
+    </span>
   );
 }
 
+/** One count of the day's orders. A source still loading shows a dash, never a zero. */
 function OrderCount({
   label,
   value,
@@ -53,11 +41,11 @@ function OrderCount({
     <button
       type="button"
       onClick={onOpen}
-      className="flex min-h-20 flex-col gap-1 rounded-[14px] border border-line bg-surface p-3.5 text-left hover:bg-raise focus-visible:outline-2 focus-visible:outline-brand"
+      className="flex min-h-20 min-w-0 flex-col justify-center gap-1 px-4 py-3 text-left hover:bg-raise focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brand"
     >
       <span
         className={cx(
-          'text-[26px] leading-none font-semibold tabular-nums',
+          'text-[24px] leading-none font-semibold tabular-nums',
           value === null ? 'text-ink-faint' : warn && value > 0 ? 'text-brand-deep' : 'text-ink'
         )}
       >
@@ -68,37 +56,19 @@ function OrderCount({
   );
 }
 
-/** How many ingredients and packaging items are in stock, low, out or never counted. */
-function StockBar({ counts }: { counts: NonNullable<LiveHome['stockCounts']> }) {
-  const total = counts.ok + counts.low + counts.out;
-  if (!total) return <p className="text-caption text-ink-mute">No stock items yet.</p>;
-  const parts = (['out', 'low', 'ok'] as const).filter((k) => counts[k] > 0);
+/** How many ingredients and packaging items are in stock, low or out, and how far to trust those numbers. */
+function StockSummary({ counts }: { counts: NonNullable<LiveHome['stockCounts']> }) {
+  if (!counts.ok && !counts.low && !counts.out)
+    return <p className="text-caption text-ink-mute">No stock items yet.</p>;
   return (
-    <div>
-      <div
-        className="flex h-2.5 overflow-hidden rounded-full bg-chip"
-        role="img"
-        aria-label={parts
-          .map((k) => `${counts[k]} ${STOCK_LOOK[k]!.label.toLowerCase()}`)
-          .join(', ')}
-      >
-        {parts.map((k) => (
-          <span
-            key={k}
-            className={STOCK_LOOK[k]!.bar}
-            style={{ width: `${(counts[k] / total) * 100}%` }}
-          />
-        ))}
-      </div>
-      <ul className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-caption text-ink-mute">
-        {(['out', 'low', 'ok'] as const).map((k) => (
-          <li key={k} className="inline-flex items-center gap-1.5">
-            <span aria-hidden="true" className={cx('size-2.5 rounded-sm', STOCK_LOOK[k]!.bar)} />
-            <span className="font-semibold text-ink tabular-nums">{counts[k]}</span>
-            {STOCK_LOOK[k]!.label}
-          </li>
-        ))}
-      </ul>
+    <>
+      <StackedBar
+        parts={[
+          { id: 'out', label: 'Out', value: counts.out, tone: 'bg-danger' },
+          { id: 'low', label: 'Low', value: counts.low, tone: 'bg-warn' },
+          { id: 'ok', label: 'In stock', value: counts.ok, tone: 'bg-ok' }
+        ]}
+      />
       {counts.neverCounted ? (
         <p className="mt-2 text-caption text-ink-mute">
           {counts.neverCounted} {counts.neverCounted === 1 ? 'item has' : 'items have'} never been
@@ -106,204 +76,198 @@ function StockBar({ counts }: { counts: NonNullable<LiveHome['stockCounts']> }) 
           recorded.
         </p>
       ) : null}
-    </div>
+    </>
   );
 }
 
 /**
- * Home (client v4): today's real work first, then direct actions, unfinished work and what needs
- * attention. Every number comes from its own record; a source still loading shows a dash.
+ * Home (client v4): what is happening now, what needs the owner, then the day's work beside stock and money. Every panel
+ * has the same head, so a page of several things still reads as one. Every number comes from its own record; a source
+ * still loading says so.
  */
 export function HomeLive({ v }: { v: OpsVals }) {
   const home = v.liveHome;
   if (!home) return null;
   const { orders, go } = home;
-  const toPrepare = orders?.toPrepare ?? null;
-  const attention = home.stockAttention;
+  const till = v.liveScreen?.till;
+  const next = v.liveScreen?.next;
+  const actions = [
+    {
+      title: 'Start production',
+      detail:
+        Number(v.prep?.n) > 0 ? (
+          <>
+            {v.prep.num} {v.prep.unit}
+          </>
+        ) : (
+          'Record cookies made'
+        ),
+      onOpen: go.production
+    },
+    { title: 'Receive delivery', detail: 'Ingredients & packaging', onOpen: go.receive },
+    { title: 'Count stock', detail: 'Enter a physical count', onOpen: go.count },
+    {
+      title: 'Products & recipes',
+      detail: `${home.flavours} ${home.flavours === 1 ? 'flavour' : 'flavours'}`,
+      onOpen: go.products
+    },
+    {
+      title: 'Shopping list',
+      detail: v.buy?.visible ? (
+        <>
+          {v.buy.num} {v.buy.unit}
+        </>
+      ) : (
+        'What to buy next'
+      ),
+      onOpen: go.shopping
+    }
+  ];
   return (
-    <div className="w-full">
+    <div className="flex w-full flex-col gap-4">
       <PageTitle
         title={home.greeting}
         subtitle={home.dateText}
         actions={
           v.drop ? (
             <Button variant="secondary" size="sm" onClick={v.drop.go}>
+              <span
+                aria-hidden="true"
+                className={cx(
+                  'inline-block size-1.5 rounded-full align-middle',
+                  v.drop.open ? 'bg-ok' : 'bg-ink-faint'
+                )}
+              />
               {v.drop.open ? 'Shop open' : 'Shop closed'} · {v.drop.closes}
             </Button>
           ) : null
         }
       />
 
-      <div className="mb-2 grid grid-cols-3 gap-2.5">
-        <OrderCount
-          label="Payments to check"
-          value={orders?.review ?? null}
-          onOpen={go.payments}
-          warn
-        />
-        <OrderCount label="Orders to prepare" value={toPrepare} onOpen={go.orders} />
-        <OrderCount label="Ready for pickup" value={orders?.ready ?? null} onOpen={go.orders} />
-      </div>
-      {!orders ? (
-        <p className="mb-2 text-caption text-ink-mute">Orders are still loading.</p>
-      ) : null}
-
-      <SectionHeading>What would you like to do?</SectionHeading>
-      <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-3">
-        <Tile
-          title="Orders"
-          detail={toPrepare === null ? 'Prepare and hand over' : `${toPrepare} to prepare`}
-          onOpen={go.orders}
-          emphasis={!!orders?.review}
-        />
-        <Tile
-          title="Start production"
-          detail={
-            Number(v.prep?.n) > 0 ? (
-              <>
-                {v.prep.num} {v.prep.unit}
-              </>
-            ) : (
-              'Record cookies made'
-            )
-          }
-          onOpen={go.production}
-        />
-        <Tile title="Receive delivery" detail="Ingredients & packaging" onOpen={go.receive} />
-        <Tile title="Count stock" detail="Enter a physical count" onOpen={go.count} />
-        <Tile
-          title="Products & recipes"
-          detail={`${home.flavours} ${home.flavours === 1 ? 'flavour' : 'flavours'}`}
-          onOpen={go.products}
-        />
-        <Tile
-          title="Shopping list"
-          detail={v.buy?.visible ? <>Buy: {v.buy.names}</> : 'What to buy next'}
-          onOpen={go.shopping}
-        />
-      </div>
+      {till ? <SellingCard till={till} /> : null}
+      {next ? <NextEventCard next={next} /> : null}
 
       {v.system?.bad ? (
-        <>
-          <SectionHeading>Needs attention</SectionHeading>
-          <Panel>
-            <TaskRow
-              title={v.system.label}
-              detail={v.system.detail}
-              action={
-                <Button variant="secondary" size="sm" onClick={v.system.go}>
-                  Review
-                </Button>
-              }
+        <HeadedPanel title="Needs attention">
+          <ListRow
+            title={v.system.label}
+            detail={v.system.detail}
+            trailing={<span className="text-caption font-semibold text-brand">Review</span>}
+            onOpen={v.system.go}
+          />
+        </HeadedPanel>
+      ) : null}
+
+      <div className="grid grid-cols-1 gap-4 min-[1100px]:grid-cols-2">
+        <HeadedPanel title="Orders" action={<PanelLink onOpen={go.orders}>Open orders</PanelLink>}>
+          <div className="grid grid-cols-3 divide-x divide-divide">
+            <OrderCount
+              label="Payments to check"
+              value={orders?.review ?? null}
+              onOpen={go.payments}
+              warn
             />
-          </Panel>
-        </>
-      ) : null}
+            <OrderCount
+              label="Orders to prepare"
+              value={orders?.toPrepare ?? null}
+              onOpen={go.orders}
+            />
+            <OrderCount label="Ready for pickup" value={orders?.ready ?? null} onOpen={go.orders} />
+          </div>
+          {!orders ? (
+            <p className="border-t border-divide px-4 py-2 text-caption text-ink-mute">
+              Orders are still loading.
+            </p>
+          ) : null}
+        </HeadedPanel>
 
-      {home.production.length ? (
-        <>
-          <SectionHeading>Continue unfinished work</SectionHeading>
-          <Panel>
-            {home.production.map((work) => (
-              <TaskRow
-                key={work.id}
-                title={work.name}
-                detail={`${work.detail} · not recorded yet`}
-                action={
-                  <Button variant="secondary" size="sm" onClick={work.open}>
-                    Continue
-                  </Button>
-                }
-              />
-            ))}
-          </Panel>
-        </>
-      ) : null}
+        <HeadedPanel
+          title="This month"
+          className="@container"
+          action={<PanelLink onOpen={go.money}>Open Money</PanelLink>}
+        >
+          {home.month ? (
+            <dl className="grid grid-cols-2 gap-y-3 px-4 py-3 @md:grid-cols-3">
+              <div className="col-span-2 flex min-w-0 flex-col gap-1 @md:col-span-1">
+                <dt className="order-2 text-caption text-ink-mute">
+                  {home.month.profit < 0 ? 'Loss so far' : 'Profit so far'}
+                </dt>
+                <dd className="order-1 text-[20px] leading-tight font-semibold tabular-nums">
+                  <SignedMoney pesos={home.month.profit} />
+                </dd>
+              </div>
+              <div className="flex min-w-0 flex-col gap-1">
+                <dt className="order-2 text-caption text-ink-mute">Income</dt>
+                <dd className="order-1 text-[20px] leading-tight font-semibold tabular-nums">
+                  <SignedMoney pesos={home.month.revenue} />
+                </dd>
+              </div>
+              <div className="flex min-w-0 flex-col gap-1">
+                <dt className="order-2 text-caption text-ink-mute">Expenses</dt>
+                <dd className="order-1 text-[20px] leading-tight font-semibold tabular-nums">
+                  <SignedMoney pesos={-home.month.expenses} />
+                </dd>
+              </div>
+            </dl>
+          ) : (
+            <p className="px-4 py-3 text-caption text-ink-mute">Your books are still loading.</p>
+          )}
+        </HeadedPanel>
 
-      <div className="grid grid-cols-1 items-start gap-x-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-        <div>
-          <SectionHeading
-            action={
-              <Button variant="ghost" size="sm" onClick={go.stock}>
-                Open stock
-              </Button>
-            }
-          >
-            Stock
-          </SectionHeading>
-          <Panel>
-            {home.stockCounts ? (
-              <StockBar counts={home.stockCounts} />
-            ) : (
-              <p className="text-caption text-ink-mute">Stock is still loading.</p>
-            )}
-            {attention.length ? (
-              <div className="mt-3 border-t border-line pt-1">
-                {attention.map((item) => (
-                  <TaskRow
-                    key={item.name}
-                    title={
-                      <span className="inline-flex flex-wrap items-center gap-2">
-                        {item.name}
-                        <span
-                          className={cx(
-                            'rounded-full border px-2 py-0.5 text-[11px] font-semibold',
-                            item.status === 'Out'
-                              ? 'border-danger-line text-danger'
-                              : item.status === 'Low'
-                                ? 'border-warm-line text-warn'
-                                : 'border-line text-ink-mute'
-                          )}
-                        >
-                          {item.status}
-                        </span>
-                      </span>
+        <div className="flex min-w-0 flex-col gap-4">
+          <HeadedPanel title="What would you like to do?" className="flex-1">
+            <div className="divide-y divide-divide">
+              {actions.map((action) => (
+                <ListRow
+                  key={action.title}
+                  title={action.title}
+                  detail={action.detail}
+                  onOpen={action.onOpen}
+                />
+              ))}
+            </div>
+          </HeadedPanel>
+          {home.production.length ? (
+            <HeadedPanel title="Continue unfinished work">
+              <div className="divide-y divide-divide">
+                {home.production.map((work) => (
+                  <ListRow
+                    key={work.id}
+                    title={work.name}
+                    detail={`${work.detail} · not recorded yet`}
+                    trailing={
+                      <span className="text-caption font-semibold text-brand">Continue</span>
                     }
-                    detail={item.detail}
-                    action={
-                      <Button variant="secondary" size="sm" onClick={item.open}>
-                        Open item
-                      </Button>
-                    }
+                    onOpen={work.open}
                   />
                 ))}
               </div>
-            ) : null}
-          </Panel>
+            </HeadedPanel>
+          ) : null}
         </div>
-        <div>
-          <SectionHeading
-            action={
-              <Button variant="ghost" size="sm" onClick={go.money}>
-                Open Money
-              </Button>
-            }
-          >
-            This month
-          </SectionHeading>
-          <Panel>
-            {home.month ? (
-              <div className="flex flex-col gap-3">
-                <div className="flex flex-col gap-1">
-                  <span className="text-caption font-semibold text-ink">
-                    {home.month.profit < 0 ? 'Loss so far' : 'Profit so far'}
-                  </span>
-                  <SignedMoney pesos={home.month.profit} className="text-[26px] leading-tight" />
-                </div>
-                <div className="flex flex-wrap gap-x-5 gap-y-1 text-caption text-ink-mute">
-                  <span>
-                    Income <SignedMoney pesos={home.month.revenue} />
-                  </span>
-                  <span>
-                    Expenses <SignedMoney pesos={-home.month.expenses} />
-                  </span>
-                </div>
-              </div>
+
+        <HeadedPanel title="Stock" action={<PanelLink onOpen={go.stock}>Open stock</PanelLink>}>
+          <div className="px-4 py-3">
+            {home.stockCounts ? (
+              <StockSummary counts={home.stockCounts} />
             ) : (
-              <p className="text-caption text-ink-mute">Your books are still loading.</p>
+              <p className="text-caption text-ink-mute">Stock is still loading.</p>
             )}
-          </Panel>
-        </div>
+          </div>
+          {home.stockAttention.length ? (
+            <div className="divide-y divide-divide border-t border-divide">
+              {home.stockAttention.map((item) => (
+                <ListRow
+                  key={item.name}
+                  title={item.name}
+                  detail={item.detail}
+                  trailing={<StockTag status={item.status} />}
+                  onOpen={item.open}
+                />
+              ))}
+            </div>
+          ) : null}
+        </HeadedPanel>
       </div>
     </div>
   );

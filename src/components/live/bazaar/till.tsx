@@ -5,7 +5,14 @@ import type { OpsVals } from '@/view-models/vals';
 import type { TillPanelView } from '@/lib/bazaar/live-bazaar-types';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
-import { FooterActions, PageTitle, Panel, SectionHeading } from '@/components/ui/owner-kit';
+import {
+  FooterActions,
+  PageTitle,
+  Panel,
+  PANEL_CLASS,
+  PanelHead,
+  SectionHeading
+} from '@/components/ui/owner-kit';
 import { FactRow, OpenRow } from '@/components/ui/owner-patterns';
 import { saleLines } from '@/lib/bazaar/sale-lines';
 import { TillCard } from './till-card';
@@ -137,7 +144,7 @@ export function ConsolidatedTill({
 
         <section
           aria-label="Cookies on the table"
-          className="@container min-w-0 overflow-hidden rounded-card border border-line bg-surface lg:col-start-1 lg:row-start-3"
+          className={`@container min-w-0 ${PANEL_CLASS} lg:col-start-1 lg:row-start-3`}
         >
           <PanelHead title="Cookies on the table">
             {till.soldOutCount > 0 ? (
@@ -210,10 +217,7 @@ export function ConsolidatedTill({
           </div>
         </section>
 
-        <section
-          aria-label="Sales today"
-          className="overflow-hidden rounded-card border border-line bg-surface lg:col-span-2 lg:row-start-4"
-        >
+        <section aria-label="Sales today" className={`${PANEL_CLASS} lg:col-span-2 lg:row-start-4`}>
           <PanelHead title="Sales today">
             {sales.length ? null : <span className="text-caption text-ink-mute">No sales yet</span>}
           </PanelHead>
@@ -254,7 +258,7 @@ export function ConsolidatedTill({
 
         <aside
           aria-label="Current sale"
-          className="hidden flex-col overflow-hidden rounded-card border border-line bg-surface lg:sticky lg:top-3 lg:col-start-2 lg:row-start-3 lg:flex"
+          className={`hidden flex-col ${PANEL_CLASS} lg:sticky lg:top-3 lg:col-start-2 lg:row-start-3 lg:flex`}
         >
           <PanelHead title="Current sale">
             {Number(v.bzCartCount) ? (
@@ -505,16 +509,6 @@ function SaleMeta({ sale }: { sale: Sale }) {
       {sale.refText ? <> · {sale.refText}</> : null}
       {sale.clerk ? <> · {sale.clerk}</> : null}
     </>
-  );
-}
-
-/** The heading every panel on the till shares, with room for one thing on the right. */
-function PanelHead({ title, children }: { title: string; children?: ReactNode }) {
-  return (
-    <div className="flex min-h-12 flex-wrap items-center justify-between gap-x-3 border-b border-divide px-4 py-2">
-      <h2 className="text-[15px] font-semibold text-ink">{title}</h2>
-      {children}
-    </div>
   );
 }
 
