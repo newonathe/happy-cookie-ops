@@ -1,5 +1,6 @@
 'use client';
 
+import { orderStepWords } from '@/lib/orders/owner-words';
 import type { OpsVals } from '@/view-models/vals';
 import { s } from '@/lib/css';
 import { Button } from '@/components/ui/button';
@@ -143,7 +144,7 @@ function Progress({ od }: { od: Order }) {
                 step.todo ? 'text-ink-mute' : 'font-semibold text-ink'
               )}
             >
-              {step.what}
+              {orderStepWords(step.what)}
             </span>
             <span className="text-caption text-ink-mute tabular-nums">{step.when}</span>
           </li>
@@ -238,19 +239,19 @@ export function OrderLive({ v }: { v: OpsVals }) {
             <div className="flex flex-wrap items-center justify-between gap-3">
               <span className="text-caption text-ink-mute">{od.packHint}</span>
               <Button variant="primary" onClick={od.pack}>
-                Mark ready
+                Mark packed
               </Button>
             </div>
           ) : null}
           {od.canCollect ? (
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <span className="text-caption text-ink-mute">Next: hand over to the customer</span>
+              <span className="text-caption text-ink-mute">Ready for customer pickup</span>
               <span className="flex flex-wrap gap-2">
                 <Button variant="secondary" onClick={od.noShow}>
                   No-show
                 </Button>
                 <Button variant="primary" onClick={od.collect}>
-                  Mark collected
+                  Mark picked up
                 </Button>
               </span>
             </div>

@@ -1,6 +1,6 @@
 # Current state — Happy Cookie Ops
 
-**Codex owns the checkout again (Ethan, 5 November: Claude finished; integrate tested fixes).**
+**Claude holds the checkout (Ethan, 5 November, after Codex hit its limit). Read [the client review](../design/client-meeting-2026-11-04.md) and [the review standard](../design/ui-review-standard.md) before any visible change.**
 Accepted7b8e819 fixes event confirmation and stale-owner refresh/queue replies;190files/3063tests+2TODOs pass.
 The full audit and [new owner requirements](../design/owner-workflow-additions-2026-11-05.md) remain active.
 Pickup is directly from Cine; Picked Up means Completed, with no extra business transition.

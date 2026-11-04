@@ -204,7 +204,7 @@ describe('Orders', () => {
     expect(headings).toEqual(
       expect.arrayContaining([
         'To prepare (2)',
-        'Ready for pickup (1)',
+        'Ready for customer pickup (1)',
         'Payments & other orders (1)',
         'Closed (1)'
       ])

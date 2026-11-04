@@ -1,5 +1,6 @@
 'use client';
 
+import { orderStatusWord } from '@/lib/orders/owner-words';
 import type { ReactNode } from 'react';
 import type { OpsVals } from '@/view-models/vals';
 import { Button } from '@/components/ui/button';
@@ -62,7 +63,7 @@ export function OrderPill({
       className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-caption font-semibold whitespace-nowrap"
       style={{ color: fg, background: String(bg), borderColor: String(br) }}
     >
-      {label}
+      {typeof label === 'string' ? orderStatusWord(label) : label}
     </span>
   );
 }

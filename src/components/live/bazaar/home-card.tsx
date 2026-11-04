@@ -1,7 +1,6 @@
 'use client';
 
 import type { LiveHomeNext, LiveHomeTill } from '@/view-models/vals';
-import { Banner } from '@/components/ui/banner';
 import { Button } from '@/components/ui/button';
 import { PANEL_CLASS } from '@/components/ui/owner-kit';
 import { ListRow } from '@/components/ui/owner-patterns';
@@ -71,13 +70,20 @@ export function NextEventCard({ next }: { next: LiveHomeNext }) {
   );
 }
 
-/** On every other screen while a day is selling: the way back to the till. */
+/** On every other screen while a day is selling: one quiet line, because it stays there the whole time. */
 export function TillBanner({ till }: { till: LiveHomeTill }) {
   return (
-    <Banner
-      tone="till"
-      title={`${till.name} is selling`}
-      action={{ label: 'Back to the till', onPress: till.back }}
-    />
+    <div
+      role="status"
+      className="mb-3 flex min-h-11 items-center gap-2 rounded-control border border-line bg-surface pr-1 pl-3"
+    >
+      <span aria-hidden="true" className="size-1.5 shrink-0 rounded-full bg-ok" />
+      <span className="min-w-0 flex-1 truncate text-caption text-ink-soft">
+        {till.name} is selling
+      </span>
+      <Button variant="ghost" size="sm" onClick={till.back}>
+        Back to the till
+      </Button>
+    </div>
   );
 }
