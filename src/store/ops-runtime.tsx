@@ -637,7 +637,18 @@ interface RecipeState {
 }
 
 /** `state.sheet` while an A3 stock form is open. */
-type StockSheetState = { kind?: string; id?: string; isNew?: boolean };
+type StockSheetState = {
+  kind?: string;
+  id?: string;
+  isNew?: boolean;
+  itemId?: string;
+  itemName?: string;
+  itemDefinition?: string;
+  priceId?: string;
+  addPrice?: boolean;
+  supplierStamp?: string;
+  priceStamps?: Record<string, string>;
+};
 
 /** The engine's own order actions, replaced in live mode by the ones that ask the database (B3). */
 interface OrderActions {
@@ -4269,6 +4280,124 @@ export class OpsRuntime extends OpsProvider {
     };
   }
 
+  private editStockSupplier(id?: string, itemId?: string, priceId?: string): void {
+    const c = this.stockCatalogue;
+    if (!isLiveMode() || this.unmounted || this.state.role !== 'owner' || !c) return;
+    const item = itemId ? c.items.find((row) => row.id === itemId) : undefined;
+    const supplier = id ? c.suppliers.find((row) => row.id === id) : undefined;
+    if (
+      (id && !supplier) ||
+      (itemId &&
+        (!item?.active ||
+          this.state.screen !== 'inventory' ||
+          this.state.liveStockOpen !== itemId)) ||
+      (priceId &&
+        !c.prices.some(
+          (row) => row.id === priceId && row.supplierId === id && row.itemName === item?.name
+        ))
+    ) {
+      this.toast('This item or supplier changed. Reopen its prices before editing.', 'warn');
+      return;
+    }
+    this.stockNewPriceId = crypto.randomUUID();
+    if (!id) this.stockNewId = crypto.randomUUID();
+    this.sheet('stocksuppliers', {
+      id: id ?? this.stockNewId,
+      isNew: !id,
+      itemId,
+      itemName: item?.name,
+      itemDefinition: item
+        ? JSON.stringify([item.name, item.unit, item.packSize, item.packLabel])
+        : undefined,
+      priceId,
+      addPrice: !!itemId && !priceId,
+      supplierStamp: supplier?.updatedAt,
+      priceStamps: itemId
+        ? Object.fromEntries(
+            c.prices.filter((row) => row.supplierId === id).map((row) => [row.id, row.updatedAt])
+          )
+        : undefined
+    });
+  }
+
+  private itemPriceContextCurrent(sheet: StockSheetState): boolean {
+    const item = this.stockCatalogue?.items.find((row) => row.id === sheet.itemId);
+    return (
+      this.state.screen === 'inventory' &&
+      this.state.liveStockOpen === sheet.itemId &&
+      item?.active === true &&
+      item.name === sheet.itemName &&
+      JSON.stringify([item.name, item.unit, item.packSize, item.packLabel]) === sheet.itemDefinition
+    );
+  }
+
+  private itemPriceEditorCurrent(sheet: StockSheetState): boolean {
+    if (!this.itemPriceContextCurrent(sheet)) return false;
+    const supplier = this.stockCatalogue?.suppliers.find((row) => row.id === sheet.id);
+    if (sheet.isNew) return !supplier;
+    if (!supplier || supplier.updatedAt !== sheet.supplierStamp) return false;
+    const prices = this.stockCatalogue?.prices.filter((row) => row.supplierId === sheet.id) ?? [];
+    const stamps = sheet.priceStamps ?? {};
+    return (
+      prices.length === Object.keys(stamps).length &&
+      prices.every((row) => stamps[row.id] === row.updatedAt)
+    );
+  }
+
+  /** Accepts only what this very save wrote; anyone else's change still makes the editor refuse. */
+  private restampItemPriceEditor(
+    sheet: StockSheetState,
+    savedSupplier: boolean,
+    savedPrices: readonly string[]
+  ): void {
+    if (!savedSupplier && !savedPrices.length) return;
+    const c = this.stockCatalogue;
+    const supplierStamp = savedSupplier
+      ? c?.suppliers.find((row) => row.id === sheet.id)?.updatedAt
+      : sheet.supplierStamp;
+    const priceStamps = { ...(sheet.priceStamps ?? {}) };
+    for (const id of savedPrices) {
+      const stamp = c?.prices.find((row) => row.id === id)?.updatedAt;
+      if (stamp) priceStamps[id] = stamp;
+    }
+    this.setState({ sheet: { ...sheet, isNew: false, supplierStamp, priceStamps } } as never);
+  }
+
+  private preferredPriceSupplier(item: StockItem | undefined): string | undefined {
+    const c = this.stockCatalogue;
+    if (!c || !item) return undefined;
+    const primary = c.suppliers.find((row) => row.id === item.supplierId && row.active);
+    if (primary) return primary.id;
+    const preferred = new Set(
+      c.prices
+        .filter(
+          (row) =>
+            row.itemName === item.name &&
+            row.active &&
+            row.preferred &&
+            c.suppliers.some((supplier) => supplier.id === row.supplierId && supplier.active)
+        )
+        .map((row) => row.supplierId)
+    );
+    return preferred.size === 1 ? [...preferred][0] : undefined;
+  }
+
+  private openItemPriceEditor(id: string, choose = false): void {
+    const item = this.stockCatalogue?.items.find((row) => row.id === id);
+    if (
+      !isLiveMode() ||
+      this.unmounted ||
+      this.state.role !== 'owner' ||
+      !item?.active ||
+      this.state.liveStockOpen !== id ||
+      this.state.screen !== 'inventory'
+    )
+      return;
+    const supplier = choose ? undefined : this.preferredPriceSupplier(item);
+    if (supplier) this.editStockSupplier(supplier, id);
+    else this.sheet('stocksuppliers', { itemId: id, itemName: item.name, addPrice: true });
+  }
+
   private liveStockSuppliersVals(forDirectory = false): OpsVals['liveStockSuppliers'] {
     const sheet = this.state.sheet as StockSheetState | null;
     const sh = !forDirectory && sheet?.kind === 'stocksuppliers' ? sheet : null;
@@ -4281,6 +4410,7 @@ export class OpsRuntime extends OpsProvider {
     )
       return null;
     const found = sh?.id ? c.suppliers.find((s) => s.id === sh.id) : undefined;
+    const context = sh?.itemId ? c.items.find((row) => row.id === sh.itemId) : undefined;
     const pesos = (cents: number) => '₱' + centavosToPesos(cents).toLocaleString('en-PH');
     const pricesFor = (id: string): LiveStockPriceRow[] =>
       c.prices
@@ -4298,15 +4428,7 @@ export class OpsRuntime extends OpsProvider {
             : 'First price'
         }));
     const edit = (id?: string) => {
-      if (!isLiveMode() || this.unmounted || this.state.role !== 'owner' || !this.stockCatalogue)
-        return;
-      if (id && !this.stockCatalogue.suppliers.some((s) => s.id === id)) {
-        this.toast('This supplier is unavailable.', 'warn');
-        return;
-      }
-      this.stockNewPriceId = crypto.randomUUID();
-      if (!id) this.stockNewId = crypto.randomUUID();
-      this.sheet('stocksuppliers', id ? { id } : { isNew: true });
+      if (!sh?.itemId || this.state.sheet === sh) this.editStockSupplier(id, sh?.itemId);
     };
     let editing: LiveStockSupplierEdit | null = null;
     if (sh?.isNew)
@@ -4330,10 +4452,18 @@ export class OpsRuntime extends OpsProvider {
         notes: found.notes,
         place: found.place,
         active: found.active,
-        prices: pricesFor(found.id),
-        newPriceId: this.stockNewPriceId
+        prices: pricesFor(found.id).sort(
+          (a, b) => Number(b.itemName === context?.name) - Number(a.itemName === context?.name)
+        ),
+        newPriceId: this.stockNewPriceId,
+        newPriceDefaults: context?.active
+          ? { itemName: context.name, packLabel: context.packLabel.trim() }
+          : undefined,
+        focusNewPrice: sh?.addPrice,
+        focusPriceId: sh?.priceId
       };
     return {
+      itemContextName: context?.name,
       online: this.stockOnline(),
       rows: c.suppliers.map((s) => ({
         id: s.id,
@@ -4350,15 +4480,22 @@ export class OpsRuntime extends OpsProvider {
       version: this.stockVersion,
       add: () => edit(),
       edit,
-      save: (f) => void this.saveStockSupplierForm(f),
-      backLabel:
-        this.state.screen === 'suppliers'
+      save: (f) => {
+        if (sh && this.state.sheet === sh && editing && editing.id === f.id)
+          void this.saveStockSupplierForm(f);
+      },
+      backLabel: sh?.itemId
+        ? 'Back to item prices'
+        : this.state.screen === 'suppliers'
           ? editing?.isNew
             ? 'Back to suppliers'
             : 'Back to supplier'
           : undefined,
-      back: () =>
-        this.state.screen === 'suppliers' ? this.closeSheet() : this.sheet('stocksuppliers', {}),
+      back: () => {
+        if (sh && this.state.sheet !== sh) return;
+        if (sh?.itemId || this.state.screen === 'suppliers') this.closeSheet();
+        else this.sheet('stocksuppliers', {});
+      },
       close: () => this.closeSheet()
     };
   }
@@ -4375,7 +4512,18 @@ export class OpsRuntime extends OpsProvider {
       return;
     if (outcome === 'saved') {
       this.toast(STOCK_COPY.saved);
-      if (kind === 'stocksuppliers' && this.state.screen === 'suppliers') {
+      if (
+        kind === 'stocksuppliers' &&
+        originSheet?.itemId &&
+        originSheet.isNew &&
+        this.itemPriceContextCurrent(originSheet) &&
+        this.stockCatalogue?.suppliers.some((row) => row.id === originSheet.id && row.active)
+      ) {
+        this.editStockSupplier(originSheet.id, originSheet.itemId);
+      } else if (
+        kind === 'stocksuppliers' &&
+        (this.state.screen === 'suppliers' || originSheet?.itemId)
+      ) {
         if ((this.state.sheet as StockSheetState | null)?.kind === kind) this.closeSheet();
       } else this.sheet(kind, {});
       return;
@@ -4424,6 +4572,12 @@ export class OpsRuntime extends OpsProvider {
   /** The supplier, then each new or changed price, one at a time and each with its own stamp; stops at the first failure. */
   private async saveStockSupplierForm(f: LiveStockSupplierEdit): Promise<void> {
     const originSheet = this.state.sheet as StockSheetState | null;
+    if (!isLiveMode() || this.unmounted || this.state.role !== 'owner') return;
+    if (originSheet?.itemId && !this.itemPriceEditorCurrent(originSheet))
+      return void this.toast(
+        'This item or its supplier prices changed. Reopen its prices before saving.',
+        'warn'
+      );
     const client = this.stockClient;
     const c = this.stockCatalogue;
     if (!client || !c) return void this.toast(STAFF_COPY.offline, 'warn');
@@ -4472,25 +4626,37 @@ export class OpsRuntime extends OpsProvider {
       wasSupplier.notes === supplier.notes.trim() &&
       wasSupplier.place === supplier.place.trim() &&
       wasSupplier.active === supplier.active;
+    if (supplierSame && !priceJobs.length) {
+      // Opened to add this item's price and none was typed: stay, so what was meant is not lost.
+      if (originSheet?.itemId && !f.prices.some((row) => row.itemName === originSheet.itemName))
+        return void this.toast('No changes to save. Enter a price to add one.', 'warn');
+      this.toast('No changes to save.');
+      if (originSheet?.itemId || this.state.screen === 'suppliers') this.closeSheet();
+      else this.sheet('stocksuppliers', {});
+      return;
+    }
+    // What this save has done so far: a later failure must not make the retry look like someone else's change.
+    let savedSupplier = false;
+    const savedPrices: string[] = [];
+    const stopped = async (outcome: SaveOutcome) => {
+      await this.finishStockSave(
+        outcome,
+        'stocksuppliers',
+        STOCK_COPY.refusedSupplier,
+        originSheet
+      );
+      if (originSheet?.itemId && this.state.sheet === originSheet)
+        this.restampItemPriceEditor(originSheet, savedSupplier, savedPrices);
+    };
     if (!supplierSame) {
       const outcome = await saveSupplier(client, supplier, wasSupplier?.updatedAt ?? null);
-      if (outcome !== 'saved')
-        return void (await this.finishStockSave(
-          outcome,
-          'stocksuppliers',
-          STOCK_COPY.refusedSupplier,
-          originSheet
-        ));
+      if (outcome !== 'saved') return void (await stopped(outcome));
+      savedSupplier = true;
     }
     for (const job of priceJobs) {
       const outcome = await saveSupplierPrice(client, job.fields, job.stamp);
-      if (outcome !== 'saved')
-        return void (await this.finishStockSave(
-          outcome,
-          'stocksuppliers',
-          STOCK_COPY.refusedSupplier,
-          originSheet
-        ));
+      if (outcome !== 'saved') return void (await stopped(outcome));
+      savedPrices.push(job.fields.id);
     }
     await this.finishStockSave('saved', 'stocksuppliers', STOCK_COPY.refusedSupplier, originSheet);
   }
@@ -5496,12 +5662,21 @@ export class OpsRuntime extends OpsProvider {
             pricesOpen: this.state.liveStockPriceOpen === true,
             openPrices: () => this.setItemPricesOpen(open.id, true),
             closePrices: () => this.setItemPricesOpen(open.id, false),
+            managePrices: open.active ? () => this.openItemPriceEditor(open.id) : undefined,
+            chooseSupplier:
+              open.active && this.preferredPriceSupplier(c.items.find((row) => row.id === open.id))
+                ? () => this.openItemPriceEditor(open.id, true)
+                : undefined,
             priceSources: c.prices
               .filter((price) => price.itemName === open.name)
               .map((price) => {
                 const supplier = c.suppliers.find((row) => row.id === price.supplierId);
                 return {
                   id: price.id,
+                  edit:
+                    open.active && supplier
+                      ? () => this.editStockSupplier(supplier.id, open.id, price.id)
+                      : undefined,
                   supplierName: supplier?.name ?? 'Supplier unavailable',
                   packText: price.packLabel || 'Pack not specified',
                   priceText: peso(price.priceCents),
