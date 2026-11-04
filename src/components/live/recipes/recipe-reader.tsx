@@ -58,13 +58,13 @@ export function RecipeReader({ page, onCosts }: { page: Page; onCosts: () => voi
   const [cookies, setCookies] = useState(page.savedYield ? String(page.savedYield) : '');
   const photo = resolveImagePath(page.photo);
   const batch = Number(cookies);
-  const scalable = page.savedYield > 0 && batch > 0;
+  const scalable = page.savedYield > 0 && Number.isSafeInteger(batch) && batch > 0;
   const amount = (line: Line) => {
     const scaled = scaleQty(line.qty, page.savedYield, batch);
     return scaled === null ? line.amountText : formatQuantity(scaled, line.unit);
   };
   const rows = scalable ? batchStock(page.rows, page.stock ?? [], page.savedYield, batch) : [];
-  const attention = rows.filter((row) => row.state === 'short' || row.state === 'notCounted');
+  const attention = rows.filter((row) => row.state !== 'enough');
   return (
     <section data-screen-label="Recipes" className={styles.page} aria-label="Saved recipe">
       <Button className="self-start" onClick={page.back}>
@@ -141,6 +141,10 @@ export function RecipeReader({ page, onCosts }: { page: Page; onCosts: () => voi
           <Panel title="Stock for this batch">
             {!scalable ? (
               <p className={styles.note}>Enter how many cookies to make.</p>
+            ) : !page.stock ? (
+              <p className={styles.note}>
+                Inventory has not been read yet. Stock for this batch is unknown.
+              </p>
             ) : attention.length === 0 ? (
               <p className={styles.note}>Recorded stock covers this batch.</p>
             ) : (
@@ -153,7 +157,9 @@ export function RecipeReader({ page, onCosts }: { page: Page; onCosts: () => voi
                     detail={
                       row.state === 'short'
                         ? `Short by ${formatQuantity(row.short, row.unit)}`
-                        : STOCK_WORDS[row.state]
+                        : row.state === 'notTracked' && item && item.unit !== row.unit
+                          ? 'Stock unit differs from recipe'
+                          : STOCK_WORDS[row.state]
                     }
                     action={
                       item?.count ? (

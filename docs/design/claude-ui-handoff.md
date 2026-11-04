@@ -6,6 +6,10 @@ the scope to Home, Money or Shop. Read AGENTS.md, current.md and next-goal.md be
 
 ## Current work and how to detect it
 
+- **Isolated Codex follow-up:** read [performance follow-up](performance-followup-2026-11-04.md).
+  Based on d21d302; display-format reuse and truthful recipe stock coverage are prepared on
+  `codex/render-performance-followup`, outside Claude's checkout. Do not assume they are integrated.
+
 - **Status, 4 November, night: read [coverage](reference-v4/coverage.md) first.** It lists all 85 mockup
   routes with their place in the app, status and gap, and how to build (kit, classes with injected
   dependencies, slots). Update it in the same commit as a page. [flows](reference-v4/flows.md) is generated from

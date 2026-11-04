@@ -9,6 +9,10 @@ import { COST_COPY, STOCK_COPY } from '@/lib/orders/staff-copy';
  */
 
 const MINUS = '−';
+const QUANTITY_FORMAT = new Intl.NumberFormat('en-PH', {
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 3
+});
 
 /**
  * Out at 0 on hand (or less, or unreadable). Low when on hand is below the item's level. Good otherwise. An item with no level
@@ -21,18 +25,15 @@ export function stockStatus(onHand: number, level: number | null | undefined): S
 }
 
 /** A number with thousands separators and up to three decimals; a true minus; never negative zero. */
-function plain(n: number, maxDecimals: number): string {
-  const text = Math.abs(n).toLocaleString('en-PH', {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: maxDecimals
-  });
+function plain(n: number): string {
+  const text = QUANTITY_FORMAT.format(Math.abs(n));
   const isZero = Number(text.replace(/,/g, '')) === 0;
   return n < 0 && !isZero ? MINUS + text : text;
 }
 
 /** "1,250 g". */
 export function formatQuantity(qty: number, unit: string): string {
-  return plain(qty, 3) + ' ' + unit;
+  return plain(qty) + ' ' + unit;
 }
 
 /** "Low below 500 g", or "No level set". */
@@ -44,7 +45,7 @@ export function levelText(level: number | null | undefined, unit: string): strin
 /** "+500 g", "−120 g", "0 g": the change in on-hand, signed, with the unit. */
 export function changeText(delta: number, unit: string): string {
   const text = formatQuantity(delta, unit);
-  return delta > 0 && Number(plain(delta, 3).replace(/,/g, '')) !== 0 ? '+' + text : text;
+  return delta > 0 && Number(plain(delta).replace(/,/g, '')) !== 0 ? '+' + text : text;
 }
 
 /** "3 Oct": the shop's day, day then month whatever the device's locale says about the order of the two. */
