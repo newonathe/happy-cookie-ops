@@ -4,6 +4,7 @@
  * renderVals() returns and the ported markup reads. Widen a type here only together
  * with the engine change that produces it — see docs/PORTING.md.
  */
+import type { LiveCustomers } from '@/store/customer-desk';
 import type { LiveMake } from '@/store/make-desk';
 import type { MoneyEntryView } from '@/store/money-entry';
 import type * as React from 'react';
@@ -406,6 +407,8 @@ export interface OpsVals {
    * here that the books do not already sum. `loaded` is false until the books are read.
    */
   liveMoney?: LiveMoney | null;
+  /** Live owner only: customers, from their orders. */
+  liveCustomers?: LiveCustomers | null;
   /** Live owner only: what the Make pages need beyond the engine's rows. */
   liveMake?: LiveMake | null;
   /** Live owner only: Home's facts, each null until its own source has loaded. */

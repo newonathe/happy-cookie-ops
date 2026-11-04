@@ -36,7 +36,7 @@ afterEach(() => {
   live = true;
 });
 
-it('opens product editing in the neutral themed modal with the existing form and close action', () => {
+it('opens the product form as a page in the frame, with the existing form and close action', () => {
   const runtime = mount();
   act(() => runtime.setState({ sheet: { kind: 'flavours', pid: 'qa-cookie' } }));
   const vals = runtime.renderVals();
@@ -64,14 +64,11 @@ it('opens product editing in the neutral themed modal with the existing form and
       onAccount={() => undefined}
     />
   );
-  const modal = screen.getByRole('dialog', { name: 'Edit QA cookie' });
-  expect(modal.parentElement?.className).toMatch(/theme/);
-  expect(within(modal).getByRole('button', { name: 'Publish menu' })).toBeTruthy();
-  const notice = within(modal).getByRole('status');
-  expect(notice).toHaveTextContent('Batch kept. Continue it from Make.');
+  expect(screen.queryByRole('dialog')).toBeNull();
+  expect(screen.getByRole('heading', { name: 'Menu & flavours' })).toBeTruthy();
+  expect(screen.getByRole('button', { name: 'Publish menu' })).toBeTruthy();
   expect(screen.getAllByText('Batch kept. Continue it from Make.')).toHaveLength(1);
-  expect(notice.style.position).not.toBe('fixed');
-  fireEvent.click(within(modal).getByRole('button', { name: 'Close Edit QA cookie' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Back' }));
   expect(close).toHaveBeenCalledTimes(1);
 });
 
