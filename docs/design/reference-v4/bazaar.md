@@ -14,7 +14,7 @@ Read ../reference-v4-page-contracts.md for source, capture method and proof limi
 ## till — Sell at the bazaar
 
 - Structure: Sell at the bazaar → Double Chocolate Fudge → Happy Camper → White Chocolate Biscoff → PB & Miso → Red Velvet Cheesecake → Nutella Churro → Ube Coconut Crinkle → Espresso Brownie → Apple Pie → Recent sales → Current sale
-- Captured controls: Close day; Settings; Edit sale; Charge; Double Chocolate Fudge12 left on the table₱130.00+ Add; Happy Camper10 left on the table₱140.00+ Add; White Chocolate Biscoff14 left on the table₱145.00+ Add; PB & Miso10 left on the table₱80.00+ Add; Red Velvet Cheesecake8 left on the table₱150.00+ Add; Nutella Churro6 left on the table₱200.00+ Add; Ube Coconut Crinkle0 left on the table₱110.00+ Add; Espresso Brownie0 left on the table₱110.00+ Add; Apple Pie0 left on the table₱155.00+ Add; S-003Cash · Sent₱470.00; S-002Wallet · Sent₱560.00; S-001Cash · Sent₱650.00; Back to cookies; Charge ₱0.00; Add cookies; Loss / giveaway; Fees & expenses; All events
+- Captured controls: Close day; Settings; Edit sale; Charge; Double Chocolate Fudge12 left on the table₱N+ Add; Happy Camper10 left on the table₱N+ Add; White Chocolate Biscoff14 left on the table₱N+ Add; PB & Miso10 left on the table₱N+ Add; Red Velvet Cheesecake8 left on the table₱N+ Add; Nutella Churro6 left on the table₱N+ Add; Ube Coconut Crinkle0 left on the table₱N+ Add; Espresso Brownie0 left on the table₱N+ Add; Apple Pie0 left on the table₱N+ Add; S-003Cash · Sent₱N; S-002Wallet · Sent₱N; S-001Cash · Sent₱N; Back to cookies; Charge ₱N; Add cookies; Loss / giveaway; Fees & expenses; All events
 - Fields: No separate field metadata; inspect the prepared capture/DOM.
 - Reference images: screenshots/till-baseline-1440.png; screenshots/till-baseline-390.png
 - Existing source: src/components/live/bazaar/bazaar-live.tsx; src/components/live/bazaar/till.tsx; src/store/bazaar-days.ts
@@ -140,7 +140,7 @@ Read ../reference-v4-page-contracts.md for source, capture method and proof limi
 ## classic-till — Classic till
 
 - Structure: Classic till
-- Captured controls: Use card till; −; +; Charge ₱0.00
+- Captured controls: Use card till; −; +; Charge ₱N
 - Fields: No separate field metadata; inspect the prepared capture/DOM.
 - Reference images: screenshots/classic-till-baseline-1440.png; screenshots/classic-till-baseline-390.png
 - Existing source: src/components/live/bazaar/bazaar-live.tsx; src/components/live/bazaar/till.tsx; src/store/bazaar-days.ts

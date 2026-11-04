@@ -32,6 +32,8 @@ import { registerLiveBazaarScreens } from '@/components/live/bazaar/register';
 import { registerLiveRecipeScreens } from '@/components/live/recipes/register';
 import { registerLiveMoneyScreens } from '@/components/live/money/register';
 import { registerLiveHomeScreens } from '@/components/live/home/register';
+import { registerLiveSellScreens } from '@/components/live/sell/register';
+import { registerLiveAccountScreens } from '@/components/live/account/register';
 import { OfflineHold } from './offline-hold';
 import { SignOutControl } from './sign-out-control';
 
@@ -45,6 +47,9 @@ registerLiveRecipeScreens();
 registerLiveMoneyScreens();
 // The live Home takes the `today` slot: real orders, stock, unfinished work and this month.
 registerLiveHomeScreens();
+// The live Sell pages take `orders`, `order`, `reconcile` and `drops`; Account takes `settings`, `health` and `notifications`.
+registerLiveSellScreens();
+registerLiveAccountScreens();
 
 /** How long one identity check may take before the gate treats the server as unreachable. */
 export const CHECK_TIMEOUT_MS = 8_000;

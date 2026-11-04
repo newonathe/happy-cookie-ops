@@ -64,7 +64,7 @@ If a task seems to require one of these, stop and say so before writing code.
 - **Server behaviour:** Architecture A (2026-09-26): a Postgres RPC in a **new** migration (`SECURITY DEFINER`, `search_path=''`, in-function role check, explicit grants), called from the browser with `supabase-js`. RLS is the security boundary. The Pages BFF (`spikes/pages`, `spikes/cleanup-worker`, `src/lib/auth/session-*`, `persistent-session-authority`, `session-crypto`, `supabase-auth-transport`) is archived: do not extend it. `src/app/api/*` serves only the Vercel demo
 - **Schema:** a new file in `supabase/migrations/`
 - **Offline behaviour:** `src/lib/offline/` — read `docs/OFFLINE.md` first
-- **Anything visual:** Check `docs/SCREENS.md` first — the screenshot is the answer key
+- **Anything visual:** Check `docs/SCREENS.md` first — the screenshot is the answer key. Live owner pages: `docs/design/reference-v4/coverage.md`
 - **Rate limit on a public RPC:** Inside the RPC: call `consume_rate_limit` (service_role-only; reachable from a `SECURITY DEFINER` function owned by `postgres`). `src/lib/rate-limit.ts` and `src/lib/idempotency.ts` are legacy with no production callers: they fail open and trust `X-Forwarded-For`. Do not extend them
 - **A business rule the owner must decide:** [docs/state/decision-register.md](docs/state/decision-register.md). The prototype and specs are evidence, not decisions
 - **Anything sent to a customer:** `src/lib/messaging/` — read `docs/MESSAGING.md`; it costs her money

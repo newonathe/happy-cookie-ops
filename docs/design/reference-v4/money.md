@@ -5,7 +5,7 @@ Read ../reference-v4-page-contracts.md for source, capture method and proof limi
 ## money — Money
 
 - Structure: Money → Transactions
-- Captured controls: Record expense; Settings; Earlier ingredient purchases2026-10-10 · Purchases−₱5,100.00; Earlier orders2026-10-12 · Sales₱8,400.00; Packaging purchase2026-10-30 · Purchases−₱100.00; Earlier market · stall rent2026-11-01 · Stall rent−₱2,000.00; Customer orders2026-10-31 · Sales₱3,600.00; Record owner draw; Export this period
+- Captured controls: Record expense; Settings; Earlier ingredient purchasesDATE · Purchases−₱N; Earlier ordersDATE · Sales₱N; Packaging purchaseDATE · Purchases−₱N; Earlier market · stall rentDATE · Stall rent−₱N; Customer ordersDATE · Sales₱N; Record owner draw; Export this period
 - Fields: Period; Transactions
 - Reference images: screenshots/money-baseline-1440.png; screenshots/money-baseline-390.png
 - Existing source: src/components/live/money/money-live.tsx; src/lib/data/books.ts

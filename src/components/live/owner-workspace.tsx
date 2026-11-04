@@ -34,6 +34,8 @@ import { ShopScreen } from '@/components/screens/shop';
 import { CheckoutScreen } from '@/components/screens/checkout';
 import { OrderStatusScreen } from '@/components/screens/order-status';
 import { LiveScreenHost } from './live-screen-host';
+import { CustomersLive } from './sell/customers-live';
+import { ShopStatusLive } from './sell/shop-live';
 import { PageTitle } from '@/components/ui/owner-kit';
 import styles from './owner-workspace.module.css';
 import theme from './owner-theme.module.css';
@@ -91,8 +93,24 @@ function usesLiveModal(v: OpsVals) {
  * Settings forms that read as pages of their section (client v4): a title, the form and a Back to
  * where the owner came from. Closing is the form's own close, so drafts and saves are unchanged.
  */
-function pageFormOf(v: OpsVals): { title: string; subtitle: string; close: () => void } | null {
+function pageFormOf(
+  v: OpsVals
+): { title: string; subtitle: string; close: () => void; body?: ComponentType<{ v: OpsVals }> } | null {
   if (!v.sheet) return null;
+  if (v.sheet.isCustomers)
+    return {
+      title: 'Customers/Waitlist',
+      subtitle: 'Who is ordering, and who is waiting for the next drop.',
+      close: v.closeSheet,
+      body: CustomersLive
+    };
+  if (v.sheet.isDropState)
+    return {
+      title: 'Shop status',
+      subtitle: 'Whether customers can order right now.',
+      close: v.closeSheet,
+      body: ShopStatusLive
+    };
   if (v.liveOrderRules)
     return {
       title: 'Order rules',
@@ -130,7 +148,7 @@ function PageForm({ v, page }: { v: OpsVals; page: NonNullable<ReturnType<typeof
   return (
     <div ref={heading} className={styles.page}>
       <PageTitle title={page.title} subtitle={page.subtitle} />
-      <LiveFormHost v={v} />
+      {page.body ? <page.body v={v} /> : <LiveFormHost v={v} />}
     </div>
   );
 }
