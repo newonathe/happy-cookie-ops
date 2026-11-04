@@ -420,4 +420,71 @@ describe('the add-event sheet', () => {
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
     await waitFor(() => expect(screen.getByRole('button', { name: 'Add an event' })).toHaveFocus());
   });
+
+  it('a late reply from a cancelled opening cannot close or overwrite a newer draft', async () => {
+    let finish: (value: string | null) => void = () => undefined;
+    const pending = new Promise<string | null>((resolve) => {
+      finish = resolve;
+    });
+    render(<Host addEvent={vi.fn(() => pending)} />);
+    open();
+    type('Name', 'First event');
+    type('First day', '2026-12-12');
+    fireEvent.click(screen.getByRole('button', { name: 'Save the event' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    open();
+    type('Name', 'Second event draft');
+    const name = screen.getByLabelText('Name');
+    name.focus();
+    await act(async () => {
+      finish(null);
+      await pending;
+    });
+    expect(screen.getByRole('dialog', { name: 'Add an event' })).toBeTruthy();
+    expect(screen.queryByRole('heading', { name: 'Bazaar events' })).toBeNull();
+    expect((screen.getByLabelText('Name') as HTMLInputElement).value).toBe('Second event draft');
+    expect(name).toHaveFocus();
+  });
+
+  it('a cancelled opening’s late reply cannot change the directory filter', async () => {
+    let finish: (value: string | null) => void = () => undefined;
+    const pending = new Promise<string | null>((resolve) => {
+      finish = resolve;
+    });
+    render(<Host addEvent={() => pending} />);
+    open();
+    type('Name', 'First event');
+    type('First day', '2026-12-12');
+    fireEvent.click(screen.getByRole('button', { name: 'Save the event' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    fireEvent.click(screen.getByRole('button', { name: 'Past 0' }));
+    await act(async () => {
+      finish(null);
+      await pending;
+    });
+    expect(screen.getByRole('button', { name: 'Past 0' })).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('a reply after leaving the directory cannot change its retained filter', async () => {
+    let finish: (value: string | null) => void = () => undefined;
+    const pending = new Promise<string | null>((resolve) => {
+      finish = resolve;
+    });
+    const setListFilter = vi.fn();
+    const view = render(
+      <EventList bazaar={vals({ list: LIST, setListFilter, addEvent: () => pending })} />
+    );
+    open();
+    type('Name', 'First event');
+    type('First day', '2026-12-12');
+    fireEvent.click(screen.getByRole('button', { name: 'Save the event' }));
+    view.unmount();
+    await act(async () => {
+      finish(null);
+      await pending;
+    });
+    expect(setListFilter).not.toHaveBeenCalled();
+  });
 });

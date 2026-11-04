@@ -49,6 +49,14 @@ export function EventList({ bazaar }: { bazaar: LiveBazaarVals }) {
   const setChip = bazaar.setListFilter ?? setLocalChip;
   // The sheet stays mounted after it closes so its exit can play; a fresh key per opening gives it a fresh event id.
   const [sheet, setSheet] = useState<{ n: number; open: boolean } | null>(null);
+  const sheetGeneration = useRef(0);
+  const mounted = useRef(false);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
 
   // `bazaar` is rebuilt on every render, so the read is called through a ref, once the bookings are in.
   const latest = useRef(bazaar.readHub);
@@ -64,10 +72,18 @@ export function EventList({ bazaar }: { bazaar: LiveBazaarVals }) {
   const upcoming = bazaar.list.filter((r) => r.group === 'upcoming');
   const past = bazaar.list.filter((r) => r.group === 'past');
   const shown = chip === 'upcoming' ? upcoming : past;
-  const openSheet = () => setSheet((s) => ({ n: (s?.n ?? 0) + 1, open: true }));
-  const closeSheet = () => {
-    setSheet((s) => (s ? { ...s, open: false } : s));
-    requestAnimationFrame(() => addButton.current?.querySelector('button')?.focus());
+  const openSheet = () => {
+    if (mounted.current) setSheet({ n: ++sheetGeneration.current, open: true });
+  };
+  const closeSheet = (opening: number): boolean => {
+    if (!mounted.current || sheetGeneration.current !== opening) return false;
+    const closed = ++sheetGeneration.current;
+    setSheet((s) => (s?.n === opening ? { ...s, open: false } : s));
+    requestAnimationFrame(() => {
+      if (mounted.current && sheetGeneration.current === closed)
+        addButton.current?.querySelector('button')?.focus();
+    });
+    return true;
   };
 
   return (
@@ -194,10 +210,9 @@ export function EventList({ bazaar }: { bazaar: LiveBazaarVals }) {
           key={sheet.n}
           bazaar={bazaar}
           open={sheet.open}
-          onClose={closeSheet}
+          onClose={() => closeSheet(sheet.n)}
           onSaved={() => {
-            closeSheet();
-            setChip('upcoming');
+            if (closeSheet(sheet.n)) setChip('upcoming');
           }}
         />
       ) : null}
