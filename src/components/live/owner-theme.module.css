@@ -31,8 +31,14 @@
   color: var(--color-ink);
 }
 @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
-  .theme { --owner-popover-surface: var(--color-surface); --owner-popover-filter: none; }
+  .theme {
+    --owner-popover-surface: var(--color-surface);
+    --owner-popover-filter: none;
+  }
 }
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  .theme { --owner-popover-surface: var(--color-surface); --owner-popover-filter: none; }
+  .theme {
+    --owner-popover-surface: var(--color-surface);
+    --owner-popover-filter: none;
+  }
 }

@@ -12,7 +12,11 @@ import type { ScreenKey } from '@/lib/screens';
 import type { LiveStockVals } from '@/lib/stock/live-stock-types';
 import type { LiveBazaarVals } from '@/lib/bazaar/live-bazaar-types';
 import type { LiveRecipesVals } from '@/lib/recipes/live-recipes-types';
-import type { LiveBatchCounts, LiveProductionVals, LiveDoughPreparation } from '@/lib/production/live-production-types';
+import type {
+  LiveBatchCounts,
+  LiveProductionVals,
+  LiveDoughPreparation
+} from '@/lib/production/live-production-types';
 
 /** Every field the live flavour editor's form submits (MP-09 c1c), pesos not centavos. */
 export interface LiveFlavourFormFields {
@@ -1901,7 +1905,16 @@ export interface LiveHome {
   month: { revenue: number; expenses: number; profit: number } | null;
   flavours: number;
   go: Record<
-    'orders' | 'payments' | 'production' | 'stock' | 'receive' | 'count' | 'products' | 'shopping' | 'money' | 'bazaar',
+    | 'orders'
+    | 'payments'
+    | 'production'
+    | 'stock'
+    | 'receive'
+    | 'count'
+    | 'products'
+    | 'shopping'
+    | 'money'
+    | 'bazaar',
     () => void
   >;
 }

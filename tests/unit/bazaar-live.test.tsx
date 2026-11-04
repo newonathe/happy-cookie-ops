@@ -414,15 +414,25 @@ describe('S2: with an event on the phone, the ported till is drawn unchanged', (
   for (const classic of [false, true]) {
     it(`opens Events first from the main navigation with a held ${classic ? 'classic' : 'new'} till`, async () => {
       if (classic) localStorage.setItem('hc-live-classic-till', '1');
-      const { runtime, rpc } = await mount('owner'); seedDay(runtime);
+      const { runtime, rpc } = await mount('owner');
+      seedDay(runtime);
       act(() => runtime.setState({ cart: { dcf: 2 } } as never));
-      const held = runtime.state.event, cart = runtime.state.cart, stock = runtime.state.eventStock;
+      const held = runtime.state.event,
+        cart = runtime.state.cart,
+        stock = runtime.state.eventStock;
       act(() => runtime.go('today'));
-      act(() => runtime.renderVals().dockNav.find(item => item.label === 'Bazaar')!.go());
+      act(() =>
+        runtime
+          .renderVals()
+          .dockNav.find((item) => item.label === 'Bazaar')!
+          .go()
+      );
       await settle();
       expect(screen.getByRole('heading', { name: /^Bazaar events$/ })).toBeTruthy();
       expect(screen.getByRole('button', { name: /^Return to selling$/ })).toBeTruthy();
-      expect(runtime.state.event).toBe(held); expect(runtime.state.cart).toBe(cart); expect(runtime.state.eventStock).toBe(stock);
+      expect(runtime.state.event).toBe(held);
+      expect(runtime.state.cart).toBe(cart);
+      expect(runtime.state.eventStock).toBe(stock);
       await click('Return to selling');
       expect(screen.getByRole('button', { name: /^Back to events$/ })).toBeTruthy();
       expect(screen.queryByRole('button', { name: /^Events$/ })).toBeNull();

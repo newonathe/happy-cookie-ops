@@ -6,25 +6,25 @@ page: what the old page could do → where it lives now → evidence. Update in 
 
 ## Feedback status (Ethan's walkthrough list, checked against source 3 November)
 
-| Feedback                                                          | Status                                                                                              |
-| ----------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| Bazaar in left/phone navigation                                   | Done                                                                                                |
-| Bazaar Back and purpose                                           | Partial: Events-first and compact Back are an uncommitted Codex draft                               |
-| Customers → Customers/Waitlist                                    | Label done; still opens the ported sheet                                                            |
-| Shop child pages have Back                                        | Order rules, Boxes & add-ons done (page + Back). Status/methods/texts pending                       |
-| Remove "Unpaid orders allowed per mobile number"                  | Done; saved value sent unchanged                                                                    |
-| Info control on ambiguous toggles                                 | Done on Boxes & add-ons and Order rules (hover, focus, tap)                                         |
-| "Sampler box" name, no max-sampler field                          | Done                                                                                                |
-| Sampler flavour toggles                                           | Done locally: migration 71 `sampler_flavours` (Ethan approved 4 Nov); hosted apply pending approval |
-| No new-box-size free text; fixed sizes                            | Done                                                                                                |
-| Several add-ons; optional choice rows; no max-per-order; no comma | Done                                                                                                |
-| Start production works                                            | Done (earlier slice)                                                                                |
-| Recipe opens that cookie's recipe; no Recipes tab                 | Done (earlier slice)                                                                                |
-| Badge explained; Edit product                                     | Done (earlier slice)                                                                                |
+| Feedback                                                          | Status                                                                                                               |
+| ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| Bazaar in left/phone navigation                                   | Done                                                                                                                 |
+| Bazaar Back and purpose                                           | Partial: Events-first and compact Back are an uncommitted Codex draft                                                |
+| Customers → Customers/Waitlist                                    | Label done; still opens the ported sheet                                                                             |
+| Shop child pages have Back                                        | Order rules, Boxes & add-ons done (page + Back). Status/methods/texts pending                                        |
+| Remove "Unpaid orders allowed per mobile number"                  | Done; saved value sent unchanged                                                                                     |
+| Info control on ambiguous toggles                                 | Done on Boxes & add-ons and Order rules (hover, focus, tap)                                                          |
+| "Sampler box" name, no max-sampler field                          | Done                                                                                                                 |
+| Sampler flavour toggles                                           | Done locally: migration 71 `sampler_flavours` (Ethan approved 4 Nov); hosted apply pending approval                  |
+| No new-box-size free text; fixed sizes                            | Done                                                                                                                 |
+| Several add-ons; optional choice rows; no max-per-order; no comma | Done                                                                                                                 |
+| Start production works                                            | Done (earlier slice)                                                                                                 |
+| Recipe opens that cookie's recipe; no Recipes tab                 | Done (earlier slice)                                                                                                 |
+| Badge explained; Edit product                                     | Done (earlier slice)                                                                                                 |
 | See how many cookies were made                                    | Local counts/history/receipts + stock retry; scoped durable recovery under verification; positive-use detail pending |
-| Stock: Add to inventory, item Count, Back keeps frame, suppliers  | Done (earlier slices)                                                                               |
-| Money red/green                                                   | Done (live Money page)                                                                              |
-| Books & costs in Money settings; Settings in each section         | Money done; other sections still use the tools disclosure                                           |
+| Stock: Add to inventory, item Count, Back keeps frame, suppliers  | Done (earlier slices)                                                                                                |
+| Money red/green                                                   | Done (live Money page)                                                                                               |
+| Books & costs in Money settings; Settings in each section         | Money done; other sections still use the tools disclosure                                                            |
 
 ## Codex follow-up, 4 November
 
@@ -36,23 +36,23 @@ front-facing continuation instructions. No hosted mutation or independent accept
 
 ## Home (`today`) — `src/components/live/home/home-live.tsx`
 
-| Old capability                                 | New home                                                                       | Evidence                         |
-| ---------------------------------------------- | ------------------------------------------------------------------------------ | -------------------------------- |
-| Greeting and date                              | Title                                                                          | screenshot 390/1240              |
-| Drop open/closed and closing time              | Title action "Shop open · Closes …" → Shop                                     | screenshot                       |
-| Cookies to bake + Start baking                 | "Start production" tile shows the count → Make                                 | screenshot                       |
-| Low stock / item short                         | Stock panel: status bar + Out/Low/Not counted rows with Open item / Count      | `ops-runtime-home-live.test.tsx` |
-| System health warning + Review                 | "Needs attention" row → health                                                 | screenshot                       |
-| Profit this month, revenue, expenses           | "This month" panel, signed and coloured → Money                                | test (null before books load)    |
-| Orders / To review / Pickups strip             | Three counts: Payments to check, Orders to prepare, Ready for pickup           | test                             |
+| Old capability                                 | New home                                                                         | Evidence                         |
+| ---------------------------------------------- | -------------------------------------------------------------------------------- | -------------------------------- |
+| Greeting and date                              | Title                                                                            | screenshot 390/1240              |
+| Drop open/closed and closing time              | Title action "Shop open · Closes …" → Shop                                       | screenshot                       |
+| Cookies to bake + Start baking                 | "Start production" tile shows the count → Make                                   | screenshot                       |
+| Low stock / item short                         | Stock panel: status bar + Out/Low/Not counted rows with Open item / Count        | `ops-runtime-home-live.test.tsx` |
+| System health warning + Review                 | "Needs attention" row → health                                                   | screenshot                       |
+| Profit this month, revenue, expenses           | "This month" panel, signed and coloured → Money                                  | test (null before books load)    |
+| Orders / To review / Pickups strip             | Three counts: Payments to check, Orders to prepare, Ready for pickup             | test                             |
 | "Orders" action tile (5 Nov redesign)          | Merged: the Orders panel's "Open orders" and its three counts open the same page | browser check at 1240            |
-| "Buy: item, item" on Shopping list             | Count on the row ("2 items short"); the items are listed in the Stock panel     | screenshot                       |
-| Grocery to buy                                 | "Shopping list" tile shows what to buy                                         | screenshot                       |
-| Live till / next bazaar cards                  | Unchanged (frame host)                                                         | —                                |
-| "Your business" directory of every tool        | Removed as redundant: every entry is in its section or the header Account/bell | function-map                     |
-| "Drop full %" and "x / 200 confirmed" capacity | Not shown on Home (predetermined capacity, not today's work); still on Shop    | —                                |
-| This week / Account tab row                    | Removed duplicate: Account is the header button                                | —                                |
-| Form queue tile                                | Retired integration (28 Sept); address still opens                             | function-map `retired`           |
+| "Buy: item, item" on Shopping list             | Count on the row ("2 items short"); the items are listed in the Stock panel      | screenshot                       |
+| Grocery to buy                                 | "Shopping list" tile shows what to buy                                           | screenshot                       |
+| Live till / next bazaar cards                  | Unchanged (frame host)                                                           | —                                |
+| "Your business" directory of every tool        | Removed as redundant: every entry is in its section or the header Account/bell   | function-map                     |
+| "Drop full %" and "x / 200 confirmed" capacity | Not shown on Home (predetermined capacity, not today's work); still on Shop      | —                                |
+| This week / Account tab row                    | Removed duplicate: Account is the header button                                  | —                                |
+| Form queue tile                                | Retired integration (28 Sept); address still opens                               | function-map `retired`           |
 
 ## Money (`pnl`) — `src/components/live/money/money-live.tsx`
 
@@ -115,81 +115,79 @@ the local database only; applying it to the hosted database needs Ethan's separa
 
 ## Sell, Shop and Account (`src/components/live/sell/`, `src/components/live/account/`)
 
-| Today's capability | New home | Evidence |
-|---|---|---|
-| Orders: review banner, filters with counts, search, split preview, flavour tally, quick next action, Customer messages | `OrdersLive`; groups follow the reference, each row keeps its status word | test, screenshot |
-| Order detail: payment check, proof, clearer proof, reject, lines, progress, contact, status changes, refund, no-show, swap | `OrderLive`, same engine `od` actions | screenshot |
-| Payments list | `PaymentsLive`; the Payments tab stays, because several payments can wait at once | screenshot |
-| Customers sheet and waitlist action | `CustomersLive` as a page | test |
-| Shop status options and close-and-roll-over | `ShopStatusLive` as a page | test |
-| Capacity, ordering open or closed, sold-out switches, past drops | One step down, on Opening schedule & drop | test |
-| Every Shop entry | Rows and previews on `ShopLive`; an unknown entry still gets a row | test |
-| Every Account setting row | `SettingsAreaPage`; an unknown group lands in Other settings | test |
-| Notifications, Health, records, export, report a problem | `NotificationsLive`, `HealthLive` | screenshot |
+| Today's capability                                                                                                         | New home                                                                          | Evidence         |
+| -------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- | ---------------- |
+| Orders: review banner, filters with counts, search, split preview, flavour tally, quick next action, Customer messages     | `OrdersLive`; groups follow the reference, each row keeps its status word         | test, screenshot |
+| Order detail: payment check, proof, clearer proof, reject, lines, progress, contact, status changes, refund, no-show, swap | `OrderLive`, same engine `od` actions                                             | screenshot       |
+| Payments list                                                                                                              | `PaymentsLive`; the Payments tab stays, because several payments can wait at once | screenshot       |
+| Customers sheet and waitlist action                                                                                        | `CustomersLive` as a page                                                         | test             |
+| Shop status options and close-and-roll-over                                                                                | `ShopStatusLive` as a page                                                        | test             |
+| Capacity, ordering open or closed, sold-out switches, past drops                                                           | One step down, on Opening schedule & drop                                         | test             |
+| Every Shop entry                                                                                                           | Rows and previews on `ShopLive`; an unknown entry still gets a row                | test             |
+| Every Account setting row                                                                                                  | `SettingsAreaPage`; an unknown group lands in Other settings                      | test             |
+| Notifications, Health, records, export, report a problem                                                                   | `NotificationsLive`, `HealthLive`                                                 | screenshot       |
 
 Dropped: nothing. Still drawn by a ported sheet: refund, no-show, swap, users, rules, retention, pricing. See [coverage](reference-v4/coverage.md).
 
 ## Make and Stock (`live/recipes/`, `live/production/`, `live/stock/`, `store/make-desk.ts`, `store/stock-entries.ts`)
 
-| Today's capability | New home | Evidence |
-|---|---|---|
-| Product definition, recipe link, order-form switch, cost, sold-out and rotating words | Products cards. "About product labels" moved to the Shop label hint in Edit product | test |
-| Start production, its guards, entry and focus | Unchanged on Production; Products' button opens the same entry | test, browser |
-| Receive sheet: quantity, paid, supplier, engine bookkeeping | Receive delivery page, several lines; same `record_stock_movement`, same engine `confirmReceive` for each line | test |
-| Waste sheet; add or subtract sheet | Waste / correction page with Review; same movements, and a note is now required | test |
-| Item page facts, last counted, cost, last paid, prices, history | Unchanged. Last counted and cost left the list rows; they stay on the item page | test |
-| Grocery rows, I bought these, totals, budget | Shopping grouped by supplier, with Compare prices and Count before buying | test, browser |
-| Manage inventory items | Stock settings | browser |
-| Dough and baked counts | Inventory categories, read only; changed by production and waste | browser |
+| Today's capability                                                                    | New home                                                                                                       | Evidence      |
+| ------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- | ------------- |
+| Product definition, recipe link, order-form switch, cost, sold-out and rotating words | Products cards. "About product labels" moved to the Shop label hint in Edit product                            | test          |
+| Start production, its guards, entry and focus                                         | Unchanged on Production; Products' button opens the same entry                                                 | test, browser |
+| Receive sheet: quantity, paid, supplier, engine bookkeeping                           | Receive delivery page, several lines; same `record_stock_movement`, same engine `confirmReceive` for each line | test          |
+| Waste sheet; add or subtract sheet                                                    | Waste / correction page with Review; same movements, and a note is now required                                | test          |
+| Item page facts, last counted, cost, last paid, prices, history                       | Unchanged. Last counted and cost left the list rows; they stay on the item page                                | test          |
+| Grocery rows, I bought these, totals, budget                                          | Shopping grouped by supplier, with Compare prices and Count before buying                                      | test, browser |
+| Manage inventory items                                                                | Stock settings                                                                                                 | browser       |
+| Dough and baked counts                                                                | Inventory categories, read only; changed by production and waste                                               | browser       |
 
 Dropped: "Set to" in the old quantity sheet, which is redundant with Count on the same page and records the same count movement.
 
 ## Money and sheets as pages (`live/money/`, `live/settings-pages.tsx`, `store/money-desk.ts`, `store/money-entry.ts`)
 
-| Today's capability | New home | Evidence |
-|---|---|---|
-| Expense sheet: category, amount, what for | Record expense page with Review and a date; same `record_expense` | test |
-| Expense sheet: item and quantity that also receives stock | Dropped: Receive delivery does this with its own review; the page says where to go | test |
-| Draw sheet | Record owner draw page with Review; same `record_draw` | test |
-| Rules, categories, people, retention, statuses, pricing, payment rule | Pages in the owner frame; same engine values | test, browser |
-| Refund, no-show, swap | Pages, opened from the order; same handlers | test |
+| Today's capability                                                                     | New home                                                                                                                         | Evidence      |
+| -------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | ------------- |
+| Expense sheet: category, amount, what for                                              | Record expense page with Review and a date; same `record_expense`                                                                | test          |
+| Expense sheet: item and quantity that also receives stock                              | Dropped: Receive delivery does this with its own review; the page says where to go                                               | test          |
+| Draw sheet                                                                             | Record owner draw page with Review; same `record_draw`                                                                           | test          |
+| Rules, categories, people, retention, statuses, pricing, payment rule                  | Pages in the owner frame; same engine values                                                                                     | test, browser |
+| Refund, no-show, swap                                                                  | Pages, opened from the order; same handlers                                                                                      | test          |
 | Till: every tile, minus, Charge, Freebie, close, fees, add cookies, void, classic till | Same handlers. Close day is on the title; the rest is under Settings. Current sale panel on a wide screen, pinned bar on a phone | test, browser |
-
 
 ## Customers and the product form (`store/customer-desk.ts`, `live/sell/customers-live.tsx`)
 
-| Today's capability | New home | Evidence |
-|---|---|---|
-| "Ordering now" list on the customers sheet | Customers list: everyone who has ordered, with counts and last order | test |
-| Waitlist and its action | Unchanged, on the same page | test |
-| `anonymise_customer` (no screen before) | Remove contact details, behind a tick, reporting what the server and the read back say | test |
-| Product form | A page in the owner frame, in place of a modal; same form and close | test |
+| Today's capability                         | New home                                                                               | Evidence |
+| ------------------------------------------ | -------------------------------------------------------------------------------------- | -------- |
+| "Ordering now" list on the customers sheet | Customers list: everyone who has ordered, with counts and last order                   | test     |
+| Waitlist and its action                    | Unchanged, on the same page                                                            | test     |
+| `anonymise_customer` (no screen before)    | Remove contact details, behind a tick, reporting what the server and the read back say | test     |
+| Product form                               | A page in the owner frame, in place of a modal; same form and close                    | test     |
 
 Known limits, for Ethan: `anonymise_customer` does not remove payment proofs or references, and it matches only orders whose stored number is already in the normal form. The page says both. Changing either needs a new migration.
 
 ## Till pages (`live/bazaar/till.tsx`, `till-bar.tsx`, `close-event-sheet.tsx`)
 
-| Today's capability | New home | Evidence |
-|---|---|---|
-| Till menu: add cookies, fees, close, Home, classic till | Selling settings page; Close day also on the title | test |
-| A sale's sheet: its figures and void | Receipt page, then a Void page with Keep sale | test |
-| Fees and add-cookies forms | Pages of the new till; the classic till keeps the sheet | test |
-| Close the event: split, costs, close without cost | A page; same form and checks | test |
-| Unsent count and Sync now | On the status strip, and on Selling device | test |
+| Today's capability                                      | New home                                                | Evidence |
+| ------------------------------------------------------- | ------------------------------------------------------- | -------- |
+| Till menu: add cookies, fees, close, Home, classic till | Selling settings page; Close day also on the title      | test     |
+| A sale's sheet: its figures and void                    | Receipt page, then a Void page with Keep sale           | test     |
+| Fees and add-cookies forms                              | Pages of the new till; the classic till keeps the sheet | test     |
+| Close the event: split, costs, close without cost       | A page; same form and checks                            | test     |
+| Unsent count and Sync now                               | On the status strip, and on Selling device              | test     |
 
 Dropped: nothing.
 
 ## Recipe editor and planned bake (`live/recipes/recipe-editor.tsx`, `store/bake-plan.ts`)
 
-| Today's capability | New home | Evidence |
-|---|---|---|
-| Ported Recipes screen for the owner: yield, lines, add, remove, save, versions, batches | Edit recipe page with Review; same engine handlers | test |
-| Flavour tabs on that screen | Each product opens its own recipe from Products | browser |
-| Warning "do not save yet" | Removed: lines keep their kind on save, and the page sets it. Independently reviewed | test |
-| (new) Planned bake | Shopping: cookies by product against recipes and recorded stock. A note on this device; records nothing | test |
+| Today's capability                                                                      | New home                                                                                                | Evidence |
+| --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | -------- |
+| Ported Recipes screen for the owner: yield, lines, add, remove, save, versions, batches | Edit recipe page with Review; same engine handlers                                                      | test     |
+| Flavour tabs on that screen                                                             | Each product opens its own recipe from Products                                                         | browser  |
+| Warning "do not save yet"                                                               | Removed: lines keep their kind on save, and the page sets it. Independently reviewed                    | test     |
+| (new) Planned bake                                                                      | Shopping: cookies by product against recipes and recorded stock. A note on this device; records nothing | test     |
 
 Dropped: nothing. Not built: creating a first recipe for a product with none outside this form was never offered, and still is not.
-
 
 ## Supplier price editor (`stock-suppliers-form.tsx`, `stock/item-prices.tsx`)
 

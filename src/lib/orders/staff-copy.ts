@@ -116,7 +116,8 @@ export const EXTRAS_COPY = {
 /** The upcoming bazaars form and the Bazaar screen's list (D4). PLACEHOLDER, like the rest of this file. */
 /** PLACEHOLDER wording (A4): saving a recipe in live mode. */
 export const RECIPE_COPY = {
-  unknown: 'Save result not confirmed. Your edits are kept; check the saved recipe before trying again.',
+  unknown:
+    'Save result not confirmed. Your edits are kept; check the saved recipe before trying again.',
   saved: (version: number) =>
     'Saved as Version ' +
     version +

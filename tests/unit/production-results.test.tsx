@@ -118,10 +118,22 @@ describe('saved production results', () => {
     expect(totals().querySelector('strong')?.textContent).toBe('52');
   });
   it('shows one date when all returned batches are on the same Manila day', () => {
-    render(<ProductionResults data={data({ rows: [batch({ at: Date.parse('2026-11-04T00:00:00Z') }),
-      batch({ at: Date.parse('2026-11-04T07:00:00Z') })] })} />);
-    const day = new Intl.DateTimeFormat('en-PH', { timeZone: 'Asia/Manila', day: 'numeric',
-      month: 'short', year: 'numeric' }).format(Date.parse('2026-11-04T07:00:00Z'));
+    render(
+      <ProductionResults
+        data={data({
+          rows: [
+            batch({ at: Date.parse('2026-11-04T00:00:00Z') }),
+            batch({ at: Date.parse('2026-11-04T07:00:00Z') })
+          ]
+        })}
+      />
+    );
+    const day = new Intl.DateTimeFormat('en-PH', {
+      timeZone: 'Asia/Manila',
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric'
+    }).format(Date.parse('2026-11-04T07:00:00Z'));
     expect(screen.getByText(day, { exact: true })).toBeTruthy();
     expect(screen.queryByText(`${day} – ${day}`, { exact: true })).toBeNull();
   });

@@ -2278,7 +2278,6 @@ a reset (two resets), live smoke 17 steps, `pnpm verify` 2,588 tests, e2e 90 pas
 skipped: Ethan kept whole pesos on the till. A clean browser pass at four widths is not done: layout QA found 36 px targets
 (fixed to 44 px) and a possible 16 px toast and footer overlap at 320 px on the day plan (unconfirmed).
 
-
 ## 20 October release checkpoint
 
 **The consolidated till is live on the trial** (Ethan, 19 October: the prototype's look, consolidated, feature by feature
@@ -2288,7 +2287,6 @@ green, Performance budget included (blocking since T-18). #40 merged the deploy 
 hold the same work. The ported till stays as the classic till (**⋯** › Use the classic till) and as the crash fallback.
 Mockups: private canvas K5nHQS8GjtBYGseDtYZDnZ; the decision is in [docs/design/bazaar-v2.md](../design/bazaar-v2.md) section 7.
 Bazaar v2 (16 October) and its notes are in [current-history.md](current-history.md), moved on 20 October.
-
 
 ## Archived 20 October next goal — superseded 2 November 2026
 
@@ -2325,7 +2323,6 @@ from the migration 70 review: a flavour cost saved mid-close can be stored with 
 | Read         | AGENTS.md, current.md, bazaar-run-sheet.md; for the 320 px check, `day-plan.tsx` and its CSS |
 
 The review of U2, U5, U6 and U7 used an Opus subagent, because `codex` refuses its models on this ChatGPT account.
-
 
 ## Archived 20 October current-state snapshot — superseded 3 November 2026
 

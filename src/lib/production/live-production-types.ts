@@ -3,8 +3,10 @@ import type { ReactNode } from 'react';
 import type { ProductionPlanChoice } from './plan';
 
 export interface LiveProductionRecipeUpdate {
-  previousVersion: number | null; version: number;
-  previousYield: number | null; yield: number;
+  previousVersion: number | null;
+  version: number;
+  previousYield: number | null;
+  yield: number;
   rows: Array<{ name: string; previous: string; current: string }>;
   use: () => void;
 }
@@ -124,8 +126,14 @@ export interface LiveProductionVals {
   };
   completed?: LiveProductionReceipt[];
   inProgress?: Array<{
-    id: string; label: string; productId: string; kind: 'batch' | 'dough'; name: string; photo: string;
-    quantityText: string; status: 'Count' | 'Review' | 'Mix' | 'Saving' | 'Check result';
+    id: string;
+    label: string;
+    productId: string;
+    kind: 'batch' | 'dough';
+    name: string;
+    photo: string;
+    quantityText: string;
+    status: 'Count' | 'Review' | 'Mix' | 'Saving' | 'Check result';
     open: () => void;
   }>;
   state: 'loading' | 'read' | 'failed';

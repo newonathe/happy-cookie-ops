@@ -16,10 +16,14 @@ function SetAside({ onConfirm }: { onConfirm: () => void }) {
       </div>
     );
   return (
-    <div role="group" aria-label="Set this copy aside" className="flex flex-wrap items-center gap-2">
+    <div
+      role="group"
+      aria-label="Set this copy aside"
+      className="flex flex-wrap items-center gap-2"
+    >
       <p className="w-full text-caption text-ink-mute">
-        Production starts fresh on this device. Entries in the unreadable copy cannot be opened here,
-        so check your recent batches before making them again.
+        Production starts fresh on this device. Entries in the unreadable copy cannot be opened
+        here, so check your recent batches before making them again.
       </p>
       <Button variant="danger" size="sm" onClick={onConfirm}>
         Set aside and start fresh

@@ -51,7 +51,13 @@ it('an unreadable copy can be set aside only after a second, explained step', ()
   const setAside = vi.fn();
   render(
     <ProductionRecoveryNotice
-      data={{ status: 'invalid', retry: vi.fn(), setAside, setupPeriod: null, resumeSetup: vi.fn() }}
+      data={{
+        status: 'invalid',
+        retry: vi.fn(),
+        setAside,
+        setupPeriod: null,
+        resumeSetup: vi.fn()
+      }}
     />
   );
   fireEvent.click(screen.getByRole('button', { name: 'Set this copy aside' }));

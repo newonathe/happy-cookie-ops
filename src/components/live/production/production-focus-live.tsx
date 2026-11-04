@@ -13,7 +13,8 @@ import { ProductionDeviceNotice } from './production-recovery-notice';
 
 /** Count and review presentation; stock quantities and recording remain runtime actions. */
 export function ProductionFocusLive({ v }: { v: OpsVals }) {
-  const batch = v.batch, counts = v.liveBatchCounts;
+  const batch = v.batch,
+    counts = v.liveBatchCounts;
   const formId = useId();
   const heading = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
@@ -21,13 +22,16 @@ export function ProductionFocusLive({ v }: { v: OpsVals }) {
   }, [batch?.step2]);
   if (!batch || !counts) return <ProductionFocusScreen v={v} />;
   const locked = counts.saving || counts.uncertain || counts.readOnly;
-  const actual = Number(counts.actual), rejects = Number(counts.rejects);
+  const actual = Number(counts.actual),
+    rejects = Number(counts.rejects);
   const target = typeof batch.target === 'number' ? batch.target : null;
   const good = typeof v.goodCount === 'number' ? v.goodCount : null;
-  const chart = counts.valid && target !== null && Number.isFinite(target) && target >= 0 && good !== null;
+  const chart =
+    counts.valid && target !== null && Number.isFinite(target) && target >= 0 && good !== null;
   const max = Math.max(target ?? 0, actual, 1);
   const actualError = !/^\d+$/.test(counts.actual) || actual < 1 || actual > 10000;
-  const rejectError = !/^\d+$/.test(counts.rejects) || rejects > 10000 || (!actualError && rejects > actual);
+  const rejectError =
+    !/^\d+$/.test(counts.rejects) || rejects > 10000 || (!actualError && rejects > actual);
   return (
     <section
       className={styles.page}

@@ -36,7 +36,11 @@ it('labels a recovered acknowledgement without claiming freshly checked stock', 
 afterEach(cleanup);
 
 it('keeps a small acknowledged shortage visible instead of rounding it to zero', () => {
-  render(<ProductionReceipts rows={[receipt({ shortfall: [{ name: 'Butter', by: 0.0001, unit: 'g' }] })]} />);
+  render(
+    <ProductionReceipts
+      rows={[receipt({ shortfall: [{ name: 'Butter', by: 0.0001, unit: 'g' }] })]}
+    />
+  );
   expect(screen.getByText('Butter: 0.0001 g short')).toBeTruthy();
 });
 

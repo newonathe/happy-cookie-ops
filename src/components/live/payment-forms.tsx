@@ -105,7 +105,9 @@ export function PayList({ livePay }: { livePay: LivePay }) {
           ))}
         </div>
       ) : (
-        <span style={{ fontSize: '12px', color: 'var(--color-ink-mute)' }}>No payment methods yet.</span>
+        <span style={{ fontSize: '12px', color: 'var(--color-ink-mute)' }}>
+          No payment methods yet.
+        </span>
       )}
     </div>
   );
