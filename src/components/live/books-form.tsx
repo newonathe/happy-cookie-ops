@@ -37,7 +37,9 @@ export function BooksForm({ liveBooks }: { liveBooks: LiveBooks }) {
   };
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-      {!online ? <span style={{ fontSize: '12px', color: 'var(--color-danger)' }}>{C.offline}</span> : null}
+      {!online ? (
+        <span style={{ fontSize: '12px', color: 'var(--color-danger)' }}>{C.offline}</span>
+      ) : null}
       {held.length ? (
         <div style={card}>
           <span style={smallLabel}>{C.heldTitle}</span>

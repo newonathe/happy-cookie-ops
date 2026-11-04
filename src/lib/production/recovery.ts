@@ -162,9 +162,23 @@ const recovery = z
         kind: z.enum(['batch', 'dough']).optional(),
         batchQuantity: countText.optional(),
         reviewing: z.boolean().optional(),
-        choices: z.array(z.object({ productId: z.string().min(1).max(128), name: text.optional(), photo: z.string().max(2048).optional(), quantity: countText,
-          version: z.number().int().positive(), kind: z.enum(['batch', 'dough']), batchQuantity: countText.optional()
-        }).strict()).max(80).refine(rows => new Set(rows.map(row => row.productId)).size === rows.length).optional()
+        choices: z
+          .array(
+            z
+              .object({
+                productId: z.string().min(1).max(128),
+                name: text.optional(),
+                photo: z.string().max(2048).optional(),
+                quantity: countText,
+                version: z.number().int().positive(),
+                kind: z.enum(['batch', 'dough']),
+                batchQuantity: countText.optional()
+              })
+              .strict()
+          )
+          .max(80)
+          .refine((rows) => new Set(rows.map((row) => row.productId)).size === rows.length)
+          .optional()
       })
       .strict()
       .nullable()

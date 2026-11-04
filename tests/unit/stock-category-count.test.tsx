@@ -78,27 +78,36 @@ const task = (runtime: OpsRuntime) =>
     i: number;
   } | null;
 
-it.each([false, true])('restores counts outside the cursor list visibly (changed item: %s)', async (changed) => {
-  expect(writeCountRecovery(scope, {
-    version: 1, scope, task: { i: 0, items: ['Flour'], counts: { Flour: '100', Butter: '50' } },
-    countedAt: { Flour: Date.now(), Butter: Date.now() }, itemIds: { Flour: 'flour', Butter: changed ? 'old-butter' : 'butter' },
-    openItem: null, pending: []
-  })).toBe(true);
-  const { runtime, writes } = await mount();
-  fireEvent.click(screen.getByRole('button', { name: 'Continue count' }));
-  const butter = screen.getByLabelText('Counted quantity for Butter (g)');
-  expect(butter).toHaveValue('50');
-  if (changed) {
-    expect(butter).toBeDisabled();
-    fireEvent.click(screen.getByRole('button', { name: 'Skip Butter and its unsaved count' }));
-    expect(task(runtime)?.counts).toEqual({ Flour: '100' });
-  } else {
-    fireEvent.change(butter, { target: { value: '75' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Review count' }));
-    expect(screen.getByText('75 g', { exact: true })).toBeTruthy();
+it.each([false, true])(
+  'restores counts outside the cursor list visibly (changed item: %s)',
+  async (changed) => {
+    expect(
+      writeCountRecovery(scope, {
+        version: 1,
+        scope,
+        task: { i: 0, items: ['Flour'], counts: { Flour: '100', Butter: '50' } },
+        countedAt: { Flour: Date.now(), Butter: Date.now() },
+        itemIds: { Flour: 'flour', Butter: changed ? 'old-butter' : 'butter' },
+        openItem: null,
+        pending: []
+      })
+    ).toBe(true);
+    const { runtime, writes } = await mount();
+    fireEvent.click(screen.getByRole('button', { name: 'Continue count' }));
+    const butter = screen.getByLabelText('Counted quantity for Butter (g)');
+    expect(butter).toHaveValue('50');
+    if (changed) {
+      expect(butter).toBeDisabled();
+      fireEvent.click(screen.getByRole('button', { name: 'Skip Butter and its unsaved count' }));
+      expect(task(runtime)?.counts).toEqual({ Flour: '100' });
+    } else {
+      fireEvent.change(butter, { target: { value: '75' } });
+      fireEvent.click(screen.getByRole('button', { name: 'Review count' }));
+      expect(screen.getByText('75 g', { exact: true })).toBeTruthy();
+    }
+    expect(writes()).toHaveLength(0);
   }
-  expect(writes()).toHaveLength(0);
-});
+);
 
 it('counts several items together without filling uncounted values or sending before review', async () => {
   const { runtime, writes } = await mount();

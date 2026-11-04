@@ -207,7 +207,8 @@ describe('setting an unreadable device copy aside', () => {
       removeItem: (name: string) => void rows.delete(name)
     };
   };
-  const keyOf = 'hc-production-recovery-v1:' + encodeURIComponent(scope.business) + ':' + scope.userId;
+  const keyOf =
+    'hc-production-recovery-v1:' + encodeURIComponent(scope.business) + ':' + scope.userId;
 
   it('moves the bytes to one side, so the device starts empty and nothing is deleted', () => {
     const use = storage();
@@ -218,16 +219,21 @@ describe('setting an unreadable device copy aside', () => {
     expect(use.getItem(keyOf + ':set-aside')).toBe('{"not":"a recovery copy"}');
   });
 
-  it('refuses to move a readable copy or another account\'s copy', () => {
+  it("refuses to move a readable copy or another account's copy", () => {
     const use = storage();
-    expect(writeProductionRecovery(scope, emptyProductionRecovery(scope), { storage: use })).toBe(true);
+    expect(writeProductionRecovery(scope, emptyProductionRecovery(scope), { storage: use })).toBe(
+      true
+    );
     const before = use.getItem(keyOf);
     expect(setAsideProductionRecovery(scope, use)).toBe(false);
     expect(use.getItem(keyOf)).toBe(before);
     const other = storage();
     other.setItem(keyOf, 'broken but not this scope');
     expect(
-      setAsideProductionRecovery({ ...scope, userId: '44444444-4444-4444-8444-444444444444' }, other)
+      setAsideProductionRecovery(
+        { ...scope, userId: '44444444-4444-4444-8444-444444444444' },
+        other
+      )
     ).toBe(false);
     expect(other.getItem(keyOf)).toBe('broken but not this scope');
     // Mutation: moving a readable copy would hide unanswered requests behind one tap.

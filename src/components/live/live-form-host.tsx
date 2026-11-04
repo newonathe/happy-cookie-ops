@@ -122,7 +122,9 @@ function FlavourList({ liveForm }: { liveForm: NonNullable<OpsVals['liveForm']> 
           ))}
         </div>
       ) : (
-        <span style={{ fontSize: '12px', color: 'var(--color-ink-mute)' }}>No flavours loaded yet.</span>
+        <span style={{ fontSize: '12px', color: 'var(--color-ink-mute)' }}>
+          No flavours loaded yet.
+        </span>
       )}
     </div>
   );

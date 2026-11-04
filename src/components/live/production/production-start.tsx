@@ -24,8 +24,12 @@ export function ProductionStart({ start, period }: { start: LiveProductionStart;
   const photo = cookiePicture(resolveImagePath(product?.photo ?? ''), product?.name ?? '');
   const changed = !!product && product.version !== draft.version;
   const valid =
-    /^\d+$/.test(draft.quantity) && Number(draft.quantity) >= 1 && Number(draft.quantity) <= 10000 &&
-    (draft.kind !== 'dough' || !!product && [product.yield, Math.ceil(product.yield / 2)].includes(Number(draft.quantity)));
+    /^\d+$/.test(draft.quantity) &&
+    Number(draft.quantity) >= 1 &&
+    Number(draft.quantity) <= 10000 &&
+    (draft.kind !== 'dough' ||
+      (!!product &&
+        [product.yield, Math.ceil(product.yield / 2)].includes(Number(draft.quantity))));
   return (
     <section
       data-screen-label="Production entry"
@@ -43,10 +47,24 @@ export function ProductionStart({ start, period }: { start: LiveProductionStart;
       <p className={styles.intro}>
         Choose a product and what you plan to make. <span>{period}</span>
       </p>
-      {start.chooseKind ? <div role="group" aria-label="Production type" className="flex flex-wrap gap-2">
-        <Button variant={draft.kind !== 'dough' ? 'primary' : 'secondary'} aria-pressed={draft.kind !== 'dough'} onClick={() => start.chooseKind?.('batch')}>Bake cookies</Button>
-        <Button variant={draft.kind === 'dough' ? 'primary' : 'secondary'} aria-pressed={draft.kind === 'dough'} onClick={() => start.chooseKind?.('dough')}>Prepare dough</Button>
-      </div> : null}
+      {start.chooseKind ? (
+        <div role="group" aria-label="Production type" className="flex flex-wrap gap-2">
+          <Button
+            variant={draft.kind !== 'dough' ? 'primary' : 'secondary'}
+            aria-pressed={draft.kind !== 'dough'}
+            onClick={() => start.chooseKind?.('batch')}
+          >
+            Bake cookies
+          </Button>
+          <Button
+            variant={draft.kind === 'dough' ? 'primary' : 'secondary'}
+            aria-pressed={draft.kind === 'dough'}
+            onClick={() => start.chooseKind?.('dough')}
+          >
+            Prepare dough
+          </Button>
+        </div>
+      ) : null}
       <form
         className={styles.form}
         onSubmit={(event) => {
@@ -122,36 +140,52 @@ export function ProductionStart({ start, period }: { start: LiveProductionStart;
             }}
           />
         ) : null}
-        {draft.kind === 'dough' ? <fieldset className="m-0 flex min-w-0 flex-col gap-2 border-0 p-0">
-          <legend className="mb-2 text-body font-semibold">Recipe amount</legend>
-          {product ? <div className="flex flex-wrap gap-2">
-            {[product.yield, Math.ceil(product.yield / 2)].map((amount, i) => <Button key={i} variant={draft.quantity === String(amount) ? 'primary' : 'secondary'}
-              aria-pressed={draft.quantity === String(amount)} onClick={() => start.setQuantity(String(amount))}>
-              {i === 0 ? 'Full recipe' : 'Half recipe'} · {amount} portions
-            </Button>)}
-          </div> : <p className={styles.hint}>Choose a product above.</p>}
-        </fieldset> : <div className={styles.field}>
-          <label htmlFor={id + '-quantity'}>Cookies planned</label>
-          <input
-            id={id + '-quantity'}
-            type="number"
-            inputMode="numeric"
-            min="1"
-            max="10000"
-            step="1"
-            required
-            value={draft.quantity}
-            aria-describedby={id + '-hint'}
-            aria-invalid={draft.quantity !== '' && !valid}
-            onChange={(event) => {
-              start.setQuantity(event.currentTarget.value);
-              setError('');
-            }}
-          />
-        </div>}
-        {draft.kind !== 'dough' ? <p id={id + '-hint'} className={styles.hint}>
-          Enter a whole number from 1 to 10,000.
-        </p> : null}
+        {draft.kind === 'dough' ? (
+          <fieldset className="m-0 flex min-w-0 flex-col gap-2 border-0 p-0">
+            <legend className="mb-2 text-body font-semibold">Recipe amount</legend>
+            {product ? (
+              <div className="flex flex-wrap gap-2">
+                {[product.yield, Math.ceil(product.yield / 2)].map((amount, i) => (
+                  <Button
+                    key={i}
+                    variant={draft.quantity === String(amount) ? 'primary' : 'secondary'}
+                    aria-pressed={draft.quantity === String(amount)}
+                    onClick={() => start.setQuantity(String(amount))}
+                  >
+                    {i === 0 ? 'Full recipe' : 'Half recipe'} · {amount} portions
+                  </Button>
+                ))}
+              </div>
+            ) : (
+              <p className={styles.hint}>Choose a product above.</p>
+            )}
+          </fieldset>
+        ) : (
+          <div className={styles.field}>
+            <label htmlFor={id + '-quantity'}>Cookies planned</label>
+            <input
+              id={id + '-quantity'}
+              type="number"
+              inputMode="numeric"
+              min="1"
+              max="10000"
+              step="1"
+              required
+              value={draft.quantity}
+              aria-describedby={id + '-hint'}
+              aria-invalid={draft.quantity !== '' && !valid}
+              onChange={(event) => {
+                start.setQuantity(event.currentTarget.value);
+                setError('');
+              }}
+            />
+          </div>
+        )}
+        {draft.kind !== 'dough' ? (
+          <p id={id + '-hint'} className={styles.hint}>
+            Enter a whole number from 1 to 10,000.
+          </p>
+        ) : null}
         {error ? (
           <p className={styles.error} role="alert">
             {error}

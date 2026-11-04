@@ -38,9 +38,9 @@ Read ../reference-v4-page-contracts.md for source, capture method and proof limi
 - Existing source: src/store/ops-runtime.tsx
 - Status: Reference captured; complete actual-app flow/state parity remains to be verified. Baseline/prepared route captured. Save/cancel/back/validation/error interaction coverage is incomplete.
 
-## order-action — 
+## order-action —
 
-- Structure: 
+- Structure:
 - Captured controls: Keep current order; Confirm
 - Fields: textarea
 - Reference images: screenshots/order-action-baseline-1440.png; screenshots/order-action-baseline-390.png

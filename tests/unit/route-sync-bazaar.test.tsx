@@ -68,7 +68,8 @@ describe('Bazaar subviews use the existing browser history', () => {
     mount();
     expect(restore).toHaveBeenCalledWith('events');
     expect(window.location.search).toBe('');
-    expect(engine.state.event).toBe(held); expect(engine.state.cart).toBe(cart);
+    expect(engine.state.event).toBe(held);
+    expect(engine.state.cart).toBe(cart);
   });
   it.each(['events', 'till', `event:${EVENT}`])(
     'restores a direct %s address without a new history entry',

@@ -63,9 +63,19 @@ function parseLines(json: unknown): RecipeLine[] | null {
       typeof l.unit !== 'string'
     )
       return null;
-    if (l.kind !== undefined && l.kind !== null && l.kind !== 'ingredient' && l.kind !== 'packaging') return null;
-    out.push({ name: l.name, qty: l.qty, unit: l.unit,
-      ...(l.kind === undefined ? {} : { kind: l.kind }) });
+    if (
+      l.kind !== undefined &&
+      l.kind !== null &&
+      l.kind !== 'ingredient' &&
+      l.kind !== 'packaging'
+    )
+      return null;
+    out.push({
+      name: l.name,
+      qty: l.qty,
+      unit: l.unit,
+      ...(l.kind === undefined ? {} : { kind: l.kind })
+    });
   }
   return out;
 }

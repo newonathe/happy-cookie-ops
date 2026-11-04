@@ -38,7 +38,6 @@ Use four Vitest workers.
 full HTML visual page/flow/state inspection/screenshots and actual component-based integration.
 Read ../design/reference-v4-page-contracts.md:85 views captured; interaction/parity incomplete.
 
-
 Then continue safe recipe kind/version saves and acknowledged product-save return, remaining
 Stock truth/receiving/shopping, Bazaar, Sell/Shop, Money/Account, Home and integration. Keep the
 legacy recipe warning until the underlying save problem is fixed and reviewed. Preserve all

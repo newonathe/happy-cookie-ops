@@ -254,9 +254,7 @@ describe('owner production entry', () => {
         if (entry === 'row') vals.bakeRows.find((r) => r.name === 'Chocolate')!.act();
         if (entry === 'first') vals.startFirst();
         if (entry === 'direct')
-          (runtime as unknown as { startBatch: (id: string) => void }).startBatch(
-            pid
-          );
+          (runtime as unknown as { startBatch: (id: string) => void }).startBatch(pid);
         if (entry === 'quick') await new Promise((resolve) => setTimeout(resolve, 20));
       });
       expect(runtime.state.screen).toBe('batch');

@@ -39,12 +39,10 @@ describe('frozen event create acknowledgement', () => {
     expect(await sendEventEntry({ rpc } as unknown as ScheduledClient, body)).toBe(false);
   });
   it('does not accept data alongside an error or a thrown transport failure', async () => {
-    const rpc = vi
-      .fn()
-      .mockResolvedValue({
-        data: [{ id: body.p_event.id, updated_at: at }],
-        error: { code: '42501' }
-      });
+    const rpc = vi.fn().mockResolvedValue({
+      data: [{ id: body.p_event.id, updated_at: at }],
+      error: { code: '42501' }
+    });
     expect(await sendEventEntry({ rpc } as unknown as ScheduledClient, body)).toBe(false);
     rpc.mockRejectedValueOnce(new Error('network'));
     expect(await sendEventEntry({ rpc } as unknown as ScheduledClient, body)).toBe(false);

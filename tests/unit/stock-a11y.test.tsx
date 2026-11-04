@@ -53,12 +53,24 @@ const groceryStock = (budget: boolean): LiveStockVals =>
 describe('B5 accessibility (axe, no violations)', () => {
   it('bulk count rows with distinct names, including an unavailable item', async () => {
     const count = {
-      paused: false, saving: false, pending: false, storageError: null, rows: [],
-      back: vi.fn(), resume: vi.fn(), discard: vi.fn(),
-      save: vi.fn(async () => null), recover: vi.fn(async () => null),
+      paused: false,
+      saving: false,
+      pending: false,
+      storageError: null,
+      rows: [],
+      back: vi.fn(),
+      resume: vi.fn(),
+      discard: vi.fn(),
+      save: vi.fn(async () => null),
+      recover: vi.fn(async () => null),
       entries: ['Flour', 'Butter'].map((name, index) => ({
-        name, unit: 'g', expectedText: '300 g', value: '', unavailable: index === 1,
-        onInput: vi.fn(), skip: index === 1 ? vi.fn() : undefined
+        name,
+        unit: 'g',
+        expectedText: '300 g',
+        value: '',
+        unavailable: index === 1,
+        onInput: vi.fn(),
+        skip: index === 1 ? vi.fn() : undefined
       }))
     };
     const { container } = render(<InventoryLive v={valsWith(stock({ count }))} />);
