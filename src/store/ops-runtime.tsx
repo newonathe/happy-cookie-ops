@@ -815,6 +815,7 @@ export class OpsRuntime extends OpsProvider {
   /** D4: the owner's bookings (null until read), the client they were read with, the booking being started, and the id the blank form row will use. */
   private scheduledRows: ScheduledEvent[] | null = null;
   private scheduledClient: ScheduledClient | null = null;
+  private scheduledReadSeq = 0;
   private bazaarDays = new BazaarDays({
     // After a reload at the stall the bookings may not have been read yet: the review still reads its day.
     client: () => (this.scheduledClient ?? this.salesTarget()) as unknown as BazaarClient | null,
@@ -885,7 +886,14 @@ export class OpsRuntime extends OpsProvider {
     today: () => manilaToday(),
     newId: () => crypto.randomUUID(),
     openAdd: () => void this.openScheduled(),
-    refreshBookings: () => this.loadScheduledEvents(null)
+    refreshBookings: () => this.loadScheduledEvents(null),
+    eventActor: () =>
+      !this.unmounted &&
+      !this.gateNarrow &&
+      this.state.role === 'owner' &&
+      this.productionRecovery.scope
+        ? this.productionActorEpoch
+        : null
   });
   private homeGreeting = { greeting: 'Hello.', date: '' };
   /** Home's facts, each from the record that owns it. */
@@ -1002,7 +1010,7 @@ export class OpsRuntime extends OpsProvider {
     write: (scope, value, resolvedId) => writeEventEntry(scope, value, { resolvedId }),
     keepInvalid: (scope) => keepInvalidEventEntry(scope),
     send: (body) => this.bazaarDays.sendEventEntry(body),
-    listed: (id) => this.bazaarDays.eventListed(id),
+    listed: (body) => this.bazaarDays.eventListed(body),
     online: () => Boolean(this.state.online),
     uuid: () => crypto.randomUUID(),
     changed: () => {
@@ -1820,7 +1828,10 @@ export class OpsRuntime extends OpsProvider {
    * never through the engine's `resetEvent`: that would put what is left on the table into the shop's baked stock, and
    * those cookies were carried over, sent to the shop or written off by her count.
    */
-  private async dropClosedDay(dayId: string): Promise<void> {
+  private async dropClosedDay(dayId: string, current: () => boolean = () => true): Promise<void> {
+    const actor = this.productionActorEpoch;
+    const valid = () => !this.unmounted && actor === this.productionActorEpoch && current();
+    if (!valid()) return;
     if ((this.state.event as LiveEvent | null)?.dayId !== dayId) return;
     if (this.unsentForDay() > 0) return;
     // The queue itself decides: anything of this day it has not sent (or a queue that cannot be read) keeps the day on the
@@ -1835,28 +1846,35 @@ export class OpsRuntime extends OpsProvider {
     }
     // Checked again after the wait: nothing may have reached the till or the queue meanwhile.
     if (
+      !valid() ||
       unsent > 0 ||
       this.unsentForDay() > 0 ||
       (this.state.event as LiveEvent | null)?.dayId !== dayId
     )
       return;
+    let cleared = false;
     this.setState(
-      {
-        event: null,
-        sales: [],
-        cart: {},
-        unsynced: 0,
-        syncState: 'idle',
-        syncTried: false,
-        drawer: null,
-        cartDiscount: 0,
-        saleRef: '',
-        tendered: '',
-        eventStock: {},
-        eventLoaded: {}
-      } as never,
+      (state) => {
+        if (!valid() || (state.event as LiveEvent | null)?.dayId !== dayId) return null;
+        cleared = true;
+        return {
+          event: null,
+          sales: [],
+          cart: {},
+          unsynced: 0,
+          syncState: 'idle',
+          syncTried: false,
+          drawer: null,
+          cartDiscount: 0,
+          saleRef: '',
+          tendered: '',
+          eventStock: {},
+          eventLoaded: {}
+        } as never;
+      },
       // After the state has landed, so a save in between cannot put the day back; the pause ends with the day.
       () => {
+        if (!cleared || !valid() || this.state.event) return;
         clearBazaar();
         this.setCloseInDoubt(null);
         // A form left open over the till must not come back over the next day's.
@@ -1883,7 +1901,7 @@ export class OpsRuntime extends OpsProvider {
    * S3: with signal, the day this phone holds is read from the database. Its float is the day's own (the saved copy on
    * the phone keeps the event, not the drawer), and a day that was closed from another phone is let go of.
    */
-  private async confirmHeldDay(): Promise<void> {
+  private async confirmHeldDay(current: () => boolean): Promise<void> {
     const event = this.state.event as LiveEvent | null;
     const client = this.scheduledClient as unknown as BazaarClient | null;
     if (!event?.dayId || !event.scheduledId || !client || this.state.role !== 'owner') return;
@@ -1894,14 +1912,15 @@ export class OpsRuntime extends OpsProvider {
       return;
     }
     const day = data.days.find((d) => d.id === event.dayId);
-    if (this.unmounted || !day) return;
+    if (!current() || !day) return;
     // A closed day pauses selling until the phone has let go of it; an open one settles any doubt.
     if (day.state === 'closed') {
       this.setCloseInDoubt(day.id);
-      return void (await this.dropClosedDay(day.id));
+      return void (await this.dropClosedDay(day.id, current));
     }
     this.setCloseInDoubt(null);
     this.setState((s) => {
+      if (!current()) return null;
       const now = s.event as LiveEvent | null;
       if (now?.dayId !== day.id) return null;
       const counted = (s.drawer as { counted?: unknown } | null)?.counted ?? '';
@@ -3585,15 +3604,26 @@ export class OpsRuntime extends OpsProvider {
   async loadScheduledEvents(client: ScheduledClient | null): Promise<boolean> {
     if (client) this.scheduledClient = client;
     const use = client ?? this.scheduledClient;
-    if (!isLiveMode() || !use) return false;
+    if (!isLiveMode() || !use || this.unmounted || this.gateNarrow || this.state.role !== 'owner')
+      return false;
+    const actor = this.productionActorEpoch,
+      seq = ++this.scheduledReadSeq;
+    const ownerCurrent = () =>
+      !this.unmounted &&
+      !this.gateNarrow &&
+      this.state.role === 'owner' &&
+      actor === this.productionActorEpoch &&
+      use === this.scheduledClient;
     try {
-      this.scheduledRows = await fetchScheduledEvents(use);
+      const rows = await fetchScheduledEvents(use);
+      if (!ownerCurrent() || seq !== this.scheduledReadSeq) return false;
+      this.scheduledRows = rows;
     } catch {
       return false;
     }
     this.forceUpdate();
-    void this.retryPendingLink(use);
-    void this.confirmHeldDay();
+    void this.retryPendingLink(use, ownerCurrent);
+    void this.confirmHeldDay(ownerCurrent);
     // Home's next-event card must not offer a closed event: only a read of each event can say so (U4).
     if (this.state.role === 'owner') void this.bazaarDays.readHub();
     return true;
@@ -3603,16 +3633,18 @@ export class OpsRuntime extends OpsProvider {
    * A start whose link to its booking was not confirmed is retried whenever the list loads. The database books the
    * stall rent with the first link and answers a repeat harmlessly, so retrying can never book it twice.
    */
-  private async retryPendingLink(client: ScheduledClient): Promise<void> {
+  private async retryPendingLink(client: ScheduledClient, current: () => boolean): Promise<void> {
     let again = false;
     for (const pending of readPendingLinks()) {
+      if (!current()) return;
       const linked = await linkScheduledEvent(client, pending.scheduledId, pending.eventId);
+      if (!current()) return;
       if (linked === 'failed') continue;
       clearPendingLink(pending);
       again = true;
-      if (linked === 'first') this.showRentBooked(pending.eventId, pending.rentCents);
+      if (linked === 'first') this.showRentBooked(pending.eventId, pending.rentCents, current);
     }
-    if (again) await this.loadScheduledEvents(null);
+    if (again && current()) await this.loadScheduledEvents(null);
   }
 
   /**
@@ -3620,10 +3652,11 @@ export class OpsRuntime extends OpsProvider {
    * expense row shows it in the event's list and the close-out (display only, never sent: the server has it);
    * otherwise she is only told.
    */
-  private showRentBooked(eventId: string, rentCents: number): void {
+  private showRentBooked(eventId: string, rentCents: number, current: () => boolean): void {
     if (rentCents <= 0) return;
     // After the start has landed in the state, which is what says whether this event is the one on screen.
     this.afterUpdate(() => {
+      if (!current()) return;
       const event = this.state.event as LiveEvent | null;
       if (event?.id === eventId && this.localEventExpense)
         this.localEventExpense(SCHEDULED_COPY.rentLabel, centavosToPesos(rentCents), 'Bazaar rent');

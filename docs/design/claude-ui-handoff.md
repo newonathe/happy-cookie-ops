@@ -6,6 +6,11 @@ the scope to Home, Money or Shop. Read AGENTS.md, current.md and next-goal.md be
 
 ## Current work and how to detect it
 
+- Codex's 5November audit fixes live in `C:/Users/ethan/dev/happy-cookie-audit-fixes`, branch
+  `codex/audit-fixes-20261105`; do not assume integration. First slice fixes false event-save
+  confirmation, uncertain-request retirement and stale-owner booking/closed-day callbacks.
+  Private `system-audit-2026-11-05/AUDIT.md` records the full outstanding scope and screenshots.
+
 - **Status, 5 November:** coverage has 4 Partial rows left, each naming why. Added since the last note: till
   receipt, void, settings and tools as pages; event close as a page; `recipe-editor.tsx` (the "do not save yet"
   warning is gone); `store/bake-plan.ts`; cost Review; sign-in help; `RecordUnavailable`; Codex's price editor, applied

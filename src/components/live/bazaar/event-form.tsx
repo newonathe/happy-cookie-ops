@@ -37,7 +37,11 @@ function Blocked({ entry }: { entry: EventEntryVals }) {
       action: { label: 'Keep a copy and start over', onPress: entry.setAside }
     },
     unavailable: {
-      title: 'This device could not keep what you typed. Nothing has been sent.',
+      title: entry.saved
+        ? 'The event was saved, but this device could not update its recovery copy. Try again before adding another.'
+        : entry.pending
+          ? 'This device could not update the event recovery copy. The sent entry is still kept; check it before adding another.'
+          : 'This device could not keep what you typed. Nothing new has been sent.',
       action: { label: 'Try again', onPress: () => void entry.retryStorage() }
     },
     ready: { title: '', action: null }
@@ -98,9 +102,9 @@ export function EventEntryPage({ entry }: { entry: EventEntryVals }) {
           <div className="mb-3">
             <Banner
               tone="warn"
-              title="This event was sent, and no answer came back."
-              body="Send it again: it cannot make a second event. If you no longer want it, check first that it did not arrive."
-              action={{ label: 'Check and let it go', onPress: () => void entry.abandon() }}
+              title="This event has not been confirmed yet."
+              body="Check for the saved event, or retry the same entry. Retrying cannot make a second event."
+              action={{ label: 'Check saved event', onPress: () => void entry.abandon() }}
             />
           </div>
         ) : null}
