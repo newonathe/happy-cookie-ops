@@ -21,6 +21,12 @@ the scope to Home, Money or Shop. Read AGENTS.md, current.md and next-goal.md be
   It is not wired yet. Next build the retained controller and page: verified identity, lock held
   through restore/write/send, stored-payload retry, matching server readback before resolving,
   actor/generation guards and navigation retention. Do not claim the sheet has been replaced.
+  The protocol is accepted at9022ff4 (182files/2968tests+2TODOs, including its commit hook).
+  A separate actual-UI probe reproduced a cancelled save reply closing a newer Add event opening
+  and resetting its filter. The new EventList opening token/mounted checks fence close, save,
+  filter and deferred focus callbacks.51 focused UI/runtime tests pass; independent review has
+  no findings. Eight width/motion browser runs check the newer draft/focus survives. The retained
+  controller/page and server-confirmed recovery remain unfinished; this guard does not replace them.
 
 - **Status, 4 November, night: read [coverage](reference-v4/coverage.md) first.** It lists all 85 mockup
   routes with their place in the app, status and gap, and how to build (kit, classes with injected
