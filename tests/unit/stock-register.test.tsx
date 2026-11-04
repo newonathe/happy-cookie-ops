@@ -63,7 +63,7 @@ describe('B5: the New Stock screens register in the live slot', () => {
     expect(document.querySelectorAll('[data-screen-label="Inventory"]')).toHaveLength(1);
     expect(ported('Inventory')?.textContent).toContain('Stock is loading.');
     act(() => runtime.go('grocery'));
-    expect(screen.getByRole('heading', { level: 1, name: 'Grocery list' })).toBeTruthy();
+    expect(screen.getByRole('heading', { level: 1, name: 'Shopping' })).toBeTruthy();
   });
 
   it('demo mode never draws them', () => {

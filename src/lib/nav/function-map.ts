@@ -15,7 +15,7 @@ export const TABS = [
   { id: 'home', label: 'Home', screen: 'today' },
   { id: 'bazaar', label: 'Bazaar', screen: 'bazaar' },
   { id: 'sell', label: 'Sell', screen: 'orders' },
-  { id: 'make', label: 'Make', screen: 'bake' },
+  { id: 'make', label: 'Make', screen: 'products' },
   { id: 'stock', label: 'Stock', screen: 'inventory' },
   { id: 'money', label: 'Money', screen: 'pnl' }
 ] as const satisfies ReadonlyArray<{ id: string; label: string; screen: ScreenKey }>;
@@ -100,14 +100,6 @@ export const PLACES: readonly Place[] = [
     routes: ['drops']
   },
   {
-    id: 'bake',
-    home: 'make',
-    label: 'Bake plan',
-    screen: 'bake',
-    entries: [{ label: 'Bake & dough', screen: 'bake' }],
-    routes: ['bake', 'batch']
-  },
-  {
     id: 'recipes',
     home: 'make',
     label: 'Products',
@@ -119,6 +111,14 @@ export const PLACES: readonly Place[] = [
       { label: 'Recipe drafts' }
     ],
     routes: ['recipes', 'products']
+  },
+  {
+    id: 'bake',
+    home: 'make',
+    label: 'Production',
+    screen: 'bake',
+    entries: [{ label: 'Bake & dough', screen: 'bake' }],
+    routes: ['bake', 'batch']
   },
   {
     id: 'inventory',

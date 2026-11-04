@@ -131,9 +131,11 @@ describe('the live Home', () => {
       fireEvent.click(ui.getByRole('button', { name: /Receive delivery/ }));
     });
     expect(r.state.screen).toBe('inventory');
-    expect(r.state.sheet).toMatchObject({ kind: 'receive', name: 'Bread flour' });
+    expect(r.renderVals().liveStock?.receive?.lines.map((line) => line.itemName)).toEqual([
+      'Bread flour'
+    ]);
     act(() => {
-      r.setState({ sheet: null });
+      r.renderVals().liveStock?.receive?.close();
       r.go('today');
     });
     ui.rerender(<HomeLive v={r.renderVals()} />);

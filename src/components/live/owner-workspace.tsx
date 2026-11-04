@@ -301,7 +301,11 @@ export function OwnerWorkspace({
   const pageForm = pageFormOf(v);
   const back = pageForm
     ? pageForm.close
-    : screen === 'inventory' && v.liveStock
+    : v.liveStock?.receive
+      ? v.liveStock.receive.close
+      : screen === 'inventory' && v.liveStock?.change
+        ? v.liveStock.change.close
+        : screen === 'inventory' && v.liveStock
       ? v.liveStock.count && !v.liveStock.count.paused
         ? v.liveStock.count.back
         : v.liveStock.page?.pricesOpen

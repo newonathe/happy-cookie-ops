@@ -57,6 +57,8 @@ import {
 import { holdCountLock } from '@/lib/stock/count-lock';
 import { readClassicTill, rememberClassicTill } from '@/lib/offline/till-choice';
 import { BazaarDays } from '@/store/bazaar-days';
+import { MakeDesk } from '@/store/make-desk';
+import { ReceiveDelivery, StockChange, type StockEntryItem } from '@/store/stock-entries';
 import { RecipeBook } from '@/store/recipe-book';
 import {
   dayEventId,
@@ -855,6 +857,56 @@ export class OpsRuntime extends OpsProvider {
     openAdd: () => void this.openScheduled(),
     refreshBookings: () => this.loadScheduledEvents(null)
   });
+  /** The Make pages' section actions and each product's stock line. */
+  private makeDesk = new MakeDesk({
+    startProduction: () => this.startProductionFromMake(),
+    openDrafts: () => void this.openRecipeDrafts(),
+    addProduct: () => this.openNewFlavour(),
+    bakedRead: () => this.productionReadState === 'read',
+    baked: (productId) =>
+      Number((this.state.baked as Record<string, number> | undefined)?.[productId]) || 0,
+    hasRecipe: (productId) =>
+      this.recipeRows === null
+        ? null
+        : !!this.recipeRows.find((row) => row.productId === productId)?.lines?.length,
+    photo: (productId) => PRODUCTS.find((row) => row.id === productId)?.img ?? ''
+  });
+  private stockEntryDeps = {
+    items: (): StockEntryItem[] =>
+      (this.stockCatalogue?.items ?? [])
+        .filter((item) => item.active)
+        .map((item) => ({
+          name: item.name,
+          unit: item.unit,
+          packSize: item.packSize && item.packSize > 0 ? item.packSize : null,
+          supplier:
+            this.stockCatalogue?.suppliers.find((row) => row.id === item.supplierId)?.name ?? null,
+          onHand: item.onHand
+        })),
+    suppliers: () =>
+      (this.stockCatalogue?.suppliers ?? []).filter((row) => row.active).map((row) => row.name),
+    online: () => this.stockOnline(),
+    toast: (text: string, kind?: 'ok' | 'warn') => this.toast(text, kind),
+    rerender: () => {
+      if (!this.unmounted) this.forceUpdate();
+    }
+  };
+  /** Receive delivery: several items from one supplier, reviewed before saving. */
+  private receiveDelivery = new ReceiveDelivery({
+    ...this.stockEntryDeps,
+    receiveLine: (name, qty, paid, supplier) => this.receiveLine(name, qty, paid, supplier),
+    refresh: async () => {
+      await this.loadStockCatalogue(null);
+      await this.loadBooks(null);
+    }
+  });
+  /** Waste / correction on one item, reviewed before saving. */
+  private stockChange = new StockChange({
+    ...this.stockEntryDeps,
+    recordWaste: (name, qty, note) => this.liveWaste(name, qty, note),
+    recordCorrection: (name, qty, note) =>
+      this.liveAdjustInv(name, Math.abs(qty), qty < 0 ? -1 : 1, note)
+  });
   /** U7: the recipe book: each flavour's price, cost per cookie (hers or the recipe's), margin and cost receipt. */
   private recipeBook = new RecipeBook({
     client: () => (this.scheduledClient ?? this.salesTarget()) as unknown as BazaarClient | null,
@@ -1326,6 +1378,7 @@ export class OpsRuntime extends OpsProvider {
       }
       void this.liveWaste(name, qty, why);
     };
+    this.engineConfirmReceive = keep.confirmReceive;
     inv.confirmReceive = (e, item) => {
       const target = e.target as { rqty?: { value: string }; rpaid?: { value: string } };
       const got = Number(target.rqty?.value);
@@ -2134,7 +2187,7 @@ export class OpsRuntime extends OpsProvider {
       const category = first?.category ?? 'Ingredients';
       this.startCategoryCount(category);
     } else if (first) {
-      (this as unknown as { openReceive: (name: string) => void }).openReceive(first.name);
+      this.receiveDelivery.open(first.name);
     } else this.toast('Add an inventory item before receiving a delivery.', 'warn');
   }
 
@@ -3040,6 +3093,7 @@ export class OpsRuntime extends OpsProvider {
       liveOrderRules: this.liveOrderRulesVals(),
       liveOrderExtras: this.liveOrderExtrasVals(),
       liveMoney: this.liveMoneyVals(),
+      liveMake: this.state.role === 'owner' && isLiveMode() ? this.makeDesk.vals() : null,
       liveHome: this.liveHomeVals(starved),
       liveScheduled: this.liveScheduledVals(),
       liveBooks: this.liveBooksVals(),
@@ -4794,26 +4848,45 @@ export class OpsRuntime extends OpsProvider {
   }
 
   /** The ported add and subtract on an item: a signed adjustment with a fixed reason. */
-  private async liveAdjustInv(name: string, qty: unknown, dir: number): Promise<void> {
+  private async liveAdjustInv(
+    name: string,
+    qty: unknown,
+    dir: number,
+    note?: string
+  ): Promise<boolean> {
     const item = this.stockItem(name);
     const n = Math.abs(Number(qty) || 0);
-    if (!n)
-      return void this.toast('Type how much to ' + (dir < 0 ? 'subtract' : 'add') + '.', 'warn');
-    if (!item) return;
+    if (!n) {
+      this.toast('Type how much to ' + (dir < 0 ? 'subtract' : 'add') + '.', 'warn');
+      return false;
+    }
+    if (!item) return false;
     const before = item.onHand;
-    if (await this.recordMovement(item.id, 'adjust', dir * n, null, '', STOCK_COPY.adjustReason)) {
+    const saved = await this.recordMovement(
+      item.id,
+      'adjust',
+      dir * n,
+      null,
+      '',
+      note || STOCK_COPY.adjustReason
+    );
+    this.setState({ sheet: null });
+    if (saved) {
       const after = this.stockItem(name)?.onHand ?? before;
-      this.setState({ sheet: null });
       this.toast(name + ': ' + before + ' ' + item.unit + ' → ' + after + ' ' + item.unit + '.');
-    } else this.setState({ sheet: null });
+    }
+    return saved;
   }
 
   /** The ported waste sheet for raw stock: a waste movement (never more than is there), with the cost the engine works out. */
-  private async liveWaste(name: string, qty: unknown, why: string): Promise<void> {
+  private async liveWaste(name: string, qty: unknown, why: string): Promise<boolean> {
     const item = this.stockItem(name);
     const n = Number(qty) || 0;
-    if (!n) return void this.toast('Enter how much went to waste.', 'warn');
-    if (!item) return;
+    if (!n) {
+      this.toast('Enter how much went to waste.', 'warn');
+      return false;
+    }
+    if (!item) return false;
     const perUnit = (this as unknown as InvActions).costPerUnit(name);
     const cost = Number.isFinite(perUnit) ? Math.round(n * perUnit) : null;
     if (await this.recordMovement(item.id, 'waste', n, null, '', why || 'Spoiled')) {
@@ -4838,7 +4911,54 @@ export class OpsRuntime extends OpsProvider {
           effect,
         'warn'
       );
-    } else this.setState({ sheet: null });
+      return true;
+    }
+    this.setState({ sheet: null });
+    return false;
+  }
+
+  private engineConfirmReceive:
+    | ((
+        event: { preventDefault: () => void; target: unknown },
+        item: { name: string; supplier: string; key: string; add: number }
+      ) => void)
+    | null = null;
+
+  /**
+   * One line of a delivery: the record first, then the engine's own bookkeeping for that item, as
+   * the receive sheet does. The caller reads stock and the books back once, after the last line.
+   */
+  private async receiveLine(
+    name: string,
+    qty: number,
+    paid: number,
+    supplier: string
+  ): Promise<boolean> {
+    if (!(await this.liveReceipt(name, qty, paid, supplier || '—'))) return false;
+    const stock = this.stockItem(name);
+    const row = this.groceryPlanRows().find((plan) => plan.key === name);
+    // The engine's own price and ledger lines name the supplier this delivery came from.
+    const planned = row ? { ...row, name, supplier: supplier || row.supplier } : null;
+    const item = planned ?? {
+      key: name,
+      name,
+      unit: stock?.unit ?? '',
+      isPack: stock?.category === 'Packaging',
+      add: qty,
+      cost: paid,
+      supplier,
+      offList: true
+    };
+    const event = {
+      preventDefault: () => {},
+      target: {
+        rqty: { value: String(qty) },
+        rpaid: { value: String(paid) },
+        rsub: { value: '' }
+      }
+    };
+    this.withoutUndo(() => this.engineConfirmReceive?.(event, item));
+    return true;
   }
 
   /** A delivery came in: a receipt movement, with what was paid, which also writes the cost to the books once. */
@@ -5031,6 +5151,15 @@ export class OpsRuntime extends OpsProvider {
     this.setState({ liveStockPriceOpen: value });
   }
 
+  /** Shopping's Compare prices: the item's own price page, on the Inventory screen. */
+  private openItemPrices(id: string): void {
+    if (this.state.screen !== 'inventory') this.go('inventory');
+    this.setState({}, () => {
+      this.openStockItemPage(id);
+      this.setItemPricesOpen(id, true);
+    });
+  }
+
   /** Category context comes from the list; measured quantities and posting stay with the existing count operation. */
   private startCategoryCount(category: string): void {
     if (
@@ -5126,7 +5255,6 @@ export class OpsRuntime extends OpsProvider {
   ): StockItemView {
     const cost = this.stockUnitCost(item);
     const last = paid[item.name];
-    const engine = this as unknown as { openReceive: (name: string) => void };
     return {
       id: item.id,
       name: item.name,
@@ -5141,26 +5269,15 @@ export class OpsRuntime extends OpsProvider {
       status: stockStatus(item.onHand, item.parLevel),
       levelText: levelText(item.parLevel, item.unit),
       lastCountedText: lastCountedText(item.lastCounted),
+      counted: !!item.lastCounted,
       costText: unitCostText(cost.perUnit, item.unit, cost.source),
       supplier: (item.supplierId && supplierNames.get(item.supplierId)) || STOCK_COPY.noSupplier,
       lastPaidText: last ? lastPaidText(last.price, last.at) : null,
       open: () => this.openStockItemPage(item.id),
-      receive: () => engine.openReceive(item.name),
+      receive: () => this.receiveDelivery.open(item.name),
       count: () => this.startItemCount(item),
-      waste: () => this.sheet('spoil', { name: item.name }),
-      adjust: () => {
-        const row = (this.state.inv as Array<{ name: string }>).find((r) => r.name === item.name);
-        if (row) this.sheet('invEdit', { ...row });
-        else
-          this.sheet('invEdit', {
-            name: item.name,
-            qty: item.onHand,
-            unit: item.unit,
-            level: item.parLevel,
-            cat: item.category,
-            supplier: supplierNames.get(item.supplierId ?? '') ?? '—'
-          });
-      },
+      waste: () => this.stockChange.open(item.name, 'Waste'),
+      adjust: () => this.stockChange.open(item.name),
       edit: () => this.sheet('stockitems', { id: item.id })
     };
   }
@@ -5214,7 +5331,6 @@ export class OpsRuntime extends OpsProvider {
   ): { rows: GroceryRowView[]; lines: Array<number | null> } {
     const plan = new Map(this.groceryPlanRows().map((p) => [p.key, p]));
     const best = engineBestBuy(engineSuppliers(c));
-    const engine = this as unknown as { openReceive: (name: string) => void };
     const wanted = c.items
       .filter((i) => i.active && stockStatus(i.onHand, i.parLevel) !== 'Good')
       .sort(
@@ -5233,7 +5349,8 @@ export class OpsRuntime extends OpsProvider {
         name: i.name,
         status,
         haveText: formatQuantity(i.onHand, i.unit),
-        bought: () => engine.openReceive(i.name)
+        bought: () => this.receiveDelivery.open(i.name),
+        compare: () => this.openItemPrices(i.id)
       };
       if (!p) {
         // Out or Low, but the plan has nothing to buy (nothing short of what is needed, or no level to buy back to).
@@ -5315,6 +5432,10 @@ export class OpsRuntime extends OpsProvider {
     return {
       online: this.stockOnline(),
       addItem: this.addStockItem,
+      openReceive: (names) => this.receiveDelivery.open(names?.[0]),
+      receive: this.receiveDelivery.vals(),
+      change: this.stockChange.vals(),
+      made: this.madeStock(),
       startCount: (category) => this.startCategoryCount(category),
       manageItems: () => void this.openStockItems(),
       items,
@@ -5364,6 +5485,20 @@ export class OpsRuntime extends OpsProvider {
       grocery: this.groceryView(c, supplierNames),
       count: this.liveStockCount()
     };
+  }
+
+  /** Dough and baked cookies as Inventory lists them; null until production has been read. */
+  private madeStock(): NonNullable<LiveStockVals['made']> | null {
+    if (this.productionReadState !== 'read') return null;
+    const rows = (counts: unknown) => {
+      const by = (counts ?? {}) as Record<string, number>;
+      return PRODUCTS.map((row) => ({
+        id: row.id,
+        name: row.short,
+        qtyText: formatQuantity(Number(by[row.id]) || 0, 'cookies')
+      }));
+    };
+    return { dough: rows(this.state.dough), baked: rows(this.state.baked) };
   }
 
   private liveStockCount(): NonNullable<LiveStockVals['count']> | null {
@@ -7792,7 +7927,7 @@ export class OpsRuntime extends OpsProvider {
       (vals.dockNav ?? []).find((nav) => (nav as { key?: unknown }).key === screen)?.icon ?? '';
     const nav = TABS.map((tab) => ({
       key: tab.id,
-      icon: icon(tab.screen),
+      icon: icon(tab.id === 'make' ? 'bake' : tab.screen),
       label: tab.label,
       badge:
         placesOf(tab.id).reduce((sum, place) => sum + this.navCount(vals, place.screen), 0) +
@@ -7902,6 +8037,16 @@ export class OpsRuntime extends OpsProvider {
     };
   }
 
+  /** Start production from either Make page: entry is drawn on Production, so it opens there. */
+  private startProductionFromMake(): void {
+    if (!isLiveMode() || this.unmounted || this.state.role !== 'owner') return;
+    if (this.state.screen !== 'bake') this.go('bake');
+    this.setState({}, () => {
+      const start = this.state.screen === 'bake' ? this.liveProductionView().start : null;
+      start?.open();
+    });
+  }
+
   /** The products screen's "Edit price" opens the live flavour editor instead of the ported sheet. */
   private liveProductRows(rows: OpsVals['productRows']): OpsVals['productRows'] {
     return rows.map((row, i) => {
@@ -7909,6 +8054,7 @@ export class OpsRuntime extends OpsProvider {
       return pid
         ? {
             ...row,
+            ...this.makeDesk.productFields(pid),
             edit: () => this.openFlavourEditor(pid, true),
             returnRecipeFocus: this.state.liveProductReturnId === pid,
             returnEditFocus: this.state.liveProductEditReturnId === pid,

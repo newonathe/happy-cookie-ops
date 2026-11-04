@@ -1,6 +1,6 @@
 'use client';
 
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import type { OpsVals } from '@/view-models/vals';
 import { Button } from '@/components/ui/button';
 import { PageTitle, Panel, SectionHeading } from '@/components/ui/owner-kit';
@@ -76,4 +76,22 @@ export function SettingsAreaPage({
       </Button>
     </div>
   );
+}
+
+/** A section's Settings button and page. The page returns to wherever it was opened from. */
+export function useAreaSettings(
+  v: OpsVals,
+  area: SettingsArea,
+  backLabel: string,
+  children?: ReactNode
+): { open: () => void; page: ReactNode } {
+  const [open, setOpen] = useState(false);
+  return {
+    open: () => setOpen(true),
+    page: open ? (
+      <SettingsAreaPage v={v} area={area} backLabel={backLabel} onBack={() => setOpen(false)}>
+        {children}
+      </SettingsAreaPage>
+    ) : null
+  };
 }

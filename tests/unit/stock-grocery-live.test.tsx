@@ -1,5 +1,5 @@
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { GroceryLive } from '@/components/live/stock/grocery-live';
 import { row, stock, valsWith } from './stock-fixtures';
 import type { LiveStockVals } from '@/lib/stock/live-stock-types';
@@ -21,7 +21,7 @@ const grocery = (over: Partial<LiveStockVals['grocery']>): LiveStockVals =>
 describe('B5 Grocery', () => {
   it('shows "Stock is loading." and does not crash when liveStock is null', () => {
     draw(null);
-    expect(screen.getByRole('heading', { level: 1, name: 'Grocery list' })).toBeTruthy();
+    expect(screen.getByRole('heading', { level: 1, name: 'Shopping' })).toBeTruthy();
     expect(screen.getByText('Stock is loading.')).toBeTruthy();
   });
 
@@ -34,7 +34,7 @@ describe('B5 Grocery', () => {
     const out = row({ itemId: 'a', name: 'Brown sugar', status: 'Out', haveText: '0 g' });
     const low = row({ itemId: 'b', name: 'Butter', status: 'Low' });
     draw(grocery({ rows: [out, low], totalText: '₱353.00' }));
-    const items = within(screen.getByRole('list', { name: 'Things to buy' })).getAllByRole(
+    const items = within(screen.getByRole('list', { name: 'To buy from Mill & Co' })).getAllByRole(
       'listitem'
     );
     expect(items).toHaveLength(2);
@@ -43,15 +43,11 @@ describe('B5 Grocery', () => {
     const text = items[1]!.textContent ?? '';
     for (const part of [
       'Butter',
-      'Have',
-      '300 g',
-      'Needed',
-      '2,000 g',
-      'To buy',
-      '2 × 1 kg (2 kg)',
+      'have 300 g',
+      'Need 2,000 g',
+      'buy 2 × 1 kg (2 kg)',
       '1 kg bag',
       '₱0.09 per g',
-      'Mill & Co',
       '₱176.50'
     ])
       expect(text).toContain(part);
@@ -76,14 +72,14 @@ describe('B5 Grocery', () => {
       lineCostText: 'Cost pending'
     });
     draw(grocery({ rows: [r], totalText: 'Cost pending' }));
-    expect(screen.getAllByText('Cost pending').length).toBeGreaterThanOrEqual(3);
+    expect(screen.getAllByText('Cost pending').length).toBeGreaterThanOrEqual(2);
     expect(document.body.textContent).not.toMatch(/₱0(\.00)?(?!\.\d)/);
   });
 
   it('without a budget: a running total and nothing about a budget', () => {
     draw(grocery({ rows: [row({ itemId: 'a', name: 'Butter' })], totalText: '₱1,234.50' }));
     const totals = screen.getByLabelText('Totals');
-    expect(totals.textContent).toContain('Running total');
+    expect(totals.textContent).toContain('Known purchase total');
     expect(totals.textContent).toContain('₱1,234.50');
     expect(document.body.textContent).not.toMatch(/budget/i);
     expect(document.body.textContent).not.toMatch(/\b(over|left)\b/i);
@@ -113,6 +109,41 @@ describe('B5 Grocery', () => {
       })
     );
     expect(screen.getByLabelText('Totals').textContent).toContain('₱120 over');
+  });
+
+  it('groups by supplier, and each group can receive all its lines or open the supplier', () => {
+    const openReceive = vi.fn();
+    const a = row({ itemId: 'a', name: 'Flour', supplier: 'Mill & Co' });
+    const b = row({ itemId: 'b', name: 'Sugar', supplier: 'Mill & Co' });
+    const c = row({ itemId: 'c', name: 'Boxes', supplier: 'Box Shop' });
+    draw({ ...grocery({ rows: [a, b, c] }), openReceive });
+    const mill = screen.getByRole('list', { name: 'To buy from Mill & Co' });
+    expect(within(mill).getAllByRole('listitem')).toHaveLength(2);
+    expect(screen.getByRole('list', { name: 'To buy from Box Shop' })).toBeTruthy();
+    fireEvent.click(screen.getAllByRole('button', { name: 'Receive delivery' })[0]!);
+    expect(openReceive).toHaveBeenCalledWith(['Flour', 'Sugar']);
+  });
+
+  it('does not offer a line to buy when the plan has nothing to buy', () => {
+    const r = row({
+      itemId: 'a',
+      name: 'Salt',
+      toBuyText: 'Nothing to buy',
+      lineCostText: '₱0.00'
+    });
+    draw(grocery({ rows: [r] }));
+    expect(screen.getByText(/Nothing to buy for the plan/)).toBeTruthy();
+    const list = screen.getByRole('list', { name: /^To buy from/ });
+    expect(within(list).queryByText('₱0.00')).toBeNull();
+  });
+
+  it('asks to count an item that was never counted before buying it', () => {
+    const count = vi.fn();
+    const base = stock();
+    const item = { ...base.items[0]!, active: true, counted: false, count };
+    draw({ ...base, items: [item] });
+    fireEvent.click(screen.getByRole('button', { name: `Count ${item.name}` }));
+    expect(count).toHaveBeenCalledOnce();
   });
 
   it('says Offline when offline', () => {

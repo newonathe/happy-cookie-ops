@@ -65,8 +65,8 @@ on the 4186 preview with synthetic data; it is not hosted, device or owner accep
 | shop-schedule | `ScheduleAndDrop` in `live/sell/shop-live.tsx` | Partial | Capacity, sold-out and past drops are here. Schedule fields still in the ported `rules` sheet |
 | customer-shop, customer-checkout, customer-status | ported customer screens with live branches | Partial | Compare with the mockup |
 | **Make** | | | |
-| make | `live/recipes/products-live.tsx` | Landing | |
-| production | `live/production/production-live.tsx` | Partial | Title and tabs to align |
+| make | `live/recipes/products-live.tsx`, `store/make-desk.ts` | Done | |
+| production | `live/production/production-live.tsx` | Done | Baked stock by product is on Inventory |
 | production-entry, production-review | `production-start.tsx`, `production-focus-live.tsx` | Partial | Group entry exists; compare |
 | recipe | `live/recipes/recipe-book.tsx`, `flavour-page.tsx`, `recipe-reader.tsx` | Partial | Recipe/Cost/History tabs, scaling, stock for this batch |
 | recipe-edit, recipe-review | ported recipes screen | Old | Rebuild beside it; keep the legacy warning until reviewed |
@@ -74,20 +74,20 @@ on the 4186 preview with synthetic data; it is not hosted, device or owner accep
 | product-edit | `live/live-form-host.tsx` | Done | |
 | new-product | `live/live-form-host.tsx` | Partial | Short first step |
 | cost-edit, cost-review | `live/recipes/flavour-page.tsx` | Partial | Review step |
-| make-settings | | Missing | Use `SettingsAreaPage` area `make`; add Show inactive products |
+| make-settings | `useAreaSettings` area `make` | Partial | Show inactive products is the All products filter on Products |
 | **Stock** | | | |
-| stock | `live/stock/inventory-live.tsx` | Partial | Receive at top, Dough and Baked categories, simpler rows |
-| item | `inventory-live.tsx` ItemPage | Partial | Layout |
+| stock | `live/stock/inventory-live.tsx` | Done | |
+| item | `inventory-live.tsx` ItemPage | Done | |
 | item-edit, new-item | `live/stock-items-form.tsx` | Partial | Re-skin |
-| receive, receive-review | ported `receive` sheet | Old | Multi-line page and review |
+| receive, receive-review | `live/stock/stock-entry-live.tsx`, `store/stock-entries.ts` | Done | Delivery date is today: backdating needs a server decision. Paid may stay empty: cost stays pending |
 | count, count-review | `live/stock/count-inventory.tsx` | Done | |
-| adjust, adjust-review | ported `spoil` and adjust sheets | Old | Page and review |
-| shopping | `live/stock/grocery-live.tsx` | Partial | Grouped by supplier, planned bake |
-| bake-needs | | Missing | Planned bake page |
-| suppliers, supplier, supplier-edit | `live/stock/suppliers-live.tsx`, `stock-suppliers-form.tsx` | Partial | Re-skin |
+| adjust, adjust-review | `live/stock/stock-entry-live.tsx`, `store/stock-entries.ts` | Done | |
+| shopping | `live/stock/grocery-live.tsx` | Partial | Grouped by supplier. Edit planned bake is on `bake-needs` |
+| bake-needs | | Missing | Plan cookies by product and buy for that plan, not only for orders. Needs a planning read |
+| suppliers, supplier, supplier-edit | `live/stock/suppliers-live.tsx`, `stock-suppliers-form.tsx` | Partial | Title and Settings done; rows and form to re-skin |
 | purchase-prices | `live/stock/item-prices.tsx` | Partial | Use supplier |
 | supplier-price-edit | stash `7f5924a` | Missing | Held price editor; read its review packet first |
-| stock-settings | | Missing | Use `SettingsAreaPage` area `stock`; add the shopping budget |
+| stock-settings | `useAreaSettings` area `stock` | Partial | Budget is a row in Make settings › Kitchen rules, in the ported `rules` sheet |
 | **Money** | | | |
 | money | `live/money/money-live.tsx` | Done | |
 | money-settings | `MoneySettings` | Partial | Recipe cost list |

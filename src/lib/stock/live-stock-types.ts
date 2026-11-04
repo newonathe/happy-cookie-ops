@@ -7,6 +7,8 @@
  * Add to it only together with both sides.
  */
 
+import type { ReceiveDeliveryView, StockChangeView } from '@/store/stock-entries';
+
 /** Out at 0, Low below the item's level, Good otherwise (Ethan, 13 October). An item with no level is Good unless it is at 0. */
 export type StockStatus = 'Out' | 'Low' | 'Good';
 
@@ -42,6 +44,8 @@ export interface StockItemView {
   levelText: string;
   /** "Counted 3 Oct", or "Opening count pending" when it was never counted. */
   lastCountedText: string;
+  /** False until the item has been counted once: its quantity is a record, not a count. */
+  counted?: boolean;
   /** Cost per unit with where it came from ("₱0.09 per g · average"), or "Cost pending". */
   costText: string;
   supplier: string;
@@ -92,8 +96,10 @@ export interface GroceryRowView {
   supplier: string;
   /** "₱176.50", or "Cost pending". */
   lineCostText: string;
-  /** "I bought these": opens the existing receive flow for this item. */
+  /** "I bought these": opens Receive delivery on this item. */
   bought: () => void;
+  /** Opens this item's supplier prices. */
+  compare?: () => void;
 }
 
 export interface GroceryView {
@@ -107,8 +113,20 @@ export interface GroceryView {
   overBudget: boolean;
 }
 
+/** Cookies and dough on hand, by product. Null until production has been read: unknown is not zero. */
+export interface MadeStockRow {
+  id: string;
+  name: string;
+  qtyText: string;
+}
+
 export interface LiveStockVals {
   addItem?: () => void;
+  /** Opens Receive delivery, on an item when one is named. */
+  openReceive?: (itemNames?: readonly string[]) => void;
+  receive?: ReceiveDeliveryView | null;
+  change?: StockChangeView | null;
+  made?: { dough: MadeStockRow[]; baked: MadeStockRow[] } | null;
   /** Starts the selected ingredient/packaging category or resumes the existing count safely. */
   startCount?: (category: string) => void;
   manageItems?: () => void;

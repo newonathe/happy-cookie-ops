@@ -32,7 +32,7 @@ const product = (over: Partial<OpsVals['productRows'][number]> = {}) => ({
 const vals = (rows = [product()]) =>
   ({
     productRows: rows,
-    liveScreen: { tabs: { label: 'Make' } }
+    liveScreen: { tabs: { label: 'Make', places: [], entries: [] } }
   }) as unknown as OpsVals;
 
 afterEach(() => {
@@ -55,18 +55,32 @@ describe('product-centered Make library', () => {
     expect(within(card).getByText('On the order form')).toBeTruthy();
     expect(within(card).getByText('Cost pending')).toBeTruthy();
     expect(screen.queryByRole('searchbox')).toBeNull();
-    expect(screen.queryByText(/cookies in stock/)).toBeNull();
+    expect(within(card).getByText('Baked stock not read yet')).toBeTruthy();
   });
 
   it('shows actual visibility/sold-out/rotating labels and explains the optional shop badge', () => {
-    render(<ProductsLive v={vals([product({ offForm: true, soldOut: true, rotating: true })])} />);
-    for (const text of ['Off the order form', 'Sold out', 'Rotating', 'Popular'])
-      expect(screen.getByText(text)).toBeTruthy();
-    fireEvent.click(screen.getByText('About product labels'));
-    expect(screen.getByText(/A badge is a short label beside a cookie in your shop/)).toBeTruthy();
+    render(
+      <ProductsLive
+        v={vals([
+          product({
+            offForm: true,
+            soldOut: true,
+            rotating: true,
+            hasRecipe: false,
+            bakedText: '0 baked cookies in stock'
+          })
+        ])}
+      />
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'All products' }));
+    expect(
+      screen.getByText('Off the order form · Rotating · Sold out · Needs a recipe')
+    ).toBeTruthy();
+    expect(screen.getByText('Popular')).toBeTruthy();
+    expect(screen.getByText('0 baked cookies in stock')).toBeTruthy();
     expect(
       screen.getByRole('button', { name: 'Take QA cookie off the order form' }).textContent
-    ).toContain('Show on order form');
+    ).toContain('Show');
   });
 
   it('has an honest empty state and accessible product cards', async () => {
