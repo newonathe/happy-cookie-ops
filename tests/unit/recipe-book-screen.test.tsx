@@ -139,6 +139,58 @@ describe('product recipe link', () => {
     );
     expect(screen.getByText('No saved recipe quantities yet.')).toBeTruthy();
   });
+  it('never claims sufficient stock for absent, mismatched, or unread inventory', () => {
+    const page = recipePage();
+    const ui = draw(book({ recipePage: page }));
+    expect(screen.queryByText('Recorded stock covers this batch.')).toBeNull();
+    expect(
+      screen.getByText('Inventory has not been read yet. Stock for this batch is unknown.')
+    ).toBeTruthy();
+    ui.rerender(
+      <RecipeBookLive
+        v={{ liveRecipes: book({ recipePage: { ...page, stock: [] } }) } as unknown as OpsVals}
+      />
+    );
+    expect(screen.queryByText('Recorded stock covers this batch.')).toBeNull();
+    expect(screen.getAllByText('Not in stock list')).toHaveLength(2);
+    ui.rerender(
+      <RecipeBookLive
+        v={
+          {
+            liveRecipes: book({
+              recipePage: {
+                ...page,
+                stock: [
+                  { name: 'Butter', unit: 'kg', onHand: 1000, counted: true },
+                  { name: 'Eggs', unit: 'pcs', onHand: 10, counted: true }
+                ]
+              }
+            })
+          } as unknown as OpsVals
+        }
+      />
+    );
+    expect(screen.queryByText('Recorded stock covers this batch.')).toBeNull();
+    expect(screen.getByText('Stock unit differs from recipe')).toBeTruthy();
+    ui.rerender(
+      <RecipeBookLive
+        v={
+          {
+            liveRecipes: book({
+              recipePage: {
+                ...page,
+                stock: [
+                  { name: 'Butter', unit: 'g', onHand: 1000, counted: true },
+                  { name: 'Eggs', unit: 'pcs', onHand: 10, counted: true }
+                ]
+              }
+            })
+          } as unknown as OpsVals
+        }
+      />
+    );
+    expect(screen.getByText('Recorded stock covers this batch.')).toBeTruthy();
+  });
   it('has accessible saved-recipe content and retry controls', async () => {
     const page = recipePage(),
       ui = draw(book({ recipePage: page }));
