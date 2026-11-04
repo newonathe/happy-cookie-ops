@@ -136,7 +136,9 @@ describe('live production count and review', () => {
     v.batch.step1 = false;
     v.batch.step2 = true;
     const ui = render(<ProductionFocusLive v={v as unknown as OpsVals} />);
-    expect(screen.getByRole('alert').textContent).toContain('Your records show too little of some ingredients');
+    expect(screen.getByRole('alert').textContent).toContain(
+      'Your records show too little of some ingredients'
+    );
     expect(screen.getByText('100 g recorded')).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Use more Flour' }));
     expect(v.batch.rows[0]!.plus).toHaveBeenCalledTimes(1);

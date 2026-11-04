@@ -37,7 +37,7 @@ export function SalesLive({ v }: { v: OpsVals }) {
   const log = v.salesLog;
   return (
     <div className="w-full">
-      <HeadedPanel title={`${String(log.countNum)} ${String(log.unit)}`}>
+      <HeadedPanel title={`${(log.rows ?? []).length} ${String(log.unit)}`}>
         {log.empty ? (
           <p className="px-4 py-3 text-caption text-ink-mute">No sales recorded yet.</p>
         ) : (
