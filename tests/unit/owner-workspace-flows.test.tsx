@@ -73,7 +73,7 @@ it('preserves real stock sheets and the count draft when using the new header Ba
     } as never);
   });
   act(() => runtime.go('inventory'));
-  fireEvent.click(screen.getByRole('button', { name: 'Add to inventory' }));
+  fireEvent.click(screen.getByRole('button', { name: 'New item' }));
   expect(runtime.renderVals().liveStockItems?.editing?.isNew).toBe(true);
   expect(document.querySelector('[name="itemName"]')).toBeTruthy();
   // Settings forms are pages now: the header Back closes the form, as the sheet's Close did.

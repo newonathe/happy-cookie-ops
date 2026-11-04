@@ -22,8 +22,13 @@ function BuyRow({ row }: { row: GroceryRowView }) {
           {row.name} <StatusWord status={row.status} />
         </span>
         <span className="text-caption text-ink-mute">
-          Need {row.neededText} · have {row.haveText} ·{' '}
-          {nothing ? 'Nothing to buy for the plan' : `buy ${row.toBuyText}`}
+          {nothing ? (
+            <>Have {row.haveText} · not needed for the next bake</>
+          ) : (
+            <>
+              Need {row.neededText} · have {row.haveText} · buy {row.toBuyText}
+            </>
+          )}
         </span>
         <span className="text-caption text-ink-mute">
           {row.packText} · {row.bestPriceText}
@@ -38,9 +43,9 @@ function BuyRow({ row }: { row: GroceryRowView }) {
             variant="ghost"
             size="sm"
             onClick={row.bought}
-            aria-label={`I bought these: ${row.name}`}
+            aria-label={`Add to inventory: ${row.name}`}
           >
-            I bought these
+            Add to inventory
           </Button>
         </span>
       </span>
@@ -84,7 +89,7 @@ function SupplierGroup({
                   variant="primary"
                   onClick={() => stock.openReceive?.(rows.map((row) => row.name))}
                 >
-                  Receive delivery
+                  Add to inventory
                 </Button>
               ) : null
             }

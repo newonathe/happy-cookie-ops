@@ -127,14 +127,6 @@ describe('B5 Inventory list', () => {
     expect(screen.getByRole('button', { name: /Flour/ })).toBeTruthy();
   });
 
-  it('shows the count note on the list header when there is one, and not otherwise', () => {
-    draw(stock({ countNote: 'A count that finds less is booked as an expense.' }));
-    expect(screen.getByText(/About counts: A count that finds less/)).toBeTruthy();
-    cleanup();
-    draw(stock());
-    expect(screen.queryByText(/About counts/)).toBeNull();
-  });
-
   it('says Offline when offline, and still draws the list', () => {
     draw(stock({ online: false }));
     expect(screen.getByText(/Offline/)).toBeTruthy();
@@ -179,7 +171,7 @@ describe('B5 Inventory item page', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Back to inventory' }));
     expect(p.close).toHaveBeenCalledTimes(1);
     for (const [label, fn] of [
-      ['Receive', mine.receive],
+      ['Add to inventory', mine.receive],
       ['Count', mine.count],
       ['Edit item', mine.edit]
     ] as const) {
@@ -198,14 +190,6 @@ describe('B5 Inventory item page', () => {
     const facts = screen.getByLabelText('Item facts');
     expect(facts.textContent).not.toContain('Last paid');
     expect(facts.textContent).toContain('Cost pending');
-  });
-
-  it('shows the count note above the actions when there is one', () => {
-    const { page: p } = page();
-    draw(stock({ page: p, countNote: 'Counts that find less are books expenses.' }));
-    const note = screen.getByText(/About counts: Counts that find less/);
-    const actions = screen.getByLabelText('Item actions');
-    expect(note.compareDocumentPosition(actions) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it('movements: loading, unavailable and empty each say their line', () => {

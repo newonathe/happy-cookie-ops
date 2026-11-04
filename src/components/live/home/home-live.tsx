@@ -104,7 +104,7 @@ export function HomeLive({ v }: { v: OpsVals }) {
         ),
       onOpen: go.production
     },
-    { title: 'Receive delivery', detail: 'Ingredients & packaging', onOpen: go.receive },
+    { title: 'Add to inventory', detail: 'Ingredients & packaging', onOpen: go.receive },
     { title: 'Count stock', detail: 'Enter a physical count', onOpen: go.count },
     {
       title: 'Products & recipes',

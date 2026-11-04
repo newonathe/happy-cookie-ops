@@ -128,7 +128,7 @@ describe('the live Home', () => {
     const r = await mounted(true);
     const ui = render(<HomeLive v={r.renderVals()} />);
     await act(async () => {
-      fireEvent.click(ui.getByRole('button', { name: /Receive delivery/ }));
+      fireEvent.click(ui.getByRole('button', { name: /Add to inventory/ }));
     });
     expect(r.state.screen).toBe('inventory');
     expect(r.renderVals().liveStock?.receive?.lines.map((line) => line.itemName)).toEqual([

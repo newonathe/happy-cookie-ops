@@ -54,7 +54,7 @@ export function MoneyEntryLive({ entry }: { entry: MoneyEntryView }) {
         title={expense ? 'Record expense' : 'Record owner draw'}
         subtitle={
           expense
-            ? 'Record a completed movement of money. Buying stock? Use Receive delivery in Stock.'
+            ? 'Record a completed movement of money. Buying stock? Use Add to inventory in Stock.'
             : 'Money you take for yourself. It is kept apart from expenses.'
         }
       />

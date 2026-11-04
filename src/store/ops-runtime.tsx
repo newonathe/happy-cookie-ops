@@ -785,6 +785,22 @@ const RENDER_PRODUCTS = (
   }
 ).P;
 
+/** A pack, said once: "1 kg bag (1,000 g)", "500 g pack", "Single piece". */
+function packWords(
+  size: number | null | undefined,
+  label: string | null | undefined,
+  unit: string
+): string {
+  if (!size || size <= 0) return label || 'Pack size not set';
+  if (size === 1) return 'Single piece';
+  const amount = formatQuantity(size, unit);
+  const same =
+    !label ||
+    label.replace(/[\s,]/g, '') === amount.replace(/[\s,]/g, '') ||
+    label === `${size} ${unit}`;
+  return same ? `${amount} pack` : `${label} (${amount})`;
+}
+
 export class OpsRuntime extends OpsProvider {
   /** The engine's Counter can stick part way when a total returns to its old value mid-tween; see settled-counter.tsx. */
   Counter = SettledCounter;
@@ -4251,9 +4267,14 @@ export class OpsRuntime extends OpsProvider {
     return this.state.online && (typeof navigator === 'undefined' || navigator.onLine);
   }
 
+  /** The item form was opened from a page, not from the list of items. */
+  private stockFormFromPage = false;
+
   private addStockItem = (): void => {
     if (!isLiveMode() || this.state.role !== 'owner' || !this.stockCatalogue) return;
     this.stockNewId = crypto.randomUUID();
+    // Opened from the page, not from the list of items: Save and Back return to the page.
+    this.stockFormFromPage = (this.state.sheet as StockSheetState | null)?.kind !== 'stockitems';
     this.sheet('stockitems', { isNew: true });
   };
 
@@ -4308,7 +4329,8 @@ export class OpsRuntime extends OpsProvider {
       add: this.addStockItem,
       edit: (id) => this.sheet('stockitems', { id }),
       save: (f) => void this.saveStockItemForm(f),
-      back: () => this.sheet('stockitems', {}),
+      back: () => (this.stockFormFromPage ? this.closeSheet() : this.sheet('stockitems', {})),
+      fromPage: this.stockFormFromPage,
       close: () => this.closeSheet()
     };
   }
@@ -4558,6 +4580,8 @@ export class OpsRuntime extends OpsProvider {
         (this.state.screen === 'suppliers' || originSheet?.itemId)
       ) {
         if ((this.state.sheet as StockSheetState | null)?.kind === kind) this.closeSheet();
+      } else if (kind === 'stockitems' && this.stockFormFromPage) {
+        this.closeSheet();
       } else this.sheet(kind, {});
       return;
     }
@@ -5283,7 +5307,7 @@ export class OpsRuntime extends OpsProvider {
             (!valued
               ? COST_COPY.stocktakePending
               : value < 0
-                ? ' ₱' + shown + ' of stock unaccounted for.'
+                ? ' ₱' + shown + ' less stock than your records said.'
                 : ' ₱' + shown + ' more than your records said.'),
       corrected === 0 ? 'ok' : 'warn'
     );
@@ -5506,10 +5530,7 @@ export class OpsRuntime extends OpsProvider {
       unit: item.unit,
       active: item.active,
       qtyText: formatQuantity(item.onHand, item.unit),
-      packText:
-        item.packSize && item.packSize > 0
-          ? `${item.packLabel ? item.packLabel + ' · ' : ''}${formatQuantity(item.packSize, item.unit)} per pack`
-          : item.packLabel || 'Pack size not set',
+      packText: packWords(item.packSize, item.packLabel, item.unit),
       status: stockStatus(item.onHand, item.parLevel),
       levelText: levelText(item.parLevel, item.unit),
       lastCountedText: lastCountedText(item.lastCounted),
@@ -5522,7 +5543,10 @@ export class OpsRuntime extends OpsProvider {
       count: () => this.startItemCount(item),
       waste: () => this.stockChange.open(item.name, 'Waste'),
       adjust: () => this.stockChange.open(item.name),
-      edit: () => this.sheet('stockitems', { id: item.id })
+      edit: () => {
+        this.stockFormFromPage = true;
+        this.sheet('stockitems', { id: item.id });
+      }
     };
   }
 
@@ -5676,7 +5700,10 @@ export class OpsRuntime extends OpsProvider {
     return {
       online: this.stockOnline(),
       addItem: this.addStockItem,
-      openReceive: (names) => this.receiveDelivery.open(names?.[0]),
+      openReceive: (names) =>
+        names && names.length > 1
+          ? this.receiveDelivery.openMany(names)
+          : this.receiveDelivery.open(names?.[0]),
       receive: this.receiveDelivery.vals(),
       change: this.stockChange.vals(),
       made: this.madeStock(),
