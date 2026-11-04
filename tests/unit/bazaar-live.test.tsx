@@ -420,7 +420,7 @@ describe('S2: with an event on the phone, the ported till is drawn unchanged', (
       act(() => runtime.go('today'));
       act(() => runtime.renderVals().dockNav.find(item => item.label === 'Bazaar')!.go());
       await settle();
-      expect(screen.getByRole('heading', { name: /^Bazaar$/ })).toBeTruthy();
+      expect(screen.getByRole('heading', { name: /^Bazaar events$/ })).toBeTruthy();
       expect(screen.getByRole('button', { name: /^Return to selling$/ })).toBeTruthy();
       expect(runtime.state.event).toBe(held); expect(runtime.state.cart).toBe(cart); expect(runtime.state.eventStock).toBe(stock);
       await click('Return to selling');

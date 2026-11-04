@@ -9,6 +9,8 @@ the scope to Home, Money or Shop. Read AGENTS.md, current.md and next-goal.md be
 - **Isolated Codex follow-up:** read [performance follow-up](performance-followup-2026-11-04.md).
   Based on d21d302; display-format reuse and truthful recipe stock coverage are prepared on
   `codex/render-performance-followup`, outside Claude's checkout. Do not assume they are integrated.
+  Optimized decc2c4 build is measured at3001; updated Events directory is on HMR preview4188/bazaar.
+  Add-event page conversion needs a retained draft/request controller first; the sheet remains.
 
 - **Status, 4 November, night: read [coverage](reference-v4/coverage.md) first.** It lists all 85 mockup
   routes with their place in the app, status and gap, and how to build (kit, classes with injected

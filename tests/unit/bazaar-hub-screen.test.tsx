@@ -115,7 +115,7 @@ describe('returning from an event', () => {
   it('returns to the heading if the original event is no longer available', () => {
     const scroll = vi.spyOn(window, 'scrollTo').mockImplementation(() => undefined);
     render(<EventList bazaar={vals({ list: LIST, listPosition: { id: 'removed', top: 480 } })} />);
-    expect(document.activeElement).toBe(screen.getByRole('heading', { name: 'Bazaar' }));
+    expect(document.activeElement).toBe(screen.getByRole('heading', { name: 'Bazaar events' }));
     expect(scroll).toHaveBeenCalledWith({ top: 0, behavior: 'instant' });
   });
 });
@@ -128,12 +128,12 @@ describe('the hub', () => {
     expect(within(active).getByText('Selling')).toBeTruthy();
     expect(within(active).getByText('₱880.00')).toBeTruthy();
     expect(within(active).getByText('today · 7 sold')).toBeTruthy();
-    expect(within(active).getByRole('button', { name: 'Open the event → On now' })).toBeTruthy();
+    expect(within(active).getByRole('button', { name: 'Open event On now' })).toBeTruthy();
     // Upcoming is showing, with a pill and the dates as "Sat, 24 Oct".
     const upcoming = screen.getByRole('list', { name: 'Upcoming events' });
     expect(within(upcoming).getAllByRole('listitem')).toHaveLength(2);
     expect(within(upcoming).getAllByText('Planned')).toHaveLength(2);
-    expect(within(upcoming).getByText('Sat, 24 Oct – Sun, 25 Oct')).toBeTruthy();
+    expect(within(upcoming).getByText('Sat, 24 Oct – Sun, 25 Oct · Hall · In 9 days')).toBeTruthy();
     expect(screen.queryByText('Old fair')).toBeNull();
     expect(screen.getByRole('button', { name: 'Upcoming 2' })).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Past 1' })).toBeTruthy();
@@ -149,7 +149,8 @@ describe('the hub', () => {
     const open = vi.fn();
     render(<EventList bazaar={vals({ list: [row({ open })] })} />);
     // The header row holds the title (with its signal line) and the actions.
-    const header = screen.getByRole('heading', { name: 'Bazaar' }).closest('div')!;
+    const header = screen.getByRole('heading', { name: 'Bazaar events' }).parentElement!
+      .parentElement!;
     expect(within(header).getByRole('button', { name: 'Add an event' })).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: /Fixture fair/ }));
     expect(open).toHaveBeenCalledTimes(1);
@@ -410,5 +411,13 @@ describe('the add-event sheet', () => {
     expect(addEvent).not.toHaveBeenCalled();
     open();
     expect((screen.getByLabelText('Name') as HTMLInputElement).value).toBe('');
+  });
+
+  it('returns keyboard focus to Add an event after cancelling', async () => {
+    render(<Host addEvent={async () => null} />);
+    open();
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Add an event' })).toHaveFocus());
   });
 });

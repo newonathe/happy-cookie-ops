@@ -36,7 +36,7 @@ on the 4186 preview with synthetic data; it is not hosted, device or owner accep
 | **Home** | | | |
 | home | `live/home/home-live.tsx` | Done | |
 | **Bazaar** | | | |
-| events | `live/bazaar/event-list.tsx` | Partial | Row and title layout to align |
+| events | `live/bazaar/event-list.tsx` | Partial | Header and vertical directory aligned; active facts, filters and return kept. Add event still a sheet pending retained entry/controller |
 | bazaar | `live/bazaar/event-page.tsx` | Partial | Hero facts and selling-days panel to align |
 | event-edit | `live/bazaar/event-form.tsx` | Partial | Page form, re-skin |
 | plan, plan-review | `live/bazaar/day-plan.tsx` | Partial | Review as its own step |
