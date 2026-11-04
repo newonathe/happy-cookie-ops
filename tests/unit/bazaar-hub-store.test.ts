@@ -1,3 +1,4 @@
+import { freezeEventEntry } from '@/lib/bazaar/event-entry-recovery';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { BazaarDays, type BazaarDaysDeps } from '@/store/bazaar-days';
 import type { BazaarClient } from '@/lib/data/bazaar-days';
@@ -229,6 +230,7 @@ describe('adding one event', () => {
     endsOn: '2026-12-13',
     rent: '2,500.00'
   };
+  const frozen = () => freezeEventEntry(input)!;
 
   it('sends one booking with no stamp, reads the list again, thanks her, and marks the new row', async () => {
     const h = harness([row({ started: false })], 'throw');
@@ -245,7 +247,11 @@ describe('adding one event', () => {
       ];
       return true;
     });
-    expect(await h.store.addEvent(input)).toBeNull();
+    h.rpc.mockImplementationOnce(async () => ({
+      data: [{ id: NEW_ID, updated_at: '2026-11-04T04:00:00+00:00' }],
+      error: null
+    }));
+    expect(await h.store.sendEventEntry(frozen())).toBe(true);
     expect(h.calls('save_scheduled_event')).toEqual([
       {
         p_event: {
@@ -276,23 +282,17 @@ describe('adding one event', () => {
     // Mutation: a stamp of '' or the old row's would turn a create into a conflict.
   });
 
-  it('checks the fields again before sending, and needs signal', async () => {
+  it('needs signal: nothing is sent, and it is not confirmed', async () => {
     const h = harness([], 'throw');
-    expect(await h.store.addEvent({ ...input, name: '' })).toBe(
-      'Enter the name of the event, like "Katipunan market".'
-    );
-    expect(await h.store.addEvent({ ...input, endsOn: '2026-12-01' })).toMatch(
-      /end date must be on or after/
-    );
     h.state.online = false;
-    expect(await h.store.addEvent(input)).toMatch(/needs signal/);
+    expect(await h.store.sendEventEntry(frozen())).toBe(false);
     expect(h.calls('save_scheduled_event')).toEqual([]);
   });
 
-  it('a refused save says so in words; the list is read again either way', async () => {
+  it('a refused save is not confirmed; the list is read again either way', async () => {
     const h = harness([], 'throw');
     h.rpc.mockImplementationOnce(async () => ({ data: null, error: { code: '22023' } }));
-    expect(await h.store.addEvent(input)).toMatch(/could not be saved/);
+    expect(await h.store.sendEventEntry(frozen())).toBe(false);
     expect(h.refreshBookings).toHaveBeenCalledTimes(1);
     expect(h.store.vals().justAdded).toBeNull();
   });
@@ -306,9 +306,9 @@ describe('adding one event', () => {
       h.state.bookings = [row({ id: NEW_ID, started: false })];
       return true;
     });
-    expect(await h.store.addEvent(input)).toBeNull();
+    expect(await h.store.sendEventEntry(frozen())).toBe(true);
     expect(h.store.vals().justAdded).toBe(NEW_ID);
-    // Mutation: trusting the reply alone leaves the sheet open on an event that was saved, and she saves it twice.
+    // Mutation: trusting the reply alone leaves the page open on an event that was saved, and she saves it twice.
   });
 });
 

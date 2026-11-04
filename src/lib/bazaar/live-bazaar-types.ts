@@ -8,8 +8,8 @@
  * Add to it only together with both sides.
  */
 
+import type { EventEntryVals } from '@/store/event-entry';
 import type { BazaarRoute } from '@/lib/bazaar/navigation';
-import type { EventFormInput } from '@/lib/bazaar/event-form';
 import type { HubStatus } from '@/lib/bazaar/hub';
 
 /** A day's state as a word first: the colour never says it alone. */
@@ -422,11 +422,8 @@ export interface LiveBazaarVals {
   add: () => void;
   /** U3: reads the started events that are under way, so the hub can place each one. Call when the hub is shown; it is safe to repeat. */
   readHub: () => void;
-  /**
-   * U3: adds one event from the sheet. Returns null once it is saved and listed, otherwise the words for what is wrong (no
-   * signal, a refusal). The sheet checks each field itself with `validateEventForm`; this checks again before sending.
-   */
-  addEvent: (input: EventFormInput) => Promise<string | null>;
+  /** The Add event page: what was typed, kept on this device. Null when there is no verified owner. */
+  entry?: EventEntryVals | null;
   /** U3: the id of the event added last, so its row can rise and show a ring. Null once she opens an event or leaves. */
   justAdded: string | null;
   retry: () => void;

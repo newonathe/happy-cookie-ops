@@ -18,9 +18,10 @@ import {
   type BazaarSummary,
   type TillFigures
 } from '@/lib/data/bazaar-days';
-import { saveScheduledEvent, type ScheduledEvent } from '@/lib/data/scheduled-events';
+import { type ScheduledClient, type ScheduledEvent } from '@/lib/data/scheduled-events';
+import { sendEventEntry } from '@/lib/data/event-entry';
+import type { FrozenEventRequest } from '@/lib/bazaar/event-entry-recovery';
 import { dayRange, dayText as dayWords } from '@/lib/date/day-text';
-import { validateEventForm, type EventFormInput } from '@/lib/bazaar/event-form';
 import {
   hubFactsOf,
   hubNeedsRead,
@@ -434,7 +435,6 @@ export class BazaarDays {
       closeReview: this.leaveReview,
       add: () => this.deps.openAdd(),
       readHub: () => void this.readHub(),
-      addEvent: (input) => this.addEvent(input),
       justAdded: this.justAdded,
       retry: () => (this.bookingId ? void this.reload() : this.deps.rerender()),
       back: this.back
@@ -527,34 +527,44 @@ export class BazaarDays {
   }
 
   /**
-   * U3: adds one event. The id is the sheet's own, kept while it is open, so a retry after a lost reply is the same event.
-   * Whatever the answer, the bookings are read again: an event that is now listed was saved, whatever the reply said.
+   * U3: sends one retained create request. Its id is fixed before the first send, so a retry after a lost
+   * reply is the same event. Whatever the answer, the bookings are read again: an event that is now listed
+   * was saved, whatever the reply said.
    */
-  async addEvent(input: EventFormInput): Promise<string | null> {
-    const checked = validateEventForm(input, new Date(this.deps.now()));
-    if (!checked.ok) return checked.errors[0]?.message ?? COPY.eventRefused;
+  async sendEventEntry(body: FrozenEventRequest): Promise<boolean> {
     const client = this.deps.client();
-    if (!client || !this.deps.online()) return COPY.eventOffline;
-    const outcome = await saveScheduledEvent(client, checked.fields, null);
+    if (!client || !this.deps.online()) return false;
+    const id = body.p_event.id;
+    const confirmed = await sendEventEntry(client as unknown as ScheduledClient, body);
     await this.deps.refreshBookings();
-    const listed = this.deps.bookings().some((b) => b.id === checked.fields.id);
-    if (outcome !== 'saved' && !listed) {
-      if (outcome === 'conflict') return COPY.eventConflict;
-      return outcome === 'refused' ? COPY.eventRefused : COPY.eventOffline;
-    }
+    if (!confirmed && !this.isListed(id)) return false;
     // An event that was just created has no day and is not closed: that is known without a read, so its row is placed at once.
-    this.hubFacts.set(checked.fields.id, {
+    this.hubFacts.set(id, {
       finalised: false,
       sellingNow: false,
       dayStarted: false,
       costPending: false,
       today: null
     });
-    this.hubState.delete(checked.fields.id);
-    this.justAdded = checked.fields.id;
+    this.hubState.delete(id);
+    this.justAdded = id;
     this.deps.toast(COPY.eventAdded);
     this.deps.rerender();
-    return null;
+    return true;
+  }
+
+  private isListed(id: string): boolean {
+    return this.deps.bookings().some((booking) => booking.id === id);
+  }
+
+  /** Whether the server has this event. Null when it could not be read: that is not the same as no. */
+  async eventListed(id: string): Promise<boolean | null> {
+    if (!this.deps.client() || !this.deps.online()) return null;
+    const read = await Promise.resolve(this.deps.refreshBookings()).then(
+      (answer) => answer !== false,
+      () => false
+    );
+    return read ? this.isListed(id) : null;
   }
 
   /** A day's review is open (it is drawn ahead of the till). */

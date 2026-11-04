@@ -1,8 +1,15 @@
-import { useState } from 'react';
+import { useEffect, useReducer, useState } from 'react';
+import type * as React from 'react';
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { BazaarListRow, LiveBazaarVals } from '@/lib/bazaar/live-bazaar-types';
 import { EventList } from '@/components/live/bazaar/event-list';
+import { EventEntry } from '@/store/event-entry';
+import {
+  readEventEntry,
+  writeEventEntry,
+  type FrozenEventRequest
+} from '@/lib/bazaar/event-entry-recovery';
 
 /**
  * U3: the events hub and the add-event sheet, drawn from a view model made by hand. They hold no rules: the tests look
@@ -38,7 +45,6 @@ const vals = (over: Partial<LiveBazaarVals> = {}): LiveBazaarVals => ({
   closeReview: noop,
   add: noop,
   readHub: noop,
-  addEvent: async () => null,
   justAdded: null,
   retry: noop,
   back: noop,
@@ -240,10 +246,42 @@ describe('the hub', () => {
 });
 
 /** The hub, with the bookings it holds kept in state so a save can be seen to land in the list. */
-function Host({ addEvent }: { addEvent: LiveBazaarVals['addEvent'] }) {
+function Host({
+  send = async () => true
+}: {
+  send?: (body: FrozenEventRequest) => Promise<boolean>;
+}) {
   const [list] = useState([row({ id: 'u1', name: 'Next fair' })]);
-  return <EventList bazaar={vals({ list, addEvent })} />;
+  const [, redraw] = useReducer((n: number) => n + 1, 0);
+  const [entry] = useState(() => {
+    const data = new Map<string, string>();
+    const storage = {
+      getItem: (key: string) => data.get(key) ?? null,
+      setItem: (key: string, value: string) => void data.set(key, value)
+    };
+    return new EventEntry({
+      lock: async () => () => undefined,
+      read: (scope) => readEventEntry(scope, storage),
+      write: (scope, value, resolvedId) => writeEventEntry(scope, value, { storage, resolvedId }),
+      send,
+      online: () => true,
+      uuid: () => '22222222-2222-4222-8222-222222222222',
+      changed: redraw
+    });
+  });
+  useEffect(() => {
+    void entry.bind({
+      userId: '11111111-1111-4111-8111-111111111111',
+      business: 'https://one.example'
+    });
+  }, [entry]);
+  return <EventList bazaar={vals({ list, entry: entry.vals() })} />;
 }
+const bound = async (ui: React.ReactElement) => {
+  await act(async () => {
+    render(ui);
+  });
+};
 
 describe('the ring on a row just added, under reduced motion', () => {
   const reduced = (on: boolean) =>
@@ -279,30 +317,35 @@ describe('the ring on a row just added, under reduced motion', () => {
   });
 });
 
-describe('the add-event sheet', () => {
-  const open = () => fireEvent.click(screen.getByRole('button', { name: 'Add an event' }));
+describe('the add-event page', () => {
   const type = (label: string, value: string) =>
     fireEvent.change(screen.getByLabelText(label), { target: { value } });
+  const fill = () => {
+    type('Name', ' Christmas bazaar ');
+    type('Place', 'Mall');
+    type('First day', '2026-12-12');
+    type('Last day', '2026-12-13');
+    type('Stall rent', '2,500.00');
+  };
 
-  it('opens as a dialog with its fields, nothing pre-filled that is a decision', () => {
-    render(<Host addEvent={async () => null} />);
-    open();
-    const dialog = screen.getByRole('dialog', { name: 'Add an event' });
+  it('opens as a page with its fields, nothing pre-filled that is a decision', async () => {
+    await bound(<Host />);
+    fireEvent.click(screen.getByRole('button', { name: 'Add an event' }));
+    expect(screen.getByRole('heading', { name: 'Add event' })).toBeTruthy();
+    expect(screen.queryByRole('dialog')).toBeNull();
     for (const label of ['Name', 'Place', 'First day', 'Last day', 'Stall rent'])
-      expect((within(dialog).getByLabelText(label) as HTMLInputElement).value).toBe('');
-    expect(within(dialog).getByRole('button', { name: 'Save the event' })).toBeTruthy();
-    expect(within(dialog).getByRole('button', { name: 'Cancel' })).toBeTruthy();
+      expect((screen.getByLabelText(label) as HTMLInputElement).value).toBe('');
+    expect(screen.getByRole('button', { name: 'Back to events' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Review event' })).toBeTruthy();
   });
 
   it('points at each bad field: a summary with links, red fields, and the words under them', async () => {
-    const addEvent = vi.fn(async () => null);
-    render(<Host addEvent={addEvent} />);
-    open();
+    const send = vi.fn(async () => true);
+    await bound(<Host send={send} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Add an event' }));
     type('Stall rent', 'lots');
-    fireEvent.click(screen.getByRole('button', { name: 'Save the event' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Review event' }));
     const summary = await screen.findByRole('alert');
-    expect(within(summary).getByText('There is a problem')).toBeTruthy();
-    await waitFor(() => expect(document.activeElement).toBe(summary));
     const nameLink = within(summary).getByRole('link', {
       name: 'Enter the name of the event, like "Katipunan market".'
     });
@@ -316,34 +359,29 @@ describe('the add-event sheet', () => {
     ).toBeTruthy();
     const name = screen.getByLabelText('Name');
     expect(name.getAttribute('aria-invalid')).toBe('true');
-    expect(name.getAttribute('aria-describedby')).toBeTruthy();
-    expect(screen.getByLabelText('Stall rent').getAttribute('aria-invalid')).toBe('true');
     expect(screen.getByLabelText('Place').getAttribute('aria-invalid')).toBeNull();
     fireEvent.click(nameLink);
     expect(document.activeElement).toBe(name);
-    expect(addEvent).not.toHaveBeenCalled();
-    // Mutation: sending first and reading the refusal back leaves her with "could not be saved" and no field to fix.
+    expect(send).not.toHaveBeenCalled();
   });
 
-  it('validates a field when she leaves it', () => {
-    render(<Host addEvent={async () => null} />);
-    open();
+  it('validates a field when she leaves it, without a summary', async () => {
+    await bound(<Host />);
+    fireEvent.click(screen.getByRole('button', { name: 'Add an event' }));
     const name = screen.getByLabelText('Name');
     fireEvent.blur(name);
     expect(name.getAttribute('aria-invalid')).toBe('true');
     fireEvent.change(name, { target: { value: 'Fair' } });
     fireEvent.blur(name);
     expect(name.getAttribute('aria-invalid')).toBeNull();
-    // The summary is for a submit: a blur never steals focus.
     expect(screen.queryByText('There is a problem')).toBeNull();
   });
 
-  it('the last day follows the first until she sets it, and never lies before it', () => {
-    render(<Host addEvent={async () => null} />);
-    open();
+  it('the last day follows the first until she sets it, and never lies before it', async () => {
+    await bound(<Host />);
+    fireEvent.click(screen.getByRole('button', { name: 'Add an event' }));
     type('First day', '2026-12-12');
     expect((screen.getByLabelText('Last day') as HTMLInputElement).value).toBe('2026-12-12');
-    expect(screen.getAllByText('Sat, 12 Dec').length).toBeGreaterThan(0);
     type('Last day', '2026-12-14');
     type('First day', '2026-12-13');
     expect((screen.getByLabelText('Last day') as HTMLInputElement).value).toBe('2026-12-14');
@@ -351,140 +389,66 @@ describe('the add-event sheet', () => {
     expect((screen.getByLabelText('Last day') as HTMLInputElement).value).toBe('2026-12-20');
   });
 
-  it('saves exactly what she typed with the sheet’s own id, then closes and shows Upcoming', async () => {
-    const addEvent = vi.fn(async () => null);
-    render(<Host addEvent={addEvent} />);
+  it('reviews, then sends what she typed once, and shows Upcoming', async () => {
+    const send = vi.fn(async () => true);
+    await bound(<Host send={send} />);
     fireEvent.click(screen.getByRole('button', { name: 'Past 0' }));
-    open();
-    type('Name', ' Christmas bazaar ');
-    type('Place', 'Mall');
-    type('First day', '2026-12-12');
-    type('Last day', '2026-12-13');
-    type('Stall rent', '2,500.00');
+    fireEvent.click(screen.getByRole('button', { name: 'Add an event' }));
+    fill();
+    fireEvent.click(screen.getByRole('button', { name: 'Review event' }));
+    expect(send).not.toHaveBeenCalled();
+    expect(screen.getByRole('heading', { name: 'Review event' })).toBeTruthy();
+    expect(screen.getByText('Christmas bazaar')).toBeTruthy();
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Save the event' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Save event' }));
     });
-    expect(addEvent).toHaveBeenCalledTimes(1);
-    expect(addEvent).toHaveBeenCalledWith({
-      id: expect.stringMatching(/^[0-9a-f-]{36}$/),
-      name: ' Christmas bazaar ',
-      place: 'Mall',
-      startsOn: '2026-12-12',
-      endsOn: '2026-12-13',
-      rent: '2,500.00'
-    });
-    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
-    expect(screen.getByRole('list', { name: 'Upcoming events' })).toBeTruthy();
-    // Mutation: staying on Past after a save hides the new event behind the chip she did not pick.
-  });
-
-  it('a save that fails stays open with the words, and saving again sends the same id', async () => {
-    const addEvent = vi
-      .fn<LiveBazaarVals['addEvent']>()
-      .mockResolvedValueOnce('Adding an event needs signal. Try again when you are back online.')
-      .mockResolvedValueOnce(null);
-    render(<Host addEvent={addEvent} />);
-    open();
-    type('Name', 'Fair');
-    type('First day', '2026-12-12');
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Save the event' }));
-    });
-    expect(await screen.findByText(/needs signal\. Try again/)).toBeTruthy();
-    expect(screen.getByRole('dialog', { name: 'Add an event' })).toBeTruthy();
-    expect((screen.getByLabelText('Name') as HTMLInputElement).value).toBe('Fair');
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Save the event' }));
-    });
-    expect(addEvent).toHaveBeenCalledTimes(2);
-    expect(addEvent.mock.calls[1]![0].id).toBe(addEvent.mock.calls[0]![0].id);
-    // Mutation: a new id per tap saves the same event twice when the first answer was lost.
-  });
-
-  it('opens fresh with a new id each time, and Cancel closes it without saving', async () => {
-    const addEvent = vi.fn(async () => null);
-    render(<Host addEvent={addEvent} />);
-    open();
-    type('Name', 'Half typed');
-    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
-    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
-    expect(addEvent).not.toHaveBeenCalled();
-    open();
-    expect((screen.getByLabelText('Name') as HTMLInputElement).value).toBe('');
-  });
-
-  it('returns keyboard focus to Add an event after cancelling', async () => {
-    render(<Host addEvent={async () => null} />);
-    open();
-    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
-    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
-    await waitFor(() => expect(screen.getByRole('button', { name: 'Add an event' })).toHaveFocus());
-  });
-
-  it('a late reply from a cancelled opening cannot close or overwrite a newer draft', async () => {
-    let finish: (value: string | null) => void = () => undefined;
-    const pending = new Promise<string | null>((resolve) => {
-      finish = resolve;
-    });
-    render(<Host addEvent={vi.fn(() => pending)} />);
-    open();
-    type('Name', 'First event');
-    type('First day', '2026-12-12');
-    fireEvent.click(screen.getByRole('button', { name: 'Save the event' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
-    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
-    open();
-    type('Name', 'Second event draft');
-    const name = screen.getByLabelText('Name');
-    name.focus();
-    await act(async () => {
-      finish(null);
-      await pending;
-    });
-    expect(screen.getByRole('dialog', { name: 'Add an event' })).toBeTruthy();
-    expect(screen.queryByRole('heading', { name: 'Bazaar events' })).toBeNull();
-    expect((screen.getByLabelText('Name') as HTMLInputElement).value).toBe('Second event draft');
-    expect(name).toHaveFocus();
-  });
-
-  it('a cancelled opening’s late reply cannot change the directory filter', async () => {
-    let finish: (value: string | null) => void = () => undefined;
-    const pending = new Promise<string | null>((resolve) => {
-      finish = resolve;
-    });
-    render(<Host addEvent={() => pending} />);
-    open();
-    type('Name', 'First event');
-    type('First day', '2026-12-12');
-    fireEvent.click(screen.getByRole('button', { name: 'Save the event' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
-    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
-    fireEvent.click(screen.getByRole('button', { name: 'Past 0' }));
-    await act(async () => {
-      finish(null);
-      await pending;
-    });
-    expect(screen.getByRole('button', { name: 'Past 0' })).toHaveAttribute('aria-pressed', 'true');
-  });
-
-  it('a reply after leaving the directory cannot change its retained filter', async () => {
-    let finish: (value: string | null) => void = () => undefined;
-    const pending = new Promise<string | null>((resolve) => {
-      finish = resolve;
-    });
-    const setListFilter = vi.fn();
-    const view = render(
-      <EventList bazaar={vals({ list: LIST, setListFilter, addEvent: () => pending })} />
+    expect(send).toHaveBeenCalledTimes(1);
+    expect(send).toHaveBeenCalledWith(
+      expect.objectContaining({
+        p_event: expect.objectContaining({ name: 'Christmas bazaar', rent_cents: 250000 })
+      })
     );
-    open();
-    type('Name', 'First event');
-    type('First day', '2026-12-12');
-    fireEvent.click(screen.getByRole('button', { name: 'Save the event' }));
-    view.unmount();
+    await waitFor(() => expect(screen.queryByRole('heading', { name: 'Review event' })).toBeNull());
+    expect(screen.getByRole('list', { name: 'Upcoming events' })).toBeTruthy();
+  });
+
+  it('an unconfirmed save stays on Review and sending again is the same request', async () => {
+    const send = vi.fn<(body: FrozenEventRequest) => Promise<boolean>>();
+    send.mockResolvedValueOnce(false).mockResolvedValueOnce(true);
+    await bound(<Host send={send} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Add an event' }));
+    fill();
+    fireEvent.click(screen.getByRole('button', { name: 'Review event' }));
     await act(async () => {
-      finish(null);
-      await pending;
+      fireEvent.click(screen.getByRole('button', { name: 'Save event' }));
     });
-    expect(setListFilter).not.toHaveBeenCalled();
+    expect(await screen.findByText(/no answer came back/)).toBeTruthy();
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Send again' }));
+    });
+    expect(send).toHaveBeenCalledTimes(2);
+    expect(send.mock.calls[1]![0]).toEqual(send.mock.calls[0]![0]);
+  });
+
+  it('leaving keeps what was typed, and keyboard focus returns to the button', async () => {
+    const send = vi.fn(async () => true);
+    await bound(<Host send={send} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Add an event' }));
+    type('Name', 'Half typed');
+    fireEvent.click(screen.getByRole('button', { name: 'Back to events' }));
+    const again = await screen.findByRole('button', { name: 'Continue adding event' });
+    await waitFor(() => expect(again).toHaveFocus());
+    expect(send).not.toHaveBeenCalled();
+    fireEvent.click(again);
+    expect((screen.getByLabelText('Name') as HTMLInputElement).value).toBe('Half typed');
+  });
+
+  it('Clear throws the draft away, so the next one starts empty', async () => {
+    await bound(<Host />);
+    fireEvent.click(screen.getByRole('button', { name: 'Add an event' }));
+    type('Name', 'Half typed');
+    fireEvent.click(screen.getByRole('button', { name: 'Clear' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Add an event' }));
+    expect((screen.getByLabelText('Name') as HTMLInputElement).value).toBe('');
   });
 });

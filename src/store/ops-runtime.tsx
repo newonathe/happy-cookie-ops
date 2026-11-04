@@ -57,6 +57,13 @@ import {
 import { holdCountLock } from '@/lib/stock/count-lock';
 import { readClassicTill, rememberClassicTill } from '@/lib/offline/till-choice';
 import { BazaarDays } from '@/store/bazaar-days';
+import { EventEntry } from '@/store/event-entry';
+import {
+  holdEventEntryLock,
+  keepInvalidEventEntry,
+  readEventEntry,
+  writeEventEntry
+} from '@/lib/bazaar/event-entry-recovery';
 import { HomeDesk } from '@/store/home-desk';
 import { MakeDesk } from '@/store/make-desk';
 import { MoneyDesk, type MoneyEngine } from '@/store/money-desk';
@@ -906,6 +913,20 @@ export class OpsRuntime extends OpsProvider {
       shopping: () => this.go('grocery'),
       money: () => this.go('pnl'),
       bazaar: () => this.go('bazaar')
+    }
+  });
+  /** Add event: what was typed and the exact request, kept for this owner on this device. */
+  private eventEntry = new EventEntry({
+    lock: (scope) => holdEventEntryLock(scope),
+    read: (scope) => readEventEntry(scope),
+    write: (scope, value, resolvedId) => writeEventEntry(scope, value, { resolvedId }),
+    keepInvalid: (scope) => keepInvalidEventEntry(scope),
+    send: (body) => this.bazaarDays.sendEventEntry(body),
+    listed: (id) => this.bazaarDays.eventListed(id),
+    online: () => Boolean(this.state.online),
+    uuid: () => crypto.randomUUID(),
+    changed: () => {
+      if (!this.unmounted) this.forceUpdate();
     }
   });
   /** The Money page's figures for its selected period. */
@@ -2576,6 +2597,7 @@ export class OpsRuntime extends OpsProvider {
   }
 
   componentWillUnmount(): void {
+    this.eventEntry.dispose();
     this.productionRecovery.dispose();
     this.unmounted = true;
     this.dropCountOwnership();
@@ -3046,6 +3068,7 @@ export class OpsRuntime extends OpsProvider {
         isLiveMode() && this.state.role === 'owner'
           ? {
               ...this.bazaarDays.vals(),
+              entry: this.eventEntry.vals(),
               navigation: {
                 route: this.bazaarRoute(),
                 restore: this.restoreBazaarRoute,
@@ -5582,6 +5605,7 @@ export class OpsRuntime extends OpsProvider {
       this.productionRestoreFocused =
         !this.productionRecovery.scope && this.state.screen === 'batch';
     }
+    void this.eventEntry.bind(scope);
     await this.productionRecovery.bind(scope);
     this.mergeLateProductionResults();
   }
