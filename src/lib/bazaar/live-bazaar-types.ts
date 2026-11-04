@@ -1,14 +1,15 @@
 /**
  * What the live owner's Bazaar screens (S2) draw: the event list, an event's page and a day's plan. The runtime builds this
  * from the bookings it has read and `get_bazaar`; the screens in src/components/live/bazaar/ only draw it and call its
- * actions. Every text is already words for the screen. The till is not part of this: while an event is open on the phone the
- * screen draws the ported Bazaar Mode, whatever this holds.
+ * actions. Every text is already words for the screen. An owner with full access can browse Events
+ * while retaining the held till; restricted selling access cannot open the directory.
  *
  * This file is the contract between the data side (src/store/bazaar-days.ts, src/store/ops-runtime.tsx) and the screens.
  * Add to it only together with both sides.
  */
 
-import type { EventFormInput } from '@/lib/bazaar/event-form';
+import type { EventEntryVals } from '@/store/event-entry';
+import type { BazaarRoute } from '@/lib/bazaar/navigation';
 import type { HubStatus } from '@/lib/bazaar/hub';
 
 /** A day's state as a word first: the colour never says it alone. */
@@ -73,7 +74,7 @@ export interface BazaarDayRow {
    * `start`: a planned day, started with signal. `review`: an open day this phone does not hold, reviewed and closed here
    * (one this phone holds is drawn as the till, never as a row, and reviewed from "Close out"). `see`: a closed day's review.
    */
-  action: 'start' | 'review' | 'see' | null;
+  action: 'start' | 'review' | 'see' | 'resume' | null;
   /** Why the action is not available now, in words; null when it is. */
   actionNote: string | null;
   /** Words under the row that block nothing: where an open day is selling, how a closed day was counted. */
@@ -384,12 +385,27 @@ export interface TillPanelView {
 }
 
 export interface LiveBazaarVals {
+  /** View selection never changes the held selling day. Absent in older fixtures. */
+  navigation?: {
+    route: BazaarRoute;
+    restore: (route: BazaarRoute) => BazaarRoute;
+    directory: boolean;
+    tillOnly: boolean;
+    events: (() => void) | null;
+    resume: (() => void) | null;
+    heldName: string;
+  };
   online: boolean;
   /** False until the owner's bookings have been read: the list must not say there are none before it knows. */
   eventsRead: boolean;
   /** `loading` while a read is in flight; `failed` when it could not be read (shown with a retry). */
   state: 'read' | 'loading' | 'failed';
   list: BazaarListRow[];
+  /** Ephemeral return position, not a saved business record. */
+  listPosition?: { id: string; top: number };
+  rememberListPosition?: (id: string, top: number) => void;
+  listFilter?: 'upcoming' | 'past';
+  setListFilter?: (filter: 'upcoming' | 'past') => void;
   event: BazaarEventView | null;
   editor: DayPlanEditor | null;
   /**
@@ -406,11 +422,8 @@ export interface LiveBazaarVals {
   add: () => void;
   /** U3: reads the started events that are under way, so the hub can place each one. Call when the hub is shown; it is safe to repeat. */
   readHub: () => void;
-  /**
-   * U3: adds one event from the sheet. Returns null once it is saved and listed, otherwise the words for what is wrong (no
-   * signal, a refusal). The sheet checks each field itself with `validateEventForm`; this checks again before sending.
-   */
-  addEvent: (input: EventFormInput) => Promise<string | null>;
+  /** The Add event page: what was typed, kept on this device. Null when there is no verified owner. */
+  entry?: EventEntryVals | null;
   /** U3: the id of the event added last, so its row can rise and show a ring. Null once she opens an event or leaves. */
   justAdded: string | null;
   retry: () => void;

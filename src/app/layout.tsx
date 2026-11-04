@@ -43,7 +43,9 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={onest.variable}>
-      <body>{children}</body>
+      {/* Extensions add attributes to this otherwise attribute-free wrapper before hydration.
+          Limit compatibility to this element; child hydration checks remain enabled. */}
+      <body suppressHydrationWarning>{children}</body>
     </html>
   );
 }

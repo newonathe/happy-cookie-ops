@@ -3,6 +3,8 @@ import { withSentryConfig } from '@sentry/nextjs/config';
 
 const config: NextConfig = {
   reactStrictMode: true,
+  // Keep the shared, budgeted AGENTS.md/CLAUDE.md authority under project control.
+  agentRules: false,
   // Vercel's adapter packages its own runtime; standalone remains for local/Docker use.
   output: process.env.VERCEL === '1' ? undefined : 'standalone',
   poweredByHeader: false,

@@ -5,7 +5,7 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 /**
  * Slice A3 (N3): the deliberate sign-out, inside the real live gate. The real `OpsApp`,
  * `OpsRuntime` and `LiveGate` run in live mode against a faked Supabase client and a faked
- * IndexedDB; only the ported frame is replaced by a marker that prints the screen it would draw
+ * IndexedDB; only the workspace frame is replaced by a marker that prints the screen it would draw
  * (the same harness as tests/unit/live-gate-offline.test.tsx).
  */
 const net = vi.hoisted(() => ({
@@ -61,10 +61,10 @@ vi.mock('@/lib/supabase/client', async () => {
   return { createClient: () => client };
 });
 
-vi.mock('@/components/shell/app-frame', async () => {
+vi.mock('@/components/live/owner-workspace', async () => {
   const { useOpsEngine } = await import('@/store/use-ops');
   return {
-    AppFrame: () => {
+    OwnerWorkspace: () => {
       const engine = useOpsEngine();
       net.engine = engine;
       return <div data-testid="frame">{String(engine.state.screen)}</div>;

@@ -200,6 +200,8 @@ interface World {
   books: Wire;
   lastPaid: unknown[];
   catalogue: Wire;
+  /** Answers a stock movement with its own item, as the database does. */
+  acknowledge?: boolean;
 }
 const world = (over: Partial<World> = {}): World => ({
   itemCosts: { data: ITEM_COSTS, error: null },
@@ -210,7 +212,14 @@ const world = (over: Partial<World> = {}): World => ({
   ...over
 });
 function fakeClient(w: World) {
-  const rpc = vi.fn(async (name: string): Promise<Answer> => {
+  const rpc = vi.fn(async (name: string, args?: unknown): Promise<Answer> => {
+    if (name === 'record_stock_movement' && w.acknowledge) {
+      const movement = (args as { p_movement: { item_id: string; qty: number } }).p_movement;
+      return {
+        data: [{ item_id: movement.item_id, on_hand: Math.abs(movement.qty), duplicate: false }],
+        error: null
+      };
+    }
     if (name === 'get_stock_catalogue') return { data: w.catalogue, error: null };
     if (name === 'get_last_paid') return { data: w.lastPaid, error: null };
     if (name === 'get_item_costs') return w.itemCosts;
@@ -268,6 +277,7 @@ function settingsClient(budget: { cents: number; updatedAt: string | null } | nu
 
 describe('B5-1: liveStock (live mode, owner)', () => {
   beforeEach(() => {
+    localStorage.clear();
     live = true;
     store.clear();
     localStorage.clear();
@@ -296,6 +306,8 @@ describe('B5-1: liveStock (live mode, owner)', () => {
   it('gives each item its status in words: Out at 0, Low below the level, Good otherwise', async () => {
     const { runtime } = await mounted(world());
     const s = stock(runtime);
+    expect(byName(runtime, 'Bread flour').packText).toBe('25 kg sack (25,000 g)');
+    expect(byName(runtime, 'Brown sugar').packText).toBe('Pack size not set');
     expect(byName(runtime, 'Unsalted butter').status).toBe('Good');
     expect(byName(runtime, 'Eggs').status).toBe('Low');
     expect(byName(runtime, 'Bread flour').status).toBe('Out');
@@ -385,11 +397,46 @@ describe('B5-1: liveStock (live mode, owner)', () => {
 
 describe('B5-1: the item page and its movements', () => {
   beforeEach(() => {
+    localStorage.clear();
     live = true;
     store.clear();
     localStorage.clear();
   });
   afterEach(() => cleanup());
+
+  it('opens only the selected item prices/history and keeps cost and item identity on return', async () => {
+    const c = catalogue();
+    (c.prices as Wire[])[0]!.previous_cents = [43800];
+    (c.prices as Wire[]).push({
+      ...price('a3a00000-0000-4000-8000-000000000004', 'Unsalted butter', '250 g', 11050),
+      active: false
+    });
+    const { runtime, rpc } = await mounted(world({ catalogue: c }));
+    act(() => runtime.go('inventory'));
+    act(() => byName(runtime, 'Unsalted butter').open());
+    const page = stock(runtime).page!;
+    const cost = page.item.costText;
+    act(() => page.openPrices?.());
+    expect(stock(runtime).page?.pricesOpen).toBe(true);
+    expect(stock(runtime).page?.priceSources).toMatchObject([
+      {
+        supplierName: 'S&R',
+        packText: '1 kg block',
+        priceText: '₱420.00',
+        historyText: 'Before: ₱438.00'
+      },
+      { packText: '250 g', priceText: '₱110.50', stateText: 'Price not in use' }
+    ]);
+    expect(stock(runtime).page?.item.costText).toBe(cost);
+    act(() => stock(runtime).page?.closePrices?.());
+    expect(stock(runtime).page?.item.id).toBe('butter');
+    expect(stock(runtime).page?.pricesOpen).toBe(false);
+    act(() => byName(runtime, 'Eggs').open());
+    act(() => page.openPrices?.());
+    expect(stock(runtime).page?.item.id).toBe('eggs');
+    expect(stock(runtime).page?.pricesOpen).toBe(false);
+    expect(rpc.mock.calls.filter(([name]) => /^(save_|record_)/.test(name))).toHaveLength(0);
+  });
 
   it('there is no page until an item is opened', async () => {
     const { runtime, rpc } = await mounted(world());
@@ -462,6 +509,21 @@ describe('B5-1: the item page and its movements', () => {
     expect(page.movements).toEqual([]);
   });
 
+  it('retries unavailable history for the same item without posting a stock movement', async () => {
+    const w = world({ movements: { data: null, error: { code: '08006' } } });
+    const { runtime, rpc } = await mounted(w);
+    act(() => byName(runtime, 'Unsalted butter').open());
+    await settle();
+    expect(stock(runtime).page!.movementsState).toBe('unavailable');
+    w.movements = { data: MOVEMENTS, error: null };
+    act(() => stock(runtime).page!.retry!());
+    await settle();
+    expect(stock(runtime).page!.item.id).toBe('butter');
+    expect(stock(runtime).page!.movementsState).toBe('ready');
+    expect(calls(rpc, 'get_item_movements')).toHaveLength(2);
+    expect(calls(rpc, 'record_stock_movement')).toHaveLength(0);
+  });
+
   it('a failed read is unavailable too, and a malformed answer is never shown', async () => {
     for (const answer of [
       { data: null, error: { code: '500' }, status: 500 },
@@ -529,6 +591,7 @@ describe('B5-1: the item page and its movements', () => {
 
 describe('B5-1: the actions use the existing sheets and flows', () => {
   beforeEach(() => {
+    localStorage.clear();
     live = true;
     store.clear();
     localStorage.clear();
@@ -538,18 +601,118 @@ describe('B5-1: the actions use the existing sheets and flows', () => {
   const sheet = (r: OpsRuntime) =>
     r.state.sheet as { kind?: string; name?: string; id?: string } | null;
 
-  it('receive opens the existing receive sheet for that item', async () => {
+  it('receive opens Receive delivery on that item, with no sheet', async () => {
     const { runtime } = await mounted(world());
     act(() => byName(runtime, 'Eggs').receive());
-    expect(sheet(runtime)).toMatchObject({ kind: 'receive', name: 'Eggs' });
+    expect(sheet(runtime)).toBeNull();
+    expect(stock(runtime).receive?.lines.map((line) => line.itemName)).toEqual(['Eggs']);
+  });
+
+  it('a delivery the server did not acknowledge stays on the page, as typed', async () => {
+    const { runtime } = await mounted(world());
+    act(() => byName(runtime, 'Eggs').receive());
+    act(() => {
+      stock(runtime).receive?.lines[0]?.setPacks('2');
+      stock(runtime).receive?.lines[0]?.setPerPack('30');
+      stock(runtime).receive?.review();
+    });
+    await act(async () => {
+      await stock(runtime).receive?.save();
+    });
+    expect(stock(runtime).receive?.lines[0]?.packs).toBe('2');
+    expect(stock(runtime).receive?.error).toMatch(/Eggs was not saved/);
+    expect(runtime.state.paid).not.toHaveProperty('Eggs');
+    expect(runtime.state.partial ?? {}).not.toHaveProperty('Eggs');
+  });
+
+  it('a delivery posts one receipt for each line, with its quantity, amount and supplier', async () => {
+    const { runtime, rpc } = await mounted(world({ acknowledge: true }));
+    act(() => byName(runtime, 'Eggs').receive());
+    act(() => {
+      stock(runtime).receive?.setSupplier('Packing Co');
+      stock(runtime).receive?.lines[0]?.setPacks('2');
+      stock(runtime).receive?.lines[0]?.setPerPack('30');
+      stock(runtime).receive?.lines[0]?.setPaid('480');
+      stock(runtime).receive?.review();
+    });
+    expect(stock(runtime).receive?.step).toBe('review');
+    expect(calls(rpc, 'record_stock_movement')).toHaveLength(0);
+    await act(async () => {
+      await stock(runtime).receive?.save();
+    });
+    const posted = calls(rpc, 'record_stock_movement');
+    expect(posted).toHaveLength(1);
+    expect(posted[0]![1]).toMatchObject({
+      p_movement: {
+        item_id: 'eggs',
+        kind: 'receipt',
+        qty: 60,
+        cost_cents: 48000,
+        supplier: 'Packing Co'
+      }
+    });
+    expect(stock(runtime).receive).toBeNull();
+    // The engine's own bookkeeping ran once, and left no sheet open.
+    const after = runtime.state as unknown as {
+      received?: Record<string, boolean>;
+      partial?: Record<string, number>;
+    };
+    expect(after.received?.Eggs || after.partial?.Eggs).toBeTruthy();
+    expect(runtime.state.sheet).toBeNull();
+  });
+
+  it('a delivery with no amount posts no cost: unknown is not zero', async () => {
+    const { runtime, rpc } = await mounted(world({ acknowledge: true }));
+    act(() => byName(runtime, 'Eggs').receive());
+    act(() => {
+      stock(runtime).receive?.lines[0]?.setPacks('1');
+      stock(runtime).receive?.lines[0]?.setPerPack('30');
+      stock(runtime).receive?.review();
+    });
+    await act(async () => {
+      await stock(runtime).receive?.save();
+    });
+    expect(calls(rpc, 'record_stock_movement')[0]![1]).toMatchObject({
+      p_movement: { cost_cents: null }
+    });
+  });
+
+  it('waste and a correction post the right movement, with the note as the reason', async () => {
+    const { runtime, rpc } = await mounted(world({ acknowledge: true }));
+    act(() => byName(runtime, 'Unsalted butter').waste());
+    act(() => {
+      stock(runtime).change?.setAmount('10');
+      stock(runtime).change?.setNote('Melted');
+      stock(runtime).change?.review();
+    });
+    await act(async () => {
+      await stock(runtime).change?.save();
+    });
+    expect(calls(rpc, 'record_stock_movement').at(-1)![1]).toMatchObject({
+      p_movement: { kind: 'waste', qty: 10, reason: 'Melted' }
+    });
+    expect(stock(runtime).change).toBeNull();
+    act(() => byName(runtime, 'Unsalted butter').adjust());
+    act(() => {
+      stock(runtime).change?.setReason('Correction');
+      stock(runtime).change?.setAmount('5');
+      stock(runtime).change?.setNote('Counted wrong');
+      stock(runtime).change?.review();
+    });
+    await act(async () => {
+      await stock(runtime).change?.save();
+    });
+    expect(calls(rpc, 'record_stock_movement').at(-1)![1]).toMatchObject({
+      p_movement: { kind: 'adjust', qty: -5, reason: 'Counted wrong' }
+    });
   });
 
   it('waste opens the existing waste sheet, adjust the existing quantity sheet, edit the stock item form', async () => {
     const { runtime } = await mounted(world());
     act(() => byName(runtime, 'Unsalted butter').waste());
-    expect(sheet(runtime)).toMatchObject({ kind: 'spoil', name: 'Unsalted butter' });
+    expect(stock(runtime).change).toMatchObject({ itemName: 'Unsalted butter', reason: 'Waste' });
     act(() => byName(runtime, 'Unsalted butter').adjust());
-    expect(sheet(runtime)).toMatchObject({ kind: 'invEdit', name: 'Unsalted butter' });
+    expect(stock(runtime).change).toMatchObject({ itemName: 'Unsalted butter', reason: '' });
     act(() => byName(runtime, 'Unsalted butter').edit());
     expect(sheet(runtime)).toMatchObject({ kind: 'stockitems', id: 'butter' });
   });
@@ -563,10 +726,47 @@ describe('B5-1: the actions use the existing sheets and flows', () => {
     expect(st!.items).toEqual(['Tape']);
     expect(runtime.state.invTab).toBe('Packaging');
   });
+
+  it('keeps earlier physical counts when another item is opened for counting', async () => {
+    const { runtime } = await mounted(world());
+    act(() => byName(runtime, 'Tape').count());
+    act(() => runtime.renderVals().stock!.onInput({ target: { value: '0' } } as never));
+    act(() => stock(runtime).count!.back());
+    act(() => byName(runtime, 'Unsalted butter').count());
+    expect(runtime.renderVals().stock!.name).toBe('Unsalted butter');
+    expect(stock(runtime).count).toMatchObject({
+      paused: false,
+      total: 2,
+      rows: [{ name: 'Tape', amountText: '0 pcs', error: null }]
+    });
+  });
+
+  it('skips an unavailable item without discarding other physical counts or sending a movement', async () => {
+    const w = world();
+    const { runtime, rpc } = await mounted(w);
+    act(() => byName(runtime, 'Tape').count());
+    act(() => runtime.renderVals().stock!.onInput({ target: { value: '0' } } as never));
+    act(() => byName(runtime, 'Unsalted butter').count());
+    act(() => runtime.renderVals().stock!.onInput({ target: { value: '20' } } as never));
+    act(() => runtime.renderVals().stock!.prev());
+    (w.catalogue.items as Wire[]).find((row) => row.id === 'tape')!.active = false;
+    await act(async () => {
+      await runtime.loadStockCatalogue(null);
+    });
+    expect(stock(runtime).count!.unavailable).toBe(true);
+    act(() => stock(runtime).count!.skipUnavailable!());
+    expect(stock(runtime).count).toMatchObject({
+      total: 1,
+      unavailable: false,
+      rows: [{ name: 'Unsalted butter', amountText: '20 g', error: null }]
+    });
+    expect(calls(rpc, 'record_stock_movement')).toHaveLength(0);
+  });
 });
 
 describe('B5-1: the count note', () => {
   beforeEach(() => {
+    localStorage.clear();
     live = true;
     store.clear();
     localStorage.clear();
@@ -594,6 +794,7 @@ describe('B5-1: the count note', () => {
 
 describe('B5-1: the grocery list', () => {
   beforeEach(() => {
+    localStorage.clear();
     live = true;
     store.clear();
     localStorage.clear();
@@ -670,11 +871,11 @@ describe('B5-1: the grocery list', () => {
     expect(stock(runtime).grocery.totalText).toBe('₱0.00');
   });
 
-  it('bought opens the existing receive flow for that item', async () => {
+  it('bought opens Receive delivery on that item', async () => {
     const { runtime } = await mounted(world());
     const eggs = stock(runtime).grocery.rows.find((r) => r.name === 'Eggs')!;
     act(() => eggs.bought());
-    expect(runtime.state.sheet).toMatchObject({ kind: 'receive', name: 'Eggs' });
+    expect(stock(runtime).receive?.lines.map((line) => line.itemName)).toEqual(['Eggs']);
   });
 
   it('has no budget until she has set one: no 6,000, no left, no over', async () => {

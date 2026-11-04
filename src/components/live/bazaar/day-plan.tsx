@@ -14,6 +14,7 @@ import { pesosToCentavos } from '@/lib/money';
 import { peso } from '@/lib/money/format';
 import { Banner } from '@/components/ui/banner';
 import { Button } from '@/components/ui/button';
+import { PageTitle } from '@/components/ui/owner-kit';
 import { Card } from '@/components/ui/card';
 import { ErrorSummary } from '@/components/ui/error-summary';
 import { Field } from '@/components/ui/field';
@@ -216,16 +217,15 @@ export function DayPlan({ editor, online }: { editor: DayPlanEditor; online: boo
       noValidate
       className="flex flex-col gap-4"
     >
-      <Button variant="ghost" onClick={editor.back} className="self-start">
-        <span aria-hidden="true">← </span>Back to the event
-      </Button>
-      <div className="flex flex-col gap-1">
-        <h1 className="m-0 text-title text-ink">
-          {editor.isNew ? 'Plan ' : 'Change '}
-          {editor.dateText}
-        </h1>
-        <span className="text-body text-ink-soft">{editor.eventName}</span>
-      </div>
+      <PageTitle
+        title={`${editor.isNew ? 'Plan' : 'Change'} ${editor.dateText}`}
+        subtitle={`${editor.eventName}. Fresh cookies, carried cookies and opening float.`}
+        actions={
+          <Button variant="secondary" onClick={editor.back}>
+            Back to the event
+          </Button>
+        }
+      />
       <ErrorSummary errors={issues.summary} focusKey={issues.focusKey} />
       {serverError ? <Banner tone="danger" title={serverError} /> : null}
       {editor.copy || carryIn ? (

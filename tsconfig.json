@@ -32,5 +32,5 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts"
   ],
-  "exclude": ["node_modules", "build", "spikes/pages/.wrangler", "tests/e2e"]
+  "exclude": ["node_modules", "build", "tools/owner-preview", "spikes/pages/.wrangler", "tests/e2e"]
 }

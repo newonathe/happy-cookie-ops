@@ -1,6 +1,7 @@
 import { registerLiveScreen } from '@/components/live/live-screens';
 import { InventoryLive } from './inventory-live';
 import { GroceryLive } from './grocery-live';
+import { SuppliersLive } from './suppliers-live';
 
 /**
  * Puts the New Stock screens (B5) in the live-only slot, under the keys of the ported screens they
@@ -10,7 +11,8 @@ import { GroceryLive } from './grocery-live';
 export function registerLiveStockScreens(): () => void {
   const undo = [
     registerLiveScreen('inventory', InventoryLive),
-    registerLiveScreen('grocery', GroceryLive)
+    registerLiveScreen('grocery', GroceryLive),
+    registerLiveScreen('suppliers', SuppliersLive)
   ];
   return () => undo.forEach((run) => run());
 }

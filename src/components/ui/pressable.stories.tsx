@@ -56,3 +56,14 @@ export const Destructive: Story = {
     hoverStyle: { background: '#FFF6F5' }
   }
 };
+
+export const BorderFeedback: Story = {
+  args: {
+    as: 'button',
+    children: 'Open production',
+    style: { ...base, border: '1px solid var(--color-line)' },
+    hoverStyle: { borderColor: 'var(--color-brand)' },
+    focusStyle: { borderColor: 'var(--color-ink)' },
+    activeStyle: { border: '2px solid var(--color-brand-deep)' }
+  }
+};

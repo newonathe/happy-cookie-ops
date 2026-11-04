@@ -41,8 +41,15 @@ const mappedRoutes = PLACES.flatMap((place) => place.routes);
 afterEach(cleanup);
 
 describe('the function map (final-plan.md section 8.1)', () => {
-  it('has five tabs, in order, each opening a screen that belongs to it', () => {
-    expect(TABS.map((tab) => tab.label)).toEqual(['Home', 'Sell', 'Make', 'Stock', 'Money']);
+  it('has six tabs, in order, each opening a screen that belongs to it', () => {
+    expect(TABS.map((tab) => tab.label)).toEqual([
+      'Home',
+      'Bazaar',
+      'Sell',
+      'Make',
+      'Stock',
+      'Money'
+    ]);
     for (const tab of TABS) {
       expect([tab.id, tabOfRoute(tab.screen)]).toEqual([tab.id, tab.id]);
       // A tab lands on its first place.
@@ -50,12 +57,13 @@ describe('the function map (final-plan.md section 8.1)', () => {
     }
   });
 
-  it('has thirteen places under the five tabs, and four homes outside them', () => {
+  it('has thirteen places under the six tabs, and four homes outside them', () => {
     expect(TABS.map((tab) => placesOf(tab.id).map((place) => place.label))).toEqual([
       ['This week'],
-      ['Orders', 'Bazaar', 'Customers', 'Shop'],
-      ['Bake plan', 'Recipes'],
-      ['Inventory', 'Grocery', 'Suppliers'],
+      ['Bazaar'],
+      ['Orders', 'Customers/Waitlist', 'Shop'],
+      ['Products', 'Production'],
+      ['Inventory', 'Shopping', 'Suppliers'],
       ['P&L', 'Sales', 'Expenses']
     ]);
     expect(TABS.flatMap((tab) => placesOf(tab.id))).toHaveLength(13);

@@ -22,10 +22,12 @@ describe('FlavourTile', () => {
     expect(photo.style.backgroundImage).toContain('assets/double-chocolate-fudge.png');
   });
 
-  it('draws the first letter, not a broken image, when the path is not one it will draw', () => {
+  it('draws the cookie, not a broken image, when the path is not one it will draw', () => {
     const { container } = render(<FlavourTile name="Oat" photo="../../etc/x.png" price="₱1.00" />);
-    expect(container.querySelector('[data-photo]')).toHaveAttribute('data-photo', 'none');
-    expect(container.querySelector('[data-photo]')).toHaveTextContent('O');
+    const photo = container.querySelector('[data-photo]') as HTMLElement;
+    expect(photo).toHaveAttribute('data-photo', 'art');
+    expect(photo.style.backgroundImage).toContain('data:image/svg+xml');
+    expect(photo.style.backgroundImage).not.toContain('etc/x.png');
   });
 
   it('in the cart: a brand ring and a count badge', () => {

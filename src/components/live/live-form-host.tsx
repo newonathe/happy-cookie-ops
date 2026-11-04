@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useId, useRef, useState } from 'react';
 import type * as React from 'react';
 import type { OpsVals } from '@/view-models/vals';
 import { PayEditForm, PayList, ShopTextsForm, UploadField } from '@/components/live/payment-forms';
@@ -18,6 +18,8 @@ import {
   smallLabel
 } from '@/components/live/form-styles';
 import { RecipeDraftsForm } from '@/components/live/recipe-drafts-form';
+import { resolveImagePath } from '@/lib/media/resolve-image';
+import { ProductionDough } from '@/components/live/production/production-dough';
 
 /**
  * The live-only owner form host (MP-09 c1c, F3, docs/state/protected-exception.md): the
@@ -26,10 +28,11 @@ import { RecipeDraftsForm } from '@/components/live/recipe-drafts-form';
  * plug in by dispatching on `liveForm.kind` here, with no further protected-file edit.
  */
 export function LiveFormHost({ v }: { v: OpsVals }) {
+  if (v.liveDough) return <ProductionDough data={v.liveDough} />;
   const { liveForm } = v;
   if (liveForm && liveForm.kind === 'flavours') {
     return liveForm.editing ? (
-      <FlavourEditForm editing={liveForm.editing} />
+      <FlavourEditForm key={liveForm.editing.id ?? 'new'} editing={liveForm.editing} />
     ) : (
       <FlavourList liveForm={liveForm} />
     );
@@ -43,8 +46,21 @@ export function LiveFormHost({ v }: { v: OpsVals }) {
   }
   if (v.liveTexts) return <ShopTextsForm liveTexts={v.liveTexts} />;
   if (v.liveMessages) return <OrderMessages liveMessages={v.liveMessages} />;
-  if (v.liveOrderRules) return <OrderRulesForm liveOrderRules={v.liveOrderRules} />;
-  if (v.liveOrderExtras) return <OrderExtrasForm liveOrderExtras={v.liveOrderExtras} />;
+  // Keyed by the saved values: a re-read after a conflict shows their version, never a stale draft.
+  if (v.liveOrderRules)
+    return (
+      <OrderRulesForm
+        key={JSON.stringify(v.liveOrderRules.rules)}
+        liveOrderRules={v.liveOrderRules}
+      />
+    );
+  if (v.liveOrderExtras)
+    return (
+      <OrderExtrasForm
+        key={JSON.stringify(v.liveOrderExtras.extras)}
+        liveOrderExtras={v.liveOrderExtras}
+      />
+    );
   if (v.liveScheduled) return <ScheduledEventsForm liveScheduled={v.liveScheduled} />;
   if (v.liveBooks) return <BooksForm liveBooks={v.liveBooks} />;
   if (v.liveStockItems) return <StockItemsForm liveStock={v.liveStockItems} />;
@@ -59,14 +75,14 @@ function FlavourList({ liveForm }: { liveForm: NonNullable<OpsVals['liveForm']> 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
       {!liveForm.online ? (
-        <span style={{ fontSize: '12px', color: '#A8231B' }}>
+        <span style={{ fontSize: '12px', color: 'var(--color-danger)' }}>
           Offline. Changes here will not save until this device is back online.
         </span>
       ) : null}
       <button onClick={liveForm.publish} style={primaryButton}>
         Publish menu
       </button>
-      <span style={{ fontSize: '11px', color: '#66524A' }}>
+      <span style={{ fontSize: '11px', color: 'var(--color-ink-mute)' }}>
         Customers see every flavour still on the order form as soon as you publish.
       </span>
       <button onClick={liveForm.addNew} style={secondaryButton}>
@@ -84,7 +100,7 @@ function FlavourList({ liveForm }: { liveForm: NonNullable<OpsVals['liveForm']> 
                 gap: '10px',
                 minHeight: '54px',
                 border: '0',
-                borderBottom: '1px solid #F2EEEB',
+                borderBottom: '1px solid var(--color-divide)',
                 background: 'transparent',
                 padding: '8px 2px',
                 textAlign: 'left'
@@ -92,7 +108,7 @@ function FlavourList({ liveForm }: { liveForm: NonNullable<OpsVals['liveForm']> 
             >
               <span style={{ flex: '1', minWidth: '0', display: 'flex', flexDirection: 'column' }}>
                 <span style={{ fontSize: '13px', fontWeight: 600 }}>{row.name}</span>
-                <span style={{ fontSize: '11px', color: '#66524A' }}>
+                <span style={{ fontSize: '11px', color: 'var(--color-ink-mute)' }}>
                   {row.published ? 'Published' : 'Draft, not published'} ·{' '}
                   {row.active ? 'on the order form' : 'off the order form'}
                 </span>
@@ -106,7 +122,9 @@ function FlavourList({ liveForm }: { liveForm: NonNullable<OpsVals['liveForm']> 
           ))}
         </div>
       ) : (
-        <span style={{ fontSize: '12px', color: '#66524A' }}>No flavours loaded yet.</span>
+        <span style={{ fontSize: '12px', color: 'var(--color-ink-mute)' }}>
+          No flavours loaded yet.
+        </span>
       )}
     </div>
   );
@@ -133,6 +151,25 @@ function fieldNumber(form: HTMLFormElement, name: string): number {
 
 function FlavourEditForm({ editing }: { editing: Editing }) {
   const photoRef = useRef<HTMLInputElement>(null);
+  const badgeHintId = useId();
+  const [photoPath, setPhotoPath] = useState(editing.imagePath);
+  const photoEditSequence = useRef(0);
+  const photo = resolveImagePath(photoPath);
+  const uploadPhoto = async (file: File) => {
+    const sequence = ++photoEditSequence.current;
+    const path = await editing.upload(file);
+    if (sequence !== photoEditSequence.current) return null;
+    if (path) setPhotoPath(path);
+    return path;
+  };
+  const removePhoto = () => {
+    photoEditSequence.current += 1;
+    setPhotoPath('');
+    const form = photoRef.current?.form;
+    const picker = form?.querySelector<HTMLInputElement>('input[type="file"]');
+    if (picker && !picker.disabled) picker.focus();
+    else (form?.elements.namedItem('allergens') as HTMLInputElement | null)?.focus();
+  };
   const onSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const form = event.currentTarget;
@@ -186,24 +223,33 @@ function FlavourEditForm({ editing }: { editing: Editing }) {
           }}
         />
       </label>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        {photo ? (
+          <span
+            role="img"
+            aria-label="Product photo"
+            style={{
+              width: 72,
+              height: 72,
+              borderRadius: 12,
+              flexShrink: 0,
+              background: `var(--color-chip) url(${photo}) center / cover`
+            }}
+          />
+        ) : (
+          <span style={smallLabel}>No photo</span>
+        )}
+        <span style={smallLabel}>Photo</span>
+      </div>
+      <input ref={photoRef} type="hidden" name="imagePath" value={photoPath} readOnly />
+      <UploadField upload={uploadPhoto} label="Change photo" hint="" />
+      {photoPath ? (
+        <button type="button" onClick={removePhoto} style={secondaryButton}>
+          Remove photo
+        </button>
+      ) : null}
       <label style={labelStyle}>
-        <span style={smallLabel}>Photo path</span>
-        <input
-          ref={photoRef}
-          name="imagePath"
-          defaultValue={editing.imagePath}
-          maxLength={200}
-          style={inputStyle}
-        />
-      </label>
-      <UploadField
-        upload={editing.upload}
-        target={photoRef}
-        label="Upload a photo"
-        hint="(PNG, JPEG or WebP, any size: it is resized and stripped of location data for you)"
-      />
-      <label style={labelStyle}>
-        <span style={smallLabel}>Allergens (shown as &quot;Contains …&quot;)</span>
+        <span style={smallLabel}>Contains</span>
         <input
           name="allergens"
           defaultValue={editing.allergens}
@@ -213,9 +259,27 @@ function FlavourEditForm({ editing }: { editing: Editing }) {
         />
       </label>
       <label style={labelStyle}>
-        <span style={smallLabel}>Badge</span>
-        <input name="badge" defaultValue={editing.badge} maxLength={30} style={inputStyle} />
+        <span style={smallLabel}>Shop label (optional)</span>
+        <input
+          name="badge"
+          defaultValue={editing.badge}
+          maxLength={30}
+          style={inputStyle}
+          aria-describedby={badgeHintId}
+          placeholder="Popular or Seasonal"
+        />
       </label>
+      <p
+        id={badgeHintId}
+        style={{
+          margin: '-4px 0 0',
+          fontSize: '12px',
+          color: 'var(--color-ink-mute)',
+          lineHeight: 1.5
+        }}
+      >
+        Shown beside the cookie name.
+      </p>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
         <label style={labelStyle}>
           <span style={smallLabel}>Permanent or rotating</span>
@@ -234,7 +298,7 @@ function FlavourEditForm({ editing }: { editing: Editing }) {
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
         <label style={labelStyle}>
-          <span style={smallLabel}>Capacity weight (1-48)</span>
+          <span style={smallLabel}>Cookies counted toward the order limit</span>
           <input
             name="capacityWeight"
             type="number"
@@ -248,7 +312,7 @@ function FlavourEditForm({ editing }: { editing: Editing }) {
           />
         </label>
         <label style={labelStyle}>
-          <span style={smallLabel}>Sort order (0-999)</span>
+          <span style={smallLabel}>Display order</span>
           <input
             name="sortOrder"
             type="number"
@@ -263,7 +327,7 @@ function FlavourEditForm({ editing }: { editing: Editing }) {
         </label>
       </div>
       <label style={labelStyle}>
-        <span style={smallLabel}>Price</span>
+        <span style={smallLabel}>Price (₱)</span>
         <input
           name="price"
           type="number"
@@ -280,7 +344,7 @@ function FlavourEditForm({ editing }: { editing: Editing }) {
         <span style={smallLabel}>On the order form</span>
       </label>
       <button type="submit" style={primaryButton}>
-        Save flavour
+        Save product
       </button>
       <button type="button" onClick={editing.cancel} style={secondaryButton}>
         Cancel

@@ -18,6 +18,8 @@ export function SignInForm() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [shown, setShown] = useState(false);
+  const [help, setHelp] = useState(false);
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
@@ -45,11 +47,22 @@ export function SignInForm() {
     height: '44px',
     padding: '0 12px',
     borderRadius: '12px',
-    border: '1px solid #E7E1DC',
-    background: '#FFFFFF',
+    border: '1px solid var(--color-owner-line)',
+    background: 'var(--color-surface)',
     fontSize: '15px',
-    color: '#3A1F14',
+    color: 'var(--color-owner-ink)',
     width: '100%'
+  };
+
+  const linkButton: React.CSSProperties = {
+    minHeight: '32px',
+    padding: 0,
+    border: 'none',
+    background: 'transparent',
+    fontSize: '12.5px',
+    fontWeight: 600,
+    color: 'var(--color-brand)',
+    cursor: 'pointer'
   };
 
   return (
@@ -59,7 +72,7 @@ export function SignInForm() {
         display: 'grid',
         placeItems: 'center',
         padding: '24px',
-        background: '#F1EFEE'
+        background: 'var(--color-owner-app)'
       }}
     >
       <form
@@ -72,8 +85,8 @@ export function SignInForm() {
           gap: '12px',
           padding: '22px',
           borderRadius: '18px',
-          border: '1px solid #EDE8E4',
-          background: '#FFFFFF'
+          border: '1px solid var(--color-owner-line)',
+          background: 'var(--color-surface)'
         }}
       >
         <img
@@ -81,7 +94,21 @@ export function SignInForm() {
           alt="The Happy Cookie"
           style={{ height: '40px', width: 'auto', alignSelf: 'flex-start' }}
         />
-        <span style={{ fontSize: '17px', fontWeight: 600, color: '#3A1F14' }}>Sign in</span>
+        <span style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <h1
+            style={{
+              margin: 0,
+              fontSize: '22px',
+              fontWeight: 600,
+              color: 'var(--color-owner-ink)'
+            }}
+          >
+            Sign in
+          </h1>
+          <span style={{ fontSize: '12.5px', color: 'var(--color-owner-muted)' }}>
+            Private access is verified. Sign in to your workspace.
+          </span>
+        </span>
         <label
           style={{
             display: 'flex',
@@ -89,7 +116,7 @@ export function SignInForm() {
             gap: '6px',
             fontSize: '12px',
             fontWeight: 600,
-            color: '#6E574B'
+            color: 'var(--color-owner-muted)'
           }}
         >
           Email
@@ -109,12 +136,12 @@ export function SignInForm() {
             gap: '6px',
             fontSize: '12px',
             fontWeight: 600,
-            color: '#6E574B'
+            color: 'var(--color-owner-muted)'
           }}
         >
           Password
           <input
-            type="password"
+            type={shown ? 'text' : 'password'}
             required
             autoComplete="current-password"
             value={password}
@@ -122,8 +149,22 @@ export function SignInForm() {
             style={field}
           />
         </label>
+        <span style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 14px' }}>
+          <button type="button" onClick={() => setShown((now) => !now)} style={linkButton}>
+            {shown ? 'Hide password' : 'Show password'}
+          </button>
+          <button type="button" onClick={() => setHelp((now) => !now)} style={linkButton}>
+            Account help
+          </button>
+        </span>
+        {help ? (
+          <span style={{ fontSize: '12.5px', lineHeight: 1.5, color: 'var(--color-owner-muted)' }}>
+            Use the email approved by the owner. If you cannot sign in, ask the owner to check your
+            access or reset your password.
+          </span>
+        ) : null}
         {error ? (
-          <span role="alert" style={{ fontSize: '12.5px', color: '#A8231B' }}>
+          <span role="alert" style={{ fontSize: '12.5px', color: 'var(--color-danger)' }}>
             {error}
           </span>
         ) : null}
@@ -135,8 +176,8 @@ export function SignInForm() {
             marginTop: '4px',
             borderRadius: '12px',
             border: 'none',
-            background: busy ? '#6E574B' : '#3A1F14',
-            color: '#FFF5E5',
+            background: busy ? 'var(--color-owner-muted)' : 'var(--color-brand)',
+            color: 'var(--color-surface)',
             fontSize: '14px',
             fontWeight: 600
           }}

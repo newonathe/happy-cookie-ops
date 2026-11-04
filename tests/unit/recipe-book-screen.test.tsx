@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { OpsVals } from '@/view-models/vals';
 import type { LiveRecipesVals, RecipeBookItem } from '@/lib/recipes/live-recipes-types';
 import { RecipeBookLive } from '@/components/live/recipes/recipe-book';
+import axe from 'axe-core';
 
 // The ported screen reads the whole engine's vals; the book only has to draw it under a way back.
 vi.mock('@/components/screens/recipes', () => ({
@@ -82,8 +83,139 @@ const book = (over: Partial<LiveRecipesVals> = {}): LiveRecipesVals => ({
   ...over
 });
 const draw = (b: LiveRecipesVals) =>
-  render(<RecipeBookLive v={{ liveRecipes: b } as unknown as OpsVals} />);
+  render(
+    <RecipeBookLive
+      v={
+        {
+          liveRecipes: b,
+          recipe: { name: 'Classic', version: 'Version 1', rows: [], units: [], history: [] }
+        } as unknown as OpsVals
+      }
+    />
+  );
 const tiles = () => within(screen.getByRole('list', { name: 'Flavours' })).getAllByRole('listitem');
+
+describe('product recipe link', () => {
+  const recipePage = (): NonNullable<LiveRecipesVals['recipePage']> => ({
+    id: 'velvet',
+    name: 'Red Velvet',
+    photo: '',
+    state: 'read',
+    yieldText: 'Makes 12 cookies',
+    versionText: 'Version 3',
+    savedYield: 12,
+    rows: [
+      { name: 'Butter', amountText: '320 g', qty: 320, unit: 'g' },
+      { name: 'Eggs', amountText: '2 pcs', qty: 2, unit: 'pcs' }
+    ],
+    back: vi.fn(),
+    refresh: vi.fn()
+  });
+  it('opens the requested saved quantities without a chooser, search or cost-read prerequisite', async () => {
+    const page = recipePage(),
+      refresh = vi.fn();
+    draw(book({ recipePage: page, refresh, state: 'failed', note: 'Cost reading failed.' }));
+    expect(screen.getByRole('heading', { name: 'Red Velvet' })).toHaveFocus();
+    expect(screen.getByText('320 g')).toBeTruthy();
+    expect(screen.getByText(/Makes 12 cookies/)).toBeTruthy();
+    expect(screen.queryByRole('searchbox')).toBeNull();
+    expect(screen.queryByText('Cost reading failed.')).toBeNull();
+    expect(refresh).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: 'Cost, history & edit' }));
+    await waitFor(() => expect(refresh).toHaveBeenCalledTimes(1));
+    expect(screen.getByRole('heading', { name: 'Red Velvet' })).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Back to recipe' }));
+    expect(screen.getByRole('heading', { name: 'Red Velvet' })).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Back to Products' }));
+    expect(page.back).toHaveBeenCalledTimes(1);
+  });
+  it('distinguishes unavailable saved data from an actually empty recipe and retries its read', () => {
+    const page = {
+      ...recipePage(),
+      state: 'failed' as const,
+      rows: [],
+      yieldText: null,
+      versionText: null
+    };
+    const ui = draw(book({ recipePage: page }));
+    expect(screen.queryByText('No saved recipe quantities yet.')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Retry recipe' }));
+    expect(page.refresh).toHaveBeenCalledTimes(1);
+    ui.rerender(
+      <RecipeBookLive
+        v={{ liveRecipes: book({ recipePage: { ...page, state: 'read' } }) } as unknown as OpsVals}
+      />
+    );
+    expect(screen.getByText('No saved recipe quantities yet.')).toBeTruthy();
+  });
+  it('never claims sufficient stock for absent, mismatched, or unread inventory', () => {
+    const page = recipePage();
+    const ui = draw(book({ recipePage: page }));
+    expect(screen.queryByText('Yes, your records cover this batch.')).toBeNull();
+    expect(screen.getByText('Inventory has not been read yet, so this is unknown.')).toBeTruthy();
+    ui.rerender(
+      <RecipeBookLive
+        v={{ liveRecipes: book({ recipePage: { ...page, stock: [] } }) } as unknown as OpsVals}
+      />
+    );
+    expect(screen.queryByText('Yes, your records cover this batch.')).toBeNull();
+    expect(screen.getAllByText('Not in stock list')).toHaveLength(2);
+    ui.rerender(
+      <RecipeBookLive
+        v={
+          {
+            liveRecipes: book({
+              recipePage: {
+                ...page,
+                stock: [
+                  { name: 'Butter', unit: 'kg', onHand: 1000, counted: true },
+                  { name: 'Eggs', unit: 'pcs', onHand: 10, counted: true }
+                ]
+              }
+            })
+          } as unknown as OpsVals
+        }
+      />
+    );
+    expect(screen.queryByText('Yes, your records cover this batch.')).toBeNull();
+    expect(screen.getByText('Stock unit differs from recipe')).toBeTruthy();
+    ui.rerender(
+      <RecipeBookLive
+        v={
+          {
+            liveRecipes: book({
+              recipePage: {
+                ...page,
+                stock: [
+                  { name: 'Butter', unit: 'g', onHand: 1000, counted: true },
+                  { name: 'Eggs', unit: 'pcs', onHand: 10, counted: true }
+                ]
+              }
+            })
+          } as unknown as OpsVals
+        }
+      />
+    );
+    expect(screen.getByText('Yes, your records cover this batch.')).toBeTruthy();
+  });
+  it('has accessible saved-recipe content and retry controls', async () => {
+    const page = recipePage(),
+      ui = draw(book({ recipePage: page }));
+    expect(
+      (await axe.run(ui.container, { rules: { 'color-contrast': { enabled: false } } })).violations
+    ).toEqual([]);
+    ui.rerender(
+      <RecipeBookLive
+        v={
+          { liveRecipes: book({ recipePage: { ...page, state: 'failed' } }) } as unknown as OpsVals
+        }
+      />
+    );
+    expect(
+      (await axe.run(ui.container, { rules: { 'color-contrast': { enabled: false } } })).violations
+    ).toEqual([]);
+  });
+});
 
 describe('anyone but the owner', () => {
   it('keeps the ported Recipes screen, not a blank one: the book has nothing for them', () => {
@@ -246,7 +378,7 @@ describe('the flavour page', () => {
     open();
     const field = screen.getByLabelText('Cost per cookie') as HTMLInputElement;
     expect(field.value).toBe('31.25');
-    const save = screen.getByRole('button', { name: 'Save the cost' }) as HTMLButtonElement;
+    const save = screen.getByRole('button', { name: 'Review the cost' }) as HTMLButtonElement;
     // Mutation: an enabled Save here would freeze the recipe’s cost as hers with one tap.
     expect(save.disabled).toBe(true);
     fireEvent.change(field, { target: { value: '30' } });
@@ -259,6 +391,9 @@ describe('the flavour page', () => {
     const save = vi.fn(async () => 'That could not be saved. Check the cost, then try again.');
     open(book({ items: [item({ save })] }));
     fireEvent.change(screen.getByLabelText('Cost per cookie'), { target: { value: '30' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Review the cost' }));
+    expect(save).not.toHaveBeenCalled();
+    expect(screen.getByText('₱30')).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Save the cost' }));
     await waitFor(() => expect(screen.getByText(/That could not be saved/)).toBeTruthy());
     expect(save).toHaveBeenCalledTimes(1);
@@ -270,7 +405,7 @@ describe('the flavour page', () => {
     open(book({ items: [item({ save })] }));
     const field = screen.getByLabelText('Cost per cookie') as HTMLInputElement;
     fireEvent.change(field, { target: { value: '12.50001' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Save the cost' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Review the cost' }));
     await waitFor(() => expect(field.getAttribute('aria-invalid')).toBe('true'));
     expect(
       screen.getAllByText(/Enter the cost per cookie like 12 or 12.50/).length
@@ -322,17 +457,15 @@ describe('the flavour page', () => {
 });
 
 describe('editing the recipe', () => {
-  it('the button says it is the older screen, opens it on this flavour, and the way back lands on the page', () => {
+  it('Edit recipe opens this flavour, with no warning against saving, and the way back lands on the page', () => {
     const editRecipe = vi.fn();
     draw(book({ items: [item({ editRecipe })] }));
     fireEvent.click(within(tiles()[0]!).getByRole('button'));
-    expect(screen.getByText(/Recipes are still edited in the older Recipes screen/)).toBeTruthy();
-    expect(screen.getByText(/do not save yet/)).toBeTruthy();
-    fireEvent.click(screen.getByRole('button', { name: 'Open the older Recipes screen' }));
+    expect(screen.queryByText(/do not save yet/)).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Edit recipe' }));
     expect(editRecipe).toHaveBeenCalledTimes(1);
-    expect(screen.getByTestId('old-recipes')).toBeTruthy();
-    fireEvent.click(screen.getByRole('button', { name: /Back to the recipe book/ }));
+    expect(screen.getByRole('heading', { name: /^Edit / })).toBeTruthy();
+    fireEvent.click(screen.getAllByRole('button', { name: /Back to the recipe book/ })[0]!);
     expect(screen.getByRole('heading', { name: 'Classic' })).toBeTruthy();
-    expect(screen.queryByTestId('old-recipes')).toBeNull();
   });
 });

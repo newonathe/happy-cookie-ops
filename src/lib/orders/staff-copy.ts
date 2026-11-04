@@ -23,8 +23,8 @@ export const STAFF_COPY = {
   rejected: 'Payment rejected. The order is cancelled and its slots are free again.',
   reopened: 'Back in your review queue.',
   packed: (first: string): string => `${first}’s order is packed and ready.`,
-  collected: (first: string): string => `${first}’s order is marked collected.`,
-  noShow: (first: string): string => `${first} did not collect. The order stays paid.`,
+  collected: (first: string): string => `${first}’s order is picked up.`,
+  noShow: (first: string): string => `${first} did not pick up. The order stays paid.`,
   refunded: (amount: string): string => `${amount} refund recorded. The order is cancelled.`,
   settled: (first: string): string => `Balance settled. ${first}’s order is fully paid.`,
   flagged: (flavour: string, first: string): string =>
@@ -116,6 +116,8 @@ export const EXTRAS_COPY = {
 /** The upcoming bazaars form and the Bazaar screen's list (D4). PLACEHOLDER, like the rest of this file. */
 /** PLACEHOLDER wording (A4): saving a recipe in live mode. */
 export const RECIPE_COPY = {
+  unknown:
+    'Save result not confirmed. Your edits are kept; check the saved recipe before trying again.',
   saved: (version: number) =>
     'Saved as Version ' +
     version +
@@ -134,7 +136,7 @@ export const STOCK_COPY = {
   suppliersTitle: 'Suppliers & prices',
   suppliersSub: 'Who you buy from and what each one charges',
   itemsIntro:
-    'Your ingredients and packaging. Nothing is deleted: switch an item off instead. How much you have is counted on the Inventory screen once the stock ledger is built.',
+    'Your ingredients and packaging. Nothing is deleted: switch an item off instead. Quantities are counted and received on the Inventory page.',
   suppliersIntro:
     'Your suppliers and their prices. Nothing is deleted: switch a supplier or a price off instead. The cheapest active price is the best buy.',
   addItem: 'Add an item',

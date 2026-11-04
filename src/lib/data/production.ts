@@ -226,8 +226,9 @@ export async function recordDiscard(
 
 export interface BatchRow {
   productId: string;
+  /** Effective GOOD output from get_production, including corrections; rejects are separate. */
   qty: number;
-  target: number;
+  target: number | null;
   rejects: number;
   version: number;
   at: number;
@@ -275,7 +276,7 @@ export function parseProduction(json: Json | null | undefined): Production | nul
     out.batches.push({
       productId: b.product_id,
       qty: b.qty,
-      target: typeof b.target === 'number' ? b.target : b.qty,
+      target: b.target,
       rejects: b.rejects,
       version: b.version,
       at: b.at
@@ -360,7 +361,7 @@ export function engineProduction(p: Production, shortName: (pid: string) => stri
     })),
     variances: p.batches.map((b) => ({
       pid: b.productId,
-      target: b.target,
+      target: b.target ?? b.qty,
       actual: b.qty,
       rejects: b.rejects,
       at: b.at

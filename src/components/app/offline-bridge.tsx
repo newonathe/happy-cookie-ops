@@ -39,9 +39,11 @@ export function OfflineBridge() {
 
   useEffect(() => {
     if (!('serviceWorker' in navigator)) return;
+    // Next development chunk URLs can be reused after edits; a cache-first worker serves stale code.
+    const development = process.env.NODE_ENV === 'development';
     navigator.serviceWorker
-      .register('/sw.js')
-      .then(() => warmOfflineShell())
+      .register(development ? '/dev-sw.js' : '/sw.js')
+      .then(() => (development ? false : warmOfflineShell()))
       .then((ready) => {
         if (ready) document.documentElement.dataset.hcOfflineReady = 'true';
       })

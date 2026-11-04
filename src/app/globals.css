@@ -79,6 +79,25 @@
   --animate-breathe: hcBreathe 1.8s infinite;
 }
 
+/* Owner theme approved 2 November 2026: neutral light, Happy Cookie branding, selective glass.
+   Separate tokens leave the locked demo palette intact. */
+@theme static {
+  --color-owner-app: #f4f5f7;
+  --color-owner-ink: #24262b;
+  --color-owner-muted: #61656d;
+  --color-owner-faint: #858a94;
+  --color-owner-raise: #f8f9fb;
+  --color-owner-line: #e3e6eb;
+  --color-owner-soft: #eceff3;
+  --color-owner-glass: rgb(255 255 255 / 0.8);
+  --color-owner-glass-strong: rgb(255 255 255 / 0.94);
+  --shadow-owner-glass: 0 8px 32px rgb(24 28 36 / 0.06);
+  --ease-owner: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-owner-fast: 140ms;
+  --dur-owner-base: 220ms;
+  --dur-owner-sheet: 280ms;
+}
+
 /* ==========================================================================
    Bazaar v2 tokens (docs/design/bazaar-v2.md, section 2.2). New names, no new colour.
    `static` so they are always emitted: the live screens read them through var() in

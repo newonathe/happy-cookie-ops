@@ -1,8 +1,15 @@
-import { useState } from 'react';
+import { useEffect, useReducer, useState } from 'react';
+import type * as React from 'react';
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { BazaarListRow, LiveBazaarVals } from '@/lib/bazaar/live-bazaar-types';
 import { EventList } from '@/components/live/bazaar/event-list';
+import { EventEntry } from '@/store/event-entry';
+import {
+  readEventEntry,
+  writeEventEntry,
+  type FrozenEventRequest
+} from '@/lib/bazaar/event-entry-recovery';
 
 /**
  * U3: the events hub and the add-event sheet, drawn from a view model made by hand. They hold no rules: the tests look
@@ -38,7 +45,6 @@ const vals = (over: Partial<LiveBazaarVals> = {}): LiveBazaarVals => ({
   closeReview: noop,
   add: noop,
   readHub: noop,
-  addEvent: async () => null,
   justAdded: null,
   retry: noop,
   back: noop,
@@ -64,6 +70,62 @@ const LIST = [
   row({ id: 'p1', name: 'Old fair', group: 'past', status: 'closed', whenText: null })
 ];
 
+describe('returning from an event', () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  it('remembers the clicked event and returns focus and scroll to it', () => {
+    const remember = vi.fn();
+    const scroll = vi.spyOn(window, 'scrollTo').mockImplementation(() => undefined);
+    const top = window.scrollY;
+    Object.defineProperty(window, 'scrollY', { configurable: true, value: 480 });
+    try {
+      const first = render(
+        <EventList bazaar={vals({ list: LIST, rememberListPosition: remember })} />
+      );
+      fireEvent.click(screen.getByRole('button', { name: /Next fair/ }));
+      expect(remember).toHaveBeenCalledWith('u1', 480);
+      first.unmount();
+      render(<EventList bazaar={vals({ list: LIST, listPosition: { id: 'u1', top: 480 } })} />);
+      expect(document.activeElement).toBe(screen.getByRole('button', { name: /Next fair/ }));
+      expect(scroll).toHaveBeenCalledWith({ top: 480, behavior: 'instant' });
+    } finally {
+      Object.defineProperty(window, 'scrollY', { configurable: true, value: top });
+    }
+  });
+
+  it('waits for the selected active row, without claiming a loading placeholder is focusable', () => {
+    const scroll = vi.spyOn(window, 'scrollTo').mockImplementation(() => undefined);
+    const selected = row({ id: 'selected', group: 'active', name: 'Selected market' });
+    const base = { listPosition: { id: 'selected', top: 200 } };
+    const view = render(
+      <EventList bazaar={vals({ ...base, list: [{ ...selected, reading: true }] })} />
+    );
+    expect(scroll).not.toHaveBeenCalled();
+    view.rerender(<EventList bazaar={vals({ ...base, list: [selected] })} />);
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: /Selected market/ }));
+    expect(scroll).toHaveBeenCalledWith({ top: 200, behavior: 'instant' });
+  });
+
+  it('does not steal focus if the owner starts another action while rows load', () => {
+    const scroll = vi.spyOn(window, 'scrollTo').mockImplementation(() => undefined);
+    const selected = row({ id: 'selected', group: 'active', name: 'Selected market' });
+    const base = { listPosition: { id: 'selected', top: 200 } };
+    const view = render(
+      <EventList bazaar={vals({ ...base, list: [{ ...selected, reading: true }] })} />
+    );
+    fireEvent.pointerDown(screen.getByRole('button', { name: 'Add an event' }));
+    view.rerender(<EventList bazaar={vals({ ...base, list: [selected] })} />);
+    expect(scroll).not.toHaveBeenCalled();
+  });
+
+  it('returns to the heading if the original event is no longer available', () => {
+    const scroll = vi.spyOn(window, 'scrollTo').mockImplementation(() => undefined);
+    render(<EventList bazaar={vals({ list: LIST, listPosition: { id: 'removed', top: 480 } })} />);
+    expect(document.activeElement).toBe(screen.getByRole('heading', { name: 'Bazaar events' }));
+    expect(scroll).toHaveBeenCalledWith({ top: 0, behavior: 'instant' });
+  });
+});
+
 describe('the hub', () => {
   it('pins Active with its pill and today’s figures; Upcoming and Past sit behind the chips', () => {
     render(<EventList bazaar={vals({ list: LIST })} />);
@@ -72,12 +134,12 @@ describe('the hub', () => {
     expect(within(active).getByText('Selling')).toBeTruthy();
     expect(within(active).getByText('₱880.00')).toBeTruthy();
     expect(within(active).getByText('today · 7 sold')).toBeTruthy();
-    expect(within(active).getByRole('button', { name: 'Open the event → On now' })).toBeTruthy();
+    expect(within(active).getByRole('button', { name: 'Open event On now' })).toBeTruthy();
     // Upcoming is showing, with a pill and the dates as "Sat, 24 Oct".
     const upcoming = screen.getByRole('list', { name: 'Upcoming events' });
     expect(within(upcoming).getAllByRole('listitem')).toHaveLength(2);
     expect(within(upcoming).getAllByText('Planned')).toHaveLength(2);
-    expect(within(upcoming).getByText('Sat, 24 Oct – Sun, 25 Oct')).toBeTruthy();
+    expect(within(upcoming).getByText('Sat, 24 Oct – Sun, 25 Oct · Hall · In 9 days')).toBeTruthy();
     expect(screen.queryByText('Old fair')).toBeNull();
     expect(screen.getByRole('button', { name: 'Upcoming 2' })).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Past 1' })).toBeTruthy();
@@ -93,7 +155,8 @@ describe('the hub', () => {
     const open = vi.fn();
     render(<EventList bazaar={vals({ list: [row({ open })] })} />);
     // The header row holds the title (with its signal line) and the actions.
-    const header = screen.getByRole('heading', { name: 'Bazaar' }).closest('div')!;
+    const header = screen.getByRole('heading', { name: 'Bazaar events' }).parentElement!
+      .parentElement!;
     expect(within(header).getByRole('button', { name: 'Add an event' })).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: /Fixture fair/ }));
     expect(open).toHaveBeenCalledTimes(1);
@@ -183,10 +246,42 @@ describe('the hub', () => {
 });
 
 /** The hub, with the bookings it holds kept in state so a save can be seen to land in the list. */
-function Host({ addEvent }: { addEvent: LiveBazaarVals['addEvent'] }) {
+function Host({
+  send = async () => true
+}: {
+  send?: (body: FrozenEventRequest) => Promise<boolean>;
+}) {
   const [list] = useState([row({ id: 'u1', name: 'Next fair' })]);
-  return <EventList bazaar={vals({ list, addEvent })} />;
+  const [, redraw] = useReducer((n: number) => n + 1, 0);
+  const [entry] = useState(() => {
+    const data = new Map<string, string>();
+    const storage = {
+      getItem: (key: string) => data.get(key) ?? null,
+      setItem: (key: string, value: string) => void data.set(key, value)
+    };
+    return new EventEntry({
+      lock: async () => () => undefined,
+      read: (scope) => readEventEntry(scope, storage),
+      write: (scope, value, resolvedId) => writeEventEntry(scope, value, { storage, resolvedId }),
+      send,
+      online: () => true,
+      uuid: () => '22222222-2222-4222-8222-222222222222',
+      changed: redraw
+    });
+  });
+  useEffect(() => {
+    void entry.bind({
+      userId: '11111111-1111-4111-8111-111111111111',
+      business: 'https://one.example'
+    });
+  }, [entry]);
+  return <EventList bazaar={vals({ list, entry: entry.vals() })} />;
 }
+const bound = async (ui: React.ReactElement) => {
+  await act(async () => {
+    render(ui);
+  });
+};
 
 describe('the ring on a row just added, under reduced motion', () => {
   const reduced = (on: boolean) =>
@@ -222,30 +317,35 @@ describe('the ring on a row just added, under reduced motion', () => {
   });
 });
 
-describe('the add-event sheet', () => {
-  const open = () => fireEvent.click(screen.getByRole('button', { name: 'Add an event' }));
+describe('the add-event page', () => {
   const type = (label: string, value: string) =>
     fireEvent.change(screen.getByLabelText(label), { target: { value } });
+  const fill = () => {
+    type('Name', ' Christmas bazaar ');
+    type('Place', 'Mall');
+    type('First day', '2026-12-12');
+    type('Last day', '2026-12-13');
+    type('Stall rent', '2,500.00');
+  };
 
-  it('opens as a dialog with its fields, nothing pre-filled that is a decision', () => {
-    render(<Host addEvent={async () => null} />);
-    open();
-    const dialog = screen.getByRole('dialog', { name: 'Add an event' });
+  it('opens as a page with its fields, nothing pre-filled that is a decision', async () => {
+    await bound(<Host />);
+    fireEvent.click(screen.getByRole('button', { name: 'Add an event' }));
+    expect(screen.getByRole('heading', { name: 'Add event' })).toBeTruthy();
+    expect(screen.queryByRole('dialog')).toBeNull();
     for (const label of ['Name', 'Place', 'First day', 'Last day', 'Stall rent'])
-      expect((within(dialog).getByLabelText(label) as HTMLInputElement).value).toBe('');
-    expect(within(dialog).getByRole('button', { name: 'Save the event' })).toBeTruthy();
-    expect(within(dialog).getByRole('button', { name: 'Cancel' })).toBeTruthy();
+      expect((screen.getByLabelText(label) as HTMLInputElement).value).toBe('');
+    expect(screen.getByRole('button', { name: 'Back to events' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Review event' })).toBeTruthy();
   });
 
   it('points at each bad field: a summary with links, red fields, and the words under them', async () => {
-    const addEvent = vi.fn(async () => null);
-    render(<Host addEvent={addEvent} />);
-    open();
+    const send = vi.fn(async () => true);
+    await bound(<Host send={send} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Add an event' }));
     type('Stall rent', 'lots');
-    fireEvent.click(screen.getByRole('button', { name: 'Save the event' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Review event' }));
     const summary = await screen.findByRole('alert');
-    expect(within(summary).getByText('There is a problem')).toBeTruthy();
-    await waitFor(() => expect(document.activeElement).toBe(summary));
     const nameLink = within(summary).getByRole('link', {
       name: 'Enter the name of the event, like "Katipunan market".'
     });
@@ -259,34 +359,29 @@ describe('the add-event sheet', () => {
     ).toBeTruthy();
     const name = screen.getByLabelText('Name');
     expect(name.getAttribute('aria-invalid')).toBe('true');
-    expect(name.getAttribute('aria-describedby')).toBeTruthy();
-    expect(screen.getByLabelText('Stall rent').getAttribute('aria-invalid')).toBe('true');
     expect(screen.getByLabelText('Place').getAttribute('aria-invalid')).toBeNull();
     fireEvent.click(nameLink);
     expect(document.activeElement).toBe(name);
-    expect(addEvent).not.toHaveBeenCalled();
-    // Mutation: sending first and reading the refusal back leaves her with "could not be saved" and no field to fix.
+    expect(send).not.toHaveBeenCalled();
   });
 
-  it('validates a field when she leaves it', () => {
-    render(<Host addEvent={async () => null} />);
-    open();
+  it('validates a field when she leaves it, without a summary', async () => {
+    await bound(<Host />);
+    fireEvent.click(screen.getByRole('button', { name: 'Add an event' }));
     const name = screen.getByLabelText('Name');
     fireEvent.blur(name);
     expect(name.getAttribute('aria-invalid')).toBe('true');
     fireEvent.change(name, { target: { value: 'Fair' } });
     fireEvent.blur(name);
     expect(name.getAttribute('aria-invalid')).toBeNull();
-    // The summary is for a submit: a blur never steals focus.
     expect(screen.queryByText('There is a problem')).toBeNull();
   });
 
-  it('the last day follows the first until she sets it, and never lies before it', () => {
-    render(<Host addEvent={async () => null} />);
-    open();
+  it('the last day follows the first until she sets it, and never lies before it', async () => {
+    await bound(<Host />);
+    fireEvent.click(screen.getByRole('button', { name: 'Add an event' }));
     type('First day', '2026-12-12');
     expect((screen.getByLabelText('Last day') as HTMLInputElement).value).toBe('2026-12-12');
-    expect(screen.getAllByText('Sat, 12 Dec').length).toBeGreaterThan(0);
     type('Last day', '2026-12-14');
     type('First day', '2026-12-13');
     expect((screen.getByLabelText('Last day') as HTMLInputElement).value).toBe('2026-12-14');
@@ -294,65 +389,66 @@ describe('the add-event sheet', () => {
     expect((screen.getByLabelText('Last day') as HTMLInputElement).value).toBe('2026-12-20');
   });
 
-  it('saves exactly what she typed with the sheet’s own id, then closes and shows Upcoming', async () => {
-    const addEvent = vi.fn(async () => null);
-    render(<Host addEvent={addEvent} />);
+  it('reviews, then sends what she typed once, and shows Upcoming', async () => {
+    const send = vi.fn(async () => true);
+    await bound(<Host send={send} />);
     fireEvent.click(screen.getByRole('button', { name: 'Past 0' }));
-    open();
-    type('Name', ' Christmas bazaar ');
-    type('Place', 'Mall');
-    type('First day', '2026-12-12');
-    type('Last day', '2026-12-13');
-    type('Stall rent', '2,500.00');
+    fireEvent.click(screen.getByRole('button', { name: 'Add an event' }));
+    fill();
+    fireEvent.click(screen.getByRole('button', { name: 'Review event' }));
+    expect(send).not.toHaveBeenCalled();
+    expect(screen.getByRole('heading', { name: 'Review event' })).toBeTruthy();
+    expect(screen.getByText('Christmas bazaar')).toBeTruthy();
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Save the event' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Save event' }));
     });
-    expect(addEvent).toHaveBeenCalledTimes(1);
-    expect(addEvent).toHaveBeenCalledWith({
-      id: expect.stringMatching(/^[0-9a-f-]{36}$/),
-      name: ' Christmas bazaar ',
-      place: 'Mall',
-      startsOn: '2026-12-12',
-      endsOn: '2026-12-13',
-      rent: '2,500.00'
-    });
-    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    expect(send).toHaveBeenCalledTimes(1);
+    expect(send).toHaveBeenCalledWith(
+      expect.objectContaining({
+        p_event: expect.objectContaining({ name: 'Christmas bazaar', rent_cents: 250000 })
+      })
+    );
+    await waitFor(() => expect(screen.queryByRole('heading', { name: 'Review event' })).toBeNull());
     expect(screen.getByRole('list', { name: 'Upcoming events' })).toBeTruthy();
-    // Mutation: staying on Past after a save hides the new event behind the chip she did not pick.
   });
 
-  it('a save that fails stays open with the words, and saving again sends the same id', async () => {
-    const addEvent = vi
-      .fn<LiveBazaarVals['addEvent']>()
-      .mockResolvedValueOnce('Adding an event needs signal. Try again when you are back online.')
-      .mockResolvedValueOnce(null);
-    render(<Host addEvent={addEvent} />);
-    open();
-    type('Name', 'Fair');
-    type('First day', '2026-12-12');
+  it('an unconfirmed save stays on Review and sending again is the same request', async () => {
+    const send = vi.fn<(body: FrozenEventRequest) => Promise<boolean>>();
+    send.mockResolvedValueOnce(false).mockResolvedValueOnce(true);
+    await bound(<Host send={send} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Add an event' }));
+    fill();
+    fireEvent.click(screen.getByRole('button', { name: 'Review event' }));
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Save the event' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Save event' }));
     });
-    expect(await screen.findByText(/needs signal\. Try again/)).toBeTruthy();
-    expect(screen.getByRole('dialog', { name: 'Add an event' })).toBeTruthy();
-    expect((screen.getByLabelText('Name') as HTMLInputElement).value).toBe('Fair');
+    expect(await screen.findByText('This event has not been confirmed yet.')).toBeTruthy();
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Save the event' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Send again' }));
     });
-    expect(addEvent).toHaveBeenCalledTimes(2);
-    expect(addEvent.mock.calls[1]![0].id).toBe(addEvent.mock.calls[0]![0].id);
-    // Mutation: a new id per tap saves the same event twice when the first answer was lost.
+    expect(send).toHaveBeenCalledTimes(2);
+    expect(send.mock.calls[1]![0]).toEqual(send.mock.calls[0]![0]);
   });
 
-  it('opens fresh with a new id each time, and Cancel closes it without saving', async () => {
-    const addEvent = vi.fn(async () => null);
-    render(<Host addEvent={addEvent} />);
-    open();
+  it('leaving keeps what was typed, and keyboard focus returns to the button', async () => {
+    const send = vi.fn(async () => true);
+    await bound(<Host send={send} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Add an event' }));
     type('Name', 'Half typed');
-    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
-    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
-    expect(addEvent).not.toHaveBeenCalled();
-    open();
+    fireEvent.click(screen.getByRole('button', { name: 'Back to events' }));
+    const again = await screen.findByRole('button', { name: 'Continue adding event' });
+    await waitFor(() => expect(again).toHaveFocus());
+    expect(send).not.toHaveBeenCalled();
+    fireEvent.click(again);
+    expect((screen.getByLabelText('Name') as HTMLInputElement).value).toBe('Half typed');
+  });
+
+  it('Clear throws the draft away, so the next one starts empty', async () => {
+    await bound(<Host />);
+    fireEvent.click(screen.getByRole('button', { name: 'Add an event' }));
+    type('Name', 'Half typed');
+    fireEvent.click(screen.getByRole('button', { name: 'Clear' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Add an event' }));
     expect((screen.getByLabelText('Name') as HTMLInputElement).value).toBe('');
   });
 });

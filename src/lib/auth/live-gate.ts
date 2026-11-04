@@ -16,7 +16,7 @@ function isRole(value: string): value is Role {
 }
 
 export type ProfileCheck =
-  | { status: 'ok'; role: Role }
+  | { status: 'ok'; role: Role; userId?: string }
   /** A definite, positive denial: no user, an explicit auth error, or an inactive/missing/unrecognised profile row. */
   | { status: 'denied' }
   /** The check could not be completed — offline, a timed-out fetch, a transient server error. Not evidence of anything. */
@@ -68,7 +68,7 @@ export async function checkStaffProfile(supabase: SupabaseClient<Database>): Pro
   if (error) return { status: 'unknown' };
   if (!data || !data.active || !isRole(data.role)) return { status: 'denied' };
 
-  return { status: 'ok', role: data.role };
+  return { status: 'ok', role: data.role, userId: userData.user.id };
 }
 
 /**

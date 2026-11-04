@@ -54,3 +54,15 @@ it('prerenders the whole form: nothing suspends on the server', async () => {
   expect(html).toContain('Password');
   expect(html).toContain('Sign in');
 });
+it('shows the password only when asked, and says how to get help', () => {
+  render(<SignInForm />);
+  const password = screen.getByLabelText('Password') as HTMLInputElement;
+  expect(password.type).toBe('password');
+  fireEvent.click(screen.getByRole('button', { name: 'Show password' }));
+  expect(password.type).toBe('text');
+  fireEvent.click(screen.getByRole('button', { name: 'Hide password' }));
+  expect(password.type).toBe('password');
+  fireEvent.click(screen.getByRole('button', { name: 'Account help' }));
+  expect(screen.getByText(/ask the owner to check your access/)).toBeTruthy();
+  expect(mocks.signIn).not.toHaveBeenCalled();
+});

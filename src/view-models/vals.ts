@@ -4,11 +4,19 @@
  * renderVals() returns and the ported markup reads. Widen a type here only together
  * with the engine change that produces it — see docs/PORTING.md.
  */
+import type { LiveCustomers } from '@/store/customer-desk';
+import type { LiveMake } from '@/store/make-desk';
+import type { MoneyEntryView } from '@/store/money-entry';
 import type * as React from 'react';
 import type { ScreenKey } from '@/lib/screens';
 import type { LiveStockVals } from '@/lib/stock/live-stock-types';
 import type { LiveBazaarVals } from '@/lib/bazaar/live-bazaar-types';
 import type { LiveRecipesVals } from '@/lib/recipes/live-recipes-types';
+import type {
+  LiveBatchCounts,
+  LiveProductionVals,
+  LiveDoughPreparation
+} from '@/lib/production/live-production-types';
 
 /** Every field the live flavour editor's form submits (MP-09 c1c), pesos not centavos. */
 export interface LiveFlavourFormFields {
@@ -58,6 +66,8 @@ export interface LiveOrderExtrasFields {
   /** A flavour id of kind `set`, or an empty string for none. */
   samplerProductId: string;
   samplerMaxQty: number;
+  /** Cookie ids in the sampler box; null while the database has no list (the toggles are then hidden). */
+  samplerFlavours?: string[] | null;
   boxSizes: Array<{ size: number; chargePesos: number; active: boolean }>;
   addOns: Array<{
     id: string;
@@ -103,6 +113,9 @@ export interface LiveStockSupplierRow {
   place: string;
   priceCount: number;
   active: boolean;
+  phone?: string;
+  notes?: string;
+  prices?: LiveStockPriceRow[];
 }
 
 /** One supplier's price for one item, in pesos on the form (A3). */
@@ -129,6 +142,9 @@ export interface LiveStockSupplierEdit {
   active: boolean;
   prices: LiveStockPriceRow[];
   newPriceId: string;
+  newPriceDefaults?: { itemName: string; packLabel: string };
+  focusNewPrice?: boolean;
+  focusPriceId?: string;
 }
 
 /** One upcoming bazaar on the owner's form (D4). Rent is pesos here; the runtime converts to centavos. */
@@ -171,11 +187,13 @@ export interface LiveTabItem {
   active: boolean;
   badge: React.ReactNode | null;
   go: () => void;
+  /** Already reached by the section row; never repeat it as a contextual tool. */
+  primary?: boolean;
 }
 
 /**
- * The live owner's sub-tab strip (B1, src/lib/nav/function-map.ts): the places of the
- * open tab, and the open place's entries when it holds more than one.
+ * The live owner's one section row and contextual tools. Entries already represented
+ * in the section row are marked primary and are not repeated as tools.
  */
 export interface LiveTabs {
   label: string;
@@ -338,6 +356,8 @@ export interface OpsVals {
   } | null;
   /** Live owner only (A3): the stock items list and edit form. `version` remounts the form after a conflict. */
   liveStockItems?: {
+    /** Opened from a page, not the list: the page's own Back is the way back. */
+    fromPage?: boolean;
     online: boolean;
     rows: LiveStockItemRow[];
     editing: LiveStockItemEdit | null;
@@ -353,10 +373,16 @@ export interface OpsVals {
   liveBazaar?: LiveBazaarVals | null;
   /** Live owner only (U7): the recipe book's data (the flavours with price, cost, margin and cost receipt). Null for anyone else. */
   liveRecipes?: LiveRecipesVals | null;
+  liveProduction?: LiveProductionVals | null;
+  liveBatchCounts?: LiveBatchCounts | null;
+  liveDough?: LiveDoughPreparation | null;
   /** Live owner only (B5-1): the New Stock screens' data (list, item page, grocery). Null for anyone else and before the catalogue is read. */
   liveStock?: LiveStockVals | null;
   /** Live owner only (A3): the suppliers list and edit form, with each supplier's prices. */
+  /** Read-only directory data, separate from the active supplier form slot. */
+  liveSupplierDirectory?: OpsVals['liveStockSuppliers'];
   liveStockSuppliers?: {
+    itemContextName?: string;
     online: boolean;
     rows: LiveStockSupplierRow[];
     editing: LiveStockSupplierEdit | null;
@@ -366,6 +392,7 @@ export interface OpsVals {
     add: () => void;
     edit: (id: string) => void;
     save: (supplier: LiveStockSupplierEdit) => void;
+    backLabel?: string;
     back: () => void;
     close: (event?: unknown) => void;
   } | null;
@@ -384,12 +411,26 @@ export interface OpsVals {
     reload: () => void;
     close: () => void;
   } | null;
+  /**
+   * Live owner only: the Money page for one selected period. Every figure is the engine's own
+   * `pnlTotals`/`ledgerIn` for that period (the same swap `monthTotals` uses); nothing is summed
+   * here that the books do not already sum. `loaded` is false until the books are read.
+   */
+  liveMoney?: LiveMoney | null;
+  /** Live owner only: customers, from their orders. */
+  liveCustomers?: LiveCustomers | null;
+  /** Live owner only: what the Make pages need beyond the engine's rows. */
+  liveMake?: LiveMake | null;
+  /** Live owner only: Home's facts, each null until its own source has loaded. */
+  liveHome?: LiveHome | null;
   /** Live owner only (B4): the boxes and add-ons form (boxes, add-ons, sampler limit, same-day extra). */
   liveOrderExtras?: {
     online: boolean;
     extras: LiveOrderExtrasFields;
     /** Items of kind `set` the owner can name as the sampler. */
     sets: Array<{ id: string; name: string }>;
+    /** Cookies the owner can put in the sampler box, in menu order (switched-off ones marked). */
+    cookies?: Array<{ id: string; name: string; active: boolean }>;
     save: (fields: LiveOrderExtrasFields) => void;
     close: (event?: unknown) => void;
   } | null;
@@ -685,6 +726,7 @@ export interface OpsVals {
   }>;
   catOptions: Array<string | number>;
   catRows: Array<{
+    off?: unknown;
     name: React.ReactNode;
     rename: (event?: unknown) => void;
     stateText: React.ReactNode;
@@ -1233,6 +1275,10 @@ export interface OpsVals {
     n: React.ReactNode;
   }>;
   orderList: Array<{
+    /** Opens the full order. */
+    go: (event?: unknown) => void;
+    /** The order is waiting for its payment to be checked. */
+    review: unknown;
     act: (event?: unknown) => void;
     action: React.ReactNode | null;
     bg: string | number;
@@ -1351,6 +1397,12 @@ export interface OpsVals {
   }>;
   priceNote: React.ReactNode;
   productRows: Array<{
+    /** Live owner only: from `MakeDesk.productFields`. */
+    photo?: string;
+    bakedText?: string | null;
+    hasRecipe?: boolean | null;
+    returnRecipeFocus?: boolean;
+    returnEditFocus?: boolean;
     costText: React.ReactNode;
     desc: React.ReactNode;
     edit: (event?: unknown) => void;
@@ -1453,6 +1505,9 @@ export interface OpsVals {
       setUnit: (event?: unknown) => void;
       unit: string | number;
       warn: React.ReactNode | null;
+      /** Live owner only: undefined on a new line, null when an old record never said. */
+      kind?: 'ingredient' | 'packaging' | null;
+      setKind?: (kind: 'ingredient' | 'packaging') => void;
     }>;
     save: (event?: unknown) => void;
     units: Array<string | number>;
@@ -1787,5 +1842,85 @@ export interface OpsVals {
     go: (event?: unknown) => void;
     name: React.ReactNode;
     notContacted: unknown;
+    want?: React.ReactNode;
+    when?: React.ReactNode;
   }>;
+}
+
+export type MoneyPeriod = 'week' | 'days30' | 'month';
+
+export interface LiveMoney {
+  period: MoneyPeriod;
+  periodText: string;
+  setPeriod: (period: MoneyPeriod) => void;
+  /** False until the books have been read once; the page then says so instead of showing zero. */
+  loaded: boolean;
+  revenue: number;
+  expenses: number;
+  profit: number;
+  draw: number;
+  refunded: number;
+  taxSetAside: number;
+  taxRate: number;
+  /** Income and expenses per day (last 7 days) or per week, oldest first; they add up to the totals. */
+  buckets: Array<{ label: string; income: number; expenses: number }>;
+  categories: Array<{ cat: string; amount: number; n: number }>;
+  transactions: Array<{
+    id: string;
+    label: string;
+    cat: string;
+    when: string;
+    kind: 'revenue' | 'refund' | 'expense' | 'draw';
+    /** As it moves the result: income positive, costs negative; a draw is negative but outside the result. */
+    signed: number;
+  }>;
+  /** Open bazaars whose sales are left out of the books until the event is closed. */
+  held: Array<{ name: string; revenue: number; expenses: number }>;
+  /** Uses of stock in this period the books could not cost yet. */
+  uncosted: number;
+  recordExpense: () => void;
+  takeMoneyOut: () => void;
+  exportPeriod: () => void;
+  exportAll: () => void;
+  openBooks: () => void;
+  openCategories: () => void;
+  openTaxRules: () => void;
+  /** Each product's cost per cookie, for Money settings. */
+  recipeCosts?: Array<{ id: string; name: string; costText: string; open: () => void }>;
+  /** The Record expense or Record owner draw page, while one is open. */
+  entry?: MoneyEntryView | null;
+}
+
+export interface LiveHome {
+  greeting: string;
+  dateText: string;
+  /** Open orders by saved status; null until the orders are read. */
+  orders: { review: number; toPrepare: number; ready: number } | null;
+  /** Ingredients and packaging by status; null until the catalogue is read. */
+  /** By the Stock page's rule (`stockStatus`); `neverCounted` is extra information, not a status. */
+  stockCounts: { ok: number; low: number; out: number; neverCounted: number } | null;
+  stockAttention: Array<{
+    name: string;
+    status: 'Out' | 'Low';
+    detail: string;
+    open: () => void;
+  }>;
+  /** Unconfirmed production work: planned only, never counted as made. */
+  production: Array<{ id: string; name: string; detail: string; open: () => void }>;
+  /** This month's books; null until they are read. */
+  month: { revenue: number; expenses: number; profit: number } | null;
+  flavours: number;
+  go: Record<
+    | 'orders'
+    | 'payments'
+    | 'production'
+    | 'stock'
+    | 'receive'
+    | 'count'
+    | 'products'
+    | 'shopping'
+    | 'money'
+    | 'bazaar',
+    () => void
+  >;
 }

@@ -254,6 +254,483 @@
       "ordinal_position": 9
     },
     {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "bazaar_costs",
+      "column_name": "scheduled_id",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 1
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "bazaar_costs",
+      "column_name": "product_id",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 2
+    },
+    {
+      "udt_name": "numeric",
+      "data_type": "numeric",
+      "table_name": "bazaar_costs",
+      "column_name": "recipe_cents",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 3
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "bazaar_costs",
+      "column_name": "recipe_read_at",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 4
+    },
+    {
+      "udt_name": "numeric",
+      "data_type": "numeric",
+      "table_name": "bazaar_costs",
+      "column_name": "typed_cents",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 5
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "bazaar_costs",
+      "column_name": "typed_by",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 6
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "bazaar_costs",
+      "column_name": "typed_at",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 7
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "bazaar_day_lines",
+      "column_name": "day_id",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 1
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "bazaar_day_lines",
+      "column_name": "product_id",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 2
+    },
+    {
+      "udt_name": "int4",
+      "data_type": "integer",
+      "table_name": "bazaar_day_lines",
+      "column_name": "made_qty",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 3
+    },
+    {
+      "udt_name": "int4",
+      "data_type": "integer",
+      "table_name": "bazaar_day_lines",
+      "column_name": "carried_qty",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 4
+    },
+    {
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "table_name": "bazaar_day_lines",
+      "column_name": "price_cents",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 5
+    },
+    {
+      "udt_name": "int4",
+      "data_type": "integer",
+      "table_name": "bazaar_day_lines",
+      "column_name": "left_qty",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 6
+    },
+    {
+      "udt_name": "int4",
+      "data_type": "integer",
+      "table_name": "bazaar_day_lines",
+      "column_name": "carry_next_qty",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 7
+    },
+    {
+      "udt_name": "int4",
+      "data_type": "integer",
+      "table_name": "bazaar_day_lines",
+      "column_name": "to_shop_qty",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 8
+    },
+    {
+      "udt_name": "int4",
+      "data_type": "integer",
+      "table_name": "bazaar_day_lines",
+      "column_name": "written_off_qty",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 9
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "bazaar_days",
+      "column_name": "id",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 1
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "bazaar_days",
+      "column_name": "scheduled_id",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 2
+    },
+    {
+      "udt_name": "date",
+      "data_type": "date",
+      "table_name": "bazaar_days",
+      "column_name": "day",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 3
+    },
+    {
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "table_name": "bazaar_days",
+      "column_name": "float_cents",
+      "is_nullable": "NO",
+      "column_default": "0",
+      "ordinal_position": 4
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "bazaar_days",
+      "column_name": "event_id",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 5
+    },
+    {
+      "udt_name": "jsonb",
+      "data_type": "jsonb",
+      "table_name": "bazaar_days",
+      "column_name": "closed_review",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 6
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "bazaar_days",
+      "column_name": "closed_hash",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 7
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "bazaar_days",
+      "column_name": "plan_hash",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 8
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "bazaar_days",
+      "column_name": "updated_at",
+      "is_nullable": "NO",
+      "column_default": "now()",
+      "ordinal_position": 9
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "bazaar_fees",
+      "column_name": "client_id",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 1
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "bazaar_fees",
+      "column_name": "scheduled_id",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 2
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "bazaar_fees",
+      "column_name": "day_id",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 3
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "bazaar_fees",
+      "column_name": "label",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 4
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "bazaar_fees",
+      "column_name": "category",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 5
+    },
+    {
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "table_name": "bazaar_fees",
+      "column_name": "amount_cents",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 6
+    },
+    {
+      "udt_name": "date",
+      "data_type": "date",
+      "table_name": "bazaar_fees",
+      "column_name": "paid_on",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 7
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "bazaar_fees",
+      "column_name": "ledger_id",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 8
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "bazaar_fees",
+      "column_name": "payload_hash",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 9
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "bazaar_fees",
+      "column_name": "received_at",
+      "is_nullable": "NO",
+      "column_default": "now()",
+      "ordinal_position": 10
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "bazaar_fees",
+      "column_name": "voided_at",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 11
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "bazaar_fees",
+      "column_name": "voided_by",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 12
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "bazaar_losses",
+      "column_name": "client_id",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 1
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "bazaar_losses",
+      "column_name": "day_id",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 2
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "bazaar_losses",
+      "column_name": "product_id",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 3
+    },
+    {
+      "udt_name": "int4",
+      "data_type": "integer",
+      "table_name": "bazaar_losses",
+      "column_name": "qty",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 4
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "bazaar_losses",
+      "column_name": "reason",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 5
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "bazaar_losses",
+      "column_name": "at",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 6
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "bazaar_losses",
+      "column_name": "payload_hash",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 7
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "bazaar_losses",
+      "column_name": "received_at",
+      "is_nullable": "NO",
+      "column_default": "now()",
+      "ordinal_position": 8
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "bazaar_losses",
+      "column_name": "voided_at",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 9
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "bazaar_losses",
+      "column_name": "voided_by",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 10
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "bazaar_stock_adds",
+      "column_name": "client_id",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 1
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "bazaar_stock_adds",
+      "column_name": "day_id",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 2
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "bazaar_stock_adds",
+      "column_name": "product_id",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 3
+    },
+    {
+      "udt_name": "int4",
+      "data_type": "integer",
+      "table_name": "bazaar_stock_adds",
+      "column_name": "qty",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 4
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "bazaar_stock_adds",
+      "column_name": "kind",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 5
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "bazaar_stock_adds",
+      "column_name": "at",
+      "is_nullable": "NO",
+      "column_default": "now()",
+      "ordinal_position": 6
+    },
+    {
       "udt_name": "bool",
       "data_type": "boolean",
       "table_name": "books_settings",
@@ -279,6 +756,87 @@
       "is_nullable": "NO",
       "column_default": "now()",
       "ordinal_position": 3
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "books_settings",
+      "column_name": "used_from",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 4
+    },
+    {
+      "udt_name": "bool",
+      "data_type": "boolean",
+      "table_name": "cost_cutover",
+      "column_name": "id",
+      "is_nullable": "NO",
+      "column_default": "true",
+      "ordinal_position": 1
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "cost_cutover",
+      "column_name": "at",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 2
+    },
+    {
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "table_name": "cost_cutover",
+      "column_name": "total_cents",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 3
+    },
+    {
+      "udt_name": "jsonb",
+      "data_type": "jsonb",
+      "table_name": "cost_cutover",
+      "column_name": "items",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 4
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "cost_cutover",
+      "column_name": "payload_hash",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 5
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "cost_cutover",
+      "column_name": "created_by",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 6
+    },
+    {
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "table_name": "cost_cutover",
+      "column_name": "cut_seq",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 7
+    },
+    {
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "table_name": "cost_cutover",
+      "column_name": "cut_corr_seq",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 8
     },
     {
       "udt_name": "uuid",
@@ -877,6 +1435,42 @@
     {
       "udt_name": "text",
       "data_type": "text",
+      "table_name": "flavour_costs",
+      "column_name": "product_id",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 1
+    },
+    {
+      "udt_name": "numeric",
+      "data_type": "numeric",
+      "table_name": "flavour_costs",
+      "column_name": "cost_cents",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 2
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "flavour_costs",
+      "column_name": "typed_by",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 3
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "flavour_costs",
+      "column_name": "typed_at",
+      "is_nullable": "NO",
+      "column_default": "now()",
+      "ordinal_position": 4
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
       "table_name": "inventory_items",
       "column_name": "id",
       "is_nullable": "NO",
@@ -992,6 +1586,96 @@
       "ordinal_position": 13
     },
     {
+      "udt_name": "numeric",
+      "data_type": "numeric",
+      "table_name": "inventory_items",
+      "column_name": "avg_cost",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 14
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "inventory_items",
+      "column_name": "avg_cost_at",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 15
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "item_prices",
+      "column_name": "id",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 1
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "item_prices",
+      "column_name": "item_id",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 2
+    },
+    {
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "table_name": "item_prices",
+      "column_name": "price_cents",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 3
+    },
+    {
+      "udt_name": "numeric",
+      "data_type": "numeric",
+      "table_name": "item_prices",
+      "column_name": "pack_size",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 4
+    },
+    {
+      "udt_name": "date",
+      "data_type": "date",
+      "table_name": "item_prices",
+      "column_name": "as_of",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 5
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "item_prices",
+      "column_name": "payload_hash",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 6
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "item_prices",
+      "column_name": "created_by",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 7
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "item_prices",
+      "column_name": "received_at",
+      "is_nullable": "NO",
+      "column_default": "now()",
+      "ordinal_position": 8
+    },
+    {
       "udt_name": "uuid",
       "data_type": "uuid",
       "table_name": "ledger_entries",
@@ -1098,6 +1782,51 @@
       "is_nullable": "YES",
       "column_default": null,
       "ordinal_position": 12
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "operations_runs",
+      "column_name": "run_id",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 1
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "operations_runs",
+      "column_name": "job",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 2
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "operations_runs",
+      "column_name": "status",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 3
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "operations_runs",
+      "column_name": "completed_at",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 4
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "operations_runs",
+      "column_name": "archive_sha256",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 5
     },
     {
       "udt_name": "uuid",
@@ -1305,6 +2034,15 @@
       "is_nullable": "NO",
       "column_default": "now()",
       "ordinal_position": 9
+    },
+    {
+      "udt_name": "_text",
+      "data_type": "ARRAY",
+      "table_name": "order_extras",
+      "column_name": "sampler_flavours",
+      "is_nullable": "NO",
+      "column_default": "'{}'::text[]",
+      "ordinal_position": 10
     },
     {
       "udt_name": "uuid",
@@ -1802,6 +2540,87 @@
       "ordinal_position": 28
     },
     {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "packaging_rules",
+      "column_name": "id",
+      "is_nullable": "NO",
+      "column_default": "gen_random_uuid()",
+      "ordinal_position": 1
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "packaging_rules",
+      "column_name": "container",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 2
+    },
+    {
+      "udt_name": "int4",
+      "data_type": "integer",
+      "table_name": "packaging_rules",
+      "column_name": "box_size",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 3
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "packaging_rules",
+      "column_name": "item_id",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 4
+    },
+    {
+      "udt_name": "numeric",
+      "data_type": "numeric",
+      "table_name": "packaging_rules",
+      "column_name": "qty",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 5
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "packaging_rules",
+      "column_name": "per",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 6
+    },
+    {
+      "udt_name": "int4",
+      "data_type": "integer",
+      "table_name": "packaging_rules",
+      "column_name": "position",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 7
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "packaging_rules",
+      "column_name": "updated_by",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 8
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "packaging_rules",
+      "column_name": "updated_at",
+      "is_nullable": "NO",
+      "column_default": "now()",
+      "ordinal_position": 9
+    },
+    {
       "udt_name": "text",
       "data_type": "text",
       "table_name": "payment_methods",
@@ -2007,6 +2826,33 @@
       "is_nullable": "NO",
       "column_default": "now()",
       "ordinal_position": 15
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "production_records",
+      "column_name": "corrects",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 16
+    },
+    {
+      "udt_name": "int4",
+      "data_type": "integer",
+      "table_name": "production_records",
+      "column_name": "qty_delta",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 17
+    },
+    {
+      "udt_name": "int4",
+      "data_type": "integer",
+      "table_name": "production_records",
+      "column_name": "rejects_delta",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 18
     },
     {
       "udt_name": "text",
@@ -2216,6 +3062,42 @@
       "ordinal_position": 3
     },
     {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "recipe_drafts",
+      "column_name": "product_id",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 1
+    },
+    {
+      "udt_name": "int4",
+      "data_type": "integer",
+      "table_name": "recipe_drafts",
+      "column_name": "yield_count",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 2
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "recipe_drafts",
+      "column_name": "source_text",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 3
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "recipe_drafts",
+      "column_name": "updated_at",
+      "is_nullable": "NO",
+      "column_default": "now()",
+      "ordinal_position": 4
+    },
+    {
       "udt_name": "uuid",
       "data_type": "uuid",
       "table_name": "recipe_ingredients",
@@ -2268,6 +3150,24 @@
       "is_nullable": "NO",
       "column_default": "0",
       "ordinal_position": 6
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "recipe_ingredients",
+      "column_name": "item_id",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 7
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "recipe_ingredients",
+      "column_name": "kind",
+      "is_nullable": "NO",
+      "column_default": "'ingredient'::text",
+      "ordinal_position": 8
     },
     {
       "udt_name": "text",
@@ -2432,6 +3332,78 @@
       "ordinal_position": 9
     },
     {
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "table_name": "scheduled_events",
+      "column_name": "target_profit_cents",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 10
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "scheduled_events",
+      "column_name": "finalised_at",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 11
+    },
+    {
+      "udt_name": "jsonb",
+      "data_type": "jsonb",
+      "table_name": "scheduled_events",
+      "column_name": "final_summary",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 12
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "scheduled_events",
+      "column_name": "final_hash",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 13
+    },
+    {
+      "udt_name": "jsonb",
+      "data_type": "jsonb",
+      "table_name": "scheduled_events",
+      "column_name": "final_split",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 14
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "scheduled_events",
+      "column_name": "reversed_at",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 15
+    },
+    {
+      "udt_name": "uuid",
+      "data_type": "uuid",
+      "table_name": "scheduled_events",
+      "column_name": "reversed_by",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 16
+    },
+    {
+      "udt_name": "jsonb",
+      "data_type": "jsonb",
+      "table_name": "scheduled_events",
+      "column_name": "reversal",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 17
+    },
+    {
       "udt_name": "text",
       "data_type": "text",
       "table_name": "settings",
@@ -2538,6 +3510,60 @@
       "is_nullable": "YES",
       "column_default": null,
       "ordinal_position": 5
+    },
+    {
+      "udt_name": "bool",
+      "data_type": "boolean",
+      "table_name": "shop_identity",
+      "column_name": "id",
+      "is_nullable": "NO",
+      "column_default": "true",
+      "ordinal_position": 1
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "shop_identity",
+      "column_name": "shop_name",
+      "is_nullable": "NO",
+      "column_default": "''::text",
+      "ordinal_position": 2
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "shop_identity",
+      "column_name": "owner_name",
+      "is_nullable": "NO",
+      "column_default": "''::text",
+      "ordinal_position": 3
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "shop_identity",
+      "column_name": "contact_line",
+      "is_nullable": "NO",
+      "column_default": "''::text",
+      "ordinal_position": 4
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "shop_identity",
+      "column_name": "tagline",
+      "is_nullable": "NO",
+      "column_default": "''::text",
+      "ordinal_position": 5
+    },
+    {
+      "udt_name": "timestamptz",
+      "data_type": "timestamp with time zone",
+      "table_name": "shop_identity",
+      "column_name": "updated_at",
+      "is_nullable": "NO",
+      "column_default": "now()",
+      "ordinal_position": 6
     },
     {
       "udt_name": "text",
@@ -2783,6 +3809,24 @@
       "ordinal_position": 8
     },
     {
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "table_name": "stock_cost_corrections",
+      "column_name": "used_cents",
+      "is_nullable": "NO",
+      "column_default": "0",
+      "ordinal_position": 9
+    },
+    {
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "table_name": "stock_cost_corrections",
+      "column_name": "seq",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 10
+    },
+    {
       "udt_name": "uuid",
       "data_type": "uuid",
       "table_name": "stock_movements",
@@ -2909,6 +3953,42 @@
       "ordinal_position": 14
     },
     {
+      "udt_name": "int8",
+      "data_type": "bigint",
+      "table_name": "stock_movements",
+      "column_name": "seq",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 15
+    },
+    {
+      "udt_name": "numeric",
+      "data_type": "numeric",
+      "table_name": "stock_movements",
+      "column_name": "unit_cost",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 16
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "stock_movements",
+      "column_name": "cost_source",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 17
+    },
+    {
+      "udt_name": "numeric",
+      "data_type": "numeric",
+      "table_name": "stock_movements",
+      "column_name": "short_qty",
+      "is_nullable": "NO",
+      "column_default": "0",
+      "ordinal_position": 18
+    },
+    {
       "udt_name": "uuid",
       "data_type": "uuid",
       "table_name": "supplier_prices",
@@ -2997,6 +4077,24 @@
       "is_nullable": "NO",
       "column_default": "now()",
       "ordinal_position": 10
+    },
+    {
+      "udt_name": "text",
+      "data_type": "text",
+      "table_name": "supplier_prices",
+      "column_name": "item_id",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 11
+    },
+    {
+      "udt_name": "numeric",
+      "data_type": "numeric",
+      "table_name": "supplier_prices",
+      "column_name": "pack_size",
+      "is_nullable": "YES",
+      "column_default": null,
+      "ordinal_position": 12
     },
     {
       "udt_name": "text",
@@ -3155,9 +4253,69 @@
       "tablename": "bake_batches"
     },
     {
+      "indexdef": "CREATE UNIQUE INDEX bazaar_costs_pkey ON public.bazaar_costs USING btree (scheduled_id, product_id)",
+      "indexname": "bazaar_costs_pkey",
+      "tablename": "bazaar_costs"
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX bazaar_day_lines_pkey ON public.bazaar_day_lines USING btree (day_id, product_id)",
+      "indexname": "bazaar_day_lines_pkey",
+      "tablename": "bazaar_day_lines"
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX bazaar_days_booking_day ON public.bazaar_days USING btree (scheduled_id, day)",
+      "indexname": "bazaar_days_booking_day",
+      "tablename": "bazaar_days"
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX bazaar_days_event_id_key ON public.bazaar_days USING btree (event_id)",
+      "indexname": "bazaar_days_event_id_key",
+      "tablename": "bazaar_days"
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX bazaar_days_pkey ON public.bazaar_days USING btree (id)",
+      "indexname": "bazaar_days_pkey",
+      "tablename": "bazaar_days"
+    },
+    {
+      "indexdef": "CREATE INDEX bazaar_fees_booking_idx ON public.bazaar_fees USING btree (scheduled_id)",
+      "indexname": "bazaar_fees_booking_idx",
+      "tablename": "bazaar_fees"
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX bazaar_fees_pkey ON public.bazaar_fees USING btree (client_id)",
+      "indexname": "bazaar_fees_pkey",
+      "tablename": "bazaar_fees"
+    },
+    {
+      "indexdef": "CREATE INDEX bazaar_losses_day_idx ON public.bazaar_losses USING btree (day_id)",
+      "indexname": "bazaar_losses_day_idx",
+      "tablename": "bazaar_losses"
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX bazaar_losses_pkey ON public.bazaar_losses USING btree (client_id)",
+      "indexname": "bazaar_losses_pkey",
+      "tablename": "bazaar_losses"
+    },
+    {
+      "indexdef": "CREATE INDEX bazaar_stock_adds_day_idx ON public.bazaar_stock_adds USING btree (day_id)",
+      "indexname": "bazaar_stock_adds_day_idx",
+      "tablename": "bazaar_stock_adds"
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX bazaar_stock_adds_pkey ON public.bazaar_stock_adds USING btree (client_id)",
+      "indexname": "bazaar_stock_adds_pkey",
+      "tablename": "bazaar_stock_adds"
+    },
+    {
       "indexdef": "CREATE UNIQUE INDEX books_settings_pkey ON public.books_settings USING btree (id)",
       "indexname": "books_settings_pkey",
       "tablename": "books_settings"
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX cost_cutover_pkey ON public.cost_cutover USING btree (id)",
+      "indexname": "cost_cutover_pkey",
+      "tablename": "cost_cutover"
     },
     {
       "indexdef": "CREATE UNIQUE INDEX drops_pkey ON public.drops USING btree (id)",
@@ -3200,9 +4358,24 @@
       "tablename": "events"
     },
     {
+      "indexdef": "CREATE UNIQUE INDEX flavour_costs_pkey ON public.flavour_costs USING btree (product_id)",
+      "indexname": "flavour_costs_pkey",
+      "tablename": "flavour_costs"
+    },
+    {
       "indexdef": "CREATE UNIQUE INDEX inventory_items_pkey ON public.inventory_items USING btree (id)",
       "indexname": "inventory_items_pkey",
       "tablename": "inventory_items"
+    },
+    {
+      "indexdef": "CREATE INDEX item_prices_item_idx ON public.item_prices USING btree (item_id, as_of DESC, received_at DESC)",
+      "indexname": "item_prices_item_idx",
+      "tablename": "item_prices"
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX item_prices_pkey ON public.item_prices USING btree (id)",
+      "indexname": "item_prices_pkey",
+      "tablename": "item_prices"
     },
     {
       "indexdef": "CREATE UNIQUE INDEX ledger_entries_client_id_key ON public.ledger_entries USING btree (client_id)",
@@ -3218,6 +4391,11 @@
       "indexdef": "CREATE INDEX ledger_occurred_idx ON public.ledger_entries USING btree (occurred_at DESC)",
       "indexname": "ledger_occurred_idx",
       "tablename": "ledger_entries"
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX operations_runs_pkey ON public.operations_runs USING btree (run_id)",
+      "indexname": "operations_runs_pkey",
+      "tablename": "operations_runs"
     },
     {
       "indexdef": "CREATE INDEX order_add_ons_order_idx ON public.order_add_ons USING btree (order_id)",
@@ -3310,6 +4488,26 @@
       "tablename": "orders"
     },
     {
+      "indexdef": "CREATE INDEX packaging_rules_item_id_idx ON public.packaging_rules USING btree (item_id)",
+      "indexname": "packaging_rules_item_id_idx",
+      "tablename": "packaging_rules"
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX packaging_rules_item_idx ON public.packaging_rules USING btree (container, COALESCE(box_size, 0), item_id)",
+      "indexname": "packaging_rules_item_idx",
+      "tablename": "packaging_rules"
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX packaging_rules_pkey ON public.packaging_rules USING btree (id)",
+      "indexname": "packaging_rules_pkey",
+      "tablename": "packaging_rules"
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX packaging_rules_position_idx ON public.packaging_rules USING btree (container, COALESCE(box_size, 0), \"position\")",
+      "indexname": "packaging_rules_position_idx",
+      "tablename": "packaging_rules"
+    },
+    {
       "indexdef": "CREATE UNIQUE INDEX payment_methods_label_key ON public.payment_methods USING btree (label)",
       "indexname": "payment_methods_label_key",
       "tablename": "payment_methods"
@@ -3318,6 +4516,11 @@
       "indexdef": "CREATE UNIQUE INDEX payment_methods_pkey ON public.payment_methods USING btree (id)",
       "indexname": "payment_methods_pkey",
       "tablename": "payment_methods"
+    },
+    {
+      "indexdef": "CREATE INDEX production_records_corrects_idx ON public.production_records USING btree (corrects)",
+      "indexname": "production_records_corrects_idx",
+      "tablename": "production_records"
     },
     {
       "indexdef": "CREATE INDEX production_records_kind_idx ON public.production_records USING btree (kind, at)",
@@ -3348,6 +4551,16 @@
       "indexdef": "CREATE INDEX rate_limits_window_idx ON public.rate_limits USING btree (window_start)",
       "indexname": "rate_limits_window_idx",
       "tablename": "rate_limits"
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX recipe_drafts_pkey ON public.recipe_drafts USING btree (product_id)",
+      "indexname": "recipe_drafts_pkey",
+      "tablename": "recipe_drafts"
+    },
+    {
+      "indexdef": "CREATE INDEX recipe_ingredients_item_id_idx ON public.recipe_ingredients USING btree (item_id)",
+      "indexname": "recipe_ingredients_item_id_idx",
+      "tablename": "recipe_ingredients"
     },
     {
       "indexdef": "CREATE UNIQUE INDEX recipe_ingredients_pkey ON public.recipe_ingredients USING btree (id)",
@@ -3385,6 +4598,11 @@
       "tablename": "settings"
     },
     {
+      "indexdef": "CREATE UNIQUE INDEX shop_identity_pkey ON public.shop_identity USING btree (id)",
+      "indexname": "shop_identity_pkey",
+      "tablename": "shop_identity"
+    },
+    {
       "indexdef": "CREATE UNIQUE INDEX shop_state_pkey ON public.shop_state USING btree (id)",
       "indexname": "shop_state_pkey",
       "tablename": "shop_state"
@@ -3405,6 +4623,11 @@
       "tablename": "stock_cost_corrections"
     },
     {
+      "indexdef": "CREATE UNIQUE INDEX stock_cost_corrections_seq_uq ON public.stock_cost_corrections USING btree (seq)",
+      "indexname": "stock_cost_corrections_seq_uq",
+      "tablename": "stock_cost_corrections"
+    },
+    {
       "indexdef": "CREATE INDEX stock_movements_item_idx ON public.stock_movements USING btree (item_id, at)",
       "indexname": "stock_movements_item_idx",
       "tablename": "stock_movements"
@@ -3413,6 +4636,21 @@
       "indexdef": "CREATE UNIQUE INDEX stock_movements_pkey ON public.stock_movements USING btree (id)",
       "indexname": "stock_movements_pkey",
       "tablename": "stock_movements"
+    },
+    {
+      "indexdef": "CREATE INDEX stock_movements_production_idx ON public.stock_movements USING btree (production_id) WHERE (production_id IS NOT NULL)",
+      "indexname": "stock_movements_production_idx",
+      "tablename": "stock_movements"
+    },
+    {
+      "indexdef": "CREATE UNIQUE INDEX stock_movements_seq_uq ON public.stock_movements USING btree (seq)",
+      "indexname": "stock_movements_seq_uq",
+      "tablename": "stock_movements"
+    },
+    {
+      "indexdef": "CREATE INDEX supplier_prices_item_id_idx ON public.supplier_prices USING btree (item_id)",
+      "indexname": "supplier_prices_item_id_idx",
+      "tablename": "supplier_prices"
     },
     {
       "indexdef": "CREATE INDEX supplier_prices_item_idx ON public.supplier_prices USING btree (item_name, price_cents)",
@@ -3453,7 +4691,7 @@
   "policies": [
     {
       "cmd": "SELECT",
-      "qual": "is_owner()",
+      "qual": "( SELECT is_owner() AS is_owner)",
       "roles": [
         "public"
       ],
@@ -3464,29 +4702,29 @@
     },
     {
       "cmd": "ALL",
-      "qual": "is_owner()",
+      "qual": "( SELECT is_owner() AS is_owner)",
       "roles": [
         "public"
       ],
       "tablename": "bake_batches",
       "permissive": "PERMISSIVE",
       "policyname": "batches staff all",
-      "with_check": "is_owner()"
+      "with_check": "( SELECT is_owner() AS is_owner)"
     },
     {
       "cmd": "ALL",
-      "qual": "is_owner()",
+      "qual": "( SELECT is_owner() AS is_owner)",
       "roles": [
         "public"
       ],
       "tablename": "drops",
       "permissive": "PERMISSIVE",
       "policyname": "drops owner write",
-      "with_check": "is_owner()"
+      "with_check": "( SELECT is_owner() AS is_owner)"
     },
     {
       "cmd": "SELECT",
-      "qual": "is_owner()",
+      "qual": "( SELECT is_owner() AS is_owner)",
       "roles": [
         "public"
       ],
@@ -3497,14 +4735,14 @@
     },
     {
       "cmd": "ALL",
-      "qual": "is_owner()",
+      "qual": "( SELECT is_owner() AS is_owner)",
       "roles": [
         "public"
       ],
       "tablename": "erasure_requests",
       "permissive": "PERMISSIVE",
       "policyname": "erasure requests owner only",
-      "with_check": "is_owner()"
+      "with_check": "( SELECT is_owner() AS is_owner)"
     },
     {
       "cmd": "INSERT",
@@ -3515,11 +4753,11 @@
       "tablename": "event_sale_items",
       "permissive": "PERMISSIVE",
       "policyname": "sale items staff insert",
-      "with_check": "is_owner()"
+      "with_check": "( SELECT is_owner() AS is_owner)"
     },
     {
       "cmd": "SELECT",
-      "qual": "is_owner()",
+      "qual": "( SELECT is_owner() AS is_owner)",
       "roles": [
         "public"
       ],
@@ -3537,11 +4775,11 @@
       "tablename": "event_sales",
       "permissive": "PERMISSIVE",
       "policyname": "sales staff insert",
-      "with_check": "is_owner()"
+      "with_check": "( SELECT is_owner() AS is_owner)"
     },
     {
       "cmd": "SELECT",
-      "qual": "is_owner()",
+      "qual": "( SELECT is_owner() AS is_owner)",
       "roles": [
         "public"
       ],
@@ -3552,18 +4790,18 @@
     },
     {
       "cmd": "ALL",
-      "qual": "is_owner()",
+      "qual": "( SELECT is_owner() AS is_owner)",
       "roles": [
         "public"
       ],
       "tablename": "events",
       "permissive": "PERMISSIVE",
       "policyname": "events owner write",
-      "with_check": "is_owner()"
+      "with_check": "( SELECT is_owner() AS is_owner)"
     },
     {
       "cmd": "SELECT",
-      "qual": "is_owner()",
+      "qual": "( SELECT is_owner() AS is_owner)",
       "roles": [
         "public"
       ],
@@ -3581,11 +4819,11 @@
       "tablename": "inventory_items",
       "permissive": "PERMISSIVE",
       "policyname": "stock owner insert",
-      "with_check": "is_owner()"
+      "with_check": "( SELECT is_owner() AS is_owner)"
     },
     {
       "cmd": "SELECT",
-      "qual": "is_owner()",
+      "qual": "( SELECT is_owner() AS is_owner)",
       "roles": [
         "public"
       ],
@@ -3596,14 +4834,14 @@
     },
     {
       "cmd": "UPDATE",
-      "qual": "is_owner()",
+      "qual": "( SELECT is_owner() AS is_owner)",
       "roles": [
         "public"
       ],
       "tablename": "inventory_items",
       "permissive": "PERMISSIVE",
       "policyname": "stock staff write",
-      "with_check": "is_owner()"
+      "with_check": "( SELECT is_owner() AS is_owner)"
     },
     {
       "cmd": "INSERT",
@@ -3614,11 +4852,11 @@
       "tablename": "ledger_entries",
       "permissive": "PERMISSIVE",
       "policyname": "ledger owner insert",
-      "with_check": "is_owner()"
+      "with_check": "( SELECT is_owner() AS is_owner)"
     },
     {
       "cmd": "SELECT",
-      "qual": "is_owner()",
+      "qual": "( SELECT is_owner() AS is_owner)",
       "roles": [
         "public"
       ],
@@ -3640,7 +4878,7 @@
     },
     {
       "cmd": "SELECT",
-      "qual": "is_owner()",
+      "qual": "( SELECT is_owner() AS is_owner)",
       "roles": [
         "public"
       ],
@@ -3651,14 +4889,14 @@
     },
     {
       "cmd": "UPDATE",
-      "qual": "is_owner()",
+      "qual": "( SELECT is_owner() AS is_owner)",
       "roles": [
         "public"
       ],
       "tablename": "order_items",
       "permissive": "PERMISSIVE",
       "policyname": "order items staff write",
-      "with_check": "is_owner()"
+      "with_check": "( SELECT is_owner() AS is_owner)"
     },
     {
       "cmd": "INSERT",
@@ -3673,7 +4911,7 @@
     },
     {
       "cmd": "SELECT",
-      "qual": "is_owner()",
+      "qual": "( SELECT is_owner() AS is_owner)",
       "roles": [
         "public"
       ],
@@ -3684,29 +4922,29 @@
     },
     {
       "cmd": "UPDATE",
-      "qual": "is_owner()",
+      "qual": "( SELECT is_owner() AS is_owner)",
       "roles": [
         "public"
       ],
       "tablename": "orders",
       "permissive": "PERMISSIVE",
       "policyname": "orders staff write",
-      "with_check": "is_owner()"
+      "with_check": "( SELECT is_owner() AS is_owner)"
     },
     {
       "cmd": "ALL",
-      "qual": "is_owner()",
+      "qual": "( SELECT is_owner() AS is_owner)",
       "roles": [
         "public"
       ],
       "tablename": "products",
       "permissive": "PERMISSIVE",
       "policyname": "catalogue owner write",
-      "with_check": "is_owner()"
+      "with_check": "( SELECT is_owner() AS is_owner)"
     },
     {
       "cmd": "SELECT",
-      "qual": "is_owner()",
+      "qual": "( SELECT is_owner() AS is_owner)",
       "roles": [
         "public"
       ],
@@ -3717,7 +4955,7 @@
     },
     {
       "cmd": "SELECT",
-      "qual": "(id = auth.uid())",
+      "qual": "(id = ( SELECT auth.uid() AS uid))",
       "roles": [
         "public"
       ],
@@ -3728,7 +4966,7 @@
     },
     {
       "cmd": "SELECT",
-      "qual": "is_owner()",
+      "qual": "( SELECT is_owner() AS is_owner)",
       "roles": [
         "public"
       ],
@@ -3739,29 +4977,29 @@
     },
     {
       "cmd": "ALL",
-      "qual": "is_owner()",
+      "qual": "( SELECT is_owner() AS is_owner)",
       "roles": [
         "public"
       ],
       "tablename": "profiles",
       "permissive": "PERMISSIVE",
       "policyname": "owner writes staff",
-      "with_check": "is_owner()"
+      "with_check": "( SELECT is_owner() AS is_owner)"
     },
     {
       "cmd": "ALL",
-      "qual": "is_owner()",
+      "qual": "( SELECT is_owner() AS is_owner)",
       "roles": [
         "public"
       ],
       "tablename": "recipe_ingredients",
       "permissive": "PERMISSIVE",
       "policyname": "recipe items owner write",
-      "with_check": "is_owner()"
+      "with_check": "( SELECT is_owner() AS is_owner)"
     },
     {
       "cmd": "SELECT",
-      "qual": "is_owner()",
+      "qual": "( SELECT is_owner() AS is_owner)",
       "roles": [
         "public"
       ],
@@ -3772,18 +5010,18 @@
     },
     {
       "cmd": "ALL",
-      "qual": "is_owner()",
+      "qual": "( SELECT is_owner() AS is_owner)",
       "roles": [
         "public"
       ],
       "tablename": "recipes",
       "permissive": "PERMISSIVE",
       "policyname": "recipes owner write",
-      "with_check": "is_owner()"
+      "with_check": "( SELECT is_owner() AS is_owner)"
     },
     {
       "cmd": "SELECT",
-      "qual": "is_owner()",
+      "qual": "( SELECT is_owner() AS is_owner)",
       "roles": [
         "public"
       ],
@@ -3794,29 +5032,29 @@
     },
     {
       "cmd": "ALL",
-      "qual": "is_owner()",
+      "qual": "( SELECT is_owner() AS is_owner)",
       "roles": [
         "public"
       ],
       "tablename": "settings",
       "permissive": "PERMISSIVE",
       "policyname": "settings owner write",
-      "with_check": "is_owner()"
+      "with_check": "( SELECT is_owner() AS is_owner)"
     },
     {
       "cmd": "ALL",
-      "qual": "is_owner()",
+      "qual": "( SELECT is_owner() AS is_owner)",
       "roles": [
         "public"
       ],
       "tablename": "supplier_prices",
       "permissive": "PERMISSIVE",
       "policyname": "supplier prices owner write",
-      "with_check": "is_owner()"
+      "with_check": "( SELECT is_owner() AS is_owner)"
     },
     {
       "cmd": "SELECT",
-      "qual": "is_owner()",
+      "qual": "( SELECT is_owner() AS is_owner)",
       "roles": [
         "public"
       ],
@@ -3827,18 +5065,18 @@
     },
     {
       "cmd": "ALL",
-      "qual": "is_owner()",
+      "qual": "( SELECT is_owner() AS is_owner)",
       "roles": [
         "public"
       ],
       "tablename": "suppliers",
       "permissive": "PERMISSIVE",
       "policyname": "suppliers owner write",
-      "with_check": "is_owner()"
+      "with_check": "( SELECT is_owner() AS is_owner)"
     },
     {
       "cmd": "SELECT",
-      "qual": "is_owner()",
+      "qual": "( SELECT is_owner() AS is_owner)",
       "roles": [
         "public"
       ],
@@ -3849,6 +5087,21 @@
     }
   ],
   "functions": [
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "add_bazaar_day_stock",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(product_id text, made_qty integer, carried_qty integer, loaded integer, duplicate boolean)",
+      "body_md5": "5fed472895fa8b53982bdeb729722e8c",
+      "identity": "p_day uuid, p_product text, p_qty integer, p_kind text, p_client_id uuid",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
     {
       "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
       "name": "add_event_expense",
@@ -3878,6 +5131,171 @@
       "security_definer": true,
       "execute_service_role": true,
       "execute_authenticated": true
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "apply_cost_cutover",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "2612368b3544924bffe716d2697854ac",
+      "identity": "p_expected jsonb",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "apply_identity_links",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "2f657c14a980a47141aeca96d1cc7658",
+      "identity": "p_expected jsonb",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "apply_import_bookings",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "66de0877c2de44569b950dd87121026b",
+      "identity": "p_rows jsonb, p_expected jsonb",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "apply_import_flavours",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "222760cccd6b0ca059de5f90a7a35f7d",
+      "identity": "p_rows jsonb, p_expected jsonb",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "apply_import_items",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "3cfeeaf7dfbc583d3f4624e2f60e0888",
+      "identity": "p_rows jsonb, p_expected jsonb",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "apply_import_prices",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "e489d262b259e59967f182b6813740fb",
+      "identity": "p_rows jsonb, p_expected jsonb",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "apply_import_recipes",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "d3c43427f222717da5bb160271691cd0",
+      "identity": "p_rows jsonb, p_expected jsonb",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "apply_packaging_rule",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "bb9090f5ce4aa51489b8460a5a54c9da",
+      "identity": "p_rule jsonb",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "bazaar_held_ledger",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(ledger_id uuid, scheduled_id uuid, name text)",
+      "body_md5": "ff9b27524f932e407087fabd0a24aebf",
+      "identity": "",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "bazaar_line_facts",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(day_id uuid, day date, event_id uuid, closed boolean, product_id text, name text, made integer, carried integer, price_cents bigint, sold integer, given integer, lost integer, left_qty integer, carry_next integer, to_shop integer, written_off integer)",
+      "body_md5": "22eabf6b1dd362e5c76934d5e962dfba",
+      "identity": "p_booking uuid",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "bazaar_summary",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "49501a9f1f84001b41c2c2b0ad376c83",
+      "identity": "p_booking uuid",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
     },
     {
       "acl": "{postgres=X/postgres,service_role=X/postgres}",
@@ -4015,6 +5433,21 @@
       "execute_authenticated": false
     },
     {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "name": "business_clock",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(today date, week_start date, local_time timestamp without time zone)",
+      "body_md5": "b03418c88e4a9ffcbefbbfbb171af389",
+      "identity": "p_at timestamp with time zone",
+      "execute_anon": false,
+      "security_definer": false,
+      "execute_service_role": true,
+      "execute_authenticated": false
+    },
+    {
       "acl": "{=X/postgres,anon=X/postgres,authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
       "name": "capacity_allows",
       "owner": "postgres",
@@ -4031,13 +5464,28 @@
     },
     {
       "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "close_bazaar_day",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "ed42f86320f849f0777d2bf31b61c3f9",
+      "identity": "p_close jsonb",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
       "name": "close_event",
       "owner": "postgres",
       "config": [
         "search_path=\"\""
       ],
       "returns": "TABLE(event_id uuid, name text, closed boolean, sales_count integer, voided_count integer, freebie_count integer, cookies_sold integer, revenue_cents bigint, expenses_cents bigint, variance_cents bigint, profit_cents bigint, float_cents bigint, cash_expected_cents bigint, counted_cents bigint, loaded jsonb, returned jsonb)",
-      "body_md5": "c3360d47273a8c9ceed418bc29f4a63a",
+      "body_md5": "bc0eefd0bb136a95e753c0db8788a27f",
       "identity": "p_close jsonb",
       "execute_anon": false,
       "security_definer": true,
@@ -4105,6 +5553,21 @@
       "execute_authenticated": true
     },
     {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "finalise_bazaar",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "a600307b286ad542d8a76320a5030e93",
+      "identity": "p_booking uuid, p_expected text, p_drop integer, p_till jsonb, p_final jsonb",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
       "acl": "{anon=X/postgres,authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
       "name": "find_order",
       "owner": "postgres",
@@ -4121,14 +5584,44 @@
     },
     {
       "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "get_bazaar",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "4a88bd056ac2daab04919953a41a2aee",
+      "identity": "p_booking uuid",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
       "name": "get_books",
       "owner": "postgres",
       "config": [
         "search_path=\"\""
       ],
       "returns": "jsonb",
-      "body_md5": "c49838fcffeb977ece3220ba2603d638",
+      "body_md5": "d01d76b7198a139327a3fea8d146da7a",
       "identity": "p_from timestamp with time zone, p_to timestamp with time zone",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "get_flavour_costs",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "9d4694fbbc0013e15232c97211abd9a7",
+      "identity": "",
       "execute_anon": false,
       "security_definer": true,
       "execute_service_role": true,
@@ -4144,6 +5637,36 @@
       "returns": "TABLE(id text, name text, short_name text, price_cents bigint, kind text, item_type text, capacity_weight integer, tag text, description text, image_path text, allergens text, active boolean, published boolean, sort_order integer, updated_at timestamp with time zone)",
       "body_md5": "d8f3be86aa9536d1b666284af6998ccd",
       "identity": "",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "get_item_costs",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "4862bc2b2e1775a0f8d503407ced5d7f",
+      "identity": "",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "get_item_movements",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "84664e2cd595bbb77b6ff2549147d81f",
+      "identity": "p_item text, p_limit integer",
       "execute_anon": false,
       "security_definer": true,
       "execute_service_role": true,
@@ -4172,7 +5695,22 @@
         "search_path=\"\""
       ],
       "returns": "TABLE(key text, int_value bigint, text_value text, cents_value bigint, json_value jsonb, is_default boolean, updated_at timestamp with time zone)",
-      "body_md5": "799d3d984d8132792c9c8f424810669d",
+      "body_md5": "9b05e6a96e69c9a6eb9bddcbd876e35c",
+      "identity": "",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "get_operations_health",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "20f6f0b7b8a289c0b23931514485953d",
       "identity": "",
       "execute_anon": false,
       "security_definer": true,
@@ -4187,7 +5725,7 @@
         "search_path=\"\""
       ],
       "returns": "jsonb",
-      "body_md5": "b2848177d8ed550befd139fc882fe008",
+      "body_md5": "cc46bbef1a539f6fae9bab581d405905",
       "identity": "",
       "execute_anon": false,
       "security_definer": true,
@@ -4203,6 +5741,21 @@
       ],
       "returns": "TABLE(unpaid_hold_hours integer, max_unpaid_per_phone integer, pickup_days integer[], lead_min_days integer, lead_max_days integer, pickup_from_hour integer, pickup_cutoff_hour integer, campus_from text, campus_to text, updated_at timestamp with time zone)",
       "body_md5": "b3c2d9ee522cf9943656d8b78341bc8d",
+      "identity": "",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "get_packaging_rules",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "29f91e2ce36ef22e17d311eb4081fc57",
       "identity": "",
       "execute_anon": false,
       "security_definer": true,
@@ -4232,8 +5785,38 @@
         "search_path=\"\""
       ],
       "returns": "jsonb",
-      "body_md5": "429e237eed3f0bbaf5ebb33ba9c4a557",
+      "body_md5": "44df44d03ad91040e75450f355906a50",
       "identity": "p_drop integer",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "get_recipe_costs",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "25d9b131cee7296ec4d1b319519443a1",
+      "identity": "",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "get_recipe_drafts",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "ffb4a1c3821419289b89e44c8d07bb5e",
+      "identity": "",
       "execute_anon": false,
       "security_definer": true,
       "execute_service_role": true,
@@ -4247,7 +5830,7 @@
         "search_path=\"\""
       ],
       "returns": "jsonb",
-      "body_md5": "10da9870f424e7a4c794577fbe1c5fc2",
+      "body_md5": "63c290925cd97486fd96c47e029f44fd",
       "identity": "",
       "execute_anon": false,
       "security_definer": true,
@@ -4292,7 +5875,22 @@
         "search_path=\"\""
       ],
       "returns": "jsonb",
-      "body_md5": "740df6ca408b760b43772d0e23846126",
+      "body_md5": "526afe5292d390ac17ea71cbcb834ba6",
+      "identity": "",
+      "execute_anon": true,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{anon=X/postgres,authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "get_shop_identity",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "7ef104d4c94e72926f44ed4ec63f4222",
       "identity": "",
       "execute_anon": true,
       "security_definer": true,
@@ -4367,12 +5965,72 @@
         "search_path=\"\""
       ],
       "returns": "jsonb",
-      "body_md5": "ff45767365987ab32098203fc2b11fde",
+      "body_md5": "484a018baf10165e1cefdb645a31f14b",
       "identity": "",
       "execute_anon": false,
       "security_definer": true,
       "execute_service_role": true,
       "execute_authenticated": true
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "import_expected_ok",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "boolean",
+      "body_md5": "b18ab39b61c84725a4ce8a0f2174087c",
+      "identity": "p_expected jsonb, p_count_keys text[]",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "import_keys_ok",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "boolean",
+      "body_md5": "292a2a3a636d168a70905ac04b2c3e49",
+      "identity": "p_row jsonb, p_required text[], p_optional text[]",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "import_name_ok",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "boolean",
+      "body_md5": "8b7747d224e9cd64e8202454f289e600",
+      "identity": "p_name text",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "import_result",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "b1df04f420133c2043afb8024da75c22",
+      "identity": "p_write jsonb, p_same jsonb, p_unmatched jsonb, p_removals jsonb",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
     },
     {
       "acl": "{=X/postgres,anon=X/postgres,authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
@@ -4405,6 +6063,21 @@
       "execute_authenticated": true
     },
     {
+      "acl": "{postgres=X/postgres}",
+      "name": "item_unit_cost",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(unit_cost numeric, source text)",
+      "body_md5": "d12a9813debe3be161532a3d8669bfde",
+      "identity": "p_item text",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
       "acl": "{anon=X/postgres,authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
       "name": "join_waitlist",
       "owner": "postgres",
@@ -4412,7 +6085,7 @@
         "search_path=\"\""
       ],
       "returns": "TABLE(waitlist_id uuid, replayed boolean)",
-      "body_md5": "f5f92ae7dd2097c41f862d37913b3efe",
+      "body_md5": "727832bcf297f5618d86325bcb94b2a1",
       "identity": "p_entry jsonb",
       "execute_anon": true,
       "security_definer": true,
@@ -4442,12 +6115,27 @@
         "search_path=\"\""
       ],
       "returns": "TABLE(event_id uuid, opened_at timestamp with time zone, float_cents bigint, loaded jsonb)",
-      "body_md5": "e85eb6e1a1fc9cc041d101fba98cbb65",
+      "body_md5": "cd6d151b6c170fb7e59adc6a64e4a87d",
       "identity": "p_event uuid, p_loaded jsonb, p_float_cents bigint",
       "execute_anon": false,
       "security_definer": true,
       "execute_service_role": true,
       "execute_authenticated": true
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "lock_stock_item_ids",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "void",
+      "body_md5": "016eee8cabb7b0ab5091c99d45251ab8",
+      "identity": "p_ids text[]",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
     },
     {
       "acl": "{postgres=X/postgres,service_role=X/postgres}",
@@ -4532,7 +6220,7 @@
         "search_path=\"\""
       ],
       "returns": "TABLE(order_no text, status_token text, total_cents bigint, pickup_date date, pickup_window text, replayed boolean)",
-      "body_md5": "7b851d16514fa8e1a06aa3ab1916d82d",
+      "body_md5": "e52565a71f29b92c6947297f466ebb7e",
       "identity": "p_order jsonb",
       "execute_anon": true,
       "security_definer": true,
@@ -4540,14 +6228,119 @@
       "execute_authenticated": true
     },
     {
+      "acl": "{postgres=X/postgres}",
+      "name": "preview_cost_cutover",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "93e0b2091abbb1f6859938c5ee2ea946",
+      "identity": "",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "preview_identity_links",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "5d12c573225012f2e85732898c6a7f87",
+      "identity": "",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "preview_import_bookings",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "6f4af76d38382d8e81f0d6f615364e74",
+      "identity": "p_rows jsonb",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "preview_import_flavours",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "9269f5b271e15aaf5cf7d23327b918ab",
+      "identity": "p_rows jsonb",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "preview_import_items",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "339f6eef3fcca8d7291e46feb5a354eb",
+      "identity": "p_rows jsonb",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "preview_import_prices",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "7d5a33add77c2b7c20befaeec7293c76",
+      "identity": "p_rows jsonb",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "preview_import_recipes",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "22803aaae5ac5dfbd0c60fcabe079481",
+      "identity": "p_rows jsonb",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
       "acl": "{postgres=X/postgres,service_role=X/postgres}",
       "name": "prune_personal_data",
       "owner": "postgres",
       "config": [
-        "search_path=pg_catalog, public, pg_temp"
+        "search_path=\"\""
       ],
       "returns": "integer",
-      "body_md5": "15e1f56986d341fcabf8aad10a548f54",
+      "body_md5": "e030159aa8f3b6081f0dd1cc698d0179",
       "identity": "p_retain_days integer",
       "execute_anon": false,
       "security_definer": true,
@@ -4600,6 +6393,36 @@
       "execute_authenticated": false
     },
     {
+      "acl": "{postgres=X/postgres}",
+      "name": "recipe_stock_plan",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "71143c74b54056be6871bd2ef9099306",
+      "identity": "p_product text, p_cookies numeric, p_kind text, p_adj jsonb",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "record_batch_correction",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(record_id uuid, duplicate boolean, qty integer, rejects integer)",
+      "body_md5": "ff257640eb6af6a5de9b07b13bfe4b0a",
+      "identity": "p_corr jsonb",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
       "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
       "name": "record_cost_correction",
       "owner": "postgres",
@@ -4607,7 +6430,7 @@
         "search_path=\"\""
       ],
       "returns": "TABLE(correction_id uuid, duplicate boolean)",
-      "body_md5": "c540f1e4d2c5be277a923c4f572247b4",
+      "body_md5": "948a11553b541f24de9b65179e10589f",
       "identity": "p_corr jsonb",
       "execute_anon": false,
       "security_definer": true,
@@ -4622,7 +6445,7 @@
         "search_path=\"\""
       ],
       "returns": "TABLE(record_id uuid, duplicate boolean)",
-      "body_md5": "a8fea24e6ff14bd04fd756086b325689",
+      "body_md5": "d499c38c49b9443ed2a9132b4de7caf4",
       "identity": "p_rec jsonb",
       "execute_anon": false,
       "security_definer": true,
@@ -4675,6 +6498,21 @@
       "execute_authenticated": true
     },
     {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "name": "record_operations_run",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "void",
+      "body_md5": "0894bc82db3d8cdaa6d1b6524f694549",
+      "identity": "p_job text, p_status text, p_run_id uuid, p_completed_at timestamp with time zone, p_archive_sha256 text",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": false
+    },
+    {
       "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
       "name": "record_pack",
       "owner": "postgres",
@@ -4682,7 +6520,7 @@
         "search_path=\"\""
       ],
       "returns": "TABLE(record_id uuid, duplicate boolean, shortfall jsonb)",
-      "body_md5": "1a731b5c10c2c565dc7680a973ead457",
+      "body_md5": "1bef8800dbf5df8485244375f19bbbe3",
       "identity": "p_order text, p_drop integer",
       "execute_anon": false,
       "security_definer": true,
@@ -4697,7 +6535,7 @@
         "search_path=\"\""
       ],
       "returns": "TABLE(record_id uuid, duplicate boolean, used_dough integer, shortfall jsonb)",
-      "body_md5": "ac23910d160889d99931d19a70029664",
+      "body_md5": "1378b28996ffd9ccc29e5a664805d70d",
       "identity": "p_rec jsonb",
       "execute_anon": false,
       "security_definer": true,
@@ -4705,18 +6543,18 @@
       "execute_authenticated": true
     },
     {
-      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "acl": "{postgres=X/postgres}",
       "name": "record_sale_packaging",
       "owner": "postgres",
       "config": [
         "search_path=\"\""
       ],
       "returns": "void",
-      "body_md5": "ed099ea02c79d4fe9c1d0c8c13dc9c97",
+      "body_md5": "531a60b5557171a266a666a1ce3a53bf",
       "identity": "p_sale uuid, p_cookies integer, p_at timestamp with time zone",
       "execute_anon": false,
       "security_definer": true,
-      "execute_service_role": true,
+      "execute_service_role": false,
       "execute_authenticated": false
     },
     {
@@ -4727,8 +6565,188 @@
         "search_path=\"\""
       ],
       "returns": "TABLE(item_id text, on_hand numeric, duplicate boolean)",
-      "body_md5": "7d313a5ee07f16d1891675898b629729",
+      "body_md5": "877fbc79527bf6b410ecd5b9b0c47c4b",
       "identity": "p_movement jsonb",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "refuse_finalised_bazaar_sale",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "trigger",
+      "body_md5": "3c640fa086422317ac4e9bf97b36fdef",
+      "identity": "",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "reverse_bazaar_test",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "0b472830db1edc008f7dc3472a8dded1",
+      "identity": "p_booking uuid, p_confirm_name text",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "run_import_bookings",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "aea2df86d88a2c4892ec6aebf625b629",
+      "identity": "p_rows jsonb",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "run_import_flavours",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "0b10e3209a81ecb4bf3a9bdceab0e958",
+      "identity": "p_rows jsonb",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "run_import_items",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "5f2cc97ad4bcdb945eaf6f4cb55c4f0f",
+      "identity": "p_rows jsonb",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "run_import_prices",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "8b2f827cfc5304dd89e78e72df5f39d2",
+      "identity": "p_rows jsonb",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "run_import_recipes",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "f8edc8402d620c658239794733bcac4c",
+      "identity": "p_rows jsonb",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "save_bazaar_cost",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(product_id text, typed_cents numeric, recipe_cents numeric)",
+      "body_md5": "25f6434b4bdbfd0bda41b126d6d9850b",
+      "identity": "p_booking uuid, p_product text, p_typed_cents numeric",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "save_bazaar_day",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(id uuid, updated_at timestamp with time zone)",
+      "body_md5": "e00d3cb3d39b95d2ef4748d9d55bae19",
+      "identity": "p_day jsonb, p_expected_updated_at timestamp with time zone",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "save_bazaar_fee",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(client_id text, duplicate boolean)",
+      "body_md5": "93f087f6a61741075bfcadc88876a238",
+      "identity": "p_fee jsonb",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "save_bazaar_loss",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(client_id text, duplicate boolean)",
+      "body_md5": "131e587fd19e745fc2e1e48a33105249",
+      "identity": "p_loss jsonb",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "save_bazaar_target",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "bigint",
+      "body_md5": "c8a483f7d3231dfbc0db7b0f591c6439",
+      "identity": "p_booking uuid, p_cents bigint",
       "execute_anon": false,
       "security_definer": true,
       "execute_service_role": true,
@@ -4742,8 +6760,38 @@
         "search_path=\"\""
       ],
       "returns": "TABLE(id text, updated_at timestamp with time zone)",
-      "body_md5": "e2f5e95aff7d178fd7d565aed8417ac9",
+      "body_md5": "96e9cd2a0106ab047620d3f04be0530a",
       "identity": "p_id text, p_flavour jsonb, p_expected_updated_at timestamp with time zone",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "save_flavour_cost",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(product_id text, cost_cents numeric)",
+      "body_md5": "9d9ce64fd99714df58dbf9cbac197b39",
+      "identity": "p_product text, p_cents numeric",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "save_item_price",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(price_id uuid, duplicate boolean)",
+      "body_md5": "e6d5fc954371d42f5daa2c7cc77373f0",
+      "identity": "p_price jsonb",
       "execute_anon": false,
       "security_definer": true,
       "execute_service_role": true,
@@ -4757,7 +6805,7 @@
         "search_path=\"\""
       ],
       "returns": "TABLE(updated_at timestamp with time zone)",
-      "body_md5": "27146ae1afe1cdd9a8a6cfdd548c0732",
+      "body_md5": "2b28d156c4615c83a850e8b84919523b",
       "identity": "p_extras jsonb, p_expected_updated_at timestamp with time zone",
       "execute_anon": false,
       "security_definer": true,
@@ -4774,6 +6822,21 @@
       "returns": "TABLE(updated_at timestamp with time zone)",
       "body_md5": "866796d7ec6430e87d8111170faa4b18",
       "identity": "p_rules jsonb, p_expected_updated_at timestamp with time zone",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "save_packaging_rule",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "d822344fa3ebc34d10b0b2232493a747",
+      "identity": "p_rule jsonb",
       "execute_anon": false,
       "security_definer": true,
       "execute_service_role": true,
@@ -4802,8 +6865,23 @@
         "search_path=\"\""
       ],
       "returns": "TABLE(product_id text, version integer, updated_at timestamp with time zone)",
-      "body_md5": "083429ef82a41835bd93280f16bac43a",
+      "body_md5": "ed5a41c79a4c29c46ac17ecd5888cc6c",
       "identity": "p_recipe jsonb, p_expected_updated_at timestamp with time zone",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "save_recipe_draft",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(updated_at timestamp with time zone)",
+      "body_md5": "6b8d8d12be73c707ef594ca24ef5bf6e",
+      "identity": "p_product_id text, p_yield integer, p_source_text text, p_expected_updated_at timestamp with time zone",
       "execute_anon": false,
       "security_definer": true,
       "execute_service_role": true,
@@ -4817,7 +6895,7 @@
         "search_path=\"\""
       ],
       "returns": "TABLE(id uuid, updated_at timestamp with time zone)",
-      "body_md5": "3d938cc899e4fb501d174148494b7f9b",
+      "body_md5": "a519ef0d721aeef2df00259a894da89b",
       "identity": "p_event jsonb, p_expected_updated_at timestamp with time zone",
       "execute_anon": false,
       "security_definer": true,
@@ -4832,8 +6910,23 @@
         "search_path=\"\""
       ],
       "returns": "TABLE(key text, updated_at timestamp with time zone)",
-      "body_md5": "0083e32608ec177c7faf69dc2a355254",
+      "body_md5": "93c717f0974f972a0da5b222ae14ae52",
       "identity": "p_key text, p_value jsonb, p_expected_updated_at timestamp with time zone",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "save_shop_identity",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(updated_at timestamp with time zone)",
+      "body_md5": "8438fcb9d4284e8695f9c6835480eeb4",
+      "identity": "p_identity jsonb, p_expected_updated_at timestamp with time zone",
       "execute_anon": false,
       "security_definer": true,
       "execute_service_role": true,
@@ -4862,7 +6955,7 @@
         "search_path=\"\""
       ],
       "returns": "TABLE(id text, updated_at timestamp with time zone)",
-      "body_md5": "84df2ce9c48d8e0099108ddff35e083d",
+      "body_md5": "06773b94140561bf8dc15b84c44f82aa",
       "identity": "p_item jsonb, p_expected_updated_at timestamp with time zone",
       "execute_anon": false,
       "security_definer": true,
@@ -4892,7 +6985,7 @@
         "search_path=\"\""
       ],
       "returns": "TABLE(id uuid, updated_at timestamp with time zone)",
-      "body_md5": "63d0f8e678b7ec335458baa0a223b2e2",
+      "body_md5": "09058adcafed02d5abe4020af05cf9a5",
       "identity": "p_price jsonb, p_expected_updated_at timestamp with time zone",
       "execute_anon": false,
       "security_definer": true,
@@ -4907,7 +7000,7 @@
         "search_path=\"\""
       ],
       "returns": "text",
-      "body_md5": "09678172bb73b3e1ae15a46b08a5aa7a",
+      "body_md5": "a3a6a339b5ed94c780d8e5bc2a771016",
       "identity": "p_basis text",
       "execute_anon": false,
       "security_definer": true,
@@ -4952,7 +7045,7 @@
         "search_path=pg_catalog, public, pg_temp"
       ],
       "returns": "TABLE(key text, int_value bigint, text_value text, cents_value bigint, json_value jsonb, is_default boolean)",
-      "body_md5": "24d653b680d5f0a50fc621e6ebc1da11",
+      "body_md5": "15257c62af1b6002eebe036694657b66",
       "identity": "",
       "execute_anon": false,
       "security_definer": false,
@@ -5096,6 +7189,21 @@
     },
     {
       "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "start_bazaar_day",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(event_id uuid, starts_at timestamp with time zone, selling_device text, prices jsonb, loaded jsonb, float_cents bigint)",
+      "body_md5": "68d26ec43bfb04af36242252f4ff41d8",
+      "identity": "p_day uuid, p_device text, p_event_id uuid",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
       "name": "start_event",
       "owner": "postgres",
       "config": [
@@ -5171,21 +7279,6 @@
     },
     {
       "acl": "{postgres=X/postgres,service_role=X/postgres}",
-      "name": "unit_price_at",
-      "owner": "postgres",
-      "config": [
-        "search_path=\"\""
-      ],
-      "returns": "numeric",
-      "body_md5": "579afb26a993eef158a2a77ae617f6ff",
-      "identity": "p_item text, p_at timestamp with time zone",
-      "execute_anon": false,
-      "security_definer": true,
-      "execute_service_role": true,
-      "execute_authenticated": false
-    },
-    {
-      "acl": "{postgres=X/postgres,service_role=X/postgres}",
       "name": "update_order_state",
       "owner": "postgres",
       "config": [
@@ -5200,19 +7293,64 @@
       "execute_authenticated": false
     },
     {
-      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "acl": "{postgres=X/postgres}",
       "name": "use_stock",
       "owner": "postgres",
       "config": [
         "search_path=\"\""
       ],
       "returns": "numeric",
-      "body_md5": "68d62ace16ccc7a16d13994cc1c22045",
+      "body_md5": "2962e6c93673d8cabda52326a8116ca5",
       "identity": "p_prod uuid, p_seq integer, p_name text, p_qty numeric, p_reason text, p_at timestamp with time zone",
       "execute_anon": false,
       "security_definer": true,
-      "execute_service_role": true,
+      "execute_service_role": false,
       "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "use_stock_item",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "numeric",
+      "body_md5": "a95262d391d72b3478180668871dbd4e",
+      "identity": "p_prod uuid, p_seq integer, p_item text, p_qty numeric, p_reason text, p_at timestamp with time zone, p_cost_short boolean",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "void_bazaar_fee",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "3ffc721bfd5bd60a2829fa00ece2811b",
+      "identity": "p_client_id text",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
+      "name": "void_bazaar_loss",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "f4a7b043d0a6b01241e2d00232cc1ea3",
+      "identity": "p_client_id text",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": true,
+      "execute_authenticated": true
     },
     {
       "acl": "{authenticated=X/postgres,postgres=X/postgres,service_role=X/postgres}",
@@ -5228,6 +7366,96 @@
       "security_definer": true,
       "execute_service_role": true,
       "execute_authenticated": true
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "write_flavour",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(id text, updated_at timestamp with time zone)",
+      "body_md5": "e470856b52cecd4016390bec573a94ce",
+      "identity": "p_id text, p_flavour jsonb, p_expected_updated_at timestamp with time zone",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "write_item_price",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(price_id uuid, duplicate boolean)",
+      "body_md5": "6e9036c8ed51a9d7b5fa64ab4d65bf9c",
+      "identity": "p_price jsonb",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "write_packaging_rule",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "23574399f19254797a5e268001757bcc",
+      "identity": "p_rule jsonb",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "write_recipe",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(product_id text, version integer, updated_at timestamp with time zone)",
+      "body_md5": "732e2b8510d9347f3d76444bcf058de2",
+      "identity": "p_recipe jsonb, p_expected_updated_at timestamp with time zone",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "write_scheduled_event",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(id uuid, updated_at timestamp with time zone)",
+      "body_md5": "5114a48e2fbf54c43b9b54c9995f809c",
+      "identity": "p_event jsonb, p_expected_updated_at timestamp with time zone",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "write_stock_item",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(id text, updated_at timestamp with time zone)",
+      "body_md5": "5a18d0ae926b8da17b0d2c30764cd3c6",
+      "identity": "p_item jsonb, p_expected_updated_at timestamp with time zone",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
     }
   ],
   "sequences": [
@@ -5248,6 +7476,34 @@
     {
       "acl": "{postgres=rwU/postgres,service_role=rwU/postgres}",
       "name": "order_number_seq",
+      "owner": "postgres",
+      "anon_usage": false,
+      "anon_select": false,
+      "anon_update": false,
+      "service_usage": true,
+      "service_select": true,
+      "service_update": true,
+      "authenticated_usage": false,
+      "authenticated_select": false,
+      "authenticated_update": false
+    },
+    {
+      "acl": "{postgres=rwU/postgres,service_role=rwU/postgres}",
+      "name": "stock_cost_corrections_seq_seq",
+      "owner": "postgres",
+      "anon_usage": false,
+      "anon_select": false,
+      "anon_update": false,
+      "service_usage": true,
+      "service_select": true,
+      "service_update": true,
+      "authenticated_usage": false,
+      "authenticated_select": false,
+      "authenticated_update": false
+    },
+    {
+      "acl": "{postgres=rwU/postgres,service_role=rwU/postgres}",
+      "name": "stock_movements_seq_seq",
       "owner": "postgres",
       "anon_usage": false,
       "anon_select": false,
@@ -5304,6 +7560,294 @@
       "definition": "FOREIGN KEY (product_id) REFERENCES products(id)"
     },
     {
+      "name": "bazaar_costs_pkey",
+      "type": "p",
+      "table": "bazaar_costs",
+      "definition": "PRIMARY KEY (scheduled_id, product_id)"
+    },
+    {
+      "name": "bazaar_costs_product_id_fkey",
+      "type": "f",
+      "table": "bazaar_costs",
+      "definition": "FOREIGN KEY (product_id) REFERENCES products(id)"
+    },
+    {
+      "name": "bazaar_costs_recipe_cents_check",
+      "type": "c",
+      "table": "bazaar_costs",
+      "definition": "CHECK (((recipe_cents IS NULL) OR (recipe_cents >= (0)::numeric)))"
+    },
+    {
+      "name": "bazaar_costs_scheduled_id_fkey",
+      "type": "f",
+      "table": "bazaar_costs",
+      "definition": "FOREIGN KEY (scheduled_id) REFERENCES scheduled_events(id)"
+    },
+    {
+      "name": "bazaar_costs_typed_by_fkey",
+      "type": "f",
+      "table": "bazaar_costs",
+      "definition": "FOREIGN KEY (typed_by) REFERENCES profiles(id) ON DELETE SET NULL"
+    },
+    {
+      "name": "bazaar_costs_typed_cents_check",
+      "type": "c",
+      "table": "bazaar_costs",
+      "definition": "CHECK (((typed_cents IS NULL) OR (typed_cents >= (0)::numeric)))"
+    },
+    {
+      "name": "bazaar_day_lines_carried_qty_check",
+      "type": "c",
+      "table": "bazaar_day_lines",
+      "definition": "CHECK (((carried_qty >= 0) AND (carried_qty <= 9999)))"
+    },
+    {
+      "name": "bazaar_day_lines_carry_next_qty_check",
+      "type": "c",
+      "table": "bazaar_day_lines",
+      "definition": "CHECK ((carry_next_qty >= 0))"
+    },
+    {
+      "name": "bazaar_day_lines_day_id_fkey",
+      "type": "f",
+      "table": "bazaar_day_lines",
+      "definition": "FOREIGN KEY (day_id) REFERENCES bazaar_days(id) ON DELETE CASCADE"
+    },
+    {
+      "name": "bazaar_day_lines_left_qty_check",
+      "type": "c",
+      "table": "bazaar_day_lines",
+      "definition": "CHECK ((left_qty >= 0))"
+    },
+    {
+      "name": "bazaar_day_lines_made_qty_check",
+      "type": "c",
+      "table": "bazaar_day_lines",
+      "definition": "CHECK (((made_qty >= 0) AND (made_qty <= 9999)))"
+    },
+    {
+      "name": "bazaar_day_lines_pkey",
+      "type": "p",
+      "table": "bazaar_day_lines",
+      "definition": "PRIMARY KEY (day_id, product_id)"
+    },
+    {
+      "name": "bazaar_day_lines_price_cents_check",
+      "type": "c",
+      "table": "bazaar_day_lines",
+      "definition": "CHECK (((price_cents >= 0) AND (price_cents <= 100000000)))"
+    },
+    {
+      "name": "bazaar_day_lines_product_id_fkey",
+      "type": "f",
+      "table": "bazaar_day_lines",
+      "definition": "FOREIGN KEY (product_id) REFERENCES products(id)"
+    },
+    {
+      "name": "bazaar_day_lines_split",
+      "type": "c",
+      "table": "bazaar_day_lines",
+      "definition": "CHECK ((((left_qty IS NULL) AND (carry_next_qty IS NULL) AND (to_shop_qty IS NULL) AND (written_off_qty IS NULL)) OR (left_qty = ((carry_next_qty + to_shop_qty) + written_off_qty))))"
+    },
+    {
+      "name": "bazaar_day_lines_to_shop_qty_check",
+      "type": "c",
+      "table": "bazaar_day_lines",
+      "definition": "CHECK ((to_shop_qty >= 0))"
+    },
+    {
+      "name": "bazaar_day_lines_written_off_qty_check",
+      "type": "c",
+      "table": "bazaar_day_lines",
+      "definition": "CHECK ((written_off_qty >= 0))"
+    },
+    {
+      "name": "bazaar_days_booking_day",
+      "type": "u",
+      "table": "bazaar_days",
+      "definition": "UNIQUE (scheduled_id, day)"
+    },
+    {
+      "name": "bazaar_days_closed_hash_check",
+      "type": "c",
+      "table": "bazaar_days",
+      "definition": "CHECK (((closed_hash IS NULL) OR (closed_hash ~ '^[0-9a-f]{64}$'::text)))"
+    },
+    {
+      "name": "bazaar_days_event_id_fkey",
+      "type": "f",
+      "table": "bazaar_days",
+      "definition": "FOREIGN KEY (event_id) REFERENCES events(id)"
+    },
+    {
+      "name": "bazaar_days_event_id_key",
+      "type": "u",
+      "table": "bazaar_days",
+      "definition": "UNIQUE (event_id)"
+    },
+    {
+      "name": "bazaar_days_float_cents_check",
+      "type": "c",
+      "table": "bazaar_days",
+      "definition": "CHECK (((float_cents >= 0) AND (float_cents <= 100000000)))"
+    },
+    {
+      "name": "bazaar_days_pkey",
+      "type": "p",
+      "table": "bazaar_days",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "name": "bazaar_days_plan_hash_check",
+      "type": "c",
+      "table": "bazaar_days",
+      "definition": "CHECK ((plan_hash ~ '^[0-9a-f]{64}$'::text))"
+    },
+    {
+      "name": "bazaar_days_scheduled_id_fkey",
+      "type": "f",
+      "table": "bazaar_days",
+      "definition": "FOREIGN KEY (scheduled_id) REFERENCES scheduled_events(id)"
+    },
+    {
+      "name": "bazaar_fees_amount_cents_check",
+      "type": "c",
+      "table": "bazaar_fees",
+      "definition": "CHECK (((amount_cents >= 1) AND (amount_cents <= 100000000)))"
+    },
+    {
+      "name": "bazaar_fees_category_check",
+      "type": "c",
+      "table": "bazaar_fees",
+      "definition": "CHECK (((btrim(category) <> ''::text) AND (length(category) <= 40)))"
+    },
+    {
+      "name": "bazaar_fees_client_id_check",
+      "type": "c",
+      "table": "bazaar_fees",
+      "definition": "CHECK (((length(client_id) >= 1) AND (length(client_id) <= 150)))"
+    },
+    {
+      "name": "bazaar_fees_day_id_fkey",
+      "type": "f",
+      "table": "bazaar_fees",
+      "definition": "FOREIGN KEY (day_id) REFERENCES bazaar_days(id)"
+    },
+    {
+      "name": "bazaar_fees_label_check",
+      "type": "c",
+      "table": "bazaar_fees",
+      "definition": "CHECK (((btrim(label) <> ''::text) AND (length(label) <= 80)))"
+    },
+    {
+      "name": "bazaar_fees_ledger_id_fkey",
+      "type": "f",
+      "table": "bazaar_fees",
+      "definition": "FOREIGN KEY (ledger_id) REFERENCES ledger_entries(id) ON DELETE SET NULL"
+    },
+    {
+      "name": "bazaar_fees_payload_hash_check",
+      "type": "c",
+      "table": "bazaar_fees",
+      "definition": "CHECK ((payload_hash ~ '^[0-9a-f]{64}$'::text))"
+    },
+    {
+      "name": "bazaar_fees_pkey",
+      "type": "p",
+      "table": "bazaar_fees",
+      "definition": "PRIMARY KEY (client_id)"
+    },
+    {
+      "name": "bazaar_fees_scheduled_id_fkey",
+      "type": "f",
+      "table": "bazaar_fees",
+      "definition": "FOREIGN KEY (scheduled_id) REFERENCES scheduled_events(id)"
+    },
+    {
+      "name": "bazaar_fees_voided_by_fkey",
+      "type": "f",
+      "table": "bazaar_fees",
+      "definition": "FOREIGN KEY (voided_by) REFERENCES profiles(id) ON DELETE SET NULL"
+    },
+    {
+      "name": "bazaar_losses_client_id_check",
+      "type": "c",
+      "table": "bazaar_losses",
+      "definition": "CHECK (((length(client_id) >= 1) AND (length(client_id) <= 160)))"
+    },
+    {
+      "name": "bazaar_losses_day_id_fkey",
+      "type": "f",
+      "table": "bazaar_losses",
+      "definition": "FOREIGN KEY (day_id) REFERENCES bazaar_days(id)"
+    },
+    {
+      "name": "bazaar_losses_payload_hash_check",
+      "type": "c",
+      "table": "bazaar_losses",
+      "definition": "CHECK ((payload_hash ~ '^[0-9a-f]{64}$'::text))"
+    },
+    {
+      "name": "bazaar_losses_pkey",
+      "type": "p",
+      "table": "bazaar_losses",
+      "definition": "PRIMARY KEY (client_id)"
+    },
+    {
+      "name": "bazaar_losses_product_id_fkey",
+      "type": "f",
+      "table": "bazaar_losses",
+      "definition": "FOREIGN KEY (product_id) REFERENCES products(id)"
+    },
+    {
+      "name": "bazaar_losses_qty_check",
+      "type": "c",
+      "table": "bazaar_losses",
+      "definition": "CHECK (((qty >= 1) AND (qty <= 9999)))"
+    },
+    {
+      "name": "bazaar_losses_reason_check",
+      "type": "c",
+      "table": "bazaar_losses",
+      "definition": "CHECK (((btrim(reason) <> ''::text) AND (length(reason) <= 80)))"
+    },
+    {
+      "name": "bazaar_losses_voided_by_fkey",
+      "type": "f",
+      "table": "bazaar_losses",
+      "definition": "FOREIGN KEY (voided_by) REFERENCES profiles(id) ON DELETE SET NULL"
+    },
+    {
+      "name": "bazaar_stock_adds_day_id_fkey",
+      "type": "f",
+      "table": "bazaar_stock_adds",
+      "definition": "FOREIGN KEY (day_id) REFERENCES bazaar_days(id)"
+    },
+    {
+      "name": "bazaar_stock_adds_kind_check",
+      "type": "c",
+      "table": "bazaar_stock_adds",
+      "definition": "CHECK ((kind = ANY (ARRAY['made'::text, 'carried'::text])))"
+    },
+    {
+      "name": "bazaar_stock_adds_pkey",
+      "type": "p",
+      "table": "bazaar_stock_adds",
+      "definition": "PRIMARY KEY (client_id)"
+    },
+    {
+      "name": "bazaar_stock_adds_product_id_fkey",
+      "type": "f",
+      "table": "bazaar_stock_adds",
+      "definition": "FOREIGN KEY (product_id) REFERENCES products(id)"
+    },
+    {
+      "name": "bazaar_stock_adds_qty_check",
+      "type": "c",
+      "table": "bazaar_stock_adds",
+      "definition": "CHECK (((qty >= 1) AND (qty <= 9999)))"
+    },
+    {
       "name": "books_settings_cost_basis_check",
       "type": "c",
       "table": "books_settings",
@@ -5319,6 +7863,24 @@
       "name": "books_settings_pkey",
       "type": "p",
       "table": "books_settings",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "name": "cost_cutover_id_check",
+      "type": "c",
+      "table": "cost_cutover",
+      "definition": "CHECK (id)"
+    },
+    {
+      "name": "cost_cutover_payload_hash_check",
+      "type": "c",
+      "table": "cost_cutover",
+      "definition": "CHECK ((payload_hash ~ '^[0-9a-f]{64}$'::text))"
+    },
+    {
+      "name": "cost_cutover_pkey",
+      "type": "p",
+      "table": "cost_cutover",
       "definition": "PRIMARY KEY (id)"
     },
     {
@@ -5532,6 +8094,36 @@
       "definition": "CHECK (((selling_device IS NULL) OR (selling_device ~ '^[A-Za-z0-9_-]{1,64}$'::text)))"
     },
     {
+      "name": "flavour_costs_cost_cents_check",
+      "type": "c",
+      "table": "flavour_costs",
+      "definition": "CHECK ((cost_cents >= (0)::numeric))"
+    },
+    {
+      "name": "flavour_costs_pkey",
+      "type": "p",
+      "table": "flavour_costs",
+      "definition": "PRIMARY KEY (product_id)"
+    },
+    {
+      "name": "flavour_costs_product_id_fkey",
+      "type": "f",
+      "table": "flavour_costs",
+      "definition": "FOREIGN KEY (product_id) REFERENCES products(id)"
+    },
+    {
+      "name": "flavour_costs_typed_by_fkey",
+      "type": "f",
+      "table": "flavour_costs",
+      "definition": "FOREIGN KEY (typed_by) REFERENCES profiles(id) ON DELETE SET NULL"
+    },
+    {
+      "name": "inventory_items_avg_cost_check",
+      "type": "c",
+      "table": "inventory_items",
+      "definition": "CHECK (((avg_cost IS NULL) OR (avg_cost > (0)::numeric)))"
+    },
+    {
       "name": "inventory_items_pkey",
       "type": "p",
       "table": "inventory_items",
@@ -5542,6 +8134,42 @@
       "type": "f",
       "table": "inventory_items",
       "definition": "FOREIGN KEY (supplier_id) REFERENCES suppliers(id) ON DELETE SET NULL"
+    },
+    {
+      "name": "item_prices_created_by_fkey",
+      "type": "f",
+      "table": "item_prices",
+      "definition": "FOREIGN KEY (created_by) REFERENCES profiles(id) ON DELETE SET NULL"
+    },
+    {
+      "name": "item_prices_item_id_fkey",
+      "type": "f",
+      "table": "item_prices",
+      "definition": "FOREIGN KEY (item_id) REFERENCES inventory_items(id)"
+    },
+    {
+      "name": "item_prices_pack_size_check",
+      "type": "c",
+      "table": "item_prices",
+      "definition": "CHECK ((pack_size > (0)::numeric))"
+    },
+    {
+      "name": "item_prices_payload_hash_check",
+      "type": "c",
+      "table": "item_prices",
+      "definition": "CHECK ((payload_hash ~ '^[0-9a-f]{64}$'::text))"
+    },
+    {
+      "name": "item_prices_pkey",
+      "type": "p",
+      "table": "item_prices",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "name": "item_prices_price_cents_check",
+      "type": "c",
+      "table": "item_prices",
+      "definition": "CHECK ((price_cents > 0))"
     },
     {
       "name": "ledger_entries_client_id_key",
@@ -5566,6 +8194,36 @@
       "type": "p",
       "table": "ledger_entries",
       "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "name": "operations_runs_archive_hash",
+      "type": "c",
+      "table": "operations_runs",
+      "definition": "CHECK (((archive_sha256 IS NULL) OR (archive_sha256 ~ '^[0-9a-f]{64}$'::text)))"
+    },
+    {
+      "name": "operations_runs_backup_hash",
+      "type": "c",
+      "table": "operations_runs",
+      "definition": "CHECK (((status <> 'success'::text) OR (job <> ALL (ARRAY['backup'::text, 'restore'::text])) OR (archive_sha256 IS NOT NULL)))"
+    },
+    {
+      "name": "operations_runs_job_check",
+      "type": "c",
+      "table": "operations_runs",
+      "definition": "CHECK ((job = ANY (ARRAY['backup'::text, 'restore'::text, 'retention'::text, 'keepalive'::text])))"
+    },
+    {
+      "name": "operations_runs_pkey",
+      "type": "p",
+      "table": "operations_runs",
+      "definition": "PRIMARY KEY (run_id)"
+    },
+    {
+      "name": "operations_runs_status_check",
+      "type": "c",
+      "table": "operations_runs",
+      "definition": "CHECK ((status = ANY (ARRAY['success'::text, 'failed'::text])))"
     },
     {
       "name": "order_add_ons_add_on_id_check",
@@ -5680,6 +8338,12 @@
       "type": "c",
       "table": "order_extras",
       "definition": "CHECK (((same_day_percent >= 0) AND (same_day_percent <= 100)))"
+    },
+    {
+      "name": "order_extras_sampler_flavours_check",
+      "type": "c",
+      "table": "order_extras",
+      "definition": "CHECK ((cardinality(sampler_flavours) <= 24))"
     },
     {
       "name": "order_extras_sampler_max_qty_check",
@@ -5922,6 +8586,60 @@
       "definition": "CHECK ((total_cents >= 0))"
     },
     {
+      "name": "packaging_rules_box_size_check",
+      "type": "c",
+      "table": "packaging_rules",
+      "definition": "CHECK (((box_size >= 2) AND (box_size <= 48)))"
+    },
+    {
+      "name": "packaging_rules_check",
+      "type": "c",
+      "table": "packaging_rules",
+      "definition": "CHECK (((container = 'box'::text) = (box_size IS NOT NULL)))"
+    },
+    {
+      "name": "packaging_rules_container_check",
+      "type": "c",
+      "table": "packaging_rules",
+      "definition": "CHECK ((container = ANY (ARRAY['box'::text, 'loose'::text, 'order'::text, 'bazaar_sale'::text])))"
+    },
+    {
+      "name": "packaging_rules_item_id_fkey",
+      "type": "f",
+      "table": "packaging_rules",
+      "definition": "FOREIGN KEY (item_id) REFERENCES inventory_items(id)"
+    },
+    {
+      "name": "packaging_rules_per_check",
+      "type": "c",
+      "table": "packaging_rules",
+      "definition": "CHECK ((per = ANY (ARRAY['container'::text, 'cookie'::text])))"
+    },
+    {
+      "name": "packaging_rules_pkey",
+      "type": "p",
+      "table": "packaging_rules",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "name": "packaging_rules_position_check",
+      "type": "c",
+      "table": "packaging_rules",
+      "definition": "CHECK (((\"position\" >= 1) AND (\"position\" <= 20)))"
+    },
+    {
+      "name": "packaging_rules_qty_check",
+      "type": "c",
+      "table": "packaging_rules",
+      "definition": "CHECK (((qty > (0)::numeric) AND (qty <= (9999)::numeric)))"
+    },
+    {
+      "name": "packaging_rules_updated_by_fkey",
+      "type": "f",
+      "table": "packaging_rules",
+      "definition": "FOREIGN KEY (updated_by) REFERENCES profiles(id) ON DELETE SET NULL"
+    },
+    {
       "name": "payment_methods_account_name_check",
       "type": "c",
       "table": "payment_methods",
@@ -5970,6 +8688,18 @@
       "definition": "CHECK (((sort_order >= 0) AND (sort_order <= 99)))"
     },
     {
+      "name": "production_records_correction_check",
+      "type": "c",
+      "table": "production_records",
+      "definition": "CHECK ((((kind = 'batch_correction'::text) AND (corrects IS NOT NULL) AND (qty_delta IS NOT NULL) AND (rejects_delta IS NOT NULL)) OR ((kind <> 'batch_correction'::text) AND (corrects IS NULL) AND (qty_delta IS NULL) AND (rejects_delta IS NULL))))"
+    },
+    {
+      "name": "production_records_corrects_fkey",
+      "type": "f",
+      "table": "production_records",
+      "definition": "FOREIGN KEY (corrects) REFERENCES production_records(id)"
+    },
+    {
       "name": "production_records_created_by_fkey",
       "type": "f",
       "table": "production_records",
@@ -5991,7 +8721,7 @@
       "name": "production_records_kind_check",
       "type": "c",
       "table": "production_records",
-      "definition": "CHECK ((kind = ANY (ARRAY['dough'::text, 'batch'::text, 'pack'::text, 'sale'::text, 'discard_dough'::text, 'discard_baked'::text])))"
+      "definition": "CHECK ((kind = ANY (ARRAY['dough'::text, 'batch'::text, 'pack'::text, 'sale'::text, 'discard_dough'::text, 'discard_baked'::text, 'batch_correction'::text])))"
     },
     {
       "name": "production_records_payload_hash_check",
@@ -6022,6 +8752,12 @@
       "type": "c",
       "table": "production_records",
       "definition": "CHECK (((recipe_version IS NULL) OR (recipe_version >= 1)))"
+    },
+    {
+      "name": "production_records_recipe_version_fk",
+      "type": "f",
+      "table": "production_records",
+      "definition": "FOREIGN KEY (product_id, recipe_version) REFERENCES recipe_versions(product_id, version) NOT VALID"
     },
     {
       "name": "production_records_ref_check",
@@ -6088,6 +8824,42 @@
       "type": "p",
       "table": "rate_limits",
       "definition": "PRIMARY KEY (key, window_start)"
+    },
+    {
+      "name": "recipe_drafts_pkey",
+      "type": "p",
+      "table": "recipe_drafts",
+      "definition": "PRIMARY KEY (product_id)"
+    },
+    {
+      "name": "recipe_drafts_product_id_fkey",
+      "type": "f",
+      "table": "recipe_drafts",
+      "definition": "FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE"
+    },
+    {
+      "name": "recipe_drafts_source_text_check",
+      "type": "c",
+      "table": "recipe_drafts",
+      "definition": "CHECK (((char_length(source_text) >= 1) AND (char_length(source_text) <= 16000)))"
+    },
+    {
+      "name": "recipe_drafts_yield_count_check",
+      "type": "c",
+      "table": "recipe_drafts",
+      "definition": "CHECK (((yield_count >= 1) AND (yield_count <= 10000)))"
+    },
+    {
+      "name": "recipe_ingredients_item_id_fkey",
+      "type": "f",
+      "table": "recipe_ingredients",
+      "definition": "FOREIGN KEY (item_id) REFERENCES inventory_items(id)"
+    },
+    {
+      "name": "recipe_ingredients_kind_check",
+      "type": "c",
+      "table": "recipe_ingredients",
+      "definition": "CHECK ((kind = ANY (ARRAY['ingredient'::text, 'packaging'::text])))"
     },
     {
       "name": "recipe_ingredients_pkey",
@@ -6162,6 +8934,12 @@
       "definition": "FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE SET NULL"
     },
     {
+      "name": "scheduled_events_final_hash_check",
+      "type": "c",
+      "table": "scheduled_events",
+      "definition": "CHECK (((final_hash IS NULL) OR (final_hash ~ '^[0-9a-f]{64}$'::text)))"
+    },
+    {
       "name": "scheduled_events_name_check",
       "type": "c",
       "table": "scheduled_events",
@@ -6186,6 +8964,18 @@
       "definition": "CHECK (((rent_cents >= 0) AND (rent_cents <= 100000000)))"
     },
     {
+      "name": "scheduled_events_reversed_by_fkey",
+      "type": "f",
+      "table": "scheduled_events",
+      "definition": "FOREIGN KEY (reversed_by) REFERENCES profiles(id) ON DELETE SET NULL"
+    },
+    {
+      "name": "scheduled_events_target_profit_cents_check",
+      "type": "c",
+      "table": "scheduled_events",
+      "definition": "CHECK (((target_profit_cents IS NULL) OR ((target_profit_cents >= 0) AND (target_profit_cents <= '10000000000'::bigint))))"
+    },
+    {
       "name": "settings_one_value",
       "type": "c",
       "table": "settings",
@@ -6202,6 +8992,42 @@
       "type": "f",
       "table": "settings",
       "definition": "FOREIGN KEY (updated_by) REFERENCES auth.users(id)"
+    },
+    {
+      "name": "shop_identity_contact_line_check",
+      "type": "c",
+      "table": "shop_identity",
+      "definition": "CHECK (((length(contact_line) <= 160) AND (contact_line !~ '[[:cntrl:]]'::text)))"
+    },
+    {
+      "name": "shop_identity_id_check",
+      "type": "c",
+      "table": "shop_identity",
+      "definition": "CHECK (id)"
+    },
+    {
+      "name": "shop_identity_owner_name_check",
+      "type": "c",
+      "table": "shop_identity",
+      "definition": "CHECK (((length(owner_name) <= 40) AND (owner_name !~ '[[:cntrl:]]'::text)))"
+    },
+    {
+      "name": "shop_identity_pkey",
+      "type": "p",
+      "table": "shop_identity",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "name": "shop_identity_shop_name_check",
+      "type": "c",
+      "table": "shop_identity",
+      "definition": "CHECK (((length(shop_name) <= 60) AND (shop_name !~ '[[:cntrl:]]'::text)))"
+    },
+    {
+      "name": "shop_identity_tagline_check",
+      "type": "c",
+      "table": "shop_identity",
+      "definition": "CHECK (((length(tagline) <= 120) AND (tagline !~ '[[:cntrl:]]'::text)))"
     },
     {
       "name": "shop_state_id_check",
@@ -6300,6 +9126,18 @@
       "definition": "CHECK (((cost_cents IS NULL) OR (cost_cents >= 0)))"
     },
     {
+      "name": "stock_movements_cost_source_check",
+      "type": "c",
+      "table": "stock_movements",
+      "definition": "CHECK ((cost_source = ANY (ARRAY['average'::text, 'usual'::text, 'supplier'::text, 'legacy'::text])))"
+    },
+    {
+      "name": "stock_movements_cost_stamp_check",
+      "type": "c",
+      "table": "stock_movements",
+      "definition": "CHECK (((unit_cost IS NULL) = (cost_source IS NULL)))"
+    },
+    {
       "name": "stock_movements_created_by_fkey",
       "type": "f",
       "table": "stock_movements",
@@ -6348,10 +9186,34 @@
       "definition": "CHECK ((length(reason) <= 80))"
     },
     {
+      "name": "stock_movements_short_qty_check",
+      "type": "c",
+      "table": "stock_movements",
+      "definition": "CHECK ((short_qty >= (0)::numeric))"
+    },
+    {
       "name": "stock_movements_supplier_check",
       "type": "c",
       "table": "stock_movements",
       "definition": "CHECK ((length(supplier) <= 80))"
+    },
+    {
+      "name": "stock_movements_unit_cost_check",
+      "type": "c",
+      "table": "stock_movements",
+      "definition": "CHECK (((unit_cost IS NULL) OR (unit_cost > (0)::numeric)))"
+    },
+    {
+      "name": "supplier_prices_item_id_fkey",
+      "type": "f",
+      "table": "supplier_prices",
+      "definition": "FOREIGN KEY (item_id) REFERENCES inventory_items(id)"
+    },
+    {
+      "name": "supplier_prices_pack_size_check",
+      "type": "c",
+      "table": "supplier_prices",
+      "definition": "CHECK (((pack_size IS NULL) OR (pack_size > (0)::numeric)))"
     },
     {
       "name": "supplier_prices_pkey",
@@ -6696,6 +9558,594 @@
     {
       "grantee": "postgres",
       "grantor": "postgres",
+      "table_name": "bazaar_costs",
+      "is_grantable": "YES",
+      "privilege_type": "DELETE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "bazaar_costs",
+      "is_grantable": "YES",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "bazaar_costs",
+      "is_grantable": "YES",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "bazaar_costs",
+      "is_grantable": "YES",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "bazaar_costs",
+      "is_grantable": "YES",
+      "privilege_type": "TRIGGER"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "bazaar_costs",
+      "is_grantable": "YES",
+      "privilege_type": "TRUNCATE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "bazaar_costs",
+      "is_grantable": "YES",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "bazaar_costs",
+      "is_grantable": "NO",
+      "privilege_type": "DELETE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "bazaar_costs",
+      "is_grantable": "NO",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "bazaar_costs",
+      "is_grantable": "NO",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "bazaar_costs",
+      "is_grantable": "NO",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "bazaar_costs",
+      "is_grantable": "NO",
+      "privilege_type": "TRIGGER"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "bazaar_costs",
+      "is_grantable": "NO",
+      "privilege_type": "TRUNCATE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "bazaar_costs",
+      "is_grantable": "NO",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "bazaar_day_lines",
+      "is_grantable": "YES",
+      "privilege_type": "DELETE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "bazaar_day_lines",
+      "is_grantable": "YES",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "bazaar_day_lines",
+      "is_grantable": "YES",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "bazaar_day_lines",
+      "is_grantable": "YES",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "bazaar_day_lines",
+      "is_grantable": "YES",
+      "privilege_type": "TRIGGER"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "bazaar_day_lines",
+      "is_grantable": "YES",
+      "privilege_type": "TRUNCATE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "bazaar_day_lines",
+      "is_grantable": "YES",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "bazaar_day_lines",
+      "is_grantable": "NO",
+      "privilege_type": "DELETE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "bazaar_day_lines",
+      "is_grantable": "NO",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "bazaar_day_lines",
+      "is_grantable": "NO",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "bazaar_day_lines",
+      "is_grantable": "NO",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "bazaar_day_lines",
+      "is_grantable": "NO",
+      "privilege_type": "TRIGGER"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "bazaar_day_lines",
+      "is_grantable": "NO",
+      "privilege_type": "TRUNCATE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "bazaar_day_lines",
+      "is_grantable": "NO",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "bazaar_days",
+      "is_grantable": "YES",
+      "privilege_type": "DELETE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "bazaar_days",
+      "is_grantable": "YES",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "bazaar_days",
+      "is_grantable": "YES",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "bazaar_days",
+      "is_grantable": "YES",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "bazaar_days",
+      "is_grantable": "YES",
+      "privilege_type": "TRIGGER"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "bazaar_days",
+      "is_grantable": "YES",
+      "privilege_type": "TRUNCATE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "bazaar_days",
+      "is_grantable": "YES",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "bazaar_days",
+      "is_grantable": "NO",
+      "privilege_type": "DELETE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "bazaar_days",
+      "is_grantable": "NO",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "bazaar_days",
+      "is_grantable": "NO",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "bazaar_days",
+      "is_grantable": "NO",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "bazaar_days",
+      "is_grantable": "NO",
+      "privilege_type": "TRIGGER"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "bazaar_days",
+      "is_grantable": "NO",
+      "privilege_type": "TRUNCATE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "bazaar_days",
+      "is_grantable": "NO",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "bazaar_fees",
+      "is_grantable": "YES",
+      "privilege_type": "DELETE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "bazaar_fees",
+      "is_grantable": "YES",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "bazaar_fees",
+      "is_grantable": "YES",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "bazaar_fees",
+      "is_grantable": "YES",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "bazaar_fees",
+      "is_grantable": "YES",
+      "privilege_type": "TRIGGER"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "bazaar_fees",
+      "is_grantable": "YES",
+      "privilege_type": "TRUNCATE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "bazaar_fees",
+      "is_grantable": "YES",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "bazaar_fees",
+      "is_grantable": "NO",
+      "privilege_type": "DELETE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "bazaar_fees",
+      "is_grantable": "NO",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "bazaar_fees",
+      "is_grantable": "NO",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "bazaar_fees",
+      "is_grantable": "NO",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "bazaar_fees",
+      "is_grantable": "NO",
+      "privilege_type": "TRIGGER"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "bazaar_fees",
+      "is_grantable": "NO",
+      "privilege_type": "TRUNCATE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "bazaar_fees",
+      "is_grantable": "NO",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "bazaar_losses",
+      "is_grantable": "YES",
+      "privilege_type": "DELETE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "bazaar_losses",
+      "is_grantable": "YES",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "bazaar_losses",
+      "is_grantable": "YES",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "bazaar_losses",
+      "is_grantable": "YES",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "bazaar_losses",
+      "is_grantable": "YES",
+      "privilege_type": "TRIGGER"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "bazaar_losses",
+      "is_grantable": "YES",
+      "privilege_type": "TRUNCATE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "bazaar_losses",
+      "is_grantable": "YES",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "bazaar_losses",
+      "is_grantable": "NO",
+      "privilege_type": "DELETE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "bazaar_losses",
+      "is_grantable": "NO",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "bazaar_losses",
+      "is_grantable": "NO",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "bazaar_losses",
+      "is_grantable": "NO",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "bazaar_losses",
+      "is_grantable": "NO",
+      "privilege_type": "TRIGGER"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "bazaar_losses",
+      "is_grantable": "NO",
+      "privilege_type": "TRUNCATE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "bazaar_losses",
+      "is_grantable": "NO",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "bazaar_stock_adds",
+      "is_grantable": "YES",
+      "privilege_type": "DELETE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "bazaar_stock_adds",
+      "is_grantable": "YES",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "bazaar_stock_adds",
+      "is_grantable": "YES",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "bazaar_stock_adds",
+      "is_grantable": "YES",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "bazaar_stock_adds",
+      "is_grantable": "YES",
+      "privilege_type": "TRIGGER"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "bazaar_stock_adds",
+      "is_grantable": "YES",
+      "privilege_type": "TRUNCATE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "bazaar_stock_adds",
+      "is_grantable": "YES",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "bazaar_stock_adds",
+      "is_grantable": "NO",
+      "privilege_type": "DELETE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "bazaar_stock_adds",
+      "is_grantable": "NO",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "bazaar_stock_adds",
+      "is_grantable": "NO",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "bazaar_stock_adds",
+      "is_grantable": "NO",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "bazaar_stock_adds",
+      "is_grantable": "NO",
+      "privilege_type": "TRIGGER"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "bazaar_stock_adds",
+      "is_grantable": "NO",
+      "privilege_type": "TRUNCATE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "bazaar_stock_adds",
+      "is_grantable": "NO",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
       "table_name": "books_settings",
       "is_grantable": "YES",
       "privilege_type": "DELETE"
@@ -6788,6 +10238,104 @@
       "grantee": "service_role",
       "grantor": "postgres",
       "table_name": "books_settings",
+      "is_grantable": "NO",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "cost_cutover",
+      "is_grantable": "YES",
+      "privilege_type": "DELETE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "cost_cutover",
+      "is_grantable": "YES",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "cost_cutover",
+      "is_grantable": "YES",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "cost_cutover",
+      "is_grantable": "YES",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "cost_cutover",
+      "is_grantable": "YES",
+      "privilege_type": "TRIGGER"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "cost_cutover",
+      "is_grantable": "YES",
+      "privilege_type": "TRUNCATE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "cost_cutover",
+      "is_grantable": "YES",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "cost_cutover",
+      "is_grantable": "NO",
+      "privilege_type": "DELETE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "cost_cutover",
+      "is_grantable": "NO",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "cost_cutover",
+      "is_grantable": "NO",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "cost_cutover",
+      "is_grantable": "NO",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "cost_cutover",
+      "is_grantable": "NO",
+      "privilege_type": "TRIGGER"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "cost_cutover",
+      "is_grantable": "NO",
+      "privilege_type": "TRUNCATE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "cost_cutover",
       "is_grantable": "NO",
       "privilege_type": "UPDATE"
     },
@@ -7758,6 +11306,104 @@
       "privilege_type": "UPDATE"
     },
     {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "flavour_costs",
+      "is_grantable": "YES",
+      "privilege_type": "DELETE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "flavour_costs",
+      "is_grantable": "YES",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "flavour_costs",
+      "is_grantable": "YES",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "flavour_costs",
+      "is_grantable": "YES",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "flavour_costs",
+      "is_grantable": "YES",
+      "privilege_type": "TRIGGER"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "flavour_costs",
+      "is_grantable": "YES",
+      "privilege_type": "TRUNCATE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "flavour_costs",
+      "is_grantable": "YES",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "flavour_costs",
+      "is_grantable": "NO",
+      "privilege_type": "DELETE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "flavour_costs",
+      "is_grantable": "NO",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "flavour_costs",
+      "is_grantable": "NO",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "flavour_costs",
+      "is_grantable": "NO",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "flavour_costs",
+      "is_grantable": "NO",
+      "privilege_type": "TRIGGER"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "flavour_costs",
+      "is_grantable": "NO",
+      "privilege_type": "TRUNCATE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "flavour_costs",
+      "is_grantable": "NO",
+      "privilege_type": "UPDATE"
+    },
+    {
       "grantee": "anon",
       "grantor": "postgres",
       "table_name": "inventory_items",
@@ -7870,6 +11516,104 @@
       "privilege_type": "UPDATE"
     },
     {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "item_prices",
+      "is_grantable": "YES",
+      "privilege_type": "DELETE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "item_prices",
+      "is_grantable": "YES",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "item_prices",
+      "is_grantable": "YES",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "item_prices",
+      "is_grantable": "YES",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "item_prices",
+      "is_grantable": "YES",
+      "privilege_type": "TRIGGER"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "item_prices",
+      "is_grantable": "YES",
+      "privilege_type": "TRUNCATE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "item_prices",
+      "is_grantable": "YES",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "item_prices",
+      "is_grantable": "NO",
+      "privilege_type": "DELETE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "item_prices",
+      "is_grantable": "NO",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "item_prices",
+      "is_grantable": "NO",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "item_prices",
+      "is_grantable": "NO",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "item_prices",
+      "is_grantable": "NO",
+      "privilege_type": "TRIGGER"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "item_prices",
+      "is_grantable": "NO",
+      "privilege_type": "TRUNCATE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "item_prices",
+      "is_grantable": "NO",
+      "privilege_type": "UPDATE"
+    },
+    {
       "grantee": "anon",
       "grantor": "postgres",
       "table_name": "ledger_entries",
@@ -8021,6 +11765,55 @@
       "grantor": "postgres",
       "table_name": "ledger_entries",
       "is_grantable": "NO",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "operations_runs",
+      "is_grantable": "YES",
+      "privilege_type": "DELETE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "operations_runs",
+      "is_grantable": "YES",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "operations_runs",
+      "is_grantable": "YES",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "operations_runs",
+      "is_grantable": "YES",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "operations_runs",
+      "is_grantable": "YES",
+      "privilege_type": "TRIGGER"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "operations_runs",
+      "is_grantable": "YES",
+      "privilege_type": "TRUNCATE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "operations_runs",
+      "is_grantable": "YES",
       "privilege_type": "UPDATE"
     },
     {
@@ -8768,6 +12561,104 @@
     {
       "grantee": "postgres",
       "grantor": "postgres",
+      "table_name": "packaging_rules",
+      "is_grantable": "YES",
+      "privilege_type": "DELETE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "packaging_rules",
+      "is_grantable": "YES",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "packaging_rules",
+      "is_grantable": "YES",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "packaging_rules",
+      "is_grantable": "YES",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "packaging_rules",
+      "is_grantable": "YES",
+      "privilege_type": "TRIGGER"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "packaging_rules",
+      "is_grantable": "YES",
+      "privilege_type": "TRUNCATE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "packaging_rules",
+      "is_grantable": "YES",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "packaging_rules",
+      "is_grantable": "NO",
+      "privilege_type": "DELETE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "packaging_rules",
+      "is_grantable": "NO",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "packaging_rules",
+      "is_grantable": "NO",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "packaging_rules",
+      "is_grantable": "NO",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "packaging_rules",
+      "is_grantable": "NO",
+      "privilege_type": "TRIGGER"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "packaging_rules",
+      "is_grantable": "NO",
+      "privilege_type": "TRUNCATE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "packaging_rules",
+      "is_grantable": "NO",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
       "table_name": "payment_methods",
       "is_grantable": "YES",
       "privilege_type": "DELETE"
@@ -9322,6 +13213,104 @@
       "grantee": "service_role",
       "grantor": "postgres",
       "table_name": "rate_limits",
+      "is_grantable": "NO",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "recipe_drafts",
+      "is_grantable": "YES",
+      "privilege_type": "DELETE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "recipe_drafts",
+      "is_grantable": "YES",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "recipe_drafts",
+      "is_grantable": "YES",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "recipe_drafts",
+      "is_grantable": "YES",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "recipe_drafts",
+      "is_grantable": "YES",
+      "privilege_type": "TRIGGER"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "recipe_drafts",
+      "is_grantable": "YES",
+      "privilege_type": "TRUNCATE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "recipe_drafts",
+      "is_grantable": "YES",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "recipe_drafts",
+      "is_grantable": "NO",
+      "privilege_type": "DELETE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "recipe_drafts",
+      "is_grantable": "NO",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "recipe_drafts",
+      "is_grantable": "NO",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "recipe_drafts",
+      "is_grantable": "NO",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "recipe_drafts",
+      "is_grantable": "NO",
+      "privilege_type": "TRIGGER"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "recipe_drafts",
+      "is_grantable": "NO",
+      "privilege_type": "TRUNCATE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "recipe_drafts",
       "is_grantable": "NO",
       "privilege_type": "UPDATE"
     },
@@ -9926,6 +13915,104 @@
       "table_name": "shop_drops",
       "is_grantable": "NO",
       "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "shop_identity",
+      "is_grantable": "YES",
+      "privilege_type": "DELETE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "shop_identity",
+      "is_grantable": "YES",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "shop_identity",
+      "is_grantable": "YES",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "shop_identity",
+      "is_grantable": "YES",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "shop_identity",
+      "is_grantable": "YES",
+      "privilege_type": "TRIGGER"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "shop_identity",
+      "is_grantable": "YES",
+      "privilege_type": "TRUNCATE"
+    },
+    {
+      "grantee": "postgres",
+      "grantor": "postgres",
+      "table_name": "shop_identity",
+      "is_grantable": "YES",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "shop_identity",
+      "is_grantable": "NO",
+      "privilege_type": "DELETE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "shop_identity",
+      "is_grantable": "NO",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "shop_identity",
+      "is_grantable": "NO",
+      "privilege_type": "REFERENCES"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "shop_identity",
+      "is_grantable": "NO",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "shop_identity",
+      "is_grantable": "NO",
+      "privilege_type": "TRIGGER"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "shop_identity",
+      "is_grantable": "NO",
+      "privilege_type": "TRUNCATE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "shop_identity",
+      "is_grantable": "NO",
+      "privilege_type": "UPDATE"
     },
     {
       "grantee": "anon",
@@ -10728,7 +14815,49 @@
     {
       "rls": true,
       "owner": "postgres",
+      "table": "bazaar_costs",
+      "force_rls": false
+    },
+    {
+      "rls": true,
+      "owner": "postgres",
+      "table": "bazaar_day_lines",
+      "force_rls": false
+    },
+    {
+      "rls": true,
+      "owner": "postgres",
+      "table": "bazaar_days",
+      "force_rls": false
+    },
+    {
+      "rls": true,
+      "owner": "postgres",
+      "table": "bazaar_fees",
+      "force_rls": false
+    },
+    {
+      "rls": true,
+      "owner": "postgres",
+      "table": "bazaar_losses",
+      "force_rls": false
+    },
+    {
+      "rls": true,
+      "owner": "postgres",
+      "table": "bazaar_stock_adds",
+      "force_rls": false
+    },
+    {
+      "rls": true,
+      "owner": "postgres",
       "table": "books_settings",
+      "force_rls": false
+    },
+    {
+      "rls": true,
+      "owner": "postgres",
+      "table": "cost_cutover",
       "force_rls": false
     },
     {
@@ -10776,13 +14905,31 @@
     {
       "rls": true,
       "owner": "postgres",
+      "table": "flavour_costs",
+      "force_rls": false
+    },
+    {
+      "rls": true,
+      "owner": "postgres",
       "table": "inventory_items",
       "force_rls": false
     },
     {
       "rls": true,
       "owner": "postgres",
+      "table": "item_prices",
+      "force_rls": false
+    },
+    {
+      "rls": true,
+      "owner": "postgres",
       "table": "ledger_entries",
+      "force_rls": false
+    },
+    {
+      "rls": true,
+      "owner": "postgres",
+      "table": "operations_runs",
       "force_rls": false
     },
     {
@@ -10830,6 +14977,12 @@
     {
       "rls": true,
       "owner": "postgres",
+      "table": "packaging_rules",
+      "force_rls": false
+    },
+    {
+      "rls": true,
+      "owner": "postgres",
       "table": "payment_methods",
       "force_rls": false
     },
@@ -10860,6 +15013,12 @@
     {
       "rls": true,
       "owner": "postgres",
+      "table": "recipe_drafts",
+      "force_rls": false
+    },
+    {
+      "rls": true,
+      "owner": "postgres",
       "table": "recipe_ingredients",
       "force_rls": false
     },
@@ -10885,6 +15044,12 @@
       "rls": true,
       "owner": "postgres",
       "table": "settings",
+      "force_rls": false
+    },
+    {
+      "rls": true,
+      "owner": "postgres",
+      "table": "shop_identity",
       "force_rls": false
     },
     {

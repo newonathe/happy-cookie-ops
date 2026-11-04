@@ -1159,6 +1159,7 @@ export type Database = {
           same_day_enabled: boolean
           same_day_on_extras: boolean
           same_day_percent: number
+          sampler_flavours: string[]
           sampler_max_qty: number
           sampler_product_id: string | null
           updated_at: string
@@ -1170,6 +1171,7 @@ export type Database = {
           same_day_enabled?: boolean
           same_day_on_extras?: boolean
           same_day_percent?: number
+          sampler_flavours?: string[]
           sampler_max_qty?: number
           sampler_product_id?: string | null
           updated_at?: string
@@ -1181,6 +1183,7 @@ export type Database = {
           same_day_enabled?: boolean
           same_day_on_extras?: boolean
           same_day_percent?: number
+          sampler_flavours?: string[]
           sampler_max_qty?: number
           sampler_product_id?: string | null
           updated_at?: string

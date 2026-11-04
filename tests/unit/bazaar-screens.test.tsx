@@ -131,8 +131,9 @@ describe('the day review', () => {
     expect(screen.getByText('Katipunan market')).toBeTruthy();
     expect(screen.getByText('Selling')).toBeTruthy();
     expect(screen.getByRole('status').textContent).toBe('Selling on another phone.');
-    expect(screen.getByText('20 made · 8 carried over')).toBeTruthy();
-    expect(screen.getByText('5 sold · 1 given away · 1 lost')).toBeTruthy();
+    expect(
+      screen.getByText('20 made · 8 carried over · 5 sold · 1 given away · 1 lost')
+    ).toBeTruthy();
     expect(screen.getAllByText('Should be left: 21')).toHaveLength(2);
     expect(screen.getByText(/Dropped/)).toBeTruthy();
   });
@@ -525,7 +526,6 @@ const livePanel = (over: Partial<LiveBazaarVals> = {}): LiveBazaarVals => ({
   closeReview: noop,
   add: noop,
   readHub: noop,
-  addEvent: async () => null,
   justAdded: null,
   retry: noop,
   back: noop,
@@ -679,7 +679,7 @@ const openCloseSheet = async () => {
       name: 'Close the event'
     })[0] as HTMLElement
   );
-  return screen.findByRole('dialog');
+  return screen.findByRole('region', { name: 'Close the event' });
 };
 
 describe('the event page', () => {
@@ -730,7 +730,7 @@ describe('the event page', () => {
   it('draws the fees as a receipt, adds one with the typed strings, and clears the form when saved', async () => {
     const addFee = vi.fn(async (): Promise<string | null> => null);
     render(<EventPage event={eventView({ addFee })} />);
-    // Fees, the target and the costs open from the Costs card (19 October).
+    fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
     fireEvent.click(screen.getByRole('button', { name: /^Fees/ }));
     const table = screen.getByRole('table', { name: 'Fees' });
     expect(within(table).getByText('Permit')).toBeTruthy();
@@ -762,7 +762,7 @@ describe('the event page', () => {
   it('sends a fee for the whole event with a null day', async () => {
     const addFee = vi.fn(async (): Promise<string | null> => null);
     render(<EventPage event={eventView({ addFee })} />);
-    // Fees, the target and the costs open from the Costs card (19 October).
+    fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
     fireEvent.click(screen.getByRole('button', { name: /^Fees/ }));
     const form = screen.getByRole('form', { name: 'Add a fee' });
     fireEvent.change(within(form).getByLabelText('What for'), {
@@ -784,7 +784,7 @@ describe('the event page', () => {
   it('points at the red fields of a fee, sends nothing, and clears a red field as she types', () => {
     const addFee = vi.fn(async (): Promise<string | null> => null);
     render(<EventPage event={eventView({ addFee })} />);
-    // Fees, the target and the costs open from the Costs card (19 October).
+    fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
     fireEvent.click(screen.getByRole('button', { name: /^Fees/ }));
     const form = screen.getByRole('form', { name: 'Add a fee' });
     fireEvent.click(within(form).getByRole('button', { name: 'Add the fee' }));
@@ -808,6 +808,7 @@ describe('the event page', () => {
   it('draws the target and saves what is typed', async () => {
     const saveTarget = vi.fn(async (): Promise<string | null> => null);
     render(<EventPage event={eventView({ saveTarget })} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
     fireEvent.click(screen.getByRole('button', { name: /^Target profit/ }));
     const form = screen.getByRole('form', { name: 'Target profit' });
     const target = within(form).getByLabelText('Target') as HTMLInputElement;
@@ -820,6 +821,7 @@ describe('the event page', () => {
   it('refuses a target that is not an amount, on the field', () => {
     const saveTarget = vi.fn(async (): Promise<string | null> => null);
     render(<EventPage event={eventView({ saveTarget })} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
     fireEvent.click(screen.getByRole('button', { name: /^Target profit/ }));
     const form = screen.getByRole('form', { name: 'Target profit' });
     fireEvent.change(within(form).getByLabelText('Target'), {
@@ -836,6 +838,7 @@ describe('the event page', () => {
     const first = e.costs[0];
     if (!first) throw new Error('a cost');
     render(<EventPage event={{ ...e, costs: [{ ...first, save }] }} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
     fireEvent.click(screen.getByRole('button', { name: /^Cost per cookie/ }));
     expect(screen.getByText('per cookie · from the recipe')).toBeTruthy();
     const table = screen.getByRole('table', {
@@ -865,6 +868,7 @@ describe('the event page', () => {
 
   it('sums the fees, the target and the costs on one card of rows', () => {
     render(<EventPage event={eventView()} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
     const card = screen.getByRole('list', { name: 'Costs' });
     const rows = within(card).getAllByRole('button');
     expect(rows).toHaveLength(3);
@@ -880,6 +884,7 @@ describe('the event page', () => {
     let answer: (v: string | null) => void = () => undefined;
     const addFee = vi.fn(() => new Promise<string | null>((r) => (answer = r)));
     render(<EventPage event={eventView({ addFee })} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
     fireEvent.click(screen.getByRole('button', { name: /^Fees/ }));
     const form = screen.getByRole('form', { name: 'Add a fee' });
     fireEvent.change(within(form).getByLabelText('What for'), { target: { value: 'Ice' } });
@@ -926,7 +931,9 @@ describe('the event page', () => {
     ).toBeTruthy();
     expect(run).not.toHaveBeenCalled();
     fireEvent.click(within(sheet).getByRole('button', { name: 'Not yet' }));
-    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    await waitFor(() =>
+      expect(screen.queryByRole('region', { name: 'Close the event' })).toBeNull()
+    );
     const again = await openCloseSheet();
     fireEvent.click(within(again).getByRole('button', { name: 'Close the event' }));
     await waitFor(() =>
