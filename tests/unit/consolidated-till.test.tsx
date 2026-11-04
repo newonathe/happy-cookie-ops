@@ -104,6 +104,33 @@ const vals = (over: Record<string, unknown> = {}) =>
 afterEach(cleanup);
 
 describe('the consolidated till calls the ported handlers', () => {
+  it('Review sale opens the itemized sale and its steppers use the existing handlers', () => {
+    const v = vals();
+    render(<ConsolidatedTill v={v} till={till()} panel={null} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Review sale' }));
+    const panel = screen.getByRole('dialog', { name: 'Current sale' });
+    expect(panel).toHaveFocus();
+    fireEvent.click(
+      within(panel).getByRole('button', { name: 'One less Double Chocolate Fudge in this sale' })
+    );
+    fireEvent.click(
+      within(panel).getByRole('button', { name: 'One more Double Chocolate Fudge in this sale' })
+    );
+    expect(v.bzSell[0].minus).toHaveBeenCalledOnce();
+    expect(v.bzSell[0].tap).toHaveBeenCalledOnce();
+    expect(within(panel).getByRole('button', { name: 'Charge ₱250' })).toBeEnabled();
+    fireEvent.click(within(panel).getByRole('button', { name: 'Back to selling' }));
+    expect(screen.queryByRole('dialog', { name: 'Current sale' })).toBeNull();
+    expect(v.openPay).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: 'Review sale' }));
+    fireEvent.click(
+      within(screen.getByRole('dialog', { name: 'Current sale' })).getByRole('button', {
+        name: 'Charge ₱250'
+      })
+    );
+    expect(v.openPay).toHaveBeenCalledOnce();
+    expect(screen.queryByRole('dialog', { name: 'Current sale' })).toBeNull();
+  });
   it('a tile adds one, and its minus (only on a tile in the sale) takes one off', () => {
     const v = vals();
     render(<ConsolidatedTill v={v} till={till()} panel={null} />);
@@ -141,7 +168,7 @@ describe('the consolidated till calls the ported handlers', () => {
     const v = vals({ bzCartCount: 0, bzCartTotalNum: '₱0' });
     const { container } = render(<ConsolidatedTill v={v} till={till()} panel={null} />);
     expect(container.querySelector('[data-part="sale-bar"]')).toBeNull();
-    expect(screen.getByRole('button', { name: 'Charge' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /^Charge ₱/ })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Freebie' })).toBeDisabled();
   });
 
@@ -160,11 +187,12 @@ describe('the consolidated till calls the ported handlers', () => {
     const v = vals();
     render(<ConsolidatedTill v={v} till={till()} panel={null} />);
     // A wide screen shows the Current sale panel and a phone shows the pinned bar; both use the same handlers.
-    for (const button of screen.getAllByRole('button', { name: 'Charge' })) fireEvent.click(button);
+    for (const button of screen.getAllByRole('button', { name: /^Charge ₱/ }))
+      fireEvent.click(button);
     for (const button of screen.getAllByRole('button', { name: 'Freebie' }))
       fireEvent.click(button);
     expect(v.openPay).toHaveBeenCalledTimes(2);
-    expect(v.recordFreebie).toHaveBeenCalledTimes(2);
+    expect(v.recordFreebie).toHaveBeenCalledTimes(1);
     expect(screen.getAllByText('₱250').length).toBeGreaterThan(0);
   });
 

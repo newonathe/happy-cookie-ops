@@ -14,7 +14,7 @@ Inspect branch/worktree/stashes and actual code; do not depend on chat memory or
 ## Accepted source and next implementation
 
 Owner steering: Events first, compact till Back; final page critique after build (owner brief).
-Codex owns the checkout; Ethan confirmed Claude paused/finished. Integrated8d4cc81. Continuation notes:
+Codex owns the checkout again (Ethan,5November); integrated7b8e819. Include [new requirements](../design/owner-workflow-additions-2026-11-05.md). Continuation notes:
 [Claude UI handoff](../design/claude-ui-handoff.md). See also the [capability ledger](../design/capability-ledger.md).
 
 Accepted c51401f/273de7d include independent cookie/dough drafts, retained inputs, per-item saving,

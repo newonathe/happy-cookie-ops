@@ -16,6 +16,7 @@ import {
 import { FactRow, OpenRow } from '@/components/ui/owner-patterns';
 import { saleLines } from '@/lib/bazaar/sale-lines';
 import { TillCard } from './till-card';
+import { CurrentSale } from './current-sale';
 import { TillPanelPage, TillBack } from './till-bar';
 
 type Till = NonNullable<OpsVals['liveTill']>;
@@ -49,7 +50,7 @@ export function ConsolidatedTill({
   const [allSales, setAllSales] = useState(false);
   const [voiding, setVoiding] = useState(false);
   const sales = v.bzSales ?? [];
-  const inSale = (v.bzSell ?? []).filter((p) => (Number(p.inCart) || 0) > 0);
+  const [reviewSale, setReviewSale] = useState(false);
   const sale = saleFromOldest === null ? undefined : sales[sales.length - 1 - saleFromOldest];
   const closeSale = () => setSaleFromOldest(null);
   const shown = allSales ? sales : sales.slice(0, SALES_SHOWN);
@@ -144,7 +145,7 @@ export function ConsolidatedTill({
 
         <section
           aria-label="Cookies on the table"
-          className={`@container min-w-0 ${PANEL_CLASS} lg:col-start-1 lg:row-start-3`}
+          className={`@container order-1 min-w-0 ${PANEL_CLASS} lg:order-none lg:col-start-1 lg:row-start-3`}
         >
           <PanelHead title="Cookies on the table">
             {till.soldOutCount > 0 ? (
@@ -217,7 +218,10 @@ export function ConsolidatedTill({
           </div>
         </section>
 
-        <section aria-label="Sales today" className={`${PANEL_CLASS} lg:col-span-2 lg:row-start-4`}>
+        <section
+          aria-label="Sales today"
+          className={`order-3 ${PANEL_CLASS} lg:order-none lg:col-span-2 lg:row-start-4`}
+        >
           <PanelHead title="Sales today">
             {sales.length ? null : <span className="text-caption text-ink-mute">No sales yet</span>}
           </PanelHead>
@@ -256,98 +260,23 @@ export function ConsolidatedTill({
           ) : null}
         </section>
 
-        <aside
-          aria-label="Current sale"
-          className={`hidden flex-col ${PANEL_CLASS} lg:sticky lg:top-3 lg:col-start-2 lg:row-start-3 lg:flex`}
-        >
-          <PanelHead title="Current sale">
-            {Number(v.bzCartCount) ? (
-              <span className="text-caption text-ink-mute">{v.bzCartCount} in this sale</span>
-            ) : null}
-          </PanelHead>
-          {inSale.length ? (
-            <ul className="flex flex-col px-4">
-              {inSale.map((p) => (
-                <li
-                  key={String(p.name)}
-                  className="flex items-center justify-between gap-3 border-b border-divide py-2.5 last:border-b-0"
-                >
-                  <span className="flex min-w-0 flex-col">
-                    <span className="text-[14px] font-semibold text-ink">{p.name}</span>
-                    <span className="text-caption text-ink-mute tabular-nums">
-                      {p.priceText} each
-                    </span>
-                  </span>
-                  <span className="flex shrink-0 items-center gap-1 rounded-control border border-line px-1">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      aria-label={`One less ${String(p.name)} in this sale`}
-                      onClick={p.minus}
-                    >
-                      −
-                    </Button>
-                    <span className="w-5 text-center text-[14px] font-semibold text-ink tabular-nums">
-                      {String(p.inCart)}
-                    </span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      aria-label={`One more ${String(p.name)} in this sale`}
-                      onClick={p.tap}
-                      disabled={!!p.soldOut}
-                    >
-                      +
-                    </Button>
-                  </span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="px-4 py-6 text-center text-caption text-ink-mute">
-              Tap a cookie to start a sale.
-            </p>
-          )}
-          <div className="flex flex-col gap-2.5 border-t border-divide p-4">
-            <div className="flex items-baseline justify-between gap-2">
-              <span className="text-[15px] text-ink-soft">Total</span>
-              <span className="text-title tabular-nums">{v.bzCartTotalNum}</span>
-            </div>
-            <Button
-              variant="primary"
-              size="lg"
-              className="w-full"
-              onClick={v.openPay}
-              disabled={!Number(v.bzCartCount)}
-            >
-              Charge
-            </Button>
-            <Button
-              variant="ghost"
-              className="w-full"
-              onClick={v.recordFreebie}
-              disabled={!Number(v.bzCartCount)}
-            >
-              Freebie
-            </Button>
-          </div>
-        </aside>
+        <CurrentSale v={v} mobileOpen={reviewSale} closeMobile={() => setReviewSale(false)} />
 
         {Number(v.bzCartCount) ? (
           <div
             data-part="sale-bar"
             style={{ bottom: 'calc(var(--workspace-dock, 0px) + 12px)' }}
-            className="lg:hidden sticky z-10 flex items-center gap-2.5 rounded-card border border-line bg-surface/95 p-3 pl-4 shadow-lift backdrop-blur lg:top-3 lg:bottom-auto lg:col-start-2 lg:row-start-3"
+            className="order-4 sticky z-10 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2 rounded-card border border-line bg-surface/95 p-3 shadow-lift backdrop-blur lg:hidden"
           >
             <span className="flex min-w-0 flex-1 flex-col">
               <span className="text-caption text-ink-soft">{v.bzCartCount} in this sale</span>
               <span className="text-title tabular-nums">{v.bzCartTotalNum}</span>
             </span>
-            <Button variant="secondary" onClick={v.recordFreebie}>
-              Freebie
+            <Button variant="secondary" onClick={() => setReviewSale(true)}>
+              Review sale
             </Button>
-            <Button variant="primary" size="lg" onClick={v.openPay}>
-              Charge
+            <Button variant="primary" size="lg" className="col-span-2 w-full" onClick={v.openPay}>
+              Charge {v.bzCartTotalNum}
             </Button>
           </div>
         ) : null}
