@@ -455,7 +455,7 @@ describe('S2: with an event on the phone, the ported till is drawn unchanged', (
       expect(screen.getAllByRole('button', { name: 'Return to selling' })).toHaveLength(1);
       await click(/^Past/);
       await click(/Katipunan market/);
-      await click('Back to the events');
+      await click('All events');
       expect(document.activeElement?.getAttribute('data-event-id')).toBe(BOOKING);
       expect(window.scrollTo).toHaveBeenLastCalledWith({ top: 0, behavior: 'instant' });
       expect(screen.getByRole('button', { name: /Past/ }).getAttribute('aria-pressed')).toBe(

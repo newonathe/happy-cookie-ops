@@ -6,6 +6,7 @@ import type { BazaarDayRow, BazaarEventView } from '@/lib/bazaar/live-bazaar-typ
 import { primaryActionOf, type PrimaryAction } from '@/lib/bazaar/event-rules';
 import { formIds, validateCostForm, validateFeeForm, validateTargetForm } from '@/lib/bazaar/forms';
 import { peso } from '@/lib/money/format';
+import { PageTitle } from '@/components/ui/owner-kit';
 import { Banner } from '@/components/ui/banner';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -611,6 +612,7 @@ function CostsCard({ event }: { event: BazaarEventView }) {
 export function EventPage({ event }: { event: BazaarEventView }) {
   const [starting, setStarting] = useState<BazaarDayRow | null>(null);
   const [closing, setClosing] = useState(false);
+  const [settings, setSettings] = useState(false);
   const primary = primaryActionOf(event);
   const startDay = (day: BazaarDayRow) => {
     if (day.startPrompt) setStarting(day);
@@ -618,20 +620,39 @@ export function EventPage({ event }: { event: BazaarEventView }) {
   };
   // The primary action is not drawn a second time on its day's row.
   const primaryDayId = primary && 'dayId' in primary ? primary.dayId : null;
+  if (settings)
+    return (
+      <>
+        <PageTitle title="Bazaar settings" subtitle={`Settings for ${event.name}.`} />
+        <CostsCard event={event} />
+        <div>
+          <Button variant="secondary" onClick={() => setSettings(false)}>
+            Back to event
+          </Button>
+        </div>
+      </>
+    );
   return (
     <>
-      <Button variant="ghost" onClick={event.back} className="self-start">
-        <span aria-hidden="true">← </span>Back to the events
-      </Button>
+      <PageTitle
+        title={event.name}
+        subtitle={`${event.placeText} · ${event.datesText}`}
+        actions={
+          <>
+            <Button variant="secondary" onClick={event.back}>
+              All events
+            </Button>
+            <Button variant="secondary" onClick={() => setSettings(true)}>
+              Settings
+            </Button>
+          </>
+        }
+      />
       <Card variant="accent" as="section" aria-label="Event" className="flex flex-col gap-3">
         <div className="flex flex-wrap items-center gap-2">
-          <h1 className="m-0 min-w-0 text-title text-ink">{event.name}</h1>
           <StatusPill status={event.status} />
+          <span className="text-caption text-ink-mute">{event.rentText}</span>
         </div>
-        <span className="text-body text-ink-soft">
-          {event.placeText} · {event.datesText}
-        </span>
-        <span className="text-caption text-ink-mute">{event.rentText}</span>
         <Notices notices={event.notices} />
         <Stats event={event} />
         {primary ? (
@@ -646,7 +667,10 @@ export function EventPage({ event }: { event: BazaarEventView }) {
         ) : null}
       </Card>
       <section aria-labelledby="bazaar-days" className="flex flex-col gap-2">
-        <SectionHeader title={<span id="bazaar-days">Days</span>} count={event.days.length} />
+        <SectionHeader
+          title={<span id="bazaar-days">Selling days</span>}
+          count={event.days.length}
+        />
         {event.days.length === 0 ? (
           <p className="m-0 text-body text-ink-mute">No day is planned yet.</p>
         ) : (
@@ -676,7 +700,6 @@ export function EventPage({ event }: { event: BazaarEventView }) {
           </div>
         ) : null}
       </section>
-      <CostsCard event={event} />
       {event.figures.length > 0 ? (
         <section aria-labelledby="bazaar-figures" className="flex flex-col gap-2">
           <SectionHeader title={<span id="bazaar-figures">The event</span>} />

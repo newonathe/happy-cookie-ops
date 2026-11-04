@@ -12,7 +12,7 @@ import { cx } from '@/components/ui/cx';
 import { usePrefersReducedMotion } from '@/components/ui/motion';
 import { mutedStyle } from '@/components/live/stock/stock-shared';
 import { PageTitle, Panel } from '@/components/ui/owner-kit';
-import { EventForm } from './event-form';
+import { EventEntryPage } from './event-form';
 
 type Chip = 'upcoming' | 'past';
 
@@ -47,16 +47,23 @@ export function EventList({ bazaar }: { bazaar: LiveBazaarVals }) {
   };
   const chip = bazaar.listFilter ?? localChip;
   const setChip = bazaar.setListFilter ?? setLocalChip;
-  // The sheet stays mounted after it closes so its exit can play; a fresh key per opening gives it a fresh event id.
-  const [sheet, setSheet] = useState<{ n: number; open: boolean } | null>(null);
-  const sheetGeneration = useRef(0);
-  const mounted = useRef(false);
+  const entry = bazaar.entry ?? null;
+  const entryOpen = !!entry?.open;
+  const wasOpen = useRef(false);
+  // Coming back from the page puts the keyboard where it left; a saved event shows under Upcoming.
   useEffect(() => {
-    mounted.current = true;
-    return () => {
-      mounted.current = false;
-    };
-  }, []);
+    if (wasOpen.current && !entryOpen) addButton.current?.querySelector('button')?.focus();
+    wasOpen.current = entryOpen;
+  }, [entryOpen]);
+  const savedId = entry?.saved?.id;
+  const acknowledge = entry?.acknowledgeSaved;
+  useEffect(() => {
+    if (!savedId) return;
+    setChip('upcoming');
+    acknowledge?.();
+    // `setChip` and `acknowledge` are rebuilt on every render; only a new saved id is news.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [savedId]);
 
   // `bazaar` is rebuilt on every render, so the read is called through a ref, once the bookings are in.
   const latest = useRef(bazaar.readHub);
@@ -72,20 +79,6 @@ export function EventList({ bazaar }: { bazaar: LiveBazaarVals }) {
   const upcoming = bazaar.list.filter((r) => r.group === 'upcoming');
   const past = bazaar.list.filter((r) => r.group === 'past');
   const shown = chip === 'upcoming' ? upcoming : past;
-  const openSheet = () => {
-    if (mounted.current) setSheet({ n: ++sheetGeneration.current, open: true });
-  };
-  const closeSheet = (opening: number): boolean => {
-    if (!mounted.current || sheetGeneration.current !== opening) return false;
-    const closed = ++sheetGeneration.current;
-    setSheet((s) => (s?.n === opening ? { ...s, open: false } : s));
-    requestAnimationFrame(() => {
-      if (mounted.current && sheetGeneration.current === closed)
-        addButton.current?.querySelector('button')?.focus();
-    });
-    return true;
-  };
-
   return (
     <div
       ref={root}
@@ -97,7 +90,7 @@ export function EventList({ bazaar }: { bazaar: LiveBazaarVals }) {
         restored.current = true;
       }}
     >
-      <div hidden={!!sheet?.open} className="flex flex-col gap-3">
+      <div hidden={entryOpen} className="flex flex-col gap-3">
         <PageTitle
           title="Bazaar events"
           subtitle="Choose the event you want to work on."
@@ -106,15 +99,17 @@ export function EventList({ bazaar }: { bazaar: LiveBazaarVals }) {
               <div ref={addButton} className="contents">
                 <Button
                   variant="primary"
-                  onClick={openSheet}
-                  disabled={!bazaar.online || !eventsRead}
+                  onClick={() => entry?.begin()}
+                  disabled={
+                    !eventsRead || (!entry?.draft && !bazaar.online) || entry?.phase === 'closed'
+                  }
                   reason={
                     bazaar.online
                       ? 'You can add one once your events are read.'
                       : 'Adding an event needs signal.'
                   }
                 >
-                  Add an event
+                  {entry?.draft ? 'Continue adding event' : 'Add an event'}
                 </Button>
               </div>
               {eventsRead && bazaar.list.length > 0 ? (
@@ -205,17 +200,7 @@ export function EventList({ bazaar }: { bazaar: LiveBazaarVals }) {
         )}
       </div>
 
-      {sheet ? (
-        <EventForm
-          key={sheet.n}
-          bazaar={bazaar}
-          open={sheet.open}
-          onClose={() => closeSheet(sheet.n)}
-          onSaved={() => {
-            if (closeSheet(sheet.n)) setChip('upcoming');
-          }}
-        />
-      ) : null}
+      {entry && entryOpen ? <EventEntryPage entry={entry} /> : null}
     </div>
   );
 }

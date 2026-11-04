@@ -36,9 +36,9 @@ on the 4186 preview with synthetic data; it is not hosted, device or owner accep
 | **Home** | | | |
 | home | `live/home/home-live.tsx` | Done | |
 | **Bazaar** | | | |
-| events | `live/bazaar/event-list.tsx` | Partial | Header and vertical directory aligned; active facts, filters and return kept. Add event still a sheet pending retained entry/controller |
-| bazaar | `live/bazaar/event-page.tsx` | Partial | Hero facts and selling-days panel to align |
-| event-edit | `live/bazaar/event-form.tsx` | Partial | Page form, re-skin |
+| events | `live/bazaar/event-list.tsx` | Done | |
+| bazaar | `live/bazaar/event-page.tsx` | Done | Title, All events and Settings aligned; stats stay richer than the mockup |
+| event-edit | `live/bazaar/event-form.tsx`, `store/event-entry.ts` | Partial | Adding is a page with Review, kept across reloads. Editing still uses the "Edit or switch off events" form |
 | plan, plan-review | `live/bazaar/day-plan.tsx` | Partial | Review as its own step |
 | till | `live/bazaar/till.tsx`, `till-card.tsx` | Done | Owner sells inside the frame; Bazaar-only access stays till-only |
 | classic-till | ported `bazaar-mode` | Old | Keep as fallback, re-skin |
@@ -47,7 +47,7 @@ on the 4186 preview with synthetic data; it is not hosted, device or owner accep
 | event-review | `live/bazaar/close-event-sheet.tsx` | Partial | Page |
 | event-tools, event-tool-review | till tools | Partial | Entry/review pages |
 | device-recovery | till/event page | Partial | Page |
-| bazaar-settings | | Missing | Settings page |
+| bazaar-settings | Settings in `event-page.tsx` | Partial | Fees, target and cost per cookie. Classic till stays in the till Settings |
 | **Sell** | | | |
 | sell | `live/sell/orders-live.tsx` | Done | |
 | order | `live/sell/order-live.tsx` | Done | |
