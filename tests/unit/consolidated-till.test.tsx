@@ -115,6 +115,28 @@ describe('the consolidated till calls the ported handlers', () => {
     expect(v.bzSell[0]!.tap).not.toHaveBeenCalled();
   });
 
+  it('keeps the day figures in Sales today, with no status strip above the till', () => {
+    render(
+      <ConsolidatedTill
+        v={vals({
+          drawerCashText: '₱125',
+          digitalTotals: [{ pay: 'GCash', totalText: '₱300', n: 1 }]
+        })}
+        till={till()}
+        panel={null}
+      />
+    );
+    expect(screen.queryByText('Selling')).toBeNull();
+    expect(screen.queryByRole('status')).toBeNull();
+    const sales = within(screen.getByRole('region', { name: 'Sales today' }));
+    // Once as the day's figure, once as the column heading.
+    expect(sales.getAllByText('Total')).toHaveLength(2);
+    expect(sales.getAllByText('Cookies')).toHaveLength(2);
+    expect(sales.getByText('GCash')).toBeInTheDocument();
+    expect(sales.getByText('₱300')).toBeInTheDocument();
+    expect(sales.getByText('Sale 1')).toBeInTheDocument();
+  });
+
   it('draws the already-resolved photo as it is', () => {
     render(<ConsolidatedTill v={vals()} till={till()} panel={null} />);
     const photos = document.querySelectorAll('[data-photo]');
