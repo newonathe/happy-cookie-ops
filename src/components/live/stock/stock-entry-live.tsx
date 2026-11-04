@@ -59,7 +59,7 @@ function Problem({ text }: { text: string | null }) {
 
 const twoColumns = 'grid grid-cols-1 gap-3 sm:grid-cols-2';
 
-/** Receive delivery: what actually arrived, reviewed before it is saved. */
+/** Add to inventory: what she actually got, reviewed before it is saved. On one item's page, only that item. */
 export function ReceiveLive({
   receive,
   backLabel = 'Back to inventory'
@@ -70,7 +70,7 @@ export function ReceiveLive({
   if (receive.step === 'review')
     return (
       <div className="w-full">
-        <PageTitle title="Review delivery" subtitle={receive.supplier || 'No supplier chosen'} />
+        <PageTitle title="Review" subtitle={receive.supplier || 'No supplier chosen'} />
         <Problem text={receive.error} />
         <ReviewPanel
           note={
@@ -78,9 +78,9 @@ export function ReceiveLive({
               ? 'A line with no amount still records the stock. Its cost stays pending until a price is known.'
               : undefined
           }
-          backLabel="Change delivery"
+          backLabel="Change"
           onBack={receive.change}
-          saveLabel="Record delivery"
+          saveLabel="Add to inventory"
           onSave={() => void receive.save()}
           saving={receive.saving}
         >
@@ -97,7 +97,10 @@ export function ReceiveLive({
     );
   return (
     <div className="w-full">
-      <PageTitle title="Receive delivery" subtitle="Enter what arrived, not what was ordered." />
+      <PageTitle
+        title="Add to inventory"
+        subtitle={receive.fixedItem ?? 'Enter what you actually got, not what you ordered.'}
+      />
       <Problem text={receive.error} />
       <Panel>
         <Select
@@ -109,12 +112,15 @@ export function ReceiveLive({
         />
         {receive.lines.map((line) => (
           <div key={line.key} className="mt-4 flex flex-col gap-3 border-t border-line pt-4">
-            <Select
-              label="Item"
-              value={line.itemName}
-              onChange={line.setItem}
-              options={receive.items.map((name) => [name, name] as const)}
-            />
+            {receive.fixedItem ? null : (
+              <Select
+                label="Item"
+                value={line.itemName}
+                onChange={line.setItem}
+                options={receive.items.map((name) => [name, name] as const)}
+                placeholder="Choose an item"
+              />
+            )}
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <OwnerField
                 label="Packs received"
@@ -126,7 +132,7 @@ export function ReceiveLive({
                 onChange={(event) => line.setPacks(event.target.value)}
               />
               <OwnerField
-                label={`Per pack (${line.unit})`}
+                label={line.unit ? `Per pack (${line.unit})` : 'Per pack'}
                 type="number"
                 min="0"
                 step="any"
@@ -145,7 +151,7 @@ export function ReceiveLive({
                 onChange={(event) => line.setPaid(event.target.value)}
               />
             </div>
-            {line.remove ? (
+            {line.remove && !receive.fixedItem ? (
               <div>
                 <Button variant="ghost" size="sm" onClick={line.remove}>
                   Remove {line.itemName}
@@ -154,11 +160,13 @@ export function ReceiveLive({
             ) : null}
           </div>
         ))}
-        <div className="mt-4">
-          <Button variant="secondary" onClick={receive.addLine}>
-            Add another item
-          </Button>
-        </div>
+        {receive.fixedItem ? null : (
+          <div className="mt-4">
+            <Button variant="secondary" onClick={receive.addLine}>
+              Add another item
+            </Button>
+          </div>
+        )}
         <div className="mt-4">
           <FooterActions
             back={
@@ -168,7 +176,7 @@ export function ReceiveLive({
             }
             forward={
               <Button variant="primary" onClick={receive.review}>
-                Review delivery
+                Review
               </Button>
             }
           />

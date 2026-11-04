@@ -356,6 +356,8 @@ export interface OpsVals {
   } | null;
   /** Live owner only (A3): the stock items list and edit form. `version` remounts the form after a conflict. */
   liveStockItems?: {
+    /** Opened from a page, not the list: the page's own Back is the way back. */
+    fromPage?: boolean;
     online: boolean;
     rows: LiveStockItemRow[];
     editing: LiveStockItemEdit | null;

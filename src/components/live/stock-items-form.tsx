@@ -196,9 +196,11 @@ export function StockItemsForm({ liveStock }: { liveStock: LiveStockItems }) {
       <button type="submit" style={primaryButton}>
         Save
       </button>
-      <button type="button" onClick={liveStock.back} style={secondaryButton}>
-        Back to the list
-      </button>
+      {liveStock.fromPage ? null : (
+        <button type="button" onClick={liveStock.back} style={secondaryButton}>
+          Back to the list
+        </button>
+      )}
     </form>
   );
 }

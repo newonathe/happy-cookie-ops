@@ -45,6 +45,8 @@ export interface ReceiveLineView {
 }
 
 export interface ReceiveDeliveryView {
+  /** The one item this page is for, when it was opened from that item. */
+  fixedItem: string | null;
   step: 'entry' | 'review';
   items: string[];
   suppliers: string[];
@@ -92,6 +94,8 @@ export class ReceiveDelivery {
   private nextKey = 1;
   private error: string | null = null;
   private saving = false;
+  /** Opened from one item's page or row: the item is known, so the page does not ask. */
+  private fixed = false;
 
   constructor(private readonly deps: ReceiveDeliveryDeps) {}
 
@@ -110,17 +114,34 @@ export class ReceiveDelivery {
     };
   }
 
-  /** Opens the page, on a named item when one was chosen. A delivery already typed is kept. */
+  /**
+   * Opens the page, on a named item when one was chosen. Nothing she did not choose is filled in: no first item, and no
+   * supplier the item does not have. A delivery already typed is kept.
+   */
   open(itemName?: string): void {
     if (!this.open_ || !this.lines.length) {
-      const first = itemName ?? this.deps.items()[0]?.name ?? '';
-      this.lines = [this.blankLine(first)];
-      this.supplier = this.item(first)?.supplier ?? this.deps.suppliers()[0] ?? '';
-      this.step = 'entry';
-      this.error = null;
+      this.fixed = itemName !== undefined;
+      this.start(itemName === undefined ? [''] : [itemName]);
     }
     this.open_ = true;
     this.deps.rerender();
+  }
+
+  /** Opens on several items at once: what Shopping lists for one supplier. A delivery already typed is kept. */
+  openMany(itemNames: readonly string[]): void {
+    if (!this.open_ || !this.lines.length) {
+      this.fixed = false;
+      this.start(itemNames.length ? itemNames : ['']);
+    }
+    this.open_ = true;
+    this.deps.rerender();
+  }
+
+  private start(itemNames: readonly string[]): void {
+    this.lines = itemNames.map((name) => this.blankLine(name));
+    this.supplier = this.item(itemNames[0] ?? '')?.supplier ?? '';
+    this.step = 'entry';
+    this.error = null;
   }
 
   private patch(key: number, change: Partial<ReceiveLine>): void {
@@ -235,6 +256,7 @@ export class ReceiveDelivery {
     });
     const paid = lines.map((line) => line.paidPesos).filter((value) => value !== null);
     return {
+      fixedItem: this.fixed ? (this.lines[0]?.itemName ?? null) : null,
       step: this.step,
       items: items.map((row) => row.name),
       suppliers: this.deps.suppliers(),

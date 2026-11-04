@@ -53,11 +53,11 @@ describe('B5 Grocery', () => {
       expect(text).toContain(part);
   });
 
-  it('"I bought these" calls bought for that row only', () => {
+  it('Add to inventory on a row calls bought for that row only', () => {
     const a = row({ itemId: 'a', name: 'Brown sugar', status: 'Out' });
     const b = row({ itemId: 'b', name: 'Butter' });
     draw(grocery({ rows: [a, b] }));
-    const buttons = screen.getAllByRole('button', { name: /I bought these/ });
+    const buttons = screen.getAllByRole('button', { name: /Add to inventory:/ });
     expect(buttons).toHaveLength(2);
     fireEvent.click(buttons[1]!);
     expect(b.bought).toHaveBeenCalledTimes(1);
@@ -120,7 +120,7 @@ describe('B5 Grocery', () => {
     const mill = screen.getByRole('list', { name: 'To buy from Mill & Co' });
     expect(within(mill).getAllByRole('listitem')).toHaveLength(2);
     expect(screen.getByRole('list', { name: 'To buy from Box Shop' })).toBeTruthy();
-    fireEvent.click(screen.getAllByRole('button', { name: 'Receive delivery' })[0]!);
+    fireEvent.click(screen.getAllByRole('button', { name: 'Add to inventory' })[0]!);
     expect(openReceive).toHaveBeenCalledWith(['Flour', 'Sugar']);
   });
 
@@ -132,7 +132,7 @@ describe('B5 Grocery', () => {
       lineCostText: '₱0.00'
     });
     draw(grocery({ rows: [r] }));
-    expect(screen.getByText(/Nothing to buy for the plan/)).toBeTruthy();
+    expect(screen.getByText(/not needed for the next bake/)).toBeTruthy();
     const list = screen.getByRole('list', { name: /^To buy from/ });
     expect(within(list).queryByText('₱0.00')).toBeNull();
   });

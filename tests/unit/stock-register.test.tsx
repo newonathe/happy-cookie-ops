@@ -118,7 +118,7 @@ describe('B5: the New Stock screens register in the live slot', () => {
         Node.DOCUMENT_POSITION_FOLLOWING
     ).toBeTruthy();
     expect(screen.queryByRole('button', { name: 'Stock items' })).toBeNull();
-    fireEvent.click(screen.getByRole('button', { name: 'Add to inventory' }));
+    fireEvent.click(screen.getByRole('button', { name: 'New item' }));
     expect(runtime.renderVals().liveStockItems?.editing).toMatchObject({ isNew: true });
     act(() => runtime.closeSheet());
     act(() => runtime.renderVals().liveStock!.items[0]!.count());

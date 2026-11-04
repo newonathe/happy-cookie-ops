@@ -203,7 +203,15 @@ function pageFormOf(v: OpsVals): {
     page(v.liveMessages, 'Customer messages', 'Messages ready to copy and send.') ??
     page(v.liveScheduled, 'Bazaar events', 'Upcoming events and their dates.') ??
     page(v.liveBooks, 'Books & costs', 'How costs reach your books, and fixes to past costs.') ??
-    page(v.liveStockItems, 'Stock items', 'What you keep in stock, its unit and reorder level.') ??
+    page(
+      v.liveStockItems,
+      v.liveStockItems?.editing
+        ? v.liveStockItems.editing.isNew
+          ? 'New item'
+          : `Edit ${v.liveStockItems.editing.name}`
+        : 'Stock items',
+      'What you keep in stock, its unit and reorder level.'
+    ) ??
     page(v.liveStockSuppliers, 'Suppliers & prices', 'Who you buy from and what they charge.') ??
     page(v.liveRecipeDrafts, 'Recipe drafts', 'Changes kept separate from the saved recipe.')
   );

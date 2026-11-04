@@ -12,7 +12,11 @@ const ROOT = join(process.cwd(), 'src/components/live');
 const REJECTED: ReadonlyArray<readonly [RegExp, string]> = [
   [/hand over/i, 'customers pick up: say "Ready for customer pickup"'],
   [/mark collected/i, 'say "Mark picked up"'],
-  [/>\s*open order\s*</i, 'the order row itself opens the order']
+  [/>\s*open order\s*</i, 'the order row itself opens the order'],
+  [/receive delivery/i, 'say "Add to inventory"'],
+  [/i bought these/i, 'say "Add to inventory"'],
+  [/>\s*receive\s*</i, 'say "Add to inventory"'],
+  [/unaccounted/i, 'say what happened in her words']
 ];
 
 function files(dir: string): string[] {
