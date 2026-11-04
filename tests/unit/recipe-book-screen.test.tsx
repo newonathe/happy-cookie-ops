@@ -380,7 +380,7 @@ describe('the flavour page', () => {
     open();
     const field = screen.getByLabelText('Cost per cookie') as HTMLInputElement;
     expect(field.value).toBe('31.25');
-    const save = screen.getByRole('button', { name: 'Save the cost' }) as HTMLButtonElement;
+    const save = screen.getByRole('button', { name: 'Review the cost' }) as HTMLButtonElement;
     // Mutation: an enabled Save here would freeze the recipe’s cost as hers with one tap.
     expect(save.disabled).toBe(true);
     fireEvent.change(field, { target: { value: '30' } });
@@ -393,6 +393,9 @@ describe('the flavour page', () => {
     const save = vi.fn(async () => 'That could not be saved. Check the cost, then try again.');
     open(book({ items: [item({ save })] }));
     fireEvent.change(screen.getByLabelText('Cost per cookie'), { target: { value: '30' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Review the cost' }));
+    expect(save).not.toHaveBeenCalled();
+    expect(screen.getByText('₱30')).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Save the cost' }));
     await waitFor(() => expect(screen.getByText(/That could not be saved/)).toBeTruthy());
     expect(save).toHaveBeenCalledTimes(1);
@@ -404,7 +407,7 @@ describe('the flavour page', () => {
     open(book({ items: [item({ save })] }));
     const field = screen.getByLabelText('Cost per cookie') as HTMLInputElement;
     fireEvent.change(field, { target: { value: '12.50001' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Save the cost' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Review the cost' }));
     await waitFor(() => expect(field.getAttribute('aria-invalid')).toBe('true'));
     expect(
       screen.getAllByText(/Enter the cost per cookie like 12 or 12.50/).length

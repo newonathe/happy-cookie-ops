@@ -15,6 +15,7 @@ import { ReceiptTable } from '@/components/ui/receipt-table';
 import { SectionHeader } from '@/components/ui/section-header';
 import { StatTile } from '@/components/ui/stat-tile';
 import { StatusPill } from '@/components/ui/status-pill';
+import { FactRow, ReviewPanel } from '@/components/ui/owner-patterns';
 import { useIssues } from '@/components/live/bazaar/use-issues';
 import { useSave } from '@/components/live/bazaar/use-save';
 
@@ -31,16 +32,40 @@ function CostForm({ item }: { item: RecipeBookItem }) {
     return message ? [{ field, message }] : [];
   });
   const changed = costFieldChanged(pesos, item.startingCost);
-  const submit = async (e: React.FormEvent) => {
+  const [reviewing, setReviewing] = useState(false);
+  const submit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!changed || item.saveBlocked || !issues.submit()) return;
-    await run(() => item.save(pesos));
+    setReviewing(true);
   };
   const blocked = item.saveBlocked;
+  if (reviewing)
+    return (
+      <div className="flex flex-col gap-3 md:max-w-xl">
+        {error ? <Banner tone="danger" title={error} /> : null}
+        <ReviewPanel
+          note="Every bazaar uses this cost for the flavour, open ones and later ones."
+          backLabel="Change cost"
+          onBack={() => setReviewing(false)}
+          saveLabel="Save the cost"
+          saving={saving}
+          onSave={() =>
+            void run(() => item.save(pesos)).then((saved) => {
+              if (saved) setReviewing(false);
+            })
+          }
+        >
+          <FactRow label="Now">{item.costText}</FactRow>
+          <FactRow label="New cost per cookie">
+            {pesos.trim() ? `₱${pesos.trim()}` : 'The recipe’s cost'}
+          </FactRow>
+        </ReviewPanel>
+      </div>
+    );
   return (
     <form
       {...issues.formProps}
-      onSubmit={(e) => void submit(e)}
+      onSubmit={submit}
       aria-label={'Cost per cookie for ' + item.name}
       noValidate
       className="flex flex-col gap-3 rounded-card border border-line bg-surface p-4 md:max-w-xl"
@@ -74,12 +99,10 @@ function CostForm({ item }: { item: RecipeBookItem }) {
         <Button
           type="submit"
           variant="secondary"
-          busy={saving}
-          busyLabel="Saving…"
           disabled={!changed || blocked !== null}
           reason={blocked ?? undefined}
         >
-          Save the cost
+          Review the cost
         </Button>
         {item.typed ? (
           <Button

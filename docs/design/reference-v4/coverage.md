@@ -73,7 +73,7 @@ on the 4186 preview with synthetic data; it is not hosted, device or owner accep
 | recipe-drafts | `live/recipe-drafts-form.tsx`, Needs recipe on Products | Done | Colours from the theme; the Needs recipe filter lists what has none |
 | product-edit | `live/live-form-host.tsx` | Done | |
 | new-product | `live/live-form-host.tsx`, page mode | Done | Same form as Edit product; the mockup has fewer fields |
-| cost-edit, cost-review | `live/recipes/flavour-page.tsx` | Partial | Review step |
+| cost-edit, cost-review | `live/recipes/flavour-page.tsx`, bazaar `CostCard` | Partial | The recipe book cost has Review; the event cost card does not |
 | make-settings | `useAreaSettings` area `make` | Done | Show inactive products is the All products filter |
 | **Stock** | | | |
 | stock | `live/stock/inventory-live.tsx` | Done | |
@@ -100,9 +100,9 @@ on the 4186 preview with synthetic data; it is not hosted, device or owner accep
 | people, person-edit | `PeopleLive` in `live/settings-pages.tsx` | Partial | Lists people and access. Adding a person is not built: accounts are made outside the app |
 | health | `HealthLive` | Done | |
 | backups, restore-preview | health export | Partial | Real backups only; no local JSON restore as a service. `restore-preview` was not captured: it needs a chosen file |
-| sign-out | `app/sign-out-control.tsx` | Partial | Page wording |
-| sign-in, account-help | `app/sign-in` | Partial | Compare |
-| record-unavailable | | Missing | Shared not-found state |
+| sign-out | `app/sign-out-control.tsx` | Done | Warns about unsent sales first |
+| sign-in, account-help | `app/sign-in/sign-in-form.tsx` | Done | |
+| record-unavailable | `RecordUnavailable` in `ui/owner-patterns.tsx` | Done | Used for an order that cannot be read |
 | reset-preview | | Not a feature | Mockup tool: never reset real records |
 
 ## Also owed
