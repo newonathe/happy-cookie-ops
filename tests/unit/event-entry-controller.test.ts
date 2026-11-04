@@ -51,6 +51,37 @@ function fill(entry: EventEntry) {
   entry.review();
 }
 describe('retained event entry controller', () => {
+  it.each([false, null])(
+    'keeps the exact uncertain request after a non-confirming check: %s',
+    async (answer) => {
+      const x = setup();
+      const listed = vi.fn().mockResolvedValue(answer);
+      const entry = new EventEntry({ ...x.ports, listed });
+      x.send.mockResolvedValue(false);
+      await entry.bind(scope);
+      fill(entry);
+      await entry.save();
+      const before = readEventEntry(scope, x.storage).value;
+      await entry.abandon();
+      expect(listed).toHaveBeenCalledWith(freezeEventEntry(input));
+      expect(entry.view().pending).toBe(true);
+      expect(entry.view().saved).toBeNull();
+      expect(readEventEntry(scope, x.storage).value).toEqual(before);
+      entry.discard();
+      expect(entry.view().pending).toBe(true);
+    }
+  );
+  it('resolves recovery only when a fresh check confirms the exact body', async () => {
+    const x = setup();
+    const entry = new EventEntry({ ...x.ports, listed: vi.fn().mockResolvedValue(true) });
+    x.send.mockResolvedValue(false);
+    await entry.bind(scope);
+    fill(entry);
+    await entry.save();
+    await entry.abandon();
+    expect(entry.view().saved?.id).toBe(id);
+    expect(readEventEntry(scope, x.storage).value?.submitted).toBeNull();
+  });
   it('restores raw incomplete values under the same owner without posting', async () => {
     const x = setup();
     await x.entry.bind(scope);

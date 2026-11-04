@@ -20,15 +20,15 @@ export interface EventEntryPorts {
   lock: (scope: EventEntryScope) => Promise<(() => void) | null>;
   read: (scope: EventEntryScope) => EventEntryRead;
   write: (scope: EventEntryScope, value: EventEntryRecord, resolvedId?: string) => boolean;
-  /** True only once the server holds this event: its receipt, or the same id read back. */
+  /** True only on its receipt, or a successful fresh read matching every submitted field. */
   send: (body: FrozenEventRequest) => Promise<boolean>;
   changed: () => void;
   online: () => boolean;
   uuid: () => string;
   /** Moves an unreadable device copy aside, keeping its bytes. */
   keepInvalid?: (scope: EventEntryScope) => boolean;
-  /** Reads the bookings again: is this id there? Null when the read did not answer. */
-  listed?: (id: string) => Promise<boolean | null>;
+  /** Fresh exact submitted-body match. Null when the read did not answer. */
+  listed?: (body: FrozenEventRequest) => Promise<boolean | null>;
 }
 
 export interface EventEntryView {
@@ -75,8 +75,8 @@ const blank = (id: string): EventFormInput => ({
  * Adding an event. What was typed stays on this device, for this owner and backend, so leaving the
  * page or reloading loses nothing. Before the first send the exact request is written down; every
  * retry sends those same bytes under the same id, so a lost reply can never make a second event.
- * The request is let go only on the server's confirmation, or when the owner abandons it after a
- * read shows the server does not have it.
+ * The request is let go only on the server's confirmation. Absence at one instant cannot prove
+ * that an unanswered request will not commit later.
  */
 export class EventEntry {
   private scope: EventEntryScope | null = null;
@@ -304,24 +304,18 @@ export class EventEntry {
     this.ports.changed();
   }
 
-  /** Lets go of an unconfirmed request, only after a read shows the server does not have it. */
+  /** Checks an uncertain save; a missing row cannot prove that an in-flight request will not commit. */
   async abandon(): Promise<void> {
     const body = this.record?.submitted;
     if (!body || this.saving || !this.ports.listed) return;
     const generation = this.generation;
     this.saving = true;
     this.ports.changed();
-    const listed = await this.ports.listed(body.p_event.id).catch(() => null);
+    const listed = await this.ports.listed(body).catch(() => null);
     if (generation !== this.generation) return;
     this.saving = false;
     if (listed === true) this.resolve(body.p_event.id);
-    else if (listed === false) {
-      const next = { ...this.record!, submitted: null };
-      this.record = next;
-      this.step = 'entry';
-      this.unconfirmed = false;
-      this.store(next, body.p_event.id);
-    } else this.unconfirmed = true;
+    else this.unconfirmed = true;
     this.ports.changed();
   }
 

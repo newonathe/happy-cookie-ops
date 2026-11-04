@@ -422,7 +422,7 @@ describe('the add-event page', () => {
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Save event' }));
     });
-    expect(await screen.findByText(/no answer came back/)).toBeTruthy();
+    expect(await screen.findByText('This event has not been confirmed yet.')).toBeTruthy();
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Send again' }));
     });

@@ -1,10 +1,24 @@
 import { z } from 'zod';
-import type { ScheduledClient } from './scheduled-events';
+import type { ScheduledClient, ScheduledEvent } from './scheduled-events';
 import type { FrozenEventRequest } from '@/lib/bazaar/event-entry-recovery';
 
 const receipt = z
   .array(z.object({ id: z.uuid(), updated_at: z.iso.datetime({ offset: true }) }))
   .length(1);
+
+/** Presence alone cannot resolve an uncertain create: compare every normalized submitted field. */
+export function matchesEventEntry(body: FrozenEventRequest, row: ScheduledEvent): boolean {
+  const event = body.p_event;
+  return (
+    row.id === event.id &&
+    row.name === event.name &&
+    row.place === event.place &&
+    row.startsOn === event.starts_on &&
+    row.endsOn === event.ends_on &&
+    row.rentCents === event.rent_cents &&
+    row.active === event.active
+  );
+}
 
 /** Send the already frozen create body. An empty HTTP success is not an acknowledgement. */
 export async function sendEventEntry(

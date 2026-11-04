@@ -19,7 +19,7 @@ import {
   type TillFigures
 } from '@/lib/data/bazaar-days';
 import { type ScheduledClient, type ScheduledEvent } from '@/lib/data/scheduled-events';
-import { sendEventEntry } from '@/lib/data/event-entry';
+import { matchesEventEntry, sendEventEntry } from '@/lib/data/event-entry';
 import type { FrozenEventRequest } from '@/lib/bazaar/event-entry-recovery';
 import { dayRange, dayText as dayWords } from '@/lib/date/day-text';
 import {
@@ -79,6 +79,8 @@ import { formatManila } from '@/lib/time/business-clock';
  */
 export interface BazaarDaysDeps {
   client: () => BazaarClient | null;
+  /** Verified owner/backend generation. Null when the full owner workspace is not authorized. */
+  eventActor: () => number | null;
   online: () => boolean;
   bookings: () => readonly ScheduledEvent[];
   /** False until the owner's bookings have been read. */
@@ -528,24 +530,27 @@ export class BazaarDays {
 
   /**
    * U3: sends one retained create request. Its id is fixed before the first send, so a retry after a lost
-   * reply is the same event. Whatever the answer, the bookings are read again: an event that is now listed
-   * was saved, whatever the reply said.
+   * reply is the same event. Only its receipt or a successful fresh full-body match resolves it.
    */
   async sendEventEntry(body: FrozenEventRequest): Promise<boolean> {
     const client = this.deps.client();
-    if (!client || !this.deps.online()) return false;
+    const actor = this.deps.eventActor();
+    if (!client || actor === null || !this.deps.online()) return false;
+    const current = () => this.deps.eventActor() === actor;
     const id = body.p_event.id;
     const confirmed = await sendEventEntry(client as unknown as ScheduledClient, body);
-    await this.deps.refreshBookings();
-    if (!confirmed && !this.isListed(id)) return false;
+    if (!current()) return false;
+    const read = await this.deps.refreshBookings().catch(() => false);
+    if (!current() || (!confirmed && (!read || !this.matchesListed(body)))) return false;
     // An event that was just created has no day and is not closed: that is known without a read, so its row is placed at once.
-    this.hubFacts.set(id, {
-      finalised: false,
-      sellingNow: false,
-      dayStarted: false,
-      costPending: false,
-      today: null
-    });
+    if (!this.deps.bookings().find((row) => row.id === id)?.started && !this.hubFacts.has(id))
+      this.hubFacts.set(id, {
+        finalised: false,
+        sellingNow: false,
+        dayStarted: false,
+        costPending: false,
+        today: null
+      });
     this.hubState.delete(id);
     this.justAdded = id;
     this.deps.toast(COPY.eventAdded);
@@ -553,18 +558,19 @@ export class BazaarDays {
     return true;
   }
 
-  private isListed(id: string): boolean {
-    return this.deps.bookings().some((booking) => booking.id === id);
+  private matchesListed(body: FrozenEventRequest): boolean {
+    return this.deps.bookings().some((booking) => matchesEventEntry(body, booking));
   }
 
   /** Whether the server has this event. Null when it could not be read: that is not the same as no. */
-  async eventListed(id: string): Promise<boolean | null> {
-    if (!this.deps.client() || !this.deps.online()) return null;
+  async eventListed(body: FrozenEventRequest): Promise<boolean | null> {
+    const actor = this.deps.eventActor();
+    if (!this.deps.client() || actor === null || !this.deps.online()) return null;
     const read = await Promise.resolve(this.deps.refreshBookings()).then(
       (answer) => answer !== false,
       () => false
     );
-    return read ? this.isListed(id) : null;
+    return read && this.deps.eventActor() === actor ? this.matchesListed(body) : null;
   }
 
   /** A day's review is open (it is drawn ahead of the till). */

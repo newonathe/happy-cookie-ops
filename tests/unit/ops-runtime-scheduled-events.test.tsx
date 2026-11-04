@@ -19,6 +19,7 @@ vi.mock('@/lib/offline/idb', () => ({
 vi.mock('@/lib/device', () => ({ deviceId: () => 'dev1' }));
 
 import { OpsRuntime } from '@/store/ops-runtime';
+import { idb } from '@/lib/offline/idb';
 import { ScheduledEventsForm } from '@/components/live/scheduled-events-form';
 import { BazaarModeScreen } from '@/components/screens/bazaar-mode';
 import type { Role } from '@/store/engine/ops-engine';
@@ -112,6 +113,85 @@ const fresh = (over: Partial<Fake> = {}): Fake => ({
   link: { data: [{ first_link: true }], error: null },
   save: { data: [{ id: ID1, updated_at: STAMP }], error: null },
   ...over
+});
+
+describe('scheduled event read ownership', () => {
+  it('keeps the held till if ownership changes during the closed-day queue check', async () => {
+    const { runtime } = await mounted('owner', fresh());
+    const internals = runtime as unknown as {
+      productionActorEpoch: number;
+      dropClosedDay: (day: string) => Promise<void>;
+    };
+    act(() =>
+      runtime.setState({
+        event: { id: 'held-event', dayId: 'held-day', stage: 'selling' } as never,
+        cart: { dcf: 2 }
+      })
+    );
+    let finish!: () => void;
+    const read = vi.spyOn(idb, 'all').mockImplementationOnce(
+      () =>
+        new Promise<Awaited<ReturnType<typeof idb.all>>>((resolve) => {
+          finish = () => resolve([]);
+        })
+    );
+    let closing!: Promise<void>;
+    await act(async () => {
+      closing = internals.dropClosedDay('held-day');
+    });
+    internals.productionActorEpoch += 1;
+    await act(async () => {
+      finish();
+      await closing;
+    });
+    expect(runtime.state.event).toMatchObject({ id: 'held-event', dayId: 'held-day' });
+    expect(runtime.state.cart).toEqual({ dcf: 2 });
+    read.mockRestore();
+  });
+  it.each(['owner changed', 'newer read'])(
+    'drops stale rows and follow-up work when %s',
+    async (reason) => {
+      const { runtime } = await mounted('owner', fresh());
+      const internals = runtime as unknown as {
+        productionActorEpoch: number;
+        retryPendingLink: () => Promise<void>;
+        confirmHeldDay: () => Promise<void>;
+        scheduledRows: Array<{ id: string }>;
+      };
+      const links = vi.spyOn(internals, 'retryPendingLink');
+      const held = vi.spyOn(internals, 'confirmHeldDay');
+      let finish!: (value: { data: Wire[]; error: null }) => void;
+      const delayed = {
+        rpc: vi.fn(
+          () =>
+            new Promise<{ data: Wire[]; error: null }>((resolve) => {
+              finish = resolve;
+            })
+        )
+      };
+      let reading!: Promise<boolean>;
+      await act(async () => {
+        reading = runtime.loadScheduledEvents(delayed as never);
+      });
+      if (reason === 'owner changed') internals.productionActorEpoch += 1;
+      else
+        await act(async () => {
+          await runtime.loadScheduledEvents(
+            fakeClient(fresh({ rows: [wire({ id: ID2 })] })).client as never
+          );
+        });
+      links.mockClear();
+      held.mockClear();
+      const before = internals.scheduledRows;
+      await act(async () => {
+        finish({ data: [wire({ name: 'Stale reply' })], error: null });
+        expect(await reading).toBe(false);
+      });
+      expect(internals.scheduledRows).toBe(before);
+      expect(links).not.toHaveBeenCalled();
+      expect(held).not.toHaveBeenCalled();
+    }
+  );
 });
 const events = (r: OpsRuntime) =>
   r.renderVals().events as Array<{ name: string; date: string; place: string; go: () => void }>;
