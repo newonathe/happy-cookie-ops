@@ -5,6 +5,7 @@ import type * as React from 'react';
 import { formIds } from '@/lib/bazaar/forms';
 import { MARGIN_FLOOR_PERCENT, costFieldChanged, parseCostField } from '@/lib/recipes/book';
 import type { RecipeBookItem } from '@/lib/recipes/live-recipes-types';
+import { cookiePicture } from '@/lib/media/cookie-art';
 import { resolveImagePath } from '@/lib/media/resolve-image';
 import { Banner } from '@/components/ui/banner';
 import { Button } from '@/components/ui/button';
@@ -140,7 +141,8 @@ export function FlavourPage({
   useEffect(() => {
     heading.current?.focus();
   }, []);
-  const url = resolveImagePath(item.photo);
+  const real = resolveImagePath(item.photo);
+  const url = cookiePicture(real, item.name);
   const r = item.receipt;
   const margin = item.tone === 'none' ? undefined : item.tone;
   return (
@@ -157,15 +159,13 @@ export function FlavourPage({
       >
         <span
           aria-hidden="true"
-          data-photo={url ? 'yes' : 'none'}
+          data-photo={real ? 'yes' : 'art'}
           className="relative grid aspect-[16/9] w-full place-items-center overflow-hidden rounded-control bg-chip bg-cover bg-center md:aspect-[4/3] md:w-72 md:shrink-0"
           style={{
-            ...(url ? { backgroundImage: `url(${url})` } : {}),
+            backgroundImage: `url(${url})`,
             viewTransitionName: PHOTO_TRANSITION
           }}
-        >
-          {!url ? <span className="text-title text-ink-faint">{item.name.slice(0, 1)}</span> : null}
-        </span>
+        ></span>
         <div className="flex flex-wrap items-center gap-2 px-1 pb-1">
           <h1 ref={heading} tabIndex={-1} className="m-0 min-w-0 text-title text-ink outline-none">
             {item.name}

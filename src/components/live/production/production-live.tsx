@@ -11,6 +11,7 @@ import { ProductionResults } from './production-results';
 import { ProductionReceipts } from './production-receipts';
 import { ProductionRecoveryNotice } from './production-recovery-notice';
 import { ProductionStart } from './production-start';
+import { cookiePicture } from '@/lib/media/cookie-art';
 import { resolveImagePath } from '@/lib/media/resolve-image';
 import { PageTitle } from '@/components/ui/owner-kit';
 import { useAreaSettings } from '@/components/live/account/settings-areas';
@@ -140,7 +141,7 @@ export function ProductionLive({ v }: { v: OpsVals }) {
             <section aria-label="Production in progress" className={styles.work}>
               <h2>In progress ({data.inProgress.length})</h2>
               {data.inProgress.map((work) => {
-                const photo = resolveImagePath(work.photo);
+                const photo = cookiePicture(resolveImagePath(work.photo), work.name);
                 return (
                   <article
                     className={styles.workRow}

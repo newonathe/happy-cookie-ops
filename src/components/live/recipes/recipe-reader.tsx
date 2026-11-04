@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { LiveRecipesVals } from '@/lib/recipes/live-recipes-types';
 import { batchStock, scaleQty, type BatchStockRow } from '@/lib/recipes/batch';
 import { formatQuantity } from '@/lib/stock/stock-status';
+import { cookiePicture } from '@/lib/media/cookie-art';
 import { resolveImagePath } from '@/lib/media/resolve-image';
 import { Banner } from '@/components/ui/banner';
 import { Button } from '@/components/ui/button';
@@ -56,7 +57,7 @@ export function RecipeReader({ page, onCosts }: { page: Page; onCosts: () => voi
     heading.current?.focus();
   }, []);
   const [cookies, setCookies] = useState(page.savedYield ? String(page.savedYield) : '');
-  const photo = resolveImagePath(page.photo);
+  const photo = cookiePicture(resolveImagePath(page.photo), page.name);
   const batch = Number(cookies);
   const scalable = page.savedYield > 0 && Number.isSafeInteger(batch) && batch > 0;
   const amount = (line: Line) => {

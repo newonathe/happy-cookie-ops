@@ -2,6 +2,7 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import type { LiveProductionStart } from '@/lib/production/live-production-types';
 import { validProductionChoice } from '@/lib/production/plan';
+import { cookiePicture } from '@/lib/media/cookie-art';
 import { resolveImagePath } from '@/lib/media/resolve-image';
 import { Button } from '@/components/ui/button';
 import page from './production.module.css';
@@ -34,7 +35,7 @@ export function ProductionPlanEntry({ start, period }: { start: LiveProductionSt
       </section> : <fieldset className={styles.products}>
         <legend>Products to make</legend>
         {start.products.map(product => {
-          const choice = selected.find(row => row.productId === product.id), photo = resolveImagePath(product.photo);
+          const choice = selected.find(row => row.productId === product.id), photo = cookiePicture(resolveImagePath(product.photo), product.name);
           const changed = !!choice && choice.version !== product.version;
           return <article key={product.id} className={styles.product} data-selected={!!choice}>
             <label className={styles.identity}>
