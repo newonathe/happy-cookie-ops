@@ -128,11 +128,13 @@ describe('the consolidated till calls the ported handlers', () => {
   it('Charge and Freebie are the ported ones', () => {
     const v = vals();
     render(<ConsolidatedTill v={v} till={till()} panel={null} />);
-    fireEvent.click(screen.getByRole('button', { name: 'Charge' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Freebie' }));
-    expect(v.openPay).toHaveBeenCalledTimes(1);
-    expect(v.recordFreebie).toHaveBeenCalledTimes(1);
-    expect(screen.getByText('₱250')).toBeTruthy();
+    // A wide screen shows the Current sale panel and a phone shows the pinned bar; both use the same handlers.
+    for (const button of screen.getAllByRole('button', { name: 'Charge' })) fireEvent.click(button);
+    for (const button of screen.getAllByRole('button', { name: 'Freebie' }))
+      fireEvent.click(button);
+    expect(v.openPay).toHaveBeenCalledTimes(2);
+    expect(v.recordFreebie).toHaveBeenCalledTimes(2);
+    expect(screen.getAllByText('₱250').length).toBeGreaterThan(0);
   });
 
   it('the menu offers the owner every way out, each through its own handler', () => {

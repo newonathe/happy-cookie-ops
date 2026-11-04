@@ -142,3 +142,14 @@ Dropped: nothing. Still drawn by a ported sheet: refund, no-show, swap, users, r
 
 Dropped: "Set to" in the old quantity sheet, which is redundant with Count on the same page and records the same count movement.
 
+## Money and sheets as pages (`live/money/`, `live/settings-pages.tsx`, `store/money-desk.ts`, `store/money-entry.ts`)
+
+| Today's capability | New home | Evidence |
+|---|---|---|
+| Expense sheet: category, amount, what for | Record expense page with Review and a date; same `record_expense` | test |
+| Expense sheet: item and quantity that also receives stock | Dropped: Receive delivery does this with its own review; the page says where to go | test |
+| Draw sheet | Record owner draw page with Review; same `record_draw` | test |
+| Rules, categories, people, retention, statuses, pricing, payment rule | Pages in the owner frame; same engine values | test, browser |
+| Refund, no-show, swap | Pages, opened from the order; same handlers | test |
+| Till: every tile, minus, Charge, Freebie, close, fees, add cookies, void, classic till | Same handlers. Close day is on the title; the rest is under Settings. Current sale panel on a wide screen, pinned bar on a phone | test, browser |
+

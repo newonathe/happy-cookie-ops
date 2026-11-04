@@ -5,6 +5,7 @@
  * with the engine change that produces it — see docs/PORTING.md.
  */
 import type { LiveMake } from '@/store/make-desk';
+import type { MoneyEntryView } from '@/store/money-entry';
 import type * as React from 'react';
 import type { ScreenKey } from '@/lib/screens';
 import type { LiveStockVals } from '@/lib/stock/live-stock-types';
@@ -712,6 +713,7 @@ export interface OpsVals {
   }>;
   catOptions: Array<string | number>;
   catRows: Array<{
+    off?: unknown;
     name: React.ReactNode;
     rename: (event?: unknown) => void;
     stateText: React.ReactNode;
@@ -1863,6 +1865,10 @@ export interface LiveMoney {
   openBooks: () => void;
   openCategories: () => void;
   openTaxRules: () => void;
+  /** Each product's cost per cookie, for Money settings. */
+  recipeCosts?: Array<{ id: string; name: string; costText: string; open: () => void }>;
+  /** The Record expense or Record owner draw page, while one is open. */
+  entry?: MoneyEntryView | null;
 }
 
 export interface LiveHome {

@@ -5,7 +5,8 @@ import type { OpsVals } from '@/view-models/vals';
 import type { TillPanelView } from '@/lib/bazaar/live-bazaar-types';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
-import { FlavourTile } from '@/components/ui/flavour-tile';
+import { PageTitle } from '@/components/ui/owner-kit';
+import { TillCard } from './till-card';
 import { Sheet } from '@/components/ui/sheet';
 import { StatusPill } from '@/components/ui/status-pill';
 import { TillPanel, TillBack } from './till-bar';
@@ -40,6 +41,7 @@ export function ConsolidatedTill({
   const [saleFromOldest, setSaleFromOldest] = useState<number | null>(null);
   const [allSales, setAllSales] = useState(false);
   const sales = v.bzSales ?? [];
+  const inSale = (v.bzSell ?? []).filter((p) => (Number(p.inCart) || 0) > 0);
   const sale = saleFromOldest === null ? undefined : sales[sales.length - 1 - saleFromOldest];
   const closeSale = () => setSaleFromOldest(null);
   const shown = allSales ? sales : sales.slice(0, SALES_SHOWN);
@@ -77,19 +79,31 @@ export function ConsolidatedTill({
         data-till="consolidated"
         className="flex flex-col gap-3 lg:grid lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start lg:gap-x-5 lg:gap-y-3"
       >
-        <div className="flex items-center gap-2.5 lg:col-span-2">
-          {events ? <TillBack onBack={events} /> : null}
-          <span className="flex min-w-0 flex-1 flex-col">
-            <span className="text-body font-bold text-ink">{v.event?.name}</span>
-            <span className="text-caption text-ink-mute">{v.event?.date}</span>
-          </span>
-          <Button variant="secondary" aria-label="Till menu" onClick={() => setMenu(true)}>
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true">
-              <circle cx="5" cy="12" r="1.8" />
-              <circle cx="12" cy="12" r="1.8" />
-              <circle cx="19" cy="12" r="1.8" />
-            </svg>
-          </Button>
+        <div className="lg:col-span-2">
+          {events ? (
+            <div className="mb-2">
+              <TillBack onBack={events} />
+            </div>
+          ) : null}
+          <PageTitle
+            title="Sell at the bazaar"
+            subtitle={
+              <>
+                {v.event?.name}
+                {v.event?.date ? ` · ${String(v.event.date)}` : ''}
+              </>
+            }
+            actions={
+              <>
+                <Button variant="secondary" onClick={v.askClose}>
+                  Close day
+                </Button>
+                <Button variant="secondary" aria-label="Till menu" onClick={() => setMenu(true)}>
+                  Settings
+                </Button>
+              </>
+            }
+          />
         </div>
 
         <div className="lg:col-span-2">
@@ -116,16 +130,13 @@ export function ConsolidatedTill({
               const count = Number(p.inCart) || 0;
               return (
                 <div key={name} data-part="tile" className="relative">
-                  <FlavourTile
+                  <TillCard
                     name={name}
-                    photo=""
-                    resolvedPhoto={till.photos[i] ?? ''}
+                    photo={till.photos[i] ?? ''}
                     price={String(p.priceText)}
+                    left={p.left}
                     count={count}
-                    state={p.soldOut && !count ? 'soldOut' : count ? 'inCart' : 'idle'}
-                    meta={
-                      <span className="text-caption text-ink-mute tabular-nums">{p.left} left</span>
-                    }
+                    soldOut={!!p.soldOut && !count}
                     onPress={p.tap}
                   />
                   {count ? (
@@ -187,7 +198,72 @@ export function ConsolidatedTill({
           ) : null}
         </div>
 
-        <div className="sticky bottom-3 z-10 flex items-center gap-2.5 rounded-card border border-line bg-surface/95 p-3 pl-4 shadow-lift backdrop-blur lg:top-3 lg:bottom-auto lg:col-start-2 lg:row-start-3">
+        <aside
+          aria-label="Current sale"
+          className="hidden flex-col gap-3 rounded-card border border-line bg-surface p-5 lg:sticky lg:top-3 lg:col-start-2 lg:row-start-3 lg:flex"
+        >
+          <div className="flex items-baseline justify-between gap-2">
+            <h2 className="text-[17px] font-semibold text-ink">Current sale</h2>
+            <span className="text-caption text-ink-mute">{v.bzCartCount} in this sale</span>
+          </div>
+          {inSale.length ? (
+            <ul className="flex flex-col">
+              {inSale.map((p) => (
+                <li
+                  key={String(p.name)}
+                  className="flex items-center justify-between gap-3 border-b border-line py-2.5"
+                >
+                  <span className="flex min-w-0 flex-col">
+                    <span className="text-[14px] font-semibold text-ink">{p.name}</span>
+                    <span className="text-caption text-ink-mute tabular-nums">
+                      {p.priceText} each
+                    </span>
+                  </span>
+                  <span className="flex shrink-0 items-center gap-1 rounded-control border border-line px-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      aria-label={`One less ${String(p.name)} in this sale`}
+                      onClick={p.minus}
+                    >
+                      −
+                    </Button>
+                    <span className="w-5 text-center text-[14px] font-semibold text-ink tabular-nums">
+                      {String(p.inCart)}
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      aria-label={`One more ${String(p.name)} in this sale`}
+                      onClick={p.tap}
+                      disabled={!!p.soldOut}
+                    >
+                      +
+                    </Button>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="py-3 text-center text-caption text-ink-mute">Choose a cookie to start.</p>
+          )}
+          <div className="flex items-baseline justify-between gap-2">
+            <span className="text-[17px] text-ink">Total</span>
+            <span className="text-title tabular-nums">{v.bzCartTotalNum}</span>
+          </div>
+          <Button variant="primary" size="lg" className="w-full" onClick={v.openPay}>
+            Charge
+          </Button>
+          <Button variant="secondary" className="w-full" onClick={v.recordFreebie}>
+            Freebie
+          </Button>
+        </aside>
+
+        <div
+          data-part="sale-bar"
+          style={{ bottom: 'calc(var(--workspace-dock, 0px) + 12px)' }}
+          className="lg:hidden sticky z-10 flex items-center gap-2.5 rounded-card border border-line bg-surface/95 p-3 pl-4 shadow-lift backdrop-blur lg:top-3 lg:bottom-auto lg:col-start-2 lg:row-start-3"
+        >
           <span className="flex min-w-0 flex-1 flex-col">
             <span className="text-caption text-ink-soft">{v.bzCartCount} in this sale</span>
             <span className="text-title tabular-nums">{v.bzCartTotalNum}</span>

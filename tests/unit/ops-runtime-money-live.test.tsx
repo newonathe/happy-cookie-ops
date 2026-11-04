@@ -63,7 +63,11 @@ const books = {
     }
   ]
 };
-const rpc = vi.fn(async (name: string) =>
+type Rpc = (
+  name: string,
+  args?: unknown
+) => Promise<{ data: unknown; error: { code: string } | null }>;
+const rpc = vi.fn<Rpc>(async (name) =>
   name === 'get_books' ? { data: books, error: null } : { data: [], error: null }
 );
 
@@ -87,6 +91,45 @@ describe('the live Money page', () => {
     localStorage.clear();
   });
   afterEach(() => cleanup());
+
+  it('an expense sent again after no answer is the same entry, and closes only when acknowledged', async () => {
+    const r = await mounted();
+    const posted: Array<{ id: string; at: number }> = [];
+    let answer = false;
+    rpc.mockImplementation(async (name: string, args?: unknown) => {
+      if (name === 'record_expense') {
+        posted.push((args as { p_expense: { id: string; at: number } }).p_expense);
+        return answer
+          ? { data: [{ duplicate: posted.length > 1 }], error: null }
+          : { data: null, error: { code: 'XX000' } };
+      }
+      return name === 'get_books' ? { data: books, error: null } : { data: [], error: null };
+    });
+    act(() => r.setState({ online: true } as never));
+    act(() => money(r).recordExpense());
+    act(() => {
+      money(r).entry?.setDescription('Parking');
+      money(r).entry?.setAmount('50');
+      money(r).entry?.review();
+    });
+    await act(async () => {
+      await money(r).entry?.save();
+    });
+    expect(money(r).entry?.error).toMatch(/not saved/);
+    vi.useFakeTimers({ toFake: ['Date'], now: Date.now() + 60_000 });
+    answer = true;
+    await act(async () => {
+      await money(r).entry?.save();
+    });
+    expect(posted).toHaveLength(2);
+    expect(posted[1]!.id).toBe(posted[0]!.id);
+    expect(posted[1]!.at).toBe(posted[0]!.at);
+    vi.useRealTimers();
+    expect(money(r).entry).toBeNull();
+    rpc.mockImplementation(async (name: string) =>
+      name === 'get_books' ? { data: books, error: null } : { data: [], error: null }
+    );
+  });
 
   it("shows the books' own totals, and the bars add up to them", async () => {
     const r = await mounted();
