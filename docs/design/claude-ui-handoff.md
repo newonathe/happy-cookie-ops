@@ -1,11 +1,31 @@
 # Claude continuation: the actual owner-facing interface
 
-Updated 4 November 2026. Ethan requested this shared handoff while Codex fixes the four audit findings.
+Updated 4 November 2026. Ethan requested this shared handoff while Codex continues the actual application.
 The complete application goal remains active. UI/UX is the immediate focus; this file does not reduce
 the scope to Home, Money or Shop. Read AGENTS.md, current.md and next-goal.md before starting work.
 
 ## Current work and how to detect it
 
+- **Newest P3 work is locally verified, uncommitted and awaiting review.** This overrides older in-memory-only
+  descriptions below. Files: `src/lib/production/recovery.ts`, `recovery-session.ts`, `workspace.ts`,
+  runtime/types, `src/lib/auth/live-gate.ts`, `src/components/app/live-gate.tsx`, production recovery
+  notices/forms/receipts, plus recovery/pool/gate/UI tests and `production-runtime-helpers.ts`.
+  Device copies are keyed to server-verified owner UID and configured backend origin. No role/email
+  fallback, SQL change or automatic posting. Web Locks enforce one writer; another tab can view and
+  retry after the first closes. Invalid bytes remain untouched. A new RPC waits for checked storage;
+  exact unanswered requests keep their ID/body/time. Same-user verification preserves work. Account
+  changes clear projections; a late reply belongs only to its original owner, leaving the new owner's
+  work intact. Recently saved receipts restore with stock explicitly unchecked. Unsubmitted setup,
+  raw invalid counts, notes, step and source snapshots persist. Full `pnpm verify` passes: 175 files,
+  2,873 tests + 2 existing TODOs. Eight normal/reduced-motion browser flows at 320/390/768/1240 pass,
+  with zero captured errors/overflow. Phone/desktop screenshots inspected. Live build passes 28 pages;
+  independent auth/offline/Money review remains pending. No protected port or applied SQL changed.
+  Local review packet: private `gap-refinement/pending-review/production-device-recovery/parts.json`
+  and README; ordered patches, each ≤400 changed lines, replay to the changed P3 files.
+  It depends on the nine prior patches listed there. Real Git index is untouched; secret-pattern scan
+  is clear. This export is review preparation, not acceptance or a commit.
+  Inspect `git status --short`, `git diff` **and untracked files**. Do not reset to HEAD or restore an
+  old patch over these changes. Start with this newest block, then use history below for context.
 - Starting accepted HEAD: `52292e3`, branch `codex/refined-workflows`. Inspect current Git state first.
 - Latest local source guard: runtime no longer captures an engine placeholder as a saved recipe.
   Batch/dough forms keep drafts, hide unverified ingredient/portion claims and offer Retry saved recipe;
@@ -57,6 +77,13 @@ the scope to Home, Money or Shop. Read AGENTS.md, current.md and next-goal.md be
   Current receipt views: `production-receipts-390.png`, `production-receipts-1240.png`, final runs inspected.
   Source-recovery views: `source-unavailable-batch-{390,1240}.png`,
   `source-unavailable-dough-{390,1240}.png`; settled phone and desktop screenshots inspected.
+  New recovery views: `production-p3-workspace-{390,1240}.png`,
+  `production-p3-saved-{390,1240}.png`, `production-p3-device-copy-{390,1240}.png`.
+  The first shows two distinct work rows after reload; the second shows an acknowledged result with
+  stock unchecked; the third shows retained Review and Retry device copy with confirmation disabled.
+  Browser details: `production-p3-browser-checks.json`; full gate: `production-p3-final-verify.log`.
+  Live build: `production-p3-final-build.log` (exit0, 28 pages); exact-source final browser run:
+  `production-p3-browser-frozen.log` (exit0). Existing middleware/Sentry build warnings remain.
   These are synthetic local examples; remote agents need the images supplied separately.
 - Draft/retry identity, multiple production items and Events-first navigation already exist. Check Git
   before rebuilding them; old paragraphs in state files may describe earlier uncommitted checkpoints.
@@ -136,9 +163,28 @@ The source guard and fraction/date/history wording fixes are local, gate/browser
 live build passes 28 pages; required review remains pending.
 Dirty recipe-editor versus production-projection conflicts and positive ingredient-use detail still
 need careful reconciliation alongside the separate recipe-write problem; do not overwrite drafts.
-P3 must also reconcile a known-completed request left in an old projection: show its existing result,
-rather than leave it looking like new unsaved work when recipes are missing. Keep another editor intact.
-Acknowledgement toasts should identify their product when a different work item's form is open.
+P3 now clears only the acknowledged work's old projection and identifies product/batch in its toast;
+another open editor remains intact. Verify these paths alongside durable recovery before accepting it.
+From the rendered interface, use this exact walkthrough:
+
+1. Make → Start production → Double Chocolate Fudge → 24 planned → Continue. Enter 26 made,
+   2 rejects, and note “Keep tray A”. Review it; a lost reply must say Save result not confirmed.
+2. Leave for now, start a different product, then leave again. Make must show two distinct work rows
+   with product, Batch/Mix number and status; no row silently replaces the first.
+3. Reload. Both rows remain; no write fires. Continue the first: return to its retained Review with
+   26 made / 24 good / 2 rejects. Check saved result sends the **original** request, never a new batch.
+4. Open the same work in another tab: show read-only and a plain recovery message. Counts, recipe
+   adoption, confirmation and discard cannot change it there. Close the writing tab; Retry production
+   work must reread the latest device copy before enabling edits/checks.
+5. A confirmed reply removes only its row and adds its receipt. Reload: “Saved earlier. Stock has not
+   been checked.” Check recorded stock is read-only for the original drop; it cannot record again.
+6. Block device storage: preserve inputs, show Retry device copy, submit nothing new. Going offline
+   keeps the draft and says Connect to record production. Do not claim unsaved edits survived reload.
+7. Switch verified accounts during a save: the new owner sees only their own work. A late old reply
+   cannot replace their editor. Return to the first owner to reconcile that saved result, without posting.
+
+The batch note is a device draft, not a new database-history field. These are local recovery semantics;
+do not label them cross-device sync or promise browser data survives clearing site storage.
 For a confirmed missing recipe, finish a direct selected-product recipe setup path; Retry alone is
 useful for a failed read but cannot create a recipe. Retain the production draft and its return context.
 

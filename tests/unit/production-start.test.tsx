@@ -2,6 +2,7 @@ import { act } from 'react';
 import { cleanup, render } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { OpsRuntime } from '@/store/ops-runtime';
+import { bindProductionOwner } from './production-runtime-helpers';
 import { ALLERGENS, PRODUCTS, replaceFlavours } from '@/store/engine/ops-engine';
 
 vi.mock('@/lib/config/app-mode', () => ({ isLiveMode: () => true }));
@@ -122,6 +123,7 @@ async function mounted(ready = true, orders = true) {
     runtime.go('bake');
     runtime.setState({ dropNo: 5 });
   });
+  if (ready) await bindProductionOwner(runtime);
   if (ready)
     await act(async () => {
       await runtime.loadFlavours(client as never);
@@ -186,7 +188,12 @@ describe('owner production entry', () => {
     });
     expect(runtime.state.batch).toMatchObject({ actual: 18, rejects: 0, step: 1 });
     let reply!: (value: { data: unknown; error: null }) => void;
-    rpc.mockImplementationOnce(() => new Promise(resolve => { reply = resolve; }));
+    rpc.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          reply = resolve;
+        })
+    );
     act(() => runtime.renderVals().liveBatchCounts!.confirm());
     act(() => runtime.renderVals().liveBatchCounts!.setActual('30'));
     expect(runtime.state.batch).toMatchObject({ actual: 18 });
@@ -232,7 +239,8 @@ describe('owner production entry', () => {
             target: 12,
             actual: 11,
             rejects: 2,
-            step: 2, showUsed: true,
+            step: 2,
+            showUsed: true,
             note: 'Tray two',
             adj: { 'Bread flour': 1 }
           }
@@ -268,8 +276,15 @@ describe('owner production entry', () => {
       confirmBatch: () => void;
     };
     let reply!: (value: { data: unknown; error: null }) => void;
-    rpc.mockImplementationOnce(() => new Promise(resolve => { reply = resolve; }));
-    act(() => runtime.setState({ batch: { pid, target: 12, actual: 12, rejects: 0, adj: {} } } as never));
+    rpc.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          reply = resolve;
+        })
+    );
+    act(() =>
+      runtime.setState({ batch: { pid, target: 12, actual: 12, rejects: 0, adj: {} } } as never)
+    );
     act(() => engine.confirmBatch());
     act(() => engine.startBatch(pid));
     expect(runtime.state.batch).not.toBeNull();

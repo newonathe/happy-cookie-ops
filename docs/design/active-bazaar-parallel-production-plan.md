@@ -21,7 +21,16 @@ controlled RPC data: a second eligible product resumed the first batch; director
 the held event/cart but still drew the till. Neither consolidated nor classic till exposed Events.
 No stock, sale or other write was posted. Private receipt: saved-requirements-audit-checks.json.
 
-## Local implementation checkpoint, 3 November
+## Latest local checkpoint, 4 November
+
+P3 scoped device recovery is implemented locally and awaiting independent auth/offline review.
+The full gate passes 175 files / 2,873 tests + 2 existing TODOs. Eight responsive/motion browser flows
+cover reload without posting, exact request replay, tab takeover, storage failure and account/late-reply
+isolation. Live build passes 28 pages. Notes remain device drafts; saved stock is explicitly unchecked after
+reload. Read [the current Claude handoff](claude-ui-handoff.md) for changed files, visual walkthrough,
+review packet and unresolved work. P4 SQL concurrency/device/owner acceptance is still incomplete.
+
+### Historical checkpoint, 3 November — superseded by the newest status above
 
 Latest local draft supersedes the singleton checkpoint below: independent cookie/dough items now
 project into the legacy slots, with source/period snapshots, retained raw fields and per-item saves.

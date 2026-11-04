@@ -17,6 +17,7 @@ vi.mock('@/lib/offline/idb', () => ({
 vi.mock('@/lib/device', () => ({ deviceId: () => 'dev1' }));
 
 import { OpsRuntime } from '@/store/ops-runtime';
+import { bindProductionOwner } from './production-runtime-helpers';
 import { PRODUCTS } from '@/store/engine/ops-engine';
 import type { LiveHome } from '@/view-models/vals';
 import { HomeLive } from '@/components/live/home/home-live';
@@ -103,6 +104,7 @@ async function mounted(load: boolean) {
   render(<OpsRuntime ref={(r) => void (ref.current = r)} />);
   const runtime = ref.current!;
   act(() => runtime.setRole('owner'));
+  await bindProductionOwner(runtime);
   if (load)
     await act(async () => {
       await runtime.loadStockCatalogue({ rpc } as never);

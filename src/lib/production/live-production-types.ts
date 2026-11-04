@@ -9,14 +9,31 @@ export interface LiveProductionRecipeUpdate {
 }
 
 export interface LiveDoughPreparation {
-  id: string; name: string; photo: string; periodText: string; version: number | null;
-  balls: number; reviewing: boolean; saving: boolean; uncertain: boolean; sourceChanged: boolean;
+  id: string;
+  name: string;
+  photo: string;
+  periodText: string;
+  version: number | null;
+  balls: number;
+  reviewing: boolean;
+  saving: boolean;
+  uncertain: boolean;
+  sourceChanged: boolean;
   validAmount?: boolean;
-  sourceUnavailable?: boolean; retryRecipe?: () => void;
+  sourceUnavailable?: boolean;
+  retryRecipe?: () => void;
+  readOnly?: boolean;
+  connected?: boolean;
+  copyReady?: boolean;
+  retryCopy?: () => void;
   recipeUpdate?: LiveProductionRecipeUpdate | null;
   portions: Array<{ label: string; selected: boolean; choose: () => void }>;
   rows: Array<{ name: ReactNode; amountText: ReactNode; balanceText: string; short: boolean }>;
-  review: () => void; back: () => void; confirm: () => void; discard: () => void; close: () => void;
+  review: () => void;
+  back: () => void;
+  confirm: () => void;
+  discard: () => void;
+  close: () => void;
 }
 
 /** Unconfirmed counts travel with the open batch, including blank or invalid entries. */
@@ -30,7 +47,12 @@ export interface LiveBatchCounts {
   saving: boolean;
   uncertain?: boolean;
   sourceChanged?: boolean;
-  sourceUnavailable?: boolean; retryRecipe?: () => void;
+  sourceUnavailable?: boolean;
+  retryRecipe?: () => void;
+  readOnly?: boolean;
+  connected?: boolean;
+  copyReady?: boolean;
+  retryCopy?: () => void;
   recipeUpdate?: LiveProductionRecipeUpdate | null;
   setActual: (value: string) => void;
   setRejects: (value: string) => void;
@@ -60,13 +82,32 @@ export interface LiveProductionStart {
 
 /** Saved owner production and an unconfirmed entry point; recording stays in the existing action. */
 export interface LiveProductionReceipt {
-  id: string; name: string; kind: 'batch' | 'dough'; quantity: number; rejects: number;
-  dropNo: number; version: number; at: number; usedDough: number; shortfall: Shortfall[]; duplicate: boolean;
-  stockState: 'loading' | 'read' | 'failed'; inventoryReady: boolean;
-  balance: number | null; checkedAt: number | null; retry: () => void;
+  number?: number;
+  id: string;
+  name: string;
+  kind: 'batch' | 'dough';
+  quantity: number;
+  rejects: number;
+  dropNo: number;
+  version: number;
+  at: number;
+  usedDough: number;
+  shortfall: Shortfall[];
+  duplicate: boolean;
+  stockState: 'unread' | 'loading' | 'read' | 'failed';
+  inventoryReady: boolean;
+  balance: number | null;
+  checkedAt: number | null;
+  retry: () => void;
 }
 
 export interface LiveProductionVals {
+  recovery?: {
+    status: import('./recovery-session').ProductionRecoveryStatus;
+    retry: () => void;
+    setupPeriod: string | null;
+    resumeSetup: () => void;
+  };
   completed?: LiveProductionReceipt[];
   inProgress?: Array<{
     id: string; label: string; productId: string; kind: 'batch' | 'dough'; name: string; photo: string;

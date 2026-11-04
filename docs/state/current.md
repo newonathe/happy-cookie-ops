@@ -1,14 +1,14 @@
 # Current state — Happy Cookie Ops
 
-**Production source follow-up, 4 November:** local batch/dough confirmation now requires a saved
-recipe source; unavailable legacy launches keep drafts and offer Retry saved recipe. Canonical source
-comparison includes version/amounts/units/kind. Original unanswered requests remain exactly replayable;
-previously verified cached recipes remain usable after a failed refresh. Unknown dough portions stay
-hidden; unconfirmed work remains discardable. Tiny shortages retain fractions, same-day history uses
-one date and failure wording explicitly refers to history. 96 focused tests and 8 responsive/motion
-flows pass; full gate: 173 files / 2,854 tests + 2 existing TODOs pass; live build passes 28 pages.
-Earlier results and stock-only retry remain intact. Durable recovery/positive ingredient-use detail and
-required independent review remain incomplete. SQL/request/queue rules unchanged.
+**Production recovery P3, 4 November — local work in progress:** device copies now carry multiple
+drafts, source/version/drop, raw inputs, review step, exact unanswered requests and recent saved results.
+Binding requires the verified owner UID/backend; Web Locks make a second tab read-only. New submissions
+require a checked device copy and connection; restoring never posts. Late replies stay with their owner;
+saved results restore with stock explicitly unchecked. Setup is retained. Prior saved-source guards,
+per-item receipts and original-drop read retry remain. Full gate: 175 files / 2,873 tests + 2 existing
+TODOs pass; eight responsive/motion browser flows and live build (28 pages) pass. Independent review is pending.
+Positive ingredient-use detail, missing-recipe setup and the full application remain incomplete.
+No SQL/request classification/queue rule, hosted record or protected port was changed.
 Source/test details and visible examples are in the [Claude UI handoff](../design/claude-ui-handoff.md).
 The newest blocks override historical “next bug” and uncommitted-status descriptions below.
 
@@ -23,7 +23,7 @@ These are local changes; required independent review is not replaced with self-r
 mode via new live slots (`live/home`, `live/money`, page-mode settings forms) and a shared kit
 (`ui/owner-kit.tsx`). Owner Shop feedback done; sampler flavours added as local migration 71 (hosted
 apply awaits approval). Lossless record and feedback status: [capability ledger](../design/capability-ledger.md).
-Ethan lifted the browser guard and accepted a Sonnet reviewer (AGENTS.md). Next: Sell orders/payments/
+The current Windows guard permits headless CLI checks only. Next: Sell orders/payments/
 customers, Shop status/methods/texts, Account, section Settings buttons, production results bug.
 
 **Earlier Codex checkpoint (before accepted c51401f/273de7d):** Full actual-app goal remains incomplete.
