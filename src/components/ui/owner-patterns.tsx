@@ -1,9 +1,9 @@
 'use client';
 
-import type { ReactNode } from 'react';
+import { useEffect, type ReactNode } from 'react';
 import { Button } from './button';
 import { cx } from './cx';
-import { Panel, TaskRow } from './owner-kit';
+import { PageTitle, Panel, TaskRow } from './owner-kit';
 
 /**
  * The repeated row, filter and tracker patterns of the v4 reference, built once so pages only say
@@ -137,6 +137,33 @@ export function StackedBar({ parts, legend = true }: { parts: BarPart[]; legend?
 }
 
 /** The reference's confirm step: what will be saved, the way back, and one action that saves. */
+/** A record that is not here, and the way back. Nothing typed elsewhere is lost. */
+export function RecordUnavailable({
+  backLabel = 'Return to the list',
+  onBack
+}: {
+  backLabel?: string;
+  onBack?: () => void;
+}) {
+  return (
+    <div className="w-full">
+      <PageTitle title="Record unavailable" subtitle="Your current work is kept." />
+      <Panel>
+        <p className="text-caption text-ink-soft">
+          This record is not available. It may have been removed, or it could not be read.
+        </p>
+        {onBack ? (
+          <div className="mt-4">
+            <Button variant="secondary" onClick={onBack}>
+              {backLabel}
+            </Button>
+          </div>
+        ) : null}
+      </Panel>
+    </div>
+  );
+}
+
 export function ReviewPanel({
   children,
   note,
@@ -154,6 +181,10 @@ export function ReviewPanel({
   onSave: () => void;
   saving?: boolean;
 }) {
+  // A long form's button sits far down the page: Review starts at the top, with its title in view.
+  useEffect(() => {
+    if (window.scrollY > 0) window.scrollTo(0, 0);
+  }, []);
   return (
     <Panel>
       {children}

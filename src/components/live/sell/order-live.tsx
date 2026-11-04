@@ -5,6 +5,7 @@ import { s } from '@/lib/css';
 import { Button } from '@/components/ui/button';
 import { cx } from '@/components/ui/cx';
 import { PageTitle, Panel, SectionHeading } from '@/components/ui/owner-kit';
+import { RecordUnavailable } from '@/components/ui/owner-patterns';
 import { OrderPill } from './sell-shared';
 
 type Order = NonNullable<OpsVals['od']>;
@@ -158,12 +159,7 @@ function Progress({ od }: { od: Order }) {
  */
 export function OrderLive({ v }: { v: OpsVals }) {
   const od = v.od;
-  if (!od)
-    return (
-      <div className="w-full">
-        <PageTitle title="Order" subtitle="This order could not be found." />
-      </div>
-    );
+  if (!od) return <RecordUnavailable backLabel="Back to orders" onBack={() => v.goBack()} />;
   return (
     <div className="w-full max-w-[860px]">
       <PageTitle
