@@ -9,7 +9,6 @@ import { FooterActions, PageTitle, Panel, SectionHeading } from '@/components/ui
 import { FactRow, OpenRow } from '@/components/ui/owner-patterns';
 import { saleLines } from '@/lib/bazaar/sale-lines';
 import { TillCard } from './till-card';
-import { StatusPill } from '@/components/ui/status-pill';
 import { TillPanelPage, TillBack } from './till-bar';
 
 type Till = NonNullable<OpsVals['liveTill']>;
@@ -130,9 +129,11 @@ export function ConsolidatedTill({
           />
         </div>
 
-        <div className="lg:col-span-2">
-          <SaleStatus v={v} />
-        </div>
+        {v.syncBanner ? (
+          <div className="lg:col-span-2">
+            <SyncNotice v={v} />
+          </div>
+        ) : null}
 
         <section
           aria-label="Cookies on the table"
@@ -211,32 +212,33 @@ export function ConsolidatedTill({
           className="overflow-hidden rounded-card border border-line bg-surface lg:col-span-2 lg:row-start-4"
         >
           <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 border-b border-divide px-4 py-3">
-            <h2 className="text-[15px] font-semibold text-ink">
-              Sales today
-              {sales.length ? (
-                <span className="ml-2 text-caption font-normal text-ink-mute">
-                  {v.bzSalesCount} ·{' '}
-                  <span className="font-semibold text-ink tabular-nums">{v.bzRevenue}</span>
-                </span>
-              ) : null}
-            </h2>
+            <h2 className="text-[15px] font-semibold text-ink">Sales today</h2>
             <span className="text-caption text-ink-mute">
               {sales.length ? 'Tap a sale for its receipt' : 'No sales yet'}
             </span>
           </div>
           {sales.length ? (
-            <div
-              aria-hidden="true"
-              className={`hidden gap-x-3 border-b border-divide px-4 py-2 text-caption font-semibold text-ink-mute lg:grid ${SALE_COLUMNS}`}
-            >
-              <span>Sale</span>
-              <span>Paid by</span>
-              <span>Status</span>
-              <span className="text-right">Total</span>
-            </div>
+            <>
+              <SalesFigures v={v} sales={sales} />
+              <div
+                aria-hidden="true"
+                className={`hidden gap-x-4 border-b border-divide bg-raise px-4 py-2 text-caption font-semibold text-ink-mute lg:grid ${SALE_COLUMNS}`}
+              >
+                <span>Sale</span>
+                <span>Cookies</span>
+                <span>Payment</span>
+                <span>Status</span>
+                <span className="text-right">Total</span>
+              </div>
+            </>
           ) : null}
           {shown.map((sl, i) => (
-            <SaleRow key={i} sale={sl} open={() => setSaleFromOldest(sales.length - 1 - i)} />
+            <SaleRow
+              key={i}
+              sale={sl}
+              number={sales.length - i}
+              open={() => setSaleFromOldest(sales.length - 1 - i)}
+            />
           ))}
           {sales.length > SALES_SHOWN ? (
             <button
@@ -450,32 +452,28 @@ function TillSettings({
 }
 
 /** Selling, the day's count and takings, and the sync line with its "Sync now" (never hidden behind a tap). */
-function SaleStatus({ v }: { v: OpsVals }) {
+/** Only when sales are waiting, failed or offline: the sale records must never look safer than they are. */
+function SyncNotice({ v }: { v: OpsVals }) {
   return (
-    <div className="flex flex-wrap items-center gap-2.5 rounded-control border border-line bg-surface px-3 py-2.5">
-      <StatusPill status="selling" />
-      <span className="flex-1 text-caption text-ink-soft">
-        {v.bzSalesCount} · <span className="font-bold text-ink tabular-nums">{v.bzRevenue}</span>
+    <div
+      role="status"
+      className="flex flex-wrap items-center gap-2.5 rounded-control border border-line bg-surface px-3 py-2.5"
+    >
+      {v.syncing ? (
+        <span
+          aria-hidden="true"
+          className="size-4 shrink-0 animate-spin rounded-full border-2 border-line-mute border-t-accent"
+        />
+      ) : null}
+      <span
+        className={`flex-1 text-caption font-semibold ${v.syncPartial ? 'text-danger' : v.syncDone ? 'text-ok' : 'text-ink'}`}
+      >
+        {v.syncText}
       </span>
-      {v.syncBanner ? (
-        <span role="status" className="flex basis-full items-center gap-2.5">
-          {v.syncing ? (
-            <span
-              aria-hidden="true"
-              className="size-4 shrink-0 animate-spin rounded-full border-2 border-line-mute border-t-accent"
-            />
-          ) : null}
-          <span
-            className={`flex-1 text-caption font-semibold ${v.syncPartial ? 'text-danger' : v.syncDone ? 'text-ok' : 'text-ink'}`}
-          >
-            {v.syncText}
-          </span>
-          {v.unsynced ? (
-            <Button variant="secondary" size="sm" onClick={v.syncNow}>
-              Sync now
-            </Button>
-          ) : null}
-        </span>
+      {v.unsynced ? (
+        <Button variant="secondary" size="sm" onClick={v.syncNow}>
+          Sync now
+        </Button>
       ) : null}
     </div>
   );
@@ -492,25 +490,61 @@ function SaleMeta({ sale }: { sale: Sale }) {
 }
 
 /** The columns of Sales today, on its header and on every row. */
-const SALE_COLUMNS = 'lg:grid-cols-[minmax(0,1fr)_200px_96px_96px]';
+const SALE_COLUMNS = 'lg:grid-cols-[104px_minmax(0,1fr)_180px_96px_96px]';
+
+/** The day at a glance: what came in, how many sales and cookies, and how it was paid. Every peso is the engine's. */
+function SalesFigures({ v, sales }: { v: OpsVals; sales: Sale[] }) {
+  const cookies = sales.reduce(
+    (sum, sale) => sum + saleLines(String(sale.summary ?? '')).reduce((t, line) => t + line.qty, 0),
+    0
+  );
+  const figures = [
+    { label: 'Total', value: v.bzRevenue },
+    { label: 'Sales', value: sales.length },
+    { label: 'Cookies', value: cookies },
+    ...(sales.some((sale) => sale.pay === 'Cash')
+      ? [{ label: 'Cash', value: v.drawerCashText }]
+      : []),
+    ...(v.digitalTotals ?? []).map((d) => ({ label: d.pay, value: d.totalText }))
+  ];
+  return (
+    <dl className="flex flex-wrap gap-x-8 gap-y-3 border-b border-divide px-4 py-3">
+      {figures.map((figure) => (
+        <div key={String(figure.label)} className="flex flex-col">
+          <dt className="text-caption text-ink-mute">{figure.label}</dt>
+          <dd className="text-[17px] font-semibold text-ink tabular-nums">{figure.value}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
 
 /**
- * One sale: the row opens its receipt. A sale that could not be sent keeps "Send again" under it, so its
- * columns stay in line with the others.
+ * One sale as a record: which sale and who sold it, its cookies one per line, how it was paid, whether it reached the
+ * server, and its total. The row opens its receipt. A sale that could not be sent keeps "Send again" under it.
  */
-function SaleRow({ sale, open }: { sale: Sale; open: () => void }) {
+function SaleRow({ sale, number, open }: { sale: Sale; number: number; open: () => void }) {
   const lines = saleLines(String(sale.summary ?? ''));
   return (
     <div data-part="sale" className="border-b border-divide last:border-b-0">
       <button
         type="button"
         onClick={open}
-        className={`grid min-h-11 w-full grid-cols-[minmax(0,1fr)_auto] items-start gap-x-3 gap-y-1 px-4 py-3 text-left hover:bg-raise focus-visible:outline-2 focus-visible:outline-brand ${SALE_COLUMNS}`}
+        className={`grid min-h-11 w-full grid-cols-[minmax(0,1fr)_auto] items-start gap-x-4 gap-y-2 px-4 py-3 text-left hover:bg-raise focus-visible:outline-2 focus-visible:outline-brand ${SALE_COLUMNS}`}
       >
-        <span className="grid min-w-0 grid-cols-[repeat(auto-fill,minmax(min(100%,190px),1fr))] gap-x-4 gap-y-1">
+        <span className="col-start-1 row-start-1 flex min-w-0 flex-wrap items-baseline gap-x-2 lg:col-start-auto lg:row-start-auto lg:flex-col">
+          <span className="text-[14px] font-semibold text-ink">Sale {number}</span>
+          {sale.clerk ? (
+            <>
+              {' '}
+              <span className="min-w-0 text-caption text-ink-mute">{sale.clerk}</span>
+            </>
+          ) : null}
+        </span>
+        <span className="col-span-2 row-start-2 flex min-w-0 flex-col gap-1 lg:col-span-1 lg:row-start-auto">
           {lines.length ? (
             lines.map((line, i) => (
-              <span key={i} className="flex min-w-0 items-baseline gap-1.5 text-[14px] text-ink">
+              <span key={i} className="flex min-w-0 items-baseline gap-2 text-[14px] text-ink">
                 <span className="w-6 shrink-0 font-semibold tabular-nums">{line.qty}×</span>{' '}
                 <span className="min-w-0">{line.name}</span>
               </span>
@@ -519,20 +553,26 @@ function SaleRow({ sale, open }: { sale: Sale; open: () => void }) {
             <span className="text-[14px] text-ink-mute">No cookies</span>
           )}
         </span>
-        <span className="col-start-1 row-start-2 min-w-0 text-caption text-ink-mute lg:col-start-auto lg:row-start-auto">
-          <SaleMeta sale={sale} />
+        <span className="col-start-1 row-start-3 flex min-w-0 flex-wrap items-baseline gap-x-2 lg:col-start-auto lg:row-start-auto lg:flex-col">
+          <span className="text-[14px] text-ink">{sale.pay}</span>
+          {sale.refText ? (
+            <>
+              {' '}
+              <span className="min-w-0 text-caption text-ink-mute">{sale.refText}</span>
+            </>
+          ) : null}
         </span>
         <span
-          className={`col-start-2 row-start-2 text-right text-caption font-semibold lg:col-start-auto lg:row-start-auto lg:text-left ${sale.bad ? 'text-danger' : sale.ok ? 'text-ok' : 'text-ink-soft'}`}
+          className={`col-start-2 row-start-3 text-right text-caption leading-5 font-semibold lg:col-start-auto lg:row-start-auto lg:text-left ${sale.bad ? 'text-danger' : sale.ok ? 'text-ok' : 'text-ink-soft'}`}
         >
           {sale.stateText}
         </span>
-        <span className="col-start-2 row-start-1 text-right text-[14px] font-semibold text-ink tabular-nums lg:col-start-auto lg:row-start-auto">
+        <span className="col-start-2 row-start-1 text-right text-[15px] font-semibold text-ink tabular-nums lg:col-start-auto lg:row-start-auto">
           {sale.totalText}
         </span>
       </button>
       {sale.bad ? (
-        <div className="flex justify-end px-4 pb-2">
+        <div className="flex justify-end px-4 pb-3">
           <Button variant="danger" size="sm" onClick={sale.retry}>
             Send again
           </Button>
