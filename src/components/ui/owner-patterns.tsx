@@ -86,11 +86,9 @@ export function OpenRow({
     <TaskRow
       title={title}
       detail={detail}
-      action={
-        <Button variant="secondary" onClick={onOpen}>
-          {label}
-          <span className="sr-only"> {title}</span>
-        </Button>
+      onOpen={onOpen}
+      openLabel={
+        typeof title === 'string' && typeof label === 'string' ? `${label} ${title}` : undefined
       }
     />
   );

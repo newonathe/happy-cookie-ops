@@ -225,9 +225,6 @@ function ItemPage({ stock, page }: { stock: LiveStockVals; page: StockItemPage }
   if (item.lastPaidText !== null) facts.push(['Latest purchase', item.lastPaidText]);
   return (
     <>
-      <Button variant="ghost" className="self-start" onClick={page.close}>
-        <span aria-hidden="true">←</span>Back to inventory
-      </Button>
       <header className={styles.title}>
         <div>
           <h1>{item.name}</h1>

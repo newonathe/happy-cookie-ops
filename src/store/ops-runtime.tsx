@@ -932,7 +932,10 @@ export class OpsRuntime extends OpsProvider {
           this.openProductionWork(work.id, work.revision);
         }
       })),
-    flavourCount: () => PRODUCTS.length,
+    flavourCount: () =>
+      PRODUCTS.filter(
+        (p) => (this.state.dropActive as Record<string, boolean> | undefined)?.[p.id] !== false
+      ).length,
     greeting: () => this.homeGreeting.greeting,
     dateText: () => this.homeGreeting.date,
     openStockItem: (id) => {
@@ -3207,6 +3210,9 @@ export class OpsRuntime extends OpsProvider {
         ? { exportNow: () => this.toast('Only the owner can export the books.', 'warn') }
         : {}),
       liveStockItems: this.liveStockItemsVals(),
+      quickActions: (vals.quickActions ?? []).map((action) =>
+        action.label === 'Record a purchase' ? { ...action, label: 'Add to inventory' } : action
+      ),
       liveStock: this.liveStockVals(),
       liveBazaar:
         isLiveMode() && this.state.role === 'owner'
@@ -3253,7 +3259,11 @@ export class OpsRuntime extends OpsProvider {
       liveLookup: this.liveLookupVals(),
       liveWaitlist: this.liveWaitlistVals(),
       shopFooter: this.shopFooterVals(),
-      shopFlavours: this.liveShopSampler(starved.shopFlavours),
+      shopFlavours: this.liveShopSampler(starved.shopFlavours).map((flavour) =>
+        /confirmation required/i.test(String(flavour.allergens))
+          ? { ...flavour, allergens: 'Allergens: please ask us before ordering.' }
+          : flavour
+      ),
       // MP-09 c1b: until the published menu is read, a customer page shows no flavours
       // (the engine still holds the ported list, which is not the owner's menu).
       ...(CUSTOMER_SCREENS.includes(this.state.screen as ScreenKey) &&

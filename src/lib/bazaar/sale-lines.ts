@@ -10,10 +10,15 @@ export interface SaleLine {
  * count, so a comma inside a cookie's name stays in that name.
  */
 export function saleLines(summary: string): SaleLine[] {
-  return summary.split(/, (?=\d+× )/).flatMap((part) => {
-    const match = /^(\d+)× (.+)$/s.exec(part);
+  return summary.split(/, (?=\d+×? )/).flatMap((part) => {
+    const match = /^(\d+)×? (.+)$/s.exec(part);
     if (!match) return [];
     const qty = Number(match[1]);
     return qty > 0 ? [{ qty, name: match[2]! }] : [];
   });
+}
+
+/** A sale's name for the owner. The database names a stall sale after its device id, which means nothing to her. */
+export function saleName(label: unknown): string {
+  return /^stall sale\b/i.test(String(label ?? '')) ? 'Bazaar sale' : String(label ?? '');
 }
