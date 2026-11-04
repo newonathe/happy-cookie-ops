@@ -26,9 +26,7 @@
   gap: 30px;
   padding: 22px 12px 16px;
   border-right: 1px solid var(--color-line);
-  background: var(--color-owner-glass);
-  -webkit-backdrop-filter: blur(20px) saturate(1.1);
-  backdrop-filter: blur(20px) saturate(1.1);
+  background: var(--color-surface);
 }
 .brand {
   display: flex;
@@ -122,9 +120,7 @@
   padding: 10px 24px;
   gap: 12px;
   border-bottom: 1px solid var(--color-line);
-  background: var(--color-owner-glass);
-  -webkit-backdrop-filter: blur(18px) saturate(1.1);
-  backdrop-filter: blur(18px) saturate(1.1);
+  background: var(--color-surface);
 }
 .location {
   display: flex;

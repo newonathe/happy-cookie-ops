@@ -4,6 +4,8 @@
 neutral Happy Cookie identity, purposeful hierarchy, practical visual trackers and contextual
 automation. Implement the actual app; the entire goal remains incomplete.
 
+**Now: [the client review](../design/client-meeting-2026-11-04.md), slice by slice.**
+
 ## Entry point for every agent
 
 Start at the repo root. Read AGENTS.md, current.md, this file,
@@ -19,8 +21,7 @@ Codex owns the checkout again (Ethan,5November); integrated7b8e819. Include [new
 
 Accepted c51401f/273de7d include independent cookie/dough drafts, retained inputs, per-item saving,
 own-item acknowledgements, Events-first navigation and return context. f57d278/92851aa add the v4
-Home/Money/Shop work and sampler migration (local only). Prior synthetic browser proof is in private
-LIVE-CHECKPOINT; it is not SQL/device acceptance. Do not reimplement the four Codex follow-ups.
+Home/Money/Shop work and sampler migration (local only). Do not reimplement the four Codex follow-ups.
 P2 results/source guards remain local. P3 scoped device recovery is locally verified: owner UID/backend,
 single-tab writing, multiple drafts/exact pending requests, no automatic posting, retained setup and
 saved results with stock unchecked. Full gate:175files/2873tests+2TODOs; eight browser flows pass.

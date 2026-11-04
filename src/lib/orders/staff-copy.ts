@@ -23,8 +23,8 @@ export const STAFF_COPY = {
   rejected: 'Payment rejected. The order is cancelled and its slots are free again.',
   reopened: 'Back in your review queue.',
   packed: (first: string): string => `${first}’s order is packed and ready.`,
-  collected: (first: string): string => `${first}’s order is marked collected.`,
-  noShow: (first: string): string => `${first} did not collect. The order stays paid.`,
+  collected: (first: string): string => `${first}’s order is picked up.`,
+  noShow: (first: string): string => `${first} did not pick up. The order stays paid.`,
   refunded: (amount: string): string => `${amount} refund recorded. The order is cancelled.`,
   settled: (first: string): string => `Balance settled. ${first}’s order is fully paid.`,
   flagged: (flavour: string, first: string): string =>

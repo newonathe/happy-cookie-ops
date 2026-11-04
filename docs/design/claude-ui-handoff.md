@@ -321,3 +321,7 @@ acknowledged result shows the recorded quantity; a failed stock refresh says so 
 Name the actual source of each shown number and test the failure path. Do not label this example as
 implemented until that full interaction is verified. Keep the correction, files, checks and unresolved
 states in the shared handoff so another agent can continue without access to this chat.
+
+## 5 November: the client review comes first
+
+The owner reviewed the portal on a recorded call. Every finding, what she actually does, why these errors happened and the slice plan are in [client-meeting-2026-11-04.md](client-meeting-2026-11-04.md). Rules for any visible change are in [ui-review-standard.md](ui-review-standard.md), and `tests/unit/ui-language.test.ts` enforces the word list. Update the status column as each row lands. The customer list (CRM) is out of scope: listed there, not to be built yet.

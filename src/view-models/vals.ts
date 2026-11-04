@@ -1273,6 +1273,10 @@ export interface OpsVals {
     n: React.ReactNode;
   }>;
   orderList: Array<{
+    /** Opens the full order. */
+    go: (event?: unknown) => void;
+    /** The order is waiting for its payment to be checked. */
+    review: unknown;
     act: (event?: unknown) => void;
     action: React.ReactNode | null;
     bg: string | number;
