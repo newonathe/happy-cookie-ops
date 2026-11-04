@@ -75,14 +75,14 @@ function FlavourList({ liveForm }: { liveForm: NonNullable<OpsVals['liveForm']> 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
       {!liveForm.online ? (
-        <span style={{ fontSize: '12px', color: '#A8231B' }}>
+        <span style={{ fontSize: '12px', color: 'var(--color-danger)' }}>
           Offline. Changes here will not save until this device is back online.
         </span>
       ) : null}
       <button onClick={liveForm.publish} style={primaryButton}>
         Publish menu
       </button>
-      <span style={{ fontSize: '11px', color: '#66524A' }}>
+      <span style={{ fontSize: '11px', color: 'var(--color-ink-mute)' }}>
         Customers see every flavour still on the order form as soon as you publish.
       </span>
       <button onClick={liveForm.addNew} style={secondaryButton}>
@@ -100,7 +100,7 @@ function FlavourList({ liveForm }: { liveForm: NonNullable<OpsVals['liveForm']> 
                 gap: '10px',
                 minHeight: '54px',
                 border: '0',
-                borderBottom: '1px solid #F2EEEB',
+                borderBottom: '1px solid var(--color-divide)',
                 background: 'transparent',
                 padding: '8px 2px',
                 textAlign: 'left'
@@ -108,7 +108,7 @@ function FlavourList({ liveForm }: { liveForm: NonNullable<OpsVals['liveForm']> 
             >
               <span style={{ flex: '1', minWidth: '0', display: 'flex', flexDirection: 'column' }}>
                 <span style={{ fontSize: '13px', fontWeight: 600 }}>{row.name}</span>
-                <span style={{ fontSize: '11px', color: '#66524A' }}>
+                <span style={{ fontSize: '11px', color: 'var(--color-ink-mute)' }}>
                   {row.published ? 'Published' : 'Draft, not published'} ·{' '}
                   {row.active ? 'on the order form' : 'off the order form'}
                 </span>
@@ -122,7 +122,7 @@ function FlavourList({ liveForm }: { liveForm: NonNullable<OpsVals['liveForm']> 
           ))}
         </div>
       ) : (
-        <span style={{ fontSize: '12px', color: '#66524A' }}>No flavours loaded yet.</span>
+        <span style={{ fontSize: '12px', color: 'var(--color-ink-mute)' }}>No flavours loaded yet.</span>
       )}
     </div>
   );

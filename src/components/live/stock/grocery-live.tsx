@@ -122,7 +122,7 @@ export function GroceryLive({ v }: { v: OpsVals }) {
         }
       />
       <div className="mb-4">
-        <SectionNavigation v={v} refined />
+        <SectionNavigation v={v} refined tools={false} />
       </div>
       <OfflineLine online={stock.online} />
       <section aria-label="Totals">

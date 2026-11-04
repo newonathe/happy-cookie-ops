@@ -131,8 +131,9 @@ describe('the day review', () => {
     expect(screen.getByText('Katipunan market')).toBeTruthy();
     expect(screen.getByText('Selling')).toBeTruthy();
     expect(screen.getByRole('status').textContent).toBe('Selling on another phone.');
-    expect(screen.getByText('20 made · 8 carried over')).toBeTruthy();
-    expect(screen.getByText('5 sold · 1 given away · 1 lost')).toBeTruthy();
+    expect(
+      screen.getByText('20 made · 8 carried over · 5 sold · 1 given away · 1 lost')
+    ).toBeTruthy();
     expect(screen.getAllByText('Should be left: 21')).toHaveLength(2);
     expect(screen.getByText(/Dropped/)).toBeTruthy();
   });

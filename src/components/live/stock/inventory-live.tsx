@@ -325,7 +325,7 @@ export function InventoryLive({ v }: { v: OpsVals }) {
               </>
             }
           />
-          <SectionNavigation v={v} refined />
+          <SectionNavigation v={v} refined tools={false} />
           {stock ? (
             <div className={styles.actions}>
               {stock.openReceive ? (

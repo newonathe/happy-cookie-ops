@@ -15,7 +15,7 @@ const card = {
   display: 'flex',
   flexDirection: 'column' as const,
   gap: '8px',
-  border: '1px solid #E7E1DC',
+  border: '1px solid var(--color-line-strong)',
   borderRadius: '12px',
   padding: '11px'
 };
@@ -37,11 +37,11 @@ export function BooksForm({ liveBooks }: { liveBooks: LiveBooks }) {
   };
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-      {!online ? <span style={{ fontSize: '12px', color: '#A8231B' }}>{C.offline}</span> : null}
+      {!online ? <span style={{ fontSize: '12px', color: 'var(--color-danger)' }}>{C.offline}</span> : null}
       {held.length ? (
         <div style={card}>
           <span style={smallLabel}>{C.heldTitle}</span>
-          <span style={{ fontSize: '12px', color: '#66524A' }}>{C.heldNote}</span>
+          <span style={{ fontSize: '12px', color: 'var(--color-ink-mute)' }}>{C.heldNote}</span>
           {held.map((h) => (
             <div
               key={h.id}
@@ -49,11 +49,11 @@ export function BooksForm({ liveBooks }: { liveBooks: LiveBooks }) {
                 display: 'flex',
                 flexDirection: 'column',
                 fontSize: '12px',
-                color: '#3A1F14'
+                color: 'var(--color-ink)'
               }}
             >
               <span style={{ fontWeight: 600 }}>{h.name}</span>
-              <span style={{ color: '#66524A' }}>{h.detail}</span>
+              <span style={{ color: 'var(--color-ink-mute)' }}>{h.detail}</span>
             </div>
           ))}
         </div>
@@ -61,7 +61,7 @@ export function BooksForm({ liveBooks }: { liveBooks: LiveBooks }) {
       {unpaid ? (
         <div style={card}>
           <span style={smallLabel}>{C.unpaidTitle}</span>
-          <span style={{ fontSize: '13px', fontWeight: 600, color: '#3A1F14' }}>
+          <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-ink)' }}>
             {unpaid.summary}
           </span>
           {unpaid.rows.map((r) => (
@@ -72,12 +72,12 @@ export function BooksForm({ liveBooks }: { liveBooks: LiveBooks }) {
                 justifyContent: 'space-between',
                 gap: '10px',
                 fontSize: '12px',
-                color: '#3A1F14'
+                color: 'var(--color-ink)'
               }}
             >
               <span style={{ display: 'flex', flexDirection: 'column' }}>
                 <span style={{ fontWeight: 600 }}>{r.title}</span>
-                <span style={{ color: '#66524A' }}>{r.detail}</span>
+                <span style={{ color: 'var(--color-ink-mute)' }}>{r.detail}</span>
               </span>
               <span style={{ fontWeight: 600 }}>{r.amount}</span>
             </div>
@@ -87,7 +87,7 @@ export function BooksForm({ liveBooks }: { liveBooks: LiveBooks }) {
       {uncosted.length ? (
         <div style={card}>
           <span style={smallLabel}>{C.uncostedTitle}</span>
-          <span style={{ fontSize: '12px', color: '#66524A' }}>{C.uncostedNote}</span>
+          <span style={{ fontSize: '12px', color: 'var(--color-ink-mute)' }}>{C.uncostedNote}</span>
           {uncosted.map((u) => (
             <div
               key={u.id}
@@ -95,18 +95,18 @@ export function BooksForm({ liveBooks }: { liveBooks: LiveBooks }) {
                 display: 'flex',
                 flexDirection: 'column',
                 fontSize: '12px',
-                color: '#3A1F14'
+                color: 'var(--color-ink)'
               }}
             >
               <span style={{ fontWeight: 600 }}>{u.item}</span>
-              <span style={{ color: '#66524A' }}>{u.detail}</span>
+              <span style={{ color: 'var(--color-ink-mute)' }}>{u.detail}</span>
             </div>
           ))}
         </div>
       ) : null}
       <div style={card}>
         <span style={smallLabel}>{C.basisTitle}</span>
-        <span style={{ fontSize: '12px', color: '#66524A' }}>{C.basisNote}</span>
+        <span style={{ fontSize: '12px', color: 'var(--color-ink-mute)' }}>{C.basisNote}</span>
         {(['bought', 'used'] as const).map((b) => (
           <button
             key={b}
@@ -122,7 +122,7 @@ export function BooksForm({ liveBooks }: { liveBooks: LiveBooks }) {
       </div>
       <form onSubmit={onCorrect} style={card}>
         <span style={smallLabel}>{C.correctTitle}</span>
-        <span style={{ fontSize: '12px', color: '#66524A' }}>{C.correctNote}</span>
+        <span style={{ fontSize: '12px', color: 'var(--color-ink-mute)' }}>{C.correctNote}</span>
         {receipts.length ? (
           <>
             <label style={labelStyle}>
@@ -151,12 +151,12 @@ export function BooksForm({ liveBooks }: { liveBooks: LiveBooks }) {
             </button>
           </>
         ) : (
-          <span style={{ fontSize: '12px', color: '#66524A' }}>{C.noReceipts}</span>
+          <span style={{ fontSize: '12px', color: 'var(--color-ink-mute)' }}>{C.noReceipts}</span>
         )}
       </form>
       <div style={card}>
         <span style={smallLabel}>{C.downloadTitle}</span>
-        <span style={{ fontSize: '12px', color: '#66524A' }}>{C.downloadNote}</span>
+        <span style={{ fontSize: '12px', color: 'var(--color-ink-mute)' }}>{C.downloadNote}</span>
         <button
           type="button"
           disabled={!online}
