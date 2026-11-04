@@ -4,14 +4,31 @@ import type { OpsVals } from '@/view-models/vals';
 import type { TillPanelView } from '@/lib/bazaar/live-bazaar-types';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
+import { PageTitle } from '@/components/ui/owner-kit';
 
 export function TillBack({ onBack }: { onBack: () => void }) {
-  return <Button size="sm" variant="ghost" onClick={onBack} aria-label="Back to events" title="Back to events">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
-      <path d="m15 18-6-6 6-6" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-    Back
-  </Button>;
+  return (
+    <Button
+      size="sm"
+      variant="ghost"
+      onClick={onBack}
+      aria-label="Back to events"
+      title="Back to events"
+    >
+      <svg
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        aria-hidden="true"
+      >
+        <path d="m15 18-6-6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+      Back
+    </Button>
+  );
 }
 import { Sheet } from '@/components/ui/sheet';
 import { mutedStyle, textStyle } from '@/components/live/stock/stock-shared';
@@ -34,10 +51,7 @@ export function TillBar({
   till: Till | null | undefined;
   panel: TillPanelView | null | undefined;
 }) {
-  if (!till)
-    return events ? (
-        <TillBack onBack={events} />
-    ) : null;
+  if (!till) return events ? <TillBack onBack={events} /> : null;
   const hasControls =
     events || till.home || till.soldOutCount > 0 || till.addCookies || till.classic;
   return (
@@ -88,12 +102,41 @@ export function TillBar({
   );
 }
 
-/** The fee form or the add-cookies form, over the till. The day is read when it opens; closing leaves the till as it was. */
+function TillPanelBody({ panel }: { panel: TillPanelView }) {
+  if (panel.status === 'loading')
+    return (
+      <p aria-live="polite" style={mutedStyle}>
+        Reading this day…
+      </p>
+    );
+  if (panel.status === 'failed')
+    return (
+      <div className="flex flex-col gap-2">
+        <p role="alert" style={textStyle}>
+          This day could not be read. Check the signal and try again.
+        </p>
+        <Button variant="secondary" onClick={panel.retry}>
+          Try again
+        </Button>
+      </div>
+    );
+  if (panel.kind === 'fees' && panel.event) return <FeesSection event={panel.event} />;
+  if (panel.stock)
+    return (
+      <StockForm
+        flavours={panel.stock.flavours}
+        canAddCarried={panel.stock.canAddCarried}
+        addStock={panel.stock.addStock}
+      />
+    );
+  return null;
+}
+
+/** The fee form or the add-cookies form, over the classic till. The day is read when it opens; closing leaves the till as it was. */
 export function TillPanel({ panel }: { panel: TillPanelView }) {
-  const fees = panel.kind === 'fees';
   return (
     <Sheet
-      title={fees ? 'Event fees' : 'Add cookies'}
+      title={panel.kind === 'fees' ? 'Event fees' : 'Add cookies'}
       onClose={panel.close}
       footer={
         <Button variant="secondary" onClick={panel.close}>
@@ -101,28 +144,28 @@ export function TillPanel({ panel }: { panel: TillPanelView }) {
         </Button>
       }
     >
-      {panel.status === 'loading' ? (
-        <p aria-live="polite" style={mutedStyle}>
-          Reading this day…
-        </p>
-      ) : panel.status === 'failed' ? (
-        <div className="flex flex-col gap-2">
-          <p role="alert" style={textStyle}>
-            This day could not be read. Check the signal and try again.
-          </p>
-          <Button variant="secondary" onClick={panel.retry}>
-            Try again
-          </Button>
-        </div>
-      ) : fees && panel.event ? (
-        <FeesSection event={panel.event} />
-      ) : panel.stock ? (
-        <StockForm
-          flavours={panel.stock.flavours}
-          canAddCarried={panel.stock.canAddCarried}
-          addStock={panel.stock.addStock}
-        />
-      ) : null}
+      <TillPanelBody panel={panel} />
     </Sheet>
+  );
+}
+
+/** The same forms as a page of the new till. */
+export function TillPanelPage({ panel }: { panel: TillPanelView }) {
+  const fees = panel.kind === 'fees';
+  return (
+    <section aria-label={fees ? 'Event fees' : 'Add cookies'} className="flex flex-col gap-3">
+      <PageTitle
+        title={fees ? 'Event fees' : 'Add cookies'}
+        subtitle={
+          fees ? 'Stall rent, ice, parking.' : 'Move baked cookies from shop stock to this table.'
+        }
+      />
+      <TillPanelBody panel={panel} />
+      <div>
+        <Button variant="secondary" onClick={panel.close}>
+          Back to selling
+        </Button>
+      </div>
+    </section>
   );
 }

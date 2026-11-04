@@ -5,11 +5,11 @@ import type { OpsVals } from '@/view-models/vals';
 import type { TillPanelView } from '@/lib/bazaar/live-bazaar-types';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
-import { PageTitle } from '@/components/ui/owner-kit';
+import { FooterActions, PageTitle, Panel, SectionHeading } from '@/components/ui/owner-kit';
+import { FactRow, OpenRow } from '@/components/ui/owner-patterns';
 import { TillCard } from './till-card';
-import { Sheet } from '@/components/ui/sheet';
 import { StatusPill } from '@/components/ui/status-pill';
-import { TillPanel, TillBack } from './till-bar';
+import { TillPanelPage, TillBack } from './till-bar';
 
 type Till = NonNullable<OpsVals['liveTill']>;
 type Sale = OpsVals['bzSales'][number];
@@ -40,6 +40,7 @@ export function ConsolidatedTill({
   // The open sale, counted from the oldest: the list is newest first, so a sale arriving cannot move it.
   const [saleFromOldest, setSaleFromOldest] = useState<number | null>(null);
   const [allSales, setAllSales] = useState(false);
+  const [voiding, setVoiding] = useState(false);
   const sales = v.bzSales ?? [];
   const inSale = (v.bzSell ?? []).filter((p) => (Number(p.inCart) || 0) > 0);
   const sale = saleFromOldest === null ? undefined : sales[sales.length - 1 - saleFromOldest];
@@ -69,6 +70,28 @@ export function ConsolidatedTill({
     }
   ];
 
+  if (panel) return <TillPanelPage panel={panel} />;
+  if (sale && voiding)
+    return (
+      <VoidPage
+        sale={sale}
+        keep={() => setVoiding(false)}
+        confirm={() => {
+          setVoiding(false);
+          closeSale();
+          sale.void();
+        }}
+      />
+    );
+  if (sale) return <ReceiptPage sale={sale} toVoid={() => setVoiding(true)} back={closeSale} />;
+  if (menu)
+    return (
+      <TillSettings
+        v={v}
+        items={menuItems.map((item) => ({ ...item, run: pick(item.run) }))}
+        back={() => setMenu(false)}
+      />
+    );
   return (
     <>
       {/* One grid on a wide screen (tiles left, the sale and sales right); one column on a phone, where the sale bar is
@@ -276,63 +299,120 @@ export function ConsolidatedTill({
           </Button>
         </div>
       </section>
+    </>
+  );
+}
 
-      {menu ? (
-        <Sheet title={String(v.event?.name ?? 'Till')} onClose={() => setMenu(false)}>
-          <div className="flex flex-col gap-1">
-            {menuItems.map((m) => (
-              <button
-                key={m.label}
-                type="button"
-                onClick={pick(m.run)}
-                className="flex min-h-14 items-center gap-3 rounded-control px-1 text-left hover:bg-raise"
-              >
-                <span className="flex flex-1 flex-col">
-                  <span className="text-body font-bold text-ink">{m.label}</span>
-                  <span className="text-caption text-ink-mute">{m.hint}</span>
-                </span>
-              </button>
-            ))}
-          </div>
-        </Sheet>
-      ) : null}
+function SaleFacts({ sale }: { sale: Sale }) {
+  return (
+    <>
+      <FactRow label={sale.summary}>{sale.totalText}</FactRow>
+      <FactRow label="Paid by">
+        <SaleMeta sale={sale} />
+      </FactRow>
+      <FactRow label="Status">{sale.stateText}</FactRow>
+    </>
+  );
+}
 
-      {sale ? (
-        <Sheet
-          title="This sale"
-          onClose={closeSale}
-          footer={
-            <div className="flex flex-col gap-2">
-              <Button
-                variant="danger"
-                onClick={() => {
-                  closeSale();
-                  sale.void();
-                }}
-              >
+/** One sale, and the way to void it. */
+function ReceiptPage({ sale, toVoid, back }: { sale: Sale; toVoid: () => void; back: () => void }) {
+  return (
+    <section aria-label="Receipt" className="flex flex-col gap-3">
+      <PageTitle title="Receipt" subtitle="This sale." />
+      <Panel>
+        <SaleFacts sale={sale} />
+        <div className="mt-4">
+          <FooterActions
+            back={
+              <Button variant="secondary" onClick={toVoid}>
                 Void this sale
               </Button>
-              <Button variant="ghost" onClick={closeSale}>
-                Keep it
+            }
+            forward={
+              <Button variant="primary" onClick={back}>
+                Next customer
               </Button>
-            </div>
-          }
-        >
-          <div className="flex flex-col gap-1">
-            <span className="text-body font-bold text-ink">{sale.summary}</span>
-            <span className="text-title tabular-nums">{sale.totalText}</span>
-            <span className="text-caption text-ink-mute">
-              <SaleMeta sale={sale} />
-            </span>
-            <span className="text-caption text-ink-soft">
-              Voiding puts its cookies back on the table.
-            </span>
-          </div>
-        </Sheet>
-      ) : null}
+            }
+          />
+        </div>
+      </Panel>
+    </section>
+  );
+}
 
-      {panel ? <TillPanel panel={panel} /> : null}
-    </>
+function VoidPage({ sale, keep, confirm }: { sale: Sale; keep: () => void; confirm: () => void }) {
+  return (
+    <section aria-label="Void this sale" className="flex flex-col gap-3">
+      <PageTitle title="Void this sale" subtitle="Only this sale will be changed." />
+      <Panel>
+        <SaleFacts sale={sale} />
+        <p className="mt-3 text-caption text-ink-soft">
+          Voiding puts its cookies back on the table.
+        </p>
+        <div className="mt-4">
+          <FooterActions
+            back={
+              <Button variant="secondary" onClick={keep}>
+                Keep sale
+              </Button>
+            }
+            forward={
+              <Button variant="danger" onClick={confirm}>
+                Confirm void
+              </Button>
+            }
+          />
+        </div>
+      </Panel>
+    </section>
+  );
+}
+
+/** The till's other ways in and out, and what this device holds. */
+function TillSettings({
+  v,
+  items,
+  back
+}: {
+  v: OpsVals;
+  items: Array<{ label: string; hint: string; run: () => void }>;
+  back: () => void;
+}) {
+  return (
+    <section aria-label="Till settings" className="flex flex-col gap-3">
+      <PageTitle
+        title="Selling settings"
+        subtitle={String(v.event?.name ?? '')}
+        actions={
+          <Button variant="secondary" onClick={back}>
+            Back to selling
+          </Button>
+        }
+      />
+      <Panel>
+        {items.map((item) => (
+          <OpenRow key={item.label} title={item.label} detail={item.hint} onOpen={item.run} />
+        ))}
+      </Panel>
+      <SectionHeading>Selling device</SectionHeading>
+      <Panel>
+        <FactRow label="This device">Can sell this day</FactRow>
+        <FactRow label="Connection">{v.offline ? 'Offline' : 'Online'}</FactRow>
+        <FactRow label="Sales">{v.bzSalesCount}</FactRow>
+        <FactRow label="Waiting to send">{v.unsynced ? String(v.unsynced) : 'None'}</FactRow>
+        {v.unsynced ? (
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+            <p className="text-caption text-ink-soft">
+              Keep this browser open while sales are waiting to send.
+            </p>
+            <Button variant="secondary" size="sm" onClick={v.syncNow}>
+              Sync now
+            </Button>
+          </div>
+        ) : null}
+      </Panel>
+    </section>
   );
 }
 

@@ -164,3 +164,16 @@ Dropped: "Set to" in the old quantity sheet, which is redundant with Count on th
 | Product form | A page in the owner frame, in place of a modal; same form and close | test |
 
 Known limits, for Ethan: `anonymise_customer` does not remove payment proofs or references, and it matches only orders whose stored number is already in the normal form. The page says both. Changing either needs a new migration.
+
+## Till pages (`live/bazaar/till.tsx`, `till-bar.tsx`, `close-event-sheet.tsx`)
+
+| Today's capability | New home | Evidence |
+|---|---|---|
+| Till menu: add cookies, fees, close, Home, classic till | Selling settings page; Close day also on the title | test |
+| A sale's sheet: its figures and void | Receipt page, then a Void page with Keep sale | test |
+| Fees and add-cookies forms | Pages of the new till; the classic till keeps the sheet | test |
+| Close the event: split, costs, close without cost | A page; same form and checks | test |
+| Unsent count and Sync now | On the status strip, and on Selling device | test |
+
+Dropped: nothing.
+
