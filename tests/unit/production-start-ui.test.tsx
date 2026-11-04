@@ -86,7 +86,7 @@ describe('visible production entry', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Start production' }));
     fireEvent.change(screen.getByLabelText('Cookies planned'), { target: { value: '24' } });
     fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
-    expect(screen.getByRole('heading', { name: 'Bake plan' })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'Production' })).toBeTruthy();
     expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Start production' }));
   });
   it('requires the updated saved recipe without discarding the planned quantity', () => {

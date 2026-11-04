@@ -4,6 +4,7 @@ import { useState } from 'react';
 import type { OpsVals } from '@/view-models/vals';
 import { Button } from '@/components/ui/button';
 import { SectionNavigation } from '@/components/live/section-navigation';
+import { useAreaSettings } from '@/components/live/account/settings-areas';
 import { peso } from '@/lib/money/format';
 import { pesosToCentavos } from '@/lib/money';
 import styles from './inventory.module.css';
@@ -12,9 +13,11 @@ import styles from './inventory.module.css';
 export function SuppliersLive({ v }: { v: OpsVals }) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showInactive, setShowInactive] = useState(false);
+  const settings = useAreaSettings(v, 'stock', 'Back to suppliers');
   const data = v.liveSupplierDirectory;
   const selected = data?.rows.find((row) => row.id === selectedId);
   const rows = data?.rows.filter((row) => showInactive || row.active) ?? [];
+  if (settings.page) return settings.page;
   return (
     <section className={styles.screen} data-screen-label="Suppliers">
       {selectedId ? (
@@ -37,8 +40,13 @@ export function SuppliersLive({ v }: { v: OpsVals }) {
             {selectedId ? 'Edit supplier' : 'Add supplier'}
           </Button>
         ) : null}
+        {selectedId ? null : (
+          <Button variant="secondary" onClick={settings.open}>
+            Settings
+          </Button>
+        )}
       </div>
-      <SectionNavigation v={v} />
+      <SectionNavigation v={v} refined />
       {!data ? (
         <p role="status">Suppliers are loading.</p>
       ) : selectedId ? (

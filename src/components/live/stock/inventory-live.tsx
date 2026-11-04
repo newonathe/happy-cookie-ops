@@ -14,13 +14,33 @@ import type {
 import { OfflineLine, StatusWord, liveStockOf, manilaStamp } from './stock-shared';
 import { CountInventory } from './count-inventory';
 import { ItemPrices } from './item-prices';
+import { ReceiveLive, StockChangeLive } from './stock-entry-live';
+import { PageTitle, Panel } from '@/components/ui/owner-kit';
+import { useAreaSettings } from '@/components/live/account/settings-areas';
+import { OpenRow } from '@/components/ui/owner-patterns';
 import { Button } from '@/components/ui/button';
-import { SectionTools } from '@/components/live/section-tools';
 import { SectionNavigation } from '@/components/live/section-navigation';
 import styles from './inventory.module.css';
 
 type Filter = 'All' | StockStatus;
 const FILTERS: readonly Filter[] = ['All', 'Out', 'Low', 'Good'];
+const MADE_CATEGORIES = ['Dough', 'Baked stock'];
+
+/** Dough and baked cookies by product: read from production, changed only by production and waste. */
+function MadeList({ stock, category }: { stock: LiveStockVals; category: string }) {
+  const rows = category === 'Dough' ? stock.made?.dough : stock.made?.baked;
+  if (!rows) return <p className={styles.empty}>Production has not been read yet.</p>;
+  return (
+    <ul aria-label={category} className={styles.panel}>
+      {rows.map((row) => (
+        <li key={row.id} className={styles.madeRow}>
+          <strong className={styles.name}>{row.name}</strong>
+          <span className={styles.amount}>{row.qtyText}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
 
 const KIND_WORD: Record<StockMovementKind, string> = {
   opening: 'Opening',
@@ -42,15 +62,15 @@ function ItemRow({ item }: { item: StockItemView }) {
       <button type="button" onClick={item.open} className={styles.row}>
         <span>
           <strong className={styles.name}>{item.name}</strong>
-          <span className={styles.detail}>{item.packText}</span>
           <span className={styles.detail}>
-            {item.lastCountedText} · {item.costText}
+            {item.packText}
+            {item.costText.startsWith('Cost pending') ? ` · ${item.costText}` : ''}
           </span>
         </span>
         <span className={styles.amount}>
           {item.qtyText}
           <span className={styles.status}>
-            <StatusWord status={item.status} />
+            {item.counted === false ? 'Not counted' : <StatusWord status={item.status} />}
           </span>
         </span>
       </button>
@@ -73,7 +93,8 @@ function InventoryList({
 }) {
   const active = stock.items.filter((item) => item.active);
   const categories = [
-    ...new Set(['Ingredients', 'Packaging', ...active.map((item) => item.category)])
+    ...new Set(['Ingredients', 'Packaging', ...active.map((item) => item.category)]),
+    ...MADE_CATEGORIES
   ];
   const items = active.filter((item) => item.category === category);
   const shown = filter === 'All' ? items : items.filter((item) => item.status === filter);
@@ -91,7 +112,8 @@ function InventoryList({
           </button>
         ))}
       </div>
-      <div className={styles.toolbar}>
+      {MADE_CATEGORIES.includes(category) ? <MadeList stock={stock} category={category} /> : null}
+      <div hidden={MADE_CATEGORIES.includes(category)} className={styles.toolbar}>
         <div role="group" aria-label="Stock counts" className={styles.counts}>
           <span>{items.length === 1 ? '1 item' : `${items.length} items`}</span>
           <span>{items.filter((item) => item.status === 'Out').length} Out</span>
@@ -99,7 +121,11 @@ function InventoryList({
         </div>
         <label className={styles.filter}>
           Stock status
-          <select aria-label="Stock status" value={filter} onChange={(event) => setFilter(event.target.value as Filter)}>
+          <select
+            aria-label="Stock status"
+            value={filter}
+            onChange={(event) => setFilter(event.target.value as Filter)}
+          >
             {FILTERS.map((name) => (
               <option key={name} value={name}>
                 {name === 'All' ? 'All statuses' : name}
@@ -109,7 +135,7 @@ function InventoryList({
         </label>
       </div>
       <CountNote text={stock.countNote} />
-      {active.length === 0 ? (
+      {MADE_CATEGORIES.includes(category) ? null : active.length === 0 ? (
         <p className={styles.empty}>No items yet</p>
       ) : shown.length === 0 ? (
         <p className={styles.empty}>No items in this view.</p>
@@ -226,25 +252,7 @@ function ItemPage({ stock, page }: { stock: LiveStockVals; page: StockItemPage }
                 Receive
               </Button>
               <Button onClick={item.count}>Count</Button>
-              <SectionTools
-                label="Waste or correction"
-                items={[
-                  {
-                    id: 'waste',
-                    label: 'Record waste',
-                    active: false,
-                    badge: null,
-                    go: item.waste
-                  },
-                  {
-                    id: 'correct',
-                    label: 'Correct stock',
-                    active: false,
-                    badge: null,
-                    go: item.adjust
-                  }
-                ]}
-              />
+              <Button onClick={item.adjust}>Waste / correction</Button>
             </div>
           ) : null}
         </div>
@@ -256,7 +264,11 @@ function ItemPage({ stock, page }: { stock: LiveStockVals; page: StockItemPage }
             </div>
           ))}
         </dl>
-        {page.openPrices ? <Button id={pricesButtonId} className="self-start" onClick={page.openPrices}>Supplier prices & history</Button> : null}
+        {page.openPrices ? (
+          <Button id={pricesButtonId} className="self-start" onClick={page.openPrices}>
+            Supplier prices & history
+          </Button>
+        ) : null}
       </section>
       <Movements page={page} />
     </>
@@ -268,7 +280,24 @@ export function InventoryLive({ v }: { v: OpsVals }) {
   const [category, setCategory] = useState('Ingredients');
   const [filter, setFilter] = useState<Filter>('All');
   const stock = liveStockOf(v);
+  const settings = useAreaSettings(
+    v,
+    'stock',
+    'Back to inventory',
+    stock?.manageItems ? (
+      <Panel>
+        <OpenRow
+          title="Manage inventory items"
+          detail="What you keep in stock, its unit and reorder level"
+          onOpen={stock.manageItems}
+        />
+      </Panel>
+    ) : null
+  );
   if (stock?.count && !stock.count.paused) return <CountInventory v={v} stock={stock} />;
+  if (stock?.receive) return <ReceiveLive receive={stock.receive} />;
+  if (stock?.change) return <StockChangeLive change={stock.change} />;
+  if (settings.page) return settings.page;
   return (
     <section aria-label="Inventory" data-screen-label="Inventory" className={styles.screen}>
       {stock?.count?.paused ? (
@@ -280,43 +309,37 @@ export function InventoryLive({ v }: { v: OpsVals }) {
         <ItemPage key={stock.page.item.id} stock={stock} page={stock.page} />
       ) : (
         <>
-          <header className={styles.title}>
-            <div>
-              <h1>Inventory</h1>
-              <p className={styles.subtitle}>Ingredients and packaging.</p>
-            </div>
+          <PageTitle
+            title="Inventory"
+            subtitle="Ingredients, packaging, dough and baked cookies."
+            actions={
+              <>
+                {stock?.addItem ? (
+                  <Button variant="primary" onClick={stock.addItem}>
+                    Add to inventory
+                  </Button>
+                ) : null}
+                <Button variant="secondary" onClick={settings.open}>
+                  Settings
+                </Button>
+              </>
+            }
+          />
+          <SectionNavigation v={v} refined />
+          {stock ? (
             <div className={styles.actions}>
-              {stock?.addItem ? (
-                <Button variant="primary" size="sm" onClick={stock.addItem}>
-                  Add to inventory
+              {stock.openReceive ? (
+                <Button onClick={() => stock.openReceive?.()}>Receive delivery</Button>
+              ) : null}
+              {stock.startCount && !stock.count ? (
+                <Button
+                  onClick={() => stock.startCount?.(category)}
+                  disabled={!stock.items.some((item) => item.active && item.category === category)}
+                  reason={`Add an item to ${category.toLowerCase()} before counting.`}
+                >
+                  Count stock
                 </Button>
               ) : null}
-              {stock?.manageItems ? (
-                <SectionTools
-                  label="Inventory settings"
-                  items={[
-                    {
-                      id: 'manage-items',
-                      label: 'Manage inventory items',
-                      active: false,
-                      badge: null,
-                      go: stock.manageItems
-                    }
-                  ]}
-                />
-              ) : null}
-            </div>
-          </header>
-          <SectionNavigation v={v} refined />
-          {stock?.startCount && !stock.count ? (
-            <div className={styles.actions}>
-              <Button
-                onClick={() => stock.startCount?.(category)}
-                disabled={!stock.items.some((item) => item.active && item.category === category)}
-                reason={`Add an item to ${category.toLowerCase()} before counting.`}
-              >
-                Count stock
-              </Button>
             </div>
           ) : null}
           {stock ? (

@@ -29,7 +29,7 @@ describe('B5 Inventory list', () => {
     expect(rows[1]!.textContent).toContain('Butter');
     expect(rows[1]!.textContent).toContain('300 g');
     expect(rows[1]!.textContent).toContain('1 kg bag · 1,000 g per pack');
-    expect(rows[1]!.textContent).toContain('Counted 3 Oct');
+    expect(rows[1]!.textContent).toContain('Low');
   });
 
   it('shows "Cost pending" verbatim and never a zero cost', () => {
@@ -186,14 +186,8 @@ describe('B5 Inventory item page', () => {
       fireEvent.click(screen.getByRole('button', { name: label }));
       expect(fn).toHaveBeenCalledTimes(1);
     }
-    for (const [label, run] of [
-      ['Record waste', mine.waste],
-      ['Correct stock', mine.adjust]
-    ] as const) {
-      fireEvent.click(screen.getByText('Waste or correction'));
-      fireEvent.click(screen.getByRole('button', { name: label }));
-      expect(run).toHaveBeenCalledOnce();
-    }
+    fireEvent.click(screen.getByRole('button', { name: 'Waste / correction' }));
+    expect(mine.adjust).toHaveBeenCalledOnce();
   });
 
   it('leaves out "Last paid" when nothing was paid, and shows "Cost pending" as is', () => {
@@ -244,7 +238,7 @@ describe('B5 Inventory item page', () => {
     ).toBeTruthy();
     expect(screen.queryByRole('button', { name: 'Receive' })).toBeNull();
     expect(screen.queryByRole('button', { name: 'Count' })).toBeNull();
-    expect(screen.queryByText('Waste or correction')).toBeNull();
+    expect(screen.queryByText('Waste / correction')).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: 'Edit item' }));
     expect(archived.edit).toHaveBeenCalledOnce();
   });

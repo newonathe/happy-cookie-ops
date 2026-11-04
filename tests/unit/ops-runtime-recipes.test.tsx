@@ -275,8 +275,8 @@ describe('A4: the recipes reach the ported recipes screen (live mode)', () => {
     const { runtime, rpc } = await mounted('owner', fresh());
     act(() => runtime.go('products'));
     expect(runtime.renderVals().liveScreen?.tabs?.places.map((p) => p.label)).toEqual([
-      'Bake plan',
-      'Products'
+      'Products',
+      'Production'
     ]);
     expect(runtime.renderVals().liveScreen?.tabs?.entries.some((p) => p.label === 'Recipes')).toBe(
       false

@@ -12,6 +12,9 @@ import { ProductionReceipts } from './production-receipts';
 import { ProductionRecoveryNotice } from './production-recovery-notice';
 import { ProductionStart } from './production-start';
 import { resolveImagePath } from '@/lib/media/resolve-image';
+import { PageTitle } from '@/components/ui/owner-kit';
+import { useAreaSettings } from '@/components/live/account/settings-areas';
+import { MakeTabs } from '../recipes/make-shared';
 
 function WorkRow({ row }: { row: OpsVals['bakeRows'][number] }) {
   return (
@@ -51,6 +54,7 @@ export function ProductionLive({ v }: { v: OpsVals }) {
   const page = useRef<HTMLElement>(null);
   const wasStarting = useRef(false);
   const entryOpen = !!data?.start?.draft;
+  const settings = useAreaSettings(v, 'make', 'Back to production');
   useEffect(() => {
     if (entryOpen) wasStarting.current = true;
     else if (wasStarting.current) {
@@ -59,6 +63,7 @@ export function ProductionLive({ v }: { v: OpsVals }) {
     }
   }, [entryOpen]);
   if (!data) return <BakePlanScreen v={v} />;
+  if (settings.page) return settings.page;
   const canStart = data.start
     ? !!data.start.resume || data.start.products.length > 0
     : data.planReady;
@@ -76,19 +81,28 @@ export function ProductionLive({ v }: { v: OpsVals }) {
         <ProductionStart start={data.start} period={data.periodText} />
       ) : null}
       <div hidden={entryOpen}>
-        <section ref={page} data-screen-label="Bake plan" className={styles.page}>
-          <header className={styles.heading}>
-            <h1>Bake plan</h1>
-            <Button
-              variant="primary"
-              data-production-start
-              onClick={data.start?.open ?? v.startFirst}
-              disabled={!canStart}
-              aria-describedby={!canStart || !data.planReady ? planNote : undefined}
-            >
-              Start production
-            </Button>
-          </header>
+        <section ref={page} data-screen-label="Production" className={styles.page}>
+          <PageTitle
+            title="Production"
+            subtitle="See what you made and what is ready."
+            actions={
+              <>
+                <Button
+                  variant="primary"
+                  data-production-start
+                  onClick={data.start?.open ?? v.startFirst}
+                  disabled={!canStart}
+                  aria-describedby={!canStart || !data.planReady ? planNote : undefined}
+                >
+                  Start production
+                </Button>
+                <Button variant="secondary" onClick={settings.open}>
+                  Settings
+                </Button>
+              </>
+            }
+          />
+          <MakeTabs v={v} />
           <p className={styles.muted}>Order plan · {data.periodText}</p>
           <ProductionRecoveryNotice data={data.recovery} />
           {data.saving ? (
@@ -183,3 +197,4 @@ export function ProductionLive({ v }: { v: OpsVals }) {
     </>
   );
 }
+ProductionLive.ownsSectionNavigation = true;

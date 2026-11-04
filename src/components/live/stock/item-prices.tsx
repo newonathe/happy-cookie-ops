@@ -8,7 +8,9 @@ import styles from './inventory.module.css';
 /** Saved supplier pack prices stay separate from the item's authoritative inventory unit cost. */
 export function ItemPrices({ page }: { page: StockItemPage }) {
   const title = useRef<HTMLHeadingElement>(null);
-  useEffect(() => { title.current?.focus(); }, []);
+  useEffect(() => {
+    title.current?.focus();
+  }, []);
   return (
     <div className={`${styles.screen} ${styles.childPage}`}>
       <Button className="self-start" onClick={page.closePrices}>
@@ -16,7 +18,9 @@ export function ItemPrices({ page }: { page: StockItemPage }) {
       </Button>
       <header className={styles.title}>
         <div>
-          <h1 ref={title} tabIndex={-1}>{page.item.name} prices</h1>
+          <h1 ref={title} tabIndex={-1}>
+            {page.item.name} prices
+          </h1>
           <p className={styles.subtitle}>Saved supplier prices & history.</p>
         </div>
       </header>

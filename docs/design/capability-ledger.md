@@ -126,3 +126,19 @@ the local database only; applying it to the hosted database needs Ethan's separa
 | Notifications, Health, records, export, report a problem | `NotificationsLive`, `HealthLive` | screenshot |
 
 Dropped: nothing. Still drawn by a ported sheet: refund, no-show, swap, users, rules, retention, pricing. See [coverage](reference-v4/coverage.md).
+
+## Make and Stock (`live/recipes/`, `live/production/`, `live/stock/`, `store/make-desk.ts`, `store/stock-entries.ts`)
+
+| Today's capability | New home | Evidence |
+|---|---|---|
+| Product definition, recipe link, order-form switch, cost, sold-out and rotating words | Products cards. "About product labels" moved to the Shop label hint in Edit product | test |
+| Start production, its guards, entry and focus | Unchanged on Production; Products' button opens the same entry | test, browser |
+| Receive sheet: quantity, paid, supplier, engine bookkeeping | Receive delivery page, several lines; same `record_stock_movement`, same engine `confirmReceive` for each line | test |
+| Waste sheet; add or subtract sheet | Waste / correction page with Review; same movements, and a note is now required | test |
+| Item page facts, last counted, cost, last paid, prices, history | Unchanged. Last counted and cost left the list rows; they stay on the item page | test |
+| Grocery rows, I bought these, totals, budget | Shopping grouped by supplier, with Compare prices and Count before buying | test, browser |
+| Manage inventory items | Stock settings | browser |
+| Dough and baked counts | Inventory categories, read only; changed by production and waste | browser |
+
+Dropped: "Set to" in the old quantity sheet, which is redundant with Count on the same page and records the same count movement.
+

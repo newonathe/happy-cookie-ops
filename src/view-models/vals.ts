@@ -4,6 +4,7 @@
  * renderVals() returns and the ported markup reads. Widen a type here only together
  * with the engine change that produces it — see docs/PORTING.md.
  */
+import type { LiveMake } from '@/store/make-desk';
 import type * as React from 'react';
 import type { ScreenKey } from '@/lib/screens';
 import type { LiveStockVals } from '@/lib/stock/live-stock-types';
@@ -404,6 +405,8 @@ export interface OpsVals {
    * here that the books do not already sum. `loaded` is false until the books are read.
    */
   liveMoney?: LiveMoney | null;
+  /** Live owner only: what the Make pages need beyond the engine's rows. */
+  liveMake?: LiveMake | null;
   /** Live owner only: Home's facts, each null until its own source has loaded. */
   liveHome?: LiveHome | null;
   /** Live owner only (B4): the boxes and add-ons form (boxes, add-ons, sampler limit, same-day extra). */
@@ -1375,6 +1378,10 @@ export interface OpsVals {
   }>;
   priceNote: React.ReactNode;
   productRows: Array<{
+    /** Live owner only: from `MakeDesk.productFields`. */
+    photo?: string;
+    bakedText?: string | null;
+    hasRecipe?: boolean | null;
     returnRecipeFocus?: boolean;
     returnEditFocus?: boolean;
     costText: React.ReactNode;
