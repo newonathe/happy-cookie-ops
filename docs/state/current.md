@@ -1,10 +1,11 @@
 # Current state — Happy Cookie Ops
 
-Codex audit fixes are isolated on `codex/audit-fixes-20261105`; Claude retains this checkout/CI.
-The event-confirmation slice requires exact acknowledgement/fresh matching fields and fences stale
-owner refresh/queue replies; it is not integrated into the primary checkout or hosted application.
+**Codex owns the checkout again (Ethan, 5 November: Claude finished; integrate tested fixes).**
+Accepted7b8e819 fixes event confirmation and stale-owner refresh/queue replies;190files/3063tests+2TODOs pass.
+The full audit and [new owner requirements](../design/owner-workflow-additions-2026-11-05.md) remain active.
+Pickup is directly from Cine; Picked Up means Completed, with no extra business transition.
 
-**Claude holds the checkout (Ethan, 4 November, after Codex hit its limit).** Check `git status` and ask Ethan if another agent may be active. **Finish [coverage](../design/reference-v4/coverage.md): every
+**Finish [coverage](../design/reference-v4/coverage.md): every
 mockup page, its place in the app, its status and gap, and the build rules.** [flows](../design/reference-v4/flows.md)
 records every control's outcome. Done on the 4186 preview at four widths: Home, Sell, Shop, Account, Products,
 recipe page, Production, Stock, Receive, Waste/correction, Shopping, Money and its entries, the till, the

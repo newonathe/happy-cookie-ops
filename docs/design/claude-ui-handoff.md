@@ -6,10 +6,12 @@ the scope to Home, Money or Shop. Read AGENTS.md, current.md and next-goal.md be
 
 ## Current work and how to detect it
 
-- Codex's 5November audit fixes live in `C:/Users/ethan/dev/happy-cookie-audit-fixes`, branch
-  `codex/audit-fixes-20261105`; do not assume integration. First slice fixes false event-save
-  confirmation, uncertain-request retirement and stale-owner booking/closed-day callbacks.
-  Private `system-audit-2026-11-05/AUDIT.md` records the full outstanding scope and screenshots.
+- Codex owns primary again (Ethan,5November). F01 is integrated at7b8e819: exact event confirmation,
+  retained uncertain requests and owner guards through refresh/queue callbacks. Full190files/3063tests+2TODOs pass.
+  F02 adds a shared itemized Current sale: desktop side panel, phone/tablet Review sale sheet, exact
+  amount on Charge.19focused tests and8width/motion browser runs pass; full gate follows.
+  Include [new owner requirements](owner-workflow-additions-2026-11-05.md). Private
+  `system-audit-2026-11-05/AUDIT.md` records the full remaining scope;4Partial rows are not full acceptance.
 
 - **Status, 5 November:** coverage has 4 Partial rows left, each naming why. Added since the last note: till
   receipt, void, settings and tools as pages; event close as a page; `recipe-editor.tsx` (the "do not save yet"
