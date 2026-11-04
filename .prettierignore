@@ -35,3 +35,6 @@ src/lib/types/database.ts
 # A verbatim port. prettier.config.mjs also requires a pragma for it; this is belt
 # and braces, because a reformat here makes the port undiffable against the prototype.
 src/store/engine/ops-engine.js
+
+# Local preview of the real app with fake data.
+tools/owner-preview/

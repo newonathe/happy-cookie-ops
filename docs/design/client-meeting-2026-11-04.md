@@ -137,4 +137,6 @@ Each slice is one commit, checked at phone and wide desktop on the preview, with
 Decisions still open: sticker pictures (C1), privacy wording (B16), hosted demo data (B22), and whether dough in the fridge
 can be counted by hand if the number drifts.
 
+[Codex's audit](system-audit-2026-11-05.md) of the same day adds work not raised on the call: carrying a recipe's quantity into production (F03), showing what customer history covers (F05), the shopping plan's handoff (F06), review on bazaar stock and fee changes (F07), the Money chart's scale (F08), and a retry on failed loads (F09). These join the slices above.
+
 Sources for the method are in [the review standard](ui-review-standard.md).
