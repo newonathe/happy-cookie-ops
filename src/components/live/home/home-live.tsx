@@ -169,8 +169,8 @@ export function HomeLive({ v }: { v: OpsVals }) {
           }
           onOpen={go.production}
         />
-        <Tile title="Receive delivery" detail="Ingredients & packaging" onOpen={go.stock} />
-        <Tile title="Count stock" detail="Enter a physical count" onOpen={go.stock} />
+        <Tile title="Receive delivery" detail="Ingredients & packaging" onOpen={go.receive} />
+        <Tile title="Count stock" detail="Enter a physical count" onOpen={go.count} />
         <Tile
           title="Products & recipes"
           detail={`${home.flavours} ${home.flavours === 1 ? 'flavour' : 'flavours'}`}

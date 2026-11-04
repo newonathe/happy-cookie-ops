@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act } from 'react';
-import { cleanup, render } from '@testing-library/react';
+import { cleanup, render, waitFor } from '@testing-library/react';
 
 let live = true;
 vi.mock('@/lib/config/app-mode', () => ({ isLiveMode: () => live }));
@@ -78,6 +78,7 @@ const order = (over: Wire = {}): Wire => ({
 });
 
 interface Fake {
+  recipes?: Wire[] | null;
   items: Wire[];
   production: Wire;
   /** Answers to record_production / record_pack in order, then the default (saved). */
@@ -92,6 +93,8 @@ const wireProduction = (over: Wire = {}): Wire => ({
   shortfalls: [],
   ...over
 });
+const savedRecipe = (): Wire[] => [{ product_id: PID, yield: 12, version: 3, updated_at: STAMP,
+  lines: [{ name: 'Bread flour', qty: 300, unit: 'g', kind: 'ingredient' }], history: [] }];
 const saved = (used = 0, shortfall: unknown[] = []) => ({
   data: [{ record_id: 'r', duplicate: false, used_dough: used, shortfall }],
   error: null
@@ -110,7 +113,7 @@ function fakeClient(f: Fake) {
       return { data: { suppliers: [], items: f.items, prices: [] }, error: null };
     if (name === 'get_last_paid') return { data: [], error: null };
     if (name === 'get_production') return { data: f.production, error: null };
-    if (name === 'get_recipes') return { data: [], error: null };
+    if (name === 'get_recipes') return { data: 'recipes' in f ? f.recipes : savedRecipe(), error: null };
     if (name === 'get_staff_orders') return { data: f.orders, error: null };
     if (name === 'record_production') return f.answers.shift() ?? saved();
     if (name === 'record_discard')
@@ -144,6 +147,48 @@ interface Acts {
   logSpoilage: (name: string, qty: unknown, why: string, pid?: string, kind?: string) => void;
 }
 const acts = (r: OpsRuntime) => r as unknown as Acts;
+
+it.each([0, 2])(
+  'reads %s good cookies and high rejects as valid production without a write',
+  async (good) => {
+    const f = fresh({
+      production: wireProduction({
+        batches: [
+          {
+            product_id: PID,
+            qty: good,
+            rejects: 12 - good,
+            target: 12,
+            version: 3,
+            at: Date.parse('2026-11-02T07:00:00Z')
+          }
+        ]
+      })
+    });
+    const { runtime, rpc, client } = await mounted('owner', f);
+    await act(async () => { await runtime.loadProduction(client as never); });
+    act(() => runtime.go('bake'));
+    const view = runtime.renderVals().liveProduction!;
+    expect(view.state).toBe('read');
+    expect(view.rows).toMatchObject([{ qty: good, rejects: 12 - good }]);
+    expect(called(rpc, 'record_production')).toHaveLength(0);
+  }
+);
+
+
+it('keeps global history visible while a different drop needs a fresh plan read', async () => {
+  const f = fresh({ production: wireProduction({ batches: [{ product_id: PID, qty: 24, rejects: 2,
+    target: 24, version: 3, at: Date.parse('2026-11-02T07:00:00Z') }] }) });
+  const { runtime, client } = await mounted('owner', f);
+  await act(async () => { await runtime.loadProduction(client as never); });
+  act(() => runtime.go('bake'));
+  expect(runtime.renderVals().liveProduction?.state).toBe('read');
+  act(() => runtime.setState({ dropNo: 6 }));
+  const view = runtime.renderVals().liveProduction!;
+  expect(view.state).toBe('loading');
+  expect(view.rows).toMatchObject([{ qty: 24, rejects: 2 }]);
+  expect(view.planReady).toBe(false);
+});
 
 async function mounted(role: Role, f: Fake, load = true) {
   const ref: { current: OpsRuntime | null } = { current: null };
@@ -354,7 +399,7 @@ describe('C2: baking, mixing dough and packing record on the database (live mode
     act(() => runtime.setRole('helper'));
     expect(runtime.renderVals().liveProduction).toBeNull();
   });
-  it('exposes only saved production for the current drop, with failed-read state and no write', async () => {
+  it('exposes saved global history with honest failed-read state and no stale drop plan or write', async () => {
     const f = fresh({
       production: wireProduction({
         batches: [
@@ -389,7 +434,10 @@ describe('C2: baking, mixing dough and packing record on the database (live mode
       rows: [{ qty: 14, target: null }]
     });
     act(() => runtime.setState({ dropNo: 6 }));
-    expect(runtime.renderVals().liveProduction).toMatchObject({ state: 'failed', rows: [] });
+    // SQL58 batches span drops; the cached history stays, while the new drop's plan is unavailable.
+    expect(runtime.renderVals().liveProduction).toMatchObject({
+      state: 'failed', periodText: 'Drop 6', planReady: false, rows: [{ qty: 14, target: null }]
+    });
     act(() => runtime.go('products'));
     expect(runtime.renderVals().liveProduction).toBeNull();
     expect(called(rpc, 'record_production')).toHaveLength(0);
@@ -449,6 +497,133 @@ describe('C2: baking, mixing dough and packing record on the database (live mode
     expect(toast(runtime)?.undo ?? null).toBeNull();
     // Mutation: not replacing `batches` from the database leaves the engine's local push, so "baked on this version" survives only until a reload.
     // Mutation: sending every adjustment (including 0) fails the exact-keys rule of the database.
+  });
+
+  it('keeps acknowledged quantities separate from failed refresh and retries only the original drop read', async () => {
+    const f = fresh({ production: wireProduction({ baked: [{ product_id: PID, qty: 7 }] }) });
+    const { runtime, rpc } = await mounted('owner', f);
+    const original = rpc.getMockImplementation()!;
+    let fail = true, release: ((value: ReturnType<typeof saved>) => void) | undefined;
+    rpc.mockImplementation(name => name === 'record_production'
+      ? new Promise(resolve => { release = resolve; })
+      : name === 'get_production' && fail ? Promise.resolve({ data: null, error: { code: '08006' } }) : original(name));
+    startBatch(runtime, { rejects: 1 });
+    act(() => acts(runtime).confirmBatch());
+    await waitFor(() => expect(release).toBeTypeOf('function'));
+    act(() => runtime.setState({ dropNo: 6 }));
+    await act(async () => release!(saved(2, [{ name: 'Bread flour', by: 12, unit: 'g' }])));
+    act(() => runtime.go('bake'));
+    await waitFor(() => expect(runtime.renderVals().liveProduction?.completed?.[0]?.stockState).toBe('failed'));
+    const receipt = runtime.renderVals().liveProduction!.completed![0]!;
+    expect(receipt).toMatchObject({ dropNo: 5, quantity: 8, rejects: 1, version: 3, balance: null, usedDough: 2,
+      shortfall: [{ name: 'Bread flour', by: 12, unit: 'g' }] });
+    fail = false;
+    act(() => receipt.retry());
+    await waitFor(() => expect(runtime.renderVals().liveProduction?.completed?.[0]?.stockState).toBe('read'));
+    expect(runtime.renderVals().liveProduction?.completed?.[0]?.balance).toBe(7);
+    expect(called(rpc, 'get_production').at(-1)![1]).toMatchObject({ p_drop: 5 });
+    expect(called(rpc, 'record_production')).toHaveLength(1);
+  });
+
+  it('does not present an unanswered production request as saved work', async () => {
+    const { runtime, rpc } = await mounted('owner', fresh());
+    rpc.mockImplementationOnce(async () => ({ data: null, error: { code: '08006' } }));
+    startBatch(runtime);
+    act(() => acts(runtime).confirmBatch());
+    await waitFor(() => expect(msg(runtime)).toBe(PRODUCTION_COPY.notSaved));
+    act(() => runtime.go('bake'));
+    expect(runtime.renderVals().liveProduction?.completed).toEqual([]);
+    expect(called(rpc, 'record_production')).toHaveLength(1);
+  });
+
+  it('uses the acknowledged shortage result instead of an engine toast derived from stale local stock', async () => {
+    const { runtime, rpc } = await mounted('owner', fresh({ items: [stockItem({ on_hand: 0 })] }));
+    startBatch(runtime);
+    act(() => acts(runtime).confirmBatch());
+    await waitFor(() => expect(msg(runtime)).toBe(PRODUCTION_COPY.recorded));
+    expect(called(rpc, 'record_production')).toHaveLength(1);
+    act(() => runtime.go('bake'));
+    expect(runtime.renderVals().liveProduction?.completed?.[0]?.shortfall).toEqual([]);
+  });
+
+  it('keeps an interrupted acknowledged refresh recoverable after the owner returns', async () => {
+    const { runtime, rpc } = await mounted('owner', fresh());
+    const original = rpc.getMockImplementation()!;
+    let release: (() => void) | undefined;
+    rpc.mockImplementation(async name => {
+      if (name === 'get_stock_catalogue') await new Promise<void>(resolve => { release = resolve; });
+      return original(name);
+    });
+    startBatch(runtime);
+    act(() => acts(runtime).confirmBatch());
+    await waitFor(() => expect(release).toBeTypeOf('function'));
+    act(() => { runtime.setRole('helper'); });
+    act(() => { runtime.setRole('owner'); });
+    await act(async () => release!());
+    act(() => runtime.go('bake'));
+    await waitFor(() => expect(runtime.renderVals().liveProduction?.completed?.[0]?.stockState).toBe('failed'));
+    expect(runtime.renderVals().liveProduction?.completed?.[0]?.balance).toBeNull();
+    expect(called(rpc, 'record_production')).toHaveLength(1);
+  });
+
+  it.each([null, []])('keeps legacy batch quantities but requires a saved recipe after an unavailable read (%j)', async recipes => {
+    const f = fresh({ recipes });
+    const { runtime, rpc } = await mounted('owner', f);
+    startBatch(runtime, { actual: 9, note: 'Keep this tray' });
+    const counts = runtime.renderVals().liveBatchCounts!;
+    expect(counts).toMatchObject({ sourceUnavailable: true, recipeVersion: null, actual: '9' });
+    act(() => { counts.review(); acts(runtime).confirmBatch(); });
+    expect(called(rpc, 'record_production')).toHaveLength(0);
+    expect(runtime.state.batch).toMatchObject({ actual: 9, note: 'Keep this tray', step: 1 });
+    f.recipes = savedRecipe();
+    act(() => counts.retryRecipe!());
+    await waitFor(() => expect(runtime.renderVals().liveBatchCounts?.sourceUnavailable).toBe(false));
+    act(() => runtime.renderVals().liveBatchCounts!.recipeUpdate!.use());
+    expect(runtime.renderVals().liveBatchCounts).toMatchObject({ actual: '9', recipeVersion: 3, sourceChanged: false });
+    act(() => runtime.renderVals().liveBatchCounts!.review());
+    act(() => runtime.renderVals().liveBatchCounts!.confirm());
+    await waitFor(() => expect(called(rpc, 'record_production')).toHaveLength(1));
+    expect(called(rpc, 'record_production')[0]![1].p_rec).toMatchObject({ qty: 9, recipe_version: 3 });
+  });
+
+  it.each(['batch', 'dough'] as const)('checks an unanswered %s with its exact request even if recipes become unavailable', async kind => {
+    const f = fresh({ answers: [{ data: null, error: { code: '08006' } }] });
+    const { runtime, rpc, client } = await mounted('owner', f);
+    if (kind === 'batch') startBatch(runtime);
+    else act(() => runtime.setState({ screen: 'bake', sheet: { kind: 'mixDough' }, doughPrep: { pid: PID, balls: 6, step: 2 } } as never));
+    act(() => kind === 'batch' ? acts(runtime).confirmBatch() : acts(runtime).confirmDough());
+    await waitFor(() => expect(msg(runtime)).toBe(PRODUCTION_COPY.notSaved));
+    f.recipes = [];
+    await act(async () => { await runtime.loadRecipes(client as never); });
+    const view = kind === 'batch' ? runtime.renderVals().liveBatchCounts! : runtime.renderVals().liveDough!;
+    expect(view).toMatchObject({ sourceUnavailable: true, uncertain: true });
+    act(() => view.confirm());
+    await waitFor(() => expect(called(rpc, 'record_production')).toHaveLength(2));
+    expect(called(rpc, 'record_production')[1]![1]).toEqual(called(rpc, 'record_production')[0]![1]);
+  });
+
+  it('keeps a previously verified saved recipe usable when only its latest refresh fails', async () => {
+    const f = fresh();
+    const { runtime, rpc, client } = await mounted('owner', f);
+    f.recipes = null;
+    await act(async () => { expect(await runtime.loadRecipes(client as never)).toBe(false); });
+    startBatch(runtime);
+    expect(runtime.renderVals().liveBatchCounts).toMatchObject({ sourceUnavailable: false, recipeVersion: 3, sourceChanged: false });
+    act(() => runtime.renderVals().liveBatchCounts!.confirm());
+    await waitFor(() => expect(called(rpc, 'record_production')).toHaveLength(1));
+    expect(called(rpc, 'record_production')[0]![1].p_rec).toMatchObject({ recipe_version: 3 });
+  });
+
+  it('retains an unavailable-source dough mix, blocks direct confirmation and allows local discard', async () => {
+    const { runtime, rpc } = await mounted('owner', fresh({ recipes: [] }));
+    act(() => runtime.setState({ screen: 'bake', sheet: { kind: 'mixDough' }, doughPrep: { pid: PID, balls: 6, step: 2 } } as never));
+    const view = runtime.renderVals().liveDough!;
+    expect(view).toMatchObject({ sourceUnavailable: true, balls: 6, version: null });
+    act(() => acts(runtime).confirmDough());
+    expect(called(rpc, 'record_production')).toHaveLength(0);
+    expect(runtime.state.doughPrep).toMatchObject({ balls: 6 });
+    act(() => view.discard());
+    expect(runtime.state.doughPrep).toBeNull();
   });
 
   it('a helper records nothing and the batch stays open', async () => {

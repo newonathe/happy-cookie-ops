@@ -35,12 +35,15 @@ export function ProductionFocusLive({ v }: { v: OpsVals }) {
       </header>
       <div className={styles.product}>
         <span aria-hidden="true" style={s(batch.imgStyle)} />
-        <div><strong>{batch.name}</strong><p>{counts.uncertain ? 'Saved result pending' : batch.doughText}{counts.recipeVersion !== null ? ` · Recipe v${counts.recipeVersion}` : ''}</p></div>
+        <div><strong>{batch.name}</strong><p>{counts.uncertain ? 'Saved result pending' : counts.sourceUnavailable ? 'Draft kept' : batch.doughText}{counts.recipeVersion !== null ? ` · Recipe v${counts.recipeVersion}` : ''}</p></div>
         <span className={styles.plan}><b>{batch.target}</b> planned</span>
       </div>
       {counts.uncertain ? <Banner tone="warn" title="Save result not confirmed"
         body="Check the saved result using the original batch details. Keep this batch until the result is confirmed." /> : null}
-      {counts.sourceChanged && !counts.uncertain ? <Banner tone="warn" title="Recipe changed"
+      {counts.sourceUnavailable && !counts.uncertain ? <Banner tone="warn" title="Saved recipe unavailable"
+        body="Your counts and notes are kept. Read the saved recipe before continuing."
+        action={counts.retryRecipe ? { label: 'Retry saved recipe', onPress: counts.retryRecipe } : undefined} /> : null}
+      {counts.sourceChanged && !counts.sourceUnavailable && !counts.uncertain ? <Banner tone="warn" title={counts.recipeUpdate?.previousVersion === null ? 'Review saved recipe' : 'Recipe changed'}
         body="Your counts are kept. Review the recipe before recording this batch." /> : null}
       {counts.recipeUpdate && !counts.uncertain ? <ProductionRecipeUpdate update={counts.recipeUpdate} /> : null}
       {!batch.step2 ? (
@@ -81,19 +84,19 @@ export function ProductionFocusLive({ v }: { v: OpsVals }) {
       ) : null}
       <div className={styles.result} aria-live="polite">
         <strong>{counts.valid ? v.goodCount : '—'}</strong>
-        <span>{counts.uncertain ? 'good cookies in this submission' : counts.valid ? 'good cookies will enter stock' : 'Check both counts to see the good cookies'}</span>
+        <span>{counts.uncertain ? 'good cookies in this submission' : counts.sourceUnavailable && counts.valid ? 'good cookies counted' : counts.valid ? 'good cookies will enter stock' : 'Check both counts to see the good cookies'}</span>
         <small>{counts.uncertain ? 'The saved result has not been confirmed.' : 'Stock changes only after confirmed production is saved.'}</small>
       </div>
       {!batch.step2 ? <div className={styles.actions}>
         {counts.uncertain ? <Button variant="primary" onClick={counts.confirm}>Check saved result</Button>
-          : <Button variant="primary" type="submit" form={formId} disabled={!counts.valid || counts.saving}>Review production</Button>}
+          : <Button variant="primary" type="submit" form={formId} disabled={!counts.valid || counts.saving || counts.sourceUnavailable}>Review production</Button>}
       </div> : null}
       {batch.step2 ? (
         <div className={styles.content}>
-          {!counts.uncertain && !counts.sourceChanged ? <p className={styles.dough}>{batch.doughLine}</p> : null}
-          {!counts.uncertain && !counts.sourceChanged && batch.anyShort ? <Banner tone="warn" title="Some recorded stock is short."
+          {!counts.uncertain && !counts.sourceChanged && !counts.sourceUnavailable ? <p className={styles.dough}>{batch.doughLine}</p> : null}
+          {!counts.uncertain && !counts.sourceChanged && !counts.sourceUnavailable && batch.anyShort ? <Banner tone="warn" title="Some recorded stock is short."
             body="Confirming uses the available stock and records the shortage. Stock will stop at zero. Correct the balance with a physical count." /> : null}
-          {!counts.uncertain && !counts.sourceChanged ? <section className={styles.ingredients} aria-label="Ingredients used">
+          {!counts.uncertain && !counts.sourceChanged && !counts.sourceUnavailable ? <section className={styles.ingredients} aria-label="Ingredients used">
             <h2>Stock this batch uses</h2><p>Check the amounts. Adjust only what you used differently.</p>
             {batch.rows.length ? batch.rows.map((row, i) => {
               const stock = counts.stock.find((item) => item.name === row.name);
@@ -111,13 +114,13 @@ export function ProductionFocusLive({ v }: { v: OpsVals }) {
                 </div>
               </div>
             ); }) : <p>No fresh ingredients are deducted for this batch.</p>}
-          </section> : <p>{counts.sourceChanged && !counts.uncertain
+          </section> : <p>{counts.sourceUnavailable && !counts.uncertain ? 'Read the saved recipe to see ingredient use.' : counts.sourceChanged && !counts.uncertain
             ? 'Use the updated recipe before reviewing stock use.' : 'Stock use will refresh after confirmation.'}</p>}
           {!counts.valid ? <Banner tone="warn" title="Check the counts before confirming."
             body="Go back and enter cookies made and rejects." /> : null}
           <div className={styles.actions}>
             <Button onClick={batch.toStep1} disabled={locked}>Back to counts</Button>
-            <Button variant="primary" onClick={counts.confirm} disabled={!counts.valid || counts.saving || (counts.sourceChanged && !counts.uncertain)}>
+            <Button variant="primary" onClick={counts.confirm} disabled={!counts.valid || counts.saving || ((counts.sourceChanged || counts.sourceUnavailable) && !counts.uncertain)}>
               {counts.saving ? 'Saving production…' : counts.uncertain ? 'Check saved result' : 'Confirm production'}
             </Button>
           </div>

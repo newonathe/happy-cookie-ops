@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act } from 'react';
-import { cleanup, render } from '@testing-library/react';
+import { cleanup, fireEvent, render } from '@testing-library/react';
 
 vi.mock('@/lib/config/app-mode', () => ({ isLiveMode: () => true }));
 type Row = Record<string, unknown> & { clientId: string };
@@ -72,7 +72,14 @@ const rpc = vi.fn(async (name: string) => {
           item({ id: 'butter', name: 'Butter', on_hand: 0 }),
           item({ id: 'pouch', name: 'Pouch', category: 'Packaging', on_hand: 7, par_level: 10 }),
           item({ id: 'sugar', name: 'Sugar', on_hand: 0, last_counted: null }),
-          item({ id: 'eggs', name: 'Eggs', unit: 'pcs', on_hand: 30, par_level: 12, last_counted: null }),
+          item({
+            id: 'eggs',
+            name: 'Eggs',
+            unit: 'pcs',
+            on_hand: 30,
+            par_level: 12,
+            last_counted: null
+          }),
           item({ id: 'old', name: 'Old jar', active: false, on_hand: 0 })
         ]
       },
@@ -113,6 +120,54 @@ describe('the live Home', () => {
   it('counts open orders by their saved status', async () => {
     const r = await mounted(true);
     expect(home(r).orders).toEqual({ review: 1, toPrepare: 2, ready: 1 });
+  });
+
+  it('opens receiving directly and starts or resumes the existing count without posting stock', async () => {
+    const r = await mounted(true);
+    const ui = render(<HomeLive v={r.renderVals()} />);
+    await act(async () => {
+      fireEvent.click(ui.getByRole('button', { name: /Receive delivery/ }));
+    });
+    expect(r.state.screen).toBe('inventory');
+    expect(r.state.sheet).toMatchObject({ kind: 'receive', name: 'Bread flour' });
+    act(() => {
+      r.setState({ sheet: null });
+      r.go('today');
+    });
+    ui.rerender(<HomeLive v={r.renderVals()} />);
+    await act(async () => {
+      fireEvent.click(ui.getByRole('button', { name: /Count stock/ }));
+    });
+    expect(r.state.stocktake).toMatchObject({
+      counts: {},
+      items: expect.arrayContaining(['Bread flour'])
+    });
+    act(() =>
+      (r as unknown as { countInput: (name: string, value: string) => void }).countInput(
+        'Bread flour',
+        '0'
+      )
+    );
+    act(() => r.go('today'));
+    const pending = r.state.stocktake;
+    await act(async () => home(r).go.count());
+    expect(r.state.stocktake).toBe(pending);
+    expect(r.state.stocktake).toMatchObject({ counts: { 'Bread flour': '0' } });
+    expect(rpc.mock.calls.some(([name]) => name === 'record_stock_movement')).toBe(false);
+  });
+
+  it('rejects stale Home stock shortcuts after the owner role changes', async () => {
+    const r = await mounted(true),
+      actions = home(r).go;
+    act(() => r.setRole('helper'));
+    const screen = r.state.screen;
+    await act(async () => {
+      actions.receive();
+      actions.count();
+    });
+    expect(r.state.screen).toBe(screen);
+    expect(r.state.sheet).toBeNull();
+    expect(r.state.stocktake).toBeNull();
   });
 
   it("uses the Stock page's rule; never counted is a note, not a separate status", async () => {

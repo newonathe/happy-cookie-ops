@@ -12,7 +12,7 @@ type Group = {
   id: string;
   name: string;
   photo: string;
-  qty: number;
+  good: number;
   rejects: number;
   plan: number;
   missing: boolean;
@@ -30,13 +30,13 @@ export function ProductionResults({ data }: { data: LiveProductionVals }) {
       id: row.productId,
       name: row.name,
       photo: row.photo,
-      qty: 0,
+      good: 0,
       rejects: 0,
       plan: 0,
       missing: false,
       known: false
     };
-    group.qty += row.qty;
+    group.good += row.qty;
     group.rejects += row.rejects;
     if (row.target === null) group.missing = true;
     else {
@@ -47,23 +47,39 @@ export function ProductionResults({ data }: { data: LiveProductionVals }) {
   }
   const scale = Math.max(
     1,
-    ...[...groups.values()].flatMap((g) => [g.qty, g.missing ? 0 : g.plan])
+    ...[...groups.values()].flatMap((g) => [g.good + g.rejects, g.missing ? 0 : g.plan])
   );
-  const baked = data.rows.reduce((sum, row) => sum + row.qty, 0);
+  const good = data.rows.reduce((sum, row) => sum + row.qty, 0);
   const rejects = data.rows.reduce((sum, row) => sum + row.rejects, 0);
+  const baked = good + rejects;
+  const dates = data.rows
+    .map((row) => row.at)
+    .filter((at) => Number.isFinite(new Date(at).getTime()));
+  const date = (at: number) =>
+    formatManila(at, { day: 'numeric', month: 'short', year: 'numeric' }, 'en-PH');
+  const first = Math.min(...dates),
+    last = Math.max(...dates);
+  const range = !dates.length
+    ? 'Dates unavailable'
+    : dates.length !== data.rows.length
+      ? 'Some dates unavailable'
+      : date(first) === date(last)
+        ? date(first)
+        : `${date(first)} – ${date(last)}`;
   const showSaved = data.state === 'read' || data.rows.length > 0;
   return (
     <section className={styles.results} aria-label="Saved production">
       <header className={styles.sectionHeading}>
         <h2>Cookies made</h2>
-        <span>{data.periodText}</span>
+        <span>Recent history · all drops</span>
       </header>
+      {data.rows.length ? <p className={styles.detail}>{range}</p> : null}
       {data.state !== 'read' ? (
         <Banner
           tone={data.state === 'failed' ? 'warn' : 'info'}
           title={
             data.state === 'failed'
-              ? 'Production could not be refreshed.'
+              ? 'Production history could not be refreshed.'
               : 'Reading saved production…'
           }
           body={data.rows.length ? 'Showing the last saved results.' : undefined}
@@ -80,20 +96,20 @@ export function ProductionResults({ data }: { data: LiveProductionVals }) {
           <span>
             cookies baked
             <small>
-              {n(baked - rejects)} good · {n(rejects)} not for sale
+              {n(good)} good · {n(rejects)} not for sale
             </small>
           </span>
         </div>
       ) : null}
       {data.state === 'read' && !data.rows.length ? (
-        <p className={styles.empty}>No production saved for this drop.</p>
+        <p className={styles.empty}>No saved batches yet.</p>
       ) : null}
       {data.rows.length ? (
         <>
           <div className={styles.legend}>
             <span>
               <i className={styles.planned} />
-              Planned
+              Saved batch plans
             </span>
             <span>
               <i className={styles.good} />
@@ -111,6 +127,7 @@ export function ProductionResults({ data }: { data: LiveProductionVals }) {
           <div className={styles.charts}>
             {[...groups.values()].map((g) => {
               const plan = g.missing ? null : g.plan;
+              const made = g.good + g.rejects;
               const unknown = g.known ? 'Plan incomplete' : 'No plan saved';
               const max = scale,
                 photo = resolveImagePath(g.photo);
@@ -124,7 +141,7 @@ export function ProductionResults({ data }: { data: LiveProductionVals }) {
                   </div>
                   <div
                     role="img"
-                    aria-label={`${g.name}: ${plan === null ? unknown : n(plan) + ' planned'}; ${n(g.qty)} baked; ${n(g.rejects)} not for sale`}
+                    aria-label={`${g.name}: ${plan === null ? unknown : n(plan) + ' planned'}; ${n(made)} baked; ${n(g.good)} good; ${n(g.rejects)} not for sale`}
                   >
                     <div className={styles.barLine} aria-hidden="true">
                       <span>Planned</span>
@@ -149,23 +166,23 @@ export function ProductionResults({ data }: { data: LiveProductionVals }) {
                         <div
                           data-baked-bar
                           className={styles.baked}
-                          style={{ width: `${(g.qty / max) * 100}%` }}
+                          style={{ width: `${(made / max) * 100}%` }}
                         >
                           <i
                             className={styles.good}
-                            style={{ width: `${g.qty ? ((g.qty - g.rejects) / g.qty) * 100 : 0}%` }}
+                            style={{ width: `${made ? (g.good / made) * 100 : 0}%` }}
                           />
                           <i
                             className={styles.reject}
-                            style={{ width: `${g.qty ? (g.rejects / g.qty) * 100 : 0}%` }}
+                            style={{ width: `${made ? (g.rejects / made) * 100 : 0}%` }}
                           />
                         </div>
                       </div>
-                      <b>{n(g.qty)}</b>
+                      <b>{n(made)}</b>
                     </div>
                   </div>
                   <p className={styles.detail}>
-                    {n(g.qty - g.rejects)} good{g.rejects ? ` · ${n(g.rejects)} not for sale` : ''}
+                    {n(g.good)} good{g.rejects ? ` · ${n(g.rejects)} not for sale` : ''}
                   </p>
                 </article>
               );
@@ -197,7 +214,8 @@ export function ProductionResults({ data }: { data: LiveProductionVals }) {
                         {when} · Recipe version {row.version}
                       </span>
                       <span>
-                        {n(row.qty)} baked · {n(row.rejects)} not for sale
+                        {n(row.qty + row.rejects)} baked · {n(row.qty)} good · {n(row.rejects)} not
+                        for sale
                       </span>
                     </li>
                   );

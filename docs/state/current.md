@@ -1,5 +1,24 @@
 # Current state — Happy Cookie Ops
 
+**Production source follow-up, 4 November:** local batch/dough confirmation now requires a saved
+recipe source; unavailable legacy launches keep drafts and offer Retry saved recipe. Canonical source
+comparison includes version/amounts/units/kind. Original unanswered requests remain exactly replayable;
+previously verified cached recipes remain usable after a failed refresh. Unknown dough portions stay
+hidden; unconfirmed work remains discardable. Tiny shortages retain fractions, same-day history uses
+one date and failure wording explicitly refers to history. 96 focused tests and 8 responsive/motion
+flows pass; full gate: 173 files / 2,854 tests + 2 existing TODOs pass; live build passes 28 pages.
+Earlier results and stock-only retry remain intact. Durable recovery/positive ingredient-use detail and
+required independent review remain incomplete. SQL/request/queue rules unchanged.
+Source/test details and visible examples are in the [Claude UI handoff](../design/claude-ui-handoff.md).
+The newest blocks override historical “next bug” and uncommitted-status descriptions below.
+
+**Codex takeover, 4 November:** Claude is usage-limited; Ethan authorized fixing the four audit findings.
+The local fixes cover signed Money bars, add-on draft retention/choice bounds and direct Home stock
+actions. Read the [front-facing Claude handoff](../design/claude-ui-handoff.md) for exact changes and
+the detailed visual continuation prompt. Full172files /2828tests pass +2todo;8browser flows pass.
+Final live Webpack build28pages passes; local fixture proof is not hosted/owner/device acceptance.
+These are local changes; required independent review is not replaced with self-review or quota bypass.
+
 **Claude UI slice, 3 November (late):** v4 look now reaches Home, Money and Shop rules/boxes in live
 mode via new live slots (`live/home`, `live/money`, page-mode settings forms) and a shared kit
 (`ui/owner-kit.tsx`). Owner Shop feedback done; sampler flavours added as local migration 71 (hosted
@@ -7,7 +26,7 @@ apply awaits approval). Lossless record and feedback status: [capability ledger]
 Ethan lifted the browser guard and accepted a Sonnet reviewer (AGENTS.md). Next: Sell orders/payments/
 customers, Shop status/methods/texts, Account, section Settings buttons, production results bug.
 
-**Active again at Ethan's request, 3 November 2026.** Full actual-app goal remains incomplete.
+**Earlier Codex checkpoint (before accepted c51401f/273de7d):** Full actual-app goal remains incomplete.
 Latest uncommitted work connects the independent draft pool to the actual runtime and Make list.
 Different/identical cookie batches and dough mixes retain their own fields, recipe/period and step;
 per-item saves allow editing/submitting B while A saves. Acknowledgement retires only its own item.

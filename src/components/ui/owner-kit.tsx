@@ -269,7 +269,7 @@ export function ChoiceRows({
             label={`${label} ${index + 1}`}
             name={`${name}_${index}`}
             value={value}
-            maxLength={30}
+            maxLength={20}
             onChange={(event) => {
               const next = [...values];
               next[index] = event.currentTarget.value;

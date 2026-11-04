@@ -422,6 +422,26 @@ describe('the form reads itself back', () => {
     expect((save.mock.calls[0]![0] as LiveOrderExtrasFields).addOns[0]!.variants).toEqual([]);
   });
 
+  it('keeps a typed message label when its option is switched off and on before saving', () => {
+    const { save, input, submit } = setup();
+    fireEvent.click(input('aoMessage0'));
+    fireEvent.change(input('aoLabel0'), { target: { value: 'Recipient name' } });
+    fireEvent.click(input('aoMessage0'));
+    expect(input('aoLabel0')).toBeNull();
+    fireEvent.click(input('aoMessage0'));
+    expect(input('aoLabel0').value).toBe('Recipient name');
+    submit();
+    expect((save.mock.calls[0]![0] as LiveOrderExtrasFields).addOns[0]!.textLabel).toBe(
+      'Recipient name'
+    );
+    expect(save).toHaveBeenCalledTimes(1);
+  });
+
+  it('limits each editable choice to the same 20 characters accepted on save', () => {
+    const { input } = setup();
+    expect(input('aoChoice0_0').maxLength).toBe(20);
+  });
+
   it('adds several new add-ons with no id yet; only a new one can be removed', () => {
     const { save, input, submit, view } = setup();
     const addButton = () =>

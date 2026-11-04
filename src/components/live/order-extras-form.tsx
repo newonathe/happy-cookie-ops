@@ -89,6 +89,7 @@ interface Row {
   choices: boolean;
   options: string[];
   message: boolean;
+  messageLabel: string;
 }
 
 /**
@@ -108,7 +109,8 @@ export function OrderExtrasForm({ liveOrderExtras }: { liveOrderExtras: LiveOrde
       saved: a,
       choices: a.variants.length > 0,
       options: a.variants.length ? [...a.variants] : [''],
-      message: a.textLabel !== ''
+      message: a.textLabel !== '',
+      messageLabel: a.textLabel || 'Message'
     }))
   );
   const [nextKey, setNextKey] = useState(0);
@@ -181,7 +183,9 @@ export function OrderExtrasForm({ liveOrderExtras }: { liveOrderExtras: LiveOrde
                         const on = event.currentTarget.checked;
                         setChosen((all) =>
                           on
-                            ? cookies.map((x) => x.id).filter((id) => id === c.id || all.includes(id))
+                            ? cookies
+                                .map((x) => x.id)
+                                .filter((id) => id === c.id || all.includes(id))
                             : all.filter((id) => id !== c.id)
                         );
                       }}
@@ -255,7 +259,8 @@ export function OrderExtrasForm({ liveOrderExtras }: { liveOrderExtras: LiveOrde
                   saved: null,
                   choices: false,
                   options: [''],
-                  message: false
+                  message: false,
+                  messageLabel: 'Message'
                 }
               ]);
               setNextKey((n) => n + 1);
@@ -342,7 +347,8 @@ export function OrderExtrasForm({ liveOrderExtras }: { liveOrderExtras: LiveOrde
               label="Message box label"
               name={'aoLabel' + i}
               maxLength={30}
-              defaultValue={row.saved?.textLabel || 'Message'}
+              value={row.messageLabel}
+              onChange={(event) => update(row.key, { messageLabel: event.currentTarget.value })}
             />
           ) : null}
         </Panel>
