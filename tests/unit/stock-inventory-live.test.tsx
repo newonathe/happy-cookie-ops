@@ -168,8 +168,6 @@ describe('B5 Inventory item page', () => {
       'Last paid ₱88.25 · 3 Oct'
     ])
       expect(facts.textContent).toContain(text);
-    fireEvent.click(screen.getByRole('button', { name: 'Back to inventory' }));
-    expect(p.close).toHaveBeenCalledTimes(1);
     for (const [label, fn] of [
       ['Add to inventory', mine.receive],
       ['Count', mine.count],

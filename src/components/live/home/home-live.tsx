@@ -1,11 +1,14 @@
 'use client';
 
+import { useState } from 'react';
 import type { LiveHome, OpsVals } from '@/view-models/vals';
 import { NextEventCard, SellingCard } from '@/components/live/bazaar/home-card';
 import { Button } from '@/components/ui/button';
 import { cx } from '@/components/ui/cx';
 import { HeadedPanel, PageTitle, SignedMoney } from '@/components/ui/owner-kit';
 import { ListRow, PanelLink, StackedBar } from '@/components/ui/owner-patterns';
+
+const WORK_SHOWN = 3;
 
 /** Why a stock item is on Home, marked by more than colour. */
 function StockTag({ status }: { status: string }) {
@@ -86,6 +89,7 @@ function StockSummary({ counts }: { counts: NonNullable<LiveHome['stockCounts']>
  * still loading says so.
  */
 export function HomeLive({ v }: { v: OpsVals }) {
+  const [allWork, setAllWork] = useState(false);
   const home = v.liveHome;
   if (!home) return null;
   const { orders, go } = home;
@@ -108,7 +112,7 @@ export function HomeLive({ v }: { v: OpsVals }) {
     { title: 'Count stock', detail: 'Enter a physical count', onOpen: go.count },
     {
       title: 'Products & recipes',
-      detail: `${home.flavours} ${home.flavours === 1 ? 'flavour' : 'flavours'}`,
+      detail: `${home.flavours} on the menu`,
       onOpen: go.products
     },
     {
@@ -230,7 +234,7 @@ export function HomeLive({ v }: { v: OpsVals }) {
           {home.production.length ? (
             <HeadedPanel title="Continue unfinished work">
               <div className="divide-y divide-divide">
-                {home.production.map((work) => (
+                {(allWork ? home.production : home.production.slice(0, WORK_SHOWN)).map((work) => (
                   <ListRow
                     key={work.id}
                     title={work.name}
@@ -241,6 +245,15 @@ export function HomeLive({ v }: { v: OpsVals }) {
                     onOpen={work.open}
                   />
                 ))}
+                {home.production.length > WORK_SHOWN ? (
+                  <button
+                    type="button"
+                    onClick={() => setAllWork(!allWork)}
+                    className="min-h-11 w-full bg-raise text-caption font-semibold text-ink-soft"
+                  >
+                    {allWork ? 'Show fewer' : `Show all ${home.production.length}`}
+                  </button>
+                ) : null}
               </div>
             </HeadedPanel>
           ) : null}

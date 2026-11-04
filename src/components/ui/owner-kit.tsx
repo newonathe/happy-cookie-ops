@@ -121,13 +121,16 @@ export function TaskRow({
   title,
   detail,
   action,
-  onOpen
+  onOpen,
+  openLabel
 }: {
   title: ReactNode;
   detail?: ReactNode;
   /** A button or link; when absent and `onOpen` is given the whole row opens. */
   action?: ReactNode;
   onOpen?: () => void;
+  /** What a screen reader hears for a row that opens. */
+  openLabel?: string;
 }) {
   const body = (
     <span className="flex min-w-0 flex-1 basis-44 flex-col gap-0.5">
@@ -140,6 +143,7 @@ export function TaskRow({
       <button
         type="button"
         onClick={onOpen}
+        aria-label={openLabel}
         className="flex min-h-14 w-full items-center justify-between gap-3 border-b border-line py-3 text-left transition-colors duration-[140ms] last:border-b-0 hover:bg-raise focus-visible:outline-2 focus-visible:outline-brand"
       >
         {body}

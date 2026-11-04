@@ -323,17 +323,23 @@ export function MoneyLive({ v }: { v: OpsVals }) {
             </div>
           </Panel>
 
-          {money.held.map((h) => (
-            <p
-              key={h.name}
-              role="status"
-              className="mb-4 rounded-control border border-warm-line bg-warm-high p-3 text-caption text-ink"
-            >
-              <strong>{h.name}</strong> is still open, so its sales (₱{pesos.format(h.revenue)}) and
-              costs (₱{pesos.format(h.expenses)}) are not in these books yet. They are added when
-              the event is finished.
-            </p>
-          ))}
+          {money.held.length ? (
+            <details className="mb-4 rounded-control border border-line bg-surface px-3 text-caption text-ink-soft">
+              <summary className="flex min-h-11 cursor-pointer items-center font-semibold text-ink">
+                {money.held.length === 1
+                  ? '1 open event is not in these books yet'
+                  : `${money.held.length} open events are not in these books yet`}
+              </summary>
+              <ul className="pb-2">
+                {money.held.map((h) => (
+                  <li key={h.name} className="border-t border-divide py-2">
+                    <strong>{h.name}</strong>: sales ₱{pesos.format(h.revenue)}, costs ₱
+                    {pesos.format(h.expenses)}. Added when the event is finished.
+                  </li>
+                ))}
+              </ul>
+            </details>
+          ) : null}
           {money.uncosted > 0 ? (
             <p
               role="status"
@@ -457,7 +463,7 @@ export function MoneyLive({ v }: { v: OpsVals }) {
 
           {v.pl?.hasMargins ? (
             <>
-              <SectionHeading>What each flavour earns</SectionHeading>
+              <SectionHeading>What each flavour earns, all time</SectionHeading>
               <Panel>
                 <ul className="flex flex-col">
                   {(v.pl.marginRows ?? []).map((m, i) => (
