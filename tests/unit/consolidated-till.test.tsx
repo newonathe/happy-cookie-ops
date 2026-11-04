@@ -137,6 +137,14 @@ describe('the consolidated till calls the ported handlers', () => {
     expect(sales.getByText('Sale 1')).toBeInTheDocument();
   });
 
+  it('with nothing in the sale, Charge waits and the phone bar is gone', () => {
+    const v = vals({ bzCartCount: 0, bzCartTotalNum: '₱0' });
+    const { container } = render(<ConsolidatedTill v={v} till={till()} panel={null} />);
+    expect(container.querySelector('[data-part="sale-bar"]')).toBeNull();
+    expect(screen.getByRole('button', { name: 'Charge' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Freebie' })).toBeDisabled();
+  });
+
   it('draws the already-resolved photo as it is', () => {
     render(<ConsolidatedTill v={vals()} till={till()} panel={null} />);
     const photos = document.querySelectorAll('[data-photo]');
