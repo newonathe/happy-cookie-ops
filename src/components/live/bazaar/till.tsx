@@ -100,7 +100,7 @@ export function ConsolidatedTill({
         aria-label="Till"
         data-screen-label="Bazaar Mode"
         data-till="consolidated"
-        className="flex flex-col gap-3 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(380px,40%)] lg:items-start lg:gap-x-5 lg:gap-y-3"
+        className="flex flex-col gap-3 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(360px,min(38%,520px))] lg:items-start lg:gap-x-5 lg:gap-y-3"
       >
         <div className="lg:col-span-2">
           {events ? (
@@ -137,10 +137,9 @@ export function ConsolidatedTill({
 
         <section
           aria-label="Cookies on the table"
-          className="@container flex min-w-0 flex-col gap-2.5 lg:col-start-1 lg:row-start-3"
+          className="@container min-w-0 overflow-hidden rounded-card border border-line bg-surface lg:col-start-1 lg:row-start-3"
         >
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 className="text-[15px] font-semibold text-ink">Cookies on the table</h2>
+          <PanelHead title="Cookies on the table">
             {till.soldOutCount > 0 ? (
               <Button
                 variant="ghost"
@@ -151,7 +150,7 @@ export function ConsolidatedTill({
                 {till.showSoldOut ? 'Hide sold out' : `Show sold out (${till.soldOutCount})`}
               </Button>
             ) : null}
-          </div>
+          </PanelHead>
           {till.allGone ? (
             <EmptyState
               title="Everything on the table is sold"
@@ -165,12 +164,16 @@ export function ConsolidatedTill({
               }
             />
           ) : null}
-          <div className="grid grid-cols-1 gap-2 @md:grid-cols-2">
+          <div className="-mb-px grid grid-cols-1 @md:grid-cols-2">
             {(v.bzSell ?? []).map((p, i) => {
               const name = String(p.name);
               const count = Number(p.inCart) || 0;
               return (
-                <div key={name} data-part="tile" className="relative">
+                <div
+                  key={name}
+                  data-part="tile"
+                  className="relative border-b border-divide @md:odd:border-r"
+                >
                   <TillCard
                     name={name}
                     photo={till.photos[i] ?? ''}
@@ -185,7 +188,7 @@ export function ConsolidatedTill({
                       type="button"
                       aria-label={`One less ${name}`}
                       onClick={p.minus}
-                      className="motion-press absolute top-1/2 right-1.5 grid size-11 -translate-y-1/2 place-items-center rounded-full border border-line-strong bg-surface text-ink shadow-chip"
+                      className="motion-press absolute top-1/2 right-2.5 grid size-11 -translate-y-1/2 place-items-center rounded-full border border-line-strong bg-surface text-ink shadow-chip"
                     >
                       <svg
                         viewBox="0 0 24 24"
@@ -211,12 +214,9 @@ export function ConsolidatedTill({
           aria-label="Sales today"
           className="overflow-hidden rounded-card border border-line bg-surface lg:col-span-2 lg:row-start-4"
         >
-          <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 border-b border-divide px-4 py-3">
-            <h2 className="text-[15px] font-semibold text-ink">Sales today</h2>
-            <span className="text-caption text-ink-mute">
-              {sales.length ? 'Tap a sale for its receipt' : 'No sales yet'}
-            </span>
-          </div>
+          <PanelHead title="Sales today">
+            {sales.length ? null : <span className="text-caption text-ink-mute">No sales yet</span>}
+          </PanelHead>
           {sales.length ? (
             <>
               <SalesFigures v={v} sales={sales} />
@@ -229,6 +229,7 @@ export function ConsolidatedTill({
                 <span>Payment</span>
                 <span>Status</span>
                 <span className="text-right">Total</span>
+                <span />
               </div>
             </>
           ) : null}
@@ -253,18 +254,19 @@ export function ConsolidatedTill({
 
         <aside
           aria-label="Current sale"
-          className="hidden flex-col gap-3 rounded-card border border-line bg-surface p-5 lg:sticky lg:top-3 lg:col-start-2 lg:row-start-3 lg:flex"
+          className="hidden flex-col overflow-hidden rounded-card border border-line bg-surface lg:sticky lg:top-3 lg:col-start-2 lg:row-start-3 lg:flex"
         >
-          <div className="flex items-baseline justify-between gap-2">
-            <h2 className="text-[17px] font-semibold text-ink">Current sale</h2>
-            <span className="text-caption text-ink-mute">{v.bzCartCount} in this sale</span>
-          </div>
+          <PanelHead title="Current sale">
+            {Number(v.bzCartCount) ? (
+              <span className="text-caption text-ink-mute">{v.bzCartCount} in this sale</span>
+            ) : null}
+          </PanelHead>
           {inSale.length ? (
-            <ul className="flex flex-col">
+            <ul className="flex flex-col px-4">
               {inSale.map((p) => (
                 <li
                   key={String(p.name)}
-                  className="flex items-center justify-between gap-3 border-b border-line py-2.5"
+                  className="flex items-center justify-between gap-3 border-b border-divide py-2.5 last:border-b-0"
                 >
                   <span className="flex min-w-0 flex-col">
                     <span className="text-[14px] font-semibold text-ink">{p.name}</span>
@@ -298,36 +300,53 @@ export function ConsolidatedTill({
               ))}
             </ul>
           ) : (
-            <p className="py-3 text-center text-caption text-ink-mute">Choose a cookie to start.</p>
+            <p className="px-4 py-6 text-center text-caption text-ink-mute">
+              Tap a cookie to start a sale.
+            </p>
           )}
-          <div className="flex items-baseline justify-between gap-2">
-            <span className="text-[17px] text-ink">Total</span>
-            <span className="text-title tabular-nums">{v.bzCartTotalNum}</span>
+          <div className="flex flex-col gap-2.5 border-t border-divide p-4">
+            <div className="flex items-baseline justify-between gap-2">
+              <span className="text-[15px] text-ink-soft">Total</span>
+              <span className="text-title tabular-nums">{v.bzCartTotalNum}</span>
+            </div>
+            <Button
+              variant="primary"
+              size="lg"
+              className="w-full"
+              onClick={v.openPay}
+              disabled={!Number(v.bzCartCount)}
+            >
+              Charge
+            </Button>
+            <Button
+              variant="ghost"
+              className="w-full"
+              onClick={v.recordFreebie}
+              disabled={!Number(v.bzCartCount)}
+            >
+              Freebie
+            </Button>
           </div>
-          <Button variant="primary" size="lg" className="w-full" onClick={v.openPay}>
-            Charge
-          </Button>
-          <Button variant="secondary" className="w-full" onClick={v.recordFreebie}>
-            Freebie
-          </Button>
         </aside>
 
-        <div
-          data-part="sale-bar"
-          style={{ bottom: 'calc(var(--workspace-dock, 0px) + 12px)' }}
-          className="lg:hidden sticky z-10 flex items-center gap-2.5 rounded-card border border-line bg-surface/95 p-3 pl-4 shadow-lift backdrop-blur lg:top-3 lg:bottom-auto lg:col-start-2 lg:row-start-3"
-        >
-          <span className="flex min-w-0 flex-1 flex-col">
-            <span className="text-caption text-ink-soft">{v.bzCartCount} in this sale</span>
-            <span className="text-title tabular-nums">{v.bzCartTotalNum}</span>
-          </span>
-          <Button variant="secondary" onClick={v.recordFreebie}>
-            Freebie
-          </Button>
-          <Button variant="primary" size="lg" onClick={v.openPay}>
-            Charge
-          </Button>
-        </div>
+        {Number(v.bzCartCount) ? (
+          <div
+            data-part="sale-bar"
+            style={{ bottom: 'calc(var(--workspace-dock, 0px) + 12px)' }}
+            className="lg:hidden sticky z-10 flex items-center gap-2.5 rounded-card border border-line bg-surface/95 p-3 pl-4 shadow-lift backdrop-blur lg:top-3 lg:bottom-auto lg:col-start-2 lg:row-start-3"
+          >
+            <span className="flex min-w-0 flex-1 flex-col">
+              <span className="text-caption text-ink-soft">{v.bzCartCount} in this sale</span>
+              <span className="text-title tabular-nums">{v.bzCartTotalNum}</span>
+            </span>
+            <Button variant="secondary" onClick={v.recordFreebie}>
+              Freebie
+            </Button>
+            <Button variant="primary" size="lg" onClick={v.openPay}>
+              Charge
+            </Button>
+          </div>
+        ) : null}
       </section>
     </>
   );
@@ -489,10 +508,20 @@ function SaleMeta({ sale }: { sale: Sale }) {
   );
 }
 
-/** The columns of Sales today, on its header and on every row. */
-const SALE_COLUMNS = 'lg:grid-cols-[104px_minmax(0,1fr)_180px_96px_96px]';
+/** The heading every panel on the till shares, with room for one thing on the right. */
+function PanelHead({ title, children }: { title: string; children?: ReactNode }) {
+  return (
+    <div className="flex min-h-12 flex-wrap items-center justify-between gap-x-3 border-b border-divide px-4 py-2">
+      <h2 className="text-[15px] font-semibold text-ink">{title}</h2>
+      {children}
+    </div>
+  );
+}
 
-/** The day at a glance: what came in, how many sales and cookies, and how it was paid. Every peso is the engine's. */
+/** The columns of Sales today, on its header and on every row. */
+const SALE_COLUMNS = 'lg:grid-cols-[72px_minmax(0,1fr)_132px_112px_88px_16px]';
+
+/** The day at a glance, evenly across the panel: what came in, how much, and how it was paid. Every peso is the engine's. */
 function SalesFigures({ v, sales }: { v: OpsVals; sales: Sale[] }) {
   const cookies = sales.reduce(
     (sum, sale) => sum + saleLines(String(sale.summary ?? '')).reduce((t, line) => t + line.qty, 0),
@@ -508,11 +537,11 @@ function SalesFigures({ v, sales }: { v: OpsVals; sales: Sale[] }) {
     ...(v.digitalTotals ?? []).map((d) => ({ label: d.pay, value: d.totalText }))
   ];
   return (
-    <dl className="flex flex-wrap gap-x-8 gap-y-3 border-b border-divide px-4 py-3">
+    <dl className="grid grid-cols-[repeat(auto-fit,minmax(96px,1fr))] gap-x-4 gap-y-3 border-b border-divide px-4 py-3">
       {figures.map((figure) => (
         <div key={String(figure.label)} className="flex flex-col">
           <dt className="text-caption text-ink-mute">{figure.label}</dt>
-          <dd className="text-[17px] font-semibold text-ink tabular-nums">{figure.value}</dd>
+          <dd className="text-[16px] font-semibold text-ink tabular-nums">{figure.value}</dd>
         </div>
       ))}
     </dl>
@@ -520,8 +549,9 @@ function SalesFigures({ v, sales }: { v: OpsVals; sales: Sale[] }) {
 }
 
 /**
- * One sale as a record: which sale and who sold it, its cookies one per line, how it was paid, whether it reached the
- * server, and its total. The row opens its receipt. A sale that could not be sent keeps "Send again" under it.
+ * One sale, one row: which sale and who sold it, its cookies as tags, how it was paid, whether it reached the server,
+ * and its total. A problem is the only status that shouts. The row opens its receipt; a sale that could not be sent keeps
+ * "Send again" under it.
  */
 function SaleRow({ sale, number, open }: { sale: Sale; number: number; open: () => void }) {
   const lines = saleLines(String(sale.summary ?? ''));
@@ -530,27 +560,30 @@ function SaleRow({ sale, number, open }: { sale: Sale; number: number; open: () 
       <button
         type="button"
         onClick={open}
-        className={`grid min-h-11 w-full grid-cols-[minmax(0,1fr)_auto] items-start gap-x-4 gap-y-2 px-4 py-3 text-left hover:bg-raise focus-visible:outline-2 focus-visible:outline-brand ${SALE_COLUMNS}`}
+        className={`grid min-h-14 w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1.5 px-4 py-2.5 text-left hover:bg-raise focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brand ${SALE_COLUMNS}`}
       >
         <span className="col-start-1 row-start-1 flex min-w-0 flex-wrap items-baseline gap-x-2 lg:col-start-auto lg:row-start-auto lg:flex-col">
           <span className="text-[14px] font-semibold text-ink">Sale {number}</span>
           {sale.clerk ? (
             <>
               {' '}
-              <span className="min-w-0 text-caption text-ink-mute">{sale.clerk}</span>
+              <span className="min-w-0 truncate text-caption text-ink-mute">{sale.clerk}</span>
             </>
           ) : null}
         </span>
-        <span className="col-span-2 row-start-2 flex min-w-0 flex-col gap-1 lg:col-span-1 lg:row-start-auto">
+        <span className="col-span-2 row-start-2 flex min-w-0 flex-wrap gap-1.5 lg:col-span-1 lg:row-start-auto">
           {lines.length ? (
             lines.map((line, i) => (
-              <span key={i} className="flex min-w-0 items-baseline gap-2 text-[14px] text-ink">
-                <span className="w-6 shrink-0 font-semibold tabular-nums">{line.qty}×</span>{' '}
+              <span
+                key={i}
+                className="inline-flex max-w-full items-baseline gap-1 rounded-tag bg-owner-soft px-2 py-0.5 text-caption text-ink"
+              >
+                <span className="font-semibold tabular-nums">{line.qty}×</span>{' '}
                 <span className="min-w-0">{line.name}</span>
               </span>
             ))
           ) : (
-            <span className="text-[14px] text-ink-mute">No cookies</span>
+            <span className="text-caption text-ink-mute">No cookies</span>
           )}
         </span>
         <span className="col-start-1 row-start-3 flex min-w-0 flex-wrap items-baseline gap-x-2 lg:col-start-auto lg:row-start-auto lg:flex-col">
@@ -558,17 +591,24 @@ function SaleRow({ sale, number, open }: { sale: Sale; number: number; open: () 
           {sale.refText ? (
             <>
               {' '}
-              <span className="min-w-0 text-caption text-ink-mute">{sale.refText}</span>
+              <span className="min-w-0 truncate text-caption text-ink-mute">{sale.refText}</span>
             </>
           ) : null}
         </span>
         <span
-          className={`col-start-2 row-start-3 text-right text-caption leading-5 font-semibold lg:col-start-auto lg:row-start-auto lg:text-left ${sale.bad ? 'text-danger' : sale.ok ? 'text-ok' : 'text-ink-soft'}`}
+          className={`col-start-2 row-start-3 flex items-center justify-end gap-1.5 text-caption lg:col-start-auto lg:row-start-auto lg:justify-start ${sale.bad ? 'font-semibold text-danger' : 'text-ink-soft'}`}
         >
+          <span
+            aria-hidden="true"
+            className={`size-1.5 shrink-0 rounded-full ${sale.bad ? 'bg-danger' : sale.ok ? 'bg-ok' : 'bg-warn-dot'}`}
+          />
           {sale.stateText}
         </span>
         <span className="col-start-2 row-start-1 text-right text-[15px] font-semibold text-ink tabular-nums lg:col-start-auto lg:row-start-auto">
           {sale.totalText}
+        </span>
+        <span aria-hidden="true" className="hidden text-ink-faint lg:block">
+          ›
         </span>
       </button>
       {sale.bad ? (
