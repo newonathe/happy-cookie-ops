@@ -83,7 +83,16 @@ const book = (over: Partial<LiveRecipesVals> = {}): LiveRecipesVals => ({
   ...over
 });
 const draw = (b: LiveRecipesVals) =>
-  render(<RecipeBookLive v={{ liveRecipes: b } as unknown as OpsVals} />);
+  render(
+    <RecipeBookLive
+      v={
+        {
+          liveRecipes: b,
+          recipe: { name: 'Classic', version: 'Version 1', rows: [], units: [], history: [] }
+        } as unknown as OpsVals
+      }
+    />
+  );
 const tiles = () => within(screen.getByRole('list', { name: 'Flavours' })).getAllByRole('listitem');
 
 describe('product recipe link', () => {
@@ -447,17 +456,15 @@ describe('the flavour page', () => {
 });
 
 describe('editing the recipe', () => {
-  it('the button says it is the older screen, opens it on this flavour, and the way back lands on the page', () => {
+  it('Edit recipe opens this flavour, with no warning against saving, and the way back lands on the page', () => {
     const editRecipe = vi.fn();
     draw(book({ items: [item({ editRecipe })] }));
     fireEvent.click(within(tiles()[0]!).getByRole('button'));
-    expect(screen.getByText(/Recipes are still edited in the older Recipes screen/)).toBeTruthy();
-    expect(screen.getByText(/do not save yet/)).toBeTruthy();
-    fireEvent.click(screen.getByRole('button', { name: 'Open the older Recipes screen' }));
+    expect(screen.queryByText(/do not save yet/)).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Edit recipe' }));
     expect(editRecipe).toHaveBeenCalledTimes(1);
-    expect(screen.getByTestId('old-recipes')).toBeTruthy();
-    fireEvent.click(screen.getByRole('button', { name: /Back to the recipe book/ }));
+    expect(screen.getByRole('heading', { name: /^Edit / })).toBeTruthy();
+    fireEvent.click(screen.getAllByRole('button', { name: /Back to the recipe book/ })[0]!);
     expect(screen.getByRole('heading', { name: 'Classic' })).toBeTruthy();
-    expect(screen.queryByTestId('old-recipes')).toBeNull();
   });
 });

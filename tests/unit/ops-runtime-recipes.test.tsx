@@ -148,6 +148,26 @@ describe('A4: the recipes reach the ported recipes screen (live mode)', () => {
     expect(called(rpc, 'get_recipes')).toHaveLength(0);
     expect(toasts(runtime)).not.toContain('Saved as Version');
   });
+  it('a line can be marked as packaging on the page, and the save sends it', async () => {
+    const { runtime, rpc } = await mounted('owner', fresh());
+    act(() => {
+      runtime.go('recipes');
+      runtime.setState({ recipeOpen: 'dcf' } as never);
+      act$(runtime).recipeEdit('dcf', 0, 'name', 'Box');
+    });
+    const rows = () => runtime.renderVals().recipe.rows;
+    expect(typeof rows()[0]?.setKind).toBe('function');
+    act(() => rows()[0]?.setKind?.('packaging'));
+    expect(rows()[0]?.kind).toBe('packaging');
+    expect(st(runtime).recipeDirty.dcf).toBe(true);
+    act(() => act$(runtime).recipeSave('dcf'));
+    await settle();
+    const sent = called(rpc, 'save_recipe')[0]![1] as {
+      p_recipe: { lines: Array<{ name: string; kind?: string }> };
+    };
+    expect(JSON.stringify(sent)).toContain('"kind":"packaging"');
+  });
+
   it('retains packaging identity after rename, quantity edit, removal and adding another ingredient', async () => {
     const { runtime, rpc } = await mounted(
       'owner',
@@ -297,7 +317,12 @@ describe('A4: the recipes reach the ported recipes screen (live mode)', () => {
     expect(runtime.renderVals().liveRecipes?.recipePage?.rows[0]?.amountText).toBe('320 g');
     act(() => page!.back());
     expect(runtime.state.screen).toBe('products');
-    expect(runtime.renderVals().productRows.filter((p) => p.returnRecipeFocus).map((p) => p.name)).toEqual([product.name]);
+    expect(
+      runtime
+        .renderVals()
+        .productRows.filter((p) => p.returnRecipeFocus)
+        .map((p) => p.name)
+    ).toEqual([product.name]);
     act(() => runtime.setRole('helper'));
     act(() => product.goRecipe());
     expect(runtime.renderVals().liveRecipes).toBeNull();

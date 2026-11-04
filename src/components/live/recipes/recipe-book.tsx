@@ -7,7 +7,6 @@ import type { LiveRecipesVals, RecipeBookItem } from '@/lib/recipes/live-recipes
 import { MARGIN_FLOOR_PERCENT, bookCounts, filterBook, type BookFilter } from '@/lib/recipes/book';
 import { RecipesScreen } from '@/components/screens/recipes';
 import { Banner } from '@/components/ui/banner';
-import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Field } from '@/components/ui/field';
 import { FilterChips } from '@/components/ui/filter-chips';
@@ -15,6 +14,7 @@ import { FlavourTile } from '@/components/ui/flavour-tile';
 import { supportsViewTransition, useViewTransition } from '@/components/ui/motion';
 import { cx } from '@/components/ui/cx';
 import { FlavourPage, PHOTO_TRANSITION } from './flavour-page';
+import { RecipeEditor } from './recipe-editor';
 import { RecipeReader } from './recipe-reader';
 
 /** `liveRecipes` as the runtime provides it. */
@@ -85,20 +85,12 @@ export function RecipeBookLive({ v }: { v: OpsVals }) {
   if (view.kind === 'editor') {
     const item = book.items.find((i) => i.id === view.id);
     return (
-      <section
-        aria-label="Recipes"
-        data-screen-label="Recipes"
-        className="flex flex-col gap-3 pb-24"
-      >
-        <Button
-          variant="ghost"
-          onClick={() => go(item ? { kind: 'flavour', id: view.id } : { kind: 'book' }, view.id)}
-          className="self-start"
-        >
-          <span aria-hidden="true">← </span>
-          {book.recipePage ? 'Back to costs' : 'Back to the recipe book'}
-        </Button>
-        <RecipesScreen v={v} />
+      <section aria-label="Recipes" data-screen-label="Recipes" className="pb-24">
+        <RecipeEditor
+          v={v}
+          backLabel={book.recipePage ? 'Back to costs' : 'Back to the recipe book'}
+          onBack={() => go(item ? { kind: 'flavour', id: view.id } : { kind: 'book' }, view.id)}
+        />
       </section>
     );
   }

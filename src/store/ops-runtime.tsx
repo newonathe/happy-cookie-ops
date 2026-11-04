@@ -57,6 +57,7 @@ import {
 import { holdCountLock } from '@/lib/stock/count-lock';
 import { readClassicTill, rememberClassicTill } from '@/lib/offline/till-choice';
 import { BazaarDays } from '@/store/bazaar-days';
+import { BakePlan } from '@/store/bake-plan';
 import { CustomerDesk, type CustomerOrder } from '@/store/customer-desk';
 import { EventEntry } from '@/store/event-entry';
 import {
@@ -914,6 +915,45 @@ export class OpsRuntime extends OpsProvider {
       shopping: () => this.go('grocery'),
       money: () => this.go('pnl'),
       bazaar: () => this.go('bazaar')
+    }
+  });
+  /** Planned bake: reads recipes and recorded stock, and records nothing. */
+  private bakePlan = new BakePlan({
+    products: () => PRODUCTS.map((row) => ({ id: row.id, name: row.short })),
+    recipe: (productId) => {
+      const recipe = this.recipeRows?.find((row) => row.productId === productId);
+      return recipe ? { savedYield: recipe.yield, lines: recipe.lines } : null;
+    },
+    items: () => {
+      const c = this.stockCatalogue;
+      if (!c) return [];
+      return c.items
+        .filter((item) => item.active)
+        .map((item) => {
+          // A price counts only for this very pack, from a supplier marked as preferred.
+          const price = c.prices.find(
+            (row) =>
+              row.itemName === item.name &&
+              row.preferred &&
+              row.active &&
+              row.packLabel === item.packLabel
+          );
+          return {
+            name: item.name,
+            unit: item.unit,
+            onHand: item.onHand,
+            counted: !!item.lastCounted,
+            packSize: item.packSize && item.packSize > 0 ? item.packSize : null,
+            packLabel: item.packLabel,
+            supplier: c.suppliers.find((row) => row.id === item.supplierId)?.name ?? '',
+            packPesos: price ? centavosToPesos(price.priceCents) : null,
+            compare: () => this.openItemPrices(item.id),
+            count: () => this.startItemCount(item)
+          };
+        });
+    },
+    rerender: () => {
+      if (!this.unmounted) this.forceUpdate();
     }
   });
   /** Customers, from the orders they placed. */
@@ -2260,6 +2300,33 @@ export class OpsRuntime extends OpsProvider {
     } else this.toast('Add an inventory item before receiving a delivery.', 'warn');
   }
 
+  /** The editor's rows also say whether each line is an ingredient or packaging, which a save must keep. */
+  private liveRecipeRows(vals: OpsVals): OpsVals['recipe']['rows'] {
+    const rows = vals.recipe?.rows ?? [];
+    const pid = this.state.recipeOpen as string | undefined;
+    const recipe = pid ? (this.state as unknown as RecipeState).recipes[pid] : undefined;
+    if (!isLiveMode() || this.state.role !== 'owner' || !pid || !recipe) return rows;
+    return rows.map((row, index) => ({
+      ...row,
+      kind: recipe.ing[index]?.[3] as 'ingredient' | 'packaging' | null | undefined,
+      setKind: (kind: 'ingredient' | 'packaging') => {
+        this.setState((s) => {
+          const state = s as unknown as RecipeState & { recipeDirty: Record<string, boolean> };
+          const lines = state.recipes[pid]?.ing;
+          if (!lines?.[index]) return null;
+          const [name, qty, unit] = lines[index];
+          const ing = lines.map((line, at) =>
+            at === index ? ([name, qty, unit, kind] as typeof line) : line
+          );
+          return {
+            recipes: { ...state.recipes, [pid]: { ...state.recipes[pid]!, ing } },
+            recipeDirty: { ...state.recipeDirty, [pid]: true }
+          } as never;
+        });
+      }
+    }));
+  }
+
   /** The engine's pricing example, worked on the owner's own menu (two each of her first three). */
   private pricePreview(preview: OpsVals['priceModePreview']): OpsVals['priceModePreview'] {
     if (!preview) return preview;
@@ -3017,7 +3084,8 @@ export class OpsRuntime extends OpsProvider {
             ...starved.recipe,
             costText: this.costKnown(this.state.recipeOpen)
               ? starved.recipe.costText
-              : COST_COPY.pending
+              : COST_COPY.pending,
+            rows: this.liveRecipeRows(starved)
           }
         : starved.recipe,
       pl: this.livePnl(starved.pl),
@@ -5413,6 +5481,7 @@ export class OpsRuntime extends OpsProvider {
       receive: this.receiveDelivery.vals(),
       change: this.stockChange.vals(),
       made: this.madeStock(),
+      bakePlan: this.bakePlan.vals(),
       startCount: (category) => this.startCategoryCount(category),
       manageItems: () => void this.openStockItems(),
       items,
