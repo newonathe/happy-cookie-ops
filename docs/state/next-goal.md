@@ -30,7 +30,7 @@ Next: finish every page in [coverage](../design/reference-v4/coverage.md), by it
 wording and inactive held events remain. Recipe reads keep line kind; the writer is unresolved.
 Preserve selling values, permissions and required independent review; no quota/provider bypass.
 
-Branch `codex/refined-workflows`; starting HEAD52292e3. Inspect current Git state.
+Branch `codex/refined-workflows`; see `git log` for HEAD. Inspect current Git state.
 
 Use four Vitest workers.
 

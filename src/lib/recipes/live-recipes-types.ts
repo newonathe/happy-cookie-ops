@@ -45,7 +45,24 @@ export interface LiveRecipesVals {
     state: 'loading' | 'read' | 'failed';
     yieldText: string | null;
     versionText: string | null;
-    rows: Array<{ name: string; amountText: string }>;
+    /** Cookies one batch of the saved recipe makes; 0 when there is no saved recipe. */
+    savedYield: number;
+    rows: Array<{
+      name: string;
+      amountText: string;
+      qty: number;
+      unit: string;
+      kind?: 'ingredient' | 'packaging' | null;
+    }>;
+    /** Recorded stock of what the recipe uses, for reading only. Absent before stock is read. */
+    stock?: Array<{
+      name: string;
+      unit: string;
+      onHand: number;
+      counted: boolean;
+      count?: () => void;
+    }>;
+    startProduction?: () => void;
     back: () => void;
     refresh: () => void;
   };

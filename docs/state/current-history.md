@@ -2459,3 +2459,10 @@ actions. Read the [front-facing Claude handoff](../design/claude-ui-handoff.md) 
 the detailed visual continuation prompt. Full172files /2828tests pass +2todo;8browser flows pass.
 Final live Webpack build28pages passes; local fixture proof is not hosted/owner/device acceptance.
 These are local changes; required independent review is not replaced with self-review or quota bypass.
+
+**Claude UI slice, 3 November (late):** v4 look now reaches Home, Money and Shop rules/boxes in live
+mode via new live slots (`live/home`, `live/money`, page-mode settings forms) and a shared kit
+(`ui/owner-kit.tsx`). Owner Shop feedback done; sampler flavours added as local migration 71 (hosted
+apply awaits approval). Lossless record and feedback status: [capability ledger](../design/capability-ledger.md).
+Next: Sell orders/payments/
+customers, Shop status/methods/texts, Account, section Settings buttons, production results bug.

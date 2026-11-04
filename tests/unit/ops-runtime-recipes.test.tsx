@@ -263,7 +263,7 @@ describe('A4: the recipes reach the ported recipes screen (live mode)', () => {
         state: 'failed',
         versionText: creating ? 'Version 1' : 'Version 4'
       });
-      expect(runtime.renderVals().liveRecipes?.recipePage?.rows[0]).toEqual({
+      expect(runtime.renderVals().liveRecipes?.recipePage?.rows[0]).toMatchObject({
         name: 'Butter',
         amountText: '500 g'
       });

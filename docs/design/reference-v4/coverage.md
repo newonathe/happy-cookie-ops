@@ -5,7 +5,7 @@ Reference: `C:/Users/ethan/Downloads/happy-cookie-workflows-refined.html`, SHA-2
 What each page does, control by control: [flows.md](flows.md). Page inventory: [../reference-v4-page-contracts.md](../reference-v4-page-contracts.md).
 Lossless record: [../capability-ledger.md](../capability-ledger.md).
 
-Status: **Done** matches the mockup's structure on real data. **Landing** is being moved into the repo now. **Partial** works, with a gap named. **Old** still draws the
+Status: **Done** matches the mockup's structure on real data. **Partial** works, with a gap named. **Old** still draws the
 ported prototype screen or sheet. **Missing** has no home yet. **Not a feature** is mockup tooling. Done means checked
 on the 4186 preview with synthetic data; it is not hosted, device or owner acceptance.
 
@@ -22,7 +22,7 @@ on the 4186 preview with synthetic data; it is not hosted, device or owner accep
 
 - **Components:** pages compose `src/components/ui/owner-kit.tsx` and `owner-patterns.tsx`. Add a pattern there once it repeats.
 - **Classes:** logic for a page lives in a class with injected dependencies and a `vals()` method (`RecipeBook`, `BazaarDays`,
-  `ProductionWorkspace`, `MoneyDesk`, `HomeDesk`). Do not add page logic to `ops-runtime.tsx`, which only wires them.
+  `ProductionWorkspace`, `MoneyDesk`, `HomeDesk`, `MakeDesk`, `ReceiveDelivery`, `MoneyEntry`). Do not add page logic to `ops-runtime.tsx`, which only wires them.
 - **Slots:** register with `registerLiveScreen` under `src/components/live/<area>/`; call it from `live-gate.tsx` and the private
   4186 `entry.tsx`. Locked screens, sheets, shell and engine stay untouched. No sample calculations from the mockup.
 - **Lossless:** keep every capability reachable; record any move or drop in the capability ledger.
@@ -68,7 +68,7 @@ on the 4186 preview with synthetic data; it is not hosted, device or owner accep
 | make | `live/recipes/products-live.tsx`, `store/make-desk.ts` | Done | |
 | production | `live/production/production-live.tsx` | Done | Baked stock by product is on Inventory |
 | production-entry, production-review | `production-start.tsx`, `production-focus-live.tsx` | Partial | Group entry exists; compare |
-| recipe | `live/recipes/recipe-book.tsx`, `flavour-page.tsx`, `recipe-reader.tsx` | Partial | Recipe/Cost/History tabs, scaling, stock for this batch |
+| recipe | `live/recipes/recipe-reader.tsx`, `flavour-page.tsx`, `lib/recipes/batch.ts` | Done | Cost and History stay together on the flavour page |
 | recipe-edit, recipe-review | ported recipes screen | Old | Rebuild beside it; keep the legacy warning until reviewed |
 | recipe-drafts | `live/recipe-drafts-form.tsx` | Partial | Needs-a-recipe list |
 | product-edit | `live/live-form-host.tsx` | Done | |
@@ -108,5 +108,5 @@ on the 4186 preview with synthetic data; it is not hosted, device or owner accep
 ## Also owed
 
 - Realistic linked records in the 4186 preview for every section (see the owner references).
-- Fresh screenshots at phone width for every rebuilt page.
-- Independent review of each money, offline, auth or SQL slice.
+- Independent review of each money, offline, auth or SQL slice before it is committed.
+- Hosted: migration 71, deploy, and the demo data all wait on Ethan's approval.

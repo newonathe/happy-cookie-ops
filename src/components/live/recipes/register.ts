@@ -10,7 +10,7 @@ import { ProductionFocusLive } from '../production/production-focus-live';
  */
 export function registerLiveRecipeScreens(): () => void {
   const undo = [
-    registerLiveScreen('recipes', RecipeBookLive),
+    registerLiveScreen('recipes', Object.assign(RecipeBookLive, { ownsSectionNavigation: true })),
     registerLiveScreen('products', ProductsLive),
     registerLiveScreen('bake', ProductionLive),
     registerLiveScreen('batch', ProductionFocusLive)
