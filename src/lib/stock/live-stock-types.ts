@@ -7,6 +7,7 @@
  * Add to it only together with both sides.
  */
 
+import type { LiveBakePlan } from '@/store/bake-plan';
 import type { ReceiveDeliveryView, StockChangeView } from '@/store/stock-entries';
 
 /** Out at 0, Low below the item's level, Good otherwise (Ethan, 13 October). An item with no level is Good unless it is at 0. */
@@ -127,6 +128,7 @@ export interface LiveStockVals {
   receive?: ReceiveDeliveryView | null;
   change?: StockChangeView | null;
   made?: { dough: MadeStockRow[]; baked: MadeStockRow[] } | null;
+  bakePlan?: LiveBakePlan | null;
   /** Starts the selected ingredient/packaging category or resumes the existing count safely. */
   startCount?: (category: string) => void;
   manageItems?: () => void;

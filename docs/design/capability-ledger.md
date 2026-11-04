@@ -177,3 +177,14 @@ Known limits, for Ethan: `anonymise_customer` does not remove payment proofs or 
 
 Dropped: nothing.
 
+## Recipe editor and planned bake (`live/recipes/recipe-editor.tsx`, `store/bake-plan.ts`)
+
+| Today's capability | New home | Evidence |
+|---|---|---|
+| Ported Recipes screen for the owner: yield, lines, add, remove, save, versions, batches | Edit recipe page with Review; same engine handlers | test |
+| Flavour tabs on that screen | Each product opens its own recipe from Products | browser |
+| Warning "do not save yet" | Removed: lines keep their kind on save, and the page sets it. Independently reviewed | test |
+| (new) Planned bake | Shopping: cookies by product against recipes and recorded stock. A note on this device; records nothing | test |
+
+Dropped: nothing. Not built: creating a first recipe for a product with none outside this form was never offered, and still is not.
+

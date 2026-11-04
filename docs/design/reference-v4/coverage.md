@@ -69,7 +69,7 @@ on the 4186 preview with synthetic data; it is not hosted, device or owner accep
 | production | `live/production/production-live.tsx` | Done | Baked stock by product is on Inventory |
 | production-entry, production-review | `production-start.tsx`, `production-focus-live.tsx` | Partial | Group entry exists; compare |
 | recipe | `live/recipes/recipe-reader.tsx`, `flavour-page.tsx`, `lib/recipes/batch.ts` | Done | Cost and History stay together on the flavour page |
-| recipe-edit, recipe-review | ported recipes screen | Old | Rebuild beside it; keep the legacy warning until reviewed |
+| recipe-edit, recipe-review | `live/recipes/recipe-editor.tsx` | Done | Each line has its type, kept on save. A new saved recipe for a product with none is not built |
 | recipe-drafts | `live/recipe-drafts-form.tsx`, Needs recipe on Products | Done | Colours from the theme; the Needs recipe filter lists what has none |
 | product-edit | `live/live-form-host.tsx` | Done | |
 | new-product | `live/live-form-host.tsx`, page mode | Done | Same form as Edit product; the mockup has fewer fields |
@@ -82,8 +82,8 @@ on the 4186 preview with synthetic data; it is not hosted, device or owner accep
 | receive, receive-review | `live/stock/stock-entry-live.tsx`, `store/stock-entries.ts` | Done | Delivery date is today: backdating needs a server decision. Paid may stay empty: cost stays pending |
 | count, count-review | `live/stock/count-inventory.tsx` | Done | |
 | adjust, adjust-review | `live/stock/stock-entry-live.tsx`, `store/stock-entries.ts` | Done | |
-| shopping | `live/stock/grocery-live.tsx` | Partial | Grouped by supplier. Edit planned bake is on `bake-needs` |
-| bake-needs | | Missing | Plan cookies by product and buy for that plan, not only for orders. Needs a planning read |
+| shopping | `live/stock/grocery-live.tsx` | Done | Grouped by supplier, with the planned bake |
+| bake-needs | `live/stock/bake-plan-live.tsx`, `store/bake-plan.ts` | Done | A note on this device: it records nothing. Prices count only for the same pack from a preferred supplier |
 | suppliers, supplier, supplier-edit | `live/stock/suppliers-live.tsx`, `stock-suppliers-form.tsx` | Done | Colours from the theme; tools moved to Stock settings |
 | purchase-prices | `live/stock/item-prices.tsx` | Done | Reached from the item and from Compare prices |
 | supplier-price-edit | stash `7f5924a` | Missing | Held price editor; read its review packet first |

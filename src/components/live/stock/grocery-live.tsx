@@ -4,6 +4,7 @@ import type { OpsVals } from '@/view-models/vals';
 import type { GroceryRowView, LiveStockVals, StockItemView } from '@/lib/stock/live-stock-types';
 import { OfflineLine, StatusWord, StockLoading, liveStockOf } from './stock-shared';
 import { ReceiveLive } from './stock-entry-live';
+import { BakePlanNeeds, BakePlanPage } from './bake-plan-live';
 import { Button } from '@/components/ui/button';
 import { SectionNavigation } from '@/components/live/section-navigation';
 import { useAreaSettings } from '@/components/live/account/settings-areas';
@@ -104,6 +105,7 @@ export function GroceryLive({ v }: { v: OpsVals }) {
   const settings = useAreaSettings(v, 'stock', 'Back to shopping');
   if (!stock) return <StockLoading title="Shopping" label="Shopping" />;
   if (stock.receive) return <ReceiveLive receive={stock.receive} backLabel="Back to shopping" />;
+  if (stock.bakePlan?.open) return <BakePlanPage plan={stock.bakePlan} />;
   if (settings.page) return settings.page;
   const { grocery } = stock;
   const bySupplier = new Map<string, GroceryRowView[]>();
@@ -116,9 +118,16 @@ export function GroceryLive({ v }: { v: OpsVals }) {
         title="Shopping"
         subtitle="What is out or low, and what the next bake needs."
         actions={
-          <Button variant="secondary" onClick={settings.open}>
-            Settings
-          </Button>
+          <>
+            {stock.bakePlan ? (
+              <Button variant="secondary" onClick={stock.bakePlan.edit}>
+                {stock.bakePlan.cookies ? 'Edit planned bake' : 'Plan a bake'}
+              </Button>
+            ) : null}
+            <Button variant="secondary" onClick={settings.open}>
+              Settings
+            </Button>
+          </>
         }
       />
       <div className="mb-4">
@@ -138,6 +147,7 @@ export function GroceryLive({ v }: { v: OpsVals }) {
           ) : null}
         </Panel>
       </section>
+      {stock.bakePlan ? <BakePlanNeeds plan={stock.bakePlan} /> : null}
       {grocery.rows.length === 0 ? (
         <Panel>
           <p className="text-caption text-ink-mute">Nothing to buy. Everything is Good.</p>

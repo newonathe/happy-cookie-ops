@@ -383,19 +383,21 @@ export function OwnerWorkspace({
   const pageForm = pageFormOf(v);
   const back = pageForm
     ? pageForm.close
-    : v.liveMoney?.entry
-      ? v.liveMoney.entry.close
-      : v.liveStock?.receive
-        ? v.liveStock.receive.close
-        : screen === 'inventory' && v.liveStock?.change
-          ? v.liveStock.change.close
-          : screen === 'inventory' && v.liveStock
-            ? v.liveStock.count && !v.liveStock.count.paused
-              ? v.liveStock.count.back
-              : v.liveStock.page?.pricesOpen
-                ? (v.liveStock.page.closePrices ?? v.liveStock.page.close)
-                : (v.liveStock.page?.close ?? v.goBack)
-            : v.goBack;
+    : v.liveStock?.bakePlan?.open
+      ? v.liveStock.bakePlan.close
+      : v.liveMoney?.entry
+        ? v.liveMoney.entry.close
+        : v.liveStock?.receive
+          ? v.liveStock.receive.close
+          : screen === 'inventory' && v.liveStock?.change
+            ? v.liveStock.change.close
+            : screen === 'inventory' && v.liveStock
+              ? v.liveStock.count && !v.liveStock.count.paused
+                ? v.liveStock.count.back
+                : v.liveStock.page?.pricesOpen
+                  ? (v.liveStock.page.closePrices ?? v.liveStock.page.close)
+                  : (v.liveStock.page?.close ?? v.goBack)
+              : v.goBack;
   return (
     <div
       className={`${styles.workspace} ${theme.theme}`}

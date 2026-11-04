@@ -1491,6 +1491,9 @@ export interface OpsVals {
       setUnit: (event?: unknown) => void;
       unit: string | number;
       warn: React.ReactNode | null;
+      /** Live owner only: undefined on a new line, null when an old record never said. */
+      kind?: 'ingredient' | 'packaging' | null;
+      setKind?: (kind: 'ingredient' | 'packaging') => void;
     }>;
     save: (event?: unknown) => void;
     units: Array<string | number>;

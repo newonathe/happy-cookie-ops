@@ -216,11 +216,10 @@ export function FlavourPage({
       <section aria-labelledby="book-recipe" className="flex flex-col gap-2">
         <SectionHeader title={<span id="book-recipe">The recipe</span>} />
         <p className="m-0 text-caption text-ink-mute md:max-w-xl">
-          Recipes are still edited in the older Recipes screen. Look there, but do not save yet:
-          saving turns packaging lines into ingredients until that is fixed (B6).
+          Editing saves a new version. What has been baked keeps its own.
         </p>
         <Button variant="secondary" onClick={onEditRecipe} className="self-start">
-          Open the older Recipes screen
+          Edit recipe
         </Button>
       </section>
     </div>
