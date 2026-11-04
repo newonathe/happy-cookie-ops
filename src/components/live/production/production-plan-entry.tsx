@@ -69,7 +69,7 @@ export function ProductionPlanEntry({
                     </p>
                   </div>
                   <b>
-                    {row.quantity} {row.kind === 'dough' ? 'dough portions' : 'cookies'}
+                    {row.quantity} {row.kind === 'dough' ? 'dough balls' : 'cookies'}
                   </b>
                 </article>
               );
@@ -106,7 +106,7 @@ export function ProductionPlanEntry({
                       <small>
                         Recipe v{choice?.version ?? product.version} · Makes {product.yield}
                       </small>
-                      {product.needed !== null ? (
+                      {product.needed ? (
                         <small>{product.needed} still needed for orders</small>
                       ) : null}
                     </span>
@@ -121,12 +121,12 @@ export function ProductionPlanEntry({
                           plan.setKind(product.id, event.target.value as 'batch' | 'dough')
                         }
                       >
-                        <option value="batch">Bake cookies</option>
                         <option value="dough">Prepare dough</option>
+                        <option value="batch">Bake cookies</option>
                       </select>
                       <label htmlFor={`${id}-${product.id}-quantity`}>
-                        {choice.kind === 'dough' ? 'Dough portions' : 'Cookies planned'} for{' '}
-                        {product.name}
+                        {choice.kind === 'dough' ? 'Dough balls' : 'Cookies planned'}
+                        <span className="sr-only"> for {product.name}</span>
                       </label>
                       {choice.kind === 'dough' ? (
                         <select
@@ -137,11 +137,9 @@ export function ProductionPlanEntry({
                           <option value="" disabled>
                             Choose recipe amount
                           </option>
-                          <option value={product.yield}>
-                            Full recipe · {product.yield} portions
-                          </option>
+                          <option value={product.yield}>Full recipe · {product.yield} balls</option>
                           <option value={Math.ceil(product.yield / 2)}>
-                            Half recipe · {Math.ceil(product.yield / 2)} portions
+                            Half recipe · {Math.ceil(product.yield / 2)} balls
                           </option>
                         </select>
                       ) : (

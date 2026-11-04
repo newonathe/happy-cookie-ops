@@ -1,5 +1,6 @@
 'use client';
 
+import { bakeWords } from '@/lib/production/owner-words';
 import { useEffect, useId, useRef } from 'react';
 import Image from 'next/image';
 import type { OpsVals } from '@/view-models/vals';
@@ -33,10 +34,10 @@ function WorkRow({ row }: { row: OpsVals['bakeRows'][number] }) {
       </div>
       {row.hasDough ? (
         <Button variant="ghost" size="sm" onClick={row.openDough} className="self-start">
-          {row.doughText}
+          {bakeWords(row.doughText)}
         </Button>
       ) : row.noDough ? (
-        <span className={styles.muted}>{row.doughText}</span>
+        <span className={styles.muted}>{bakeWords(row.doughText)}</span>
       ) : null}
       {row.hasWork ? (
         <div className={styles.actions}>

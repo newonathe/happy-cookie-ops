@@ -122,6 +122,8 @@ describe('multiple production work items in the actual runtime', () => {
     act(() => {
       plan().toggle(A);
       plan().toggle(B);
+      plan().setKind(A, 'batch');
+      plan().setKind(B, 'batch');
     });
     act(() => {
       plan().setQuantity(A, '24');
@@ -155,6 +157,8 @@ describe('multiple production work items in the actual runtime', () => {
     act(() => {
       plan.toggle(A);
       plan.toggle(B);
+      plan.setKind(A, 'batch');
+      plan.setKind(B, 'batch');
     });
     plan = first.r.renderVals().liveProduction!.start!.multi!;
     act(() => {
@@ -208,6 +212,8 @@ describe('multiple production work items in the actual runtime', () => {
     act(() => {
       plan().toggle(A);
       plan().toggle(B);
+      plan().setKind(A, 'batch');
+      plan().setKind(B, 'batch');
     });
     act(() => {
       plan().setQuantity(A, '24');

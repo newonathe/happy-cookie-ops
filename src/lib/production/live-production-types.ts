@@ -83,6 +83,8 @@ export interface LiveProductionStart {
     yield: number;
     version: number;
     needed: number | null;
+    /** Balls of this flavour's dough in the fridge. With none, the first step is preparing dough. */
+    doughBalls?: number;
   }>;
   draft: { productId: string; quantity: string; version: number; kind?: 'batch' | 'dough' } | null;
   chooseKind?: (kind: 'batch' | 'dough') => void;

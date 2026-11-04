@@ -6701,6 +6701,8 @@ export class OpsRuntime extends OpsProvider {
               photo: row.image_path,
               yield: recipe.yield,
               version: recipe.version,
+              doughBalls:
+                Number((this.state.dough as Record<string, number> | undefined)?.[row.id]) || 0,
               needed
             }
           ];
@@ -8448,12 +8450,21 @@ export class OpsRuntime extends OpsProvider {
   }
 
   /** Start production from either Make page: entry is drawn on Production, so it opens there. */
-  private startProductionFromMake(): void {
+  private startProductionFromMake(productId?: string, cookies?: number): void {
     if (!isLiveMode() || this.unmounted || this.state.role !== 'owner') return;
     if (this.state.screen !== 'bake') this.go('bake');
     this.setState({}, () => {
       const start = this.state.screen === 'bake' ? this.liveProductionView().start : null;
       start?.open();
+      if (!productId) return;
+      const plan = this.liveProductionView().start?.multi;
+      const product = this.liveProductionView().start?.products.find((p) => p.id === productId);
+      if (!plan || !product || plan.choices.some((row) => row.productId === productId)) return;
+      plan.toggle(productId);
+      if (cookies === undefined) return;
+      const dough = cookies === product.yield || cookies === Math.ceil(product.yield / 2);
+      plan.setKind(productId, dough ? 'dough' : 'batch');
+      plan.setQuantity(productId, String(cookies));
     });
   }
 
@@ -8520,7 +8531,7 @@ export class OpsRuntime extends OpsProvider {
             counted: !!row.lastCounted,
             count: () => this.startItemCount(row)
           })),
-        startProduction: () => this.startProductionFromMake(),
+        startProduction: (cookies) => this.startProductionFromMake(item.id, cookies),
         back: () => {
           if (current())
             this.setState({ liveRecipeTarget: null, liveProductReturnId: item.id }, () =>

@@ -58,7 +58,7 @@ export function ProductionReceipts({ rows }: { rows: LiveProductionReceipt[] }) 
             </div>
           </div>
         ) : null}
-        {row.usedDough > 0 ? <p>{n(row.usedDough)} chilled dough portions used</p> : null}
+        {row.usedDough > 0 ? <p>{n(row.usedDough)} dough balls from the fridge used</p> : null}
         {row.shortfall.length ? (
           <div className={styles.receiptWarning}>
             <strong>Not enough recorded stock</strong>
@@ -85,7 +85,7 @@ export function ProductionReceipts({ rows }: { rows: LiveProductionReceipt[] }) 
             <p>
               {row.kind === 'batch'
                 ? `Recorded baked stock · Drop ${row.dropNo}: ${n(row.balance)} cookies`
-                : `Recorded chilled dough: ${n(row.balance)} portions`}
+                : `Dough in the fridge: ${n(row.balance)} balls`}
             </p>
             <p className={styles.receiptMeta}>
               Checked {when(row.checkedAt)} · recorded balance, not a physical count.

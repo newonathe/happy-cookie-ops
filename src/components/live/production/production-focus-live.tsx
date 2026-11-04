@@ -1,5 +1,6 @@
 'use client';
 
+import { bakeWords } from '@/lib/production/owner-words';
 import { useEffect, useId, useRef } from 'react';
 import type { OpsVals } from '@/view-models/vals';
 import { ProductionFocusScreen } from '@/components/screens/production-focus';
@@ -60,7 +61,7 @@ export function ProductionFocusLive({ v }: { v: OpsVals }) {
               ? 'Saved result pending'
               : counts.sourceUnavailable
                 ? 'Draft kept'
-                : batch.doughText}
+                : bakeWords(batch.doughText)}
             {counts.recipeVersion !== null ? ` · Recipe v${counts.recipeVersion}` : ''}
           </p>
         </div>
@@ -213,13 +214,13 @@ export function ProductionFocusLive({ v }: { v: OpsVals }) {
             : counts.sourceUnavailable && counts.valid
               ? 'good cookies counted'
               : counts.valid
-                ? 'good cookies will enter stock'
+                ? 'good cookies ready for orders'
                 : 'Check both counts to see the good cookies'}
         </span>
         <small>
           {counts.uncertain
             ? 'The saved result has not been confirmed.'
-            : 'Stock changes only after confirmed production is saved.'}
+            : 'Nothing changes until you save this.'}
         </small>
       </div>
       {!batch.step2 ? (
@@ -249,7 +250,7 @@ export function ProductionFocusLive({ v }: { v: OpsVals }) {
       {batch.step2 ? (
         <div className={styles.content}>
           {!counts.uncertain && !counts.sourceChanged && !counts.sourceUnavailable ? (
-            <p className={styles.dough}>{batch.doughLine}</p>
+            <p className={styles.dough}>{bakeWords(batch.doughLine)}</p>
           ) : null}
           {!counts.uncertain &&
           !counts.sourceChanged &&
@@ -257,13 +258,13 @@ export function ProductionFocusLive({ v }: { v: OpsVals }) {
           batch.anyShort ? (
             <Banner
               tone="warn"
-              title="Some recorded stock is short."
+              title="Your records show too little of some ingredients."
               body="Confirming uses the available stock and records the shortage. Stock will stop at zero. Correct the balance with a physical count."
             />
           ) : null}
           {!counts.uncertain && !counts.sourceChanged && !counts.sourceUnavailable ? (
             <section className={styles.ingredients} aria-label="Ingredients used">
-              <h2>Stock this batch uses</h2>
+              <h2>Ingredients this batch uses</h2>
               <p>Check the amounts. Adjust only what you used differently.</p>
               {batch.rows.length ? (
                 batch.rows.map((row, i) => {
@@ -307,7 +308,7 @@ export function ProductionFocusLive({ v }: { v: OpsVals }) {
                   );
                 })
               ) : (
-                <p>No fresh ingredients are deducted for this batch.</p>
+                <p>No new ingredients come off for this batch.</p>
               )}
             </section>
           ) : (

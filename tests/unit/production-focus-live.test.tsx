@@ -85,7 +85,7 @@ describe('live production count and review', () => {
     );
     expect(screen.getByRole('alert').textContent).toContain('Save result not confirmed');
     expect(screen.getByText('good cookies in this submission')).toBeTruthy();
-    expect(screen.queryByText('good cookies will enter stock')).toBeNull();
+    expect(screen.queryByText('good cookies ready for orders')).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: 'Check saved result' }));
     expect(v.liveBatchCounts.confirm).toHaveBeenCalledTimes(1);
     v.batch.step1 = false;
@@ -103,7 +103,7 @@ describe('live production count and review', () => {
     const v = vals();
     render(<ProductionFocusLive v={v as unknown as OpsVals} />);
     expect(document.activeElement).toBe(screen.getByRole('heading', { name: 'Cookies made' }));
-    expect(screen.getByText('good cookies will enter stock')).toBeTruthy();
+    expect(screen.getByText('good cookies ready for orders')).toBeTruthy();
     expect(
       screen.getByRole('figure', { name: 'Planned and actual cookies' }).textContent
     ).toContain('16 good');
@@ -129,14 +129,14 @@ describe('live production count and review', () => {
     expect(
       (screen.getByRole('button', { name: 'Review production' }) as HTMLButtonElement).disabled
     ).toBe(true);
-    expect(screen.queryByText('good cookies will enter stock')).toBeNull();
+    expect(screen.queryByText('good cookies ready for orders')).toBeNull();
   });
   it('retains ingredient adjustments, shortage explanation, Back and guarded confirmation', () => {
     const v = vals();
     v.batch.step1 = false;
     v.batch.step2 = true;
     const ui = render(<ProductionFocusLive v={v as unknown as OpsVals} />);
-    expect(screen.getByRole('alert').textContent).toContain('Some recorded stock is short');
+    expect(screen.getByRole('alert').textContent).toContain('Your records show too little of some ingredients');
     expect(screen.getByText('100 g recorded')).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Use more Flour' }));
     expect(v.batch.rows[0]!.plus).toHaveBeenCalledTimes(1);

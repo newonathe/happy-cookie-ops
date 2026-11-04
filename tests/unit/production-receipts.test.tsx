@@ -111,7 +111,7 @@ it('keeps separate dough and cookie receipts with their original drops', () => {
   fireEvent.click(earlier);
   expect(earlier.closest('details')?.open).toBe(true);
   expect(screen.getByText('12 dough portions prepared')).toBeTruthy();
-  expect(screen.getByText('Recorded chilled dough: 18 portions')).toBeTruthy();
+  expect(screen.getByText('Dough in the fridge: 18 balls')).toBeTruthy();
   expect(screen.getAllByText('Recently saved')).toHaveLength(1);
   expect(screen.getByText(/Drop 6 · Recipe version 3/)).toBeTruthy();
   expect(screen.getByText('26 cookies baked')).toBeTruthy();

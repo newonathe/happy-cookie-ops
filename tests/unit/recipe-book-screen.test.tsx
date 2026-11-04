@@ -151,16 +151,16 @@ describe('product recipe link', () => {
   it('never claims sufficient stock for absent, mismatched, or unread inventory', () => {
     const page = recipePage();
     const ui = draw(book({ recipePage: page }));
-    expect(screen.queryByText('Recorded stock covers this batch.')).toBeNull();
+    expect(screen.queryByText('Yes, your records cover this batch.')).toBeNull();
     expect(
-      screen.getByText('Inventory has not been read yet. Stock for this batch is unknown.')
+      screen.getByText('Inventory has not been read yet, so this is unknown.')
     ).toBeTruthy();
     ui.rerender(
       <RecipeBookLive
         v={{ liveRecipes: book({ recipePage: { ...page, stock: [] } }) } as unknown as OpsVals}
       />
     );
-    expect(screen.queryByText('Recorded stock covers this batch.')).toBeNull();
+    expect(screen.queryByText('Yes, your records cover this batch.')).toBeNull();
     expect(screen.getAllByText('Not in stock list')).toHaveLength(2);
     ui.rerender(
       <RecipeBookLive
@@ -179,7 +179,7 @@ describe('product recipe link', () => {
         }
       />
     );
-    expect(screen.queryByText('Recorded stock covers this batch.')).toBeNull();
+    expect(screen.queryByText('Yes, your records cover this batch.')).toBeNull();
     expect(screen.getByText('Stock unit differs from recipe')).toBeTruthy();
     ui.rerender(
       <RecipeBookLive
@@ -198,7 +198,7 @@ describe('product recipe link', () => {
         }
       />
     );
-    expect(screen.getByText('Recorded stock covers this batch.')).toBeTruthy();
+    expect(screen.getByText('Yes, your records cover this batch.')).toBeTruthy();
   });
   it('has accessible saved-recipe content and retry controls', async () => {
     const page = recipePage(),
