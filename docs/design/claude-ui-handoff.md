@@ -6,6 +6,10 @@ the scope to Home, Money or Shop. Read AGENTS.md, current.md and next-goal.md be
 
 ## Current work and how to detect it
 
+- **Status, 4 November evening:** everything below marked uncommitted or awaiting review has passed
+  independent Sonnet review and is committed; the two Medium recovery findings are fixed. The hold on
+  the hosted demo-data SQL still stands, and hosted apply of migration 71 needs Ethan's approval.
+
 - **Latest verified source + reference inventory:** full gate176files/2886tests+2existingTODOs, live
   build28pages, eight 320/390/768/1240 normal/reduced-motion group-entry runs pass. Reference catalogue:
   [index](reference-v4-page-contracts.md), split family contracts under `reference-v4/`, and
@@ -90,7 +94,7 @@ the scope to Home, Money or Shop. Read AGENTS.md, current.md and next-goal.md be
   tests and 8 final responsive/motion flows pass (zero errors/overflow/duplicate writes). Full gate:
   173 files / 2,843 tests + 2 existing TODOs passes; live build passes 28 pages. Receipts are in-memory, not durable
   recovery. Positive ingredient-use details, source-unavailable handling and P3 remain incomplete.
-- Codex is the sole writer while Claude is usage-limited. Do not overwrite or revert its uncommitted fixes.
+- Claude holds the checkout since 4 November, 4:41 PM (Ethan). Codex's listed work is reviewed and committed.
 - Four fixes are implemented locally: signed Money bars; retained add-on message drafts; direct Home
   receiving/counting; choice inputs matching the existing 20-character limit. These are uncommitted;
   required independent review remains pending. A screenshot alone is not proof of complete functionality.

@@ -1,5 +1,10 @@
 # Current state — Happy Cookie Ops
 
+**Claude holds the checkout again (Ethan, 4 November, 4:41 PM).** Codex's production recovery, group
+planning, recipe writer, results and audit fixes passed independent Sonnet review and are committed;
+its two Medium recovery findings are fixed. Check `git status` and ask Ethan before writing if another
+agent may be active. Next: Sell, Shop status, Account, section Settings, then the screenshot layouts.
+
 **4 November — full reference integration active:** the supplied v4 has85 route views. Desktop/phone
 captures cover all85; seven render situations yield1190 checks/190 distinct images, zero failed renders.
 Four parent-page pixel-fidelity checks match the untouched HTML. Detailed interaction/visual review
@@ -8,24 +13,17 @@ Actual multi-product entry now selects/reviews several flavours together, create
 atomically and retains scoped recovery. Recipe writer preserves kind, later edits and acknowledged
 snapshots; empty replies stay unconfirmed. Full gate:176files/2886tests+2existingTODOs; build28pages;
 eight responsive/motion group-entry runs pass. Keep legacy recipe warning until independent review.
-All sensitive work is uncommitted. Screenshot-matched family layouts, direct recipe setup, Shopping
+Screenshot-matched family layouts, direct recipe setup, Shopping
 plan integration, full demo population/hosted insertion and the complete application remain unfinished.
 No hosted/applied-SQL/protected-port changes. Gallery:localhost4190/index.html; actual preview:4186.
 Source/test details and visible examples are in the [Claude UI handoff](../design/claude-ui-handoff.md).
 The newest blocks override historical “next bug” and uncommitted-status descriptions below.
 
-**Codex takeover, 4 November:** Claude is usage-limited; Ethan authorized fixing the four audit findings.
-The local fixes cover signed Money bars, add-on draft retention/choice bounds and direct Home stock
-actions. Read the [front-facing Claude handoff](../design/claude-ui-handoff.md) for exact changes and
-the detailed visual continuation prompt. Full172files /2828tests pass +2todo;8browser flows pass.
-Final live Webpack build28pages passes; local fixture proof is not hosted/owner/device acceptance.
-These are local changes; required independent review is not replaced with self-review or quota bypass.
-
 **Claude UI slice, 3 November (late):** v4 look now reaches Home, Money and Shop rules/boxes in live
 mode via new live slots (`live/home`, `live/money`, page-mode settings forms) and a shared kit
 (`ui/owner-kit.tsx`). Owner Shop feedback done; sampler flavours added as local migration 71 (hosted
 apply awaits approval). Lossless record and feedback status: [capability ledger](../design/capability-ledger.md).
-The current Windows guard permits headless CLI checks only. Next: Sell orders/payments/
+Next: Sell orders/payments/
 customers, Shop status/methods/texts, Account, section Settings buttons, production results bug.
 
 **Earlier Codex checkpoint (before accepted c51401f/273de7d):** Full actual-app goal remains incomplete.

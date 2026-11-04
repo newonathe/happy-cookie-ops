@@ -2450,3 +2450,12 @@ set-up screen and seven dates for her week.
 Rehearsal by **22 October**; bazaar **24 to 25 October**; releases held from the
 rehearsal to 26 October. Everything built: mid-November at the earliest, early December
 more likely. Cine's week follows the wording pass. Second bazaar 12 to 13 December.
+
+## Moved from current.md, 4 November 2026
+
+**Codex takeover, 4 November:** Claude is usage-limited; Ethan authorized fixing the four audit findings.
+The local fixes cover signed Money bars, add-on draft retention/choice bounds and direct Home stock
+actions. Read the [front-facing Claude handoff](../design/claude-ui-handoff.md) for exact changes and
+the detailed visual continuation prompt. Full172files /2828tests pass +2todo;8browser flows pass.
+Final live Webpack build28pages passes; local fixture proof is not hosted/owner/device acceptance.
+These are local changes; required independent review is not replaced with self-review or quota bypass.

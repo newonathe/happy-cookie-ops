@@ -14,18 +14,17 @@ Inspect branch/worktree/stashes and actual code; do not depend on chat memory or
 ## Accepted source and next implementation
 
 Owner steering: Events first, compact till Back; final page critique after build (owner brief).
-Claude is usage-limited. Codex's four audit fixes and front-facing continuation prompt:
+Claude holds the checkout; Codex's work is reviewed and committed. Continuation notes:
 [Claude UI handoff](../design/claude-ui-handoff.md). See also the [capability ledger](../design/capability-ledger.md).
 
 Accepted c51401f/273de7d include independent cookie/dough drafts, retained inputs, per-item saving,
 own-item acknowledgements, Events-first navigation and return context. f57d278/92851aa add the v4
 Home/Money/Shop work and sampler migration (local only). Prior synthetic browser proof is in private
-LIVE-CHECKPOINT; it is not SQL/device acceptance. The four Codex follow-ups are locally verified;
-required independent Money review remains pending. Do not reimplement them.
+LIVE-CHECKPOINT; it is not SQL/device acceptance. Do not reimplement the four Codex follow-ups.
 P2 results/source guards remain local. P3 scoped device recovery is locally verified: owner UID/backend,
 single-tab writing, multiple drafts/exact pending requests, no automatic posting, retained setup and
 saved results with stock unchecked. Full gate:175files/2873tests+2TODOs; eight browser flows pass.
-Live build passes28pages; independent review is pending. Read the newest handoff first.
+Independent review passed. Read the newest handoff first.
 Latest: group entry/recipe writer pass176files/2886tests+2TODOs,28-page build,eight browser runs.
 Next: full reference flow/state review and family integration; keep review holds. B1 plan/review addresses, stage
 wording and inactive held events remain. Recipe reads keep line kind; the writer is unresolved.
@@ -79,7 +78,7 @@ Read MAKE-CHECKPOINT.md; source/reference locations are in the shared brief. The
 
 localhost:3000 is actual source + hosted data;4186 is component QA;4173 is the mockup. The private
 run-hosted-source-preview.cjs has check/build/start/dev modes. Use its public key; inspect HTTP/process
-state before restarting. No Browser/Chrome-control plugins; normal Chrome and headless CLI only.
+state before restarting. Browser pane allowed (AGENTS); 3000 is look-only.
 
 Use pinned Node24.20.0/pnpm9.12.3, changed-path checks then pnpm verify/headless Playwright.
 All protected-path, review, commit/push and hosted-approval rules in AGENTS remain binding.
