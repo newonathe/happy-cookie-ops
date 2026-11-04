@@ -276,6 +276,27 @@ export function readProductionRecovery(
   }
 }
 
+/**
+ * The owner's explicit way out of an unreadable copy, which would otherwise block production on this
+ * device for good. The bytes move to one side key, never deleted; a readable copy is refused here.
+ */
+export function setAsideProductionRecovery(
+  scope: ProductionRecoveryScope,
+  storage?: RecoveryStorage & { removeItem: (name: string) => void }
+): boolean {
+  try {
+    const use = storage ?? localStorage;
+    if (readProductionRecovery(scope, use).status !== 'invalid') return false;
+    const raw = use.getItem(key(scope));
+    if (raw === null) return false;
+    use.removeItem(key(scope));
+    use.setItem(key(scope) + ':set-aside', raw);
+    return use.getItem(key(scope)) === null;
+  } catch {
+    return false;
+  }
+}
+
 /** No deletion API. Retire only an answered request or a request proven never submitted. */
 export function writeProductionRecovery(
   scope: ProductionRecoveryScope,

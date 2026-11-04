@@ -19,7 +19,8 @@ const net = vi.hoisted(() => ({
   checks: 0,
   signOuts: 0,
   rpc: [] as Array<{ name: string; args: Record<string, unknown> }>,
-  engine: null as unknown
+  engine: null as unknown,
+  authEvent: null as null | ((event: string, session: { user: { id: string } } | null) => void)
 }));
 
 vi.mock('@/lib/config/app-mode', () => ({ isLiveMode: () => true }));
@@ -52,7 +53,10 @@ vi.mock('@/lib/supabase/client', async () => {
         net.signOuts += 1;
         return { error: null };
       },
-      onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => undefined } } })
+      onAuthStateChange: (listener: NonNullable<typeof net.authEvent>) => {
+        net.authEvent = listener;
+        return { data: { subscription: { unsubscribe: () => undefined } } };
+      }
     },
     from: () => ({
       select: () => ({
@@ -290,6 +294,22 @@ describe('the bazaar phone with no signal (A2)', () => {
     expect(screen.getByTestId('frame')).toHaveTextContent('pnl');
     expect(net.signOuts).toBe(0);
     expect(replace).not.toHaveBeenCalled();
+  });
+
+  it('the session returning while Bazaar Mode runs offline keeps the till open and the offline check remembered', async () => {
+    seedEvent();
+    seedCheck(Date.now());
+    await signal(false);
+    render(<OpsApp initialScreen="bazaar" />);
+    await tick();
+    expect(screen.getByTestId('frame')).toHaveTextContent('bazaar');
+    await act(async () => net.authEvent!('SIGNED_IN', { user: { id: 'u1' } }));
+    await tick();
+    expect(screen.getByTestId('frame')).toHaveTextContent('bazaar');
+    expect(localStorage.getItem('hc-live-check')).not.toBeNull();
+    expect(replace).not.toHaveBeenCalled();
+    expect(net.signOuts).toBe(0);
+    // Mutation: comparing against a null verified id closes a till opened offline and forgets its check.
   });
 
   it('a denial on reconnect signs out as before, and the queued sale and the event stay on the phone', async () => {

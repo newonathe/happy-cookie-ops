@@ -3,6 +3,7 @@ import {
   holdProductionLock,
   parseProductionScope,
   readProductionRecovery,
+  setAsideProductionRecovery,
   writeProductionRecovery,
   type ProductionRecovery,
   type ProductionRecoveryScope
@@ -88,6 +89,14 @@ export class ProductionRecoverySession {
     this.phase = ok ? 'ready' : 'unavailable';
     if (ok) this.written = signature;
     return ok;
+  }
+
+  /** Only the tab holding the write lock may move an unreadable copy aside; then this device starts clean. */
+  async setAside(): Promise<boolean> {
+    if (!this.scope || this.phase !== 'invalid' || !this.release) return false;
+    if (!setAsideProductionRecovery(this.scope)) return false;
+    await this.bind(this.scope, true);
+    return true;
   }
 
   async retry(): Promise<void> {

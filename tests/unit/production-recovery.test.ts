@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   emptyProductionRecovery,
   readProductionRecovery,
+  setAsideProductionRecovery,
   writeProductionRecovery
 } from '@/lib/production/recovery';
 import type { ProductionRecovery, ProductionRecoveryScope } from '@/lib/production/recovery';
@@ -193,5 +194,42 @@ describe('scoped production recovery', () => {
         storage: { getItem: () => null, setItem: () => {} }
       })
     ).toBe(false);
+  });
+});
+
+describe('setting an unreadable device copy aside', () => {
+  const storage = () => {
+    const rows = new Map<string, string>();
+    return {
+      rows,
+      getItem: (name: string) => rows.get(name) ?? null,
+      setItem: (name: string, value: string) => void rows.set(name, value),
+      removeItem: (name: string) => void rows.delete(name)
+    };
+  };
+  const keyOf = 'hc-production-recovery-v1:' + encodeURIComponent(scope.business) + ':' + scope.userId;
+
+  it('moves the bytes to one side, so the device starts empty and nothing is deleted', () => {
+    const use = storage();
+    use.setItem(keyOf, '{"not":"a recovery copy"}');
+    expect(readProductionRecovery(scope, use).status).toBe('invalid');
+    expect(setAsideProductionRecovery(scope, use)).toBe(true);
+    expect(readProductionRecovery(scope, use).status).toBe('empty');
+    expect(use.getItem(keyOf + ':set-aside')).toBe('{"not":"a recovery copy"}');
+  });
+
+  it('refuses to move a readable copy or another account\'s copy', () => {
+    const use = storage();
+    expect(writeProductionRecovery(scope, emptyProductionRecovery(scope), { storage: use })).toBe(true);
+    const before = use.getItem(keyOf);
+    expect(setAsideProductionRecovery(scope, use)).toBe(false);
+    expect(use.getItem(keyOf)).toBe(before);
+    const other = storage();
+    other.setItem(keyOf, 'broken but not this scope');
+    expect(
+      setAsideProductionRecovery({ ...scope, userId: '44444444-4444-4444-8444-444444444444' }, other)
+    ).toBe(false);
+    expect(other.getItem(keyOf)).toBe('broken but not this scope');
+    // Mutation: moving a readable copy would hide unanswered requests behind one tap.
   });
 });

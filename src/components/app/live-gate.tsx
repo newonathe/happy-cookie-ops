@@ -547,7 +547,9 @@ export function LiveGate({
         event === 'SIGNED_IN' &&
         (!CUSTOMER_SCREENS.includes(engine.state.screen as ScreenKey) || verifiedUserId)
       ) {
-        if (session?.user.id !== verifiedUserId) {
+        // With no verified account yet (Bazaar Mode opened offline) there is nothing to compare: the
+        // till stays open and `verify` below decides, closing it only on a definite denial.
+        if (verifiedUserId !== null && session?.user.id !== verifiedUserId) {
           if (engine instanceof OpsRuntime) void engine.setProductionIdentity(null);
           identityEpoch += 1;
           clearRememberedCheck();
