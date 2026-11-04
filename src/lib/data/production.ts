@@ -226,6 +226,7 @@ export async function recordDiscard(
 
 export interface BatchRow {
   productId: string;
+  /** Effective GOOD output from get_production, including corrections; rejects are separate. */
   qty: number;
   target: number | null;
   rejects: number;

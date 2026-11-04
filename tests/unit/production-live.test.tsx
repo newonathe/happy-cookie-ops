@@ -39,6 +39,7 @@ describe('live bake plan and saved production charts', () => {
   it('keeps Start available while explaining another work item is saving', () => {
     const v = vals(data({ saving: true }));
     render(<ProductionLive v={v} />);
+    expect(screen.getByText('Order plan · Drop 5')).toBeTruthy();
     expect(
       (screen.getByRole('button', { name: 'Start production' }) as HTMLButtonElement).disabled
     ).toBe(false);

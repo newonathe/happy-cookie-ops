@@ -22,11 +22,17 @@ const PERIODS: Array<[MoneyPeriod, string]> = [
 
 type Filter = { kind: 'all' | 'income' | 'costs' } | { kind: 'cat'; cat: string };
 
-const pesos = new Intl.NumberFormat('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const pesos = new Intl.NumberFormat('en-PH', {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2
+});
 
 /** Income against expenses for each day or week of the period, with the exact amounts beside the bars. */
 function IncomeExpenseChart({ money }: { money: LiveMoney }) {
-  const max = Math.max(1, ...money.buckets.flatMap((b) => [b.income, b.expenses]));
+  const max = Math.max(
+    1,
+    ...money.buckets.flatMap((b) => [Math.abs(b.income), Math.abs(b.expenses)])
+  );
   const unit = money.period === 'week' ? 'day' : 'week';
   return (
     <Panel title="Income and expenses">
@@ -41,30 +47,49 @@ function IncomeExpenseChart({ money }: { money: LiveMoney }) {
         </span>
       </p>
       <div
-        className="grid items-end gap-2"
+        className="relative grid items-end gap-2 pl-3"
         style={{ gridTemplateColumns: `repeat(${money.buckets.length}, minmax(0, 1fr))` }}
         aria-hidden="true"
       >
+        <span className="absolute left-0 top-16 -translate-y-1/2 text-[10px] text-ink-mute">0</span>
+        <span className="absolute left-3 right-0 top-16 border-t border-line-strong" />
         {money.buckets.map((b) => (
           <div key={b.label} className="flex min-w-0 flex-col items-center gap-1.5">
-            <div className="flex h-32 w-full items-end justify-center gap-1">
-              {(['income', 'expenses'] as const).map((k) => (
-                <span
-                  key={k}
-                  className={cx(
-                    'block w-full max-w-5 rounded-t-[5px] transition-[height] duration-[280ms] motion-reduce:transition-none',
-                    k === 'income' ? 'bg-ok' : 'bg-danger'
-                  )}
-                  style={{
-                    height: `${b[k] > 0 ? Math.max(3, Math.round((b[k] / max) * 100)) : 0}%`
-                  }}
-                />
-              ))}
+            <div className="relative flex h-32 w-full justify-center gap-1">
+              {(['income', 'expenses'] as const).map((k) => {
+                const flow = k === 'expenses' ? -b[k] : b[k];
+                return (
+                  <span key={k} className="relative h-full w-full max-w-5">
+                    <span
+                      data-money-series={k}
+                      data-value={b[k]}
+                      className={cx(
+                        'absolute block w-full transition-[height] duration-[280ms] motion-reduce:transition-none',
+                        flow < 0 ? 'rounded-b-[5px]' : 'rounded-t-[5px]',
+                        flow >= 0 ? 'bg-ok' : 'bg-danger'
+                      )}
+                      style={{
+                        top: flow < 0 ? '50%' : undefined,
+                        bottom: flow >= 0 ? '50%' : undefined,
+                        height: `${b[k] !== 0 ? Math.max(1.5, (Math.abs(b[k]) / max) * 50) : 0}%`
+                      }}
+                    />
+                  </span>
+                );
+              })}
             </div>
             <span className="truncate text-[11px] text-ink-mute">{b.label}</span>
           </div>
         ))}
       </div>
+      {money.buckets.some((b) => b.income < 0) ? (
+        <p className="mt-2 text-caption text-danger">
+          Refunds exceed income in the red bars below zero.
+        </p>
+      ) : null}
+      {money.buckets.some((b) => b.expenses < 0) ? (
+        <p className="mt-2 text-caption text-ink-mute">Reversed expenses appear above zero.</p>
+      ) : null}
       <details className="mt-3 text-caption">
         <summary className="min-h-10 cursor-pointer py-2 font-semibold text-ink-soft">
           Show amounts
@@ -90,8 +115,12 @@ function IncomeExpenseChart({ money }: { money: LiveMoney }) {
                 <th scope="row" className="py-1.5 text-left font-normal">
                   {b.label}
                 </th>
-                <td className="py-1.5 text-right">₱{pesos.format(b.income)}</td>
-                <td className="py-1.5 text-right">₱{pesos.format(b.expenses)}</td>
+                <td className="py-1.5 text-right">
+                  <SignedMoney pesos={b.income} />
+                </td>
+                <td className="py-1.5 text-right">
+                  <SignedMoney pesos={-b.expenses} />
+                </td>
               </tr>
             ))}
           </tbody>
@@ -423,7 +452,8 @@ export function MoneyLive({ v }: { v: OpsVals }) {
                   ))}
                 </ul>
                 <p className="pt-2 text-caption text-ink-mute">
-                  Per cookie, its margin, and what it has brought in. Counts all recorded orders and sales, not only this period.
+                  Per cookie, its margin, and what it has brought in. Counts all recorded orders and
+                  sales, not only this period.
                 </p>
               </Panel>
             </>

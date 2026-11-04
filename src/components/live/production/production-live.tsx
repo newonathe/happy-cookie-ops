@@ -8,6 +8,7 @@ import { BakePlanScreen } from '@/components/screens/bake-plan';
 import { Button } from '@/components/ui/button';
 import styles from './production.module.css';
 import { ProductionResults } from './production-results';
+import { ProductionReceipts } from './production-receipts';
 import { ProductionStart } from './production-start';
 import { resolveImagePath } from '@/lib/media/resolve-image';
 
@@ -42,7 +43,7 @@ function WorkRow({ row }: { row: OpsVals['bakeRows'][number] }) {
   );
 }
 
-/** The write actions remain the existing runtime actions. Results come only from saved, scoped reads. */
+/** The write actions stay authoritative. History spans drops; the order plan is scoped. */
 export function ProductionLive({ v }: { v: OpsVals }) {
   const data = v.liveProduction,
     planNote = useId();
@@ -87,6 +88,7 @@ export function ProductionLive({ v }: { v: OpsVals }) {
               Start production
             </Button>
           </header>
+          <p className={styles.muted}>Order plan · {data.periodText}</p>
           {data.saving ? (
             <p role="status" className={styles.muted}>
               Production is saving. You can prepare another batch while you wait.
@@ -136,6 +138,7 @@ export function ProductionLive({ v }: { v: OpsVals }) {
               })}
             </section>
           ) : null}
+          <ProductionReceipts rows={data.completed ?? []} />
           <ProductionResults data={data} />
           {data.planReady ? (
             <section aria-label="Baking work" className={styles.work}>

@@ -21,10 +21,18 @@ page: what the old page could do → where it lives now → evidence. Update in 
 | Start production works                                            | Done (earlier slice)                                                                                |
 | Recipe opens that cookie's recipe; no Recipes tab                 | Done (earlier slice)                                                                                |
 | Badge explained; Edit product                                     | Done (earlier slice)                                                                                |
-| See how many cookies were made                                    | Not done: confirmed results bug (good vs rejects), see current.md                                   |
+| See how many cookies were made                                    | Local counts/history + acknowledged per-item results and original-drop stock retry; durable recovery/use detail pending |
 | Stock: Add to inventory, item Count, Back keeps frame, suppliers  | Done (earlier slices)                                                                               |
 | Money red/green                                                   | Done (live Money page)                                                                              |
 | Books & costs in Money settings; Settings in each section         | Money done; other sections still use the tools disclosure                                           |
+
+## Codex follow-up, 4 November
+
+Ethan authorized fixing the four review findings while Claude is limited. Working-tree fixes:
+negative Money bars, retained message-label edits, direct Home receiving/count entry, choice limit20.
+Full172files /2828tests +2todo,8browser flows and live28-page build pass. Read [Claude UI handoff](claude-ui-handoff.md)
+before continuing: it contains the visible behavior, source/tests, remaining scope and complete
+front-facing continuation instructions. No hosted mutation or independent acceptance inferred.
 
 ## Home (`today`) — `src/components/live/home/home-live.tsx`
 

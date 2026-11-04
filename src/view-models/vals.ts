@@ -1876,7 +1876,7 @@ export interface LiveHome {
   month: { revenue: number; expenses: number; profit: number } | null;
   flavours: number;
   go: Record<
-    'orders' | 'payments' | 'production' | 'stock' | 'products' | 'shopping' | 'money' | 'bazaar',
+    'orders' | 'payments' | 'production' | 'stock' | 'receive' | 'count' | 'products' | 'shopping' | 'money' | 'bazaar',
     () => void
   >;
 }

@@ -127,6 +127,52 @@ describe('the live Money page', () => {
     expect(view.queryByText(/₱0/)).toBeNull();
   });
 
+  it('plots income above zero and spending or refund-heavy income below zero', async () => {
+    const r = await mounted();
+    await act(async () => {
+      await r.loadBooks({
+        rpc: async () => ({
+          data: {
+            ...books,
+            lines: [
+              line('sale', 'revenue', 'Orders', 100, 2),
+              line('refund', 'refund', 'Refunds', 200, 1),
+              line('reversal', 'expense', 'Ingredients', -20, 3),
+              line('expense', 'expense', 'Ingredients', 50, 1)
+            ]
+          },
+          error: null
+        })
+      } as never);
+    });
+    act(() => money(r).setPeriod('week'));
+    const ui = render(<MoneyLive v={r.renderVals()} />);
+    const refund = ui.container.querySelector<HTMLElement>(
+      '[data-money-series="income"][data-value="-200"]'
+    )!;
+    expect(refund).not.toBeNull();
+    expect(parseFloat(refund.style.height)).toBeGreaterThan(0);
+    expect(refund.style.top).toBe('50%');
+    expect(refund.className).toContain('bg-danger');
+    const sale = ui.container.querySelector<HTMLElement>(
+      '[data-money-series="income"][data-value="100"]'
+    )!;
+    expect(sale.style.bottom).toBe('50%');
+    expect(parseFloat(sale.style.height)).toBeGreaterThan(0);
+    const cost = ui.container.querySelector<HTMLElement>(
+      '[data-money-series="expenses"][data-value="50"]'
+    )!;
+    expect(cost.style.top).toBe('50%');
+    expect(parseFloat(cost.style.height)).toBeGreaterThan(0);
+    const reversal = ui.container.querySelector<HTMLElement>(
+      '[data-money-series="expenses"][data-value="-20"]'
+    )!;
+    expect(reversal.style.bottom).toBe('50%');
+    expect(reversal.className).toContain('bg-ok');
+    expect(ui.getByText(/Refunds exceed income/)).toBeTruthy();
+    expect(money(r).revenue).toBe(-100);
+  });
+
   it('signs and colours money, and keeps the book settings in Money settings', async () => {
     const r = await mounted();
     const view = render(<MoneyLive v={r.renderVals()} />);

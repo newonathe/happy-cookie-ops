@@ -14,28 +14,26 @@ Inspect branch/worktree/stashes and actual code; do not depend on chat memory or
 ## Accepted source and next implementation
 
 Owner steering: Events first, compact till Back; final page critique after build (owner brief).
-UI progress and the lossless rule: [capability ledger](../design/capability-ledger.md).
+Claude is usage-limited. Codex's four audit fixes and front-facing continuation prompt:
+[Claude UI handoff](../design/claude-ui-handoff.md). See also the [capability ledger](../design/capability-ledger.md).
 
-Uncommitted pool/runtime adapter now supports independent cookie batches/dough mixes, Make's In
-progress list, full/half dough entry, per-item saving and own-item acknowledgements. Eight browser
-runs pass320/390/768/1240 in both motion modes with synthetic RPCs; no SQL/device acceptance.
-Recipe reads preserve line kind; writer remains unresolved. Full gate169files /2802pass +2todo;
-eight production browser reruns pass. Build status is in private LIVE-CHECKPOINT. Pool accepted atb23c3dd.
-Events return focus/scroll passes eight layout checks, keyboard/browser Back; JSDOM scroll is asserted.
-Earlier Events/history/preview drafts still require independent review. Finish B1 plan/review
-addresses, stage wording and inactive held events. Changed-source comparison/adoption and inline modal
-toasts pass eight browser checks. Next fix P2's confirmed good/reject and history-period errors
-(SQL58 versus ProductionResults), then results/refresh/source handling and P3 durable recovery.
-Gate/build and findings: private LIVE-CHECKPOINT.
-Preserve selling values, permissions and the sensitive-review wait.
+Accepted c51401f/273de7d include independent cookie/dough drafts, retained inputs, per-item saving,
+own-item acknowledgements, Events-first navigation and return context. f57d278/92851aa add the v4
+Home/Money/Shop work and sampler migration (local only). Prior synthetic browser proof is in private
+LIVE-CHECKPOINT; it is not SQL/device acceptance. The four Codex follow-ups are locally verified;
+required independent Money review remains pending. Do not reimplement them.
+P2 counts/history, acknowledged per-item results/stock-read retry and source-unavailable guards are
+local. Missing sources keep drafts and offer Retry; cached verified recipes remain usable, and exact
+unanswered-request checks bypass the new-source guard. Fraction/date/history wording corrected.
+96 focused tests, 8 responsive flows and full 173-file / 2,854-test gate (+2 TODOs) pass; live build passes 28 pages.
+Next remaining result detail and P3
+scoped durable recovery. B1 plan/review addresses, stage
+wording and inactive held events remain. Recipe reads keep line kind; the writer is unresolved.
+Preserve selling values, permissions and required independent review; no quota/provider bypass.
 
-Branch `codex/refined-workflows`; inspect HEAD.
+Branch `codex/refined-workflows`; starting HEAD52292e3. Inspect current Git state.
 
-Accepted production entry/count presentation preserves unfinished work and raw counts; details
-and earlier commits are in current.md. Per-item saving is local and awaits required review.
-
-Preview repairs and Ethan's Chrome opening confirmation: see current.md. Preview/history drafts await
-review. Use four Vitest workers; no quota/provider bypass.
+Production/count presentation and preview repair history: current.md. Use four Vitest workers.
 
 Continue B1 under [the audited additions plan](../design/active-bazaar-parallel-production-plan.md).
 Local multi-item proof covers navigation and simultaneous callbacks only; reload, cross-tab and

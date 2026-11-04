@@ -1,4 +1,4 @@
-import type { BatchRow } from '@/lib/data/production';
+import type { BatchRow, Shortfall } from '@/lib/data/production';
 import type { ReactNode } from 'react';
 
 export interface LiveProductionRecipeUpdate {
@@ -12,6 +12,7 @@ export interface LiveDoughPreparation {
   id: string; name: string; photo: string; periodText: string; version: number | null;
   balls: number; reviewing: boolean; saving: boolean; uncertain: boolean; sourceChanged: boolean;
   validAmount?: boolean;
+  sourceUnavailable?: boolean; retryRecipe?: () => void;
   recipeUpdate?: LiveProductionRecipeUpdate | null;
   portions: Array<{ label: string; selected: boolean; choose: () => void }>;
   rows: Array<{ name: ReactNode; amountText: ReactNode; balanceText: string; short: boolean }>;
@@ -29,6 +30,7 @@ export interface LiveBatchCounts {
   saving: boolean;
   uncertain?: boolean;
   sourceChanged?: boolean;
+  sourceUnavailable?: boolean; retryRecipe?: () => void;
   recipeUpdate?: LiveProductionRecipeUpdate | null;
   setActual: (value: string) => void;
   setRejects: (value: string) => void;
@@ -57,7 +59,15 @@ export interface LiveProductionStart {
 }
 
 /** Saved owner production and an unconfirmed entry point; recording stays in the existing action. */
+export interface LiveProductionReceipt {
+  id: string; name: string; kind: 'batch' | 'dough'; quantity: number; rejects: number;
+  dropNo: number; version: number; at: number; usedDough: number; shortfall: Shortfall[]; duplicate: boolean;
+  stockState: 'loading' | 'read' | 'failed'; inventoryReady: boolean;
+  balance: number | null; checkedAt: number | null; retry: () => void;
+}
+
 export interface LiveProductionVals {
+  completed?: LiveProductionReceipt[];
   inProgress?: Array<{
     id: string; label: string; productId: string; kind: 'batch' | 'dough'; name: string; photo: string;
     quantityText: string; status: 'Count' | 'Review' | 'Mix' | 'Saving' | 'Check result';

@@ -17,6 +17,18 @@ const vals = () => ({
     setActual: vi.fn(), setRejects: vi.fn(), review: vi.fn(), confirm: vi.fn() }
 });
 describe('live production count and review', () => {
+  it('keeps counts editable but hides unverified recipe use and blocks review until the recipe can be read', () => {
+    const v = vals(), retryRecipe = vi.fn();
+    const counts = { ...v.liveBatchCounts, sourceUnavailable: true, recipeVersion: null, retryRecipe };
+    render(<ProductionFocusLive v={{ ...v, liveBatchCounts: counts } as unknown as OpsVals} />);
+    expect(screen.getByText('Saved recipe unavailable')).toBeTruthy();
+    expect((screen.getByLabelText('Cookies made, including rejects') as HTMLInputElement).disabled).toBe(false);
+    expect((screen.getByRole('button', { name: 'Review production' }) as HTMLButtonElement).disabled).toBe(true);
+    fireEvent.click(screen.getByRole('button', { name: 'Retry saved recipe' }));
+    expect(retryRecipe).toHaveBeenCalledOnce();
+    fireEvent.click(screen.getByRole('button', { name: 'Leave for now' }));
+    expect(v.batch.exit).toHaveBeenCalledOnce();
+  });
   it('keeps an unanswered submission immutable and offers the original result check at either step', () => {
     const v = vals(); v.liveBatchCounts.uncertain = true;
     const ui = render(<ProductionFocusLive v={v as unknown as OpsVals} />);
