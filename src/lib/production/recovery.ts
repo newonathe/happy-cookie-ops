@@ -5,6 +5,7 @@ import {
   type ProductionResult
 } from '@/lib/data/production';
 import type { ProductionWork } from './workspace';
+import type { ProductionPlanChoice } from './plan';
 import { holdCountLock } from '@/lib/stock/count-lock';
 
 export interface ProductionRecoveryScope {
@@ -18,6 +19,8 @@ export interface ProductionRecoveryEntry {
   quantity: string;
   kind?: 'batch' | 'dough';
   batchQuantity?: string;
+  choices?: ProductionPlanChoice[];
+  reviewing?: boolean;
 }
 export interface ProductionRecovery {
   version: 1;
@@ -157,7 +160,11 @@ const recovery = z
         version: z.number().int().nonnegative(),
         quantity: countText,
         kind: z.enum(['batch', 'dough']).optional(),
-        batchQuantity: countText.optional()
+        batchQuantity: countText.optional(),
+        reviewing: z.boolean().optional(),
+        choices: z.array(z.object({ productId: z.string().min(1).max(128), name: text.optional(), photo: z.string().max(2048).optional(), quantity: countText,
+          version: z.number().int().positive(), kind: z.enum(['batch', 'dough']), batchQuantity: countText.optional()
+        }).strict()).max(80).refine(rows => new Set(rows.map(row => row.productId)).size === rows.length).optional()
       })
       .strict()
       .nullable()

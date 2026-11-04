@@ -121,6 +121,8 @@ export function recipeError(f: RecipeFields): string | null {
       return name + ' needs an amount above 0, with at most 3 decimals.';
     if (!(RECIPE_UNITS as readonly string[]).includes(l.unit))
       return name + ' is measured in g, ml or pcs.';
+    if (l.kind !== undefined && l.kind !== 'ingredient' && l.kind !== 'packaging')
+      return name + ' needs a known ingredient or packaging type before saving.';
     if (seen.has(name)) return name + ' is listed twice.';
     seen.add(name);
   }
@@ -148,12 +150,18 @@ export async function saveRecipe(
   f: RecipeFields,
   expectedUpdatedAt: string | null
 ): Promise<RecipeSaveResult> {
+  if (recipeError(f)) return { outcome: 'refused', version: null, updatedAt: null };
   try {
     const { data, error } = await client.rpc('save_recipe', {
       p_recipe: {
         product_id: f.productId,
         yield: f.yield,
-        lines: f.lines.map((l) => ({ name: l.name.trim(), qty: l.qty, unit: l.unit }))
+        lines: f.lines.map((l) => ({
+          name: l.name.trim(),
+          qty: l.qty,
+          unit: l.unit,
+          ...(l.kind === undefined ? {} : { kind: l.kind })
+        }))
       },
       p_expected_updated_at: expectedUpdatedAt as string
     });
@@ -163,10 +171,12 @@ export async function saveRecipe(
       outcome === 'saved' &&
       isObj(row) &&
       Number.isInteger(row.version) &&
-      typeof row.updated_at === 'string'
+      Number(row.version) > 0 &&
+      typeof row.updated_at === 'string' &&
+      row.updated_at.length > 0
     )
       return { outcome, version: row.version as number, updatedAt: row.updated_at };
-    return { outcome, version: null, updatedAt: null };
+    return { outcome: outcome === 'saved' ? 'offline' : outcome, version: null, updatedAt: null };
   } catch {
     return { outcome: 'offline', version: null, updatedAt: null };
   }
@@ -174,7 +184,7 @@ export async function saveRecipe(
 
 // ------------------------------------------------------------------ the ported recipes screen's shapes
 
-type EngineIng = [string, number, string];
+type EngineIng = [string, number, string, RecipeLine['kind']?];
 export interface EngineRecipe {
   yield: number;
   ing: EngineIng[];
@@ -188,7 +198,9 @@ export interface EngineRecipeState {
 
 const engineOf = (yieldCount: number, lines: readonly RecipeLine[]): EngineRecipe => ({
   yield: yieldCount,
-  ing: lines.map((l): EngineIng => [l.name, l.qty, l.unit])
+  ing: lines.map((l): EngineIng =>
+    l.kind === undefined ? [l.name, l.qty, l.unit] : [l.name, l.qty, l.unit, l.kind]
+  )
 });
 
 /**

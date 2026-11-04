@@ -175,6 +175,7 @@ import {
   recipeError,
   saveRecipe,
   type Recipe,
+  type RecipeLine,
   type RecipeClient
 } from '@/lib/data/recipes';
 import { fetchRecipeDrafts, saveRecipeDraft, type RecipeDraft } from '@/lib/data/recipe-drafts';
@@ -233,6 +234,8 @@ import {
   type ProductionRecoveryScope
 } from '@/lib/production/recovery';
 import { ProductionRecoverySession } from '@/lib/production/recovery-session';
+import { validProductionChoice, type ProductionPlanChoice } from '@/lib/production/plan';
+import { productionPlanner } from '@/lib/production/planner';
 import type { ProductionRecipeSnapshot } from '@/lib/production/workspace';
 import {
   booksCsv,
@@ -610,7 +613,7 @@ interface RecipeActions {
 
 /** The parts of `state` the recipes screen keeps, as the runtime reads them. */
 interface RecipeState {
-  recipes: Record<string, { yield: number; ing: Array<[string, unknown, string]> }>;
+  recipes: Record<string, { yield: number; ing: Array<[string, unknown, string, RecipeLine['kind']?]> }>;
   recipeDirty?: Record<string, boolean>;
 }
 
@@ -914,7 +917,8 @@ export class OpsRuntime extends OpsProvider {
   private productionLoadSeq = 0;
   private productionReadState: 'loading' | 'read' | 'failed' = 'loading';
   private lastProductionDrop: number | null = null;
-  private productionEntry: (NonNullable<LiveProductionStart['draft']> & { dropNo: number; batchQuantity?: string }) | null = null;
+  private productionEntry: (NonNullable<LiveProductionStart['draft']> & { dropNo: number; batchQuantity?: string;
+    choices?: ProductionPlanChoice[]; reviewing?: boolean }) | null = null;
   private productionEntryGeneration = 0;
   private pendingProduction = new Map<string, ProductionFields>();
   private completedProduction = new Map<
@@ -995,6 +999,7 @@ export class OpsRuntime extends OpsProvider {
   /** The stamp of each flavour's saved recipe as its screen last showed it: what an edit is saved against. */
   private recipeBaseStamp: Record<string, string | null> = {};
   private recipeLoadSeq = 0;
+  private recipeSaving = new Set<string>();
   /** B3b-2: the database's cost of each item and recipe (owner only), what the last read came to, and the read in flight. */
   private costReads: CostReads = 'unread';
   private itemCosts: ItemCosts | null = null;
@@ -3635,7 +3640,14 @@ export class OpsRuntime extends OpsProvider {
    * know is ignored). `refresh` is the flavour whose local edit the read replaces (it was just saved, or conflicted);
    * an unsaved edit on any other flavour is kept.
    */
-  async loadRecipes(client: RecipeClient | null, refresh?: string): Promise<boolean> {
+  async loadRecipes(
+    client: RecipeClient | null,
+    refresh?: string,
+    save?: {
+      submitted: RecipeState['recipes'][string];
+      current: () => boolean;
+    }
+  ): Promise<boolean> {
     if (client) this.recipeClient = client;
     const use = client ?? this.recipeClient;
     if (!isLiveMode() || !use) return false;
@@ -3646,7 +3658,7 @@ export class OpsRuntime extends OpsProvider {
     try {
       rows = await fetchRecipes(use);
     } catch {
-      if (seq === this.recipeLoadSeq) {
+      if (seq === this.recipeLoadSeq && (!save || save.current())) {
         this.recipeReaderState = 'failed';
         this.setState({});
       }
@@ -3654,15 +3666,22 @@ export class OpsRuntime extends OpsProvider {
     }
     // A newer read started meanwhile: it will apply, an older answer must not bring back an older stamp.
     if (seq !== this.recipeLoadSeq) return true;
+    if (save && !save.current()) return false;
     // Anything typed before the first read was on an empty placeholder: the saved recipe replaces it.
     const first = this.recipeRows === null;
     this.recipeRows = rows;
     this.recipeReaderState = 'read';
-    const dirty = (this.state as unknown as RecipeState).recipeDirty ?? {};
-    for (const p of PRODUCTS)
-      if (first || !dirty[p.id] || p.id === refresh)
-        this.recipeBaseStamp[p.id] = rows.find((r) => r.productId === p.id)?.updatedAt ?? null;
-    this.setState((s) => this.recipesPatch(s as unknown as RecipeState, refresh, first));
+    this.setState((s) => {
+      const state = s as unknown as RecipeState;
+      const replace =
+        save && refresh && JSON.stringify(state.recipes[refresh]) !== JSON.stringify(save.submitted)
+          ? undefined
+          : refresh;
+      for (const p of PRODUCTS)
+        if (first || !state.recipeDirty?.[p.id] || p.id === replace)
+          this.recipeBaseStamp[p.id] = rows.find((r) => r.productId === p.id)?.updatedAt ?? null;
+      return this.recipesPatch(state, replace, first);
+    });
     void this.loadCosts(); // a saved recipe changes what a cookie costs; a slow answer never holds this read up
     return true;
   }
@@ -3885,49 +3904,79 @@ export class OpsRuntime extends OpsProvider {
       );
     if (this.state.role !== 'owner' || !client || !this.recipeRows)
       return void this.toast(STAFF_COPY.offline, 'warn');
+    const actor = this.productionActorEpoch;
+    const current = () =>
+      !this.unmounted && this.state.role === 'owner' && actor === this.productionActorEpoch;
+    const key = `${actor}:${pid}`;
+    if (this.recipeSaving.has(key)) return;
+    const submitted = structuredClone(r);
     const fields = {
       productId: pid,
       yield: r.yield,
-      lines: r.ing.map((i) => ({ name: String(i[0]), qty: Number(i[1]), unit: String(i[2]) }))
+      lines: r.ing.map((i) => ({
+        name: String(i[0]).trim(),
+        qty: Number(i[1]),
+        unit: String(i[2]),
+        ...(i[3] === undefined ? {} : { kind: i[3] })
+      }))
     };
     const problem = recipeError(fields);
     if (problem) return void this.toast(problem, 'warn');
     const was = this.recipeRows.find((x) => x.productId === pid);
-    // Against the stamp this edit was started on, never a newer one read since: if the recipe moved meanwhile, the
-    // database says so (a conflict) instead of being overwritten.
-    const { outcome, version, updatedAt } = await saveRecipe(
-      client,
-      fields,
-      this.recipeBaseStamp[pid] ?? null
-    );
-    if (outcome === 'saved' && updatedAt) this.recipeBaseStamp[pid] = updatedAt;
-    // A saved recipe, or another person's newer one, replaces this edit; a refusal or a lost connection keeps it.
-    const read = await this.loadRecipes(
-      null,
-      outcome === 'saved' || outcome === 'conflict' ? pid : undefined
-    );
-    if (outcome === 'saved') {
-      if (!read && version !== null && updatedAt) {
-        // The read after the save failed: the answer to the save is enough to show it saved and to save again.
-        this.recipeRows = (this.recipeRows ?? []).map((x) =>
-          x.productId === pid ? { ...x, version, updatedAt } : x
-        );
-        this.setState((s) => {
-          const t = s as unknown as RecipeState & { recipeVer: Record<string, number> };
-          const dirty = { ...(t.recipeDirty ?? {}) };
-          delete dirty[pid];
-          return { recipeDirty: dirty, recipeVer: { ...t.recipeVer, [pid]: version } };
-        });
-      }
-      this.toast(
-        !was
-          ? RECIPE_COPY.created
-          : version !== null && version === was.version
-            ? RECIPE_COPY.unchanged
-            : RECIPE_COPY.saved(version ?? 0)
+    this.recipeSaving.add(key);
+    try {
+      // Against the stamp this edit was started on, never a newer one read since: if the recipe moved meanwhile, the
+      // database says so (a conflict) instead of being overwritten.
+      const { outcome, version, updatedAt } = await saveRecipe(
+        client,
+        fields,
+        this.recipeBaseStamp[pid] ?? null
       );
-    } else if (outcome === 'conflict') this.toast(RECIPE_COPY.conflict, 'warn');
-    else this.toast(outcome === 'refused' ? RECIPE_COPY.refused : STAFF_COPY.offline, 'warn');
+      if (!current()) return;
+      if (outcome === 'saved' && updatedAt) this.recipeBaseStamp[pid] = updatedAt;
+      // A saved recipe, or another person's newer one, replaces this edit; a refusal or a lost connection keeps it.
+      const read = await this.loadRecipes(
+        null,
+        outcome === 'saved' || outcome === 'conflict' ? pid : undefined,
+        { submitted, current }
+      );
+      if (!current()) return;
+      if (outcome === 'saved') {
+        if (!read && version !== null && updatedAt) {
+          // The read after the save failed: the answer to the save is enough to show it saved and to save again.
+          const acknowledged: Recipe = {
+            ...fields,
+            version,
+            updatedAt,
+            history: !was
+              ? []
+              : version === was.version
+                ? was.history
+                : [...was.history, { version: was.version, yield: was.yield, lines: was.lines }]
+          };
+          this.recipeRows = [
+            ...(this.recipeRows ?? []).filter((row) => row.productId !== pid),
+            acknowledged
+          ];
+          this.setState((s) => {
+            const state = s as unknown as RecipeState;
+            const replace =
+              JSON.stringify(state.recipes[pid]) === JSON.stringify(submitted) ? pid : undefined;
+            return this.recipesPatch(state, replace);
+          });
+        }
+        this.toast(
+          !was
+            ? RECIPE_COPY.created
+            : version !== null && version === was.version
+              ? RECIPE_COPY.unchanged
+              : RECIPE_COPY.saved(version ?? 0)
+        );
+      } else if (outcome === 'conflict') this.toast(RECIPE_COPY.conflict, 'warn');
+      else this.toast(outcome === 'refused' ? RECIPE_COPY.refused : RECIPE_COPY.unknown, 'warn');
+    } finally {
+      this.recipeSaving.delete(key);
+    }
   }
 
   // ------------------------------------------------------------------ A3: the owner's stock catalogue
@@ -6220,6 +6269,32 @@ export class OpsRuntime extends OpsProvider {
     const change = (): void => this.setState({});
     return {
       products,
+      multi: productionPlanner(this.productionEntry?.dropNo === dropNo ? this.productionEntry : null, {
+        get: () => {
+          const fresh = current(), entry = this.productionEntry;
+          return fresh && entry?.dropNo === dropNo ? { products: fresh.products, entry } : null;
+        },
+        set: entry => { this.productionEntry = entry; change(); },
+        begin: choices => {
+          const fresh = current(), entry = this.productionEntry;
+          if (!fresh || !entry || choices.length === 0 || choices.some(row =>
+            !validProductionChoice(row, fresh.products.find(p => p.id === row.productId)))) return false;
+          const state = this.state as unknown as ProductionProjection;
+          this.productionDrafts.sync(null, state);
+          const inputs = choices.map(row => ({ ...this.productionWorkMetadata(row.productId, '', state),
+            draft: row.kind === 'dough'
+              ? { kind: 'dough' as const, balls: row.quantity, note: '', step: 1 }
+              : { kind: 'batch' as const, target: Number(row.quantity), actual: row.quantity, rejects: '0', adj: {}, note: '', step: 1 }
+          }));
+          if (inputs.some(input => !input.recipe)) return false;
+          this.productionEntry = null;
+          const kept = this.productionDrafts.pool.addPlan(inputs, () => this.productionRecovery.persist());
+          if (!kept) { this.productionEntry = entry; change(); return false; }
+          this.productionEntryGeneration += 1;
+          this.setState({ batch: null, doughPrep: null, sheet: null } as never);
+          return true;
+        }
+      }),
       resume: false,
       draft:
         this.productionWritable() && this.productionEntry?.dropNo === dropNo

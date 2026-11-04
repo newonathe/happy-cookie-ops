@@ -82,6 +82,7 @@ const fresh = (over: Partial<Fake> = {}): Fake => ({
 interface RecipeActions {
   recipeEdit: (pid: string, i: number, field: string, v: string) => void;
   recipeAdd: (pid: string) => void;
+  recipeRemove: (pid: string, i: number) => void;
   recipeYield: (pid: string, d: number) => void;
   recipeSave: (pid: string) => void;
   openRecipe: (pid: string) => void;
@@ -109,6 +110,167 @@ async function mounted(role: Role, state: Fake) {
 }
 
 describe('A4: the recipes reach the ported recipes screen (live mode)', () => {
+  it('keeps an empty acknowledgement unconfirmed and retains the entered recipe', async () => {
+    const { runtime, rpc } = await mounted('owner', fresh({ save: { data: [], error: null } }));
+    act(() => act$(runtime).recipeEdit('dcf', 0, 'qty', '500'));
+    act(() => act$(runtime).recipeSave('dcf'));
+    await settle();
+    expect(toasts(runtime)).toContain('Save result not confirmed');
+    expect(toasts(runtime)).not.toContain('Saved as Version');
+    expect(st(runtime).recipes.dcf.ing[0][1]).toBe(500);
+    expect(st(runtime).recipeDirty.dcf).toBe(true);
+    expect(called(rpc, 'save_recipe')).toHaveLength(1);
+  });
+  it('ignores double taps and an old reply after owner access changes', async () => {
+    const { runtime, rpc } = await mounted('owner', fresh());
+    const original = rpc.getMockImplementation()!;
+    let reply!: (value: Fake['save']) => void;
+    rpc.mockImplementation(async (name) =>
+      name === 'save_recipe'
+        ? new Promise((resolve) => {
+            reply = resolve;
+          })
+        : original(name)
+    );
+    act(() => act$(runtime).recipeEdit('dcf', 0, 'qty', '500'));
+    act(() => {
+      act$(runtime).recipeSave('dcf');
+      act$(runtime).recipeSave('dcf');
+    });
+    expect(called(rpc, 'save_recipe')).toHaveLength(1);
+    act(() => runtime.setRole('helper'));
+    const before = structuredClone(st(runtime).recipes);
+    await act(async () => {
+      reply({ data: [{ version: 4, updated_at: LATER }], error: null });
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    expect(st(runtime).recipes).toEqual(before);
+    expect(called(rpc, 'get_recipes')).toHaveLength(0);
+    expect(toasts(runtime)).not.toContain('Saved as Version');
+  });
+  it('retains packaging identity after rename, quantity edit, removal and adding another ingredient', async () => {
+    const { runtime, rpc } = await mounted(
+      'owner',
+      fresh({
+        rows: [
+          dcf({
+            lines: [
+              { name: 'Butter', qty: 300, unit: 'g', kind: 'ingredient' },
+              { name: 'Pouch', qty: 12, unit: 'pcs', kind: 'packaging' }
+            ]
+          })
+        ]
+      })
+    );
+    act(() => {
+      act$(runtime).recipeEdit('dcf', 1, 'name', 'Gift pouch');
+      act$(runtime).recipeEdit('dcf', 1, 'qty', '24');
+    });
+    act(() => act$(runtime).recipeRemove('dcf', 0));
+    act(() => act$(runtime).recipeAdd('dcf'));
+    act(() => {
+      act$(runtime).recipeEdit('dcf', 1, 'name', 'Sugar');
+      act$(runtime).recipeEdit('dcf', 1, 'qty', '100');
+    });
+    act(() => act$(runtime).recipeSave('dcf'));
+    await settle();
+    expect(called(rpc, 'save_recipe')[0][1].p_recipe).toMatchObject({
+      lines: [
+        { name: 'Gift pouch', qty: 24, unit: 'pcs', kind: 'packaging' },
+        { name: 'Sugar', qty: 100, unit: 'g' }
+      ]
+    });
+  });
+  it('keeps edits typed during save and readback instead of replacing them with the submitted snapshot', async () => {
+    const state = fresh(),
+      { runtime, rpc } = await mounted('owner', state);
+    const original = rpc.getMockImplementation()!;
+    let save!: () => void, read!: () => void;
+    rpc.mockImplementation(async (name) => {
+      if (name === 'save_recipe') {
+        await new Promise<void>((resolve) => {
+          save = resolve;
+        });
+        return state.save;
+      }
+      if (name === 'get_recipes') {
+        await new Promise<void>((resolve) => {
+          read = resolve;
+        });
+        return {
+          data: [
+            dcf({
+              version: 4,
+              updated_at: LATER,
+              lines: [
+                { name: 'Unsalted butter', qty: 500, unit: 'g' },
+                { name: 'Eggs', qty: 2, unit: 'pcs' }
+              ]
+            })
+          ],
+          error: null
+        };
+      }
+      return original(name);
+    });
+    act(() => act$(runtime).recipeEdit('dcf', 0, 'qty', '500'));
+    act(() => act$(runtime).recipeSave('dcf'));
+    await settle();
+    act(() => act$(runtime).recipeEdit('dcf', 0, 'qty', '505'));
+    await act(async () => {
+      save();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    act(() => act$(runtime).recipeEdit('dcf', 0, 'qty', '510'));
+    await act(async () => {
+      read();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    expect(st(runtime).recipes.dcf.ing[0][1]).toBe(510);
+    expect(st(runtime).recipeDirty.dcf).toBe(true);
+    act(() => runtime.go('products'));
+    act(() =>
+      runtime.renderVals().productRows[PRODUCTS.findIndex((p) => p.id === 'dcf')].goRecipe()
+    );
+    expect(runtime.renderVals().liveRecipes?.recipePage?.rows[0].amountText).toBe('500 g');
+  });
+  it('uses the acknowledged submitted recipe after a failed readback, including a newly created recipe', async () => {
+    for (const creating of [false, true]) {
+      const pid = creating ? 'wcb' : 'dcf';
+      const { runtime, rpc } = await mounted(
+        'owner',
+        fresh({
+          rows: creating ? [] : [dcf()],
+          save: { data: [{ version: creating ? 1 : 4, updated_at: LATER }], error: null }
+        })
+      );
+      if (creating) act(() => act$(runtime).recipeAdd(pid));
+      act(() => {
+        act$(runtime).recipeEdit(pid, 0, 'name', 'Butter');
+        act$(runtime).recipeEdit(pid, 0, 'qty', '500');
+      });
+      const original = rpc.getMockImplementation()!;
+      rpc.mockImplementation(async (name) =>
+        name === 'get_recipes' ? { data: null, error: { code: '08006' } } : original(name)
+      );
+      act(() => act$(runtime).recipeSave(pid));
+      await settle();
+      act(() => runtime.go('products'));
+      act(() =>
+        runtime.renderVals().productRows[PRODUCTS.findIndex((p) => p.id === pid)].goRecipe()
+      );
+      expect(runtime.renderVals().liveRecipes?.recipePage).toMatchObject({
+        state: 'failed',
+        versionText: creating ? 'Version 1' : 'Version 4'
+      });
+      expect(runtime.renderVals().liveRecipes?.recipePage?.rows[0]).toEqual({
+        name: 'Butter',
+        amountText: '500 g'
+      });
+      expect(runtime.renderVals().liveRecipes?.recipePage?.rows).toHaveLength(creating ? 1 : 2);
+      expect(st(runtime).recipeDirty[pid]).toBeUndefined();
+    }
+  });
   it('opens the selected product saved recipe directly and returns to Products without a write', async () => {
     const { runtime, rpc } = await mounted('owner', fresh());
     act(() => runtime.go('products'));
@@ -340,7 +502,7 @@ describe('A4: Save on the recipes screen', () => {
   it('a refusal or a lost connection keeps the edit for another try; a change made elsewhere shows their version', async () => {
     for (const [save, words] of [
       [{ data: null, error: { code: '22023' } }, 'could not be saved'],
-      [{ data: null, error: { code: '' } }, 'Offline']
+      [{ data: null, error: { code: '' } }, 'Save result not confirmed']
     ] as const) {
       const f = await mounted('owner', fresh({ save }));
       act(() => act$(f.runtime).recipeEdit('dcf', 0, 'qty', '500'));

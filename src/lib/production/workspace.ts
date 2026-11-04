@@ -95,6 +95,18 @@ export class ProductionWorkspace {
     return id;
   }
 
+  /** A plan enters the pool together; a failed device copy restores the entire prior pool. */
+  addPlan(inputs: NewProductionWork[], keep: () => boolean): boolean {
+    const before = { items: new Map(this.items), used: new Set(this.usedIds), selected: this.selected, sequence: this.sequence };
+    const rollback = () => { this.items = before.items; this.usedIds = before.used; this.selected = before.selected; this.sequence = before.sequence; };
+    try {
+      inputs.forEach(input => this.add(input));
+      this.leave();
+      if (keep()) return true;
+      rollback(); return false;
+    } catch (error) { rollback(); throw error; }
+  }
+
   /** Repeated projection of the same legacy instance cannot duplicate or resurrect that work. */
   adoptLegacy(instance: object, input: NewProductionWork): string | null {
     const known = this.legacy.get(instance);

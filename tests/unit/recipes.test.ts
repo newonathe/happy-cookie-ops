@@ -41,6 +41,46 @@ const fields = (over: Partial<RecipeFields> = {}): RecipeFields => ({
 });
 
 describe('parseRecipes', () => {
+  it('carries line kinds into editable rows, saved bases and version snapshots', () => {
+    const rows = parseRecipes([
+      wire({
+        lines: [{ name: 'Pouch', qty: 24, unit: 'pcs', kind: 'packaging' }],
+        history: [
+          {
+            version: 1,
+            yield: 12,
+            lines: [{ name: 'Butter', qty: 200, unit: 'g', kind: 'ingredient' }]
+          }
+        ]
+      })
+    ] as never)!;
+    const state = engineRecipes(rows, ['dcf']);
+    expect(state.recipes.dcf.ing[0]).toEqual(['Pouch', 24, 'pcs', 'packaging']);
+    expect(state.recipeBase.dcf.ing[0]).toEqual(['Pouch', 24, 'pcs', 'packaging']);
+    expect(state.recipeHistory.dcf[0].snap.ing[0]).toEqual(['Butter', 200, 'g', 'ingredient']);
+  });
+  it('sends explicit kinds unchanged and refuses an explicitly unknown kind before any RPC', async () => {
+    const rpc = vi.fn(async () => ({ data: [{ version: 4, updated_at: STAMP }], error: null }));
+    const f = { rpc, client: { rpc } as unknown as RecipeClient };
+    await saveRecipe(
+      f.client,
+      fields({ lines: [{ name: 'Pouch', qty: 12, unit: 'pcs', kind: 'packaging' }] }),
+      STAMP
+    );
+    expect(
+      (f.rpc.mock.calls[0] as unknown as [string, { p_recipe: { lines: unknown[] } }])[1].p_recipe
+        .lines
+    ).toEqual([{ name: 'Pouch', qty: 12, unit: 'pcs', kind: 'packaging' }]);
+    f.rpc.mockClear();
+    expect(
+      await saveRecipe(
+        f.client,
+        fields({ lines: [{ name: 'Legacy line', qty: 1, unit: 'pcs', kind: null }] }),
+        STAMP
+      )
+    ).toMatchObject({ outcome: 'refused' });
+    expect(f.rpc).not.toHaveBeenCalled();
+  });
   it('retains ingredient/packaging and explicit unknown kinds in current and historical snapshots', () => {
     const row = parseRecipes([wire({ lines: [{ name: 'Pouch', qty: 24, unit: 'pcs', kind: 'packaging' },
       { name: 'Legacy line', qty: 1, unit: 'pcs', kind: null }],
@@ -213,9 +253,9 @@ describe('the rpc wrappers', () => {
       version: null,
       updatedAt: null
     });
-    // A save that succeeded but answered nothing usable still saved (the caller reads it back).
+    // Without a usable acknowledgement the result is unknown; a successful click is not proof.
     expect(await saveRecipe(client({ data: [], error: null }).client, fields(), STAMP)).toEqual({
-      outcome: 'saved',
+      outcome: 'offline',
       version: null,
       updatedAt: null
     });
