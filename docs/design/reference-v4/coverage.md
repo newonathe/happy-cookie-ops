@@ -53,8 +53,8 @@ on the 4186 preview with synthetic data; it is not hosted, device or owner accep
 | order | `live/sell/order-live.tsx` | Done | |
 | payment-review | inside `order-live.tsx` | Done | Reconciliation stays at `payments-live.tsx` |
 | order-action | `RefundLive`, `NoShowLive`, `SwapLive` in `live/settings-pages.tsx` | Done | |
-| customers | `live/sell/customers-live.tsx` in page mode (`pageFormOf`) | Partial | Rows show this drop and the waitlist; needs customer rows with order history |
-| customer-detail, customer-message, contact-remove | | Missing | Needs a customers class and the existing erasure RPC |
+| customers | `live/sell/customers-live.tsx`, `store/customer-desk.ts` | Done | |
+| customer-detail, customer-message, contact-remove | `customers-live.tsx` | Done | Removal calls `anonymise_customer`. Not run against hosted data: test it on a test customer first |
 | **Shop** | | | |
 | shop | `live/sell/shop-live.tsx` | Done | |
 | shop-status | `ShopStatusLive` | Done | |
@@ -72,7 +72,7 @@ on the 4186 preview with synthetic data; it is not hosted, device or owner accep
 | recipe-edit, recipe-review | ported recipes screen | Old | Rebuild beside it; keep the legacy warning until reviewed |
 | recipe-drafts | `live/recipe-drafts-form.tsx`, Needs recipe on Products | Done | Colours from the theme; the Needs recipe filter lists what has none |
 | product-edit | `live/live-form-host.tsx` | Done | |
-| new-product | `live/live-form-host.tsx` | Done | Same form as Edit product; the mockup has fewer fields |
+| new-product | `live/live-form-host.tsx`, page mode | Done | Same form as Edit product; the mockup has fewer fields |
 | cost-edit, cost-review | `live/recipes/flavour-page.tsx` | Partial | Review step |
 | make-settings | `useAreaSettings` area `make` | Done | Show inactive products is the All products filter |
 | **Stock** | | | |

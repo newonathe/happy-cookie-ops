@@ -98,28 +98,37 @@ function Icon({ path, size, weight }: { path: string; size: number; weight: numb
 }
 
 function usesLiveModal(v: OpsVals) {
-  return !!(v.sheet?.liveForm && (v.liveForm?.kind === 'flavours' || v.liveDough) && !v.quickOpen);
+  return !!(v.sheet?.liveForm && v.liveDough && !v.quickOpen);
 }
 
 /**
  * Settings forms that read as pages of their section (client v4): a title, the form and a Back to
  * where the owner came from. Closing is the form's own close, so drafts and saves are unchanged.
  */
-function pageFormOf(
-  v: OpsVals
-): {
+function pageFormOf(v: OpsVals): {
   title: string;
   subtitle: string;
   close: () => void;
   body?: ComponentType<{ v: OpsVals }>;
+  /** The body draws its own title: it has pages of its own. */
+  ownTitle?: boolean;
 } | null {
   if (!v.sheet) return null;
+  if (v.sheet.liveForm && v.liveForm?.kind === 'flavours') {
+    const editing = v.liveForm.editing;
+    return {
+      title: !editing ? 'Menu & flavours' : editing.id ? 'Edit product' : 'Add product',
+      subtitle: 'Name, menu price and shop display.',
+      close: editing?.cancel ?? v.closeSheet
+    };
+  }
   if (v.sheet.isCustomers)
     return {
       title: 'Customers/Waitlist',
-      subtitle: 'Who is ordering, and who is waiting for the next drop.',
+      subtitle: '',
       close: v.closeSheet,
-      body: CustomersLive
+      body: CustomersLive,
+      ownTitle: true
     };
   if (v.sheet.isDropState)
     return {
@@ -207,7 +216,7 @@ function PageForm({ v, page }: { v: OpsVals; page: NonNullable<ReturnType<typeof
   }, [page.title]);
   return (
     <div ref={heading} className={styles.page}>
-      <PageTitle title={page.title} subtitle={page.subtitle} />
+      {page.ownTitle ? null : <PageTitle title={page.title} subtitle={page.subtitle} />}
       {page.body ? <page.body v={v} /> : <LiveFormHost v={v} />}
     </div>
   );

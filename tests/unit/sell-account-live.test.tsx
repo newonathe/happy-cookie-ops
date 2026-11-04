@@ -218,12 +218,31 @@ describe('Orders', () => {
 });
 
 describe('Customers/Waitlist', () => {
+  const customer = {
+    key: '09170000000',
+    name: 'Customer A',
+    mobile: '09170000000',
+    contactText: '',
+    orderCountText: '1 order',
+    lastOrderText: 'Last order 1 Nov',
+    orders: [
+      { id: 'HC-1', statusText: 'Paid', cookiesText: '6 cookies', whenText: '1 Nov', open: vi.fn() }
+    ],
+    recordCsv: 'x'
+  };
+  const live = (removeContact = vi.fn(async () => 'removed' as const)) => ({
+    rows: [customer],
+    loaded: true,
+    online: true,
+    removeContact
+  });
+
   it('shows who is waiting and what they asked for, with the engine action', () => {
     const go = vi.fn();
     render(
       <CustomersLive
         v={vals({
-          customers: [{ name: 'Customer A', count: '6 cookies' }],
+          liveCustomers: live(),
           waitlist: [{ name: 'Customer B', want: '6 cookies', when: 'joined today', go }]
         })}
       />
@@ -232,5 +251,38 @@ describe('Customers/Waitlist', () => {
     expect(within(waiting).getByText('6 cookies · joined today')).toBeTruthy();
     fireEvent.click(within(waiting).getByRole('button', { name: 'Tell them' }));
     expect(go).toHaveBeenCalledOnce();
+  });
+
+  it('does not say nobody has ordered before the orders are read', () => {
+    render(<CustomersLive v={vals({ liveCustomers: { ...live(), rows: [], loaded: false } })} />);
+    expect(screen.getByText('Reading your orders…')).toBeTruthy();
+    expect(screen.queryByText('Nobody has ordered yet.')).toBeNull();
+  });
+
+  it('opens a customer, their orders and the way back', () => {
+    render(<CustomersLive v={vals({ liveCustomers: live() })} />);
+    fireEvent.click(screen.getByRole('button', { name: /^Open customer/ }));
+    expect(screen.getByRole('heading', { name: 'Customer A' })).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'View order HC-1' }));
+    expect(customer.orders[0]?.open).toHaveBeenCalledOnce();
+    fireEvent.click(screen.getByRole('button', { name: 'Prepare message' }));
+    expect(screen.getByLabelText('Message')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Back to customer' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Back to customers' }));
+    expect(screen.getByRole('heading', { name: 'Customers/Waitlist' })).toBeTruthy();
+  });
+
+  it('removes contact details only after the tick, and stays put when it fails', async () => {
+    const removeContact = vi.fn(async () => 'failed' as const);
+    render(<CustomersLive v={vals({ liveCustomers: live(removeContact as never) })} />);
+    fireEvent.click(screen.getByRole('button', { name: /^Open customer/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Remove contact details' }));
+    const remove = screen.getByRole('button', { name: 'Remove contact details' });
+    expect(remove.hasAttribute('disabled')).toBe(true);
+    expect(removeContact).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('checkbox'));
+    fireEvent.click(screen.getByRole('button', { name: 'Remove contact details' }));
+    expect(await screen.findByText(/were not removed/)).toBeTruthy();
+    expect(removeContact).toHaveBeenCalledOnce();
   });
 });

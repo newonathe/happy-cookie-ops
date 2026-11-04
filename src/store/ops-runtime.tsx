@@ -57,6 +57,7 @@ import {
 import { holdCountLock } from '@/lib/stock/count-lock';
 import { readClassicTill, rememberClassicTill } from '@/lib/offline/till-choice';
 import { BazaarDays } from '@/store/bazaar-days';
+import { CustomerDesk, type CustomerOrder } from '@/store/customer-desk';
 import { EventEntry } from '@/store/event-entry';
 import {
   holdEventEntryLock,
@@ -914,6 +915,34 @@ export class OpsRuntime extends OpsProvider {
       money: () => this.go('pnl'),
       bazaar: () => this.go('bazaar')
     }
+  });
+  /** Customers, from the orders they placed. */
+  private customerDesk = new CustomerDesk({
+    orders: () =>
+      this.orderSync?.loaded ? ((this.state.orders ?? []) as unknown as CustomerOrder[]) : null,
+    openOrder: (id) => {
+      this.setState({ sheet: null }, () =>
+        (this as unknown as { go: (key: string, extra: { orderId: string }) => void }).go('order', {
+          orderId: id
+        })
+      );
+    },
+    dateText: (at) =>
+      formatManila(at, { day: 'numeric' }) + ' ' + formatManila(at, { month: 'short' }),
+    online: () => Boolean(this.state.online),
+    anonymise: async (phone) => {
+      const client = this.booksClient as unknown as {
+        rpc: (
+          name: string,
+          args: { p_phone: string }
+        ) => PromiseLike<{ data: unknown; error: unknown }>;
+      } | null;
+      if (!client || this.state.role !== 'owner') throw new Error('owner only');
+      const { data, error } = await client.rpc('anonymise_customer', { p_phone: phone });
+      if (error || typeof data !== 'number') throw new Error('not removed');
+      return data;
+    },
+    refresh: async () => this.orderSync?.load()
   });
   /** Add event: what was typed and the exact request, kept for this owner on this device. */
   private eventEntry = new EventEntry({
@@ -3024,6 +3053,7 @@ export class OpsRuntime extends OpsProvider {
             }
           : null,
       liveMake: this.state.role === 'owner' && isLiveMode() ? this.makeDesk.vals() : null,
+      liveCustomers: this.state.role === 'owner' && isLiveMode() ? this.customerDesk.vals() : null,
       liveHome: this.liveHomeVals(starved),
       liveScheduled: this.liveScheduledVals(),
       liveBooks: this.liveBooksVals(),

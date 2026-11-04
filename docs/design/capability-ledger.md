@@ -153,3 +153,14 @@ Dropped: "Set to" in the old quantity sheet, which is redundant with Count on th
 | Refund, no-show, swap | Pages, opened from the order; same handlers | test |
 | Till: every tile, minus, Charge, Freebie, close, fees, add cookies, void, classic till | Same handlers. Close day is on the title; the rest is under Settings. Current sale panel on a wide screen, pinned bar on a phone | test, browser |
 
+
+## Customers and the product form (`store/customer-desk.ts`, `live/sell/customers-live.tsx`)
+
+| Today's capability | New home | Evidence |
+|---|---|---|
+| "Ordering now" list on the customers sheet | Customers list: everyone who has ordered, with counts and last order | test |
+| Waitlist and its action | Unchanged, on the same page | test |
+| `anonymise_customer` (no screen before) | Remove contact details, behind a tick, reporting what the server and the read back say | test |
+| Product form | A page in the owner frame, in place of a modal; same form and close | test |
+
+Known limits, for Ethan: `anonymise_customer` does not remove payment proofs or references, and it matches only orders whose stored number is already in the normal form. The page says both. Changing either needs a new migration.
