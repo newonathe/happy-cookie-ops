@@ -66,6 +66,8 @@ export interface StockItemPage {
   pricesOpen?: boolean;
   openPrices?: () => void;
   closePrices?: () => void;
+  managePrices?: () => void;
+  chooseSupplier?: () => void;
   priceSources?: Array<{
     id: string;
     supplierName: string;
@@ -74,6 +76,7 @@ export interface StockItemPage {
     historyText: string;
     lastBought: string;
     stateText: string;
+    edit?: () => void;
   }>;
   retry?: () => void;
   /** `loading` while the read is in flight; `unavailable` when the database has no such function yet (the trial at migration 55) or it failed. */

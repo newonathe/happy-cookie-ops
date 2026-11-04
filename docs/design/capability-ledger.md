@@ -188,3 +188,7 @@ Dropped: nothing.
 
 Dropped: nothing. Not built: creating a first recipe for a product with none outside this form was never offered, and still is not.
 
+
+## Supplier price editor (`stock-suppliers-form.tsx`, `stock/item-prices.tsx`)
+
+An item's price page can now add or change a supplier's price for that item, through the existing supplier form. It refuses to save if the item, the supplier or its prices changed since it opened; what the same save already wrote does not count as a change. Dropped: nothing.

@@ -86,7 +86,7 @@ on the 4186 preview with synthetic data; it is not hosted, device or owner accep
 | bake-needs | `live/stock/bake-plan-live.tsx`, `store/bake-plan.ts` | Done | A note on this device: it records nothing. Prices count only for the same pack from a preferred supplier |
 | suppliers, supplier, supplier-edit | `live/stock/suppliers-live.tsx`, `stock-suppliers-form.tsx` | Done | Colours from the theme; tools moved to Stock settings |
 | purchase-prices | `live/stock/item-prices.tsx` | Done | Reached from the item and from Compare prices |
-| supplier-price-edit | stash `7f5924a` | Missing | Held price editor; read its review packet first |
+| supplier-price-edit | `live/stock-suppliers-form.tsx` from `item-prices.tsx` | Done | Codex's held editor, now applied. Refuses to save if the item or prices changed since it opened |
 | stock-settings | `useAreaSettings` area `stock` | Done | Budget is in Make settings › Kitchen rules, on Rules |
 | **Money** | | | |
 | money | `live/money/money-live.tsx` | Done | |

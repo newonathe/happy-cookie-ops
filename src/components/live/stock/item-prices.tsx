@@ -23,6 +23,16 @@ export function ItemPrices({ page }: { page: StockItemPage }) {
           </h1>
           <p className={styles.subtitle}>Saved supplier prices & history.</p>
         </div>
+        <div className={styles.actions}>
+          {page.managePrices ? (
+            <Button variant="primary" onClick={page.managePrices}>
+              Add price
+            </Button>
+          ) : null}
+          {page.chooseSupplier ? (
+            <Button onClick={page.chooseSupplier}>Choose supplier</Button>
+          ) : null}
+        </div>
       </header>
       <section className={styles.itemPanel} aria-label="Current inventory cost">
         <span className={styles.note}>Current cost per unit</span>
@@ -39,6 +49,11 @@ export function ItemPrices({ page }: { page: StockItemPage }) {
               <span>{source.historyText}</span>
               {source.lastBought ? <span>Last bought: {source.lastBought}</span> : null}
               <span>{source.stateText}</span>
+              {source.edit ? (
+                <Button className="self-start" onClick={source.edit}>
+                  Edit price
+                </Button>
+              ) : null}
             </li>
           ))}
         </ul>

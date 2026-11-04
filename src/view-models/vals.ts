@@ -138,6 +138,9 @@ export interface LiveStockSupplierEdit {
   active: boolean;
   prices: LiveStockPriceRow[];
   newPriceId: string;
+  newPriceDefaults?: { itemName: string; packLabel: string };
+  focusNewPrice?: boolean;
+  focusPriceId?: string;
 }
 
 /** One upcoming bazaar on the owner's form (D4). Rent is pesos here; the runtime converts to centavos. */
@@ -373,6 +376,7 @@ export interface OpsVals {
   /** Read-only directory data, separate from the active supplier form slot. */
   liveSupplierDirectory?: OpsVals['liveStockSuppliers'];
   liveStockSuppliers?: {
+    itemContextName?: string;
     online: boolean;
     rows: LiveStockSupplierRow[];
     editing: LiveStockSupplierEdit | null;
