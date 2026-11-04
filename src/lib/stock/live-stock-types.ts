@@ -7,6 +7,9 @@
  * Add to it only together with both sides.
  */
 
+import type { LiveBakePlan } from '@/store/bake-plan';
+import type { ReceiveDeliveryView, StockChangeView } from '@/store/stock-entries';
+
 /** Out at 0, Low below the item's level, Good otherwise (Ethan, 13 October). An item with no level is Good unless it is at 0. */
 export type StockStatus = 'Out' | 'Low' | 'Good';
 
@@ -35,11 +38,15 @@ export interface StockItemView {
   active: boolean;
   /** The quantity with its unit, e.g. "1,250 g". */
   qtyText: string;
+  /** Saved pack label and base-unit quantity; never a new user question. */
+  packText: string;
   status: StockStatus;
   /** "Low below 500 g", or "No level set". */
   levelText: string;
   /** "Counted 3 Oct", or "Opening count pending" when it was never counted. */
   lastCountedText: string;
+  /** False until the item has been counted once: its quantity is a record, not a count. */
+  counted?: boolean;
   /** Cost per unit with where it came from ("₱0.09 per g · average"), or "Cost pending". */
   costText: string;
   supplier: string;
@@ -56,6 +63,22 @@ export interface StockItemView {
 
 export interface StockItemPage {
   item: StockItemView;
+  pricesOpen?: boolean;
+  openPrices?: () => void;
+  closePrices?: () => void;
+  managePrices?: () => void;
+  chooseSupplier?: () => void;
+  priceSources?: Array<{
+    id: string;
+    supplierName: string;
+    packText: string;
+    priceText: string;
+    historyText: string;
+    lastBought: string;
+    stateText: string;
+    edit?: () => void;
+  }>;
+  retry?: () => void;
   /** `loading` while the read is in flight; `unavailable` when the database has no such function yet (the trial at migration 55) or it failed. */
   movementsState: 'loading' | 'ready' | 'unavailable';
   movements: StockMovementView[];
@@ -77,8 +100,10 @@ export interface GroceryRowView {
   supplier: string;
   /** "₱176.50", or "Cost pending". */
   lineCostText: string;
-  /** "I bought these": opens the existing receive flow for this item. */
+  /** "I bought these": opens Receive delivery on this item. */
   bought: () => void;
+  /** Opens this item's supplier prices. */
+  compare?: () => void;
 }
 
 export interface GroceryView {
@@ -92,7 +117,24 @@ export interface GroceryView {
   overBudget: boolean;
 }
 
+/** Cookies and dough on hand, by product. Null until production has been read: unknown is not zero. */
+export interface MadeStockRow {
+  id: string;
+  name: string;
+  qtyText: string;
+}
+
 export interface LiveStockVals {
+  addItem?: () => void;
+  /** Opens Receive delivery, on an item when one is named. */
+  openReceive?: (itemNames?: readonly string[]) => void;
+  receive?: ReceiveDeliveryView | null;
+  change?: StockChangeView | null;
+  made?: { dough: MadeStockRow[]; baked: MadeStockRow[] } | null;
+  bakePlan?: LiveBakePlan | null;
+  /** Starts the selected ingredient/packaging category or resumes the existing count safely. */
+  startCount?: (category: string) => void;
+  manageItems?: () => void;
   online: boolean;
   items: StockItemView[];
   counts: { total: number; out: number; low: number };
@@ -101,4 +143,28 @@ export interface LiveStockVals {
   /** The count flow's line about the books, or null before a cutover: a count that finds less is an expense (migration 65). */
   countNote: string | null;
   grocery: GroceryView;
+  count?: {
+    paused: boolean;
+    saving: boolean;
+    pending: boolean;
+    storageError: string | null;
+    total?: number;
+    unavailable?: boolean;
+    skipUnavailable?: () => void;
+    entries?: Array<{
+      name: string;
+      unit: string;
+      expectedText: string;
+      value: string;
+      unavailable: boolean;
+      onInput: (value: string) => void;
+      skip?: () => void;
+    }>;
+    rows: Array<{ name: string; amountText: string; error: string | null }>;
+    back: () => void;
+    resume: () => void;
+    discard: () => void;
+    save: () => Promise<string | null>;
+    recover: () => Promise<string | null>;
+  } | null;
 }

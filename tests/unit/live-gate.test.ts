@@ -87,7 +87,7 @@ describe('checkStaffProfile', () => {
 
   it('is "ok" with the role for an active, recognised profile', async () => {
     const c = client({ user: { id: 'u1' }, profile: { role: 'helper', active: true } });
-    expect(await checkStaffProfile(c)).toEqual({ status: 'ok', role: 'helper' });
+    expect(await checkStaffProfile(c)).toEqual({ status: 'ok', role: 'helper', userId: 'u1' });
   });
 });
 

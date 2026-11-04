@@ -1,5 +1,127 @@
 # Current state — Happy Cookie Ops
 
+**Claude holds the checkout (Ethan, 5 November, after Codex hit its limit). Read [the client review](../design/client-meeting-2026-11-04.md) and [the review standard](../design/ui-review-standard.md) before any visible change.**
+Accepted7b8e819 fixes event confirmation and stale-owner refresh/queue replies;190files/3063tests+2TODOs pass.
+The full audit and [new owner requirements](../design/owner-workflow-additions-2026-11-05.md) remain active.
+Pickup is directly from Cine; Picked Up means Completed, with no extra business transition.
+
+**Finish [coverage](../design/reference-v4/coverage.md): every
+mockup page, its place in the app, its status and gap, and the build rules.** [flows](../design/reference-v4/flows.md)
+records every control's outcome. Done on the 4186 preview at four widths: Home, Sell, Shop, Account, Products,
+recipe page, Production, Stock, Receive, Waste/correction, Shopping, Money and its entries, the till, the
+settings pages, Events, Add event, the event page, day review, Customers, recipe editor and planned bake. Not hosted, device or owner acceptance. Each money/stock/offline slice had an independent review.
+
+**4 November — full reference integration active:** the supplied v4 has85 route views. Desktop/phone
+captures cover all85; seven render situations yield1190 checks/190 distinct images, zero failed renders.
+Four parent-page pixel-fidelity checks match the untouched HTML. Detailed interaction/visual review
+and actual-app parity remain incomplete; read the reference contracts and owner requirements below.
+Actual multi-product entry now selects/reviews several flavours together, creates independent work
+atomically and retains scoped recovery. Recipe writer preserves kind, later edits and acknowledged
+snapshots; empty replies stay unconfirmed. Full gate:176files/2886tests+2existingTODOs; build28pages;
+eight responsive/motion group-entry runs pass. Keep legacy recipe warning until independent review.
+Screenshot-matched family layouts, direct recipe setup, Shopping
+plan integration, full demo population/hosted insertion and the complete application remain unfinished.
+No hosted/applied-SQL/protected-port changes. Gallery:localhost4190/index.html; actual preview:4186.
+Source/test details and visible examples are in the [Claude UI handoff](../design/claude-ui-handoff.md).
+The newest blocks override historical “next bug” and uncommitted-status descriptions below.
+
+**Earlier Codex checkpoint (before accepted c51401f/273de7d):** Full actual-app goal remains incomplete.
+Latest uncommitted work connects the independent draft pool to the actual runtime and Make list.
+Different/identical cookie batches and dough mixes retain their own fields, recipe/period and step;
+per-item saves allow editing/submitting B while A saves. Acknowledgement retires only its own item.
+New manual entry offers Bake cookies/Prepare dough; dough uses existing full/half recipe portions.
+Recipe reads preserve explicit ingredient/packaging kind; the separate recipe-write issue remains.
+Eight synthetic-RPC browser checks at320/390/768/1240, both motion modes, cover two batches plus dough,
+concurrent callbacks and independent confirmation. They do not prove SQL concurrency or device use.
+Bazaar/default address now opens Events first; both tills use compact Back beside the event name.
+Eight actual-layout checks cover both tills, keyboard Back and unchanged held selling facts, with
+no till painted before explicit resume. Final all-page/state researched critique is required after
+implementation; see the shared brief. P3 durable scoped recovery, unavailable-source handling,
+authoritative saved-result/refresh truth and remaining workflows are incomplete. Pool is memory-only.
+New local draft fixes live-modal toast overlap by keeping messages/Undo in the sheet's content.
+Changed recipes now show previous/updated quantities and yield with explicit adoption. Counts/notes/
+period stay; ingredient adjustments reset with disclosure and review is required again. Dough retains
+its old amount, but invalid full/half amounts cannot be reviewed/posted. Eight headless width/motion
+checks pass without writes/errors/overflow;19focused tests pass. SQL67 refuses stale first submits
+after checking existing request replay; no SQL rule changed. Current full pinned gate passes169files /
+2802tests +2existing todo; live build28pages passes. Both previews return200. Required review still held.
+Next P2 bug is confirmed from SQL58/current source: returned qty is GOOD output, but ProductionResults
+subtracts rejects again and labels all-history batches with the selected drop. Runtime also rejects
+valid rows whose rejects exceed good output. Fix this before adding acknowledged result visuals.
+Previous full pinned gate passes169files /2799tests +2existing todo. A fixed-delay Bazaar test race now
+awaits the real RPC, preserving exact assertions; the full rerun and repeated eight production browser
+checks pass. Previous live Webpack build passes28pages; both previews return200. Parts are uncommitted.
+Events return restores row focus/scroll: eight CLI browser checks at320/390/768/1240, reduced motion,
+keyboard and browser Back; no writes/overflow/page errors. Scoped JSDOM scrolling is now asserted.
+P1's pure draft pool/tests are accepted/pushed atb23c3dd. Runtime integration is the newer local draft;
+the accepted commit alone does not provide multiple live work items or durable recovery.
+Read the [active Bazaar and parallel production audit/plan](../design/active-bazaar-parallel-production-plan.md).
+Events must remain reachable during an active bazaar; different products need simultaneous production.
+Both gaps were reproduced with controlled RPC fixtures. Active-Events navigation is now a local
+uncommitted draft: both tills expose Events, own-day resume preserves selling values, and full-session/
+owner access is checked at action and render. The directory filter survives child Back; the held day
+stays pinned outside its planned dates. CLI browser round trips passed320/390/768/1240 with no writes.
+Main till/Events/event addresses now restore through RouteSync without remounting. Back/Forward,
+direct directory and event reload pass390/1240 with synthetic RPC. Plan/review subview identity,
+parallel production remain incomplete. Earlier pinned full gate passed165 files /2762
+tests +2existing todo with four Vitest workers; live Webpack build passes28 static pages.
+Local preview recovered after further user-reported failures: fixed retained-renderer lookup binding,
+added a network-only development worker and local recovery page, and limited extension hydration
+compatibility to the outer body. The private preview launcher now uses Webpack. Ethan confirms
+Chrome opens after this restart/recovery; that is opening evidence, not full owner acceptance.
+Bazaar/history/preview changes remain uncommitted pending independent review; Ethan's reviewer-reset
+wait remains in force. Branch `codex/refined-workflows`, accepted HEAD `b23c3dd`.
+Read the [complete shared owner/agent brief](../design/owner-workflow-brief.md),
+[scope](../design/refined-workflows.md) and [next goal](next-goal.md). Claude/other agents use these
+shared files. Keep all features/safeguards while simplifying operation; the full goal is incomplete.
+
+Accepted source includes neutral owner frame/Stock/count/supplier return, Products/direct
+saved recipes, contextual product editing/photos, saved production charts/history and now manual/
+planned production entry. Entry retains quantities across navigation, checks recipe versions,
+returns Cancel focus and continues an unfinished batch without replacing it. It records no actual
+production. Next dev now preserves the shared agent files (`0f908cb`).
+
+The follow-up production slice protects unfinished batches from Quick add, work-row, first-work
+and direct launches, including their counts, rejects, ingredient adjustments, note and review step.
+The Bake plan explains an in-flight save instead of offering an ineffective Continue action.
+Recording identity, stock calculations and acknowledgement behavior remain in the existing actions.
+
+`dd4df87` retains blank/invalid actual-count drafts with the batch and guards stale callbacks.
+The live batch slot now has neutral focused count/review screens, total-made/reject fields,
+planned/actual and good/reject bars, existing ingredient adjustments/shortages and a visible saving
+state. Catalogue balances retain their actual units; missing balances say unavailable. Confirmation
+uses the existing action. Dedicated acknowledged results, stock refresh truth, recipe snapshot and
+uncertain-save/reload recovery remain incomplete; do not claim the entire production flow finished.
+
+Preview repair: Ethan reported a live Chrome crash when restored sales named products absent from
+the current catalogue. A live-only synchronous label adapter now protects the locked sales view;
+it leaves sales, amounts, queue and sellable catalogue unchanged. Regression reproduced the exact
+2433 `P[k].short` failure first, then passed across seven destinations. ClickUp's injected body class
+caused a separate hydration warning; extension access must be adjusted in Chrome, not hidden globally.
+Ethan confirmed Chrome opens after that repair. A subsequent shared-button border warning was
+reproduced: hover removal and press/focus layering mixed border shorthand with borderColor.
+Pressable now expands canonical border layers consistently on server/client; pointer/focus
+regressions and a hydration check pass. The protected Home markup and visual values are unchanged.
+
+Full pinned gate:162 files /2743 pass +2 existing todo at7c07008. One initial full run hit the
+existing clock source-scan5s timeout; that file14tests and an unchanged full retry passed. No test
+assertions/timeouts were weakened. Home hover/leave at390/1240 has no console/page errors.
+Prior live build atf112693 passed28 static pages. Four-width
+component/synthetic-RPC checks cover start/review/resume/reduced motion with no writes. Database,
+hosted, physical-phone and owner-week proof remain separate. See commits for prior gate receipts.
+
+Ethan's client-feedback download matches frozen v4 exactly; use its cleaner layout as a reference
+while completing missing designs under the latest neutral Happy Cookie theme. Exact path/hash and
+proof limits are in the shared brief. No broad audit/research repeat or mockup substitution.
+
+Actual source runs at localhost:3000 with hosted data;4186 is synthetic component QA. Ethan approved
+additive demo data in the existing database. The private40-row seed/cleanup draft has static checks
+only; no load executed. SQL runtime/independent review remain pending. Preserve existing records.
+Remaining scope includes safe recipe saves/save return, Stock truth/receiving/shopping, Bazaar,
+Sell/Shop, Money/Account, Home and integration. Price editing stays isolated pending review.
+No deployment/main merge or other hosted changes approved. The59-page/238-branch/224-automation
+plan describes planned coverage. New owner requirements extend that plan, not the completion count.
+
 Read this page first in a new session. It is kept short on purpose.
 
 | If you need                                        | Read                                                                                                                                                     |
@@ -14,128 +136,8 @@ Read this page first in a new session. It is kept short on purpose.
 | Cine's trial checklist                             | [F2-owner-trial.md](F2-owner-trial.md)                                                                                                                   |
 | Older checkpoints, verbatim                        | [current-history.md](current-history.md)                                                                                                                 |
 
-## Where things stand — 20 October 2026
+## Historical status
 
-**The consolidated till is live on the trial** (Ethan, 19 October: the prototype's look, consolidated, feature by feature
-from Bazaar, live before the 24 October bazaar). #37 (the till) and #39 (main's #32 to #36, among them the live-sync fix
-`51298e0`) are merged into the deploy branch and deployed: merge `94aa105`, Cloudflare version `50f46e2c`, every CI job
-green, Performance budget included (blocking since T-18). #40 merged the deploy branch into `main` (`d6494f7`): both now
-hold the same work. The ported till stays as the classic till (**⋯** › Use the classic till) and as the crash fallback.
-Mockups: private canvas K5nHQS8GjtBYGseDtYZDnZ; the decision is in [docs/design/bazaar-v2.md](../design/bazaar-v2.md) section 7.
-Bazaar v2 (16 October) and its notes are in [current-history.md](current-history.md), moved on 20 October.
-
-**What remains, in order:**
-
-1. The **phone rehearsal by 22 October** on the selling iPhone, on the new till ([bazaar-run-sheet.md](bazaar-run-sheet.md),
-   "The rehearsal"; step 7 checks the phone has the new till). The bazaar is 24 to 25 October.
-2. `RELEASE_HOLD=true` once the rehearsal passes. Not set yet.
-3. **The Ateneo test reversal** (`reverse_bazaar_test`): its rent, over, sales and stock use sit in October's books until then.
-   Needs Ethan's separate yes.
-4. **The cost cutover**, only after Cine's opening count and Ethan's separate yes.
-5. **The rest of the consolidated design**, one slice each: Bazaar's day plan, review and close, event page and events list,
-   then the recipe book and the other features. After 25 October, unless one is released and rehearsed by 22 October.
-6. Optional: check the day plan at 320 px (a possible 16 px toast and footer overlap, unconfirmed).
-
-**The plan is approved; stage A and slices B1 to B3b-2, B4a, B4b and B5 are built.** Ethan approved
-[final-plan.md](final-plan.md), version 2, on 5 October; it replaces finish-plan.md as the forward plan. S1 to S3 of
-[bazaar-days.md](bazaar-days.md) are built and released. **Bazaar: still no-go until the rehearsal passes**, and a sale needs an
-owner sign-in. What Cine sets once: [cine-set-up.md](cine-set-up.md).
-
-Stage A and slices B1 and B2, as each was recorded when it closed, are in [current-history.md](current-history.md), the section moved on 7 October.
-
-**Package:** F2, the owner trial, stays open but does not start until everything in the
-plan is built (Ethan, 5 October). F3 (launch) stays closed until Cine accepts a real week.
-
-### What exists and works
-
-- **The product** is built through E1: menu and settings, checkout and owner orders,
-  bazaar selling with offline close-out, stock, recipes and production, books, P&L and
-  CSV, backups and health. `pnpm verify` passes 110 files / 1,991 tests; the planning
-  validator passes 1,232 checks; the database role suite passes 3,260 cases a reset (S1, local).
-- **The private trial site** is live for owners only:
-  <https://happy-cookie-owner-trial.admin-kethai.workers.dev>. Cloudflare Access sends an
-  email code to four approved addresses (three have an app account, all owners). The shop is closed and the menu is unpublished.
-- **On the trial** (20 October): 70 of 70 migrations; version `50f46e2c` (merge `94aa105`); 75 stock items, 72 priced; 26
-  flavours, 7 on the menu, 23 with a recipe; 4 bookings; 835 historical book lines; no orders, no bake, no sale.
-- **CI/CD:** a green push to `agent/codex/MP-04-g1-feasibility` redeploys the trial; a push that changes only documents does
-  not. The performance-budget job is blocking since T-18 and passed on this release. Open the trial once before the rehearsal.
-
-### Known not to work yet
-
-Found by reading code or the trial, not by running. Each has a slice in the plan.
-
-| What                                                                                                                                                                                              | Slice  |
-| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
-| The backup, retention and keep-alive jobs are written but off: nothing is backed up yet.                                                                                                          | Ethan  |
-| Account has no button of its own: it is a chip on Home's strip. Customers and Expenses open a sheet.                                                                                              | C6, C5 |
-| Until the flavour list arrives, or if it cannot be read, staff screens show the engine's six flavours.                                                                                            | B6     |
-| Bazaar Mode offers a fixed list of wallets; Home's "Drop 32" starts from the engine's number.                                                                                                     | C7, C3 |
-| An empty menu cannot get its first flavour (the trial has 26, so nobody meets it).                                                                                                                | B6     |
-| Cost per cookie: 22 of 23 recipes are complete (all 7 menu flavours); the recipe book types a per-flavour cost (migration 70 is on the trial). The books stay on "bought" until the cost cutover. | Ethan  |
-| A mistyped delivery quantity cannot be undone, and under a running average it lingers. Needs a decision.                                                                                          | Ethan  |
-| Every page, the shop included, loads the whole staff app.                                                                                                                                         | C8     |
-
-### Decisions in force
-
-All in [decision-register.md](decision-register.md), the section for 5 October.
-
-- Cine starts after everything is built. The October bazaar runs on today's Bazaar Mode
-  plus A2, recorded in the trial database; no early production project.
-- Two tracks, and unattended runs for interface-only slices only. The automatic runner
-  stays off.
-- New screens enter through one guarded, live-only slot in the locked frame file (built in
-  B1). Every other locked file stays locked.
-- The five tabs are on the owner's dock and sidebar now, with sub-tabs, not after the first
-  redesigned screen (Ethan, 6 October). All tools keeps its address; nothing links to it.
-- Nothing is hard-coded; everything that can change is Cine's to change; every function
-  has exactly one home.
-- The questions for Cine are answered, by Ethan on her behalf. She confirms each value
-  in a one-time set-up screen.
-- Still in force from earlier: the trial week is closed-shop; OFFLINE-01 handles the
-  WebKit emulator defect on WebKit only, so the phone rehearsal is the only proof of
-  offline selling in Safari.
-
-### Waiting on Ethan
-
-- **The Ateneo test reversal** (`reverse_bazaar_test`): say yes and it is run and reviewed; not done.
-- **The rehearsal event on the trial.** Closing it leaves its records (voided sales, stock use as shortfalls). Run the closing
-  step of the run sheet, or stop before it and leave the event open: your call.
-- **The cost cutover**, once, after Cine's opening count: `select public.preview_cost_cutover();`, read `not_counted` and
-  the items with no cost, then `select public.apply_cost_cutover('<its hash and total>');`. An opening count after it is
-  refused. Until then the books stay on "bought".
-- **No more database writes after the phone rehearsal passes**; set the release hold then.
-- **The Actions storage quota is still full** (artifacts are about 5 MB across the account, so probably Packages). Releases
-  no longer need it (PR #22); the performance-budget job still fails on its upload. Clear it in Settings, Billing.
-- **Do not save a recipe in the Recipes screen yet.** It sends no line kind, so a saved recipe's packaging lines become
-  ingredients (slice B6, New Recipes). Reading is safe.
-- **The rehearsal gains one step** (B2): with the radio off, reload, sell, and read the name
-  under "Rung up by" on the payment sheet. It must be the signed-in person's name, the same
-  as with signal. Each helper's profile needs the display name they want on their sales.
-- Decide where the encrypted backup lives and who can restore it, then switch the jobs on
-  (steps and prerequisites in [F1-operations.md](F1-operations.md), last section). They only run
-  from `main`, so that needs a merge, your call. Until then nothing is backed up: download the
-  CSV each evening of the bazaar and keep the paper tally.
-- **The release hold** is built and not set. To stop deploys (rehearsal to 26 October): GitHub,
-  the repository's Settings, Secrets and variables, Actions, Variables, add `RELEASE_HOLD` =
-  `true`. A push then builds and tests but does not deploy, and the run says so. Delete it or
-  set it to `false` to lift. Any value that is not clearly "off" holds.
-- The phone rehearsal by **22 October**: Bazaar v2 is live, so it can start ([run sheet](bazaar-run-sheet.md)).
-
-### Waiting on Cine
-
-Nothing blocks the build. Still open: whether "Cornflake" is Cereal Milk; allergens;
-her adviser's view on the privacy filing and on receipts; later, the wording pass, the
-set-up screen and seven dates for her week.
-
-### Smaller open items
-
-- **Playwright issue 42775:** when a release fixes it, the WebKit run of OFFLINE-01 turns
-  red on purpose. Upgrade then and delete the WebKit branches in the test.
-- **Not eligible:** historical stock reconciliation. The counts are undated and opening
-  balances and units are missing.
-
-### Dates
-
-Rehearsal by **22 October**; bazaar **24 to 25 October**; releases held from the
-rehearsal to 26 October. Everything built: mid-November at the earliest, early December
-more likely. Cine's week follows the wording pass. Second bazaar 12 to 13 December.
+The superseded 20 October snapshot, including its unresolved approvals and owner/device gates,
+is preserved in [current history](current-history.md#archived-20-october-current-state-snapshot--superseded-3-november-2026).
+Use the current brief and next goal above for implementation; do not reinstate old dates or release claims.

@@ -66,9 +66,9 @@ async function mounted(
   return { runtime, rpc };
 }
 
-/** The live owner's Recipes place (final-plan.md section 8.1): the four flavour and recipe entries. */
+/** Product tools keep the existing four entries addressable; recipes open within a product in the daily UI. */
 const menuItems = (runtime: OpsRuntime) =>
-  runtime.renderVals().toolGroups.find((g) => g.title === 'Make · Recipes')?.items ?? [];
+  runtime.renderVals().toolGroups.find((g) => g.title === 'Make · Products')?.items ?? [];
 
 const toastText = (runtime: OpsRuntime) => JSON.stringify(runtime.state.toast ?? null);
 
@@ -112,22 +112,21 @@ describe('MP-09 c1c: the flavour editor and Publish menu', () => {
     ).toBeUndefined();
   });
 
-  it('keeps the four flavour and recipe entries together under Make, Recipes, each once, saying what it is for', async () => {
+  it('keeps all four legacy tools addressable and recipes inside Products in the daily navigation', async () => {
     const { runtime } = await mounted('owner');
     const groups = runtime.renderVals().toolGroups;
     expect(menuItems(runtime).map((i) => [i.label, i.sub])).toEqual([
-      ['Recipes', 'Measured ingredients, for cost and stock'],
       ['Products', "Each flavour's price and cost, side by side"],
+      ['Recipes', 'Measured ingredients, for cost and stock'],
       ['Menu & flavours', '6 flavours · add, edit and publish'],
       ['Recipe drafts', 'Your original recipe text, as you wrote it']
     ]);
     const labels = groups.flatMap((g) => g.items.map((i) => i.label));
     for (const label of ['Menu & flavours', 'Products', 'Recipes', 'Recipe drafts'])
       expect(labels.filter((l) => l === label)).toHaveLength(1);
-    // The same four are the Recipes place's second row on the strip.
+    // The recipe is reached from its product; it is not another navigation link.
     act(() => runtime.go('recipes'));
     expect(runtime.renderVals().liveScreen?.tabs?.entries.map((i) => i.label)).toEqual([
-      'Recipes',
       'Products',
       'Menu & flavours',
       'Recipe drafts'
@@ -159,14 +158,14 @@ describe('MP-09 c1c: the flavour editor and Publish menu', () => {
 
   it('leaves All tools as ported for a helper and in demo mode', async () => {
     const { runtime: helper } = await mounted('helper');
-    expect(helper.renderVals().toolGroups.some((g) => g.title === 'Make · Recipes')).toBe(false);
+    expect(helper.renderVals().toolGroups.some((g) => g.title === 'Make · Products')).toBe(false);
     cleanup();
     live = false;
     const ref: { current: OpsRuntime | null } = { current: null };
     render(<OpsRuntime ref={(r) => void (ref.current = r)} />);
     act(() => ref.current!.setRole('owner'));
     const groups = ref.current!.renderVals().toolGroups;
-    expect(groups.some((g) => g.title === 'Make · Recipes')).toBe(false);
+    expect(groups.some((g) => g.title === 'Make · Products')).toBe(false);
     expect(groups.find((g) => g.title === 'Kitchen')?.items.map((i) => i.label)).toContain(
       'Recipes'
     );
@@ -183,6 +182,59 @@ describe('MP-09 c1c: the flavour editor and Publish menu', () => {
     expect(vals.sheet?.liveForm).toBe(true);
     expect(vals.sheet?.title).toBe('Edit ' + WCB.name);
     expect(vals.liveForm?.editing).toMatchObject({ id: 'wcb', name: WCB.name, price: WCB.price });
+  });
+
+  it('cancels product-card editing back to its product without a write or directory detour', async () => {
+    const { runtime, rpc } = await mounted('owner');
+    act(() => runtime.go('products'));
+    act(() => runtime.renderVals().productRows[PRODUCTS.findIndex((p) => p.id === 'wcb')]!.edit());
+    act(() => runtime.renderVals().liveForm!.editing!.cancel());
+    expect(runtime.state.sheet).toBeNull();
+    expect(runtime.state.screen).toBe('products');
+    expect(
+      runtime
+        .renderVals()
+        .productRows.filter((p) => p.returnEditFocus)
+        .map((p) => p.name)
+    ).toEqual([WCB.short]);
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
+  it('closes the selected product editor through the same contextual return and ignores stale Cancel', async () => {
+    const { runtime, rpc } = await mounted('owner');
+    act(() => runtime.go('products'));
+    const rows = runtime.renderVals().productRows;
+    act(() => rows[0]!.edit());
+    const oldCancel = runtime.renderVals().liveForm!.editing!.cancel;
+    act(() => rows[1]!.edit());
+    const newer = runtime.state.sheet;
+    act(() => oldCancel());
+    expect(runtime.state.sheet).toBe(newer);
+    expect(runtime.renderVals().liveForm?.editing?.id).toBe(PRODUCTS[1]!.id);
+    act(() => runtime.renderVals().closeSheet());
+    expect(runtime.state.sheet).toBeNull();
+    expect(
+      runtime
+        .renderVals()
+        .productRows.filter((p) => p.returnEditFocus)
+        .map((p) => p.name)
+    ).toEqual([rows[1]!.name]);
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
+  it('keeps directory editing Cancel in the directory even when opened from Products settings', async () => {
+    const { runtime, rpc } = await mounted('owner');
+    act(() => runtime.go('products'));
+    act(() =>
+      menuItems(runtime)
+        .find((i) => i.label === 'Menu & flavours')!
+        .go()
+    );
+    act(() => runtime.renderVals().liveForm!.rows[0]!.edit());
+    act(() => runtime.renderVals().liveForm!.editing!.cancel());
+    expect(runtime.renderVals().liveForm?.editing).toBeNull();
+    expect(runtime.renderVals().sheet?.title).toBe('Menu & flavours');
+    expect(rpc).not.toHaveBeenCalled();
   });
 
   it('does not touch demo mode: no liveForm, no Menu & flavours, ported Edit price still opens editPrice', () => {
@@ -292,7 +344,7 @@ describe('MP-09 c1c: the flavour editor and Publish menu', () => {
 
       act(() => runtime.renderVals().liveForm!.addNew());
       const add = render(<AppFrame v={runtime.renderVals()} />);
-      expect(add.container.textContent).toContain('Save flavour');
+      expect(add.container.textContent).toContain('Save product');
       expect(add.container.innerHTML).not.toMatch(/undefined|\bNaN\b/);
       add.unmount();
 
@@ -300,6 +352,10 @@ describe('MP-09 c1c: the flavour editor and Publish menu', () => {
       act(() => runtime.renderVals().productRows[i]!.edit());
       const edit = render(<AppFrame v={runtime.renderVals()} />);
       expect(edit.container.textContent).toContain(WCB.name);
+      const badge = edit.getByLabelText('Shop label (optional)');
+      expect(
+        document.getElementById(badge.getAttribute('aria-describedby') ?? '')?.textContent
+      ).toContain('Shown beside the cookie name.');
       expect(edit.container.innerHTML).not.toMatch(/undefined|\bNaN\b/);
       edit.unmount();
 

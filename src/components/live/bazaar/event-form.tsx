@@ -1,21 +1,17 @@
 'use client';
 
-import { useId, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
-import type { LiveBazaarVals } from '@/lib/bazaar/live-bazaar-types';
-import {
-  eventFieldError,
-  validateEventForm,
-  type EventFormField,
-  type EventFormInput
-} from '@/lib/bazaar/event-form';
+import { eventFieldError, rentCentsOf, type EventFormField } from '@/lib/bazaar/event-form';
 import { dayText } from '@/lib/date/day-text';
+import { formatPesos } from '@/lib/stock/stock-status';
+import type { EventEntryVals } from '@/store/event-entry';
 import { Banner } from '@/components/ui/banner';
 import { Button } from '@/components/ui/button';
 import { ErrorSummary } from '@/components/ui/error-summary';
 import { Field } from '@/components/ui/field';
-import { Sheet } from '@/components/ui/sheet';
-import { useSave } from './use-save';
+import { FooterActions, PageTitle, Panel } from '@/components/ui/owner-kit';
+import { FactRow, ReviewPanel } from '@/components/ui/owner-patterns';
 
 /** The input id of each field: the error summary links to it. */
 const ID: Record<EventFormField, string> = {
@@ -27,161 +23,217 @@ const ID: Record<EventFormField, string> = {
 };
 const ORDER: EventFormField[] = ['name', 'place', 'startsOn', 'endsOn', 'rent'];
 
-type Values = Omit<EventFormInput, 'id'>;
-const BLANK: Values = { name: '', place: '', startsOn: '', endsOn: '', rent: '' };
+/** Why the device copy is in the way, and the one thing to do about it. */
+function Blocked({ entry }: { entry: EventEntryVals }) {
+  const text = {
+    closed: { title: 'Reading your account…', action: null },
+    locked: {
+      title: 'Adding an event is open in another tab. Close it, then try again.',
+      action: { label: 'Try again', onPress: () => void entry.retryStorage() }
+    },
+    invalid: {
+      title:
+        'The event you started on this device cannot be read. If you had saved it, look for it in your events before adding it again.',
+      action: { label: 'Keep a copy and start over', onPress: entry.setAside }
+    },
+    unavailable: {
+      title: entry.saved
+        ? 'The event was saved, but this device could not update its recovery copy. Try again before adding another.'
+        : entry.pending
+          ? 'This device could not update the event recovery copy. The sent entry is still kept; check it before adding another.'
+          : 'This device could not keep what you typed. Nothing new has been sent.',
+      action: { label: 'Try again', onPress: () => void entry.retryStorage() }
+    },
+    ready: { title: '', action: null }
+  }[entry.phase];
+  return (
+    <Banner
+      tone={entry.phase === 'closed' ? 'info' : 'warn'}
+      title={text.title}
+      action={text.action ?? undefined}
+    />
+  );
+}
 
 /**
- * U3: one event, never the whole booking list (docs/design/bazaar-v2.md 5.3). Name, place, the days, and the stall rent.
- * Nothing is pre-filled that is a decision. The id is minted when the sheet opens and kept until it closes, so saving
- * again after a lost reply is the same event, never a second. Errors point at the field (rule 7). Editing an event
- * happens on its page.
+ * Add event (client v4), as a page. Name, place, days and stall rent; nothing is pre-filled that is
+ * a decision. What was typed is kept by `EventEntry`, so leaving or reloading loses nothing. Errors
+ * point at the field. Editing an event happens on its page.
  */
-export function EventForm({
-  bazaar,
-  open,
-  onClose,
-  onSaved
-}: {
-  bazaar: LiveBazaarVals;
-  open: boolean;
-  onClose: () => void;
-  /** Called with the id once the event is saved and listed. */
-  onSaved: (id: string) => void;
-}) {
-  const formId = useId();
-  // Minted once per opening: the parent mounts this fresh each time the sheet opens.
-  const [id] = useState(() => crypto.randomUUID());
-  const [values, setValues] = useState<Values>(BLANK);
-  const [errors, setErrors] = useState<Partial<Record<EventFormField, string>>>({});
-  const [submitted, setSubmitted] = useState<EventFormField[]>([]);
-  const [focusKey, setFocusKey] = useState(0);
-  const { error, saving, run } = useSave();
+export function EventEntryPage({ entry }: { entry: EventEntryVals }) {
+  const [blurred, setBlurred] = useState<Partial<Record<EventFormField, string>>>({});
+  const [attempt, setAttempt] = useState(0);
+  const heading = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    heading.current?.querySelector('h1')?.focus();
+  }, [entry.step]);
+  const draft = entry.draft;
+  const title = (
+    <div ref={heading}>
+      <PageTitle
+        title={entry.step === 'review' ? 'Review event' : 'Add event'}
+        subtitle={
+          entry.step === 'review'
+            ? 'Check it, then save.'
+            : 'Dates, place and stall rent. Closing a day is a separate action.'
+        }
+      />
+    </div>
+  );
+  if (entry.phase !== 'ready' || !draft)
+    return (
+      <div className="w-full">
+        {title}
+        <div className="mb-3">
+          <Blocked entry={entry} />
+        </div>
+        <Button variant="secondary" onClick={entry.leave}>
+          Back to events
+        </Button>
+      </div>
+    );
 
-  const set = (field: keyof Values, value: string) => setValues((v) => ({ ...v, [field]: value }));
-  const check = (field: EventFormField, next: Values = values) =>
-    setErrors((e) => ({ ...e, [field]: eventFieldError(field, next) ?? undefined }));
+  if (entry.step === 'review') {
+    const rent = rentCentsOf(draft.rent);
+    return (
+      <div className="w-full">
+        {title}
+        {entry.pending && entry.unconfirmed ? (
+          <div className="mb-3">
+            <Banner
+              tone="warn"
+              title="This event has not been confirmed yet."
+              body="Check for the saved event, or retry the same entry. Retrying cannot make a second event."
+              action={{ label: 'Check saved event', onPress: () => void entry.abandon() }}
+            />
+          </div>
+        ) : null}
+        {entry.offline ? (
+          <div className="mb-3">
+            <Banner tone="warn" title="Saving an event needs signal. It is kept on this device." />
+          </div>
+        ) : null}
+        <ReviewPanel
+          backLabel={entry.pending ? 'Back to events' : 'Change event'}
+          onBack={entry.pending ? entry.leave : entry.change}
+          saveLabel={entry.pending ? 'Send again' : 'Save event'}
+          onSave={() => void entry.save()}
+          saving={entry.saving}
+        >
+          <FactRow label="Event name">{draft.name.trim()}</FactRow>
+          <FactRow label="Place">{draft.place.trim() || 'Not set'}</FactRow>
+          <FactRow label="First day">{dayText(draft.startsOn)}</FactRow>
+          <FactRow label="Last day">{dayText(draft.endsOn)}</FactRow>
+          <FactRow label="Stall rent" detail="Booked as an expense when the first day starts.">
+            {rent ? formatPesos(rent / 100) : 'None'}
+          </FactRow>
+        </ReviewPanel>
+      </div>
+    );
+  }
 
-  const onStart = (value: string) => {
-    // The end follows the start while it is blank or would come before it.
-    const endsOn = values.endsOn === '' || values.endsOn < value ? value : values.endsOn;
-    const next = { ...values, startsOn: value, endsOn };
-    setValues(next);
-    if (errors.startsOn) check('startsOn', next);
-    if (errors.endsOn || submitted.includes('endsOn')) check('endsOn', next);
+  const errors: Partial<Record<EventFormField, string>> = { ...blurred };
+  for (const error of entry.errors) errors[error.field] = error.message;
+  const check = (field: EventFormField) =>
+    setBlurred((now) => ({ ...now, [field]: eventFieldError(field, draft) ?? undefined }));
+  const set = (field: EventFormField, value: string) => {
+    setBlurred((now) => ({ ...now, [field]: undefined }));
+    entry.set(field, value);
   };
-
-  const onSubmit = async (event: FormEvent) => {
+  const onSubmit = (event: FormEvent) => {
     event.preventDefault();
-    const input: EventFormInput = { id, ...values };
-    const result = validateEventForm(input);
-    if (!result.ok) {
-      const next: Partial<Record<EventFormField, string>> = {};
-      for (const e of result.errors) next[e.field] = e.message;
-      setErrors(next);
-      setSubmitted(result.errors.map((e) => e.field));
-      setFocusKey((k) => k + 1);
-      return;
-    }
-    setErrors({});
-    setSubmitted([]);
-    if (await run(() => bazaar.addEvent(input))) onSaved(id);
+    setAttempt((n) => n + 1);
+    entry.review();
   };
-
-  // Still-wrong fields that a submit named, in the form's order.
-  const summary = ORDER.filter((f) => submitted.includes(f) && errors[f]).map((f) => ({
-    field: ID[f],
-    message: errors[f] as string
-  }));
+  const summary = ORDER.flatMap((field) => {
+    const message = entry.errors.find((error) => error.field === field)?.message;
+    return message ? [{ field: ID[field], message }] : [];
+  });
+  const started = ORDER.some((field) => draft[field] !== '');
 
   return (
-    <Sheet
-      title="Add an event"
-      open={open}
-      onClose={onClose}
-      footer={
-        <>
-          <Button
-            variant="primary"
-            type="submit"
-            form={formId}
-            busy={saving}
-            busyLabel="Saving…"
-            disabled={!bazaar.online}
-            reason="Adding an event needs signal."
-          >
-            Save the event
-          </Button>
-          <Button variant="secondary" onClick={onClose}>
-            Cancel
-          </Button>
-        </>
-      }
-    >
-      <form
-        id={formId}
-        onSubmit={(e) => void onSubmit(e)}
-        noValidate
-        className="flex flex-col gap-4"
-      >
-        <ErrorSummary errors={summary} focusKey={focusKey} />
-        {error ? <Banner tone="danger" title={error} /> : null}
-        <Field
-          id={ID.name}
-          label="Name"
-          value={values.name}
-          maxLength={80}
-          autoComplete="off"
-          error={errors.name}
-          onChange={(e) => set('name', e.target.value)}
-          onBlur={() => check('name')}
-        />
-        <Field
-          id={ID.place}
-          label="Place"
-          hint="Optional"
-          value={values.place}
-          maxLength={80}
-          autoComplete="off"
-          error={errors.place}
-          onChange={(e) => set('place', e.target.value)}
-          onBlur={() => check('place')}
-        />
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Field
-            id={ID.startsOn}
-            mode="date"
-            label="First day"
-            hint={values.startsOn ? dayText(values.startsOn) : undefined}
-            value={values.startsOn}
-            error={errors.startsOn}
-            onChange={(e) => onStart(e.target.value)}
-            onBlur={() => check('startsOn')}
+    <div className="w-full">
+      {title}
+      <Panel>
+        <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
+          <ErrorSummary errors={summary} focusKey={attempt} />
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Field
+              id={ID.name}
+              label="Name"
+              value={draft.name}
+              maxLength={80}
+              autoComplete="off"
+              error={errors.name}
+              onChange={(e) => set('name', e.target.value)}
+              onBlur={() => check('name')}
+            />
+            <Field
+              id={ID.place}
+              label="Place"
+              hint="Optional"
+              value={draft.place}
+              maxLength={80}
+              autoComplete="off"
+              error={errors.place}
+              onChange={(e) => set('place', e.target.value)}
+              onBlur={() => check('place')}
+            />
+            <Field
+              id={ID.startsOn}
+              mode="date"
+              label="First day"
+              hint={draft.startsOn ? dayText(draft.startsOn) : undefined}
+              value={draft.startsOn}
+              error={errors.startsOn}
+              onChange={(e) => set('startsOn', e.target.value)}
+              onBlur={() => check('startsOn')}
+            />
+            <Field
+              id={ID.endsOn}
+              mode="date"
+              label="Last day"
+              hint={draft.endsOn ? dayText(draft.endsOn) : 'Same as the first day for one day'}
+              value={draft.endsOn}
+              min={draft.startsOn || undefined}
+              error={errors.endsOn}
+              onChange={(e) => set('endsOn', e.target.value)}
+              onBlur={() => check('endsOn')}
+            />
+            <Field
+              id={ID.rent}
+              mode="decimal"
+              prefix="₱"
+              label="Stall rent"
+              hint="Optional. Booked as an expense when the first day starts."
+              value={draft.rent}
+              autoComplete="off"
+              error={errors.rent}
+              onChange={(e) => set('rent', e.target.value)}
+              onBlur={() => check('rent')}
+            />
+          </div>
+          <FooterActions
+            back={
+              <Button variant="secondary" onClick={entry.leave}>
+                Back to events
+              </Button>
+            }
+            forward={
+              <>
+                {started ? (
+                  <Button variant="ghost" onClick={entry.discard}>
+                    Clear
+                  </Button>
+                ) : null}
+                <Button variant="primary" type="submit">
+                  Review event
+                </Button>
+              </>
+            }
           />
-          <Field
-            id={ID.endsOn}
-            mode="date"
-            label="Last day"
-            hint={values.endsOn ? dayText(values.endsOn) : 'Same as the first day for one day'}
-            value={values.endsOn}
-            min={values.startsOn || undefined}
-            error={errors.endsOn}
-            onChange={(e) => set('endsOn', e.target.value)}
-            onBlur={() => check('endsOn')}
-          />
-        </div>
-        <Field
-          id={ID.rent}
-          mode="decimal"
-          prefix="₱"
-          label="Stall rent"
-          hint="Optional. Booked as an expense when the first day starts."
-          value={values.rent}
-          autoComplete="off"
-          error={errors.rent}
-          onChange={(e) => set('rent', e.target.value)}
-          onBlur={() => check('rent')}
-        />
-      </form>
-    </Sheet>
+        </form>
+      </Panel>
+    </div>
   );
 }

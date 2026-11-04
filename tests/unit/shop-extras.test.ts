@@ -42,7 +42,7 @@ describe('parseShopExtras', () => {
   it('reads the public answer, boxes smallest first', () => {
     const x = parseShopExtras(wire())!;
     expect(x.sameDay).toEqual({ enabled: true, percent: 40, onExtras: false });
-    expect(x.sampler).toEqual({ productId: 'pbm', maxQty: 2 });
+    expect(x.sampler).toEqual({ productId: 'pbm', maxQty: 2, flavours: [] });
     expect(x.boxes).toEqual([
       { size: 6, chargeCents: 0 },
       { size: 8, chargeCents: 2500 }

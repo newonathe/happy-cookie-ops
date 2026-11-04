@@ -57,6 +57,7 @@ function harness(first: Wire) {
   };
   const deps = {
     client: () => ({ rpc }) as unknown as BazaarClient,
+    eventActor: () => 1,
     online: () => state.online,
     bookings: () => [
       {

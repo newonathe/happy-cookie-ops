@@ -6,7 +6,6 @@ import type { DayReviewView } from '@/lib/bazaar/live-bazaar-types';
 import {
   buttonBase,
   cardStyle,
-  h1Style,
   h2Style,
   listStyle,
   mutedStyle,
@@ -17,6 +16,7 @@ import { ErrorText, Field, Notices, RemoveButton, SelectField } from './field';
 import { StatusPill } from '@/components/ui/status-pill';
 import { Banner } from '@/components/ui/banner';
 import { Button } from '@/components/ui/button';
+import { PageTitle } from '@/components/ui/owner-kit';
 import { ErrorSummary } from '@/components/ui/error-summary';
 import { useLeavingRows } from '@/components/ui/motion';
 import { Field as UiField, SelectField as UiSelectField } from '@/components/ui/field';
@@ -199,90 +199,21 @@ export function DayReview({ review }: { review: DayReviewView }) {
       data-screen-label="Bazaar day review"
       style={screenStyle}
     >
-      <button
-        type="button"
-        onClick={review.back}
-        style={{ ...buttonBase, alignSelf: 'flex-start', minHeight: '44px' }}
-      >
-        <span aria-hidden="true">← </span>
-        {review.backText}
-      </button>
-      <h1 style={h1Style}>Review · {review.dateText}</h1>
-      <p style={mutedStyle}>{review.eventName}</p>
-      <span style={{ alignSelf: 'flex-start' }}>
-        <StatusPill status={open ? 'selling' : 'closed'} />
-      </span>
+      <PageTitle
+        title={`Review · ${review.dateText}`}
+        subtitle={
+          <span className="inline-flex flex-wrap items-center gap-2">
+            {review.eventName}
+            <StatusPill status={open ? 'selling' : 'closed'} />
+          </span>
+        }
+        actions={
+          <Button variant="secondary" onClick={review.back}>
+            {review.backText}
+          </Button>
+        }
+      />
       <Notices notices={review.notices} />
-
-      <section aria-labelledby="review-cookies" style={section}>
-        <h2 id="review-cookies" style={h2Style}>
-          Cookies
-        </h2>
-        <ul aria-label="Cookies" style={listStyle}>
-          {review.stock.map((s) => (
-            <li
-              key={s.productId}
-              style={{ ...cardStyle, display: 'flex', flexDirection: 'column', gap: '4px' }}
-            >
-              <span style={{ ...textStyle, fontWeight: 700 }}>{s.name}</span>
-              <span style={textStyle}>{s.onTableText}</span>
-              <span style={textStyle}>{s.goneText}</span>
-              <span style={mutedStyle}>
-                {open || s.countText === null ? 'Should be left: ' + s.shouldBeLeft : s.countText}
-              </span>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <section aria-labelledby="review-losses" style={section}>
-        <h2 id="review-losses" style={h2Style}>
-          Losses
-        </h2>
-        {lossRows.length ? (
-          <ul aria-label="Losses" style={listStyle}>
-            {lossRows.map(({ item: l, key, leaving }) => (
-              <li
-                key={key}
-                data-leaving={leaving}
-                aria-hidden={leaving || undefined}
-                className="motion-enter motion-leave"
-                style={{
-                  ...cardStyle,
-                  ...textStyle,
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  gap: '6px 12px'
-                }}
-              >
-                <span style={{ minWidth: 0, overflowWrap: 'anywhere' }}>{l.text}</span>
-                {l.remove && !leaving ? <RemoveButton label={l.text} remove={l.remove} /> : null}
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p style={mutedStyle}>No losses recorded.</p>
-        )}
-        {review.addLoss ? (
-          <LossForm key={review.dayId} flavours={review.flavours} addLoss={review.addLoss} />
-        ) : null}
-      </section>
-
-      {review.addStock ? (
-        <section aria-labelledby="review-stock" style={section}>
-          <h2 id="review-stock" style={h2Style}>
-            Add stock
-          </h2>
-          <StockForm
-            key={review.dayId}
-            flavours={review.flavours}
-            canAddCarried={review.canAddCarried}
-            addStock={review.addStock}
-          />
-        </section>
-      ) : null}
 
       <section aria-labelledby="review-day" style={section}>
         <h2 id="review-day" style={h2Style}>
@@ -291,22 +222,104 @@ export function DayReview({ review }: { review: DayReviewView }) {
         <DayTiles review={review} settled={settled} />
       </section>
 
-      {review.report ? (
-        <section aria-labelledby="review-report" style={section}>
-          <h2 id="review-report" style={h2Style}>
-            Day summary
-          </h2>
-          <DayReport review={review} />
-        </section>
-      ) : null}
+      <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="flex min-w-0 flex-col gap-4">
+          <section aria-labelledby="review-cookies" style={section}>
+            <h2 id="review-cookies" style={h2Style}>
+              Cookies
+            </h2>
+            <ul aria-label="Cookies" style={{ ...listStyle, ...cardStyle, gap: 0 }}>
+              {review.stock.map((s) => (
+                <li
+                  key={s.productId}
+                  className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-b border-line py-2.5 last:border-b-0"
+                >
+                  <span className="flex min-w-0 flex-1 basis-48 flex-col gap-0.5">
+                    <span style={{ ...textStyle, fontWeight: 600 }}>{s.name}</span>
+                    <span style={mutedStyle}>
+                      {s.onTableText} · {s.goneText}
+                    </span>
+                  </span>
+                  <span style={{ ...textStyle, fontWeight: 600 }}>
+                    {open || s.countText === null
+                      ? 'Should be left: ' + s.shouldBeLeft
+                      : s.countText}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </section>
 
-      <section aria-labelledby="review-event" style={section}>
-        <h2 id="review-event" style={h2Style}>
-          Event so far
-        </h2>
-        {review.eventNote ? <p style={mutedStyle}>{review.eventNote}</p> : null}
-        <Figures figures={review.eventFigures} label="Event so far" />
-      </section>
+          <section aria-labelledby="review-losses" style={section}>
+            <h2 id="review-losses" style={h2Style}>
+              Losses
+            </h2>
+            {lossRows.length ? (
+              <ul aria-label="Losses" style={listStyle}>
+                {lossRows.map(({ item: l, key, leaving }) => (
+                  <li
+                    key={key}
+                    data-leaving={leaving}
+                    aria-hidden={leaving || undefined}
+                    className="motion-enter motion-leave"
+                    style={{
+                      ...cardStyle,
+                      ...textStyle,
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      gap: '6px 12px'
+                    }}
+                  >
+                    <span style={{ minWidth: 0, overflowWrap: 'anywhere' }}>{l.text}</span>
+                    {l.remove && !leaving ? (
+                      <RemoveButton label={l.text} remove={l.remove} />
+                    ) : null}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p style={mutedStyle}>No losses recorded.</p>
+            )}
+            {review.addLoss ? (
+              <LossForm key={review.dayId} flavours={review.flavours} addLoss={review.addLoss} />
+            ) : null}
+          </section>
+
+          {review.addStock ? (
+            <section aria-labelledby="review-stock" style={section}>
+              <h2 id="review-stock" style={h2Style}>
+                Add stock
+              </h2>
+              <StockForm
+                key={review.dayId}
+                flavours={review.flavours}
+                canAddCarried={review.canAddCarried}
+                addStock={review.addStock}
+              />
+            </section>
+          ) : null}
+        </div>
+        <div className="flex min-w-0 flex-col gap-4">
+          {review.report ? (
+            <section aria-labelledby="review-report" style={section}>
+              <h2 id="review-report" style={h2Style}>
+                Day summary
+              </h2>
+              <DayReport review={review} />
+            </section>
+          ) : null}
+
+          <section aria-labelledby="review-event" style={section}>
+            <h2 id="review-event" style={h2Style}>
+              Event so far
+            </h2>
+            {review.eventNote ? <p style={mutedStyle}>{review.eventNote}</p> : null}
+            <Figures figures={review.eventFigures} label="Event so far" />
+          </section>
+        </div>
+      </div>
 
       {review.close ? (
         <section aria-labelledby="review-close" style={section}>

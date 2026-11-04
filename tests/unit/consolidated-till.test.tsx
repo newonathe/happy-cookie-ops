@@ -104,6 +104,33 @@ const vals = (over: Record<string, unknown> = {}) =>
 afterEach(cleanup);
 
 describe('the consolidated till calls the ported handlers', () => {
+  it('Review sale opens the itemized sale and its steppers use the existing handlers', () => {
+    const v = vals();
+    render(<ConsolidatedTill v={v} till={till()} panel={null} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Review sale' }));
+    const panel = screen.getByRole('dialog', { name: 'Current sale' });
+    expect(panel).toHaveFocus();
+    fireEvent.click(
+      within(panel).getByRole('button', { name: 'One less Double Chocolate Fudge in this sale' })
+    );
+    fireEvent.click(
+      within(panel).getByRole('button', { name: 'One more Double Chocolate Fudge in this sale' })
+    );
+    expect(v.bzSell[0].minus).toHaveBeenCalledOnce();
+    expect(v.bzSell[0].tap).toHaveBeenCalledOnce();
+    expect(within(panel).getByRole('button', { name: 'Charge ₱250' })).toBeEnabled();
+    fireEvent.click(within(panel).getByRole('button', { name: 'Back to selling' }));
+    expect(screen.queryByRole('dialog', { name: 'Current sale' })).toBeNull();
+    expect(v.openPay).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: 'Review sale' }));
+    fireEvent.click(
+      within(screen.getByRole('dialog', { name: 'Current sale' })).getByRole('button', {
+        name: 'Charge ₱250'
+      })
+    );
+    expect(v.openPay).toHaveBeenCalledOnce();
+    expect(screen.queryByRole('dialog', { name: 'Current sale' })).toBeNull();
+  });
   it('a tile adds one, and its minus (only on a tile in the sale) takes one off', () => {
     const v = vals();
     render(<ConsolidatedTill v={v} till={till()} panel={null} />);
@@ -115,6 +142,36 @@ describe('the consolidated till calls the ported handlers', () => {
     expect(v.bzSell[0]!.tap).not.toHaveBeenCalled();
   });
 
+  it('keeps the day figures in Sales today, with no status strip above the till', () => {
+    render(
+      <ConsolidatedTill
+        v={vals({
+          drawerCashText: '₱125',
+          digitalTotals: [{ pay: 'GCash', totalText: '₱300', n: 1 }]
+        })}
+        till={till()}
+        panel={null}
+      />
+    );
+    expect(screen.queryByText('Selling')).toBeNull();
+    expect(screen.queryByRole('status')).toBeNull();
+    const sales = within(screen.getByRole('region', { name: 'Sales today' }));
+    // Once as the day's figure, once as the column heading.
+    expect(sales.getAllByText('Total')).toHaveLength(2);
+    expect(sales.getAllByText('Cookies')).toHaveLength(2);
+    expect(sales.getByText('GCash')).toBeInTheDocument();
+    expect(sales.getByText('₱300')).toBeInTheDocument();
+    expect(sales.getByText('Sale 1')).toBeInTheDocument();
+  });
+
+  it('with nothing in the sale, Charge waits and the phone bar is gone', () => {
+    const v = vals({ bzCartCount: 0, bzCartTotalNum: '₱0' });
+    const { container } = render(<ConsolidatedTill v={v} till={till()} panel={null} />);
+    expect(container.querySelector('[data-part="sale-bar"]')).toBeNull();
+    expect(screen.getByRole('button', { name: /^Charge ₱/ })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Freebie' })).toBeDisabled();
+  });
+
   it('draws the already-resolved photo as it is', () => {
     render(<ConsolidatedTill v={vals()} till={till()} panel={null} />);
     const photos = document.querySelectorAll('[data-photo]');
@@ -122,17 +179,21 @@ describe('the consolidated till calls the ported handlers', () => {
     expect((photos[0] as HTMLElement).style.backgroundImage).toContain(
       'shop-media/flavours/dcf.webp'
     );
-    expect(photos[1]!.getAttribute('data-photo')).toBe('none');
+    expect(photos[1]!.getAttribute('data-photo')).toBe('art');
+    expect((photos[1] as HTMLElement).style.backgroundImage).toContain('data:image/svg+xml');
   });
 
   it('Charge and Freebie are the ported ones', () => {
     const v = vals();
     render(<ConsolidatedTill v={v} till={till()} panel={null} />);
-    fireEvent.click(screen.getByRole('button', { name: 'Charge' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Freebie' }));
-    expect(v.openPay).toHaveBeenCalledTimes(1);
+    // A wide screen shows the Current sale panel and a phone shows the pinned bar; both use the same handlers.
+    for (const button of screen.getAllByRole('button', { name: /^Charge ₱/ }))
+      fireEvent.click(button);
+    for (const button of screen.getAllByRole('button', { name: 'Freebie' }))
+      fireEvent.click(button);
+    expect(v.openPay).toHaveBeenCalledTimes(2);
     expect(v.recordFreebie).toHaveBeenCalledTimes(1);
-    expect(screen.getByText('₱250')).toBeTruthy();
+    expect(screen.getAllByText('₱250').length).toBeGreaterThan(0);
   });
 
   it('the menu offers the owner every way out, each through its own handler', () => {
@@ -170,14 +231,20 @@ describe('the consolidated till calls the ported handlers', () => {
     expect(screen.getByRole('button', { name: /Review and close the day/ })).toBeTruthy();
   });
 
-  it('a sale is voided from its sheet, after a confirm, and "Keep it" voids nothing', () => {
+  it('a sale opens its receipt; voiding asks first, and "Keep sale" voids nothing', () => {
     const v = vals();
     render(<ConsolidatedTill v={v} till={till()} panel={null} />);
     fireEvent.click(screen.getByRole('button', { name: /1× Double Chocolate Fudge/ }));
-    fireEvent.click(screen.getByRole('button', { name: 'Keep it' }));
+    expect(screen.getByRole('heading', { name: 'Receipt' })).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Void this sale' }));
     expect(v.bzSales[0]!.void).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: 'Keep sale' }));
+    expect(v.bzSales[0]!.void).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: 'Next customer' }));
+    expect(document.querySelector('[data-till="consolidated"]')).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: /1× Double Chocolate Fudge/ }));
     fireEvent.click(screen.getByRole('button', { name: 'Void this sale' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm void' }));
     expect(v.bzSales[0]!.void).toHaveBeenCalledTimes(1);
   });
 
@@ -189,6 +256,7 @@ describe('the consolidated till calls the ported handlers', () => {
     const newer = sale({ summary: '1× Double Chocolate Fudge' });
     rerender(<ConsolidatedTill v={vals({ bzSales: [newer, older] })} till={till()} panel={null} />);
     fireEvent.click(screen.getByRole('button', { name: 'Void this sale' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm void' }));
     expect(older.void).toHaveBeenCalledTimes(1);
     expect(newer.void).not.toHaveBeenCalled();
   });
@@ -200,6 +268,41 @@ describe('the consolidated till calls the ported handlers', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Send again' }));
     expect(bad.retry).toHaveBeenCalledTimes(1);
     expect(screen.queryByRole('button', { name: 'Void this sale' })).toBeNull();
+  });
+
+  it('its settings say what this device holds, with the way to send it', () => {
+    const v = vals({ unsynced: 2 });
+    render(<ConsolidatedTill v={v} till={till()} panel={null} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Till menu' }));
+    const page = screen.getByRole('region', { name: 'Till settings' });
+    expect(within(page).getByText('Waiting to send')).toBeTruthy();
+    expect(within(page).getByText(/Keep this browser open/)).toBeTruthy();
+    fireEvent.click(within(page).getByRole('button', { name: 'Sync now' }));
+    expect(v.syncNow).toHaveBeenCalledOnce();
+    fireEvent.click(within(page).getByRole('button', { name: 'Back to selling' }));
+    expect(document.querySelector('[data-till="consolidated"]')).toBeTruthy();
+  });
+
+  it('a tool opens as a page, and Back returns to selling', () => {
+    const close = vi.fn();
+    render(
+      <ConsolidatedTill
+        v={vals()}
+        till={till()}
+        panel={{
+          kind: 'cookies',
+          status: 'loading',
+          event: null,
+          stock: null,
+          retry: vi.fn(),
+          close
+        }}
+      />
+    );
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(screen.getByRole('heading', { name: 'Add cookies' })).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Back to selling' }));
+    expect(close).toHaveBeenCalledOnce();
   });
 
   it('the sync line and "Sync now" stay on the screen', () => {
@@ -314,7 +417,7 @@ describe('in the frame', () => {
     mountFrame('helper');
     expect(consolidated()).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Till menu' }));
-    const sheet = screen.getByRole('dialog');
+    const sheet = screen.getByRole('region', { name: 'Till settings' });
     expect(within(sheet).queryByRole('button', { name: /Back to Home/ })).toBeNull();
     expect(within(sheet).queryByRole('button', { name: /Add cookies/ })).toBeNull();
   });

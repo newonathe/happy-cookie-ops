@@ -8,7 +8,7 @@ import type { ScreenKey } from '@/lib/screens';
  * guarded slot then draws it instead, in live mode only. The ported screen stays as the
  * demo. It ships empty: a slice that redesigns a screen adds its registration.
  */
-export type LiveScreen = ComponentType<{ v: OpsVals }>;
+export type LiveScreen = ComponentType<{ v: OpsVals }> & { ownsSectionNavigation?: boolean };
 
 const registry = new Map<ScreenKey, LiveScreen>();
 

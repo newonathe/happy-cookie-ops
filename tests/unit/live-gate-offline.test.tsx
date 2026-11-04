@@ -5,7 +5,7 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 /**
  * Slice A2: the live gate, not the demo build. The real `OpsApp`, `OpsRuntime`, `LiveGate`,
  * `RouteSync` and `OfflineBridge` run in live mode against a faked Supabase client and a faked
- * IndexedDB; only the ported frame is replaced by a marker that prints the screen it would draw.
+ * IndexedDB; only the workspace frame is replaced by a marker that prints the screen it would draw.
  *
  * The first test is the defect: verified online with an event open, then a fresh page load
  * with no signal. Before A2 that load signed out and went to /sign-in.
@@ -19,7 +19,8 @@ const net = vi.hoisted(() => ({
   checks: 0,
   signOuts: 0,
   rpc: [] as Array<{ name: string; args: Record<string, unknown> }>,
-  engine: null as unknown
+  engine: null as unknown,
+  authEvent: null as null | ((event: string, session: { user: { id: string } } | null) => void)
 }));
 
 vi.mock('@/lib/config/app-mode', () => ({ isLiveMode: () => true }));
@@ -52,7 +53,10 @@ vi.mock('@/lib/supabase/client', async () => {
         net.signOuts += 1;
         return { error: null };
       },
-      onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => undefined } } })
+      onAuthStateChange: (listener: NonNullable<typeof net.authEvent>) => {
+        net.authEvent = listener;
+        return { data: { subscription: { unsubscribe: () => undefined } } };
+      }
     },
     from: () => ({
       select: () => ({
@@ -93,10 +97,10 @@ vi.mock('@/lib/supabase/client', async () => {
   return { createClient: () => client };
 });
 
-vi.mock('@/components/shell/app-frame', async () => {
+vi.mock('@/components/live/owner-workspace', async () => {
   const { useOpsEngine } = await import('@/store/use-ops');
   return {
-    AppFrame: () => {
+    OwnerWorkspace: () => {
       const engine = useOpsEngine();
       net.engine = engine;
       return <div data-testid="frame">{String(engine.state.screen)}</div>;
@@ -290,6 +294,22 @@ describe('the bazaar phone with no signal (A2)', () => {
     expect(screen.getByTestId('frame')).toHaveTextContent('pnl');
     expect(net.signOuts).toBe(0);
     expect(replace).not.toHaveBeenCalled();
+  });
+
+  it('the session returning while Bazaar Mode runs offline keeps the till open and the offline check remembered', async () => {
+    seedEvent();
+    seedCheck(Date.now());
+    await signal(false);
+    render(<OpsApp initialScreen="bazaar" />);
+    await tick();
+    expect(screen.getByTestId('frame')).toHaveTextContent('bazaar');
+    await act(async () => net.authEvent!('SIGNED_IN', { user: { id: 'u1' } }));
+    await tick();
+    expect(screen.getByTestId('frame')).toHaveTextContent('bazaar');
+    expect(localStorage.getItem('hc-live-check')).not.toBeNull();
+    expect(replace).not.toHaveBeenCalled();
+    expect(net.signOuts).toBe(0);
+    // Mutation: comparing against a null verified id closes a till opened offline and forgets its check.
   });
 
   it('a denial on reconnect signs out as before, and the queued sale and the event stay on the phone', async () => {

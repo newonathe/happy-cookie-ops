@@ -20,7 +20,9 @@ import {
   idleWasSpent,
   markIdleSpent,
   offlineBazaarRole,
-  rememberCheck
+  rememberCheck,
+  clearRememberedCheck,
+  clearIdleSpent
 } from '@/lib/auth/offline-trust';
 import type { LocalSale } from '@/lib/auth/sign-out-guard';
 import { OpsRuntime } from '@/store/ops-runtime';
@@ -28,6 +30,10 @@ import type { Role } from '@/store/engine/ops-engine';
 import { registerLiveStockScreens } from '@/components/live/stock/register';
 import { registerLiveBazaarScreens } from '@/components/live/bazaar/register';
 import { registerLiveRecipeScreens } from '@/components/live/recipes/register';
+import { registerLiveMoneyScreens } from '@/components/live/money/register';
+import { registerLiveHomeScreens } from '@/components/live/home/register';
+import { registerLiveSellScreens } from '@/components/live/sell/register';
+import { registerLiveAccountScreens } from '@/components/live/account/register';
 import { OfflineHold } from './offline-hold';
 import { SignOutControl } from './sign-out-control';
 
@@ -37,6 +43,13 @@ registerLiveStockScreens();
 registerLiveBazaarScreens();
 // The live recipe book (U7) takes the `recipes` slot; the ported Recipes screen is drawn inside it, for editing a recipe.
 registerLiveRecipeScreens();
+// The live Money page takes the `pnl` slot: one period for every figure, chart and list.
+registerLiveMoneyScreens();
+// The live Home takes the `today` slot: real orders, stock, unfinished work and this month.
+registerLiveHomeScreens();
+// The live Sell pages take `orders`, `order`, `reconcile` and `drops`; Account takes `settings`, `health` and `notifications`.
+registerLiveSellScreens();
+registerLiveAccountScreens();
 
 /** How long one identity check may take before the gate treats the server as unreachable. */
 export const CHECK_TIMEOUT_MS = 8_000;
@@ -189,6 +202,8 @@ export function LiveGate({
     let stopIdleTimer = () => undefined as void;
     let recheck: ReturnType<typeof setInterval> | undefined;
     let outstanding = 0;
+    let identityEpoch = 0;
+    let verifiedUserId: string | null = null;
     let lastActivity = Date.now();
     const supabase = createClient();
     const setAccess = (next: Access) => {
@@ -284,7 +299,10 @@ export function LiveGate({
           ? Promise.resolve(engine.flushSales()).catch(() => undefined)
           : Promise.resolve();
       const limit = new Promise<void>((resolve) => setTimeout(resolve, FLUSH_BEFORE_SIGN_OUT_MS));
-      void Promise.race([sent, limit]).then(lockOut);
+      const epoch = identityEpoch;
+      void Promise.race([sent, limit]).then(() => {
+        if (epoch === identityEpoch) lockOut();
+      });
     }
 
     /**
@@ -351,13 +369,14 @@ export function LiveGate({
      * queued; out of reach, the sign-out waits, re-checked once a minute.
      */
     function onIdle() {
+      const epoch = identityEpoch;
       if (!holdsOpenEvent()) {
         lockOut();
         return;
       }
       narrow();
       void limited(probe()).then((result) => {
-        if (cancelled || !result) return;
+        if (cancelled || !result || epoch !== identityEpoch) return;
         if (result.status === 'denied') lockOut();
         else if (result.status === 'ok') signOutAfterFlush();
       });
@@ -378,6 +397,12 @@ export function LiveGate({
         return;
       }
       const role = result.role;
+      if (verifiedUserId && result.userId && verifiedUserId !== result.userId) {
+        clearIdleSpent();
+        lastActivity = Date.now();
+        leaving = false;
+      }
+      verifiedUserId = result.userId ?? null;
       // The server answers again and the idle time ran out while it could not: the sign-out
       // that was put off happens now. Nothing is opened first.
       if (idleWasSpent() || idleSpent(role)) {
@@ -406,6 +431,17 @@ export function LiveGate({
       // next sale.
       const reopened = accessRef.current === 'bazaar' || accessRef.current === 'waiting';
       setAccess('verified');
+      if (engine instanceof OpsRuntime) {
+        let business = '';
+        try {
+          business = new URL(process.env.NEXT_PUBLIC_SUPABASE_URL ?? '').origin;
+        } catch {
+          /* closed until configured */
+        }
+        void engine.setProductionIdentity(
+          role === 'owner' && result.userId ? { userId: result.userId, business } : null
+        );
+      }
       if (reopened && engine instanceof OpsRuntime)
         void Promise.resolve(engine.flushSales()).catch(() => undefined);
       // Only once the owner's settings are in: before that `cfg` holds the engine's defaults,
@@ -485,8 +521,10 @@ export function LiveGate({
 
     async function verify(isFirstCheck: boolean) {
       if (cancelled) return;
+      const epoch = identityEpoch;
       const pending = probe();
       const answer = await limited(pending);
+      if (cancelled || epoch !== identityEpoch) return;
       if (answer) {
         apply(answer, isFirstCheck);
         return;
@@ -494,7 +532,7 @@ export function LiveGate({
       apply({ status: 'unknown' }, isFirstCheck);
       // The answer, if it still comes, is applied as a re-check.
       void pending.then((late) => {
-        if (late.status !== 'unknown') apply(late, false);
+        if (epoch === identityEpoch && late.status !== 'unknown') apply(late, false);
       });
     }
 
@@ -506,9 +544,25 @@ export function LiveGate({
 
     const {
       data: { subscription }
-    } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'SIGNED_OUT') lockOut();
-      else if (event === 'TOKEN_REFRESHED') void verify(false);
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT') {
+        identityEpoch += 1;
+        lockOut();
+      } else if (
+        event === 'SIGNED_IN' &&
+        (!CUSTOMER_SCREENS.includes(engine.state.screen as ScreenKey) || verifiedUserId)
+      ) {
+        // With no verified account yet (Bazaar Mode opened offline) there is nothing to compare: the
+        // till stays open and `verify` below decides, closing it only on a definite denial.
+        if (verifiedUserId !== null && session?.user.id !== verifiedUserId) {
+          if (engine instanceof OpsRuntime) void engine.setProductionIdentity(null);
+          identityEpoch += 1;
+          clearRememberedCheck();
+          setAccess('closed');
+        }
+        if (!CUSTOMER_SCREENS.includes(engine.state.screen as ScreenKey)) void verify(false);
+        else verifiedUserId = null;
+      } else if (event === 'TOKEN_REFRESHED') void verify(false);
     });
 
     function onVisible() {
