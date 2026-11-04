@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { FooterActions, PageTitle, Panel, SectionHeading } from '@/components/ui/owner-kit';
 import { FactRow, OpenRow } from '@/components/ui/owner-patterns';
+import { saleLines } from '@/lib/bazaar/sale-lines';
 import { TillCard } from './till-card';
 import { StatusPill } from '@/components/ui/status-pill';
 import { TillPanelPage, TillBack } from './till-bar';
@@ -100,7 +101,7 @@ export function ConsolidatedTill({
         aria-label="Till"
         data-screen-label="Bazaar Mode"
         data-till="consolidated"
-        className="flex flex-col gap-3 lg:grid lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start lg:gap-x-5 lg:gap-y-3"
+        className="flex flex-col gap-3 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(380px,40%)] lg:items-start lg:gap-x-5 lg:gap-y-3"
       >
         <div className="lg:col-span-2">
           {events ? (
@@ -135,7 +136,7 @@ export function ConsolidatedTill({
 
         <section
           aria-label="Cookies on the table"
-          className="flex min-w-0 flex-col gap-2.5 lg:col-start-1 lg:row-start-3"
+          className="@container flex min-w-0 flex-col gap-2.5 lg:col-start-1 lg:row-start-3"
         >
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-[15px] font-semibold text-ink">Cookies on the table</h2>
@@ -163,7 +164,7 @@ export function ConsolidatedTill({
               }
             />
           ) : null}
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,250px),1fr))] gap-2">
+          <div className="grid grid-cols-1 gap-2 @md:grid-cols-2">
             {(v.bzSell ?? []).map((p, i) => {
               const name = String(p.name);
               const count = Number(p.inCart) || 0;
@@ -333,7 +334,12 @@ export function ConsolidatedTill({
 function SaleFacts({ sale }: { sale: Sale }) {
   return (
     <>
-      <FactRow label={sale.summary}>{sale.totalText}</FactRow>
+      {saleLines(String(sale.summary ?? '')).map((line, i) => (
+        <FactRow key={i} label={`${line.qty}× ${line.name}`}>
+          {null}
+        </FactRow>
+      ))}
+      <FactRow label="Total">{sale.totalText}</FactRow>
       <FactRow label="Paid by">
         <SaleMeta sale={sale} />
       </FactRow>
@@ -493,14 +499,26 @@ const SALE_COLUMNS = 'lg:grid-cols-[minmax(0,1fr)_200px_96px_96px]';
  * columns stay in line with the others.
  */
 function SaleRow({ sale, open }: { sale: Sale; open: () => void }) {
+  const lines = saleLines(String(sale.summary ?? ''));
   return (
     <div data-part="sale" className="border-b border-divide last:border-b-0">
       <button
         type="button"
         onClick={open}
-        className={`grid min-h-14 w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-0.5 px-4 py-2 text-left hover:bg-raise focus-visible:outline-2 focus-visible:outline-brand ${SALE_COLUMNS}`}
+        className={`grid min-h-11 w-full grid-cols-[minmax(0,1fr)_auto] items-start gap-x-3 gap-y-1 px-4 py-3 text-left hover:bg-raise focus-visible:outline-2 focus-visible:outline-brand ${SALE_COLUMNS}`}
       >
-        <span className="min-w-0 text-[14px] text-ink">{sale.summary}</span>
+        <span className="grid min-w-0 grid-cols-[repeat(auto-fill,minmax(min(100%,190px),1fr))] gap-x-4 gap-y-1">
+          {lines.length ? (
+            lines.map((line, i) => (
+              <span key={i} className="flex min-w-0 items-baseline gap-1.5 text-[14px] text-ink">
+                <span className="w-6 shrink-0 font-semibold tabular-nums">{line.qty}×</span>{' '}
+                <span className="min-w-0">{line.name}</span>
+              </span>
+            ))
+          ) : (
+            <span className="text-[14px] text-ink-mute">No cookies</span>
+          )}
+        </span>
         <span className="col-start-1 row-start-2 min-w-0 text-caption text-ink-mute lg:col-start-auto lg:row-start-auto">
           <SaleMeta sale={sale} />
         </span>

@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import type { LiveProductionVals } from '@/lib/production/live-production-types';
+import { cookiePicture } from '@/lib/media/cookie-art';
 import { resolveImagePath } from '@/lib/media/resolve-image';
 import { formatManila } from '@/lib/time/business-clock';
 import { Banner } from '@/components/ui/banner';
@@ -130,7 +131,7 @@ export function ProductionResults({ data }: { data: LiveProductionVals }) {
               const made = g.good + g.rejects;
               const unknown = g.known ? 'Plan incomplete' : 'No plan saved';
               const max = scale,
-                photo = resolveImagePath(g.photo);
+                photo = cookiePicture(resolveImagePath(g.photo), g.name);
               return (
                 <article key={g.id} className={styles.chart}>
                   <div className={styles.product}>

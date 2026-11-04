@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from 'react';
 import type { LiveProductionStart } from '@/lib/production/live-production-types';
+import { cookiePicture } from '@/lib/media/cookie-art';
 import { resolveImagePath } from '@/lib/media/resolve-image';
 import { Button } from '@/components/ui/button';
 import { Banner } from '@/components/ui/banner';
@@ -20,7 +21,7 @@ export function ProductionStart({ start, period }: { start: LiveProductionStart;
   if (!draft) return null;
   if (start.multi) return <ProductionPlanEntry start={start} period={period} />;
   const product = start.products.find((p) => p.id === draft.productId);
-  const photo = resolveImagePath(product?.photo ?? '');
+  const photo = cookiePicture(resolveImagePath(product?.photo ?? ''), product?.name ?? '');
   const changed = !!product && product.version !== draft.version;
   const valid =
     /^\d+$/.test(draft.quantity) && Number(draft.quantity) >= 1 && Number(draft.quantity) <= 10000 &&

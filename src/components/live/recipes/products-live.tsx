@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from 'react';
 import type { OpsVals } from '@/view-models/vals';
+import { cookiePicture } from '@/lib/media/cookie-art';
 import { resolveImagePath } from '@/lib/media/resolve-image';
 import { ProductsScreen } from '@/components/screens/products';
 import { Button } from '@/components/ui/button';
@@ -26,10 +27,8 @@ function ProductCard({ row }: { row: Row }) {
   return (
     <article ref={card} className={styles.card} aria-labelledby={titleId}>
       <div className={styles.photo}>
-        {row.photo ? (
-          // eslint-disable-next-line @next/next/no-img-element -- owner-supplied photo paths, as elsewhere in the live app
-          <img src={resolveImagePath(row.photo)} alt="" />
-        ) : null}
+        {/* eslint-disable-next-line @next/next/no-img-element -- owner-supplied photo paths, as elsewhere in the live app */}
+        <img src={cookiePicture(resolveImagePath(row.photo ?? ''), String(row.name))} alt="" />
         {row.tag ? <span className={styles.label}>{row.tag}</span> : null}
       </div>
       <div className={styles.body}>

@@ -122,7 +122,8 @@ describe('the consolidated till calls the ported handlers', () => {
     expect((photos[0] as HTMLElement).style.backgroundImage).toContain(
       'shop-media/flavours/dcf.webp'
     );
-    expect(photos[1]!.getAttribute('data-photo')).toBe('none');
+    expect(photos[1]!.getAttribute('data-photo')).toBe('art');
+    expect((photos[1] as HTMLElement).style.backgroundImage).toContain('data:image/svg+xml');
   });
 
   it('Charge and Freebie are the ported ones', () => {

@@ -3,6 +3,7 @@ import type { LiveDoughPreparation } from '@/lib/production/live-production-type
 import { Button } from '@/components/ui/button';
 import { Banner } from '@/components/ui/banner';
 import Image from 'next/image';
+import { cookiePicture } from '@/lib/media/cookie-art';
 import { resolveImagePath } from '@/lib/media/resolve-image';
 import { useEffect, useRef } from 'react';
 import { ProductionRecipeUpdate } from './production-recipe-update';
@@ -11,7 +12,7 @@ import { ProductionDeviceNotice } from './production-recovery-notice';
 export function ProductionDough({ data }: { data: LiveDoughPreparation }) {
   const locked =
     data.saving || data.uncertain || data.sourceChanged || data.sourceUnavailable || data.readOnly;
-  const photo = resolveImagePath(data.photo);
+  const photo = cookiePicture(resolveImagePath(data.photo), data.name);
   const heading = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
     heading.current?.focus();

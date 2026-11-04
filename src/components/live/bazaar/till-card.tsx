@@ -2,6 +2,7 @@
 
 import type { ReactNode } from 'react';
 import { cx } from '@/components/ui/cx';
+import { cookiePicture } from '@/lib/media/cookie-art';
 
 /**
  * A cookie on the till, as one short row: a small photo, its name, its price and what is left. Many
@@ -40,9 +41,9 @@ export function TillCard({
     >
       <span
         aria-hidden="true"
-        data-photo={photo ? 'yes' : 'none'}
+        data-photo={photo ? 'yes' : 'art'}
         className="size-14 shrink-0 rounded-control bg-raise bg-contain bg-center bg-no-repeat"
-        style={photo ? { backgroundImage: `url(${photo})` } : undefined}
+        style={{ backgroundImage: `url(${cookiePicture(photo, name)})` }}
       />
       <span className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span className="text-[14px] leading-snug font-semibold text-ink">{name}</span>
