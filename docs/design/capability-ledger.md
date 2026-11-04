@@ -45,6 +45,8 @@ front-facing continuation instructions. No hosted mutation or independent accept
 | System health warning + Review                 | "Needs attention" row → health                                                 | screenshot                       |
 | Profit this month, revenue, expenses           | "This month" panel, signed and coloured → Money                                | test (null before books load)    |
 | Orders / To review / Pickups strip             | Three counts: Payments to check, Orders to prepare, Ready for pickup           | test                             |
+| "Orders" action tile (5 Nov redesign)          | Merged: the Orders panel's "Open orders" and its three counts open the same page | browser check at 1240            |
+| "Buy: item, item" on Shopping list             | Count on the row ("2 items short"); the items are listed in the Stock panel     | screenshot                       |
 | Grocery to buy                                 | "Shopping list" tile shows what to buy                                         | screenshot                       |
 | Live till / next bazaar cards                  | Unchanged (frame host)                                                         | —                                |
 | "Your business" directory of every tool        | Removed as redundant: every entry is in its section or the header Account/bell | function-map                     |
