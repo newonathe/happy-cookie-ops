@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Banner } from '@/components/ui/banner';
 import page from './production.module.css';
 import styles from './start.module.css';
+import { ProductionPlanEntry } from './production-plan-entry';
 
 export function ProductionStart({ start, period }: { start: LiveProductionStart; period: string }) {
   const heading = useRef<HTMLHeadingElement>(null);
@@ -17,6 +18,7 @@ export function ProductionStart({ start, period }: { start: LiveProductionStart;
   }, []);
   const draft = start.draft;
   if (!draft) return null;
+  if (start.multi) return <ProductionPlanEntry start={start} period={period} />;
   const product = start.products.find((p) => p.id === draft.productId);
   const photo = resolveImagePath(product?.photo ?? '');
   const changed = !!product && product.version !== draft.version;

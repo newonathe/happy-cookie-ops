@@ -6,6 +6,49 @@ the scope to Home, Money or Shop. Read AGENTS.md, current.md and next-goal.md be
 
 ## Current work and how to detect it
 
+- **Latest verified source + reference inventory:** full gate176files/2886tests+2existingTODOs, live
+  build28pages, eight 320/390/768/1240 normal/reduced-motion group-entry runs pass. Reference catalogue:
+  [index](reference-v4-page-contracts.md), split family contracts under `reference-v4/`, and
+  [visual notes](reference-v4/visual-review-notes.md). All85 source routes have desktop/phone captures;
+  1190 built-in situation renders have no failures and190 distinct images. Four parent-page checks
+  produce identical pixels against untouched source. This is capture/initial review evidence, not full
+  interaction coverage or actual-app parity. 404/723 source conditions were reached;85 observed both
+  outcomes. Remaining control/validation/save/return branches and child-page visual review are explicit.
+  Gallery: `http://localhost:4190/index.html`, served from private `mockup-page-state-audit/`.
+  Actual-component preview: `http://localhost:4186/`; hosted-record source:3000, read-only verification.
+  Do not overwrite older frozen review packets with today's changes. Keep all independent review holds.
+- **Newest explicit scope:** read [owner screen references](owner-screen-references-2026-11-04.md).
+  All supplied screenshots came from the downloaded v4 HTML. Ethan now requests its complete rendered
+  page/flow/state/feature inspection, screenshots and integration into the actual modular app. Record
+  exact coverage and remaining states; do not treat old audit numbers or the image batch as completion.
+  The reference and screenshot requirements cover Bazaar, Make, Stock, Money and populated other tabs.
+  Existing neutral theme, business rules and review boundaries remain. React components/interfaces
+  and focused domain classes are the implementation direction; no copied sample calculation engine.
+- Multi-product entry is now a local implementation: `production-plan-entry.tsx`/CSS, `plan.ts`,
+  `planner.ts`, production start/types, recovery schema, workspace transaction, runtime and tests.
+  Several products/quantities can be selected together, reviewed and added as independent work items.
+  Recipe/source/period guards, whole-plan storage rollback and scoped reload are retained. Plans never
+  post actual production. 41 focused tests and the latest full gate/build/browser runs above pass.
+  This fixes group entry; the entire screenshot-matched Products/Recipe/Cost/History/Stock/Money
+  interface is still required. Private preview now has six synthetic recipes, twelve stock items and
+  four suppliers; richer all-section population and hosted insertion are not claimed complete.
+- **Latest steering, 4 November:** match the supplied Bazaar screenshot's organization: owner frame,
+  “Sell at the bazaar” heading with event/day, Close day and Settings, full-width connection status,
+  three-column product cards left and itemized Current sale right with quantity steppers, total and
+  Charge amount. Preserve the current neutral-light theme; adapt the hierarchy to smaller widths.
+  Events-first and a compact Back path remain required. Populate Sell/Make/Stock/Money and other tabs
+  with realistic linked demo records so complete workflows can be tried. Existing hosted demo insertion
+  is authorized but still gated on its required SQL review; preview fixtures are not hosted evidence.
+- **Recipe writer prerequisite is an uncommitted local draft.** Files: `src/lib/data/recipes.ts`,
+  `src/store/ops-runtime.tsx`, `src/lib/orders/staff-copy.ts`, `tests/unit/recipes.test.ts` and
+  `tests/unit/ops-runtime-recipes.test.tsx`. Editable/base/history rows retain line kind in an optional
+  fourth tuple slot; existing engine edit/add/remove operations preserve it. Outbound RPCs retain kind,
+  with unknown explicit kind refused. Same-product double taps are ignored; role/identity-stale replies
+  do not apply. Reads preserve edits made during save/readback. A usable acknowledgement supplies the
+  complete submitted recipe after failed refresh, including a new recipe; stale cached quantities
+  are not relabeled with its version. Empty acknowledgement is unconfirmed and keeps edits.
+  76 focused tests and the latest full gate/build pass. Do not remove the legacy
+  warning or imply the direct missing-recipe setup has been implemented. SQL/protected screens unchanged.
 - **Newest P3 work is locally verified, uncommitted and awaiting review.** This overrides older in-memory-only
   descriptions below. Files: `src/lib/production/recovery.ts`, `recovery-session.ts`, `workspace.ts`,
   runtime/types, `src/lib/auth/live-gate.ts`, `src/components/app/live-gate.tsx`, production recovery

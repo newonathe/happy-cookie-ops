@@ -1,5 +1,6 @@
 import type { BatchRow, Shortfall } from '@/lib/data/production';
 import type { ReactNode } from 'react';
+import type { ProductionPlanChoice } from './plan';
 
 export interface LiveProductionRecipeUpdate {
   previousVersion: number | null; version: number;
@@ -62,6 +63,17 @@ export interface LiveBatchCounts {
 
 /** An unconfirmed plan; starting it never records production or changes stock. */
 export interface LiveProductionStart {
+  multi?: {
+    choices: ProductionPlanChoice[];
+    reviewing: boolean;
+    toggle: (id: string) => void;
+    setQuantity: (id: string, value: string) => void;
+    setKind: (id: string, kind: 'batch' | 'dough') => void;
+    useRecipe: (id: string) => void;
+    review: () => boolean;
+    edit: () => void;
+    begin: () => boolean;
+  };
   products: Array<{
     id: string;
     name: string;

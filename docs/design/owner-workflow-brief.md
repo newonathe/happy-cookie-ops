@@ -174,6 +174,9 @@ predetermined drop number as live business truth.
 
 ### Bazaar
 
+Latest4November: [owner screen references](owner-screen-references-2026-11-04.md) extend Bazaar,
+Make, Stock, Money, all-section demo data and the required full visual HTML page/flow/state inspection.
+
 Provide clear event list/detail/create/edit, day planning/opening, selling, payment, receipt and
 sale correction, day close, event finalization and device/recovery paths. Make Bazaar's purpose
 obvious and give an understandable way back. Preserve the proven till and classic fallback.

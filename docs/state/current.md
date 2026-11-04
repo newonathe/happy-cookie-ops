@@ -1,14 +1,16 @@
 # Current state — Happy Cookie Ops
 
-**Production recovery P3, 4 November — local work in progress:** device copies now carry multiple
-drafts, source/version/drop, raw inputs, review step, exact unanswered requests and recent saved results.
-Binding requires the verified owner UID/backend; Web Locks make a second tab read-only. New submissions
-require a checked device copy and connection; restoring never posts. Late replies stay with their owner;
-saved results restore with stock explicitly unchecked. Setup is retained. Prior saved-source guards,
-per-item receipts and original-drop read retry remain. Full gate: 175 files / 2,873 tests + 2 existing
-TODOs pass; eight responsive/motion browser flows and live build (28 pages) pass. Independent review is pending.
-Positive ingredient-use detail, missing-recipe setup and the full application remain incomplete.
-No SQL/request classification/queue rule, hosted record or protected port was changed.
+**4 November — full reference integration active:** the supplied v4 has85 route views. Desktop/phone
+captures cover all85; seven render situations yield1190 checks/190 distinct images, zero failed renders.
+Four parent-page pixel-fidelity checks match the untouched HTML. Detailed interaction/visual review
+and actual-app parity remain incomplete; read the reference contracts and owner requirements below.
+Actual multi-product entry now selects/reviews several flavours together, creates independent work
+atomically and retains scoped recovery. Recipe writer preserves kind, later edits and acknowledged
+snapshots; empty replies stay unconfirmed. Full gate:176files/2886tests+2existingTODOs; build28pages;
+eight responsive/motion group-entry runs pass. Keep legacy recipe warning until independent review.
+All sensitive work is uncommitted. Screenshot-matched family layouts, direct recipe setup, Shopping
+plan integration, full demo population/hosted insertion and the complete application remain unfinished.
+No hosted/applied-SQL/protected-port changes. Gallery:localhost4190/index.html; actual preview:4186.
 Source/test details and visible examples are in the [Claude UI handoff](../design/claude-ui-handoff.md).
 The newest blocks override historical “next bug” and uncommitted-status descriptions below.
 

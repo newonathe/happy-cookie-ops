@@ -112,6 +112,67 @@ function open(r: OpsRuntime, pid: string) {
   act(() => work.open());
 }
 describe('multiple production work items in the actual runtime', () => {
+  it('plans multiple products together, preserving distinct snapshots and recording no actual output', async () => {
+    const {r,requests,scope}=await mount();
+    act(()=>r.renderVals().liveProduction!.start!.open());
+    const plan=()=>r.renderVals().liveProduction!.start!.multi!;
+    expect(plan()).toBeTruthy();
+    act(()=>{plan().toggle(A);plan().toggle(B);});
+    act(()=>{plan().setQuantity(A,'24');plan().setQuantity(B,'12');});
+    act(()=>{expect(plan().review()).toBe(true);});
+    expect(plan().reviewing).toBe(true);
+    const old=plan();
+    act(()=>{expect(plan().begin()).toBe(true);});
+    expect(rows(r)).toHaveLength(2);
+    expect(rows(r).map(row=>[row.productId,row.quantityText])).toEqual([[A,'24 planned'],[B,'12 planned']]);
+    expect(requests).toHaveLength(0);
+    expect(readProductionRecovery(scope).value?.works).toHaveLength(2);
+    expect(readProductionRecovery(scope).value?.entry).toBeNull();
+    act(()=>{expect(old.begin()).toBe(false);});
+    expect(rows(r)).toHaveLength(2);
+  });
+  it('restores a multi-product setup, and refuses the whole plan if any recipe changed', async () => {
+    const first=await mount();
+    act(()=>first.r.renderVals().liveProduction!.start!.open());
+    let plan=first.r.renderVals().liveProduction!.start!.multi!;
+    act(()=>{plan.toggle(A);plan.toggle(B);});
+    plan=first.r.renderVals().liveProduction!.start!.multi!;
+    act(()=>{plan.setQuantity(A,'24');plan.setQuantity(B,'');});
+    await act(async()=>first.unmount());
+    const second=await mount(first.scope);
+    act(()=>second.r.renderVals().liveProduction!.start!.open());
+    const current=()=>second.r.renderVals().liveProduction!.start!.multi!;
+    expect(current().choices.map(row=>row.quantity)).toEqual(['24','']);
+    act(()=>{expect(current().review()).toBe(false);});
+    act(()=>current().setQuantity(B,'12'));
+    await act(async()=>second.r.loadRecipes({rpc:async()=>({data:[A,B].map(id=>({product_id:id,yield:12,version:id===B?4:3,
+      updated_at:'2026-11-04T00:00:00Z',lines:[{name:'Butter',qty:200,unit:'g'}],history:[]})),error:null})} as never));
+    act(()=>{expect(current().review()).toBe(false);expect(current().begin()).toBe(false);});
+    expect(rows(second.r)).toHaveLength(0);
+    act(()=>current().useRecipe(B));
+    expect(current().choices.map(row=>row.quantity)).toEqual(['24','12']);
+    act(()=>{expect(current().review()).toBe(true);expect(current().begin()).toBe(true);});
+    expect(rows(second.r)).toHaveLength(2);
+    expect(second.requests).toHaveLength(0);
+  });
+  it('keeps all selections and creates no partial group when device storage refuses the plan', async () => {
+    const {r,requests}=await mount();begin(r,A,'6');act(()=>r.go('bake'));
+    act(()=>r.renderVals().liveProduction!.start!.open());
+    const plan=()=>r.renderVals().liveProduction!.start!.multi!;
+    act(()=>{plan().toggle(A);plan().toggle(B);});
+    act(()=>{plan().setQuantity(A,'24');plan().setQuantity(B,'12');expect(plan().review()).toBe(true);});
+    const original=Storage.prototype.setItem;
+    const write=vi.spyOn(Storage.prototype,'setItem').mockImplementation(function(this:Storage,key,value){
+      if(key.startsWith('hc-production-recovery'))throw Error('quota');return original.call(this,key,value);
+    });
+    try{act(()=>{expect(plan().begin()).toBe(false);});
+      expect(plan().choices).toHaveLength(2);
+      expect(rows(r)).toHaveLength(1);
+      expect(rows(r)[0].quantityText).toBe('6 planned');
+    }finally{write.mockRestore();}
+    act(()=>{expect(plan().begin()).toBe(true);});
+    expect(rows(r)).toHaveLength(3);expect(requests).toHaveLength(0);
+  });
   it('restores unfinished setup and raw counts without submitting while offline', async () => {
     const first = await mount();
     act(() => first.r.go('bake'));

@@ -22,21 +22,22 @@ own-item acknowledgements, Events-first navigation and return context. f57d278/9
 Home/Money/Shop work and sampler migration (local only). Prior synthetic browser proof is in private
 LIVE-CHECKPOINT; it is not SQL/device acceptance. The four Codex follow-ups are locally verified;
 required independent Money review remains pending. Do not reimplement them.
-P2 results/source guards remain local. P3 scoped device recovery is now in progress: verified UID/backend,
+P2 results/source guards remain local. P3 scoped device recovery is locally verified: owner UID/backend,
 single-tab writing, multiple drafts/exact pending requests, no automatic posting, retained setup and
 saved results with stock unchecked. Full gate:175files/2873tests+2TODOs; eight browser flows pass.
 Live build passes28pages; independent review is pending. Read the newest handoff first.
-Next: finish P3 evidence/review, then missing-recipe setup, remaining result detail. B1 plan/review addresses, stage
+Latest: group entry/recipe writer pass176files/2886tests+2TODOs,28-page build,eight browser runs.
+Next: full reference flow/state review and family integration; keep review holds. B1 plan/review addresses, stage
 wording and inactive held events remain. Recipe reads keep line kind; the writer is unresolved.
 Preserve selling values, permissions and required independent review; no quota/provider bypass.
 
 Branch `codex/refined-workflows`; starting HEAD52292e3. Inspect current Git state.
 
-Production/count presentation and preview repair history: current.md. Use four Vitest workers.
+Use four Vitest workers.
 
-Continue B1 under [the audited additions plan](../design/active-bazaar-parallel-production-plan.md).
-Local multi-item proof covers navigation and simultaneous callbacks only; reload, cross-tab and
-identity-scoped recovery remain unproven. Notes are retained locally, not confirmed server-saved.
+4November [reference requirements](../design/owner-screen-references-2026-11-04.md) require
+full HTML visual page/flow/state inspection/screenshots and actual component-based integration.
+Read ../design/reference-v4-page-contracts.md:85 views captured; interaction/parity incomplete.
 
 
 Then continue safe recipe kind/version saves and acknowledged product-save return, remaining
