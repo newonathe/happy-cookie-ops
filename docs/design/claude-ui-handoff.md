@@ -12,6 +12,16 @@ the scope to Home, Money or Shop. Read AGENTS.md, current.md and next-goal.md be
   Optimized decc2c4 build is measured at3001; updated Events directory is on HMR preview4188/bazaar.
   Add-event page conversion needs a retained draft/request controller first; the sheet remains.
 
+- **Ownership resolved:** Ethan confirmed Claude paused/finished. Codex fast-forwarded the working
+  branch to8d4cc81 without hosted changes. Retained event-entry work now happens in the primary repo;
+  3000 and4186 use the integrated source. The earlier isolation notes describe history.
+  The new prerequisite `lib/bazaar/event-entry-recovery.ts` retains scoped drafts and normalized
+  create-event RPC arguments, with a checked device write and the existing lock helper.13 focused
+  tests pass; independent review's raw-input finding is fixed and re-review has no findings.
+  It is not wired yet. Next build the retained controller and page: verified identity, lock held
+  through restore/write/send, stored-payload retry, matching server readback before resolving,
+  actor/generation guards and navigation retention. Do not claim the sheet has been replaced.
+
 - **Status, 4 November, night: read [coverage](reference-v4/coverage.md) first.** It lists all 85 mockup
   routes with their place in the app, status and gap, and how to build (kit, classes with injected
   dependencies, slots). Update it in the same commit as a page. [flows](reference-v4/flows.md) is generated from
