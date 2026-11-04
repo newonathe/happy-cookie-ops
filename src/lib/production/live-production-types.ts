@@ -117,6 +117,8 @@ export interface LiveProductionVals {
   recovery?: {
     status: import('./recovery-session').ProductionRecoveryStatus;
     retry: () => void;
+    /** Present only for an unreadable copy: moves it aside so production can start again here. */
+    setAside?: () => void;
     setupPeriod: string | null;
     resumeSetup: () => void;
   };

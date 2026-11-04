@@ -1,6 +1,35 @@
 'use client';
+import { useState } from 'react';
 import type { LiveProductionVals } from '@/lib/production/live-production-types';
 import { Banner } from '@/components/ui/banner';
+import { Button } from '@/components/ui/button';
+
+/** Two steps on purpose: unsent entries inside the copy can no longer be opened here afterwards. */
+function SetAside({ onConfirm }: { onConfirm: () => void }) {
+  const [asking, setAsking] = useState(false);
+  if (!asking)
+    return (
+      <div>
+        <Button variant="secondary" size="sm" onClick={() => setAsking(true)}>
+          Set this copy aside
+        </Button>
+      </div>
+    );
+  return (
+    <div role="group" aria-label="Set this copy aside" className="flex flex-wrap items-center gap-2">
+      <p className="w-full text-caption text-ink-mute">
+        Production starts fresh on this device. Entries in the unreadable copy cannot be opened here,
+        so check your recent batches before making them again.
+      </p>
+      <Button variant="danger" size="sm" onClick={onConfirm}>
+        Set aside and start fresh
+      </Button>
+      <Button variant="secondary" size="sm" onClick={() => setAsking(false)}>
+        Keep it
+      </Button>
+    </div>
+  );
+}
 
 export function ProductionRecoveryNotice({ data }: { data: LiveProductionVals['recovery'] }) {
   if (!data) return null;
@@ -37,16 +66,19 @@ export function ProductionRecoveryNotice({ data }: { data: LiveProductionVals['r
     ]
   }[data.status];
   return (
-    <Banner
-      tone={data.status === 'loading' ? 'info' : 'warn'}
-      title={copy[0]}
-      body={copy[1]}
-      action={
-        ['locked', 'invalid', 'unavailable'].includes(data.status)
-          ? { label: 'Retry production work', onPress: data.retry }
-          : undefined
-      }
-    />
+    <>
+      <Banner
+        tone={data.status === 'loading' ? 'info' : 'warn'}
+        title={copy[0]}
+        body={copy[1]}
+        action={
+          ['locked', 'invalid', 'unavailable'].includes(data.status)
+            ? { label: 'Retry production work', onPress: data.retry }
+            : undefined
+        }
+      />
+      {data.status === 'invalid' && data.setAside ? <SetAside onConfirm={data.setAside} /> : null}
+    </>
   );
 }
 

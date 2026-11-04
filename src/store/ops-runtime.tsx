@@ -5780,6 +5780,17 @@ export class OpsRuntime extends OpsProvider {
           if (this.state.role === 'owner' && generation === this.productionRecovery.generation)
             this.retryProductionRecovery();
         },
+        ...(this.productionRecovery.phase === 'invalid'
+          ? {
+              setAside: () => {
+                if (this.state.role === 'owner' && generation === this.productionRecovery.generation)
+                  void this.productionRecovery.setAside().then((moved) => {
+                    if (!moved) this.toast('The saved copy could not be set aside. Close other tabs and try again.', 'warn');
+                    if (!this.unmounted) this.setState({});
+                  });
+              }
+            }
+          : {}),
         setupPeriod: entry && entry.dropNo !== dropNo ? `Drop ${entry.dropNo}` : null,
         resumeSetup: () => {
           if (

@@ -46,3 +46,19 @@ it('explains offline recording while preserving the draft', () => {
     screen.getByText('Your draft is kept on this device. Nothing new is submitted while offline.')
   ).toBeTruthy();
 });
+
+it('an unreadable copy can be set aside only after a second, explained step', () => {
+  const setAside = vi.fn();
+  render(
+    <ProductionRecoveryNotice
+      data={{ status: 'invalid', retry: vi.fn(), setAside, setupPeriod: null, resumeSetup: vi.fn() }}
+    />
+  );
+  fireEvent.click(screen.getByRole('button', { name: 'Set this copy aside' }));
+  expect(setAside).not.toHaveBeenCalled();
+  expect(screen.getByText(/cannot be opened here/)).toBeTruthy();
+  fireEvent.click(screen.getByRole('button', { name: 'Keep it' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Set this copy aside' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Set aside and start fresh' }));
+  expect(setAside).toHaveBeenCalledOnce();
+});
