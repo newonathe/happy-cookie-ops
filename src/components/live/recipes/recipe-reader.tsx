@@ -66,6 +66,29 @@ export function RecipeReader({ page, onCosts }: { page: Page; onCosts: () => voi
   };
   const rows = scalable ? batchStock(page.rows, page.stock ?? [], page.savedYield, batch) : [];
   const attention = rows.filter((row) => row.state !== 'enough');
+  const stockRow = (row: (typeof attention)[number]) => {
+    const item = page.stock?.find((entry) => entry.name === row.name);
+    return (
+      <TaskRow
+        key={row.name}
+        title={row.name}
+        detail={
+          row.state === 'short'
+            ? `Short by ${formatQuantity(row.short, row.unit)}`
+            : row.state === 'notTracked' && item && item.unit !== row.unit
+              ? 'Stock unit differs from recipe'
+              : STOCK_WORDS[row.state]
+        }
+        action={
+          item?.count ? (
+            <Button variant="secondary" size="sm" onClick={item.count}>
+              Count<span className="sr-only"> {row.name}</span>
+            </Button>
+          ) : undefined
+        }
+      />
+    );
+  };
   return (
     <section data-screen-label="Recipes" className={styles.page} aria-label="Saved recipe">
       <Button className="self-start" onClick={page.back}>
@@ -132,46 +155,35 @@ export function RecipeReader({ page, onCosts }: { page: Page; onCosts: () => voi
               <div className={styles.foot}>
                 <span>Saved yield: {page.savedYield} cookies</span>
                 {page.startProduction ? (
-                  <Button variant="primary" onClick={page.startProduction}>
+                  <Button
+                    variant="primary"
+                    onClick={() => page.startProduction?.(scalable ? batch : undefined)}
+                  >
                     Start production
                   </Button>
                 ) : null}
               </div>
             </section>
           </Panel>
-          <Panel title="Stock for this batch">
+          <Panel title="Do you have enough?">
             {!scalable ? (
               <p className={styles.note}>Enter how many cookies to make.</p>
             ) : !page.stock ? (
-              <p className={styles.note}>
-                Inventory has not been read yet. Stock for this batch is unknown.
-              </p>
+              <p className={styles.note}>Inventory has not been read yet, so this is unknown.</p>
             ) : attention.length === 0 ? (
-              <p className={styles.note}>Recorded stock covers this batch.</p>
+              <p className={styles.note}>Yes, your records cover this batch.</p>
             ) : (
-              attention.map((row) => {
-                const item = page.stock?.find((entry) => entry.name === row.name);
-                return (
-                  <TaskRow
-                    key={row.name}
-                    title={row.name}
-                    detail={
-                      row.state === 'short'
-                        ? `Short by ${formatQuantity(row.short, row.unit)}`
-                        : row.state === 'notTracked' && item && item.unit !== row.unit
-                          ? 'Stock unit differs from recipe'
-                          : STOCK_WORDS[row.state]
-                    }
-                    action={
-                      item?.count ? (
-                        <Button variant="secondary" size="sm" onClick={item.count}>
-                          Count<span className="sr-only"> {row.name}</span>
-                        </Button>
-                      ) : undefined
-                    }
-                  />
-                );
-              })
+              <>
+                {attention.filter((row) => row.state === 'short').map(stockRow)}
+                {attention.some((row) => row.state !== 'short') ? (
+                  <details>
+                    <summary className="min-h-11 cursor-pointer py-2 text-caption font-semibold text-ink-soft">
+                      {attention.filter((row) => row.state !== 'short').length} not counted yet
+                    </summary>
+                    {attention.filter((row) => row.state !== 'short').map(stockRow)}
+                  </details>
+                ) : null}
+              </>
             )}
           </Panel>
         </div>

@@ -2,6 +2,7 @@ import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { orderActionWord, orderStatusWord, orderStepWords } from '@/lib/orders/owner-words';
+import { bakeWords } from '@/lib/production/owner-words';
 
 /**
  * The word list in docs/design/ui-review-standard.md, enforced. A word the owner rejected must not come back on a new page.
@@ -16,7 +17,9 @@ const REJECTED: ReadonlyArray<readonly [RegExp, string]> = [
   [/receive delivery/i, 'say "Add to inventory"'],
   [/i bought these/i, 'say "Add to inventory"'],
   [/>\s*receive\s*</i, 'say "Add to inventory"'],
-  [/unaccounted/i, 'say what happened in her words']
+  [/unaccounted/i, 'say what happened in her words'],
+  [/chilled/i, 'say "dough in the fridge"'],
+  [/enter stock/i, 'say "ready for orders"']
 ];
 
 function files(dir: string): string[] {
@@ -64,5 +67,15 @@ describe('an order in her words', () => {
     expect(orderStepWords('Ready for pickup')).toBe('Ready for customer pickup');
     expect(orderStepWords('Collected by the customer')).toBe('Picked up by the customer');
     expect(orderStepWords('Baked')).toBe('Baked');
+  });
+});
+
+describe('production in her words', () => {
+  it('talks about the fridge', () => {
+    expect(bakeWords('no dough yet')).toBe('No dough in the fridge');
+    expect(bakeWords('Nothing chilled for this flavour, so all 13 are mixed fresh.')).toBe(
+      'No dough in the fridge for this flavour, so all 13 use new ingredients.'
+    );
+    expect(bakeWords('4 chilled dough')).toBe('4 balls of dough in the fridge');
   });
 });

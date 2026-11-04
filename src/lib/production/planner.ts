@@ -63,12 +63,19 @@ export function productionPlanner(
         return product
           ? [
               ...rows,
-              {
-                productId: id,
-                quantity: String(product.needed || product.yield),
-                version: product.version,
-                kind: 'batch'
-              }
+              product.doughBalls
+                ? {
+                    productId: id,
+                    quantity: String(product.needed || product.yield),
+                    version: product.version,
+                    kind: 'batch'
+                  }
+                : {
+                    productId: id,
+                    quantity: String(product.yield),
+                    version: product.version,
+                    kind: 'dough'
+                  }
             ]
           : rows;
       }),

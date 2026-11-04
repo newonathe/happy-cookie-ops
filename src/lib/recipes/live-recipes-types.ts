@@ -62,7 +62,7 @@ export interface LiveRecipesVals {
       counted: boolean;
       count?: () => void;
     }>;
-    startProduction?: () => void;
+    startProduction?: (cookies?: number) => void;
     back: () => void;
     refresh: () => void;
   };
