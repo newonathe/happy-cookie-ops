@@ -63,7 +63,7 @@
   .header { padding-inline: 20px; }
 }
 @media (max-width: 650px) {
-  .workspace { --workspace-sidebar: 0px; display: flex; flex-direction: column; }
+  .workspace { --workspace-sidebar: 0px; --workspace-dock: 76px; display: flex; flex-direction: column; }
   .rail { display: none; }
   .work { flex: 1; }
   .header { min-height: 60px; padding: 9px 14px; }

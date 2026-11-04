@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import type { LiveMoney, MoneyPeriod, OpsVals } from '@/view-models/vals';
 import { Button } from '@/components/ui/button';
+import { MoneyEntryLive, TransactionLive } from './money-pages';
 import { SubTabs } from '@/components/ui/sub-tabs';
 import { cx } from '@/components/ui/cx';
 import {
@@ -180,6 +181,25 @@ function MoneySettings({ money, back }: { money: LiveMoney; back: () => void }) 
           }
         />
       </Panel>
+      {money.recipeCosts?.length ? (
+        <>
+          <SectionHeading>Recipe costs</SectionHeading>
+          <Panel>
+            {money.recipeCosts.map((item) => (
+              <TaskRow
+                key={item.id}
+                title={item.name}
+                detail={item.costText}
+                action={
+                  <Button variant="secondary" size="sm" onClick={item.open}>
+                    View cost<span className="sr-only"> of {item.name}</span>
+                  </Button>
+                }
+              />
+            ))}
+          </Panel>
+        </>
+      ) : null}
     </div>
   );
 }
@@ -189,11 +209,15 @@ function MoneySettings({ money, back }: { money: LiveMoney; back: () => void }) 
  * green with +, costs red with −; the books' own sums are shown, never a chart's own arithmetic.
  */
 export function MoneyLive({ v }: { v: OpsVals }) {
+  const [openRow, setOpenRow] = useState<string | null>(null);
   const money = v.liveMoney;
   const [settings, setSettings] = useState(false);
   const [filter, setFilter] = useState<Filter>({ kind: 'all' });
   if (!money) return null;
+  if (money.entry) return <MoneyEntryLive entry={money.entry} />;
   if (settings) return <MoneySettings money={money} back={() => setSettings(false)} />;
+  const opened = money.transactions.find((t) => t.id === openRow);
+  if (opened) return <TransactionLive row={opened} back={() => setOpenRow(null)} />;
   const tabs = v.liveScreen?.tabs;
   const cat = filter.kind === 'cat' ? filter.cat : null;
   const rows = money.transactions.filter((t) =>
@@ -402,25 +426,28 @@ export function MoneyLive({ v }: { v: OpsVals }) {
               ) : (
                 <ul className="flex flex-col">
                   {rows.map((t) => (
-                    <li
-                      key={t.id}
-                      className="flex min-h-14 items-center justify-between gap-3 border-b border-line py-2.5 last:border-b-0"
-                    >
-                      <span className="flex min-w-0 flex-col gap-0.5">
-                        <span className="truncate text-[14px] font-semibold text-ink">
-                          {t.label}
+                    <li key={t.id} className="border-b border-line last:border-b-0">
+                      <button
+                        type="button"
+                        onClick={() => setOpenRow(t.id)}
+                        className="flex min-h-14 w-full items-center justify-between gap-3 py-2.5 text-left hover:bg-raise focus-visible:outline-2 focus-visible:outline-brand"
+                      >
+                        <span className="flex min-w-0 flex-col gap-0.5">
+                          <span className="truncate text-[14px] font-semibold text-ink">
+                            {t.label}
+                          </span>
+                          <span className="text-caption text-ink-mute">
+                            {t.when} · {t.kind === 'draw' ? 'Taken out (not an expense)' : t.cat}
+                          </span>
                         </span>
-                        <span className="text-caption text-ink-mute">
-                          {t.when} · {t.kind === 'draw' ? 'Taken out (not an expense)' : t.cat}
-                        </span>
-                      </span>
-                      {t.kind === 'draw' ? (
-                        <span className="font-semibold text-ink tabular-nums">
-                          −₱{pesos.format(Math.abs(t.signed))}
-                        </span>
-                      ) : (
-                        <SignedMoney pesos={t.signed} />
-                      )}
+                        {t.kind === 'draw' ? (
+                          <span className="font-semibold text-ink tabular-nums">
+                            −₱{pesos.format(Math.abs(t.signed))}
+                          </span>
+                        ) : (
+                          <SignedMoney pesos={t.signed} />
+                        )}
+                      </button>
                     </li>
                   ))}
                 </ul>
@@ -462,7 +489,7 @@ export function MoneyLive({ v }: { v: OpsVals }) {
           <FooterActions
             back={
               <Button variant="secondary" onClick={money.takeMoneyOut}>
-                Take money out
+                Record owner draw
               </Button>
             }
             forward={

@@ -34,6 +34,18 @@ import { ShopScreen } from '@/components/screens/shop';
 import { CheckoutScreen } from '@/components/screens/checkout';
 import { OrderStatusScreen } from '@/components/screens/order-status';
 import { LiveScreenHost } from './live-screen-host';
+import { MoneyCategoriesLive } from './money/money-pages';
+import {
+  NoShowLive,
+  PayRulesLive,
+  PeopleLive,
+  PricingLive,
+  RefundLive,
+  RetentionLive,
+  RulesLive,
+  StatusesLive,
+  SwapLive
+} from './settings-pages';
 import { CustomersLive } from './sell/customers-live';
 import { ShopStatusLive } from './sell/shop-live';
 import { PageTitle } from '@/components/ui/owner-kit';
@@ -95,7 +107,12 @@ function usesLiveModal(v: OpsVals) {
  */
 function pageFormOf(
   v: OpsVals
-): { title: string; subtitle: string; close: () => void; body?: ComponentType<{ v: OpsVals }> } | null {
+): {
+  title: string;
+  subtitle: string;
+  close: () => void;
+  body?: ComponentType<{ v: OpsVals }>;
+} | null {
   if (!v.sheet) return null;
   if (v.sheet.isCustomers)
     return {
@@ -111,6 +128,49 @@ function pageFormOf(
       close: v.closeSheet,
       body: ShopStatusLive
     };
+  const sheetPage = (
+    on: unknown,
+    title: string,
+    subtitle: string,
+    body: ComponentType<{ v: OpsVals }>
+  ) => (on ? { title, subtitle, close: v.closeSheet, body } : null);
+  const sheetAsPage =
+    sheetPage(
+      v.sheet.isCategories,
+      'Expense categories',
+      'Used when recording expenses.',
+      MoneyCategoriesLive
+    ) ??
+    sheetPage(
+      v.sheet.isRules,
+      'Rules',
+      'The numbers every screen follows, and the ordering week.',
+      RulesLive
+    ) ??
+    sheetPage(
+      v.sheet.isUsers,
+      'People & access',
+      'Each person uses their own account.',
+      PeopleLive
+    ) ??
+    sheetPage(
+      v.sheet.isRetention,
+      'Keep customer details for',
+      'How long contact details are kept.',
+      RetentionLive
+    ) ??
+    sheetPage(v.sheet.isStatuses, 'Order statuses', 'What each status means.', StatusesLive) ??
+    sheetPage(v.sheet.isPricing, 'Pricing rule', 'How a box of cookies is priced.', PricingLive) ??
+    sheetPage(
+      v.sheet.isPayRules,
+      'Payment methods and proof rule',
+      'What customers must send.',
+      PayRulesLive
+    ) ??
+    sheetPage(v.sheet.isRefund, 'Record refund', 'For money already sent back.', RefundLive) ??
+    sheetPage(v.sheet.isNoShow, 'Mark as no-show', 'The customer did not collect.', NoShowLive) ??
+    sheetPage(v.sheet.isSwap, 'Swap a flavour', 'Replace one flavour in this order.', SwapLive);
+  if (sheetAsPage) return sheetAsPage;
   if (v.liveOrderRules)
     return {
       title: 'Order rules',
@@ -254,6 +314,19 @@ function Navigation({ items, phone = false }: { items: OpsVals['dockNav']; phone
   );
 }
 
+/**
+ * The owner sells inside the owner frame (owner reference, bazaar-layout.png). Bazaar-only access,
+ * where the phone may open nothing but the till, keeps the till on its own.
+ */
+function ownerSellingInFrame(v: OpsVals, screen: string): boolean {
+  return (
+    screen === 'bazaar' &&
+    !!v.liveBazaar &&
+    !v.liveBazaar.navigation?.tillOnly &&
+    v.dockNav.length > 0
+  );
+}
+
 /** The approved live frame is separate from the locked demo. Its domain runtime never remounts. */
 export function OwnerWorkspace({
   v,
@@ -293,7 +366,7 @@ export function OwnerWorkspace({
     !isLiveMode() ||
     role !== 'owner' ||
     v.denied ||
-    !v.showTopBar ||
+    (!v.showTopBar && !ownerSellingInFrame(v, screen)) ||
     CUSTOMER_SCREENS.includes(screen as ScreenKey)
   )
     return <AppFrame v={v} />;
@@ -301,17 +374,19 @@ export function OwnerWorkspace({
   const pageForm = pageFormOf(v);
   const back = pageForm
     ? pageForm.close
-    : v.liveStock?.receive
-      ? v.liveStock.receive.close
-      : screen === 'inventory' && v.liveStock?.change
-        ? v.liveStock.change.close
-        : screen === 'inventory' && v.liveStock
-      ? v.liveStock.count && !v.liveStock.count.paused
-        ? v.liveStock.count.back
-        : v.liveStock.page?.pricesOpen
-          ? (v.liveStock.page.closePrices ?? v.liveStock.page.close)
-          : (v.liveStock.page?.close ?? v.goBack)
-      : v.goBack;
+    : v.liveMoney?.entry
+      ? v.liveMoney.entry.close
+      : v.liveStock?.receive
+        ? v.liveStock.receive.close
+        : screen === 'inventory' && v.liveStock?.change
+          ? v.liveStock.change.close
+          : screen === 'inventory' && v.liveStock
+            ? v.liveStock.count && !v.liveStock.count.paused
+              ? v.liveStock.count.back
+              : v.liveStock.page?.pricesOpen
+                ? (v.liveStock.page.closePrices ?? v.liveStock.page.close)
+                : (v.liveStock.page?.close ?? v.goBack)
+            : v.goBack;
   return (
     <div
       className={`${styles.workspace} ${theme.theme}`}

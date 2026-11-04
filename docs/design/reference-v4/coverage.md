@@ -40,7 +40,7 @@ on the 4186 preview with synthetic data; it is not hosted, device or owner accep
 | bazaar | `live/bazaar/event-page.tsx` | Partial | Hero facts and selling-days panel to align |
 | event-edit | `live/bazaar/event-form.tsx` | Partial | Page form, re-skin |
 | plan, plan-review | `live/bazaar/day-plan.tsx` | Partial | Review as its own step |
-| till | `live/bazaar/till.tsx` | Partial | Owner's layout: frame, status strip, 3-column photo grid, Current sale panel |
+| till | `live/bazaar/till.tsx`, `till-card.tsx` | Done | Owner sells inside the frame; Bazaar-only access stays till-only |
 | classic-till | ported `bazaar-mode` | Old | Keep as fallback, re-skin |
 | receipt, void | ported sheets via till | Old | Pages |
 | close, close-review | `live/bazaar/close-form.tsx`, `day-review.tsx` | Partial | Two-column layout |
@@ -52,7 +52,7 @@ on the 4186 preview with synthetic data; it is not hosted, device or owner accep
 | sell | `live/sell/orders-live.tsx` | Done | |
 | order | `live/sell/order-live.tsx` | Done | |
 | payment-review | inside `order-live.tsx` | Done | Reconciliation stays at `payments-live.tsx` |
-| order-action | ported refund, no-show, swap sheets | Old | Page with reason |
+| order-action | `RefundLive`, `NoShowLive`, `SwapLive` in `live/settings-pages.tsx` | Done | |
 | customers | `live/sell/customers-live.tsx` in page mode (`pageFormOf`) | Partial | Rows show this drop and the waitlist; needs customer rows with order history |
 | customer-detail, customer-message, contact-remove | | Missing | Needs a customers class and the existing erasure RPC |
 | **Shop** | | | |
@@ -62,7 +62,7 @@ on the 4186 preview with synthetic data; it is not hosted, device or owner accep
 | boxes | `live/order-extras-form.tsx` | Done | Flavours need migration 71 hosted |
 | payment-methods, payment-method-edit | `live/payment-forms.tsx` | Partial | Page mode done, re-skin inner form |
 | shop-text | `live/payment-forms.tsx` | Partial | Same |
-| shop-schedule | `ScheduleAndDrop` in `live/sell/shop-live.tsx` | Partial | Capacity, sold-out and past drops are here. Schedule fields still in the ported `rules` sheet |
+| shop-schedule | `ScheduleAndDrop` in `live/sell/shop-live.tsx`, `RulesLive` | Partial | Capacity, sold-out and past drops are together; the ordering week is on Rules |
 | customer-shop, customer-checkout, customer-status | ported customer screens with live branches | Partial | Compare with the mockup |
 | **Make** | | | |
 | make | `live/recipes/products-live.tsx`, `store/make-desk.ts` | Done | |
@@ -90,14 +90,14 @@ on the 4186 preview with synthetic data; it is not hosted, device or owner accep
 | stock-settings | `useAreaSettings` area `stock` | Partial | Budget is a row in Make settings › Kitchen rules, in the ported `rules` sheet |
 | **Money** | | | |
 | money | `live/money/money-live.tsx` | Done | |
-| money-settings | `MoneySettings` | Partial | Recipe cost list |
-| money-entry, money-review | ported `expense`, `draw` sheets | Old | Pages with review |
-| transaction | | Missing | Detail page with source |
-| money-categories | ported `categories` sheet | Old | Page |
-| book-rules | ported `rules` sheet, `books-form.tsx` | Partial | Page |
+| money-settings | `MoneySettings` | Done | |
+| money-entry, money-review | `live/money/money-pages.tsx`, `store/money-entry.ts` | Done | Also Record owner draw |
+| transaction | `TransactionLive` in `money-pages.tsx` | Done | |
+| money-categories | `MoneyCategoriesLive` in page mode | Done | |
+| book-rules | `RulesLive` in `live/settings-pages.tsx`, `books-form.tsx` | Done | Margin floor is not a rule the app has: not added |
 | **Account** | | | |
 | account | `live/account/account-live.tsx`, `settings-areas.tsx` | Done | Sign out stays on `SignOutControl`, drawn by the live gate |
-| people, person-edit | ported `users` sheet | Old | Pages; each person uses their own account |
+| people, person-edit | `PeopleLive` in `live/settings-pages.tsx` | Partial | Lists people and access. Adding a person is not built: accounts are made outside the app |
 | health | `HealthLive` | Done | |
 | backups, restore-preview | health export | Partial | Real backups only; no local JSON restore as a service. `restore-preview` was not captured: it needs a chosen file |
 | sign-out | `app/sign-out-control.tsx` | Partial | Page wording |
