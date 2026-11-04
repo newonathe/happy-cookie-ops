@@ -6,6 +6,13 @@ the scope to Home, Money or Shop. Read AGENTS.md, current.md and next-goal.md be
 
 ## Current work and how to detect it
 
+- **Status, 4 November, late night:** Claude finished Codex's retained Add event work (`store/event-entry.ts`,
+  page in `live/bazaar/event-form.tsx`), with its three review findings fixed. Also added: event page title and
+  Bazaar settings, day review in two columns, customer list and detail (`store/customer-desk.ts`), the product
+  form as a page, and theme tokens in the owner forms. Remaining rows are in coverage. Customer removal has
+  not been run against hosted data. `anonymise_customer` keeps payment proofs and matches only numbers stored
+  in the normal form; changing either needs a new migration and Ethan's decision.
+
 - **Isolated Codex follow-up:** read [performance follow-up](performance-followup-2026-11-04.md).
   Based on d21d302; display-format reuse and truthful recipe stock coverage are prepared on
   `codex/render-performance-followup`, outside Claude's checkout. Do not assume they are integrated.

@@ -3,8 +3,8 @@
 **Claude holds the checkout (Ethan, 4 November, after Codex hit its limit).** Check `git status` and ask Ethan if another agent may be active. **Finish [coverage](../design/reference-v4/coverage.md): every
 mockup page, its place in the app, its status and gap, and the build rules.** [flows](../design/reference-v4/flows.md)
 records every control's outcome. Done on the 4186 preview at four widths: Home, Sell, Shop, Account, Products,
-recipe page, Production, Stock, Receive, Waste/correction, Shopping, Money and its entries, the till and the
-settings pages. Not hosted, device or owner acceptance. Each money/stock/offline slice had an independent review.
+recipe page, Production, Stock, Receive, Waste/correction, Shopping, Money and its entries, the till, the
+settings pages, Events, Add event, the event page, day review and Customers. Not hosted, device or owner acceptance. Each money/stock/offline slice had an independent review.
 
 **4 November — full reference integration active:** the supplied v4 has85 route views. Desktop/phone
 captures cover all85; seven render situations yield1190 checks/190 distinct images, zero failed renders.
