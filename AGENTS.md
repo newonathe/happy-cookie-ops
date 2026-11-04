@@ -16,6 +16,8 @@ actually runs. Reproducing it exactly is the requirement.
 
 Next.js 16 App Router · React 19 · TypeScript strict · Tailwind v4 · Supabase · PWA.
 
+**Also read:** [Ethan's rules](docs/state/working-with-ethan.md).
+
 ## Commands
 
 ```bash
@@ -64,7 +66,7 @@ If a task seems to require one of these, stop and say so before writing code.
 - **Server behaviour:** Architecture A (2026-09-26): a Postgres RPC in a **new** migration (`SECURITY DEFINER`, `search_path=''`, in-function role check, explicit grants), called from the browser with `supabase-js`. RLS is the security boundary. The Pages BFF (`spikes/pages`, `spikes/cleanup-worker`, `src/lib/auth/session-*`, `persistent-session-authority`, `session-crypto`, `supabase-auth-transport`) is archived: do not extend it. `src/app/api/*` serves only the Vercel demo
 - **Schema:** a new file in `supabase/migrations/`
 - **Offline behaviour:** `src/lib/offline/` — read `docs/OFFLINE.md` first
-- **Anything visual:** Check `docs/SCREENS.md` first — the screenshot is the answer key. Live owner pages: `docs/design/reference-v4/coverage.md`
+- **Anything visual:** Check `docs/SCREENS.md` first — the screenshot is the answer key. Live owner pages: `docs/design/reference-v4/coverage.md`; [review standard](docs/design/ui-review-standard.md)
 - **Rate limit on a public RPC:** Inside the RPC: call `consume_rate_limit` (service_role-only; reachable from a `SECURITY DEFINER` function owned by `postgres`). `src/lib/rate-limit.ts` and `src/lib/idempotency.ts` are legacy with no production callers: they fail open and trust `X-Forwarded-For`. Do not extend them
 - **A business rule the owner must decide:** [docs/state/decision-register.md](docs/state/decision-register.md). The prototype and specs are evidence, not decisions
 - **Anything sent to a customer:** `src/lib/messaging/` — read `docs/MESSAGING.md`; it costs her money
@@ -145,7 +147,7 @@ Finish the product under [final-plan.md](docs/state/final-plan.md), version 2, o
 hosted resource still need Ethan's explicit approval. Earlier authorizations (G0, the Vercel preview, MP-05.a) are in
 [rules-history.md](docs/state/rules-history.md).
 
-Ethan, 3 November: GPU crash fixed, so the Browser pane may be used; localhost:3000 is hosted data (look only).
+Ethan, 3 November: GPU crash fixed, so the Browser pane may be used.
 A Sonnet `security-reviewer` agent may give the independent review while Codex review is on hold.
 
 Shared worker policy: read [docs/state/agent-orchestration.md](docs/state/agent-orchestration.md) before delegation. It governs the combined Codex/Claude limit, explicit models, bounded prompts and review rules for this conversation.
