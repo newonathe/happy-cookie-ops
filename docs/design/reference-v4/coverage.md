@@ -39,13 +39,13 @@ on the 4186 preview with synthetic data; it is not hosted, device or owner accep
 | events | `live/bazaar/event-list.tsx` | Done | |
 | bazaar | `live/bazaar/event-page.tsx` | Done | Title, All events and Settings aligned; stats stay richer than the mockup |
 | event-edit | `live/bazaar/event-form.tsx`, `store/event-entry.ts`, `scheduled-events-form.tsx` | Done | Adding is a page with Review, kept across reloads. Changing is under Bazaar settings |
-| plan, plan-review | `live/bazaar/day-plan.tsx` | Partial | Title aligned; photo tiles stay. Saving goes straight from the plan, with no separate Review step |
+| plan, plan-review | `live/bazaar/day-plan.tsx`, `start-day-sheet.tsx` | Done | Saving a plan opens nothing, so it needs no Review; starting the day asks first |
 | till | `live/bazaar/till.tsx`, `till-card.tsx` | Done | Owner sells inside the frame; Bazaar-only access stays till-only |
 | classic-till | ported `bazaar-mode`, under the till bar | Done | Fallback only. Its screen is locked, so it keeps the ported look |
 | receipt, void | `ReceiptPage`, `VoidPage` in `live/bazaar/till.tsx` | Done | Opened from Sales today. The engine records no void reason, so none is asked |
 | close, close-review | `live/bazaar/close-form.tsx`, `day-review.tsx` | Done | Two columns on a wide screen; the count and drawer are on one page, with the recount question before closing |
 | event-review | `live/bazaar/close-event-sheet.tsx` as a page | Done | |
-| event-tools, event-tool-review | `TillPanelPage` in `live/bazaar/till-bar.tsx` | Partial | Pages now. No Review step: each entry can be removed from the same page |
+| event-tools, event-tool-review | `TillPanelPage` in `live/bazaar/till-bar.tsx` | Partial | No Review step: each entry can be removed from the same page. Ethan to decide |
 | device-recovery | Selling device in `TillSettings`, `live/bazaar/till.tsx` | Done | No recovery export: sales wait in this browser until sent |
 | bazaar-settings | Settings in `event-page.tsx`; `TillSettings` while selling | Done | |
 | **Sell** | | | |
@@ -62,12 +62,12 @@ on the 4186 preview with synthetic data; it is not hosted, device or owner accep
 | boxes | `live/order-extras-form.tsx` | Done | Flavours need migration 71 hosted |
 | payment-methods, payment-method-edit | `live/payment-forms.tsx` | Done | Colours from the theme |
 | shop-text | `live/payment-forms.tsx` | Done | Colours from the theme |
-| shop-schedule | `ScheduleAndDrop` in `live/sell/shop-live.tsx`, `RulesLive` | Partial | Capacity, sold-out and past drops are together; the ordering week is on Rules |
-| customer-shop, customer-checkout, customer-status | ported customer screens with live branches | Partial | Compare with the mockup |
+| shop-schedule | `ScheduleAndDrop` in `live/sell/shop-live.tsx`, `RulesLive` | Done | Capacity, sold-out and past drops, with Ordering week one step away |
+| customer-shop, customer-checkout, customer-status | ported customer screens with live branches | Partial | Locked screens: they work and keep the warm shop look, in a different layout from the mockup. Rebuilding them needs Ethan to ask |
 | **Make** | | | |
 | make | `live/recipes/products-live.tsx`, `store/make-desk.ts` | Done | |
 | production | `live/production/production-live.tsx` | Done | Baked stock by product is on Inventory |
-| production-entry, production-review | `production-start.tsx`, `production-focus-live.tsx` | Partial | Group entry exists; compare |
+| production-entry, production-review | `production-start.tsx`, `production-focus-live.tsx` | Done | Differs on purpose: the owner asked for several products together, and counts are entered per batch |
 | recipe | `live/recipes/recipe-reader.tsx`, `flavour-page.tsx`, `lib/recipes/batch.ts` | Done | Cost and History stay together on the flavour page |
 | recipe-edit, recipe-review | `live/recipes/recipe-editor.tsx` | Done | Each line has its type, kept on save. A new saved recipe for a product with none is not built |
 | recipe-drafts | `live/recipe-drafts-form.tsx`, Needs recipe on Products | Done | Colours from the theme; the Needs recipe filter lists what has none |
@@ -97,9 +97,9 @@ on the 4186 preview with synthetic data; it is not hosted, device or owner accep
 | book-rules | `RulesLive` in `live/settings-pages.tsx`, `books-form.tsx` | Done | Margin floor is not a rule the app has: not added |
 | **Account** | | | |
 | account | `live/account/account-live.tsx`, `settings-areas.tsx` | Done | Sign out stays on `SignOutControl`, drawn by the live gate |
-| people, person-edit | `PeopleLive` in `live/settings-pages.tsx` | Partial | Lists people and access. Adding a person is not built: accounts are made outside the app |
+| people, person-edit | `PeopleLive` in `live/settings-pages.tsx` | Partial | Lists people and access. Adding a person means creating accounts on the hosted service, which needs Ethan |
 | health | `HealthLive` | Done | |
-| backups, restore-preview | health export | Partial | Real backups only; no local JSON restore as a service. `restore-preview` was not captured: it needs a chosen file |
+| backups, restore-preview | `HealthLive` | Done | Real status and export. No restore from a browser file: it would overwrite real records |
 | sign-out | `app/sign-out-control.tsx` | Done | Warns about unsent sales first |
 | sign-in, account-help | `app/sign-in/sign-in-form.tsx` | Done | |
 | record-unavailable | `RecordUnavailable` in `ui/owner-patterns.tsx` | Done | Used for an order that cannot be read |

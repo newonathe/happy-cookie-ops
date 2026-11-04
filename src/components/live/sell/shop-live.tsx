@@ -45,6 +45,9 @@ function entryRow(entry: Entry | undefined) {
 /** This drop: orders against capacity, the cookie limit, what is sold out, and past drops. */
 function ScheduleAndDrop({ v, onBack }: { v: OpsVals; onBack: () => void }) {
   const { drop, drop2 } = v;
+  const week = (v.settingsGroups ?? [])
+    .flatMap((group) => group.rows ?? [])
+    .find((row) => row.label === 'Drop schedule');
   return (
     <div className="w-full">
       <PageTitle title="Opening schedule & drop" subtitle={String(drop2.scheduleLine)} />
@@ -106,6 +109,12 @@ function ScheduleAndDrop({ v, onBack }: { v: OpsVals; onBack: () => void }) {
           </span>
         </div>
       </Panel>
+
+      {week ? (
+        <Panel>
+          <OpenRow title="Ordering week" detail={week.value} onOpen={week.go} />
+        </Panel>
+      ) : null}
 
       <SectionHeading>This drop&apos;s menu</SectionHeading>
       <Panel>

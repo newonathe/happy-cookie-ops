@@ -6,6 +6,11 @@ the scope to Home, Money or Shop. Read AGENTS.md, current.md and next-goal.md be
 
 ## Current work and how to detect it
 
+- **Status, 5 November:** coverage has 4 Partial rows left, each naming why. Added since the last note: till
+  receipt, void, settings and tools as pages; event close as a page; `recipe-editor.tsx` (the "do not save yet"
+  warning is gone); `store/bake-plan.ts`; cost Review; sign-in help; `RecordUnavailable`; Codex's price editor, applied
+  and left in `stash@{0}` as well. Not verified: the production build (a locked `.next/standalone`), hosted data, e2e.
+
 - **Status, 4 November, late night:** Claude finished Codex's retained Add event work (`store/event-entry.ts`,
   page in `live/bazaar/event-form.tsx`), with its three review findings fixed. Also added: event page title and
   Bazaar settings, day review in two columns, customer list and detail (`store/customer-desk.ts`), the product
