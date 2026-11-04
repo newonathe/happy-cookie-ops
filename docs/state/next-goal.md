@@ -26,7 +26,7 @@ single-tab writing, multiple drafts/exact pending requests, no automatic posting
 saved results with stock unchecked. Full gate:175files/2873tests+2TODOs; eight browser flows pass.
 Independent review passed. Read the newest handoff first.
 Latest: group entry/recipe writer pass176files/2886tests+2TODOs,28-page build,eight browser runs.
-Next: full reference flow/state review and family integration; keep review holds. B1 plan/review addresses, stage
+Next: finish every page in [coverage](../design/reference-v4/coverage.md), by its build rules; keep review holds. B1 plan/review addresses, stage
 wording and inactive held events remain. Recipe reads keep line kind; the writer is unresolved.
 Preserve selling values, permissions and required independent review; no quota/provider bypass.
 

@@ -97,7 +97,7 @@ export function TaskRow({
   onOpen?: () => void;
 }) {
   const body = (
-    <span className="flex min-w-0 flex-col gap-0.5">
+    <span className="flex min-w-0 flex-1 basis-44 flex-col gap-0.5">
       <span className="text-[15px] font-semibold text-ink">{title}</span>
       {detail ? <span className="text-caption text-ink-mute">{detail}</span> : null}
     </span>
@@ -116,7 +116,7 @@ export function TaskRow({
       </button>
     );
   return (
-    <div className="flex min-h-14 items-center justify-between gap-3 border-b border-line py-3 last:border-b-0">
+    <div className="flex min-h-14 flex-wrap items-center justify-between gap-3 border-b border-line py-3 last:border-b-0">
       {body}
       {action}
     </div>

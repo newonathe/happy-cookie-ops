@@ -1813,6 +1813,8 @@ export interface OpsVals {
     go: (event?: unknown) => void;
     name: React.ReactNode;
     notContacted: unknown;
+    want?: React.ReactNode;
+    when?: React.ReactNode;
   }>;
 }
 

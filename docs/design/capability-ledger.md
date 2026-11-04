@@ -110,3 +110,19 @@ add-ons (every cookie listed, switched-off ones marked); the customer shop's sam
 deployed app keeps saving unchanged before an update; the app sends the key only when the database
 returned it, and hides the toggles otherwise. place_order and historical orders are untouched. Applied to
 the local database only; applying it to the hosted database needs Ethan's separate approval.
+
+## Sell, Shop and Account (`src/components/live/sell/`, `src/components/live/account/`)
+
+| Today's capability | New home | Evidence |
+|---|---|---|
+| Orders: review banner, filters with counts, search, split preview, flavour tally, quick next action, Customer messages | `OrdersLive`; groups follow the reference, each row keeps its status word | test, screenshot |
+| Order detail: payment check, proof, clearer proof, reject, lines, progress, contact, status changes, refund, no-show, swap | `OrderLive`, same engine `od` actions | screenshot |
+| Payments list | `PaymentsLive`; the Payments tab stays, because several payments can wait at once | screenshot |
+| Customers sheet and waitlist action | `CustomersLive` as a page | test |
+| Shop status options and close-and-roll-over | `ShopStatusLive` as a page | test |
+| Capacity, ordering open or closed, sold-out switches, past drops | One step down, on Opening schedule & drop | test |
+| Every Shop entry | Rows and previews on `ShopLive`; an unknown entry still gets a row | test |
+| Every Account setting row | `SettingsAreaPage`; an unknown group lands in Other settings | test |
+| Notifications, Health, records, export, report a problem | `NotificationsLive`, `HealthLive` | screenshot |
+
+Dropped: nothing. Still drawn by a ported sheet: refund, no-show, swap, users, rules, retention, pricing. See [coverage](reference-v4/coverage.md).
