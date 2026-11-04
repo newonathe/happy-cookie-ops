@@ -1,9 +1,11 @@
 # Current state — Happy Cookie Ops
 
-**Claude holds the checkout again (Ethan, 4 November, 4:41 PM).** Codex's production recovery, group
-planning, recipe writer, results and audit fixes passed independent Sonnet review and are committed;
-its two Medium recovery findings are fixed. Check `git status` and ask Ethan before writing if another
-agent may be active. Next: Sell, Shop status, Account, section Settings, then the screenshot layouts.
+**Claude holds the checkout (Ethan, 4 November).** Check `git status` and ask Ethan before writing if
+another agent may be active. **Finish the app from [coverage](../design/reference-v4/coverage.md): every
+mockup page, its place in the app, its status and gap, and the build rules.** [flows](../design/reference-v4/flows.md)
+records every control's outcome. Done on the 4186 preview at four widths: Home, Sell, Shop, Account, Products,
+recipe page, Production, Stock, Receive, Waste/correction, Shopping, Money and its entries, the till and the
+settings pages. Not hosted, device or owner acceptance. Each money/stock/offline slice had an independent review.
 
 **4 November — full reference integration active:** the supplied v4 has85 route views. Desktop/phone
 captures cover all85; seven render situations yield1190 checks/190 distinct images, zero failed renders.
@@ -18,13 +20,6 @@ plan integration, full demo population/hosted insertion and the complete applica
 No hosted/applied-SQL/protected-port changes. Gallery:localhost4190/index.html; actual preview:4186.
 Source/test details and visible examples are in the [Claude UI handoff](../design/claude-ui-handoff.md).
 The newest blocks override historical “next bug” and uncommitted-status descriptions below.
-
-**Claude UI slice, 3 November (late):** v4 look now reaches Home, Money and Shop rules/boxes in live
-mode via new live slots (`live/home`, `live/money`, page-mode settings forms) and a shared kit
-(`ui/owner-kit.tsx`). Owner Shop feedback done; sampler flavours added as local migration 71 (hosted
-apply awaits approval). Lossless record and feedback status: [capability ledger](../design/capability-ledger.md).
-Next: Sell orders/payments/
-customers, Shop status/methods/texts, Account, section Settings buttons, production results bug.
 
 **Earlier Codex checkpoint (before accepted c51401f/273de7d):** Full actual-app goal remains incomplete.
 Latest uncommitted work connects the independent draft pool to the actual runtime and Make list.

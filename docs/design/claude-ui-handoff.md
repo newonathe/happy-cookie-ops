@@ -6,6 +6,15 @@ the scope to Home, Money or Shop. Read AGENTS.md, current.md and next-goal.md be
 
 ## Current work and how to detect it
 
+- **Status, 4 November, night: read [coverage](reference-v4/coverage.md) first.** It lists all 85 mockup
+  routes with their place in the app, status and gap, and how to build (kit, classes with injected
+  dependencies, slots). Update it in the same commit as a page. [flows](reference-v4/flows.md) is generated from
+  a crawl of every control. Private: `mockup-page-state-audit/flows.json`, `flows/*.png`. New classes:
+  `store/home-desk.ts`, `money-desk.ts`, `money-entry.ts`, `make-desk.ts`, `stock-entries.ts`. Shared:
+  `ui/owner-patterns.tsx`, `live/account/settings-areas.tsx`, `live/settings-pages.tsx`. Open a page from a sheet through
+  `pageFormOf` in `owner-workspace.tsx`. The 4186 preview needs `/bazaar` for events; a selling till needs
+  a state injected from a script (`stage: 'selling'`, `dayId`), since a day cannot start there.
+
 - **Status, 4 November evening:** everything below marked uncommitted or awaiting review has passed
   independent Sonnet review and is committed; the two Medium recovery findings are fixed. The hold on
   the hosted demo-data SQL still stands, and hosted apply of migration 71 needs Ethan's approval.

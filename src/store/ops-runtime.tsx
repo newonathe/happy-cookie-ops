@@ -57,6 +57,7 @@ import {
 import { holdCountLock } from '@/lib/stock/count-lock';
 import { readClassicTill, rememberClassicTill } from '@/lib/offline/till-choice';
 import { BazaarDays } from '@/store/bazaar-days';
+import { HomeDesk } from '@/store/home-desk';
 import { MakeDesk } from '@/store/make-desk';
 import { MoneyDesk, type MoneyEngine } from '@/store/money-desk';
 import { MoneyEntry } from '@/store/money-entry';
@@ -865,6 +866,47 @@ export class OpsRuntime extends OpsProvider {
     newId: () => crypto.randomUUID(),
     openAdd: () => void this.openScheduled(),
     refreshBookings: () => this.loadScheduledEvents(null)
+  });
+  private homeGreeting = { greeting: 'Hello.', date: '' };
+  /** Home's facts, each from the record that owns it. */
+  private homeDesk = new HomeDesk({
+    orders: () =>
+      this.orderSync?.loaded ? ((this.state.orders ?? []) as Array<{ status?: string }>) : null,
+    stockItems: () => this.stockCatalogue?.items ?? null,
+    month: () =>
+      this.booksRows ? this.monthTotals(this.state as unknown as OpsEngineState) : null,
+    production: () =>
+      this.productionDrafts.list().map((work) => ({
+        id: work.id,
+        name: work.product.name,
+        detail:
+          work.draft.kind === 'batch'
+            ? `Batch ${work.number} · ${work.draft.target} planned`
+            : `Dough ${work.number} · ${work.draft.balls} portions`,
+        open: () => {
+          this.go('bake');
+          this.openProductionWork(work.id, work.revision);
+        }
+      })),
+    flavourCount: () => PRODUCTS.length,
+    greeting: () => this.homeGreeting.greeting,
+    dateText: () => this.homeGreeting.date,
+    openStockItem: (id) => {
+      this.go('inventory');
+      this.openStockItemPage(id);
+    },
+    go: {
+      orders: () => this.go('orders'),
+      payments: () => this.go('reconcile'),
+      production: () => this.go('bake'),
+      stock: () => this.go('inventory'),
+      receive: () => void this.openHomeStockTask('receive'),
+      count: () => void this.openHomeStockTask('count'),
+      products: () => this.go('products'),
+      shopping: () => this.go('grocery'),
+      money: () => this.go('pnl'),
+      bazaar: () => this.go('bazaar')
+    }
   });
   /** The Money page's figures for its selected period. */
   private moneyDesk = new MoneyDesk({
@@ -2131,89 +2173,11 @@ export class OpsRuntime extends OpsProvider {
    */
   private liveHomeVals(starved: OpsVals): LiveHome | null {
     if (!isLiveMode() || this.state.role !== 'owner' || this.state.screen !== 'today') return null;
-    const s = this.state as unknown as OpsEngineState;
-    const orders = this.orderSync?.loaded
-      ? (() => {
-          const all = (this.state.orders ?? []) as Array<{ status?: string }>;
-          const count = (status: string) => all.filter((o) => o.status === status).length;
-          return {
-            review: count('Payment review'),
-            toPrepare: count('Confirmed') + count('Preparing'),
-            ready: count('Ready')
-          };
-        })()
-      : null;
-    const catalogue = this.stockCatalogue;
-    const stock = catalogue
-      ? (() => {
-          const items = catalogue.items.filter(
-            (i) => i.active && (i.category === 'Ingredients' || i.category === 'Packaging')
-          );
-          // The Stock page's own rule, so the two pages never disagree about an item.
-          const rows = items.map((i) => ({ item: i, status: stockStatus(i.onHand, i.parLevel) }));
-          const n = (st: string) => rows.filter((r) => r.status === st).length;
-          const order = ['Out', 'Low'];
-          return {
-            counts: {
-              ok: n('Good'),
-              low: n('Low'),
-              out: n('Out'),
-              neverCounted: items.filter((i) => i.lastCounted === null).length
-            },
-            attention: rows
-              .filter((r) => r.status !== 'Good')
-              .sort((a, b) => order.indexOf(a.status) - order.indexOf(b.status))
-              .slice(0, 4)
-              .map((r) => ({
-                name: r.item.name,
-                status: r.status as 'Out' | 'Low',
-                detail:
-                  `${r.item.onHand} ${r.item.unit} recorded · reorder at ${r.item.parLevel} ${r.item.unit}` +
-                  (r.item.lastCounted === null ? ' · never counted' : ''),
-                open: () => {
-                  this.go('inventory');
-                  this.openStockItemPage(r.item.id);
-                }
-              }))
-          };
-        })()
-      : null;
-    const month = this.booksRows ? this.monthTotals(s) : null;
-    return {
+    this.homeGreeting = {
       greeting: String(starved.greeting ?? 'Hello.'),
-      dateText: String(starved.todayDate ?? ''),
-      orders,
-      stockCounts: stock?.counts ?? null,
-      stockAttention: stock?.attention ?? [],
-      production: this.productionDrafts.list().map((work) => ({
-        id: work.id,
-        name: work.product.name,
-        detail:
-          work.draft.kind === 'batch'
-            ? `Batch ${work.number} · ${work.draft.target} planned`
-            : `Dough ${work.number} · ${work.draft.balls} portions`,
-        open: () => {
-          this.go('bake');
-          this.openProductionWork(work.id, work.revision);
-        }
-      })),
-      month: month
-        ? { revenue: month.revenue, expenses: month.totalExp, profit: month.profit }
-        : null,
-      flavours: PRODUCTS.length,
-      go: {
-        orders: () => this.go('orders'),
-        payments: () => this.go('reconcile'),
-        production: () => this.go('bake'),
-        stock: () => this.go('inventory'),
-        receive: () => void this.openHomeStockTask('receive'),
-        count: () => void this.openHomeStockTask('count'),
-        products: () => this.go('products'),
-        shopping: () => this.go('grocery'),
-        money: () => this.go('pnl'),
-        bazaar: () => this.go('bazaar')
-      }
+      date: String(starved.todayDate ?? '')
     };
+    return this.homeDesk.vals();
   }
 
   /** Home shortcuts enter the existing stock actions; opening a task never posts a movement. */
@@ -8181,10 +8145,24 @@ export class OpsRuntime extends OpsProvider {
         state: this.recipeReaderState,
         yieldText: hasLines ? `Makes ${recipe.yield} cookies` : null,
         versionText: hasLines ? `Version ${recipe.version}` : null,
+        savedYield: hasLines ? recipe.yield : 0,
         rows: (recipe?.lines ?? []).map((line) => ({
           name: line.name,
-          amountText: formatQuantity(line.qty, line.unit)
+          amountText: formatQuantity(line.qty, line.unit),
+          qty: line.qty,
+          unit: line.unit,
+          kind: line.kind ?? null
         })),
+        stock: this.stockCatalogue?.items
+          .filter((row) => row.active)
+          .map((row) => ({
+            name: row.name,
+            unit: row.unit,
+            onHand: row.onHand,
+            counted: !!row.lastCounted,
+            count: () => this.startItemCount(row)
+          })),
+        startProduction: () => this.startProductionFromMake(),
         back: () => {
           if (current())
             this.setState({ liveRecipeTarget: null, liveProductReturnId: item.id }, () =>

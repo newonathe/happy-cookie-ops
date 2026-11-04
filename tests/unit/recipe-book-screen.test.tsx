@@ -94,9 +94,10 @@ describe('product recipe link', () => {
     state: 'read',
     yieldText: 'Makes 12 cookies',
     versionText: 'Version 3',
+    savedYield: 12,
     rows: [
-      { name: 'Butter', amountText: '320 g' },
-      { name: 'Eggs', amountText: '2 pcs' }
+      { name: 'Butter', amountText: '320 g', qty: 320, unit: 'g' },
+      { name: 'Eggs', amountText: '2 pcs', qty: 2, unit: 'pcs' }
     ],
     back: vi.fn(),
     refresh: vi.fn()
@@ -105,17 +106,17 @@ describe('product recipe link', () => {
     const page = recipePage(),
       refresh = vi.fn();
     draw(book({ recipePage: page, refresh, state: 'failed', note: 'Cost reading failed.' }));
-    expect(screen.getByRole('heading', { name: 'Red Velvet recipe' })).toHaveFocus();
+    expect(screen.getByRole('heading', { name: 'Red Velvet' })).toHaveFocus();
     expect(screen.getByText('320 g')).toBeTruthy();
-    expect(screen.getByText('Makes 12 cookies')).toBeTruthy();
+    expect(screen.getByText(/Makes 12 cookies/)).toBeTruthy();
     expect(screen.queryByRole('searchbox')).toBeNull();
     expect(screen.queryByText('Cost reading failed.')).toBeNull();
     expect(refresh).not.toHaveBeenCalled();
-    fireEvent.click(screen.getByRole('button', { name: 'Costs & history' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Cost, history & edit' }));
     await waitFor(() => expect(refresh).toHaveBeenCalledTimes(1));
     expect(screen.getByRole('heading', { name: 'Red Velvet' })).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Back to recipe' }));
-    expect(screen.getByRole('heading', { name: 'Red Velvet recipe' })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'Red Velvet' })).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Back to Products' }));
     expect(page.back).toHaveBeenCalledTimes(1);
   });
