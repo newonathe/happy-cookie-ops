@@ -39,11 +39,11 @@ on the 4186 preview with synthetic data; it is not hosted, device or owner accep
 | events | `live/bazaar/event-list.tsx` | Done | |
 | bazaar | `live/bazaar/event-page.tsx` | Done | Title, All events and Settings aligned; stats stay richer than the mockup |
 | event-edit | `live/bazaar/event-form.tsx`, `store/event-entry.ts` | Partial | Adding is a page with Review, kept across reloads. Editing still uses the "Edit or switch off events" form |
-| plan, plan-review | `live/bazaar/day-plan.tsx` | Partial | Review as its own step |
+| plan, plan-review | `live/bazaar/day-plan.tsx` | Partial | Title aligned; photo tiles stay. Saving goes straight from the plan, with no separate Review step |
 | till | `live/bazaar/till.tsx`, `till-card.tsx` | Done | Owner sells inside the frame; Bazaar-only access stays till-only |
 | classic-till | ported `bazaar-mode` | Old | Keep as fallback, re-skin |
 | receipt, void | ported sheets via till | Old | Pages |
-| close, close-review | `live/bazaar/close-form.tsx`, `day-review.tsx` | Partial | Two-column layout |
+| close, close-review | `live/bazaar/close-form.tsx`, `day-review.tsx` | Done | Two columns on a wide screen; the count and drawer are on one page, with the recount question before closing |
 | event-review | `live/bazaar/close-event-sheet.tsx` | Partial | Page |
 | event-tools, event-tool-review | till tools | Partial | Entry/review pages |
 | device-recovery | till/event page | Partial | Page |
@@ -60,8 +60,8 @@ on the 4186 preview with synthetic data; it is not hosted, device or owner accep
 | shop-status | `ShopStatusLive` | Done | |
 | order-rules | `live/order-rules-form.tsx` | Done | Real fields differ from the mockup's sample fields |
 | boxes | `live/order-extras-form.tsx` | Done | Flavours need migration 71 hosted |
-| payment-methods, payment-method-edit | `live/payment-forms.tsx` | Partial | Page mode done, re-skin inner form |
-| shop-text | `live/payment-forms.tsx` | Partial | Same |
+| payment-methods, payment-method-edit | `live/payment-forms.tsx` | Done | Colours from the theme |
+| shop-text | `live/payment-forms.tsx` | Done | Colours from the theme |
 | shop-schedule | `ScheduleAndDrop` in `live/sell/shop-live.tsx`, `RulesLive` | Partial | Capacity, sold-out and past drops are together; the ordering week is on Rules |
 | customer-shop, customer-checkout, customer-status | ported customer screens with live branches | Partial | Compare with the mockup |
 | **Make** | | | |
@@ -70,24 +70,24 @@ on the 4186 preview with synthetic data; it is not hosted, device or owner accep
 | production-entry, production-review | `production-start.tsx`, `production-focus-live.tsx` | Partial | Group entry exists; compare |
 | recipe | `live/recipes/recipe-reader.tsx`, `flavour-page.tsx`, `lib/recipes/batch.ts` | Done | Cost and History stay together on the flavour page |
 | recipe-edit, recipe-review | ported recipes screen | Old | Rebuild beside it; keep the legacy warning until reviewed |
-| recipe-drafts | `live/recipe-drafts-form.tsx` | Partial | Needs-a-recipe list |
+| recipe-drafts | `live/recipe-drafts-form.tsx`, Needs recipe on Products | Done | Colours from the theme; the Needs recipe filter lists what has none |
 | product-edit | `live/live-form-host.tsx` | Done | |
-| new-product | `live/live-form-host.tsx` | Partial | Short first step |
+| new-product | `live/live-form-host.tsx` | Done | Same form as Edit product; the mockup has fewer fields |
 | cost-edit, cost-review | `live/recipes/flavour-page.tsx` | Partial | Review step |
-| make-settings | `useAreaSettings` area `make` | Partial | Show inactive products is the All products filter on Products |
+| make-settings | `useAreaSettings` area `make` | Done | Show inactive products is the All products filter |
 | **Stock** | | | |
 | stock | `live/stock/inventory-live.tsx` | Done | |
 | item | `inventory-live.tsx` ItemPage | Done | |
-| item-edit, new-item | `live/stock-items-form.tsx` | Partial | Re-skin |
+| item-edit, new-item | `live/stock-items-form.tsx` | Done | Colours from the theme |
 | receive, receive-review | `live/stock/stock-entry-live.tsx`, `store/stock-entries.ts` | Done | Delivery date is today: backdating needs a server decision. Paid may stay empty: cost stays pending |
 | count, count-review | `live/stock/count-inventory.tsx` | Done | |
 | adjust, adjust-review | `live/stock/stock-entry-live.tsx`, `store/stock-entries.ts` | Done | |
 | shopping | `live/stock/grocery-live.tsx` | Partial | Grouped by supplier. Edit planned bake is on `bake-needs` |
 | bake-needs | | Missing | Plan cookies by product and buy for that plan, not only for orders. Needs a planning read |
-| suppliers, supplier, supplier-edit | `live/stock/suppliers-live.tsx`, `stock-suppliers-form.tsx` | Partial | Title and Settings done; rows and form to re-skin |
-| purchase-prices | `live/stock/item-prices.tsx` | Partial | Use supplier |
+| suppliers, supplier, supplier-edit | `live/stock/suppliers-live.tsx`, `stock-suppliers-form.tsx` | Done | Colours from the theme; tools moved to Stock settings |
+| purchase-prices | `live/stock/item-prices.tsx` | Done | Reached from the item and from Compare prices |
 | supplier-price-edit | stash `7f5924a` | Missing | Held price editor; read its review packet first |
-| stock-settings | `useAreaSettings` area `stock` | Partial | Budget is a row in Make settings › Kitchen rules, in the ported `rules` sheet |
+| stock-settings | `useAreaSettings` area `stock` | Done | Budget is in Make settings › Kitchen rules, on Rules |
 | **Money** | | | |
 | money | `live/money/money-live.tsx` | Done | |
 | money-settings | `MoneySettings` | Done | |

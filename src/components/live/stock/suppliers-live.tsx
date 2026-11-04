@@ -32,21 +32,23 @@ export function SuppliersLive({ v }: { v: OpsVals }) {
             {selectedId ? selected?.place : 'Contacts, supplied items and saved prices.'}
           </p>
         </div>
-        {data && (!selectedId || selected) ? (
-          <Button
-            variant={selectedId ? 'secondary' : 'primary'}
-            onClick={() => (selectedId ? data.edit(selectedId) : data.add())}
-          >
-            {selectedId ? 'Edit supplier' : 'Add supplier'}
-          </Button>
-        ) : null}
-        {selectedId ? null : (
-          <Button variant="secondary" onClick={settings.open}>
-            Settings
-          </Button>
-        )}
+        <div className={styles.actions}>
+          {data && (!selectedId || selected) ? (
+            <Button
+              variant={selectedId ? 'secondary' : 'primary'}
+              onClick={() => (selectedId ? data.edit(selectedId) : data.add())}
+            >
+              {selectedId ? 'Edit supplier' : 'Add supplier'}
+            </Button>
+          ) : null}
+          {selectedId ? null : (
+            <Button variant="secondary" onClick={settings.open}>
+              Settings
+            </Button>
+          )}
+        </div>
       </div>
-      <SectionNavigation v={v} refined />
+      <SectionNavigation v={v} refined tools={false} />
       {!data ? (
         <p role="status">Suppliers are loading.</p>
       ) : selectedId ? (

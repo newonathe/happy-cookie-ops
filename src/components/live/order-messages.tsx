@@ -14,7 +14,7 @@ export function OrderMessages({
 }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-      <span style={{ fontSize: '12px', color: '#66524A' }}>{MESSAGE_SHEET.intro}</span>
+      <span style={{ fontSize: '12px', color: 'var(--color-ink-mute)' }}>{MESSAGE_SHEET.intro}</span>
       {liveMessages.rows.length ? (
         liveMessages.rows.map((row) => (
           <div
@@ -23,7 +23,7 @@ export function OrderMessages({
               display: 'flex',
               flexDirection: 'column',
               gap: '6px',
-              borderBottom: '1px solid #F2EEEB',
+              borderBottom: '1px solid var(--color-divide)',
               paddingBottom: '12px'
             }}
           >
@@ -31,7 +31,7 @@ export function OrderMessages({
               {row.name} · {row.order} · {row.label}
             </span>
             {row.details.length ? (
-              <span style={{ fontSize: '12px', color: '#6E574B', lineHeight: '1.5' }}>
+              <span style={{ fontSize: '12px', color: 'var(--color-ink-soft)', lineHeight: '1.5' }}>
                 {MESSAGE_SHEET.packLine}: {row.details.join(' · ')}
               </span>
             ) : null}
@@ -40,12 +40,12 @@ export function OrderMessages({
               value={row.text}
               rows={4}
               style={{
-                border: '1px solid #E7E1DC',
+                border: '1px solid var(--color-line-strong)',
                 borderRadius: '12px',
                 padding: '10px 12px',
                 fontSize: '13px',
-                background: '#FFFFFF',
-                color: '#3A1F14',
+                background: 'var(--color-surface)',
+                color: 'var(--color-ink)',
                 resize: 'vertical'
               }}
             />
@@ -55,7 +55,7 @@ export function OrderMessages({
           </div>
         ))
       ) : (
-        <span style={{ fontSize: '13px', color: '#66524A' }}>{MESSAGE_SHEET.empty}</span>
+        <span style={{ fontSize: '13px', color: 'var(--color-ink-mute)' }}>{MESSAGE_SHEET.empty}</span>
       )}
     </div>
   );

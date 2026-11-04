@@ -47,20 +47,35 @@ export function SettingsAreaPage({
   area,
   backLabel,
   onBack,
-  children
+  children,
+  showTools = false
 }: {
   v: OpsVals;
   area: SettingsArea;
   backLabel: string;
   onBack: () => void;
+  showTools?: boolean;
   /** Controls this section owns itself, above the shared rows. */
   children?: ReactNode;
 }) {
   const text = AREA_TEXT[area];
+  // The tools of the place this page was opened from: every one stays reachable from its Settings.
+  const tools = showTools
+    ? (v.liveScreen?.tabs?.entries ?? []).filter(
+        (entry) => !entry.primary && entry.id !== 'Stock items'
+      )
+    : [];
   return (
     <div className="w-full">
       <PageTitle title={text.title} subtitle={text.about} />
       {children}
+      {tools.length ? (
+        <Panel>
+          {tools.map((tool) => (
+            <OpenRow key={String(tool.id)} title={tool.label} onOpen={tool.go} />
+          ))}
+        </Panel>
+      ) : null}
       {groupsOf(v, area).map((group, i) => (
         <div key={i}>
           <SectionHeading>{group.title}</SectionHeading>
@@ -89,7 +104,13 @@ export function useAreaSettings(
   return {
     open: () => setOpen(true),
     page: open ? (
-      <SettingsAreaPage v={v} area={area} backLabel={backLabel} onBack={() => setOpen(false)}>
+      <SettingsAreaPage
+        v={v}
+        area={area}
+        backLabel={backLabel}
+        onBack={() => setOpen(false)}
+        showTools
+      >
         {children}
       </SettingsAreaPage>
     ) : null

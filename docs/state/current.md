@@ -1,7 +1,6 @@
 # Current state — Happy Cookie Ops
 
-**Codex owns the checkout (Ethan confirmed Claude paused/finished, 4 November).** Verified display/recipe
-fixes/directory are integrated at8d4cc81; event-copy protocol9022ff4 is ready for controller wiring. **Finish [coverage](../design/reference-v4/coverage.md): every
+**Claude holds the checkout (Ethan, 4 November, after Codex hit its limit).** Check `git status` and ask Ethan if another agent may be active. **Finish [coverage](../design/reference-v4/coverage.md): every
 mockup page, its place in the app, its status and gap, and the build rules.** [flows](../design/reference-v4/flows.md)
 records every control's outcome. Done on the 4186 preview at four widths: Home, Sell, Shop, Account, Products,
 recipe page, Production, Stock, Receive, Waste/correction, Shopping, Money and its entries, the till and the

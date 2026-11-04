@@ -20,7 +20,7 @@ const rowCard = {
   display: 'flex',
   flexDirection: 'column' as const,
   gap: '8px',
-  border: '1px solid #E7E1DC',
+  border: '1px solid var(--color-line-strong)',
   borderRadius: '12px',
   padding: '11px'
 };
@@ -70,7 +70,7 @@ export function readSupplierForm(
 export function StockSuppliersForm({ liveStock }: { liveStock: LiveStockSuppliers }) {
   const editing = liveStock.editing;
   const offline = !liveStock.online ? (
-    <span style={{ fontSize: '12px', color: '#A8231B' }}>
+    <span style={{ fontSize: '12px', color: 'var(--color-danger)' }}>
       Offline. Changes here will not save until this device is back online.
     </span>
   ) : null;
@@ -78,7 +78,7 @@ export function StockSuppliersForm({ liveStock }: { liveStock: LiveStockSupplier
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         {offline}
-        <span style={{ fontSize: '11px', color: '#66524A' }}>{C.suppliersIntro}</span>
+        <span style={{ fontSize: '11px', color: 'var(--color-ink-mute)' }}>{C.suppliersIntro}</span>
         <button type="button" onClick={liveStock.add} style={primaryButton}>
           {C.addSupplier}
         </button>
@@ -95,7 +95,7 @@ export function StockSuppliersForm({ liveStock }: { liveStock: LiveStockSupplier
                   gap: '10px',
                   minHeight: '54px',
                   border: '0',
-                  borderBottom: '1px solid #F2EEEB',
+                  borderBottom: '1px solid var(--color-divide)',
                   background: 'transparent',
                   padding: '8px 2px',
                   textAlign: 'left',
@@ -106,7 +106,7 @@ export function StockSuppliersForm({ liveStock }: { liveStock: LiveStockSupplier
                   style={{ flex: '1', minWidth: '0', display: 'flex', flexDirection: 'column' }}
                 >
                   <span style={{ fontSize: '13px', fontWeight: 600 }}>{row.name}</span>
-                  <span style={{ fontSize: '11px', color: '#66524A' }}>
+                  <span style={{ fontSize: '11px', color: 'var(--color-ink-mute)' }}>
                     {row.place ? row.place + ' · ' : ''}
                     {row.priceCount === 1 ? '1 price' : row.priceCount + ' prices'}
                     {row.active ? '' : ' · switched off'}
@@ -116,7 +116,7 @@ export function StockSuppliersForm({ liveStock }: { liveStock: LiveStockSupplier
             ))}
           </div>
         ) : (
-          <span style={{ fontSize: '12px', color: '#66524A' }}>{C.noSuppliers}</span>
+          <span style={{ fontSize: '12px', color: 'var(--color-ink-mute)' }}>{C.noSuppliers}</span>
         )}
         <button type="button" onClick={liveStock.close} style={secondaryButton}>
           Close
@@ -169,9 +169,9 @@ export function StockSuppliersForm({ liveStock }: { liveStock: LiveStockSupplier
         <span style={smallLabel}>In use</span>
       </label>
       <span style={{ fontSize: '13px', fontWeight: 600 }}>Prices</span>
-      <span style={{ fontSize: '11px', color: '#66524A' }}>{C.priceHint}</span>
+      <span style={{ fontSize: '11px', color: 'var(--color-ink-mute)' }}>{C.priceHint}</span>
       {editing.isNew ? (
-        <span style={{ fontSize: '11px', color: '#66524A' }}>
+        <span style={{ fontSize: '11px', color: 'var(--color-ink-mute)' }}>
           Save the supplier first, then add its prices.
         </span>
       ) : (
@@ -223,7 +223,7 @@ export function StockSuppliersForm({ liveStock }: { liveStock: LiveStockSupplier
               />
             </label>
             {r ? (
-              <span style={{ fontSize: '11px', color: '#66524A' }}>{r.previousText}</span>
+              <span style={{ fontSize: '11px', color: 'var(--color-ink-mute)' }}>{r.previousText}</span>
             ) : null}
             <label style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <input name={'prPref' + i} type="checkbox" defaultChecked={r?.preferred ?? true} />
