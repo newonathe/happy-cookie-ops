@@ -22,12 +22,11 @@ own-item acknowledgements, Events-first navigation and return context. f57d278/9
 Home/Money/Shop work and sampler migration (local only). Prior synthetic browser proof is in private
 LIVE-CHECKPOINT; it is not SQL/device acceptance. The four Codex follow-ups are locally verified;
 required independent Money review remains pending. Do not reimplement them.
-P2 counts/history, acknowledged per-item results/stock-read retry and source-unavailable guards are
-local. Missing sources keep drafts and offer Retry; cached verified recipes remain usable, and exact
-unanswered-request checks bypass the new-source guard. Fraction/date/history wording corrected.
-96 focused tests, 8 responsive flows and full 173-file / 2,854-test gate (+2 TODOs) pass; live build passes 28 pages.
-Next remaining result detail and P3
-scoped durable recovery. B1 plan/review addresses, stage
+P2 results/source guards remain local. P3 scoped device recovery is now in progress: verified UID/backend,
+single-tab writing, multiple drafts/exact pending requests, no automatic posting, retained setup and
+saved results with stock unchecked. Full gate:175files/2873tests+2TODOs; eight browser flows pass.
+Live build passes28pages; independent review is pending. Read the newest handoff first.
+Next: finish P3 evidence/review, then missing-recipe setup, remaining result detail. B1 plan/review addresses, stage
 wording and inactive held events remain. Recipe reads keep line kind; the writer is unresolved.
 Preserve selling values, permissions and required independent review; no quota/provider bypass.
 

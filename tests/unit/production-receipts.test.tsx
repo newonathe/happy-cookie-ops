@@ -23,6 +23,16 @@ const receipt = (over: Partial<LiveProductionReceipt> = {}): LiveProductionRecei
   retry: vi.fn(),
   ...over
 });
+
+it('labels a recovered acknowledgement without claiming freshly checked stock', () => {
+  const row = receipt({ stockState: 'unread', number: 3 });
+  render(<ProductionReceipts rows={[row]} />);
+  expect(screen.getByText('Saved earlier. Stock has not been checked.')).toBeTruthy();
+  expect(screen.queryByText('Ingredient balances could not be refreshed.')).toBeNull();
+  fireEvent.click(screen.getByRole('button', { name: 'Check recorded stock' }));
+  expect(row.retry).toHaveBeenCalledOnce();
+  expect(screen.queryByRole('button', { name: /confirm|save batch/i })).toBeNull();
+});
 afterEach(cleanup);
 
 it('keeps a small acknowledged shortage visible instead of rounding it to zero', () => {
@@ -38,7 +48,7 @@ it('identifies an acknowledged replay without implying another batch was recorde
 
 it('shows acknowledged output while stock is still being checked, without claiming zero', () => {
   render(<ProductionReceipts rows={[receipt()]} />);
-  const saved = screen.getByRole('region', { name: 'Saved this session' });
+  const saved = screen.getByRole('region', { name: 'Recently saved' });
   expect(within(saved).getByText('26 cookies baked')).toBeTruthy();
   expect(within(saved).getByText('24 good · 2 not for sale')).toBeTruthy();
   expect(within(saved).getByText(/Drop 5 · Recipe version 3/)).toBeTruthy();
@@ -98,7 +108,7 @@ it('keeps separate dough and cookie receipts with their original drops', () => {
   expect(earlier.closest('details')?.open).toBe(true);
   expect(screen.getByText('12 dough portions prepared')).toBeTruthy();
   expect(screen.getByText('Recorded chilled dough: 18 portions')).toBeTruthy();
-  expect(screen.getAllByText('Saved this session')).toHaveLength(1);
+  expect(screen.getAllByText('Recently saved')).toHaveLength(1);
   expect(screen.getByText(/Drop 6 · Recipe version 3/)).toBeTruthy();
   expect(screen.getByText('26 cookies baked')).toBeTruthy();
 });

@@ -21,7 +21,7 @@ page: what the old page could do → where it lives now → evidence. Update in 
 | Start production works                                            | Done (earlier slice)                                                                                |
 | Recipe opens that cookie's recipe; no Recipes tab                 | Done (earlier slice)                                                                                |
 | Badge explained; Edit product                                     | Done (earlier slice)                                                                                |
-| See how many cookies were made                                    | Local counts/history + acknowledged per-item results and original-drop stock retry; durable recovery/use detail pending |
+| See how many cookies were made                                    | Local counts/history/receipts + stock retry; scoped durable recovery under verification; positive-use detail pending |
 | Stock: Add to inventory, item Count, Back keeps frame, suppliers  | Done (earlier slices)                                                                               |
 | Money red/green                                                   | Done (live Money page)                                                                              |
 | Books & costs in Money settings; Settings in each section         | Money done; other sections still use the tools disclosure                                           |

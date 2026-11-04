@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import styles from './production.module.css';
 import { ProductionResults } from './production-results';
 import { ProductionReceipts } from './production-receipts';
+import { ProductionRecoveryNotice } from './production-recovery-notice';
 import { ProductionStart } from './production-start';
 import { resolveImagePath } from '@/lib/media/resolve-image';
 
@@ -89,6 +90,7 @@ export function ProductionLive({ v }: { v: OpsVals }) {
             </Button>
           </header>
           <p className={styles.muted}>Order plan · {data.periodText}</p>
+          <ProductionRecoveryNotice data={data.recovery} />
           {data.saving ? (
             <p role="status" className={styles.muted}>
               Production is saving. You can prepare another batch while you wait.
@@ -123,18 +125,36 @@ export function ProductionLive({ v }: { v: OpsVals }) {
           {data.inProgress?.length ? (
             <section aria-label="Production in progress" className={styles.work}>
               <h2>In progress ({data.inProgress.length})</h2>
-              {data.inProgress.map(work => {
+              {data.inProgress.map((work) => {
                 const photo = resolveImagePath(work.photo);
-                return <article className={styles.workRow} key={work.id} aria-label={`${work.name}, ${work.label}`}>
-                  <div className={styles.workName}>
-                    {photo ? <Image src={photo} alt="" width={40} height={40} unoptimized className="h-10 w-10 rounded-full object-cover" /> : null}
-                    <strong>{work.name}</strong><b>{work.status}</b>
-                  </div>
-                  <p className={styles.muted}>{work.label} · {work.quantityText}</p>
-                  <Button onClick={work.open} aria-label={`Continue ${work.name}, ${work.label}`}>
-                    {work.status === 'Saving' ? 'View' : 'Continue'}
-                  </Button>
-                </article>;
+                return (
+                  <article
+                    className={styles.workRow}
+                    key={work.id}
+                    aria-label={`${work.name}, ${work.label}`}
+                  >
+                    <div className={styles.workName}>
+                      {photo ? (
+                        <Image
+                          src={photo}
+                          alt=""
+                          width={40}
+                          height={40}
+                          unoptimized
+                          className="h-10 w-10 rounded-full object-cover"
+                        />
+                      ) : null}
+                      <strong>{work.name}</strong>
+                      <b>{work.status}</b>
+                    </div>
+                    <p className={styles.muted}>
+                      {work.label} · {work.quantityText}
+                    </p>
+                    <Button onClick={work.open} aria-label={`Continue ${work.name}, ${work.label}`}>
+                      {work.status === 'Saving' ? 'View' : 'Continue'}
+                    </Button>
+                  </article>
+                );
               })}
             </section>
           ) : null}

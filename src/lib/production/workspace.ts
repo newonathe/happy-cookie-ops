@@ -56,6 +56,24 @@ export class ProductionWorkspace {
     return this.selected;
   }
 
+  /** Only the validated, identity-scoped recovery boundary calls this after acquiring its lease. */
+  restore(
+    works: ProductionWork[],
+    selectedId: string | null,
+    sequence: number,
+    closedIds: string[] = []
+  ): void {
+    this.items = new Map(structuredClone(works).map((work) => [work.id, work]));
+    this.usedIds = new Set([...works.map((work) => work.id), ...closedIds]);
+    this.legacy = new WeakMap();
+    this.selected = selectedId !== null && this.items.has(selectedId) ? selectedId : null;
+    this.sequence = sequence;
+  }
+
+  snapshot(): { works: ProductionWork[]; selectedId: string | null; sequence: number } {
+    return { works: this.list(), selectedId: this.selected, sequence: this.sequence };
+  }
+
   list(): ProductionWork[] {
     return structuredClone([...this.items.values()]);
   }
@@ -108,8 +126,10 @@ export class ProductionWorkspace {
   useRecipe(id: string, revision: number, recipe: ProductionRecipeSnapshot): boolean {
     const item = this.items.get(id);
     if (!item || item.revision !== revision) return false;
-    const draft: ProductionDraft = item.draft.kind === 'batch'
-      ? { ...item.draft, adj: {}, step: 1 } : { ...item.draft, step: 1 };
+    const draft: ProductionDraft =
+      item.draft.kind === 'batch'
+        ? { ...item.draft, adj: {}, step: 1 }
+        : { ...item.draft, step: 1 };
     this.items.set(id, { ...item, recipe: structuredClone(recipe), draft, revision: revision + 1 });
     return true;
   }

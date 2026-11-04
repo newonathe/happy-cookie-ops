@@ -26,6 +26,7 @@ export function ProductionReceipts({ rows }: { rows: LiveProductionReceipt[] }) 
       <article key={row.id} className={styles.receipt}>
         <h3>{row.name}</h3>
         <p className={styles.receiptMeta}>
+          {row.number ? `${row.kind === 'batch' ? 'Batch' : 'Mix'} ${row.number} · ` : ''}
           Drop {row.dropNo} · Recipe version {row.version} · {when(row.at)}
         </p>
         {row.duplicate ? <p>Already recorded. No second entry was added.</p> : null}
@@ -73,9 +74,11 @@ export function ProductionReceipts({ rows }: { rows: LiveProductionReceipt[] }) 
         <p role="status">
           {row.stockState === 'loading'
             ? 'Saved. Checking recorded stock…'
-            : row.stockState === 'failed'
-              ? 'Saved. Stock could not be refreshed.'
-              : 'Saved. Stock checked.'}
+            : row.stockState === 'unread'
+              ? 'Saved earlier. Stock has not been checked.'
+              : row.stockState === 'failed'
+                ? 'Saved. Stock could not be refreshed.'
+                : 'Saved. Stock checked.'}
         </p>
         {row.stockState === 'read' && row.balance !== null && row.checkedAt !== null ? (
           <>
@@ -89,20 +92,22 @@ export function ProductionReceipts({ rows }: { rows: LiveProductionReceipt[] }) 
             </p>
           </>
         ) : null}
-        {row.stockState !== 'loading' && !row.inventoryReady ? (
+        {row.stockState !== 'loading' && row.stockState !== 'unread' && !row.inventoryReady ? (
           <p className={styles.receiptWarning}>Ingredient balances could not be refreshed.</p>
         ) : null}
-        {row.stockState === 'failed' || (row.stockState === 'read' && !row.inventoryReady) ? (
+        {row.stockState === 'unread' ||
+        row.stockState === 'failed' ||
+        (row.stockState === 'read' && !row.inventoryReady) ? (
           <Button variant="ghost" size="sm" onClick={row.retry}>
-            Retry stock refresh
+            {row.stockState === 'unread' ? 'Check recorded stock' : 'Retry stock refresh'}
           </Button>
         ) : null}
       </article>
     ));
   return (
-    <section className={styles.results} aria-label="Saved this session">
+    <section className={styles.results} aria-label="Recently saved">
       <header className={styles.sectionHeading}>
-        <h2>Saved this session</h2>
+        <h2>Recently saved</h2>
       </header>
       {cards(rows.slice(0, 1))}
       {rows.length > 1 ? (
