@@ -10,7 +10,7 @@ import { Banner } from '@/components/ui/banner';
 import { Button } from '@/components/ui/button';
 import { ErrorSummary } from '@/components/ui/error-summary';
 import { Field } from '@/components/ui/field';
-import { Sheet } from '@/components/ui/sheet';
+import { PageTitle } from '@/components/ui/owner-kit';
 import { Stepper } from '@/components/ui/stepper';
 import { useIssues } from './use-issues';
 import { useSave } from './use-save';
@@ -63,37 +63,8 @@ export function CloseEventSheet({
   };
 
   return (
-    <Sheet
-      title="Close the event"
-      onClose={onClose}
-      footer={
-        <>
-          <Button
-            variant="dark"
-            type="submit"
-            form={formId}
-            busy={saving}
-            busyLabel="Closing…"
-            disabled={blocked}
-            reason={finalise.blocked ?? undefined}
-          >
-            {pending ? 'Save and close' : 'Close the event'}
-          </Button>
-          {pending ? (
-            <Button
-              variant="secondary"
-              disabled={saving || blocked}
-              onClick={() => void close(true)}
-            >
-              Close without cost
-            </Button>
-          ) : null}
-          <Button variant="secondary" disabled={saving} onClick={onClose}>
-            Not yet
-          </Button>
-        </>
-      }
-    >
+    <section aria-label="Close the event" className="flex flex-col gap-3">
+      <PageTitle title="Close the event" subtitle="Check the event, then close it." />
       <form
         {...issues.formProps}
         id={formId}
@@ -213,7 +184,33 @@ export function CloseEventSheet({
             ))}
           </section>
         ) : null}
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-line pt-4">
+          <>
+            <Button
+              variant="dark"
+              type="submit"
+              busy={saving}
+              busyLabel="Closing…"
+              disabled={blocked}
+              reason={finalise.blocked ?? undefined}
+            >
+              {pending ? 'Save and close' : 'Close the event'}
+            </Button>
+            {pending ? (
+              <Button
+                variant="secondary"
+                disabled={saving || blocked}
+                onClick={() => void close(true)}
+              >
+                Close without cost
+              </Button>
+            ) : null}
+            <Button variant="secondary" disabled={saving} onClick={onClose}>
+              Not yet
+            </Button>
+          </>
+        </div>
       </form>
-    </Sheet>
+    </section>
   );
 }

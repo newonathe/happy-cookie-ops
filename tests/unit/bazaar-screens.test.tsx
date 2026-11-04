@@ -679,7 +679,7 @@ const openCloseSheet = async () => {
       name: 'Close the event'
     })[0] as HTMLElement
   );
-  return screen.findByRole('dialog');
+  return screen.findByRole('region', { name: 'Close the event' });
 };
 
 describe('the event page', () => {
@@ -931,7 +931,9 @@ describe('the event page', () => {
     ).toBeTruthy();
     expect(run).not.toHaveBeenCalled();
     fireEvent.click(within(sheet).getByRole('button', { name: 'Not yet' }));
-    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    await waitFor(() =>
+      expect(screen.queryByRole('region', { name: 'Close the event' })).toBeNull()
+    );
     const again = await openCloseSheet();
     fireEvent.click(within(again).getByRole('button', { name: 'Close the event' }));
     await waitFor(() =>

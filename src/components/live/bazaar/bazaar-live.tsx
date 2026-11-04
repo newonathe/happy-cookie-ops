@@ -142,7 +142,7 @@ function Days({ bazaar }: { bazaar: LiveBazaarVals }) {
     return (
       <>
         <OfflineLine online={bazaar.online} />
-        <EventPage event={bazaar.event} />
+        <EventPage event={bazaar.event} onEditEvents={bazaar.add} />
       </>
     );
   if (bazaar.state !== 'read')

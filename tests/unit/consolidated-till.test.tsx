@@ -172,14 +172,20 @@ describe('the consolidated till calls the ported handlers', () => {
     expect(screen.getByRole('button', { name: /Review and close the day/ })).toBeTruthy();
   });
 
-  it('a sale is voided from its sheet, after a confirm, and "Keep it" voids nothing', () => {
+  it('a sale opens its receipt; voiding asks first, and "Keep sale" voids nothing', () => {
     const v = vals();
     render(<ConsolidatedTill v={v} till={till()} panel={null} />);
     fireEvent.click(screen.getByRole('button', { name: /1× Double Chocolate Fudge/ }));
-    fireEvent.click(screen.getByRole('button', { name: 'Keep it' }));
+    expect(screen.getByRole('heading', { name: 'Receipt' })).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Void this sale' }));
     expect(v.bzSales[0]!.void).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: 'Keep sale' }));
+    expect(v.bzSales[0]!.void).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: 'Next customer' }));
+    expect(document.querySelector('[data-till="consolidated"]')).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: /1× Double Chocolate Fudge/ }));
     fireEvent.click(screen.getByRole('button', { name: 'Void this sale' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm void' }));
     expect(v.bzSales[0]!.void).toHaveBeenCalledTimes(1);
   });
 
@@ -191,6 +197,7 @@ describe('the consolidated till calls the ported handlers', () => {
     const newer = sale({ summary: '1× Double Chocolate Fudge' });
     rerender(<ConsolidatedTill v={vals({ bzSales: [newer, older] })} till={till()} panel={null} />);
     fireEvent.click(screen.getByRole('button', { name: 'Void this sale' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm void' }));
     expect(older.void).toHaveBeenCalledTimes(1);
     expect(newer.void).not.toHaveBeenCalled();
   });
@@ -202,6 +209,41 @@ describe('the consolidated till calls the ported handlers', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Send again' }));
     expect(bad.retry).toHaveBeenCalledTimes(1);
     expect(screen.queryByRole('button', { name: 'Void this sale' })).toBeNull();
+  });
+
+  it('its settings say what this device holds, with the way to send it', () => {
+    const v = vals({ unsynced: 2 });
+    render(<ConsolidatedTill v={v} till={till()} panel={null} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Till menu' }));
+    const page = screen.getByRole('region', { name: 'Till settings' });
+    expect(within(page).getByText('Waiting to send')).toBeTruthy();
+    expect(within(page).getByText(/Keep this browser open/)).toBeTruthy();
+    fireEvent.click(within(page).getByRole('button', { name: 'Sync now' }));
+    expect(v.syncNow).toHaveBeenCalledOnce();
+    fireEvent.click(within(page).getByRole('button', { name: 'Back to selling' }));
+    expect(document.querySelector('[data-till="consolidated"]')).toBeTruthy();
+  });
+
+  it('a tool opens as a page, and Back returns to selling', () => {
+    const close = vi.fn();
+    render(
+      <ConsolidatedTill
+        v={vals()}
+        till={till()}
+        panel={{
+          kind: 'cookies',
+          status: 'loading',
+          event: null,
+          stock: null,
+          retry: vi.fn(),
+          close
+        }}
+      />
+    );
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(screen.getByRole('heading', { name: 'Add cookies' })).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Back to selling' }));
+    expect(close).toHaveBeenCalledOnce();
   });
 
   it('the sync line and "Sync now" stay on the screen', () => {
@@ -316,7 +358,7 @@ describe('in the frame', () => {
     mountFrame('helper');
     expect(consolidated()).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Till menu' }));
-    const sheet = screen.getByRole('dialog');
+    const sheet = screen.getByRole('region', { name: 'Till settings' });
     expect(within(sheet).queryByRole('button', { name: /Back to Home/ })).toBeNull();
     expect(within(sheet).queryByRole('button', { name: /Add cookies/ })).toBeNull();
   });

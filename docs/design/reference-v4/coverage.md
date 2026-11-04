@@ -38,16 +38,16 @@ on the 4186 preview with synthetic data; it is not hosted, device or owner accep
 | **Bazaar** | | | |
 | events | `live/bazaar/event-list.tsx` | Done | |
 | bazaar | `live/bazaar/event-page.tsx` | Done | Title, All events and Settings aligned; stats stay richer than the mockup |
-| event-edit | `live/bazaar/event-form.tsx`, `store/event-entry.ts` | Partial | Adding is a page with Review, kept across reloads. Editing still uses the "Edit or switch off events" form |
+| event-edit | `live/bazaar/event-form.tsx`, `store/event-entry.ts`, `scheduled-events-form.tsx` | Done | Adding is a page with Review, kept across reloads. Changing is under Bazaar settings |
 | plan, plan-review | `live/bazaar/day-plan.tsx` | Partial | Title aligned; photo tiles stay. Saving goes straight from the plan, with no separate Review step |
 | till | `live/bazaar/till.tsx`, `till-card.tsx` | Done | Owner sells inside the frame; Bazaar-only access stays till-only |
-| classic-till | ported `bazaar-mode` | Old | Keep as fallback, re-skin |
-| receipt, void | ported sheets via till | Old | Pages |
+| classic-till | ported `bazaar-mode`, under the till bar | Done | Fallback only. Its screen is locked, so it keeps the ported look |
+| receipt, void | `ReceiptPage`, `VoidPage` in `live/bazaar/till.tsx` | Done | Opened from Sales today. The engine records no void reason, so none is asked |
 | close, close-review | `live/bazaar/close-form.tsx`, `day-review.tsx` | Done | Two columns on a wide screen; the count and drawer are on one page, with the recount question before closing |
-| event-review | `live/bazaar/close-event-sheet.tsx` | Partial | Page |
-| event-tools, event-tool-review | till tools | Partial | Entry/review pages |
-| device-recovery | till/event page | Partial | Page |
-| bazaar-settings | Settings in `event-page.tsx` | Partial | Fees, target and cost per cookie. Classic till stays in the till Settings |
+| event-review | `live/bazaar/close-event-sheet.tsx` as a page | Done | |
+| event-tools, event-tool-review | `TillPanelPage` in `live/bazaar/till-bar.tsx` | Partial | Pages now. No Review step: each entry can be removed from the same page |
+| device-recovery | Selling device in `TillSettings`, `live/bazaar/till.tsx` | Done | No recovery export: sales wait in this browser until sent |
+| bazaar-settings | Settings in `event-page.tsx`; `TillSettings` while selling | Done | |
 | **Sell** | | | |
 | sell | `live/sell/orders-live.tsx` | Done | |
 | order | `live/sell/order-live.tsx` | Done | |

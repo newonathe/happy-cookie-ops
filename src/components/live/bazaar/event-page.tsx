@@ -6,7 +6,8 @@ import type { BazaarDayRow, BazaarEventView } from '@/lib/bazaar/live-bazaar-typ
 import { primaryActionOf, type PrimaryAction } from '@/lib/bazaar/event-rules';
 import { formIds, validateCostForm, validateFeeForm, validateTargetForm } from '@/lib/bazaar/forms';
 import { peso } from '@/lib/money/format';
-import { PageTitle } from '@/components/ui/owner-kit';
+import { PageTitle, Panel } from '@/components/ui/owner-kit';
+import { OpenRow } from '@/components/ui/owner-patterns';
 import { Banner } from '@/components/ui/banner';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -609,7 +610,14 @@ function CostsCard({ event }: { event: BazaarEventView }) {
 }
 
 /** One booking: its hero and figures, then its days, fees, target and costs. A day is planned and started here. */
-export function EventPage({ event }: { event: BazaarEventView }) {
+export function EventPage({
+  event,
+  onEditEvents
+}: {
+  event: BazaarEventView;
+  /** Opens the form where an event is changed or switched off. */
+  onEditEvents?: () => void;
+}) {
   const [starting, setStarting] = useState<BazaarDayRow | null>(null);
   const [closing, setClosing] = useState(false);
   const [settings, setSettings] = useState(false);
@@ -620,11 +628,22 @@ export function EventPage({ event }: { event: BazaarEventView }) {
   };
   // The primary action is not drawn a second time on its day's row.
   const primaryDayId = primary && 'dayId' in primary ? primary.dayId : null;
+  if (closing && event.finalise)
+    return <CloseEventSheet finalise={event.finalise} onClose={() => setClosing(false)} />;
   if (settings)
     return (
       <>
         <PageTitle title="Bazaar settings" subtitle={`Settings for ${event.name}.`} />
         <CostsCard event={event} />
+        {onEditEvents ? (
+          <Panel>
+            <OpenRow
+              title="Edit or switch off events"
+              detail="Name, place, dates and stall rent"
+              onOpen={onEditEvents}
+            />
+          </Panel>
+        ) : null}
         <div>
           <Button variant="secondary" onClick={() => setSettings(false)}>
             Back to event
@@ -735,9 +754,6 @@ export function EventPage({ event }: { event: BazaarEventView }) {
           }}
           onClose={() => setStarting(null)}
         />
-      ) : null}
-      {closing && event.finalise ? (
-        <CloseEventSheet finalise={event.finalise} onClose={() => setClosing(false)} />
       ) : null}
     </>
   );
