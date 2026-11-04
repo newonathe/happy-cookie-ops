@@ -152,9 +152,7 @@ describe('product recipe link', () => {
     const page = recipePage();
     const ui = draw(book({ recipePage: page }));
     expect(screen.queryByText('Yes, your records cover this batch.')).toBeNull();
-    expect(
-      screen.getByText('Inventory has not been read yet, so this is unknown.')
-    ).toBeTruthy();
+    expect(screen.getByText('Inventory has not been read yet, so this is unknown.')).toBeTruthy();
     ui.rerender(
       <RecipeBookLive
         v={{ liveRecipes: book({ recipePage: { ...page, stock: [] } }) } as unknown as OpsVals}

@@ -403,7 +403,9 @@ describe('C1: the ported stock actions record movements (live mode)', () => {
         expect(msg(runtime)).not.toContain('₱');
       } else {
         expect(msg(runtime)).not.toContain('pending');
-        expect(msg(runtime)).toContain(previouslyPaid ? '₱25 less stock than your records said.' : '₱0');
+        expect(msg(runtime)).toContain(
+          previouslyPaid ? '₱25 less stock than your records said.' : '₱0'
+        );
       }
     }
   );
