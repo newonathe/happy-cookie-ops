@@ -133,7 +133,23 @@ export function ConsolidatedTill({
           <SaleStatus v={v} />
         </div>
 
-        <div className="flex flex-col gap-3 lg:col-start-1 lg:row-span-2 lg:row-start-3">
+        <section
+          aria-label="Cookies on the table"
+          className="flex min-w-0 flex-col gap-2.5 lg:col-start-1 lg:row-start-3"
+        >
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-[15px] font-semibold text-ink">Cookies on the table</h2>
+            {till.soldOutCount > 0 ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                aria-pressed={till.showSoldOut}
+                onClick={till.toggleSoldOut}
+              >
+                {till.showSoldOut ? 'Hide sold out' : `Show sold out (${till.soldOutCount})`}
+              </Button>
+            ) : null}
+          </div>
           {till.allGone ? (
             <EmptyState
               title="Everything on the table is sold"
@@ -147,7 +163,7 @@ export function ConsolidatedTill({
               }
             />
           ) : null}
-          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,250px),1fr))] gap-2">
             {(v.bzSell ?? []).map((p, i) => {
               const name = String(p.name);
               const count = Number(p.inCart) || 0;
@@ -167,7 +183,7 @@ export function ConsolidatedTill({
                       type="button"
                       aria-label={`One less ${name}`}
                       onClick={p.minus}
-                      className="motion-press absolute top-1 left-1 grid size-11 place-items-center rounded-full border border-line-strong bg-surface text-ink shadow-chip"
+                      className="motion-press absolute top-1/2 right-1.5 grid size-11 -translate-y-1/2 place-items-center rounded-full border border-line-strong bg-surface text-ink shadow-chip"
                     >
                       <svg
                         viewBox="0 0 24 24"
@@ -187,26 +203,37 @@ export function ConsolidatedTill({
               );
             })}
           </div>
-          {till.soldOutCount > 0 ? (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="self-center"
-              aria-pressed={till.showSoldOut}
-              onClick={till.toggleSoldOut}
-            >
-              {till.showSoldOut ? 'Hide sold out' : `Show sold out (${till.soldOutCount})`}
-            </Button>
-          ) : null}
-        </div>
+        </section>
 
-        <div className="overflow-hidden rounded-card border border-line bg-surface lg:col-start-2 lg:row-start-4">
-          <div className="flex items-center gap-2 border-b border-divide px-3.5 py-3">
-            <span className="flex-1 text-body font-bold">Sales today</span>
+        <section
+          aria-label="Sales today"
+          className="overflow-hidden rounded-card border border-line bg-surface lg:col-span-2 lg:row-start-4"
+        >
+          <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 border-b border-divide px-4 py-3">
+            <h2 className="text-[15px] font-semibold text-ink">
+              Sales today
+              {sales.length ? (
+                <span className="ml-2 text-caption font-normal text-ink-mute">
+                  {v.bzSalesCount} ·{' '}
+                  <span className="font-semibold text-ink tabular-nums">{v.bzRevenue}</span>
+                </span>
+              ) : null}
+            </h2>
             <span className="text-caption text-ink-mute">
-              {sales.length ? 'Tap a sale to void it' : 'No sales yet'}
+              {sales.length ? 'Tap a sale for its receipt' : 'No sales yet'}
             </span>
           </div>
+          {sales.length ? (
+            <div
+              aria-hidden="true"
+              className={`hidden gap-x-3 border-b border-divide px-4 py-2 text-caption font-semibold text-ink-mute lg:grid ${SALE_COLUMNS}`}
+            >
+              <span>Sale</span>
+              <span>Paid by</span>
+              <span>Status</span>
+              <span className="text-right">Total</span>
+            </div>
+          ) : null}
           {shown.map((sl, i) => (
             <SaleRow key={i} sale={sl} open={() => setSaleFromOldest(sales.length - 1 - i)} />
           ))}
@@ -219,7 +246,7 @@ export function ConsolidatedTill({
               {allSales ? 'Show fewer' : `See all ${sales.length} sales`}
             </button>
           ) : null}
-        </div>
+        </section>
 
         <aside
           aria-label="Current sale"
@@ -458,30 +485,40 @@ function SaleMeta({ sale }: { sale: Sale }) {
   );
 }
 
-/** One sale: the row opens its sheet; a sale that could not be sent keeps "Send again" on the row itself. */
+/** The columns of Sales today, on its header and on every row. */
+const SALE_COLUMNS = 'lg:grid-cols-[minmax(0,1fr)_200px_96px_96px]';
+
+/**
+ * One sale: the row opens its receipt. A sale that could not be sent keeps "Send again" under it, so its
+ * columns stay in line with the others.
+ */
 function SaleRow({ sale, open }: { sale: Sale; open: () => void }) {
   return (
-    <div data-part="sale" className="flex items-center gap-2 border-b border-divide pr-2">
+    <div data-part="sale" className="border-b border-divide last:border-b-0">
       <button
         type="button"
         onClick={open}
-        className="flex min-h-14 min-w-0 flex-1 items-center gap-2.5 py-2 pl-3.5 text-left"
+        className={`grid min-h-14 w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-0.5 px-4 py-2 text-left hover:bg-raise focus-visible:outline-2 focus-visible:outline-brand ${SALE_COLUMNS}`}
       >
-        <span className="flex min-w-0 flex-1 flex-col">
-          <span className="text-body text-ink">{sale.summary}</span>
-          <span className="text-caption text-ink-mute">
-            <SaleMeta sale={sale} />
-          </span>
+        <span className="min-w-0 text-[14px] text-ink">{sale.summary}</span>
+        <span className="col-start-1 row-start-2 min-w-0 text-caption text-ink-mute lg:col-start-auto lg:row-start-auto">
+          <SaleMeta sale={sale} />
         </span>
-        <span className="text-body font-bold tabular-nums">{sale.totalText}</span>
-        {sale.ok ? (
-          <span className="text-caption font-semibold text-ok">{sale.stateText}</span>
-        ) : null}
+        <span
+          className={`col-start-2 row-start-2 text-right text-caption font-semibold lg:col-start-auto lg:row-start-auto lg:text-left ${sale.bad ? 'text-danger' : sale.ok ? 'text-ok' : 'text-ink-soft'}`}
+        >
+          {sale.stateText}
+        </span>
+        <span className="col-start-2 row-start-1 text-right text-[14px] font-semibold text-ink tabular-nums lg:col-start-auto lg:row-start-auto">
+          {sale.totalText}
+        </span>
       </button>
       {sale.bad ? (
-        <Button variant="danger" size="sm" onClick={sale.retry}>
-          Send again
-        </Button>
+        <div className="flex justify-end px-4 pb-2">
+          <Button variant="danger" size="sm" onClick={sale.retry}>
+            Send again
+          </Button>
+        </div>
       ) : null}
     </div>
   );
