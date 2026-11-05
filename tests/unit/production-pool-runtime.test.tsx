@@ -69,7 +69,7 @@ async function mount(identity?: ProductionRecoveryScope) {
           yield: 12,
           version: 3,
           updated_at: '2026-11-03T00:00:00Z',
-          lines: [{ name: 'Butter', qty: 200, unit: 'g' }],
+          lines: [{ name: 'Butter', qty: 200, unit: 'g', kind: 'ingredient' }],
           history: []
         })),
         get_stock_catalogue: { items: [], suppliers: [], prices: [] },
@@ -409,6 +409,7 @@ describe('multiple production work items in the actual runtime', () => {
       expect(r.renderVals().liveProduction!.start!.begin()).toBe(true);
     });
     expect(r.renderVals().liveDough).toMatchObject({ balls: 6, reviewing: false, version: 3 });
+    act(() => r.renderVals().liveDough!.setActualBalls!('7'));
     const old = r.renderVals().liveDough!;
     act(() => old.review());
     expect(r.renderVals().liveDough?.reviewing).toBe(true);
@@ -498,7 +499,7 @@ describe('multiple production work items in the actual runtime', () => {
               yield: 24,
               version: 4,
               updated_at: '2026-11-03T01:00:00Z',
-              lines: [{ name: 'Butter', qty: 300, unit: 'g' }],
+              lines: [{ name: 'Butter', qty: 300, unit: 'g', kind: 'ingredient' }],
               history: []
             }
           ],
@@ -522,6 +523,7 @@ describe('multiple production work items in the actual runtime', () => {
     expect(requests).toHaveLength(0);
     act(() => r.renderVals().liveDough!.portions[1].choose());
     expect(r.renderVals().liveDough).toMatchObject({ balls: 12, validAmount: true });
+    act(() => r.renderVals().liveDough!.setActualBalls!('13'));
     act(() => r.renderVals().liveDough!.review());
     expect(r.renderVals().liveDough?.reviewing).toBe(true);
     expect(requests).toHaveLength(0);

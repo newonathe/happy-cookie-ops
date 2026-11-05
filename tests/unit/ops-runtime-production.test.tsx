@@ -117,7 +117,7 @@ const fresh = (over: Partial<Fake> = {}): Fake => ({
   ...over
 });
 function fakeClient(f: Fake) {
-  const rpc = vi.fn(async (name: string) => {
+  const rpc = vi.fn(async (name: string, args?: Wire) => {
     if (name === 'get_stock_catalogue')
       return { data: { suppliers: [], items: f.items, prices: [] }, error: null };
     if (name === 'get_last_paid') return { data: [], error: null };
@@ -126,6 +126,14 @@ function fakeClient(f: Fake) {
       return { data: 'recipes' in f ? f.recipes : savedRecipe(), error: null };
     if (name === 'get_staff_orders') return { data: f.orders, error: null };
     if (name === 'record_production') return f.answers.shift() ?? saved();
+    if (name === 'record_dough_preparation') {
+      const result = f.answers.shift();
+      if (result?.error) return result;
+      return {
+        data: [{ record_id: (args?.p_rec as Wire).id, duplicate: false, shortfall: [] }],
+        error: null
+      };
+    }
     if (name === 'record_discard')
       return { data: [{ record_id: 'd', duplicate: false }], error: null };
     if (name === 'record_pack')
@@ -258,8 +266,13 @@ describe('production reply ownership', () => {
       fresh({ answers: [{ data: null, error: { code: '08006' } }] })
     );
     act(() =>
-      runtime.setState({ doughPrep: { pid: PID, balls: 6 }, sheet: { kind: 'mixDough' } } as never)
+      runtime.setState({
+        screen: 'bake',
+        doughPrep: { pid: PID, balls: 6 },
+        sheet: { kind: 'mixDough' }
+      } as never)
     );
+    act(() => runtime.renderVals().liveDough?.setActualBalls?.('6'));
     act(() => acts(runtime).confirmDough());
     await settle();
     const held = runtime.state.doughPrep;
@@ -278,7 +291,7 @@ describe('production reply ownership', () => {
     act(() => pending.open());
     act(() => acts(runtime).confirmDough());
     await settle();
-    const requests = called(rpc, 'record_production').map((c) => c[1].p_rec as Wire);
+    const requests = called(rpc, 'record_dough_preparation').map((c) => c[1].p_rec as Wire);
     expect(requests[1]).toEqual(requests[0]);
     expect(runtime.state.doughPrep).toBeNull();
   });
@@ -292,13 +305,13 @@ describe('production reply ownership', () => {
             [field]:
               kind === 'batch'
                 ? { pid: PID, target: 8, actual: 8, step: 2, note: '', adj: {}, rejects: 0 }
-                : { pid: PID, balls: 6 },
+                : { pid: PID, balls: 6, actualBallsText: '6', recipeAmount: 0.5 },
             screen: 'batch',
             sheet: { kind: 'mixDough' }
           } as never)
         );
       put();
-      let reply!: (value: ReturnType<typeof saved>) => void;
+      let reply!: (value: { data: unknown; error: null }) => void;
       rpc.mockImplementationOnce(
         () =>
           new Promise((resolve) => {
@@ -308,7 +321,22 @@ describe('production reply ownership', () => {
       act(() => (kind === 'batch' ? acts(runtime).confirmBatch() : acts(runtime).confirmDough()));
       put();
       const newer = runtime.state[field];
-      await act(async () => reply(saved()));
+      await act(async () =>
+        reply(
+          kind === 'dough'
+            ? {
+                data: [
+                  {
+                    record_id: (called(rpc, 'record_dough_preparation')[0]![1].p_rec as Wire).id,
+                    duplicate: false,
+                    shortfall: []
+                  }
+                ],
+                error: null
+              }
+            : saved()
+        )
+      );
       await settle();
       expect(runtime.state[field]).toBe(newer);
       expect(runtime.state.screen).toBe('batch');
@@ -730,7 +758,7 @@ describe('C2: baking, mixing dough and packing record on the database (live mode
           runtime.setState({
             screen: 'bake',
             sheet: { kind: 'mixDough' },
-            doughPrep: { pid: PID, balls: 6, step: 2 }
+            doughPrep: { pid: PID, balls: 6, actualBallsText: '6', recipeAmount: 0.5, step: 2 }
           } as never)
         );
       act(() => (kind === 'batch' ? acts(runtime).confirmBatch() : acts(runtime).confirmDough()));
@@ -743,10 +771,9 @@ describe('C2: baking, mixing dough and packing record on the database (live mode
         kind === 'batch' ? runtime.renderVals().liveBatchCounts! : runtime.renderVals().liveDough!;
       expect(view).toMatchObject({ sourceUnavailable: true, uncertain: true });
       act(() => view.confirm());
-      await waitFor(() => expect(called(rpc, 'record_production')).toHaveLength(2));
-      expect(called(rpc, 'record_production')[1]![1]).toEqual(
-        called(rpc, 'record_production')[0]![1]
-      );
+      const rpcName = kind === 'dough' ? 'record_dough_preparation' : 'record_production';
+      await waitFor(() => expect(called(rpc, rpcName)).toHaveLength(2));
+      expect(called(rpc, rpcName)[1]![1]).toEqual(called(rpc, rpcName)[0]![1]);
     }
   );
 
@@ -858,18 +885,18 @@ describe('C2: baking, mixing dough and packing record on the database (live mode
     const f = fresh();
     const { runtime, rpc } = await mounted('owner', f);
     act(() =>
-      runtime.setState({ doughPrep: { pid: PID, balls: 6 }, sheet: { kind: 'mixDough' } } as never)
+      runtime.setState({
+        doughPrep: { pid: PID, balls: 12, actualBallsText: '13', recipeAmount: 1 },
+        sheet: { kind: 'mixDough' }
+      } as never)
     );
-    f.production = wireProduction({ dough: [{ product_id: PID, balls: 6, at: 7000 }] });
+    f.production = wireProduction({ dough: [{ product_id: PID, balls: 13, at: 7000 }] });
     act(() => acts(runtime).confirmDough());
     await settle();
-    expect(called(rpc, 'record_production')[0]![1].p_rec).toMatchObject({
-      kind: 'dough',
+    expect(called(rpc, 'record_dough_preparation')[0]![1].p_rec).toMatchObject({
       product_id: PID,
-      qty: 6,
-      target: null,
-      rejects: 0,
-      adj: {},
+      balls: 13,
+      recipe_amount: 1,
       recipe_version: 3,
       drop_no: 5
     });
@@ -878,7 +905,7 @@ describe('C2: baking, mixing dough and packing record on the database (live mode
       doughAt: Record<string, number>;
       doughPrep: unknown;
     };
-    expect(s.dough[PID]).toBe(6);
+    expect(s.dough[PID]).toBe(13);
     expect(s.doughAt[PID]).toBe(7000);
     expect(s.doughPrep).toBeNull();
     // Mutation: running only the engine's confirm loses the mix on a reload.

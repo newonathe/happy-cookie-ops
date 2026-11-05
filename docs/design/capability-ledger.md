@@ -196,3 +196,13 @@ Dropped: nothing. Not built: creating a first recipe for a product with none out
 ## Supplier price editor (`stock-suppliers-form.tsx`, `stock/item-prices.tsx`)
 
 An item's price page can now add or change a supplier's price for that item, through the existing supplier form. It refuses to save if the item, the supplier or its prices changed since it opened; what the same save already wrote does not count as a change. Dropped: nothing.
+
+## Dough preparation — 6 November
+
+Full/half recipe choice remains; actual balls are now a separate retained input. Ingredient use follows recipe amount,
+with packaging excluded. `live/production/production-dough.tsx`, `lib/production/dough.ts` and the existing runtime
+submit SQL71 through the new preparation client. Original legacy requests keep their exact old RPC and body.
+New acknowledgements clear only their own draft and never run the old ingredient calculations. Stock stays unchecked
+until authoritative refresh. Item IDs and shortage causes are retained. No feature dropped; dough-only baking follows.
+Evidence:117 focused tests,8 synthetic CLI browser width/motion flows, independent review, full pinned verification.
+SQL71 is not hosted; connected SQL/browser, device and owner acceptance remain separate.

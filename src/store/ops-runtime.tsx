@@ -255,6 +255,7 @@ import {
 import { ProductionRecoverySession } from '@/lib/production/recovery-session';
 import { validProductionChoice, type ProductionPlanChoice } from '@/lib/production/plan';
 import { productionPlanner } from '@/lib/production/planner';
+import { doughFacts, doughStock, sameDoughSubmission } from '@/lib/production/dough';
 import type { ProductionRecipeSnapshot } from '@/lib/production/workspace';
 import {
   booksCsv,
@@ -612,7 +613,14 @@ interface ProductionActions {
 interface ProductionState {
   dropNo: number;
   recipeVer: Record<string, number>;
-  doughPrep: { pid: string; balls: number; liveWorkId?: string; step?: number } | null;
+  doughPrep: {
+    pid: string;
+    balls: number;
+    liveWorkId?: string;
+    step?: number;
+    actualBallsText?: string;
+    recipeAmount?: 0.5 | 1;
+  } | null;
   batch: {
     pid: string;
     target: number;
@@ -929,7 +937,7 @@ export class OpsRuntime extends OpsProvider {
         detail:
           work.draft.kind === 'batch'
             ? `Batch ${work.number} · ${work.draft.target} planned`
-            : `Dough ${work.number} · ${work.draft.balls} portions`,
+            : `Dough ${work.number} · ${work.draft.actualBalls || 'Count not entered'} dough balls`,
         open: () => {
           this.go('bake');
           this.openProductionWork(work.id, work.revision);
@@ -6249,6 +6257,7 @@ export class OpsRuntime extends OpsProvider {
           number: row.number,
           kind: row.fields.kind,
           quantity: row.fields.qty,
+          recipeAmount: row.fields.recipeAmount,
           rejects: row.fields.rejects,
           dropNo: row.fields.dropNo,
           version: row.fields.recipeVersion,
@@ -6278,7 +6287,9 @@ export class OpsRuntime extends OpsProvider {
         quantityText:
           work.draft.kind === 'batch'
             ? `${work.draft.target} planned`
-            : `${work.draft.balls} portions`,
+            : work.draft.actualBalls
+              ? `${work.draft.actualBalls} dough balls entered`
+              : 'Actual count not entered',
         status: this.savingProduction.has(work.id)
           ? ('Saving' as const)
           : this.pendingProduction.has(work.id)
@@ -6494,7 +6505,7 @@ export class OpsRuntime extends OpsProvider {
   private productionRecipeMatches(pid: string, recipe: ProductionRecipeSnapshot): boolean {
     const saved = this.recipeRows?.find((row) => row.productId === pid);
     const lines = (rows: Recipe['lines']) =>
-      rows.map((line) => [line.name, line.qty, line.unit, line.kind ?? null]);
+      rows.map((line) => [line.name, line.qty, line.unit, line.kind ?? null, line.itemId ?? null]);
     if (
       !saved ||
       saved.version !== recipe.version ||
@@ -6586,7 +6597,9 @@ export class OpsRuntime extends OpsProvider {
       work = this.productionDrafts.pool.get(id);
     const unanswered = this.pendingProduction.get(id),
       saving = this.savingProduction.has(id);
-    const sourceUnavailable = !this.recipeRows?.some((row) => row.productId === dp.pid);
+    const facts = doughFacts(dp, work?.recipe ?? null, unanswered);
+    const sourceUnavailable =
+      !this.recipeRows?.some((row) => row.productId === dp.pid) || !facts.sourceReady;
     const changed = !!work && this.productionSourceChanged(id, dp.pid);
     const actor = this.productionActorEpoch;
     const current = () =>
@@ -6609,7 +6622,7 @@ export class OpsRuntime extends OpsProvider {
     };
     const full = work?.recipe?.yield ?? Number(view.fullBalls),
       half = Math.ceil(full / 2);
-    const validAmount = dp.balls > 0 && [full, half].includes(dp.balls);
+    const validAmount = facts.amount !== null;
     return {
       id,
       name: work?.product.name ?? PRODUCTS.find((p) => p.id === dp.pid)?.short ?? 'Dough',
@@ -6617,6 +6630,20 @@ export class OpsRuntime extends OpsProvider {
       periodText: `Drop ${unanswered?.dropNo ?? work?.dropNo ?? state.dropNo}`,
       version: unanswered?.recipeVersion ?? work?.recipe?.version ?? null,
       balls: unanswered?.qty ?? dp.balls,
+      actualBalls: facts.actual,
+      validActual: facts.validActual,
+      recipeAmount: facts.amount,
+      setActualBalls: (value) => {
+        if (editable() && value.length <= 32)
+          this.setState({
+            doughPrep: {
+              ...dp,
+              actualBallsText: value,
+              recipeAmount: facts.amount ?? undefined,
+              step: 1
+            }
+          } as never);
+      },
       reviewing: dp.step === 2 || !!unanswered,
       saving,
       uncertain: !!unanswered && !saving,
@@ -6636,37 +6663,33 @@ export class OpsRuntime extends OpsProvider {
         changed && !saving && !unanswered ? this.productionRecipeUpdate(id, current) : null,
       portions: [
         {
-          label: `Full recipe · ${full} portions`,
-          selected: dp.balls === full,
+          label: 'Full recipe',
+          selected: facts.amount === 1,
           choose: () => {
-            if (editable()) engine.setDoughPortion('full');
+            if (editable())
+              this.setState({
+                doughPrep: { ...dp, balls: full, recipeAmount: 1, step: 1 }
+              } as never);
           }
         },
         {
-          label: `Half recipe · ${half} portions`,
-          selected: dp.balls === half,
+          label: 'Half recipe',
+          selected: facts.amount === 0.5,
           choose: () => {
-            if (editable()) engine.setDoughPortion('half');
+            if (editable())
+              this.setState({
+                doughPrep: { ...dp, balls: half, recipeAmount: 0.5, step: 1 }
+              } as never);
           }
         }
       ],
-      rows: view.rows.map((row) => {
-        const item = this.stockCatalogue?.items.find((item) => item.name === row.name);
-        return {
-          name: row.name,
-          amountText: row.amountText,
-          balanceText:
-            item && Number.isFinite(item.onHand)
-              ? `${item.onHand} ${item.unit} recorded`
-              : 'Recorded balance unavailable',
-          short:
-            !!item &&
-            !!row.short &&
-            work?.recipe?.lines.find((line) => line.name === row.name)?.unit === item.unit
-        };
-      }),
+      rows: facts.lines.map((row) => ({
+        name: row.name,
+        amountText: formatQuantity(row.qty, row.unit),
+        ...doughStock(row, this.stockCatalogue?.items ?? null)
+      })),
       review: () => {
-        if (validAmount) step(2);
+        if (facts.valid) step(2);
       },
       back: () => step(1),
       confirm: () => {
@@ -6674,7 +6697,7 @@ export class OpsRuntime extends OpsProvider {
           current() &&
           this.productionWritable() &&
           !saving &&
-          (unanswered || (!sourceUnavailable && !changed && validAmount))
+          (unanswered || (!sourceUnavailable && !changed && facts.valid))
         )
           engine.confirmDough();
       },
@@ -7075,11 +7098,13 @@ export class OpsRuntime extends OpsProvider {
     if (result.outcome === 'saved') return result;
     if (result.outcome === 'stale') void this.loadRecipes(null);
     this.toast(
-      result.outcome === 'stale'
-        ? PRODUCTION_COPY.stale
-        : result.outcome === 'refused'
-          ? PRODUCTION_COPY.refused
-          : PRODUCTION_COPY.notSaved,
+      result.problem === 'preparation-update'
+        ? 'This database needs the dough preparation update. Your draft is kept; nothing new was recorded.'
+        : result.outcome === 'stale'
+          ? PRODUCTION_COPY.stale
+          : result.outcome === 'refused'
+            ? PRODUCTION_COPY.refused
+            : PRODUCTION_COPY.notSaved,
       'warn'
     );
     return null;
@@ -7315,7 +7340,7 @@ export class OpsRuntime extends OpsProvider {
       const batch = s.batch;
       const amounts =
         key === 'doughPrep'
-          ? s.doughPrep?.balls === fields.qty
+          ? !!s.doughPrep && sameDoughSubmission(s.doughPrep, fields)
           : !!batch &&
             batch.actual === fields.qty &&
             batch.target === fields.target &&
@@ -7407,7 +7432,15 @@ export class OpsRuntime extends OpsProvider {
       else eng.startDough(pid);
     };
     eng.setDoughPortion = (kind) => {
-      if (!doughLocked()) keep.setDoughPortion(kind);
+      if (!doughLocked()) {
+        keep.setDoughPortion(kind);
+        this.setState((state) => {
+          const dp = (state as unknown as ProductionState).doughPrep;
+          return dp
+            ? ({ doughPrep: { ...dp, recipeAmount: kind === 'full' ? 1 : 0.5, step: 1 } } as never)
+            : {};
+        });
+      }
     };
     // Every launch gets independent work; lifecycle capture retains the replaced projection.
     eng.startBatch = (pid) => {
@@ -7466,15 +7499,10 @@ export class OpsRuntime extends OpsProvider {
         this.productionSourceChanged(work.id, dp.pid)
       )
         return void this.toast('The recipe changed. Your dough draft is kept for review.', 'warn');
-      const full =
-        snapshot?.recipe?.yield ??
-        (this.state as unknown as ProductionProjection).recipes[dp.pid]?.yield;
-      if (
-        !this.pendingProduction.has(work.id) &&
-        (!full || ![full, Math.ceil(full / 2)].includes(dp.balls))
-      )
+      const facts = doughFacts(dp, snapshot?.recipe ?? null, this.pendingProduction.get(work.id));
+      if (!this.pendingProduction.has(work.id) && !facts.valid)
         return void this.toast(
-          'Choose full or half of the saved recipe before recording dough.',
+          'Choose a recipe amount and enter the actual dough balls before recording.',
           'warn'
         );
       void (async () => {
@@ -7482,7 +7510,8 @@ export class OpsRuntime extends OpsProvider {
           {
             kind: 'dough',
             productId: dp.pid,
-            qty: dp.balls,
+            qty: Number(facts.actual),
+            recipeAmount: facts.amount ?? undefined,
             target: null,
             rejects: 0,
             adj: {},
@@ -7496,7 +7525,11 @@ export class OpsRuntime extends OpsProvider {
           return;
         // The record is in. If the sheet is still open, the engine's own bookkeeping (the sheet, the toast) runs against the
         // quantities it showed; its own change to the dough is undone, because the database's record replaces it below.
-        this.finishProductionWork('doughPrep', work, () => keep.confirmDough());
+        this.finishProductionWork('doughPrep', work, () => {
+          if (this.completedProduction.get(work.id)?.fields.recipeAmount !== undefined)
+            this.setState({ doughPrep: null, sheet: null } as never);
+          else keep.confirmDough();
+        });
         await this.refreshProduction([work.id]);
       })();
     };
