@@ -34,6 +34,7 @@ import {
   defaultSalesClient,
   flushQueue,
   requestBackgroundSync,
+  type FlushOptions,
   type FlushResult
 } from '@/lib/offline/sync';
 import {
@@ -333,6 +334,7 @@ import type {
   LiveTillVals
 } from '@/view-models/vals';
 import { helperMoneyView } from '@/lib/auth/helper-money';
+import { saleProblemWords } from '@/lib/offline/sale-problem';
 import { buildTillLedger } from '@/lib/bazaar/till-ledger';
 import {
   IDLE_MINUTES_MAX,
@@ -1152,6 +1154,8 @@ export class OpsRuntime extends OpsProvider {
   /** U2: the day whose "Show sold out (n)" is on. Screen state only: never saved, and any other day starts hidden. */
   /** The classic (ported) till instead of the consolidated one, on this phone (`till-choice.ts`). Restored on mount. */
   private tillClassic = false;
+  /** Why each sale that has not sent has not, by client id, in her words (`reflectQueue`). */
+  private saleProblems = new Map<string, string>();
   /** U2: the live gate has narrowed the app to Bazaar Mode (no signal to the server): nothing may leave the till. */
   private gateNarrow = false;
   private bazaarDirectory = false;
@@ -8852,7 +8856,9 @@ export class OpsRuntime extends OpsProvider {
       prices,
       names: Object.fromEntries(PRODUCTS.map((p) => [p.id, String(p.short ?? p.id)])),
       // Cine's rule (decision register, 28 September): a helper sees totals only when the owner allows it.
-      seesTotals: this.state.role === 'owner' || cfg.helperSeesSales === 1
+      seesTotals: this.state.role === 'owner' || cfg.helperSeesSales === 1,
+      problemOf: (sale) =>
+        this.saleProblems.get(clientIdFor({ saleId: sale.id, at: sale.at })) ?? null
     });
     const liveTill: LiveTillVals = {
       // The engine's flavour image is already resolved (`flavours.ts`).
@@ -9539,8 +9545,8 @@ export class OpsRuntime extends OpsProvider {
    * Sends the queue, then makes the sale rows on screen say what the queue says. Live only:
    * the prototype's optimistic flags stay as they were in demo mode.
    */
-  flushSales = async (): Promise<FlushResult> => {
-    const result = await flushQueue(this.saleClient);
+  flushSales = async (options?: FlushOptions): Promise<FlushResult> => {
+    const result = await flushQueue(this.saleClient, options);
     await this.reflectQueue();
     // A sale that reached the server used its pouches and bag there (stock only: no batch or dough changed): show what stock the database holds.
     if (result.sent.length > 0 && this.state.role === 'owner' && !this.unmounted) {
@@ -9573,6 +9579,12 @@ export class OpsRuntime extends OpsProvider {
         }
       : null;
     const states = new Map(queue.map((row) => [row.clientId, row.state]));
+    this.saleProblems = new Map(
+      queue.flatMap((row) => {
+        const words = row.state === 'sent' ? null : saleProblemWords(row);
+        return words ? [[row.clientId, words] as const] : [];
+      })
+    );
     this.setState((s) => {
       const sales = (s.sales as EventSale[]).map((sale) => {
         const state = states.get(clientIdFor({ saleId: sale.id, at: sale.at }));
@@ -9583,7 +9595,12 @@ export class OpsRuntime extends OpsProvider {
           ? sale
           : { ...sale, synced, failed };
       });
-      return { sales, unsynced: sales.filter((sale) => !sale.synced).length };
+      const unsynced = sales.filter((sale) => !sale.synced).length;
+      // An automatic send can finish what a failed Sync now could not: the "could not be sent" line must not stay behind.
+      // The whole queue decides, because a void, an expense or a close can be what is stuck.
+      return s.syncState === 'partial' && unsynced === 0 && this.operationsQueue === 0
+        ? ({ sales, unsynced, syncState: 'idle' } as never)
+        : { sales, unsynced };
     });
   }
 
