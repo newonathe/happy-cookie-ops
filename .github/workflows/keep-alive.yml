@@ -1,0 +1,33 @@
+name: Keep the trial database awake
+
+# Supabase pauses a free project after about a week of low activity. Once a day this makes one
+# read-only request, the same shop status a customer's page reads, using the public key. It changes
+# no data and needs no service key. It is separate from ops-jobs.yml, whose single switch also turns
+# on retention and the unfinished backup. A request a day makes a pause unlikely, not impossible.
+# Schedules run only from the default branch, so this file must stay on main.
+
+on:
+  schedule:
+    - cron: '17 1 * * *' # daily, 09:17 Manila
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  read-shop-status:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Read the shop status
+        env:
+          KEY: ${{ secrets.TRIAL_SUPABASE_PUBLISHABLE_KEY }}
+        run: |
+          test -n "$KEY" || { echo "TRIAL_SUPABASE_PUBLISHABLE_KEY is not configured"; exit 1; }
+          curl --fail --silent --show-error --retry 3 --retry-delay 20 --output /dev/null \
+            --request POST \
+            --header "apikey: $KEY" \
+            --header "Content-Type: application/json" \
+            --data '{}' \
+            https://enftprwcsrdbnlplfrwk.supabase.co/rest/v1/rpc/get_shop_status
+          echo "The trial database answered."
