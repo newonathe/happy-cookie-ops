@@ -348,7 +348,10 @@ function SyncNotice({ v }: { v: OpsVals }) {
       <span
         className={`flex-1 text-caption font-semibold ${v.syncPartial ? 'text-danger' : v.syncDone ? 'text-ok' : 'text-ink'}`}
       >
-        {v.syncText}
+        {/* The engine's line always says "1 sale"; the count here is the real one. */}
+        {v.syncPartial && Number(v.unsynced) > 1
+          ? `${String(v.unsynced)} sales could not be sent — nothing was lost`
+          : v.syncText}
       </span>
       {v.unsynced ? (
         <Button variant="secondary" size="sm" onClick={v.syncNow}>

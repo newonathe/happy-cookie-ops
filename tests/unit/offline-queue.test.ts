@@ -496,4 +496,24 @@ describe('flushQueue: bazaar commands', () => {
     expect(isSaleKey('dev1:S1:1')).toBe(true);
     expect(['void:dev1:S1:1', 'open:x', 'expense:x', 'close:x'].some(isSaleKey)).toBe(false);
   });
+
+  it('the retry timer leaves refused rows alone, and a person pressing a button still tries them', async () => {
+    const { enqueueSale, markFailed, allSales, hasRetryable } = await import('@/lib/offline/queue');
+    const { flushQueue } = await import('@/lib/offline/sync');
+    const refused = await enqueueSale(sale('S1', 1000));
+    await markFailed(refused.clientId, '42501 not the selling device', true);
+    expect(await hasRetryable()).toBe(false);
+    const rpc = vi.fn(async () => ({ data: [], error: null }));
+    const client = { rpc } as never;
+
+    expect((await flushQueue(client, { skipRefused: true })).skipped).toBe(true);
+    expect(rpc).not.toHaveBeenCalled();
+
+    await flushQueue(client);
+    expect(rpc).toHaveBeenCalledTimes(1);
+    expect((await allSales()).length).toBe(1);
+
+    await enqueueSale(sale('S2', 2000));
+    expect(await hasRetryable()).toBe(true);
+  });
 });

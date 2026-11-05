@@ -62,7 +62,8 @@ const till = (over: Partial<Till> = {}): Till => ({
         subtotalText: null,
         discountText: null,
         cashGivenText: '₱200.00',
-        changeText: '₱75.00'
+        changeText: '₱75.00',
+        problemText: null
       }
     ]
   },
@@ -348,6 +349,31 @@ describe('the consolidated till calls the ported handlers', () => {
     expect(newer.void).not.toHaveBeenCalled();
   });
 
+  it('says why a sale has not sent, and counts the real number waiting', () => {
+    const t = till();
+    render(
+      <ConsolidatedTill
+        v={vals({
+          bzSales: [sale({ bad: true, ok: false })],
+          syncBanner: true,
+          syncPartial: true,
+          syncText: '1 sale could not be sent — nothing was lost',
+          unsynced: 3
+        })}
+        till={{
+          ...t,
+          ledger: {
+            ...t.ledger,
+            rows: [{ ...t.ledger.rows[0]!, problemText: 'Another device is selling this event.' }]
+          }
+        }}
+        panel={null}
+      />
+    );
+    expect(screen.getByText('Another device is selling this event.')).toBeTruthy();
+    expect(screen.getByText(/3 sales could not be sent/)).toBeTruthy();
+  });
+
   it('a sale that could not be sent keeps "Send again" on its row', () => {
     const bad = sale({ bad: true, ok: false });
     const v = vals({ bzSales: [bad] });
@@ -467,6 +493,82 @@ describe('in the frame', () => {
     localStorage.clear();
     clearBazaar();
     registerLiveBazaarScreens();
+  });
+
+  it('puts the reason on the sale, and clears "could not be sent" once it has gone', async () => {
+    const runtime = mountFrame();
+    const at = Date.now();
+    const clientId = `dev1:S1:${at}`;
+    const row = {
+      clientId,
+      saleId: 'S1',
+      eventId: 'e1',
+      items: { wcb: 1 },
+      gross: 90,
+      discount: 0,
+      total: 90,
+      pay: 'Cash',
+      ref: '',
+      clerk: 'Owner',
+      at,
+      tendered: 0,
+      change: 0,
+      attempts: 1
+    };
+    store.set(clientId, {
+      ...row,
+      state: 'failed',
+      refused: true,
+      lastError: '42501 this phone is not the selling device for the event'
+    });
+    const onScreen = {
+      id: 'S1',
+      items: { wcb: 1 },
+      total: 90,
+      gross: 90,
+      discount: 0,
+      pay: 'Cash',
+      ref: '',
+      clerk: 'Owner',
+      at,
+      tendered: 0,
+      change: 0,
+      synced: false,
+      failed: true,
+      ledgerId: null
+    };
+    act(() => runtime.setState({ sales: [onScreen], unsynced: 1, syncState: 'partial' } as never));
+    await act(async () => {
+      await runtime.flushSales();
+    });
+    expect(screen.getByText(/Another device is the one selling this event/)).toBeTruthy();
+    expect(runtime.state.syncState).toBe('partial');
+
+    store.set(clientId, { ...row, state: 'sent', lastError: null });
+    await act(async () => {
+      await runtime.flushSales();
+    });
+    expect(screen.queryByText(/Another device/)).toBeNull();
+    expect(runtime.state.unsynced).toBe(0);
+    expect(runtime.state.syncState).toBe('idle');
+  });
+
+  it('keeps "could not be sent" while a void is stuck, with every sale sent', async () => {
+    const runtime = mountFrame();
+    store.set('void:x', {
+      clientId: 'void:x',
+      kind: 'void',
+      saleClientId: 'x',
+      at: Date.now(),
+      state: 'failed',
+      attempts: 1,
+      lastError: 'network'
+    });
+    act(() => runtime.setState({ sales: [], unsynced: 0, syncState: 'partial' } as never));
+    await act(async () => {
+      await runtime.flushSales({ skipRefused: true });
+    });
+    expect(runtime.state.syncState).toBe('partial');
   });
 
   it('draws the consolidated till, and a tap rings up the ported cart', () => {

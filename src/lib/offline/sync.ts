@@ -28,6 +28,12 @@ export function defaultSalesClient(): EventSalesClient | null {
 
 let running: Promise<FlushResult> | null = null;
 let again = false;
+let againAll = false;
+
+/** `skipRefused`: the retry timer leaves alone what the server refused; a person pressing a button still tries it. */
+export interface FlushOptions {
+  skipRefused?: boolean;
+}
 
 /**
  * Sends everything the device is holding, one row at a time, and clears only the row the
@@ -35,16 +41,23 @@ let again = false;
  * worse than a repeated request, and both RPCs are idempotent on the client id. Calls that
  * overlap share one run; rows queued while it runs are picked up by a second pass.
  */
-export function flushQueue(client?: EventSalesClient | null): Promise<FlushResult> {
+export function flushQueue(
+  client?: EventSalesClient | null,
+  options: FlushOptions = {}
+): Promise<FlushResult> {
   if (running) {
     again = true;
+    if (!options.skipRefused) againAll = true;
     return running;
   }
   const run = (async () => {
     const total: FlushResult = { sent: [], failed: [], skipped: true };
+    let skipRefused = options.skipRefused === true;
     do {
       again = false;
-      const part = await flushOnce(client ?? null);
+      const part = await flushOnce(client ?? null, skipRefused);
+      skipRefused = skipRefused && !againAll;
+      againAll = false;
       if (!part.skipped) total.skipped = false;
       total.sent.push(...part.sent);
       total.failed.push(...part.failed);
@@ -57,8 +70,11 @@ export function flushQueue(client?: EventSalesClient | null): Promise<FlushResul
   return run;
 }
 
-async function flushOnce(client: EventSalesClient | null): Promise<FlushResult> {
-  const pending = await pendingSales();
+async function flushOnce(
+  client: EventSalesClient | null,
+  skipRefused: boolean
+): Promise<FlushResult> {
+  const pending = (await pendingSales()).filter((row) => !skipRefused || !row.refused);
   if (!pending.length) return { sent: [], failed: [], skipped: true };
   if (typeof navigator !== 'undefined' && !navigator.onLine)
     return { sent: [], failed: [], skipped: true };
