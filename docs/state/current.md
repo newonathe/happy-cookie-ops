@@ -1,11 +1,13 @@
 # Current state — Happy Cookie Ops
 
-**Codex owns the checkout (Ethan, 5 November). Full application goal remains active.**
-Primary baseline `54ee533` includes the preserved backup and waiting-sale retry work.
+**Ethan requested a pushed Cloud handoff, then a local stop (6 November). The full application is incomplete.**
+Continue the [complete goal](full-goal.md) on `codex/refined-workflows`; [next action](next-goal.md).
+Current accepted Git history supersedes historical checkpoint prose below. `54ee533` preserves backup/waiting-sale work.
 Read [the client review](../design/client-meeting-2026-11-04.md) and [review standard](../design/ui-review-standard.md).
 The [production transaction contract](../design/active-bazaar-parallel-production-plan.md#production-transaction-contract--5-november-owner-correction) separates recipe amount from actual balls. Ethan approved dough-only baking; physical dough count remains unanswered.
-6November: local SQL71, preparation client/recovery and live form are independently reviewed. Actual balls and full/half recipe use are separate; old unanswered requests retain their original RPC/body. New acknowledgement bypasses legacy ingredient arithmetic; server refresh owns balances. Item IDs and shortage reasons survive reads/reload. Stock preview requires an active matching-unit link.
-117 focused tests and8 CLI width/motion flows pass: exact retry, another flavour's retained count and saved/failed-refresh truth. Full pinned gate:195files/3144tests+2TODOs; form/helper commit `d0d6c7f`. Dough-only baking and connected acceptance remain incomplete. SQL71 is local only; no hosted SQL or records changed.
+Preparation is reviewed/accepted through `b54239c`: independent actual balls/recipe amount, exact pending RPC/body, item IDs, shortage reasons and authoritative acknowledgements/refresh.
+SQL72 dough-only bake backend is reviewed/locally verified; SHA is in next-goal/Git. It guards current/historical dough, rejects and pooled costs without second ingredient use. Next connect bake client/runtime/recovery and retire new legacy writes before cutover, preserving exact recorded-ID replay. No hosted changes.
+Pinned gate:195files/3144tests+2TODOs; preparation117focused/8synthetic CLI flows; bake SQL two resets/concurrency; full SQL3378cases/reset x2; types generated twice identically. Full-goal notes distinguish remaining API/performance/build/hosted/device/owner gates.
 Preview4186 now initializes synthetic Events for normal navigation and direct `/bazaar` entry. `node tools/owner-preview/check-events.cjs` verifies both paths at390/1440, event detail, no writes/errors/overflow.
 The full audit and [new requirements](../design/owner-workflow-additions-2026-11-05.md) remain active. Pickup is from Cine; Picked Up means Completed.
 
