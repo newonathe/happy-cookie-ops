@@ -5,7 +5,7 @@ import { Banner } from '@/components/ui/banner';
 import Image from 'next/image';
 import { cookiePicture } from '@/lib/media/cookie-art';
 import { resolveImagePath } from '@/lib/media/resolve-image';
-import { useEffect, useRef } from 'react';
+import { useEffect, useId, useRef } from 'react';
 import { ProductionRecipeUpdate } from './production-recipe-update';
 import { ProductionDeviceNotice } from './production-recovery-notice';
 
@@ -14,6 +14,7 @@ export function ProductionDough({ data }: { data: LiveDoughPreparation }) {
     data.saving || data.uncertain || data.sourceChanged || data.sourceUnavailable || data.readOnly;
   const photo = cookiePicture(resolveImagePath(data.photo), data.name);
   const heading = useRef<HTMLHeadingElement>(null);
+  const actualId = useId();
   useEffect(() => {
     heading.current?.focus();
   }, [data.id, data.reviewing]);
@@ -100,16 +101,51 @@ export function ProductionDough({ data }: { data: LiveDoughPreparation }) {
           ))}
         </div>
       ) : null}
-      <div className="flex items-baseline gap-2">
-        <strong className="text-3xl font-semibold tabular-nums">{data.balls}</strong>
-        <span className="text-body text-ink-soft">
-          {data.uncertain
-            ? 'portions in this submission'
-            : data.sourceUnavailable
-              ? 'draft portions · not recorded'
-              : 'portions to mix'}
-        </span>
-      </div>
+      {data.setActualBalls && !data.uncertain && !data.reviewing ? (
+        <label htmlFor={actualId} className="flex flex-col gap-2 text-body font-semibold">
+          Actual dough balls made
+          <input
+            id={actualId}
+            aria-label="Actual dough balls made"
+            aria-describedby={actualId + '-hint'}
+            type="number"
+            inputMode="numeric"
+            min="1"
+            max="10000"
+            step="1"
+            value={data.actualBalls ?? ''}
+            disabled={locked || data.reviewing}
+            aria-invalid={data.actualBalls !== '' && data.validActual === false}
+            onChange={(event) => data.setActualBalls?.(event.currentTarget.value)}
+            className="min-h-11 w-full rounded-control border border-line-strong bg-surface p-3 text-[16px] text-ink"
+          />
+          <small id={actualId + '-hint'} className="text-caption font-normal text-ink-mute">
+            Enter what you made. This count does not change the recipe&apos;s ingredient amounts.
+          </small>
+        </label>
+      ) : null}
+      {!data.setActualBalls || data.uncertain || data.reviewing ? (
+        <div className="flex items-baseline gap-2">
+          <strong className="text-3xl font-semibold tabular-nums">
+            {data.setActualBalls && !data.uncertain ? data.actualBalls || '—' : data.balls}
+          </strong>
+          <span className="text-body text-ink-soft">
+            {data.uncertain
+              ? 'portions in this submission'
+              : data.sourceUnavailable
+                ? 'draft portions · not recorded'
+                : data.setActualBalls
+                  ? 'dough balls for the fridge'
+                  : 'portions to mix'}
+          </span>
+        </div>
+      ) : null}
+      {data.recipeAmount ? (
+        <p className="m-0 text-caption text-ink-mute">
+          {data.recipeAmount === 1 ? 'Full recipe' : 'Half recipe'} used. Ingredient quantities
+          follow this amount.
+        </p>
+      ) : null}
       {!data.uncertain && !data.sourceChanged && !data.sourceUnavailable ? (
         <section aria-label="Dough ingredients" className="flex flex-col gap-3">
           <h3 className="m-0 text-body font-semibold">
@@ -151,7 +187,8 @@ export function ProductionDough({ data }: { data: LiveDoughPreparation }) {
                 data.connected === false ||
                 (data.copyReady === false && !data.uncertain) ||
                 (!data.uncertain &&
-                  (data.sourceUnavailable || data.sourceChanged || data.validAmount === false))
+                  (data.sourceUnavailable || data.sourceChanged || data.validAmount === false)) ||
+                (!data.uncertain && data.validActual === false)
               }
               onClick={data.confirm}
             >
@@ -165,7 +202,7 @@ export function ProductionDough({ data }: { data: LiveDoughPreparation }) {
         ) : (
           <Button
             variant="primary"
-            disabled={locked || data.validAmount === false}
+            disabled={locked || data.validAmount === false || data.validActual === false}
             onClick={data.review}
           >
             Review dough

@@ -41,7 +41,7 @@ export function ProductionRecipeUpdate({
       </details>
       <p className="m-0 text-caption text-ink-mute">
         {dough
-          ? 'Your amount stays. If it no longer matches a full or half recipe, choose the amount again.'
+          ? 'Your actual dough count stays. Check the recipe amount and ingredients against this version before recording.'
           : 'Counts and notes stay. Ingredient adjustments reset so you can review them against the updated recipe.'}{' '}
         Nothing is recorded yet.
       </p>

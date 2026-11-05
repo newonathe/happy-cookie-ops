@@ -38,7 +38,7 @@ const snapshot = (): ProductionRecovery => ({
       recipe: {
         version: 3,
         yield: 12,
-        lines: [{ name: 'Flour', qty: 300, unit: 'g', kind: 'ingredient' }]
+        lines: [{ name: 'Flour', qty: 300, unit: 'g', kind: 'ingredient', itemId: 'flour' }]
       },
       draft: {
         kind: 'batch',

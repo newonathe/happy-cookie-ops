@@ -8,6 +8,7 @@ export interface ProductionRecipeSnapshot {
     unit: string;
     /** null means the source did not supply a kind; never infer it from the unit/name. */
     kind: 'ingredient' | 'packaging' | null;
+    itemId?: string | null;
   }>;
 }
 

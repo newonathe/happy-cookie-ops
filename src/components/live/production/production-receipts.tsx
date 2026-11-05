@@ -59,6 +59,12 @@ export function ProductionReceipts({ rows }: { rows: LiveProductionReceipt[] }) 
           </div>
         ) : null}
         {row.usedDough > 0 ? <p>{n(row.usedDough)} dough balls from the fridge used</p> : null}
+        {row.recipeAmount ? (
+          <p>
+            {row.recipeAmount === 1 ? 'Full recipe' : 'Half recipe'} used · actual dough count
+            recorded
+          </p>
+        ) : null}
         {row.shortfall.length ? (
           <div className={styles.receiptWarning}>
             <strong>Not enough recorded stock</strong>
@@ -66,6 +72,17 @@ export function ProductionReceipts({ rows }: { rows: LiveProductionReceipt[] }) 
               {row.shortfall.map((short, index) => (
                 <li key={index}>
                   {short.name}: {n(short.by)} {short.unit} short
+                  {short.why ? (
+                    <span>
+                      {' '}
+                      ·{' '}
+                      {short.why === 'unit differs'
+                        ? 'Recipe and inventory units differ'
+                        : short.why === 'not a stock item'
+                          ? 'No matching inventory item'
+                          : 'Check the inventory item'}
+                    </span>
+                  ) : null}
                 </li>
               ))}
             </ul>

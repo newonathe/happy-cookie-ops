@@ -3,6 +3,20 @@ import { afterEach, expect, it, vi } from 'vitest';
 import { ProductionDough } from '@/components/live/production/production-dough';
 import type { LiveDoughPreparation } from '@/lib/production/live-production-types';
 afterEach(cleanup);
+it('asks for actual output independently, retains the amount and blocks invalid review', () => {
+  const d = { ...data(), actualBalls: '', validActual: false, setActualBalls: vi.fn() };
+  const ui = render(<ProductionDough data={d} />);
+  expect(screen.getByRole('button', { name: 'Review dough' })).toBeDisabled();
+  fireEvent.change(screen.getByLabelText('Actual dough balls made'), { target: { value: '13' } });
+  expect(d.setActualBalls).toHaveBeenCalledWith('13');
+  expect(screen.getByText('100 g')).toBeTruthy();
+  d.actualBalls = '13';
+  d.validActual = true;
+  ui.rerender(<ProductionDough data={d} />);
+  expect(screen.getByRole('button', { name: 'Review dough' })).toBeEnabled();
+  fireEvent.click(screen.getByRole('button', { name: 'Review dough' }));
+  expect(d.review).toHaveBeenCalledOnce();
+});
 const data = (): LiveDoughPreparation => ({
   id: 'mix',
   name: 'Chocolate cookie',
