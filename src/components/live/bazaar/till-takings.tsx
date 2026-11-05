@@ -261,69 +261,115 @@ function SaleRow({
 export function TillTakings({
   v,
   ledger,
+  open,
+  setOpen,
   voidSale
 }: {
   v: OpsVals;
   ledger: TillLedger;
+  /** The till holds this, so the summary stays as she left it after voiding a sale or opening a form. */
+  open: boolean;
+  setOpen: (open: boolean) => void;
   /** Takes the sale's index in `v.bzSales`. */
   voidSale: (index: number) => void;
 }) {
   const sales = v.bzSales ?? [];
   const [all, setAll] = useState(false);
-  // The open row, counted from the oldest: the list is newest first, so a new sale cannot move it.
+  // The opened row, counted from the oldest: the list is newest first, so a new sale cannot move it.
   const [openFromOldest, setOpenFromOldest] = useState<number | null>(null);
   const shown = all ? sales : sales.slice(0, SALES_SHOWN);
   return (
     <div className="@container flex flex-col gap-3">
-      <Trackers ledger={ledger} unsynced={Number(v.unsynced) || 0} />
-      <section aria-label="Recent sales" className={PANEL_CLASS}>
-        <PanelHead title="Recent sales">
-          <span className="text-caption text-ink-mute">
-            {sales.length ? `${plural(sales.length, 'sale')} today` : 'No sales yet'}
-          </span>
-        </PanelHead>
-        {sales.length ? (
-          <div
+      <button
+        type="button"
+        aria-expanded={open}
+        onClick={() => setOpen(!open)}
+        className={`flex min-h-14 w-full flex-wrap items-center justify-between gap-x-4 gap-y-1 px-4 py-2.5 text-left hover:bg-raise focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brand ${PANEL_CLASS}`}
+      >
+        <span className="text-[15px] font-semibold text-ink">{"Today's summary"}</span>
+        <span className="flex items-center gap-x-4">
+          {/* Retracted, the bar still answers the day's three questions; open, the panels below do. */}
+          {open ? null : (
+            <span className="flex flex-wrap justify-end gap-x-4 text-caption text-ink-mute tabular-nums">
+              <span>{plural(sales.length, 'sale')}</span>
+              {ledger.totals ? (
+                <span>
+                  Total <span className="font-semibold text-ink">{ledger.totals.totalText}</span>
+                </span>
+              ) : null}
+              <span>
+                In the drawer{' '}
+                <span className="font-semibold text-ink">{ledger.drawer.expectedText}</span>
+              </span>
+            </span>
+          )}
+          <svg
+            viewBox="0 0 24 24"
+            width="18"
+            height="18"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
             aria-hidden="true"
-            className={`hidden items-center border-b border-divide bg-raise px-4 py-2 text-caption font-semibold text-ink-mute @4xl:grid ${COLUMNS}`}
+            className={`shrink-0 text-ink-mute ${open ? 'rotate-180' : ''}`}
           >
-            <span>Sale</span>
-            <span>Time</span>
-            <span>Cookies</span>
-            <span>Payment</span>
-            <span>Reference</span>
-            <span className="text-right">Cash given</span>
-            <span className="text-right">Change</span>
-            <span className="text-right">Total</span>
-            <span>Status</span>
-            <span />
-          </div>
-        ) : null}
-        {shown.map((sale, i) => {
-          const fromOldest = sales.length - 1 - i;
-          return (
-            <SaleRow
-              key={fromOldest}
-              sale={sale}
-              row={ledger.rows[i]}
-              number={sales.length - i}
-              open={openFromOldest === fromOldest}
-              toggle={() => setOpenFromOldest(openFromOldest === fromOldest ? null : fromOldest)}
-              toVoid={() => voidSale(i)}
-            />
-          );
-        })}
-        {sales.length > SALES_SHOWN ? (
-          <button
-            type="button"
-            aria-expanded={all}
-            onClick={() => setAll(!all)}
-            className="min-h-11 w-full bg-raise text-caption font-semibold text-ink-soft"
-          >
-            {all ? 'Show fewer' : `See all ${sales.length} sales`}
-          </button>
-        ) : null}
-      </section>
+            <path d="m6 9 6 6 6-6" />
+          </svg>
+        </span>
+      </button>
+      {open ? <Trackers ledger={ledger} unsynced={Number(v.unsynced) || 0} /> : null}
+      {open ? (
+        <section aria-label="Recent sales" className={PANEL_CLASS}>
+          <PanelHead title="Recent sales">
+            <span className="text-caption text-ink-mute">
+              {sales.length ? `${plural(sales.length, 'sale')} today` : 'No sales yet'}
+            </span>
+          </PanelHead>
+          {sales.length ? (
+            <div
+              aria-hidden="true"
+              className={`hidden items-center border-b border-divide bg-raise px-4 py-2 text-caption font-semibold text-ink-mute @4xl:grid ${COLUMNS}`}
+            >
+              <span>Sale</span>
+              <span>Time</span>
+              <span>Cookies</span>
+              <span>Payment</span>
+              <span>Reference</span>
+              <span className="text-right">Cash given</span>
+              <span className="text-right">Change</span>
+              <span className="text-right">Total</span>
+              <span>Status</span>
+              <span />
+            </div>
+          ) : null}
+          {shown.map((sale, i) => {
+            const fromOldest = sales.length - 1 - i;
+            return (
+              <SaleRow
+                key={fromOldest}
+                sale={sale}
+                row={ledger.rows[i]}
+                number={sales.length - i}
+                open={openFromOldest === fromOldest}
+                toggle={() => setOpenFromOldest(openFromOldest === fromOldest ? null : fromOldest)}
+                toVoid={() => voidSale(i)}
+              />
+            );
+          })}
+          {sales.length > SALES_SHOWN ? (
+            <button
+              type="button"
+              aria-expanded={all}
+              onClick={() => setAll(!all)}
+              className="min-h-11 w-full bg-raise text-caption font-semibold text-ink-soft"
+            >
+              {all ? 'Show fewer' : `See all ${sales.length} sales`}
+            </button>
+          ) : null}
+        </section>
+      ) : null}
     </div>
   );
 }

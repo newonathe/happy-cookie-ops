@@ -213,6 +213,23 @@ describe('the consolidated till calls the ported handlers', () => {
     expect(screen.queryByRole('status')).toBeNull();
   });
 
+  it('the whole summary retracts to one bar, which keeps the sales count and the drawer', () => {
+    render(<ConsolidatedTill v={vals()} till={till()} panel={null} />);
+    const bar = screen.getByRole('button', { name: /Today's summary/ });
+    expect(bar.getAttribute('aria-expanded')).toBe('true');
+    expect(screen.getByRole('region', { name: 'Recent sales' })).toBeTruthy();
+    fireEvent.click(bar);
+    expect(bar.getAttribute('aria-expanded')).toBe('false');
+    expect(screen.queryByRole('region', { name: 'Recent sales' })).toBeNull();
+    expect(screen.queryByRole('region', { name: 'Cash drawer' })).toBeNull();
+    expect(bar).toHaveTextContent('1 sale');
+    expect(bar).toHaveTextContent('₱500.00');
+    // Selling tools stay out of the summary, so they stay in reach.
+    expect(screen.getByRole('button', { name: 'Fees and expenses' })).toBeTruthy();
+    fireEvent.click(bar);
+    expect(screen.getByRole('region', { name: 'Recent sales' })).toBeTruthy();
+  });
+
   it('a helper without the totals switch sees the drawer but no takings or target', () => {
     render(<ConsolidatedTill v={vals()} till={till()} panel={null} />);
     expect(screen.queryByRole('region', { name: 'Takings' })).toBeNull();
