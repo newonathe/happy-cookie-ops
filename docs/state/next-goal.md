@@ -7,7 +7,7 @@ automation. Implement the actual app; the entire goal remains incomplete.
 **Now: [the client review](../design/client-meeting-2026-11-04.md), slice by slice.**
 
 Production first: [transaction contract](../design/active-bazaar-parallel-production-plan.md#production-transaction-contract--5-november-owner-correction).
-Local SQL71 separates recipe amount from actual dough yield. Next wire live preparation/count/recovery,
+Local SQL71 and client/recovery separate recipe amount from actual dough yield. Next wire the live preparation form/counts,
 then implement the approved dough-only bake transaction. Keep current independent drafts and exact retries.
 The new RPC is not hosted; physical dough-count correction remains unanswered. The full objective remains active.
 

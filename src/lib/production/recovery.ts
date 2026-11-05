@@ -69,6 +69,7 @@ const fields = z
     rejects: z.number(),
     adj: z.record(z.string(), z.number()),
     recipeVersion: z.number(),
+    recipeAmount: z.union([z.literal(0.5), z.literal(1)]).optional(),
     dropNo: z.number(),
     at: z.number()
   })
@@ -103,7 +104,15 @@ const draft = z.discriminatedUnion('kind', [
       showUsed: z.boolean().optional()
     })
     .strict(),
-  z.object({ ...common, kind: z.literal('dough'), balls: countText }).strict()
+  z
+    .object({
+      ...common,
+      kind: z.literal('dough'),
+      balls: countText,
+      actualBalls: countText.optional(),
+      recipeAmount: z.union([z.literal(0.5), z.literal(1)]).optional()
+    })
+    .strict()
 ]);
 const work = z
   .object({
@@ -135,6 +144,7 @@ const saved = z
               .object({
                 name: text,
                 by: z.number().finite().nonnegative(),
+                why: z.string().max(128).optional(),
                 unit: z.string().max(64)
               })
               .strict()
@@ -226,7 +236,11 @@ const recovery = z
                     .filter(([, qty]) => qty !== 0)
                     .sort()
                 )
-            : Number(item.draft.balls) !== f.qty)
+            : f.recipeAmount === undefined
+              ? Number(item.draft.balls) !== f.qty
+              : item.draft.recipeAmount !== f.recipeAmount ||
+                !/^\d+$/.test(item.draft.actualBalls ?? '') ||
+                Number(item.draft.actualBalls) !== f.qty)
         );
       });
     if (bad)
@@ -249,6 +263,7 @@ export function sameProductionRequest(a: ProductionFields, b: ProductionFields):
     f.target,
     f.rejects,
     f.recipeVersion,
+    f.recipeAmount,
     f.dropNo,
     f.at,
     Object.entries(f.adj).sort()

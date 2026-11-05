@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   emptyProductionRecovery,
   readProductionRecovery,
+  sameProductionRequest,
   setAsideProductionRecovery,
   writeProductionRecovery
 } from '@/lib/production/recovery';
@@ -70,6 +71,61 @@ const snapshot = (): ProductionRecovery => ({
 });
 
 describe('scoped production recovery', () => {
+  it('restores legacy unanswered dough unchanged, without inferring a recipe amount', () => {
+    const value = snapshot(),
+      storage = memory();
+    value.works[0]!.draft = { kind: 'dough', balls: '6', note: '' };
+    value.requests[0]!.fields = {
+      ...value.requests[0]!.fields,
+      kind: 'dough',
+      qty: 6,
+      target: null,
+      rejects: 0
+    };
+    expect(writeProductionRecovery(scope, value, { storage })).toBe(true);
+    expect(readProductionRecovery(scope, storage).value).toEqual(value);
+    expect(readProductionRecovery(scope, storage).value?.requests[0]?.fields).not.toHaveProperty(
+      'recipeAmount'
+    );
+  });
+  it.each(['', '-'])('keeps an unsubmitted actual dough count of %j', (actualBalls) => {
+    const value = snapshot(),
+      storage = memory();
+    value.requests = [];
+    value.works[0]!.draft = { kind: 'dough', balls: '12', actualBalls, recipeAmount: 1, note: '' };
+    expect(writeProductionRecovery(scope, value, { storage })).toBe(true);
+    expect(readProductionRecovery(scope, storage).value).toEqual(value);
+  });
+  it('retains recipe amount separately from actual dough count and fences changed retry facts', () => {
+    const value = snapshot(),
+      storage = memory();
+    value.works[0]!.draft = {
+      kind: 'dough',
+      balls: '12',
+      actualBalls: '13',
+      recipeAmount: 1,
+      note: '',
+      step: 2
+    };
+    value.requests[0]!.fields = {
+      ...value.requests[0]!.fields,
+      kind: 'dough',
+      qty: 13,
+      recipeAmount: 1,
+      target: null,
+      rejects: 0
+    };
+    expect(writeProductionRecovery(scope, value, { storage })).toBe(true);
+    expect(readProductionRecovery(scope, storage).value).toEqual(value);
+    const changed = structuredClone(value);
+    changed.requests[0]!.fields.recipeAmount = 0.5;
+    expect(sameProductionRequest(value.requests[0]!.fields, changed.requests[0]!.fields)).toBe(
+      false
+    );
+    expect(writeProductionRecovery(scope, changed, { storage })).toBe(false);
+    changed.requests[0]!.fields = { ...value.requests[0]!.fields, qty: 12 };
+    expect(writeProductionRecovery(scope, changed, { storage })).toBe(false);
+  });
   it('round-trips original source, revision, note and exact request without sending anything', () => {
     const storage = memory(),
       value = snapshot();
@@ -122,7 +178,12 @@ describe('scoped production recovery', () => {
         workId,
         name: 'Chocolate',
         fields: original.requests[0]!.fields,
-        result: { outcome: 'saved', duplicate: true, usedDough: 2, shortfall: [] }
+        result: {
+          outcome: 'saved',
+          duplicate: true,
+          usedDough: 2,
+          shortfall: [{ name: 'Flour', by: 10, unit: 'g', why: 'unit differs' }]
+        }
       }
     ];
     expect(writeProductionRecovery(scope, done, { storage })).toBe(true);
