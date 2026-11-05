@@ -1,0 +1,79 @@
+{
+  "id": "shop/customer-status/read-failure@p390",
+  "viewport": {
+    "w": 390,
+    "h": 844
+  },
+  "engine": "chromium",
+  "audit": {
+    "viewport": {
+      "w": 390,
+      "h": 844,
+      "dpr": 1
+    },
+    "overflowX": 0,
+    "docHeight": 844,
+    "offenders": [],
+    "clipped": [],
+    "smallTargetCount": 1,
+    "smallTargets": [
+      {
+        "name": "Back to the cookies",
+        "el": "button",
+        "w": 42,
+        "h": 42
+      }
+    ],
+    "covered": [],
+    "sticky": [],
+    "images": [
+      {
+        "alt": "",
+        "broken": false,
+        "scale": 0.15,
+        "x": 151.5,
+        "y": 74,
+        "w": 87,
+        "h": 78
+      }
+    ],
+    "brokenImages": 0,
+    "lowContrast": [
+      {
+        "name": "Fictional allergen note: contains milk, eggs and wheat.",
+        "contrast": 4.25,
+        "fontSize": "11px",
+        "color": "rgb(138, 112, 98)"
+      }
+    ],
+    "lowContrastCount": 1,
+    "focused": null,
+    "heading": null,
+    "dialog": null
+  },
+  "keyElements": [
+    {
+      "kind": "image",
+      "name": "img",
+      "x": 151.5,
+      "y": 74,
+      "w": 87,
+      "h": 78,
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "lineHeight": "24px",
+      "fontFamily": "QAOnest",
+      "padding": "0px",
+      "gap": "normal",
+      "radius": "0px",
+      "color": "rgb(58, 31, 20)",
+      "background": "rgba(0, 0, 0, 0)",
+      "contrast": 14.03,
+      "overflow": "clip",
+      "position": "static",
+      "outline": "none",
+      "boxShadow": "none"
+    }
+  ],
+  "inputs": []
+}

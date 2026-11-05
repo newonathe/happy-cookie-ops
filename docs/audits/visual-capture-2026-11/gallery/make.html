@@ -1,0 +1,2102 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>make · ACTUAL app</title>
+    <style>
+      body {
+        font:
+          15px/1.5 system-ui,
+          sans-serif;
+        margin: 0 auto;
+        max-width: 1500px;
+        padding: 16px;
+        color: #222;
+        background: #fff;
+      }
+      .tag {
+        display: inline-block;
+        background: #222;
+        color: #fff;
+        padding: 2px 10px;
+        border-radius: 4px;
+        font-size: 13px;
+      }
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: flex-start;
+      }
+      figure {
+        margin: 0;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        padding: 6px;
+        max-width: 100%;
+      }
+      figure img {
+        display: block;
+        max-height: 420px;
+        max-width: 100%;
+        height: auto;
+      }
+      figcaption {
+        font-size: 12px;
+        color: #555;
+        padding-top: 4px;
+      }
+      section {
+        border-top: 2px solid #ddd;
+        margin-top: 24px;
+      }
+      small {
+        color: #666;
+        font-weight: 400;
+      }
+      .bad {
+        color: #b00020;
+      }
+      code {
+        font-size: 13px;
+      }
+    </style>
+  </head>
+  <body>
+    <p class="tag">ACTUAL application · fictional data · simulated server</p>
+    <p><a href="index.html">All sections</a></p>
+    <h1>make</h1>
+    <section>
+      <h3>Products</h3>
+      <p><code>src/components/live/recipes/products-live.tsx</code> · reference: make</p>
+      <h4 id="products-populated">populated <small>data · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/products/populated/p320.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/products/populated/p320.webp"
+              alt="Products populated p320"
+          /></a>
+          <figcaption>p320 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/products/populated/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/products/populated/p390.webp"
+              alt="Products populated p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/products/populated/t768.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/products/populated/t768.webp"
+              alt="Products populated t768"
+          /></a>
+          <figcaption>t768 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/products/populated/l1024.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/products/populated/l1024.webp"
+              alt="Products populated l1024"
+          /></a>
+          <figcaption>l1024 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/products/populated/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/products/populated/d1440.webp"
+              alt="Products populated d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/products/populated/w1920.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/products/populated/w1920.webp"
+              alt="Products populated w1920"
+          /></a>
+          <figcaption>w1920 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="products-empty">empty <small>data · data:empty</small></h4>
+      <p>Simulated server answers with no records.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/products/empty/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/products/empty/p390.webp"
+              alt="Products empty p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/products/empty/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/products/empty/d1440.webp"
+              alt="Products empty d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="products-many">many <small>data · data:many</small></h4>
+      <p>60 extra orders and 40 extra stock items.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/products/many/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/products/many/p390.webp"
+              alt="Products many p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/products/many/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/products/many/d1440.webp"
+              alt="Products many d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="products-long-text">long-text <small>data · data:long</small></h4>
+      <p>Long customer, product and item names.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/products/populated/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/products/populated/p390.webp"
+              alt="Products long-text p390"
+          /></a>
+          <figcaption>p390 (identical to another state) · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/products/long-text/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/products/long-text/d1440.webp"
+              alt="Products long-text d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="products-large-values">large-values <small>data · data:large</small></h4>
+      <p>Prices and book amounts multiplied by 90.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/products/large-values/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/products/large-values/p390.webp"
+              alt="Products large-values p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/products/large-values/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/products/large-values/d1440.webp"
+              alt="Products large-values d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="products-loading">
+        loading <small>failure · fail:get_flavours=never,get_recipes=never</small>
+      </h4>
+      <p>Reads never answer, so the loading treatment stays on screen.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/products/loading/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/products/loading/p390.webp"
+              alt="Products loading p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/products/loading/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/products/loading/d1440.webp"
+              alt="Products loading d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="products-read-failure">
+        read-failure <small>failure · fail:get_flavours=down,get_recipes=down</small>
+      </h4>
+      <p>Reads answer with a connection error (08006).</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/products/loading/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/products/loading/p390.webp"
+              alt="Products read-failure p390"
+          /></a>
+          <figcaption>p390 (identical to another state) · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/products/loading/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/products/loading/d1440.webp"
+              alt="Products read-failure d1440"
+          /></a>
+          <figcaption>d1440 (identical to another state) · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="products-malformed-answer">
+        malformed-answer <small>failure · fail:get_flavours=malformed,get_recipes=malformed</small>
+      </h4>
+      <p>Reads answer with a shape the parser refuses.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/products/malformed-answer/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/products/malformed-answer/p390.webp"
+              alt="Products malformed-answer p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/products/malformed-answer/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/products/malformed-answer/d1440.webp"
+              alt="Products malformed-answer d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="products-offline-after-load">offline-after-load <small>failure · default</small></h4>
+      <p>Browser goes offline after a populated load.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/products/offline-after-load/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/products/offline-after-load/p390.webp"
+              alt="Products offline-after-load p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/products/offline-after-load/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/products/offline-after-load/d1440.webp"
+              alt="Products offline-after-load d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="products-focus-keyboard">focus-keyboard <small>interaction · default</small></h4>
+      <p>Five Tab presses from page start: what focus looks like.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/products/focus-keyboard/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/products/focus-keyboard/d1440.webp"
+              alt="Products focus-keyboard d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="products-filter-all">filter-all <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/products/filter-all/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/products/filter-all/p390.webp"
+              alt="Products filter-all p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/products/filter-all/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/products/filter-all/d1440.webp"
+              alt="Products filter-all d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="products-filter-needs-recipe">
+        filter-needs-recipe <small>business · default</small>
+      </h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/products/filter-needs-recipe/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/products/filter-needs-recipe/p390.webp"
+              alt="Products filter-needs-recipe p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/products/filter-needs-recipe/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/products/filter-needs-recipe/d1440.webp"
+              alt="Products filter-needs-recipe d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="products-taken-off-order-form">
+        taken-off-order-form <small>interaction · default</small>
+      </h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/products/taken-off-order-form/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/products/taken-off-order-form/p390.webp"
+              alt="Products taken-off-order-form p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/products/taken-off-order-form/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/products/taken-off-order-form/d1440.webp"
+              alt="Products taken-off-order-form d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Edit product</h3>
+      <p><code>src/components/live/live-form-host.tsx</code> · reference: product-edit</p>
+      <h4 id="product-edit-default">default <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/product-edit/default/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/product-edit/default/p390.webp"
+              alt="Edit product default p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/product-edit/default/t768.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/product-edit/default/t768.webp"
+              alt="Edit product default t768"
+          /></a>
+          <figcaption>t768 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/product-edit/default/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/product-edit/default/d1440.webp"
+              alt="Edit product default d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="product-edit-save-failure">save-failure <small>failure · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/product-edit/save-failure/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/product-edit/save-failure/p390.webp"
+              alt="Edit product save-failure p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/product-edit/save-failure/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/product-edit/save-failure/d1440.webp"
+              alt="Edit product save-failure d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Add product</h3>
+      <p><code>src/components/live/live-form-host.tsx</code> · reference: new-product</p>
+      <h4 id="new-product-form-untouched">form-untouched <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/new-product/form-untouched/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/new-product/form-untouched/p390.webp"
+              alt="Add product form-untouched p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/new-product/form-untouched/t768.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/new-product/form-untouched/t768.webp"
+              alt="Add product form-untouched t768"
+          /></a>
+          <figcaption>t768 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/new-product/form-untouched/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/new-product/form-untouched/d1440.webp"
+              alt="Add product form-untouched d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="new-product-invalid">invalid <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/new-product/invalid/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/new-product/invalid/p390.webp"
+              alt="Add product invalid p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/new-product/invalid/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/new-product/invalid/d1440.webp"
+              alt="Add product invalid d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Recipe drafts</h3>
+      <p><code>src/components/live/recipe-drafts-form.tsx</code> · reference: recipe-drafts</p>
+      <h4 id="recipe-drafts-list">list <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/recipe-drafts/list/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/recipe-drafts/list/p390.webp"
+              alt="Recipe drafts list p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/recipe-drafts/list/t768.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/recipe-drafts/list/t768.webp"
+              alt="Recipe drafts list t768"
+          /></a>
+          <figcaption>t768</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/recipe-drafts/list/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/recipe-drafts/list/d1440.webp"
+              alt="Recipe drafts list d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="recipe-drafts-open-draft">open-draft <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/recipe-drafts/open-draft/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/recipe-drafts/open-draft/p390.webp"
+              alt="Recipe drafts open-draft p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/recipe-drafts/open-draft/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/recipe-drafts/open-draft/d1440.webp"
+              alt="Recipe drafts open-draft d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="recipe-drafts-new-draft">new-draft <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/recipe-drafts/new-draft/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/recipe-drafts/new-draft/p390.webp"
+              alt="Recipe drafts new-draft p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/recipe-drafts/new-draft/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/recipe-drafts/new-draft/d1440.webp"
+              alt="Recipe drafts new-draft d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Recipe page</h3>
+      <p><code>src/components/live/recipes/recipe-reader.tsx</code> · reference: recipe</p>
+      <h4 id="recipe-default">default <small>data · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/recipe/default/p320.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/recipe/default/p320.webp"
+              alt="Recipe page default p320"
+          /></a>
+          <figcaption>p320 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/recipe/default/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/recipe/default/p390.webp"
+              alt="Recipe page default p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/recipe/default/t768.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/recipe/default/t768.webp"
+              alt="Recipe page default t768"
+          /></a>
+          <figcaption>t768</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/recipe/default/l1024.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/recipe/default/l1024.webp"
+              alt="Recipe page default l1024"
+          /></a>
+          <figcaption>l1024 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/recipe/default/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/recipe/default/d1440.webp"
+              alt="Recipe page default d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/recipe/default/w1920.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/recipe/default/w1920.webp"
+              alt="Recipe page default w1920"
+          /></a>
+          <figcaption>w1920</figcaption>
+        </figure>
+      </div>
+      <h4 id="recipe-scaled-half">scaled-half <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/recipe/scaled-half/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/recipe/scaled-half/p390.webp"
+              alt="Recipe page scaled-half p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/recipe/scaled-half/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/recipe/scaled-half/d1440.webp"
+              alt="Recipe page scaled-half d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="recipe-scaled-large-shortage">
+        scaled-large-shortage <small>business · default</small>
+      </h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/recipe/scaled-large-shortage/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/recipe/scaled-large-shortage/p390.webp"
+              alt="Recipe page scaled-large-shortage p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/recipe/scaled-large-shortage/t768.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/recipe/scaled-large-shortage/t768.webp"
+              alt="Recipe page scaled-large-shortage t768"
+          /></a>
+          <figcaption>t768 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/recipe/scaled-large-shortage/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/recipe/scaled-large-shortage/d1440.webp"
+              alt="Recipe page scaled-large-shortage d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="recipe-ingredients-ticked">
+        ingredients-ticked <small>interaction · default</small>
+      </h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/recipe/ingredients-ticked/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/recipe/ingredients-ticked/p390.webp"
+              alt="Recipe page ingredients-ticked p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/recipe/ingredients-ticked/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/recipe/ingredients-ticked/d1440.webp"
+              alt="Recipe page ingredients-ticked d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="recipe-no-recipe-yet">no-recipe-yet <small>business · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/recipe/no-recipe-yet/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/recipe/no-recipe-yet/p390.webp"
+              alt="Recipe page no-recipe-yet p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/recipe/no-recipe-yet/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/recipe/no-recipe-yet/d1440.webp"
+              alt="Recipe page no-recipe-yet d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="recipe-read-failure">read-failure <small>failure · fail:get_recipes=down</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/recipe/read-failure/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/recipe/read-failure/p390.webp"
+              alt="Recipe page read-failure p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/recipe/read-failure/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/recipe/read-failure/d1440.webp"
+              alt="Recipe page read-failure d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Cost, history &amp; edit</h3>
+      <p>
+        <code>src/components/live/recipes/flavour-page.tsx</code> · reference: cost-edit,
+        cost-review
+      </p>
+      <h4 id="flavour-cost-default">default <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/flavour-cost/default/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/flavour-cost/default/p390.webp"
+              alt="Cost, history &amp; edit default p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/flavour-cost/default/t768.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/flavour-cost/default/t768.webp"
+              alt="Cost, history &amp; edit default t768"
+          /></a>
+          <figcaption>t768 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/flavour-cost/default/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/flavour-cost/default/d1440.webp"
+              alt="Cost, history &amp; edit default d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="flavour-cost-cost-typed">cost-typed <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/flavour-cost/cost-typed/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/flavour-cost/cost-typed/p390.webp"
+              alt="Cost, history &amp; edit cost-typed p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/flavour-cost/cost-typed/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/flavour-cost/cost-typed/d1440.webp"
+              alt="Cost, history &amp; edit cost-typed d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="flavour-cost-cost-review">cost-review <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/flavour-cost/cost-review/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/flavour-cost/cost-review/p390.webp"
+              alt="Cost, history &amp; edit cost-review p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/flavour-cost/cost-review/t768.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/flavour-cost/cost-review/t768.webp"
+              alt="Cost, history &amp; edit cost-review t768"
+          /></a>
+          <figcaption>t768 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/flavour-cost/cost-review/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/flavour-cost/cost-review/d1440.webp"
+              alt="Cost, history &amp; edit cost-review d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="flavour-cost-cost-saved">cost-saved <small>business · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/flavour-cost/cost-saved/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/flavour-cost/cost-saved/p390.webp"
+              alt="Cost, history &amp; edit cost-saved p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/flavour-cost/cost-saved/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/flavour-cost/cost-saved/d1440.webp"
+              alt="Cost, history &amp; edit cost-saved d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="flavour-cost-incomplete-cost">incomplete-cost <small>business · default</small></h4>
+      <p>Recipe cost is incomplete because one ingredient has no cost.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/flavour-cost/incomplete-cost/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/flavour-cost/incomplete-cost/p390.webp"
+              alt="Cost, history &amp; edit incomplete-cost p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/flavour-cost/incomplete-cost/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/flavour-cost/incomplete-cost/d1440.webp"
+              alt="Cost, history &amp; edit incomplete-cost d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Edit recipe</h3>
+      <p>
+        <code>src/components/live/recipes/recipe-editor.tsx</code> · reference: recipe-edit,
+        recipe-review
+      </p>
+      <h4 id="recipe-edit-default">default <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/recipe-edit/default/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/recipe-edit/default/p390.webp"
+              alt="Edit recipe default p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/recipe-edit/default/t768.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/recipe-edit/default/t768.webp"
+              alt="Edit recipe default t768"
+          /></a>
+          <figcaption>t768 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/recipe-edit/default/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/recipe-edit/default/d1440.webp"
+              alt="Edit recipe default d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="recipe-edit-line-changed">line-changed <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/recipe-edit/line-changed/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/recipe-edit/line-changed/p390.webp"
+              alt="Edit recipe line-changed p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/recipe-edit/line-changed/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/recipe-edit/line-changed/d1440.webp"
+              alt="Edit recipe line-changed d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="recipe-edit-review">review <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/recipe-edit/review/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/recipe-edit/review/p390.webp"
+              alt="Edit recipe review p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/recipe-edit/review/t768.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/recipe-edit/review/t768.webp"
+              alt="Edit recipe review t768"
+          /></a>
+          <figcaption>t768</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/recipe-edit/review/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/recipe-edit/review/d1440.webp"
+              alt="Edit recipe review d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="recipe-edit-line-added">line-added <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/recipe-edit/line-added/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/recipe-edit/line-added/p390.webp"
+              alt="Edit recipe line-added p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/recipe-edit/line-added/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/recipe-edit/line-added/d1440.webp"
+              alt="Edit recipe line-added d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="recipe-edit-saved-new-version">
+        saved-new-version <small>business · default</small>
+      </h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/recipe-edit/saved-new-version/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/recipe-edit/saved-new-version/p390.webp"
+              alt="Edit recipe saved-new-version p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/recipe-edit/saved-new-version/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/recipe-edit/saved-new-version/d1440.webp"
+              alt="Edit recipe saved-new-version d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="recipe-edit-save-failure">save-failure <small>failure · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/recipe-edit/save-failure/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/recipe-edit/save-failure/p390.webp"
+              alt="Edit recipe save-failure p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/recipe-edit/save-failure/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/recipe-edit/save-failure/d1440.webp"
+              alt="Edit recipe save-failure d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="recipe-edit-save-conflict">save-conflict <small>failure · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/recipe-edit/save-conflict/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/recipe-edit/save-conflict/p390.webp"
+              alt="Edit recipe save-conflict p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/recipe-edit/save-conflict/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/recipe-edit/save-conflict/d1440.webp"
+              alt="Edit recipe save-conflict d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Recipe book</h3>
+      <p><code>src/components/live/recipes/recipe-book.tsx</code> · found in code</p>
+      <h4 id="recipe-book-populated">populated <small>data · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/recipe-book/populated/p320.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/recipe-book/populated/p320.webp"
+              alt="Recipe book populated p320"
+          /></a>
+          <figcaption>p320 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/recipe-book/populated/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/recipe-book/populated/p390.webp"
+              alt="Recipe book populated p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/recipe-book/populated/t768.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/recipe-book/populated/t768.webp"
+              alt="Recipe book populated t768"
+          /></a>
+          <figcaption>t768 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/recipe-book/populated/l1024.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/recipe-book/populated/l1024.webp"
+              alt="Recipe book populated l1024"
+          /></a>
+          <figcaption>l1024 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/recipe-book/populated/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/recipe-book/populated/d1440.webp"
+              alt="Recipe book populated d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/recipe-book/populated/w1920.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/recipe-book/populated/w1920.webp"
+              alt="Recipe book populated w1920"
+          /></a>
+          <figcaption>w1920 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="recipe-book-empty">empty <small>data · data:empty</small></h4>
+      <p>Simulated server answers with no records.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/recipe-book/empty/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/recipe-book/empty/p390.webp"
+              alt="Recipe book empty p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/recipe-book/empty/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/recipe-book/empty/d1440.webp"
+              alt="Recipe book empty d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="recipe-book-long-text">long-text <small>data · data:long</small></h4>
+      <p>Long customer, product and item names.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/recipe-book/long-text/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/recipe-book/long-text/p390.webp"
+              alt="Recipe book long-text p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/recipe-book/long-text/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/recipe-book/long-text/d1440.webp"
+              alt="Recipe book long-text d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="recipe-book-loading">loading <small>failure · fail:get_recipes=never</small></h4>
+      <p>Reads never answer, so the loading treatment stays on screen.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/recipe-book/loading/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/recipe-book/loading/p390.webp"
+              alt="Recipe book loading p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/recipe-book/loading/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/recipe-book/loading/d1440.webp"
+              alt="Recipe book loading d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="recipe-book-read-failure">
+        read-failure <small>failure · fail:get_recipes=down</small>
+      </h4>
+      <p>Reads answer with a connection error (08006).</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/recipe-book/loading/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/recipe-book/loading/p390.webp"
+              alt="Recipe book read-failure p390"
+          /></a>
+          <figcaption>p390 (identical to another state) · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/recipe-book/loading/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/recipe-book/loading/d1440.webp"
+              alt="Recipe book read-failure d1440"
+          /></a>
+          <figcaption>d1440 (identical to another state) · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="recipe-book-malformed-answer">
+        malformed-answer <small>failure · fail:get_recipes=malformed</small>
+      </h4>
+      <p>Reads answer with a shape the parser refuses.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/recipe-book/loading/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/recipe-book/loading/p390.webp"
+              alt="Recipe book malformed-answer p390"
+          /></a>
+          <figcaption>p390 (identical to another state) · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/recipe-book/loading/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/recipe-book/loading/d1440.webp"
+              alt="Recipe book malformed-answer d1440"
+          /></a>
+          <figcaption>d1440 (identical to another state) · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="recipe-book-offline-after-load">
+        offline-after-load <small>failure · default</small>
+      </h4>
+      <p>Browser goes offline after a populated load.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/recipe-book/offline-after-load/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/recipe-book/offline-after-load/p390.webp"
+              alt="Recipe book offline-after-load p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/recipe-book/offline-after-load/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/recipe-book/offline-after-load/d1440.webp"
+              alt="Recipe book offline-after-load d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="recipe-book-focus-keyboard">focus-keyboard <small>interaction · default</small></h4>
+      <p>Five Tab presses from page start: what focus looks like.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/recipe-book/focus-keyboard/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/recipe-book/focus-keyboard/d1440.webp"
+              alt="Recipe book focus-keyboard d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Production</h3>
+      <p><code>src/components/live/production/production-live.tsx</code> · reference: production</p>
+      <h4 id="production-populated">populated <small>data · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/production/populated/p320.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/production/populated/p320.webp"
+              alt="Production populated p320"
+          /></a>
+          <figcaption>p320 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/production/populated/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/production/populated/p390.webp"
+              alt="Production populated p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/production/populated/t768.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/production/populated/t768.webp"
+              alt="Production populated t768"
+          /></a>
+          <figcaption>t768 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/production/populated/l1024.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/production/populated/l1024.webp"
+              alt="Production populated l1024"
+          /></a>
+          <figcaption>l1024 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/production/populated/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/production/populated/d1440.webp"
+              alt="Production populated d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/production/populated/w1920.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/production/populated/w1920.webp"
+              alt="Production populated w1920"
+          /></a>
+          <figcaption>w1920 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="production-empty">empty <small>data · data:empty</small></h4>
+      <p>Simulated server answers with no records.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/production/empty/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/production/empty/p390.webp"
+              alt="Production empty p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/production/empty/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/production/empty/d1440.webp"
+              alt="Production empty d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="production-long-text">long-text <small>data · data:long</small></h4>
+      <p>Long customer, product and item names.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/production/long-text/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/production/long-text/p390.webp"
+              alt="Production long-text p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/production/long-text/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/production/long-text/d1440.webp"
+              alt="Production long-text d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="production-loading">loading <small>failure · fail:get_production=never</small></h4>
+      <p>Reads never answer, so the loading treatment stays on screen.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/production/loading/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/production/loading/p390.webp"
+              alt="Production loading p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/production/loading/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/production/loading/d1440.webp"
+              alt="Production loading d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="production-read-failure">
+        read-failure <small>failure · fail:get_production=down</small>
+      </h4>
+      <p>Reads answer with a connection error (08006).</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/production/read-failure/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/production/read-failure/p390.webp"
+              alt="Production read-failure p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/production/read-failure/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/production/read-failure/d1440.webp"
+              alt="Production read-failure d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="production-malformed-answer">
+        malformed-answer <small>failure · fail:get_production=malformed</small>
+      </h4>
+      <p>Reads answer with a shape the parser refuses.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/production/read-failure/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/production/read-failure/p390.webp"
+              alt="Production malformed-answer p390"
+          /></a>
+          <figcaption>p390 (identical to another state)</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/production/read-failure/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/production/read-failure/d1440.webp"
+              alt="Production malformed-answer d1440"
+          /></a>
+          <figcaption>d1440 (identical to another state)</figcaption>
+        </figure>
+      </div>
+      <h4 id="production-offline-after-load">
+        offline-after-load <small>failure · default</small>
+      </h4>
+      <p>Browser goes offline after a populated load.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/production/offline-after-load/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/production/offline-after-load/p390.webp"
+              alt="Production offline-after-load p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/production/offline-after-load/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/production/offline-after-load/d1440.webp"
+              alt="Production offline-after-load d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="production-focus-keyboard">focus-keyboard <small>interaction · default</small></h4>
+      <p>Five Tab presses from page start: what focus looks like.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/production/focus-keyboard/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/production/focus-keyboard/d1440.webp"
+              alt="Production focus-keyboard d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="production-two-jobs-in-progress">
+        two-jobs-in-progress <small>business · default</small>
+      </h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/production/two-jobs-in-progress/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/production/two-jobs-in-progress/p390.webp"
+              alt="Production two-jobs-in-progress p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/production/two-jobs-in-progress/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/production/two-jobs-in-progress/d1440.webp"
+              alt="Production two-jobs-in-progress d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="production-reduced-motion">reduced-motion <small>accessibility · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/production/populated/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/production/populated/p390.webp"
+              alt="Production reduced-motion p390"
+          /></a>
+          <figcaption>p390 (identical to another state) · opens full page</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Start production</h3>
+      <p>
+        <code>src/components/live/production/production-start.tsx</code> · reference:
+        production-entry, production-review
+      </p>
+      <h4 id="production-entry-nothing-selected">
+        nothing-selected <small>interaction · default</small>
+      </h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/production-entry/nothing-selected/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/production-entry/nothing-selected/p390.webp"
+              alt="Start production nothing-selected p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/production-entry/nothing-selected/t768.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/production-entry/nothing-selected/t768.webp"
+              alt="Start production nothing-selected t768"
+          /></a>
+          <figcaption>t768</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/production-entry/nothing-selected/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/production-entry/nothing-selected/d1440.webp"
+              alt="Start production nothing-selected d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="production-entry-two-products-selected">
+        two-products-selected <small>interaction · default</small>
+      </h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/production-entry/two-products-selected/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/production-entry/two-products-selected/p390.webp"
+              alt="Start production two-products-selected p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/production-entry/two-products-selected/t768.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/production-entry/two-products-selected/t768.webp"
+              alt="Start production two-products-selected t768"
+          /></a>
+          <figcaption>t768</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/production-entry/two-products-selected/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/production-entry/two-products-selected/d1440.webp"
+              alt="Start production two-products-selected d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="production-entry-review">review <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/production-entry/review/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/production-entry/review/p390.webp"
+              alt="Start production review p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/production-entry/review/t768.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/production-entry/review/t768.webp"
+              alt="Start production review t768"
+          /></a>
+          <figcaption>t768</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/production-entry/review/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/production-entry/review/d1440.webp"
+              alt="Start production review d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="production-entry-started">started <small>business · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/production-entry/started/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/production-entry/started/p390.webp"
+              alt="Start production started p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/production-entry/started/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/production-entry/started/d1440.webp"
+              alt="Start production started d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Cookies made (bake entry)</h3>
+      <p>
+        <code>src/components/live/production/production-focus-live.tsx</code> · reference:
+        production-review
+      </p>
+      <h4 id="batch-focus-untouched">untouched <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/batch-focus/untouched/p320.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/batch-focus/untouched/p320.webp"
+              alt="Cookies made (bake entry) untouched p320"
+          /></a>
+          <figcaption>p320 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/batch-focus/untouched/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/batch-focus/untouched/p390.webp"
+              alt="Cookies made (bake entry) untouched p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/batch-focus/untouched/t768.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/batch-focus/untouched/t768.webp"
+              alt="Cookies made (bake entry) untouched t768"
+          /></a>
+          <figcaption>t768</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/batch-focus/untouched/l1024.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/batch-focus/untouched/l1024.webp"
+              alt="Cookies made (bake entry) untouched l1024"
+          /></a>
+          <figcaption>l1024 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/batch-focus/untouched/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/batch-focus/untouched/d1440.webp"
+              alt="Cookies made (bake entry) untouched d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/batch-focus/untouched/w1920.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/batch-focus/untouched/w1920.webp"
+              alt="Cookies made (bake entry) untouched w1920"
+          /></a>
+          <figcaption>w1920</figcaption>
+        </figure>
+      </div>
+      <h4 id="batch-focus-invalid">invalid <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/batch-focus/invalid/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/batch-focus/invalid/p390.webp"
+              alt="Cookies made (bake entry) invalid p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/batch-focus/invalid/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/batch-focus/invalid/d1440.webp"
+              alt="Cookies made (bake entry) invalid d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="batch-focus-filled">filled <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/batch-focus/filled/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/batch-focus/filled/p390.webp"
+              alt="Cookies made (bake entry) filled p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/batch-focus/filled/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/batch-focus/filled/d1440.webp"
+              alt="Cookies made (bake entry) filled d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="batch-focus-review">review <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/batch-focus/review/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/batch-focus/review/p390.webp"
+              alt="Cookies made (bake entry) review p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/batch-focus/review/t768.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/batch-focus/review/t768.webp"
+              alt="Cookies made (bake entry) review t768"
+          /></a>
+          <figcaption>t768 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/batch-focus/review/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/batch-focus/review/d1440.webp"
+              alt="Cookies made (bake entry) review d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="batch-focus-save-acknowledged">
+        save-acknowledged <small>business · default</small>
+      </h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/batch-focus/save-acknowledged/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/batch-focus/save-acknowledged/p390.webp"
+              alt="Cookies made (bake entry) save-acknowledged p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/batch-focus/save-acknowledged/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/batch-focus/save-acknowledged/d1440.webp"
+              alt="Cookies made (bake entry) save-acknowledged d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="batch-focus-save-failed">save-failed <small>failure · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/batch-focus/save-failed/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/batch-focus/save-failed/p390.webp"
+              alt="Cookies made (bake entry) save-failed p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/batch-focus/save-failed/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/batch-focus/save-failed/d1440.webp"
+              alt="Cookies made (bake entry) save-failed d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="batch-focus-direct-no-batch">direct-no-batch <small>failure · default</small></h4>
+      <p>Direct address with no batch open.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/production/populated/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/production/populated/p390.webp"
+              alt="Cookies made (bake entry) direct-no-batch p390"
+          /></a>
+          <figcaption>p390 (identical to another state) · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/production/populated/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/production/populated/d1440.webp"
+              alt="Cookies made (bake entry) direct-no-batch d1440"
+          /></a>
+          <figcaption>d1440 (identical to another state) · opens full page</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Prepare dough</h3>
+      <p>
+        <code>src/components/live/production/production-dough.tsx</code> · reference:
+        production-entry
+      </p>
+      <h4 id="dough-prepare-sheet-untouched">
+        sheet-untouched <small>interaction · default</small>
+      </h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/dough-prepare/sheet-untouched/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/dough-prepare/sheet-untouched/p390.webp"
+              alt="Prepare dough sheet-untouched p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/dough-prepare/sheet-untouched/t768.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/dough-prepare/sheet-untouched/t768.webp"
+              alt="Prepare dough sheet-untouched t768"
+          /></a>
+          <figcaption>t768 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/dough-prepare/sheet-untouched/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/dough-prepare/sheet-untouched/d1440.webp"
+              alt="Prepare dough sheet-untouched d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="dough-prepare-half-recipe">half-recipe <small>business · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/dough-prepare/half-recipe/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/dough-prepare/half-recipe/p390.webp"
+              alt="Prepare dough half-recipe p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/dough-prepare/half-recipe/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/dough-prepare/half-recipe/d1440.webp"
+              alt="Prepare dough half-recipe d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="dough-prepare-review">review <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/dough-prepare/review/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/dough-prepare/review/p390.webp"
+              alt="Prepare dough review p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/dough-prepare/review/t768.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/dough-prepare/review/t768.webp"
+              alt="Prepare dough review t768"
+          /></a>
+          <figcaption>t768 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/dough-prepare/review/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/dough-prepare/review/d1440.webp"
+              alt="Prepare dough review d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="dough-prepare-confirmed">confirmed <small>business · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/dough-prepare/confirmed/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/dough-prepare/confirmed/p390.webp"
+              alt="Prepare dough confirmed p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/dough-prepare/confirmed/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/dough-prepare/confirmed/d1440.webp"
+              alt="Prepare dough confirmed d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="dough-prepare-confirm-failed">confirm-failed <small>failure · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/dough-prepare/confirm-failed/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/dough-prepare/confirm-failed/p390.webp"
+              alt="Prepare dough confirm-failed p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/dough-prepare/confirm-failed/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/dough-prepare/confirm-failed/d1440.webp"
+              alt="Prepare dough confirm-failed d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="dough-prepare-invalid">invalid <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/dough-prepare/invalid/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/dough-prepare/invalid/p390.webp"
+              alt="Prepare dough invalid p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/dough-prepare/invalid/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/dough-prepare/invalid/d1440.webp"
+              alt="Prepare dough invalid d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Make settings</h3>
+      <p><code>src/components/live/account/settings-areas.tsx</code> · reference: make-settings</p>
+      <h4 id="make-settings-default">default <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/make-settings/default/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/make-settings/default/p390.webp"
+              alt="Make settings default p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/make-settings/default/t768.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/make-settings/default/t768.webp"
+              alt="Make settings default t768"
+          /></a>
+          <figcaption>t768</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/make-settings/default/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/make-settings/default/d1440.webp"
+              alt="Make settings default d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Rules (kitchen)</h3>
+      <p><code>src/components/live/settings-pages.tsx</code> · found in code</p>
+      <h4 id="rules-default">default <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/rules/default/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/rules/default/p390.webp"
+              alt="Rules (kitchen) default p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/rules/default/t768.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/rules/default/t768.webp"
+              alt="Rules (kitchen) default t768"
+          /></a>
+          <figcaption>t768 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/rules/default/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/rules/default/d1440.webp"
+              alt="Rules (kitchen) default d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Menu &amp; flavours</h3>
+      <p><code>src/components/live/live-form-host.tsx</code> · found in code</p>
+      <h4 id="menu-flavours-default">default <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/menu-flavours/default/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/menu-flavours/default/p390.webp"
+              alt="Menu &amp; flavours default p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/menu-flavours/default/t768.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/menu-flavours/default/t768.webp"
+              alt="Menu &amp; flavours default t768"
+          /></a>
+          <figcaption>t768</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/menu-flavours/default/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/menu-flavours/default/d1440.webp"
+              alt="Menu &amp; flavours default d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+    </section>
+  </body>
+</html>

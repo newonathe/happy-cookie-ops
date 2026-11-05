@@ -1,0 +1,1762 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>sell · ACTUAL app</title>
+    <style>
+      body {
+        font:
+          15px/1.5 system-ui,
+          sans-serif;
+        margin: 0 auto;
+        max-width: 1500px;
+        padding: 16px;
+        color: #222;
+        background: #fff;
+      }
+      .tag {
+        display: inline-block;
+        background: #222;
+        color: #fff;
+        padding: 2px 10px;
+        border-radius: 4px;
+        font-size: 13px;
+      }
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: flex-start;
+      }
+      figure {
+        margin: 0;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        padding: 6px;
+        max-width: 100%;
+      }
+      figure img {
+        display: block;
+        max-height: 420px;
+        max-width: 100%;
+        height: auto;
+      }
+      figcaption {
+        font-size: 12px;
+        color: #555;
+        padding-top: 4px;
+      }
+      section {
+        border-top: 2px solid #ddd;
+        margin-top: 24px;
+      }
+      small {
+        color: #666;
+        font-weight: 400;
+      }
+      .bad {
+        color: #b00020;
+      }
+      code {
+        font-size: 13px;
+      }
+    </style>
+  </head>
+  <body>
+    <p class="tag">ACTUAL application · fictional data · simulated server</p>
+    <p><a href="index.html">All sections</a></p>
+    <h1>sell</h1>
+    <section>
+      <h3>Orders</h3>
+      <p><code>src/components/live/sell/orders-live.tsx</code> · reference: sell</p>
+      <h4 id="orders-populated">populated <small>data · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/sell/orders/populated/p320.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/orders/populated/p320.webp"
+              alt="Orders populated p320"
+          /></a>
+          <figcaption>p320 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/orders/populated/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/orders/populated/p390.webp"
+              alt="Orders populated p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/orders/populated/t768.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/orders/populated/t768.webp"
+              alt="Orders populated t768"
+          /></a>
+          <figcaption>t768 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/orders/populated/l1024.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/orders/populated/l1024.webp"
+              alt="Orders populated l1024"
+          /></a>
+          <figcaption>l1024 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/orders/populated/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/orders/populated/d1440.webp"
+              alt="Orders populated d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/orders/populated/w1920.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/orders/populated/w1920.webp"
+              alt="Orders populated w1920"
+          /></a>
+          <figcaption>w1920 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="orders-empty">empty <small>data · data:empty</small></h4>
+      <p>Simulated server answers with no records.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/sell/orders/empty/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/orders/empty/p390.webp"
+              alt="Orders empty p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/orders/empty/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/orders/empty/d1440.webp"
+              alt="Orders empty d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="orders-many">many <small>data · data:many</small></h4>
+      <p>60 extra orders and 40 extra stock items.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/sell/orders/many/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/orders/many/p390.webp"
+              alt="Orders many p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/orders/many/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/orders/many/d1440.webp"
+              alt="Orders many d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="orders-long-text">long-text <small>data · data:long</small></h4>
+      <p>Long customer, product and item names.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/sell/orders/long-text/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/orders/long-text/p390.webp"
+              alt="Orders long-text p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/orders/long-text/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/orders/long-text/d1440.webp"
+              alt="Orders long-text d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="orders-large-values">large-values <small>data · data:large</small></h4>
+      <p>Prices and book amounts multiplied by 90.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/sell/orders/large-values/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/orders/large-values/p390.webp"
+              alt="Orders large-values p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/orders/large-values/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/orders/large-values/d1440.webp"
+              alt="Orders large-values d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="orders-loading">loading <small>failure · fail:get_staff_orders=never</small></h4>
+      <p>Reads never answer, so the loading treatment stays on screen.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/sell/orders/loading/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/orders/loading/p390.webp"
+              alt="Orders loading p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/orders/loading/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/orders/loading/d1440.webp"
+              alt="Orders loading d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="orders-read-failure">
+        read-failure <small>failure · fail:get_staff_orders=down</small>
+      </h4>
+      <p>Reads answer with a connection error (08006).</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/sell/orders/loading/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/orders/loading/p390.webp"
+              alt="Orders read-failure p390"
+          /></a>
+          <figcaption>p390 (identical to another state)</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/orders/loading/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/orders/loading/d1440.webp"
+              alt="Orders read-failure d1440"
+          /></a>
+          <figcaption>d1440 (identical to another state)</figcaption>
+        </figure>
+      </div>
+      <h4 id="orders-malformed-answer">
+        malformed-answer <small>failure · fail:get_staff_orders=malformed</small>
+      </h4>
+      <p>Reads answer with a shape the parser refuses.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/sell/orders/loading/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/orders/loading/p390.webp"
+              alt="Orders malformed-answer p390"
+          /></a>
+          <figcaption>p390 (identical to another state)</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/orders/loading/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/orders/loading/d1440.webp"
+              alt="Orders malformed-answer d1440"
+          /></a>
+          <figcaption>d1440 (identical to another state)</figcaption>
+        </figure>
+      </div>
+      <h4 id="orders-offline-after-load">offline-after-load <small>failure · default</small></h4>
+      <p>Browser goes offline after a populated load.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/sell/orders/offline-after-load/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/orders/offline-after-load/p390.webp"
+              alt="Orders offline-after-load p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/orders/offline-after-load/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/orders/offline-after-load/d1440.webp"
+              alt="Orders offline-after-load d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="orders-focus-keyboard">focus-keyboard <small>interaction · default</small></h4>
+      <p>Five Tab presses from page start: what focus looks like.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/sell/orders/focus-keyboard/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/orders/focus-keyboard/d1440.webp"
+              alt="Orders focus-keyboard d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="orders-one-order">one-order <small>data · data:one</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/sell/orders/one-order/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/orders/one-order/p390.webp"
+              alt="Orders one-order p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/orders/one-order/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/orders/one-order/d1440.webp"
+              alt="Orders one-order d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="orders-filter-to-review">filter-to-review <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/sell/orders/filter-to-review/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/orders/filter-to-review/p390.webp"
+              alt="Orders filter-to-review p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/orders/filter-to-review/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/orders/filter-to-review/d1440.webp"
+              alt="Orders filter-to-review d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="orders-filter-paid">filter-paid <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/sell/orders/filter-paid/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/orders/filter-paid/p390.webp"
+              alt="Orders filter-paid p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/orders/filter-paid/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/orders/filter-paid/d1440.webp"
+              alt="Orders filter-paid d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="orders-filter-ready">filter-ready <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/sell/orders/filter-ready/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/orders/filter-ready/p390.webp"
+              alt="Orders filter-ready p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/orders/filter-ready/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/orders/filter-ready/d1440.webp"
+              alt="Orders filter-ready d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="orders-filter-closed">filter-closed <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/sell/orders/filter-closed/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/orders/filter-closed/p390.webp"
+              alt="Orders filter-closed p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/orders/filter-closed/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/orders/filter-closed/d1440.webp"
+              alt="Orders filter-closed d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="orders-search-result">search-result <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/sell/orders/search-result/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/orders/search-result/p390.webp"
+              alt="Orders search-result p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/orders/search-result/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/orders/search-result/d1440.webp"
+              alt="Orders search-result d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="orders-search-no-match">search-no-match <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/sell/orders/search-no-match/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/orders/search-no-match/p390.webp"
+              alt="Orders search-no-match p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/orders/search-no-match/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/orders/search-no-match/d1440.webp"
+              alt="Orders search-no-match d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="orders-mark-packed-pending">mark-packed-pending <small>failure · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/sell/orders/populated/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/orders/populated/p390.webp"
+              alt="Orders mark-packed-pending p390"
+          /></a>
+          <figcaption>p390 (identical to another state) · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/orders/mark-packed-pending/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/orders/mark-packed-pending/d1440.webp"
+              alt="Orders mark-packed-pending d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="orders-mark-packed-refused">mark-packed-refused <small>failure · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/sell/orders/mark-packed-refused/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/orders/mark-packed-refused/p390.webp"
+              alt="Orders mark-packed-refused p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/orders/mark-packed-refused/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/orders/mark-packed-refused/d1440.webp"
+              alt="Orders mark-packed-refused d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="orders-mark-packed-offline">mark-packed-offline <small>failure · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/sell/orders/mark-packed-offline/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/orders/mark-packed-offline/p390.webp"
+              alt="Orders mark-packed-offline p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/orders/mark-packed-offline/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/orders/mark-packed-offline/d1440.webp"
+              alt="Orders mark-packed-offline d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="orders-mark-packed-done">mark-packed-done <small>business · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/sell/orders/mark-packed-done/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/orders/mark-packed-done/p390.webp"
+              alt="Orders mark-packed-done p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/orders/mark-packed-done/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/orders/mark-packed-done/d1440.webp"
+              alt="Orders mark-packed-done d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="orders-reduced-motion">reduced-motion <small>accessibility · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/sell/orders/populated/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/orders/populated/p390.webp"
+              alt="Orders reduced-motion p390"
+          /></a>
+          <figcaption>p390 (identical to another state) · opens full page</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Order detail</h3>
+      <p><code>src/components/live/sell/order-live.tsx</code> · reference: order, payment-review</p>
+      <h4 id="order-claimed-payment-review">
+        claimed-payment-review <small>business · default</small>
+      </h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/sell/order/claimed-payment-review/p320.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/order/claimed-payment-review/p320.webp"
+              alt="Order detail claimed-payment-review p320"
+          /></a>
+          <figcaption>p320 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/order/claimed-payment-review/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/order/claimed-payment-review/p390.webp"
+              alt="Order detail claimed-payment-review p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/order/claimed-payment-review/t768.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/order/claimed-payment-review/t768.webp"
+              alt="Order detail claimed-payment-review t768"
+          /></a>
+          <figcaption>t768 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/order/claimed-payment-review/l1024.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/order/claimed-payment-review/l1024.webp"
+              alt="Order detail claimed-payment-review l1024"
+          /></a>
+          <figcaption>l1024 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/order/claimed-payment-review/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/order/claimed-payment-review/d1440.webp"
+              alt="Order detail claimed-payment-review d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/order/claimed-payment-review/w1920.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/order/claimed-payment-review/w1920.webp"
+              alt="Order detail claimed-payment-review w1920"
+          /></a>
+          <figcaption>w1920 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="order-unpaid-awaiting">unpaid-awaiting <small>business · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/sell/order/unpaid-awaiting/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/order/unpaid-awaiting/p390.webp"
+              alt="Order detail unpaid-awaiting p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/order/unpaid-awaiting/t768.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/order/unpaid-awaiting/t768.webp"
+              alt="Order detail unpaid-awaiting t768"
+          /></a>
+          <figcaption>t768 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/order/unpaid-awaiting/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/order/unpaid-awaiting/d1440.webp"
+              alt="Order detail unpaid-awaiting d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="order-confirmed-note-card">confirmed-note-card <small>business · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/sell/order/confirmed-note-card/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/order/confirmed-note-card/p390.webp"
+              alt="Order detail confirmed-note-card p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/order/confirmed-note-card/t768.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/order/confirmed-note-card/t768.webp"
+              alt="Order detail confirmed-note-card t768"
+          /></a>
+          <figcaption>t768 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/order/confirmed-note-card/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/order/confirmed-note-card/d1440.webp"
+              alt="Order detail confirmed-note-card d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="order-preparing-box">preparing-box <small>business · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/sell/order/preparing-box/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/order/preparing-box/p390.webp"
+              alt="Order detail preparing-box p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/order/preparing-box/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/order/preparing-box/d1440.webp"
+              alt="Order detail preparing-box d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="order-ready">ready <small>business · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/sell/order/ready/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/order/ready/p390.webp"
+              alt="Order detail ready p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/order/ready/t768.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/order/ready/t768.webp"
+              alt="Order detail ready t768"
+          /></a>
+          <figcaption>t768 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/order/ready/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/order/ready/d1440.webp"
+              alt="Order detail ready d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="order-completed">completed <small>business · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/sell/order/completed/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/order/completed/p390.webp"
+              alt="Order detail completed p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/order/completed/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/order/completed/d1440.webp"
+              alt="Order detail completed d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="order-cancelled">cancelled <small>business · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/sell/order/cancelled/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/order/cancelled/p390.webp"
+              alt="Order detail cancelled p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/order/cancelled/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/order/cancelled/d1440.webp"
+              alt="Order detail cancelled d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="order-no-show">no-show <small>business · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/sell/order/no-show/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/order/no-show/p390.webp"
+              alt="Order detail no-show p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/order/no-show/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/order/no-show/d1440.webp"
+              alt="Order detail no-show d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="order-refunded">refunded <small>business · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/sell/order/refunded/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/order/refunded/p390.webp"
+              alt="Order detail refunded p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/order/refunded/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/order/refunded/d1440.webp"
+              alt="Order detail refunded d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="order-item-unavailable">item-unavailable <small>business · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/sell/order/item-unavailable/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/order/item-unavailable/p390.webp"
+              alt="Order detail item-unavailable p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/order/item-unavailable/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/order/item-unavailable/d1440.webp"
+              alt="Order detail item-unavailable d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="order-sampler-with-swap">sampler-with-swap <small>business · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/sell/order/sampler-with-swap/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/order/sampler-with-swap/p390.webp"
+              alt="Order detail sampler-with-swap p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/order/sampler-with-swap/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/order/sampler-with-swap/d1440.webp"
+              alt="Order detail sampler-with-swap d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="order-view-proof">view-proof <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/sell/order/view-proof/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/order/view-proof/p390.webp"
+              alt="Order detail view-proof p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/order/view-proof/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/order/view-proof/d1440.webp"
+              alt="Order detail view-proof d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="order-ask-clearer-proof">ask-clearer-proof <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/sell/order/ask-clearer-proof/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/order/ask-clearer-proof/p390.webp"
+              alt="Order detail ask-clearer-proof p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/order/ask-clearer-proof/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/order/ask-clearer-proof/d1440.webp"
+              alt="Order detail ask-clearer-proof d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="order-rejected-at-once">rejected-at-once <small>interaction · default</small></h4>
+      <p>Reject took effect on the first press, with no question first.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/sell/order/rejected-at-once/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/order/rejected-at-once/p390.webp"
+              alt="Order detail rejected-at-once p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/order/rejected-at-once/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/order/rejected-at-once/d1440.webp"
+              alt="Order detail rejected-at-once d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="order-ran-out">ran-out <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/sell/order/ran-out/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/order/ran-out/p390.webp"
+              alt="Order detail ran-out p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/order/ran-out/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/order/ran-out/d1440.webp"
+              alt="Order detail ran-out d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="order-extra-added">extra-added <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/sell/order/extra-added/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/order/extra-added/p390.webp"
+              alt="Order detail extra-added p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/order/extra-added/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/order/extra-added/d1440.webp"
+              alt="Order detail extra-added d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="order-confirm-acknowledged">
+        confirm-acknowledged <small>business · default</small>
+      </h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/sell/order/confirm-acknowledged/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/order/confirm-acknowledged/p390.webp"
+              alt="Order detail confirm-acknowledged p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/order/confirm-acknowledged/t768.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/order/confirm-acknowledged/t768.webp"
+              alt="Order detail confirm-acknowledged t768"
+          /></a>
+          <figcaption>t768 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/order/confirm-acknowledged/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/order/confirm-acknowledged/d1440.webp"
+              alt="Order detail confirm-acknowledged d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="order-confirm-conflict">confirm-conflict <small>failure · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/sell/order/confirm-conflict/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/order/confirm-conflict/p390.webp"
+              alt="Order detail confirm-conflict p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/order/confirm-conflict/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/order/confirm-conflict/d1440.webp"
+              alt="Order detail confirm-conflict d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="order-confirm-rejected">confirm-rejected <small>failure · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/sell/order/confirm-rejected/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/order/confirm-rejected/p390.webp"
+              alt="Order detail confirm-rejected p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/order/confirm-rejected/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/order/confirm-rejected/d1440.webp"
+              alt="Order detail confirm-rejected d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="order-confirm-unknown-outcome">
+        confirm-unknown-outcome <small>failure · default</small>
+      </h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/sell/order/confirm-unknown-outcome/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/order/confirm-unknown-outcome/p390.webp"
+              alt="Order detail confirm-unknown-outcome p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/order/confirm-unknown-outcome/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/order/confirm-unknown-outcome/d1440.webp"
+              alt="Order detail confirm-unknown-outcome d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="order-confirm-pending">confirm-pending <small>failure · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/sell/order/confirm-pending/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/order/confirm-pending/p390.webp"
+              alt="Order detail confirm-pending p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/order/confirm-pending/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/order/confirm-pending/d1440.webp"
+              alt="Order detail confirm-pending d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="order-saved-refresh-failed">saved-refresh-failed <small>failure · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/sell/order/saved-refresh-failed/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/order/saved-refresh-failed/p390.webp"
+              alt="Order detail saved-refresh-failed p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/order/saved-refresh-failed/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/order/saved-refresh-failed/d1440.webp"
+              alt="Order detail saved-refresh-failed d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="order-record-unavailable">record-unavailable <small>failure · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/sell/order/record-unavailable/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/order/record-unavailable/p390.webp"
+              alt="Order detail record-unavailable p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/order/record-unavailable/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/order/record-unavailable/d1440.webp"
+              alt="Order detail record-unavailable d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="order-no-order-selected">no-order-selected <small>failure · default</small></h4>
+      <p>Direct address with no order chosen: lands on Orders.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/sell/orders/populated/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/orders/populated/p390.webp"
+              alt="Order detail no-order-selected p390"
+          /></a>
+          <figcaption>p390 (identical to another state) · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/orders/populated/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/orders/populated/d1440.webp"
+              alt="Order detail no-order-selected d1440"
+          /></a>
+          <figcaption>d1440 (identical to another state) · opens full page</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Record unavailable</h3>
+      <p><code>src/components/ui/owner-patterns.tsx</code> · reference: record-unavailable</p>
+      <h4 id="record-unavailable-order-id-unknown">
+        order-id-unknown <small>failure · default</small>
+      </h4>
+      <p>
+        The order id is injected through the test bridge. Reaching this from the real interface was
+        not observed: an order removed while open stayed on screen after a reload of the orders.
+      </p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/sell/orders/populated/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/orders/populated/p390.webp"
+              alt="Record unavailable order-id-unknown p390"
+          /></a>
+          <figcaption>p390 (identical to another state) · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/orders/populated/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/orders/populated/d1440.webp"
+              alt="Record unavailable order-id-unknown d1440"
+          /></a>
+          <figcaption>d1440 (identical to another state) · opens full page</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Record refund</h3>
+      <p><code>src/components/live/settings-pages.tsx</code> · reference: order-action</p>
+      <h4 id="order-refund-form-untouched">form-untouched <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/sell/order-refund/form-untouched/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/order-refund/form-untouched/p390.webp"
+              alt="Record refund form-untouched p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/order-refund/form-untouched/t768.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/order-refund/form-untouched/t768.webp"
+              alt="Record refund form-untouched t768"
+          /></a>
+          <figcaption>t768</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/order-refund/form-untouched/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/order-refund/form-untouched/d1440.webp"
+              alt="Record refund form-untouched d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="order-refund-submitted-empty-reference">
+        submitted-empty-reference <small>interaction · default</small>
+      </h4>
+      <p>Pressed with the reference empty: the client sent the request.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/sell/order-refund/submitted-empty-reference/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/order-refund/submitted-empty-reference/p390.webp"
+              alt="Record refund submitted-empty-reference p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/order-refund/submitted-empty-reference/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/order-refund/submitted-empty-reference/d1440.webp"
+              alt="Record refund submitted-empty-reference d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="order-refund-filled">filled <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/sell/order-refund/filled/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/order-refund/filled/p390.webp"
+              alt="Record refund filled p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/order-refund/filled/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/order-refund/filled/d1440.webp"
+              alt="Record refund filled d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>No-show and swap</h3>
+      <p><code>src/components/live/settings-pages.tsx</code> · reference: order-action</p>
+      <h4 id="order-actions-no-show-from-ready">
+        no-show-from-ready <small>interaction · default</small>
+      </h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/sell/order-actions/no-show-from-ready/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/order-actions/no-show-from-ready/p390.webp"
+              alt="No-show and swap no-show-from-ready p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/order-actions/no-show-from-ready/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/order-actions/no-show-from-ready/d1440.webp"
+              alt="No-show and swap no-show-from-ready d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="order-actions-swap-from-paid">swap-from-paid <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/sell/order-actions/swap-from-paid/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/order-actions/swap-from-paid/p390.webp"
+              alt="No-show and swap swap-from-paid p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/order-actions/swap-from-paid/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/order-actions/swap-from-paid/d1440.webp"
+              alt="No-show and swap swap-from-paid d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Payments reconciliation</h3>
+      <p><code>src/components/live/sell/payments-live.tsx</code> · reference: payment-review</p>
+      <h4 id="payments-populated">populated <small>data · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/sell/payments/populated/p320.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/payments/populated/p320.webp"
+              alt="Payments reconciliation populated p320"
+          /></a>
+          <figcaption>p320 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/payments/populated/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/payments/populated/p390.webp"
+              alt="Payments reconciliation populated p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/payments/populated/t768.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/payments/populated/t768.webp"
+              alt="Payments reconciliation populated t768"
+          /></a>
+          <figcaption>t768 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/payments/populated/l1024.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/payments/populated/l1024.webp"
+              alt="Payments reconciliation populated l1024"
+          /></a>
+          <figcaption>l1024 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/payments/populated/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/payments/populated/d1440.webp"
+              alt="Payments reconciliation populated d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/payments/populated/w1920.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/payments/populated/w1920.webp"
+              alt="Payments reconciliation populated w1920"
+          /></a>
+          <figcaption>w1920 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="payments-empty">empty <small>data · data:empty</small></h4>
+      <p>Simulated server answers with no records.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/sell/payments/empty/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/payments/empty/p390.webp"
+              alt="Payments reconciliation empty p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/payments/empty/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/payments/empty/d1440.webp"
+              alt="Payments reconciliation empty d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="payments-loading">loading <small>failure · fail:get_staff_orders=never</small></h4>
+      <p>Reads never answer, so the loading treatment stays on screen.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/sell/payments/loading/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/payments/loading/p390.webp"
+              alt="Payments reconciliation loading p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/payments/loading/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/payments/loading/d1440.webp"
+              alt="Payments reconciliation loading d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="payments-read-failure">
+        read-failure <small>failure · fail:get_staff_orders=down</small>
+      </h4>
+      <p>Reads answer with a connection error (08006).</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/sell/payments/loading/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/payments/loading/p390.webp"
+              alt="Payments reconciliation read-failure p390"
+          /></a>
+          <figcaption>p390 (identical to another state)</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/payments/loading/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/payments/loading/d1440.webp"
+              alt="Payments reconciliation read-failure d1440"
+          /></a>
+          <figcaption>d1440 (identical to another state)</figcaption>
+        </figure>
+      </div>
+      <h4 id="payments-malformed-answer">
+        malformed-answer <small>failure · fail:get_staff_orders=malformed</small>
+      </h4>
+      <p>Reads answer with a shape the parser refuses.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/sell/payments/loading/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/payments/loading/p390.webp"
+              alt="Payments reconciliation malformed-answer p390"
+          /></a>
+          <figcaption>p390 (identical to another state)</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/payments/loading/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/payments/loading/d1440.webp"
+              alt="Payments reconciliation malformed-answer d1440"
+          /></a>
+          <figcaption>d1440 (identical to another state)</figcaption>
+        </figure>
+      </div>
+      <h4 id="payments-offline-after-load">offline-after-load <small>failure · default</small></h4>
+      <p>Browser goes offline after a populated load.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/sell/payments/offline-after-load/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/payments/offline-after-load/p390.webp"
+              alt="Payments reconciliation offline-after-load p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/payments/offline-after-load/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/payments/offline-after-load/d1440.webp"
+              alt="Payments reconciliation offline-after-load d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="payments-focus-keyboard">focus-keyboard <small>interaction · default</small></h4>
+      <p>Five Tab presses from page start: what focus looks like.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/sell/payments/focus-keyboard/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/payments/focus-keyboard/d1440.webp"
+              alt="Payments reconciliation focus-keyboard d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="payments-all-ticked">all-ticked <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/sell/payments/all-ticked/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/payments/all-ticked/p390.webp"
+              alt="Payments reconciliation all-ticked p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/payments/all-ticked/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/payments/all-ticked/d1440.webp"
+              alt="Payments reconciliation all-ticked d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Customers/Waitlist</h3>
+      <p><code>src/components/live/sell/customers-live.tsx</code> · reference: customers</p>
+      <h4 id="customers-populated">populated <small>data · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/sell/customers/populated/p320.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/customers/populated/p320.webp"
+              alt="Customers/Waitlist populated p320"
+          /></a>
+          <figcaption>p320 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/customers/populated/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/customers/populated/p390.webp"
+              alt="Customers/Waitlist populated p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/customers/populated/t768.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/customers/populated/t768.webp"
+              alt="Customers/Waitlist populated t768"
+          /></a>
+          <figcaption>t768 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/customers/populated/l1024.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/customers/populated/l1024.webp"
+              alt="Customers/Waitlist populated l1024"
+          /></a>
+          <figcaption>l1024 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/customers/populated/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/customers/populated/d1440.webp"
+              alt="Customers/Waitlist populated d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/customers/populated/w1920.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/customers/populated/w1920.webp"
+              alt="Customers/Waitlist populated w1920"
+          /></a>
+          <figcaption>w1920 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="customers-empty">empty <small>data · data:empty</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/sell/customers/empty/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/customers/empty/p390.webp"
+              alt="Customers/Waitlist empty p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/customers/empty/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/customers/empty/d1440.webp"
+              alt="Customers/Waitlist empty d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="customers-many">many <small>data · data:many</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/sell/customers/many/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/customers/many/p390.webp"
+              alt="Customers/Waitlist many p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/customers/many/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/customers/many/d1440.webp"
+              alt="Customers/Waitlist many d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Customer detail</h3>
+      <p><code>src/components/live/sell/customers-live.tsx</code> · reference: customer-detail</p>
+      <h4 id="customer-detail-default">default <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/sell/customer-detail/default/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/customer-detail/default/p390.webp"
+              alt="Customer detail default p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/customer-detail/default/t768.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/customer-detail/default/t768.webp"
+              alt="Customer detail default t768"
+          /></a>
+          <figcaption>t768</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/customer-detail/default/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/customer-detail/default/d1440.webp"
+              alt="Customer detail default d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Message a customer</h3>
+      <p><code>src/components/live/sell/customers-live.tsx</code> · reference: customer-message</p>
+      <h4 id="customer-message-open">open <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/sell/customer-message/open/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/customer-message/open/p390.webp"
+              alt="Message a customer open p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/customer-message/open/t768.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/customer-message/open/t768.webp"
+              alt="Message a customer open t768"
+          /></a>
+          <figcaption>t768</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/customer-message/open/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/customer-message/open/d1440.webp"
+              alt="Message a customer open d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Remove contact details</h3>
+      <p><code>src/components/live/sell/customers-live.tsx</code> · reference: contact-remove</p>
+      <h4 id="contact-remove-prompt">prompt <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/sell/contact-remove/prompt/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/contact-remove/prompt/p390.webp"
+              alt="Remove contact details prompt p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/contact-remove/prompt/t768.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/contact-remove/prompt/t768.webp"
+              alt="Remove contact details prompt t768"
+          /></a>
+          <figcaption>t768</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/contact-remove/prompt/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/contact-remove/prompt/d1440.webp"
+              alt="Remove contact details prompt d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Customer messages (ready to copy)</h3>
+      <p><code>src/components/live/order-messages.tsx</code> · found in code</p>
+      <h4 id="order-messages-default">default <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/sell/order-messages/default/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/order-messages/default/p390.webp"
+              alt="Customer messages (ready to copy) default p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/order-messages/default/t768.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/order-messages/default/t768.webp"
+              alt="Customer messages (ready to copy) default t768"
+          /></a>
+          <figcaption>t768 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/order-messages/default/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/order-messages/default/d1440.webp"
+              alt="Customer messages (ready to copy) default d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+    </section>
+  </body>
+</html>

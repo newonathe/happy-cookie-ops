@@ -1,0 +1,119 @@
+{
+  "id": "shop/customer-lookup/untouched@l1024",
+  "viewport": {
+    "w": 1024,
+    "h": 768
+  },
+  "engine": "chromium",
+  "audit": {
+    "viewport": {
+      "w": 1024,
+      "h": 768,
+      "dpr": 1
+    },
+    "overflowX": 0,
+    "docHeight": 768,
+    "offenders": [],
+    "clipped": [],
+    "smallTargetCount": 1,
+    "smallTargets": [
+      {
+        "name": "Back",
+        "el": "button",
+        "w": 42,
+        "h": 42
+      }
+    ],
+    "covered": [],
+    "sticky": [],
+    "images": [],
+    "brokenImages": 0,
+    "lowContrast": [],
+    "lowContrastCount": 0,
+    "focused": null,
+    "heading": "Find my order",
+    "dialog": null
+  },
+  "keyElements": [
+    {
+      "kind": "h1",
+      "name": "Find my order",
+      "x": 206,
+      "y": 76,
+      "w": 612,
+      "h": 29.1,
+      "fontSize": "26px",
+      "fontWeight": "700",
+      "lineHeight": "29.12px",
+      "fontFamily": "QAOnest",
+      "padding": "0px",
+      "gap": "normal",
+      "radius": "0px",
+      "color": "rgb(58, 31, 20)",
+      "background": "rgba(0, 0, 0, 0)",
+      "contrast": 14.03,
+      "overflow": "visible",
+      "position": "static",
+      "outline": "none",
+      "boxShadow": "none"
+    },
+    {
+      "kind": "input",
+      "name": "Order number",
+      "x": 206,
+      "y": 177.6,
+      "w": 612,
+      "h": 48,
+      "fontSize": "14px",
+      "fontWeight": "600",
+      "lineHeight": "21px",
+      "fontFamily": "QAOnest",
+      "padding": "0px 13px",
+      "gap": "normal",
+      "radius": "12px",
+      "color": "rgb(58, 31, 20)",
+      "background": "rgb(255, 255, 255)",
+      "contrast": 15.15,
+      "overflow": "clip",
+      "position": "static",
+      "outline": "none",
+      "boxShadow": "none"
+    },
+    {
+      "kind": "input",
+      "name": "09XX XXX XXXX",
+      "x": 206,
+      "y": 260.6,
+      "w": 612,
+      "h": 48,
+      "fontSize": "14px",
+      "fontWeight": "600",
+      "lineHeight": "21px",
+      "fontFamily": "QAOnest",
+      "padding": "0px 13px",
+      "gap": "normal",
+      "radius": "12px",
+      "color": "rgb(58, 31, 20)",
+      "background": "rgb(255, 255, 255)",
+      "contrast": 15.15,
+      "overflow": "clip",
+      "position": "static",
+      "outline": "none",
+      "boxShadow": "none"
+    }
+  ],
+  "inputs": [
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "label": "Order number",
+      "value": ""
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "label": "Mobile number",
+      "value": ""
+    }
+  ]
+}

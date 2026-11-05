@@ -1,0 +1,229 @@
+{
+  "id": "shop/customer-checkout/direct-address@d1440",
+  "viewport": {
+    "w": 1440,
+    "h": 900
+  },
+  "engine": "chromium",
+  "audit": {
+    "viewport": {
+      "w": 1440,
+      "h": 900,
+      "dpr": 1
+    },
+    "overflowX": 0,
+    "docHeight": 900,
+    "offenders": [],
+    "clipped": [],
+    "smallTargetCount": 9,
+    "smallTargets": [
+      {
+        "name": "Back",
+        "el": "button",
+        "w": 42,
+        "h": 42
+      },
+      {
+        "name": "Fewer Note card",
+        "el": "button",
+        "w": 38,
+        "h": 38
+      },
+      {
+        "name": "More Note card",
+        "el": "button",
+        "w": 38,
+        "h": 38
+      },
+      {
+        "name": "Fewer Ribbon Cream",
+        "el": "button",
+        "w": 38,
+        "h": 38
+      },
+      {
+        "name": "More Ribbon Cream",
+        "el": "button",
+        "w": 38,
+        "h": 38
+      },
+      {
+        "name": "Fewer Ribbon Red",
+        "el": "button",
+        "w": 38,
+        "h": 38
+      },
+      {
+        "name": "More Ribbon Red",
+        "el": "button",
+        "w": 38,
+        "h": 38
+      },
+      {
+        "name": "Fewer Ribbon Gold",
+        "el": "button",
+        "w": 38,
+        "h": 38
+      },
+      {
+        "name": "More Ribbon Gold",
+        "el": "button",
+        "w": 38,
+        "h": 38
+      }
+    ],
+    "covered": [],
+    "sticky": [],
+    "images": [],
+    "brokenImages": 0,
+    "lowContrast": [],
+    "lowContrastCount": 0,
+    "focused": null,
+    "heading": null,
+    "dialog": null
+  },
+  "keyElements": [
+    {
+      "kind": "input",
+      "name": "Who is this box for?",
+      "x": 429,
+      "y": 275.5,
+      "w": 582,
+      "h": 48,
+      "fontSize": "14px",
+      "fontWeight": "400",
+      "lineHeight": "21px",
+      "fontFamily": "QAOnest",
+      "padding": "0px 13px",
+      "gap": "normal",
+      "radius": "12px",
+      "color": "rgb(58, 31, 20)",
+      "background": "rgb(255, 253, 249)",
+      "contrast": 14.91,
+      "overflow": "clip",
+      "position": "static",
+      "outline": "none",
+      "boxShadow": "none"
+    },
+    {
+      "kind": "input",
+      "name": "@yourhandle",
+      "x": 429,
+      "y": 357.5,
+      "w": 582,
+      "h": 48,
+      "fontSize": "14px",
+      "fontWeight": "400",
+      "lineHeight": "21px",
+      "fontFamily": "QAOnest",
+      "padding": "0px 13px",
+      "gap": "normal",
+      "radius": "12px",
+      "color": "rgb(58, 31, 20)",
+      "background": "rgb(255, 253, 249)",
+      "contrast": 14.91,
+      "overflow": "clip",
+      "position": "static",
+      "outline": "none",
+      "boxShadow": "none"
+    },
+    {
+      "kind": "input",
+      "name": "09XX XXX XXXX",
+      "x": 429,
+      "y": 439.5,
+      "w": 582,
+      "h": 48,
+      "fontSize": "14px",
+      "fontWeight": "400",
+      "lineHeight": "21px",
+      "fontFamily": "QAOnest",
+      "padding": "0px 13px",
+      "gap": "normal",
+      "radius": "12px",
+      "color": "rgb(58, 31, 20)",
+      "background": "rgb(255, 253, 249)",
+      "contrast": 14.91,
+      "overflow": "clip",
+      "position": "static",
+      "outline": "none",
+      "boxShadow": "none"
+    },
+    {
+      "kind": "input",
+      "name": "Choose a time 10:00 AM 10:30 AM 11:00 AM 11:30 AM 12:00 PM 1",
+      "x": 429,
+      "y": 770.5,
+      "w": 582,
+      "h": 48,
+      "fontSize": "14px",
+      "fontWeight": "400",
+      "lineHeight": "normal",
+      "fontFamily": "QAOnest",
+      "padding": "0px 13px",
+      "gap": "normal",
+      "radius": "12px",
+      "color": "rgb(58, 31, 20)",
+      "background": "rgb(255, 253, 249)",
+      "contrast": 14.91,
+      "overflow": "clip",
+      "position": "static",
+      "outline": "none",
+      "boxShadow": "none"
+    },
+    {
+      "kind": "input",
+      "name": "From your receipt, if you have paid",
+      "x": 429,
+      "y": 1378.5,
+      "w": 582,
+      "h": 48,
+      "fontSize": "14px",
+      "fontWeight": "400",
+      "lineHeight": "21px",
+      "fontFamily": "QAOnest",
+      "padding": "0px 13px",
+      "gap": "normal",
+      "radius": "12px",
+      "color": "rgb(58, 31, 20)",
+      "background": "rgb(255, 253, 249)",
+      "contrast": 14.91,
+      "overflow": "clip",
+      "position": "static",
+      "outline": "none",
+      "boxShadow": "none"
+    }
+  ],
+  "inputs": [
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "label": "Name",
+      "value": ""
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "label": "Instagram handle",
+      "value": ""
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "label": "Contact number",
+      "value": ""
+    },
+    {
+      "tag": "SELECT",
+      "type": "select-one",
+      "label": "Pickup time Choose a time 10:00 AM 10:30 AM 11:00 AM 11:30 A",
+      "value": ""
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "label": "Reference number (optional)",
+      "value": ""
+    }
+  ]
+}
