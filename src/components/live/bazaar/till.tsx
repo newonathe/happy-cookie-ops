@@ -41,6 +41,7 @@ export function ConsolidatedTill({
   const [voiding, setVoiding] = useState(false);
   const sales = v.bzSales ?? [];
   const [reviewSale, setReviewSale] = useState(false);
+  const [summaryOpen, setSummaryOpen] = useState(true);
   const sale = saleFromOldest === null ? undefined : sales[sales.length - 1 - saleFromOldest];
   const closeSale = () => setSaleFromOldest(null);
   const pick = (run: () => void) => () => {
@@ -196,6 +197,8 @@ export function ConsolidatedTill({
           <TillTakings
             v={v}
             ledger={till.ledger}
+            open={summaryOpen}
+            setOpen={setSummaryOpen}
             voidSale={(index) => {
               setSaleFromOldest(sales.length - 1 - index);
               setVoiding(true);
