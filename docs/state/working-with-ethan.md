@@ -88,6 +88,10 @@ conversation, then token tips specific to that goal, then one recommendation for
 - `go()` keeps an open form, so load the page fresh for each flow.
 - Animated counters read low for a moment. Wait before reading a total.
 
+**Hosted database**
+
+Supabase pauses a free project after about a week of low activity. `.github/workflows/keep-alive.yml` reads the shop status once a day to prevent it, and runs only from `main`. It makes a pause unlikely, not impossible, and GitHub can switch off schedules in a quiet repository, so do not ignore Supabase's warning emails.
+
 **Who decides what**
 
 Business rules: `docs/state/decision-register.md`. What to build next: `docs/state/next-goal.md`. What exists and what is missing:
