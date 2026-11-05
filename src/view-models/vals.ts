@@ -4,6 +4,7 @@
  * renderVals() returns and the ported markup reads. Widen a type here only together
  * with the engine change that produces it — see docs/PORTING.md.
  */
+import type { TillLedger } from '@/lib/bazaar/till-ledger';
 import type { LiveCustomers } from '@/store/customer-desk';
 import type { LiveMake } from '@/store/make-desk';
 import type { MoneyEntryView } from '@/store/money-entry';
@@ -232,11 +233,18 @@ export interface LiveTillVals {
   /** This phone draws the classic (ported) till instead of the consolidated one. */
   classic: boolean;
   setClassic: (on: boolean) => void;
+  /** Planned cookies that have all sold. They stay on the till, dimmed, after the ones still selling. */
   soldOutCount: number;
-  showSoldOut: boolean;
-  toggleSoldOut: () => void;
-  /** Every flavour on the table is sold out, and the sold-out tiles are hidden. */
+  /** Everything planned has sold. */
   allGone: boolean;
+  /** What the open sale comes to, before any discount the pay sheet takes off. */
+  cartTotalText: string;
+  /** What each cookie in the open sale comes to, by its till name. */
+  cartLines: Record<string, string>;
+  /** The day's trackers and one row per sale, in `bzSales` order. */
+  ledger: TillLedger;
+  /** Only an event from before bazaar days: the ported "Leave". It clears the phone's sales, so it waits for them to send. */
+  leave: (() => void) | null;
   /** Leaves the till for Home with the day, the stock and the open sale as they are. Owner, with signal, not narrowed to Bazaar Mode. */
   home: (() => void) | null;
   /** Opens the add-cookies form over the till. Owner, with signal, not narrowed to Bazaar Mode. */
