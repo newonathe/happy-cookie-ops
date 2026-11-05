@@ -2463,3 +2463,33 @@ mode via new live slots (`live/home`, `live/money`, page-mode settings forms) an
 apply awaits approval). Lossless record and feedback status: [capability ledger](../design/capability-ledger.md).
 Next: Sell orders/payments/
 customers, Shop status/methods/texts, Account, section Settings buttons, production results bug.
+
+## Archived 4 November reference-integration checkpoint - 5 November production foundation
+
+**4 November — full reference integration active:** the supplied v4 has85 route views. Desktop/phone
+captures cover all85; seven render situations yield1190 checks/190 distinct images, zero failed renders.
+Four parent-page pixel-fidelity checks match the untouched HTML. Detailed interaction/visual review
+and actual-app parity remain incomplete; read the reference contracts and owner requirements below.
+Actual multi-product entry now selects/reviews several flavours together, creates independent work
+atomically and retains scoped recovery. Recipe writer preserves kind, later edits and acknowledged
+snapshots; empty replies stay unconfirmed. Full gate:176files/2886tests+2existingTODOs; build28pages;
+eight responsive/motion group-entry runs pass. Keep legacy recipe warning until independent review.
+Screenshot-matched family layouts, direct recipe setup, Shopping
+plan integration, full demo population/hosted insertion and the complete application remain unfinished.
+No hosted/applied-SQL/protected-port changes. Gallery:localhost4190/index.html; actual preview:4186.
+Source/test details and visible examples are in the [Claude UI handoff](../design/claude-ui-handoff.md).
+The newest blocks override historical “next bug” and uncommitted-status descriptions below.
+
+## Archived pre-production-foundation next-goal checkpoint - 5 November
+
+Accepted c51401f/273de7d include independent cookie/dough drafts, retained inputs, per-item saving,
+own-item acknowledgements, Events-first navigation and return context. f57d278/92851aa add the v4
+Home/Money/Shop work and sampler migration (local only). Do not reimplement the four Codex follow-ups.
+P2 results/source guards remain local. P3 scoped device recovery is locally verified: owner UID/backend,
+single-tab writing, multiple drafts/exact pending requests, no automatic posting, retained setup and
+saved results with stock unchecked. Full gate:175files/2873tests+2TODOs; eight browser flows pass.
+Independent review passed. Read the newest handoff first.
+Latest: group entry/recipe writer pass176files/2886tests+2TODOs,28-page build,eight browser runs.
+Next: finish every page in [coverage](../design/reference-v4/coverage.md), by its build rules; keep review holds. B1 plan/review addresses, stage
+wording and inactive held events remain. Recipe reads keep line kind; the writer is unresolved.
+Preserve selling values, permissions and required independent review; no quota/provider bypass.

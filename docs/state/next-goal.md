@@ -6,6 +6,11 @@ automation. Implement the actual app; the entire goal remains incomplete.
 
 **Now: [the client review](../design/client-meeting-2026-11-04.md), slice by slice.**
 
+Production first: [transaction contract](../design/active-bazaar-parallel-production-plan.md#production-transaction-contract--5-november-owner-correction).
+Local SQL71 separates recipe amount from actual dough yield. Next wire live preparation/count/recovery,
+then implement the approved dough-only bake transaction. Keep current independent drafts and exact retries.
+The new RPC is not hosted; physical dough-count correction remains unanswered. The full objective remains active.
+
 ## Entry point for every agent
 
 Start at the repo root. Read AGENTS.md, current.md, this file,
@@ -19,17 +24,11 @@ Owner steering: Events first, compact till Back; final page critique after build
 Codex owns the checkout again (Ethan,5November); integrated7b8e819. Include [new requirements](../design/owner-workflow-additions-2026-11-05.md). Continuation notes:
 [Claude UI handoff](../design/claude-ui-handoff.md). See also the [capability ledger](../design/capability-ledger.md).
 
-Accepted c51401f/273de7d include independent cookie/dough drafts, retained inputs, per-item saving,
-own-item acknowledgements, Events-first navigation and return context. f57d278/92851aa add the v4
-Home/Money/Shop work and sampler migration (local only). Do not reimplement the four Codex follow-ups.
-P2 results/source guards remain local. P3 scoped device recovery is locally verified: owner UID/backend,
-single-tab writing, multiple drafts/exact pending requests, no automatic posting, retained setup and
-saved results with stock unchecked. Full gate:175files/2873tests+2TODOs; eight browser flows pass.
-Independent review passed. Read the newest handoff first.
-Latest: group entry/recipe writer pass176files/2886tests+2TODOs,28-page build,eight browser runs.
-Next: finish every page in [coverage](../design/reference-v4/coverage.md), by its build rules; keep review holds. B1 plan/review addresses, stage
-wording and inactive held events remain. Recipe reads keep line kind; the writer is unresolved.
-Preserve selling values, permissions and required independent review; no quota/provider bypass.
+Accepted history is in Git. Preserve independent drafts, scoped device recovery, exact pending requests,
+recipe snapshots/kind, Events-first navigation, selling values and owner/helper boundaries.
+Latest pinned full gate: 193 files / 3,101 tests + 2 existing TODOs. Coverage is structural preview evidence;
+actual connected, database, hosted/device and owner acceptance remain separate. B1 plan/review addresses,
+stage wording, inactive held events and the remaining coverage workflows still need completion.
 
 Branch `codex/refined-workflows`; see `git log` for HEAD. Inspect current Git state.
 

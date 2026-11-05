@@ -1,29 +1,17 @@
 # Current state — Happy Cookie Ops
 
-**Claude holds the checkout (Ethan, 5 November, after Codex hit its limit). Read [the client review](../design/client-meeting-2026-11-04.md) and [the review standard](../design/ui-review-standard.md) before any visible change.**
-Accepted7b8e819 fixes event confirmation and stale-owner refresh/queue replies;190files/3063tests+2TODOs pass.
-The full audit and [new owner requirements](../design/owner-workflow-additions-2026-11-05.md) remain active.
-Pickup is directly from Cine; Picked Up means Completed, with no extra business transition.
+**Codex owns the checkout (Ethan, 5 November). Full application goal remains active.**
+Primary baseline `54ee533` includes the preserved backup and waiting-sale retry work.
+Read [the client review](../design/client-meeting-2026-11-04.md) and [review standard](../design/ui-review-standard.md).
+The [production transaction contract](../design/active-bazaar-parallel-production-plan.md#production-transaction-contract--5-november-owner-correction) separates recipe amount from actual balls. Ethan approved dough-only baking; physical dough count remains unanswered.
+Local SQL71 preparation foundation has independent review and disposable-database tests; live preparation, dough-only baking and connected acceptance remain incomplete. No hosted SQL or records changed.
+The full audit and [new requirements](../design/owner-workflow-additions-2026-11-05.md) remain active. Pickup is from Cine; Picked Up means Completed.
 
 **Finish [coverage](../design/reference-v4/coverage.md): every
 mockup page, its place in the app, its status and gap, and the build rules.** [flows](../design/reference-v4/flows.md)
 records every control's outcome. Done on the 4186 preview at four widths: Home, Sell, Shop, Account, Products,
 recipe page, Production, Stock, Receive, Waste/correction, Shopping, Money and its entries, the till, the
 settings pages, Events, Add event, the event page, day review, Customers, recipe editor and planned bake. Not hosted, device or owner acceptance. Each money/stock/offline slice had an independent review.
-
-**4 November — full reference integration active:** the supplied v4 has85 route views. Desktop/phone
-captures cover all85; seven render situations yield1190 checks/190 distinct images, zero failed renders.
-Four parent-page pixel-fidelity checks match the untouched HTML. Detailed interaction/visual review
-and actual-app parity remain incomplete; read the reference contracts and owner requirements below.
-Actual multi-product entry now selects/reviews several flavours together, creates independent work
-atomically and retains scoped recovery. Recipe writer preserves kind, later edits and acknowledged
-snapshots; empty replies stay unconfirmed. Full gate:176files/2886tests+2existingTODOs; build28pages;
-eight responsive/motion group-entry runs pass. Keep legacy recipe warning until independent review.
-Screenshot-matched family layouts, direct recipe setup, Shopping
-plan integration, full demo population/hosted insertion and the complete application remain unfinished.
-No hosted/applied-SQL/protected-port changes. Gallery:localhost4190/index.html; actual preview:4186.
-Source/test details and visible examples are in the [Claude UI handoff](../design/claude-ui-handoff.md).
-The newest blocks override historical “next bug” and uncommitted-status descriptions below.
 
 **Earlier Codex checkpoint (before accepted c51401f/273de7d):** Full actual-app goal remains incomplete.
 Latest uncommitted work connects the independent draft pool to the actual runtime and Make list.

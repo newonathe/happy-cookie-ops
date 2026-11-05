@@ -17,7 +17,7 @@ Ethan confirmed Claude finished and authorized integrating the tested fixes. Cod
 - Allow variable cookie yields.
 - Automatically deduct ingredients actually used.
 - Preserve simultaneous different products/flavours, independent work items, recipe/version snapshots, actual-versus-plan distinction, rejects, shortages, recovery and acknowledged stock updates.
-- Clarification pending: whether ingredient deduction occurs once when dough is prepared, with baking consuming only refrigerated dough. Do not implement another deduction before this is resolved; inspect existing SQL first to avoid duplicating existing consumption.
+- Ingredient deduction at completed dough preparation is approved. Ethan additionally approved on 5 November: baking consumes recorded fridge dough only; insufficient dough retains the bake draft and asks for Prepare dough first. Recipe amount used and actual balls produced are independent. See the [transaction contract](active-bazaar-parallel-production-plan.md#production-transaction-contract--5-november-owner-correction). Physical dough-count correction remains unanswered.
 - Further details are forthcoming. Do not invent refrigeration duration, food-safety limits, yield conversions, cost rules or an owner decision.
 
 ## Inventory
