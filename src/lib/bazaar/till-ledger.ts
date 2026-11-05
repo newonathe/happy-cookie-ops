@@ -23,6 +23,8 @@ export interface TillLedgerRow {
   cashGivenText: string | null;
   /** Cash only, when an amount was typed. */
   changeText: string | null;
+  /** Why this sale has not reached the server, in her words; null when nothing has gone wrong. */
+  problemText: string | null;
 }
 
 export interface TillLedger {
@@ -68,7 +70,8 @@ function timeOf(at: number): string {
 function rowOf(
   sale: EventSale,
   names: Record<string, string>,
-  prices: Record<string, number>
+  prices: Record<string, number>,
+  problem: string | null
 ): TillLedgerRow {
   const isCash = sale.pay === 'Cash';
   const given = Number(sale.tendered) || 0;
@@ -91,7 +94,8 @@ function rowOf(
     subtotalText: discount > 0 ? peso(cents(sale.gross)) : null,
     discountText: discount > 0 ? peso(discount) : null,
     cashGivenText: !isCash ? null : given > 0 ? peso(cents(given)) : 'Exact',
-    changeText: isCash && given > 0 ? peso(cents(sale.change)) : null
+    changeText: isCash && given > 0 ? peso(cents(sale.change)) : null,
+    problemText: problem
   };
 }
 
@@ -103,8 +107,9 @@ export function buildTillLedger(input: {
   prices: Record<string, number>;
   names: Record<string, string>;
   seesTotals: boolean;
+  problemOf?: (sale: EventSale) => string | null;
 }): TillLedger {
-  const { sales, floatPesos, loaded, left, prices, names, seesTotals } = input;
+  const { sales, floatPesos, loaded, left, prices, names, seesTotals, problemOf } = input;
   const totalCents = sales.reduce((sum, sale) => sum + cents(sale.total), 0);
   const paying = sales.filter((sale) => sale.pay !== 'Freebie');
   const cash = sales.filter((sale) => sale.pay === 'Cash');
@@ -168,6 +173,6 @@ export function buildTillLedger(input: {
         .filter((sale) => sale.pay === 'Freebie')
         .reduce((sum, sale) => sum + count(sale.items), 0)
     },
-    rows: sales.map((sale) => rowOf(sale, names, prices))
+    rows: sales.map((sale) => rowOf(sale, names, prices, problemOf?.(sale) ?? null))
   };
 }
