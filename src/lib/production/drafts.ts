@@ -16,6 +16,8 @@ export interface BatchProjection {
 export interface DoughProjection {
   pid: string;
   balls: number;
+  actualBallsText?: string;
+  recipeAmount?: 0.5 | 1;
   liveWorkId?: string;
   step?: number;
   note?: string;
@@ -78,6 +80,12 @@ export class ProductionDrafts {
         : {
             kind: 'dough',
             balls: String(state.doughPrep?.balls ?? ''),
+            ...(state.doughPrep?.actualBallsText === undefined
+              ? {}
+              : { actualBalls: state.doughPrep.actualBallsText }),
+            ...(state.doughPrep?.recipeAmount === undefined
+              ? {}
+              : { recipeAmount: state.doughPrep.recipeAmount }),
             note: state.doughPrep?.note ?? '',
             step: state.doughPrep?.step ?? 1
           };
@@ -156,6 +164,12 @@ export class ProductionDrafts {
           doughPrep: {
             pid: work.product.id,
             balls: n(work.draft.balls),
+            ...(work.draft.actualBalls === undefined
+              ? {}
+              : { actualBallsText: work.draft.actualBalls }),
+            ...(work.draft.recipeAmount === undefined
+              ? {}
+              : { recipeAmount: work.draft.recipeAmount }),
             liveWorkId: id,
             step: work.draft.step,
             note: work.draft.note

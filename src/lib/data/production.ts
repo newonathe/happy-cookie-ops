@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database, Json } from '@/lib/types/database';
+import { recordDoughPreparation } from './dough-preparation';
 
 /**
  * Production on the database (C2; `record_production` / `record_pack` / `get_production`, migration 20260101004700). A dough
@@ -24,6 +25,8 @@ export interface ProductionFields {
   adj: Record<string, number>;
   /** The recipe version the screen showed; the database refuses if the recipe changed since. */
   recipeVersion: number;
+  /** Present only on SQL71 preparation requests; absent on every legacy frozen request. */
+  recipeAmount?: 0.5 | 1;
   dropNo: number;
   /** Epoch milliseconds. */
   at: number;
@@ -33,6 +36,7 @@ export interface Shortfall {
   name: string;
   by: number;
   unit: string;
+  why?: string;
 }
 
 export interface ProductionResult {
@@ -40,6 +44,7 @@ export interface ProductionResult {
   duplicate: boolean;
   usedDough: number;
   shortfall: Shortfall[];
+  problem?: 'preparation-update';
 }
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
@@ -48,6 +53,8 @@ const whole = (v: number, min: number, max: number): boolean =>
 
 /** The same bounds `record_production` enforces. Null means the record is acceptable. */
 export function productionError(f: ProductionFields): string | null {
+  if (f.recipeAmount !== undefined && (f.kind !== 'dough' || ![0.5, 1].includes(f.recipeAmount)))
+    return 'Choose full or half of the recipe for dough preparation.';
   if (!UUID.test(f.id) || f.productId === '')
     return 'This change has no id yet. Reload and try again.';
   if (f.kind !== 'dough' && f.kind !== 'batch') return 'That is not a dough mix or a batch.';
@@ -75,13 +82,16 @@ function parseShortfall(json: unknown): Shortfall[] | null {
       s === null ||
       typeof (s as { name?: unknown }).name !== 'string' ||
       typeof (s as { by?: unknown }).by !== 'number' ||
-      typeof (s as { unit?: unknown }).unit !== 'string'
+      typeof (s as { unit?: unknown }).unit !== 'string' ||
+      ((s as { why?: unknown }).why !== undefined &&
+        typeof (s as { why?: unknown }).why !== 'string')
     )
       return null;
     out.push({
       name: (s as Shortfall).name,
       by: (s as Shortfall).by,
-      unit: (s as Shortfall).unit
+      unit: (s as Shortfall).unit,
+      ...((s as Shortfall).why === undefined ? {} : { why: (s as Shortfall).why })
     });
   }
   return out;
@@ -118,6 +128,7 @@ export async function recordProduction(
   client: ProductionClient,
   f: ProductionFields
 ): Promise<ProductionResult> {
+  if (f.recipeAmount !== undefined) return recordDoughPreparation(client, f);
   try {
     const { data, error } = await client.rpc('record_production', {
       p_rec: {

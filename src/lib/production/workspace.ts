@@ -22,7 +22,14 @@ export type ProductionDraft =
       step: number;
       showUsed?: boolean;
     }
-  | { kind: 'dough'; balls: string; note: string; step?: number };
+  | {
+      kind: 'dough';
+      balls: string;
+      note: string;
+      step?: number;
+      actualBalls?: string;
+      recipeAmount?: 0.5 | 1;
+    };
 
 export interface NewProductionWork {
   product: { id: string; name: string; photo: string };

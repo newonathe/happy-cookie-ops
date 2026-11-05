@@ -4,7 +4,7 @@
 Primary baseline `54ee533` includes the preserved backup and waiting-sale retry work.
 Read [the client review](../design/client-meeting-2026-11-04.md) and [review standard](../design/ui-review-standard.md).
 The [production transaction contract](../design/active-bazaar-parallel-production-plan.md#production-transaction-contract--5-november-owner-correction) separates recipe amount from actual balls. Ethan approved dough-only baking; physical dough count remains unanswered.
-Local SQL71 preparation foundation has independent review and disposable-database tests; live preparation, dough-only baking and connected acceptance remain incomplete. No hosted SQL or records changed.
+Local SQL71 and its client/recovery foundation are independently reviewed. New requests keep recipe amount and actual balls separately; legacy unanswered requests retain their original RPC/body. Saved shortage reasons survive reload. Live preparation, dough-only baking and connected acceptance remain incomplete. No hosted SQL or records changed.
 Preview4186 now initializes synthetic Events for normal navigation and direct `/bazaar` entry. `node tools/owner-preview/check-events.cjs` verifies both paths at390/1440, event detail, no writes/errors/overflow.
 The full audit and [new requirements](../design/owner-workflow-additions-2026-11-05.md) remain active. Pickup is from Cine; Picked Up means Completed.
 
