@@ -6,7 +6,16 @@ import { PANEL_CLASS, PanelHead } from '@/components/ui/owner-kit';
 import { Sheet } from '@/components/ui/sheet';
 import theme from '../owner-theme.module.css';
 
-/** The same editable sale at every width; all amounts and actions remain the till's own. */
+/** "8 cookies" */
+function cookieCount(v: OpsVals): string {
+  const n = Number(v.bzCartCount) || 0;
+  return `${n} ${n === 1 ? 'cookie' : 'cookies'}`;
+}
+
+/**
+ * The same sale at every width: each cookie with its price, how many, and what that comes to, then the total about to be
+ * charged. All amounts and actions remain the till's own.
+ */
 function SaleContents({
   v,
   onCharge,
@@ -17,25 +26,23 @@ function SaleContents({
   onFreebie?: () => void;
 }) {
   const rows = (v.bzSell ?? []).filter((row) => (Number(row.inCart) || 0) > 0);
+  const lineOf = v.liveTill?.cartLines ?? {};
+  const total = v.liveTill?.cartTotalText ?? v.bzCartTotalNum;
   return (
-    <div>
+    <div className="flex min-h-0 flex-col">
       {rows.length ? (
-        <ul className="flex flex-col px-4">
+        <ul className="flex min-h-0 flex-col overflow-y-auto px-4">
           {rows.map((row) => (
             <li
               key={String(row.name)}
-              className="flex items-center justify-between gap-3 border-b border-divide py-2.5 last:border-b-0"
+              className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-0.5 border-b border-divide py-2.5 last:border-b-0"
             >
-              <span className="flex min-w-0 flex-col">
-                <span className="text-[14px] font-semibold text-ink">{row.name}</span>
-                <span className="text-caption text-ink-mute tabular-nums">
-                  {row.priceText} each
-                </span>
-              </span>
-              <span className="flex shrink-0 items-center gap-1 rounded-control border border-line px-1">
+              <span className="text-[14px] font-semibold text-ink">{row.name}</span>
+              <span className="row-span-2 flex shrink-0 items-center gap-1 rounded-control border border-line px-1">
                 <Button
                   variant="ghost"
                   size="sm"
+                  className="text-[18px]! text-ink!"
                   aria-label={`One less ${String(row.name)} in this sale`}
                   onClick={row.minus}
                 >
@@ -47,6 +54,7 @@ function SaleContents({
                 <Button
                   variant="ghost"
                   size="sm"
+                  className="text-[18px]! text-ink!"
                   aria-label={`One more ${String(row.name)} in this sale`}
                   onClick={row.tap}
                   disabled={!!row.soldOut}
@@ -54,18 +62,28 @@ function SaleContents({
                   +
                 </Button>
               </span>
+              <span className="text-caption text-ink-mute tabular-nums">
+                {row.priceText} each
+                {lineOf[String(row.name)] ? (
+                  <>
+                    {' '}
+                    ·{' '}
+                    <span className="font-semibold text-ink-soft">{lineOf[String(row.name)]}</span>
+                  </>
+                ) : null}
+              </span>
             </li>
           ))}
         </ul>
       ) : (
         <p className="px-4 py-6 text-center text-caption text-ink-mute">
-          Tap a cookie to start a sale.
+          Choose a cookie to start.
         </p>
       )}
       <div className="flex flex-col gap-2.5 border-t border-divide p-4">
         <div className="flex items-baseline justify-between gap-2">
           <span className="text-[15px] text-ink-soft">Total</span>
-          <span className="text-title tabular-nums">{v.bzCartTotalNum}</span>
+          <span className="text-title tabular-nums">{total}</span>
         </div>
         <Button
           variant="primary"
@@ -74,7 +92,7 @@ function SaleContents({
           onClick={onCharge ?? v.openPay}
           disabled={!Number(v.bzCartCount)}
         >
-          Charge {v.bzCartTotalNum}
+          Charge {total}
         </Button>
         <Button
           variant="ghost"
@@ -102,12 +120,10 @@ export function CurrentSale({
     <>
       <aside
         aria-label="Current sale"
-        className={`hidden flex-col ${PANEL_CLASS} lg:sticky lg:top-3 lg:col-start-2 lg:row-start-3 lg:flex`}
+        className={`hidden flex-col ${PANEL_CLASS} lg:sticky lg:top-[76px] lg:flex lg:max-h-[calc(100dvh-88px)]`}
       >
         <PanelHead title="Current sale">
-          {Number(v.bzCartCount) ? (
-            <span className="text-caption text-ink-mute">{v.bzCartCount} in this sale</span>
-          ) : null}
+          <span className="text-caption text-ink-mute">{cookieCount(v)}</span>
         </PanelHead>
         <SaleContents v={v} />
       </aside>

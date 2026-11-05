@@ -168,15 +168,19 @@ Known limits, for Ethan: `anonymise_customer` does not remove payment proofs or 
 
 ## Till pages (`live/bazaar/till.tsx`, `till-bar.tsx`, `close-event-sheet.tsx`)
 
-| Today's capability                                      | New home                                                | Evidence |
-| ------------------------------------------------------- | ------------------------------------------------------- | -------- |
-| Till menu: add cookies, fees, close, Home, classic till | Selling settings page; Close day also on the title      | test     |
-| A sale's sheet: its figures and void                    | Receipt page, then a Void page with Keep sale           | test     |
-| Fees and add-cookies forms                              | Pages of the new till; the classic till keeps the sheet | test     |
-| Close the event: split, costs, close without cost       | A page; same form and checks                            | test     |
-| Unsent count and Sync now                               | On the status strip, and on Selling device              | test     |
+| Today's capability                                | New home                                                | Evidence |
+| ------------------------------------------------- | ------------------------------------------------------- | -------- |
+| Till menu: close, Home, classic till              | Selling settings page; Close day also on the title      | test     |
+| Add cookies, Fees and expenses                    | A row at the bottom of the till                         | test     |
+| A sale's sheet: its figures and void              | Opens in its row in Recent sales, then a Void page      | test     |
+| Minus on a cookie in the sale                     | The steppers in Current sale, on a phone in Review sale | test     |
+| "Leave" on an event from before bazaar days       | Selling settings, once its sales have all sent          | test     |
+| Fees and add-cookies forms                        | Pages of the new till; the classic till keeps the sheet | test     |
+| Close the event: split, costs, close without cost | A page; same form and checks                            | test     |
+| Unsent count and Sync now                         | On the status strip, and on Selling device              | test     |
 
-Dropped: nothing.
+Dropped, Ethan's request of 5 November: "Show sold out (n)". A planned cookie that sold out now always shows, marked, so there is nothing to
+reveal. The Receipt page: all it showed is now in the sale's row.
 
 ## Recipe editor and planned bake (`live/recipes/recipe-editor.tsx`, `store/bake-plan.ts`)
 
