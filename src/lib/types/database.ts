@@ -1573,10 +1573,12 @@ export type Database = {
           id: string
           kind: string
           payload_hash: string
+          preparation_recipe: Json | null
           product_id: string | null
           qty: number
           qty_delta: number | null
           received_at: string
+          recipe_amount: number | null
           recipe_version: number | null
           ref: string
           rejects: number
@@ -1593,10 +1595,12 @@ export type Database = {
           id: string
           kind: string
           payload_hash: string
+          preparation_recipe?: Json | null
           product_id?: string | null
           qty: number
           qty_delta?: number | null
           received_at?: string
+          recipe_amount?: number | null
           recipe_version?: number | null
           ref?: string
           rejects?: number
@@ -1613,10 +1617,12 @@ export type Database = {
           id?: string
           kind?: string
           payload_hash?: string
+          preparation_recipe?: Json | null
           product_id?: string | null
           qty?: number
           qty_delta?: number | null
           received_at?: string
+          recipe_amount?: number | null
           recipe_version?: number | null
           ref?: string
           rejects?: number
@@ -2926,6 +2932,14 @@ export type Database = {
         Returns: {
           duplicate: boolean
           record_id: string
+        }[]
+      }
+      record_dough_preparation: {
+        Args: { p_rec: Json }
+        Returns: {
+          duplicate: boolean
+          record_id: string
+          shortfall: Json
         }[]
       }
       record_draw: {
