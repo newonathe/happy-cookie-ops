@@ -48,6 +48,20 @@ fulfil orders or transfer baked cookies to a table. A plan performs none of thes
   fresh ingredients or deduct preparation ingredients again. Preserve existing baking,
   packing, transfers, correction and books history. Update the backend before enabling
   the new bake flow; do not expose a UI-only promise over the legacy auto-mixing RPC.
+  The new `record_bake` RPC accepts exactly `id`, `product_id`, `qty` (all oven output),
+  `target`, `rejects`, `recipe_version`, `drop_no`, `at`. It returns the original record ID,
+  duplicate flag, dough used and an empty ingredient-shortfall list. `ZD001` is a definite
+  refusal for insufficient dough, with available/needed counts in the error detail.
+  `ZD002` refuses chronology that cannot support the bake at its timestamp or would
+  make a later recorded dough balance negative. An existing exact replay is still answered.
+  Exact replay precedes current-recipe checks. Lock namespaces/order match preparation.
+  SQL58's existing production-cost read uses stamped preparation ingredient costs divided
+  by actual prepared balls, pooled by flavour up to the batch date. Keep that rule and its
+  incomplete-cost flag; a bake creates no second ingredient movement or expense.
+  New bake rows carry `dough_only=true`; historical rows stay unchanged. Before hosted
+  cutover, retire new legacy `record_production` writes while keeping exact recorded-ID
+  replays. The additive endpoint alone does not close that server-rule gate. Keep Bazaar
+  finalisation/return-to-kitchen contracts separate and verify them before changing that path.
 - Keep per-item requests, snapshots, raw inputs, independent work, recipe-change review,
   owner/backend scope and single-tab ownership. No automatic post after reload or signal
   recovery. An acknowledged save with failed refresh says recorded, balances unchecked.
