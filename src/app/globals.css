@@ -82,6 +82,8 @@
 /* Owner theme approved 2 November 2026: neutral light, Happy Cookie branding, selective glass.
    Separate tokens leave the locked demo palette intact. */
 @theme static {
+  /* Behind a cookie photo: the cream every product photo is shot on, as the approved mockup draws it. */
+  --color-photo-well: #fff8e9;
   --color-owner-app: #f4f5f7;
   --color-owner-ink: #24262b;
   --color-owner-muted: #61656d;

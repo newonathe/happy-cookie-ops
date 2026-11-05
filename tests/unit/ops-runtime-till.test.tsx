@@ -31,8 +31,8 @@ const BOOKING = 'd5b00000-0000-4000-8000-000000000001';
 
 interface Till {
   soldOutCount: number;
-  showSoldOut: boolean;
-  toggleSoldOut: () => void;
+  ledger: { totals: unknown; target: unknown; drawer: { expectedText: string } };
+  leave: (() => void) | null;
   allGone: boolean;
   home: (() => void) | null;
   addCookies: (() => void) | null;
@@ -106,21 +106,16 @@ describe('the grid: never-loaded and sold-out tiles (Ateneo B1)', () => {
     // Mutation: dropping the filter draws all of the engine's flavours, each marked Sold out.
   });
 
-  it('hides a real sell-out, counts it, and brings it back with the toggle', () => {
+  it('keeps a planned cookie that sold out, marked and last; a never-planned one is not drawn', () => {
     const runtime = mounted();
     onTheTable(runtime);
     stock(runtime, { dcf: 0 });
-    expect(names(runtime)).toEqual(['White Chocolate Biscoff']);
-    expect(seen(runtime).liveTill).toMatchObject({ soldOutCount: 1, showSoldOut: false });
-    act(() => seen(runtime).liveTill!.toggleSoldOut());
     const shown = seen(runtime);
-    expect(shown.liveTill).toMatchObject({ soldOutCount: 1, showSoldOut: true });
+    expect(shown.liveTill).toMatchObject({ soldOutCount: 1, allGone: false });
     expect(shown.bzSell.map((t) => [t.name, t.soldOut])).toEqual([
-      ['Double Chocolate Fudge', true],
-      ['White Chocolate Biscoff', false]
+      ['White Chocolate Biscoff', false],
+      ['Double Chocolate Fudge', true]
     ]);
-    // Never-loaded flavours stay out even with the toggle on.
-    expect(shown.bzSell).toHaveLength(2);
   });
 
   it('keeps a sold-out flavour that is in the open sale, and does not count it', () => {
@@ -135,7 +130,7 @@ describe('the grid: never-loaded and sold-out tiles (Ateneo B1)', () => {
     const runtime = mounted();
     onTheTable(runtime);
     stock(runtime, { dcf: 0 });
-    expect(names(runtime)).not.toContain('Double Chocolate Fudge');
+    expect(seen(runtime).liveTill?.soldOutCount).toBe(1);
     stock(runtime, { dcf: 3 });
     expect(names(runtime)).toContain('Double Chocolate Fudge');
     expect(seen(runtime).liveTill?.soldOutCount).toBe(0);
@@ -161,29 +156,45 @@ describe('the grid: never-loaded and sold-out tiles (Ateneo B1)', () => {
     stock(runtime, { dcf: 0, wcb: 0 });
     const gone = seen(runtime);
     expect(gone.liveTill).toMatchObject({ allGone: true, soldOutCount: 2 });
-    expect(gone.bzSell).toEqual([]);
+    expect(gone.bzSell).toHaveLength(2);
     // A tile in the open sale is still on the grid, so it is not "everything".
     act(() => runtime.setState({ cart: { dcf: 1 } } as never));
     expect(seen(runtime).liveTill?.allGone).toBe(false);
   });
 
-  it('starts hidden again for the next day', () => {
+  it('draws an event from before bazaar days the same way, with no day-only forms', () => {
     const runtime = mounted();
+    act(() =>
+      runtime.setState({
+        event: { name: 'Old fair', stage: 'selling' },
+        eventLoaded: { dcf: 20 },
+        eventStock: { dcf: 0, wcb: 0 }
+      } as never)
+    );
+    const vals = seen(runtime);
+    // White Chocolate Biscoff was never planned, so it is not drawn at all.
+    expect(vals.bzSell.map((t) => [t.name, t.soldOut])).toEqual([['Double Chocolate Fudge', true]]);
+    expect(vals.liveTill).toMatchObject({ addCookies: null, allGone: true });
+    expect(vals.liveTill?.leave).toBeTypeOf('function');
+  });
+
+  it('gives a helper no totals unless the owner allows them', () => {
+    const runtime = mounted('helper');
     onTheTable(runtime);
-    stock(runtime, { dcf: 0 });
-    act(() => seen(runtime).liveTill!.toggleSoldOut());
-    act(() => runtime.setState({ event: null } as never));
-    expect(seen(runtime).liveTill ?? null).toBeNull();
-    onTheTable(runtime, 'd5a00000-0000-4000-8000-000000000002');
-    stock(runtime, { dcf: 0 });
-    expect(seen(runtime).liveTill?.showSoldOut).toBe(false);
+    expect(seen(runtime).liveTill?.ledger).toMatchObject({ totals: null, target: null });
+    act(() =>
+      runtime.setState(
+        (s: { cfg?: object }) => ({ cfg: { ...s.cfg, helperSeesSales: 1 } }) as never
+      )
+    );
+    expect(seen(runtime).liveTill?.ledger.totals).toBeTruthy();
   });
 
   it('is the same for a helper, who gets no owner control', () => {
     const runtime = mounted('helper');
     onTheTable(runtime);
     stock(runtime, { dcf: 0 });
-    expect(names(runtime)).toEqual(['White Chocolate Biscoff']);
+    expect(names(runtime)).toEqual(['White Chocolate Biscoff', 'Double Chocolate Fudge']);
     expect(seen(runtime).liveTill).toMatchObject({ soldOutCount: 1, home: null, addCookies: null });
   });
 

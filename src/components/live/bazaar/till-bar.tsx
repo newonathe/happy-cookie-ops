@@ -38,9 +38,9 @@ import { StockForm } from './day-review';
 type Till = NonNullable<OpsVals['liveTill']>;
 
 /**
- * The bar above the ported till (U2, docs/design/bazaar-v2.md 5.6): Home, "Show sold out (n)" and Add cookies. The ported
- * screen under it is unchanged; everything the owner needs to leave it or add to it is here. A helper sees the sold-out
- * chip only: Home and Add cookies are the owner's, and are null in `liveTill` for anyone else.
+ * The bar above the ported till (U2, docs/design/bazaar-v2.md 5.6): Home and Add cookies. The ported screen under it is
+ * unchanged; everything the owner needs to leave it or add to it is here. Home and Add cookies are the owner's, and are null
+ * in `liveTill` for anyone else.
  */
 export function TillBar({
   till,
@@ -52,8 +52,7 @@ export function TillBar({
   panel: TillPanelView | null | undefined;
 }) {
   if (!till) return events ? <TillBack onBack={events} /> : null;
-  const hasControls =
-    events || till.home || till.soldOutCount > 0 || till.addCookies || till.classic;
+  const hasControls = events || till.home || till.addCookies || till.classic;
   return (
     <>
       {hasControls ? (
@@ -62,16 +61,6 @@ export function TillBar({
           {!events && till.home ? (
             <Button size="sm" variant="secondary" onClick={till.home}>
               ← Home
-            </Button>
-          ) : null}
-          {till.soldOutCount > 0 ? (
-            <Button
-              size="sm"
-              variant="secondary"
-              aria-pressed={till.showSoldOut}
-              onClick={till.toggleSoldOut}
-            >
-              {till.showSoldOut ? 'Hide sold out' : `Show sold out (${till.soldOutCount})`}
             </Button>
           ) : null}
           {till.addCookies ? (

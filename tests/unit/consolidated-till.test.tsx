@@ -39,8 +39,34 @@ const till = (over: Partial<Till> = {}): Till => ({
   classic: false,
   setClassic: vi.fn(),
   soldOutCount: 0,
-  showSoldOut: false,
-  toggleSoldOut: vi.fn(),
+  cartTotalText: '₱250',
+  cartLines: {},
+  ledger: {
+    totals: null,
+    drawer: {
+      expectedText: '₱500.00',
+      floatText: '₱500.00',
+      cashSalesText: '₱0.00',
+      receivedText: null,
+      changeGivenText: null
+    },
+    target: null,
+    cookies: { sold: 0, left: 0, freebies: 0 },
+    rows: [
+      {
+        whenText: '2:14 PM',
+        totalText: '₱125',
+        lines: [
+          { qty: 1, name: 'Double Chocolate Fudge', unitText: '₱125.00', lineText: '₱125.00' }
+        ],
+        subtotalText: null,
+        discountText: null,
+        cashGivenText: '₱200.00',
+        changeText: '₱75.00'
+      }
+    ]
+  },
+  leave: null,
   allGone: false,
   home: vi.fn(),
   addCookies: vi.fn(),
@@ -131,37 +157,67 @@ describe('the consolidated till calls the ported handlers', () => {
     expect(v.openPay).toHaveBeenCalledOnce();
     expect(screen.queryByRole('dialog', { name: 'Current sale' })).toBeNull();
   });
-  it('a tile adds one, and its minus (only on a tile in the sale) takes one off', () => {
+  it('a card adds one, and the sale takes one off', () => {
     const v = vals();
     render(<ConsolidatedTill v={v} till={till()} panel={null} />);
-    fireEvent.click(screen.getByRole('button', { name: /White Chocolate Biscoff/ }));
+    fireEvent.click(screen.getByRole('button', { name: /^White Chocolate Biscoff/ }));
     expect(v.bzSell[1]!.tap).toHaveBeenCalledTimes(1);
-    expect(screen.queryByRole('button', { name: 'One less White Chocolate Biscoff' })).toBeNull();
-    fireEvent.click(screen.getByRole('button', { name: 'One less Double Chocolate Fudge' }));
+    expect(screen.getByText('2 in sale')).toBeTruthy();
+    const sale = screen.getByRole('complementary', { name: 'Current sale' });
+    fireEvent.click(
+      within(sale).getByRole('button', { name: 'One less Double Chocolate Fudge in this sale' })
+    );
     expect(v.bzSell[0]!.minus).toHaveBeenCalledTimes(1);
     expect(v.bzSell[0]!.tap).not.toHaveBeenCalled();
   });
 
-  it('keeps the day figures in Sales today, with no status strip above the till', () => {
+  it('marks a planned cookie that sold out, and it cannot be added', () => {
+    const v = vals({
+      bzSell: [tile('Double Chocolate Fudge', { left: 0, soldOut: true })]
+    });
+    render(<ConsolidatedTill v={v} till={till()} panel={null} />);
+    const card = screen.getByRole('button', { name: /Double Chocolate Fudge.*sold out/ });
+    expect(card).toBeDisabled();
+    expect(within(card).getByText('Sold out')).toBeTruthy();
+  });
+
+  it('shows the trackers each once, with no status strip above the till', () => {
     render(
       <ConsolidatedTill
-        v={vals({
-          drawerCashText: '₱125',
-          digitalTotals: [{ pay: 'GCash', totalText: '₱300', n: 1 }]
+        v={vals()}
+        till={till({
+          ledger: {
+            ...till().ledger,
+            totals: {
+              totalText: '₱425.00',
+              averageText: '₱212.50',
+              methods: [{ label: 'GCash', count: 1, totalText: '₱300.00' }],
+              discountsText: null
+            },
+            target: {
+              amountText: '₱1,000.00',
+              percent: 42,
+              reachedCents: 42500,
+              amountCents: 100000,
+              toGoText: '₱575.00'
+            }
+          }
         })}
-        till={till()}
         panel={null}
       />
     );
-    expect(screen.queryByText('Selling')).toBeNull();
+    expect(screen.getByRole('region', { name: 'Takings' })).toHaveTextContent('₱425.00');
+    expect(screen.getByRole('region', { name: 'Cash drawer' })).toHaveTextContent('₱500.00');
+    expect(screen.getByRole('region', { name: 'Target' })).toHaveTextContent('₱1,000.00');
+    expect(screen.getByRole('progressbar', { name: /42%/ })).toBeTruthy();
     expect(screen.queryByRole('status')).toBeNull();
-    const sales = within(screen.getByRole('region', { name: 'Sales today' }));
-    // Once as the day's figure, once as the column heading.
-    expect(sales.getAllByText('Total')).toHaveLength(2);
-    expect(sales.getAllByText('Cookies')).toHaveLength(2);
-    expect(sales.getByText('GCash')).toBeInTheDocument();
-    expect(sales.getByText('₱300')).toBeInTheDocument();
-    expect(sales.getByText('Sale 1')).toBeInTheDocument();
+  });
+
+  it('a helper without the totals switch sees the drawer but no takings or target', () => {
+    render(<ConsolidatedTill v={vals()} till={till()} panel={null} />);
+    expect(screen.queryByRole('region', { name: 'Takings' })).toBeNull();
+    expect(screen.queryByText('Target revenue')).toBeNull();
+    expect(screen.getByRole('region', { name: 'Cash drawer' })).toBeTruthy();
   });
 
   it('with nothing in the sale, Charge waits and the phone bar is gone', () => {
@@ -196,15 +252,13 @@ describe('the consolidated till calls the ported handlers', () => {
     expect(screen.getAllByText('₱250').length).toBeGreaterThan(0);
   });
 
-  it('the menu offers the owner every way out, each through its own handler', () => {
+  it('every way out is offered, each through its own handler', () => {
     const v = vals();
     const t = till();
     render(<ConsolidatedTill v={v} till={t} panel={null} />);
     const open = () => fireEvent.click(screen.getByRole('button', { name: 'Till menu' }));
     const pickItem = (name: RegExp) => fireEvent.click(screen.getByRole('button', { name }));
-    open();
     pickItem(/Add cookies/);
-    open();
     pickItem(/Fees and expenses/);
     open();
     pickItem(/Review and close the day/);
@@ -221,6 +275,20 @@ describe('the consolidated till calls the ported handlers', () => {
     expect(v.event!.reset).not.toHaveBeenCalled();
   });
 
+  it('offers "Leave this event" only for an old event, and only once its sales have sent', () => {
+    const leave = vi.fn();
+    const first = render(
+      <ConsolidatedTill v={vals({ unsynced: 1 })} till={till({ leave })} panel={null} />
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Till menu' }));
+    expect(screen.queryByRole('button', { name: /Leave this event/ })).toBeNull();
+    first.unmount();
+    render(<ConsolidatedTill v={vals({ unsynced: 0 })} till={till({ leave })} panel={null} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Till menu' }));
+    fireEvent.click(screen.getByRole('button', { name: /Leave this event/ }));
+    expect(leave).toHaveBeenCalledOnce();
+  });
+
   it('a helper, or a phone with no signal, gets no Home and no Add cookies', () => {
     render(
       <ConsolidatedTill v={vals()} till={till({ home: null, addCookies: null })} panel={null} />
@@ -231,18 +299,20 @@ describe('the consolidated till calls the ported handlers', () => {
     expect(screen.getByRole('button', { name: /Review and close the day/ })).toBeTruthy();
   });
 
-  it('a sale opens its receipt; voiding asks first, and "Keep sale" voids nothing', () => {
+  it('a sale opens in its row; voiding asks first, and "Keep sale" voids nothing', () => {
     const v = vals();
     render(<ConsolidatedTill v={v} till={till()} panel={null} />);
-    fireEvent.click(screen.getByRole('button', { name: /1× Double Chocolate Fudge/ }));
-    expect(screen.getByRole('heading', { name: 'Receipt' })).toBeTruthy();
+    const row = () => screen.getByRole('button', { name: /^Sale 1,/ });
+    fireEvent.click(row());
+    expect(row().getAttribute('aria-expanded')).toBe('true');
+    expect(screen.getAllByText('₱200.00').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('₱75.00').length).toBeGreaterThan(0);
     fireEvent.click(screen.getByRole('button', { name: 'Void this sale' }));
     expect(v.bzSales[0]!.void).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole('button', { name: 'Keep sale' }));
     expect(v.bzSales[0]!.void).not.toHaveBeenCalled();
-    fireEvent.click(screen.getByRole('button', { name: 'Next customer' }));
     expect(document.querySelector('[data-till="consolidated"]')).toBeTruthy();
-    fireEvent.click(screen.getByRole('button', { name: /1× Double Chocolate Fudge/ }));
+    fireEvent.click(row());
     fireEvent.click(screen.getByRole('button', { name: 'Void this sale' }));
     fireEvent.click(screen.getByRole('button', { name: 'Confirm void' }));
     expect(v.bzSales[0]!.void).toHaveBeenCalledTimes(1);
@@ -252,10 +322,10 @@ describe('the consolidated till calls the ported handlers', () => {
     const older = sale({ summary: '2× White Chocolate Biscoff' });
     const first = vals({ bzSales: [older] });
     const { rerender } = render(<ConsolidatedTill v={first} till={till()} panel={null} />);
-    fireEvent.click(screen.getByRole('button', { name: /2× White Chocolate Biscoff/ }));
+    fireEvent.click(screen.getByRole('button', { name: /^Sale 1,/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Void this sale' }));
     const newer = sale({ summary: '1× Double Chocolate Fudge' });
     rerender(<ConsolidatedTill v={vals({ bzSales: [newer, older] })} till={till()} panel={null} />);
-    fireEvent.click(screen.getByRole('button', { name: 'Void this sale' }));
     fireEvent.click(screen.getByRole('button', { name: 'Confirm void' }));
     expect(older.void).toHaveBeenCalledTimes(1);
     expect(newer.void).not.toHaveBeenCalled();

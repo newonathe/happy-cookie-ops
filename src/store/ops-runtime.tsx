@@ -333,6 +333,7 @@ import type {
   LiveTillVals
 } from '@/view-models/vals';
 import { helperMoneyView } from '@/lib/auth/helper-money';
+import { buildTillLedger } from '@/lib/bazaar/till-ledger';
 import {
   IDLE_MINUTES_MAX,
   IDLE_MINUTES_MIN,
@@ -1149,7 +1150,6 @@ export class OpsRuntime extends OpsProvider {
     }
   });
   /** U2: the day whose "Show sold out (n)" is on. Screen state only: never saved, and any other day starts hidden. */
-  private tillShowSoldOut: string | null = null;
   /** The classic (ported) till instead of the consolidated one, on this phone (`till-choice.ts`). Restored on mount. */
   private tillClassic = false;
   /** U2: the live gate has narrowed the app to Bazaar Mode (no signal to the server): nothing may leave the till. */
@@ -8788,8 +8788,7 @@ export class OpsRuntime extends OpsProvider {
 
   /**
    * U2: what the live till adds to the ported Bazaar Mode screen, for every role. Tiles that were never on the table (finding
-   * B1) are not drawn, a sold-out tile leaves the grid unless it is in the open sale, and "Show sold out (n)" brings the
-   * sold-out ones back, dimmed. Only a started bazaar day: an event from before the days existed keeps the ported list.
+   * B1) are not drawn. A planned cookie that has all sold stays, dimmed, after the ones still selling (Ethan, 5 November).
    * `bzSell` has no flavour id, so each row is matched to its flavour by position before anything is dropped.
    */
   /**
@@ -8806,11 +8805,10 @@ export class OpsRuntime extends OpsProvider {
     return { toastStyle: String(starved.toastStyle).replace(/bottom: \d+px/, 'bottom: 196px') };
   }
 
-  /** A started day is selling on this phone, under the consolidated till (not the classic one, not a review). */
+  /** An event is selling on this phone, under the consolidated till (not the classic one, not a review). */
   private consolidatedTillShowing(): boolean {
     const event = this.state.event as (LiveEvent & { stage?: unknown }) | null;
     return (
-      Boolean(event?.dayId) &&
       event?.stage === 'selling' &&
       !this.tillClassic &&
       !this.bazaarDirectoryShowing() &&
@@ -8820,30 +8818,45 @@ export class OpsRuntime extends OpsProvider {
 
   private liveTillVals(
     vals: OpsVals
-  ): Pick<OpsVals, 'liveTill'> & Partial<Pick<OpsVals, 'bzSell' | 'openEventExpense'>> {
+  ): Pick<OpsVals, 'liveTill'> & Partial<Pick<OpsVals, 'bzSales' | 'bzSell' | 'openEventExpense'>> {
     const event = this.state.event as LiveEvent | null;
     const rows = vals.bzSell ?? [];
-    if (!event?.dayId || rows.length !== PRODUCTS.length) return { liveTill: null };
+    if (!event || rows.length !== PRODUCTS.length) return { liveTill: null };
+    // An event from before bazaar days has no day, so it has no add-cookies or fee form; it still sells on this till.
+    if (!event.dayId && event.stage !== 'selling') return { liveTill: null };
     const loaded = (this.state.eventLoaded ?? {}) as Record<string, number>;
-    const showSoldOut = this.tillShowSoldOut === event.dayId;
-    let soldOutCount = 0;
-    const drawn = rows.filter((row, i) => {
-      const pid = PRODUCTS[i]!.id;
-      const inCart = Number(row.inCart) > 0;
-      const onTable = (loaded[pid] ?? 0) > 0 || Number(row.left) > 0 || inCart;
-      if (!onTable) return false;
-      const gone = Boolean(row.soldOut) && !inCart;
-      if (gone) soldOutCount += 1;
-      return !gone || showSoldOut;
-    });
+    // A cookie never planned for this table is not drawn at all. One planned and all sold stays, marked, after the rest.
+    const planned = rows
+      .map((row, i) => ({ row, product: PRODUCTS[i]! }))
+      .filter(
+        ({ row, product }) =>
+          (loaded[product.id] ?? 0) > 0 || Number(row.left) > 0 || Number(row.inCart) > 0
+      );
+    const isGone = (row: (typeof rows)[number]) =>
+      Boolean(row.soldOut) && !(Number(row.inCart) > 0);
+    const tiles = [
+      ...planned.filter(({ row }) => !isGone(row)),
+      ...planned.filter(({ row }) => isGone(row))
+    ];
+    const soldOutCount = planned.filter(({ row }) => isGone(row)).length;
     const owner = this.canLeaveTill();
-    // The engine's flavour image is already resolved (`flavours.ts`); matched to the drawn rows by the same position.
-    const photos = rows
-      .map((row, i) => ({ row, img: String(PRODUCTS[i]!.img ?? '') }))
-      .filter(({ row }) => drawn.includes(row))
-      .map(({ img }) => img);
+    const cfg = (this.state.cfg ?? {}) as Record<string, unknown>;
+    const drawer = this.state.drawer as { float?: unknown } | null;
+    const prices = (this.state.eventPrices ?? {}) as Record<string, number>;
+    const priceCents = (pid: string) => pesosToCentavos(Number(prices[pid]) || 0);
+    const ledger = buildTillLedger({
+      sales: (this.state.sales ?? []) as EventSale[],
+      floatPesos: drawer && typeof drawer.float === 'number' ? drawer.float : null,
+      loaded,
+      left: (this.state.eventStock ?? {}) as Record<string, number>,
+      prices,
+      names: Object.fromEntries(PRODUCTS.map((p) => [p.id, String(p.short ?? p.id)])),
+      // Cine's rule (decision register, 28 September): a helper sees totals only when the owner allows it.
+      seesTotals: this.state.role === 'owner' || cfg.helperSeesSales === 1
+    });
     const liveTill: LiveTillVals = {
-      photos,
+      // The engine's flavour image is already resolved (`flavours.ts`).
+      photos: tiles.map(({ product }) => String(product.img ?? '')),
       classic: this.tillClassic,
       setClassic: (on: boolean) => {
         this.tillClassic = on;
@@ -8851,21 +8864,43 @@ export class OpsRuntime extends OpsProvider {
         this.forceUpdate();
       },
       soldOutCount,
-      showSoldOut,
-      toggleSoldOut: () => {
-        this.tillShowSoldOut = showSoldOut ? null : event.dayId!;
-        this.forceUpdate();
-      },
-      allGone: !showSoldOut && soldOutCount > 0 && drawn.length === 0,
+      allGone: soldOutCount > 0 && soldOutCount === tiles.length,
+      cartTotalText: peso(
+        planned.reduce(
+          (sum, { row, product }) => sum + priceCents(product.id) * (Number(row.inCart) || 0),
+          0
+        )
+      ),
+      cartLines: Object.fromEntries(
+        planned
+          .filter(({ row }) => Number(row.inCart) > 0)
+          .map(({ row, product }) => [
+            String(row.name),
+            peso(priceCents(product.id) * Number(row.inCart))
+          ])
+      ),
+      ledger,
+      leave: event.dayId ? null : (vals.event?.reset ?? null),
       home: owner ? this.leaveTill : null,
-      addCookies: owner
-        ? () => {
-            this.bazaarDays.openTillPanel('cookies');
-            this.forceUpdate();
-          }
-        : null
+      addCookies:
+        owner && event.dayId
+          ? () => {
+              this.bazaarDays.openTillPanel('cookies');
+              this.forceUpdate();
+            }
+          : null
     };
-    return { bzSell: drawn, liveTill, openEventExpense: this.openTillFees };
+    // Every peso on the till reads the same way, ₱130.00, as the approved design draws it.
+    const drawn = tiles.map(({ row, product }) => ({
+      ...row,
+      priceText: peso(priceCents(product.id))
+    }));
+    const bzSales = (vals.bzSales ?? []).map((sale, i) => ({
+      ...sale,
+      totalText: ledger.rows[i]?.totalText ?? sale.totalText
+    }));
+    if (!event.dayId) return { bzSales, bzSell: drawn, liveTill };
+    return { bzSales, bzSell: drawn, liveTill, openEventExpense: this.openTillFees };
   }
 
   /**
