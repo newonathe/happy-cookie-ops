@@ -1568,6 +1568,7 @@ export type Database = {
           at: string
           corrects: string | null
           created_by: string | null
+          dough_only: boolean
           dough_used: number
           drop_no: number
           id: string
@@ -1590,6 +1591,7 @@ export type Database = {
           at: string
           corrects?: string | null
           created_by?: string | null
+          dough_only?: boolean
           dough_used?: number
           drop_no?: number
           id: string
@@ -1612,6 +1614,7 @@ export type Database = {
           at?: string
           corrects?: string | null
           created_by?: string | null
+          dough_only?: boolean
           dough_used?: number
           drop_no?: number
           id?: string
@@ -2910,6 +2913,15 @@ export type Database = {
           p_product: string
         }
         Returns: Json
+      }
+      record_bake: {
+        Args: { p_rec: Json }
+        Returns: {
+          duplicate: boolean
+          record_id: string
+          shortfall: Json
+          used_dough: number
+        }[]
       }
       record_batch_correction: {
         Args: { p_corr: Json }
