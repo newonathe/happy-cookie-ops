@@ -19,6 +19,29 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 const VERSION = 'HCO-F1-BACKUP-1';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const cli = path.join(root, 'node_modules', 'supabase', 'dist', 'supabase.js');
+// A hosted dump links from its own scratch folder, never this repository's (docs/state/F1-operations.md).
+const workdir = () => process.env.F1_BACKUP_WORKDIR || null;
+const cliCommand = () => [cli, ...(workdir() ? ['--workdir', workdir()] : [])];
+const DEFAULT_DUMP_IMAGE = 'public.ecr.aws/supabase/postgres:15.8.1.085';
+/**
+ * pg_dump refuses a server newer than itself, so the auth-history dump follows the version the CLI recorded when it linked
+ * the project. A missing or malformed record falls back to the pinned image, which refuses a newer server and fails closed.
+ */
+export function dumpImageFor(recorded) {
+  const version = String(recorded ?? '').trim();
+  return /^\d+\.\d+\.\d+\.\d+$/.test(version)
+    ? `public.ecr.aws/supabase/postgres:${version}`
+    : DEFAULT_DUMP_IMAGE;
+}
+async function dumpImage() {
+  const folder = workdir();
+  if (!folder) return DEFAULT_DUMP_IMAGE;
+  return dumpImageFor(
+    await readFile(path.join(folder, 'supabase', '.temp', 'postgres-version'), 'utf8').catch(
+      () => null
+    )
+  );
+}
 const key = () => {
   const value = process.env.F1_BACKUP_KEY;
   if (!value || !/^[a-f\d]{64}$/i.test(value))
@@ -203,7 +226,7 @@ async function dumpAuthHistory(source) {
   // Credentials become environment values; the expanded script is never executed.
   const dryRun = (
     await capture(process.execPath, [
-      cli,
+      ...cliCommand(),
       'db',
       'dump',
       source === 'linked' ? '--linked' : '--local',
@@ -228,7 +251,7 @@ async function dumpAuthHistory(source) {
       '--entrypoint',
       'pg_dump',
       ...flags,
-      'public.ecr.aws/supabase/postgres:15.8.1.085',
+      await dumpImage(),
       '--data-only',
       '--table',
       'auth.schema_migrations',
@@ -321,7 +344,7 @@ async function main() {
       ]) {
         const target = path.join(tmp, `${name}.sql`);
         await run(process.execPath, [
-          cli,
+          ...cliCommand(),
           'db',
           'dump',
           source === 'linked' ? '--linked' : '--local',
