@@ -53,6 +53,7 @@ Use these references, with explicit proof boundaries:
 - Client-feedback reference: `C:/Users/ethan/Downloads/happy-cookie-workflows-refined.html`.
   Verified 3 November: 883527 bytes, SHA256 `fad61841ac098a9cb5431e382b9703589b8fc9947fe29ee0eef0476e80646aae`.
   It is byte-identical to the preserved private `happy-cookie-workflows-refined.v4.html`.
+  Cloud copy: [frozen supplied v4](../reference/happy-cookie-workflows-refined.html), with the same bytes and hash. Newer owner corrections override its older visual choices.
   Ethan first called it `happy-cookie-mockup-walkthrough-refined.html`, then supplied this download.
   The client reportedly found it cleaner, with designs still missing. Carry forward its cleaner
   layout/organization and identify missing screens, states, components and hierarchy against the
