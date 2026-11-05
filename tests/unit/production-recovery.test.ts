@@ -71,6 +71,21 @@ const snapshot = (): ProductionRecovery => ({
 });
 
 describe('scoped production recovery', () => {
+  it('restores the bake protocol exactly and refuses to change a pending request route', () => {
+    const value = snapshot(),
+      storage = memory();
+    value.requests[0]!.fields.doughOnly = true;
+    value.requests[0]!.fields.recipeVersion = 2147483647;
+    value.works[0]!.recipe!.version = 2147483647;
+    expect(writeProductionRecovery(scope, value, { storage })).toBe(true);
+    expect(readProductionRecovery(scope, storage).value).toEqual(value);
+    const changed = structuredClone(value);
+    delete changed.requests[0]!.fields.doughOnly;
+    expect(sameProductionRequest(value.requests[0]!.fields, changed.requests[0]!.fields)).toBe(
+      false
+    );
+    expect(writeProductionRecovery(scope, changed, { storage })).toBe(false);
+  });
   it('restores legacy unanswered dough unchanged, without inferring a recipe amount', () => {
     const value = snapshot(),
       storage = memory();

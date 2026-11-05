@@ -70,6 +70,7 @@ const fields = z
     adj: z.record(z.string(), z.number()),
     recipeVersion: z.number(),
     recipeAmount: z.union([z.literal(0.5), z.literal(1)]).optional(),
+    doughOnly: z.literal(true).optional(),
     dropNo: z.number(),
     at: z.number()
   })
@@ -265,6 +266,7 @@ export function sameProductionRequest(a: ProductionFields, b: ProductionFields):
     f.rejects,
     f.recipeVersion,
     f.recipeAmount,
+    f.doughOnly,
     f.dropNo,
     f.at,
     Object.entries(f.adj).sort()
