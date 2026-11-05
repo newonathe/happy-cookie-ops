@@ -6,6 +6,64 @@ hosted changes, accounting changes, or weaker permissions/offline controls.
 
 ## Evidence and limits
 
+### Production transaction contract — 5 November owner correction
+
+This section supersedes the output-scaled preparation and automatic fresh-ingredient
+baking described below. Ingredient deduction at completed dough preparation was approved
+on the client call. Ethan additionally approved: **Bake consumes only recorded fridge
+dough; a shortage retains the bake draft and asks for Prepare dough first.** Physical
+dough-count corrections remain a separate unanswered decision. This is a contract,
+not evidence that the new workflow is implemented or deployed.
+
+The real work is measure this flavour's ingredients → roll and count balls → record
+Prepare dough → refrigerate → bake some balls → record good cookies and rejects →
+fulfil orders or transfer baked cookies to a table. A plan performs none of these writes.
+
+- Preparation records two independent facts: recipe amount used (the existing full/half
+  choices), and actual whole balls produced. One full recipe yielding 11, 12 or 13 balls
+  consumes the same recipe quantities. Changing actual balls never rescales ingredients.
+- An owner-only `record_dough_preparation` RPC accepts exactly `id`, `product_id`,
+  `recipe_version`, `recipe_amount`, `balls`, `drop_no`, `at`. Full is 1; half is 0.5.
+  Balls are 1–10,000. The server validates types/bounds and the current saved recipe;
+  a missing/inactive product, empty recipe or stale version is refused before any write.
+- Store actual balls as the existing dough record's quantity, plus recipe amount and an
+  immutable recipe snapshot containing yield, version, ordered lines, explicit line kind,
+  quantities, units and item links. Existing records retain their original values; no
+  historical ingredient use is inferred or backfilled from a changed yield.
+- Ingredient need is derived from recipe amount through the existing SQL scaling rule,
+  rounding and supported units, independent of balls. Packaging is retained in the
+  snapshot but is consumed only by the existing packing/sale rules. Each ingredient
+  deduction uses the existing stock/cost movement helper, retaining its provenance,
+  consumption accounting and shortage rules. Unknown cost stays pending.
+- Preserve current shortage behavior: consume available stock without making it negative,
+  and retain exact missing quantities on the preparation. Acknowledged preparation and
+  ingredient shortfall are separate facts, both visible in the result. Do not claim that
+  stock covered all measured ingredients when a shortfall was recorded.
+- Lock request → catalogue → recipe → product production → sorted stock items, using the
+  existing lock namespaces. Record, movements, shortage and audit entry commit atomically.
+  Exact UUID/body replay returns the original result before checking a newer recipe;
+  reusing the UUID with another body is refused. A retry never deducts ingredients twice.
+- Baking must consume `good + rejects` balls and add only `good` cookies. Rejects may be
+  every baked cookie. It must atomically refuse insufficient recorded dough; never mix
+  fresh ingredients or deduct preparation ingredients again. Preserve existing baking,
+  packing, transfers, correction and books history. Update the backend before enabling
+  the new bake flow; do not expose a UI-only promise over the legacy auto-mixing RPC.
+- Keep per-item requests, snapshots, raw inputs, independent work, recipe-change review,
+  owner/backend scope and single-tab ownership. No automatic post after reload or signal
+  recovery. An acknowledged save with failed refresh says recorded, balances unchecked.
+
+Implementation slices: additive preparation RPC/schema and SQL evidence; live preparation
+form/client/recovery; dough-only bake RPC and live review; approved physical count behavior;
+connected order/shopping/Bazaar and cost reconciliation. New SQL is local until separately
+approved for hosting. Each stock-write slice needs independent review before acceptance.
+
+Required database proof includes full recipe → 11/12/13 balls with identical ingredient
+use; half recipe with independently entered balls; exact replay after recipe change;
+changed-body refusal; active owner/helper/support/inactive/anonymous boundaries; missing
+and incompatible items, partial/unknown costs and shortages; concurrent preparations of
+different flavours sharing ingredients; concurrent bakes without overdrawing dough;
+rollback on a failed stock write; immutable history and no second ingredient charge.
+
 Audited the current `codex/refined-workflows` source, protected engine as an answer key, existing
 tests, and the latest local definition of `record_production` in migration 67. Current starting
 HEAD was `91c87ed`; Pressable repair `7c07008` subsequently passed the full pinned gate. No hosted writes occurred.
