@@ -1,0 +1,111 @@
+{
+  "id": "account/role-support/health@p390",
+  "viewport": {
+    "w": 390,
+    "h": 844
+  },
+  "engine": "chromium",
+  "audit": {
+    "viewport": {
+      "w": 390,
+      "h": 844,
+      "dpr": 1
+    },
+    "overflowX": 0,
+    "docHeight": 844,
+    "offenders": [],
+    "clipped": [],
+    "smallTargetCount": 3,
+    "smallTargets": [
+      {
+        "name": "Back",
+        "el": "button",
+        "w": 42,
+        "h": 42
+      },
+      {
+        "name": "Notifications",
+        "el": "button",
+        "w": 42,
+        "h": 42
+      },
+      {
+        "name": "Sign out",
+        "el": "button",
+        "w": 73.3,
+        "h": 32
+      }
+    ],
+    "covered": [
+      {
+        "name": "Quick add",
+        "by": "Technical support access. System health "
+      }
+    ],
+    "sticky": [
+      {
+        "el": "button",
+        "pos": "fixed",
+        "name": "Sign out",
+        "x": 12,
+        "y": 728,
+        "w": 73.3,
+        "h": 32
+      }
+    ],
+    "images": [],
+    "brokenImages": 0,
+    "lowContrast": [],
+    "lowContrastCount": 0,
+    "focused": null,
+    "heading": "Health & backups",
+    "dialog": null
+  },
+  "keyElements": [
+    {
+      "kind": "h1",
+      "name": "Health & backups",
+      "x": 14,
+      "y": 77,
+      "w": 212.6,
+      "h": 32.5,
+      "fontSize": "26px",
+      "fontWeight": "600",
+      "lineHeight": "32.5px",
+      "fontFamily": "QAOnest",
+      "padding": "0px",
+      "gap": "normal",
+      "radius": "0px",
+      "color": "rgb(58, 31, 20)",
+      "background": "rgba(0, 0, 0, 0)",
+      "contrast": 15.15,
+      "overflow": "visible",
+      "position": "static",
+      "outline": "none",
+      "boxShadow": "none"
+    },
+    {
+      "kind": "h2",
+      "name": "Needs attention",
+      "x": 33,
+      "y": 167.4,
+      "w": 130.6,
+      "h": 25.5,
+      "fontSize": "17px",
+      "fontWeight": "600",
+      "lineHeight": "25.5px",
+      "fontFamily": "QAOnest",
+      "padding": "0px",
+      "gap": "normal",
+      "radius": "0px",
+      "color": "rgb(58, 31, 20)",
+      "background": "rgba(0, 0, 0, 0)",
+      "contrast": 15.15,
+      "overflow": "visible",
+      "position": "static",
+      "outline": "none",
+      "boxShadow": "none"
+    }
+  ],
+  "inputs": []
+}

@@ -1,0 +1,361 @@
+{
+  "id": "shop/customer-shop/waiting-list@d1440",
+  "viewport": {
+    "w": 1440,
+    "h": 900
+  },
+  "engine": "chromium",
+  "audit": {
+    "viewport": {
+      "w": 1440,
+      "h": 900,
+      "dpr": 1
+    },
+    "overflowX": 0,
+    "docHeight": 900,
+    "offenders": [],
+    "clipped": [],
+    "smallTargetCount": 3,
+    "smallTargets": [
+      {
+        "name": "Already ordered? Find my order",
+        "el": "button",
+        "w": 166.2,
+        "h": 38
+      },
+      {
+        "name": "Join the waiting list",
+        "el": "button",
+        "w": 101.5,
+        "h": 38
+      },
+      {
+        "name": "Close",
+        "el": "button",
+        "w": 38,
+        "h": 38
+      }
+    ],
+    "covered": [
+      {
+        "name": "Remove one",
+        "by": "Join the waiting list Name Instagram han"
+      },
+      {
+        "name": "Add one",
+        "by": "Join the waiting list Name Instagram han"
+      },
+      {
+        "name": "Remove one",
+        "by": "Join the waiting list Name Instagram han"
+      },
+      {
+        "name": "Add one",
+        "by": "Join the waiting list Name Instagram han"
+      },
+      {
+        "name": "Remove one",
+        "by": "Join the waiting list"
+      },
+      {
+        "name": "Add one",
+        "by": "Join the waiting list"
+      },
+      {
+        "name": "Remove one",
+        "by": "09XX XXX XXXX"
+      },
+      {
+        "name": "Add one",
+        "by": "09XX XXX XXXX"
+      },
+      {
+        "name": "Remove one",
+        "by": "Mobile number"
+      },
+      {
+        "name": "Add one",
+        "by": "Mobile number"
+      },
+      {
+        "name": "Already ordered? Find my order",
+        "by": "Join the waiting list Name Instagram han"
+      },
+      {
+        "name": "Join the waiting list",
+        "by": "Join the waiting list Name Instagram han"
+      }
+    ],
+    "sticky": [],
+    "images": [
+      {
+        "alt": "The Happy Cookie",
+        "broken": false,
+        "scale": 0.23,
+        "x": 408,
+        "y": -521,
+        "w": 111.1,
+        "h": 56
+      }
+    ],
+    "brokenImages": 0,
+    "lowContrast": [
+      {
+        "name": "Contains milk, eggs, wheat",
+        "contrast": 3.24,
+        "fontSize": "10px",
+        "color": "rgb(169, 138, 95)"
+      },
+      {
+        "name": "Contains milk, eggs, wheat",
+        "contrast": 3.24,
+        "fontSize": "10px",
+        "color": "rgb(169, 138, 95)"
+      },
+      {
+        "name": "BEST SELLER",
+        "contrast": 3.24,
+        "fontSize": "10px",
+        "color": "rgb(169, 138, 95)"
+      },
+      {
+        "name": "Contains milk, eggs, wheat",
+        "contrast": 3.24,
+        "fontSize": "10px",
+        "color": "rgb(169, 138, 95)"
+      },
+      {
+        "name": "BEST SELLER",
+        "contrast": 3.24,
+        "fontSize": "10px",
+        "color": "rgb(169, 138, 95)"
+      },
+      {
+        "name": "Contains milk, eggs, wheat",
+        "contrast": 3.24,
+        "fontSize": "10px",
+        "color": "rgb(169, 138, 95)"
+      },
+      {
+        "name": "THIS MONTH ONLY",
+        "contrast": 3.24,
+        "fontSize": "10px",
+        "color": "rgb(169, 138, 95)"
+      },
+      {
+        "name": "Contains milk, eggs, wheat",
+        "contrast": 3.24,
+        "fontSize": "10px",
+        "color": "rgb(169, 138, 95)"
+      },
+      {
+        "name": "THIS MONTH ONLY",
+        "contrast": 3.24,
+        "fontSize": "10px",
+        "color": "rgb(169, 138, 95)"
+      },
+      {
+        "name": "Contains milk, eggs, wheat",
+        "contrast": 3.24,
+        "fontSize": "10px",
+        "color": "rgb(169, 138, 95)"
+      },
+      {
+        "name": "THIS MONTH ONLY",
+        "contrast": 3.24,
+        "fontSize": "10px",
+        "color": "rgb(169, 138, 95)"
+      },
+      {
+        "name": "Contains milk, eggs, wheat",
+        "contrast": 3.24,
+        "fontSize": "10px",
+        "color": "rgb(169, 138, 95)"
+      }
+    ],
+    "lowContrastCount": 15,
+    "focused": {
+      "name": "Join the waiting list",
+      "fontSize": "11px",
+      "fontWeight": "600",
+      "lineHeight": "16.5px",
+      "fontFamily": "QAOnest",
+      "padding": "0px",
+      "gap": "normal",
+      "radius": "0px",
+      "color": "rgb(110, 87, 75)",
+      "background": "rgba(0, 0, 0, 0)",
+      "contrast": 6.22,
+      "overflow": "visible",
+      "position": "static",
+      "outline": "none",
+      "boxShadow": "none",
+      "x": 472,
+      "y": 829.7,
+      "w": 101.5,
+      "h": 38
+    },
+    "heading": "This week's drop",
+    "dialog": null
+  },
+  "keyElements": [
+    {
+      "kind": "h1",
+      "name": "This week's drop",
+      "x": 414,
+      "y": -459,
+      "w": 612,
+      "h": 30.8,
+      "fontSize": "28px",
+      "fontWeight": "700",
+      "lineHeight": "30.8px",
+      "fontFamily": "QAOnest",
+      "padding": "0px",
+      "gap": "normal",
+      "radius": "0px",
+      "color": "rgb(58, 31, 20)",
+      "background": "rgba(0, 0, 0, 0)",
+      "contrast": 14.03,
+      "overflow": "visible",
+      "position": "static",
+      "outline": "none",
+      "boxShadow": "none"
+    },
+    {
+      "kind": "input",
+      "name": "input",
+      "x": 477,
+      "y": 309,
+      "w": 486,
+      "h": 48,
+      "fontSize": "14px",
+      "fontWeight": "600",
+      "lineHeight": "21px",
+      "fontFamily": "QAOnest",
+      "padding": "0px 13px",
+      "gap": "normal",
+      "radius": "12px",
+      "color": "rgb(58, 31, 20)",
+      "background": "rgb(255, 255, 255)",
+      "contrast": 15.15,
+      "overflow": "clip",
+      "position": "static",
+      "outline": "none",
+      "boxShadow": "none"
+    },
+    {
+      "kind": "input",
+      "name": "@yourhandle",
+      "x": 477,
+      "y": 392,
+      "w": 486,
+      "h": 48,
+      "fontSize": "14px",
+      "fontWeight": "600",
+      "lineHeight": "21px",
+      "fontFamily": "QAOnest",
+      "padding": "0px 13px",
+      "gap": "normal",
+      "radius": "12px",
+      "color": "rgb(58, 31, 20)",
+      "background": "rgb(255, 255, 255)",
+      "contrast": 15.15,
+      "overflow": "clip",
+      "position": "static",
+      "outline": "none",
+      "boxShadow": "none"
+    },
+    {
+      "kind": "input",
+      "name": "09XX XXX XXXX",
+      "x": 477,
+      "y": 475,
+      "w": 486,
+      "h": 48,
+      "fontSize": "14px",
+      "fontWeight": "600",
+      "lineHeight": "21px",
+      "fontFamily": "QAOnest",
+      "padding": "0px 13px",
+      "gap": "normal",
+      "radius": "12px",
+      "color": "rgb(58, 31, 20)",
+      "background": "rgb(255, 255, 255)",
+      "contrast": 15.15,
+      "overflow": "clip",
+      "position": "static",
+      "outline": "none",
+      "boxShadow": "none"
+    },
+    {
+      "kind": "input",
+      "name": "input",
+      "x": 477,
+      "y": 558,
+      "w": 486,
+      "h": 48,
+      "fontSize": "14px",
+      "fontWeight": "600",
+      "lineHeight": "21px",
+      "fontFamily": "QAOnest",
+      "padding": "0px 13px",
+      "gap": "normal",
+      "radius": "12px",
+      "color": "rgb(58, 31, 20)",
+      "background": "rgb(255, 255, 255)",
+      "contrast": 15.15,
+      "overflow": "clip",
+      "position": "static",
+      "outline": "none",
+      "boxShadow": "none"
+    },
+    {
+      "kind": "image",
+      "name": "The Happy Cookie",
+      "x": 408,
+      "y": -521,
+      "w": 111.1,
+      "h": 56,
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "lineHeight": "24px",
+      "fontFamily": "QAOnest",
+      "padding": "0px",
+      "gap": "normal",
+      "radius": "0px",
+      "color": "rgb(58, 31, 20)",
+      "background": "rgba(0, 0, 0, 0)",
+      "contrast": 14.03,
+      "overflow": "clip",
+      "position": "static",
+      "outline": "none",
+      "boxShadow": "none"
+    }
+  ],
+  "inputs": [
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "label": "Name",
+      "value": ""
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "label": "Instagram handle (optional)",
+      "value": ""
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "label": "Mobile number",
+      "value": ""
+    },
+    {
+      "tag": "INPUT",
+      "type": "date",
+      "label": "Date you want cookies",
+      "value": ""
+    }
+  ]
+}

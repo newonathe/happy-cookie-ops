@@ -1,0 +1,1464 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>account · ACTUAL app</title>
+    <style>
+      body {
+        font:
+          15px/1.5 system-ui,
+          sans-serif;
+        margin: 0 auto;
+        max-width: 1500px;
+        padding: 16px;
+        color: #222;
+        background: #fff;
+      }
+      .tag {
+        display: inline-block;
+        background: #222;
+        color: #fff;
+        padding: 2px 10px;
+        border-radius: 4px;
+        font-size: 13px;
+      }
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: flex-start;
+      }
+      figure {
+        margin: 0;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        padding: 6px;
+        max-width: 100%;
+      }
+      figure img {
+        display: block;
+        max-height: 420px;
+        max-width: 100%;
+        height: auto;
+      }
+      figcaption {
+        font-size: 12px;
+        color: #555;
+        padding-top: 4px;
+      }
+      section {
+        border-top: 2px solid #ddd;
+        margin-top: 24px;
+      }
+      small {
+        color: #666;
+        font-weight: 400;
+      }
+      .bad {
+        color: #b00020;
+      }
+      code {
+        font-size: 13px;
+      }
+    </style>
+  </head>
+  <body>
+    <p class="tag">ACTUAL application · fictional data · simulated server</p>
+    <p><a href="index.html">All sections</a></p>
+    <h1>account</h1>
+    <section>
+      <h3>Account</h3>
+      <p><code>src/components/live/account/account-live.tsx</code> · reference: account</p>
+      <h4 id="account-populated">populated <small>data · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/account/account/populated/p320.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/account/populated/p320.webp"
+              alt="Account populated p320"
+          /></a>
+          <figcaption>p320 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/account/populated/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/account/populated/p390.webp"
+              alt="Account populated p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/account/populated/t768.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/account/populated/t768.webp"
+              alt="Account populated t768"
+          /></a>
+          <figcaption>t768</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/account/populated/l1024.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/account/populated/l1024.webp"
+              alt="Account populated l1024"
+          /></a>
+          <figcaption>l1024</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/account/populated/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/account/populated/d1440.webp"
+              alt="Account populated d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/account/populated/w1920.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/account/populated/w1920.webp"
+              alt="Account populated w1920"
+          /></a>
+          <figcaption>w1920</figcaption>
+        </figure>
+      </div>
+      <h4 id="account-loading">loading <small>failure · fail:get_settings=never</small></h4>
+      <p>Reads never answer, so the loading treatment stays on screen.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/account/account/populated/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/account/populated/p390.webp"
+              alt="Account loading p390"
+          /></a>
+          <figcaption>p390 (identical to another state)</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/account/populated/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/account/populated/d1440.webp"
+              alt="Account loading d1440"
+          /></a>
+          <figcaption>d1440 (identical to another state)</figcaption>
+        </figure>
+      </div>
+      <h4 id="account-read-failure">
+        read-failure <small>failure · fail:get_settings=down</small>
+      </h4>
+      <p>Reads answer with a connection error (08006).</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/account/account/populated/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/account/populated/p390.webp"
+              alt="Account read-failure p390"
+          /></a>
+          <figcaption>p390 (identical to another state)</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/account/populated/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/account/populated/d1440.webp"
+              alt="Account read-failure d1440"
+          /></a>
+          <figcaption>d1440 (identical to another state)</figcaption>
+        </figure>
+      </div>
+      <h4 id="account-malformed-answer">
+        malformed-answer <small>failure · fail:get_settings=malformed</small>
+      </h4>
+      <p>Reads answer with a shape the parser refuses.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/account/account/populated/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/account/populated/p390.webp"
+              alt="Account malformed-answer p390"
+          /></a>
+          <figcaption>p390 (identical to another state)</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/account/populated/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/account/populated/d1440.webp"
+              alt="Account malformed-answer d1440"
+          /></a>
+          <figcaption>d1440 (identical to another state)</figcaption>
+        </figure>
+      </div>
+      <h4 id="account-offline-after-load">offline-after-load <small>failure · default</small></h4>
+      <p>Browser goes offline after a populated load.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/account/account/offline-after-load/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/account/offline-after-load/p390.webp"
+              alt="Account offline-after-load p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/account/offline-after-load/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/account/offline-after-load/d1440.webp"
+              alt="Account offline-after-load d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="account-focus-keyboard">focus-keyboard <small>interaction · default</small></h4>
+      <p>Five Tab presses from page start: what focus looks like.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/account/account/focus-keyboard/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/account/focus-keyboard/d1440.webp"
+              alt="Account focus-keyboard d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Shop settings</h3>
+      <p><code>src/components/live/account/settings-areas.tsx</code> · found in code</p>
+      <h4 id="shop-settings-default">default <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/account/shop-settings/default/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/shop-settings/default/p390.webp"
+              alt="Shop settings default p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/shop-settings/default/t768.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/shop-settings/default/t768.webp"
+              alt="Shop settings default t768"
+          /></a>
+          <figcaption>t768 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/shop-settings/default/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/shop-settings/default/d1440.webp"
+              alt="Shop settings default d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Make settings (from Account)</h3>
+      <p><code>src/components/live/account/settings-areas.tsx</code> · found in code</p>
+      <h4 id="make-area-default">default <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/account/make-area/default/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/make-area/default/p390.webp"
+              alt="Make settings (from Account) default p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/make-area/default/t768.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/make-area/default/t768.webp"
+              alt="Make settings (from Account) default t768"
+          /></a>
+          <figcaption>t768</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/make-area/default/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/make-area/default/d1440.webp"
+              alt="Make settings (from Account) default d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Stock settings (from Account)</h3>
+      <p><code>src/components/live/account/settings-areas.tsx</code> · found in code</p>
+      <h4 id="stock-area-default">default <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/account/stock-area/default/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/stock-area/default/p390.webp"
+              alt="Stock settings (from Account) default p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/stock-area/default/t768.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/stock-area/default/t768.webp"
+              alt="Stock settings (from Account) default t768"
+          /></a>
+          <figcaption>t768</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/stock-area/default/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/stock-area/default/d1440.webp"
+              alt="Stock settings (from Account) default d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Money settings (from Account)</h3>
+      <p><code>src/components/live/account/settings-areas.tsx</code> · found in code</p>
+      <h4 id="money-area-default">default <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/account/money-area/default/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/money-area/default/p390.webp"
+              alt="Money settings (from Account) default p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/money-area/default/t768.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/money-area/default/t768.webp"
+              alt="Money settings (from Account) default t768"
+          /></a>
+          <figcaption>t768</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/money-area/default/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/money-area/default/d1440.webp"
+              alt="Money settings (from Account) default d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Notifications &amp; data</h3>
+      <p><code>src/components/live/account/settings-areas.tsx</code> · found in code</p>
+      <h4 id="notifications-data-default">default <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/account/notifications-data/default/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/notifications-data/default/p390.webp"
+              alt="Notifications &amp; data default p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/notifications-data/default/t768.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/notifications-data/default/t768.webp"
+              alt="Notifications &amp; data default t768"
+          /></a>
+          <figcaption>t768</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/notifications-data/default/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/notifications-data/default/d1440.webp"
+              alt="Notifications &amp; data default d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>People &amp; access</h3>
+      <p><code>src/components/live/settings-pages.tsx</code> · reference: people, person-edit</p>
+      <h4 id="people-hub">hub <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/account/people/hub/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/people/hub/p390.webp"
+              alt="People &amp; access hub p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/people/hub/t768.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/people/hub/t768.webp"
+              alt="People &amp; access hub t768"
+          /></a>
+          <figcaption>t768</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/people/hub/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/people/hub/d1440.webp"
+              alt="People &amp; access hub d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="people-who-can-see-what">who-can-see-what <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/account/people/who-can-see-what/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/people/who-can-see-what/p390.webp"
+              alt="People &amp; access who-can-see-what p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/people/who-can-see-what/t768.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/people/who-can-see-what/t768.webp"
+              alt="People &amp; access who-can-see-what t768"
+          /></a>
+          <figcaption>t768</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/people/who-can-see-what/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/people/who-can-see-what/d1440.webp"
+              alt="People &amp; access who-can-see-what d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="people-support-access">support-access <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/account/people/who-can-see-what/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/people/who-can-see-what/p390.webp"
+              alt="People &amp; access support-access p390"
+          /></a>
+          <figcaption>p390 (identical to another state)</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/people/who-can-see-what/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/people/who-can-see-what/d1440.webp"
+              alt="People &amp; access support-access d1440"
+          /></a>
+          <figcaption>d1440 (identical to another state)</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Health &amp; backups</h3>
+      <p>
+        <code>src/components/live/account/account-live.tsx</code> · reference: health, backups,
+        restore-preview
+      </p>
+      <h4 id="health-populated-restore-failed">
+        populated-restore-failed <small>data · default</small>
+      </h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/account/health/populated-restore-failed/p320.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/health/populated-restore-failed/p320.webp"
+              alt="Health &amp; backups populated-restore-failed p320"
+          /></a>
+          <figcaption>p320 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/health/populated-restore-failed/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/health/populated-restore-failed/p390.webp"
+              alt="Health &amp; backups populated-restore-failed p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/health/populated-restore-failed/t768.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/health/populated-restore-failed/t768.webp"
+              alt="Health &amp; backups populated-restore-failed t768"
+          /></a>
+          <figcaption>t768 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/health/populated-restore-failed/l1024.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/health/populated-restore-failed/l1024.webp"
+              alt="Health &amp; backups populated-restore-failed l1024"
+          /></a>
+          <figcaption>l1024 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/health/populated-restore-failed/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/health/populated-restore-failed/d1440.webp"
+              alt="Health &amp; backups populated-restore-failed d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/health/populated-restore-failed/w1920.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/health/populated-restore-failed/w1920.webp"
+              alt="Health &amp; backups populated-restore-failed w1920"
+          /></a>
+          <figcaption>w1920 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="health-read-failure">
+        read-failure <small>failure · fail:get_operations_health=down</small>
+      </h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/account/health/read-failure/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/health/read-failure/p390.webp"
+              alt="Health &amp; backups read-failure p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/health/read-failure/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/health/read-failure/d1440.webp"
+              alt="Health &amp; backups read-failure d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="health-malformed-answer">
+        malformed-answer <small>failure · fail:get_operations_health=malformed</small>
+      </h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/account/health/read-failure/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/health/read-failure/p390.webp"
+              alt="Health &amp; backups malformed-answer p390"
+          /></a>
+          <figcaption>p390 (identical to another state) · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/health/read-failure/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/health/read-failure/d1440.webp"
+              alt="Health &amp; backups malformed-answer d1440"
+          /></a>
+          <figcaption>d1440 (identical to another state) · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="health-loading">loading <small>failure · fail:get_operations_health=never</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/account/health/loading/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/health/loading/p390.webp"
+              alt="Health &amp; backups loading p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/health/loading/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/health/loading/d1440.webp"
+              alt="Health &amp; backups loading d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="health-empty">empty <small>data · data:empty</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/account/health/empty/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/health/empty/p390.webp"
+              alt="Health &amp; backups empty p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/health/empty/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/health/empty/d1440.webp"
+              alt="Health &amp; backups empty d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Notifications</h3>
+      <p><code>src/components/live/account/account-live.tsx</code> · found in code</p>
+      <h4 id="notifications-populated">populated <small>data · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/account/notifications/populated/p320.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/notifications/populated/p320.webp"
+              alt="Notifications populated p320"
+          /></a>
+          <figcaption>p320 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/notifications/populated/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/notifications/populated/p390.webp"
+              alt="Notifications populated p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/notifications/populated/t768.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/notifications/populated/t768.webp"
+              alt="Notifications populated t768"
+          /></a>
+          <figcaption>t768 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/notifications/populated/l1024.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/notifications/populated/l1024.webp"
+              alt="Notifications populated l1024"
+          /></a>
+          <figcaption>l1024 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/notifications/populated/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/notifications/populated/d1440.webp"
+              alt="Notifications populated d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/notifications/populated/w1920.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/notifications/populated/w1920.webp"
+              alt="Notifications populated w1920"
+          /></a>
+          <figcaption>w1920 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="notifications-empty">empty <small>data · data:empty</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/account/notifications/empty/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/notifications/empty/p390.webp"
+              alt="Notifications empty p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/notifications/empty/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/notifications/empty/d1440.webp"
+              alt="Notifications empty d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="notifications-one-dismissed">one-dismissed <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/account/notifications/one-dismissed/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/notifications/one-dismissed/p390.webp"
+              alt="Notifications one-dismissed p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/notifications/one-dismissed/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/notifications/one-dismissed/d1440.webp"
+              alt="Notifications one-dismissed d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="notifications-all-cleared">all-cleared <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/account/notifications/all-cleared/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/notifications/all-cleared/p390.webp"
+              alt="Notifications all-cleared p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/notifications/all-cleared/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/notifications/all-cleared/d1440.webp"
+              alt="Notifications all-cleared d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Sign in</h3>
+      <p><code>src/app/sign-in/sign-in-form.tsx</code> · reference: sign-in, account-help</p>
+      <h4 id="sign-in-untouched">untouched <small>data · signed-out</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/account/sign-in/untouched/p320.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/sign-in/untouched/p320.webp"
+              alt="Sign in untouched p320"
+          /></a>
+          <figcaption>p320</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/sign-in/untouched/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/sign-in/untouched/p390.webp"
+              alt="Sign in untouched p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/sign-in/untouched/t768.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/sign-in/untouched/t768.webp"
+              alt="Sign in untouched t768"
+          /></a>
+          <figcaption>t768</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/sign-in/untouched/l1024.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/sign-in/untouched/l1024.webp"
+              alt="Sign in untouched l1024"
+          /></a>
+          <figcaption>l1024</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/sign-in/untouched/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/sign-in/untouched/d1440.webp"
+              alt="Sign in untouched d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/sign-in/untouched/w1920.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/sign-in/untouched/w1920.webp"
+              alt="Sign in untouched w1920"
+          /></a>
+          <figcaption>w1920</figcaption>
+        </figure>
+      </div>
+      <h4 id="sign-in-account-help">account-help <small>interaction · signed-out</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/account/sign-in/account-help/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/sign-in/account-help/p390.webp"
+              alt="Sign in account-help p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/sign-in/account-help/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/sign-in/account-help/d1440.webp"
+              alt="Sign in account-help d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="sign-in-wrong-password">wrong-password <small>failure · signed-out</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/account/sign-in/wrong-password/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/sign-in/wrong-password/p390.webp"
+              alt="Sign in wrong-password p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/sign-in/wrong-password/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/sign-in/wrong-password/d1440.webp"
+              alt="Sign in wrong-password d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="sign-in-network-failure">
+        network-failure <small>failure · signed-out;fail:signIn=network</small>
+      </h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/account/sign-in/network-failure/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/sign-in/network-failure/p390.webp"
+              alt="Sign in network-failure p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/sign-in/network-failure/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/sign-in/network-failure/d1440.webp"
+              alt="Sign in network-failure d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="sign-in-empty-submit">empty-submit <small>interaction · signed-out</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/account/sign-in/empty-submit/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/sign-in/empty-submit/p390.webp"
+              alt="Sign in empty-submit p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/sign-in/empty-submit/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/sign-in/empty-submit/d1440.webp"
+              alt="Sign in empty-submit d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="sign-in-password-shown">password-shown <small>interaction · signed-out</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/account/sign-in/password-shown/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/sign-in/password-shown/p390.webp"
+              alt="Sign in password-shown p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Sign out</h3>
+      <p><code>src/components/app/sign-out-control.tsx</code> · reference: sign-out</p>
+      <h4 id="sign-out-no-unsent">no-unsent <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/account/sign-out/no-unsent/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/sign-out/no-unsent/p390.webp"
+              alt="Sign out no-unsent p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/sign-out/no-unsent/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/sign-out/no-unsent/d1440.webp"
+              alt="Sign out no-unsent d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="sign-out-with-unsent-sales">
+        with-unsent-sales <small>business · bazaar:planned</small>
+      </h4>
+      <p>Warns about unsent sales first.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/account/sign-out/with-unsent-sales/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/sign-out/with-unsent-sales/p390.webp"
+              alt="Sign out with-unsent-sales p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/sign-out/with-unsent-sales/t768.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/sign-out/with-unsent-sales/t768.webp"
+              alt="Sign out with-unsent-sales t768"
+          /></a>
+          <figcaption>t768 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/sign-out/with-unsent-sales/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/sign-out/with-unsent-sales/d1440.webp"
+              alt="Sign out with-unsent-sales d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Session and access gate</h3>
+      <p><code>src/components/app/live-gate.tsx</code> · found in code</p>
+      <h4 id="access-gate-session-expired-redirect">
+        session-expired-redirect <small>failure · fail:auth=expired</small>
+      </h4>
+      <p>
+        getUser returns no user: the real gate redirects to sign-in, so this is the same image as
+        Sign in, untouched.
+      </p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/account/sign-in/untouched/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/sign-in/untouched/p390.webp"
+              alt="Session and access gate session-expired-redirect p390"
+          /></a>
+          <figcaption>p390 (identical to another state)</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/sign-in/untouched/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/sign-in/untouched/d1440.webp"
+              alt="Session and access gate session-expired-redirect d1440"
+          /></a>
+          <figcaption>d1440 (identical to another state)</figcaption>
+        </figure>
+      </div>
+      <h4 id="access-gate-idle-time-spent">idle-time-spent <small>failure · default</small></h4>
+      <p>Clock moved five and a half hours forward with no activity. The page did not change.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/sell/orders/populated/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/orders/populated/p390.webp"
+              alt="Session and access gate idle-time-spent p390"
+          /></a>
+          <figcaption>p390 (identical to another state) · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/sell/orders/populated/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/sell/orders/populated/d1440.webp"
+              alt="Session and access gate idle-time-spent d1440"
+          /></a>
+          <figcaption>d1440 (identical to another state) · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="access-gate-inactive-profile">
+        inactive-profile <small>failure · fail:profile=inactive</small>
+      </h4>
+      <p>Lands on the sign-in page: the same image as Sign in, untouched.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/account/sign-in/untouched/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/sign-in/untouched/p390.webp"
+              alt="Session and access gate inactive-profile p390"
+          /></a>
+          <figcaption>p390 (identical to another state)</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/sign-in/untouched/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/sign-in/untouched/d1440.webp"
+              alt="Session and access gate inactive-profile d1440"
+          /></a>
+          <figcaption>d1440 (identical to another state)</figcaption>
+        </figure>
+      </div>
+      <h4 id="access-gate-no-signal-first-open">
+        no-signal-first-open <small>failure · fail:auth=network</small>
+      </h4>
+      <p>First check cannot complete: notice instead of sign-out.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/account/access-gate/no-signal-first-open/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/access-gate/no-signal-first-open/p390.webp"
+              alt="Session and access gate no-signal-first-open p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/access-gate/no-signal-first-open/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/access-gate/no-signal-first-open/d1440.webp"
+              alt="Session and access gate no-signal-first-open d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="access-gate-identity-check-pending">
+        identity-check-pending <small>failure · fail:auth=never</small>
+      </h4>
+      <p>Before the first check answers the app draws nothing behind the gate.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/products/malformed-answer/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/products/malformed-answer/p390.webp"
+              alt="Session and access gate identity-check-pending p390"
+          /></a>
+          <figcaption>p390 (identical to another state)</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/make/products/malformed-answer/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/products/malformed-answer/d1440.webp"
+              alt="Session and access gate identity-check-pending d1440"
+          /></a>
+          <figcaption>d1440 (identical to another state)</figcaption>
+        </figure>
+      </div>
+      <h4 id="access-gate-profile-read-failed">
+        profile-read-failed <small>failure · fail:profile=down</small>
+      </h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/account/access-gate/no-signal-first-open/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/access-gate/no-signal-first-open/p390.webp"
+              alt="Session and access gate profile-read-failed p390"
+          /></a>
+          <figcaption>p390 (identical to another state)</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/access-gate/no-signal-first-open/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/access-gate/no-signal-first-open/d1440.webp"
+              alt="Session and access gate profile-read-failed d1440"
+          /></a>
+          <figcaption>d1440 (identical to another state)</figcaption>
+        </figure>
+      </div>
+      <h4 id="access-gate-bazaar-only-offline-open">
+        bazaar-only-offline-open <small>failure · bazaar:planned</small>
+      </h4>
+      <p>A day is held; reload with no signal opens Bazaar Mode alone.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/account/access-gate/bazaar-only-offline-open/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/access-gate/bazaar-only-offline-open/p390.webp"
+              alt="Session and access gate bazaar-only-offline-open p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/access-gate/bazaar-only-offline-open/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/access-gate/bazaar-only-offline-open/d1440.webp"
+              alt="Session and access gate bazaar-only-offline-open d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="access-gate-other-screen-refused-offline">
+        other-screen-refused-offline <small>failure · bazaar:planned</small>
+      </h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/account/access-gate/other-screen-refused-offline/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/access-gate/other-screen-refused-offline/p390.webp"
+              alt="Session and access gate other-screen-refused-offline p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/access-gate/bazaar-only-offline-open/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/access-gate/bazaar-only-offline-open/d1440.webp"
+              alt="Session and access gate other-screen-refused-offline d1440"
+          /></a>
+          <figcaption>d1440 (identical to another state)</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Helper role</h3>
+      <p>
+        <code>src/components/shell/app-frame.tsx</code> · found in code · <b>old ported screen</b>
+      </p>
+      <h4 id="role-helper-home">home <small>role · role:helper</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/account/role-helper/home/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/role-helper/home/p390.webp"
+              alt="Helper role home p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/role-helper/home/t768.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/role-helper/home/t768.webp"
+              alt="Helper role home t768"
+          /></a>
+          <figcaption>t768</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/role-helper/home/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/role-helper/home/d1440.webp"
+              alt="Helper role home d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="role-helper-orders-denied">orders-denied <small>role · role:helper</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/account/role-helper/orders-denied/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/role-helper/orders-denied/p390.webp"
+              alt="Helper role orders-denied p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/role-helper/orders-denied/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/role-helper/orders-denied/d1440.webp"
+              alt="Helper role orders-denied d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="role-helper-money-denied">money-denied <small>role · role:helper</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/account/role-helper/money-denied/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/role-helper/money-denied/p390.webp"
+              alt="Helper role money-denied p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/role-helper/money-denied/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/role-helper/money-denied/d1440.webp"
+              alt="Helper role money-denied d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="role-helper-sales-log">sales-log <small>role · role:helper</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/account/role-helper/sales-log/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/role-helper/sales-log/p390.webp"
+              alt="Helper role sales-log p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/role-helper/sales-log/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/role-helper/sales-log/d1440.webp"
+              alt="Helper role sales-log d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="role-helper-bazaar">bazaar <small>role · role:helper</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/account/role-helper/bazaar/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/role-helper/bazaar/p390.webp"
+              alt="Helper role bazaar p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/role-helper/bazaar/t768.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/role-helper/bazaar/t768.webp"
+              alt="Helper role bazaar t768"
+          /></a>
+          <figcaption>t768</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/role-helper/bazaar/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/role-helper/bazaar/d1440.webp"
+              alt="Helper role bazaar d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="role-helper-inventory">inventory <small>role · role:helper</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/account/role-helper/inventory/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/role-helper/inventory/p390.webp"
+              alt="Helper role inventory p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/role-helper/inventory/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/role-helper/inventory/d1440.webp"
+              alt="Helper role inventory d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="role-helper-settings-denied">settings-denied <small>role · role:helper</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/account/role-helper/settings-denied/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/role-helper/settings-denied/p390.webp"
+              alt="Helper role settings-denied p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/role-helper/settings-denied/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/role-helper/settings-denied/d1440.webp"
+              alt="Helper role settings-denied d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Support role</h3>
+      <p>
+        <code>src/components/shell/app-frame.tsx</code> · found in code · <b>old ported screen</b>
+      </p>
+      <h4 id="role-support-home">home <small>role · role:support</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/account/role-support/home/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/role-support/home/p390.webp"
+              alt="Support role home p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/role-support/home/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/role-support/home/d1440.webp"
+              alt="Support role home d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="role-support-orders">orders <small>role · role:support</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/account/role-support/orders/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/role-support/orders/p390.webp"
+              alt="Support role orders p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/role-support/orders/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/role-support/orders/d1440.webp"
+              alt="Support role orders d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="role-support-money">money <small>role · role:support</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/account/role-support/money/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/role-support/money/p390.webp"
+              alt="Support role money p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/role-support/money/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/role-support/money/d1440.webp"
+              alt="Support role money d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="role-support-settings">settings <small>role · role:support</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/account/role-support/settings/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/role-support/settings/p390.webp"
+              alt="Support role settings p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/role-support/settings/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/role-support/settings/d1440.webp"
+              alt="Support role settings d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="role-support-health">health <small>role · role:support</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/account/role-support/health/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/role-support/health/p390.webp"
+              alt="Support role health p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/account/role-support/health/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/account/role-support/health/d1440.webp"
+              alt="Support role health d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+    </section>
+  </body>
+</html>

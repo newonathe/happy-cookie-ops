@@ -1,0 +1,1086 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>money · ACTUAL app</title>
+    <style>
+      body {
+        font:
+          15px/1.5 system-ui,
+          sans-serif;
+        margin: 0 auto;
+        max-width: 1500px;
+        padding: 16px;
+        color: #222;
+        background: #fff;
+      }
+      .tag {
+        display: inline-block;
+        background: #222;
+        color: #fff;
+        padding: 2px 10px;
+        border-radius: 4px;
+        font-size: 13px;
+      }
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: flex-start;
+      }
+      figure {
+        margin: 0;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        padding: 6px;
+        max-width: 100%;
+      }
+      figure img {
+        display: block;
+        max-height: 420px;
+        max-width: 100%;
+        height: auto;
+      }
+      figcaption {
+        font-size: 12px;
+        color: #555;
+        padding-top: 4px;
+      }
+      section {
+        border-top: 2px solid #ddd;
+        margin-top: 24px;
+      }
+      small {
+        color: #666;
+        font-weight: 400;
+      }
+      .bad {
+        color: #b00020;
+      }
+      code {
+        font-size: 13px;
+      }
+    </style>
+  </head>
+  <body>
+    <p class="tag">ACTUAL application · fictional data · simulated server</p>
+    <p><a href="index.html">All sections</a></p>
+    <h1>money</h1>
+    <section>
+      <h3>Money</h3>
+      <p><code>src/components/live/money/money-live.tsx</code> · reference: money</p>
+      <h4 id="money-populated">populated <small>data · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/money/money/populated/p320.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/money/populated/p320.webp"
+              alt="Money populated p320"
+          /></a>
+          <figcaption>p320 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/money/money/populated/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/money/populated/p390.webp"
+              alt="Money populated p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/money/money/populated/t768.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/money/populated/t768.webp"
+              alt="Money populated t768"
+          /></a>
+          <figcaption>t768 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/money/money/populated/l1024.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/money/populated/l1024.webp"
+              alt="Money populated l1024"
+          /></a>
+          <figcaption>l1024 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/money/money/populated/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/money/populated/d1440.webp"
+              alt="Money populated d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/money/money/populated/w1920.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/money/populated/w1920.webp"
+              alt="Money populated w1920"
+          /></a>
+          <figcaption>w1920 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="money-empty">empty <small>data · data:empty</small></h4>
+      <p>Simulated server answers with no records.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/money/money/empty/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/money/empty/p390.webp"
+              alt="Money empty p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/money/money/empty/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/money/empty/d1440.webp"
+              alt="Money empty d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="money-long-text">long-text <small>data · data:long</small></h4>
+      <p>Long customer, product and item names.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/money/money/populated/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/money/populated/p390.webp"
+              alt="Money long-text p390"
+          /></a>
+          <figcaption>p390 (identical to another state) · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/money/money/populated/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/money/populated/d1440.webp"
+              alt="Money long-text d1440"
+          /></a>
+          <figcaption>d1440 (identical to another state) · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="money-large-values">large-values <small>data · data:large</small></h4>
+      <p>Prices and book amounts multiplied by 90.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/money/money/large-values/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/money/large-values/p390.webp"
+              alt="Money large-values p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/money/money/large-values/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/money/large-values/d1440.webp"
+              alt="Money large-values d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="money-loading">loading <small>failure · fail:get_books=never</small></h4>
+      <p>Reads never answer, so the loading treatment stays on screen.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/money/money/loading/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/money/loading/p390.webp"
+              alt="Money loading p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/money/money/loading/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/money/loading/d1440.webp"
+              alt="Money loading d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="money-read-failure">read-failure <small>failure · fail:get_books=down</small></h4>
+      <p>Reads answer with a connection error (08006).</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/money/money/loading/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/money/loading/p390.webp"
+              alt="Money read-failure p390"
+          /></a>
+          <figcaption>p390 (identical to another state)</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/money/money/loading/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/money/loading/d1440.webp"
+              alt="Money read-failure d1440"
+          /></a>
+          <figcaption>d1440 (identical to another state)</figcaption>
+        </figure>
+      </div>
+      <h4 id="money-malformed-answer">
+        malformed-answer <small>failure · fail:get_books=malformed</small>
+      </h4>
+      <p>Reads answer with a shape the parser refuses.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/money/money/loading/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/money/loading/p390.webp"
+              alt="Money malformed-answer p390"
+          /></a>
+          <figcaption>p390 (identical to another state)</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/money/money/loading/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/money/loading/d1440.webp"
+              alt="Money malformed-answer d1440"
+          /></a>
+          <figcaption>d1440 (identical to another state)</figcaption>
+        </figure>
+      </div>
+      <h4 id="money-offline-after-load">offline-after-load <small>failure · default</small></h4>
+      <p>Browser goes offline after a populated load.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/money/money/offline-after-load/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/money/offline-after-load/p390.webp"
+              alt="Money offline-after-load p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/money/money/offline-after-load/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/money/offline-after-load/d1440.webp"
+              alt="Money offline-after-load d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="money-focus-keyboard">focus-keyboard <small>interaction · default</small></h4>
+      <p>Five Tab presses from page start: what focus looks like.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/money/money/focus-keyboard/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/money/focus-keyboard/d1440.webp"
+              alt="Money focus-keyboard d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="money-last-7-days">last-7-days <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/money/money/last-7-days/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/money/last-7-days/p390.webp"
+              alt="Money last-7-days p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/money/money/last-7-days/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/money/last-7-days/d1440.webp"
+              alt="Money last-7-days d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="money-last-30-days">last-30-days <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/money/money/populated/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/money/populated/p390.webp"
+              alt="Money last-30-days p390"
+          /></a>
+          <figcaption>p390 (identical to another state) · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/money/money/populated/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/money/populated/d1440.webp"
+              alt="Money last-30-days d1440"
+          /></a>
+          <figcaption>d1440 (identical to another state) · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="money-income-only">income-only <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/money/money/income-only/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/money/income-only/p390.webp"
+              alt="Money income-only p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/money/money/income-only/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/money/income-only/d1440.webp"
+              alt="Money income-only d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="money-expenses-only">expenses-only <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/money/money/expenses-only/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/money/expenses-only/p390.webp"
+              alt="Money expenses-only p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/money/money/expenses-only/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/money/expenses-only/d1440.webp"
+              alt="Money expenses-only d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="money-category-opened">category-opened <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/money/money/category-opened/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/money/category-opened/p390.webp"
+              alt="Money category-opened p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/money/money/category-opened/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/money/category-opened/d1440.webp"
+              alt="Money category-opened d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="money-export-clicked">export-clicked <small>interaction · default</small></h4>
+      <p>The browser download itself is not inspected.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/money/money/export-clicked/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/money/export-clicked/d1440.webp"
+              alt="Money export-clicked d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="money-reduced-transparency">
+        reduced-transparency <small>accessibility · default</small>
+      </h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/money/money/reduced-transparency/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/money/reduced-transparency/p390.webp"
+              alt="Money reduced-transparency p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Record expense</h3>
+      <p>
+        <code>src/components/live/money/money-pages.tsx</code> · reference: money-entry,
+        money-review
+      </p>
+      <h4 id="expense-untouched">untouched <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/money/expense/untouched/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/expense/untouched/p390.webp"
+              alt="Record expense untouched p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/money/expense/untouched/t768.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/expense/untouched/t768.webp"
+              alt="Record expense untouched t768"
+          /></a>
+          <figcaption>t768</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/money/expense/untouched/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/expense/untouched/d1440.webp"
+              alt="Record expense untouched d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="expense-invalid">invalid <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/money/expense/invalid/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/expense/invalid/p390.webp"
+              alt="Record expense invalid p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/money/expense/invalid/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/expense/invalid/d1440.webp"
+              alt="Record expense invalid d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="expense-review">review <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/money/expense/review/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/expense/review/p390.webp"
+              alt="Record expense review p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/money/expense/review/t768.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/expense/review/t768.webp"
+              alt="Record expense review t768"
+          /></a>
+          <figcaption>t768</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/money/expense/review/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/expense/review/d1440.webp"
+              alt="Record expense review d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="expense-saved">saved <small>business · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/money/expense/saved/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/expense/saved/p390.webp"
+              alt="Record expense saved p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/money/expense/saved/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/expense/saved/d1440.webp"
+              alt="Record expense saved d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="expense-save-failed">save-failed <small>failure · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/money/expense/save-failed/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/expense/save-failed/p390.webp"
+              alt="Record expense save-failed p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/money/expense/save-failed/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/expense/save-failed/d1440.webp"
+              alt="Record expense save-failed d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Record owner draw</h3>
+      <p>
+        <code>src/components/live/money/money-pages.tsx</code> · reference: money-entry,
+        money-review
+      </p>
+      <h4 id="owner-draw-untouched">untouched <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/money/owner-draw/untouched/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/owner-draw/untouched/p390.webp"
+              alt="Record owner draw untouched p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/money/owner-draw/untouched/t768.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/owner-draw/untouched/t768.webp"
+              alt="Record owner draw untouched t768"
+          /></a>
+          <figcaption>t768</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/money/owner-draw/untouched/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/owner-draw/untouched/d1440.webp"
+              alt="Record owner draw untouched d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="owner-draw-review">review <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/money/owner-draw/review/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/owner-draw/review/p390.webp"
+              alt="Record owner draw review p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/money/owner-draw/review/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/owner-draw/review/d1440.webp"
+              alt="Record owner draw review d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Transaction</h3>
+      <p><code>src/components/live/money/money-pages.tsx</code> · reference: transaction</p>
+      <h4 id="transaction-income">income <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/money/transaction/income/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/transaction/income/p390.webp"
+              alt="Transaction income p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/money/transaction/income/t768.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/transaction/income/t768.webp"
+              alt="Transaction income t768"
+          /></a>
+          <figcaption>t768</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/money/transaction/income/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/transaction/income/d1440.webp"
+              alt="Transaction income d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="transaction-expense">expense <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/money/transaction/expense/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/transaction/expense/p390.webp"
+              alt="Transaction expense p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/money/transaction/expense/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/transaction/expense/d1440.webp"
+              alt="Transaction expense d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="transaction-owner-draw">owner-draw <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/money/transaction/owner-draw/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/transaction/owner-draw/p390.webp"
+              alt="Transaction owner-draw p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/money/transaction/owner-draw/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/transaction/owner-draw/d1440.webp"
+              alt="Transaction owner-draw d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="transaction-refund">refund <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/money/transaction/refund/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/transaction/refund/p390.webp"
+              alt="Transaction refund p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/money/transaction/refund/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/transaction/refund/d1440.webp"
+              alt="Transaction refund d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Money settings</h3>
+      <p><code>src/components/live/money/money-pages.tsx</code> · reference: money-settings</p>
+      <h4 id="money-settings-default">default <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/money/money-settings/default/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/money-settings/default/p390.webp"
+              alt="Money settings default p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/money/money-settings/default/t768.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/money-settings/default/t768.webp"
+              alt="Money settings default t768"
+          /></a>
+          <figcaption>t768 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/money/money-settings/default/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/money-settings/default/d1440.webp"
+              alt="Money settings default d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="money-settings-cost-of-flavour">
+        cost-of-flavour <small>interaction · default</small>
+      </h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/make/recipe/default/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/make/recipe/default/p390.webp"
+              alt="Money settings cost-of-flavour p390"
+          /></a>
+          <figcaption>p390 (identical to another state) · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/money/money-settings/cost-of-flavour/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/money-settings/cost-of-flavour/d1440.webp"
+              alt="Money settings cost-of-flavour d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Expense categories</h3>
+      <p><code>src/components/live/money/money-pages.tsx</code> · reference: money-categories</p>
+      <h4 id="money-categories-default">default <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/money/money-categories/default/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/money-categories/default/p390.webp"
+              alt="Expense categories default p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/money/money-categories/default/t768.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/money-categories/default/t768.webp"
+              alt="Expense categories default t768"
+          /></a>
+          <figcaption>t768</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/money/money-categories/default/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/money-categories/default/d1440.webp"
+              alt="Expense categories default d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Books &amp; costs</h3>
+      <p><code>src/components/live/books-form.tsx</code> · reference: book-rules</p>
+      <h4 id="book-rules-default">default <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/money/book-rules/default/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/book-rules/default/p390.webp"
+              alt="Books &amp; costs default p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/money/book-rules/default/t768.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/book-rules/default/t768.webp"
+              alt="Books &amp; costs default t768"
+          /></a>
+          <figcaption>t768 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/money/book-rules/default/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/book-rules/default/d1440.webp"
+              alt="Books &amp; costs default d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+      <h4 id="book-rules-correction-filled">
+        correction-filled <small>interaction · default</small>
+      </h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/money/book-rules/correction-filled/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/book-rules/correction-filled/p390.webp"
+              alt="Books &amp; costs correction-filled p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/money/book-rules/correction-filled/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/book-rules/correction-filled/d1440.webp"
+              alt="Books &amp; costs correction-filled d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Rules (from Money area)</h3>
+      <p><code>src/components/live/settings-pages.tsx</code> · found in code</p>
+      <h4 id="money-rules-default">default <small>interaction · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/money/money-rules/default/p390.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/money-rules/default/p390.webp"
+              alt="Rules (from Money area) default p390"
+          /></a>
+          <figcaption>p390 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/money/money-rules/default/t768.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/money-rules/default/t768.webp"
+              alt="Rules (from Money area) default t768"
+          /></a>
+          <figcaption>t768 · opens full page</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/money/money-rules/default/d1440.full.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/money-rules/default/d1440.webp"
+              alt="Rules (from Money area) default d1440"
+          /></a>
+          <figcaption>d1440 · opens full page</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section>
+      <h3>Sales</h3>
+      <p><code>src/components/live/money/sales-live.tsx</code> · found in code</p>
+      <h4 id="sales-log-populated">populated <small>data · default</small></h4>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/money/sales-log/populated/p320.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/sales-log/populated/p320.webp"
+              alt="Sales populated p320"
+          /></a>
+          <figcaption>p320</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/money/sales-log/populated/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/sales-log/populated/p390.webp"
+              alt="Sales populated p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/money/sales-log/populated/t768.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/sales-log/populated/t768.webp"
+              alt="Sales populated t768"
+          /></a>
+          <figcaption>t768</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/money/sales-log/populated/l1024.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/sales-log/populated/l1024.webp"
+              alt="Sales populated l1024"
+          /></a>
+          <figcaption>l1024</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/money/sales-log/populated/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/sales-log/populated/d1440.webp"
+              alt="Sales populated d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/money/sales-log/populated/w1920.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/sales-log/populated/w1920.webp"
+              alt="Sales populated w1920"
+          /></a>
+          <figcaption>w1920</figcaption>
+        </figure>
+      </div>
+      <h4 id="sales-log-empty">empty <small>data · data:empty</small></h4>
+      <p>Simulated server answers with no records.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/money/sales-log/empty/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/sales-log/empty/p390.webp"
+              alt="Sales empty p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/money/sales-log/empty/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/sales-log/empty/d1440.webp"
+              alt="Sales empty d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="sales-log-loading">loading <small>failure · fail:get_books=never</small></h4>
+      <p>Reads never answer, so the loading treatment stays on screen.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/money/sales-log/loading/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/sales-log/loading/p390.webp"
+              alt="Sales loading p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/money/sales-log/loading/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/sales-log/loading/d1440.webp"
+              alt="Sales loading d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="sales-log-read-failure">read-failure <small>failure · fail:get_books=down</small></h4>
+      <p>Reads answer with a connection error (08006).</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/money/sales-log/loading/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/sales-log/loading/p390.webp"
+              alt="Sales read-failure p390"
+          /></a>
+          <figcaption>p390 (identical to another state)</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/money/sales-log/loading/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/sales-log/loading/d1440.webp"
+              alt="Sales read-failure d1440"
+          /></a>
+          <figcaption>d1440 (identical to another state)</figcaption>
+        </figure>
+      </div>
+      <h4 id="sales-log-malformed-answer">
+        malformed-answer <small>failure · fail:get_books=malformed</small>
+      </h4>
+      <p>Reads answer with a shape the parser refuses.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/money/sales-log/loading/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/sales-log/loading/p390.webp"
+              alt="Sales malformed-answer p390"
+          /></a>
+          <figcaption>p390 (identical to another state)</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/money/sales-log/loading/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/sales-log/loading/d1440.webp"
+              alt="Sales malformed-answer d1440"
+          /></a>
+          <figcaption>d1440 (identical to another state)</figcaption>
+        </figure>
+      </div>
+      <h4 id="sales-log-offline-after-load">offline-after-load <small>failure · default</small></h4>
+      <p>Browser goes offline after a populated load.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/money/sales-log/offline-after-load/p390.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/sales-log/offline-after-load/p390.webp"
+              alt="Sales offline-after-load p390"
+          /></a>
+          <figcaption>p390</figcaption>
+        </figure>
+        <figure>
+          <a href="../screenshots/money/sales-log/offline-after-load/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/sales-log/offline-after-load/d1440.webp"
+              alt="Sales offline-after-load d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+      <h4 id="sales-log-focus-keyboard">focus-keyboard <small>interaction · default</small></h4>
+      <p>Five Tab presses from page start: what focus looks like.</p>
+      <div class="row">
+        <figure>
+          <a href="../screenshots/money/sales-log/focus-keyboard/d1440.webp"
+            ><img
+              loading="lazy"
+              src="../screenshots/money/sales-log/focus-keyboard/d1440.webp"
+              alt="Sales focus-keyboard d1440"
+          /></a>
+          <figcaption>d1440</figcaption>
+        </figure>
+      </div>
+    </section>
+  </body>
+</html>
