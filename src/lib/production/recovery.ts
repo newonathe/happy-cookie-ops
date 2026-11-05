@@ -80,7 +80,8 @@ const line = z
     name: text,
     qty: z.number().finite().nonnegative(),
     unit: z.string().max(64),
-    kind: z.enum(['ingredient', 'packaging']).nullable()
+    kind: z.enum(['ingredient', 'packaging']).nullable(),
+    itemId: z.string().min(1).max(128).nullable().optional()
   })
   .strict();
 const recipe = z

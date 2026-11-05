@@ -41,6 +41,20 @@ const fields = (over: Partial<RecipeFields> = {}): RecipeFields => ({
 });
 
 describe('parseRecipes', () => {
+  it('preserves explicit stock identity, including a missing link, without guessing by name', () => {
+    const row = parseRecipes([
+      wire({
+        lines: [
+          { name: 'Flour', qty: 300, unit: 'g', kind: 'ingredient', item_id: 'flour' },
+          { name: 'Egg', qty: 1, unit: 'pcs', kind: 'ingredient', item_id: null }
+        ]
+      })
+    ])![0]!;
+    expect(row.lines.map((line) => line.itemId)).toEqual(['flour', null]);
+    expect(
+      parseRecipes([wire({ lines: [{ name: 'Flour', qty: 300, unit: 'g', item_id: 7 }] })])
+    ).toBeNull();
+  });
   it('carries line kinds into editable rows, saved bases and version snapshots', () => {
     const rows = parseRecipes([
       wire({

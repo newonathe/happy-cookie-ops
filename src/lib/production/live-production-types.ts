@@ -18,6 +18,10 @@ export interface LiveDoughPreparation {
   periodText: string;
   version: number | null;
   balls: number;
+  actualBalls?: string;
+  validActual?: boolean;
+  recipeAmount?: 0.5 | 1 | null;
+  setActualBalls?: (value: string) => void;
   reviewing: boolean;
   saving: boolean;
   uncertain: boolean;
@@ -103,6 +107,7 @@ export interface LiveProductionReceipt {
   name: string;
   kind: 'batch' | 'dough';
   quantity: number;
+  recipeAmount?: 0.5 | 1;
   rejects: number;
   dropNo: number;
   version: number;
