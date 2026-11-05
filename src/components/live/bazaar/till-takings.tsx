@@ -214,8 +214,11 @@ function SaleRow({
           {open ? '⌄' : '›'}
         </span>
       </button>
-      {sale.bad ? (
-        <div className="flex justify-end px-4 pb-3">
+      {sale.bad || row?.problemText ? (
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 pb-3">
+          <p role="status" className="min-w-0 flex-1 text-caption text-danger">
+            {row?.problemText}
+          </p>
           <Button variant="danger" size="sm" onClick={sale.retry}>
             Send again
           </Button>

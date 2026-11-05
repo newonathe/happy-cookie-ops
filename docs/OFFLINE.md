@@ -48,6 +48,7 @@ till button ─► engine.recordSale()            in memory, instantly
 ## Retries
 
 - Coming back online: the `online` listener in `OfflineBridge` flushes immediately.
+- Still connected but the send failed (weak signal, a server hiccup): the browser fires no `online` event, so `startQueueRetry` tries every 30 seconds and when the app comes back to the front, only while it is visible and online (live only). A row the server refused is left out: the same body would be refused again. It stays on the phone with the reason on its row (`sale-problem.ts`).
 - Tab closed: `requestBackgroundSync()` registers the `hc-sale-sync` tag and `public/sw.js`
   flushes from the service worker, then messages any open client.
 - Neither available (older iOS): the next open of the app flushes. The queue is patient.
