@@ -46,8 +46,8 @@ export function BazaarLive({ v }: { v: OpsVals }) {
         <BazaarModeScreen v={v} />
       </>
     );
-    // The consolidated till only for a started day that is selling, unless this phone chose the classic one. Everything
-    // else (setting up, closed, an event from before the days existed) keeps the ported screen, as does a crash.
+    // The consolidated till for any event that is selling, unless this phone chose the classic one. Everything else
+    // (setting up, closed) keeps the ported screen, as does a crash.
     const till = v.liveTill;
     if (!till || !v.event.stage2 || till.classic) return ported;
     return (
