@@ -61,8 +61,8 @@ Object.assign(historyAnswer.summary.days[0], {state:'open',closed_at:null,count:
 Object.assign(historyAnswer,{finalised_at:null,final_hash:null,final_summary:null});
 const client = { rpc: async (name: string, args?: Record<string, unknown>) => {
   (window as unknown as {qaCalls:string[]}).qaCalls.push(name);
-  if(historyPreview && name==='get_scheduled_events') return {data:[{...historyAnswer.summary.booking,started:true,updated_at:'2026-10-20T02:00:00Z'}],error:null};
-  if(historyPreview && name==='get_bazaar') return {data:historyAnswer,error:null};
+  if(name==='get_scheduled_events') return {data:[{...historyAnswer.summary.booking,started:true,updated_at:'2026-10-20T02:00:00Z'}],error:null};
+  if(name==='get_bazaar') return {data:historyAnswer,error:null};
   if(name==='get_shop_status') return {data:{open_dow:1,open_h:9,open_m:0,close_dow:4,close_h:21,close_m:0,extend_h:0,override:null},error:null};
   if(name==='get_order_rules') return {data:[shopRules],error:null};
   if(name==='get_order_extras') return {data:shopExtras,error:null};
@@ -114,7 +114,7 @@ function App() {
   const ref = useRef<OpsRuntime | null>(null);
   const [navigationReady,setNavigationReady] = useState(false);
   useEffect(() => { const runtime = ref.current!; runtime.setRole('owner');
-    void runtime.setProductionIdentity({userId:'11111111-1111-4111-8111-111111111111',business:'https://preview.happy-cookie.test'}).then(()=>runtime.loadShopStatus(client as never)).then(() => runtime.loadFlavours(client as never)).then(() => runtime.loadStockCatalogue(client as never)).then(() => runtime.loadRecipes(client as never)).then(() => runtime.loadOrders(client as never)).then(() => runtime.loadProduction(client as never)).then(() => runtime.loadBooks(client as never)).then(() => historyPreview ? runtime.loadScheduledEvents(client as never).then(()=>{runtime.go('bazaar');setNavigationReady(true);}) : runtime.go('inventory'));
+    void runtime.setProductionIdentity({userId:'11111111-1111-4111-8111-111111111111',business:'https://preview.happy-cookie.test'}).then(()=>runtime.loadShopStatus(client as never)).then(() => runtime.loadFlavours(client as never)).then(() => runtime.loadStockCatalogue(client as never)).then(() => runtime.loadRecipes(client as never)).then(() => runtime.loadOrders(client as never)).then(() => runtime.loadProduction(client as never)).then(() => runtime.loadBooks(client as never)).then(() => runtime.loadScheduledEvents(client as never)).then(() => {runtime.go(historyPreview ? 'bazaar' : 'inventory');setNavigationReady(true);});
   }, []);
   return <OpsRuntime ref={ref}><Frame navigationReady={navigationReady} /></OpsRuntime>;
 }
