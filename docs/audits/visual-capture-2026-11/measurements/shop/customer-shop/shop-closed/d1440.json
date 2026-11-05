@@ -1,0 +1,173 @@
+{
+  "id": "shop/customer-shop/shop-closed@d1440",
+  "viewport": {
+    "w": 1440,
+    "h": 900
+  },
+  "engine": "chromium",
+  "audit": {
+    "viewport": {
+      "w": 1440,
+      "h": 900,
+      "dpr": 1
+    },
+    "overflowX": 0,
+    "docHeight": 900,
+    "offenders": [],
+    "clipped": [],
+    "smallTargetCount": 2,
+    "smallTargets": [
+      {
+        "name": "Already ordered? Find my order",
+        "el": "button",
+        "w": 166.2,
+        "h": 38
+      },
+      {
+        "name": "Join the waiting list",
+        "el": "button",
+        "w": 101.5,
+        "h": 38
+      }
+    ],
+    "covered": [],
+    "sticky": [],
+    "images": [
+      {
+        "alt": "The Happy Cookie",
+        "broken": false,
+        "scale": 0.23,
+        "x": 408,
+        "y": 14,
+        "w": 111.1,
+        "h": 56
+      }
+    ],
+    "brokenImages": 0,
+    "lowContrast": [
+      {
+        "name": "Contains milk, eggs, wheat",
+        "contrast": 3.24,
+        "fontSize": "10px",
+        "color": "rgb(169, 138, 95)"
+      },
+      {
+        "name": "Contains milk, eggs, wheat",
+        "contrast": 3.24,
+        "fontSize": "10px",
+        "color": "rgb(169, 138, 95)"
+      },
+      {
+        "name": "BEST SELLER",
+        "contrast": 3.24,
+        "fontSize": "10px",
+        "color": "rgb(169, 138, 95)"
+      },
+      {
+        "name": "Contains milk, eggs, wheat",
+        "contrast": 3.24,
+        "fontSize": "10px",
+        "color": "rgb(169, 138, 95)"
+      },
+      {
+        "name": "BEST SELLER",
+        "contrast": 3.24,
+        "fontSize": "10px",
+        "color": "rgb(169, 138, 95)"
+      },
+      {
+        "name": "Contains milk, eggs, wheat",
+        "contrast": 3.24,
+        "fontSize": "10px",
+        "color": "rgb(169, 138, 95)"
+      },
+      {
+        "name": "THIS MONTH ONLY",
+        "contrast": 3.24,
+        "fontSize": "10px",
+        "color": "rgb(169, 138, 95)"
+      },
+      {
+        "name": "Contains milk, eggs, wheat",
+        "contrast": 3.24,
+        "fontSize": "10px",
+        "color": "rgb(169, 138, 95)"
+      },
+      {
+        "name": "THIS MONTH ONLY",
+        "contrast": 3.24,
+        "fontSize": "10px",
+        "color": "rgb(169, 138, 95)"
+      },
+      {
+        "name": "Contains milk, eggs, wheat",
+        "contrast": 3.24,
+        "fontSize": "10px",
+        "color": "rgb(169, 138, 95)"
+      },
+      {
+        "name": "THIS MONTH ONLY",
+        "contrast": 3.24,
+        "fontSize": "10px",
+        "color": "rgb(169, 138, 95)"
+      },
+      {
+        "name": "Contains milk, eggs, wheat",
+        "contrast": 3.24,
+        "fontSize": "10px",
+        "color": "rgb(169, 138, 95)"
+      }
+    ],
+    "lowContrastCount": 15,
+    "focused": null,
+    "heading": "This week's drop",
+    "dialog": null
+  },
+  "keyElements": [
+    {
+      "kind": "h1",
+      "name": "This week's drop",
+      "x": 414,
+      "y": 76,
+      "w": 612,
+      "h": 30.8,
+      "fontSize": "28px",
+      "fontWeight": "700",
+      "lineHeight": "30.8px",
+      "fontFamily": "QAOnest",
+      "padding": "0px",
+      "gap": "normal",
+      "radius": "0px",
+      "color": "rgb(58, 31, 20)",
+      "background": "rgba(0, 0, 0, 0)",
+      "contrast": 14.03,
+      "overflow": "visible",
+      "position": "static",
+      "outline": "none",
+      "boxShadow": "none"
+    },
+    {
+      "kind": "image",
+      "name": "The Happy Cookie",
+      "x": 408,
+      "y": 14,
+      "w": 111.1,
+      "h": 56,
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "lineHeight": "24px",
+      "fontFamily": "QAOnest",
+      "padding": "0px",
+      "gap": "normal",
+      "radius": "0px",
+      "color": "rgb(58, 31, 20)",
+      "background": "rgba(0, 0, 0, 0)",
+      "contrast": 14.03,
+      "overflow": "clip",
+      "position": "static",
+      "outline": "none",
+      "boxShadow": "none"
+    }
+  ],
+  "inputs": []
+}

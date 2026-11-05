@@ -1,0 +1,60 @@
+{
+  "id": "account/role-support/home@p390",
+  "viewport": {
+    "w": 390,
+    "h": 844
+  },
+  "engine": "chromium",
+  "audit": {
+    "viewport": {
+      "w": 390,
+      "h": 844,
+      "dpr": 1
+    },
+    "overflowX": 0,
+    "docHeight": 844,
+    "offenders": [],
+    "clipped": [],
+    "smallTargetCount": 2,
+    "smallTargets": [
+      {
+        "name": "Notifications",
+        "el": "button",
+        "w": 42,
+        "h": 42
+      },
+      {
+        "name": "Sign out",
+        "el": "button",
+        "w": 73.3,
+        "h": 32
+      }
+    ],
+    "covered": [
+      {
+        "name": "Quick add",
+        "by": "Technical support access. System health "
+      }
+    ],
+    "sticky": [
+      {
+        "el": "button",
+        "pos": "fixed",
+        "name": "Sign out",
+        "x": 12,
+        "y": 728,
+        "w": 73.3,
+        "h": 32
+      }
+    ],
+    "images": [],
+    "brokenImages": 0,
+    "lowContrast": [],
+    "lowContrastCount": 0,
+    "focused": null,
+    "heading": null,
+    "dialog": null
+  },
+  "keyElements": [],
+  "inputs": []
+}

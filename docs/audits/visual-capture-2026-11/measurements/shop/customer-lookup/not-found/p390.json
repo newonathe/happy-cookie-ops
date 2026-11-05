@@ -1,0 +1,139 @@
+{
+  "id": "shop/customer-lookup/not-found@p390",
+  "viewport": {
+    "w": 390,
+    "h": 844
+  },
+  "engine": "chromium",
+  "audit": {
+    "viewport": {
+      "w": 390,
+      "h": 844,
+      "dpr": 1
+    },
+    "overflowX": 0,
+    "docHeight": 844,
+    "offenders": [],
+    "clipped": [],
+    "smallTargetCount": 1,
+    "smallTargets": [
+      {
+        "name": "Back",
+        "el": "button",
+        "w": 42,
+        "h": 42
+      }
+    ],
+    "covered": [],
+    "sticky": [],
+    "images": [],
+    "brokenImages": 0,
+    "lowContrast": [],
+    "lowContrastCount": 0,
+    "focused": {
+      "name": "Find it",
+      "fontSize": "14px",
+      "fontWeight": "600",
+      "lineHeight": "21px",
+      "fontFamily": "QAOnest",
+      "padding": "0px",
+      "gap": "normal",
+      "radius": "12px",
+      "color": "rgb(255, 255, 255)",
+      "background": "rgb(194, 74, 21)",
+      "contrast": 4.9,
+      "overflow": "visible",
+      "position": "static",
+      "outline": "none",
+      "boxShadow": "none",
+      "x": 14,
+      "y": 340.1,
+      "w": 362,
+      "h": 48
+    },
+    "heading": "Find my order",
+    "dialog": null
+  },
+  "keyElements": [
+    {
+      "kind": "h1",
+      "name": "Find my order",
+      "x": 14,
+      "y": 76,
+      "w": 362,
+      "h": 29.1,
+      "fontSize": "26px",
+      "fontWeight": "700",
+      "lineHeight": "29.12px",
+      "fontFamily": "QAOnest",
+      "padding": "0px",
+      "gap": "normal",
+      "radius": "0px",
+      "color": "rgb(58, 31, 20)",
+      "background": "rgba(0, 0, 0, 0)",
+      "contrast": 14.03,
+      "overflow": "visible",
+      "position": "static",
+      "outline": "none",
+      "boxShadow": "none"
+    },
+    {
+      "kind": "input",
+      "name": "Sample text",
+      "x": 14,
+      "y": 197.1,
+      "w": 362,
+      "h": 48,
+      "fontSize": "14px",
+      "fontWeight": "600",
+      "lineHeight": "21px",
+      "fontFamily": "QAOnest",
+      "padding": "0px 13px",
+      "gap": "normal",
+      "radius": "12px",
+      "color": "rgb(58, 31, 20)",
+      "background": "rgb(255, 255, 255)",
+      "contrast": 15.15,
+      "overflow": "clip",
+      "position": "static",
+      "outline": "none",
+      "boxShadow": "none"
+    },
+    {
+      "kind": "input",
+      "name": "09170000000",
+      "x": 14,
+      "y": 280.1,
+      "w": 362,
+      "h": 48,
+      "fontSize": "14px",
+      "fontWeight": "600",
+      "lineHeight": "21px",
+      "fontFamily": "QAOnest",
+      "padding": "0px 13px",
+      "gap": "normal",
+      "radius": "12px",
+      "color": "rgb(58, 31, 20)",
+      "background": "rgb(255, 255, 255)",
+      "contrast": 15.15,
+      "overflow": "clip",
+      "position": "static",
+      "outline": "none",
+      "boxShadow": "none"
+    }
+  ],
+  "inputs": [
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "label": "Order number",
+      "value": "Sample text"
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "label": "Mobile number",
+      "value": "09170000000"
+    }
+  ]
+}
