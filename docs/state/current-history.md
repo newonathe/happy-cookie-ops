@@ -2493,3 +2493,20 @@ Latest: group entry/recipe writer pass176files/2886tests+2TODOs,28-page build,ei
 Next: finish every page in [coverage](../design/reference-v4/coverage.md), by its build rules; keep review holds. B1 plan/review addresses, stage
 wording and inactive held events remain. Recipe reads keep line kind; the writer is unresolved.
 Preserve selling values, permissions and required independent review; no quota/provider bypass.
+
+## Archived Cloud baseline snapshot — 6 November 2026
+
+The complete supplied snapshot remains in Git at
+[`93135433fd88def7cbc5a05c0d22de3b17cfe764:docs/state/current.md`](https://github.com/newonathe/happy-cookie-ops/blob/93135433fd88def7cbc5a05c0d22de3b17cfe764/docs/state/current.md).
+It reported an incomplete application, approved recipe-amount/actual-ball separation and
+dough-only baking, unanswered physical dough correction, protected paths and pending
+SQL/API/connected/device/owner acceptance. Current Git and current.md supersede its status.
+
+Cloud corrected the older checkout from4c1f72e to9313543, preserved the old head and all
+working edits, and continued independent implementation without merging or hosted writes.
+Bake protocol/runtime/UI, production security updates, pure handoff, scoped planned notes
+and production-read fencing are now accepted; see current.md for exact SHAs and tests.
+Earlier worker/timing failures were retained and superseded by frozen one-worker gates;
+no assertion or timeout was weakened. SQL71/72/73 later passed two actual local CLI resets,
+including roles, costs, concurrency/replay and unchanged historical role/mutation checks.
+These local results do not satisfy hosted, backup custody/restore, device or owner gates.

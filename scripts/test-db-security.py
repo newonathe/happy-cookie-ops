@@ -884,6 +884,28 @@ OPERATIONS_MUTATIONS = {
 }
 
 
+HISTORICAL_PRODUCTION_SUITES = frozenset({'production.sql', 'item-costs.sql', 'batch-correction.sql', 'packaging.sql'})
+
+
+def historical_production_sql(sql, filename):
+    """Preserve historical assertions; transaction rollback restores the current replay-only writer."""
+    if filename not in HISTORICAL_PRODUCTION_SUITES:
+        return sql
+    source = ROOT / 'supabase/migrations/20260101006700_bazaar_days.sql'
+    pins = json.loads((ROOT / 'tests/fixtures/mp08g-source-pins.json').read_text())['migrations']
+    if hashlib.sha256(source.read_bytes()).hexdigest() != pins[source.name]:
+        h.fail('historical production source differs from its reviewed pin')
+    text = source.read_text(encoding='utf-8')
+    start = text.index('create or replace function public.record_production(')
+    block = text[start:text.index('\n$$;', start) + len('\n$$;')]
+    rollbacks = list(re.finditer(r'(?m)^rollback;[ \t]*$', sql))
+    if (len(re.findall(r'(?m)^begin;[ \t]*$', sql)) != 1 or len(rollbacks) != 1
+            or sql[rollbacks[0].end():].strip() or re.search(r'(?mi)^[ \t]*commit[ \t]*;', sql)):
+        h.fail('historical production compatibility requires one explicit rolled-back transaction')
+    # Applied after mutant construction so the historical definition precedes, never masks, each mutant.
+    return sql.replace('begin;', 'begin;\n' + block + '\n', 1)
+
+
 def order_mutant(name):
     """The migration's one function, changed in exactly one place, as SQL to run inside the suite."""
     function, kind, argument, _ = (ORDER_MUTATIONS | LOOKUP_MUTATIONS | STAFF_MUTATIONS | SHOP_MUTATIONS | EXTRAS_MUTATIONS | SCHEDULED_MUTATIONS | STOCK_MUTATIONS | RECIPE_MUTATIONS | LEDGER_MUTATIONS | PRODUCTION_MUTATIONS | BOOKS_MUTATIONS | OPERATIONS_MUTATIONS | IDENTITY_RULES | LINK_MUTATIONS | COST_MUTATIONS | BATCH_CORRECTION_MUTATIONS | PACKAGING_MUTATIONS | COST_CUTOVER_MUTATIONS | IMPORT_MUTATIONS | MOVEMENT_MUTATIONS | BAZAAR_DAY_MUTATIONS)[name]
@@ -1278,7 +1300,8 @@ def main():
             # Every call opens a fresh connection, independent of the test transaction.
             if h.psql(db_id, workdir, EMPTY_FIXTURES).strip() != 't':
                 h.fail('security fixture tables are not empty after rollback or before tests')
-        def run_suite(sql, auxiliary=False):
+        def run_suite(sql, auxiliary=False, filename=None):
+            sql = historical_production_sql(sql, filename)
             if not auxiliary:
                 return h.psql(db_id, workdir, sql)
             state_sql = "select json_build_object('value',last_value,'called',is_called) from public.audit_log_id_seq;"
@@ -1331,6 +1354,14 @@ def main():
             h.fail('populated profile upgrade proof missing')
         assert_empty()
         report['upgrade_runs'] += 1
+        def current_production_contracts():
+            for name, marker in [('dough-preparation.sql', 'DOUGH|passed'), ('dough-only-baking.sql', 'BAKE|passed'),
+                                 ('legacy-production-retirement.sql', 'LEGACY|passed')]:
+                output = h.psql(db_id, workdir, (ROOT / 'tests/integration/security' / name).read_text())
+                if output.splitlines().count(marker) != 1:
+                    h.fail('current production contract did not complete: ' + name)
+                report['current_production_contract_runs'] = report.get('current_production_contract_runs', 0) + 1
+        current_production_contracts()
         results = []
         for filename, signatures, forbidden, expected in SUITES:
             raw_sql = (ROOT / 'tests/integration/security' / filename).read_text(encoding='utf-8')
@@ -1531,7 +1562,7 @@ def main():
                 if filename == 'erasure-authority.sql':
                     expected_error = forbidden
                 try:
-                    run_suite(broken, filename == 'auxiliary-authority.sql')
+                    run_suite(broken, filename == 'auxiliary-authority.sql', filename)
                 except RuntimeError as error:
                     if expected_error not in str(error):
                         raise
@@ -1541,14 +1572,19 @@ def main():
                 else:
                     h.fail('role suite failed to detect a deliberately restored unsafe grant: ' + filename + ' / ' + signature)
                 assert_empty()
-            output = run_suite(sql, filename == 'auxiliary-authority.sql')
+            output = run_suite(sql, filename == 'auxiliary-authority.sql', filename)
             rows = [line for line in output.splitlines() if line.startswith('SEC_RESULT|')]
             if len(rows) != expected or len(set(rows)) != expected:
                 h.fail(filename + ' did not return its complete role matrix')
             results.extend(rows)
+            if filename in HISTORICAL_PRODUCTION_SUITES:
+                query = (ROOT / 'tests/integration/db/schema-inventory.sql').read_text()
+                verify_functions(json.loads(h.psql(db_id, workdir, query))['functions'])
+                report['historical_production_runs'] = report.get('historical_production_runs', 0) + 1
             assert_empty()
         if len(set(results)) != 3378:
             h.fail('combined role matrix has missing or duplicate cases: %d rows, %d unique (duplicates: %s)' % (len(results), len(set(results)), sorted({r for r in results if results.count(r) > 1})[:5]))
+        current_production_contracts()
         assert_functions()
         assert_catalog_wide()
         h.catalog(db_id, workdir, h.sql_for(h.expected_versions()))
@@ -1562,7 +1598,8 @@ def main():
         if (code == 0 and len(report["runs"]) == 2 and report["runs"][0] == report["runs"][1]
                 and len(report['regressions_detected']) == 1578 and report['sequence_restorations'] == 10
                 and report['upgrade_runs'] == 2 and report['pair_guard_runs'] == 2 and report['function_guard_runs'] == 4
-                and report['catalog_guard_runs'] == 4 and report['catalog_guard_red_runs'] == 4):
+                and report['catalog_guard_runs'] == 4 and report['catalog_guard_red_runs'] == 4
+                and report.get('current_production_contract_runs') == 12 and report.get('historical_production_runs') == 8):
             report.update(status="passed", cases_per_reset=3378, resets=2, matrix_equal=True, rollback_verified=True,
                           sql_sha256={name: hashlib.sha256((ROOT / 'tests/integration/security' / name).read_bytes()).hexdigest() for name, _, _, _ in SUITES},
                           harness_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
