@@ -99,15 +99,15 @@ async function mount(identity?: ProductionRecoveryScope) {
     r.go('bake');
   });
   const scope = await bindProductionOwner(r, identity);
+  const client = { rpc } as never;
   await act(async () => {
-    const client = { rpc } as never;
     await r.loadFlavours(client);
     await r.loadStockCatalogue(client);
     await r.loadRecipes(client);
     await r.loadOrders(client);
     await r.loadProduction(client);
   });
-  return { r, requests, replies, scope, durableAtSend, unmount: view.unmount };
+  return { r, requests, replies, scope, client, durableAtSend, unmount: view.unmount };
 }
 const rows = (r: OpsRuntime) => r.renderVals().liveProduction?.inProgress ?? [];
 function begin(r: OpsRuntime, pid: string, qty: string) {
@@ -361,6 +361,11 @@ describe('multiple production work items in the actual runtime', () => {
     await waitFor(() => expect(first.requests).toHaveLength(1));
     const other = { ...first.scope, userId: crypto.randomUUID() };
     await bindProductionOwner(first.r, other);
+    await act(async () => {
+      await first.r.loadStockCatalogue(first.client);
+      await first.r.loadRecipes(first.client);
+      await first.r.loadProduction(first.client);
+    });
     expect(rows(first.r)).toHaveLength(0);
     begin(first.r, B, '12');
     const held = first.r.state.batch;
@@ -368,11 +373,21 @@ describe('multiple production work items in the actual runtime', () => {
     expect(first.r.state.batch).toBe(held);
     expect(first.r.renderVals().liveProduction?.completed ?? []).toHaveLength(0);
     await bindProductionOwner(first.r, first.scope);
+    await act(async () => {
+      await first.r.loadStockCatalogue(first.client);
+      await first.r.loadRecipes(first.client);
+      await first.r.loadProduction(first.client);
+    });
     act(() => first.r.go('bake'));
     expect(rows(first.r)).toHaveLength(0);
     expect(first.r.renderVals().liveProduction?.completed?.[0]).toMatchObject({ quantity: 24 });
     expect(first.requests).toHaveLength(1);
     await bindProductionOwner(first.r, other);
+    await act(async () => {
+      await first.r.loadStockCatalogue(first.client);
+      await first.r.loadRecipes(first.client);
+      await first.r.loadProduction(first.client);
+    });
     act(() => first.r.go('bake'));
     expect(rows(first.r)[0]).toMatchObject({ productId: B, quantityText: '12 planned' });
   });
