@@ -1,0 +1,262 @@
+[
+  {
+    "width": 320,
+    "tz": "America/Los_Angeles",
+    "firstList": [
+      {
+        "id": "HC-1105",
+        "pickup": "Wed, Nov 11 · Campus pickup"
+      },
+      {
+        "id": "HC-1104",
+        "pickup": "Pickup date not saved"
+      },
+      {
+        "id": "HC-1103",
+        "pickup": "Pickup date not saved"
+      },
+      {
+        "id": "HC-1102",
+        "pickup": "Sat, Nov 14 · 2:30 PM"
+      },
+      {
+        "id": "HC-1101",
+        "pickup": "Wed, Nov 11 · 10:00 AM"
+      }
+    ],
+    "firstDetail": {
+      "HC-1101": "Wed, Nov 11 · 10:00 AM",
+      "HC-1102": "Sat, Nov 14 · 2:30 PM",
+      "HC-1103": "Pickup date not saved. Ask the customer which day they will collect before you plan the bake.",
+      "HC-1104": "Pickup date not saved. Ask the customer which day they will collect before you plan the bake.",
+      "HC-1105": "Wed, Nov 11 · Campus pickup"
+    },
+    "reloadList": [
+      {
+        "id": "HC-1105",
+        "pickup": "Wed, Nov 11 · Campus pickup"
+      },
+      {
+        "id": "HC-1104",
+        "pickup": "Pickup date not saved"
+      },
+      {
+        "id": "HC-1103",
+        "pickup": "Pickup date not saved"
+      },
+      {
+        "id": "HC-1102",
+        "pickup": "Sat, Nov 14 · 2:30 PM"
+      },
+      {
+        "id": "HC-1101",
+        "pickup": "Wed, Nov 11 · 10:00 AM"
+      }
+    ],
+    "reloadDetail": {
+      "HC-1101": "Wed, Nov 11 · 10:00 AM",
+      "HC-1102": "Sat, Nov 14 · 2:30 PM",
+      "HC-1103": "Pickup date not saved. Ask the customer which day they will collect before you plan the bake.",
+      "HC-1104": "Pickup date not saved. Ask the customer which day they will collect before you plan the bake.",
+      "HC-1105": "Wed, Nov 11 · Campus pickup"
+    },
+    "overflow": false,
+    "writes": [],
+    "errors": []
+  },
+  {
+    "width": 390,
+    "tz": "America/Los_Angeles",
+    "firstList": [
+      {
+        "id": "HC-1105",
+        "pickup": "Wed, Nov 11 · Campus pickup"
+      },
+      {
+        "id": "HC-1104",
+        "pickup": "Pickup date not saved"
+      },
+      {
+        "id": "HC-1103",
+        "pickup": "Pickup date not saved"
+      },
+      {
+        "id": "HC-1102",
+        "pickup": "Sat, Nov 14 · 2:30 PM"
+      },
+      {
+        "id": "HC-1101",
+        "pickup": "Wed, Nov 11 · 10:00 AM"
+      }
+    ],
+    "firstDetail": {
+      "HC-1101": "Wed, Nov 11 · 10:00 AM",
+      "HC-1102": "Sat, Nov 14 · 2:30 PM",
+      "HC-1103": "Pickup date not saved. Ask the customer which day they will collect before you plan the bake.",
+      "HC-1104": "Pickup date not saved. Ask the customer which day they will collect before you plan the bake.",
+      "HC-1105": "Wed, Nov 11 · Campus pickup"
+    },
+    "reloadList": [
+      {
+        "id": "HC-1105",
+        "pickup": "Wed, Nov 11 · Campus pickup"
+      },
+      {
+        "id": "HC-1104",
+        "pickup": "Pickup date not saved"
+      },
+      {
+        "id": "HC-1103",
+        "pickup": "Pickup date not saved"
+      },
+      {
+        "id": "HC-1102",
+        "pickup": "Sat, Nov 14 · 2:30 PM"
+      },
+      {
+        "id": "HC-1101",
+        "pickup": "Wed, Nov 11 · 10:00 AM"
+      }
+    ],
+    "reloadDetail": {
+      "HC-1101": "Wed, Nov 11 · 10:00 AM",
+      "HC-1102": "Sat, Nov 14 · 2:30 PM",
+      "HC-1103": "Pickup date not saved. Ask the customer which day they will collect before you plan the bake.",
+      "HC-1104": "Pickup date not saved. Ask the customer which day they will collect before you plan the bake.",
+      "HC-1105": "Wed, Nov 11 · Campus pickup"
+    },
+    "overflow": false,
+    "writes": [],
+    "errors": []
+  },
+  {
+    "width": 768,
+    "tz": "America/Los_Angeles",
+    "firstList": [
+      {
+        "id": "HC-1105",
+        "pickup": "Wed, Nov 11 · Campus pickup"
+      },
+      {
+        "id": "HC-1104",
+        "pickup": "Pickup date not saved"
+      },
+      {
+        "id": "HC-1103",
+        "pickup": "Pickup date not saved"
+      },
+      {
+        "id": "HC-1102",
+        "pickup": "Sat, Nov 14 · 2:30 PM"
+      },
+      {
+        "id": "HC-1101",
+        "pickup": "Wed, Nov 11 · 10:00 AM"
+      }
+    ],
+    "firstDetail": {
+      "HC-1101": "Wed, Nov 11 · 10:00 AM",
+      "HC-1102": "Sat, Nov 14 · 2:30 PM",
+      "HC-1103": "Pickup date not saved. Ask the customer which day they will collect before you plan the bake.",
+      "HC-1104": "Pickup date not saved. Ask the customer which day they will collect before you plan the bake.",
+      "HC-1105": "Wed, Nov 11 · Campus pickup"
+    },
+    "reloadList": [
+      {
+        "id": "HC-1105",
+        "pickup": "Wed, Nov 11 · Campus pickup"
+      },
+      {
+        "id": "HC-1104",
+        "pickup": "Pickup date not saved"
+      },
+      {
+        "id": "HC-1103",
+        "pickup": "Pickup date not saved"
+      },
+      {
+        "id": "HC-1102",
+        "pickup": "Sat, Nov 14 · 2:30 PM"
+      },
+      {
+        "id": "HC-1101",
+        "pickup": "Wed, Nov 11 · 10:00 AM"
+      }
+    ],
+    "reloadDetail": {
+      "HC-1101": "Wed, Nov 11 · 10:00 AM",
+      "HC-1102": "Sat, Nov 14 · 2:30 PM",
+      "HC-1103": "Pickup date not saved. Ask the customer which day they will collect before you plan the bake.",
+      "HC-1104": "Pickup date not saved. Ask the customer which day they will collect before you plan the bake.",
+      "HC-1105": "Wed, Nov 11 · Campus pickup"
+    },
+    "overflow": false,
+    "writes": [],
+    "errors": []
+  },
+  {
+    "width": 1440,
+    "tz": "America/Los_Angeles",
+    "firstList": [
+      {
+        "id": "HC-1105",
+        "pickup": "Wed, Nov 11 · Campus pickup"
+      },
+      {
+        "id": "HC-1104",
+        "pickup": "Pickup date not saved"
+      },
+      {
+        "id": "HC-1103",
+        "pickup": "Pickup date not saved"
+      },
+      {
+        "id": "HC-1102",
+        "pickup": "Sat, Nov 14 · 2:30 PM"
+      },
+      {
+        "id": "HC-1101",
+        "pickup": "Wed, Nov 11 · 10:00 AM"
+      }
+    ],
+    "firstDetail": {
+      "HC-1101": "Wed, Nov 11 · 10:00 AM",
+      "HC-1102": "Sat, Nov 14 · 2:30 PM",
+      "HC-1103": "Pickup date not saved. Ask the customer which day they will collect before you plan the bake.",
+      "HC-1104": "Pickup date not saved. Ask the customer which day they will collect before you plan the bake.",
+      "HC-1105": "Wed, Nov 11 · Campus pickup"
+    },
+    "reloadList": [
+      {
+        "id": "HC-1105",
+        "pickup": "Wed, Nov 11 · Campus pickup"
+      },
+      {
+        "id": "HC-1104",
+        "pickup": "Pickup date not saved"
+      },
+      {
+        "id": "HC-1103",
+        "pickup": "Pickup date not saved"
+      },
+      {
+        "id": "HC-1102",
+        "pickup": "Sat, Nov 14 · 2:30 PM"
+      },
+      {
+        "id": "HC-1101",
+        "pickup": "Wed, Nov 11 · 10:00 AM"
+      }
+    ],
+    "reloadDetail": {
+      "HC-1101": "Wed, Nov 11 · 10:00 AM",
+      "HC-1102": "Sat, Nov 14 · 2:30 PM",
+      "HC-1103": "Pickup date not saved. Ask the customer which day they will collect before you plan the bake.",
+      "HC-1104": "Pickup date not saved. Ask the customer which day they will collect before you plan the bake.",
+      "HC-1105": "Wed, Nov 11 · Campus pickup"
+    },
+    "overflow": false,
+    "writes": [],
+    "errors": []
+  }
+]

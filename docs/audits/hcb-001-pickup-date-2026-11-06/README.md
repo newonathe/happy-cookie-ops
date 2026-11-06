@@ -57,6 +57,12 @@ Result: before, every order reads "Mon 16" / "Monday 16 Nov · 9 AM – 5 PM" in
 
 The after results are identical in both zones and after reload. No run had overflow, writes or page errors.
 
+### After commit 2 (`e407b70`, the label cache)
+
+`hcb-001/after-e407b70-<zone>/` repeats the "after" capture on the corrected head, with the same harness, fixture and clock. The list and detail pickup text in its `facts.json` is identical to `after-<zone>/facts.json` (commit 1). That holds at all four widths, in both zones, first load and reload. No run had overflow, writes or page errors.
+
+These captures come from a synthetic browser with a simulated Supabase client. They are not real-database, deployed or physical-device evidence.
+
 ## Backlog reproductions at `c84d23d`
 
 `backlog-reproductions/head-c84d23d*/` (`repro-head.cjs`, 390 and 1440 px):
