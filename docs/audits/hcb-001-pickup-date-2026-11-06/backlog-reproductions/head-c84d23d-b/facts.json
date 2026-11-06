@@ -1,0 +1,46 @@
+[
+  {
+    "width": 390,
+    "name": "flavoursMalformed",
+    "reachedStart": "today",
+    "calls": ["get_shop_status", "get_flavours"],
+    "bodyTextLength": 670,
+    "errors": ["Cannot read properties of undefined (reading 'localeCompare')"]
+  },
+  {
+    "width": 390,
+    "name": "helperHome",
+    "liveHomeNull": true,
+    "mainText": "Home\nH\nHome\nSales log\nBazaar\nYou are seeing what a helper sees. Costs, expenses and profit are hidden.",
+    "errors": []
+  },
+  {
+    "width": 390,
+    "name": "rejectFirstPress",
+    "dialogShown": false,
+    "sentReject": true,
+    "errors": []
+  },
+  {
+    "width": 1440,
+    "name": "flavoursMalformed",
+    "reachedStart": "today",
+    "calls": ["get_shop_status", "get_flavours"],
+    "bodyTextLength": 718,
+    "errors": ["Cannot read properties of undefined (reading 'localeCompare')"]
+  },
+  {
+    "width": 1440,
+    "name": "helperHome",
+    "liveHomeNull": true,
+    "mainText": "Happy Cookie Ops\nQuick add\nHome\nSales log\nBazaar\nH\nHelper\nHome\nH\nYou are seeing what a helper sees. Costs, expenses and profit are hidden.",
+    "errors": []
+  },
+  {
+    "width": 1440,
+    "name": "rejectFirstPress",
+    "dialogShown": false,
+    "sentReject": true,
+    "errors": []
+  }
+]
