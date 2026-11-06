@@ -18,7 +18,8 @@ const STOCK_WORDS: Record<BatchStockRow['state'], string> = {
   enough: 'Enough in stock',
   short: 'Short',
   notCounted: 'Not counted',
-  notTracked: 'Not in stock list'
+  notTracked: 'Not in stock list',
+  unavailable: 'Recorded stock unavailable'
 };
 
 /** A list to tick off while baking. The ticks stay on this page: they record nothing. */
@@ -64,7 +65,7 @@ export function RecipeReader({ page, onCosts }: { page: Page; onCosts: () => voi
     const scaled = scaleQty(line.qty, page.savedYield, batch);
     return scaled === null ? line.amountText : formatQuantity(scaled, line.unit);
   };
-  const rows = scalable ? batchStock(page.rows, page.stock ?? [], page.savedYield, batch) : [];
+  const rows = scalable ? batchStock(page.rows, page.stock, page.savedYield, batch) : [];
   const attention = rows.filter((row) => row.state !== 'enough');
   const stockRow = (row: (typeof attention)[number]) => {
     const item = page.stock?.find((entry) => entry.name === row.name);

@@ -37,8 +37,28 @@ describe('working a recipe out for a batch', () => {
     expect(rows[1]).toMatchObject({ name: 'Sugar', state: 'short', needed: 200, short: 50 });
   });
 
-  it('never calls an uncounted item enough, even when the record would cover it', () => {
-    expect(batchStock(lines, stock, 12, 12)[2]?.state).toBe('notCounted');
+  it('preserves a meaningful recorded balance even without a physical count date', () => {
+    expect(batchStock(lines, stock, 12, 12)[2]?.state).toBe('enough');
+    expect(
+      batchStock(
+        lines,
+        stock.map((row) => ({ ...row, onHand: 0, counted: false })),
+        12,
+        12
+      )[2]?.state
+    ).toBe('notCounted');
+  });
+
+  it('keeps unread and malformed stock unavailable instead of substituting zero', () => {
+    expect(batchStock(lines, null, 12, 12).every((row) => row.state === 'unavailable')).toBe(true);
+    expect(
+      batchStock(
+        lines,
+        stock.map((row) => ({ ...row, onHand: Number.NaN })),
+        12,
+        12
+      )[0]?.state
+    ).toBe('unavailable');
   });
 
   it('claims nothing about an item it does not hold, or one in another unit', () => {

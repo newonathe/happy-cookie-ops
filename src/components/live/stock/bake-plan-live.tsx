@@ -16,6 +16,21 @@ import { FactRow } from '@/components/ui/owner-patterns';
 const selectClass =
   'h-12 w-full min-w-0 rounded-control border border-line-strong bg-surface px-3 text-[16px] text-ink focus-visible:outline-2 focus-visible:outline-brand sm:text-[14px]';
 
+function Retention({ plan }: { plan: LiveBakePlan }) {
+  const retention = plan.retention;
+  if (!retention) return null;
+  return (
+    <div className="mb-3 text-caption text-ink-mute" role="status">
+      <p>{retention.message}</p>
+      {['invalid', 'unavailable', 'visit'].includes(retention.status) ? (
+        <Button variant="ghost" size="sm" onClick={retention.retry}>
+          Retry saved plan
+        </Button>
+      ) : null}
+    </div>
+  );
+}
+
 /** Planned bake: how many cookies of what. Shopping works out the rest. */
 export function BakePlanPage({ plan }: { plan: LiveBakePlan }) {
   return (
@@ -24,6 +39,7 @@ export function BakePlanPage({ plan }: { plan: LiveBakePlan }) {
         title="Planned bake"
         subtitle="Enter what you plan to make. This records nothing: it only works out what to buy."
       />
+      <Retention plan={plan} />
       {plan.error ? (
         <div className="mb-3">
           <Banner tone="warn" title={plan.error} />
@@ -96,11 +112,13 @@ function NeedRow({ need }: { need: BakePlanNeed }) {
             ? `${need.packs} × ${need.packLabel || 'pack'}`
             : formatQuantity(need.short, need.unit)
         }`
-      : need.state === 'notCounted'
-        ? `Need ${needed} · not counted yet`
-        : need.state === 'notTracked'
-          ? `Need ${needed} · not in your stock list`
-          : `Need ${needed} · recorded stock covers it`;
+      : need.state === 'unavailable'
+        ? `Need ${needed} · recorded stock unavailable`
+        : need.state === 'notCounted'
+          ? `Need ${needed} · not counted yet`
+          : need.state === 'notTracked'
+            ? `Need ${needed} · not in your stock list`
+            : `Need ${needed} · recorded stock covers it`;
   return (
     <li className="flex flex-wrap items-center justify-between gap-3 border-b border-line py-3 last:border-b-0">
       <span className="flex min-w-0 flex-1 basis-52 flex-col gap-0.5">
@@ -133,14 +151,20 @@ function NeedRow({ need }: { need: BakePlanNeed }) {
 
 /** What the planned bake needs, against what stock records. */
 export function BakePlanNeeds({ plan }: { plan: LiveBakePlan }) {
-  if (!plan.cookies) return null;
-  const order = { short: 0, notCounted: 1, notTracked: 2, enough: 3 } as const;
+  if (!plan.cookies) return <Retention plan={plan} />;
+  const order = { short: 0, unavailable: 1, notCounted: 2, notTracked: 3, enough: 4 } as const;
   const needs = [...plan.needs].sort((a, b) => order[a.state] - order[b.state]);
   return (
     <>
       <SectionHeading>For your planned bake</SectionHeading>
+      <Retention plan={plan} />
       <Panel>
         <FactRow label="Cookies planned">{plan.cookies}</FactRow>
+        {plan.startProduction ? (
+          <Button variant="secondary" onClick={plan.startProduction}>
+            Start production
+          </Button>
+        ) : null}
         <FactRow label="Known cost of what is short">
           {formatPesos(plan.knownPesos)}
           {plan.somePending ? ' · some cost pending' : ''}

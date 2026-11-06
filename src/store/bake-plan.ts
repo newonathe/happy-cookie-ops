@@ -1,4 +1,13 @@
 import { batchStock, scaleQty, type BatchLine, type BatchStockState } from '@/lib/recipes/batch';
+import { stockConfidence } from '@/lib/stock/stock-status';
+import { parseProductionScope, type ProductionRecoveryScope } from '@/lib/production/recovery';
+import {
+  readBakePlan,
+  writeBakePlan,
+  bakePlanKey,
+  BAKE_PLAN_RETENTION,
+  type BakePlanRetention
+} from '@/lib/production/bake-plan-storage';
 
 export interface BakePlanProduct {
   id: string;
@@ -49,6 +58,8 @@ export interface BakePlanRow {
 }
 
 export interface LiveBakePlan {
+  startProduction?: () => void;
+  retention?: { status: BakePlanRetention; message: string; retry: () => void };
   open: boolean;
   /** The saved plan's total; 0 when nothing is planned. */
   cookies: number;
@@ -72,14 +83,14 @@ export interface LiveBakePlan {
 }
 
 export interface BakePlanDeps {
+  production?: (rows: Array<{ productId: string; cookies: number }>) => void;
+  scope?: () => ProductionRecoveryScope | null;
   products: () => BakePlanProduct[];
   recipe: (productId: string) => BakePlanRecipe | null;
-  items: () => BakePlanItem[];
+  items: () => BakePlanItem[] | null;
   storage?: () => Pick<Storage, 'getItem' | 'setItem'> | null;
   rerender: () => void;
 }
-
-const KEY = 'hc-planned-bake-v1';
 
 /** Whole cookies only, from 1 to 100,000. Null otherwise. */
 const wholeCookies = (text: string): number | null => {
@@ -98,6 +109,10 @@ export class BakePlan {
   private rows: BakePlanRow[] = [];
   private nextKey = 1;
   private error: string | null = null;
+  private scopeKey: string | null | undefined;
+  private scope: ProductionRecoveryScope | null = null;
+  private generation = 0;
+  private retention: BakePlanRetention = 'unverified';
 
   constructor(private readonly deps: BakePlanDeps) {}
 
@@ -111,23 +126,25 @@ export class BakePlan {
 
   /** Read on first use, never in the constructor: it runs before hydration. */
   private plan(): Array<{ productId: string; cookies: number }> {
+    this.syncScope();
     if (this.saved) return this.saved;
-    let read: Array<{ productId: string; cookies: number }> = [];
-    try {
-      const value: unknown = JSON.parse(this.store()?.getItem(KEY) ?? '[]');
-      if (Array.isArray(value))
-        read = value.filter(
-          (row): row is { productId: string; cookies: number } =>
-            !!row &&
-            typeof row.productId === 'string' &&
-            Number.isInteger(row.cookies) &&
-            row.cookies > 0
-        );
-    } catch {
-      // A note that cannot be read is an empty plan.
-    }
-    this.saved = read;
-    return read;
+    const read = readBakePlan(this.scope, this.store());
+    this.retention = read.status;
+    this.saved = read.value ?? [];
+    return this.saved;
+  }
+
+  private syncScope(): void {
+    const scope = parseProductionScope(this.deps.scope?.() ?? null);
+    const key = scope ? bakePlanKey(scope) : null;
+    if (key === this.scopeKey) return;
+    this.scopeKey = key;
+    this.scope = scope;
+    this.generation += 1;
+    this.saved = null;
+    this.rows = [];
+    this.open = false;
+    this.error = null;
   }
 
   private row(productId = '', cookies = ''): BakePlanRow {
@@ -158,12 +175,12 @@ export class BakePlan {
     const merged = new Map<string, number>();
     for (const row of parsed)
       merged.set(row.productId, (merged.get(row.productId) ?? 0) + (row.cookies as number));
-    this.saved = [...merged.entries()].map(([productId, cookies]) => ({ productId, cookies }));
-    try {
-      this.store()?.setItem(KEY, JSON.stringify(this.saved));
-    } catch {
-      // It still applies for this visit; a lost note costs nothing.
+    if ([...merged.values()].some((cookies) => cookies > 100000)) {
+      this.error = 'Plan at most 100,000 cookies for each product, including repeated rows.';
+      return this.deps.rerender();
     }
+    this.saved = [...merged.entries()].map(([productId, cookies]) => ({ productId, cookies }));
+    this.retention = writeBakePlan(this.scope, this.saved, this.store()) ? 'stored' : 'visit';
     this.open = false;
     this.error = null;
     this.deps.rerender();
@@ -176,7 +193,7 @@ export class BakePlan {
     for (const row of this.plan()) {
       const recipe = this.deps.recipe(row.productId);
       if (!recipe?.lines.length || !(recipe.savedYield > 0)) {
-        noRecipe.push(products.find((p) => p.id === row.productId)?.name ?? row.productId);
+        noRecipe.push(products.find((p) => p.id === row.productId)?.name ?? 'Unavailable product');
         continue;
       }
       for (const line of recipe.lines) {
@@ -189,14 +206,17 @@ export class BakePlan {
     const items = this.deps.items();
     const worked = batchStock([...totals.values()], items, 1, 1);
     const needs = worked.map((row): BakePlanNeed => {
-      const item = items.find((other) => other.name === row.name);
+      const item = items?.find((other) => other.name === row.name);
       const packs =
         row.state === 'short' && item?.packSize ? Math.ceil(row.short / item.packSize) : null;
       return {
         name: row.name,
         unit: row.unit,
         needed: row.needed,
-        have: item && item.counted ? item.onHand : null,
+        have:
+          item && ['counted', 'recorded'].includes(stockConfidence(item.onHand, item.counted))
+            ? item.onHand
+            : null,
         state: row.state,
         short: row.short,
         packs,
@@ -212,6 +232,13 @@ export class BakePlan {
 
   vals(): LiveBakePlan {
     const { needs, noRecipe } = this.needs();
+    const generation = this.generation;
+    const guard =
+      <T extends unknown[]>(action: (...args: T) => void) =>
+      (...args: T): void => {
+        this.syncScope();
+        if (generation === this.generation) action(...args);
+      };
     const short = needs.filter((need) => need.state === 'short');
     return {
       open: this.open,
@@ -221,31 +248,50 @@ export class BakePlan {
       knownPesos: short.reduce((sum, need) => sum + (need.costPesos ?? 0), 0),
       somePending: short.some((need) => need.costPesos === null),
       products: this.deps.products(),
+      startProduction:
+        this.deps.production && this.plan().length && !noRecipe.length
+          ? guard(() => this.deps.production?.(structuredClone(this.plan())))
+          : undefined,
       rows: this.rows,
       error: this.error,
-      edit: () => this.edit(),
-      addRow: () => {
+      retention: {
+        status: this.retention,
+        message: BAKE_PLAN_RETENTION[this.retention],
+        retry: guard(() => {
+          if (this.retention === 'visit')
+            this.retention = writeBakePlan(this.scope, this.plan(), this.store())
+              ? 'stored'
+              : 'visit';
+          else {
+            this.saved = null;
+            this.plan();
+          }
+          this.deps.rerender();
+        })
+      },
+      edit: guard(() => this.edit()),
+      addRow: guard(() => {
         this.rows = [...this.rows, this.row(this.deps.products()[0]?.id ?? '')];
         this.deps.rerender();
-      },
-      removeRow: (key) => {
+      }),
+      removeRow: guard((key: number) => {
         this.rows = this.rows.filter((row) => row.key !== key);
         this.deps.rerender();
-      },
-      setProduct: (key, productId) => {
+      }),
+      setProduct: guard((key: number, productId: string) => {
         this.rows = this.rows.map((row) => (row.key === key ? { ...row, productId } : row));
         this.deps.rerender();
-      },
-      setCookies: (key, cookies) => {
+      }),
+      setCookies: guard((key: number, cookies: string) => {
         this.rows = this.rows.map((row) => (row.key === key ? { ...row, cookies } : row));
         this.error = null;
         this.deps.rerender();
-      },
-      use: () => this.use(),
-      close: () => {
+      }),
+      use: guard(() => this.use()),
+      close: guard(() => {
         this.open = false;
         this.deps.rerender();
-      }
+      })
     };
   }
 }
