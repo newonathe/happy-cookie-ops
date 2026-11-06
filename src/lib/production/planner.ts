@@ -3,7 +3,7 @@ import type { ProductionRecoveryEntry } from './recovery';
 import { validProductionChoice, type ProductionPlanChoice } from './plan';
 
 type Context = { products: LiveProductionStart['products']; entry: ProductionRecoveryEntry };
-const choicesOf = (entry: ProductionRecoveryEntry): ProductionPlanChoice[] =>
+export const choicesOf = (entry: ProductionRecoveryEntry): ProductionPlanChoice[] =>
   entry.choices ??
   (entry.productId
     ? [
@@ -42,6 +42,7 @@ export function productionPlanner(
   const valid = (context: Context) => {
     const rows = choicesOf(context.entry);
     return (
+      !context.entry.handoff &&
       rows.length > 0 &&
       new Set(rows.map((row) => row.productId)).size === rows.length &&
       rows.every((row) =>
@@ -94,7 +95,12 @@ export function productionPlanner(
             ...row,
             kind,
             batchQuantity: kind === 'dough' ? row.quantity : row.batchQuantity,
-            quantity: kind === 'dough' ? String(product.yield) : (row.batchQuantity ?? '')
+            quantity:
+              kind === 'dough'
+                ? String(product.yield)
+                : row.kind === 'choose'
+                  ? row.quantity
+                  : (row.batchQuantity ?? '')
           };
         })
       ),

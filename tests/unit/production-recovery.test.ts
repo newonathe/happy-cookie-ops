@@ -71,6 +71,20 @@ const snapshot = (): ProductionRecovery => ({
 });
 
 describe('scoped production recovery', () => {
+  it('retains unresolved handoff conflicts and an explicitly unchosen production type', () => {
+    const value = snapshot(),
+      storage = memory();
+    value.entry = {
+      dropNo: 5,
+      productId: '',
+      quantity: '',
+      version: 0,
+      choices: [{ productId: 'dcf', quantity: '12', version: 3, kind: 'choose' }],
+      handoff: { source: 'recipe', rows: [{ productId: 'dcf', quantity: '48', version: 3 }] }
+    };
+    expect(writeProductionRecovery(scope, value, { storage })).toBe(true);
+    expect(readProductionRecovery(scope, storage).value).toEqual(value);
+  });
   it('restores the bake protocol exactly and refuses to change a pending request route', () => {
     const value = snapshot(),
       storage = memory();

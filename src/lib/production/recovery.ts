@@ -13,6 +13,10 @@ export interface ProductionRecoveryScope {
   business: string;
 }
 export interface ProductionRecoveryEntry {
+  handoff?: {
+    source: 'recipe' | 'shopping';
+    rows: Array<{ productId: string; quantity: string; version: number }>;
+  };
   dropNo: number;
   productId: string;
   version: number;
@@ -167,6 +171,24 @@ const recovery = z
     saved: z.array(saved).max(50),
     entry: z
       .object({
+        handoff: z
+          .object({
+            source: z.enum(['recipe', 'shopping']),
+            rows: z
+              .array(
+                z
+                  .object({
+                    productId: z.string().min(1).max(128),
+                    quantity: countText,
+                    version: z.number().int().positive()
+                  })
+                  .strict()
+              )
+              .min(1)
+              .max(80)
+          })
+          .strict()
+          .optional(),
         dropNo: z.number().int().min(0).max(100000),
         productId: z.string().max(128),
         version: z.number().int().nonnegative(),
@@ -183,7 +205,7 @@ const recovery = z
                 photo: z.string().max(2048).optional(),
                 quantity: countText,
                 version: z.number().int().positive(),
-                kind: z.enum(['batch', 'dough']),
+                kind: z.enum(['batch', 'dough', 'choose']),
                 batchQuantity: countText.optional()
               })
               .strict()

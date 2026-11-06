@@ -5,7 +5,7 @@ export interface ProductionPlanChoice {
   photo?: string;
   quantity: string;
   version: number;
-  kind: 'batch' | 'dough';
+  kind: 'batch' | 'dough' | 'choose';
   batchQuantity?: string;
 }
 
