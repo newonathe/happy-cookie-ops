@@ -63,6 +63,25 @@ The after results are identical in both zones and after reload. No run had overf
 
 These captures come from a synthetic browser with a simulated Supabase client. They are not real-database, deployed or physical-device evidence.
 
+## HCB-002a: Orders read states (PR #53, `a36ddc6`)
+
+`hcb-002a/<before|after>/<state>-<width>.webp` plus `facts.json`.
+
+- **Before:** `e407b70`. **After:** `a36ddc6`.
+- **Widths:** 320, 390, 768 and 1440 px.
+- **Device zone:** America/Los_Angeles. **Clock:** Tue 10 Nov 2026, 10:00 Manila.
+- **Script:** `harness/capture-002a.cjs`.
+- **Harness switches:** `harness/entry.tsx.txt` gains `qaOrdersFailAfterFirst` (every read after the first fails) and `qaOrdersBadRow` (one unusable row is appended).
+
+| State                                           | Before                                            | After                                                                                                 |
+| ----------------------------------------------- | ------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `failedFirst` (first read fails)                | "No orders match this filter" + zero filter chips | warning + Try again; nothing listed or counted                                                        |
+| `stale` (first read ok, refresh fails at 11:30) | old list, no notice                               | list kept + "Could not refresh. Showing orders as of 10:00 AM." (Manila time on a Los Angeles device) |
+| `dropped` (one unusable row)                    | row silently left out                             | "1 order could not be read…"                                                                          |
+| `read` (normal)                                 | list                                              | unchanged                                                                                             |
+
+No run had overflow, page errors or writes. This is synthetic browser evidence only.
+
 ## Backlog reproductions at `c84d23d`
 
 `backlog-reproductions/head-c84d23d*/` (`repro-head.cjs`, 390 and 1440 px):
