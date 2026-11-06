@@ -48,7 +48,10 @@ function MarginBadge({ item }: { item: RecipeBookItem }) {
   );
 }
 
-type View = { kind: 'book' } | { kind: 'flavour'; id: string } | { kind: 'editor'; id: string };
+type View =
+  | { kind: 'book' }
+  | { kind: 'flavour'; id: string }
+  | { kind: 'editor'; id: string; origin?: 'recipe' };
 
 /**
  * The live recipe book (U7), in the slot of the ported Recipes screen. A grid of flavours with search and the On the menu
@@ -88,8 +91,23 @@ export function RecipeBookLive({ v }: { v: OpsVals }) {
       <section aria-label="Recipes" data-screen-label="Recipes" className="pb-24">
         <RecipeEditor
           v={v}
-          backLabel={book.recipePage ? 'Back to costs' : 'Back to the recipe book'}
-          onBack={() => go(item ? { kind: 'flavour', id: view.id } : { kind: 'book' }, view.id)}
+          backLabel={
+            view.origin === 'recipe'
+              ? 'Back to recipe'
+              : book.recipePage
+                ? 'Back to costs'
+                : 'Back to the recipe book'
+          }
+          onBack={() =>
+            go(
+              view.origin === 'recipe'
+                ? { kind: 'book' }
+                : item
+                  ? { kind: 'flavour', id: view.id }
+                  : { kind: 'book' },
+              view.id
+            )
+          }
         />
       </section>
     );
@@ -122,6 +140,10 @@ export function RecipeBookLive({ v }: { v: OpsVals }) {
         key={recipePage.id}
         page={recipePage}
         onCosts={() => go({ kind: 'flavour', id: recipePage.id }, recipePage.id)}
+        onCreate={() => {
+          if (recipePage.createRecipe?.())
+            go({ kind: 'editor', id: recipePage.id, origin: 'recipe' }, null);
+        }}
       />
     );
 

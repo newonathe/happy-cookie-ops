@@ -1,8 +1,8 @@
 # Next goal — Cloud continuation
 
-Continue the active [full application goal](full-goal.md) from Git, without restarting completed audits. Latest pushed production checkpoint: `9d3311a9838c8f46be2a811023567b0b14411fdb`; see [current state](current.md).
+Continue the active [full application goal](full-goal.md) from Git, without restarting completed audits. Latest pushed production checkpoint: `30eccdff23079b3121becbf8e3aff4c414abbcd2`; see [current state](current.md).
 
-1. Finish the current production goal: typed-cost ownership and owner regrant; recipe/Shopping handoff; first-recipe entry; retained independent drafts; definite shortages and exact unknown-outcome retries. New Bake uses record_bake only; exact historical legacy replays remain supported. SQL71/72/73 local reset, role, concurrency, cost and legacy-retirement proof already passed.
+1. Finish the current production goal: first-recipe entry/editor isolation; recipe/Shopping handoff; retained independent drafts; definite shortages and exact unknown-outcome retries. New Bake uses record_bake only; exact historical legacy replays remain supported. SQL71/72/73 local reset, role, concurrency, cost and legacy-retirement proof already passed.
 2. Accept bounded implementation slices with focused tests, independent review where required, full pnpm verify, formatting, Live build and connected local browser checks. Keep original tests and protected prototype bytes.
 3. Delta-check PR51/53 compatibility against the final production checkpoint. Preserve both unmerged; reconcile their Orders read-state overlap only with authority.
 4. After production passes, continue the next highest-priority unblocked full-goal slice on a separate branch, preferably outside Orders. Keep all owner, hosted and device gates pending until separately evidenced.

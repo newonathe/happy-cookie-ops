@@ -46,18 +46,23 @@ export function RecipeEditor({
   if (reviewing)
     return (
       <div className="w-full">
-        <PageTitle title="Review recipe changes" subtitle={recipe.name} />
+        <PageTitle
+          title={recipe.isNew ? 'Review new recipe' : 'Review recipe changes'}
+          subtitle={recipe.name}
+        />
         <ReviewPanel
           note="Earlier production records keep their saved recipe version."
           backLabel="Change recipe"
           onBack={() => setReviewing(false)}
-          saveLabel="Save new version"
+          saveLabel={recipe.isNew ? 'Create recipe' : 'Save new version'}
           onSave={() => {
             asked.current = true;
             recipe.save();
           }}
         >
-          <FactRow label="Replaces">{recipe.version}</FactRow>
+          <FactRow label={recipe.isNew ? 'Creates' : 'Replaces'}>
+            {recipe.isNew ? 'First saved version' : recipe.version}
+          </FactRow>
           <FactRow label="Batch yield">{recipe.yieldText}</FactRow>
           {rows.map((row, i) => (
             <FactRow
@@ -75,8 +80,12 @@ export function RecipeEditor({
   return (
     <div className="w-full">
       <PageTitle
-        title={`Edit ${String(recipe.name)}`}
-        subtitle="Save changes as a new recipe version."
+        title={`${recipe.isNew ? 'Create recipe for' : 'Edit'} ${String(recipe.name)}`}
+        subtitle={
+          recipe.isNew
+            ? 'Save the first recipe for this product.'
+            : 'Save changes as a new recipe version.'
+        }
         actions={
           <Button variant="secondary" onClick={onBack}>
             {backLabel}
@@ -93,7 +102,7 @@ export function RecipeEditor({
           <span className="flex min-w-0 flex-col">
             <span className="text-[14px] font-semibold text-ink">Cookies per batch</span>
             <span className="text-caption text-ink-mute">
-              {recipe.version} · {recipe.costText}
+              {recipe.isNew ? 'New recipe · not saved' : recipe.version} · {recipe.costText}
             </span>
           </span>
           <span className="flex items-center gap-2">
@@ -165,11 +174,6 @@ export function RecipeEditor({
         </div>
         <div className="mt-4">
           <FooterActions
-            back={
-              <Button variant="secondary" onClick={onBack}>
-                {backLabel}
-              </Button>
-            }
             forward={
               <Button
                 variant="primary"
@@ -192,7 +196,11 @@ export function RecipeEditor({
       </Panel>
       <SectionHeading>Versions</SectionHeading>
       <Panel>
-        <FactRow label={`${String(recipe.version)} · current`}>{recipe.currentBatches}</FactRow>
+        {recipe.isNew ? (
+          <p className="text-caption text-ink-mute">No saved versions yet.</p>
+        ) : (
+          <FactRow label={`${String(recipe.version)} · current`}>{recipe.currentBatches}</FactRow>
+        )}
         {(recipe.history ?? []).map((version, i) => (
           <FactRow key={i} label={version.label} detail={version.detail}>
             {version.batches}

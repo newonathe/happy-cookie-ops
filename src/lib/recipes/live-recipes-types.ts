@@ -47,6 +47,7 @@ export interface LiveRecipesVals {
     versionText: string | null;
     /** Cookies one batch of the saved recipe makes; 0 when there is no saved recipe. */
     savedYield: number;
+    createRecipe?: () => boolean;
     rows: Array<{
       name: string;
       amountText: string;
