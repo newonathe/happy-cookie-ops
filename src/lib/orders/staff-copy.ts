@@ -40,7 +40,12 @@ export const STAFF_COPY = {
   noRoom: (left: number): string =>
     left <= 0
       ? 'There is no room left in that pickup week.'
-      : `Only ${left} slots are left in that pickup week.`
+      : `Only ${left} slots are left in that pickup week.`,
+  /** An order whose saved pickup date is missing or not a real date: never replaced by a default day. */
+  pickupMissing: 'Pickup date not saved',
+  pickupMissingLong:
+    'Pickup date not saved. Ask the customer which day they will collect before you plan the bake.',
+  pickupNoTime: 'time not saved'
 } as const;
 
 /** The messages sheet (All tools → Customer messages). */
