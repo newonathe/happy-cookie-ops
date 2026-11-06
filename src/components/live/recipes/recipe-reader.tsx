@@ -52,7 +52,15 @@ function Checklist({
 }
 
 /** One product's saved recipe (client v4): worked out for the batch, with what stock says about it. */
-export function RecipeReader({ page, onCosts }: { page: Page; onCosts: () => void }) {
+export function RecipeReader({
+  page,
+  onCosts,
+  onCreate
+}: {
+  page: Page;
+  onCosts: () => void;
+  onCreate?: () => void;
+}) {
   const heading = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
     heading.current?.focus();
@@ -158,6 +166,13 @@ export function RecipeReader({ page, onCosts }: { page: Page; onCosts: () => voi
                 {page.startProduction ? (
                   <Button
                     variant="primary"
+                    disabled={
+                      !scalable ||
+                      !Number.isInteger(batch) ||
+                      batch > 10000 ||
+                      page.state !== 'read'
+                    }
+                    reason="Choose 1 to 10,000 whole cookies and read the saved recipe before starting."
                     onClick={() => page.startProduction?.(scalable ? batch : undefined)}
                   >
                     Start production
@@ -189,7 +204,14 @@ export function RecipeReader({ page, onCosts }: { page: Page; onCosts: () => voi
           </Panel>
         </div>
       ) : page.state === 'read' ? (
-        <p className={styles.empty}>No saved recipe quantities yet.</p>
+        <div className={styles.empty}>
+          <p>No saved recipe quantities yet.</p>
+          {page.createRecipe && onCreate ? (
+            <Button variant="primary" onClick={onCreate}>
+              Create recipe
+            </Button>
+          ) : null}
+        </div>
       ) : null}
     </section>
   );

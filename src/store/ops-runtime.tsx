@@ -1295,6 +1295,11 @@ export class OpsRuntime extends OpsProvider {
   /** The stamp of each flavour's saved recipe as its screen last showed it: what an edit is saved against. */
   private recipeBaseStamp: Record<string, string | null> = {};
   private recipeLoadSeq = 0;
+  private recipeEditorContext: {
+    key: string;
+    client: RecipeClient | null;
+    generation: number;
+  } | null = null;
   private recipeScopeKey: string | null = null;
   private recipeAppliedScopeKey: string | null = null;
   private recipeRestoredEdits = new Set<string>();
@@ -2376,6 +2381,71 @@ export class OpsRuntime extends OpsProvider {
     } else this.toast('Add an inventory item before receiving a delivery.', 'warn');
   }
 
+  private recipeEditorGeneration(): number {
+    const key = JSON.stringify([
+      this.state.screen,
+      this.state.recipeOpen,
+      this.state.liveRecipeTarget,
+      this.productionActorEpoch
+    ]);
+    if (
+      this.recipeEditorContext?.key !== key ||
+      this.recipeEditorContext.client !== this.recipeClient
+    )
+      this.recipeEditorContext = {
+        key,
+        client: this.recipeClient,
+        generation: (this.recipeEditorContext?.generation ?? 0) + 1
+      };
+    return this.recipeEditorContext.generation;
+  }
+
+  private liveRecipeEditor(vals: OpsVals): OpsVals['recipe'] {
+    const recipe = vals.recipe;
+    if (!isLiveMode() || this.state.role !== 'owner') return recipe;
+    const generation = this.recipeEditorGeneration();
+    const actor = this.productionActorEpoch,
+      client = this.recipeClient,
+      productId = this.state.recipeOpen,
+      screen = this.state.screen;
+    const current = () =>
+      !this.unmounted &&
+      generation === this.recipeEditorContext?.generation &&
+      this.state.role === 'owner' &&
+      actor === this.productionActorEpoch &&
+      client === this.recipeClient &&
+      productId === this.state.recipeOpen &&
+      screen === this.state.screen;
+    const run = (action: () => void) => () => {
+      if (current()) action();
+    };
+    return {
+      ...recipe,
+      save: run(recipe.save),
+      addRow: run(recipe.addRow),
+      yieldUp: run(recipe.yieldUp),
+      yieldDown: run(recipe.yieldDown),
+      rows: this.liveRecipeRows(vals).map((row) => ({
+        ...row,
+        setName: (event) => {
+          if (current()) row.setName(event);
+        },
+        setQty: (event) => {
+          if (current()) row.setQty(event);
+        },
+        setUnit: (event) => {
+          if (current()) row.setUnit(event);
+        },
+        remove: run(row.remove),
+        setKind: row.setKind
+          ? (kind) => {
+              if (current()) row.setKind?.(kind);
+            }
+          : undefined
+      }))
+    };
+  }
+
   /** The editor's rows also say whether each line is an ingredient or packaging, which a save must keep. */
   private liveRecipeRows(vals: OpsVals): OpsVals['recipe']['rows'] {
     const rows = vals.recipe?.rows ?? [];
@@ -3160,11 +3230,13 @@ export class OpsRuntime extends OpsProvider {
         : {}),
       recipe: starved.recipe
         ? {
-            ...starved.recipe,
+            ...this.liveRecipeEditor(starved),
+            isNew:
+              this.recipeRows !== null &&
+              !this.recipeRows.some((row) => row.productId === this.state.recipeOpen),
             costText: this.costKnown(this.state.recipeOpen)
               ? starved.recipe.costText
-              : COST_COPY.pending,
-            rows: this.liveRecipeRows(starved)
+              : COST_COPY.pending
           }
         : starved.recipe,
       pl: this.livePnl(starved.pl),
@@ -8713,8 +8785,12 @@ export class OpsRuntime extends OpsProvider {
     if (!item) return book;
     const recipe = this.recipeRows?.find((row) => row.productId === item.id);
     const hasLines = !!recipe?.lines.length;
+    const actor = this.productionActorEpoch;
+    const generation = this.recipeEditorGeneration();
     const current = () =>
       !this.unmounted &&
+      actor === this.productionActorEpoch &&
+      generation === this.recipeEditorContext?.generation &&
       this.state.role === 'owner' &&
       this.state.screen === 'recipes' &&
       this.state.liveRecipeTarget === item.id;
@@ -8728,6 +8804,19 @@ export class OpsRuntime extends OpsProvider {
         yieldText: hasLines ? `Makes ${recipe.yield} cookies` : null,
         versionText: hasLines ? `Version ${recipe.version}` : null,
         savedYield: hasLines ? recipe.yield : 0,
+        createRecipe:
+          !recipe && this.recipeReaderState === 'read'
+            ? () => {
+                if (
+                  !current() ||
+                  this.recipeReaderState !== 'read' ||
+                  this.recipeRows?.some((row) => row.productId === item.id)
+                )
+                  return false;
+                (this as unknown as { openRecipe: (id: string) => void }).openRecipe(item.id);
+                return true;
+              }
+            : undefined,
         rows: (recipe?.lines ?? []).map((line) => ({
           name: line.name,
           amountText: formatQuantity(line.qty, line.unit),
@@ -8744,7 +8833,10 @@ export class OpsRuntime extends OpsProvider {
             counted: !!row.lastCounted,
             count: () => this.startItemCount(row)
           })),
-        startProduction: (cookies) => this.startProductionFromMake(item.id, cookies),
+        startProduction: () => {
+          if (current() && recipe && this.recipeReaderState === 'read')
+            this.startProductionFromMake(item.id);
+        },
         back: () => {
           if (current())
             this.setState({ liveRecipeTarget: null, liveProductReturnId: item.id }, () =>

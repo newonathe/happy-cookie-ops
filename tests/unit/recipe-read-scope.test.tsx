@@ -47,6 +47,66 @@ function client(qty: number, stamp = STAMP) {
   }));
   return { rpc, client: { rpc } as unknown as RecipeClient };
 }
+it('retires cached recipe editor actions before another identity opens the same product', async () => {
+  const r = await mount(),
+    one = client(300),
+    two = client(900);
+  await act(async () => {
+    await r.loadRecipes(one.client, undefined, undefined, A);
+  });
+  act(() => r.setState({ screen: 'recipes', recipeOpen: 'dcf' } as never));
+  const old = r.renderVals().recipe;
+  await act(async () => {
+    await r.setProductionIdentity(B);
+    await r.loadRecipes(two.client, undefined, undefined, B);
+  });
+  act(() => actions(r).recipeEdit('dcf', 0, 'qty', '920'));
+  const before = JSON.stringify(state(r).recipes.dcf);
+  two.rpc.mockClear();
+  await act(async () => {
+    old.save();
+    await Promise.resolve();
+  });
+  expect(two.rpc.mock.calls.filter(([name]) => name === 'save_recipe')).toHaveLength(0);
+  for (const change of [
+    old.addRow,
+    old.yieldUp,
+    old.yieldDown,
+    () => old.rows[0]!.setName({ target: { value: 'Old flour' } } as never),
+    () => old.rows[0]!.setQty({ target: { value: '750' } } as never),
+    () => old.rows[0]!.setUnit({ target: { value: 'kg' } } as never),
+    () => old.rows[0]!.setKind?.('packaging'),
+    old.rows[0]!.remove
+  ]) {
+    act(change);
+    expect(JSON.stringify(state(r).recipes.dcf)).toBe(before);
+  }
+  act(() => r.renderVals().recipe.rows[0]!.setQty({ target: { value: '950' } } as never));
+  expect(state(r).recipes.dcf.ing[0][1]).toBe(950);
+});
+it('does not revive editor controls after leaving and reopening the same product', async () => {
+  const r = await mount(),
+    one = client(300);
+  await act(async () => {
+    await r.loadRecipes(one.client, undefined, undefined, A);
+  });
+  act(() => r.setState({ screen: 'recipes', recipeOpen: 'dcf' } as never));
+  const old = r.renderVals().recipe;
+  act(() => r.go('products'));
+  act(() => r.go('recipes'));
+  act(() => actions(r).recipeEdit('dcf', 0, 'qty', '320'));
+  const before = JSON.stringify(state(r).recipes.dcf);
+  one.rpc.mockClear();
+  await act(async () => {
+    old.save();
+    await Promise.resolve();
+  });
+  act(old.addRow);
+  expect(one.rpc.mock.calls.filter(([name]) => name === 'save_recipe')).toHaveLength(0);
+  expect(JSON.stringify(state(r).recipes.dcf)).toBe(before);
+  act(r.renderVals().recipe.addRow);
+  expect(state(r).recipes.dcf.ing).toHaveLength(2);
+});
 it('rejects an old identity read and retires its client before a cached retry', async () => {
   const r = await mount();
   let answer!: (value: { data: ReturnType<typeof row>[]; error: null }) => void;

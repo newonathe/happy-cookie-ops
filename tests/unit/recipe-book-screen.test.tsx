@@ -148,6 +148,46 @@ describe('product recipe link', () => {
     );
     expect(screen.getByText('No saved recipe quantities yet.')).toBeTruthy();
   });
+
+  it('opens a new product directly in recipe entry and returns to its recipe without a costs detour', () => {
+    const createRecipe = vi.fn(() => true);
+    const page = {
+      ...recipePage(),
+      rows: [],
+      savedYield: 0,
+      yieldText: null,
+      versionText: null,
+      createRecipe
+    };
+    render(
+      <RecipeBookLive
+        v={
+          {
+            liveRecipes: book({ recipePage: page }),
+            recipe: {
+              name: page.name,
+              isNew: true,
+              dirty: false,
+              rows: [],
+              history: [],
+              yieldNum: 1,
+              costText: 'Cost pending',
+              addRow: vi.fn(),
+              yieldUp: vi.fn(),
+              yieldDown: vi.fn()
+            }
+          } as unknown as OpsVals
+        }
+      />
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Create recipe' }));
+    expect(createRecipe).toHaveBeenCalledOnce();
+    expect(screen.getByRole('heading', { name: `Create recipe for ${page.name}` })).toBeTruthy();
+    expect(screen.getByText(/New recipe · not saved/)).toBeTruthy();
+    expect(screen.getByText('No saved versions yet.')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Back to recipe' }));
+    expect(screen.getByText('No saved recipe quantities yet.')).toBeTruthy();
+  });
   it('never claims sufficient stock for absent, mismatched, or unread inventory', () => {
     const page = recipePage();
     const ui = draw(book({ recipePage: page }));

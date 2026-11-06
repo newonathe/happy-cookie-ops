@@ -1492,6 +1492,7 @@ export interface OpsVals {
   receiptNone: unknown;
   receiptUploading: unknown;
   recipe: {
+    isNew?: boolean;
     addRow: (event?: unknown) => void;
     costText: React.ReactNode;
     currentBatches: React.ReactNode;
