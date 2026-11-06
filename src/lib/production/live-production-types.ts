@@ -73,6 +73,13 @@ export interface LiveBatchCounts {
 
 /** An unconfirmed plan; starting it never records production or changes stock. */
 export interface LiveProductionStart {
+  existingWork?: Array<{ id: string; productId: string; name: string; open: () => void }>;
+  handoff?: {
+    source: string;
+    rows: Array<{ name: string; quantity: string; version: number }>;
+    use: () => void;
+    keep: () => void;
+  };
   multi?: {
     choices: ProductionPlanChoice[];
     reviewing: boolean;
