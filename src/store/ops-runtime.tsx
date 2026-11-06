@@ -6437,9 +6437,15 @@ export class OpsRuntime extends OpsProvider {
       state.screen === 'batch' &&
       state.dropNo === dropNo &&
       (state as unknown as ProductionState).batch === batch &&
-      !saving;
+      !this.savingProduction.has(batch.liveWorkId ?? '');
     const set = (field: 'actual' | 'rejects', value: string): void => {
-      if (!current() || !this.productionWritable() || unanswered || value.length > 32) return;
+      if (
+        !current() ||
+        !this.productionWritable() ||
+        this.pendingProduction.has(batch.liveWorkId ?? '') ||
+        value.length > 32
+      )
+        return;
       this.setState((state) =>
         current(state)
           ? ({
@@ -6454,6 +6460,20 @@ export class OpsRuntime extends OpsProvider {
     };
     const engine = this as unknown as ProductionActions;
     return {
+      doughOnly: unanswered ? unanswered.doughOnly === true : true,
+      doughBalance:
+        this.productionReadState === 'read'
+          ? (this.lastProduction?.dough.find((row) => row.productId === batch.pid)?.balls ?? 0)
+          : null,
+      ingredientChanges: !unanswered && Object.values(batch.adj ?? {}).some((steps) => steps !== 0),
+      clearIngredientChanges: () => {
+        if (
+          current() &&
+          this.productionWritable() &&
+          !this.pendingProduction.has(batch.liveWorkId ?? '')
+        )
+          this.setState({ batch: { ...batch, adj: {}, step: 1 } } as never);
+      },
       periodText: `Drop ${unanswered?.dropNo ?? work?.dropNo ?? dropNo}`,
       recipeVersion: unanswered?.recipeVersion ?? work?.recipe?.version ?? null,
       stock: (this.stockCatalogue?.items ?? [])
@@ -7100,11 +7120,17 @@ export class OpsRuntime extends OpsProvider {
     this.toast(
       result.problem === 'preparation-update'
         ? 'This database needs the dough preparation update. Your draft is kept; nothing new was recorded.'
-        : result.outcome === 'stale'
-          ? PRODUCTION_COPY.stale
-          : result.outcome === 'refused'
-            ? PRODUCTION_COPY.refused
-            : PRODUCTION_COPY.notSaved,
+        : result.problem === 'bake-update'
+          ? 'This database needs the dough-only baking update. Your draft is kept; nothing new was recorded.'
+          : result.problem === 'dough-shortage'
+            ? 'Not enough recorded dough. Your bake draft is kept. Prepare dough first, then return to this batch.'
+            : result.problem === 'dough-chronology'
+              ? 'Recorded dough cannot support this bake date. Nothing was recorded. Your counts are kept; review the dough records in Make before trying again.'
+              : result.outcome === 'stale'
+                ? PRODUCTION_COPY.stale
+                : result.outcome === 'refused'
+                  ? PRODUCTION_COPY.refused
+                  : PRODUCTION_COPY.notSaved,
       'warn'
     );
     return null;
@@ -7566,6 +7592,7 @@ export class OpsRuntime extends OpsProvider {
         const done = await this.recordProductionNow(
           {
             kind: 'batch',
+            doughOnly: true,
             productId: b.pid,
             qty: b.actual,
             target: b.target,

@@ -125,7 +125,7 @@ function fakeClient(f: Fake) {
     if (name === 'get_recipes')
       return { data: 'recipes' in f ? f.recipes : savedRecipe(), error: null };
     if (name === 'get_staff_orders') return { data: f.orders, error: null };
-    if (name === 'record_production') return f.answers.shift() ?? saved();
+    if (name === 'record_bake') return f.answers.shift() ?? savedBake(rpc);
     if (name === 'record_dough_preparation') {
       const result = f.answers.shift();
       if (result?.error) return result;
@@ -146,6 +146,15 @@ function fakeClient(f: Fake) {
     return { data: [{ replayed: false }], error: null };
   });
   return { rpc, client: { rpc } };
+}
+function savedBake(rpc: { mock: { calls: Array<[string, Wire?]> } }) {
+  const body = rpc.mock.calls.filter(([name]) => name === 'record_bake').at(-1)![1]!.p_rec as Wire;
+  return {
+    data: [
+      { record_id: String(body.id), duplicate: false, used_dough: Number(body.qty), shortfall: [] }
+    ],
+    error: null
+  };
 }
 const called = (rpc: ReturnType<typeof fakeClient>['rpc'], name: string) =>
   rpc.mock.calls.filter((c) => c[0] === name) as unknown as Array<
@@ -191,7 +200,7 @@ it.each([0, 2])(
     const view = runtime.renderVals().liveProduction!;
     expect(view.state).toBe('read');
     expect(view.rows).toMatchObject([{ qty: good, rejects: 12 - good }]);
-    expect(called(rpc, 'record_production')).toHaveLength(0);
+    expect(called(rpc, 'record_bake')).toHaveLength(0);
   }
 );
 
@@ -334,7 +343,7 @@ describe('production reply ownership', () => {
                 ],
                 error: null
               }
-            : saved()
+            : savedBake(rpc)
         )
       );
       await settle();
@@ -360,7 +369,7 @@ describe('production reply ownership', () => {
     startBatch(runtime);
     act(() => acts(runtime).confirmBatch());
     await settle();
-    const requests = called(rpc, 'record_production').map((c) => c[1].p_rec as Wire);
+    const requests = called(rpc, 'record_bake').map((c) => c[1].p_rec as Wire);
     expect(requests).toHaveLength(2);
     expect(requests[1].id).not.toBe(requests[0].id);
   });
@@ -370,7 +379,7 @@ describe('production reply ownership', () => {
       'owner',
       fresh({ answers: [{ data: null, error: { code: '08006' } }] })
     );
-    const adj = { 'Bread flour': 1 };
+    const adj: Record<string, number> = {};
     startBatch(runtime, { step: 2, adj });
     const old = runtime.renderVals().batch!;
     act(() => acts(runtime).confirmBatch());
@@ -390,10 +399,10 @@ describe('production reply ownership', () => {
     });
     act(() => acts(runtime).confirmBatch());
     await settle();
-    const requests = called(rpc, 'record_production').map((c) => c[1].p_rec as Wire);
+    const requests = called(rpc, 'record_bake').map((c) => c[1].p_rec as Wire);
     expect(requests).toHaveLength(2);
     expect(requests[1]).toEqual(requests[0]);
-    expect(requests[1].adj).toEqual({ 'Bread flour': 1 });
+    expect(requests[1]).not.toHaveProperty('adj');
     expect(runtime.state.batch).toBeNull();
   });
 
@@ -413,7 +422,7 @@ describe('production reply ownership', () => {
       if (returnToOwner) act(() => runtime.setRole('owner'));
       const held = runtime.state.batch,
         screen = runtime.state.screen;
-      await act(async () => reply(saved()));
+      await act(async () => reply(savedBake(rpc)));
       await settle();
       // The completion that belonged to the first actor never runs: no navigation, the held batch view stays.
       expect(runtime.state.batch).toBe(held);
@@ -422,7 +431,7 @@ describe('production reply ownership', () => {
       const pool = runtime as unknown as { productionDrafts: { list: () => unknown[] } };
       expect(pool.productionDrafts.list()).toHaveLength(0);
       expect(called(rpc, 'get_stock_catalogue')).toHaveLength(returnToOwner ? 1 : 0);
-      expect(called(rpc, 'record_production')).toHaveLength(1);
+      expect(called(rpc, 'record_bake')).toHaveLength(1);
     });
 
   it('a batch recorded while a helper is signed in is announced to the owner on return, never recorded twice', async () => {
@@ -437,7 +446,7 @@ describe('production reply ownership', () => {
     );
     act(() => acts(runtime).confirmBatch());
     act(() => runtime.setRole('helper'));
-    await act(async () => reply(saved()));
+    await act(async () => reply(savedBake(rpc)));
     await settle();
     expect(called(rpc, 'get_stock_catalogue')).toHaveLength(0);
     act(() => runtime.setRole('owner'));
@@ -446,7 +455,7 @@ describe('production reply ownership', () => {
     expect(pool.productionDrafts.list()).toHaveLength(0);
     expect(msg(runtime)).toContain('saved while you were away is recorded');
     expect(called(rpc, 'get_stock_catalogue')).toHaveLength(1);
-    expect(called(rpc, 'record_production')).toHaveLength(1);
+    expect(called(rpc, 'record_bake')).toHaveLength(1);
     // Mutation: the old silent return left a saved batch looking unsaved, inviting a second batch for the same cookies.
   });
 
@@ -471,7 +480,7 @@ describe('production reply ownership', () => {
     act(() => runtime.renderVals().goBack());
     expect(runtime.state.screen).toBe('bake');
     expect(runtime.state.batch).toBe(held);
-    expect(called(rpc, 'record_production')).toHaveLength(1);
+    expect(called(rpc, 'record_bake')).toHaveLength(1);
   });
 
   it('does not start the follow-up production read if the role changes during stock refresh', async () => {
@@ -559,7 +568,7 @@ describe('C2: baking, mixing dough and packing record on the database (live mode
     });
     act(() => runtime.go('products'));
     expect(runtime.renderVals().liveProduction).toBeNull();
-    expect(called(rpc, 'record_production')).toHaveLength(0);
+    expect(called(rpc, 'record_bake')).toHaveLength(0);
   });
   beforeEach(() => {
     // The fixtures' pickup dates are fixed, and "this week" is worked out from today: without a fixed
@@ -580,6 +589,11 @@ describe('C2: baking, mixing dough and packing record on the database (live mode
     const f = fresh();
     const { runtime, rpc } = await mounted('owner', f);
     startBatch(runtime, { adj: { 'Bread flour': 2, Butter: 0 }, rejects: 1 });
+    act(() => acts(runtime).confirmBatch());
+    await settle();
+    expect(called(rpc, 'record_bake')).toHaveLength(0);
+    expect(runtime.state.batch).toMatchObject({ adj: { 'Bread flour': 2, Butter: 0 } });
+    act(() => runtime.renderVals().liveBatchCounts!.clearIngredientChanges!());
     // The database's answer to the confirm: the flour is down and the batch is on the books.
     f.items = [stockItem({ on_hand: 3700 })];
     f.production = wireProduction({
@@ -588,11 +602,10 @@ describe('C2: baking, mixing dough and packing record on the database (live mode
     });
     act(() => acts(runtime).confirmBatch());
     await settle();
-    const sent = called(rpc, 'record_production');
+    const sent = called(rpc, 'record_bake');
     expect(sent).toHaveLength(1);
     const body = sent[0]![1].p_rec as Record<string, unknown>;
     expect(body).toMatchObject({
-      kind: 'batch',
       product_id: PID,
       qty: 8,
       target: 8,
@@ -600,7 +613,7 @@ describe('C2: baking, mixing dough and packing record on the database (live mode
       recipe_version: 3,
       drop_no: 5
     });
-    expect(body.adj).toEqual({ 'Bread flour': 2 }); // a line left at 0 is not sent
+    expect(body).not.toHaveProperty('adj'); // a line left at 0 is not sent
     expect(body.id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
     // The screens read the records back (counted once: the engine's own local push is replaced, not added to).
     const s = runtime.state as unknown as {
@@ -618,6 +631,29 @@ describe('C2: baking, mixing dough and packing record on the database (live mode
     // Mutation: sending every adjustment (including 0) fails the exact-keys rule of the database.
   });
 
+  it.each(['ZD001', 'ZD002'])(
+    'keeps counts after definite %s refusal and creates a new request only on explicit retry',
+    async (code) => {
+      const { runtime, rpc } = await mounted(
+        'owner',
+        fresh({ answers: [{ data: null, error: { code } }] })
+      );
+      startBatch(runtime, { actual: 8, rejects: 2, note: 'Keep tray' });
+      act(() => acts(runtime).confirmBatch());
+      await waitFor(() => expect(runtime.renderVals().liveBatchCounts?.saving).toBe(false));
+      expect(runtime.state.batch).toMatchObject({ actual: 8, rejects: 2, note: 'Keep tray' });
+      expect(runtime.renderVals().liveBatchCounts?.uncertain).toBe(false);
+      expect(runtime.renderVals().liveProduction?.completed ?? []).toEqual([]);
+      expect(msg(runtime)).toContain(code === 'ZD001' ? 'Prepare dough first' : 'bake date');
+      expect(called(rpc, 'record_bake')).toHaveLength(1);
+      act(() => acts(runtime).confirmBatch());
+      await waitFor(() => expect(runtime.state.batch).toBeNull());
+      const bodies = called(rpc, 'record_bake').map((call) => call[1].p_rec as Wire);
+      expect(bodies[1].id).not.toBe(bodies[0].id);
+      expect(called(rpc, 'record_production')).toHaveLength(0);
+    }
+  );
+
   it('keeps acknowledged quantities separate from failed refresh and retries only the original drop read', async () => {
     const f = fresh({ production: wireProduction({ baked: [{ product_id: PID, qty: 7 }] }) });
     const { runtime, rpc } = await mounted('owner', f);
@@ -625,7 +661,7 @@ describe('C2: baking, mixing dough and packing record on the database (live mode
     let fail = true,
       release: ((value: ReturnType<typeof saved>) => void) | undefined;
     rpc.mockImplementation((name) =>
-      name === 'record_production'
+      name === 'record_bake'
         ? new Promise((resolve) => {
             release = resolve;
           })
@@ -637,7 +673,7 @@ describe('C2: baking, mixing dough and packing record on the database (live mode
     act(() => acts(runtime).confirmBatch());
     await waitFor(() => expect(release).toBeTypeOf('function'));
     act(() => runtime.setState({ dropNo: 6 }));
-    await act(async () => release!(saved(2, [{ name: 'Bread flour', by: 12, unit: 'g' }])));
+    await act(async () => release!(savedBake(rpc)));
     act(() => runtime.go('bake'));
     await waitFor(() =>
       expect(runtime.renderVals().liveProduction?.completed?.[0]?.stockState).toBe('failed')
@@ -649,8 +685,8 @@ describe('C2: baking, mixing dough and packing record on the database (live mode
       rejects: 1,
       version: 3,
       balance: null,
-      usedDough: 2,
-      shortfall: [{ name: 'Bread flour', by: 12, unit: 'g' }]
+      usedDough: 8,
+      shortfall: []
     });
     fail = false;
     act(() => receipt.retry());
@@ -659,7 +695,7 @@ describe('C2: baking, mixing dough and packing record on the database (live mode
     );
     expect(runtime.renderVals().liveProduction?.completed?.[0]?.balance).toBe(7);
     expect(called(rpc, 'get_production').at(-1)![1]).toMatchObject({ p_drop: 5 });
-    expect(called(rpc, 'record_production')).toHaveLength(1);
+    expect(called(rpc, 'record_bake')).toHaveLength(1);
   });
 
   it('does not present an unanswered production request as saved work', async () => {
@@ -670,7 +706,7 @@ describe('C2: baking, mixing dough and packing record on the database (live mode
     await waitFor(() => expect(msg(runtime)).toBe(PRODUCTION_COPY.notSaved));
     act(() => runtime.go('bake'));
     expect(runtime.renderVals().liveProduction?.completed).toEqual([]);
-    expect(called(rpc, 'record_production')).toHaveLength(1);
+    expect(called(rpc, 'record_bake')).toHaveLength(1);
   });
 
   it('uses the acknowledged shortage result instead of an engine toast derived from stale local stock', async () => {
@@ -678,7 +714,7 @@ describe('C2: baking, mixing dough and packing record on the database (live mode
     startBatch(runtime);
     act(() => acts(runtime).confirmBatch());
     await waitFor(() => expect(msg(runtime)).toBe('Double Chocolate Fudge · Batch 1 saved.'));
-    expect(called(rpc, 'record_production')).toHaveLength(1);
+    expect(called(rpc, 'record_bake')).toHaveLength(1);
     act(() => runtime.go('bake'));
     expect(runtime.renderVals().liveProduction?.completed?.[0]?.shortfall).toEqual([]);
   });
@@ -709,7 +745,7 @@ describe('C2: baking, mixing dough and packing record on the database (live mode
       expect(runtime.renderVals().liveProduction?.completed?.[0]?.stockState).toBe('failed')
     );
     expect(runtime.renderVals().liveProduction?.completed?.[0]?.balance).toBeNull();
-    expect(called(rpc, 'record_production')).toHaveLength(1);
+    expect(called(rpc, 'record_bake')).toHaveLength(1);
   });
 
   it.each([null, []])(
@@ -724,7 +760,7 @@ describe('C2: baking, mixing dough and packing record on the database (live mode
         counts.review();
         acts(runtime).confirmBatch();
       });
-      expect(called(rpc, 'record_production')).toHaveLength(0);
+      expect(called(rpc, 'record_bake')).toHaveLength(0);
       expect(runtime.state.batch).toMatchObject({ actual: 9, note: 'Keep this tray', step: 1 });
       f.recipes = savedRecipe();
       act(() => counts.retryRecipe!());
@@ -739,8 +775,8 @@ describe('C2: baking, mixing dough and packing record on the database (live mode
       });
       act(() => runtime.renderVals().liveBatchCounts!.review());
       act(() => runtime.renderVals().liveBatchCounts!.confirm());
-      await waitFor(() => expect(called(rpc, 'record_production')).toHaveLength(1));
-      expect(called(rpc, 'record_production')[0]![1].p_rec).toMatchObject({
+      await waitFor(() => expect(called(rpc, 'record_bake')).toHaveLength(1));
+      expect(called(rpc, 'record_bake')[0]![1].p_rec).toMatchObject({
         qty: 9,
         recipe_version: 3
       });
@@ -771,7 +807,7 @@ describe('C2: baking, mixing dough and packing record on the database (live mode
         kind === 'batch' ? runtime.renderVals().liveBatchCounts! : runtime.renderVals().liveDough!;
       expect(view).toMatchObject({ sourceUnavailable: true, uncertain: true });
       act(() => view.confirm());
-      const rpcName = kind === 'dough' ? 'record_dough_preparation' : 'record_production';
+      const rpcName = kind === 'dough' ? 'record_dough_preparation' : 'record_bake';
       await waitFor(() => expect(called(rpc, rpcName)).toHaveLength(2));
       expect(called(rpc, rpcName)[1]![1]).toEqual(called(rpc, rpcName)[0]![1]);
     }
@@ -791,8 +827,8 @@ describe('C2: baking, mixing dough and packing record on the database (live mode
       sourceChanged: false
     });
     act(() => runtime.renderVals().liveBatchCounts!.confirm());
-    await waitFor(() => expect(called(rpc, 'record_production')).toHaveLength(1));
-    expect(called(rpc, 'record_production')[0]![1].p_rec).toMatchObject({ recipe_version: 3 });
+    await waitFor(() => expect(called(rpc, 'record_bake')).toHaveLength(1));
+    expect(called(rpc, 'record_bake')[0]![1].p_rec).toMatchObject({ recipe_version: 3 });
   });
 
   it('retains an unavailable-source dough mix, blocks direct confirmation and allows local discard', async () => {
@@ -807,7 +843,7 @@ describe('C2: baking, mixing dough and packing record on the database (live mode
     const view = runtime.renderVals().liveDough!;
     expect(view).toMatchObject({ sourceUnavailable: true, balls: 6, version: null });
     act(() => acts(runtime).confirmDough());
-    expect(called(rpc, 'record_production')).toHaveLength(0);
+    expect(called(rpc, 'record_bake')).toHaveLength(0);
     expect(runtime.state.doughPrep).toMatchObject({ balls: 6 });
     act(() => view.discard());
     expect(runtime.state.doughPrep).toBeNull();
@@ -818,7 +854,7 @@ describe('C2: baking, mixing dough and packing record on the database (live mode
     startBatch(runtime);
     act(() => acts(runtime).confirmBatch());
     await settle();
-    expect(called(rpc, 'record_production')).toHaveLength(0);
+    expect(called(rpc, 'record_bake')).toHaveLength(0);
     expect(msg(runtime)).toBe(PRODUCTION_COPY.ownerOnly);
     expect((runtime.state as unknown as { batch: unknown }).batch).not.toBeNull();
   });
@@ -844,7 +880,7 @@ describe('C2: baking, mixing dough and packing record on the database (live mode
     expect((runtime.state as unknown as { batch: unknown }).batch).not.toBeNull();
     act(() => acts(runtime).confirmBatch());
     await settle();
-    const [first, second] = called(rpc, 'record_production').map(
+    const [first, second] = called(rpc, 'record_bake').map(
       (c) => c[1].p_rec as Record<string, unknown>
     );
     expect(second!.id).toBe(first!.id);
@@ -854,7 +890,7 @@ describe('C2: baking, mixing dough and packing record on the database (live mode
     startBatch(runtime, { actual: 9 });
     act(() => acts(runtime).confirmBatch());
     await settle();
-    const third = called(rpc, 'record_production')[2]![1].p_rec as Record<string, unknown>;
+    const third = called(rpc, 'record_bake')[2]![1].p_rec as Record<string, unknown>;
     expect(third.id).not.toBe(first!.id);
     // Mutation: minting a new id on every tap lets a lost reply be counted twice.
   });
@@ -1005,7 +1041,7 @@ describe('C2: baking, mixing dough and packing record on the database (live mode
       acts(runtime).confirmBatch();
     });
     await settle();
-    expect(called(rpc, 'record_production')).toHaveLength(1);
+    expect(called(rpc, 'record_bake')).toHaveLength(1);
     expect((runtime.state as unknown as { batch: unknown }).batch).toBeNull();
     // Mutation: without the in-flight guard two ids are minted: two records, twice the ingredients off.
   });
@@ -1022,7 +1058,7 @@ describe('C2: baking, mixing dough and packing record on the database (live mode
     await settle();
     process.off('unhandledRejection', onRejection);
     expect(errors).toEqual([]);
-    expect(called(rpc, 'record_production')).toHaveLength(1);
+    expect(called(rpc, 'record_bake')).toHaveLength(1);
     expect(msg(runtime)).toBe('Double Chocolate Fudge · Batch 1 saved.');
     expect(called(rpc, 'get_production').length).toBeGreaterThan(0);
     // Mutation: running the engine's confirm on a closed screen throws on the missing batch and skips the re-read.

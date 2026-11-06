@@ -197,7 +197,7 @@ describe('owner production entry', () => {
     act(() => runtime.renderVals().liveBatchCounts!.confirm());
     act(() => runtime.renderVals().liveBatchCounts!.setActual('30'));
     expect(runtime.state.batch).toMatchObject({ actual: 18 });
-    expect(rpc.mock.calls.filter(([name]) => name === 'record_production')).toHaveLength(1);
+    expect(rpc.mock.calls.filter(([name]) => name === 'record_bake')).toHaveLength(1);
     await act(async () => reply({ data: null, error: null }));
   });
   it('exposes the saving state until the recording answer arrives', async () => {
@@ -216,12 +216,24 @@ describe('owner production entry', () => {
     expect(runtime.renderVals().liveProduction?.saving).toBe(true);
     await act(async () => {
       reply({
-        data: [{ record_id: 'saved-batch', duplicate: false, used_dough: 0, shortfall: [] }],
+        data: [
+          {
+            record_id: (
+              rpc.mock.calls.find(([name]) => name === 'record_bake') as unknown as [
+                string,
+                { p_rec: { id: string } }
+              ]
+            )[1].p_rec.id,
+            duplicate: false,
+            used_dough: 12,
+            shortfall: []
+          }
+        ],
         error: null
       });
     });
     expect(runtime.renderVals().liveProduction?.saving).toBe(false);
-    expect(rpc.mock.calls.filter(([name]) => name === 'record_production')).toHaveLength(1);
+    expect(rpc.mock.calls.filter(([name]) => name === 'record_bake')).toHaveLength(1);
   });
   it.each(['quick', 'row', 'first', 'direct'] as const)(
     'preserves the unfinished batch when starting from %s',
