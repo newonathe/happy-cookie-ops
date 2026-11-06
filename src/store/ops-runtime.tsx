@@ -5958,6 +5958,14 @@ export class OpsRuntime extends OpsProvider {
     const scope = input === null ? null : parseProductionScope(input);
     if (!this.productionRecovery.sameScope(scope)) {
       this.productionActorEpoch += 1;
+      this.productionLoadSeq += 1;
+      this.productionClient = null;
+      this.productionReadState = 'loading';
+      this.lastProduction = null;
+      this.lastProductionDrop = null;
+      this.setState(
+        engineProduction({ batches: [], dough: [], baked: [], shortfalls: [] }, (id) => id)
+      );
       this.productionRestoreId = null;
       this.productionRestoreFocused =
         !this.productionRecovery.scope && this.state.screen === 'batch';
@@ -6140,24 +6148,36 @@ export class OpsRuntime extends OpsProvider {
   ): Promise<boolean> {
     if (client) this.productionClient = client;
     const use = client ?? this.productionClient;
-    if (!isLiveMode() || !use) return false;
+    if (!isLiveMode()) return false;
+    if (!use) {
+      this.productionReadState = 'failed';
+      this.setState({});
+      return false;
+    }
     const seq = (this.productionLoadSeq += 1);
+    const actor = this.productionActorEpoch;
     const dropNo = (this.state as unknown as { dropNo: number }).dropNo;
+    const current = () =>
+      !this.unmounted &&
+      seq === this.productionLoadSeq &&
+      actor === this.productionActorEpoch &&
+      use === this.productionClient &&
+      dropNo === this.state.dropNo;
     this.productionReadState = 'loading';
     this.setState({});
     let rows;
     try {
       rows = await fetchProduction(use, dropNo);
     } catch {
-      if (seq === this.productionLoadSeq) {
+      if (current()) {
         this.productionReadState = 'failed';
         this.setState({});
       }
       return false;
     }
     // A newer read started meanwhile: it will apply, an older answer must not bring back an older picture.
+    if (!current()) return false;
     observed?.(rows);
-    if (seq !== this.productionLoadSeq) return true;
     this.lastProductionDrop = dropNo;
     this.productionReadState = 'read';
     this.applyProduction(rows);
