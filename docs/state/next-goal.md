@@ -1,22 +1,12 @@
 # Next goal — Cloud continuation
 
-> Latest accepted checkpoint: `e5fe735`. [Current state](current.md) supersedes older checkpoint prose below. Finish production recipe handoffs, connected browser/build checks and every remaining production gate before unrelated work.
+Continue the active [full application goal](full-goal.md) from Git, without restarting completed audits. Latest pushed production checkpoint: `9d3311a9838c8f46be2a811023567b0b14411fdb`; see [current state](current.md).
 
-Use GPT-6.1 high, Plan mode off, branch `codex/refined-workflows`.
-Ethan requested this pushed handoff and local stop; the full product remains incomplete.
+1. Finish the current production goal: typed-cost ownership and owner regrant; recipe/Shopping handoff; first-recipe entry; retained independent drafts; definite shortages and exact unknown-outcome retries. New Bake uses record_bake only; exact historical legacy replays remain supported. SQL71/72/73 local reset, role, concurrency, cost and legacy-retirement proof already passed.
+2. Accept bounded implementation slices with focused tests, independent review where required, full pnpm verify, formatting, Live build and connected local browser checks. Keep original tests and protected prototype bytes.
+3. Delta-check PR51/53 compatibility against the final production checkpoint. Preserve both unmerged; reconcile their Orders read-state overlap only with authority.
+4. After production passes, continue the next highest-priority unblocked full-goal slice on a separate branch, preferably outside Orders. Keep all owner, hosted and device gates pending until separately evidenced.
 
-Read `AGENTS.md`, `current.md`, [the complete goal](full-goal.md), the owner brief and
-[production contract](../design/active-bazaar-parallel-production-plan.md#production-transaction-contract--5-november-owner-correction).
-Git supersedes historical status prose.
+Root is the sole coding agent while Claude is unavailable until10November. Read-only independent review uses one bounded different-model worker. Use pinned Node24.20.0/pnpm9.12.3, one serial Vitest worker in this constrained Cloud environment and CLI headless Chromium. No concurrent database/browser workload during a full gate.
 
-Accepted preparation: `ee802fa`, `644ce01`, `d0d6c7f`, `b54239c`.
-SQL72 acceptance: `96047a4` (dough-only bake backend).
-
-Next implement bake client/runtime/recovery, definite `ZD001`/`ZD002` refusals and retained drafts.
-Never fall back to raw ingredients. Before hosted cutover, retire new legacy production writes;
-preserve exact recorded-ID replays and inspect Bazaar return paths separately.
-
-Then complete every remaining requirement in the full goal, including connected scenarios and
-final visual/performance review. Physical dough-count correction is unanswered.
-Use pinned Node24.20.0/pnpm9.12.3, four Vitest workers and CLI Playwright.
-No hosted changes, merge or deploy. Cloud environment/private-work limitations are in the full goal.
+Physical dough-count correction is unanswered. No hosted SQL/data/resource changes, merge, deploy, release, invented business rules or protected-file edits are authorized. Full objective remains incomplete.

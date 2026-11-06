@@ -1140,7 +1140,12 @@ export class OpsRuntime extends OpsProvider {
   });
   /** U7: the recipe book: each flavour's price, cost per cookie (hers or the recipe's), margin and cost receipt. */
   private recipeBook = new RecipeBook({
-    client: () => (this.scheduledClient ?? this.salesTarget()) as unknown as BazaarClient | null,
+    client: () =>
+      (isLiveMode()
+        ? this.state.role === 'owner' && !this.gateNarrow
+          ? this.recipeClient
+          : null
+        : (this.scheduledClient ?? this.salesTarget())) as unknown as BazaarClient | null,
     online: () => Boolean(this.state.online),
     flavours: () =>
       PRODUCTS.map((p) => ({
@@ -2868,6 +2873,7 @@ export class OpsRuntime extends OpsProvider {
     }
     if ((args[1] as { role?: unknown } | undefined)?.role !== this.state.role) {
       this.productionActorEpoch += 1;
+      this.recipeBook.reset();
       this.retireRecipeDraftSession();
     }
     if (this.productionRecordedAway) this.noticeProductionRecordedAway();
@@ -6032,6 +6038,7 @@ export class OpsRuntime extends OpsProvider {
     this.recipeClient = null;
     this.recipeRows = null;
     this.recipeReaderState = 'loading';
+    this.recipeBook.reset();
     this.recipeRestoredEdits = new Set(restored.keys());
     this.recipeBaseStamp = Object.fromEntries([...restored].map(([id, row]) => [id, row.stamp]));
     this.retireRecipeDraftSession();

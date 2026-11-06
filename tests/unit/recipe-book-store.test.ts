@@ -48,8 +48,9 @@ function harness(
   const openRecipe = vi.fn();
   const reloadCosts = vi.fn();
   const recipes = opts.recipes ?? { classic: recipe(), velvet: recipe({ perCookie: 40 }) };
+  const client = { rpc } as unknown as BazaarClient;
   const deps: RecipeBookDeps = {
-    client: () => (state.client ? ({ rpc } as unknown as BazaarClient) : null),
+    client: () => (state.client ? client : null),
     online: () => state.online,
     flavours: () => [
       { id: 'classic', name: 'Classic', priceCents: 12500, photo: 'assets/a.png', onMenu: true },
@@ -68,6 +69,57 @@ function harness(
   const item = (id: string) => book.vals().items.find((i) => i.id === id)!;
   return { book, state, rpc, toast, rerender, openRecipe, reloadCosts, calls, item };
 }
+
+it('retires cached cost edits, navigation and Retry after the recipe identity resets', async () => {
+  const h = harness();
+  await h.book.read();
+  const old = h.book.vals(),
+    fresh = h.book.vals();
+  expect(fresh.refresh).toBe(old.refresh);
+  h.rpc.mockClear();
+  h.book.reset();
+  old.refresh();
+  old.items[0]!.editRecipe();
+  expect(await old.items[0]!.save('77')).toBe(BOOK_COPY.offline);
+  expect(h.rpc).not.toHaveBeenCalled();
+  expect(h.openRecipe).not.toHaveBeenCalled();
+  expect(h.reloadCosts).not.toHaveBeenCalled();
+});
+
+it('ignores a typed-cost read answered after its exact client retires', async () => {
+  const h = harness();
+  let answer!: (value: Awaited<ReturnType<typeof h.rpc>>) => void;
+  h.rpc.mockImplementationOnce(
+    () =>
+      new Promise((resolve) => {
+        answer = resolve;
+      })
+  );
+  const pending = h.book.read();
+  h.state.client = false;
+  answer({ data: [{ product_id: 'classic', cost_cents: 7700, typed_at: TYPED_AT }], error: null });
+  await pending;
+  expect(h.item('classic').typed).toBe(false);
+});
+
+it('does not project or toast an old cost acknowledgement into the returning book', async () => {
+  const h = harness();
+  await h.book.read();
+  let answer!: (value: Awaited<ReturnType<typeof h.rpc>>) => void;
+  h.rpc.mockImplementationOnce(
+    () =>
+      new Promise((resolve) => {
+        answer = resolve;
+      })
+  );
+  const pending = h.item('classic').save('77');
+  h.book.reset();
+  await h.book.read();
+  answer({ data: null, error: null });
+  await pending;
+  expect(h.item('classic').typed).toBe(false);
+  expect(h.toast).not.toHaveBeenCalled();
+});
 
 describe('reading her typed costs', () => {
   it('is loading until the first read, then read; nothing typed shows the recipe’s cost', async () => {

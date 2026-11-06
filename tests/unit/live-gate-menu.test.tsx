@@ -222,6 +222,50 @@ describe('LiveGate: verified identity for unfinished production', () => {
     });
     expect(engine.setProductionIdentity.mock.calls).toHaveLength(count);
   });
+  it('rebinds production after owner access returns without reloading settings or the catalogue', async () => {
+    engine.state.screen = 'bake';
+    render(
+      <LiveGate initialScreen="bake">
+        <div />
+      </LiveGate>
+    );
+    await act(settle);
+    expect(engine.loadRecipes).toHaveBeenCalledTimes(1);
+    await act(async () => {
+      authEvent('TOKEN_REFRESHED');
+      await settle();
+    });
+    expect(engine.loadProduction).toHaveBeenCalledTimes(1);
+    vi.mocked(checkStaffProfile).mockResolvedValue({ status: 'ok', role: 'helper', userId: owner });
+    await act(async () => {
+      authEvent('TOKEN_REFRESHED');
+      await settle();
+    });
+    expect(engine.setProductionIdentity).toHaveBeenLastCalledWith(null);
+    vi.mocked(checkStaffProfile).mockResolvedValue({ status: 'ok', role: 'owner', userId: owner });
+    await act(async () => {
+      authEvent('TOKEN_REFRESHED');
+      await settle();
+    });
+    expect(engine.loadProduction).toHaveBeenCalledTimes(2);
+    expect(engine.loadRecipes).toHaveBeenLastCalledWith(client, undefined, undefined, {
+      userId: owner,
+      business: 'https://happy-cookie.supabase.co'
+    });
+    expect(engine.loadRecipes).toHaveBeenCalledTimes(2);
+    vi.mocked(checkStaffProfile).mockResolvedValue({ status: 'ok', role: 'owner', userId: other });
+    await act(async () => {
+      authEvent('SIGNED_IN', { user: { id: other } });
+      await settle();
+    });
+    expect(engine.loadProduction).toHaveBeenCalledTimes(3);
+    expect(engine.loadRecipes).toHaveBeenLastCalledWith(client, undefined, undefined, {
+      userId: other,
+      business: 'https://happy-cookie.supabase.co'
+    });
+    expect(engine.loadSettings).toHaveBeenCalledTimes(1);
+    expect(engine.loadFlavours).toHaveBeenCalledTimes(1);
+  });
   it('does not turn anonymous customer sign-in into a staff check', async () => {
     render(
       <LiveGate initialScreen="shop">

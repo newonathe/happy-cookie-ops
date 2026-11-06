@@ -193,6 +193,8 @@ export function LiveGate({
     let settingsStarted = false;
     let settingsLoaded = false;
     let flavoursStarted = false;
+    let flavoursRead: Promise<boolean> | null = null;
+    let productionReadKey: string | null = null;
     let idleRunning = false;
     // The role idle time is measured for: the verified one, or the remembered one offline.
     let idleRole: Role | null = null;
@@ -207,6 +209,7 @@ export function LiveGate({
     let lastActivity = Date.now();
     const supabase = createClient();
     const setAccess = (next: Access) => {
+      if (next !== 'verified') productionReadKey = null;
       accessRef.current = next;
       setAccessState(next);
       // U2: Home on the till is offered only while the whole app is open, never in Bazaar-only mode.
@@ -470,6 +473,9 @@ export function LiveGate({
         keepStallCopy();
       }
       if (!idleRunning) startIdle(role);
+      const nextProductionReadKey = productionScope ? JSON.stringify(productionScope) : null;
+      const productionScopeChanged = nextProductionReadKey !== productionReadKey;
+      productionReadKey = nextProductionReadKey;
       // The full flavour list only on a staff screen: a signed-in owner on /shop sees what
       // customers see (the published menu), not flavours that are on the form but unpublished.
       if (
@@ -488,11 +494,25 @@ export function LiveGate({
         // E1: the owner's books, for the P&L, Home profit and the expense list.
         if (owner && !cancelled) void engine.loadBooks(supabase);
         // Only after the flavour list was read: an order for a flavour outside the ported list would crash the screens.
-        void Promise.resolve(engine.loadFlavours(supabase)).then((loaded) => {
+        flavoursRead = Promise.resolve(engine.loadFlavours(supabase));
+        void flavoursRead.then((loaded) => {
           keepStallCopy();
           if (owner && !cancelled && loaded !== false) void engine.loadOrders(supabase);
           // A4: the owner's recipes, for the flavours the list just brought in.
           if (owner && !cancelled && loaded !== false)
+            void engine.loadRecipes(supabase, undefined, undefined, productionScope);
+        });
+      } else if (
+        productionScopeChanged &&
+        productionScope &&
+        engine instanceof OpsRuntime &&
+        !CUSTOMER_SCREENS.includes(engine.state.screen as ScreenKey)
+      ) {
+        // Regranting owner access retires the old runtime clients. Rebind production sources
+        // after verification without replacing settings, catalogue edits or a held sale.
+        void engine.loadProduction(supabase);
+        void flavoursRead?.then((loaded) => {
+          if (!cancelled && loaded !== false)
             void engine.loadRecipes(supabase, undefined, undefined, productionScope);
         });
       }
