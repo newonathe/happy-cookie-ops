@@ -276,21 +276,47 @@ HCB-008 refund reference (OD-02), HCB-009 close-day cash pre-fill (OD-01), and t
 
 ### F. Production-readiness gaps
 
-| ID      | Gap                                                                                                         | Source                    | Status                                       |
-| ------- | ----------------------------------------------------------------------------------------------------------- | ------------------------- | -------------------------------------------- |
-| HCB-070 | Physical iPhone/Safari, safe areas, real touch, on-screen keyboard                                          | audit limits, SA          | unverified                                   |
-| HCB-071 | RLS, SQL rules, real concurrency on the target database                                                     | audit limits              | unverified                                   |
-| HCB-072 | Offline reload through the service worker                                                                   | audit limits              | unverified                                   |
-| HCB-073 | Deployed schema/API compatibility with this branch (trial differs by 13 files; migration 71)                | audit README, SA-F10      | unverified; makes HCB-004 likelier           |
-| HCB-074 | Two tabs/devices changing the same record live                                                              | audit limits              | unverified (only simulated conflicts)        |
-| HCB-075 | Idle sign-out after real inactivity                                                                         | audit limits, DP-15       | unverified                                   |
-| HCB-076 | CSV export contents and photo upload                                                                        | audit limits              | unverified                                   |
-| HCB-077 | Signed-in production performance with realistic data                                                        | SA §6                     | unverified                                   |
-| HCB-078 | Connected business-loop scenarios (order→payment→production→stock→pickup→books; event→close→finalize→books) | SA §4                     | open                                         |
-| HCB-079 | Independent review receipts for each money/stock/offline slice                                              | AGENTS, lean-plan         | open per slice                               |
-| HCB-080 | `ops-runtime.tsx` ~9.7k lines; concentration of change risk                                                 | SA-F10                    | open (do not rewrite during release)         |
-| HCB-081 | HCB-001 fix awaiting independent review before acceptance                                                   | process                   | open: draft PR newonathe/happy-cookie-ops#51 |
-| HCB-082 | Placeholder customer and owner copy awaiting owner wording                                                  | staff-copy.ts, ORDER_COPY | decision required (OD-12)                    |
+| ID      | Gap                                                                                                         | Source                            | Status                                       |
+| ------- | ----------------------------------------------------------------------------------------------------------- | --------------------------------- | -------------------------------------------- |
+| HCB-070 | Physical iPhone/Safari, safe areas, real touch, on-screen keyboard                                          | audit limits, SA                  | unverified                                   |
+| HCB-071 | RLS, SQL rules, real concurrency on the target database                                                     | audit limits                      | unverified                                   |
+| HCB-072 | Offline reload through the service worker                                                                   | audit limits                      | unverified                                   |
+| HCB-073 | Deployed schema/API compatibility with this branch (trial differs by 13 files; migration 71)                | audit README, SA-F10              | unverified; makes HCB-004 likelier           |
+| HCB-074 | Two tabs/devices changing the same record live                                                              | audit limits                      | unverified (only simulated conflicts)        |
+| HCB-075 | Idle sign-out after real inactivity                                                                         | audit limits, DP-15               | unverified                                   |
+| HCB-076 | CSV export contents and photo upload                                                                        | audit limits                      | unverified                                   |
+| HCB-077 | Signed-in production performance with realistic data                                                        | SA §6                             | unverified                                   |
+| HCB-078 | Connected business-loop scenarios (order→payment→production→stock→pickup→books; event→close→finalize→books) | SA §4                             | open                                         |
+| HCB-079 | Independent review receipts for each money/stock/offline slice                                              | AGENTS, lean-plan                 | open per slice                               |
+| HCB-080 | `ops-runtime.tsx` ~9.7k lines; concentration of change risk                                                 | SA-F10                            | open (do not rewrite during release)         |
+| HCB-081 | HCB-001 fix awaiting independent review before acceptance                                                   | process                           | open: draft PR newonathe/happy-cookie-ops#51 |
+| HCB-082 | Placeholder customer and owner copy awaiting owner wording                                                  | staff-copy.ts, ORDER_COPY         | decision required (OD-12)                    |
+| HCB-083 | `/bazaar` Lighthouse Total Blocking Time is at or over its 800 ms budget on slower CI runners, at the base  | CI run 42161225346, PR #51 review | reproduced (see below)                       |
+
+#### HCB-083 · `/bazaar` TBT budget fails at the base on slower runners
+
+- **Observed:** CI run 42161225346 (PR #51) failed the Performance budget: `/bazaar` TBT best of 3 was 813 ms against the 800 ms limit (runs 971, 813, 937).
+- **Not caused by PR #51:**
+  - **Code under test not running:** the Lighthouse build sets no `NEXT_PUBLIC_APP_MODE`, so it is demo mode (`src/lib/config/app-mode.ts:14-16`). The PR's live-mode code never runs there. The script delta is +264 bytes.
+  - **Equal conditions (8 interleaved rounds, same `lighthouserc.json` settings):** `/bazaar` base `c84d23d` median 850 ms (695–1,115, 6 of 8 runs over 800) against head `26ac1e4` median 856 ms (750–1,070). Paired difference: median +6 ms.
+- **Pass/fail follows runner CPU speed** across five CI runs:
+
+  | Lighthouse benchmarkIndex | `/bazaar` TBT       |
+  | ------------------------- | ------------------- |
+  | about 4,000               | 322–460 ms          |
+  | about 3,000               | 511–617 ms (passed) |
+  | about 2,450               | 813–971 ms (failed) |
+
+  The workflow comment says the limits sit "about 1.2x above the measured baseline" (`.github/workflows/ci.yml:148-149`); that margin does not hold on slower runners.
+
+- **Impact:** the gate passes or fails depending on which runner a job lands on, so a red result does not identify a regression and a green one does not prove the page is within budget. **S3 / P1** (process and performance).
+- **Correction (to decide; never lower or skip the gate):** investigate `/bazaar` main-thread work at the base (largest long tasks in the Lighthouse trace), and reduce it until the budget holds with margin on slower runners. Alternatives:
+  - more runs per URL with a median assertion;
+  - recording `benchmarkIndex` beside each result.
+
+  Both change the gate's method and need Ethan's approval.
+
+- **Dependencies:** none. **Conflicts:** none recorded. **Status:** reproduced (baseline), open.
 
 ---
 
@@ -337,27 +363,28 @@ HCB-008 refund reference (OD-02), HCB-009 close-day cash pre-fill (OD-01), and t
 
 ## 5. Priority and dependency matrix
 
-| Order | Slice                                                             | IDs                      | Sev/Pri           | Depends on                      | Files (main)                                                       | Protected?              | Owner decision? | Size               |
-| ----- | ----------------------------------------------------------------- | ------------------------ | ----------------- | ------------------------------- | ------------------------------------------------------------------ | ----------------------- | --------------- | ------------------ |
-| 0     | Independently review and accept the pickup fix (PR #51)           | HCB-001                  | S1/P0             | reviewer                        | none (review only)                                                 | no                      | no              | done, review only  |
-| 1     | **Orders read state + Retry**                                     | HCB-002a                 | S2/P0             | 0 (same `renderVals` region)    | `staff-orders.ts`, `ops-runtime.tsx`, `orders-live.tsx`, `vals.ts` | no                      | no              | ~120 lines + tests |
-| 2     | Boundary validation, start chain isolation                        | HCB-004                  | S2/P1             | none                            | `flavours.ts`, `settings.ts`, `ops-runtime.tsx` loaders            | no                      | no              | ~100               |
-| 3     | Products failed read                                              | HCB-003                  | S2/P1             | 2                               | `products-live.tsx`, `ops-runtime.tsx`                             | no                      | no              | ~60                |
-| 4     | Reject confirmation                                               | HCB-007                  | S2/P1             | OD-03 (default: dialog)         | `order-live.tsx`, `ops-runtime.tsx`                                | no                      | form only       | ~60                |
-| 5     | Till toast placement                                              | HCB-005                  | S2/P1             | avoid Codex production region   | `ops-runtime.tsx` `liveToastVals`                                  | no                      | no              | ~40                |
-| 6     | Saved + refresh failed                                            | HCB-006                  | S3/P2             | 1                               | `staff-orders.ts`, `ops-runtime.tsx`                               | no                      | no              | ~60                |
-| 7     | Accessible name                                                   | HCB-014                  | S3/P2             | none                            | `till.tsx`                                                         | no                      | no              | 1 line + test      |
-| 8     | Home never-counted                                                | HCB-019                  | S3/P2             | none                            | `home-desk.ts`                                                     | no                      | no              | ~30                |
-| 9-16  | Remaining read-state screens                                      | HCB-002b..i              | S2/P1             | 1 (pattern)                     | one screen each                                                    | no                      | no              | ~60-100 each       |
-| 17    | Helper Home                                                       | HCB-010                  | S3/P2             | OD-04 (interim allowed)         | `ops-runtime.tsx`, `home-live.tsx`                                 | no                      | yes             | ~80                |
-| 18    | Sign out placement                                                | HCB-011                  | S3/P2             | OD-14                           | `sign-out-control.tsx`, account page                               | no                      | minor           | ~60                |
-| 19    | Back/reload context                                               | HCB-012, -013            | S3-S4/P2          | none                            | `ops-runtime.tsx`, `route-sync.tsx`                                | no                      | no              | two slices         |
-| 20    | Wording                                                           | HCB-016, -017, then -018 | S4/P3             | 0; OD-05                        | runtime overrides, `production-receipts.tsx`, money view           | engine via runtime only | -018 yes        | small each         |
-| 21    | Targets, overflow, clipping                                       | HCB-020, -021, -022      | S4/P2-3           | none                            | CSS modules, `owner-patterns.tsx`                                  | All tools blocked       | no              | small each         |
-| 22    | History label, plan scope                                         | HCB-042, -043            | S3/P2             | OD-11                           | customers, bake-plan                                               | no                      | partial         | small each         |
-| 23    | Verify suspected bugs                                             | HCB-030..038             | n/a               | none                            | tests only first                                                   | no                      | -037 yes        | investigation      |
-| later | Review steps, customer live replacement, history read, comparison | D items                  | P2-P3             | OD-06, -07, -11, -15            | new components; possibly new migration                             | live replacement route  | yes             | multi-slice        |
-| gate  | Readiness                                                         | HCB-070..080             | P1 before release | Ethan approvals for hosted work | n/a                                                                | n/a                     | approvals       | n/a                |
+| Order | Slice                                                             | IDs                      | Sev/Pri           | Depends on                      | Files (main)                                                       | Protected?              | Owner decision?           | Size                |
+| ----- | ----------------------------------------------------------------- | ------------------------ | ----------------- | ------------------------------- | ------------------------------------------------------------------ | ----------------------- | ------------------------- | ------------------- |
+| 0     | Independently review and accept the pickup fix (PR #51)           | HCB-001                  | S1/P0             | reviewer                        | none (review only)                                                 | no                      | no                        | done, review only   |
+| 1     | **Orders read state + Retry**                                     | HCB-002a                 | S2/P0             | 0 (same `renderVals` region)    | `staff-orders.ts`, `ops-runtime.tsx`, `orders-live.tsx`, `vals.ts` | no                      | no                        | ~120 lines + tests  |
+| 2     | Boundary validation, start chain isolation                        | HCB-004                  | S2/P1             | none                            | `flavours.ts`, `settings.ts`, `ops-runtime.tsx` loaders            | no                      | no                        | ~100                |
+| 3     | Products failed read                                              | HCB-003                  | S2/P1             | 2                               | `products-live.tsx`, `ops-runtime.tsx`                             | no                      | no                        | ~60                 |
+| 4     | Reject confirmation                                               | HCB-007                  | S2/P1             | OD-03 (default: dialog)         | `order-live.tsx`, `ops-runtime.tsx`                                | no                      | form only                 | ~60                 |
+| 5     | Till toast placement                                              | HCB-005                  | S2/P1             | avoid Codex production region   | `ops-runtime.tsx` `liveToastVals`                                  | no                      | no                        | ~40                 |
+| 6     | Saved + refresh failed                                            | HCB-006                  | S3/P2             | 1                               | `staff-orders.ts`, `ops-runtime.tsx`                               | no                      | no                        | ~60                 |
+| 7     | Accessible name                                                   | HCB-014                  | S3/P2             | none                            | `till.tsx`                                                         | no                      | no                        | 1 line + test       |
+| 8     | Home never-counted                                                | HCB-019                  | S3/P2             | none                            | `home-desk.ts`                                                     | no                      | no                        | ~30                 |
+| 9-16  | Remaining read-state screens                                      | HCB-002b..i              | S2/P1             | 1 (pattern)                     | one screen each                                                    | no                      | no                        | ~60-100 each        |
+| 17    | Helper Home                                                       | HCB-010                  | S3/P2             | OD-04 (interim allowed)         | `ops-runtime.tsx`, `home-live.tsx`                                 | no                      | yes                       | ~80                 |
+| 18    | Sign out placement                                                | HCB-011                  | S3/P2             | OD-14                           | `sign-out-control.tsx`, account page                               | no                      | minor                     | ~60                 |
+| 19    | Back/reload context                                               | HCB-012, -013            | S3-S4/P2          | none                            | `ops-runtime.tsx`, `route-sync.tsx`                                | no                      | no                        | two slices          |
+| 20    | Wording                                                           | HCB-016, -017, then -018 | S4/P3             | 0; OD-05                        | runtime overrides, `production-receipts.tsx`, money view           | engine via runtime only | -018 yes                  | small each          |
+| 21    | Targets, overflow, clipping                                       | HCB-020, -021, -022      | S4/P2-3           | none                            | CSS modules, `owner-patterns.tsx`                                  | All tools blocked       | no                        | small each          |
+| 22    | History label, plan scope                                         | HCB-042, -043            | S3/P2             | OD-11                           | customers, bake-plan                                               | no                      | partial                   | small each          |
+| 23    | Verify suspected bugs                                             | HCB-030..038             | n/a               | none                            | tests only first                                                   | no                      | -037 yes                  | investigation       |
+| later | Review steps, customer live replacement, history read, comparison | D items                  | P2-P3             | OD-06, -07, -11, -15            | new components; possibly new migration                             | live replacement route  | yes                       | multi-slice         |
+| gate  | Readiness                                                         | HCB-070..080             | P1 before release | Ethan approvals for hosted work | n/a                                                                | n/a                     | approvals                 | n/a                 |
+| perf  | `/bazaar` TBT baseline over budget on slower runners              | HCB-083                  | S3/P1             | none                            | `/bazaar` route code (to be found from the trace)                  | no                      | method changes need Ethan | investigation first |
 
 Sequencing rules: one slice per branch and commit; rebase each runtime slice on the accepted HCB-001 commit; keep away from the production region of `ops-runtime.tsx` while HCB-059 is in flight; every money/order/offline slice gets an independent review before acceptance.
 
