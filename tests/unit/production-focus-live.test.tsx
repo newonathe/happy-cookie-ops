@@ -51,6 +51,63 @@ const vals = () => ({
   }
 });
 describe('live production count and review', () => {
+  it('reviews only recorded dough and discloses shortages without capping actual output', () => {
+    const v = vals();
+    v.batch.step1 = false;
+    v.batch.step2 = true;
+    const ui = render(
+      <ProductionFocusLive
+        v={
+          {
+            ...v,
+            liveBatchCounts: { ...v.liveBatchCounts, doughOnly: true, doughBalance: 12 }
+          } as unknown as OpsVals
+        }
+      />
+    );
+    expect(screen.getByRole('region', { name: 'Dough used by baking' }).textContent).toContain(
+      '18 balls: 16 good cookies and 2 rejects'
+    );
+    expect(screen.getByText('Prepare dough first')).toBeTruthy();
+    expect(screen.queryByRole('region', { name: 'Ingredients used' })).toBeNull();
+    expect(screen.queryByText(/mixed fresh/i)).toBeNull();
+    expect(screen.getByRole('button', { name: 'Confirm production' })).not.toBeDisabled();
+    ui.rerender(
+      <ProductionFocusLive
+        v={
+          {
+            ...v,
+            liveBatchCounts: { ...v.liveBatchCounts, doughOnly: true, doughBalance: null }
+          } as unknown as OpsVals
+        }
+      />
+    );
+    expect(screen.getByText('Recorded dough balance unavailable.')).toBeTruthy();
+    expect(screen.queryByText('Prepare dough first')).toBeNull();
+  });
+  it('requires explicit removal of older ingredient changes and retains the counts', () => {
+    const v = vals(),
+      clear = vi.fn();
+    render(
+      <ProductionFocusLive
+        v={
+          {
+            ...v,
+            liveBatchCounts: {
+              ...v.liveBatchCounts,
+              doughOnly: true,
+              ingredientChanges: true,
+              clearIngredientChanges: clear
+            }
+          } as unknown as OpsVals
+        }
+      />
+    );
+    expect(screen.getByRole('button', { name: 'Review production' })).toBeDisabled();
+    fireEvent.click(screen.getByRole('button', { name: 'Remove ingredient adjustments' }));
+    expect(clear).toHaveBeenCalledOnce();
+    expect(screen.getByLabelText('Cookies made, including rejects')).toHaveValue('18');
+  });
   it('keeps counts editable but hides unverified recipe use and blocks review until the recipe can be read', () => {
     const v = vals(),
       retryRecipe = vi.fn();

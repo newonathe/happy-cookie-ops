@@ -11,6 +11,7 @@ import { s } from '@/lib/css';
 import styles from './focus.module.css';
 import { ProductionRecipeUpdate } from './production-recipe-update';
 import { ProductionDeviceNotice } from './production-recovery-notice';
+import { ProductionBakeReview } from './production-bake-review';
 
 /** Count and review presentation; stock quantities and recording remain runtime actions. */
 export function ProductionFocusLive({ v }: { v: OpsVals }) {
@@ -61,7 +62,11 @@ export function ProductionFocusLive({ v }: { v: OpsVals }) {
               ? 'Saved result pending'
               : counts.sourceUnavailable
                 ? 'Draft kept'
-                : bakeWords(batch.doughText)}
+                : counts.doughOnly
+                  ? counts.doughBalance == null
+                    ? 'Recorded dough balance unchecked'
+                    : `${counts.doughBalance} balls in the fridge`
+                  : bakeWords(batch.doughText)}
             {counts.recipeVersion !== null ? ` · Recipe v${counts.recipeVersion}` : ''}
           </p>
         </div>
@@ -75,6 +80,18 @@ export function ProductionFocusLive({ v }: { v: OpsVals }) {
         connected={counts.connected}
         retry={counts.retryCopy}
       />
+      {counts.ingredientChanges ? (
+        <Banner
+          tone="warn"
+          title="Review this older draft"
+          body="Baking now uses recorded dough only. Your ingredient adjustments are kept until you remove them explicitly. Counts and notes stay; record ingredient use through Prepare dough."
+          action={
+            counts.clearIngredientChanges
+              ? { label: 'Remove ingredient adjustments', onPress: counts.clearIngredientChanges }
+              : undefined
+          }
+        />
+      ) : null}
       {counts.uncertain ? (
         <Banner
           tone="warn"
@@ -239,7 +256,11 @@ export function ProductionFocusLive({ v }: { v: OpsVals }) {
               type="submit"
               form={formId}
               disabled={
-                !counts.valid || counts.saving || counts.sourceUnavailable || counts.readOnly
+                !counts.valid ||
+                counts.ingredientChanges ||
+                counts.saving ||
+                counts.sourceUnavailable ||
+                counts.readOnly
               }
             >
               Review production
@@ -249,10 +270,14 @@ export function ProductionFocusLive({ v }: { v: OpsVals }) {
       ) : null}
       {batch.step2 ? (
         <div className={styles.content}>
-          {!counts.uncertain && !counts.sourceChanged && !counts.sourceUnavailable ? (
+          {!counts.doughOnly &&
+          !counts.uncertain &&
+          !counts.sourceChanged &&
+          !counts.sourceUnavailable ? (
             <p className={styles.dough}>{bakeWords(batch.doughLine)}</p>
           ) : null}
-          {!counts.uncertain &&
+          {!counts.doughOnly &&
+          !counts.uncertain &&
           !counts.sourceChanged &&
           !counts.sourceUnavailable &&
           batch.anyShort ? (
@@ -262,7 +287,12 @@ export function ProductionFocusLive({ v }: { v: OpsVals }) {
               body="Confirming uses the available stock and records the shortage. Stock will stop at zero. Correct the balance with a physical count."
             />
           ) : null}
-          {!counts.uncertain && !counts.sourceChanged && !counts.sourceUnavailable ? (
+          {counts.doughOnly &&
+          !counts.uncertain &&
+          !counts.sourceChanged &&
+          !counts.sourceUnavailable ? (
+            <ProductionBakeReview counts={counts} />
+          ) : !counts.uncertain && !counts.sourceChanged && !counts.sourceUnavailable ? (
             <section className={styles.ingredients} aria-label="Ingredients used">
               <h2>Ingredients this batch uses</h2>
               <p>Check the amounts. Adjust only what you used differently.</p>
@@ -336,6 +366,7 @@ export function ProductionFocusLive({ v }: { v: OpsVals }) {
               onClick={counts.confirm}
               disabled={
                 !counts.valid ||
+                counts.ingredientChanges ||
                 counts.saving ||
                 counts.readOnly ||
                 counts.connected === false ||
