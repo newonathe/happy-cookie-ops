@@ -45,7 +45,26 @@ export function savedPickupText(
 ): string {
   if (!isSavedPickupDate(date))
     return form === 'long' ? STAFF_COPY.pickupMissingLong : STAFF_COPY.pickupMissing;
-  if (!isSavedPickupWindow(window))
-    return pickupLabel(date, null) + ' · ' + STAFF_COPY.pickupNoTime;
-  return pickupLabel(date, window);
+  // From here the text depends only on the validated date and time: both forms read the same, and
+  // every missing or invalid time reads "time not saved". Validated values cannot contain '|'.
+  const time = isSavedPickupWindow(window) ? window : '';
+  const key = date + '|' + time;
+  const cached = LABELS.get(key);
+  if (cached !== undefined) return cached;
+  const text = time
+    ? pickupLabel(date, time)
+    : pickupLabel(date, null) + ' · ' + STAFF_COPY.pickupNoTime;
+  if (LABELS.size >= LABEL_LIMIT) LABELS.delete(LABELS.keys().next().value as string);
+  LABELS.set(key, text);
+  return text;
 }
+
+/**
+ * Worded labels by `date|time`. Each `pickupLabel` call builds an Intl formatter (about 45 µs),
+ * and the Orders list re-labels every row on every render, so a 500-order list spent about 20 ms
+ * per render here. A list holds few distinct pairs. The cache is bounded: above the server's
+ * 500-row order read, the oldest entry goes first. The text is independent of the device's time
+ * zone (see above), so a cached label is never stale.
+ */
+const LABELS = new Map<string, string>();
+const LABEL_LIMIT = 512;
