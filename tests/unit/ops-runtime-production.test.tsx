@@ -237,13 +237,13 @@ async function mounted(role: Role, f: Fake, load = true) {
   render(<OpsRuntime ref={(r) => void (ref.current = r)} />);
   const runtime = ref.current!;
   act(() => runtime.setRole(role));
-  if (role === 'owner') await bindProductionOwner(runtime);
+  const scope = role === 'owner' ? await bindProductionOwner(runtime) : null;
   const c = fakeClient(f);
   await act(async () => {
     await runtime.loadStockCatalogue(c.client as never);
     await runtime.loadOrders(c.client as unknown as StaffOrderClient);
     if (load) await runtime.loadProduction(c.client as never);
-    await runtime.loadRecipes(c.client as never);
+    await runtime.loadRecipes(c.client as never, undefined, undefined, scope);
   });
   // The recipes screen's own state: yield 12 for this flavour, and the version the screen is on.
   const cur = runtime.state as unknown as {

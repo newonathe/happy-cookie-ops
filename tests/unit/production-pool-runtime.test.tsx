@@ -112,7 +112,7 @@ async function mount(identity?: ProductionRecoveryScope) {
   await act(async () => {
     await r.loadFlavours(client);
     await r.loadStockCatalogue(client);
-    await r.loadRecipes(client);
+    await r.loadRecipes(client, undefined, undefined, scope);
     await r.loadOrders(client);
     await r.loadProduction(client);
   });
@@ -257,8 +257,8 @@ describe('multiple production work items in the actual runtime', () => {
       expect(current().review()).toBe(false);
     });
     act(() => current().setQuantity(B, '12'));
-    await act(async () =>
-      second.r.loadRecipes({
+    await act(async () => {
+      const nextRecipeClient = {
         rpc: async () => ({
           data: [A, B].map((id) => ({
             product_id: id,
@@ -270,8 +270,9 @@ describe('multiple production work items in the actual runtime', () => {
           })),
           error: null
         })
-      } as never)
-    );
+      } as never;
+      return second.r.loadRecipes(nextRecipeClient, undefined, undefined, second.scope);
+    });
     act(() => {
       expect(current().review()).toBe(false);
       expect(current().begin()).toBe(false);
@@ -434,7 +435,7 @@ describe('multiple production work items in the actual runtime', () => {
     await bindProductionOwner(first.r, other);
     await act(async () => {
       await first.r.loadStockCatalogue(first.client);
-      await first.r.loadRecipes(first.client);
+      await first.r.loadRecipes(first.client, undefined, undefined, other);
       await first.r.loadProduction(first.client);
     });
     expect(rows(first.r)).toHaveLength(0);
@@ -446,7 +447,7 @@ describe('multiple production work items in the actual runtime', () => {
     await bindProductionOwner(first.r, first.scope);
     await act(async () => {
       await first.r.loadStockCatalogue(first.client);
-      await first.r.loadRecipes(first.client);
+      await first.r.loadRecipes(first.client, undefined, undefined, first.scope);
       await first.r.loadProduction(first.client);
     });
     act(() => first.r.go('bake'));
@@ -456,7 +457,7 @@ describe('multiple production work items in the actual runtime', () => {
     await bindProductionOwner(first.r, other);
     await act(async () => {
       await first.r.loadStockCatalogue(first.client);
-      await first.r.loadRecipes(first.client);
+      await first.r.loadRecipes(first.client, undefined, undefined, other);
       await first.r.loadProduction(first.client);
     });
     act(() => first.r.go('bake'));
@@ -540,14 +541,14 @@ describe('multiple production work items in the actual runtime', () => {
     expect(requests).toHaveLength(0);
   });
   it('reviews an updated saved recipe explicitly, keeps counts and rejects stale adoption callbacks', async () => {
-    const { r, requests } = await mount();
+    const { r, requests, scope } = await mount();
     begin(r, A, '24');
     act(() => r.renderVals().liveBatchCounts!.setActual('26'));
     act(() => r.renderVals().liveBatchCounts!.setRejects('2'));
     act(() => r.renderVals().batch!.setNote({ target: { value: 'Keep this tray' } }));
     act(() => r.renderVals().batch!.rows[0].plus());
     await act(async () => {
-      await r.loadRecipes({
+      const nextRecipeClient = {
         rpc: async () => ({
           data: [A, B].map((id) => ({
             product_id: id,
@@ -559,7 +560,8 @@ describe('multiple production work items in the actual runtime', () => {
           })),
           error: null
         })
-      } as never);
+      } as never;
+      await r.loadRecipes(nextRecipeClient, undefined, undefined, scope);
     });
     const update = r.renderVals().liveBatchCounts!.recipeUpdate!;
     expect(update).toMatchObject({ previousVersion: 3, version: 4, previousYield: 12, yield: 24 });
@@ -580,7 +582,7 @@ describe('multiple production work items in the actual runtime', () => {
     expect(requests).toHaveLength(0);
   });
   it('keeps an old dough amount visible after recipe adoption and requires a valid full/half choice', async () => {
-    const { r, requests } = await mount();
+    const { r, requests, scope } = await mount();
     act(() => r.renderVals().liveProduction!.start!.open());
     act(() => r.renderVals().liveProduction!.start!.choose(A));
     act(() => r.renderVals().liveProduction!.start!.chooseKind!('dough'));
@@ -589,7 +591,7 @@ describe('multiple production work items in the actual runtime', () => {
       expect(r.renderVals().liveProduction!.start!.begin()).toBe(true);
     });
     await act(async () => {
-      await r.loadRecipes({
+      const nextRecipeClient = {
         rpc: async () => ({
           data: [
             {
@@ -603,7 +605,8 @@ describe('multiple production work items in the actual runtime', () => {
           ],
           error: null
         })
-      } as never);
+      } as never;
+      await r.loadRecipes(nextRecipeClient, undefined, undefined, scope);
     });
     act(() => r.renderVals().liveDough!.recipeUpdate!.use());
     expect(r.renderVals().liveDough).toMatchObject({

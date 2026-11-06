@@ -1,5 +1,7 @@
 'use client';
 
+import { ScopedRecipeEdits } from '@/lib/recipes/scoped-edits';
+
 import { bazaarBooking, type BazaarRoute } from '@/lib/bazaar/navigation';
 
 import {
@@ -1288,6 +1290,13 @@ export class OpsRuntime extends OpsProvider {
   /** The stamp of each flavour's saved recipe as its screen last showed it: what an edit is saved against. */
   private recipeBaseStamp: Record<string, string | null> = {};
   private recipeLoadSeq = 0;
+  private recipeScopeKey: string | null = null;
+  private recipeAppliedScopeKey: string | null = null;
+  private recipeRestoredEdits = new Set<string>();
+  private readonly recipeEditScopes = new ScopedRecipeEdits<{
+    value: RecipeState['recipes'][string];
+    stamp: string | null;
+  }>();
   private recipeSaving = new Set<string>();
   /** B3b-2: the database's cost of each item and recipe (owner only), what the last read came to, and the read in flight. */
   private costReads: CostReads = 'unread';
@@ -2857,8 +2866,10 @@ export class OpsRuntime extends OpsProvider {
       if (!this.productionRecovery.persist() && before !== this.productionRecovery.phase)
         this.setState({});
     }
-    if ((args[1] as { role?: unknown } | undefined)?.role !== this.state.role)
+    if ((args[1] as { role?: unknown } | undefined)?.role !== this.state.role) {
       this.productionActorEpoch += 1;
+      this.retireRecipeDraftSession();
+    }
     if (this.productionRecordedAway) this.noticeProductionRecordedAway();
     // The till took over (signal lost or access narrowed): when signal returns it stays, mid-sale, until Events is chosen.
     if (this.bazaarDirectory && !this.canLeaveTill()) {
@@ -3812,44 +3823,82 @@ export class OpsRuntime extends OpsProvider {
     save?: {
       submitted: RecipeState['recipes'][string];
       current: () => boolean;
-    }
+    },
+    verifiedScope?: ProductionRecoveryScope | null
   ): Promise<boolean> {
+    if (verifiedScope !== undefined) {
+      const scope = verifiedScope === null ? null : parseProductionScope(verifiedScope);
+      if (verifiedScope !== null && scope === null) return false;
+      const key = scope ? JSON.stringify([scope.business, scope.userId]) : null;
+      if (key !== this.recipeScopeKey) return false;
+    } else if (client && this.recipeScopeKey !== null && client !== this.recipeClient) {
+      // A new binding needs the gate's captured identity, never the identity at callback time.
+      return false;
+    }
     if (client) this.recipeClient = client;
     const use = client ?? this.recipeClient;
     if (!isLiveMode() || !use) return false;
     const seq = (this.recipeLoadSeq += 1);
+    const actor = this.productionActorEpoch;
+    const current = () =>
+      !this.unmounted &&
+      seq === this.recipeLoadSeq &&
+      actor === this.productionActorEpoch &&
+      use === this.recipeClient;
     this.recipeReaderState = 'loading';
     this.setState({});
     let rows: Recipe[];
     try {
       rows = await fetchRecipes(use);
     } catch {
-      if (seq === this.recipeLoadSeq && (!save || save.current())) {
+      if (current() && (!save || save.current())) {
         this.recipeReaderState = 'failed';
         this.setState({});
       }
       return false;
     }
     // A newer read started meanwhile: it will apply, an older answer must not bring back an older stamp.
-    if (seq !== this.recipeLoadSeq) return true;
+    if (!current()) return false;
     if (save && !save.current()) return false;
     // Anything typed before the first read was on an empty placeholder: the saved recipe replaces it.
     const first = this.recipeRows === null;
+    const restored = new Set(this.recipeRestoredEdits);
     this.recipeRows = rows;
     this.recipeReaderState = 'read';
     this.setState((s) => {
-      const state = s as unknown as RecipeState;
+      if (!current()) return {};
+      const raw = s as unknown as RecipeState;
+      // Only edits restored from this verified identity survive a first read; placeholders do not.
+      const state = first
+        ? {
+            ...raw,
+            recipeDirty: Object.fromEntries(
+              Object.entries(raw.recipeDirty ?? {}).filter(([id]) => restored.has(id))
+            )
+          }
+        : raw;
       const replace =
         save && refresh && JSON.stringify(state.recipes[refresh]) !== JSON.stringify(save.submitted)
           ? undefined
           : refresh;
       for (const p of PRODUCTS)
-        if (first || !state.recipeDirty?.[p.id] || p.id === replace)
+        if (!state.recipeDirty?.[p.id] || p.id === replace)
           this.recipeBaseStamp[p.id] = rows.find((r) => r.productId === p.id)?.updatedAt ?? null;
-      return this.recipesPatch(state, replace, first);
+      this.recipeRestoredEdits.clear();
+      return this.recipesPatch(state, replace, first && restored.size === 0);
     });
     void this.loadCosts(); // a saved recipe changes what a cookie costs; a slow answer never holds this read up
     return true;
+  }
+
+  private retireRecipeDraftSession(): void {
+    this.recipeDraftSession += 1;
+    this.recipeDraftLoadSeq += 1;
+    this.recipeDraftRows = null;
+    this.recipeDraftEditing = null;
+    this.recipeDraftLoading = false;
+    this.recipeDraftBusy = false;
+    this.recipeDraftError = null;
   }
 
   private async loadRecipeDrafts(session = this.recipeDraftSession): Promise<void> {
@@ -3861,29 +3910,31 @@ export class OpsRuntime extends OpsProvider {
       return;
     }
     const seq = ++this.recipeDraftLoadSeq;
+    const client = this.recipeClient;
+    const actor = this.productionActorEpoch;
+    const current = () =>
+      session === this.recipeDraftSession &&
+      seq === this.recipeDraftLoadSeq &&
+      actor === this.productionActorEpoch &&
+      client === this.recipeClient &&
+      isOpen() &&
+      this.state.role === 'owner';
     this.recipeDraftLoading = true;
     this.recipeDraftError = null;
     this.setState({});
     try {
       const rows = await fetchRecipeDrafts(
-        this.recipeClient,
+        client,
         PRODUCTS.map((product) => product.id)
       );
-      if (
-        session !== this.recipeDraftSession ||
-        seq !== this.recipeDraftLoadSeq ||
-        !isOpen() ||
-        this.state.role !== 'owner'
-      )
-        return;
+      if (!current()) return;
       this.recipeDraftRows = rows;
     } catch (error) {
-      if (session !== this.recipeDraftSession || seq !== this.recipeDraftLoadSeq || !isOpen())
-        return;
+      if (!current()) return;
       this.recipeDraftError =
         error instanceof Error ? error.message : 'Recipe drafts could not be read.';
     } finally {
-      if (session === this.recipeDraftSession && seq === this.recipeDraftLoadSeq) {
+      if (current()) {
         this.recipeDraftLoading = false;
         this.setState({});
       }
@@ -3989,15 +4040,22 @@ export class OpsRuntime extends OpsProvider {
     )
       return;
     const editor = this.recipeDraftEditing;
+    const client = this.recipeClient;
+    const actor = this.productionActorEpoch;
     this.recipeDraftBusy = true;
     this.recipeDraftError = null;
     this.setState({});
     const result = await saveRecipeDraft(
-      this.recipeClient,
+      client,
       PRODUCTS.map((product) => product.id),
       fields
     );
-    if (session !== this.recipeDraftSession) return;
+    if (
+      session !== this.recipeDraftSession ||
+      actor !== this.productionActorEpoch ||
+      client !== this.recipeClient
+    )
+      return;
     if (this.state.role !== 'owner' || !isOpen() || this.recipeDraftEditing !== editor) {
       this.recipeDraftBusy = false;
       this.setState({});
@@ -4072,7 +4130,10 @@ export class OpsRuntime extends OpsProvider {
       return void this.toast(STAFF_COPY.offline, 'warn');
     const actor = this.productionActorEpoch;
     const current = () =>
-      !this.unmounted && this.state.role === 'owner' && actor === this.productionActorEpoch;
+      !this.unmounted &&
+      this.state.role === 'owner' &&
+      actor === this.productionActorEpoch &&
+      client === this.recipeClient;
     const key = `${actor}:${pid}`;
     if (this.recipeSaving.has(key)) return;
     const submitted = structuredClone(r);
@@ -5949,6 +6010,53 @@ export class OpsRuntime extends OpsProvider {
     };
   }
 
+  private bindRecipeScope(scope: ProductionRecoveryScope | null): void {
+    const key = scope ? JSON.stringify([scope.business, scope.userId]) : null;
+    if (key === this.recipeScopeKey) return;
+    const state = this.state as unknown as RecipeState;
+    // A same-tick A -> B -> A switch must never capture A's not-yet-replaced projection as B.
+    const applied = this.recipeAppliedScopeKey === this.recipeScopeKey;
+    const current = new Map(
+      Object.entries(state.recipes ?? {})
+        .filter(
+          ([id]) =>
+            applied &&
+            state.recipeDirty?.[id] &&
+            (this.recipeRows !== null || this.recipeRestoredEdits.has(id))
+        )
+        .map(([id, value]) => [id, { value, stamp: this.recipeBaseStamp[id] ?? null }] as const)
+    );
+    const restored = this.recipeEditScopes.bind(key, current, new Set(current.keys()));
+    this.recipeScopeKey = key;
+    this.recipeLoadSeq += 1;
+    this.recipeClient = null;
+    this.recipeRows = null;
+    this.recipeReaderState = 'loading';
+    this.recipeRestoredEdits = new Set(restored.keys());
+    this.recipeBaseStamp = Object.fromEntries([...restored].map(([id, row]) => [id, row.stamp]));
+    this.retireRecipeDraftSession();
+    const mapped = engineRecipes(
+      [],
+      PRODUCTS.map((product) => product.id)
+    );
+    this.setState(
+      {
+        ...mapped,
+        recipes: {
+          ...mapped.recipes,
+          ...Object.fromEntries([...restored].map(([id, row]) => [id, row.value]))
+        },
+        recipeDirty: Object.fromEntries([...restored.keys()].map((id) => [id, true])),
+        ...((this.state.sheet as { kind?: string } | null)?.kind === 'recipedrafts'
+          ? { sheet: null }
+          : {})
+      } as never,
+      () => {
+        if (this.recipeScopeKey === key) this.recipeAppliedScopeKey = key;
+      }
+    );
+  }
+
   // ------------------------------------------------------------------ C2: production
 
   /** Only the verified live gate supplies this identity; roles are never storage identities. */
@@ -5956,6 +6064,7 @@ export class OpsRuntime extends OpsProvider {
     if (!isLiveMode()) return;
     if (this.unmounted) return this.productionRecovery.dispose();
     const scope = input === null ? null : parseProductionScope(input);
+    this.bindRecipeScope(scope);
     if (!this.productionRecovery.sameScope(scope)) {
       this.productionActorEpoch += 1;
       this.productionLoadSeq += 1;

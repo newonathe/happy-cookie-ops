@@ -264,7 +264,7 @@ describe('LiveGate: the owner’s orders (B3)', () => {
       engine.loadFlavours.mock.invocationCallOrder[0]
     );
     // The owner's recipes too, for the same reason: a recipe for a flavour the screens do not know is ignored.
-    expect(engine.loadRecipes).toHaveBeenCalledExactlyOnceWith(client);
+    expect(engine.loadRecipes).toHaveBeenCalledExactlyOnceWith(client, undefined, undefined, null);
     expect(engine.loadRecipes.mock.invocationCallOrder[0]).toBeGreaterThan(
       engine.loadFlavours.mock.invocationCallOrder[0]
     );

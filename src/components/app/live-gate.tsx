@@ -431,6 +431,7 @@ export function LiveGate({
       // next sale.
       const reopened = accessRef.current === 'bazaar' || accessRef.current === 'waiting';
       setAccess('verified');
+      let productionScope: { userId: string; business: string } | null = null;
       if (engine instanceof OpsRuntime) {
         let business = '';
         try {
@@ -438,9 +439,9 @@ export function LiveGate({
         } catch {
           /* closed until configured */
         }
-        void engine.setProductionIdentity(
-          role === 'owner' && result.userId ? { userId: result.userId, business } : null
-        );
+        productionScope =
+          role === 'owner' && result.userId ? { userId: result.userId, business } : null;
+        void engine.setProductionIdentity(productionScope);
       }
       if (reopened && engine instanceof OpsRuntime)
         void Promise.resolve(engine.flushSales()).catch(() => undefined);
@@ -491,7 +492,8 @@ export function LiveGate({
           keepStallCopy();
           if (owner && !cancelled && loaded !== false) void engine.loadOrders(supabase);
           // A4: the owner's recipes, for the flavours the list just brought in.
-          if (owner && !cancelled && loaded !== false) void engine.loadRecipes(supabase);
+          if (owner && !cancelled && loaded !== false)
+            void engine.loadRecipes(supabase, undefined, undefined, productionScope);
         });
       }
     }
