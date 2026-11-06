@@ -3,7 +3,11 @@ import { cleanup, render, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { OpsRuntime } from '@/store/ops-runtime';
 import { bindProductionOwner } from './production-runtime-helpers';
-import { readProductionRecovery, type ProductionRecoveryScope } from '@/lib/production/recovery';
+import {
+  readProductionRecovery,
+  writeProductionRecovery,
+  type ProductionRecoveryScope
+} from '@/lib/production/recovery';
 import { PRODUCTS, ALLERGENS, replaceFlavours } from '@/store/engine/ops-engine';
 vi.mock('@/lib/config/app-mode', () => ({ isLiveMode: () => true }));
 vi.mock('@/lib/device', () => ({ deviceId: () => 'production-pool-test' }));
@@ -32,11 +36,16 @@ async function mount(identity?: ProductionRecoveryScope) {
   const requests: Array<Record<string, unknown>> = [],
     replies: Array<(value: ReturnType<typeof saved>) => void> = [];
   const durableAtSend: boolean[] = [];
+  const legacyRequests: unknown[] = [];
   const rpc = vi.fn(
     async (
       name: string,
       args?: Record<string, unknown>
-    ): Promise<{ data: unknown; error: null }> => {
+    ): Promise<{ data: unknown; error: { code: string } | null }> => {
+      if (name === 'record_production') {
+        legacyRequests.push(structuredClone(args?.p_rec));
+        return { data: null, error: { code: 'ZP001' } };
+      }
       if (name === 'record_bake') {
         requests.push(structuredClone(args?.p_rec as Record<string, unknown>));
         durableAtSend.push(
@@ -107,7 +116,16 @@ async function mount(identity?: ProductionRecoveryScope) {
     await r.loadOrders(client);
     await r.loadProduction(client);
   });
-  return { r, requests, replies, scope, client, durableAtSend, unmount: view.unmount };
+  return {
+    r,
+    requests,
+    replies,
+    scope,
+    client,
+    durableAtSend,
+    legacyRequests,
+    unmount: view.unmount
+  };
 }
 const rows = (r: OpsRuntime) => r.renderVals().liveProduction?.inProgress ?? [];
 function begin(r: OpsRuntime, pid: string, qty: string) {
@@ -126,6 +144,59 @@ function open(r: OpsRuntime, pid: string) {
   act(() => work.open());
 }
 describe('multiple production work items in the actual runtime', () => {
+  it('replays an old request unchanged, then retains counts after retirement for explicit new Bake review', async () => {
+    const first = await mount();
+    begin(first.r, A, '24');
+    act(() => first.r.renderVals().liveBatchCounts!.setActual('8'));
+    act(() => first.r.renderVals().liveBatchCounts!.setRejects('2'));
+    act(() => first.r.renderVals().liveBatchCounts!.review());
+    await act(async () => first.unmount());
+    const copy = readProductionRecovery(first.scope).value!;
+    const fields = {
+      id: crypto.randomUUID(),
+      kind: 'batch' as const,
+      productId: A,
+      qty: 8,
+      target: 24,
+      rejects: 2,
+      adj: {},
+      recipeVersion: 3,
+      dropNo: 5,
+      at: Date.now()
+    };
+    copy.requests = [{ workId: copy.works[0]!.id, fields }];
+    expect(writeProductionRecovery(first.scope, copy)).toBe(true);
+    const second = await mount(first.scope);
+    open(second.r, A);
+    expect(second.legacyRequests).toHaveLength(0);
+    expect(second.r.renderVals().liveBatchCounts?.uncertain).toBe(true);
+    act(() => second.r.renderVals().liveBatchCounts!.confirm());
+    await waitFor(() => expect(second.r.renderVals().liveBatchCounts?.uncertain).toBe(false));
+    expect(second.legacyRequests).toEqual([
+      {
+        id: fields.id,
+        kind: 'batch',
+        product_id: A,
+        qty: 8,
+        target: 24,
+        rejects: 2,
+        adj: {},
+        recipe_version: 3,
+        drop_no: 5,
+        at: fields.at
+      }
+    ]);
+    expect(second.requests).toHaveLength(0);
+    expect(second.r.renderVals().liveBatchCounts).toMatchObject({ actual: '8', rejects: '2' });
+    expect(readProductionRecovery(first.scope).value?.requests).toEqual([]);
+    expect(readProductionRecovery(first.scope).value?.works).toHaveLength(1);
+    act(() => second.r.renderVals().liveBatchCounts!.review());
+    act(() => second.r.renderVals().liveBatchCounts!.confirm());
+    await waitFor(() => expect(second.requests).toHaveLength(1));
+    expect(second.requests[0]).toMatchObject({ product_id: A, qty: 8, rejects: 2 });
+    expect(second.requests[0]?.id).not.toBe(fields.id);
+    expect(second.legacyRequests).toHaveLength(1);
+  });
   it('plans multiple products together, preserving distinct snapshots and recording no actual output', async () => {
     const { r, requests, scope } = await mount();
     act(() => r.renderVals().liveProduction!.start!.open());

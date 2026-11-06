@@ -7139,19 +7139,21 @@ export class OpsRuntime extends OpsProvider {
     if (result.outcome === 'saved') return result;
     if (result.outcome === 'stale') void this.loadRecipes(null);
     this.toast(
-      result.problem === 'preparation-update'
-        ? 'This database needs the dough preparation update. Your draft is kept; nothing new was recorded.'
-        : result.problem === 'bake-update'
-          ? 'This database needs the dough-only baking update. Your draft is kept; nothing new was recorded.'
-          : result.problem === 'dough-shortage'
-            ? 'Not enough recorded dough. Your bake draft is kept. Prepare dough first, then return to this batch.'
-            : result.problem === 'dough-chronology'
-              ? 'Recorded dough cannot support this bake date. Nothing was recorded. Your counts are kept; review the dough records in Make before trying again.'
-              : result.outcome === 'stale'
-                ? PRODUCTION_COPY.stale
-                : result.outcome === 'refused'
-                  ? PRODUCTION_COPY.refused
-                  : PRODUCTION_COPY.notSaved,
+      result.problem === 'legacy-retired'
+        ? 'This older request was not recorded. Your draft is kept. Review it in Prepare dough or Bake before submitting again.'
+        : result.problem === 'preparation-update'
+          ? 'This database needs the dough preparation update. Your draft is kept; nothing new was recorded.'
+          : result.problem === 'bake-update'
+            ? 'This database needs the dough-only baking update. Your draft is kept; nothing new was recorded.'
+            : result.problem === 'dough-shortage'
+              ? 'Not enough recorded dough. Your bake draft is kept. Prepare dough first, then return to this batch.'
+              : result.problem === 'dough-chronology'
+                ? 'Recorded dough cannot support this bake date. Nothing was recorded. Your counts are kept; review the dough records in Make before trying again.'
+                : result.outcome === 'stale'
+                  ? PRODUCTION_COPY.stale
+                  : result.outcome === 'refused'
+                    ? PRODUCTION_COPY.refused
+                    : PRODUCTION_COPY.notSaved,
       'warn'
     );
     return null;
