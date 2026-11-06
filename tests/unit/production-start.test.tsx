@@ -123,12 +123,12 @@ async function mounted(ready = true, orders = true) {
     runtime.go('bake');
     runtime.setState({ dropNo: 5 });
   });
-  if (ready) await bindProductionOwner(runtime);
+  const scope = ready ? await bindProductionOwner(runtime) : null;
   if (ready)
     await act(async () => {
       await runtime.loadFlavours(client as never);
       await runtime.loadStockCatalogue(client as never);
-      await runtime.loadRecipes(client as never);
+      await runtime.loadRecipes(client as never, undefined, undefined, scope);
       if (orders) await runtime.loadOrders(client as never);
       await runtime.loadProduction(client as never);
     });
