@@ -278,6 +278,7 @@ import {
 import { OrderFlow } from '@/lib/data/order-flow';
 import { tokenFromHash, type FieldErrors, type OrderClient } from '@/lib/data/orders';
 import { pickupLabel, statusCust } from '@/lib/orders/status-view';
+import { savedPickupText } from '@/lib/orders/saved-pickup';
 import { ORDER_COPY } from '@/lib/orders/copy';
 import {
   manilaMinutes,
@@ -3165,7 +3166,12 @@ export class OpsRuntime extends OpsProvider {
       livePay: this.livePayVals(),
       liveTexts: this.liveTextsVals(),
       liveMessages: this.liveMessagesVals(),
-      ...(this.orderSync ? { od: this.liveOrderDetail(starved.od) } : {}),
+      ...(this.orderSync
+        ? {
+            orderList: this.liveOrderList(starved.orderList),
+            od: this.liveOrderDetail(starved.od)
+          }
+        : {}),
       liveOrderRules: this.liveOrderRulesVals(),
       liveOrderExtras: this.liveOrderExtrasVals(),
       liveMoney:
@@ -7984,13 +7990,27 @@ export class OpsRuntime extends OpsProvider {
   private swapIds = new Map<string, string>();
 
   /**
+   * The Orders list: each row's pickup is the order's saved date and time (`saved-pickup.ts`), not
+   * the engine's next default drop window, which it computes from the clock for every order alike.
+   */
+  private liveOrderList(list: OpsVals['orderList']): OpsVals['orderList'] {
+    if (!list || !this.orderSync) return list;
+    const sync = this.orderSync;
+    return list.map((row) => {
+      const order = sync.find(String(row.id));
+      return { ...row, pickup: savedPickupText(order?.pickupDate, order?.pickupWindow) };
+    });
+  }
+
+  /**
    * The order detail's link row: the ported values are a made-up address and a "Link copied." toast that
-   * copies nothing. Live mode shows the customer's real status link and really copies it.
+   * copies nothing. Live mode shows the customer's real status link and really copies it. The pickup
+   * is the order's saved date and time, not the engine's next default drop window.
    */
   private liveOrderDetail(od: OpsVals['od']): OpsVals['od'] {
     if (!od || !this.orderSync) return od;
     const order = this.orderSync.find(String(od.id));
-    if (!order) return od;
+    if (!order) return { ...od, pickup: savedPickupText(null, null, 'long') };
     const origin = typeof window === 'undefined' ? '' : window.location.origin;
     const link = statusLink(origin, order.statusToken);
     // B4b: add-ons, boxes and the same-day extra as rows after the flavours. `orders.tsx` shows name, quantity
@@ -8009,6 +8029,7 @@ export class OpsRuntime extends OpsProvider {
     }));
     return {
       ...od,
+      pickup: savedPickupText(order.pickupDate, order.pickupWindow, 'long'),
       lines: [...(od.lines ?? []), ...extra],
       link: link ?? '',
       linkSent: link ? STAFF_COPY.linkHint : STAFF_COPY.linkErased,
