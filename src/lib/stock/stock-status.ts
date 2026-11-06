@@ -24,6 +24,16 @@ export function stockStatus(onHand: number, level: number | null | undefined): S
   return onHand < level ? 'Low' : 'Good';
 }
 
+/** A positive recorded receipt/balance remains useful without a physical count date. */
+export function stockConfidence(
+  onHand: number,
+  counted: boolean
+): 'counted' | 'recorded' | 'unknown' | 'unavailable' {
+  if (!Number.isFinite(onHand)) return 'unavailable';
+  if (counted) return 'counted';
+  return onHand !== 0 ? 'recorded' : 'unknown';
+}
+
 /** A number with thousands separators and up to three decimals; a true minus; never negative zero. */
 function plain(n: number): string {
   const text = QUANTITY_FORMAT.format(Math.abs(n));

@@ -52,6 +52,10 @@ const recipes: Record<
 function setup(over: Partial<BakePlanDeps> = {}) {
   const data = new Map<string, string>();
   const deps: BakePlanDeps = {
+    scope: () => ({
+      userId: '11111111-1111-4111-8111-111111111111',
+      business: 'https://plans.supabase.co'
+    }),
     products: () => [
       { id: 'a', name: 'Cookie A' },
       { id: 'b', name: 'Cookie B' },
@@ -103,12 +107,20 @@ describe('planned bake', () => {
     });
   });
 
-  it('never calls uncounted stock enough, and shows no quantity for it', () => {
-    const { plan } = setup();
+  it('shows a zero without a physical count as unknown, while preserving recorded positive stock', () => {
+    const { plan } = setup({
+      items: () => items.map((item) => (item.name === 'Butter' ? { ...item, onHand: 0 } : item))
+    });
     choose(plan, [['a', '12']]);
     expect(plan.vals().needs.find((need) => need.name === 'Butter')).toMatchObject({
       state: 'notCounted',
       have: null
+    });
+    const positive = setup();
+    choose(positive.plan, [['a', '12']]);
+    expect(positive.plan.vals().needs.find((need) => need.name === 'Butter')).toMatchObject({
+      state: 'enough',
+      have: 900
     });
   });
 
@@ -152,16 +164,89 @@ describe('planned bake', () => {
     expect(plan.vals().cookies).toBe(24);
   });
 
-  it('survives a reload on this device, and an unreadable note is an empty plan', () => {
+  it('keeps excessive combined product quantities in review instead of losing them on reload', () => {
+    const { plan, data } = setup();
+    choose(plan, [
+      ['a', '60000'],
+      ['a', '60000']
+    ]);
+    expect(plan.vals()).toMatchObject({ open: true, cookies: 0 });
+    expect(plan.vals().error).toContain('including repeated rows');
+    expect(data.size).toBe(0);
+    expect(plan.vals().rows.map((row) => row.cookies)).toEqual(['60000', '60000']);
+  });
+
+  it('survives a scoped reload and visibly distinguishes an unreadable note', () => {
     const first = setup();
     choose(first.plan, [['a', '12']]);
     const raw = [...first.data.values()][0]!;
     const storage = (value: string) => () => ({ getItem: () => value, setItem: () => undefined });
     expect(setup({ storage: storage(raw) }).plan.vals().cookies).toBe(12);
     expect(setup({ storage: storage('{') }).plan.vals().cookies).toBe(0);
+    expect(setup({ storage: storage('{') }).plan.vals().retention?.status).not.toBe('empty');
     expect(
       setup({ storage: storage('[{"productId":"a","cookies":-3}]') }).plan.vals().cookies
     ).toBe(0);
+  });
+
+  it('keeps storage failure visit-only and never writes without a verified identity', () => {
+    const setItem = vi.fn(() => {
+      throw Error('blocked');
+    });
+    const first = setup({ storage: () => ({ getItem: () => null, setItem }) });
+    choose(first.plan, [['a', '12']]);
+    expect(first.plan.vals()).toMatchObject({ cookies: 12, retention: { status: 'visit' } });
+    const second = setup({ scope: () => null, storage: () => ({ getItem: () => null, setItem }) });
+    setItem.mockClear();
+    choose(second.plan, [['a', '12']]);
+    expect(second.plan.vals().retention?.status).toBe('visit');
+    expect(setItem).not.toHaveBeenCalled();
+  });
+
+  it('isolates owners and backends and rejects callbacks from an earlier identity', () => {
+    let scope = {
+      userId: '11111111-1111-4111-8111-111111111111',
+      business: 'https://first.supabase.co'
+    };
+    const { plan, data } = setup({ scope: () => scope });
+    choose(plan, [['a', '12']]);
+    plan.vals().edit();
+    const old = plan.vals();
+    scope = { ...scope, business: 'https://second.supabase.co' };
+    old.setCookies(old.rows[0]!.key, '99');
+    old.use();
+    old.edit();
+    expect(plan.vals()).toMatchObject({ cookies: 0, open: false });
+    choose(plan, [['b', '6']]);
+    scope = { ...scope, userId: '22222222-2222-4222-8222-222222222222' };
+    expect(plan.vals().cookies).toBe(0);
+    scope = {
+      userId: '11111111-1111-4111-8111-111111111111',
+      business: 'https://first.supabase.co'
+    };
+    expect(plan.vals().cookies).toBe(12);
+    expect(data.size).toBe(2);
+  });
+
+  it('preserves an unreadable saved copy and an old unscoped note while new planning continues', () => {
+    const { plan, data } = setup();
+    data.set('hc-planned-bake-v1', '[{"productId":"a","cookies":12}]');
+    expect(plan.vals().retention?.status).toBe('legacy');
+    choose(plan, [['b', '6']]);
+    expect(data.get('hc-planned-bake-v1')).toBe('[{"productId":"a","cookies":12}]');
+    const key = [...data.keys()].find((key) => key.startsWith('hc-planned-bake-v2:'))!;
+    data.set(key, '{');
+    const store = () => ({
+      getItem: (key: string) => data.get(key) ?? null,
+      setItem: (key: string, value: string) => {
+        data.set(key, value);
+      }
+    });
+    const resumed = setup({ storage: store }).plan;
+    expect(resumed.vals().retention?.status).not.toBe('empty');
+    choose(resumed, [['a', '24']]);
+    expect(resumed.vals()).toMatchObject({ cookies: 24, retention: { status: 'visit' } });
+    expect(data.get(key)).toBe('{');
   });
 
   it('leaving the page does not change the plan', () => {

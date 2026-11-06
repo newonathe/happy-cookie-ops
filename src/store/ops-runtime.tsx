@@ -968,6 +968,7 @@ export class OpsRuntime extends OpsProvider {
   });
   /** Planned bake: reads recipes and recorded stock, and records nothing. */
   private bakePlan = new BakePlan({
+    scope: () => (this.state.role === 'owner' ? this.productionRecovery.scope : null),
     products: () => PRODUCTS.map((row) => ({ id: row.id, name: row.short })),
     recipe: (productId) => {
       const recipe = this.recipeRows?.find((row) => row.productId === productId);
@@ -975,7 +976,7 @@ export class OpsRuntime extends OpsProvider {
     },
     items: () => {
       const c = this.stockCatalogue;
-      if (!c) return [];
+      if (!c) return null;
       return c.items
         .filter((item) => item.active)
         .map((item) => {

@@ -1,3 +1,4 @@
+import { stockConfidence } from '@/lib/stock/stock-status';
 /**
  * Working a saved recipe out for a batch size, for the owner to read while baking. It only reads:
  * nothing here records production or takes stock off. A recipe with no yield cannot be scaled.
@@ -16,7 +17,7 @@ export interface StockOnHand {
   counted: boolean;
 }
 
-export type BatchStockState = 'enough' | 'short' | 'notCounted' | 'notTracked';
+export type BatchStockState = 'enough' | 'short' | 'notCounted' | 'notTracked' | 'unavailable';
 
 export interface BatchStockRow {
   name: string;
@@ -36,15 +37,18 @@ export function scaleQty(qty: number, savedYield: number, cookies: number): numb
 /** Each line against recorded stock. A count is never assumed: an uncounted item says so, and is not "enough". */
 export function batchStock(
   lines: readonly BatchLine[],
-  stock: readonly StockOnHand[],
+  stock: readonly StockOnHand[] | null | undefined,
   savedYield: number,
   cookies: number
 ): BatchStockRow[] {
   return lines.map((line) => {
     const needed = scaleQty(line.qty, savedYield, cookies) ?? 0;
+    if (!stock) return { name: line.name, needed, unit: line.unit, state: 'unavailable', short: 0 };
     const item = stock.find((row) => row.name === line.name);
     if (!item) return { name: line.name, needed, unit: line.unit, state: 'notTracked', short: 0 };
-    if (!item.counted)
+    if (stockConfidence(item.onHand, item.counted) === 'unavailable')
+      return { name: line.name, needed, unit: line.unit, state: 'unavailable', short: 0 };
+    if (stockConfidence(item.onHand, item.counted) === 'unknown')
       return { name: line.name, needed, unit: line.unit, state: 'notCounted', short: 0 };
     // Units that differ cannot be compared, so nothing is claimed about them.
     if (item.unit !== line.unit)
