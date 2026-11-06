@@ -45,7 +45,8 @@ export interface ProductionResult {
   duplicate: boolean;
   usedDough: number;
   shortfall: Shortfall[];
-  problem?: 'preparation-update' | 'bake-update' | 'dough-shortage' | 'dough-chronology';
+  problem?:
+    'preparation-update' | 'bake-update' | 'dough-shortage' | 'dough-chronology' | 'legacy-retired';
 }
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
@@ -154,6 +155,7 @@ export async function recordProduction(
         at: f.at
       }
     });
+    if (error?.code === 'ZP001') return { ...failed('refused'), problem: 'legacy-retired' };
     if (error) return failed(classify(error.code ?? ''));
     return parseResult(data, 'shortfall', 'used_dough');
   } catch {

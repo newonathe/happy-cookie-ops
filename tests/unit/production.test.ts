@@ -120,6 +120,20 @@ describe('recordProduction', () => {
     expect(r.duplicate).toBe(true);
   });
 
+  it('treats retirement of an unseen legacy request as a definite refusal without rerouting it', async () => {
+    const rpc = vi.fn(async () => ({ data: null, error: { code: 'ZP001' } }));
+    expect(await recordProduction(client(rpc), rec())).toMatchObject({
+      outcome: 'refused',
+      problem: 'legacy-retired',
+      duplicate: false
+    });
+    expect(rpc).toHaveBeenCalledTimes(1);
+    expect(rpc).toHaveBeenCalledWith(
+      'record_production',
+      expect.objectContaining({ p_rec: expect.any(Object) })
+    );
+  });
+
   it.each([
     ['P0002', 'stale'],
     ['22023', 'refused'],
