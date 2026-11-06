@@ -1,5 +1,7 @@
 # Next goal — Cloud continuation
 
+> Latest accepted checkpoint: `e5fe735`. [Current state](current.md) supersedes older checkpoint prose below. Finish production recipe handoffs, connected browser/build checks and every remaining production gate before unrelated work.
+
 Use GPT-6.1 high, Plan mode off, branch `codex/refined-workflows`.
 Ethan requested this pushed handoff and local stop; the full product remains incomplete.
 

@@ -1,135 +1,58 @@
 # Current state — Happy Cookie Ops
 
-**Ethan requested a pushed Cloud handoff, then a local stop (6 November). The full application is incomplete.**
-Continue the [complete goal](full-goal.md) on `codex/refined-workflows`; [next action](next-goal.md).
-Current accepted Git history supersedes historical checkpoint prose below. `54ee533` preserves backup/waiting-sale work.
-Read [the client review](../design/client-meeting-2026-11-04.md) and [review standard](../design/ui-review-standard.md).
-The [production transaction contract](../design/active-bazaar-parallel-production-plan.md#production-transaction-contract--5-november-owner-correction) separates recipe amount from actual balls. Ethan approved dough-only baking; physical dough count remains unanswered.
-Preparation is reviewed/accepted through `b54239c`: independent actual balls/recipe amount, exact pending RPC/body, item IDs, shortage reasons and authoritative acknowledgements/refresh.
-SQL72 dough-only bake backend is reviewed/locally verified; SHA is in next-goal/Git. It guards current/historical dough, rejects and pooled costs without second ingredient use. Next connect bake client/runtime/recovery and retire new legacy writes before cutover, preserving exact recorded-ID replay. No hosted changes.
-Pinned gate:195files/3144tests+2TODOs; preparation117focused/8synthetic CLI flows; bake SQL two resets/concurrency; full SQL3378cases/reset x2; types generated twice identically. Full-goal notes distinguish remaining API/performance/build/hosted/device/owner gates.
-Preview4186 now initializes synthetic Events for normal navigation and direct `/bazaar` entry. `node tools/owner-preview/check-events.cjs` verifies both paths at390/1440, event detail, no writes/errors/overflow.
-The full audit and [new requirements](../design/owner-workflow-additions-2026-11-05.md) remain active. Pickup is from Cine; Picked Up means Completed.
+**The complete application objective remains active and incomplete.** Read [full-goal.md](full-goal.md), then [next-goal.md](next-goal.md). A passing slice is not whole-product acceptance.
 
-**Finish [coverage](../design/reference-v4/coverage.md): every
-mockup page, its place in the app, its status and gap, and the build rules.** [flows](../design/reference-v4/flows.md)
-records every control's outcome. Done on the 4186 preview at four widths: Home, Sell, Shop, Account, Products,
-recipe page, Production, Stock, Receive, Waste/correction, Shopping, Money and its entries, the till, the
-settings pages, Events, Add event, the event page, day review, Customers, recipe editor and planned bake. Not hosted, device or owner acceptance. Each money/stock/offline slice had an independent review.
+## Cloud checkout and accepted source
 
-**Earlier Codex checkpoint (before accepted c51401f/273de7d):** Full actual-app goal remains incomplete.
-Latest uncommitted work connects the independent draft pool to the actual runtime and Make list.
-Different/identical cookie batches and dough mixes retain their own fields, recipe/period and step;
-per-item saves allow editing/submitting B while A saves. Acknowledgement retires only its own item.
-New manual entry offers Bake cookies/Prepare dough; dough uses existing full/half recipe portions.
-Recipe reads preserve explicit ingredient/packaging kind; the separate recipe-write issue remains.
-Eight synthetic-RPC browser checks at320/390/768/1240, both motion modes, cover two batches plus dough,
-concurrent callbacks and independent confirmation. They do not prove SQL concurrency or device use.
-Bazaar/default address now opens Events first; both tills use compact Back beside the event name.
-Eight actual-layout checks cover both tills, keyboard Back and unchanged held selling facts, with
-no till painted before explicit resume. Final all-page/state researched critique is required after
-implementation; see the shared brief. P3 durable scoped recovery, unavailable-source handling,
-authoritative saved-result/refresh truth and remaining workflows are incomplete. Pool is memory-only.
-New local draft fixes live-modal toast overlap by keeping messages/Undo in the sheet's content.
-Changed recipes now show previous/updated quantities and yield with explicit adoption. Counts/notes/
-period stay; ingredient adjustments reset with disclosure and review is required again. Dough retains
-its old amount, but invalid full/half amounts cannot be reviewed/posted. Eight headless width/motion
-checks pass without writes/errors/overflow;19focused tests pass. SQL67 refuses stale first submits
-after checking existing request replay; no SQL rule changed. Current full pinned gate passes169files /
-2802tests +2existing todo; live build28pages passes. Both previews return200. Required review still held.
-Next P2 bug is confirmed from SQL58/current source: returned qty is GOOD output, but ProductionResults
-subtracts rejects again and labels all-history batches with the selected drop. Runtime also rejects
-valid rows whose rejects exceed good output. Fix this before adding acknowledged result visuals.
-Previous full pinned gate passes169files /2799tests +2existing todo. A fixed-delay Bazaar test race now
-awaits the real RPC, preserving exact assertions; the full rerun and repeated eight production browser
-checks pass. Previous live Webpack build passes28pages; both previews return200. Parts are uncommitted.
-Events return restores row focus/scroll: eight CLI browser checks at320/390/768/1240, reduced motion,
-keyboard and browser Back; no writes/overflow/page errors. Scoped JSDOM scrolling is now asserted.
-P1's pure draft pool/tests are accepted/pushed atb23c3dd. Runtime integration is the newer local draft;
-the accepted commit alone does not provide multiple live work items or durable recovery.
-Read the [active Bazaar and parallel production audit/plan](../design/active-bazaar-parallel-production-plan.md).
-Events must remain reachable during an active bazaar; different products need simultaneous production.
-Both gaps were reproduced with controlled RPC fixtures. Active-Events navigation is now a local
-uncommitted draft: both tills expose Events, own-day resume preserves selling values, and full-session/
-owner access is checked at action and render. The directory filter survives child Back; the held day
-stays pinned outside its planned dates. CLI browser round trips passed320/390/768/1240 with no writes.
-Main till/Events/event addresses now restore through RouteSync without remounting. Back/Forward,
-direct directory and event reload pass390/1240 with synthetic RPC. Plan/review subview identity,
-parallel production remain incomplete. Earlier pinned full gate passed165 files /2762
-tests +2existing todo with four Vitest workers; live Webpack build passes28 static pages.
-Local preview recovered after further user-reported failures: fixed retained-renderer lookup binding,
-added a network-only development worker and local recovery page, and limited extension hydration
-compatibility to the outer body. The private preview launcher now uses Webpack. Ethan confirms
-Chrome opens after this restart/recovery; that is opening evidence, not full owner acceptance.
-Bazaar/history/preview changes remain uncommitted pending independent review; Ethan's reviewer-reset
-wait remains in force. Branch `codex/refined-workflows`, accepted HEAD `b23c3dd`.
-Read the [complete shared owner/agent brief](../design/owner-workflow-brief.md),
-[scope](../design/refined-workflows.md) and [next goal](next-goal.md). Claude/other agents use these
-shared files. Keep all features/safeguards while simplifying operation; the full goal is incomplete.
+The clean older Cloud checkout at `4c1f72e` is preserved as `backup/cloud-start-4c1f72e`. `work` continued from exactly the requested `93135433fd88def7cbc5a05c0d22de3b17cfe764`, after fetching `origin/codex/refined-workflows` and verifying full-goal.md. No Cloud stashes or other worktrees existed initially. The implementation checkout now uses `codex/cloud-recipe-handoff-20261106`, from accepted3fd797b; all working bytes and the previous index were preserved when advancing the root checkpoint. The frozen acceptance worktree publishes to `codex/cloud-full-goal-20261106`. Private/local work listed in full-goal.md was not applied.
 
-Accepted source includes neutral owner frame/Stock/count/supplier return, Products/direct
-saved recipes, contextual product editing/photos, saved production charts/history and now manual/
-planned production entry. Entry retains quantities across navigation, checks recipe versions,
-returns Cancel focus and continues an unfinished batch without replacing it. It records no actual
-production. Next dev now preserves the shared agent files (`0f908cb`).
+Accepted and pushed to `codex/cloud-full-goal-20261106`:
 
-The follow-up production slice protects unfinished batches from Quick add, work-row, first-work
-and direct launches, including their counts, rejects, ingredient adjustments, note and review step.
-The Bake plan explains an in-flight save instead of offering an ineffective Continue action.
-Recording identity, stock calculations and acknowledgement behavior remain in the existing actions.
+- `8ab48cc`: explicit SQL72 bake protocol, strict record-ID/quantity acknowledgement, definite dough/date refusals and immutable recovery routing. Frozen legacy bodies retain their route.
+- `c84d23d`: new runtime bakes use recorded dough only, independently per work item. Definite refusals retain counts; uncertain retries retain the exact request; acknowledgement and failed refresh remain separate.
+- `f751c7c`: Bake review/recovery presentation and portable browser rehearsal. Frozen-source serial full gate passed200files/3244tests+2TODOs; the push was independently confirmed.
+- `611d7c6`: patched production dependencies; frozen install, production audit (all severities0), build and full196files/3177tests+2TODOs gate recorded in Git.
+- `139ff68671ac728b01f211ccf1b68430d9e4c69c`: explicit pure recipe/Shopping handoff and conflict retention; full197files/3191tests+2TODOs.
+- `fb3de4e48aa6adcbc1136b501f7274f00079066c`: verified owner/backend-scoped planned notes and core stock confidence; full198files/3202tests+2TODOs.
+- `3fd797b72a8d517b6d6edbafa9241b3abe3df953`: production reads fenced by actor/client/period, with identity-cleared balances; full199files/3205tests+2TODOs.
+- `e5fe7350a216928b1c18539166a0bdd0efeba575`: SQL73 retirement of unseen legacy writes; exact historical replays and retained refusal drafts. Full199files/3207tests+2TODOs; SQL proof below.
 
-`dd4df87` retains blank/invalid actual-count drafts with the batch and guards stale callbacks.
-The live batch slot now has neutral focused count/review screens, total-made/reject fields,
-planned/actual and good/reject bars, existing ingredient adjustments/shortages and a visible saving
-state. Catalogue balances retain their actual units; missing balances say unavailable. Confirmation
-uses the existing action. Dedicated acknowledged results, stock refresh truth, recipe snapshot and
-uncertain-save/reload recovery remain incomplete; do not claim the entire production flow finished.
+Independent Sol/high protocol/runtime review is clear. Pinned Node24.20.0/pnpm9.12.3 `pnpm verify` passed198files/3216tests+2existingTODOs before c84d23d. An earlier one-worker gate passed196files/3177tests+2TODOs before8ab48cc.
 
-Preview repair: Ethan reported a live Chrome crash when restored sales named products absent from
-the current catalogue. A live-only synchronous label adapter now protects the locked sales view;
-it leaves sales, amounts, queue and sellable catalogue unchanged. Regression reproduced the exact
-2433 `P[k].short` failure first, then passed across seven destinations. ClickUp's injected body class
-caused a separate hydration warning; extension access must be adjusted in Chrome, not hidden globally.
-Ethan confirmed Chrome opens after that repair. A subsequent shared-button border warning was
-reproduced: hover removal and press/focus layering mixed border shorthand with borderColor.
-Pressable now expands canonical border layers consistently on server/client; pointer/focus
-regressions and a hydration check pass. The protected Home markup and visual values are unchanged.
+## Unaccepted working tree
 
-Full pinned gate:162 files /2743 pass +2 existing todo at7c07008. One initial full run hit the
-existing clock source-scan5s timeout; that file14tests and an unchanged full retry passed. No test
-assertions/timeouts were weakened. Home hover/leave at390/1240 has no console/page errors.
-Prior live build atf112693 passed28 static pages. Four-width
-component/synthetic-RPC checks cover start/review/resume/reduced motion with no writes. Database,
-hosted, physical-phone and owner-week proof remain separate. See commits for prior gate receipts.
+Preserve exact staged/unstaged differences. Bake presentation/rehearsal and SQL73 are accepted; recipe handoff/runtime ownership tightening is the active production slice. The following remain under implementation/acceptance:
 
-Ethan's client-feedback download matches frozen v4 exactly; use its cleaner layout as a reference
-while completing missing designs under the latest neutral Happy Cookie theme. Exact path/hash and
-proof limits are in the shared brief. No broad audit/research repeat or mockup substitution.
+- Bake UI: recorded dough/all oven output/good cookies/rejects, shortage and chronology recovery, explicit removal of old ingredient adjustments. All8synthetic browser width/motion cases passed lost reply → reload → exact replay, one effect,6good/2rejects/8dough, and failed refresh. Phone/desktop images inspected.
+- F03/F06: recipe and planned-bake handoff carries quantity/version, requires explicit Prepare dough/Bake, resolves setup conflicts, preserves independent actual work and old-period setup. Scoped planned notes preserve damaged/legacy copies and disclose storage failure. Pure/runtime/recovery regressions pass; independent review clear. Final browser/full acceptance remains.
+- F04: common counted/recorded/unknown/unavailable stock confidence; positive recorded balances survive absent count dates, unknown zero is excluded from Out/buy totals and charts count it once. Focused regressions pass; final visual/full acceptance remains.
+- F05: customer counts, history/export and removal readback disclose the open-orders +60days/500total feed. No lifetime/global erasure claims. Focused tests pass; final visual/full acceptance remains.
+- F08/F09: visible Money peso scale and local Retry, last-good warning and actor/client/backend fences. Review clear after retained-client fix; regression tests pass. Final visual/full acceptance remains.
+- F09 Stock: first failure and stale reads have local Retry; identity/client fences include last-paid and costs. Old paid prices clear on scope change.53targeted stock/read/catalogue/sign-in/item-price tests and typecheck pass; independent review clear.
+- First recipe: direct Create recipe beside the genuine empty recipe read, versioned editor and Back to that recipe. Focused test passes; final visual/full acceptance remains.
+- Public replacements beside locked screens: neutral responsive menu/checkout/status, order before payment, frozen acknowledged method, server-method status instructions only with a valid future hold, private-link Retry. Eight synthetic width/motion journeys pass one order/failure/retry/no overflow/errors. Phone/desktop images inspected. All8viewport checks passed after removing the inherited customer frame transform. Lost reply → reload → exact retry and acknowledged-order reload also passed390/1440 browser checks; final small quantity/price presentation needs recheck. Full/release acceptance remains. Sticker assets/privacy wording remain owner gates.
+- F07 fee recovery: durable owner/backend-scoped full body and exact ID acknowledgement, same Web Lock for Retry and explicit Change after definite refusal. Lost reply/reload/changed inputs, refused replay, identity/client switch and cross-tab race tests pass; independent review clear. Effect summaries added; wider stock/expense/cost/reversal acceptance remains.
 
-Actual source runs at localhost:3000 with hosted data;4186 is synthetic component QA. Ethan approved
-additive demo data in the existing database. The private40-row seed/cleanup draft has static checks
-only; no load executed. SQL runtime/independent review remain pending. Preserve existing records.
-Remaining scope includes safe recipe saves/save return, Stock truth/receiving/shopping, Bazaar,
-Sell/Shop, Money/Account, Home and integration. Price editing stays isolated pending review.
-No deployment/main merge or other hosted changes approved. The59-page/238-branch/224-automation
-plan describes planned coverage. New owner requirements extend that plan, not the completion count.
+Use a one-worker full gate with frozen acceptance source and no concurrent browser/database workload. No assertion or timeout was weakened after earlier worker/timing failures; accepted commits supersede those failed attempts.
 
-Read this page first in a new session. It is kept short on purpose.
+New unaccepted F09 work adds Orders/Customers first-read Retry, stale last-good warnings and sequence/actor/sync-instance/client fences, including cached contact removal and A→B→A.82related tests passed before the final fence;107post-install tests including that fence pass and independent review is clear. Suppliers reuse the catalogue notice, with6focused tests passing. No CRM expansion.
 
-| If you need                                        | Read                                                                                                                                                     |
-| -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| The goal to run next                               | [next-goal.md](next-goal.md)                                                                                                                             |
-| The plan, approved 5 October                       | [final-plan.md](final-plan.md), version 2                                                                                                                |
-| The rules every agent follows                      | [AGENTS.md](../../AGENTS.md)                                                                                                                             |
-| Ethan's and Cine's decisions                       | [decision-register.md](decision-register.md)                                                                                                             |
-| How we build (loop, models, two tracks)            | [finish-plan.md](finish-plan.md) section 8, [lean-plan.md](lean-plan.md), [agent-orchestration.md](agent-orchestration.md)                               |
-| Approved edits to locked files                     | [protected-exception.md](protected-exception.md)                                                                                                         |
-| What was found: data, research, defects, interface | [sot-consolidation.md](sot-consolidation.md), [product-research.md](product-research.md), [system-audit.md](system-audit.md), [ux-audit.md](ux-audit.md) |
-| Cine's trial checklist                             | [F2-owner-trial.md](F2-owner-trial.md)                                                                                                                   |
-| Older checkpoints, verbatim                        | [current-history.md](current-history.md)                                                                                                                 |
+Production dependency audit found3critical/2high advisories in the old pins. Patched Next16.4.1, Sentry10.75.2, Zod4.6.6 and bounded transitive overrides now audit clean (all production severities0); strict-peer/frozen installs, typecheck and actual production build pass. See [toolchain](toolchain.md). The dependency slice is accepted as611d7c6; later functional slices still require their own gates. Recipe ownership/cache tests now pass117tests across8files; that tightening is not yet accepted.
 
-## Historical status
+## Local database proof and pending cutover
 
-The superseded 20 October snapshot, including its unresolved approvals and owner/device gates,
-is preserved in [current history](current-history.md#archived-20-october-current-state-snapshot--superseded-3-november-2026).
-Use the current brief and next goal above for implementation; do not reinstate old dates or release claims.
+The official pinned Supabase15.8.1.085 runtime was extracted from the verified single-layer image after Docker VFS container copies exceeded disk capacity. Its exact root filesystem and vendor entrypoint ran in a read-only namespace with nonce-owned writable data/config, a generated password and127.0.0.1-only listener. Process start time, executable/root inode, nonce, SQL address/port/data directory were checked before resets and shutdown. No hosted connection was used.
+
+Two actual Supabase CLI2.116.0 resets passed exact catalog/function-authority/public-schema comparison and sentinel removal. On each reset, SQL71/72 role, recipe amount/actual balls, partial output/rejects, costs, ingredient-once, concurrent preparation/Bake and exact replay checks passed. New SQL73 also passed historical batch/dough replay after recipe change, changed-body conflict, roles/invalid input, repeated unseen refusal and no production/stock/ledger/audit effect. The exact postmaster exited and its port closed. SQL73 is accepted ase5fe735 after a frozen full gate. An earlier attempt hit two unchanged Till5-second timeouts;88focused tests and the full rerun passed without changing assertions or timeouts. No hosted migration is authorized.
+
+Four older SQL suites exercise the historical ingredient-mixing writer. Preserve every assertion/mutant inside explicitly rolled-back historical compatibility transactions, require current SQL71/72/73 contracts before/after, and verify SQL73 authority after rollback. Two actual resets now pass all557 unchanged historical role cases and156 existing mutants per reset, with current contracts before/after and exact SQL73 authority restored. Five Python transaction-guard tests pass; independent review is clear. Tooling acceptance remains pending. Backup/restore, full SQL-role/API acceptance and connected real-client scenarios remain pending; the current transactional proof is not those broader gates.
+
+## Remaining objective and gates
+
+Preview: `pnpm preview:owner`, `http://localhost:4186/`; real components with synthetic RPCs. Tools/logs/screenshots are under `/workspace/work/happy-cookie-ops`, outside public Git. System Chromium differs from pinned Playwright; no screenshot baseline was regenerated.
+
+Continue all unblocked full-goal work: finish accepted slices and shared status documents; full failure/navigation matrix; Bazaar stock/expense/cost/reversal and kitchen-to-table contract; SQL73 final acceptance and historical suite transition; first-recipe/product flow; connected scenariosA/B/C; backup/restore; optimized signed-in performance and final build/browser/visual gates. Bazaar finalization still creates returned batches and deducts ingredients; it is not yet a transfer of previously recorded Make output. Do not claim the cutover is complete or introduce a second deduction.
+
+Physical dough-count correction is unanswered. Hosted/schema, off-device backup custody/restore drill, physical iPhone and unaided-owner acceptance remain pending. No hosted SQL/data/resource, merge, deployment, cost-rule change or release is authorized. The supplied checkpoint is archived in [history](current-history.md#archived-cloud-baseline-snapshot--6-november-2026).
+
+PR compatibility (read-only): #51 `e407b7020fab95a8afe934639621c95d6efe5452` projects saved pickup labels only; conditional database-track compatibility is clear with one runtime import conflict, retained Cloud ownership/client fences and pending OD12 copy approval. #53 `7500b6c2b3623650e9175b5cab4828e6c949c2ce` is stacked on#51 and overlaps the unaccepted Cloud Orders read-state store: five staff-sync and one Orders UI conflict require deliberate reconciliation to one scoped source. Neither PR was changed or merged. Claude is unavailable until10November; root is sole coder and independent reviews are read-only.
