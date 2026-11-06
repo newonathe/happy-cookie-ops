@@ -1,0 +1,62 @@
+[
+  {
+    "width": 390,
+    "name": "pickup",
+    "list": [
+      "HC-1105=Mon 16",
+      "HC-1104=Mon 16",
+      "HC-1103=Mon 16",
+      "HC-1102=Mon 16",
+      "HC-1101=Mon 16"
+    ],
+    "detail": "Monday 16 Nov · 9 AM – 5 PM",
+    "errors": []
+  },
+  {
+    "width": 390,
+    "name": "ordersFail",
+    "saysNoMatch": true,
+    "mentionsFailure": false,
+    "errors": []
+  },
+  {
+    "width": 390,
+    "name": "flavoursFail",
+    "textLength": 1217,
+    "showsBuiltIn130": true,
+    "showsFixture125": false,
+    "hasEditControls": true,
+    "mentionsFailure": false,
+    "errors": []
+  },
+  {
+    "width": 1440,
+    "name": "pickup",
+    "list": [
+      "HC-1105=Mon 16",
+      "HC-1104=Mon 16",
+      "HC-1103=Mon 16",
+      "HC-1102=Mon 16",
+      "HC-1101=Mon 16"
+    ],
+    "detail": "Monday 16 Nov · 9 AM – 5 PM",
+    "errors": []
+  },
+  {
+    "width": 1440,
+    "name": "ordersFail",
+    "saysNoMatch": true,
+    "mentionsFailure": false,
+    "errors": []
+  },
+  {
+    "width": 1440,
+    "name": "flavoursFail",
+    "textLength": 1217,
+    "showsBuiltIn130": true,
+    "showsFixture125": false,
+    "hasEditControls": true,
+    "mentionsFailure": false,
+    "errors": []
+  }
+]

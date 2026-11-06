@@ -1,0 +1,262 @@
+[
+  {
+    "width": 320,
+    "tz": "Asia/Manila",
+    "firstList": [
+      {
+        "id": "HC-1105",
+        "pickup": "Mon 16"
+      },
+      {
+        "id": "HC-1104",
+        "pickup": "Mon 16"
+      },
+      {
+        "id": "HC-1103",
+        "pickup": "Mon 16"
+      },
+      {
+        "id": "HC-1102",
+        "pickup": "Mon 16"
+      },
+      {
+        "id": "HC-1101",
+        "pickup": "Mon 16"
+      }
+    ],
+    "firstDetail": {
+      "HC-1101": "Monday 16 Nov · 9 AM – 5 PM",
+      "HC-1102": "Monday 16 Nov · 9 AM – 5 PM",
+      "HC-1103": "Monday 16 Nov · 9 AM – 5 PM",
+      "HC-1104": "Monday 16 Nov · 9 AM – 5 PM",
+      "HC-1105": "Monday 16 Nov · 9 AM – 5 PM"
+    },
+    "reloadList": [
+      {
+        "id": "HC-1105",
+        "pickup": "Mon 16"
+      },
+      {
+        "id": "HC-1104",
+        "pickup": "Mon 16"
+      },
+      {
+        "id": "HC-1103",
+        "pickup": "Mon 16"
+      },
+      {
+        "id": "HC-1102",
+        "pickup": "Mon 16"
+      },
+      {
+        "id": "HC-1101",
+        "pickup": "Mon 16"
+      }
+    ],
+    "reloadDetail": {
+      "HC-1101": "Monday 16 Nov · 9 AM – 5 PM",
+      "HC-1102": "Monday 16 Nov · 9 AM – 5 PM",
+      "HC-1103": "Monday 16 Nov · 9 AM – 5 PM",
+      "HC-1104": "Monday 16 Nov · 9 AM – 5 PM",
+      "HC-1105": "Monday 16 Nov · 9 AM – 5 PM"
+    },
+    "overflow": false,
+    "writes": [],
+    "errors": []
+  },
+  {
+    "width": 390,
+    "tz": "Asia/Manila",
+    "firstList": [
+      {
+        "id": "HC-1105",
+        "pickup": "Mon 16"
+      },
+      {
+        "id": "HC-1104",
+        "pickup": "Mon 16"
+      },
+      {
+        "id": "HC-1103",
+        "pickup": "Mon 16"
+      },
+      {
+        "id": "HC-1102",
+        "pickup": "Mon 16"
+      },
+      {
+        "id": "HC-1101",
+        "pickup": "Mon 16"
+      }
+    ],
+    "firstDetail": {
+      "HC-1101": "Monday 16 Nov · 9 AM – 5 PM",
+      "HC-1102": "Monday 16 Nov · 9 AM – 5 PM",
+      "HC-1103": "Monday 16 Nov · 9 AM – 5 PM",
+      "HC-1104": "Monday 16 Nov · 9 AM – 5 PM",
+      "HC-1105": "Monday 16 Nov · 9 AM – 5 PM"
+    },
+    "reloadList": [
+      {
+        "id": "HC-1105",
+        "pickup": "Mon 16"
+      },
+      {
+        "id": "HC-1104",
+        "pickup": "Mon 16"
+      },
+      {
+        "id": "HC-1103",
+        "pickup": "Mon 16"
+      },
+      {
+        "id": "HC-1102",
+        "pickup": "Mon 16"
+      },
+      {
+        "id": "HC-1101",
+        "pickup": "Mon 16"
+      }
+    ],
+    "reloadDetail": {
+      "HC-1101": "Monday 16 Nov · 9 AM – 5 PM",
+      "HC-1102": "Monday 16 Nov · 9 AM – 5 PM",
+      "HC-1103": "Monday 16 Nov · 9 AM – 5 PM",
+      "HC-1104": "Monday 16 Nov · 9 AM – 5 PM",
+      "HC-1105": "Monday 16 Nov · 9 AM – 5 PM"
+    },
+    "overflow": false,
+    "writes": [],
+    "errors": []
+  },
+  {
+    "width": 768,
+    "tz": "Asia/Manila",
+    "firstList": [
+      {
+        "id": "HC-1105",
+        "pickup": "Mon 16"
+      },
+      {
+        "id": "HC-1104",
+        "pickup": "Mon 16"
+      },
+      {
+        "id": "HC-1103",
+        "pickup": "Mon 16"
+      },
+      {
+        "id": "HC-1102",
+        "pickup": "Mon 16"
+      },
+      {
+        "id": "HC-1101",
+        "pickup": "Mon 16"
+      }
+    ],
+    "firstDetail": {
+      "HC-1101": "Monday 16 Nov · 9 AM – 5 PM",
+      "HC-1102": "Monday 16 Nov · 9 AM – 5 PM",
+      "HC-1103": "Monday 16 Nov · 9 AM – 5 PM",
+      "HC-1104": "Monday 16 Nov · 9 AM – 5 PM",
+      "HC-1105": "Monday 16 Nov · 9 AM – 5 PM"
+    },
+    "reloadList": [
+      {
+        "id": "HC-1105",
+        "pickup": "Mon 16"
+      },
+      {
+        "id": "HC-1104",
+        "pickup": "Mon 16"
+      },
+      {
+        "id": "HC-1103",
+        "pickup": "Mon 16"
+      },
+      {
+        "id": "HC-1102",
+        "pickup": "Mon 16"
+      },
+      {
+        "id": "HC-1101",
+        "pickup": "Mon 16"
+      }
+    ],
+    "reloadDetail": {
+      "HC-1101": "Monday 16 Nov · 9 AM – 5 PM",
+      "HC-1102": "Monday 16 Nov · 9 AM – 5 PM",
+      "HC-1103": "Monday 16 Nov · 9 AM – 5 PM",
+      "HC-1104": "Monday 16 Nov · 9 AM – 5 PM",
+      "HC-1105": "Monday 16 Nov · 9 AM – 5 PM"
+    },
+    "overflow": false,
+    "writes": [],
+    "errors": []
+  },
+  {
+    "width": 1440,
+    "tz": "Asia/Manila",
+    "firstList": [
+      {
+        "id": "HC-1105",
+        "pickup": "Mon 16"
+      },
+      {
+        "id": "HC-1104",
+        "pickup": "Mon 16"
+      },
+      {
+        "id": "HC-1103",
+        "pickup": "Mon 16"
+      },
+      {
+        "id": "HC-1102",
+        "pickup": "Mon 16"
+      },
+      {
+        "id": "HC-1101",
+        "pickup": "Mon 16"
+      }
+    ],
+    "firstDetail": {
+      "HC-1101": "Monday 16 Nov · 9 AM – 5 PM",
+      "HC-1102": "Monday 16 Nov · 9 AM – 5 PM",
+      "HC-1103": "Monday 16 Nov · 9 AM – 5 PM",
+      "HC-1104": "Monday 16 Nov · 9 AM – 5 PM",
+      "HC-1105": "Monday 16 Nov · 9 AM – 5 PM"
+    },
+    "reloadList": [
+      {
+        "id": "HC-1105",
+        "pickup": "Mon 16"
+      },
+      {
+        "id": "HC-1104",
+        "pickup": "Mon 16"
+      },
+      {
+        "id": "HC-1103",
+        "pickup": "Mon 16"
+      },
+      {
+        "id": "HC-1102",
+        "pickup": "Mon 16"
+      },
+      {
+        "id": "HC-1101",
+        "pickup": "Mon 16"
+      }
+    ],
+    "reloadDetail": {
+      "HC-1101": "Monday 16 Nov · 9 AM – 5 PM",
+      "HC-1102": "Monday 16 Nov · 9 AM – 5 PM",
+      "HC-1103": "Monday 16 Nov · 9 AM – 5 PM",
+      "HC-1104": "Monday 16 Nov · 9 AM – 5 PM",
+      "HC-1105": "Monday 16 Nov · 9 AM – 5 PM"
+    },
+    "overflow": false,
+    "writes": [],
+    "errors": []
+  }
+]
