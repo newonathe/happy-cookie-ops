@@ -37,14 +37,26 @@ async function mount(identity?: ProductionRecoveryScope) {
       name: string,
       args?: Record<string, unknown>
     ): Promise<{ data: unknown; error: null }> => {
-      if (name === 'record_production') {
+      if (name === 'record_bake') {
         requests.push(structuredClone(args?.p_rec as Record<string, unknown>));
         durableAtSend.push(
           readProductionRecovery(scope).value?.requests.some(
             (row) => row.fields.id === (args?.p_rec as Record<string, unknown>).id
           ) === true
         );
-        return new Promise((resolve) => replies.push(resolve));
+        return new Promise((resolve) =>
+          replies.push((value) => {
+            const body = args?.p_rec as Record<string, unknown>;
+            resolve({
+              ...value,
+              data: value.data.map((row) => ({
+                ...row,
+                record_id: String(body.id),
+                used_dough: Number(body.qty)
+              }))
+            });
+          })
+        );
       }
       const values: Record<string, unknown> = {
         get_flavours: original.products.slice(0, 2).map((p, i) => ({

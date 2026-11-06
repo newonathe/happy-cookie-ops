@@ -45,6 +45,10 @@ export interface LiveDoughPreparation {
 
 /** Unconfirmed counts travel with the open batch, including blank or invalid entries. */
 export interface LiveBatchCounts {
+  doughOnly?: boolean;
+  doughBalance?: number | null;
+  ingredientChanges?: boolean;
+  clearIngredientChanges?: () => void;
   periodText: string;
   recipeVersion: number | null;
   stock: Array<{ name: string; balance: number; unit: string }>;
