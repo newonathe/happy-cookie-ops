@@ -215,3 +215,21 @@ describe('a replaced reader cannot write', () => {
     expect(a.rpc).toHaveBeenCalledTimes(1);
   });
 });
+
+describe('a replaced reader cannot overwrite the order data either', () => {
+  it("an old reader's late success does not apply its orders", async () => {
+    const a = scripted();
+    const b = scripted();
+    const old = sync(a.client);
+    const pendingOld = old.s.load();
+    const current = sync(b.client);
+    const pendingNew = current.s.load();
+    b.pending[0]!({ data: [row('HC-NEW')], error: null });
+    await pendingNew;
+    a.pending[0]!({ data: [row('HC-OLD')], error: null });
+    expect(await pendingOld).toBe(false);
+    expect(old.apply).not.toHaveBeenCalled();
+    expect(current.apply).toHaveBeenCalledTimes(1);
+    expect(ids(current.s)).toEqual(['HC-NEW']);
+  });
+});

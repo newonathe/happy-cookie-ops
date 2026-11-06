@@ -431,6 +431,9 @@ export class StaffOrderSync {
       this.report();
       return false;
     }
+    // A newer reader (a new owner session, a re-run of the live gate) has taken over: this
+    // answer may be older than what it shows, so it changes nothing.
+    if (!ordersRead.owns(this)) return false;
     if (read > this.shownRead) {
       this.shownRead = read;
       this.readAt = askedAt;

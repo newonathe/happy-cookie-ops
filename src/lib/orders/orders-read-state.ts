@@ -68,6 +68,8 @@ export const ordersRead = {
     owner = reader;
     replace(IDLE);
   },
+  /** Whether `reader` is the current reader: a replaced one must not apply late answers either. */
+  owns: (reader: object): boolean => reader === owner,
   /** Written only by the current reader; anything else is a stale callback and is ignored. */
   publish(reader: object, next: OrdersReadSnapshot): void {
     if (reader !== owner) return;
