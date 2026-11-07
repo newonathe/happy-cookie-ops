@@ -8,7 +8,7 @@ Branch `codex/recipe-production-acceptance-20261107` starts from published Cloud
 
 ## Cloud checkout and accepted source
 
-The clean older Cloud checkout at `4c1f72e` is preserved as `backup/cloud-start-4c1f72e`. `work` continued from exactly the requested `93135433fd88def7cbc5a05c0d22de3b17cfe764`, after fetching `origin/codex/refined-workflows` and verifying full-goal.md. No Cloud stashes or other worktrees existed initially. The implementation checkout now uses `codex/cloud-recipe-handoff-20261106`, from accepteddbb7e44; all working bytes and the previous index were preserved when advancing the root checkpoint. The frozen acceptance worktree publishes to `codex/cloud-full-goal-20261106`. Private/local work listed in full-goal.md was not applied.
+The clean older Cloud checkout at `4c1f72e` is preserved as `backup/cloud-start-4c1f72e`. `work` continued from exactly the requested `93135433fd88def7cbc5a05c0d22de3b17cfe764`, after fetching `origin/codex/refined-workflows` and verifying full-goal.md. No Cloud stashes or other worktrees existed initially. The original WIP remains preserved in `/workspace/happy-cookie-ops`. Active work continues in `/workspace/work/happy-cookie-ops/acceptance-tree` on `codex/cloud-p0-transfer-20261107`, based on user-pushed `f56900f7f533462c3dd368d05c8cc05381897f9b`. The independently verified SQL74 extraction at `620ab45` is preserved as `backup/bazaar-boundary-before-local-f569` and reapplied without rewriting either history. The acceptance worktree publishes to `codex/cloud-full-goal-20261106`. Private/local work listed in full-goal.md was not applied.
 
 Accepted and pushed to `codex/cloud-full-goal-20261106`:
 
@@ -23,9 +23,9 @@ Accepted and pushed to `codex/cloud-full-goal-20261106`:
 
 Accepted follow-ups: `da53607dc6d41806e425bbf9843323989b509285` verifies owned Linux fixtures and historical SQL compatibility; `04b248bc1404c03c7cb5b86384e0c6387c3b1dff` retains recipe edits with their original stamps by verified identity; `9d3311a9838c8f46be2a811023567b0b14411fdb` fences recipe reads/drafts and captured handoff sources. Its full gate passed201files/3215tests+2TODOs; formatting and independent review passed. `30eccdff23079b3121becbf8e3aff4c414abbcd2` accepts typed-cost callback fences and production-source regrant;44focused tests, independent review, formatting and the full201files/3219tests+2TODO gate passed. `dbb7e446f88ab7486071ac7282c6ab2f4a3abf44` accepts first-recipe entry and editor identity/navigation isolation;54focused tests, independent review, formatting and full201files/3222tests+2TODO passed. Handoff and final accepted-source connected/build checks remain under acceptance.
 
-Independent Sol/high protocol/runtime review is clear. Pinned Node24.20.0/pnpm9.12.3 `pnpm verify` passed198files/3216tests+2existingTODOs before c84d23d. An earlier one-worker gate passed196files/3177tests+2TODOs before8ab48cc.
-
 ## Unaccepted working tree
+
+P0 Make/Bazaar is now the next production dependency. The failing-first local transaction reproduces333.3g ingredient use versus250g,7 kitchen cookies versus3, and667 ingredient centavos versus500. SQL74 is a private byte-identical stock extraction under acceptance; it does not fix transfers yet. Independent review is clear; two-reset SQL71–73 and557 historical cases/156mutants per reset pass. Bazaar-specific317 cases/160mutants also pass per reset. Full pnpm verify remains the commit gate. The external audit is retained outside public Git; no hosted incident is claimed.
 
 The isolated acceptance-worktree browser run exposed retired Orders rows during catalogue replacement. The production prerequisite now clears those rows on verified identity change and fences late order reads by actor/client/generation/sync instance. Both regressions failed on the prior checkpoint;51focused tests and independent read-only review pass. Orders modules and PR51/53 remain unchanged. The handoff draft is preserved and still needs connected/full acceptance.
 
