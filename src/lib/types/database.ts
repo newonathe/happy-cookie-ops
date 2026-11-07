@@ -2707,6 +2707,10 @@ export type Database = {
         Returns: string
       }
       get_bazaar: { Args: { p_booking: string }; Returns: Json }
+      get_bazaar_kitchen_sources: {
+        Args: { p_booking: string }
+        Returns: { product_id: string; source_drop: number }[]
+      }
       get_books: { Args: { p_from: string; p_to: string }; Returns: Json }
       get_flavour_costs: { Args: never; Returns: Json }
       get_flavours: {
