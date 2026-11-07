@@ -2439,7 +2439,7 @@
         "search_path=\"\""
       ],
       "returns": "bigint",
-      "body_md5": "2b8fae08d4096060c12164f179e9c7c5",
+      "body_md5": "824d6bc3ba1b303dfe353252cb7d9f36",
       "identity": "p_product text, p_drop integer",
       "execute_anon": false,
       "security_definer": true,
@@ -2471,6 +2471,51 @@
       "returns": "trigger",
       "body_md5": "b32955086d448f361cebec1040c6be0d",
       "identity": "",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "kitchen_cookie_timeline",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(at timestamp with time zone, qty bigint)",
+      "body_md5": "a911d1844321ee415a8192c5689beb20",
+      "identity": "p_product text, p_drop integer",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "guard_bazaar_kitchen_line",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "trigger",
+      "body_md5": "752a78b1db47e45377d55f8ae17630d5",
+      "identity": "",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "transfer_bazaar_stock",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "f16dfd18bea4ca4c71e203443b87895a",
+      "identity": "p_transfer jsonb",
       "execute_anon": false,
       "security_definer": true,
       "execute_service_role": false,

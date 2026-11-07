@@ -77,6 +77,7 @@
     "20260101007200_dough_only_baking.sql": "ce3e373cfae45258176fab09f6554a282521e0170e2a00ae99a37244e412758b",
     "20260101007300_legacy_production_replay_only.sql": "14b3e7200bba554e3a653d710c7425b64fe2149730f5de815c03d899ac2d2943",
     "20260101007400_bazaar_stock_boundary.sql": "4bd1a2dd087e5bbe836150b10e529f37230eb0123adb1abc823b1695f6a102ad",
-    "20260101007500_bazaar_kitchen_journal.sql": "a0f199c11485eadbd9e28b72e9f6df865a81fc47e13db6bed5bf8bc2ce8e71f0"
+    "20260101007500_bazaar_kitchen_journal.sql": "a0f199c11485eadbd9e28b72e9f6df865a81fc47e13db6bed5bf8bc2ce8e71f0",
+    "20260101007600_bazaar_kitchen_transfer_contract.sql": "dae96b5ed0be375f568df2b118f540afdd1dc894127e2e9a7b4fbb91e35075f1"
   }
 }
