@@ -2580,6 +2580,21 @@
       "security_definer": true,
       "execute_service_role": false,
       "execute_authenticated": false
+    },
+    {
+      "acl": "{authenticated=X/postgres,postgres=X/postgres}",
+      "name": "get_bazaar_kitchen_sources",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "TABLE(product_id text, source_drop integer)",
+      "body_md5": "c0a2d31509caac13d3b7fc11240622ab",
+      "identity": "p_booking uuid",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": true
     }
   ]
 }
