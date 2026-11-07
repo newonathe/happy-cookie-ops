@@ -8,7 +8,9 @@ import {
   type KitchenTransferWork
 } from './kitchen-transfer-recovery';
 import {
+  freezeKitchenTransfer,
   kitchenTransferRequestSchema,
+  sendKitchenTransfer,
   type KitchenTransferOutcome,
   type KitchenTransferRequest
 } from './kitchen-transfer';
@@ -135,6 +137,61 @@ export class KitchenTransferSession {
     this.persist();
     this.changed();
     return true;
+  }
+  async submit(id: string): Promise<TransferSessionResult> {
+    if (!this.active()) return { outcome: 'blocked', reason: 'inactive' };
+    if (!this.ports.online()) return { outcome: 'blocked', reason: 'offline' };
+    if (!this.loaded || !this.release || this.phase !== 'ready')
+      return { outcome: 'blocked', reason: 'not-ready' };
+    if (this.busy.has(id)) return { outcome: 'blocked', reason: 'busy' };
+    const work = this.record.works.find((item) => item.work_id === id);
+    if (!work) return { outcome: 'blocked', reason: 'missing' };
+    const request =
+      work.submitted ??
+      freezeKitchenTransfer({
+        id: this.ports.newId(),
+        day_id: work.day_id,
+        product_id: work.product_id,
+        source_drop: work.source_drop,
+        qty: /^[0-9]+$/.test(work.qty_text.trim()) ? Number(work.qty_text) : NaN,
+        at: this.ports.now()
+      });
+    if (!request) return { outcome: 'refused', reason: 'invalid' };
+    work.submitted = request;
+    if (!this.persist()) {
+      this.changed();
+      return { outcome: 'blocked', reason: 'storage' };
+    }
+    if (!this.active()) return { outcome: 'blocked', reason: 'inactive' };
+    this.busy.add(id);
+    this.changed();
+    try {
+      if (!this.active()) return { outcome: 'blocked', reason: 'inactive' };
+      const outcome = work.receipt
+        ? { outcome: 'saved' as const, receipt: work.receipt }
+        : await sendKitchenTransfer(this.ports.client, request);
+      if (!this.active()) return { outcome: 'blocked', reason: 'inactive' };
+      if (outcome.outcome === 'unknown') return outcome;
+      if (outcome.outcome === 'refused') {
+        work.submitted = null;
+        this.resolved.add(request.id);
+        this.persist();
+        return outcome;
+      }
+      work.receipt = outcome.receipt;
+      this.persist();
+      if (!this.active()) return { outcome: 'blocked', reason: 'inactive' };
+      let refreshed = false;
+      try {
+        refreshed = await this.ports.refresh(request);
+      } catch {
+        /* Recording is still confirmed. */
+      }
+      return this.active() ? { ...outcome, refreshed } : { outcome: 'blocked', reason: 'inactive' };
+    } finally {
+      this.busy.delete(id);
+      this.changed();
+    }
   }
   close(): void {
     if (this.disposed) return;
