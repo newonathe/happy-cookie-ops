@@ -99,6 +99,10 @@ no transfer API enabled. Then add the journal/guards and activate the connected 
 Require actual SQL role, concurrency, replay and unchanged historical tests, independent
 review, full verification, connected browser and visual review before acceptance.
 
+SQL74–77 preserve the legacy boundary, add the private journal/transfer and close the
+recorded-pack swap race. SQL78 settlement now has actual two-reset connected stock/Money,
+packaging, stranded-return and reversal proof; client/recovery/browser acceptance remains open.
+
 Required database proof includes full recipe → 11/12/13 balls with identical ingredient
 use; half recipe with independently entered balls; exact replay after recipe change;
 changed-body refusal; active owner/helper/support/inactive/anonymous boundaries; missing
