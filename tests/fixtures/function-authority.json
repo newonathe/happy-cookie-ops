@@ -1209,7 +1209,7 @@
         "search_path=\"\""
       ],
       "returns": "jsonb",
-      "body_md5": "44df44d03ad91040e75450f355906a50",
+      "body_md5": "6ef5e310d99e5dbe8972afa96264d352",
       "identity": "p_drop integer",
       "execute_anon": false,
       "security_definer": true,
@@ -2411,6 +2411,66 @@
       "returns": "void",
       "body_md5": "d2dc58fa1eeee8262cc4a40232435c0c",
       "identity": "p_booking uuid, p_drop integer, p_summary jsonb, p_name text, p_at timestamp with time zone",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "get_production_before_transfers",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "jsonb",
+      "body_md5": "44df44d03ad91040e75450f355906a50",
+      "identity": "p_drop integer",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "kitchen_cookie_balance",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "bigint",
+      "body_md5": "2b8fae08d4096060c12164f179e9c7c5",
+      "identity": "p_product text, p_drop integer",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "guard_kitchen_journal",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "trigger",
+      "body_md5": "09109777ceff6fe005a0d1ba09a1f04f",
+      "identity": "",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "guard_kitchen_cookie_spend",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "trigger",
+      "body_md5": "b32955086d448f361cebec1040c6be0d",
+      "identity": "",
       "execute_anon": false,
       "security_definer": true,
       "execute_service_role": false,
