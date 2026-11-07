@@ -2520,3 +2520,7 @@ New regressions failed on the previous implementation before the fix;70focused t
 ## Earlier Cloud protocol gates — retained during7November consolidation
 
 Independent Sol/high protocol/runtime review is clear. Pinned Node24.20.0/pnpm9.12.3 `pnpm verify` passed198files/3216tests+2existingTODOs before c84d23d. An earlier one-worker gate passed196files/3177tests+2TODOs before8ab48cc.
+
+## Accepted Cloud production follow-ups — 7 November
+
+Accepted follow-ups: `da53607dc6d41806e425bbf9843323989b509285` verifies owned Linux fixtures and historical SQL compatibility; `04b248bc1404c03c7cb5b86384e0c6387c3b1dff` retains recipe edits with their original stamps by verified identity; `9d3311a9838c8f46be2a811023567b0b14411fdb` fences recipe reads/drafts and captured handoff sources. Its full gate passed201files/3215tests+2TODOs; formatting and independent review passed. `30eccdff23079b3121becbf8e3aff4c414abbcd2` accepts typed-cost callback fences and production-source regrant;44focused tests, independent review, formatting and the full201files/3219tests+2TODO gate passed. `dbb7e446f88ab7486071ac7282c6ab2f4a3abf44` accepts first-recipe entry and editor identity/navigation isolation;54focused tests, independent review, formatting and full201files/3222tests+2TODO passed. Handoff and final accepted-source connected/build checks remain under acceptance.
