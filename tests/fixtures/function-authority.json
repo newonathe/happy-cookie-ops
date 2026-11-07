@@ -2409,7 +2409,7 @@
         "search_path=\"\""
       ],
       "returns": "void",
-      "body_md5": "d2dc58fa1eeee8262cc4a40232435c0c",
+      "body_md5": "0d7902dd60ecd1efe7784961abf1d9a2",
       "identity": "p_booking uuid, p_drop integer, p_summary jsonb, p_name text, p_at timestamp with time zone",
       "execute_anon": false,
       "security_definer": true,
@@ -2507,7 +2507,7 @@
       "execute_authenticated": false
     },
     {
-      "acl": "{postgres=X/postgres}",
+      "acl": "{authenticated=X/postgres,postgres=X/postgres}",
       "name": "transfer_bazaar_stock",
       "owner": "postgres",
       "config": [
@@ -2516,6 +2516,66 @@
       "returns": "jsonb",
       "body_md5": "f16dfd18bea4ca4c71e203443b87895a",
       "identity": "p_transfer jsonb",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": true
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "finalise_bazaar_stock_before_transfers",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "void",
+      "body_md5": "d2dc58fa1eeee8262cc4a40232435c0c",
+      "identity": "p_booking uuid, p_drop integer, p_summary jsonb, p_name text, p_at timestamp with time zone",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "credit_bazaar_kitchen",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "void",
+      "body_md5": "dbeaa9a8cf09e5052bfacffc0648d993",
+      "identity": "p_booking uuid, p_product text, p_day uuid, p_qty integer, p_at timestamp with time zone, p_id uuid",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "return_closed_bazaar_kitchen",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "trigger",
+      "body_md5": "d7a17b7d6b2ac21443d4aaa4e5161baa",
+      "identity": "",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "return_reversed_bazaar_kitchen",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "trigger",
+      "body_md5": "1c748648dae333599df2b5523f848b0e",
+      "identity": "",
       "execute_anon": false,
       "security_definer": true,
       "execute_service_role": false,

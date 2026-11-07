@@ -2914,6 +2914,10 @@ export type Database = {
         }
         Returns: Json
       }
+      transfer_bazaar_stock: {
+        Args: { p_transfer: Json }
+        Returns: Json
+      }
       record_bake: {
         Args: { p_rec: Json }
         Returns: {
