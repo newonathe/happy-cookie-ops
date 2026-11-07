@@ -57,6 +57,30 @@ const refusal: Readonly<Record<string, TransferRefusal>> = {
   PGRST202: 'unavailable'
 };
 
+/** Validates the same immutable receipt when it comes from a reply or scoped recovery. */
+export function readKitchenTransferReceipt(
+  request: KitchenTransferRequest,
+  value: unknown
+): KitchenTransferReceipt | null {
+  const parsed = receiptSchema.safeParse(value);
+  if (!parsed.success) return null;
+  const receipt = parsed.data;
+  if (
+    receipt.id !== request.id ||
+    receipt.day_id !== request.day_id ||
+    receipt.product_id !== request.product_id ||
+    receipt.source_drop !== request.source_drop ||
+    receipt.qty !== request.qty ||
+    receipt.at !== request.at ||
+    receipt.day_total < request.qty
+  )
+    return null;
+  return Object.freeze({
+    ...receipt,
+    source_records: Object.freeze([...receipt.source_records])
+  });
+}
+
 /** Confirmation is about this exact request, never permission to apply a cached balance. */
 export async function sendKitchenTransfer(
   client: BazaarClient,
@@ -73,26 +97,8 @@ export async function sendKitchenTransfer(
           : undefined;
       return reason ? { outcome: 'refused', reason } : { outcome: 'unknown' };
     }
-    const parsed = receiptSchema.safeParse(data);
-    if (!parsed.success) return { outcome: 'unknown' };
-    const receipt = parsed.data;
-    if (
-      receipt.id !== request.id ||
-      receipt.day_id !== request.day_id ||
-      receipt.product_id !== request.product_id ||
-      receipt.source_drop !== request.source_drop ||
-      receipt.qty !== request.qty ||
-      receipt.at !== request.at ||
-      receipt.day_total < request.qty
-    )
-      return { outcome: 'unknown' };
-    return {
-      outcome: 'saved',
-      receipt: Object.freeze({
-        ...receipt,
-        source_records: Object.freeze([...receipt.source_records])
-      })
-    };
+    const receipt = readKitchenTransferReceipt(request, data);
+    return receipt ? { outcome: 'saved', receipt } : { outcome: 'unknown' };
   } catch {
     return { outcome: 'unknown' };
   }
