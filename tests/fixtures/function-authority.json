@@ -2154,7 +2154,7 @@
         "search_path=\"\""
       ],
       "returns": "jsonb",
-      "body_md5": "a600307b286ad542d8a76320a5030e93",
+      "body_md5": "d48697de68aa04e94a2bf4a5738972d2",
       "identity": "p_booking uuid, p_expected text, p_drop integer, p_till jsonb, p_final jsonb",
       "execute_anon": false,
       "security_definer": true,
@@ -2400,6 +2400,21 @@
       "security_definer": true,
       "execute_service_role": false,
       "execute_authenticated": true
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "name": "finalise_bazaar_stock",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "returns": "void",
+      "body_md5": "d2dc58fa1eeee8262cc4a40232435c0c",
+      "identity": "p_booking uuid, p_drop integer, p_summary jsonb, p_name text, p_at timestamp with time zone",
+      "execute_anon": false,
+      "security_definer": true,
+      "execute_service_role": false,
+      "execute_authenticated": false
     }
   ]
 }

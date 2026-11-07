@@ -71,6 +71,34 @@ form/client/recovery; dough-only bake RPC and live review; approved physical cou
 connected order/shopping/Bazaar and cost reconciliation. New SQL is local until separately
 approved for hosting. Each stock-write slice needs independent review before acceptance.
 
+#### PB-01/PB-02 additive boundary — 7 November
+
+The external review is evidence, not new owner policy. The local connected regression at
+`e0670e6` confirms the combined old route uses333.3g instead of250g, ends with7 kitchen
+cookies instead of3, creates a second batch and charges667 rather than500 ingredient
+centavos. No hosted incident is inferred. Historical Bazaar-only behavior stays unchanged.
+
+The new source is the existing product/drop baked pool. An explicit physical transfer
+records a stable request/body, authoritative kitchen debit and source production IDs;
+planning alone never transfers stock. Returns credit the same pool without production
+or ingredients. Source markers distinguish transferred stock from legacy separately-made
+stock. Version1 refuses mixed origins or multiple source drops for one booking/product
+without effects; these are capability limits, not an assumed allocation policy.
+
+All spenders use the product lock before checking the same pooled balance. Pack locks
+catalogue then sorted products; transfer locks booking, catalogue, product; discard and
+correction retain their product lock. No product holder acquires catalogue/booking later.
+Exact recorded-ID replays remain unchanged.
+
+Bazaar estimates retain booking-typed, flavour-typed, first-day-recipe precedence. Money
+retains its bought/used rules; the Make ingredient use is never repeated. No per-batch
+valuation, transfer expense or new stall-production policy is introduced.
+
+SQL74 first extracts the byte-identical legacy stock section into a private helper, with
+no transfer API enabled. Then add the journal/guards and activate the connected contract.
+Require actual SQL role, concurrency, replay and unchanged historical tests, independent
+review, full verification, connected browser and visual review before acceptance.
+
 Required database proof includes full recipe → 11/12/13 balls with identical ingredient
 use; half recipe with independently entered balls; exact replay after recipe change;
 changed-body refusal; active owner/helper/support/inactive/anonymous boundaries; missing
