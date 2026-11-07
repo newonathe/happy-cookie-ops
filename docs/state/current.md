@@ -2,6 +2,10 @@
 
 **The complete application objective remains active and incomplete.** Read [full-goal.md](full-goal.md), then [next-goal.md](next-goal.md). A passing slice is not whole-product acceptance.
 
+## Local recipe handoff — 7 November
+
+Branch `codex/recipe-production-acceptance-20261107` starts from published Cloud `e0670e6`; other PRs, worktrees, stashes and `.claude/launch.json` remain separate. Recipe Start production carries its selected quantity/version into Make, requires an explicit Prepare dough/Bake choice, and offers Keep/Use incoming for conflicting setup. Stale source/period/identity actions are refused; actual work and frozen requests are preserved. The synthetic preview now supplies its verified recipe scope. Proof:70focused tests;4phone/desktop/reduced-motion CLI cases including reload,13actual/2rejects retained, no writes/errors/overflow; final gate/build/review in the acceptance commit. Detailed scope is in current-history.md. Planned-bake/Shopping wiring and the wider connected production/Bazaar acceptance remain open.
+
 ## Cloud checkout and accepted source
 
 The clean older Cloud checkout at `4c1f72e` is preserved as `backup/cloud-start-4c1f72e`. `work` continued from exactly the requested `93135433fd88def7cbc5a05c0d22de3b17cfe764`, after fetching `origin/codex/refined-workflows` and verifying full-goal.md. No Cloud stashes or other worktrees existed initially. The implementation checkout now uses `codex/cloud-recipe-handoff-20261106`, from accepteddbb7e44; all working bytes and the previous index were preserved when advancing the root checkpoint. The frozen acceptance worktree publishes to `codex/cloud-full-goal-20261106`. Private/local work listed in full-goal.md was not applied.

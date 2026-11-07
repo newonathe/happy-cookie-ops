@@ -135,10 +135,148 @@ async function mounted(ready = true, orders = true) {
   return { runtime, rpc, client, source };
 }
 const start = (r: OpsRuntime) => r.renderVals().liveProduction!.start!;
+const recipePage = (r: OpsRuntime) => {
+  act(() => r.setState({ screen: 'recipes', liveRecipeTarget: pid } as never));
+  return r.renderVals().liveRecipes!.recipePage!;
+};
 const noWrites = (rpc: ReturnType<typeof vi.fn>) =>
   expect(rpc.mock.calls.every(([name]) => String(name).startsWith('get_'))).toBe(true);
 
 describe('owner production entry', () => {
+  it.each([6, 12, 48])(
+    'carries %s recipe cookies without choosing the production type',
+    async (cookies) => {
+      const { runtime, rpc } = await mounted();
+      const page = recipePage(runtime);
+      act(() => page.startProduction!(cookies));
+      expect(start(runtime).multi!.choices).toMatchObject([
+        { productId: pid, quantity: String(cookies), version: 3, kind: 'choose' }
+      ]);
+      expect(start(runtime).multi!.review()).toBe(false);
+      act(() => start(runtime).multi!.setKind(pid, 'batch'));
+      expect(start(runtime).multi!.choices[0]?.quantity).toBe(String(cookies));
+      act(() => {
+        expect(start(runtime).multi!.review()).toBe(true);
+      });
+      act(() => {
+        expect(start(runtime).multi!.begin()).toBe(true);
+      });
+      expect(runtime.renderVals().liveProduction!.inProgress).toMatchObject([
+        { productId: pid, kind: 'batch', quantityText: `${cookies} planned` }
+      ]);
+      noWrites(rpc);
+    }
+  );
+  it.each(['keep', 'use'] as const)(
+    'offers %s for a conflicting recipe plan without replacing actual work',
+    async (resolution) => {
+      const { runtime, rpc } = await mounted();
+      act(() => start(runtime).open());
+      act(() => start(runtime).setQuantity('16'));
+      act(() => {
+        expect(start(runtime).begin()).toBe(true);
+      });
+      act(() => runtime.renderVals().liveBatchCounts!.setActual('13'));
+      act(() => runtime.renderVals().liveBatchCounts!.setRejects('2'));
+      act(() => runtime.go('bake'));
+      const work = runtime.renderVals().liveProduction!.inProgress![0];
+      act(() => start(runtime).open());
+      act(() => start(runtime).setQuantity('8'));
+      const page = recipePage(runtime);
+      act(() => page.startProduction!(48));
+      expect(start(runtime).multi!.choices).toMatchObject([{ quantity: '8', kind: 'batch' }]);
+      expect(start(runtime).handoff?.rows).toMatchObject([{ quantity: '48', version: 3 }]);
+      expect(start(runtime).multi!.review()).toBe(false);
+      expect(start(runtime).begin()).toBe(false);
+      const old = start(runtime).handoff!;
+      act(() => old[resolution]());
+      expect(start(runtime).handoff).toBeUndefined();
+      expect(start(runtime).multi!.choices).toMatchObject([
+        {
+          quantity: resolution === 'keep' ? '8' : '48',
+          kind: resolution === 'keep' ? 'batch' : 'choose'
+        }
+      ]);
+      act(() => old.use());
+      expect(start(runtime).handoff).toBeUndefined();
+      act(() => work.open());
+      expect(runtime.renderVals().liveBatchCounts).toMatchObject({ actual: '13', rejects: '2' });
+      noWrites(rpc);
+    }
+  );
+  it.each([
+    'recipe',
+    'navigation',
+    'period',
+    'period-return',
+    'role',
+    'identity',
+    'failed',
+    'unavailable'
+  ] as const)('rejects a captured recipe action after %s changes', async (change) => {
+    const { runtime, rpc, source, client } = await mounted();
+    const old = recipePage(runtime);
+    if (change === 'recipe') {
+      source.version = 4;
+      await act(async () => {
+        await runtime.loadRecipes(client as never);
+      });
+    } else if (change === 'navigation') {
+      act(() => runtime.go('products'));
+      recipePage(runtime);
+    } else if (change === 'period') act(() => runtime.setState({ dropNo: 6 }));
+    else if (change === 'period-return') {
+      act(() => runtime.setState({ dropNo: 6 }));
+      act(() => runtime.setState({ dropNo: 5 }));
+    } else if (change === 'role') {
+      act(() => runtime.setRole('helper'));
+      act(() => runtime.setRole('owner'));
+      recipePage(runtime);
+    } else if (change === 'identity') await bindProductionOwner(runtime);
+    else
+      await act(async () => {
+        rpc.mockImplementationOnce(
+          async () =>
+            ({
+              data: change === 'unavailable' ? [] : null,
+              error: change === 'failed' ? { code: '08006' } : null
+            }) as never
+        );
+        await runtime.loadRecipes(client as never);
+      });
+    act(() => old.startProduction!(48));
+    expect(runtime.state.screen).toBe('recipes');
+    act(() => runtime.go('bake'));
+    expect(start(runtime).draft).toBeNull();
+    noWrites(rpc);
+  });
+  it('keeps an unanswered bake and its exact request when a recipe plan arrives', async () => {
+    const { runtime, rpc } = await mounted();
+    act(() => start(runtime).open());
+    act(() => start(runtime).setQuantity('8'));
+    act(() => {
+      expect(start(runtime).begin()).toBe(true);
+    });
+    act(() => runtime.renderVals().liveBatchCounts!.setRejects('2'));
+    rpc.mockImplementationOnce(async () => ({ data: null, error: { code: '08006' } }) as never);
+    await act(async () => {
+      runtime.renderVals().liveBatchCounts!.confirm();
+    });
+    expect(runtime.renderVals().liveBatchCounts!.uncertain).toBe(true);
+    const requests = () => rpc.mock.calls.filter(([name]) => name === 'record_bake');
+    const frozen = JSON.stringify(requests());
+    const page = recipePage(runtime);
+    act(() => page.startProduction!(48));
+    expect(start(runtime).multi!.choices).toMatchObject([{ quantity: '48', kind: 'choose' }]);
+    act(() => runtime.renderVals().liveProduction!.inProgress![0].open());
+    expect(runtime.renderVals().liveBatchCounts).toMatchObject({
+      actual: '8',
+      rejects: '2',
+      uncertain: true
+    });
+    expect(requests()).toHaveLength(1);
+    expect(JSON.stringify(requests())).toBe(frozen);
+  });
   it('retains blank counts through navigation and refuses invalid review/confirmation', async () => {
     const { runtime, rpc } = await mounted();
     act(() => {

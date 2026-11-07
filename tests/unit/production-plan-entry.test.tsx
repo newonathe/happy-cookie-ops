@@ -67,3 +67,29 @@ it('requires explicit recipe update without throwing away quantities', () => {
   expect(data.multi!.useRecipe).toHaveBeenCalledWith('b');
   expect(screen.getByLabelText('Cookies planned for Biscoff')).toHaveValue(12);
 });
+
+it('shows an unchosen incoming type and blocks review until the owner chooses', () => {
+  const data = start();
+  data.multi!.choices[0].kind = 'choose';
+  render(<ProductionPlanEntry start={data} period="Drop 5" />);
+  expect(screen.getAllByLabelText('Production type')[0]).toHaveValue('choose');
+  expect(screen.getByRole('button', { name: 'Review 2 products' })).toBeDisabled();
+});
+
+it('shows the incoming quantities beside the retained setup and requires a resolution', () => {
+  const data = start();
+  data.handoff = {
+    source: 'Recipe',
+    rows: [{ name: 'Chocolate', quantity: '48', version: 3 }],
+    use: vi.fn(),
+    keep: vi.fn()
+  };
+  render(<ProductionPlanEntry start={data} period="Drop 5" />);
+  expect(screen.getByRole('region', { name: 'Incoming recipe plan' }).textContent).toContain('48');
+  expect(screen.getByLabelText('Cookies planned for Chocolate')).toHaveValue(24);
+  expect(screen.getByRole('button', { name: 'Review 2 products' })).toBeDisabled();
+  fireEvent.click(screen.getByRole('button', { name: 'Keep existing setup' }));
+  expect(data.handoff.keep).toHaveBeenCalledOnce();
+  fireEvent.click(screen.getByRole('button', { name: 'Use incoming recipe plan' }));
+  expect(data.handoff.use).toHaveBeenCalledOnce();
+});

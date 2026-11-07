@@ -244,6 +244,8 @@ Fields: Cookies to make (number); All-purpose flour (checkbox); Unsalted butter 
 | Start production | → production-entry |               |
 | Count            | → count            |               |
 
+Live recipe handoff (7 November): Start production carries the selected whole-cookie quantity and saved version to Make. Choose Prepare dough or Bake explicitly. Conflicting setup offers Keep existing setup or Use incoming recipe plan; actual/pending work stays separate. Four synthetic CLI width/motion cases verify both resolutions and reload retention; connected SQL/API acceptance is separate.
+
 ### `recipe-edit` — Edit Double Chocolate Fudge
 
 Fields: Cookies per batch (number); Ingredient to add All-purpose flour Unsa (select); g (number); g (number); g (number); g (number); g (number); Packaging to add Cookie pouch Brand stic (select); pcs (number); pcs (number); Method / notes (optional) (textarea)
