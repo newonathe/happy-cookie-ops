@@ -837,6 +837,7 @@ export class OpsRuntime extends OpsProvider {
   private flavourSync?: FlavourSync;
   private paymentSync?: PaymentSync;
   private orderSync?: StaffOrderSync;
+  private orderClient: StaffOrderClient | null = null;
   /** The signed-in (or anonymous) browser client the shop status is read and switched through. */
   private shopClient?: ShopStatusClient;
   private rulesRow: OrderRulesRow | null = null;
@@ -6154,6 +6155,7 @@ export class OpsRuntime extends OpsProvider {
       this.setState(
         engineProduction({ batches: [], dough: [], baked: [], shortfalls: [] }, (id) => id)
       );
+      this.clearOrderRead();
       this.productionRestoreId = null;
       this.productionRestoreFocused =
         !this.productionRecovery.scope && this.state.screen === 'batch';
@@ -8159,15 +8161,37 @@ export class OpsRuntime extends OpsProvider {
    * every ordered flavour is known to the screens). The engine's local order list plays no part in
    * live mode; the demo books are never shown.
    */
+  private clearOrderRead(): void {
+    this.orderClient = null;
+    this.orderSync = undefined;
+    this.setState({ orders: [] } as never);
+  }
+
   loadOrders(client: StaffOrderClient): Promise<boolean> {
     if (!isLiveMode()) return Promise.resolve(false);
-    this.orderSync = new StaffOrderSync(client, {
-      apply: (orders) => this.setState({ orders }),
+    this.orderClient = client;
+    const role = this.state.role,
+      actor = this.productionActorEpoch,
+      generation = this.productionRecovery.generation;
+    const current = () =>
+      !this.unmounted &&
+      this.state.role === role &&
+      actor === this.productionActorEpoch &&
+      generation === this.productionRecovery.generation &&
+      client === this.orderClient &&
+      sync === this.orderSync;
+    const sync = new StaffOrderSync(client, {
+      apply: (orders) => {
+        if (current()) this.setState(() => (current() ? { orders } : null));
+      },
       online: () => this.state.online && (typeof navigator === 'undefined' || navigator.onLine),
-      toast: (message, tone) => this.toast(message, tone),
+      toast: (message, tone) => {
+        if (current()) this.toast(message, tone);
+      },
       pickupDays: () => this.orderFlow?.rules?.pickupDays ?? [1, 4]
     });
-    return this.orderSync.load();
+    this.orderSync = sync;
+    return sync.load().then((loaded) => current() && loaded);
   }
 
   /** Customers order all day: the live gate reads the list again when the tab comes back. */
