@@ -24,6 +24,7 @@ export function ProductionPlanEntry({
   }, [plan.reviewing]);
   const selected = plan.choices;
   const valid =
+    !start.handoff &&
     selected.length > 0 &&
     selected.every((row) =>
       validProductionChoice(
@@ -43,6 +44,24 @@ export function ProductionPlanEntry({
         </Button>
       </header>
       <p className={styles.intro}>{period} · Choose all the products you plan to make.</p>
+      {start.handoff ? (
+        <section className={styles.review} aria-label="Incoming recipe plan">
+          <h2>Recipe plan needs a choice</h2>
+          <p>Your existing setup is kept. Use the incoming quantities or keep your setup.</p>
+          {start.handoff.rows.map((row, index) => (
+            <article key={index}>
+              <strong>{row.name}</strong>
+              <span>
+                {row.quantity} cookies · Recipe version {row.version}
+              </span>
+            </article>
+          ))}
+          <div className={styles.actions}>
+            <Button onClick={start.handoff.keep}>Keep existing setup</Button>
+            <Button onClick={start.handoff.use}>Use incoming recipe plan</Button>
+          </div>
+        </section>
+      ) : null}
       <form
         className={styles.form}
         onSubmit={(event) => {
@@ -121,6 +140,9 @@ export function ProductionPlanEntry({
                           plan.setKind(product.id, event.target.value as 'batch' | 'dough')
                         }
                       >
+                        <option value="choose" disabled>
+                          Choose production type
+                        </option>
                         <option value="dough">Prepare dough</option>
                         <option value="batch">Bake cookies</option>
                       </select>

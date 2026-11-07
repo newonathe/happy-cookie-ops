@@ -252,11 +252,13 @@ import {
   parseProductionScope,
   sameProductionRequest,
   type ProductionRecovery,
+  type ProductionRecoveryEntry,
   type ProductionRecoveryScope
 } from '@/lib/production/recovery';
 import { ProductionRecoverySession } from '@/lib/production/recovery-session';
-import { validProductionChoice, type ProductionPlanChoice } from '@/lib/production/plan';
+import { validProductionChoice } from '@/lib/production/plan';
 import { productionPlanner } from '@/lib/production/planner';
+import { productionHandoff } from '@/lib/production/handoff';
 import { doughFacts, doughStock, sameDoughSubmission } from '@/lib/production/dough';
 import type { ProductionRecipeSnapshot } from '@/lib/production/workspace';
 import {
@@ -1207,14 +1209,7 @@ export class OpsRuntime extends OpsProvider {
   private productionLoadSeq = 0;
   private productionReadState: 'loading' | 'read' | 'failed' = 'loading';
   private lastProductionDrop: number | null = null;
-  private productionEntry:
-    | (NonNullable<LiveProductionStart['draft']> & {
-        dropNo: number;
-        batchQuantity?: string;
-        choices?: ProductionPlanChoice[];
-        reviewing?: boolean;
-      })
-    | null = null;
+  private productionEntry: ProductionRecoveryEntry | null = null;
   private productionEntryGeneration = 0;
   private pendingProduction = new Map<string, ProductionFields>();
   private completedProduction = new Map<
@@ -2387,6 +2382,7 @@ export class OpsRuntime extends OpsProvider {
       this.state.screen,
       this.state.recipeOpen,
       this.state.liveRecipeTarget,
+      this.state.dropNo,
       this.productionActorEpoch
     ]);
     if (
@@ -6991,8 +6987,35 @@ export class OpsRuntime extends OpsProvider {
       return this.liveProductionView().start ?? null;
     };
     const change = (): void => this.setState({});
+    const entry = this.productionEntry;
+    const incoming = entry?.dropNo === dropNo ? entry.handoff : undefined;
+    const resolveHandoff = (replace: boolean): void => {
+      const fresh = current();
+      if (!fresh || !incoming || !entry || this.productionEntry !== entry) return;
+      const result = replace
+        ? productionHandoff(entry, incoming, fresh.products, dropNo, true)
+        : { entry: { ...entry, handoff: undefined }, error: null };
+      if (result.error) return this.toast(result.error, 'warn');
+      this.productionEntry = result.entry;
+      this.productionEntryGeneration += 1;
+      change();
+    };
     return {
       products,
+      handoff: incoming
+        ? {
+            source: incoming.source === 'recipe' ? 'Recipe' : 'Shopping',
+            rows: incoming.rows.map((row) => ({
+              name:
+                products.find((product) => product.id === row.productId)?.name ??
+                'Unavailable product',
+              quantity: row.quantity,
+              version: row.version
+            })),
+            use: () => resolveHandoff(true),
+            keep: () => resolveHandoff(false)
+          }
+        : undefined,
       multi: productionPlanner(
         this.productionEntry?.dropNo === dropNo ? this.productionEntry : null,
         {
@@ -7128,6 +7151,7 @@ export class OpsRuntime extends OpsProvider {
         const product = fresh?.products.find((p) => p.id === draft?.productId);
         if (
           !draft ||
+          draft.handoff ||
           draft.dropNo !== dropNo ||
           !product ||
           product.version !== draft.version ||
@@ -8761,19 +8785,30 @@ export class OpsRuntime extends OpsProvider {
   /** Start production from either Make page: entry is drawn on Production, so it opens there. */
   private startProductionFromMake(productId?: string, cookies?: number): void {
     if (!isLiveMode() || this.unmounted || this.state.role !== 'owner') return;
+    if (productId) {
+      if (!this.productionWritable() || this.recipeReaderState !== 'read') return;
+      const recipe = this.recipeRows?.find((row) => row.productId === productId);
+      if (!recipe) return;
+      const result = productionHandoff(
+        this.productionEntry,
+        {
+          source: 'recipe',
+          rows: [{ productId, quantity: String(cookies ?? recipe.yield), version: recipe.version }]
+        },
+        this.liveProductionView().start?.products ?? [],
+        Number(this.state.dropNo)
+      );
+      if (result.error) return this.toast(result.error, 'warn');
+      this.productionEntry = result.entry;
+      this.productionEntryGeneration += 1;
+      this.go('bake');
+      this.setState({});
+      return;
+    }
     if (this.state.screen !== 'bake') this.go('bake');
     this.setState({}, () => {
       const start = this.state.screen === 'bake' ? this.liveProductionView().start : null;
       start?.open();
-      if (!productId) return;
-      const plan = this.liveProductionView().start?.multi;
-      const product = this.liveProductionView().start?.products.find((p) => p.id === productId);
-      if (!plan || !product || plan.choices.some((row) => row.productId === productId)) return;
-      plan.toggle(productId);
-      if (cookies === undefined) return;
-      const dough = cookies === product.yield || cookies === Math.ceil(product.yield / 2);
-      plan.setKind(productId, dough ? 'dough' : 'batch');
-      plan.setQuantity(productId, String(cookies));
     });
   }
 
@@ -8810,6 +8845,7 @@ export class OpsRuntime extends OpsProvider {
     const recipe = this.recipeRows?.find((row) => row.productId === item.id);
     const hasLines = !!recipe?.lines.length;
     const actor = this.productionActorEpoch;
+    const dropNo = this.state.dropNo;
     const generation = this.recipeEditorGeneration();
     const current = () =>
       !this.unmounted &&
@@ -8857,9 +8893,15 @@ export class OpsRuntime extends OpsProvider {
             counted: !!row.lastCounted,
             count: () => this.startItemCount(row)
           })),
-        startProduction: () => {
-          if (current() && recipe && this.recipeReaderState === 'read')
-            this.startProductionFromMake(item.id);
+        startProduction: (cookies) => {
+          if (
+            current() &&
+            recipe &&
+            this.recipeReaderState === 'read' &&
+            this.state.dropNo === dropNo &&
+            this.recipeRows?.find((row) => row.productId === item.id) === recipe
+          )
+            this.startProductionFromMake(item.id, cookies);
         },
         back: () => {
           if (current())

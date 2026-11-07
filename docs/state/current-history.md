@@ -2510,3 +2510,9 @@ Earlier worker/timing failures were retained and superseded by frozen one-worker
 no assertion or timeout was weakened. SQL71/72/73 later passed two actual local CLI resets,
 including roles, costs, concurrency/replay and unchanged historical role/mutation checks.
 These local results do not satisfy hosted, backup custody/restore, device or owner gates.
+
+# Local recipe-to-Make handoff — 7 November 2026
+
+The bounded slice on `codex/recipe-production-acceptance-20261107`, based on Cloud `e0670e6`, connects the existing pure handoff rules to the recipe page. Selected cookie quantity and recipe version survive; quantity never infers Prepare dough versus Bake. Conflicting setup remains visible with explicit Keep/Use incoming, and obsolete callbacks cannot resolve a newer proposal. Actual work and immutable uncertain requests remain independent. Recipe replacement/read failure, unavailable source, period, role and identity changes retire captured recipe actions. No stock-write contract, SQL, protected port or owner business rule changed.
+
+New regressions failed on the previous implementation before the fix;70focused tests pass. `node tools/owner-preview/check-recipe-handoff.cjs <private-output-directory>` passes390/1440with both motion settings:48cookies transferred, explicit type, Keep/Use, reload retention,13actual/2rejects preserved, no writes/page errors/overflow. Phone/desktop screenshots were inspected. The preview's recipe binding now passes its fixed synthetic verified scope, as required by the accepted source guard. Full verification, isolated live build and independent review are recorded in the acceptance commit. This closes the recipe handoff slice only; Shopping handoff, linked SQL/API scenarios, Bazaar transfers, hosted/device/owner gates and the physical dough-count decision remain open. Other worktrees/stashes, PR51/53 and the untracked launch configuration were preserved.
