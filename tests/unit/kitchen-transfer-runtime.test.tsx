@@ -155,3 +155,116 @@ describe('verified production authority at the Bazaar transfer door', () => {
     expect(second.close).toHaveBeenCalledTimes(1);
   });
 });
+
+describe('kitchen access from the held owner till', () => {
+  it('opens directly without first leaving the till for the directory', async () => {
+    const f = await mount();
+    await act(async () =>
+      f.runtime.setState({
+        event: { dayId: f.day.id, scheduledId: f.booking } as never,
+        online: true
+      })
+    );
+    act(() => f.action()!());
+    expect(desks).toHaveLength(1);
+    expect(desks[0].ports.current()).toBe(true);
+  });
+  it.each(['offline', 'role'])(
+    'refuses a saved held-till action after %s changes',
+    async (change) => {
+      const f = await mount();
+      await act(async () =>
+        f.runtime.setState({
+          event: { dayId: f.day.id, scheduledId: f.booking } as never,
+          online: true
+        })
+      );
+      const action = f.action()!;
+      if (change === 'offline') await act(async () => f.runtime.setState({ online: false }));
+      else await act(async () => f.runtime.setState({ role: 'helper' }));
+      act(() => action());
+      expect(desks).toHaveLength(0);
+    }
+  );
+});
+
+describe('captured held-day authority', () => {
+  it.each(['day', 'booking', 'cleared', 'day-in-directory'])(
+    'retires a captured till action after %s changes',
+    async (change) => {
+      const f = await mount();
+      await act(async () =>
+        f.runtime.setState({
+          event: { dayId: f.day.id, scheduledId: f.booking } as never,
+          online: true
+        })
+      );
+      const action = f.action()!;
+      await act(async () =>
+        f.runtime.setState({
+          event:
+            change === 'cleared'
+              ? null
+              : ({
+                  dayId: change === 'booking' ? f.day.id : 'other-day',
+                  scheduledId: change === 'booking' ? 'other-booking' : f.booking
+                } as never)
+        })
+      );
+      if (change === 'day-in-directory')
+        (f.runtime as unknown as { bazaarDirectory: boolean }).bazaarDirectory = true;
+      act(() => action());
+      expect(desks).toHaveLength(0);
+    }
+  );
+  it('retires callbacks already opened from the old held day', async () => {
+    const f = await mount();
+    await act(async () =>
+      f.runtime.setState({
+        event: { dayId: f.day.id, scheduledId: f.booking } as never,
+        online: true
+      })
+    );
+    act(() => f.action()!());
+    const ports = desks[0].ports;
+    await act(async () =>
+      f.runtime.setState({ event: { dayId: 'other-day', scheduledId: f.booking } as never })
+    );
+    expect(ports.current()).toBe(false);
+    expect(await ports.updated(f.day)).toBe(false);
+  });
+});
+
+describe('directory-origin transfer authority', () => {
+  it.each(['same-day', 'other-day'])(
+    'retires a cached directory action when a %s till replaces it',
+    async (change) => {
+      const f = await mount(),
+        action = f.action()!;
+      await act(async () =>
+        f.runtime.setState({
+          event: {
+            dayId: change === 'same-day' ? f.day.id : 'another-day',
+            scheduledId: f.booking
+          } as never,
+          online: true
+        })
+      );
+      act(() => action());
+      expect(desks).toHaveLength(0);
+    }
+  );
+  it('retires directory-origin callbacks when a till opens', async () => {
+    const f = await mount();
+    act(() => f.action()!());
+    const ports = desks[0].ports;
+    await act(async () =>
+      f.runtime.setState({
+        event: { dayId: 'another-day', scheduledId: f.booking } as never,
+        online: true
+      })
+    );
+    expect(ports.current()).toBe(false);
+    expect(await ports.updated(f.day)).toBe(false);
+  });
+});

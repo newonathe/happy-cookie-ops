@@ -10,10 +10,12 @@ import { PageTitle, HeadedPanel } from '@/components/ui/owner-kit';
 /** Known destination; one independently confirmed transfer at a time. */
 export function KitchenTransferPane({
   view,
-  online
+  online,
+  backLabel = 'Back to event'
 }: {
   view: KitchenTransferView;
   online: boolean;
+  backLabel?: string;
 }) {
   const [focused, setFocused] = useState<string | null>(null);
   const row = view.rows.find((item) => item.id === focused) ?? view.rows[0];
@@ -25,7 +27,7 @@ export function KitchenTransferPane({
   return (
     <div className="space-y-4">
       <Button variant="ghost" onClick={view.close}>
-        Back to event
+        {backLabel}
       </Button>
       <PageTitle title="Transfer from kitchen" subtitle={`${view.name} · ${view.date}`} />
       <p className="text-body text-ink-soft">

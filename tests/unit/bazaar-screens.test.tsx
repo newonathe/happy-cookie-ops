@@ -13,7 +13,7 @@ import type {
 } from '@/lib/bazaar/live-bazaar-types';
 import type { OpsVals } from '@/view-models/vals';
 import { BazaarLive } from '@/components/live/bazaar/bazaar-live';
-import { DayReview } from '@/components/live/bazaar/day-review';
+import { DayReview, StockForm } from '@/components/live/bazaar/day-review';
 import { EventPage } from '@/components/live/bazaar/event-page';
 import { DayPlan } from '@/components/live/bazaar/day-plan';
 import { BooksForm } from '@/components/live/books-form';
@@ -417,7 +417,7 @@ describe('the day review', () => {
     const { unmount } = render(<DayReview review={review({ canAddCarried: true })} />);
     const form = screen.getByRole('form', { name: 'Add stock' });
     expect(within(form).getByLabelText('Kind')).toBeTruthy();
-    expect(within(form).getByRole('option', { name: 'Made today' })).toBeTruthy();
+    expect(within(form).getByRole('option', { name: 'Made separately' })).toBeTruthy();
     expect(within(form).getByRole('option', { name: 'Carried over' })).toBeTruthy();
     unmount();
     render(<DayReview review={review({ canAddCarried: false })} />);
@@ -1547,5 +1547,67 @@ describe('price-only plan entry', () => {
     expect(screen.getByRole('alert')).toHaveTextContent(/zero.*price-only/i);
     expect(planValue('Other cookie made')).toBe('3');
     expect(save).not.toHaveBeenCalled();
+  });
+});
+
+describe('the separate physical stock routes', () => {
+  it('offers transfer from the stock form without submitting separately-made quantities', () => {
+    const transfer = vi.fn(),
+      addStock = vi.fn(async () => null);
+    render(
+      <StockForm
+        flavours={[{ id: 'dcf', name: 'Chocolate' }]}
+        canAddCarried
+        addStock={addStock}
+        kitchenTransfer={transfer}
+      />
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Transfer from kitchen' }));
+    expect(transfer).toHaveBeenCalledOnce();
+    expect(addStock).not.toHaveBeenCalled();
+    expect(screen.getByRole('option', { name: 'Made separately' })).toBeInTheDocument();
+    expect(screen.getByText(/already recorded in Make/)).toBeInTheDocument();
+  });
+});
+
+describe('drafts while reviewing a kitchen transfer', () => {
+  it('retains unsent stock and close-out cash values across transfer navigation', () => {
+    const panel = livePanel({ reviewing: true, review: review() });
+    const kitchen = {
+      name: 'Fixture kitchen',
+      date: 'Sun, 8 Nov',
+      loading: false,
+      failed: false,
+      availabilityFailed: false,
+      phase: 'ready' as const,
+      products: [],
+      rows: [],
+      otherSaved: 0,
+      retry: noop,
+      retryStorage: noop,
+      add: () => null,
+      close: noop
+    };
+    const page = render(<BazaarLive v={valsWith(panel)} />);
+    fireEvent.change(
+      within(screen.getByRole('form', { name: 'Add stock' })).getByLabelText('How many'),
+      { target: { value: '7' } }
+    );
+    fireEvent.change(
+      within(screen.getByRole('form', { name: 'Close the day' })).getByLabelText(
+        'Cash counted (₱)'
+      ),
+      { target: { value: '301' } }
+    );
+    page.rerender(<BazaarLive v={valsWith({ ...panel, kitchen })} />);
+    expect(screen.getByRole('heading', { name: 'Transfer from kitchen' })).toBeInTheDocument();
+    expect(screen.queryByRole('form', { name: 'Add stock' })).toBeNull();
+    page.rerender(<BazaarLive v={valsWith(panel)} />);
+    expect(
+      within(screen.getByRole('form', { name: 'Add stock' })).getByLabelText('How many')
+    ).toHaveValue('7');
+    expect(
+      within(screen.getByRole('form', { name: 'Close the day' })).getByLabelText('Cash counted (₱)')
+    ).toHaveValue('301');
   });
 });

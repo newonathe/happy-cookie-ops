@@ -2586,3 +2586,9 @@ SQL81 fixes aggregate returns while preserving the9999 individual transfer cap. 
 ## Accepted quantity checkpoint
 
 Checked transfer quantities are accepted as `b4dd5768fb7087617b766d27434060b45962f788`:91focused tests, full212files/3341tests+2TODO, typecheck/lint and clear independent review. Unavailable counts block new writes; frozen retries remain usable. Runtime/day-selection guards and PR reconciliation are preserved in history.
+
+## Price-only day planning — 8 November 2026
+
+Accepted and pushed as `2b27389171f2c9d2d1993b1ef49e09f8d7d0c1fd`; full213files/3364tests+2TODO passed.
+
+SQL81 aggregate returns are accepted as `39ff7cc782f4546e056b67afd76eb255a8fb671a`; full SQL/browser/security evidence is in history. Explicit price-only day planning now saves selected prices with zero stock and refuses nonzero counts anywhere without discarding them. Old stock-plan validation remains; Made separately distinguishes that historical path.14failing-first regressions became green;118focused tests, TypeScript and independent review pass. Two real reset/browser cycles at390/1440 now use the actual price-only UI before transfer4→sell3→return1→Money, with exact retries and independent ingredient/cost/journal readback. Both widths fit; inspected screenshots caught and fixed a2px phone-footer overflow. Exact-source Live build passes28pages; full verification is recorded by the acceptance commit.

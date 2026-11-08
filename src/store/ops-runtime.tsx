@@ -866,6 +866,11 @@ export class OpsRuntime extends OpsProvider {
       dropNo = this.state.dropNo;
     const selection = this.bazaarDays.selectionEpoch(),
       actionEpoch = this.kitchenSelectionEpoch;
+    const fromHeldTill = !!this.state.event && !this.bazaarDirectoryShowing();
+    const heldTillMatches = () => {
+      const held = this.state.event as Record<string, unknown> | null;
+      return held?.dayId === dayId && held?.scheduledId === bookingId;
+    };
     if (!scope || !client || this.gateNarrow || this.state.role !== 'owner') return null;
     const current = () =>
       !this.unmounted &&
@@ -879,7 +884,9 @@ export class OpsRuntime extends OpsProvider {
       this.state.screen === 'bazaar' &&
       this.bazaarDays.selectedBookingId() === bookingId &&
       this.bazaarDays.selectionEpoch() === selection &&
-      (!this.state.event || this.bazaarDirectoryShowing());
+      (fromHeldTill
+        ? this.canLeaveTill() && heldTillMatches()
+        : !this.state.event || this.bazaarDirectoryShowing());
     return () => {
       if (!current() || actionEpoch !== this.kitchenSelectionEpoch) return;
       this.closeKitchenTransfer();
