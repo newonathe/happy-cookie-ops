@@ -2477,9 +2477,19 @@ export class OpsRuntime extends OpsProvider {
    */
   private liveHomeVals(starved: OpsVals): LiveHome | null {
     if (!isLiveMode() || this.state.role !== 'owner' || this.state.screen !== 'today') return null;
+    const rawNow = Number(this.state.now);
+    const now = Number.isFinite(rawNow) ? rawNow : Date.now();
+    const hour = manilaHour(now);
+    const salutation = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
     this.homeGreeting = {
-      greeting: String(starved.greeting ?? 'Hello.'),
-      date: String(starved.todayDate ?? '')
+      greeting: String(starved.greeting ?? 'Hello.').replace(
+        /^Good (morning|afternoon|evening),/,
+        `${salutation},`
+      ),
+      date:
+        formatManila(now, { weekday: 'long' }, 'en-GB') +
+        ', ' +
+        formatManila(now, { day: 'numeric', month: 'short' }, 'en-GB')
     };
     return { ...this.homeDesk.vals(), booksReadState: this.booksReadState };
   }

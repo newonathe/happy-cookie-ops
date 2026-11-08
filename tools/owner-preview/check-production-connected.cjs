@@ -15,7 +15,7 @@ assert(out && [390,1440].includes(width), 'An output directory and supported vie
 fs.mkdirSync(out, { recursive: true });
 (async () => {
  const browser = await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH });
- const context = await browser.newContext({ viewport: { width, height: 950 }, reducedMotion: 'reduce' });
+ const context = await browser.newContext({ viewport: { width, height: 950 }, reducedMotion: 'reduce', timezoneId: 'UTC' });
  const page = await context.newPage(), errors = [], attempts = [], bazaarAttempts = [];
  page.on('pageerror', e => errors.push(e.message));
  context.on('page',target=>target.on('pageerror',e=>errors.push(e.message)));
@@ -304,6 +304,7 @@ fs.mkdirSync(out, { recursive: true });
   assert(attempts.length===stockWritesBefore[0]&&bazaarAttempts.length===stockWritesBefore[1],'Money read recovery recorded a transaction');
   console.log(JSON.stringify({width,moneyReadRecovery:true,...moneyFacts,noRecoveryWrites:true,oneLineAmount:true}));
   await require('./connected-retired-reads.cjs').run({page,context,connect,attempts,bazaarAttempts,width,out,assert});
+  await require('./connected-business-clock.cjs').run({page,width,out,assert});
   assert(!attempts.some(a=>a.name==='record_production'),'A new action attempted the retired production writer');
   await page.screenshot({ path: `${out}/saved-${width}.png`, fullPage: true });
   console.log(JSON.stringify({ width, realRpc: true, firstRecipe: true, recipeEdited: true, shoppingHandoff: true, recipeHandoff: true, definiteRefusals: ['ZD001','ZD002'], exactReloadRetry: true, dough: facts.dough, good: facts.baked, rejects: 2, errors }));
