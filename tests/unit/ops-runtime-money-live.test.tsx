@@ -409,4 +409,47 @@ describe('the live Money page', () => {
     ).toBeTruthy();
     expect(r.renderVals().liveHome?.month).not.toBeNull();
   });
+  it('keeps a retired books read recoverable after production workspace Retry', async () => {
+    const locks = Object.getOwnPropertyDescriptor(navigator, 'locks');
+    Object.defineProperty(navigator, 'locks', { configurable: true, value: undefined });
+    try {
+      const r = await mounted(false);
+      await bindProductionOwner(r);
+      let release!: (reply: { data: typeof books; error: null }) => void;
+      const rpc = vi
+        .fn()
+        .mockImplementationOnce(
+          () =>
+            new Promise((resolve) => {
+              release = resolve;
+            })
+        )
+        .mockResolvedValue({ data: books, error: null });
+      let pending!: Promise<boolean>;
+      act(() => {
+        pending = r.loadBooks({ rpc } as never);
+        r.go('bake');
+      });
+      await act(async () => {
+        const retry = r.renderVals().liveProduction!.recovery?.retry;
+        expect(retry).toBeTypeOf('function');
+        retry!();
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+      await act(async () => {
+        release({ data: books, error: null });
+        expect(await pending).toBe(false);
+        r.go('pnl');
+      });
+      const view = render(<MoneyLive v={r.renderVals()} />);
+      expect(r.renderVals().liveMoney?.read?.state).not.toBe('loading');
+      expect(r.renderVals().liveMoney?.loaded).toBe(false);
+      fireEvent.click(view.getByRole('button', { name: 'Retry reading books' }));
+      await waitFor(() => expect(r.renderVals().liveMoney?.loaded).toBe(true));
+      expect(rpc).toHaveBeenCalledTimes(2);
+    } finally {
+      if (locks) Object.defineProperty(navigator, 'locks', locks);
+      else Reflect.deleteProperty(navigator, 'locks');
+    }
+  });
 });

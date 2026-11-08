@@ -303,6 +303,7 @@ fs.mkdirSync(out, { recursive: true });
   await page.waitForFunction(()=>window.__hcOps.renderVals().liveMoney.read.state==='read');
   assert(attempts.length===stockWritesBefore[0]&&bazaarAttempts.length===stockWritesBefore[1],'Money read recovery recorded a transaction');
   console.log(JSON.stringify({width,moneyReadRecovery:true,...moneyFacts,noRecoveryWrites:true,oneLineAmount:true}));
+  await require('./connected-retired-reads.cjs').run({page,context,connect,attempts,bazaarAttempts,width,out,assert});
   assert(!attempts.some(a=>a.name==='record_production'),'A new action attempted the retired production writer');
   await page.screenshot({ path: `${out}/saved-${width}.png`, fullPage: true });
   console.log(JSON.stringify({ width, realRpc: true, firstRecipe: true, recipeEdited: true, shoppingHandoff: true, recipeHandoff: true, definiteRefusals: ['ZD001','ZD002'], exactReloadRetry: true, dough: facts.dough, good: facts.baked, rejects: 2, errors }));

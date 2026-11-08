@@ -413,3 +413,49 @@ it('hides balances from another drop and only shows loading for the drop being r
   });
   expect(r.renderVals().liveStock!.made).toBeNull();
 });
+
+it('keeps a retired inventory read recoverable after production workspace Retry', async () => {
+  const locks = Object.getOwnPropertyDescriptor(navigator, 'locks');
+  Object.defineProperty(navigator, 'locks', { configurable: true, value: undefined });
+  try {
+    const r = await mounted(),
+      held = deferred();
+    let first = true;
+    const rpc = vi.fn(async (name: string) => {
+      if (name === 'get_stock_catalogue' && first) {
+        first = false;
+        return held.promise;
+      }
+      return { data: name === 'get_stock_catalogue' ? empty : [], error: null };
+    });
+    let pending!: Promise<boolean>;
+    act(() => {
+      pending = r.loadStockCatalogue({ rpc } as unknown as StockClient);
+      r.go('bake');
+    });
+    await act(async () => {
+      const retry = r.renderVals().liveProduction!.recovery?.retry;
+      expect(retry).toBeTypeOf('function');
+      retry!();
+      await pause();
+    });
+    await act(async () => {
+      held.resolve({ data: empty, error: null });
+      expect(await pending).toBe(false);
+      r.go('inventory');
+    });
+    expect(r.renderVals().liveStockRead?.state).not.toBe('loading');
+    expect(r.renderVals().liveStock).toBeNull();
+    const view = render(<InventoryLive v={r.renderVals()} />);
+    await act(async () => {
+      fireEvent.click(view.getByRole('button', { name: 'Retry inventory' }));
+      await pause();
+    });
+    expect(r.renderVals().liveStockRead?.state).toBe('ready');
+    expect(r.renderVals().liveStock?.items).toEqual([]);
+    expect(rpc.mock.calls.filter(([name]) => name === 'get_stock_catalogue')).toHaveLength(2);
+  } finally {
+    if (locks) Object.defineProperty(navigator, 'locks', locks);
+    else Reflect.deleteProperty(navigator, 'locks');
+  }
+});
