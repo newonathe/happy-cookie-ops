@@ -184,8 +184,10 @@ export function LiveGate({
       // Nothing to read the payment methods from either (MP-09 c2): the checkout shows none.
       if (engine instanceof OpsRuntime) void engine.loadShopPayment(null);
       // Nothing to read the published menu from: the shop shows no flavours (MP-09 c1b).
-      if (CUSTOMER_SCREENS.includes(initialScreen) && engine instanceof OpsRuntime)
+      if (CUSTOMER_SCREENS.includes(initialScreen) && engine instanceof OpsRuntime) {
         void engine.loadShopMenu(null);
+        void engine.loadShopStatus(null);
+      }
       return;
     }
     let cancelled = false;
