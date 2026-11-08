@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
+import { OfflineBridge } from '@/components/app/offline-bridge';
 import { OpsRuntime } from '@/store/ops-runtime';
 import { RouteSync } from '@/components/app/route-sync';
 import bazaarAnswer from '@/../tests/fixtures/bazaar-example.json';
@@ -117,7 +118,7 @@ function App() {
     const scope = {userId:'11111111-1111-4111-8111-111111111111',business:'https://preview.happy-cookie.test'};
     void runtime.setProductionIdentity(scope).then(()=>runtime.loadShopStatus(client as never)).then(() => runtime.loadFlavours(client as never)).then(() => runtime.loadStockCatalogue(client as never)).then(() => runtime.loadRecipes(client as never,undefined,undefined,scope)).then(() => runtime.loadOrders(client as never)).then(() => runtime.loadProduction(client as never)).then(() => runtime.loadBooks(client as never)).then(() => runtime.loadScheduledEvents(client as never)).then(() => {runtime.go(historyPreview ? 'bazaar' : 'inventory');setNavigationReady(true);});
   }, []);
-  return <OpsRuntime ref={ref}><Frame navigationReady={navigationReady} /></OpsRuntime>;
+  return <OpsRuntime ref={ref}><Frame navigationReady={navigationReady} /><OfflineBridge /></OpsRuntime>;
 }
 (window as unknown as { qaWrites: unknown[] }).qaWrites = [];
 (window as unknown as { qaSupplierWrites: unknown[] }).qaSupplierWrites = [];
