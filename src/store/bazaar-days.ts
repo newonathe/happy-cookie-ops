@@ -596,6 +596,7 @@ export class BazaarDays {
   openTillPanel(kind: 'fees' | 'cookies'): void {
     const held = this.deps.held();
     if (!held || !this.deps.online()) return;
+    this.selectionVersion += 1;
     this.bookingId = held.scheduledId;
     this.data = null;
     this.editing = null;
@@ -629,6 +630,7 @@ export class BazaarDays {
               name: this.names().get(l.productId) ?? l.name
             })),
             canAddCarried: Object.keys(this.carryIn(data!, day.day)?.byFlavour ?? {}).length > 0,
+            kitchenTransfer: this.deps.kitchenTransfer?.(held.scheduledId, day.id) ?? null,
             addStock: (input) => this.addHeldStock(input)
           }
         : null;
@@ -1100,6 +1102,7 @@ export class BazaarDays {
         name: names.get(l.productId) ?? l.name
       })),
       addLoss: open ? (input) => this.addLoss(day, input) : null,
+      kitchenTransfer: this.deps.kitchenTransfer?.(data.booking.id, day.id) ?? null,
       addStock: open ? (input) => this.addStock(day, input) : null,
       canAddCarried: Object.keys(this.carryIn(data, day.day)?.byFlavour ?? {}).length > 0,
       // The close is given back this read's own day: its hash and its flavours, exactly what is on the screen.

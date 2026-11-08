@@ -32,16 +32,37 @@ export function liveBazaarOf(v: OpsVals): LiveBazaarVals | null {
  */
 export function BazaarLive({ v }: { v: OpsVals }) {
   const bazaar = liveBazaarOf(v);
-  if (bazaar?.kitchen && !bazaar.navigation?.tillOnly)
-    return (
-      <section
-        aria-label="Bazaar"
-        data-screen-label="Bazaar"
-        style={{ ...screenStyle, paddingBottom: '96px' }}
-      >
-        <KitchenTransferPane view={bazaar.kitchen} online={bazaar.online} />
-      </section>
-    );
+  const showingKitchen = Boolean(bazaar?.kitchen && !bazaar.navigation?.tillOnly);
+  return (
+    <>
+      {showingKitchen && bazaar?.kitchen ? (
+        <section
+          aria-label="Bazaar"
+          data-screen-label="Bazaar"
+          style={{ ...screenStyle, paddingBottom: '96px' }}
+        >
+          <KitchenTransferPane
+            view={bazaar.kitchen}
+            online={bazaar.online}
+            backLabel={
+              bazaar.tillPanel?.kind === 'cookies'
+                ? 'Back to adding cookies'
+                : bazaar.reviewing
+                  ? 'Back to day review'
+                  : undefined
+            }
+          />
+        </section>
+      ) : null}
+      <div hidden={showingKitchen} className="min-w-0">
+        <BazaarBody v={v} bazaar={bazaar} />
+      </div>
+    </>
+  );
+}
+
+/** Keep unsent form state while the owner reviews a kitchen transfer. */
+function BazaarBody({ v, bazaar }: { v: OpsVals; bazaar: LiveBazaarVals | null }) {
   const ownDayVisible =
     !bazaar?.editor &&
     !bazaar?.reviewing &&

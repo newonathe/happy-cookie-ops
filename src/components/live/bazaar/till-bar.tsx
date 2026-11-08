@@ -116,6 +116,7 @@ function TillPanelBody({ panel }: { panel: TillPanelView }) {
         flavours={panel.stock.flavours}
         canAddCarried={panel.stock.canAddCarried}
         addStock={panel.stock.addStock}
+        kitchenTransfer={panel.stock.kitchenTransfer}
       />
     );
   return null;
@@ -146,7 +147,9 @@ export function TillPanelPage({ panel }: { panel: TillPanelView }) {
       <PageTitle
         title={fees ? 'Event fees' : 'Add cookies'}
         subtitle={
-          fees ? 'Stall rent, ice, parking.' : 'Move baked cookies from shop stock to this table.'
+          fees
+            ? 'Stall rent, ice, parking.'
+            : 'Transfer recorded kitchen cookies, or record cookies made separately for this event.'
         }
       />
       <TillPanelBody panel={panel} />

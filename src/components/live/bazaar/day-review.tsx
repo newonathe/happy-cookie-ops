@@ -126,11 +126,13 @@ function LossForm({
 export function StockForm({
   flavours,
   canAddCarried,
-  addStock
+  addStock,
+  kitchenTransfer
 }: {
   flavours: DayReviewView['flavours'];
   canAddCarried: boolean;
   addStock: NonNullable<DayReviewView['addStock']>;
+  kitchenTransfer?: (() => void) | null;
 }) {
   const [picked, setPicked] = useState('');
   const [qty, setQty] = useState('');
@@ -147,6 +149,15 @@ export function StockForm({
   };
   return (
     <form onSubmit={(e) => void submit(e)} aria-label="Add stock" style={formCard} noValidate>
+      <p style={mutedStyle}>
+        Cookies already recorded in Make use a kitchen transfer. This form records cookies made
+        separately for this event, or carried over from an earlier day.
+      </p>
+      {kitchenTransfer ? (
+        <Button type="button" variant="secondary" onClick={kitchenTransfer}>
+          Transfer from kitchen
+        </Button>
+      ) : null}
       <SelectField
         label="Flavour"
         value={productId}
@@ -160,7 +171,7 @@ export function StockForm({
             label="Kind"
             value={kind}
             options={[
-              { value: 'made', text: 'Made today' },
+              { value: 'made', text: 'Made separately' },
               { value: 'carried', text: 'Carried over' }
             ]}
             onChange={(value) => setKind(value === 'carried' ? 'carried' : 'made')}
@@ -297,6 +308,7 @@ export function DayReview({ review }: { review: DayReviewView }) {
                 flavours={review.flavours}
                 canAddCarried={review.canAddCarried}
                 addStock={review.addStock}
+                kitchenTransfer={review.kitchenTransfer}
               />
             </section>
           ) : null}

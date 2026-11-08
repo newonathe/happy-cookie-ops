@@ -172,6 +172,7 @@ export interface DayReviewView {
   /** Words she must read first: selling on another phone, changed after the close, read again. */
   notices: string[];
   stock: ReviewStockRow[];
+  kitchenTransfer?: (() => void) | null;
   /** "1 Double Chocolate Fudge · Dropped · 24 Oct, 2:15 PM" */
   losses: Array<{ id: string; text: string; remove: (() => Promise<string | null>) | null }>;
   /** The day's own figures: revenue, cash, fees. */
@@ -382,6 +383,7 @@ export interface TillPanelView {
   event: BazaarEventView | null;
   /** The held day's flavours and the add, for the cookies form; null until read. */
   stock: {
+    kitchenTransfer?: (() => void) | null;
     flavours: Array<{ id: string; name: string }>;
     canAddCarried: boolean;
     addStock: NonNullable<DayReviewView['addStock']>;
