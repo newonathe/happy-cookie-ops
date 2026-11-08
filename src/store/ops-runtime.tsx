@@ -1,5 +1,6 @@
 'use client';
 
+import { ShopMenuRead } from '@/store/shop-menu-read';
 import { ScopedRecipeEdits } from '@/lib/recipes/scoped-edits';
 
 import { bazaarBooking, type BazaarRoute } from '@/lib/bazaar/navigation';
@@ -318,7 +319,6 @@ import {
   FlavourSync,
   catalogueStatePatch,
   engineCatalogue,
-  fetchShopFlavours,
   flavourFieldError,
   flavourStatePatch,
   priceCents,
@@ -327,8 +327,7 @@ import {
   type FlavourEdit,
   type FlavourFields,
   type FlavoursClient,
-  type ShopClient,
-  type ShopFlavourRow
+  type ShopClient
 } from '@/lib/data/flavours';
 import { CUSTOMER_SCREENS, type ScreenKey } from '@/lib/screens';
 import { SettledCounter } from '@/store/settled-counter';
@@ -2795,36 +2794,25 @@ export class OpsRuntime extends OpsProvider {
     return this.paymentSync.loadPublic();
   }
 
-  /** False until the customer shop's menu has been read (or failed to be read). */
-  private shopMenuRead = false;
+  private shopMenu = new ShopMenuRead({
+    active: () => !this.unmounted && !this.flavourSync,
+    canRetry: () => this.onCustomerScreen(),
+    online: () => Boolean(this.state.online),
+    apply: (rows) => {
+      const { list, allergens, onMenu } = shopCatalogue(
+        rows,
+        PRODUCTS.map((p) => ({ ...p })),
+        { ...ALLERGENS }
+      );
+      replaceFlavours(list, allergens);
+      this.setState((s) => catalogueStatePatch(list, onMenu, s));
+    },
+    changed: () => this.forceUpdate()
+  });
 
-  /**
-   * MP-09 c1b: the customer pages in live mode (anonymous or not) read the owner's published
-   * menu from `shop_products`, never `products`. Only published flavours that are on the
-   * order form show; with nothing published, or a failed read, the shop shows no flavours
-   * rather than the ported demo menu and prices. Called by the live gate on customer pages;
-   * a staff list already loaded (or loading) wins, because it is the fuller authorised view.
-   */
-  async loadShopMenu(client: ShopClient | null): Promise<boolean> {
-    if (!isLiveMode()) return false;
-    let rows: ShopFlavourRow[] = [];
-    if (client) {
-      try {
-        rows = await fetchShopFlavours(client);
-      } catch {
-        rows = [];
-      }
-    }
-    if (this.flavourSync) return false;
-    const { list, allergens, onMenu } = shopCatalogue(
-      rows,
-      PRODUCTS.map((p) => ({ ...p })),
-      { ...ALLERGENS }
-    );
-    replaceFlavours(list, allergens);
-    this.shopMenuRead = true;
-    this.setState((s) => catalogueStatePatch(list, onMenu, s));
-    return rows.length > 0;
+  /** Read only the published public projection; a staff catalogue remains authoritative. */
+  loadShopMenu(client: ShopClient | null): Promise<boolean> {
+    return isLiveMode() ? this.shopMenu.load(client) : Promise.resolve(false);
   }
 
   /**
@@ -3513,6 +3501,7 @@ export class OpsRuntime extends OpsProvider {
       liveLookup: this.liveLookupVals(),
       liveWaitlist: this.liveWaitlistVals(),
       shopFooter: this.shopFooterVals(),
+      liveShopMenuRead: this.onCustomerScreen() && !this.flavourSync ? this.shopMenu.view() : null,
       shopFlavours: this.liveShopSampler(starved.shopFlavours).map((flavour) =>
         /confirmation required/i.test(String(flavour.allergens))
           ? { ...flavour, allergens: 'Allergens: please ask us before ordering.' }
@@ -3522,7 +3511,7 @@ export class OpsRuntime extends OpsProvider {
       // (the engine still holds the ported list, which is not the owner's menu).
       ...(CUSTOMER_SCREENS.includes(this.state.screen as ScreenKey) &&
       !this.flavourSync &&
-      !this.shopMenuRead
+      !this.shopMenu.loaded
         ? { shopFlavours: [] }
         : {}),
       // MP-09 b4: helpers (and any other non-owner) never see cost, expenses or profit, and
