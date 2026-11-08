@@ -204,6 +204,15 @@ export function HomeLive({ v }: { v: OpsVals }) {
           className="@container"
           action={<PanelLink onOpen={go.money}>Open Money</PanelLink>}
         >
+          {home.month && home.booksReadState === 'failed' ? (
+            <p role="status" className="px-4 pt-3 text-caption text-ink-mute">
+              Books could not be refreshed. Showing the last successful read.
+            </p>
+          ) : home.month && home.booksReadState === 'loading' ? (
+            <p role="status" className="px-4 pt-3 text-caption text-ink-mute">
+              Updating books. Showing the last successful read.
+            </p>
+          ) : null}
           {home.month ? (
             <dl className="grid grid-cols-2 gap-y-3 px-4 py-3 @md:grid-cols-3">
               <div className="col-span-2 flex min-w-0 flex-col gap-1 @md:col-span-1">
@@ -228,7 +237,11 @@ export function HomeLive({ v }: { v: OpsVals }) {
               </div>
             </dl>
           ) : (
-            <p className="px-4 py-3 text-caption text-ink-mute">Your books are still loading.</p>
+            <p className="px-4 py-3 text-caption text-ink-mute">
+              {home.booksReadState === 'failed'
+                ? 'Your books could not be read. Open Money to retry.'
+                : 'Your books are still loading.'}
+            </p>
           )}
         </HeadedPanel>
 

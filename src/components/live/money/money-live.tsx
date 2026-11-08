@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import type { LiveMoney, MoneyPeriod, OpsVals } from '@/view-models/vals';
 import { Button } from '@/components/ui/button';
+import { Banner } from '@/components/ui/banner';
 import { MoneyEntryLive, TransactionLive } from './money-pages';
 import { SubTabs } from '@/components/ui/sub-tabs';
 import { cx } from '@/components/ui/cx';
@@ -48,12 +49,20 @@ function IncomeExpenseChart({ money }: { money: LiveMoney }) {
         </span>
       </p>
       <div
-        className="relative grid items-end gap-2 pl-3"
+        className="relative grid items-end gap-2 pl-20"
         style={{ gridTemplateColumns: `repeat(${money.buckets.length}, minmax(0, 1fr))` }}
         aria-hidden="true"
       >
-        <span className="absolute left-0 top-16 -translate-y-1/2 text-[10px] text-ink-mute">0</span>
-        <span className="absolute left-3 right-0 top-16 border-t border-line-strong" />
+        <span className="absolute left-0 top-0 text-[10px] tabular-nums text-ink-mute">
+          +₱{pesos.format(max)}
+        </span>
+        <span className="absolute left-0 top-16 -translate-y-1/2 text-[10px] text-ink-mute">
+          ₱0
+        </span>
+        <span className="absolute left-0 top-32 -translate-y-full text-[10px] tabular-nums text-ink-mute">
+          −₱{pesos.format(max)}
+        </span>
+        <span className="absolute left-20 right-0 top-16 border-t border-line-strong" />
         {money.buckets.map((b) => (
           <div key={b.label} className="flex min-w-0 flex-col items-center gap-1.5">
             <div className="relative flex h-32 w-full justify-center gap-1">
@@ -282,9 +291,48 @@ export function MoneyLive({ v }: { v: OpsVals }) {
             Your books could not be read on this device yet. Figures appear once they load; nothing
             here is counted as zero.
           </p>
+          {money.read && !money.read.online ? (
+            <p className="mt-2 text-caption text-ink-mute">
+              Connect to read your books. Nothing here is counted as zero.
+            </p>
+          ) : null}
+          {money.read ? (
+            <Button
+              onClick={money.read.retry}
+              disabled={
+                !money.read.online ||
+                money.read.canRetry === false ||
+                money.read.state === 'loading'
+              }
+              reason={
+                money.read.canRetry === false
+                  ? 'Connect to the shop to read your books.'
+                  : undefined
+              }
+              busy={money.read.state === 'loading'}
+              busyLabel="Reading books…"
+            >
+              Retry reading books
+            </Button>
+          ) : null}
         </Panel>
       ) : (
         <>
+          {money.read?.state === 'failed' ? (
+            <Banner
+              tone="warn"
+              title="Books could not be refreshed"
+              body={`Showing the last successful read. These figures may have changed since then.${money.read.online ? '' : ' Connect to read updated books.'}`}
+              action={
+                money.read.online
+                  ? { label: 'Retry reading books', onPress: money.read.retry }
+                  : undefined
+              }
+            />
+          ) : null}
+          {money.read?.state === 'loading' ? (
+            <p role="status">Reading books. Showing the last successful read until it finishes.</p>
+          ) : null}
           <Panel tone="hero">
             <div className="grid gap-4 sm:grid-cols-3">
               <div className="flex flex-col gap-1">
@@ -451,7 +499,7 @@ export function MoneyLive({ v }: { v: OpsVals }) {
                             −₱{pesos.format(Math.abs(t.signed))}
                           </span>
                         ) : (
-                          <SignedMoney pesos={t.signed} />
+                          <SignedMoney pesos={t.signed} className="whitespace-nowrap" />
                         )}
                       </button>
                     </li>

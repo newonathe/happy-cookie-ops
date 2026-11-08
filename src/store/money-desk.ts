@@ -32,6 +32,7 @@ export interface MoneyEngine {
 }
 
 export interface MoneyDeskDeps {
+  read?: () => LiveMoney['read'];
   engine: () => MoneyEngine;
   state: () => OpsEngineState;
   books: () => {
@@ -111,6 +112,7 @@ export class MoneyDesk {
         this.deps.rerender();
       },
       loaded: !!books,
+      read: this.deps.read?.(),
       revenue: totals.revenue,
       expenses: totals.totalExp,
       profit: totals.profit,

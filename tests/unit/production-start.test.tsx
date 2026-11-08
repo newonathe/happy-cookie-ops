@@ -1,6 +1,6 @@
 import { act } from 'react';
 import { cleanup, render } from '@testing-library/react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { OpsRuntime } from '@/store/ops-runtime';
 import { bindProductionOwner } from './production-runtime-helpers';
 import { ALLERGENS, PRODUCTS, replaceFlavours } from '@/store/engine/ops-engine';
@@ -17,9 +17,14 @@ vi.mock('@/lib/offline/sync', async (original) => ({
 const original = { products: PRODUCTS.map((p) => ({ ...p })), allergens: { ...ALLERGENS } };
 const pid = original.products[0]!.id;
 const stamp = '2026-11-03T00:00:00Z';
+beforeEach(() => {
+  vi.useFakeTimers({ toFake: ['Date'] });
+  vi.setSystemTime(new Date('2026-11-06T04:00:00Z'));
+});
 afterEach(() => {
   cleanup();
   replaceFlavours(original.products, original.allergens);
+  vi.useRealTimers();
 });
 
 async function mounted(ready = true, orders = true) {

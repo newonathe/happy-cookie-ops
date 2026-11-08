@@ -1864,6 +1864,12 @@ export interface OpsVals {
 export type MoneyPeriod = 'week' | 'days30' | 'month';
 
 export interface LiveMoney {
+  read?: {
+    state: 'idle' | 'loading' | 'read' | 'failed';
+    online: boolean;
+    canRetry?: boolean;
+    retry: () => void;
+  };
   period: MoneyPeriod;
   periodText: string;
   setPeriod: (period: MoneyPeriod) => void;
@@ -1906,6 +1912,7 @@ export interface LiveMoney {
 }
 
 export interface LiveHome {
+  booksReadState?: NonNullable<LiveMoney['read']>['state'];
   greeting: string;
   dateText: string;
   /** Open orders by saved status; null until the orders are read. */
