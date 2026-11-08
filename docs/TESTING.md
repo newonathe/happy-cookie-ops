@@ -40,3 +40,11 @@ Normal test configuration uses `updateSnapshots: none`, including locally. The v
 ## Other inherited checks
 
 `pnpm format:check` is an additional formatting audit; do not run format-write across locked source or historical evidence just to make it green. Record remaining findings separately. SQL parity requires an isolated local database; skipped database checks are not positive evidence. Load testing and hosted security probes remain outside G0. Never point tests at production or use production credentials.
+
+## Connected local production and Bazaar
+
+`node tools/owner-preview/check-production-connected.cjs <artifact-directory>` exercises recipe creation/editing, dough-only baking, shortage refusals, exact retries/reload, price-only planning, kitchen transfers, retained till/review drafts, sale/return and Money. Set `BAKE_WIDTH=390` or `1440`; use a fresh disposable database for each width.
+
+The local fixture runner supplies `HCO_LOCAL_RPC_ORIGIN`, `HCO_LOCAL_OWNER_JWT`, `HCO_LOCAL_ANON_JWT` and `HCO_FIXTURE_NONCE`, plus the owner preview on loopback port4186. The driver requires its current synthetic fixture token and loopback API port45000–48999, and blocks other browser origins. `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` selects an installed Chromium when needed. Failure artifacts contain RPC bodies and UI text: run only with synthetic fixture data. Fixture setup must verify ownership of the disposable PostgreSQL/PostgREST processes before supplying these variables.
+
+Independent SQL regressions are `tests/integration/security/make-bazaar-transfer.sql` and `bazaar-return-volume.sql`; their runners verify two clean resets, schema/function authority, stock/cost effects and replay behavior. The browser driver consumes an already prepared fixture; bootstrap and physical-device acceptance remain separate gates.
