@@ -10,16 +10,7 @@ Branch `codex/recipe-production-acceptance-20261107` starts from published Cloud
 
 The clean older Cloud checkout at `4c1f72e` is preserved as `backup/cloud-start-4c1f72e`. `work` continued from exactly the requested `93135433fd88def7cbc5a05c0d22de3b17cfe764`, after fetching `origin/codex/refined-workflows` and verifying full-goal.md. No Cloud stashes or other worktrees existed initially. The original WIP remains preserved in `/workspace/happy-cookie-ops`. Active work continues in `/workspace/work/happy-cookie-ops/acceptance-tree` on `codex/cloud-p0-transfer-20261107`, based on user-pushed `f56900f7f533462c3dd368d05c8cc05381897f9b`. The independently verified SQL74 extraction at `620ab45` is preserved as `backup/bazaar-boundary-before-local-f569` and reapplied without rewriting either history. The acceptance worktree publishes to `codex/cloud-full-goal-20261106`. Private/local work listed in full-goal.md was not applied.
 
-Accepted and pushed to `codex/cloud-full-goal-20261106`:
-
-- `8ab48cc`: explicit SQL72 bake protocol, strict record-ID/quantity acknowledgement, definite dough/date refusals and immutable recovery routing. Frozen legacy bodies retain their route.
-- `c84d23d`: new runtime bakes use recorded dough only, independently per work item. Definite refusals retain counts; uncertain retries retain the exact request; acknowledgement and failed refresh remain separate.
-- `f751c7c`: Bake review/recovery presentation and portable browser rehearsal. Frozen-source serial full gate passed200files/3244tests+2TODOs; the push was independently confirmed.
-- `611d7c6`: patched production dependencies; frozen install, production audit (all severities0), build and full196files/3177tests+2TODOs gate recorded in Git.
-- `139ff68671ac728b01f211ccf1b68430d9e4c69c`: explicit pure recipe/Shopping handoff and conflict retention; full197files/3191tests+2TODOs.
-- `fb3de4e48aa6adcbc1136b501f7274f00079066c`: verified owner/backend-scoped planned notes and core stock confidence; full198files/3202tests+2TODOs.
-- `3fd797b72a8d517b6d6edbafa9241b3abe3df953`: production reads fenced by actor/client/period, with identity-cleared balances; full199files/3205tests+2TODOs.
-- `e5fe7350a216928b1c18539166a0bdd0efeba575`: SQL73 retirement of unseen legacy writes; exact historical replays and retained refusal drafts. Full199files/3207tests+2TODOs; SQL proof below.
+Accepted and pushed development checkpoints are recorded in current-history.md. Latest acceptance work is below.
 
 Accepted production follow-ups through `dbb7e44` are recorded in current-history.md. `e0670e6` clears retired Orders before catalogue replacement and fences late reads; `f56900f` preserves the newer local recipe handoff. Published `94b1fccd20f19d76715a3860d17270141019e1f2` adds only the private byte-identical SQL74 boundary; combined full gate202files/3240tests+2TODO passed.
 
@@ -31,11 +22,11 @@ Transfer quantity/runtime acceptance through b4dd576 is recorded in current-hist
 
 Connected transfer UI is accepted as `81e4053ccb26d19a21e657647b06dea63a23a4f8`: full213files/3350tests+2TODO,110focused, clear review, exact-source Live build and real390/1440 connected journeys. SQL80 Money labels are accepted as35ea7c8. Full evidence is in history.
 
-Direct kitchen entry, separate historical wording, retained forms and stale-origin guards are accepted as `2ae387b0d164882b6dcdb621f9c2cbd413034bd8`; full213files/3378tests+2TODO,269focused, actual390/1440 SQL/browser, build and review evidence is in history.
+Connected regression is accepted as `d55b016014f508034c19e057135ed48dda752355`; actual390/1440 reset/browser, six safety refusals and full213files/3378tests+2TODO evidence is in history.
 
-The connected browser regression now lives under tools/owner-preview: the existing production assertions are preserved alongside the complete Make→Bazaar→return→Money journey, recipe v2 edit, retained form drafts and no legacy writer. Portable repository paths pass both actual reset/browser cycles and independent stock/cost/journal readback. Six pre-browser checks reject hosted origin, invalid/mismatched nonce, expiry, role and issuer; review is clear with the existing disposable synthetic fixture ownership requirement. TESTING.md documents the driver and fixture prerequisites. Expected Money date is anchored to the seeded Manila day. Final full verification is recorded by the acceptance commit; application source is unchanged from2ae387b.
+Shopping now carries saved quantities and captured recipe versions through the existing productionHandoff into explicit Prepare dough/Bake choice. Actor, client, identity, period, source screen, plan signature and unsaved-editor guards retire stale actions; conflicting setup is retained. Oversized Shopping plans remain saved with a clear warning about the unchanged10000 per-entry bound.13failing-first regressions and74focused tests, TypeScript and independent review pass. Both real390/1440 reset/browser cycles now include the warning and valid Shopping handoff before the full Make→Bazaar→return→Money chain. No recording occurs on handoff. All four new screens inspected; exact-source28-page Live build passes. Full verification is recorded by the acceptance commit. Latest runtime three-way against PR51/53 remains0textual conflicts; semantic integration conditions and OD12 remain open.
 
-Whole production remains incomplete: planned-bake/Shopping handoff and remaining connected isolation/matrix acceptance. Visual follow-up: narrow Money transaction amounts can wrap their sign. Manual owner/hosted/device gates remain pending.
+Whole production remains incomplete: remaining connected isolation/matrix acceptance. Visual follow-up: narrow Money transaction amounts can wrap their sign. Manual owner/hosted/device gates remain pending.
 
 Preserve exact staged/unstaged differences. Bake presentation/rehearsal and SQL73 are accepted; recipe handoff/runtime ownership tightening is the active production slice. The following remain under implementation/acceptance:
 

@@ -1,3 +1,6 @@
+/** Existing per-product setup bound; the SQL recording contracts retain their own limits. */
+export const MAX_PRODUCTION_QUANTITY = 10000;
+
 /** One product in an unsubmitted multi-product production plan. */
 export interface ProductionPlanChoice {
   productId: string;
@@ -20,7 +23,7 @@ export function validProductionChoice(
   return (
     Number.isInteger(quantity) &&
     quantity >= 1 &&
-    quantity <= 10000 &&
+    quantity <= MAX_PRODUCTION_QUANTITY &&
     (choice.kind === 'batch' ||
       quantity === product.yield ||
       quantity === Math.ceil(product.yield / 2))

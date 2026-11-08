@@ -258,3 +258,47 @@ describe('planned bake', () => {
     expect(plan.vals().cookies).toBe(12);
   });
 });
+
+describe('the displayed planned-bake handoff', () => {
+  it('captures selected saved quantities and never starts during render', () => {
+    const begin = vi.fn(),
+      capture = vi.fn(() => begin);
+    const { plan } = setup({ production: capture });
+    choose(plan, [
+      ['a', '8'],
+      ['b', '24']
+    ]);
+    const shown = plan.vals();
+    expect(capture).toHaveBeenLastCalledWith([
+      { productId: 'a', cookies: 8 },
+      { productId: 'b', cookies: 24 }
+    ]);
+    expect(begin).not.toHaveBeenCalled();
+    shown.startProduction!();
+    expect(begin).toHaveBeenCalledOnce();
+  });
+  it('retires an old Start action when the saved quantities change', () => {
+    const begin = vi.fn();
+    const { plan } = setup({ production: () => begin });
+    choose(plan, [['a', '8']]);
+    const old = plan.vals().startProduction!;
+    choose(plan, [['a', '16']]);
+    old();
+    expect(begin).not.toHaveBeenCalled();
+    plan.vals().startProduction!();
+    expect(begin).toHaveBeenCalledOnce();
+  });
+});
+
+it('keeps an unsaved plan edit from being interrupted by a cached Start action', () => {
+  const begin = vi.fn();
+  const { plan } = setup({ production: () => begin });
+  choose(plan, [['a', '8']]);
+  const old = plan.vals().startProduction!;
+  plan.vals().edit();
+  const key = plan.vals().rows[0].key;
+  plan.vals().setCookies(key, '16');
+  old();
+  expect(begin).not.toHaveBeenCalled();
+  expect(plan.vals()).toMatchObject({ open: true, rows: [{ productId: 'a', cookies: '16' }] });
+});
