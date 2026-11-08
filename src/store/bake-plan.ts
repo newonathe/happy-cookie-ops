@@ -83,7 +83,8 @@ export interface LiveBakePlan {
 }
 
 export interface BakePlanDeps {
-  production?: (rows: Array<{ productId: string; cookies: number }>) => void;
+  /** Capture an action for this displayed plan; capture itself performs no writes. */
+  production?: (rows: Array<{ productId: string; cookies: number }>) => (() => void) | null;
   scope?: () => ProductionRecoveryScope | null;
   products: () => BakePlanProduct[];
   recipe: (productId: string) => BakePlanRecipe | null;
@@ -232,6 +233,12 @@ export class BakePlan {
 
   vals(): LiveBakePlan {
     const { needs, noRecipe } = this.needs();
+    const displayedPlan = structuredClone(this.plan());
+    const signature = JSON.stringify(displayedPlan);
+    const production =
+      !this.open && displayedPlan.length && !noRecipe.length
+        ? this.deps.production?.(displayedPlan)
+        : null;
     const generation = this.generation;
     const guard =
       <T extends unknown[]>(action: (...args: T) => void) =>
@@ -248,10 +255,11 @@ export class BakePlan {
       knownPesos: short.reduce((sum, need) => sum + (need.costPesos ?? 0), 0),
       somePending: short.some((need) => need.costPesos === null),
       products: this.deps.products(),
-      startProduction:
-        this.deps.production && this.plan().length && !noRecipe.length
-          ? guard(() => this.deps.production?.(structuredClone(this.plan())))
-          : undefined,
+      startProduction: production
+        ? guard(() => {
+            if (!this.open && JSON.stringify(this.plan()) === signature) production();
+          })
+        : undefined,
       rows: this.rows,
       error: this.error,
       retention: {

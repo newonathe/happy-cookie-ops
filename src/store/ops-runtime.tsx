@@ -258,7 +258,7 @@ import {
   type ProductionRecoveryScope
 } from '@/lib/production/recovery';
 import { ProductionRecoverySession } from '@/lib/production/recovery-session';
-import { validProductionChoice } from '@/lib/production/plan';
+import { validProductionChoice, MAX_PRODUCTION_QUANTITY } from '@/lib/production/plan';
 import { productionPlanner } from '@/lib/production/planner';
 import { productionHandoff } from '@/lib/production/handoff';
 import { doughFacts, doughStock, sameDoughSubmission } from '@/lib/production/dough';
@@ -1078,6 +1078,7 @@ export class OpsRuntime extends OpsProvider {
   });
   /** Planned bake: reads recipes and recorded stock, and records nothing. */
   private bakePlan = new BakePlan({
+    production: (rows) => this.shoppingProductionAction(rows),
     scope: () => (this.state.role === 'owner' ? this.productionRecovery.scope : null),
     products: () => PRODUCTS.map((row) => ({ id: row.id, name: row.short })),
     recipe: (productId) => {
@@ -8888,6 +8889,64 @@ export class OpsRuntime extends OpsProvider {
                 : [];
             })
           : []
+    };
+  }
+
+  /** Capture the saved Shopping plan without starting work or replacing independent drafts. */
+  private shoppingProductionAction(
+    rows: Array<{ productId: string; cookies: number }>
+  ): (() => void) | null {
+    const scope = this.productionRecovery.scope,
+      client = this.productionClient;
+    const actor = this.productionActorEpoch,
+      dropNo = this.state.dropNo;
+    if (
+      !isLiveMode() ||
+      this.state.screen !== 'grocery' ||
+      !scope ||
+      !client ||
+      !this.productionWritable() ||
+      this.recipeReaderState !== 'read'
+    )
+      return null;
+    const proposal = {
+      source: 'shopping' as const,
+      rows: rows.map((row) => ({
+        productId: row.productId,
+        quantity: String(row.cookies),
+        version: this.recipeRows?.find((recipe) => recipe.productId === row.productId)?.version ?? 0
+      }))
+    };
+    if (!proposal.rows.length || proposal.rows.some((row) => row.version === 0)) return null;
+    return () => {
+      if (
+        this.unmounted ||
+        this.state.screen !== 'grocery' ||
+        actor !== this.productionActorEpoch ||
+        client !== this.productionClient ||
+        dropNo !== this.state.dropNo ||
+        scope.userId !== this.productionRecovery.scope?.userId ||
+        scope.business !== this.productionRecovery.scope?.business ||
+        !this.productionWritable() ||
+        this.recipeReaderState !== 'read'
+      )
+        return;
+      if (proposal.rows.some((row) => Number(row.quantity) > MAX_PRODUCTION_QUANTITY))
+        return this.toast(
+          `Shopping plan kept. Make accepts at most ${MAX_PRODUCTION_QUANTITY.toLocaleString('en-PH')} cookies per product in one production entry.`,
+          'warn'
+        );
+      const result = productionHandoff(
+        this.productionEntry,
+        proposal,
+        this.liveProductionView().start?.products ?? [],
+        Number(dropNo)
+      );
+      if (result.error) return this.toast(result.error, 'warn');
+      this.productionEntry = result.entry;
+      this.productionEntryGeneration += 1;
+      this.go('bake');
+      this.setState({});
     };
   }
 

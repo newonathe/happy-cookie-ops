@@ -2598,3 +2598,24 @@ SQL81 aggregate returns are accepted as `39ff7cc782f4546e056b67afd76eb255a8fb671
 Accepted and pushed as `2ae387b0d164882b6dcdb621f9c2cbd413034bd8`; full213files/3378tests+2TODO passed. The final PR runtime source hash matches this accepted commit; both PR heads remain unchanged with0textual conflicts.
 
 SQL81 aggregate returns (39ff7cc) and price-only day planning (`2b27389171f2c9d2d1993b1ef49e09f8d7d0c1fd`) are accepted; evidence is in history. Add cookies and day review now offer explicit kitchen transfer while the old form says separately made/carried. Captured till actions require their exact held day/booking; directory-origin actions retain the old directory gate. Both stale-origin review findings have failing-first regressions and clear re-review. Transfer navigation now keeps underlying forms mounted and hidden; stock and close-out cash drafts survive.269focused tests, TypeScript, two real SQL/browser cycles at390/1440 and exact-source28-page Live build pass. Connected proof waits for authoritative destination counts, retains both drafts, sends no legacy stock write and preserves the4→3→1 stock/Money chain. Phone/desktop visuals inspected. Full verification is recorded by the acceptance commit.
+
+## Earlier dough-only development checkpoints
+
+Accepted and pushed to `codex/cloud-full-goal-20261106`:
+
+- `8ab48cc`: explicit SQL72 bake protocol, strict record-ID/quantity acknowledgement, definite dough/date refusals and immutable recovery routing. Frozen legacy bodies retain their route.
+- `c84d23d`: new runtime bakes use recorded dough only, independently per work item. Definite refusals retain counts; uncertain retries retain the exact request; acknowledgement and failed refresh remain separate.
+- `f751c7c`: Bake review/recovery presentation and portable browser rehearsal. Frozen-source serial full gate passed200files/3244tests+2TODOs; the push was independently confirmed.
+- `611d7c6`: patched production dependencies; frozen install, production audit (all severities0), build and full196files/3177tests+2TODOs gate recorded in Git.
+- `139ff68671ac728b01f211ccf1b68430d9e4c69c`: explicit pure recipe/Shopping handoff and conflict retention; full197files/3191tests+2TODOs.
+- `fb3de4e48aa6adcbc1136b501f7274f00079066c`: verified owner/backend-scoped planned notes and core stock confidence; full198files/3202tests+2TODOs.
+- `3fd797b72a8d517b6d6edbafa9241b3abe3df953`: production reads fenced by actor/client/period, with identity-cleared balances; full199files/3205tests+2TODOs.
+- `e5fe7350a216928b1c18539166a0bdd0efeba575`: SQL73 retirement of unseen legacy writes; exact historical replays and retained refusal drafts. Full199files/3207tests+2TODOs; SQL proof below.
+
+## Repository connected regression — 8 November 2026
+
+Accepted and pushed as `d55b016014f508034c19e057135ed48dda752355`; full213files/3378tests+2TODO passed.
+
+Direct kitchen entry, separate historical wording, retained forms and stale-origin guards are accepted as `2ae387b0d164882b6dcdb621f9c2cbd413034bd8`; full213files/3378tests+2TODO,269focused, actual390/1440 SQL/browser, build and review evidence is in history.
+
+The connected browser regression now lives under tools/owner-preview: the existing production assertions are preserved alongside the complete Make→Bazaar→return→Money journey, recipe v2 edit, retained form drafts and no legacy writer. Portable repository paths pass both actual reset/browser cycles and independent stock/cost/journal readback. Six pre-browser checks reject hosted origin, invalid/mismatched nonce, expiry, role and issuer; review is clear with the existing disposable synthetic fixture ownership requirement. TESTING.md documents the driver and fixture prerequisites. Expected Money date is anchored to the seeded Manila day. Final full verification is recorded by the acceptance commit; application source is unchanged from2ae387b.
