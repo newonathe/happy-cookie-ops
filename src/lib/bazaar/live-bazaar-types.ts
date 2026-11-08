@@ -8,6 +8,7 @@
  * Add to it only together with both sides.
  */
 
+import type { KitchenTransferView } from './kitchen-transfer-desk';
 import type { EventEntryVals } from '@/store/event-entry';
 import type { BazaarRoute } from '@/lib/bazaar/navigation';
 import type { HubStatus } from '@/lib/bazaar/hub';
@@ -58,6 +59,7 @@ export interface StartPrompt {
 }
 
 export interface BazaarDayRow {
+  kitchenTransfer?: (() => void) | null;
   id: string;
   /** "Sat, Oct 24" */
   dateText: string;
@@ -385,6 +387,7 @@ export interface TillPanelView {
 }
 
 export interface LiveBazaarVals {
+  kitchen?: KitchenTransferView | null;
   /** View selection never changes the held selling day. Absent in older fixtures. */
   navigation?: {
     route: BazaarRoute;

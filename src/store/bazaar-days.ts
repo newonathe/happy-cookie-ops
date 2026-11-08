@@ -97,6 +97,8 @@ export interface BazaarDaysDeps {
   /** True while this phone holds an event (a started day, or one from before): a second cannot start. */
   holdsEvent: () => boolean;
   resumeTill?: () => void;
+  /** Captures the verified production owner/client when drawing a selected-day action. */
+  kitchenTransfer?: (bookingId: string, dayId: string) => (() => void) | null;
   /**
    * U5: whether a flavour has a recipe (the database refuses a flavour with none sent to the shop); null while the recipes
    * have not been read. Only chooses where the last day's leftover is suggested to go.
@@ -310,11 +312,16 @@ export class BazaarDays {
   private hubFacts = new Map<string, HubFacts>();
   private hubState = new Map<string, 'reading' | 'failed'>();
   private justAdded: string | null = null;
+  private selectionVersion = 0;
+  selectionEpoch(): number {
+    return this.selectionVersion;
+  }
 
   constructor(private readonly deps: BazaarDaysDeps) {}
 
   /** The owner's way out of every view: back to the list, nothing kept. */
   reset(): void {
+    this.selectionVersion += 1;
     this.justAdded = null;
     this.bookingId = null;
     this.data = null;
@@ -330,6 +337,7 @@ export class BazaarDays {
   }
 
   open(bookingId: string): void {
+    this.selectionVersion += 1;
     this.justAdded = null;
     this.bookingId = bookingId;
     this.data = null;
@@ -344,6 +352,7 @@ export class BazaarDays {
    * is drawn only from a read made now, so the close is given back the hash of exactly what she is shown.
    */
   openReview(bookingId: string, dayId: string, from: 'till' | 'event'): void {
+    this.selectionVersion += 1;
     this.bookingId = bookingId;
     this.data = null;
     this.editing = null;
@@ -686,6 +695,7 @@ export class BazaarDays {
 
   /** From a review: to the till while this phone is selling, otherwise to the event's page. */
   private leaveReview = (): void => {
+    this.selectionVersion += 1;
     const from = this.reviewing?.from;
     if (from === 'till' && this.deps.holdsEvent()) this.reset();
     else {
@@ -941,6 +951,7 @@ export class BazaarDays {
             peso(l.priceCents)
         ),
       edit: day.state === 'planned' ? () => this.edit(day) : null,
+      kitchenTransfer: this.deps.kitchenTransfer?.(booking.id, day.id) ?? null,
       action,
       actionNote: note,
       hint,
@@ -961,12 +972,14 @@ export class BazaarDays {
   private plan(ymd: string): void {
     const existing = this.data?.days.find((d) => d.day === ymd);
     if (existing) return this.edit(existing);
+    this.selectionVersion += 1;
     // The id is minted once for this form: a save whose reply was lost is repeated under the same id.
     this.editing = { dayId: this.deps.newId(), ymd, stamp: null };
     this.deps.rerender();
   }
 
   private edit(day: BazaarDay): void {
+    this.selectionVersion += 1;
     this.editing = { dayId: day.id, ymd: day.day, stamp: day.updatedAt };
     this.deps.rerender();
   }
@@ -1030,6 +1043,7 @@ export class BazaarDays {
       carryIn: this.carryIn(data, editing.ymd),
       save: (input) => this.save(booking, input),
       back: () => {
+        this.selectionVersion += 1;
         this.editing = null;
         this.deps.rerender();
       }
@@ -1215,6 +1229,7 @@ export class BazaarDays {
         editing.stamp
       );
       if (outcome === 'saved') {
+        this.selectionVersion += 1;
         this.editing = null;
         this.deps.toast(COPY.saved);
         await this.reload();

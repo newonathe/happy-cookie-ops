@@ -2,6 +2,14 @@
 
 This is the complete owner objective for Cloud continuation. Current instructions and Git take precedence over the historical baseline below.
 
+## Master continuation — 8 November 2026
+
+The owner's master continuation preserves this entire objective across fourteen dependency-ordered engineering workstreams: Orders integration; dough/baking; production workspace; read reliability; Sell/payments; Shop; Stock; recipes/purchasing; Bazaar; Money/backup; Account/permissions; Home/navigation/UX; connected system tests; final hardening. Continue independent authorized work when another requirement needs an owner, hosted, device or release gate. Newer Git and unfinished edits take precedence over the externally observed608cca1 checkpoint.
+
+Make→Bazaar acceptance includes checked available quantities and a review of the intended transfer effect, the live transfer/recovery/return/Money chain, historical and mixed provenance, concurrent consumers, and aggregate returns beyond the individual movement cap. SQL or unit success alone does not close it. Preserve exact requests and approval boundaries.
+
+At the requirements-reconciliation stage, reconcile the original127 audit findings,61 HCB issues and67 acceptance obligations against their actual registers without double-counting overlap or inventing missing entries. Engineering code-complete requires all authorized unblocked requirements and connected acceptance; it does not grant manual owner, hosted/device or release approval.
+
 ## Confirmed clarifications
 
 - Baking must use already-recorded fridge dough. If insufficient, retain the draft and ask for Prepare dough first. Ethan approved this on 5 November; do not ask again.
