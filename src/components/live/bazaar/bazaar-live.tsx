@@ -12,6 +12,7 @@ import {
   textStyle
 } from '@/components/live/stock/stock-shared';
 import { Button } from '@/components/ui/button';
+import { KitchenTransferPane } from './kitchen-transfer-pane';
 import { EventList } from './event-list';
 import { EventPage } from './event-page';
 import { DayPlan } from './day-plan';
@@ -31,6 +32,16 @@ export function liveBazaarOf(v: OpsVals): LiveBazaarVals | null {
  */
 export function BazaarLive({ v }: { v: OpsVals }) {
   const bazaar = liveBazaarOf(v);
+  if (bazaar?.kitchen && !bazaar.navigation?.tillOnly)
+    return (
+      <section
+        aria-label="Bazaar"
+        data-screen-label="Bazaar"
+        style={{ ...screenStyle, paddingBottom: '96px' }}
+      >
+        <KitchenTransferPane view={bazaar.kitchen} online={bazaar.online} />
+      </section>
+    );
   const ownDayVisible =
     !bazaar?.editor &&
     !bazaar?.reviewing &&

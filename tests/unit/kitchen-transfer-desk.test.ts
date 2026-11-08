@@ -167,6 +167,10 @@ describe('selected-day kitchen transfers', () => {
     await reload(f);
     await row.submit();
     expect(f.rpc.mock.calls.some(([n]) => n === 'transfer_bazaar_stock')).toBe(false);
+    expect(f.desk.vals()!.rows[0].message).toContain('plan changed');
+    f.day.state = 'closed';
+    await reload(f);
+    expect(f.desk.vals()!.rows[0].message).toContain('day is closed');
     f.desk.close();
   });
   it('keeps exact pending retries available when destination reads fail or the day closes', async () => {

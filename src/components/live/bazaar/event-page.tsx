@@ -135,6 +135,11 @@ function DayRow({
       )}
       {day.hint ? <p className="m-0 text-caption text-ink-mute">{day.hint}</p> : null}
       <span className="flex flex-wrap gap-2">
+        {day.kitchenTransfer ? (
+          <Button variant="secondary" size="sm" onClick={day.kitchenTransfer}>
+            {day.word === 'Closed' ? 'Review transfers' : 'Transfer from kitchen'}
+          </Button>
+        ) : null}
         {day.action && !primary ? (
           <Button
             variant="secondary"

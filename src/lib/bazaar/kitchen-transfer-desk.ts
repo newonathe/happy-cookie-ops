@@ -2,6 +2,7 @@ import type { BazaarClient, BazaarDay } from '@/lib/data/bazaar-days';
 import type { EventEntryScope } from '@/lib/bazaar/event-entry-recovery';
 import { readKitchenTransferTarget, type KitchenTransferTarget } from './kitchen-transfer-target';
 import { KitchenTransferSession } from '@/lib/bazaar/kitchen-transfer-session';
+import type { KitchenTransferWork } from './kitchen-transfer-recovery';
 import type { KitchenTransferRequest } from '@/lib/bazaar/kitchen-transfer';
 
 export interface KitchenTransferView {
@@ -186,6 +187,18 @@ export class KitchenTransferDesk {
     this.messages.set(id, message);
     this.changed();
   }
+  private messageFor(row: Readonly<KitchenTransferWork>): string | null {
+    if (!row.submitted && this.state === 'read') {
+      if (this.target?.closed) return 'This day is closed. Your draft is kept.';
+      if (
+        !this.target?.products.some(
+          (p) => p.id === row.product_id && !p.separate && p.sourceDrop === row.source_drop
+        )
+      )
+        return 'This day’s cookie plan changed. Your draft is kept. Check the day before sending.';
+    }
+    return this.messages.get(row.work_id) ?? null;
+  }
   vals(): KitchenTransferView | null {
     if (!this.active()) return null;
     const rows = this.session.snapshot(),
@@ -232,7 +245,7 @@ export class KitchenTransferDesk {
                 (p) => p.id === row.product_id && p.sourceDrop === row.source_drop
               )?.dayTotal ?? null)
             : null,
-        message: this.messages.get(row.work_id) ?? null,
+        message: this.messageFor(row),
         edit: (qty) => {
           if (this.session.edit(row.work_id, qty)) this.messages.delete(row.work_id);
         },

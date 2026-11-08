@@ -13,6 +13,7 @@ const viteReq = createRequire(req.resolve('vitest/package.json'));
   const server = await createServer({ root: __dirname, configFile: false, publicDir: repo + '/public',
     plugins: [(react.default ?? react)()],
     resolve: { alias: { '@': repo + '/src', react: repo + '/node_modules/react', 'react-dom': repo + '/node_modules/react-dom' } },
+    optimizeDeps: { include: ['@supabase/supabase-js'] },
     css: { postcss: { plugins: [tailwind({ base: repo })] } },
     define: { 'process.env': JSON.stringify({ NODE_ENV: 'development', NEXT_PUBLIC_APP_MODE: 'live', NEXT_PUBLIC_HARNESS: '0' }) },
     server: { host: '127.0.0.1', port: Number(process.env.PREVIEW_PORT ?? 4186), strictPort: true, fs: { allow: [repo, __dirname] } }
