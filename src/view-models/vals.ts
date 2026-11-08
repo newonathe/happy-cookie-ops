@@ -8,6 +8,7 @@ import type { TillLedger } from '@/lib/bazaar/till-ledger';
 import type { LiveCustomers } from '@/store/customer-desk';
 import type { LiveMake } from '@/store/make-desk';
 import type { ShopMenuReadView } from '@/store/shop-menu-read';
+import type { ShopAvailabilityView } from '@/store/shop-availability-read';
 import type { MoneyEntryView } from '@/store/money-entry';
 import type * as React from 'react';
 import type { ScreenKey } from '@/lib/screens';
@@ -479,6 +480,7 @@ export interface OpsVals {
    * owner's own text; an empty string means the footer prints nothing for it.
    */
   liveShopMenuRead?: ShopMenuReadView | null;
+  liveShopAvailability?: ShopAvailabilityView | null;
   shopFooter?: { badge: string; tin: string; invoice: string; allergens: string };
   /** Live mode only (B2): the owner's own shop name, for the privacy line; '' means "this shop". */
   shopName?: string;

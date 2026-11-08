@@ -1,6 +1,8 @@
 'use client';
 
 import { ShopMenuRead } from '@/store/shop-menu-read';
+import { ShopAvailabilityRead } from '@/store/shop-availability-read';
+import { openingTimesBanner } from '@/components/live/customer-opening-status';
 import { ScopedRecipeEdits } from '@/lib/recipes/scoped-edits';
 
 import { bazaarBooking, type BazaarRoute } from '@/lib/bazaar/navigation';
@@ -114,12 +116,7 @@ import {
 } from '@/lib/data/staff-orders';
 import { messagesFor, statusLink } from '@/lib/orders/messages';
 import { extraDetails, extraRows } from '@/lib/orders/extras-view';
-import {
-  fetchShopStatus,
-  saveShopOverride,
-  type ShopOverride,
-  type ShopStatusClient
-} from '@/lib/data/shop-status';
+import { saveShopOverride, type ShopOverride, type ShopStatusClient } from '@/lib/data/shop-status';
 import {
   fetchOrderRules,
   orderRulesError,
@@ -3502,6 +3499,8 @@ export class OpsRuntime extends OpsProvider {
       liveWaitlist: this.liveWaitlistVals(),
       shopFooter: this.shopFooterVals(),
       liveShopMenuRead: this.onCustomerScreen() && !this.flavourSync ? this.shopMenu.view() : null,
+      liveShopAvailability: this.onCustomerScreen() ? this.shopAvailability.view() : null,
+      ...(this.onCustomerScreen() ? openingTimesBanner(starved, this.shopAvailability.view()) : {}),
       shopFlavours: this.liveShopSampler(starved.shopFlavours).map((flavour) =>
         /confirmation required/i.test(String(flavour.allergens))
           ? { ...flavour, allergens: 'Allergens: please ask us before ordering.' }
@@ -3604,21 +3603,28 @@ export class OpsRuntime extends OpsProvider {
    * loaded (a customer page), because a signed-in owner's settings already carry it and an
    * unsaved edit must not be overwritten. A failed or malformed read keeps what was there.
    */
-  async loadShopStatus(client: ShopStatusClient | null): Promise<boolean> {
-    if (!isLiveMode() || !client) return false;
-    this.shopClient = client;
-    let status;
-    try {
-      status = await fetchShopStatus(client);
-    } catch {
-      return false;
-    }
-    if (!status) return false;
-    this.setState((s) => ({
-      shopOverride: status.override,
-      cfg: this.settingsSync ? s.cfg : { ...(s.cfg as Record<string, unknown>), ...status.window }
-    }));
-    return true;
+  private shopAvailability = new ShopAvailabilityRead({
+    active: () => !this.unmounted,
+    canRetry: () => this.onCustomerScreen(),
+    online: () => Boolean(this.state.online),
+    apply: (status, current) =>
+      this.setState((s) =>
+        current()
+          ? {
+              shopOverride: status.override,
+              cfg: this.settingsSync
+                ? s.cfg
+                : { ...(s.cfg as Record<string, unknown>), ...status.window }
+            }
+          : null
+      ),
+    changed: () => this.forceUpdate()
+  });
+
+  loadShopStatus(client: ShopStatusClient | null): Promise<boolean> {
+    if (!isLiveMode() || this.unmounted) return Promise.resolve(false);
+    this.shopClient = client ?? undefined;
+    return this.shopAvailability.load(client);
   }
 
   /** A customer's banner must not go stale: read again when the tab comes back. */

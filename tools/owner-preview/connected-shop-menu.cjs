@@ -13,8 +13,10 @@ exports.run=async({page,context,origin,anon,nonce,width,out,assert})=>{
    window.menuFailure=true;window.publicMenuRequests=0;
    const client=createClient(origin,anon,{accessToken:async()=>anon,auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false},global:{fetch:async(input,init)=>{
     const url=new URL(typeof input==='string'?input:input.url);url.pathname=url.pathname.replace(/^\/rest\/v1/,'');
-    if(url.origin!==origin||url.pathname!=='/shop_products'||(init?.method??'GET')!=='GET')throw Error('Unexpected customer request');
-    window.publicMenuRequests++;if(window.menuFailure)throw TypeError('Injected unavailable local menu');return nativeFetch(url,init);
+    const menu=url.pathname==='/shop_products',opening=url.pathname==='/rpc/get_shop_status';
+    if(url.origin!==origin||(!menu&&!opening)||(init?.method??'GET')!==(menu?'GET':'POST'))throw Error('Unexpected customer request');
+    if(menu)window.publicMenuRequests++;if((menu&&window.menuFailure)||(opening&&window.openingFailure))throw TypeError('Injected unavailable local public read');
+    const answer=await nativeFetch(url,init);if(opening&&window.holdOpening){window.holdOpening=false;await answer.clone().json();await new Promise(resolve=>{window.releaseOpening=resolve;});}return answer;
    }}});window.publicMenuClient=client;await window.__hcOps.loadShopMenu(client);
   },{origin,anon});
   await customer.getByText('Menu is unavailable. Try reading it again.',{exact:true}).waitFor();await shot('unavailable');
@@ -28,6 +30,7 @@ exports.run=async({page,context,origin,anon,nonce,width,out,assert})=>{
   await publish([]);await customer.evaluate(async()=>{window.menuFailure=false;window.__hcOps.setState({online:true});await window.__hcOps.loadShopMenu(window.publicMenuClient);});
   await customer.getByText('There are no flavours on the menu right now.',{exact:true}).waitFor();await shot('empty');
   assert(await customer.evaluate(()=>window.__hcOps.renderVals().shopFlavours.length===0),'An empty public projection showed demo flavours');
+  await require('./connected-opening-times.cjs').run({customer,owner:page,width,out,assert});
   assert(!errors.length,'Customer menu browser errors: '+errors.join('; '));console.log(JSON.stringify({width,anonymousMenuRecovery:true,staleRetained:true,offlineDisabled:true,realEmpty:true,errors}));
  }finally{await customer.close();await publish(['dcf']);}
 };

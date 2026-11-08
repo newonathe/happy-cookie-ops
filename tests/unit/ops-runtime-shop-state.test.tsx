@@ -331,3 +331,89 @@ describe('B3: the order rules form', () => {
     // Mutation: dropping the role test shows the form to a helper who opens the sheet kind directly.
   });
 });
+
+describe('public opening-times recovery', () => {
+  beforeEach(() => {
+    live = true;
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(NOW);
+  });
+  afterEach(() => {
+    cleanup();
+    vi.useRealTimers();
+  });
+  it('settles an unconfigured source as unavailable without claiming a default opening status', async () => {
+    const r = await mounted('owner', fake(), false);
+    act(() => r.go('shop'));
+    await act(async () => {
+      expect(await r.loadShopStatus(null)).toBe(false);
+    });
+    expect(r.renderVals().liveShopAvailability).toMatchObject({ state: 'failed', stale: false });
+    expect(r.renderVals().dropBannerTitle).toBe('Opening times are unavailable');
+  });
+  it('retries a first failure and warns while retaining a malformed last-good refresh', async () => {
+    const rpc = vi
+      .fn()
+      .mockResolvedValueOnce({ data: null, error: { code: '503' } })
+      .mockResolvedValueOnce({ data: status({ override: 'open' }), error: null })
+      .mockResolvedValue({ data: { override: 'closed' }, error: null });
+    const client = { rpc } as unknown as ShopStatusClient,
+      r = await mounted('owner', fake(), false);
+    act(() => r.go('shop'));
+    await act(async () => {
+      await r.loadShopStatus(client);
+    });
+    expect(r.renderVals().liveShopAvailability).toMatchObject({ state: 'failed', stale: false });
+    await act(async () => {
+      r.renderVals().liveShopAvailability!.retry!();
+      await Promise.resolve();
+    });
+    expect(r.renderVals().liveShopAvailability).toMatchObject({ state: 'ready', stale: false });
+    expect(shop(r).shopState()).toBe('open');
+    await act(async () => {
+      await r.reloadShopStatus();
+    });
+    expect(r.renderVals().liveShopAvailability).toMatchObject({ state: 'failed', stale: true });
+    expect(shop(r).shopState()).toBe('open');
+  });
+  it('rejects late answers and old Retry after public source A to B to A', async () => {
+    const r = await mounted('owner', fake(), false);
+    act(() => r.go('shop'));
+    let release!: (value: unknown) => void;
+    const rpc = vi
+      .fn()
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            release = resolve;
+          })
+      )
+      .mockResolvedValue({ data: null, error: { code: '503' } });
+    const a = { rpc } as unknown as ShopStatusClient,
+      b = fake({ status: status({ override: 'closed' }) });
+    let pending!: Promise<boolean>;
+    act(() => {
+      pending = r.loadShopStatus(a);
+    });
+    await act(async () => {
+      await r.loadShopStatus(b.client);
+      release({ data: status({ override: 'open' }), error: null });
+      expect(await pending).toBe(false);
+    });
+    expect(shop(r).shopState()).toBe('closed');
+    await act(async () => {
+      await r.loadShopStatus(a);
+    });
+    const retry = r.renderVals().liveShopAvailability!.retry!;
+    await act(async () => {
+      await r.loadShopStatus(b.client);
+      await r.loadShopStatus(a);
+    });
+    const calls = rpc.mock.calls.length;
+    await act(async () => {
+      retry();
+      await Promise.resolve();
+    });
+    expect(rpc).toHaveBeenCalledTimes(calls);
+  });
+});
