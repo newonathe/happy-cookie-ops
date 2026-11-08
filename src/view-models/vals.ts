@@ -386,6 +386,11 @@ export interface OpsVals {
   liveDough?: LiveDoughPreparation | null;
   /** Live owner only (B5-1): the New Stock screens' data (list, item page, grocery). Null for anyone else and before the catalogue is read. */
   liveStock?: LiveStockVals | null;
+  liveStockRead?: {
+    state: 'idle' | 'loading' | 'ready' | 'failed';
+    stale: boolean;
+    retry: () => void;
+  };
   /** Live owner only (A3): the suppliers list and edit form, with each supplier's prices. */
   /** Read-only directory data, separate from the active supplier form slot. */
   liveSupplierDirectory?: OpsVals['liveStockSuppliers'];
