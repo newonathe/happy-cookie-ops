@@ -4476,44 +4476,61 @@ export class OpsRuntime extends OpsProvider {
       actor = this.productionActorEpoch,
       generation = this.productionRecovery.generation,
       role = this.state.role;
-    const current = () =>
+    const latest = () =>
       !this.unmounted &&
       seq === this.stockLoadSeq &&
-      actor === this.productionActorEpoch &&
-      generation === this.productionRecovery.generation &&
       role === this.state.role &&
       use === this.stockClient;
+    const current = () =>
+      latest() &&
+      actor === this.productionActorEpoch &&
+      generation === this.productionRecovery.generation;
+    const unavailable = () => {
+      if (latest()) {
+        this.stockReadState = 'failed';
+        this.forceUpdate();
+      }
+    };
     this.stockReadState = 'loading';
     this.costLoadSeq += 1;
     this.forceUpdate();
     try {
       if (!use) throw new Error('stock source unavailable');
       const catalogue = await fetchStockCatalogue(use);
-      if (!current()) return false;
+      if (!current()) {
+        unavailable();
+        return false;
+      }
       this.stockCatalogue = catalogue;
     } catch {
-      if (current()) {
-        this.stockReadState = 'failed';
-        this.forceUpdate();
-      }
+      unavailable();
       return false;
     }
     this.stockReadState = 'ready';
     this.applyStockCatalogue();
     if (this.state.role === 'owner' && (await this.takeCountOwnership()) && current())
       this.restoreCountRecovery();
-    if (!current()) return false;
+    if (!current()) {
+      unavailable();
+      return false;
+    }
     // B5-1: a movement or a reload may have changed an item's history; the open page reads it again.
     this.refreshMovements();
     // What was last paid for each item, which the cost per unit is worked out from (a failed read leaves what was there).
     try {
       const paid = enginePaid(await fetchLastPaid(use as LedgerClient));
-      if (!current()) return false;
+      if (!current()) {
+        unavailable();
+        return false;
+      }
       this.setState({ paid });
     } catch {
       /* the catalogue's own best-buy prices stand in */
     }
-    if (!current()) return false;
+    if (!current()) {
+      unavailable();
+      return false;
+    }
     void this.loadCosts(); // a stock movement or a price changes what an item and a cookie cost
     return true;
   }
@@ -8150,13 +8167,21 @@ export class OpsRuntime extends OpsProvider {
     const seq = ++this.booksLoadSeq,
       actor = this.productionActorEpoch,
       generation = this.productionRecovery.generation;
-    const current = () =>
+    const latest = () =>
       !this.unmounted &&
       this.state.role === 'owner' &&
-      actor === this.productionActorEpoch &&
-      generation === this.productionRecovery.generation &&
       use === this.booksClient &&
       seq === this.booksLoadSeq;
+    const current = () =>
+      latest() &&
+      actor === this.productionActorEpoch &&
+      generation === this.productionRecovery.generation;
+    const unavailable = () => {
+      if (latest()) {
+        this.booksReadState = 'failed';
+        this.setState({});
+      }
+    };
     this.booksReadState = 'loading';
     this.setState({});
     let books: Books;
@@ -8164,13 +8189,13 @@ export class OpsRuntime extends OpsProvider {
       const now = Date.now();
       books = await fetchBooks(use, now - 35 * 86_400_000, now + 86_400_000);
     } catch {
-      if (current()) {
-        this.booksReadState = 'failed';
-        this.setState({});
-      }
+      unavailable();
       return false;
     }
-    if (!current()) return false;
+    if (!current()) {
+      unavailable();
+      return false;
+    }
     this.booksReadState = 'read';
     this.booksRows = books;
     this.setState({ ledger: engineLedger(books.lines) } as never);
