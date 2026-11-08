@@ -1912,10 +1912,16 @@ export interface LiveHome {
   orders: { review: number; toPrepare: number; ready: number } | null;
   /** Ingredients and packaging by status; null until the catalogue is read. */
   /** By the Stock page's rule (`stockStatus`); `neverCounted` is extra information, not a status. */
-  stockCounts: { ok: number; low: number; out: number; neverCounted: number } | null;
+  stockCounts: {
+    ok: number;
+    low: number;
+    out: number;
+    unknown?: number;
+    neverCounted: number;
+  } | null;
   stockAttention: Array<{
     name: string;
-    status: 'Out' | 'Low';
+    status: 'Out' | 'Low' | 'Not counted';
     detail: string;
     open: () => void;
   }>;

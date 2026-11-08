@@ -24,8 +24,11 @@ import { Button } from '@/components/ui/button';
 import { SectionNavigation } from '@/components/live/section-navigation';
 import styles from './inventory.module.css';
 
-type Filter = 'All' | StockStatus;
-const FILTERS: readonly Filter[] = ['All', 'Out', 'Low', 'Good'];
+type Filter = 'All' | 'Unknown count' | StockStatus;
+const FILTERS: readonly Filter[] = ['All', 'Out', 'Low', 'Good', 'Unknown count'];
+const unknown = (item: StockItemView) =>
+  item.confidence === 'unknown' || (item.confidence === undefined && item.counted === false);
+const known = (item: StockItemView) => !unknown(item) && item.confidence !== 'unavailable';
 const MADE_CATEGORIES = ['Dough', 'Baked stock'];
 
 /** Dough and baked cookies by product: read from production, changed only by production and waste. */
@@ -100,9 +103,18 @@ function ItemRow({ item }: { item: StockItemView }) {
           </span>
         </span>
         <span className={styles.amount}>
-          {item.qtyText}
+          {unknown(item) || item.confidence === 'unavailable' ? '—' : item.qtyText}
           <span className={styles.status}>
-            {item.counted === false ? 'Not counted' : <StatusWord status={item.status} />}
+            {unknown(item) ? (
+              'Not counted'
+            ) : item.confidence === 'unavailable' ? (
+              'Unavailable'
+            ) : (
+              <>
+                <StatusWord status={item.status} />
+                {item.confidence === 'recorded' ? ' · recorded, not counted' : null}
+              </>
+            )}
           </span>
         </span>
       </button>
@@ -133,7 +145,9 @@ function InventoryList({
   const shown =
     filter === 'All'
       ? items
-      : items.filter((item) => item.status === filter && item.counted !== false);
+      : filter === 'Unknown count'
+        ? items.filter(unknown)
+        : items.filter((item) => item.status === filter && known(item));
   return (
     <>
       <div role="group" aria-label="Stock categories" className={styles.categories}>
@@ -152,11 +166,9 @@ function InventoryList({
       <div hidden={MADE_CATEGORIES.includes(category)} className={styles.toolbar}>
         <div role="group" aria-label="Stock counts" className={styles.counts}>
           <span>{items.length === 1 ? '1 item' : `${items.length} items`}</span>
-          <span>
-            {items.filter((item) => item.status === 'Out' && item.counted !== false).length} Out
-          </span>
-          <span>{items.filter((item) => item.status === 'Low').length} Low</span>
-          <span>{items.filter((item) => item.counted === false).length} Not counted</span>
+          <span>{items.filter((item) => item.status === 'Out' && known(item)).length} Out</span>
+          <span>{items.filter((item) => item.status === 'Low' && known(item)).length} Low</span>
+          <span>{items.filter(unknown).length} Unknown count</span>
         </div>
         <label className={styles.filter}>
           Stock status
@@ -273,16 +285,24 @@ function ItemPage({ stock, page }: { stock: LiveStockVals; page: StockItemPage }
         <div className={styles.itemSummary}>
           <div>
             {item.active ? (
-              item.counted === false ? (
+              unknown(item) ? (
                 <span className={styles.note}>Not counted</span>
+              ) : item.confidence === 'unavailable' ? (
+                <span className={styles.note}>Unavailable</span>
               ) : (
-                <StatusWord status={item.status} />
+                <>
+                  <StatusWord status={item.status} />
+                  {item.confidence === 'recorded' ? ' · recorded, not counted' : null}
+                </>
               )
             ) : (
               <span className={styles.note}>Archived</span>
             )}
-            <p className={styles.balance}>{item.qtyText}</p>
-            <p className={styles.note}>Recorded on hand · {item.lastCountedText}</p>
+            <p className={styles.balance}>{known(item) ? item.qtyText : '—'}</p>
+            <p className={styles.note}>
+              {known(item) ? 'Recorded on hand · ' : ''}
+              {item.lastCountedText}
+            </p>
           </div>
           {item.active ? (
             <div aria-label="Item actions" className={styles.actions}>

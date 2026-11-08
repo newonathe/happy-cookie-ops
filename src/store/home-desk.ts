@@ -1,6 +1,6 @@
 import type { LiveHome } from '@/view-models/vals';
 import type { StockItem } from '@/lib/data/stock-catalogue';
-import { stockStatus } from '@/lib/stock/stock-status';
+import { stockStatus, stockConfidence } from '@/lib/stock/stock-status';
 
 export interface HomeDeskDeps {
   /** Orders with their saved status; null until they are read. */
@@ -40,14 +40,22 @@ export class HomeDesk {
       (item) => item.active && (item.category === 'Ingredients' || item.category === 'Packaging')
     );
     // The Stock page's own rule, so the two pages never disagree about an item.
-    const rows = items.map((item) => ({ item, status: stockStatus(item.onHand, item.parLevel) }));
+    if (items.some((item) => !Number.isFinite(item.onHand))) return { counts: null, attention: [] };
+    const rows = items.map((item) => ({
+      item,
+      status:
+        stockConfidence(item.onHand, !!item.lastCounted) === 'unknown'
+          ? 'Not counted'
+          : stockStatus(item.onHand, item.parLevel)
+    }));
     const count = (status: string) => rows.filter((row) => row.status === status).length;
-    const order = ['Out', 'Low'];
+    const order = ['Out', 'Low', 'Not counted'];
     return {
       counts: {
         ok: count('Good'),
         low: count('Low'),
         out: count('Out'),
+        unknown: count('Not counted'),
         neverCounted: items.filter((item) => item.lastCounted === null).length
       },
       attention: rows
@@ -56,7 +64,7 @@ export class HomeDesk {
         .slice(0, 4)
         .map((row) => ({
           name: row.item.name,
-          status: row.status as 'Out' | 'Low',
+          status: row.status as 'Out' | 'Low' | 'Not counted',
           detail:
             `${row.item.onHand} ${row.item.unit} recorded · reorder at ${row.item.parLevel} ${row.item.unit}` +
             (row.item.lastCounted === null ? ' · never counted' : ''),

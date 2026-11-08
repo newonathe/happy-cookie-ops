@@ -174,18 +174,24 @@ describe('the live Home', () => {
     expect(r.state.stocktake).toBeNull();
   });
 
-  it("uses the Stock page's rule; never counted is a note, not a separate status", async () => {
+  it('separates unknown zero from confirmed empty and retains positive recorded stock without a count date', async () => {
     const r = await mounted(true);
     const h = home(r);
     // Bread flour: counted, plenty. Butter: 0, counted. Pouch: low. Sugar: 0 recorded, never counted.
     // Eggs: stock on hand but no count date, so it stays In stock, exactly as the Stock page shows it.
-    expect(h.stockCounts).toEqual({ ok: 2, low: 1, out: 2, neverCounted: 2 });
+    expect(h.stockCounts).toEqual({ ok: 2, low: 1, out: 1, unknown: 1, neverCounted: 2 });
+    const stock = r.renderVals().liveStock!;
+    expect(stock.items.find((row) => row.id === 'sugar')?.confidence).toBe('unknown');
+    expect(stock.items.find((row) => row.id === 'eggs')?.confidence).toBe('recorded');
+    expect(stock.counts).toEqual({ total: 5, out: 1, low: 1 });
+    expect(stock.grocery.rows.some((row) => row.itemId === 'sugar')).toBe(false);
+    expect(stock.grocery.unknownCount).toBe(1);
     expect(h.stockAttention.map((a) => [a.name, a.status])).toEqual([
       ['Butter', 'Out'],
-      ['Sugar', 'Out'],
-      ['Pouch', 'Low']
+      ['Pouch', 'Low'],
+      ['Sugar', 'Not counted']
     ]);
-    expect(h.stockAttention[1]!.detail).toContain('never counted');
+    expect(h.stockAttention[2]!.detail).toContain('never counted');
     // Mutation: a Home-only rule would call Eggs unknown while Stock shows its balance.
   });
 
@@ -199,5 +205,72 @@ describe('the live Home', () => {
     expect(view.getAllByText('—')).toHaveLength(3);
     expect(view.getByText('Orders are still loading.')).toBeTruthy();
     expect(view.getByText('Your books are still loading.')).toBeTruthy();
+  });
+  it('counts unknown stock once in the visible Home bar', async () => {
+    const r = await mounted(true);
+    const view = render(<HomeLive v={r.renderVals()} />);
+    expect(
+      view.getByRole('img', { name: '1 Out, 1 Low, 2 In stock, 1 Unknown count' })
+    ).toBeTruthy();
+    expect(view.queryByText('No stock items yet.')).toBeNull();
+    expect(view.getByText('2 items short · 1 item needs a count')).toBeTruthy();
+  });
+
+  it('recovers unavailable Home stock locally and warns when showing a last-good read', async () => {
+    const r = await mounted(false);
+    let fail = true;
+    const client = {
+      rpc: vi.fn(async (name: string) =>
+        name === 'get_stock_catalogue' && fail
+          ? { data: null, error: { code: '08006' } }
+          : rpc(name)
+      )
+    };
+    await act(async () => {
+      await r.loadStockCatalogue(client as never);
+    });
+    const view = render(<HomeLive v={r.renderVals()} />);
+    expect(view.getByText('Inventory is unavailable')).toBeTruthy();
+    expect(view.queryByText('Stock is still loading.')).toBeNull();
+    fail = false;
+    await act(async () => {
+      fireEvent.click(view.getByRole('button', { name: 'Retry inventory' }));
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    view.rerender(<HomeLive v={r.renderVals()} />);
+    expect(view.queryByText('Inventory is unavailable')).toBeNull();
+    expect(
+      view.getByRole('img', { name: '1 Out, 1 Low, 2 In stock, 1 Unknown count' })
+    ).toBeTruthy();
+    fail = true;
+    await act(async () => {
+      await r.loadStockCatalogue(client as never);
+    });
+    view.rerender(<HomeLive v={r.renderVals()} />);
+    expect(view.getByText('Inventory could not be refreshed')).toBeTruthy();
+    expect(
+      view.getByRole('img', { name: '1 Out, 1 Low, 2 In stock, 1 Unknown count' })
+    ).toBeTruthy();
+  });
+  it('shows an all-unknown stock chart without claiming empty inventory', async () => {
+    const r = await mounted(false);
+    await act(async () => {
+      await r.loadStockCatalogue({
+        rpc: vi.fn(async (name: string) => ({
+          data:
+            name === 'get_stock_catalogue'
+              ? { suppliers: [], prices: [], items: [item({ on_hand: 0, last_counted: null })] }
+              : [],
+          error: null
+        }))
+      } as never);
+    });
+    const view = render(<HomeLive v={r.renderVals()} />);
+    expect(
+      view.getByRole('img', { name: '0 Out, 0 Low, 0 In stock, 1 Unknown count' })
+    ).toBeTruthy();
+    expect(view.queryByText('No stock items yet.')).toBeNull();
+    expect(view.getByText('1 item needs a count')).toBeTruthy();
+    expect(view.queryByText('1 item short')).toBeNull();
   });
 });

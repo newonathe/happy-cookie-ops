@@ -152,6 +152,38 @@ describe('B5 Inventory item page', () => {
     };
   };
 
+  it('distinguishes an unknown balance from a recorded balance without a count', () => {
+    const unknown = item({
+      id: 'unknown',
+      name: 'Unknown flour',
+      confidence: 'unknown',
+      counted: false,
+      status: 'Out',
+      qtyText: '0 g'
+    });
+    const recorded = item({
+      id: 'recorded',
+      name: 'Recorded flour',
+      confidence: 'recorded',
+      counted: false,
+      status: 'Low',
+      qtyText: '300 g'
+    });
+    const detail = (i: typeof unknown) =>
+      stock({ page: { item: i, movementsState: 'ready', movements: [], close: vi.fn() } });
+    const { rerender } = draw(detail(unknown));
+    let facts = screen.getByLabelText('Item facts');
+    expect(facts).toHaveTextContent('Not counted');
+    expect(facts).toHaveTextContent('—');
+    expect(within(facts).queryByText('0 g')).toBeNull();
+    expect(facts).not.toHaveTextContent('Out');
+    rerender(<InventoryLive v={valsWith(detail(recorded))} />);
+    facts = screen.getByLabelText('Item facts');
+    expect(facts).toHaveTextContent('300 g');
+    expect(facts).toHaveTextContent('Low');
+    expect(facts).toHaveTextContent('recorded, not counted');
+  });
+
   it('shows pack/balance facts and keeps editing, receiving, counting and stock changes reachable', () => {
     const { mine, page: p } = page();
     draw(stock({ page: p }));
@@ -274,4 +306,36 @@ describe('B5 Inventory item page', () => {
     for (const word of ['Opening', 'Receipt', 'Count', 'Waste', 'Adjust'])
       expect(text).toContain(word);
   });
+});
+
+it('filters unknown zero separately from recorded low stock without a count date', () => {
+  draw(
+    stock({
+      items: [
+        item({
+          id: 'u',
+          name: 'Unknown flour',
+          counted: false,
+          confidence: 'unknown',
+          status: 'Out',
+          qtyText: '0 g'
+        }),
+        item({
+          id: 'r',
+          name: 'Recorded flour',
+          counted: false,
+          confidence: 'recorded',
+          status: 'Low',
+          qtyText: '300 g'
+        })
+      ]
+    })
+  );
+  expect(screen.getByLabelText('Stock counts')).toHaveTextContent('0 Out1 Low1 Unknown count');
+  fireEvent.change(screen.getByLabelText('Stock status'), { target: { value: 'Unknown count' } });
+  expect(screen.getByText('Unknown flour')).toBeTruthy();
+  expect(screen.queryByText('Recorded flour')).toBeNull();
+  fireEvent.change(screen.getByLabelText('Stock status'), { target: { value: 'Low' } });
+  expect(screen.getByText('Recorded flour')).toBeTruthy();
+  expect(screen.queryByText('Unknown flour')).toBeNull();
 });

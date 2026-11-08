@@ -31,6 +31,7 @@ export interface StockMovementView {
 }
 
 export interface StockItemView {
+  confidence?: 'counted' | 'recorded' | 'unknown' | 'unavailable';
   id: string;
   name: string;
   category: string;
@@ -86,6 +87,7 @@ export interface StockItemPage {
 }
 
 export interface GroceryRowView {
+  counted?: boolean;
   itemId: string;
   name: string;
   status: Exclude<StockStatus, 'Good'>;
@@ -107,6 +109,7 @@ export interface GroceryRowView {
 }
 
 export interface GroceryView {
+  unknownCount?: number;
   rows: GroceryRowView[];
   /** The running total of the list: always shown. "₱1,234.50", or "Cost pending" for the part that has no price. */
   totalText: string;
