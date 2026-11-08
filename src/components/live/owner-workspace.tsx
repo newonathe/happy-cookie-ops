@@ -7,6 +7,7 @@ import { CUSTOMER_SCREENS, type ScreenKey } from '@/lib/screens';
 import { isLiveMode } from '@/lib/config/app-mode';
 import { s } from '@/lib/css';
 import { AppFrame } from '@/components/shell/app-frame';
+import { CustomerMenuReadNotice } from './customer-menu-read-notice';
 import { Sheet } from '@/components/ui/sheet';
 import { LiveFormHost } from './live-form-host';
 import { HomeScreen } from '@/components/screens/home';
@@ -386,7 +387,14 @@ export function OwnerWorkspace({
     (!v.showTopBar && !ownerSellingInFrame(v, screen)) ||
     CUSTOMER_SCREENS.includes(screen as ScreenKey)
   )
-    return <AppFrame v={v} />;
+    return (
+      <>
+        {isLiveMode() && !v.denied && screen === 'shop' ? (
+          <CustomerMenuReadNotice read={v.liveShopMenuRead} />
+        ) : null}
+        <AppFrame v={v} />
+      </>
+    );
   const active = v.dockNav.find((item) => item.active);
   const pageForm = pageFormOf(v);
   const back = pageForm

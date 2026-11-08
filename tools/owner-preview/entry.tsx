@@ -114,7 +114,9 @@ function Frame({ navigationReady = false }: {navigationReady?: boolean}) {
 function App() {
   const ref = useRef<OpsRuntime | null>(null);
   const [navigationReady,setNavigationReady] = useState(false);
-  useEffect(() => { const runtime = ref.current!; runtime.setRole('owner');
+  useEffect(() => { const runtime = ref.current!;
+    if (new URLSearchParams(window.location.search).has('public-shop')) { runtime.go('shop'); setNavigationReady(true); return; }
+    runtime.setRole('owner');
     const scope = {userId:'11111111-1111-4111-8111-111111111111',business:'https://preview.happy-cookie.test'};
     void runtime.setProductionIdentity(scope).then(()=>runtime.loadShopStatus(client as never)).then(() => runtime.loadFlavours(client as never)).then(() => runtime.loadStockCatalogue(client as never)).then(() => runtime.loadRecipes(client as never,undefined,undefined,scope)).then(() => runtime.loadOrders(client as never)).then(() => runtime.loadProduction(client as never)).then(() => runtime.loadBooks(client as never)).then(() => runtime.loadScheduledEvents(client as never)).then(() => {runtime.go(historyPreview ? 'bazaar' : 'inventory');setNavigationReady(true);});
   }, []);

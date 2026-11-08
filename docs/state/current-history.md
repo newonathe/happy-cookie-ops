@@ -2683,3 +2683,9 @@ F08/F09 Money read recovery is the current slice on`codex/cloud-money-recovery-2
 Current F09 integration follow-up: two failing-first cases prove production workspace Retry can retire Stock/Money answers but leave their read states loading. A still-latest request now becomes failed/retryable without publishing the retired data; superseded/retired source and role requests remain no-ops.120focused tests/5files pass and independent review is clear. Native locked-tab connected proof, visuals, build and full gate are recorded at acceptance. No accounting, queued work or production-write rule changed. Home business-clock display correction follows.
 
 Accepted SHA`de0c29e7cc8c44bf43c0ae1f0a924f96d208fc35`; full215files/3416tests+2TODO,120focused plus25final tests, actual two-reset390/1440 SQL/browser, inspected recovery views and final28-route Live build. Both PR runtime projections remain text-conflict free; semantic Orders reconciliation and OD-12 stay open.
+
+## 2026-11-09 — Home business clock accepted as b29ef94
+
+Current Home C10 follow-up on`codex/cloud-home-clock-20261109`: keep the existing greeting thresholds/profile wording and use the shared business clock for the salutation/day. Six UTC-device boundary cases include5failing-first regressions. 29focused tests/2files and actual two-reset390/1440 SQL/browser pass, including the UTC-device shop-midnight check; both Home screenshots inspected. Full verification, formatting and the exact-source Live build are recorded at acceptance. No protected engine or accounting rules change.
+
+Accepted SHA`b29ef94892e10f8afbf22cc2a59dafc3cd22c49d`: full215files/3422tests+2TODO; all gates passed and pushed. Display-only change required no independent review.

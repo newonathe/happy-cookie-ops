@@ -7,8 +7,10 @@ vi.mock('@/lib/config/app-mode', () => ({ isLiveMode: () => live }));
 
 import { OpsRuntime } from '@/store/ops-runtime';
 import { LiveCheckout } from '@/components/live/live-checkout';
-import { PAY_ACCOUNTS, replacePayAccounts } from '@/store/engine/ops-engine';
+import { ALLERGENS, PAY_ACCOUNTS, PRODUCTS, replacePayAccounts } from '@/store/engine/ops-engine';
 import type { OrderClient } from '@/lib/data/orders';
+import type { ShopClient } from '@/lib/data/flavours';
+import { pesosToCentavos } from '@/lib/money';
 import type { PaymentClient, UploadClient } from '@/lib/data/payments';
 import { ORDER_COPY } from '@/lib/orders/copy';
 
@@ -217,8 +219,23 @@ describe('B4b: boxes, add-ons, the sampler and same-day on the live checkout', (
         error: null
       })
     });
-    // The published menu is read (its own tests cover that); here only the card text matters.
-    (runtime as unknown as { shopMenuRead: boolean }).shopMenuRead = true;
+    const menu = PRODUCTS.map((p, sort_order) => ({
+      id: p.id,
+      name: p.name,
+      short_name: p.short,
+      price_cents: pesosToCentavos(p.price),
+      kind: p.kind,
+      tag: p.tag,
+      description: p.desc,
+      image_path: p.img,
+      sort_order,
+      allergens: ALLERGENS[p.id] ?? ''
+    }));
+    await act(async () => {
+      await runtime.loadShopMenu({
+        from: () => ({ select: async () => ({ data: menu, error: null }) })
+      } as unknown as ShopClient);
+    });
     act(() => runtime.setState({ screen: 'shop' }));
     const rows = runtime.renderVals().shopFlavours;
     const withList = rows.filter((r) => String(r.desc).includes('Includes'));
