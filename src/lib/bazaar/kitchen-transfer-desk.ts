@@ -9,8 +9,15 @@ export interface KitchenTransferView {
   date: string;
   loading: boolean;
   failed: boolean;
+  availabilityFailed: boolean;
   phase: KitchenTransferSession['phase'];
-  products: Array<{ id: string; name: string; source: string; disabled: boolean }>;
+  products: Array<{
+    id: string;
+    name: string;
+    source: string;
+    disabled: boolean;
+    available: number | null;
+  }>;
   rows: Array<{
     id: string;
     name: string;
@@ -20,6 +27,8 @@ export interface KitchenTransferView {
     pending: boolean;
     confirmed: boolean;
     canSubmit: boolean;
+    available: number | null;
+    dayTotal: number | null;
     message: string | null;
     edit: (qty: string) => void;
     submit: () => Promise<void>;
@@ -71,7 +80,10 @@ export class KitchenTransferDesk {
   private closed = false;
   private messages = new Map<string, string>();
   constructor(private readonly ports: Readonly<Ports>) {
-    this.ports = Object.freeze({ ...ports, scope: Object.freeze({ ...ports.scope }) });
+    this.ports = Object.freeze({
+      ...ports,
+      scope: Object.freeze({ ...ports.scope })
+    });
     this.session = new KitchenTransferSession({
       ...this.ports,
       current: () => this.active(),
@@ -81,7 +93,13 @@ export class KitchenTransferDesk {
         const till = read && this.target ? await this.ports.updated(this.target.day) : false;
         if (!this.active()) return false;
         const production = await this.ports.refreshProduction(request);
-        return this.active() && read && till && production;
+        return (
+          this.active() &&
+          read &&
+          till &&
+          production &&
+          !!this.target?.products.every((p) => p.separate || p.available !== null)
+        );
       }
     });
   }
@@ -101,7 +119,10 @@ export class KitchenTransferDesk {
     this.changed();
     try {
       const target = await (this.ports.readTarget?.() ??
-        readKitchenTransferTarget({ ...this.ports, current: () => this.active() }));
+        readKitchenTransferTarget({
+          ...this.ports,
+          current: () => this.active()
+        }));
       if (!this.active() || seq !== this.seq) return false;
       this.target = target;
       this.state = 'read';
@@ -134,13 +155,19 @@ export class KitchenTransferDesk {
         (this.state === 'read' &&
           !this.target?.closed &&
           !!this.target?.products.some(
-            (p) => p.id === row.product_id && !p.separate && p.sourceDrop === row.source_drop
+            (p) =>
+              p.id === row.product_id &&
+              !p.separate &&
+              p.sourceDrop === row.source_drop &&
+              p.available !== null
           )))
     );
   }
   private async submit(id: string) {
     if (!this.active() || !this.canSubmit(id)) return;
     const result = await this.session.submit(id);
+    if (!this.active()) return;
+    if (result.outcome === 'refused') await this.load();
     if (!this.active()) return;
     const message =
       result.outcome === 'saved'
@@ -168,6 +195,9 @@ export class KitchenTransferDesk {
       date: this.target?.date ?? 'Checking destination',
       loading: this.state === 'loading',
       failed: this.state === 'failed',
+      availabilityFailed:
+        this.state === 'read' &&
+        !!this.target?.products.some((p) => !p.separate && p.available === null),
       phase: this.session.phase,
       products:
         this.state === 'read' && !this.target?.closed
@@ -177,7 +207,8 @@ export class KitchenTransferDesk {
               source: p.separate
                 ? 'Recorded separately for this event'
                 : `From Drop ${p.sourceDrop}`,
-              disabled: p.separate
+              disabled: p.separate || p.available === null,
+              available: p.available
             }))
           : [],
       rows: mine.map((row) => ({
@@ -189,9 +220,21 @@ export class KitchenTransferDesk {
         pending: !!row.submitted && !row.receipt,
         confirmed: !!row.receipt,
         canSubmit: this.canSubmit(row.work_id),
+        available:
+          this.state === 'read'
+            ? (this.target?.products.find(
+                (p) => p.id === row.product_id && p.sourceDrop === row.source_drop
+              )?.available ?? null)
+            : null,
+        dayTotal:
+          this.state === 'read'
+            ? (this.target?.products.find(
+                (p) => p.id === row.product_id && p.sourceDrop === row.source_drop
+              )?.dayTotal ?? null)
+            : null,
         message: this.messages.get(row.work_id) ?? null,
         edit: (qty) => {
-          this.session.edit(row.work_id, qty);
+          if (this.session.edit(row.work_id, qty)) this.messages.delete(row.work_id);
         },
         submit: () => this.submit(row.work_id),
         discard:
