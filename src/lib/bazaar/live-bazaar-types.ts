@@ -362,7 +362,11 @@ export interface DayPlanEditor {
    */
   carryIn: { dateText: string; byFlavour: Record<string, number> } | null;
   /** Null when saved; otherwise the words for what is wrong (the form stays as it is). */
-  save: (input: { floatPesos: string; flavours: PlanFlavour[] }) => Promise<string | null>;
+  save: (input: {
+    floatPesos: string;
+    flavours: PlanFlavour[];
+    priceOnlyIds?: readonly string[];
+  }) => Promise<string | null>;
   back: () => void;
 }
 

@@ -1507,3 +1507,45 @@ describe('Keep is for the cash it was kept against (U5 review)', () => {
     expect(screen.getByRole('alert').textContent).toContain('That is ₱1,200.00 over');
   });
 });
+
+describe('price-only plan entry', () => {
+  it.each([true, false])('saves selected zero-stock prices from a new=%s plan', async (isNew) => {
+    const save = vi.fn(async (): Promise<string | null> => null);
+    render(<DayPlan editor={planEditor({ isNew, carryIn: null, save })} online />);
+    fireEvent.click(
+      screen.getByRole('checkbox', { name: 'Double Chocolate Fudge: use recorded kitchen cookies' })
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Save prices only →' }));
+    await waitFor(() => expect(save).toHaveBeenCalledTimes(1));
+    expect(save.mock.calls[0]).toEqual([
+      {
+        floatPesos: '',
+        priceOnlyIds: ['dcf'],
+        flavours: expect.arrayContaining([
+          expect.objectContaining({ id: 'dcf', made: '', carried: '' })
+        ])
+      }
+    ]);
+    expect(planValue('Double Chocolate Fudge made')).toBe('0');
+  });
+  it('retains an unselected count and refuses to discard it for a price-only plan', () => {
+    const save = vi.fn(async (): Promise<string | null> => null);
+    render(
+      <DayPlan
+        editor={planEditor({
+          carryIn: null,
+          save,
+          flavours: [planFlavour(), planFlavour({ id: 'other', name: 'Other cookie', made: '3' })]
+        })}
+        online
+      />
+    );
+    fireEvent.click(
+      screen.getByRole('checkbox', { name: 'Double Chocolate Fudge: use recorded kitchen cookies' })
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Save prices only →' }));
+    expect(screen.getByRole('alert')).toHaveTextContent(/zero.*price-only/i);
+    expect(planValue('Other cookie made')).toBe('3');
+    expect(save).not.toHaveBeenCalled();
+  });
+});
