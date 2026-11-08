@@ -47,7 +47,8 @@ ORDER_MIGRATIONS = [ROOT / 'supabase/migrations/20260101003500_place_order.sql',
                     ROOT / 'supabase/migrations/20260101006700_bazaar_days.sql',
                     ROOT / 'supabase/migrations/20260101006800_bazaar_hardening.sql',
                     ROOT / 'supabase/migrations/20260101006900_flavour_cost_closing_reversal.sql',
-                    ROOT / 'supabase/migrations/20260101007000_sampler_flavours.sql']
+                    ROOT / 'supabase/migrations/20260101007000_sampler_flavours.sql',
+                    ROOT / 'supabase/migrations/20260101008000_bazaar_book_labels.sql']
 _OUT = 'order outcome differs: anon / '
 _CHK = 'order check differs: anon / '
 _LOOK = 'lookup check differs: anon / '
