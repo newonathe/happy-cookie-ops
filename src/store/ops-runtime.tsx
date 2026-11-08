@@ -1315,6 +1315,7 @@ export class OpsRuntime extends OpsProvider {
   /** C2: the client production is read and recorded with, the read in flight, and an action whose answer never came (repeating it reuses its id and time). */
   private productionClient: ProductionClient | null = null;
   private productionLoadSeq = 0;
+  private productionReadingDrop: number | null = null;
   private productionReadState: 'loading' | 'read' | 'failed' = 'loading';
   private lastProductionDrop: number | null = null;
   private productionEntry: ProductionRecoveryEntry | null = null;
@@ -6054,6 +6055,7 @@ export class OpsRuntime extends OpsProvider {
       receive: this.receiveDelivery.vals(),
       change: this.stockChange.vals(),
       made: this.madeStock(),
+      madeRead: this.madeStockRead(),
       bakePlan: this.bakePlan.vals(),
       startCount: (category) => this.startCategoryCount(category),
       manageItems: () => void this.openStockItems(),
@@ -6117,16 +6119,53 @@ export class OpsRuntime extends OpsProvider {
 
   /** Dough and baked cookies as Inventory lists them; null until production has been read. */
   private madeStock(): NonNullable<LiveStockVals['made']> | null {
-    if (this.productionReadState !== 'read') return null;
-    const rows = (counts: unknown) => {
+    if (!this.lastProduction || this.lastProductionDrop !== this.state.dropNo) return null;
+    const rows = (counts: unknown, unit: string) => {
       const by = (counts ?? {}) as Record<string, number>;
       return PRODUCTS.map((row) => ({
         id: row.id,
         name: row.short,
-        qtyText: formatQuantity(Number(by[row.id]) || 0, 'cookies')
+        qtyText: formatQuantity(Number(by[row.id]) || 0, unit)
       }));
     };
-    return { dough: rows(this.state.dough), baked: rows(this.state.baked) };
+    return { dough: rows(this.state.dough, 'balls'), baked: rows(this.state.baked, 'cookies') };
+  }
+
+  private madeStockRead(): NonNullable<LiveStockVals['madeRead']> {
+    const actor = this.productionActorEpoch,
+      client = this.productionClient,
+      seq = this.productionLoadSeq,
+      generation = this.productionRecovery.generation,
+      dropNo = this.state.dropNo;
+    const selected = this.lastProductionDrop === dropNo;
+    const state =
+      this.productionReadState === 'loading'
+        ? this.productionReadingDrop === dropNo
+          ? 'loading'
+          : 'failed'
+        : this.productionReadState === 'read' && !selected
+          ? 'failed'
+          : this.productionReadState;
+    return {
+      state,
+      stale: selected && !!this.lastProduction && state !== 'read',
+      periodText: `Drop ${dropNo}`,
+      canRetry: !!client,
+      retry: () => {
+        if (
+          !this.unmounted &&
+          this.state.role === 'owner' &&
+          this.state.screen === 'inventory' &&
+          actor === this.productionActorEpoch &&
+          client === this.productionClient &&
+          seq === this.productionLoadSeq &&
+          generation === this.productionRecovery.generation &&
+          dropNo === this.state.dropNo &&
+          client
+        )
+          void this.loadProduction(null);
+      }
+    };
   }
 
   private liveStockCount(): NonNullable<LiveStockVals['count']> | null {
@@ -6534,6 +6573,7 @@ export class OpsRuntime extends OpsProvider {
     const seq = (this.productionLoadSeq += 1);
     const actor = this.productionActorEpoch;
     const dropNo = (this.state as unknown as { dropNo: number }).dropNo;
+    this.productionReadingDrop = dropNo;
     const current = () =>
       !this.unmounted &&
       seq === this.productionLoadSeq &&

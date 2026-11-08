@@ -31,16 +31,45 @@ const MADE_CATEGORIES = ['Dough', 'Baked stock'];
 /** Dough and baked cookies by product: read from production, changed only by production and waste. */
 function MadeList({ stock, category }: { stock: LiveStockVals; category: string }) {
   const rows = category === 'Dough' ? stock.made?.dough : stock.made?.baked;
-  if (!rows) return <p className={styles.empty}>Production has not been read yet.</p>;
+  const read = stock.madeRead;
   return (
-    <ul aria-label={category} className={styles.panel}>
-      {rows.map((row) => (
-        <li key={row.id} className={styles.madeRow}>
-          <strong className={styles.name}>{row.name}</strong>
-          <span className={styles.amount}>{row.qtyText}</span>
-        </li>
-      ))}
-    </ul>
+    <>
+      {category === 'Baked stock' && read?.periodText ? (
+        <p className={styles.note}>{read.periodText}</p>
+      ) : null}
+      {read?.state === 'failed' ? (
+        <div role="status">
+          <p>
+            {read.stale
+              ? 'Production could not be refreshed. Showing the last read balances.'
+              : 'Production balances are unavailable.'}
+          </p>
+          {read.canRetry !== false ? (
+            <Button onClick={read.retry}>Retry production balances</Button>
+          ) : (
+            <p>Connect to the shop to read production balances.</p>
+          )}
+        </div>
+      ) : read?.state === 'loading' ? (
+        <p role="status">Loading production balances…</p>
+      ) : null}
+      {!rows ? (
+        !read ? (
+          <p className={styles.empty}>Production has not been read yet.</p>
+        ) : null
+      ) : !rows.length ? (
+        <p>No {category === 'Dough' ? 'dough' : 'baked cookies'} recorded.</p>
+      ) : (
+        <ul aria-label={category} className={styles.panel}>
+          {rows.map((row) => (
+            <li key={row.id} className={styles.madeRow}>
+              <strong className={styles.name}>{row.name}</strong>
+              <span className={styles.amount}>{row.qtyText}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </>
   );
 }
 
@@ -339,7 +368,7 @@ export function InventoryLive({ v }: { v: OpsVals }) {
           {stock ? (
             <div className={styles.actions}>
               {stock.addItem ? <Button onClick={stock.addItem}>New item</Button> : null}
-              {stock.startCount && !stock.count ? (
+              {stock.startCount && !stock.count && !MADE_CATEGORIES.includes(category) ? (
                 <Button
                   onClick={() => stock.startCount?.(category)}
                   disabled={!stock.items.some((item) => item.active && item.category === category)}

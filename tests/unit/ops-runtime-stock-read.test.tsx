@@ -252,3 +252,164 @@ it('retires an older same-client cost read when a new catalogue begins', async (
     expect(await loading).toBe(true);
   });
 });
+
+it('retries production balances locally and retains the last read on refresh failure', async () => {
+  const runtime = await mounted(),
+    f = source();
+  let fail = true;
+  const rpc = vi.fn(async () =>
+    fail
+      ? { data: null, error: { code: '08006' } }
+      : {
+          data: {
+            batches: [],
+            shortfalls: [],
+            dough: [{ product_id: 'dcf', balls: 7, at: null }],
+            baked: []
+          },
+          error: null
+        }
+  );
+  await act(async () => {
+    await runtime.loadStockCatalogue(f.client);
+    runtime.go('inventory');
+    await runtime.loadProduction({
+      rpc
+    } as unknown as import('@/lib/data/production').ProductionClient);
+  });
+  const ui = render(<InventoryLive v={runtime.renderVals()} />);
+  fireEvent.click(ui.getByRole('button', { name: 'Dough in the fridge' }));
+  expect(ui.queryByRole('button', { name: 'Count stock' })).toBeNull();
+  expect(ui.getByText('Production balances are unavailable.')).toBeTruthy();
+  fail = false;
+  await act(async () => {
+    fireEvent.click(ui.getByRole('button', { name: 'Retry production balances' }));
+    await pause();
+  });
+  ui.rerender(<InventoryLive v={runtime.renderVals()} />);
+  expect(ui.getByText('7 balls')).toBeTruthy();
+  fail = true;
+  await act(async () => {
+    await runtime.loadProduction(null);
+  });
+  ui.rerender(<InventoryLive v={runtime.renderVals()} />);
+  expect(
+    ui.getByText('Production could not be refreshed. Showing the last read balances.')
+  ).toBeTruthy();
+  expect(ui.getByText('7 balls')).toBeTruthy();
+});
+
+it('does not apply an old production read after an identity change or use a cached retry', async () => {
+  const runtime = await mounted(),
+    f = source();
+  let answer!: (value: { data: unknown; error: null }) => void;
+  const rpc = vi.fn(
+    () =>
+      new Promise<{ data: unknown; error: null }>((resolve) => {
+        answer = resolve;
+      })
+  );
+  let pending!: Promise<boolean>;
+  await act(async () => {
+    await runtime.loadStockCatalogue(f.client);
+    runtime.go('inventory');
+    pending = runtime.loadProduction({
+      rpc
+    } as unknown as import('@/lib/data/production').ProductionClient);
+  });
+  const retry = runtime.renderVals().liveStock!.madeRead!.retry;
+  await act(async () => {
+    await runtime.setProductionIdentity({ ...owner, business: 'https://two.test' });
+    answer({
+      data: {
+        batches: [],
+        shortfalls: [],
+        dough: [{ product_id: 'dcf', balls: 99, at: null }],
+        baked: []
+      },
+      error: null
+    });
+    expect(await pending).toBe(false);
+    retry();
+  });
+  expect(rpc).toHaveBeenCalledTimes(1);
+  expect(runtime.state.dough).toEqual({});
+});
+
+it('retires Stock balance Retry across client ABA, period changes and role ABA', async () => {
+  const r = await mounted(),
+    f = source();
+  const rpc = vi.fn(async () => ({
+    data: { batches: [], dough: [], baked: [], shortfalls: [] },
+    error: null
+  }));
+  const a = { rpc } as unknown as import('@/lib/data/production').ProductionClient;
+  const b = { rpc: vi.fn(rpc) } as unknown as import('@/lib/data/production').ProductionClient;
+  await act(async () => {
+    await r.loadStockCatalogue(f.client);
+    await r.loadProduction(a);
+    r.go('inventory');
+  });
+  const oldClient = r.renderVals().liveStock!.madeRead!.retry;
+  await act(async () => {
+    await r.loadProduction(b);
+    await r.loadProduction(a);
+  });
+  let before = rpc.mock.calls.length;
+  await act(async () => {
+    oldClient();
+    await pause();
+  });
+  expect(rpc).toHaveBeenCalledTimes(before);
+  const oldPeriod = r.renderVals().liveStock!.madeRead!.retry;
+  act(() => r.setState({ dropNo: Number(r.state.dropNo) + 1 }));
+  await act(async () => {
+    oldPeriod();
+    await pause();
+  });
+  expect(rpc).toHaveBeenCalledTimes(before);
+  const oldRole = r.renderVals().liveStock!.madeRead!.retry;
+  act(() => r.setRole('helper'));
+  act(() => r.setRole('owner'));
+  before = rpc.mock.calls.length;
+  await act(async () => {
+    oldRole();
+    await pause();
+  });
+  expect(rpc).toHaveBeenCalledTimes(before);
+});
+
+it('hides balances from another drop and only shows loading for the drop being read', async () => {
+  const r = await mounted(),
+    f = source(),
+    pending = deferred();
+  const data = {
+    batches: [],
+    shortfalls: [],
+    dough: [{ product_id: 'dcf', balls: 7, at: null }],
+    baked: [{ product_id: 'dcf', qty: 4 }]
+  };
+  await act(async () => {
+    await r.loadStockCatalogue(f.client);
+    await r.loadProduction({ rpc: vi.fn(async () => ({ data, error: null })) } as never);
+    r.go('inventory');
+  });
+  const drop = Number(r.state.dropNo);
+  expect(r.renderVals().liveStock!.madeRead).toMatchObject({ state: 'read', stale: false });
+  act(() => r.setState({ dropNo: drop + 1 }));
+  expect(r.renderVals().liveStock!.made).toBeNull();
+  expect(r.renderVals().liveStock!.madeRead).toMatchObject({ state: 'failed', stale: false });
+  let loading!: Promise<boolean>;
+  act(() => {
+    loading = r.loadProduction({ rpc: vi.fn(() => pending.promise) } as never);
+  });
+  expect(r.renderVals().liveStock!.madeRead?.state).toBe('loading');
+  act(() => r.setState({ dropNo: drop + 2 }));
+  expect(r.renderVals().liveStock!.made).toBeNull();
+  expect(r.renderVals().liveStock!.madeRead).toMatchObject({ state: 'failed', stale: false });
+  await act(async () => {
+    pending.resolve({ data, error: null });
+    expect(await loading).toBe(false);
+  });
+  expect(r.renderVals().liveStock!.made).toBeNull();
+});
