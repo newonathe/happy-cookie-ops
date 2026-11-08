@@ -11,7 +11,17 @@ function fixture() {
   let active = true;
   let sourceReply: unknown = [{ product_id: day.lines[0].product_id, source_drop: 3 }];
   const rpc = vi.fn(async (name: string) => ({
-    data: name === 'get_bazaar' ? wire : sourceReply,
+    data:
+      name === 'get_bazaar'
+        ? wire
+        : name === 'get_bazaar_kitchen_sources'
+          ? sourceReply
+          : {
+              batches: [],
+              dough: [],
+              baked: [{ product_id: day.lines[0].product_id, qty: 6 }],
+              shortfalls: []
+            },
     error: null
   }));
   const ports = {
@@ -42,9 +52,11 @@ describe('authoritative selected-day transfer target', () => {
       target = await readKitchenTransferTarget(f.ports);
     expect(f.rpc.mock.calls.map(([name]) => name)).toEqual([
       'get_bazaar',
-      'get_bazaar_kitchen_sources'
+      'get_bazaar_kitchen_sources',
+      'get_production',
+      'get_production'
     ]);
-    expect(target.products[0]).toMatchObject({ sourceDrop: 3, separate: false });
+    expect(target.products[0]).toMatchObject({ sourceDrop: 3, separate: false, available: 6 });
     expect(target.closed).toBe(false);
   });
   it('checks separately-made quantities across the whole booking and distinguishes genuine empty', async () => {

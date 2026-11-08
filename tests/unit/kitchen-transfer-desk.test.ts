@@ -16,13 +16,25 @@ function fixture() {
   let active = true,
     count = 0,
     failSources = false,
-    unknown = false;
+    unknown = false,
+    stock: number | null = 6,
+    refused = false;
   let sources = [{ product_id: product, source_drop: 3 }];
   const values = new Map<string, string>();
   const rpc = vi.fn(async (name: string, args?: { p_transfer: KitchenTransferRequest }) => {
     if (name === 'get_bazaar') return { data: structuredClone(wire), error: null };
     if (name === 'get_bazaar_kitchen_sources')
       return { data: sources, error: failSources ? { code: 'offline' } : null };
+    if (name === 'get_production')
+      return {
+        data: {
+          batches: [],
+          dough: [],
+          baked: [{ product_id: product, qty: stock }],
+          shortfalls: []
+        },
+        error: null
+      };
     return {
       data: unknown
         ? null
@@ -33,7 +45,7 @@ function fixture() {
             day_total: 4,
             source_records: []
           },
-      error: null
+      error: refused ? { code: 'ZB001' } : null
     };
   });
   const changed = vi.fn(),
@@ -81,6 +93,12 @@ function fixture() {
     fail: () => {
       failSources = true;
     },
+    stock: (value: number | null) => {
+      stock = value;
+    },
+    refuse: () => {
+      refused = true;
+    },
     unknown: () => {
       unknown = true;
     }
@@ -107,7 +125,9 @@ describe('selected-day kitchen transfers', () => {
     const f = await ready();
     expect(f.rpc.mock.calls.map(([name]) => name)).toEqual([
       'get_bazaar',
-      'get_bazaar_kitchen_sources'
+      'get_bazaar_kitchen_sources',
+      'get_production',
+      'get_production'
     ]);
     expect(f.desk.vals()!.products[0].source).toBe('From Drop 3');
     await add(f).submit();
@@ -166,6 +186,28 @@ describe('selected-day kitchen transfers', () => {
     ).toEqual([before, before]);
     f.desk.close();
   });
+  it('keeps new drafts blocked when a checked pool becomes unavailable', async () => {
+    const f = await ready(),
+      row = add(f);
+    f.stock(null);
+    await reload(f);
+    expect(f.desk.vals()!.availabilityFailed).toBe(true);
+    expect(f.desk.vals()!.rows[0].available).toBeNull();
+    await row.submit();
+    expect(f.rpc.mock.calls.some(([n]) => n === 'transfer_bazaar_stock')).toBe(false);
+    expect(f.desk.vals()!.rows[0].qty).toBe('4');
+    f.desk.close();
+  });
+  it('retains a definite shortage and refreshes the checked count', async () => {
+    const f = await ready(),
+      row = add(f);
+    f.stock(2);
+    f.refuse();
+    await row.submit();
+    expect(f.desk.vals()!.rows[0]).toMatchObject({ qty: '4', pending: false, available: 2 });
+    expect(f.desk.vals()!.rows[0].message).toContain('not enough');
+    f.desk.close();
+  });
   it('retires old close/read/write callbacks when authority changes', async () => {
     const f = await ready(),
       view = f.desk.vals()!,
@@ -178,7 +220,7 @@ describe('selected-day kitchen transfers', () => {
     expect(f.close).not.toHaveBeenCalled();
     expect(f.changed).toHaveBeenCalledTimes(changed);
     expect(f.desk.vals()).toBeNull();
-    expect(f.rpc).toHaveBeenCalledTimes(2);
+    expect(f.rpc).toHaveBeenCalledTimes(4);
     f.desk.close();
   });
 });

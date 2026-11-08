@@ -8,7 +8,7 @@ The owner's master continuation preserves this entire objective across fourteen 
 
 Make→Bazaar acceptance includes checked available quantities and a review of the intended transfer effect, the live transfer/recovery/return/Money chain, historical and mixed provenance, concurrent consumers, and aggregate returns beyond the individual movement cap. SQL or unit success alone does not close it. Preserve exact requests and approval boundaries.
 
-At the requirements-reconciliation stage, reconcile the original127 audit findings,61 HCB issues and67 acceptance obligations against their actual registers without double-counting overlap or inventing missing entries. Engineering code-complete requires all authorized unblocked requirements and connected acceptance; it does not grant manual owner, hosted/device or release approval.
+At the requirements-reconciliation stage, reconcile the original 127 audit findings, 61 HCB issues and 67 acceptance obligations against their actual registers without double-counting overlap or inventing missing entries. Engineering code-complete requires all authorized unblocked requirements and connected acceptance; it does not grant manual owner, hosted/device or release approval.
 
 ## Confirmed clarifications
 
