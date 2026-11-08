@@ -25,13 +25,18 @@ function BuyRow({ row }: { row: GroceryRowView }) {
         </span>
         <span className="text-caption text-ink-mute">
           {nothing ? (
-            <>Have {row.haveText} · not needed for the next bake</>
+            <>Have {row.haveText} recorded · not needed for the next bake</>
           ) : (
             <>
-              Need {row.neededText} · have {row.haveText} · buy {row.toBuyText}
+              Need {row.neededText} · have {row.haveText} recorded · buy {row.toBuyText}
             </>
           )}
         </span>
+        {row.counted === false ? (
+          <span className="text-caption text-ink-mute">
+            Recorded balance has not been physically counted.
+          </span>
+        ) : null}
         <span className="text-caption text-ink-mute">
           {row.packText} · {row.bestPriceText}
         </span>
@@ -103,7 +108,11 @@ function SupplierGroup({
 }
 
 function uncounted(items: StockItemView[]): StockItemView[] {
-  return items.filter((item) => item.active && item.counted === false);
+  return items.filter(
+    (item) =>
+      item.active &&
+      (item.confidence === 'unknown' || (item.confidence === undefined && item.counted === false))
+  );
 }
 
 /** Shopping (client v4): what to buy, grouped by who sells it. It computes nothing itself. */
@@ -156,6 +165,12 @@ export function GroceryLive({ v }: { v: OpsVals }) {
             <FactRow label="Cookies to bake">{v.bakeTotals.toBakeNum}</FactRow>
           ) : null}
           <FactRow label="Known purchase total">{grocery.totalText}</FactRow>
+          {grocery.unknownCount ? (
+            <p className="text-caption text-ink-mute">
+              Count {grocery.unknownCount} unknown {grocery.unknownCount === 1 ? 'item' : 'items'}{' '}
+              before the shopping total can be complete.
+            </p>
+          ) : null}
           {grocery.budgetText !== null ? (
             <FactRow label="Budget" detail={grocery.budgetNoteText}>
               {grocery.budgetText}
@@ -166,7 +181,11 @@ export function GroceryLive({ v }: { v: OpsVals }) {
       {stock.bakePlan ? <BakePlanNeeds plan={stock.bakePlan} /> : null}
       {grocery.rows.length === 0 ? (
         <Panel>
-          <p className="text-caption text-ink-mute">Nothing to buy. Everything is Good.</p>
+          <p className="text-caption text-ink-mute">
+            {grocery.unknownCount
+              ? 'Count the unknown items before working out what to buy.'
+              : 'No recorded shortages to buy for.'}
+          </p>
         </Panel>
       ) : (
         [...bySupplier.entries()].map(([name, rows]) => (

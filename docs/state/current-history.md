@@ -2639,3 +2639,29 @@ Branch `codex/recipe-production-acceptance-20261107` starts from published Cloud
 Accepted/pushed`3122920235f9612f64a1c5e10834f26033f2c969`: full215files/3397tests+2TODO, formatting and secret scan pass.
 
 Stock F09: Inventory, Shopping and Suppliers distinguish unavailable/empty/stale reads and offer local Retry. Catalogue, paid and cost responses reject earlier reads and retired actor/client/backend scopes, including A→B→A. Source replacement clears private projections while retaining pending counts/movements; same-scope confirmed costs remain available for count summaries. Six failing-first regressions,127focused tests/8files; actual two-reset connected390/1440/SQL pass, exact-source28-page Live build and clear independent review. The final full gate is recorded by this acceptance. No Orders integration or stock-count policy changed.
+
+## Preserved Root working-source notes — superseded locally8November
+
+These are the original archived WIP notes, not current acceptance status. Later accepted commits supersede their completed production/Stock and one-worker instructions.
+
+Preserve exact staged/unstaged differences. Bake presentation/rehearsal and SQL73 are accepted; recipe handoff/runtime ownership tightening is the active production slice. The following remain under implementation/acceptance:
+
+- Bake UI: recorded dough/all oven output/good cookies/rejects, shortage and chronology recovery, explicit removal of old ingredient adjustments. All8synthetic browser width/motion cases passed lost reply → reload → exact replay, one effect,6good/2rejects/8dough, and failed refresh. Phone/desktop images inspected.
+- F03/F06: recipe and planned-bake handoff carries quantity/version, requires explicit Prepare dough/Bake, resolves setup conflicts, preserves independent actual work and old-period setup. Scoped planned notes preserve damaged/legacy copies and disclose storage failure. Pure/runtime/recovery regressions pass; independent review clear. Final browser/full acceptance remains.
+- F04: common counted/recorded/unknown/unavailable stock confidence; positive recorded balances survive absent count dates, unknown zero is excluded from Out/buy totals and charts count it once. Focused regressions pass; final visual/full acceptance remains.
+- F05: customer counts, history/export and removal readback disclose the open-orders +60days/500total feed. No lifetime/global erasure claims. Focused tests pass; final visual/full acceptance remains.
+- F08/F09: visible Money peso scale and local Retry, last-good warning and actor/client/backend fences. Review clear after retained-client fix; regression tests pass. Final visual/full acceptance remains.
+- F09 Stock: first failure and stale reads have local Retry; identity/client fences include last-paid and costs. Old paid prices clear on scope change.53targeted stock/read/catalogue/sign-in/item-price tests and typecheck pass; independent review clear.
+- First recipe is accepted asdbb7e44: direct Create recipe beside the genuine empty read, versioned editor and Back to that recipe. Working-source connected UI creation and phone/desktop visuals passed; final accepted-source connected/build checks remain.
+- Public replacements beside locked screens: neutral responsive menu/checkout/status, order before payment, frozen acknowledged method, server-method status instructions only with a valid future hold, private-link Retry. Eight synthetic width/motion journeys pass one order/failure/retry/no overflow/errors. Phone/desktop images inspected. All8viewport checks passed after removing the inherited customer frame transform. Lost reply → reload → exact retry and acknowledged-order reload also passed390/1440 browser checks; final small quantity/price presentation needs recheck. Full/release acceptance remains. Sticker assets/privacy wording remain owner gates.
+- F07 fee recovery: durable owner/backend-scoped full body and exact ID acknowledgement, same Web Lock for Retry and explicit Change after definite refusal. Lost reply/reload/changed inputs, refused replay, identity/client switch and cross-tab race tests pass; independent review clear. Effect summaries added; wider stock/expense/cost/reversal acceptance remains.
+
+Use a one-worker full gate with frozen acceptance source and no concurrent browser/database workload. No assertion or timeout was weakened after earlier worker/timing failures; accepted commits supersede those failed attempts.
+
+New unaccepted F09 work adds Orders/Customers first-read Retry, stale last-good warnings and sequence/actor/sync-instance/client fences, including cached contact removal and A→B→A.82related tests passed before the final fence;107post-install tests including that fence pass and independent review is clear. Suppliers reuse the catalogue notice, with6focused tests passing. No CRM expansion.
+
+## Stock production balance recovery — 8 November2026
+
+Accepted/pushed`58a3e93aac574a360f43f34824113367c9c68c96`: full215files/3401tests+2TODO, formatting/secret scan pass; final build passed after test-only strict-type fixes.
+
+Stock dough/baked F09: same-period last-good balances survive a failed refresh with local Retry. Dough units are balls; baked rows disclose the exact drop. Unread/retired periods hide old rows and show unavailable, while only the active requested period shows loading. Cached Retry rejects actor/client/read/scope/period changes. Made tabs do not offer physical Count; ingredient/packaging Count is unchanged. Four new regressions include failing-first failure/recovery and exact period races;45focused tests/4files pass. Final connected390/1440, full gate and build are recorded by this acceptance; independent period re-review is clear.

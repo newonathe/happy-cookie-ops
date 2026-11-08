@@ -25,9 +25,9 @@ describe('B5 Grocery', () => {
     expect(screen.getByText('Stock is loading.')).toBeTruthy();
   });
 
-  it('an empty list says everything is Good', () => {
+  it('an empty list says there are no recorded shortages', () => {
     draw(grocery({}));
-    expect(screen.getByText('Nothing to buy. Everything is Good.')).toBeTruthy();
+    expect(screen.getByText('No recorded shortages to buy for.')).toBeTruthy();
   });
 
   it('draws every field of a row, with the status as a word', () => {
@@ -150,4 +150,13 @@ describe('B5 Grocery', () => {
     draw(stock({ online: false }));
     expect(screen.getByText(/Offline/)).toBeTruthy();
   });
+});
+
+it('keeps an unknown stock count out of a complete empty shopping claim', () => {
+  draw(grocery({ unknownCount: 2, totalText: 'Cost pending' }));
+  expect(screen.getByText('Count the unknown items before working out what to buy.')).toBeTruthy();
+  expect(
+    screen.getByText('Count 2 unknown items before the shopping total can be complete.')
+  ).toBeTruthy();
+  expect(screen.queryByText('No recorded shortages to buy for.')).toBeNull();
 });

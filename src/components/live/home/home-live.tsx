@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { StockReadNotice } from '@/components/live/stock/stock-read-notice';
+import { STOCK_COPY } from '@/lib/orders/staff-copy';
 import type { LiveHome, OpsVals } from '@/view-models/vals';
 import { NextEventCard, SellingCard } from '@/components/live/bazaar/home-card';
 import { Button } from '@/components/ui/button';
@@ -61,7 +63,7 @@ function OrderCount({
 
 /** How many ingredients and packaging items are in stock, low or out, and how far to trust those numbers. */
 function StockSummary({ counts }: { counts: NonNullable<LiveHome['stockCounts']> }) {
-  if (!counts.ok && !counts.low && !counts.out)
+  if (!counts.ok && !counts.low && !counts.out && !counts.unknown)
     return <p className="text-caption text-ink-mute">No stock items yet.</p>;
   return (
     <>
@@ -69,7 +71,13 @@ function StockSummary({ counts }: { counts: NonNullable<LiveHome['stockCounts']>
         parts={[
           { id: 'out', label: 'Out', value: counts.out, tone: 'bg-danger' },
           { id: 'low', label: 'Low', value: counts.low, tone: 'bg-warn' },
-          { id: 'ok', label: 'In stock', value: counts.ok, tone: 'bg-ok' }
+          { id: 'ok', label: 'In stock', value: counts.ok, tone: 'bg-ok' },
+          {
+            id: 'unknown',
+            label: 'Unknown count',
+            value: counts.unknown ?? 0,
+            tone: 'bg-line-strong'
+          }
         ]}
       />
       {counts.neverCounted ? (
@@ -95,6 +103,18 @@ export function HomeLive({ v }: { v: OpsVals }) {
   const { orders, go } = home;
   const till = v.liveScreen?.till;
   const next = v.liveScreen?.next;
+  const shopping = v.liveStock?.grocery;
+  const shortages =
+    shopping?.rows.filter((row) => row.toBuyText !== STOCK_COPY.nothingToBuy).length ?? 0;
+  const unknown = shopping?.unknownCount ?? 0;
+  const shoppingDetail = !shopping
+    ? 'Open Stock to check'
+    : [
+        shortages ? `${shortages} ${shortages === 1 ? 'item' : 'items'} short` : null,
+        unknown ? `${unknown} ${unknown === 1 ? 'item needs' : 'items need'} a count` : null
+      ]
+        .filter(Boolean)
+        .join(' · ') || 'No recorded shortages';
   const actions = [
     {
       title: 'Start production',
@@ -117,13 +137,7 @@ export function HomeLive({ v }: { v: OpsVals }) {
     },
     {
       title: 'Shopping list',
-      detail: v.buy?.visible ? (
-        <>
-          {v.buy.num} {v.buy.unit}
-        </>
-      ) : (
-        'What to buy next'
-      ),
+      detail: shoppingDetail,
       onOpen: go.shopping
     }
   ];
@@ -261,9 +275,12 @@ export function HomeLive({ v }: { v: OpsVals }) {
 
         <HeadedPanel title="Stock" action={<PanelLink onOpen={go.stock}>Open stock</PanelLink>}>
           <div className="px-4 py-3">
+            {v.liveStockRead?.state === 'failed' || v.liveStockRead?.stale ? (
+              <StockReadNotice read={v.liveStockRead} />
+            ) : null}
             {home.stockCounts ? (
               <StockSummary counts={home.stockCounts} />
-            ) : (
+            ) : v.liveStockRead?.state === 'failed' ? null : (
               <p className="text-caption text-ink-mute">Stock is still loading.</p>
             )}
           </div>

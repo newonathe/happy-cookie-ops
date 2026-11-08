@@ -3,7 +3,7 @@
 Continue the active [full application goal](full-goal.md) from Git without repeating completed audits. Current branch:`codex/cloud-stock-recovery-20261108`, based on accepted production`67a827b`; all original histories and user`f56900f7` are retained. See [current state](current.md).
 
 1. Local production core is accepted and pushed as`67a827b66b0869e531ef9f9614001d55f6bbcada`: full214files/3391tests+2TODO, real390/1440 ownership and connected SQL transactions, clear review. Hosted/device/owner gates remain pending.
-2. Stock catalogue F09 is accepted as`3122920`. Accept the bounded local dough/baked-balance recovery on`codex/cloud-stock-recovery-20261108`, then continue HCB-019/shared stock confidence. Preserve meaningful recorded balances, distinguish never-counted zero from Out, and prevent chart double counting. Reuse preserved work narrowly; do not overwrite the newer runtime or integrate Orders PR51/53.
+2. Stock F09 catalogue/balances are accepted as`3122920`/`58a3e93`. Accept F04/HCB-019 shared stock confidence on`codex/cloud-stock-recovery-20261108`, then finish F08/F09 Money read recovery and clear read-state retirement before Sell/Shop work. Preserve meaningful recorded balances, distinguish never-counted zero from Out, and prevent chart double counting. Reuse preserved work narrowly; do not overwrite the newer runtime or integrate Orders PR51/53.
 
 3. Accept bounded implementation slices with focused tests, independent review where required, full pnpm verify, formatting, Live build and connected local browser checks. Keep original tests and protected prototype bytes.
 4. Delta-check PR51/53 compatibility against the final production checkpoint. Preserve both unmerged; reconcile their Orders read-state overlap only with authority.

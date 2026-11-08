@@ -171,6 +171,7 @@ import {
   lineCost,
   ratePerUnitText,
   stockStatus,
+  stockConfidence,
   sumKnown,
   totalText,
   unitCostText
@@ -5883,6 +5884,7 @@ export class OpsRuntime extends OpsProvider {
       levelText: levelText(item.parLevel, item.unit),
       lastCountedText: lastCountedText(item.lastCounted),
       counted: !!item.lastCounted,
+      confidence: stockConfidence(item.onHand, !!item.lastCounted),
       costText: unitCostText(cost.perUnit, item.unit, cost.source),
       supplier: (item.supplierId && supplierNames.get(item.supplierId)) || STOCK_COPY.noSupplier,
       lastPaidText: last ? lastPaidText(last.price, last.at) : null,
@@ -5948,19 +5950,27 @@ export class OpsRuntime extends OpsProvider {
     const plan = new Map(this.groceryPlanRows().map((p) => [p.key, p]));
     const best = engineBestBuy(engineSuppliers(c));
     const wanted = c.items
-      .filter((i) => i.active && stockStatus(i.onHand, i.parLevel) !== 'Good')
+      .filter(
+        (i) =>
+          i.active &&
+          ['counted', 'recorded'].includes(stockConfidence(i.onHand, !!i.lastCounted)) &&
+          stockStatus(i.onHand, i.parLevel) !== 'Good'
+      )
       .sort(
         (a, b) =>
           Number(stockStatus(b.onHand, b.parLevel) === 'Out') -
             Number(stockStatus(a.onHand, a.parLevel) === 'Out') || a.name.localeCompare(b.name)
       );
     const rows: GroceryRowView[] = [];
-    const lines: Array<number | null> = [];
+    const lines: Array<number | null> = c.items
+      .filter((i) => i.active && stockConfidence(i.onHand, !!i.lastCounted) === 'unknown')
+      .map(() => null);
     for (const i of wanted) {
       const status = stockStatus(i.onHand, i.parLevel) as 'Out' | 'Low';
       const p = plan.get(i.name);
       const own = (i.supplierId && supplierNames.get(i.supplierId)) || STOCK_COPY.noSupplier;
       const common = {
+        counted: !!i.lastCounted,
         itemId: i.id,
         name: i.name,
         status,
@@ -6020,6 +6030,9 @@ export class OpsRuntime extends OpsProvider {
     const over = budget !== null && known > budget;
     return {
       rows,
+      unknownCount: c.items.filter(
+        (i) => i.active && stockConfidence(i.onHand, !!i.lastCounted) === 'unknown'
+      ).length,
       totalText: totalText(lines),
       budgetText: budget === null ? null : formatPesosShort(budget),
       budgetNoteText:
@@ -6062,8 +6075,12 @@ export class OpsRuntime extends OpsProvider {
       items,
       counts: {
         total: active.length,
-        out: active.filter((i) => i.status === 'Out').length,
-        low: active.filter((i) => i.status === 'Low').length
+        out: active.filter(
+          (i) => i.confidence !== 'unknown' && i.confidence !== 'unavailable' && i.status === 'Out'
+        ).length,
+        low: active.filter(
+          (i) => i.confidence !== 'unknown' && i.confidence !== 'unavailable' && i.status === 'Low'
+        ).length
       },
       page: open
         ? {
