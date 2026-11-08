@@ -60,6 +60,8 @@ import {
 import { holdCountLock } from '@/lib/stock/count-lock';
 import { readClassicTill, rememberClassicTill } from '@/lib/offline/till-choice';
 import { BazaarDays } from '@/store/bazaar-days';
+import { KitchenTransferDesk } from '@/lib/bazaar/kitchen-transfer-desk';
+import { kitchenTransferStock } from '@/lib/bazaar/kitchen-transfer-stock';
 import { BakePlan } from '@/store/bake-plan';
 import { CustomerDesk, type CustomerOrder } from '@/store/customer-desk';
 import { EventEntry } from '@/store/event-entry';
@@ -848,6 +850,97 @@ export class OpsRuntime extends OpsProvider {
   private scheduledRows: ScheduledEvent[] | null = null;
   private scheduledClient: ScheduledClient | null = null;
   private scheduledReadSeq = 0;
+  private kitchenDesk: KitchenTransferDesk | null = null;
+  private kitchenSelectionEpoch = 0;
+  private closeKitchenTransfer(): void {
+    this.kitchenSelectionEpoch += 1;
+    this.kitchenDesk?.close();
+    this.kitchenDesk = null;
+  }
+
+  /** Capture verified production authority when drawing the day action. */
+  private kitchenTransferAction(bookingId: string, dayId: string): (() => void) | null {
+    const scope = this.productionRecovery.scope,
+      client = this.productionClient;
+    const actor = this.productionActorEpoch,
+      dropNo = this.state.dropNo;
+    const selection = this.bazaarDays.selectionEpoch(),
+      actionEpoch = this.kitchenSelectionEpoch;
+    if (!scope || !client || this.gateNarrow || this.state.role !== 'owner') return null;
+    const current = () =>
+      !this.unmounted &&
+      this.state.role === 'owner' &&
+      !this.gateNarrow &&
+      actor === this.productionActorEpoch &&
+      client === this.productionClient &&
+      scope.userId === this.productionRecovery.scope?.userId &&
+      scope.business === this.productionRecovery.scope?.business &&
+      dropNo === this.state.dropNo &&
+      this.state.screen === 'bazaar' &&
+      this.bazaarDays.selectedBookingId() === bookingId &&
+      this.bazaarDays.selectionEpoch() === selection &&
+      (!this.state.event || this.bazaarDirectoryShowing());
+    return () => {
+      if (!current() || actionEpoch !== this.kitchenSelectionEpoch) return;
+      this.closeKitchenTransfer();
+      const openedEpoch = this.kitchenSelectionEpoch;
+      const owned = (): boolean =>
+        current() && this.kitchenDesk === desk && openedEpoch === this.kitchenSelectionEpoch;
+      const desk: KitchenTransferDesk = new KitchenTransferDesk({
+        scope,
+        client,
+        bookingId,
+        dayId,
+        defaultDrop: Number(dropNo),
+        current: owned,
+        online: () => Boolean(this.state.online),
+        now: () => Date.now(),
+        newId: () => crypto.randomUUID(),
+        changed: () => {
+          if (owned()) this.forceUpdate();
+        },
+        close: () => {
+          if (!owned()) return;
+          this.closeKitchenTransfer();
+          void this.bazaarDays.reload();
+          this.forceUpdate();
+        },
+        refreshProduction: async () => {
+          if (!owned()) return false;
+          const read = await this.loadProduction(null);
+          return owned() && read;
+        },
+        updated: (day) => {
+          if (!owned()) return Promise.resolve(false);
+          return new Promise<boolean>((resolve) => {
+            let applied = false;
+            this.setState(
+              (state) => {
+                if (!owned()) return null;
+                const event = state.event as LiveEvent | null;
+                if (event?.dayId !== day.id || event.scheduledId !== bookingId) {
+                  applied = true;
+                  return null;
+                }
+                const patch = kitchenTransferStock(
+                  day,
+                  (state.eventLoaded ?? {}) as Record<string, number>,
+                  (state.eventStock ?? {}) as Record<string, number>
+                );
+                applied = patch !== null;
+                return patch as never;
+              },
+              () => resolve(owned() && applied)
+            );
+          });
+        }
+      });
+      this.kitchenDesk = desk;
+      void desk.open();
+      this.forceUpdate();
+    };
+  }
+
   private bazaarDays = new BazaarDays({
     // After a reload at the stall the bookings may not have been read yet: the review still reads its day.
     client: () => (this.scheduledClient ?? this.salesTarget()) as unknown as BazaarClient | null,
@@ -878,8 +971,13 @@ export class OpsRuntime extends OpsProvider {
         stock: (this.state.eventStock ?? {}) as Record<string, number>
       };
     },
+    kitchenTransfer: (booking, day) => this.kitchenTransferAction(booking, day),
     begin: (booking, day) => this.beginBazaarDay(booking, day),
-    dayClosed: (dayId) => void this.dropClosedDay(dayId),
+    dayClosed: (dayId) => {
+      void this.dropClosedDay(dayId);
+      if (this.state.role === 'owner' && !this.gateNarrow && this.productionRecovery.scope)
+        void this.loadProduction(null);
+    },
     tillFigures: async () => {
       const event = this.state.event as LiveEvent | null;
       if (!event?.id) return null;
@@ -2836,6 +2934,7 @@ export class OpsRuntime extends OpsProvider {
   }
 
   componentWillUnmount(): void {
+    this.closeKitchenTransfer();
     this.eventEntry.dispose();
     this.productionRecovery.dispose();
     this.unmounted = true;
@@ -2923,6 +3022,7 @@ export class OpsRuntime extends OpsProvider {
   componentDidUpdate(...args: Parameters<NonNullable<OpsProvider['componentDidUpdate']>>): void {
     super.componentDidUpdate?.(...args);
     if (!isLiveMode()) return;
+    if (this.kitchenDesk && !this.kitchenDesk.vals()) this.closeKitchenTransfer();
     if (this.productionLateSaved.length) this.mergeLateProductionResults();
     if (this.productionWritable()) {
       const changed = this.productionDrafts.sync(
@@ -3317,6 +3417,7 @@ export class OpsRuntime extends OpsProvider {
         isLiveMode() && this.state.role === 'owner'
           ? {
               ...this.bazaarDays.vals(),
+              kitchen: this.kitchenDesk?.vals() ?? null,
               entry: this.eventEntry.vals(),
               navigation: {
                 route: this.bazaarRoute(),
@@ -6142,6 +6243,7 @@ export class OpsRuntime extends OpsProvider {
     const scope = input === null ? null : parseProductionScope(input);
     this.bindRecipeScope(scope);
     if (!this.productionRecovery.sameScope(scope)) {
+      this.closeKitchenTransfer();
       this.productionActorEpoch += 1;
       this.productionLoadSeq += 1;
       this.productionClient = null;
