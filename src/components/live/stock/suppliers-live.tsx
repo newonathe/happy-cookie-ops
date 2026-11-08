@@ -1,5 +1,7 @@
 'use client';
 
+import { StockReadNotice } from './stock-read-notice';
+
 import { useState } from 'react';
 import type { OpsVals } from '@/view-models/vals';
 import { Button } from '@/components/ui/button';
@@ -49,9 +51,10 @@ export function SuppliersLive({ v }: { v: OpsVals }) {
         </div>
       </div>
       <SectionNavigation v={v} refined tools={false} />
-      {!data ? (
+      <StockReadNotice read={v.liveStockRead} />
+      {!data && !v.liveStockRead ? (
         <p role="status">Suppliers are loading.</p>
-      ) : selectedId ? (
+      ) : !data ? null : selectedId ? (
         selected ? (
           <>
             <section className={styles.itemPanel} aria-label="Supplier details">

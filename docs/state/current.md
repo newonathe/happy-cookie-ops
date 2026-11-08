@@ -2,21 +2,17 @@
 
 **The complete application objective remains active and incomplete.** Read [full-goal.md](full-goal.md), then [next-goal.md](next-goal.md). A passing slice is not whole-product acceptance.
 
-## Local recipe handoff — 7 November
-
-Branch `codex/recipe-production-acceptance-20261107` starts from published Cloud `e0670e6`; other PRs, worktrees, stashes and `.claude/launch.json` remain separate. Recipe Start production carries its selected quantity/version into Make, requires an explicit Prepare dough/Bake choice, and offers Keep/Use incoming for conflicting setup. Stale source/period/identity actions are refused; actual work and frozen requests are preserved. The synthetic preview now supplies its verified recipe scope. Proof:70focused tests;4phone/desktop/reduced-motion CLI cases including reload,13actual/2rejects retained, no writes/errors/overflow; final gate/build/review in the acceptance commit. Detailed scope is in current-history.md. Planned-bake/Shopping wiring and the wider connected production/Bazaar acceptance remain open.
-
 ## Cloud checkout and accepted source
 
-The clean older Cloud checkout at `4c1f72e` is preserved as `backup/cloud-start-4c1f72e`. `work` continued from exactly the requested `93135433fd88def7cbc5a05c0d22de3b17cfe764`, after fetching `origin/codex/refined-workflows` and verifying full-goal.md. No Cloud stashes or other worktrees existed initially. The original WIP remains preserved in `/workspace/happy-cookie-ops`. Active work continues in `/workspace/work/happy-cookie-ops/acceptance-tree` on `codex/cloud-p0-transfer-20261107`, based on user-pushed `f56900f7f533462c3dd368d05c8cc05381897f9b`. The independently verified SQL74 extraction at `620ab45` is preserved as `backup/bazaar-boundary-before-local-f569` and reapplied without rewriting either history. The acceptance worktree publishes to `codex/cloud-full-goal-20261106`. Private/local work listed in full-goal.md was not applied.
+The clean older Cloud checkout at `4c1f72e` is preserved as `backup/cloud-start-4c1f72e`. `work` continued from exactly the requested `93135433fd88def7cbc5a05c0d22de3b17cfe764`, after fetching `origin/codex/refined-workflows` and verifying full-goal.md. No Cloud stashes or other worktrees existed initially. The original WIP remains preserved in `/workspace/happy-cookie-ops`. Active work continues in `/workspace/work/happy-cookie-ops/acceptance-tree` on `codex/cloud-stock-recovery-20261108` after production acceptance67a827b (formerly`codex/cloud-p0-transfer-20261107`), based on user-pushed `f56900f7f533462c3dd368d05c8cc05381897f9b`. The independently verified SQL74 extraction at `620ab45` is preserved as `backup/bazaar-boundary-before-local-f569` and reapplied without rewriting either history. The acceptance worktree publishes to `codex/cloud-full-goal-20261106`. Private/local work listed in full-goal.md was not applied.
 
 Accepted and pushed development checkpoints are recorded in current-history.md. Latest acceptance work is below.
 
 Accepted production follow-ups through `dbb7e44` are recorded in current-history.md. `e0670e6` clears retired Orders before catalogue replacement and fences late reads; `f56900f` preserves the newer local recipe handoff. Published `94b1fccd20f19d76715a3860d17270141019e1f2` adds only the private byte-identical SQL74 boundary; combined full gate202files/3240tests+2TODO passed.
 
-## Unaccepted working tree
+## Accepted production and current Stock slice
 
-P0 Make/Bazaar remains incomplete at the application boundary. Backend SQL74–78 is accepted as `938e9f0ef9dddbac03210a039f10ae5ec994199c`; exact transfer protocol as `dd616bdf8d4244a32985d6615719c04843c820e9`; scoped durable recovery/receipts as `08350552d5639ca993d48c29c90f79db3d3d8496`. All are pushed with full verification/formatting; latest full204files/3279tests+2TODO. Actual two-reset connected stock/Money, packaging, stranded-return, reversal, role and compatibility proof is preserved in Git/history. No hosted changes.
+The connected P0 Make/Bazaar boundary is accepted locally through67a827b. Historical progression: Backend SQL74–78 is accepted as `938e9f0ef9dddbac03210a039f10ae5ec994199c`; exact transfer protocol as `dd616bdf8d4244a32985d6615719c04843c820e9`; scoped durable recovery/receipts as `08350552d5639ca993d48c29c90f79db3d3d8496`. All are pushed with full verification/formatting; latest full204files/3279tests+2TODO. Actual two-reset connected stock/Money, packaging, stranded-return, reversal, role and compatibility proof is preserved in Git/history. No hosted changes.
 
 Transfer quantity/runtime acceptance through b4dd576 is recorded in current-history.md.
 
@@ -52,7 +48,9 @@ The official pinned Supabase15.8.1.085 runtime was extracted from the verified s
 
 Two actual Supabase CLI2.116.0 resets passed exact catalog/function-authority/public-schema comparison and sentinel removal. On each reset, SQL71/72 role, recipe amount/actual balls, partial output/rejects, costs, ingredient-once, concurrent preparation/Bake and exact replay checks passed. New SQL73 also passed historical batch/dough replay after recipe change, changed-body conflict, roles/invalid input, repeated unseen refusal and no production/stock/ledger/audit effect. The exact postmaster exited and its port closed. SQL73 is accepted ase5fe735 after a frozen full gate. An earlier attempt hit two unchanged Till5-second timeouts;88focused tests and the full rerun passed without changing assertions or timeouts. No hosted migration is authorized.
 
-Historical557role cases/156mutants and the earlier working-source SDK/PostgREST browser proof are preserved in current-history.md. Final accepted-source connected production/Bazaar browser acceptance remains pending.
+Historical557role cases/156mutants and the earlier working-source SDK/PostgREST browser proof are preserved in current-history.md. Accepted production browser evidence through67a827b supersedes that earlier pending local gate.
+
+Stock F09: Inventory, Shopping and Suppliers distinguish unavailable/empty/stale reads and offer local Retry. Catalogue, paid and cost responses reject earlier reads and retired actor/client/backend scopes, including A→B→A. Source replacement clears private projections while retaining pending counts/movements; same-scope confirmed costs remain available for count summaries. Six failing-first regressions,127focused tests/8files; actual two-reset connected390/1440/SQL pass, exact-source28-page Live build and clear independent review. The final full gate is recorded by this acceptance. No Orders integration or stock-count policy changed.
 
 ## Remaining objective and gates
 

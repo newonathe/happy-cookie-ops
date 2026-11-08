@@ -1,5 +1,7 @@
 'use client';
 
+import { StockReadNotice } from './stock-read-notice';
+
 import { useEffect, useId, useRef, useState } from 'react';
 import type * as React from 'react';
 import type { OpsVals } from '@/view-models/vals';
@@ -307,6 +309,7 @@ export function InventoryLive({ v }: { v: OpsVals }) {
   if (settings.page) return settings.page;
   return (
     <section aria-label="Inventory" data-screen-label="Inventory" className={styles.screen}>
+      <StockReadNotice read={v.liveStockRead} />
       {stock?.count?.paused ? (
         <Button onClick={stock.count.resume}>
           {stock.count.pending ? 'Review unconfirmed count' : 'Continue count'}
@@ -358,11 +361,11 @@ export function InventoryLive({ v }: { v: OpsVals }) {
                 setFilter={setFilter}
               />
             </>
-          ) : (
+          ) : !v.liveStockRead ? (
             <p className={styles.note} role="status">
               Stock is loading.
             </p>
-          )}
+          ) : null}
         </>
       )}
     </section>

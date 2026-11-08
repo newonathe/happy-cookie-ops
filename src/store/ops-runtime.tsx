@@ -1288,6 +1288,8 @@ export class OpsRuntime extends OpsProvider {
   private scheduledVersion = 0;
   private stockCatalogue: StockCatalogue | null = null;
   private stockClient: StockClient | null = null;
+  private stockLoadSeq = 0;
+  private stockReadState: 'idle' | 'loading' | 'ready' | 'failed' = 'idle';
   /** B5-1: each opened item's movements (owner only) as the item page shows them, and the latest read's token per item. */
   private movementReads = new Map<
     string,
@@ -3050,6 +3052,8 @@ export class OpsRuntime extends OpsProvider {
       this.productionActorEpoch += 1;
       this.recipeBook.reset();
       this.retireRecipeDraftSession();
+      this.stockReadState = this.stockCatalogue ? 'failed' : 'idle';
+      this.setState({});
     }
     if (this.productionRecordedAway) this.noticeProductionRecordedAway();
     // The till took over (signal lost or access narrowed): when signal returns it stays, mid-sale, until Events is chosen.
@@ -3421,6 +3425,7 @@ export class OpsRuntime extends OpsProvider {
         action.label === 'Record a purchase' ? { ...action, label: 'Add to inventory' } : action
       ),
       liveStock: this.liveStockVals(),
+      liveStockRead: this.stockReadView(),
       liveBazaar:
         isLiveMode() && this.state.role === 'owner'
           ? {
@@ -4392,28 +4397,92 @@ export class OpsRuntime extends OpsProvider {
 
   // ------------------------------------------------------------------ A3: the owner's stock catalogue
 
-  /** Reads the owner's items, suppliers and prices (the gate calls it once the owner is verified). False when it could not. */
+  private stockReadView(): OpsVals['liveStockRead'] {
+    if (this.state.role !== 'owner') return undefined;
+    const actor = this.productionActorEpoch,
+      generation = this.productionRecovery.generation,
+      client = this.stockClient;
+    return {
+      state: this.stockReadState,
+      stale: this.stockCatalogue !== null && this.stockReadState !== 'ready',
+      retry: () => {
+        if (
+          !this.unmounted &&
+          this.state.role === 'owner' &&
+          actor === this.productionActorEpoch &&
+          generation === this.productionRecovery.generation &&
+          client === this.stockClient
+        )
+          void this.loadStockCatalogue(client);
+      }
+    };
+  }
+
+  /** Clear source-specific projections without discarding unfinished stock movements or counts. */
+  private retireStockRead(): void {
+    this.stockLoadSeq += 1;
+    this.stockReadState = 'idle';
+    this.stockCatalogue = null;
+    this.costLoadSeq += 1;
+    this.costReads = 'failed';
+    this.itemCosts = null;
+    this.recipeCosts = new Map();
+    this.movementTokens.clear();
+    this.movementReads.clear();
+    fillLiveCatalogue(null);
+    this.setState({ inv: [], paid: {}, liveStockOpen: null, liveStockPriceOpen: false } as never);
+  }
+
+  /** Reads the owner's catalogue. Only the latest read from this verified actor and client may apply. */
   async loadStockCatalogue(client: StockClient | null): Promise<boolean> {
-    if (client) this.stockClient = client;
+    if (!isLiveMode() || this.unmounted) return false;
+    if (client && client !== this.stockClient) {
+      this.retireStockRead();
+      this.stockClient = client;
+    }
     const use = client ?? this.stockClient;
-    if (!isLiveMode() || !use) return false;
+    const seq = ++this.stockLoadSeq,
+      actor = this.productionActorEpoch,
+      generation = this.productionRecovery.generation,
+      role = this.state.role;
+    const current = () =>
+      !this.unmounted &&
+      seq === this.stockLoadSeq &&
+      actor === this.productionActorEpoch &&
+      generation === this.productionRecovery.generation &&
+      role === this.state.role &&
+      use === this.stockClient;
+    this.stockReadState = 'loading';
+    this.costLoadSeq += 1;
+    this.forceUpdate();
     try {
-      this.stockCatalogue = await fetchStockCatalogue(use);
+      if (!use) throw new Error('stock source unavailable');
+      const catalogue = await fetchStockCatalogue(use);
+      if (!current()) return false;
+      this.stockCatalogue = catalogue;
     } catch {
+      if (current()) {
+        this.stockReadState = 'failed';
+        this.forceUpdate();
+      }
       return false;
     }
+    this.stockReadState = 'ready';
     this.applyStockCatalogue();
-    if (this.state.role === 'owner' && (await this.takeCountOwnership()))
+    if (this.state.role === 'owner' && (await this.takeCountOwnership()) && current())
       this.restoreCountRecovery();
+    if (!current()) return false;
     // B5-1: a movement or a reload may have changed an item's history; the open page reads it again.
     this.refreshMovements();
     // What was last paid for each item, which the cost per unit is worked out from (a failed read leaves what was there).
     try {
       const paid = enginePaid(await fetchLastPaid(use as LedgerClient));
+      if (!current()) return false;
       this.setState({ paid });
     } catch {
       /* the catalogue's own best-buy prices stand in */
     }
+    if (!current()) return false;
     void this.loadCosts(); // a stock movement or a price changes what an item and a cookie cost
     return true;
   }
@@ -4429,9 +4498,19 @@ export class OpsRuntime extends OpsProvider {
     const use = (this.stockClient ?? this.recipeClient) as CostsClient | null;
     if (!isLiveMode() || !use || this.state.role !== 'owner') return;
     const seq = (this.costLoadSeq += 1);
+    const actor = this.productionActorEpoch,
+      generation = this.productionRecovery.generation;
     const [items, recipes] = await Promise.all([fetchItemCosts(use), fetchRecipeCosts(use)]);
     // A newer read started meanwhile: it will apply, an older answer must not bring back an older cost.
-    if (seq !== this.costLoadSeq) return;
+    if (
+      seq !== this.costLoadSeq ||
+      this.unmounted ||
+      this.state.role !== 'owner' ||
+      actor !== this.productionActorEpoch ||
+      generation !== this.productionRecovery.generation ||
+      use !== (this.stockClient ?? this.recipeClient)
+    )
+      return;
     if (items.status === 'ok' && recipes.status === 'ok') {
       this.costReads = 'ok';
       this.itemCosts = items;
@@ -6258,6 +6337,8 @@ export class OpsRuntime extends OpsProvider {
       this.productionReadState = 'loading';
       this.lastProduction = null;
       this.lastProductionDrop = null;
+      this.retireStockRead();
+      this.stockClient = null;
       this.setState(
         engineProduction({ batches: [], dough: [], baked: [], shortfalls: [] }, (id) => id)
       );

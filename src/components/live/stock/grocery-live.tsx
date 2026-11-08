@@ -1,5 +1,7 @@
 'use client';
 
+import { StockReadNotice } from './stock-read-notice';
+
 import type { OpsVals } from '@/view-models/vals';
 import type { GroceryRowView, LiveStockVals, StockItemView } from '@/lib/stock/live-stock-types';
 import { OfflineLine, StatusWord, StockLoading, liveStockOf } from './stock-shared';
@@ -108,7 +110,15 @@ function uncounted(items: StockItemView[]): StockItemView[] {
 export function GroceryLive({ v }: { v: OpsVals }) {
   const stock = liveStockOf(v);
   const settings = useAreaSettings(v, 'stock', 'Back to shopping');
-  if (!stock) return <StockLoading title="Shopping" label="Shopping" />;
+  if (!stock)
+    return v.liveStockRead ? (
+      <section aria-label="Shopping">
+        <PageTitle title="Shopping" />
+        <StockReadNotice read={v.liveStockRead} />
+      </section>
+    ) : (
+      <StockLoading title="Shopping" label="Shopping" />
+    );
   if (stock.receive) return <ReceiveLive receive={stock.receive} backLabel="Back to shopping" />;
   if (stock.bakePlan?.open) return <BakePlanPage plan={stock.bakePlan} />;
   if (settings.page) return settings.page;
@@ -138,6 +148,7 @@ export function GroceryLive({ v }: { v: OpsVals }) {
       <div className="mb-4">
         <SectionNavigation v={v} refined tools={false} />
       </div>
+      <StockReadNotice read={v.liveStockRead} />
       <OfflineLine online={stock.online} />
       <section aria-label="Totals">
         <Panel>
