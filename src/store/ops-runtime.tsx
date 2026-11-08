@@ -1162,6 +1162,32 @@ export class OpsRuntime extends OpsProvider {
   });
   /** The Money page's figures for its selected period. */
   private moneyDesk = new MoneyDesk({
+    read: () => {
+      const generation = this.productionRecovery.generation,
+        actor = this.productionActorEpoch,
+        client = this.booksClient,
+        seq = this.booksLoadSeq;
+      return {
+        state: this.booksReadState,
+        online: this.state.online,
+        canRetry: !!client,
+        retry: () => {
+          if (
+            !this.unmounted &&
+            this.state.role === 'owner' &&
+            this.state.online &&
+            !this.gateNarrow &&
+            generation === this.productionRecovery.generation &&
+            actor === this.productionActorEpoch &&
+            client === this.booksClient &&
+            seq === this.booksLoadSeq &&
+            client &&
+            this.booksReadState !== 'loading'
+          )
+            void this.loadBooks(null);
+        }
+      };
+    },
     engine: () => this as unknown as MoneyEngine,
     state: () => this.state as unknown as OpsEngineState,
     books: () => this.booksRows ?? null,
@@ -1378,6 +1404,7 @@ export class OpsRuntime extends OpsProvider {
   private booksClient: BooksClient | null = null;
   private booksRows: Books | null = null;
   private booksLoadSeq = 0;
+  private booksReadState: 'idle' | 'loading' | 'read' | 'failed' = 'idle';
   private operationsClient: OperationsClient | null = null;
   private operationsHealth: OperationsHealth | null = null;
   private operationsPhase: HealthPhase = 'loading';
@@ -2454,7 +2481,7 @@ export class OpsRuntime extends OpsProvider {
       greeting: String(starved.greeting ?? 'Hello.'),
       date: String(starved.todayDate ?? '')
     };
-    return this.homeDesk.vals();
+    return { ...this.homeDesk.vals(), booksReadState: this.booksReadState };
   }
 
   /** Home shortcuts enter the existing stock actions; opening a task never posts a movement. */
@@ -3055,6 +3082,8 @@ export class OpsRuntime extends OpsProvider {
       this.recipeBook.reset();
       this.retireRecipeDraftSession();
       this.stockReadState = this.stockCatalogue ? 'failed' : 'idle';
+      this.booksLoadSeq += 1;
+      this.booksReadState = this.booksRows ? 'failed' : 'idle';
       this.setState({});
     }
     if (this.productionRecordedAway) this.noticeProductionRecordedAway();
@@ -6395,6 +6424,8 @@ export class OpsRuntime extends OpsProvider {
       this.lastProductionDrop = null;
       this.retireStockRead();
       this.stockClient = null;
+      this.retireBooksRead();
+      this.booksClient = null;
       this.setState(
         engineProduction({ batches: [], dough: [], baked: [], shortfalls: [] }, (id) => id)
       );
@@ -8105,21 +8136,52 @@ export class OpsRuntime extends OpsProvider {
    * sale, an expense) are the database's lines by the time this returns. False when it could not be read.
    */
   async loadBooks(client: BooksClient | null): Promise<boolean> {
-    if (client) this.booksClient = client;
+    if (!isLiveMode() || this.unmounted || this.state.role !== 'owner') return false;
+    if (client && client !== this.booksClient) {
+      this.retireBooksRead();
+      this.booksClient = client;
+    }
     const use = client ?? this.booksClient;
-    if (!isLiveMode() || !use) return false;
-    const seq = (this.booksLoadSeq += 1);
+    if (!use) {
+      this.booksReadState = 'failed';
+      this.setState({});
+      return false;
+    }
+    const seq = ++this.booksLoadSeq,
+      actor = this.productionActorEpoch,
+      generation = this.productionRecovery.generation;
+    const current = () =>
+      !this.unmounted &&
+      this.state.role === 'owner' &&
+      actor === this.productionActorEpoch &&
+      generation === this.productionRecovery.generation &&
+      use === this.booksClient &&
+      seq === this.booksLoadSeq;
+    this.booksReadState = 'loading';
+    this.setState({});
     let books: Books;
     try {
       const now = Date.now();
       books = await fetchBooks(use, now - 35 * 86_400_000, now + 86_400_000);
     } catch {
+      if (current()) {
+        this.booksReadState = 'failed';
+        this.setState({});
+      }
       return false;
     }
-    if (seq !== this.booksLoadSeq) return true;
+    if (!current()) return false;
+    this.booksReadState = 'read';
     this.booksRows = books;
     this.setState({ ledger: engineLedger(books.lines) } as never);
     return true;
+  }
+
+  private retireBooksRead(): void {
+    this.booksLoadSeq += 1;
+    this.booksReadState = 'idle';
+    this.booksRows = null;
+    this.setState({ ledger: [] } as never);
   }
 
   private installBooksOverrides(): void {

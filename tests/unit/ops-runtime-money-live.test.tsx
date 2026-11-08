@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act } from 'react';
-import { cleanup, fireEvent, render } from '@testing-library/react';
+import { cleanup, fireEvent, render, waitFor } from '@testing-library/react';
 
 let live = true;
 vi.mock('@/lib/config/app-mode', () => ({ isLiveMode: () => live }));
@@ -21,6 +21,8 @@ vi.mock('@/lib/device', () => ({ deviceId: () => 'dev1' }));
 import { OpsRuntime } from '@/store/ops-runtime';
 import type { LiveMoney } from '@/view-models/vals';
 import { MoneyLive } from '@/components/live/money/money-live';
+import { HomeLive } from '@/components/live/home/home-live';
+import { bindProductionOwner } from './production-runtime-helpers';
 
 /**
  * The live Money page: one period for every figure, the bars and the list. The bars are the same
@@ -170,6 +172,104 @@ describe('the live Money page', () => {
     expect(view.queryByText(/₱0/)).toBeNull();
   });
 
+  it('retries a failed first read locally and never substitutes zero', async () => {
+    const r = await mounted(false);
+    const rpc = vi
+      .fn()
+      .mockResolvedValueOnce({ data: null, error: { code: '08006' } })
+      .mockResolvedValue({ data: books, error: null });
+    await act(async () => {
+      await r.loadBooks({ rpc } as never);
+    });
+    const view = render(<MoneyLive v={r.renderVals()} />);
+    expect(view.queryByText(/₱0/)).toBeNull();
+    fireEvent.click(view.getByRole('button', { name: 'Retry reading books' }));
+    await waitFor(() => expect(r.renderVals().liveMoney?.read?.state).toBe('read'));
+    expect(rpc).toHaveBeenCalledTimes(2);
+    expect(r.renderVals().liveMoney?.loaded).toBe(true);
+  });
+
+  it('keeps a failed refresh visibly separate from the last good figures', async () => {
+    const r = await mounted(false);
+    let fail = false;
+    const client = {
+      rpc: vi.fn(async () =>
+        fail ? { data: null, error: { code: '08006' } } : { data: books, error: null }
+      )
+    };
+    await act(async () => {
+      await r.loadBooks(client as never);
+    });
+    const before = r.renderVals().liveMoney!.revenue;
+    fail = true;
+    await act(async () => {
+      await r.loadBooks(client as never);
+    });
+    const view = render(<MoneyLive v={r.renderVals()} />);
+    expect(view.getByText('Books could not be refreshed')).toBeTruthy();
+    expect(view.getByText(/Showing the last successful read/)).toBeTruthy();
+    expect(r.renderVals().liveMoney?.revenue).toBe(before);
+    expect(view.getByRole('button', { name: 'Retry reading books' })).toBeTruthy();
+    act(() => r.setState({ online: false }));
+    view.rerender(<MoneyLive v={r.renderVals()} />);
+    expect(view.getByText(/Connect to read updated books/)).toBeTruthy();
+    expect(view.queryByRole('button', { name: 'Retry reading books' })).toBeNull();
+  });
+
+  it('rejects a late books read across role changes and keeps retry available', async () => {
+    const r = await mounted(false);
+    let release!: (value: { data: typeof books; error: null }) => void;
+    let pending!: Promise<boolean>;
+    act(() => {
+      pending = r.loadBooks({
+        rpc: () =>
+          new Promise((resolve) => {
+            release = resolve;
+          })
+      } as never);
+    });
+    act(() => {
+      r.setRole('helper');
+    });
+    act(() => {
+      r.setRole('owner');
+    });
+    await act(async () => {
+      release({ data: books, error: null });
+      expect(await pending).toBe(false);
+    });
+    act(() => r.go('pnl'));
+    expect(r.renderVals().liveMoney?.loaded).toBe(false);
+    expect(r.renderVals().liveMoney?.read?.state).toBe('idle');
+  });
+
+  it('does not let an old Retry read through the previous account or backend client', async () => {
+    const r = await mounted(false);
+    await bindProductionOwner(r, {
+      userId: '11111111-1111-4111-8111-111111111111',
+      business: 'https://first.supabase.co'
+    });
+    const first = vi.fn(async () => ({ data: books, error: null }));
+    await act(async () => {
+      await r.loadBooks({ rpc: first } as never);
+    });
+    const oldRetry = r.renderVals().liveMoney!.read!.retry;
+    await bindProductionOwner(r, {
+      userId: '22222222-2222-4222-8222-222222222222',
+      business: 'https://second.supabase.co'
+    });
+    act(() => oldRetry());
+    expect(first).toHaveBeenCalledTimes(1);
+    expect(r.renderVals().liveMoney?.loaded).toBe(false);
+    const second = vi.fn(async () => ({ data: books, error: null }));
+    await act(async () => {
+      await r.loadBooks({ rpc: second } as never);
+    });
+    act(() => oldRetry());
+    expect(second).toHaveBeenCalledTimes(1);
+    expect(r.renderVals().liveMoney?.loaded).toBe(true);
+  });
+
   it('plots income above zero and spending or refund-heavy income below zero', async () => {
     const r = await mounted();
     await act(async () => {
@@ -226,5 +326,87 @@ describe('the live Money page', () => {
     expect(view.getByText('Books & costs')).toBeTruthy();
     expect(view.getByText('Expense categories')).toBeTruthy();
     expect(view.getByText('Download all books')).toBeTruthy();
+  });
+  it('clears retired books on client replacement and rejects a cached Retry after client ABA', async () => {
+    const r = await mounted(false);
+    const first = vi.fn(async () => ({ data: books, error: null })),
+      a = { rpc: first };
+    await act(async () => {
+      await r.loadBooks(a as never);
+    });
+    const retry = r.renderVals().liveMoney!.read!.retry;
+    const failure = { rpc: vi.fn(async () => ({ data: null, error: { code: '08006' } })) };
+    await act(async () => {
+      expect(await r.loadBooks(failure as never)).toBe(false);
+    });
+    expect(r.renderVals().liveMoney?.loaded).toBe(false);
+    expect(r.state.ledger).toEqual([]);
+    await act(async () => {
+      await r.loadBooks(a as never);
+    });
+    const before = first.mock.calls.length;
+    await act(async () => {
+      retry();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    expect(first).toHaveBeenCalledTimes(before);
+  });
+  it('cannot publish a late books response from a retired verified account', async () => {
+    const r = await mounted(false);
+    await bindProductionOwner(r, {
+      userId: '11111111-1111-4111-8111-111111111111',
+      business: 'https://books-one.test'
+    });
+    let release!: (reply: { data: typeof books; error: null }) => void;
+    let pending!: Promise<boolean>;
+    act(() => {
+      pending = r.loadBooks({
+        rpc: () =>
+          new Promise((resolve) => {
+            release = resolve;
+          })
+      } as never);
+    });
+    await bindProductionOwner(r, {
+      userId: '22222222-2222-4222-8222-222222222222',
+      business: 'https://books-two.test'
+    });
+    await act(async () => {
+      release({ data: books, error: null });
+      expect(await pending).toBe(false);
+    });
+    expect(r.renderVals().liveMoney?.loaded).toBe(false);
+    expect(r.state.ledger).toEqual([]);
+  });
+  it('distinguishes failed and stale Home books and opens the existing Money retry', async () => {
+    const r = await mounted(false);
+    let fail = true;
+    const client = {
+      rpc: vi.fn(async () =>
+        fail ? { data: null, error: { code: '08006' } } : { data: books, error: null }
+      )
+    };
+    await act(async () => {
+      await r.loadBooks(client as never);
+      r.go('today');
+    });
+    const view = render(<HomeLive v={r.renderVals()} />);
+    expect(view.getByText('Your books could not be read. Open Money to retry.')).toBeTruthy();
+    act(() => fireEvent.click(view.getByRole('button', { name: 'Open Money' })));
+    expect(r.state.screen).toBe('pnl');
+    view.rerender(<MoneyLive v={r.renderVals()} />);
+    fail = false;
+    fireEvent.click(view.getByRole('button', { name: 'Retry reading books' }));
+    await waitFor(() => expect(r.renderVals().liveMoney?.loaded).toBe(true));
+    fail = true;
+    await act(async () => {
+      await r.loadBooks(client as never);
+      r.go('today');
+    });
+    view.rerender(<HomeLive v={r.renderVals()} />);
+    expect(
+      view.getByText('Books could not be refreshed. Showing the last successful read.')
+    ).toBeTruthy();
+    expect(r.renderVals().liveHome?.month).not.toBeNull();
   });
 });

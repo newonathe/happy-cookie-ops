@@ -2665,3 +2665,9 @@ New unaccepted F09 work adds Orders/Customers first-read Retry, stale last-good 
 Accepted/pushed`58a3e93aac574a360f43f34824113367c9c68c96`: full215files/3401tests+2TODO, formatting/secret scan pass; final build passed after test-only strict-type fixes.
 
 Stock dough/baked F09: same-period last-good balances survive a failed refresh with local Retry. Dough units are balls; baked rows disclose the exact drop. Unread/retired periods hide old rows and show unavailable, while only the active requested period shows loading. Cached Retry rejects actor/client/read/scope/period changes. Made tabs do not offer physical Count; ingredient/packaging Count is unchanged. Four new regressions include failing-first failure/recovery and exact period races;45focused tests/4files pass. Final connected390/1440, full gate and build are recorded by this acceptance; independent period re-review is clear.
+
+## Shared stock confidence — 8 November2026
+
+Accepted/pushed`629fcabb7de8674f55c321a45e361ebd637e7cb6`: full215files/3407tests+2TODO;99focused, final actual two-reset390/1440/SQL, inspected views, build, formatting and clear review.
+
+F04/HCB-019 Home count behavior: existing stockConfidence now drives Home, Inventory and Shopping; unknown zero is separate from confirmed empty, positive recorded balances remain useful, and unknown items count once and keep shopping totals pending. Home has scoped local Retry/stale notices and separates shortage quantities from items needing a count. Seven initial regressions and two visual-shortcut assertions failed first;99focused tests/7files pass, independent review is clear. Final two-reset390/1440/SQL, exact-source build and full verification are recorded by acceptance. Original registers/journeys and full-product/manual gates remain open.
