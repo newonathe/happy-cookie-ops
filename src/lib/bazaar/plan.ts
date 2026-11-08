@@ -42,6 +42,7 @@ export interface FieldIssue {
 /** The input ids of the day plan form: the error summary links to them, and the screen gives them to its controls. */
 export const planIds = {
   float: 'plan-float',
+  selection: 'plan-price-selection',
   made: (productId: string) => `plan-made-${productId}`,
   carried: (productId: string) => `plan-carried-${productId}`,
   price: (productId: string) => `plan-price-${productId}`
@@ -67,8 +68,22 @@ function count(text: string, what: string): number | string {
 export function validatePlan(input: {
   floatPesos: string;
   flavours: readonly PlanFlavour[];
+  priceOnlyIds?: readonly string[];
 }): PlanResult {
   const errors: FieldIssue[] = [];
+  const pricesOnly = input.priceOnlyIds !== undefined;
+  const selected = new Set(input.priceOnlyIds);
+  if (
+    pricesOnly &&
+    (selected.size === 0 ||
+      selected.size !== input.priceOnlyIds?.length ||
+      [...selected].some((id) => !input.flavours.some((f) => f.id === id)))
+  ) {
+    errors.push({
+      field: planIds.selection,
+      message: 'Choose each flavour once for a price-only plan.'
+    });
+  }
   const floatText = input.floatPesos.trim();
   let floatPesos = 0;
   if (floatText !== '' && !MONEY.test(floatText))
@@ -90,7 +105,17 @@ export function validatePlan(input: {
     if (typeof carried === 'string')
       errors.push({ field: planIds.carried(f.id), message: carried });
     if (typeof made === 'string' || typeof carried === 'string') continue;
-    if (made + carried === 0) continue;
+    if (pricesOnly) {
+      if (made + carried > 0) {
+        errors.push({
+          field: made > 0 ? planIds.made(f.id) : planIds.carried(f.id),
+          message:
+            f.name + ': keep quantities at zero for a price-only plan. Your counts are retained.'
+        });
+        continue;
+      }
+      if (!selected.has(f.id)) continue;
+    } else if (made + carried === 0) continue;
     const price = f.price.trim();
     if (!MONEY.test(price)) {
       errors.push({
@@ -134,6 +159,7 @@ export function validatePlan(input: {
 export function planFromForm(input: {
   floatPesos: string;
   flavours: readonly PlanFlavour[];
+  priceOnlyIds?: readonly string[];
 }): PlanResult {
   return validatePlan(input);
 }

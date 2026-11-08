@@ -2576,3 +2576,13 @@ SQL80 fixes generated Bazaar sale/void labels in Money without changing amounts,
 Accepted and pushed as `81e4053ccb26d19a21e657647b06dea63a23a4f8`; full213files/3350tests+2TODO passed.
 
 SQL80 Money labels are accepted as `35ea7c8cf9bd697b0c08ee9bdb48674d05481287`; accounting/authority proof is in history. The restored transfer UI now shows source/destination and checked before/after quantities, durable independent drafts, exact unknown-result retry and confirmed balance refresh.110focused tests and independent review pass. Two real reset/browser cycles at390/1440 pass first recipe creation→version2 edit→explicit production choice; ZD001/ZD002; lost Bake/transfer replies→reload→exact retry; failed confirmed refresh; transfer4→sell3→return1→Money. Independent SQL proves kitchen3/dough5, one500-cent ingredient use, one Bake/one sale/two journal moves, no phantom production. Bought-basis Money shows30000-cent revenue; separate used-basis SQL retains its approved500-cent cost. Phone/desktop screens were inspected; exact-source Live build passes28pages. Final full verification is recorded by the acceptance commit.
+
+## Aggregate kitchen returns — 8 November 2026
+
+Accepted and pushed as `39ff7cc782f4546e056b67afd76eb255a8fb671a`; full213files/3350tests+2TODO passed.
+
+SQL81 fixes aggregate returns while preserving the9999 individual transfer cap. Failing-first actual SQL reproduced the old constraint refusal. Two resets now pass a16000-cookie named test reversal and exact replay, unchanged ingredient/cost/production effects, three negative mutants, existing private journal/security contracts and concurrent first-source spend. Two further reset/browser cycles pass the complete Make→Bazaar→return→Money chain at390/1440. Function bodies/ACLs are unchanged; independent review is clear. Full verification is recorded by the acceptance commit. No UI source changed since the accepted Live build.
+
+## Accepted quantity checkpoint
+
+Checked transfer quantities are accepted as `b4dd5768fb7087617b766d27434060b45962f788`:91focused tests, full212files/3341tests+2TODO, typecheck/lint and clear independent review. Unavailable counts block new writes; frozen retries remain usable. Runtime/day-selection guards and PR reconciliation are preserved in history.

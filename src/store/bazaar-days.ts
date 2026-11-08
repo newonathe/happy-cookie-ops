@@ -1208,7 +1208,7 @@ export class BazaarDays {
 
   private async save(
     booking: ScheduledEvent,
-    input: { floatPesos: string; flavours: PlanFlavour[] }
+    input: { floatPesos: string; flavours: PlanFlavour[]; priceOnlyIds?: readonly string[] }
   ): Promise<string | null> {
     const editing = this.editing;
     if (!editing || this.busy) return null;
