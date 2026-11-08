@@ -18,26 +18,27 @@ fs.mkdirSync(out, { recursive: true });
  const context = await browser.newContext({ viewport: { width, height: 950 }, reducedMotion: 'reduce' });
  const page = await context.newPage(), errors = [], attempts = [], bazaarAttempts = [];
  page.on('pageerror', e => errors.push(e.message));
- await page.route('**/*', route => {
+ context.on('page',target=>target.on('pageerror',e=>errors.push(e.message)));
+ await context.route('**/*', route => {
   const url = new URL(route.request().url());
   return url.origin === origin || url.origin === 'http://127.0.0.1:4186' ? route.continue() : route.abort();
  });
- await page.exposeFunction('noteProductionAttempt', (name, body) => attempts.push({ name, body }));
- await page.exposeFunction('noteBazaarAttempt', (name, body) => bazaarAttempts.push({name,body}));
- const connect = async () => {
-  await page.waitForFunction(() => window.__hcOps?.state.screen === 'inventory', null, { timeout: 90000 });
-  await page.evaluate(async ({ origin, token, anon, userId }) => {
+ await context.exposeFunction('noteProductionAttempt', (name, body) => attempts.push({ name, body }));
+ await context.exposeFunction('noteBazaarAttempt', (name, body) => bazaarAttempts.push({name,body}));
+ const connect = async (target=page,blocked=false,reuse=false) => {
+  await target.waitForFunction(() => window.__hcOps?.state.screen === 'inventory', null, { timeout: 90000 });
+  await target.evaluate(async ({ origin, token, anon, userId, reuse }) => {
    const { createClient } = await import('/connected-client.ts');
    const nativeFetch = window.fetch.bind(window);
    window.dropBakeReply = false; window.loseTransferAck=false; window.failCountReads=false;
-   const client = createClient(origin, anon, { accessToken: async () => token, auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }, global: { fetch: async (input, init) => {
+   const client = reuse ? window.connectedProductionClient : createClient(origin, anon, { accessToken: async () => token, auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }, global: { fetch: async (input, init) => {
     const url = new URL(typeof input === 'string' ? input : input.url);
     url.pathname = url.pathname.replace(/^\/rest\/v1/, '');
     const name = url.pathname.split('/').at(-1);
     if (name === 'get_production' && window.failCountReads) throw TypeError('Injected unavailable local count read');
     if (['add_bazaar_day_stock','save_bazaar_day','transfer_bazaar_stock','start_bazaar_day','record_event_sale','close_bazaar_day','finalise_bazaar'].includes(name)) await window.noteBazaarAttempt(name,JSON.parse(init.body));
-    if (name === 'record_production') throw Error('A new production action attempted the retired writer');
-    if (name === 'record_bake' || name === 'record_dough_preparation') await window.noteProductionAttempt(name, JSON.parse(init.body).p_rec);
+    if (name === 'record_production') {await window.noteProductionAttempt(name,null);throw Error('A new production action attempted the retired writer');}
+    if (name === 'record_bake' || name === 'record_dough_preparation') {await window.noteProductionAttempt(name, JSON.parse(init.body).p_rec);if(window.forbidProductionWrites)throw Error('Stale production write attempted');}
     const answer = await nativeFetch(url, init);
     if (name === 'record_bake' && answer.ok && window.dropBakeReply) {
      await answer.clone().json(); // The real transaction committed before losing its acknowledgement.
@@ -53,8 +54,8 @@ fs.mkdirSync(out, { recursive: true });
    r.setState({ dropNo: 5 });
    await r.loadFlavours(client); await r.loadStockCatalogue(client); await r.loadRecipes(client, undefined, undefined, { userId, business: origin });
    await r.loadOrders(client); await r.loadProduction(client); r.go('bake');
-  }, { origin, token, anon, userId: claims.sub });
-  await page.waitForFunction(() => !!window.__hcOps.renderVals().liveProduction?.start);
+  }, { origin, token, anon, userId: claims.sub, reuse });
+  await target.waitForFunction(blocked => blocked ? window.__hcOps.renderVals().liveProduction?.recovery?.status==='locked' : !!window.__hcOps.renderVals().liveProduction?.start, blocked);
  };
  try {
   await page.goto('http://127.0.0.1:4186/', { waitUntil: 'domcontentloaded', timeout: 90000 });
@@ -173,6 +174,8 @@ fs.mkdirSync(out, { recursive: true });
   assert(!await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),'Shopping handoff overflow');
   await page.screenshot({path:`${out}/shopping-handoff-${width}.png`,fullPage:true});
   await require('./connected-bazaar-journey.cjs').run({page,connect,bazaarAttempts,width,out,assert});
+  await require('./connected-production-ownership.cjs').run({page,context,connect,attempts,width,out,assert});
+  assert(!attempts.some(a=>a.name==='record_production'),'A new action attempted the retired production writer');
   await page.screenshot({ path: `${out}/saved-${width}.png`, fullPage: true });
   console.log(JSON.stringify({ width, realRpc: true, firstRecipe: true, recipeEdited: true, shoppingHandoff: true, recipeHandoff: true, definiteRefusals: ['ZD001','ZD002'], exactReloadRetry: true, dough: facts.dough, good: facts.baked, rejects: 2, errors }));
  } catch(error) { const debug=await page.evaluate(async()=>{

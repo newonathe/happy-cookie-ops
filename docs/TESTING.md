@@ -43,7 +43,7 @@ Normal test configuration uses `updateSnapshots: none`, including locally. The v
 
 ## Connected local production and Bazaar
 
-`node tools/owner-preview/check-production-connected.cjs <artifact-directory>` exercises recipe creation/editing, dough-only baking, shortage refusals, exact retries/reload, price-only planning, kitchen transfers, retained till/review drafts, sale/return and Money. Set `BAKE_WIDTH=390` or `1440`; use a fresh disposable database for each width.
+`node tools/owner-preview/check-production-connected.cjs <artifact-directory>` exercises recipe creation/editing, dough-only baking, shortage refusals, exact retries/reload, price-only planning, kitchen transfers, retained till/review drafts, sale/return and Money. The ownership module adds real two-tab Web Locks, exact draft retention, stale period/client/role A→B→A actions and a strict write-attempt counter, including rejected legacy calls. Set `BAKE_WIDTH=390` or `1440`; use a fresh disposable database for each width.
 
 The local fixture runner supplies `HCO_LOCAL_RPC_ORIGIN`, `HCO_LOCAL_OWNER_JWT`, `HCO_LOCAL_ANON_JWT` and `HCO_FIXTURE_NONCE`, plus the owner preview on loopback port4186. The driver requires its current synthetic fixture token and loopback API port45000–48999, and blocks other browser origins. `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` selects an installed Chromium when needed. Failure artifacts contain RPC bodies and UI text: run only with synthetic fixture data. Fixture setup must verify ownership of the disposable PostgreSQL/PostgREST processes before supplying these variables.
 
