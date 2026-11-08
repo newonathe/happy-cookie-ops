@@ -2619,3 +2619,11 @@ Accepted and pushed as `d55b016014f508034c19e057135ed48dda752355`; full213files/
 Direct kitchen entry, separate historical wording, retained forms and stale-origin guards are accepted as `2ae387b0d164882b6dcdb621f9c2cbd413034bd8`; full213files/3378tests+2TODO,269focused, actual390/1440 SQL/browser, build and review evidence is in history.
 
 The connected browser regression now lives under tools/owner-preview: the existing production assertions are preserved alongside the complete Make→Bazaar→return→Money journey, recipe v2 edit, retained form drafts and no legacy writer. Portable repository paths pass both actual reset/browser cycles and independent stock/cost/journal readback. Six pre-browser checks reject hosted origin, invalid/mismatched nonce, expiry, role and issuer; review is clear with the existing disposable synthetic fixture ownership requirement. TESTING.md documents the driver and fixture prerequisites. Expected Money date is anchored to the seeded Manila day. Final full verification is recorded by the acceptance commit; application source is unchanged from2ae387b.
+
+## Shopping production handoff — 8 November 2026
+
+Accepted and pushed as `2e4f8b2662dc36214f98bd10dfde6aed603f7695`; full214files/3391tests+2TODO passed.
+
+Connected regression is accepted as `d55b016014f508034c19e057135ed48dda752355`; actual390/1440 reset/browser, six safety refusals and full213files/3378tests+2TODO evidence is in history.
+
+Shopping now carries saved quantities and captured recipe versions through the existing productionHandoff into explicit Prepare dough/Bake choice. Actor, client, identity, period, source screen, plan signature and unsaved-editor guards retire stale actions; conflicting setup is retained. Oversized Shopping plans remain saved with a clear warning about the unchanged10000 per-entry bound.13failing-first regressions and74focused tests, TypeScript and independent review pass. Both real390/1440 reset/browser cycles now include the warning and valid Shopping handoff before the full Make→Bazaar→return→Money chain. No recording occurs on handoff. All four new screens inspected; exact-source28-page Live build passes. Full verification is recorded by the acceptance commit. Latest runtime three-way against PR51/53 remains0textual conflicts; semantic integration conditions and OD12 remain open.
