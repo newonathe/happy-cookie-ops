@@ -2633,3 +2633,9 @@ Shopping now carries saved quantities and captured recipe versions through the e
 ## Local recipe handoff — 7 November
 
 Branch `codex/recipe-production-acceptance-20261107` starts from published Cloud `e0670e6`; other PRs, worktrees, stashes and `.claude/launch.json` remain separate. Recipe Start production carries its selected quantity/version into Make, requires an explicit Prepare dough/Bake choice, and offers Keep/Use incoming for conflicting setup. Stale source/period/identity actions are refused; actual work and frozen requests are preserved. The synthetic preview now supplies its verified recipe scope. Proof:70focused tests;4phone/desktop/reduced-motion CLI cases including reload,13actual/2rejects retained, no writes/errors/overflow; final gate/build/review in the acceptance commit. Detailed scope is in current-history.md. Planned-bake/Shopping wiring and the wider connected production/Bazaar acceptance remain open.
+
+## Stock catalogue recovery — 8 November2026
+
+Accepted/pushed`3122920235f9612f64a1c5e10834f26033f2c969`: full215files/3397tests+2TODO, formatting and secret scan pass.
+
+Stock F09: Inventory, Shopping and Suppliers distinguish unavailable/empty/stale reads and offer local Retry. Catalogue, paid and cost responses reject earlier reads and retired actor/client/backend scopes, including A→B→A. Source replacement clears private projections while retaining pending counts/movements; same-scope confirmed costs remain available for count summaries. Six failing-first regressions,127focused tests/8files; actual two-reset connected390/1440/SQL pass, exact-source28-page Live build and clear independent review. The final full gate is recorded by this acceptance. No Orders integration or stock-count policy changed.

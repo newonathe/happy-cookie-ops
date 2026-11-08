@@ -131,6 +131,13 @@ export interface LiveStockVals {
   receive?: ReceiveDeliveryView | null;
   change?: StockChangeView | null;
   made?: { dough: MadeStockRow[]; baked: MadeStockRow[] } | null;
+  madeRead?: {
+    periodText?: string;
+    state: 'loading' | 'read' | 'failed';
+    stale: boolean;
+    canRetry?: boolean;
+    retry: () => void;
+  };
   bakePlan?: LiveBakePlan | null;
   /** Starts the selected ingredient/packaging category or resumes the existing count safely. */
   startCount?: (category: string) => void;

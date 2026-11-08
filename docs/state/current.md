@@ -50,7 +50,9 @@ Two actual Supabase CLI2.116.0 resets passed exact catalog/function-authority/pu
 
 Historical557role cases/156mutants and the earlier working-source SDK/PostgREST browser proof are preserved in current-history.md. Accepted production browser evidence through67a827b supersedes that earlier pending local gate.
 
-Stock F09: Inventory, Shopping and Suppliers distinguish unavailable/empty/stale reads and offer local Retry. Catalogue, paid and cost responses reject earlier reads and retired actor/client/backend scopes, including A→B→A. Source replacement clears private projections while retaining pending counts/movements; same-scope confirmed costs remain available for count summaries. Six failing-first regressions,127focused tests/8files; actual two-reset connected390/1440/SQL pass, exact-source28-page Live build and clear independent review. The final full gate is recorded by this acceptance. No Orders integration or stock-count policy changed.
+Stock catalogue F09 is accepted/pushed as`3122920235f9612f64a1c5e10834f26033f2c969`: full215files/3397tests+2TODO,127focused, actual two-reset390/1440/SQL, Live build and clear review.
+
+Stock dough/baked F09: same-period last-good balances survive a failed refresh with local Retry. Dough units are balls; baked rows disclose the exact drop. Unread/retired periods hide old rows and show unavailable, while only the active requested period shows loading. Cached Retry rejects actor/client/read/scope/period changes. Made tabs do not offer physical Count; ingredient/packaging Count is unchanged. Four new regressions include failing-first failure/recovery and exact period races;45focused tests/4files pass. Final connected390/1440, full gate and build are recorded by this acceptance; independent period re-review is clear.
 
 ## Remaining objective and gates
 
