@@ -2,6 +2,7 @@
 
 import { ShopMenuRead } from '@/store/shop-menu-read';
 import { ShopAvailabilityRead } from '@/store/shop-availability-read';
+import { ShopOverrideWrites, shopOverrideMode } from '@/store/shop-override-writes';
 import { openingTimesBanner } from '@/components/live/customer-opening-status';
 import { ScopedRecipeEdits } from '@/lib/recipes/scoped-edits';
 
@@ -116,7 +117,7 @@ import {
 } from '@/lib/data/staff-orders';
 import { messagesFor, statusLink } from '@/lib/orders/messages';
 import { extraDetails, extraRows } from '@/lib/orders/extras-view';
-import { saveShopOverride, type ShopOverride, type ShopStatusClient } from '@/lib/data/shop-status';
+import { type ShopOverride, type ShopStatusClient } from '@/lib/data/shop-status';
 import {
   fetchOrderRules,
   orderRulesError,
@@ -841,6 +842,7 @@ export class OpsRuntime extends OpsProvider {
   private orderClient: StaffOrderClient | null = null;
   /** The signed-in (or anonymous) browser client the shop status is read and switched through. */
   private shopClient?: ShopStatusClient;
+  private shopClientEpoch = 0;
   private rulesRow: OrderRulesRow | null = null;
   private extrasRow: OrderExtras | null = null;
   /** D4: the owner's bookings (null until read), the client they were read with, the booking being started, and the id the blank form row will use. */
@@ -3500,6 +3502,16 @@ export class OpsRuntime extends OpsProvider {
       shopFooter: this.shopFooterVals(),
       liveShopMenuRead: this.onCustomerScreen() && !this.flavourSync ? this.shopMenu.view() : null,
       liveShopAvailability: this.onCustomerScreen() ? this.shopAvailability.view() : null,
+      dropStates: this.shopOverrideChoices(starved.dropStates),
+      dropStateOptions: this.shopOverrideChoices(starved.dropStateOptions),
+      closeDropRollover: this.shopOverrideAction(starved.closeDropRollover),
+      closeDropConfirm: this.shopOverrideAction(starved.closeDropConfirm),
+      drop2: {
+        ...(facts.drop2 ?? starved.drop2),
+        extend: this.shopOverrideAction(starved.drop2.extend),
+        reopen: this.shopOverrideAction(starved.drop2.reopen),
+        closeEarly: this.shopOverrideAction(starved.drop2.closeEarly)
+      },
       ...(this.onCustomerScreen() ? openingTimesBanner(starved, this.shopAvailability.view()) : {}),
       shopFlavours: this.liveShopSampler(starved.shopFlavours).map((flavour) =>
         /confirmation required/i.test(String(flavour.allergens))
@@ -3623,6 +3635,7 @@ export class OpsRuntime extends OpsProvider {
 
   loadShopStatus(client: ShopStatusClient | null): Promise<boolean> {
     if (!isLiveMode() || this.unmounted) return Promise.resolve(false);
+    if (client !== (this.shopClient ?? null)) this.shopClientEpoch += 1;
     this.shopClient = client ?? undefined;
     return this.shopAvailability.load(client);
   }
@@ -3648,33 +3661,90 @@ export class OpsRuntime extends OpsProvider {
     const { setDropState, closeDropEarly, reopenDrop, extendDrop, closeDrop } = shop;
     shop.setDropState = (st) => {
       const mode = st === 'auto' ? null : (st as ShopOverride);
-      void this.persistOverride(mode).then((ok) => ok && setDropState(st));
+      void this.persistOverride(mode, () => setDropState(st));
     };
-    shop.closeDropEarly = () =>
-      void this.persistOverride('closed').then((ok) => ok && closeDropEarly());
-    shop.reopenDrop = () => void this.persistOverride(null).then((ok) => ok && reopenDrop());
+    shop.closeDropEarly = () => void this.persistOverride('closed', closeDropEarly);
+    shop.reopenDrop = () => void this.persistOverride(null, reopenDrop);
     // Extending the closing time also hands the shop back to the window (the ported action clears the hold).
-    shop.extendDrop = () => void this.persistOverride(null).then((ok) => ok && extendDrop());
+    shop.extendDrop = () => void this.persistOverride(null, extendDrop);
     // Closing the drop (the rollover) also clears the hold, but only when the engine lets it close: it refuses
     // while orders are unfinished. So the ported action runs first and the server follows what it did. Its local
     // ledger line is a demo-side effect that live mode has no books for until E1.
     shop.closeDrop = () => {
+      const owner = this.shopOverrideOwner();
+      if (!owner.current()) return;
       const before = (this.state as unknown as { dropNo: number }).dropNo;
       closeDrop();
       this.afterUpdate(() => {
-        if ((this.state as unknown as { dropNo: number }).dropNo !== before)
+        if (owner.current() && (this.state as unknown as { dropNo: number }).dropNo !== before)
           void this.persistOverride(null);
       });
     };
   }
 
-  private async persistOverride(mode: ShopOverride | null): Promise<boolean> {
-    const client = this.shopClient;
+  private shopOverrideOwner() {
+    const client = this.shopClient,
+      actor = this.productionActorEpoch,
+      epoch = this.shopClientEpoch;
+    return {
+      client,
+      current: () =>
+        !this.unmounted &&
+        !this.gateNarrow &&
+        this.state.role === 'owner' &&
+        actor === this.productionActorEpoch &&
+        epoch === this.shopClientEpoch &&
+        client === this.shopClient
+    };
+  }
+
+  private shopOverrideAction(action: () => void): () => void {
+    const owner = this.shopOverrideOwner(),
+      drop = this.state.dropNo;
+    return () => {
+      if (owner.current() && drop === this.state.dropNo) action();
+    };
+  }
+
+  private shopOverrideChoices<T extends OpsVals['dropStates'][number]>(rows: T[]): T[] {
+    return rows.map((row) => ({
+      ...row,
+      go: this.shopOverrideAction(() => {
+        const mode = shopOverrideMode(row.label);
+        if (mode) (this as unknown as { setDropState: (mode: string) => void }).setDropState(mode);
+      })
+    }));
+  }
+
+  private shopOverrideWrites = new ShopOverrideWrites({
+    retireReads: () => this.shopAvailability.retirePending(),
+    refresh: (client) => {
+      void this.loadShopStatus(client);
+    }
+  });
+
+  private async persistOverride(
+    mode: ShopOverride | null,
+    apply: () => void = () => undefined
+  ): Promise<boolean> {
+    if (this.unmounted || this.gateNarrow || this.state.role !== 'owner') return false;
+    const owner = this.shopOverrideOwner(),
+      client = owner.client,
+      drop = this.state.dropNo;
     if (!client || !this.state.online || (typeof navigator !== 'undefined' && !navigator.onLine)) {
       this.toast(STAFF_COPY.offline, 'warn');
       return false;
     }
-    const outcome = await saveShopOverride(client, mode);
+    const outcome = await this.shopOverrideWrites.save(
+      client,
+      mode,
+      {
+        owner: owner.current,
+        action: () => owner.current() && drop === this.state.dropNo
+      },
+      apply
+    );
+    if (outcome === 'retired') return false;
     if (outcome === 'saved') return true;
     this.toast(outcome === 'refused' ? RULES_COPY.switchRefused : STAFF_COPY.offline, 'warn');
     return false;

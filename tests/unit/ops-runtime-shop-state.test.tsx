@@ -66,7 +66,7 @@ type Shop = {
 };
 const shop = (r: OpsRuntime) => r as unknown as Shop;
 const settle = () => act(async () => void (await new Promise((resolve) => setTimeout(resolve, 0))));
-const called = (rpc: ReturnType<typeof fake>['rpc'], name: string) =>
+const called = (rpc: { mock: { calls: readonly (readonly unknown[])[] } }, name: string) =>
   rpc.mock.calls.filter((c) => c[0] === name) as unknown as Array<
     [string, Record<string, unknown>]
   >;
@@ -415,5 +415,178 @@ describe('public opening-times recovery', () => {
       await Promise.resolve();
     });
     expect(rpc).toHaveBeenCalledTimes(calls);
+  });
+});
+
+describe('owner opening-write isolation', () => {
+  beforeEach(() => {
+    live = true;
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(NOW);
+  });
+  afterEach(() => {
+    cleanup();
+    vi.useRealTimers();
+  });
+  const heldSave = () => {
+    let release!: (value: unknown) => void;
+    const rpc = vi.fn(async (name: string) =>
+      name === 'set_shop_override'
+        ? new Promise((resolve) => {
+            release = resolve;
+          })
+        : { data: status({ override: 'open' }), error: null }
+    );
+    return {
+      client: { rpc } as unknown as ShopStatusClient,
+      rpc,
+      release: () => release({ data: [], error: null })
+    };
+  };
+  it('does not apply a held acknowledgement after an owner role A to B to A change', async () => {
+    const r = await mounted('owner', fake(), false),
+      f = heldSave();
+    await act(async () => {
+      await r.loadShopStatus(f.client);
+    });
+    act(() => shop(r).closeDropEarly());
+    act(() => r.setRole('helper'));
+    act(() => r.setRole('owner'));
+    await act(async () => {
+      f.release();
+      await Promise.resolve();
+    });
+    await settle();
+    expect(r.state.shopOverride).toBe('open');
+    expect(toasts(r)).not.toContain('No new orders can come in');
+  });
+  it('does not apply a held acknowledgement after source A to B to A', async () => {
+    const r = await mounted('owner', fake(), false),
+      f = heldSave();
+    await act(async () => {
+      await r.loadShopStatus(f.client);
+    });
+    act(() => shop(r).closeDropEarly());
+    await act(async () => {
+      await r.loadShopStatus(fake({ status: status({ override: 'open' }) }).client);
+      await r.loadShopStatus(f.client);
+      f.release();
+    });
+    await settle();
+    expect(r.state.shopOverride).toBe('open');
+  });
+  it('retires an earlier opening read when a write is confirmed', async () => {
+    let release!: (value: unknown) => void,
+      hold = false;
+    const rpc = vi.fn(async (name: string) => {
+      if (name === 'set_shop_override') return { data: [], error: null };
+      if (hold) {
+        hold = false;
+        return new Promise((resolve) => {
+          release = resolve;
+        });
+      }
+      return { data: status({ override: 'open' }), error: null };
+    });
+    const r = await mounted('owner', fake(), false),
+      client = { rpc } as unknown as ShopStatusClient;
+    await act(async () => {
+      await r.loadShopStatus(client);
+    });
+    let pending!: Promise<boolean>;
+    act(() => {
+      hold = true;
+      pending = r.reloadShopStatus();
+      shop(r).closeDropEarly();
+    });
+    await settle();
+    expect(r.state.shopOverride).toBe('closed');
+    await act(async () => {
+      release({ data: status({ override: 'open' }), error: null });
+      expect(await pending).toBe(false);
+    });
+    expect(r.state.shopOverride).toBe('closed');
+  });
+  it('sends a rendered choice through the server and rejects a retired rendered choice', async () => {
+    const f = heldSave(),
+      r = await mounted('owner', fake(), false);
+    await act(async () => {
+      await r.loadShopStatus(f.client);
+    });
+    const first = r.renderVals().dropStates.find((row) => row.label === 'Closed')!;
+    act(() => first.go());
+    expect(called(f.rpc, 'set_shop_override')).toEqual([
+      ['set_shop_override', { p_mode: 'closed' }]
+    ]);
+    expect(r.state.shopOverride).toBe('open');
+    await act(async () => {
+      f.release();
+    });
+    await settle();
+    const old = r.renderVals().dropStateOptions.find((row) => row.label === 'Open')!;
+    act(() => r.setRole('helper'));
+    act(() => r.setRole('owner'));
+    const count = called(f.rpc, 'set_shop_override').length;
+    act(() => old.go());
+    await settle();
+    expect(called(f.rpc, 'set_shop_override')).toHaveLength(count);
+  });
+  it.each(['role', 'source', 'period'])(
+    'rejects a cached close confirmation after %s retirement',
+    async (retirement) => {
+      const f = fake({ status: status({ override: 'open' }) }),
+        r = await mounted('owner', f);
+      const confirm = r.renderVals().closeDropConfirm;
+      if (retirement === 'role') {
+        act(() => r.setRole('helper'));
+        act(() => r.setRole('owner'));
+      }
+      if (retirement === 'source')
+        await act(async () => {
+          await r.loadShopStatus(fake().client);
+          await r.loadShopStatus(f.client);
+        });
+      if (retirement === 'period') act(() => r.setState({ dropNo: Number(r.state.dropNo) + 1 }));
+      act(() => confirm());
+      await settle();
+      expect(called(f.rpc, 'set_shop_override')).toEqual([]);
+    }
+  );
+
+  it('reads server truth after an older save reply without closing a newer sheet', async () => {
+    let current: string | null = 'open';
+    const releases = new Map<string, () => void>();
+    const rpc = vi.fn(async (name: string, args?: Record<string, unknown>) => {
+      if (name !== 'set_shop_override') return { data: status({ override: current }), error: null };
+      const mode = String(args?.p_mode);
+      return new Promise((resolve) =>
+        releases.set(mode, () => {
+          current = mode;
+          resolve({ data: [], error: null });
+        })
+      );
+    });
+    const r = await mounted('owner', fake(), false);
+    await act(async () => {
+      await r.loadShopStatus({ rpc } as unknown as ShopStatusClient);
+    });
+    act(() => {
+      shop(r).closeDropEarly();
+      shop(r).setDropState('open');
+    });
+    await act(async () => {
+      releases.get('open')!();
+    });
+    await settle();
+    act(() => r.sheet('orderrules', { updatedAt: 'keep-this-sheet' }));
+    await act(async () => {
+      releases.get('closed')!();
+    });
+    await settle();
+    expect(r.state.shopOverride).toBe('closed');
+    expect(r.state.sheet).toMatchObject({ kind: 'orderrules', updatedAt: 'keep-this-sheet' });
+    expect(rpc.mock.calls.filter((call) => call[0] === 'get_shop_status').length).toBeGreaterThan(
+      1
+    );
   });
 });
