@@ -13,10 +13,12 @@ import {
   type FieldErrors,
   type OrderClient,
   type OrderFields,
+  type OrderBody,
   type OrderStatusView,
   type PlacedOrder,
   type WaitlistFields
 } from '@/lib/data/orders';
+import type { OrderRecovery } from '@/lib/orders/order-recovery';
 import { manilaToday } from '@/lib/time/business-clock';
 import { ORDER_COPY } from '@/lib/orders/copy';
 import type { ShopOrderRules } from '@/lib/orders/pickup';
@@ -74,6 +76,8 @@ export class OrderFlow {
   banner: Banner | null = null;
   errors: FieldErrors = {};
   placed: PlacedOrder | null = null;
+  private acknowledgedAttempt: Attempt | null = null;
+  recoveryState: ReturnType<OrderRecovery['read']>['phase'] = 'unscoped';
 
   status: OrderStatusView | null = null;
   statusToken: string | null = null;
@@ -89,8 +93,93 @@ export class OrderFlow {
 
   constructor(
     private readonly client: OrderClient,
-    private readonly hooks: OrderFlowHooks
+    private readonly hooks: OrderFlowHooks,
+    private readonly recovery?: OrderRecovery
   ) {}
+
+  get hasRecovery(): boolean {
+    return !!this.recovery;
+  }
+  get recoveryReady(): boolean {
+    return !this.recovery || this.recoveryState === 'empty' || this.recoveryState === 'ready';
+  }
+  /** Explicit post-hydration restoration never sends a request. */
+  restoreRecovery(): OrderBody | null {
+    if (!this.recovery || this.hooks.current?.() === false) return null;
+    const read = this.recovery.read(),
+      saved = read.value;
+    const known = this.attempt ?? this.acknowledgedAttempt;
+    this.recoveryState = read.phase;
+    if (saved && known && JSON.stringify(saved.attempt) !== JSON.stringify(known)) {
+      this.recoveryState = 'invalid';
+      this.hooks.changed();
+      return null;
+    }
+    if (this.placed && this.acknowledgedAttempt) {
+      if (
+        saved?.placed &&
+        (saved.placed.orderNo !== this.placed.orderNo || saved.placed.token !== this.placed.token)
+      ) {
+        this.recoveryState = 'invalid';
+        this.hooks.changed();
+        return null;
+      }
+      if (!saved?.placed) this.recoveryState = 'unavailable';
+      this.hooks.changed();
+      return this.acknowledgedAttempt.body;
+    }
+    if (!saved) {
+      if (known) this.recoveryState = 'unavailable';
+      this.hooks.changed();
+      return null;
+    }
+    this.attempt = saved.placed ? null : saved.attempt;
+    this.placed = saved.placed ?? null;
+    this.acknowledgedAttempt = saved.placed ? saved.attempt : null;
+    this.boxQty = Object.fromEntries(
+      (saved.attempt.body.boxes ?? []).map((row) => [row.size, row.qty])
+    );
+    this.lines = Object.fromEntries(
+      (saved.attempt.body.add_ons ?? []).map((row) => [
+        row.id + LINE_SEP + (row.variant ?? ''),
+        { qty: row.qty, text: row.text ?? '' }
+      ])
+    );
+    this.placedLines = this.describeLines(this.selection());
+    this.banner = saved.placed
+      ? null
+      : { tone: 'notice', text: ORDER_COPY.unknown, canWaitlist: false };
+    this.hooks.changed();
+    return saved.attempt.body;
+  }
+  retryRecovery(): OrderBody | null {
+    if (!this.recovery || this.sending || this.hooks.current?.() === false) return null;
+    if (this.placed && this.acknowledgedAttempt) {
+      this.recoveryState = this.recovery.write({
+        attempt: this.acknowledgedAttempt,
+        placed: this.placed
+      })
+        ? 'ready'
+        : 'unavailable';
+      this.hooks.changed();
+      return null;
+    }
+    const restored = this.restoreRecovery();
+    if (restored || !this.attempt) return restored;
+    this.recoveryState = this.recovery.write({ attempt: this.attempt }) ? 'ready' : 'unavailable';
+    this.hooks.changed();
+    return this.recoveryReady ? this.attempt.body : null;
+  }
+  private clearRecovery(): boolean {
+    if (!this.recovery) return true;
+    const expected = this.attempt ?? this.acknowledgedAttempt;
+    const cleared = expected
+      ? this.recovery.clear(expected)
+      : this.recovery.read().phase === 'empty';
+    this.recoveryState = cleared ? 'empty' : 'unavailable';
+    if (!cleared) this.hooks.changed();
+    return cleared;
+  }
 
   /** Keep previous choices as unchecked context; only the latest active read may publish. */
   async loadRules(): Promise<boolean> {
@@ -126,7 +215,7 @@ export class OrderFlow {
     if (sequence !== this.extrasSeq || this.hooks.current?.() === false) return false;
     if (extras) {
       this.extras = extras;
-      this.pruneSelection();
+      if (!this.locked) this.pruneSelection();
     }
     this.extrasState = extras ? 'ready' : 'failed';
     this.hooks.changed();
@@ -210,7 +299,7 @@ export class OrderFlow {
 
   /** True while an earlier attempt's outcome is unknown: the fields are frozen with it. */
   get unresolved(): boolean {
-    return this.attempt !== null;
+    return !this.sending && this.attempt !== null;
   }
 
   /**
@@ -222,7 +311,16 @@ export class OrderFlow {
   }
 
   async submit(fields: OrderFields): Promise<void> {
-    if (this.sending || this.placed) return;
+    if (this.sending || this.placed || this.hooks.current?.() === false) return;
+    if (!this.attempt && !this.recoveryReady) {
+      this.banner = {
+        tone: 'error',
+        text: 'This tab could not read its saved order. Retry checkout recovery before sending.',
+        canWaitlist: false
+      };
+      this.hooks.changed();
+      return;
+    }
     const picked = this.selection();
     fields = { ...fields, addOns: picked.addOns, boxes: picked.boxes };
     if (!this.attempt) {
@@ -275,16 +373,33 @@ export class OrderFlow {
     }
     this.errors = {};
     this.banner = null;
+    const attempt = attemptFor(this.attempt, fields, this.hooks.mintId);
+    this.attempt = attempt;
+    if (this.recovery && !this.recovery.write({ attempt })) {
+      this.recoveryState = 'unavailable';
+      this.banner = {
+        tone: 'error',
+        text: 'This tab could not keep your request safely. Nothing was sent this time. Keep this page open and retry checkout recovery.',
+        canWaitlist: false
+      };
+      this.hooks.changed();
+      return;
+    }
+    this.recoveryState = this.recovery ? 'ready' : 'unscoped';
     this.sending = true;
     this.hooks.changed();
-    const attempt = attemptFor(this.attempt, fields, this.hooks.mintId);
     const outcome = await placeOrder(this.client, attempt.body);
     this.attempt = settleAttempt(attempt, outcome);
     this.sending = false;
     if (outcome.kind === 'placed') {
       this.placed = outcome.order;
+      this.acknowledgedAttempt = attempt;
+      if (this.recovery && !this.recovery.write({ attempt, placed: outcome.order }))
+        this.recoveryState = 'unavailable';
       this.placedLines = this.describeLines(picked);
     } else if (outcome.kind === 'refused') {
+      if (this.recovery)
+        this.recoveryState = this.recovery.clear(attempt) ? 'empty' : 'unavailable';
       if (outcome.code === 'ZC007') void this.loadExtras();
       // A refusal a field can carry is shown on that field as well as in the banner.
       if (outcome.code === 'ZC004') this.errors = { date: outcome.message };
@@ -313,23 +428,39 @@ export class OrderFlow {
   }
 
   /** Drops the frozen attempt. The customer is told to check whether the last try went through. */
-  changeOrder(): void {
+  changeOrder(): boolean {
+    if (this.sending || this.placed || this.hooks.current?.() === false) return false;
+    if (this.recovery?.read().value?.placed) {
+      this.restoreRecovery();
+      if (this.placed) return false;
+    }
+    if (!this.clearRecovery()) return false;
     this.attempt = null;
     this.banner = { tone: 'notice', text: ORDER_COPY.changeWarning, canWaitlist: false };
     this.hooks.changed();
+    return true;
   }
 
-  /** After "See my order" or "Order again": the next order starts clean. */
-  resetCheckout(): void {
+  /** Starts another order only after the caller explicitly requests it. */
+  resetCheckout(): boolean {
+    if (
+      this.sending ||
+      this.hooks.current?.() === false ||
+      (this.recovery && this.attempt && !this.placed)
+    )
+      return false;
+    if (!this.clearRecovery()) return false;
     this.attempt = null;
     this.sending = false;
     this.banner = null;
     this.errors = {};
     this.placed = null;
+    this.acknowledgedAttempt = null;
     this.boxQty = {};
     this.lines = {};
     this.placedLines = [];
     this.hooks.changed();
+    return true;
   }
 
   /** The order for a status token. A later call wins over an earlier one still in flight. */
