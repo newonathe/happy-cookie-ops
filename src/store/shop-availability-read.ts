@@ -13,6 +13,7 @@ export class ShopAvailabilityRead {
   private sequence = 0;
   private read = false;
   private state: ShopAvailabilityView['state'] = 'loading';
+  private mode: ShopStatus['override'] | undefined;
   constructor(
     private readonly deps: {
       active: () => boolean;
@@ -25,7 +26,10 @@ export class ShopAvailabilityRead {
   async load(client: ShopStatusClient | null): Promise<boolean> {
     if (!this.deps.active()) return false;
     const sequence = ++this.sequence;
-    if (client !== this.client) this.read = false;
+    if (client !== this.client) {
+      this.read = false;
+      this.mode = undefined;
+    }
     this.client = client;
     const current = () =>
       this.deps.active() && sequence === this.sequence && client === this.client;
@@ -45,6 +49,7 @@ export class ShopAvailabilityRead {
       return false;
     }
     this.read = true;
+    this.mode = status.override;
     this.state = 'ready';
     this.deps.apply(status, current);
     this.deps.changed();
@@ -56,6 +61,10 @@ export class ShopAvailabilityRead {
       this.state = 'failed';
       this.deps.changed();
     }
+  }
+
+  currentMode(): ShopStatus['override'] | undefined {
+    return this.state === 'ready' ? this.mode : undefined;
   }
 
   view(): ShopAvailabilityView {

@@ -8,6 +8,7 @@ import { isLiveMode } from '@/lib/config/app-mode';
 import { s } from '@/lib/css';
 import { AppFrame } from '@/components/shell/app-frame';
 import { CustomerMenuReadNotice } from './customer-menu-read-notice';
+import { ShopOverrideNotice, CloseOrderingControls } from './shop-override-notice';
 import { Sheet } from '@/components/ui/sheet';
 import { LiveFormHost } from './live-form-host';
 import { HomeScreen } from '@/components/screens/home';
@@ -226,6 +227,7 @@ function PageForm({ v, page }: { v: OpsVals; page: NonNullable<ReturnType<typeof
   return (
     <div ref={heading} className={styles.page}>
       {page.ownTitle ? null : <PageTitle title={page.title} subtitle={page.subtitle} />}
+      {v.sheet?.isDropState ? <ShopOverrideNotice value={v.liveShopOverride} /> : null}
       {page.body ? <page.body v={v} /> : <LiveFormHost v={v} />}
     </div>
   );
@@ -236,6 +238,14 @@ function WorkspaceOverlays({ v }: { v: OpsVals }) {
   if (!v.sheet && !v.quickOpen) return null;
   const pageForm = pageFormOf(v);
   if (pageForm && !v.quickOpen) return null;
+  if (v.sheet?.isCloseDrop && !v.quickOpen) {
+    return (
+      <Sheet className={theme.theme} title={String(v.sheet.title)} onClose={v.closeSheet}>
+        <ShopOverrideNotice value={v.liveShopOverride} />
+        <CloseOrderingControls v={v} />
+      </Sheet>
+    );
+  }
   if (usesLiveModal(v) && v.sheet) {
     return (
       <Sheet
