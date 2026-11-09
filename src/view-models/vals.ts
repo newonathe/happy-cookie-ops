@@ -9,6 +9,7 @@ import type { LiveCustomers } from '@/store/customer-desk';
 import type { LiveMake } from '@/store/make-desk';
 import type { ShopMenuReadView } from '@/store/shop-menu-read';
 import type { ShopAvailabilityView } from '@/store/shop-availability-read';
+import type { ShopOverrideView } from '@/store/shop-override-writes';
 import type { MoneyEntryView } from '@/store/money-entry';
 import type * as React from 'react';
 import type { ScreenKey } from '@/lib/screens';
@@ -481,6 +482,7 @@ export interface OpsVals {
    */
   liveShopMenuRead?: ShopMenuReadView | null;
   liveShopAvailability?: ShopAvailabilityView | null;
+  liveShopOverride?: ShopOverrideView | null;
   shopFooter?: { badge: string; tin: string; invoice: string; allergens: string };
   /** Live mode only (B2): the owner's own shop name, for the privacy line; '' means "this shop". */
   shopName?: string;

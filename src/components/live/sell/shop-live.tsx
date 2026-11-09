@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { PageTitle, Panel, SectionHeading, TaskRow } from '@/components/ui/owner-kit';
 import { OpenRow } from '@/components/ui/owner-patterns';
 import { SellTabs } from './sell-shared';
+import { ShopOverrideNotice } from '@/components/live/shop-override-notice';
 
 type Entry = NonNullable<NonNullable<OpsVals['liveScreen']>['tabs']>['entries'][number];
 
@@ -51,6 +52,7 @@ function ScheduleAndDrop({ v, onBack }: { v: OpsVals; onBack: () => void }) {
   return (
     <div className="w-full">
       <PageTitle title="Opening schedule & drop" subtitle={String(drop2.scheduleLine)} />
+      {!v.sheet?.isCloseDrop ? <ShopOverrideNotice value={v.liveShopOverride} /> : null}
       <Panel tone="hero">
         <span className="flex flex-wrap items-baseline gap-2">
           <span className="text-[17px] font-semibold text-ink">{drop2.no}</span>
@@ -181,6 +183,7 @@ export function ShopLive({ v }: { v: OpsVals }) {
     <div className="w-full">
       <PageTitle title="Shop" subtitle="Your customer-facing shop settings." />
       <SellTabs v={v} />
+      {!v.sheet?.isCloseDrop ? <ShopOverrideNotice value={v.liveShopOverride} /> : null}
       <Panel>
         {status ? (
           <OpenRow title={status.label} detail={v.drop2.stateText} onOpen={status.go} />

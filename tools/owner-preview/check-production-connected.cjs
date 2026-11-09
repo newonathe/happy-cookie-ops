@@ -309,6 +309,7 @@ fs.mkdirSync(out, { recursive: true });
   await require('./connected-shop-overrides.cjs').run({page,width,out,assert});
   assert(!attempts.some(a=>a.name==='record_production'),'A new action attempted the retired production writer');
   await page.screenshot({ path: `${out}/saved-${width}.png`, fullPage: true });
+  assert(errors.length===0,'Connected browser page errors: '+errors.join('; '));
   console.log(JSON.stringify({ width, realRpc: true, firstRecipe: true, recipeEdited: true, shoppingHandoff: true, recipeHandoff: true, definiteRefusals: ['ZD001','ZD002'], exactReloadRetry: true, dough: facts.dough, good: facts.baked, rejects: 2, errors }));
  } catch(error) { const debug=await page.evaluate(async()=>{
  const r=window.__hcOps,book='d079b000-0000-4000-8000-000000000001';

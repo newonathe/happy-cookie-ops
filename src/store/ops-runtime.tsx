@@ -3306,6 +3306,8 @@ export class OpsRuntime extends OpsProvider {
         : null;
     const facts = this.liveFacts(starved);
     const productEditor = this.state.sheet as FlavourSheetState | null;
+    const statusSheet = this.state.sheet as { kind?: string } | null;
+    const closeStatus = statusSheet?.kind === 'dropState' || statusSheet?.kind === 'closeDrop';
     const closeProductEditor =
       this.state.role === 'owner' &&
       productEditor?.kind === 'flavours' &&
@@ -3314,6 +3316,13 @@ export class OpsRuntime extends OpsProvider {
       ...starved,
       ...facts,
       ...(closeProductEditor ? { closeSheet: () => this.cancelFlavourEditor(productEditor) } : {}),
+      ...(closeStatus
+        ? {
+            closeSheet: this.shopOverrideAction(() => {
+              if (this.state.sheet === statusSheet) this.closeSheet();
+            })
+          }
+        : {}),
       bareFrame: true,
       showFlowStrip: false,
       flow: null,
@@ -3502,6 +3511,8 @@ export class OpsRuntime extends OpsProvider {
       shopFooter: this.shopFooterVals(),
       liveShopMenuRead: this.onCustomerScreen() && !this.flavourSync ? this.shopMenu.view() : null,
       liveShopAvailability: this.onCustomerScreen() ? this.shopAvailability.view() : null,
+      liveShopOverride:
+        this.state.role === 'owner' && !this.gateNarrow ? this.shopOverrideWrites.view() : null,
       dropStates: this.shopOverrideChoices(starved.dropStates),
       dropStateOptions: this.shopOverrideChoices(starved.dropStateOptions),
       closeDropRollover: this.shopOverrideAction(starved.closeDropRollover),
@@ -3718,6 +3729,11 @@ export class OpsRuntime extends OpsProvider {
 
   private shopOverrideWrites = new ShopOverrideWrites({
     retireReads: () => this.shopAvailability.retirePending(),
+    online: () =>
+      Boolean(this.state.online) && (typeof navigator === 'undefined' || navigator.onLine),
+    changed: () => this.forceUpdate(),
+    check: async (client) =>
+      (await this.loadShopStatus(client)) ? this.shopAvailability.currentMode() : undefined,
     refresh: (client) => {
       void this.loadShopStatus(client);
     }
@@ -3732,6 +3748,10 @@ export class OpsRuntime extends OpsProvider {
       client = owner.client,
       drop = this.state.dropNo;
     if (!client || !this.state.online || (typeof navigator !== 'undefined' && !navigator.onLine)) {
+      this.shopOverrideWrites.notSent(client, mode, {
+        owner: owner.current,
+        action: () => owner.current() && drop === this.state.dropNo
+      });
       this.toast(STAFF_COPY.offline, 'warn');
       return false;
     }

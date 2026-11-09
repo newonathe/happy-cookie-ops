@@ -589,4 +589,144 @@ describe('owner opening-write isolation', () => {
       1
     );
   });
+  it('shows a pending mode before its acknowledgement', async () => {
+    const f = heldSave(),
+      r = await mounted('owner', fake(), false);
+    await act(async () => {
+      await r.loadShopStatus(f.client);
+    });
+    act(() => shop(r).closeDropEarly());
+    expect(r.renderVals().liveShopOverride).toMatchObject({
+      phase: 'sending',
+      requested: 'Closed'
+    });
+    expect(r.state.shopOverride).toBe('open');
+    await act(async () => {
+      f.release();
+    });
+    await settle();
+    expect(r.renderVals().liveShopOverride).toMatchObject({ phase: 'saved', requested: 'Closed' });
+  });
+  it('keeps an unknown mode across navigation and checks current state without resending it', async () => {
+    let current = 'open';
+    const rpc = vi.fn(async (name: string) => {
+      if (name === 'set_shop_override') {
+        current = 'closed';
+        throw TypeError('Committed reply lost');
+      }
+      return { data: status({ override: current }), error: null };
+    });
+    const r = await mounted('owner', fake(), false);
+    await act(async () => {
+      await r.loadShopStatus({ rpc } as unknown as ShopStatusClient);
+    });
+    act(() => shop(r).closeDropEarly());
+    await settle();
+    act(() => {
+      r.go('today');
+      r.go('drops');
+    });
+    expect(r.renderVals().liveShopOverride).toMatchObject({
+      phase: 'unknown',
+      requested: 'Closed',
+      read: 'idle'
+    });
+    await act(async () => {
+      r.renderVals().liveShopOverride!.check();
+    });
+    await settle();
+    expect(r.renderVals().liveShopOverride).toMatchObject({
+      phase: 'unknown',
+      read: 'ready',
+      current: 'Closed'
+    });
+    expect(called(rpc, 'set_shop_override')).toHaveLength(1);
+    const check = r.renderVals().liveShopOverride!.check;
+    act(() => r.setRole('helper'));
+    act(() => r.setRole('owner'));
+    const reads = called(rpc, 'get_shop_status').length;
+    act(() => check());
+    await settle();
+    expect(called(rpc, 'get_shop_status')).toHaveLength(reads);
+    expect(r.renderVals().liveShopOverride).toBeNull();
+  });
+  it('keeps a confirmed save distinct from failed status readback', async () => {
+    let fail = false;
+    const rpc = vi.fn(async (name: string) =>
+      name === 'set_shop_override'
+        ? { data: [], error: null }
+        : fail
+          ? { data: null, error: { code: '503' } }
+          : { data: status({ override: 'open' }), error: null }
+    );
+    const r = await mounted('owner', fake(), false);
+    await act(async () => {
+      await r.loadShopStatus({ rpc } as unknown as ShopStatusClient);
+    });
+    act(() => shop(r).closeDropEarly());
+    await settle();
+    fail = true;
+    await act(async () => {
+      r.renderVals().liveShopOverride!.check();
+    });
+    await settle();
+    expect(r.renderVals().liveShopOverride).toMatchObject({
+      phase: 'saved',
+      read: 'failed',
+      requested: 'Closed'
+    });
+    expect(called(rpc, 'set_shop_override')).toHaveLength(1);
+  });
+  it('retains an offline choice without sending it', async () => {
+    const f = fake(),
+      r = await mounted('owner', f);
+    act(() => {
+      r.setState({ online: false });
+    });
+    act(() => shop(r).closeDropEarly());
+    await settle();
+    expect(r.renderVals().liveShopOverride).toMatchObject({
+      phase: 'unsent',
+      requested: 'Closed',
+      canCheck: false
+    });
+    expect(called(f.rpc, 'set_shop_override')).toEqual([]);
+    act(() => r.renderVals().liveShopOverride!.check());
+    await settle();
+    expect(called(f.rpc, 'get_shop_status')).toEqual([]);
+  });
+  it('does not let an old status Cancel close a newer form', async () => {
+    const r = await mounted('owner', fake());
+    act(() => r.sheet('dropState', {}));
+    const close = r.renderVals().closeSheet;
+    act(() => r.sheet('orderrules', { updatedAt: 'keep-new-form' }));
+    act(() => close());
+    expect(r.state.sheet).toMatchObject({ kind: 'orderrules', updatedAt: 'keep-new-form' });
+  });
+  it('does not replace a newer saved notice with an old refusal', async () => {
+    const releases = new Map<string, (reply: unknown) => void>();
+    const rpc = vi.fn(async (name: string, args?: Record<string, unknown>) =>
+      name === 'set_shop_override'
+        ? new Promise((resolve) => releases.set(String(args?.p_mode), resolve))
+        : { data: status(), error: null }
+    );
+    const r = await mounted('owner', fake(), false);
+    await act(async () => {
+      await r.loadShopStatus({ rpc } as unknown as ShopStatusClient);
+    });
+    act(() => {
+      shop(r).setDropState('closed');
+      shop(r).setDropState('open');
+    });
+    await act(async () => {
+      releases.get('open')!({ data: [], error: null });
+    });
+    await settle();
+    await act(async () => {
+      releases.get('closed')!({ data: null, error: { code: '42501' } });
+    });
+    await settle();
+    expect(r.renderVals().liveShopOverride).toMatchObject({ phase: 'saved', requested: 'Open' });
+    expect(toasts(r)).not.toContain('could not be saved');
+  });
 });
