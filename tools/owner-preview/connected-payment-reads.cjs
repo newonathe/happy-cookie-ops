@@ -43,6 +43,22 @@ exports.run=async({page:owner,context,origin,anon,nonce,width,out,assert})=>{
   assert(await customer.evaluate(()=>window.paymentReads===window.paymentReadsBeforeOffline&&window.paymentWrites===0&&window.__hcOps.renderVals().liveCheckout.fields.name==='Keep my checkout name'),'Payment recovery wrote, read offline, or lost checkout fields');await shot('offline');
   await customer.evaluate(()=>window.__hcOps.loadShopPayment(null));
   assert(await customer.evaluate(()=>window.__hcOps.renderVals().cust.methods.length===0&&!window.__hcOps.renderVals().cust.qr),'Removed source retained payment instructions');
+  await customer.evaluate(async({origin,anon})=>{
+   const {createClient}=await import('/connected-client.ts'),nativeFetch=window.fetch.bind(window);window.checkoutReadWrites=0;
+   const make=()=>createClient(origin,anon,{accessToken:async()=>anon,auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false},global:{fetch:(input,init)=>{
+    const url=new URL(typeof input==='string'?input:input.url);url.pathname=url.pathname.replace(/^\/rest\/v1/,'');
+    if(url.origin!==origin||!['/rpc/get_shop_order_rules','/rpc/get_shop_extras'].includes(url.pathname)||init?.method!=='POST'){window.checkoutReadWrites++;throw Error('Unexpected checkout read request');}return nativeFetch(url,init);
+   }}});
+   window.checkoutA=make();window.checkoutB=make();window.__hcOps.setState({online:true});await window.__hcOps.loadShopOrders(window.checkoutA);
+   window.oldCheckoutView=window.__hcOps.renderVals().liveCheckout;window.oldCheckoutSubmit=window.__hcOps.renderVals().cust.submit;await window.__hcOps.loadShopOrders(window.checkoutB);
+  },{origin,anon});
+  await customer.waitForFunction(()=>window.__hcOps.renderVals().liveCheckout.fields.name==='');await shot('checkout-source-empty');
+  await customer.evaluate(()=>window.__hcOps.loadShopOrders(window.checkoutA));
+  await customer.waitForFunction(()=>window.__hcOps.renderVals().liveCheckout.fields.name==='Keep my checkout name');
+  await customer.evaluate(()=>{window.oldCheckoutView.set('name','Retired checkout edit');window.oldCheckoutView.submit();window.oldCheckoutSubmit();});
+  assert(await customer.evaluate(()=>window.__hcOps.renderVals().liveCheckout.fields.name==='Keep my checkout name'&&window.checkoutReadWrites===0),'Retired checkout callbacks changed fields or attempted a write');await shot('checkout-source-restored');
+  await customer.evaluate(()=>window.__hcOps.loadShopOrders(null));await customer.waitForFunction(()=>window.__hcOps.renderVals().liveCheckout.rulesState==='failed');
+  assert(await customer.evaluate(()=>window.__hcOps.renderVals().liveCheckout.dates.length===0&&window.checkoutReadWrites===0),'Retired checkout source retained dates or wrote');console.log(JSON.stringify({width,checkoutSources:true,fieldsRestored:true,retiredCallbacksBlocked:true,noOrderWrites:true}));
   assert(!errors.length,'Public payment browser errors: '+errors.join('; '));console.log(JSON.stringify({width,anonymousPaymentRecovery:true,lateAnswerRejected:true,noRecoveryWrites:true,offlineDisabled:true,fieldsRetained:true,removedSourceCleared:true}));
  }finally{await customer.close();if(stamp)await save('222',false);}
 };

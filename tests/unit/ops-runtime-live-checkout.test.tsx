@@ -112,6 +112,11 @@ async function mounted(handlers: Handlers = {}, screen: ScreenKey = 'checkout') 
   return { runtime, ...fake };
 }
 
+const switchCheckoutSource = (runtime: OpsRuntime, client: OrderClient | null) =>
+  act(async () => {
+    await runtime.loadShopOrders(client);
+  });
+
 const custSet = (runtime: OpsRuntime, key: string, value: string) =>
   act(() =>
     (runtime as unknown as { custSet: (k: string, v: string) => void }).custSet(key, value)
@@ -207,6 +212,158 @@ describe('B2: the live checkout', () => {
     ).toMatch(/still need filling in/);
     expect(fake.rpc).not.toHaveBeenCalled();
     // Mutation: applying the live overrides outside the live-mode branch of the constructor breaks this.
+  });
+
+  it('uses the replacement checkout source instead of sending its reads to the first client', async () => {
+    const { runtime } = await mounted();
+    const replacement = fakeClient({
+      get_shop_order_rules: () => ({ data: { ...RULES, pickup_days: [3] }, error: null })
+    });
+    await switchCheckoutSource(runtime, replacement.client);
+    expect(replacement.calls.some((call) => call.name === 'get_shop_order_rules')).toBe(true);
+    expect(
+      runtime
+        .renderVals()
+        .liveCheckout!.dates.every((date) => new Date(date.value + 'T00:00:00Z').getUTCDay() === 3)
+    ).toBe(true);
+  });
+
+  it('retires checkout dates when its source is removed without sending an order', async () => {
+    const { runtime, calls } = await mounted();
+    await fillForm(runtime);
+    await switchCheckoutSource(runtime, null);
+    expect(runtime.renderVals().liveCheckout!.rulesState).toBe('failed');
+    expect(runtime.renderVals().liveCheckout!.dates).toEqual([]);
+    await submit(runtime);
+    expect(placeCalls(calls)).toEqual([]);
+  });
+
+  it('keeps an uncertain checkout request with its original client across a temporary source replacement', async () => {
+    let attempts = 0;
+    const first = await mounted({
+      place_order: () =>
+        ++attempts === 1
+          ? new TypeError('Lost reply')
+          : { data: [{ ...PLACED, replayed: true }], error: null }
+    });
+    await fillForm(first.runtime);
+    await submit(first.runtime);
+    const original = placeCalls(first.calls)[0];
+    expect(first.runtime.renderVals().liveCheckout!.frozen).toBe(true);
+    const other = fakeClient();
+    await switchCheckoutSource(first.runtime, other.client);
+    expect(first.runtime.renderVals().liveCheckout!.frozen).toBe(false);
+    expect(first.runtime.renderVals().liveCheckout!.fields.name).toBe('');
+    await switchCheckoutSource(first.runtime, first.client);
+    expect(first.runtime.renderVals().liveCheckout!.frozen).toBe(true);
+    expect(first.runtime.renderVals().liveCheckout!.fields.name).toBe('Ana');
+    await submit(first.runtime);
+    expect(placeCalls(first.calls)[1]).toEqual(original);
+    expect(placeCalls(other.calls)).toEqual([]);
+  });
+
+  it('rejects a retired checkout edit and submit after source A to B to A', async () => {
+    const first = await mounted();
+    await fillForm(first.runtime);
+    const retired = first.runtime.renderVals().liveCheckout!,
+      entry = first.runtime.renderVals();
+    await switchCheckoutSource(first.runtime, fakeClient().client);
+    await switchCheckoutSource(first.runtime, first.client);
+    act(() => retired.set('name', 'Retired edit'));
+    expect(first.runtime.renderVals().liveCheckout!.fields.name).toBe('Ana');
+    await act(async () => {
+      retired.submit();
+    });
+    expect(placeCalls(first.calls)).toEqual([]);
+    act(() => {
+      entry.openLookup();
+      entry.openWaitlist!();
+    });
+    expect(first.runtime.renderVals().sheet).toBeNull();
+  });
+
+  it('does not let an old Change order callback discard a restored uncertain request', async () => {
+    const first = await mounted({ place_order: () => new TypeError('Lost reply') });
+    await fillForm(first.runtime);
+    await submit(first.runtime);
+    const retired = first.runtime.renderVals().liveCheckout!;
+    await switchCheckoutSource(first.runtime, fakeClient().client);
+    await switchCheckoutSource(first.runtime, first.client);
+    act(() => retired.changeOrder());
+    expect(first.runtime.renderVals().liveCheckout!.frozen).toBe(true);
+    expect(placeCalls(first.calls)).toHaveLength(1);
+  });
+
+  it('keeps an acknowledged order in its originating source while another checkout is visible', async () => {
+    let release!: (reply: Reply) => void;
+    const first = await mounted({
+      place_order: () =>
+        new Promise((resolve) => {
+          release = resolve;
+        })
+    });
+    await fillForm(first.runtime);
+    await submit(first.runtime);
+    const other = fakeClient();
+    await switchCheckoutSource(first.runtime, other.client);
+    await act(async () => {
+      release({ data: [PLACED], error: null });
+    });
+    expect(first.runtime.renderVals().liveCheckout!.placed).toBeNull();
+    expect(first.runtime.renderVals().liveCheckout!.fields.name).toBe('');
+    await switchCheckoutSource(first.runtime, first.client);
+    expect(first.runtime.renderVals().liveCheckout!.placed?.orderNo).toBe(PLACED.order_no);
+    expect(placeCalls(first.calls)).toHaveLength(1);
+    expect(placeCalls(other.calls)).toEqual([]);
+  });
+
+  it('does not assign old fields to a source switched before React applies its empty checkout', async () => {
+    const first = await mounted();
+    await fillForm(first.runtime);
+    const other = fakeClient();
+    await act(async () => {
+      const one = first.runtime.loadShopOrders(other.client);
+      const two = first.runtime.loadShopOrders(first.client);
+      await Promise.all([one, two]);
+    });
+    expect(first.runtime.renderVals().liveCheckout!.fields.name).toBe('Ana');
+    await switchCheckoutSource(first.runtime, other.client);
+    expect(first.runtime.renderVals().liveCheckout!.fields.name).toBe('');
+    expect(first.runtime.renderVals().liveCheckout!.fields.mobile).toBe('');
+  });
+
+  it('does not navigate a replacement checkout when an old lookup succeeds late', async () => {
+    let release!: (reply: Reply) => void;
+    const first = await mounted(
+      {
+        find_order: () =>
+          new Promise((resolve) => {
+            release = resolve;
+          })
+      },
+      'lookup'
+    );
+    act(() => first.runtime.renderVals().liveLookup!.run('HC-1001', '0917 123 4567'));
+    const other = fakeClient();
+    await switchCheckoutSource(first.runtime, other.client);
+    act(() => first.runtime.setState({ screen: 'checkout' }));
+    await act(async () => {
+      release({ data: TOKEN, error: null });
+    });
+    await flush();
+    expect(first.runtime.state.screen).toBe('checkout');
+    expect(other.calls.some((call) => call.name === 'order_status')).toBe(false);
+  });
+
+  it('retires a customer sheet and its old Cancel when its checkout source changes', async () => {
+    const first = await mounted();
+    act(() => first.runtime.renderVals().openWaitlist!());
+    const retired = first.runtime.renderVals().liveWaitlist!;
+    await switchCheckoutSource(first.runtime, fakeClient().client);
+    expect(first.runtime.renderVals().liveWaitlist).toBeNull();
+    act(() => first.runtime.renderVals().openWaitlist!());
+    act(() => retired.close());
+    expect(first.runtime.renderVals().liveWaitlist).not.toBeNull();
   });
 
   it('offers only the owner’s pickup dates and times from the database', async () => {
