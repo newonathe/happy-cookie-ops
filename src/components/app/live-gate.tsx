@@ -33,6 +33,7 @@ import { registerLiveRecipeScreens } from '@/components/live/recipes/register';
 import { registerLiveMoneyScreens } from '@/components/live/money/register';
 import { registerLiveHomeScreens } from '@/components/live/home/register';
 import { registerLiveSellScreens } from '@/components/live/sell/register';
+import { registerLiveCustomerScreens } from '@/components/live/customer/register';
 import { registerLiveAccountScreens } from '@/components/live/account/register';
 import { OfflineHold } from './offline-hold';
 import { SignOutControl } from './sign-out-control';
@@ -50,6 +51,7 @@ registerLiveHomeScreens();
 // The live Sell pages take `orders`, `order`, `reconcile` and `drops`; Account takes `settings`, `health` and `notifications`.
 registerLiveSellScreens();
 registerLiveAccountScreens();
+registerLiveCustomerScreens();
 
 /** How long one identity check may take before the gate treats the server as unreachable. */
 export const CHECK_TIMEOUT_MS = 8_000;
