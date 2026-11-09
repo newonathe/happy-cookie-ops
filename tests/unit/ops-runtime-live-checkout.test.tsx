@@ -9,6 +9,7 @@ import { OpsRuntime } from '@/store/ops-runtime';
 import { CheckoutScreen } from '@/components/screens/checkout';
 import { OrderStatusScreen } from '@/components/screens/order-status';
 import { LiveFormHost } from '@/components/live/live-form-host';
+import { LiveOrderRoute } from '@/components/app/live-order-route';
 import { FindMyOrderScreen } from '@/components/screens/find-my-order';
 import { LiveShopFooter } from '@/components/live/live-shop-footer';
 import { PAY_ACCOUNTS, replacePayAccounts } from '@/store/engine/ops-engine';
@@ -970,6 +971,91 @@ describe('B2: the status page', () => {
       ).orderFlow.loadStatus(TOKEN);
     });
     expect(broken.runtime.renderVals().cust.heroTitle).toBe('We could not load your order');
+  });
+
+  it('shares the real status-link synchronizer with the local preview', async () => {
+    const ref: { current: OpsRuntime | null } = { current: null };
+    render(
+      <OpsRuntime ref={(r) => void (ref.current = r)}>
+        <LiveOrderRoute />
+      </OpsRuntime>
+    );
+    const runtime = ref.current!,
+      fake = fakeClient();
+    await act(async () => runtime.loadShopOrders(fake.client));
+    act(() => runtime.go('status'));
+    await act(async () =>
+      (
+        runtime as unknown as { orderFlow: { loadStatus: (t: string) => Promise<void> } }
+      ).orderFlow.loadStatus(TOKEN)
+    );
+    await flush();
+    expect(window.location.hash).toBe('#t=' + TOKEN);
+    expect(fake.calls.filter((c) => c.name === 'order_status')).toHaveLength(1);
+    expect(runtime.renderVals().liveStatusRead!.state).toBe('loaded');
+  });
+
+  it('retries only the current private read, blocks repeated taps, and labels retained data', async () => {
+    let response: Reply | Promise<Reply> = { data: null, error: { code: '57014' } };
+    let release: (r: Reply) => void = () => undefined;
+    const { runtime, calls } = await mounted({ order_status: () => response }, 'status');
+    window.history.replaceState(null, '', '/status#t=' + TOKEN);
+    await act(async () => runtime.syncStatusRoute());
+    await flush();
+    const retry = runtime.renderVals().liveStatusRead!.retry;
+    expect(runtime.renderVals().liveStatusRead).toMatchObject({ state: 'error', stale: false });
+    response = new Promise<Reply>((resolve) => (release = resolve));
+    act(() => {
+      retry();
+      retry();
+    });
+    expect(runtime.renderVals().liveStatusRead!.state).toBe('loading');
+    expect(calls.filter((c) => c.name === 'order_status')).toHaveLength(2);
+    await act(async () => release({ data: STATUS, error: null }));
+    expect(runtime.renderVals().cust.orderNo).toBe('HC-1001');
+    response = { data: null, error: { code: '57014' } };
+    await act(async () => runtime.renderVals().liveStatusRead!.retry());
+    await flush();
+    expect(runtime.renderVals().cust.orderNo).toBe('HC-1001');
+    expect(runtime.renderVals().liveStatusRead).toMatchObject({ state: 'error', stale: true });
+    response = { data: null, error: null };
+    await act(async () => runtime.renderVals().liveStatusRead!.retry());
+    await flush();
+    expect(runtime.renderVals().cust.orderNo).toBe('—');
+    expect(runtime.renderVals().liveStatusRead).toMatchObject({ state: 'missing', stale: false });
+    expect(calls.filter((c) => c.name === 'order_status').map((c) => c.args.p_token)).toEqual([
+      TOKEN,
+      TOKEN,
+      TOKEN,
+      TOKEN
+    ]);
+    expect(calls.some((c) => /place_order|staff_|record_/.test(c.name))).toBe(false);
+  });
+
+  it('retires cached status Retry after navigation, changed links and client round trips', async () => {
+    const { runtime, client, calls } = await mounted({}, 'status');
+    window.history.replaceState(null, '', '/status#t=' + TOKEN);
+    await act(async () => runtime.syncStatusRoute());
+    await flush();
+    const retry = runtime.renderVals().liveStatusRead!.retry;
+    const count = calls.length;
+    act(() => runtime.go('shop'));
+    act(() => runtime.go('status'));
+    act(retry);
+    expect(calls).toHaveLength(count);
+    const another = runtime.renderVals().liveStatusRead!.retry;
+    window.history.replaceState(null, '', '/status');
+    act(another);
+    expect(calls).toHaveLength(count);
+    window.history.replaceState(null, '', '/status#t=' + 'e'.repeat(64));
+    act(another);
+    expect(calls).toHaveLength(count);
+    window.history.replaceState(null, '', '/status#t=' + TOKEN);
+    const beforeSwitch = runtime.renderVals().liveStatusRead!.retry;
+    await switchCheckoutSource(runtime, fakeClient().client);
+    await switchCheckoutSource(runtime, client);
+    act(beforeSwitch);
+    expect(calls.filter((c) => c.name === 'order_status')).toHaveLength(1);
   });
 
   it('adopts the status link from the URL fragment on a direct load, and validates it', async () => {

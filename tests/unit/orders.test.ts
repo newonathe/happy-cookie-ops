@@ -304,6 +304,13 @@ describe('the status page', () => {
     ).rejects.toThrow();
   });
 
+  it.each([{}, [], { ...base, state: 'Bogus' }].map((data) => ({ data })))(
+    'treats malformed status answers as failed reads, not missing orders: %j',
+    async ({ data }) => {
+      await expect(fetchOrderStatus(client({ data, error: null }).c, TOKEN)).rejects.toThrow();
+    }
+  );
+
   it('reads the token from the URL fragment only when it is exactly 64 lowercase hex', () => {
     expect(tokenFromHash('#t=' + TOKEN)).toBe(TOKEN);
     expect(tokenFromHash('#t=' + TOKEN + 'a')).toBeNull();

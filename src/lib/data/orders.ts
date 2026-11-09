@@ -288,7 +288,7 @@ const STATES = [
   'No-show'
 ];
 
-/** Strict: a malformed answer is treated as no order, never as a half-shown one. */
+/** Strict parser: a malformed answer is never half-shown. The RPC reader distinguishes failure from absence. */
 export function parseOrderStatus(json: unknown): OrderStatusView | null {
   if (!json || typeof json !== 'object' || Array.isArray(json)) return null;
   const o = json as Record<string, unknown>;
@@ -346,7 +346,10 @@ export async function fetchOrderStatus(
   if (!STATUS_TOKEN.test(token)) return null;
   const { data, error } = await client.rpc('order_status', { p_token: token });
   if (error) throw new Error('order status load failed: ' + (error.code || error.message));
-  return parseOrderStatus(data);
+  if (data === null) return null;
+  const parsed = parseOrderStatus(data);
+  if (!parsed) throw new Error('order status answer is malformed');
+  return parsed;
 }
 
 /** The status token in a URL fragment (`#t=…`); null unless it is exactly 64 lowercase hex. */

@@ -24,6 +24,7 @@ exports.run=async({page:owner,context,origin,anon,nonce,width,out,assert})=>{
     }
     if(name==='order_status')window.customerStatusReads++;
     const answer=await nativeFetch(url,init);
+    if(name==='order_status'&&window.failNextCustomerStatusRead){window.failNextCustomerStatusRead=false;await answer.clone().json();throw TypeError('Lost real local status read');}
     if(name==='find_order'&&window.holdCustomerLookup){window.lookupTokenMatches=answer.ok&&(await answer.clone().json())===window.expectedLookupToken;window.holdCustomerLookup=false;await new Promise(resolve=>{window.releaseCustomerLookup=resolve;});}
     if(name==='place_order'&&answer.ok&&window.loseCustomerOrderReply){await answer.clone().json();window.loseCustomerOrderReply=false;throw TypeError('Lost real committed local order reply');}
     return answer;
@@ -85,6 +86,26 @@ exports.run=async({page:owner,context,origin,anon,nonce,width,out,assert})=>{
   },origin);
   assert(retired.screen==='shop'&&retired.reads===retired.before.reads&&retired.token===retired.before.token&&requests.length===2,'Retired lookup published data, navigated, forwarded a private read or wrote');
   await shot('lookup-retired');
-  console.log(JSON.stringify({width,actualOrderRecovery:true,lostCommittedAck:true,reloadNeverSends:true,exactRetry:true,lookupRetirement:true,orders:1,payState:'unpaid',responsiveWidths:[320,390,768,1024,1440,1920,2560]}));
+  await customer.evaluate(()=>{window.failNextCustomerStatusRead=true;});
+  await customer.getByRole('button',{name:'Find my order',exact:true}).click();
+  await customer.getByLabel('Order number',{exact:true}).fill(receipt.orderNo);
+  await customer.getByLabel('Mobile number',{exact:true}).fill('09123450123');
+  await customer.getByRole('button',{name:'Find it',exact:true}).click();
+  await customer.getByRole('button',{name:'Retry order status',exact:true}).waitFor();
+  assert(await customer.evaluate(()=>window.__hcOps.state.screen==='status'&&!window.__hcOps.renderVals().liveStatusRead.stale),'Initial status failure claimed retained data');
+  await shot('status-failed');
+  await customer.getByRole('button',{name:'Retry order status',exact:true}).click();
+  await customer.waitForFunction(()=>window.__hcOps.renderVals().liveStatusRead?.state==='loaded');
+  assert(await customer.evaluate(orderNo=>window.__hcOps.renderVals().cust.orderNo===orderNo,receipt.orderNo),'Status Retry changed the private order');
+  await customer.evaluate(()=>{window.failNextCustomerStatusRead=true;window.__hcOps.renderVals().liveStatusRead.retry();});
+  await customer.getByRole('button',{name:'Retry order status',exact:true}).waitFor();
+  assert(await customer.evaluate(orderNo=>{const v=window.__hcOps.renderVals();return v.cust.orderNo===orderNo&&v.liveStatusRead.stale;},receipt.orderNo),'Failed refresh lost or mislabeled last-good status');
+  assert(await customer.getByRole('status').filter({hasText:'Showing the last successful read'}).count()===1,'Retained status has no freshness warning');
+  await shot('status-stale');
+  await customer.getByRole('button',{name:'Retry order status',exact:true}).click();
+  await customer.waitForFunction(()=>window.__hcOps.renderVals().liveStatusRead?.state==='loaded');
+  assert(requests.length===2,'A status Retry wrote an order');
+  await shot('status-recovered');
+  console.log(JSON.stringify({width,actualOrderRecovery:true,lostCommittedAck:true,reloadNeverSends:true,exactRetry:true,lookupRetirement:true,statusReadRecovery:true,orders:1,payState:'unpaid',responsiveWidths:[320,390,768,1024,1440,1920,2560]}));
  }finally{await customer.close();if(stamp)await payment(false);await set(initial.data.override??null);}
 };

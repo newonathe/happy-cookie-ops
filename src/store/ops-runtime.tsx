@@ -3558,6 +3558,7 @@ export class OpsRuntime extends OpsProvider {
       // S2: the ported start list is never offered in live mode: a day is started from the Bazaar page (`liveBazaar`).
       events: [] as OpsVals['events'],
       cust: this.liveStatusCust(this.livePayCust(starved.cust)),
+      liveStatusRead: this.liveStatusReadVals(),
       openLookup: () => {
         if (customerAction()) this.openLookupSheet();
       },
@@ -10455,6 +10456,33 @@ export class OpsRuntime extends OpsProvider {
         // An unsettled entry stays frozen, so opening the form again resends it under the same id.
         if (flow && flow.waitlistState !== 'unknown') flow.resetWaitlist();
         this.closeSheet();
+      }
+    };
+  }
+
+  private liveStatusReadVals(): OpsVals['liveStatusRead'] {
+    if (this.state.screen !== 'status' || !this.orderFlow) return null;
+    const flow = this.orderFlow,
+      token = flow.statusToken,
+      current = this.customerActionScope();
+    const online = () =>
+      this.state.online && (typeof navigator === 'undefined' || navigator.onLine);
+    return {
+      state: flow.statusState,
+      stale: !!flow.status && flow.statusState !== 'loaded',
+      online: online(),
+      retry: () => {
+        if (
+          !current() ||
+          !token ||
+          flow.statusToken !== token ||
+          !online() ||
+          flow.statusState === 'loading'
+        )
+          return;
+        const hash = typeof window === 'undefined' ? '' : window.location.hash;
+        if (tokenFromHash(hash) !== token) return;
+        void flow.loadStatus(token);
       }
     };
   }
