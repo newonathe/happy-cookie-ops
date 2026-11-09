@@ -110,3 +110,8 @@ on the 4186 preview with synthetic data; it is not hosted, device or owner accep
 - Realistic linked records in the 4186 preview for every section (see the owner references).
 - Independent review of each money, offline, auth or SQL slice before it is committed.
 - Hosted: migration 71, deploy, and the demo data all wait on Ethan's approval.
+
+The customer-row approval note above is historical: [full-goal.md](../../state/full-goal.md)
+authorizes neutral live replacements beside the protected screens. They remain pending.
+Public menu/opening recovery is locally verified; payment-read recovery is the current
+F09 slice. Connected customer checkout/status acceptance remains open.

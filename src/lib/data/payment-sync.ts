@@ -27,6 +27,8 @@ export interface PaymentHooks {
   /** Something the screen shows changed; render again. */
   changed: () => void;
   toast: (message: string, tone?: 'warn') => void;
+  /** This controller still belongs to the current runtime/source binding. */
+  current?: () => boolean;
 }
 
 export const PAYMENT_TOASTS = {
@@ -53,6 +55,8 @@ export interface PaymentSyncOptions {
  * never the ported demo accounts. The owner's list, saves and uploads go through the same object.
  */
 export class PaymentSync {
+  publicState: 'loading' | 'ready' | 'failed' = 'loading';
+  private publicSeq = 0;
   /** Null until the public read has finished (or failed, which leaves it empty, not stale). */
   info: ShopPaymentInfo | null = null;
   rows: PaymentMethodRow[] = [];
@@ -64,6 +68,10 @@ export class PaymentSync {
   ) {}
 
   async loadPublic(): Promise<boolean> {
+    if (this.hooks.current?.() === false) return false;
+    const sequence = ++this.publicSeq;
+    this.publicState = 'loading';
+    this.hooks.changed();
     let info: ShopPaymentInfo;
     let ok = true;
     try {
@@ -72,6 +80,8 @@ export class PaymentSync {
       ok = false;
       info = { methods: [], texts: { ...EMPTY_TEXTS }, textsUpdatedAt: null };
     }
+    if (sequence !== this.publicSeq || this.hooks.current?.() === false) return false;
+    this.publicState = ok ? 'ready' : 'failed';
     this.info = info;
     this.hooks.apply(engineAccounts(info.methods));
     this.hooks.changed();

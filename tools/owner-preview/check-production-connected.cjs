@@ -306,6 +306,7 @@ fs.mkdirSync(out, { recursive: true });
   await require('./connected-retired-reads.cjs').run({page,context,connect,attempts,bazaarAttempts,width,out,assert});
   await require('./connected-business-clock.cjs').run({page,width,out,assert});
   await require('./connected-shop-menu.cjs').run({page,context,origin,anon,nonce,width,out,assert});
+  await require('./connected-payment-reads.cjs').run({page,context,origin,anon,nonce,width,out,assert});
   await require('./connected-shop-overrides.cjs').run({page,width,out,assert});
   assert(!attempts.some(a=>a.name==='record_production'),'A new action attempted the retired production writer');
   await page.screenshot({ path: `${out}/saved-${width}.png`, fullPage: true });

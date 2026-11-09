@@ -344,10 +344,28 @@ export function LiveCheckout({ v }: { v: OpsVals }) {
       ) : null}
       <div style={{ ...card, gap: '9px' }}>
         <span style={cardTitle}>Payment</span>
+        {v.livePaymentRead?.state === 'loading' ? (
+          <p role="status">Loading payment methods…</p>
+        ) : null}
+        {v.livePaymentRead?.state === 'failed' ? (
+          <div role="status" className="flex flex-col gap-3 text-sm text-ink">
+            <p>Payment methods could not be read.</p>
+            <button
+              type="button"
+              disabled={!v.livePaymentRead.canRetry}
+              onClick={v.livePaymentRead.retry}
+              style={secondaryButton}
+            >
+              Retry payment methods
+            </button>
+          </div>
+        ) : null}
         <span style={{ fontSize: '13px', color: '#6E574B', lineHeight: '1.5' }}>
           {ORDER_COPY.payHelp}
         </span>
-        {methods.length === 0 ? <span style={errorText}>{ORDER_COPY.noMethods}</span> : null}
+        {methods.length === 0 && (!v.livePaymentRead || v.livePaymentRead.state === 'ready') ? (
+          <span style={errorText}>{ORDER_COPY.noMethods}</span>
+        ) : null}
         {methods.map((m) => (
           <Pressable
             key={String(m.label)}
