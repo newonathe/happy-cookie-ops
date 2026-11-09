@@ -483,6 +483,11 @@ export interface OpsVals {
   liveShopMenuRead?: ShopMenuReadView | null;
   liveShopAvailability?: ShopAvailabilityView | null;
   liveShopOverride?: ShopOverrideView | null;
+  livePaymentRead?: {
+    state: 'loading' | 'ready' | 'failed';
+    canRetry: boolean;
+    retry: () => void;
+  } | null;
   shopFooter?: { badge: string; tin: string; invoice: string; allergens: string };
   /** Live mode only (B2): the owner's own shop name, for the privacy line; '' means "this shop". */
   shopName?: string;

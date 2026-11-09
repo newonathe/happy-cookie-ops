@@ -206,3 +206,12 @@ New acknowledgements clear only their own draft and never run the old ingredient
 until authoritative refresh. Item IDs and shortage causes are retained. No feature dropped; dough-only baking follows.
 Evidence:117 focused tests,8 synthetic CLI browser width/motion flows, independent review, full pinned verification.
 SQL71 is not hosted; connected SQL/browser, device and owner acceptance remain separate.
+
+## Public payment-read recovery (F09, 9 November 2026)
+
+`LiveCheckout` adds local read-only Retry beside payment methods. `PaymentSync` and runtime
+source/sequence guards reject retired accounts; removing a source clears QR/footer claims.
+Checkout fields remain; failure is separate from genuine empty setup and instructions stay
+hidden until checked. Existing owner saves, payment verification and accounting are unchanged.
+Evidence: payments/runtime regressions and actual anonymous390/1440 local SQL/browser checks;
+see current state for the accepted checkpoint. Customer checkout/status completion remains open.

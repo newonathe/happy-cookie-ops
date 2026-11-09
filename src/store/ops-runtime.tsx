@@ -2781,16 +2781,34 @@ export class OpsRuntime extends OpsProvider {
   async loadShopPayment(client: (PaymentClient & UploadClient) | null): Promise<boolean> {
     if (!isLiveMode()) return false;
     if (!client) {
+      this.paymentSync = undefined;
       replacePayAccounts([]);
       this.forceUpdate();
       return false;
     }
-    this.paymentSync = new PaymentSync(client, {
+    const sync: PaymentSync = new PaymentSync(client, {
+      current: () => !this.unmounted && this.paymentSync === sync,
       apply: (accounts) => replacePayAccounts(accounts),
       changed: () => this.forceUpdate(),
       toast: (message, tone) => this.toast(message, tone)
     });
-    return this.paymentSync.loadPublic();
+    this.paymentSync = sync;
+    return sync.loadPublic();
+  }
+
+  private paymentReadVals(): OpsVals['livePaymentRead'] {
+    if (!this.onCustomerScreen()) return null;
+    const sync = this.paymentSync;
+    const current = () => !this.unmounted && this.paymentSync === sync && this.onCustomerScreen();
+    const online = () =>
+      Boolean(this.state.online) && (typeof navigator === 'undefined' || navigator.onLine);
+    return {
+      state: sync?.publicState ?? 'failed',
+      canRetry: !!sync && online() && sync.publicState !== 'loading',
+      retry: () => {
+        if (sync && current() && online() && sync.publicState !== 'loading') void sync.loadPublic();
+      }
+    };
   }
 
   private shopMenu = new ShopMenuRead({
@@ -3506,6 +3524,7 @@ export class OpsRuntime extends OpsProvider {
       openLookup: () => this.openLookupSheet(),
       openWaitlist: () => this.openWaitlist(),
       liveCheckout: this.liveCheckoutVals(),
+      livePaymentRead: this.paymentReadVals(),
       liveLookup: this.liveLookupVals(),
       liveWaitlist: this.liveWaitlistVals(),
       shopFooter: this.shopFooterVals(),
@@ -9936,10 +9955,12 @@ export class OpsRuntime extends OpsProvider {
 
   /** The checkout's methods and QR in live mode: only what the read returned, never the ported accounts. */
   private livePayCust(cust: OpsVals['cust']): OpsVals['cust'] {
-    const info = this.paymentSync?.info;
+    const sync = this.paymentSync;
+    const info = sync?.publicState === 'ready' ? sync.info : null;
     // `noQr` is the ported 'Pick a payment method…' note, which also names a bank number and cash on
     // pickup: a customer must never be told to pay a number the owner did not enter (finding 16).
-    if (!info) return { ...cust, methods: [], qr: '', noQr: false };
+    if (!info)
+      return { ...cust, methods: [], qr: '', noQr: false, priceNote: ORDER_COPY.extras.priceNote };
     const picked = info.methods.find(
       (m) => m.label === (this.state.cust as { pay?: string } | undefined)?.pay
     );

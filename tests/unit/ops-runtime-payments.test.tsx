@@ -100,6 +100,107 @@ describe('MP-09 c2: the live checkout and footer', () => {
     replacePayAccounts(PORTED.map((m) => ({ ...m })));
   });
 
+  it('rejects an older payment source reply after a replacement has loaded', async () => {
+    const { runtime } = await mounted('owner', { info: info() }, false);
+    let release!: (value: { data: Info; error: null }) => void;
+    const old = fakeClient({ info: info() });
+    old.rpc.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          release = resolve;
+        })
+    );
+    let pending!: Promise<boolean>;
+    act(() => {
+      pending = runtime.loadShopPayment(old.client);
+    });
+    const fresh = fakeClient({
+      info: info({
+        methods: [{ id: 'bank', label: 'Current bank', number: '222', name: 'Current', qr: '' }]
+      })
+    });
+    await act(async () => {
+      await runtime.loadShopPayment(fresh.client);
+    });
+    expect(labels(runtime)).toEqual(['Current bank']);
+    await act(async () => {
+      release({ data: info(), error: null });
+      await pending;
+    });
+    expect(labels(runtime)).toEqual(['Current bank']);
+    expect(PAY_ACCOUNTS.map((m) => m.id)).toEqual(['Current bank']);
+  });
+
+  it('removes loaded payment instructions and footer claims when the source is removed', async () => {
+    const { runtime } = await mounted('owner', {
+      info: info({ texts: { tin_line: 'Old registration' } })
+    });
+    custSet(runtime, 'pay', 'GCash');
+    await act(async () => {
+      await runtime.loadShopPayment(null);
+    });
+    expect(labels(runtime)).toEqual([]);
+    expect(runtime.renderVals().cust.qr).toBe('');
+    expect(runtime.renderVals().shopFooter?.tin).toBe('');
+  });
+
+  it('offers read-only payment Retry without losing customer fields and blocks it offline', async () => {
+    const state: { info: Info | 'fail' } = { info: 'fail' };
+    const { runtime, rpc } = await mounted('owner', state);
+    act(() => runtime.setState({ screen: 'checkout' }));
+    custSet(runtime, 'name', 'Keep my name');
+    const view = runtime.renderVals().livePaymentRead!;
+    expect(view.state).toBe('failed');
+    const checkout = render(<CheckoutScreen v={runtime.renderVals()} />);
+    expect(checkout.container.textContent).not.toContain('No payment method is set up yet.');
+    expect(runtime.renderVals().cust.priceNote).not.toContain('no extra packaging charge');
+    expect(
+      checkout.getByRole('button', {
+        name: 'Retry payment methods'
+      })
+    ).toBeTruthy();
+    act(() => runtime.setState({ online: false }));
+    act(() => view.retry());
+    expect(rpc).not.toHaveBeenCalled();
+    state.info = info();
+    act(() => runtime.setState({ online: true }));
+    await act(async () => {
+      view.retry();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    expect(runtime.renderVals().livePaymentRead?.state).toBe('ready');
+    expect(runtime.renderVals().liveCheckout?.fields.name).toBe('Keep my name');
+    expect(rpc.mock.calls.map(([name]) => name)).toEqual(['get_shop_payment_info']);
+  });
+
+  it('retires a cached payment Retry across a source A to B to A replacement', async () => {
+    const { runtime, client, rpc } = await mounted('owner', { info: info() });
+    act(() => runtime.setState({ screen: 'checkout' }));
+    const old = runtime.renderVals().livePaymentRead!;
+    await act(async () => {
+      await runtime.loadShopPayment(fakeClient({ info: info() }).client);
+    });
+    await act(async () => {
+      await runtime.loadShopPayment(client);
+    });
+    rpc.mockClear();
+    act(() => old.retry());
+    expect(rpc).not.toHaveBeenCalled();
+    const current = runtime.renderVals().livePaymentRead!;
+    act(() => runtime.setState({ screen: 'today' }));
+    act(() => current.retry());
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
+  it('reserves the no-methods message for a successfully read empty configuration', async () => {
+    const { runtime } = await mounted('owner', { info: info({ methods: [] }) });
+    act(() => runtime.setState({ screen: 'checkout' }));
+    expect(runtime.renderVals().livePaymentRead?.state).toBe('ready');
+    const checkout = render(<CheckoutScreen v={runtime.renderVals()} />);
+    expect(checkout.container.textContent).toContain('No payment method is set up yet.');
+    expect(checkout.container.textContent).not.toContain('Payment methods could not be read.');
+  });
+
   it('shows no method before the read, and never the ported accounts', async () => {
     const { runtime } = await mounted('owner', { info: info() }, false);
     expect(PAY_ACCOUNTS).toHaveLength(0);
