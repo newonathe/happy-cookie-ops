@@ -31,6 +31,14 @@ describe('fluid customer checkout', () => {
     fireEvent.click(ui.getByRole('button', { name: 'Back to cookies' }));
     expect(v.backToShop).toHaveBeenCalledOnce();
   });
+  it('does not ask for a payment reference before payment and leaves saved reference data intact', () => {
+    const v = fixture();
+    v.liveCheckout!.fields.ref = 'Historical receipt';
+    const ui = render(<CustomerCheckoutLive v={v} />);
+    expect(ui.queryByRole('textbox', { name: /Reference number/ })).toBeNull();
+    expect(v.liveCheckout!.fields.ref).toBe('Historical receipt');
+  });
+
   it('uses the acknowledged server total instead of the current catalogue subtotal after receipt', () => {
     const v = fixture();
     v.liveCheckout!.placed = {

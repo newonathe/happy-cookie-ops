@@ -120,6 +120,24 @@ describe('OrderFlow durable request protocol', () => {
     expect(reloaded.placed?.orderNo).toBe(ack.order_no);
     expect(s.recovery.read().value?.placed?.orderNo).toBe(ack.order_no);
   });
+  it('replays a saved historical reference when the current form supplies none', async () => {
+    const s = setup(() => ({ data: null, error: { message: 'Lost reply' } }));
+    s.flow.restoreRecovery();
+    await s.flow.loadRules();
+    await s.flow.submit({ ...fields, ref: 'Historical receipt' });
+    expect(s.recovery.read().value?.attempt.body.pay_ref).toBe('Historical receipt');
+    const original = writes(s.rpc)[0]?.[1]?.p_order;
+    const restored = new OrderFlow(
+      { rpc: s.rpc } as unknown as OrderClient,
+      { changed: vi.fn(), mintId: () => '223e4567-e89b-42d3-a456-426614174000' },
+      s.recovery
+    );
+    restored.restoreRecovery();
+    await restored.submit({ ...fields, ref: '' });
+    expect(writes(s.rpc)[1]?.[1]?.p_order).toEqual(original);
+    expect(restored.attempt?.body.pay_ref).toBe('Historical receipt');
+  });
+
   it('keeps a frozen box choice when newer options remove that size', async () => {
     const s = setup(() => ({ data: null, error: { message: 'Lost reply' } }));
     let boxes = [{ size: 6, charge_cents: 0 }];
