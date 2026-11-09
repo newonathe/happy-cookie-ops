@@ -227,3 +227,7 @@ The live-only checkout replaces its fixed-width port beside protected demo files
 ## C2 — Order before payment, 9 November
 
 The live checkout no longer collects a reference before payment. The owner’s explicit C2 correction authorizes this removal. Existing backend references, body/schema support and saved historical request replay remain; new regressions protect them. Post-submission payment/proof/status work is separate and unfinished. Focused/type/lint/review and final connected SQL/browser/visual checks pass. Live build passes; full verification is recorded by the acceptance commit. Device/owner acceptance remains pending.
+
+## F09 — Customer lookup retirement, 9 November
+
+A cancelled or replaced lookup no longer installs its old private token/status before navigation is checked. Results publish together after current-view/sequence checks; an existing order remains visible while the new lookup is checked. Route/source/sheet retirement makes lookup available again. Direct private-link reads and order acknowledgement persistence remain. Five failing-first regressions,119focused tests, independent review and actual anonymous cancellation/client-round-trip SQL/browser evidence pass. Build/full and device/owner gates remain pending.

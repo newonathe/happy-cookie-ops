@@ -1459,6 +1459,7 @@ export class OpsRuntime extends OpsProvider {
   private recipeDraftLoadSeq = 0;
   private localEventExpense: ((label: string, amount: unknown, cat?: string) => void) | null = null;
   private orderFlow?: OrderFlow;
+  private customerViewEpoch = 0;
   private customerOrders = new CustomerOrderSources<CustFields>({
     snapshot: () => (this.state.cust ?? {}) as CustFields,
     empty: () => ({ ...BLANK_CUST, box: {} }),
@@ -1493,6 +1494,12 @@ export class OpsRuntime extends OpsProvider {
    */
   constructor(props: OpsEngineProps) {
     super(props);
+    const engineGo = this.go;
+    this.go = (...args: Parameters<typeof engineGo>) => {
+      ++this.customerViewEpoch;
+      if (this.orderFlow?.lookupState === 'busy') this.orderFlow.clearLookup();
+      return engineGo(...args);
+    };
     // Every toast goes through here, so none (and no timer behind it) starts after unmount.
     const engineToast = this.toast;
     this.toast = (message, tone, undo) => {
@@ -9991,9 +9998,11 @@ export class OpsRuntime extends OpsProvider {
     const source = this.customerOrders.scope(),
       flow = this.orderFlow,
       screen = this.state.screen,
-      sheet = this.state.sheet;
+      sheet = this.state.sheet,
+      view = this.customerViewEpoch;
     return () =>
       !this.unmounted &&
+      view === this.customerViewEpoch &&
       source() &&
       this.orderFlow === flow &&
       this.onCustomerScreen() &&
@@ -10052,6 +10061,7 @@ export class OpsRuntime extends OpsProvider {
     const previous = this.orderFlow;
     const { flow } = this.customerOrders.bind(client, backend);
     this.orderFlow = flow;
+    if (previous !== flow) previous?.clearLookup();
     if (previous !== flow && this.customerSheetKind()) this.closeSheet();
     if (!flow) {
       this.forceUpdate();
@@ -10199,7 +10209,7 @@ export class OpsRuntime extends OpsProvider {
       this.toast(ORDER_COPY.lookupError, 'warn');
       return;
     }
-    if ((await flow.lookup(orderNo, mobile)) === 'found' && current()) {
+    if ((await flow.lookup(orderNo, mobile, current)) === 'found' && current()) {
       this.closeSheet();
       this.go('status');
     }
@@ -10415,7 +10425,10 @@ export class OpsRuntime extends OpsProvider {
         if (current()) void this.runLiveLookup(orderNo, mobile);
       },
       close: () => {
-        if (current()) this.closeSheet();
+        if (current()) {
+          this.orderFlow?.clearLookup();
+          this.closeSheet();
+        }
       }
     };
   }

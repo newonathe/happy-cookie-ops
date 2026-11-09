@@ -12,8 +12,8 @@ exports.run=async({page:owner,context,origin,anon,nonce,width,out,assert})=>{
  const connect=async lose=>{
   await customer.waitForFunction(()=>window.__hcOps?.state.screen==='shop');
   await customer.evaluate(async({origin,anon,lose})=>{
-   const {createClient}=await import('/connected-client.ts'),nativeFetch=window.fetch.bind(window);window.loseCustomerOrderReply=lose;
-   const reads=new Set(['get_shop_order_rules','get_shop_extras','get_shop_status','get_shop_payment_info','order_status']);
+   const {createClient}=await import('/connected-client.ts'),nativeFetch=window.fetch.bind(window);window.loseCustomerOrderReply=lose;window.customerStatusReads=0;
+   const reads=new Set(['get_shop_order_rules','get_shop_extras','get_shop_status','get_shop_payment_info','order_status','find_order']);
    const client=createClient(origin,anon,{accessToken:async()=>anon,auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false},global:{fetch:async(input,init)=>{
     const url=new URL(typeof input==='string'?input:input.url);url.pathname=url.pathname.replace(/^\/rest\/v1/,'');const name=url.pathname.split('/').at(-1),method=init?.method??'GET';
     if(url.origin!==origin||!(url.pathname==='/shop_products'&&method==='GET'||url.pathname==='/rpc/'+name&&method==='POST'&&(reads.has(name)||name==='place_order')))throw Error('Unexpected customer recovery request');
@@ -22,7 +22,9 @@ exports.run=async({page:owner,context,origin,anon,nonce,width,out,assert})=>{
      if(JSON.stringify(saved?.value?.attempt?.body)!==JSON.stringify(body))throw Error('Order was not retained before its send');
      await window.noteCustomerOrderAttempt(body);
     }
+    if(name==='order_status')window.customerStatusReads++;
     const answer=await nativeFetch(url,init);
+    if(name==='find_order'&&window.holdCustomerLookup){window.lookupTokenMatches=answer.ok&&(await answer.clone().json())===window.expectedLookupToken;window.holdCustomerLookup=false;await new Promise(resolve=>{window.releaseCustomerLookup=resolve;});}
     if(name==='place_order'&&answer.ok&&window.loseCustomerOrderReply){await answer.clone().json();window.loseCustomerOrderReply=false;throw TypeError('Lost real committed local order reply');}
     return answer;
    }}});window.customerOrderClient=client;
@@ -60,6 +62,29 @@ exports.run=async({page:owner,context,origin,anon,nonce,width,out,assert})=>{
   assert(!rows.error&&rows.data.filter(row=>row.name==='Local recovery customer').length===1&&rows.data.some(row=>row.id===receipt.orderNo&&row.name==='Local recovery customer'&&row.pay_state==='unpaid'),'Actual owner read did not confirm exactly one order');
   const token=new URL(receipt.url).hash.slice(3),status=await customer.evaluate(token=>window.customerOrderClient.rpc('order_status',{p_token:token}),token);
   assert(!status.error&&status.data.order_no===receipt.orderNo&&status.data.pay_state==='unpaid','Receipt/replay invented payment or changed identity');
-  console.log(JSON.stringify({width,actualOrderRecovery:true,lostCommittedAck:true,reloadNeverSends:true,exactRetry:true,orders:1,payState:'unpaid',responsiveWidths:[320,390,768,1024,1440,1920,2560]}));
+  await customer.getByRole('button',{name:'Back to cookies',exact:true}).click();
+  await customer.evaluate(token=>{
+   window.expectedLookupToken=token;window.holdCustomerLookup=true;
+   const r=window.__hcOps,read=r.runLiveLookup.bind(r);
+   // Observe completion of the original method; the real UI and SDK still do all the work.
+   r.runLiveLookup=(...args)=>{window.customerLookupTask=read(...args);return window.customerLookupTask;};
+  },token);
+  await customer.getByRole('button',{name:'Find my order',exact:true}).click();
+  await customer.getByLabel('Order number',{exact:true}).fill(receipt.orderNo);
+  await customer.getByLabel('Mobile number',{exact:true}).fill('09123450123');
+  await customer.getByRole('button',{name:'Find it',exact:true}).click();
+  await customer.waitForFunction(()=>typeof window.releaseCustomerLookup==='function');
+  assert(await customer.evaluate(()=>window.lookupTokenMatches),'Real anonymous lookup did not match its saved receipt');
+  await customer.getByRole('button',{name:'Close',exact:true}).click();
+  const retired=await customer.evaluate(async origin=>{
+   const r=window.__hcOps,a=window.customerOrderClient;
+   await r.loadShopOrders({rpc:(...args)=>a.rpc(...args)},origin);await r.loadShopOrders(a,origin);
+   const before={reads:window.customerStatusReads,token:r.orderFlow.statusToken};
+   window.releaseCustomerLookup();await window.customerLookupTask;
+   return{before,reads:window.customerStatusReads,token:r.orderFlow.statusToken,screen:r.state.screen};
+  },origin);
+  assert(retired.screen==='shop'&&retired.reads===retired.before.reads&&retired.token===retired.before.token&&requests.length===2,'Retired lookup published data, navigated, forwarded a private read or wrote');
+  await shot('lookup-retired');
+  console.log(JSON.stringify({width,actualOrderRecovery:true,lostCommittedAck:true,reloadNeverSends:true,exactRetry:true,lookupRetirement:true,orders:1,payState:'unpaid',responsiveWidths:[320,390,768,1024,1440,1920,2560]}));
  }finally{await customer.close();if(stamp)await payment(false);await set(initial.data.override??null);}
 };
