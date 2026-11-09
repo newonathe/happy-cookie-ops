@@ -106,6 +106,13 @@ exports.run=async({page:owner,context,origin,anon,nonce,width,out,assert})=>{
   await customer.waitForFunction(()=>window.__hcOps.renderVals().liveStatusRead?.state==='loaded');
   assert(requests.length===2,'A status Retry wrote an order');
   await shot('status-recovered');
+  for(const size of [320,390,768,1024,1440,1920,2560]){
+   await customer.setViewportSize({width:size,height:950});
+   const bounds=await customer.getByRole('region',{name:'Customer order status',exact:true}).boundingBox();assert(bounds&&Math.abs(bounds.x)<1&&Math.abs(bounds.width-size)<1,'Status kept a narrow frame at '+size);
+   const small=await customer.locator('button:visible').evaluateAll(nodes=>nodes.filter(node=>{const box=node.getBoundingClientRect();return box.width<44||box.height<44;}).map(node=>node.textContent));assert(small.length===0,'Status touch controls too small at '+size+': '+small.join(', '));
+   assert(await customer.getByText('Order '+receipt.orderNo,{exact:true}).count()===1,'Fluid status lost its real order');await shot('status-'+size);
+  }
+  await customer.setViewportSize({width,height:950});
   console.log(JSON.stringify({width,actualOrderRecovery:true,lostCommittedAck:true,reloadNeverSends:true,exactRetry:true,lookupRetirement:true,statusReadRecovery:true,orders:1,payState:'unpaid',responsiveWidths:[320,390,768,1024,1440,1920,2560]}));
  }finally{await customer.close();if(stamp)await payment(false);await set(initial.data.override??null);}
 };
