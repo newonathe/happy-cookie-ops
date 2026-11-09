@@ -441,6 +441,157 @@ describe('B2: the live checkout', () => {
     expect(other.calls.some((call) => call.name === 'order_status')).toBe(false);
   });
 
+  it('does not publish an old lookup after client A to B to A and a newer private link', async () => {
+    const wanted = 'c'.repeat(64);
+    let release!: (reply: Reply) => void;
+    const first = await mounted(
+      {
+        find_order: () =>
+          new Promise((resolve) => {
+            release = resolve;
+          }),
+        order_status: (args) => ({
+          data: { ...STATUS, order_no: args.p_token === wanted ? 'HC-2002' : 'HC-1001' },
+          error: null
+        })
+      },
+      'lookup'
+    );
+    act(() => first.runtime.renderVals().liveLookup!.run('HC-1001', '0917 123 4567'));
+    await switchCheckoutSource(first.runtime, fakeClient().client);
+    await switchCheckoutSource(first.runtime, first.client);
+    act(() => first.runtime.go('status'));
+    act(() => {
+      window.history.replaceState(null, '', '/status#t=' + wanted);
+      first.runtime.syncStatusRoute();
+    });
+    await flush();
+    expect(first.runtime.renderVals().cust.orderNo).toBe('HC-2002');
+    await act(async () => release({ data: TOKEN, error: null }));
+    await flush();
+    act(() => first.runtime.syncStatusRoute());
+    expect(first.runtime.renderVals().cust.orderNo).toBe('HC-2002');
+    expect(
+      first.calls.filter((call) => call.name === 'order_status').map((call) => call.args.p_token)
+    ).toEqual([wanted]);
+    expect(window.location.hash).toBe('#t=' + wanted);
+  });
+
+  it('retires a pending lookup immediately across a same-client route round trip', async () => {
+    let release!: (reply: Reply) => void;
+    const first = await mounted(
+      {
+        find_order: () =>
+          new Promise((resolve) => {
+            release = resolve;
+          })
+      },
+      'lookup'
+    );
+    act(() => first.runtime.renderVals().liveLookup!.run('HC-1001', '0917 123 4567'));
+    act(() => first.runtime.go('shop'));
+    act(() => first.runtime.go('lookup'));
+    const returnedState = first.runtime.renderVals().liveLookup!.state;
+    await act(async () => release({ data: TOKEN, error: null }));
+    await flush();
+    expect(returnedState).toBe('idle');
+    expect(first.runtime.state.screen).toBe('lookup');
+    expect(first.calls.filter((call) => call.name === 'order_status')).toEqual([]);
+  });
+
+  it('keeps a newer lookup when a cancelled sheet returns late', async () => {
+    const wanted = 'c'.repeat(64);
+    let release!: (reply: Reply) => void,
+      requests = 0;
+    const first = await mounted({
+      find_order: () =>
+        ++requests === 1
+          ? new Promise((resolve) => {
+              release = resolve;
+            })
+          : { data: wanted, error: null },
+      order_status: (args) => ({
+        data: { ...STATUS, order_no: args.p_token === wanted ? 'HC-2002' : 'HC-1001' },
+        error: null
+      })
+    });
+    act(() => first.runtime.renderVals().openLookup());
+    act(() => first.runtime.renderVals().liveLookup!.run('HC-1001', '0917 123 4567'));
+    act(() => first.runtime.renderVals().liveLookup!.close());
+    act(() => first.runtime.renderVals().openLookup());
+    await act(async () => first.runtime.renderVals().liveLookup!.run('HC-2002', '0917 123 4567'));
+    await flush();
+    await act(async () => release({ data: TOKEN, error: null }));
+    await flush();
+    expect(first.runtime.renderVals().cust.orderNo).toBe('HC-2002');
+    expect(
+      first.calls.filter((call) => call.name === 'order_status').map((call) => call.args.p_token)
+    ).toEqual([wanted]);
+  });
+
+  it('keeps the active private order until a lookup finishes and discards a cancelled status read', async () => {
+    const wanted = 'c'.repeat(64);
+    let release!: (reply: Reply) => void;
+    const first = await mounted(
+      {
+        find_order: () => ({ data: TOKEN, error: null }),
+        order_status: (args) =>
+          args.p_token === wanted
+            ? { data: { ...STATUS, order_no: 'HC-2002' }, error: null }
+            : new Promise((resolve) => {
+                release = resolve;
+              })
+      },
+      'status'
+    );
+    act(() => {
+      window.history.replaceState(null, '', '/status#t=' + wanted);
+      first.runtime.syncStatusRoute();
+    });
+    await flush();
+    act(() => first.runtime.renderVals().openLookup());
+    await act(async () => first.runtime.renderVals().liveLookup!.run('HC-1001', '0917 123 4567'));
+    await flush();
+    const whileReading = first.runtime.renderVals().cust.orderNo;
+    act(() => first.runtime.renderVals().liveLookup!.close());
+    await act(async () => release({ data: STATUS, error: null }));
+    await flush();
+    expect(whileReading).toBe('HC-2002');
+    expect(first.runtime.renderVals().cust.orderNo).toBe('HC-2002');
+    expect(window.location.hash).toBe('#t=' + wanted);
+  });
+
+  it('preserves a newer status-link intent while a lookup in the same sheet is pending', async () => {
+    const wanted = 'c'.repeat(64);
+    let release!: (reply: Reply) => void;
+    const first = await mounted(
+      {
+        find_order: () =>
+          new Promise((resolve) => {
+            release = resolve;
+          }),
+        order_status: (args) => ({
+          data: { ...STATUS, order_no: args.p_token === wanted ? 'HC-2002' : 'HC-1001' },
+          error: null
+        })
+      },
+      'status'
+    );
+    act(() => first.runtime.renderVals().openLookup());
+    act(() => first.runtime.renderVals().liveLookup!.run('HC-1001', '0917 123 4567'));
+    act(() => {
+      window.history.replaceState(null, '', '/status#t=' + wanted);
+      first.runtime.syncStatusRoute();
+    });
+    await flush();
+    await act(async () => release({ data: TOKEN, error: null }));
+    await flush();
+    expect(first.runtime.renderVals().cust.orderNo).toBe('HC-2002');
+    expect(
+      first.calls.filter((call) => call.name === 'order_status').map((call) => call.args.p_token)
+    ).toEqual([wanted]);
+  });
+
   it('retires a customer sheet and its old Cancel when its checkout source changes', async () => {
     const first = await mounted();
     act(() => first.runtime.renderVals().openWaitlist!());

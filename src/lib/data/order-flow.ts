@@ -85,6 +85,7 @@ export class OrderFlow {
   private statusSeq = 0;
 
   lookupState: LookupState = 'idle';
+  private lookupSeq = 0;
 
   waitlistAttempt: { id: string; body: ReturnType<typeof buildWaitlistBody> } | null = null;
   waitlistState: WaitlistState = 'idle';
@@ -471,38 +472,70 @@ export class OrderFlow {
     this.statusToken = token;
     this.statusState = 'loading';
     this.hooks.changed();
-    let next: OrderStatusView | null = null;
-    let outcome: StatusState;
-    try {
-      next = await fetchOrderStatus(this.client, token);
-      outcome = next ? 'loaded' : 'missing';
-    } catch {
-      outcome = 'error';
-    }
+    const next = await this.statusSnapshot(token);
     if (seq !== this.statusSeq) return;
-    this.status = next;
-    this.statusState = outcome;
+    this.status = next.status;
+    this.statusState = next.state;
     this.hooks.changed();
   }
 
-  /** Find my order: the token for an order number and phone, then the order itself. */
-  async lookup(orderNo: string, mobile: string): Promise<'found' | 'missed' | 'error'> {
-    if (this.lookupState === 'busy') return 'error';
+  private async statusSnapshot(
+    token: string
+  ): Promise<{ status: OrderStatusView | null; state: StatusState }> {
+    try {
+      const status = await fetchOrderStatus(this.client, token);
+      return { status, state: status ? 'loaded' : 'missing' };
+    } catch {
+      return { status: null, state: 'error' };
+    }
+  }
+
+  /** Publish a lookup only after both reads finish under its original view and status intent. */
+  async lookup(
+    orderNo: string,
+    mobile: string,
+    current: () => boolean = () => this.hooks.current?.() !== false
+  ): Promise<'found' | 'missed' | 'error'> {
+    if (this.lookupState === 'busy' || !current() || this.hooks.current?.() === false)
+      return 'error';
+    const seq = ++this.lookupSeq,
+      statusSeq = this.statusSeq;
+    const active = () =>
+      seq === this.lookupSeq &&
+      statusSeq === this.statusSeq &&
+      current() &&
+      this.hooks.current?.() !== false;
     this.lookupState = 'busy';
     this.hooks.changed();
-    const found = await findOrder(this.client, orderNo, mobile);
-    if (found.kind === 'found') {
-      this.lookupState = 'idle';
-      await this.loadStatus(found.token);
-      return 'found';
+    try {
+      const found = await findOrder(this.client, orderNo, mobile);
+      if (!active()) return 'error';
+      if (found.kind === 'found') {
+        const next = await this.statusSnapshot(found.token);
+        if (!active()) return 'error';
+        ++this.statusSeq;
+        this.statusToken = found.token;
+        this.status = next.status;
+        this.statusState = next.state;
+        this.lookupState = 'idle';
+        this.hooks.changed();
+        return 'found';
+      }
+      this.lookupState = found.kind === 'missed' ? 'missed' : 'error';
+      this.hooks.changed();
+      return found.kind === 'missed' ? 'missed' : 'error';
+    } finally {
+      if (seq === this.lookupSeq && this.lookupState === 'busy') {
+        this.lookupState = 'idle';
+        this.hooks.changed();
+      }
     }
-    this.lookupState = found.kind === 'missed' ? 'missed' : 'error';
-    this.hooks.changed();
-    return found.kind === 'missed' ? 'missed' : 'error';
   }
 
   clearLookup(): void {
+    ++this.lookupSeq;
     this.lookupState = 'idle';
+    this.hooks.changed();
   }
 
   async joinWaitlist(fields: WaitlistFields): Promise<void> {
