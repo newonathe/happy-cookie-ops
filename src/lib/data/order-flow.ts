@@ -474,7 +474,8 @@ export class OrderFlow {
     this.hooks.changed();
     const next = await this.statusSnapshot(token);
     if (seq !== this.statusSeq) return;
-    this.status = next.status;
+    // Failed refreshes may retain only this token's last successful snapshot.
+    if (next.state !== 'error') this.status = next.status;
     this.statusState = next.state;
     this.hooks.changed();
   }

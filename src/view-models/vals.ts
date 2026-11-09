@@ -480,6 +480,12 @@ export interface OpsVals {
    * Live mode only (MP-09 c2, finding 16): what the shop footer may claim. Every line is the
    * owner's own text; an empty string means the footer prints nothing for it.
    */
+  liveStatusRead?: {
+    state: 'idle' | 'loading' | 'loaded' | 'missing' | 'error';
+    stale: boolean;
+    online: boolean;
+    retry: () => void;
+  } | null;
   liveShopMenuRead?: ShopMenuReadView | null;
   liveShopAvailability?: ShopAvailabilityView | null;
   liveShopOverride?: ShopOverrideView | null;

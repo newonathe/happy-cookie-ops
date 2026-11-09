@@ -8,6 +8,7 @@ import { isLiveMode } from '@/lib/config/app-mode';
 import { s } from '@/lib/css';
 import { AppFrame } from '@/components/shell/app-frame';
 import { CustomerMenuReadNotice } from './customer-menu-read-notice';
+import { CustomerStatusReadNotice } from './customer-status-read-notice';
 import { ShopOverrideNotice, CloseOrderingControls } from './shop-override-notice';
 import { Sheet } from '@/components/ui/sheet';
 import { LiveFormHost } from './live-form-host';
@@ -401,6 +402,9 @@ export function OwnerWorkspace({
       <>
         {isLiveMode() && !v.denied && screen === 'shop' ? (
           <CustomerMenuReadNotice read={v.liveShopMenuRead} />
+        ) : null}
+        {isLiveMode() && !v.denied && screen === 'status' ? (
+          <CustomerStatusReadNotice read={v.liveStatusRead} />
         ) : null}
         <AppFrame v={v} />
       </>

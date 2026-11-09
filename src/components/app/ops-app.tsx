@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useSyncExternalStore } from 'react';
+import { useSyncExternalStore } from 'react';
 import { OpsRuntime } from '@/store/ops-runtime';
 import { OwnerWorkspace } from '@/components/live/owner-workspace';
 import { useOpsVals, useOpsEngine } from '@/store/use-ops';
@@ -8,24 +8,10 @@ import { RouteSync } from './route-sync';
 import { OfflineBridge } from './offline-bridge';
 import { ScreenBoundary } from './screen-boundary';
 import { LiveGate } from './live-gate';
-import { isLiveMode } from '@/lib/config/app-mode';
+import { LiveOrderRoute } from './live-order-route';
 import type { ScreenKey } from '@/lib/screens';
 
 const noSubscription = () => () => undefined;
-
-/**
- * Keeps the customer's status link (`#t=…`) in the address bar and adopts it on a direct load.
- * Rendered after `RouteSync`, so its effect runs after the route's `pushState` (which drops a
- * fragment). Live mode only; it renders nothing.
- */
-function LiveOrderRoute() {
-  useOpsVals();
-  const engine = useOpsEngine();
-  useEffect(() => {
-    if (isLiveMode() && engine instanceof OpsRuntime) engine.syncStatusRoute();
-  });
-  return null;
-}
 
 function Frame() {
   const v = useOpsVals();

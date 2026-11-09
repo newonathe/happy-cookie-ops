@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { OfflineBridge } from '@/components/app/offline-bridge';
 import { OpsRuntime } from '@/store/ops-runtime';
 import { RouteSync } from '@/components/app/route-sync';
+import { LiveOrderRoute } from '@/components/app/live-order-route';
 import bazaarAnswer from '@/../tests/fixtures/bazaar-example.json';
 import { OwnerWorkspace } from '@/components/live/owner-workspace';
 import { useOpsVals, useOpsEngine } from '@/store/use-ops';
@@ -111,7 +112,7 @@ const client = { rpc: async (name: string, args?: Record<string, unknown>) => {
 
 function Frame({ navigationReady = false }: {navigationReady?: boolean}) {
   const v=useOpsVals(); const engine=useOpsEngine();
-  return <>{historyPreview && navigationReady ? <RouteSync initialScreen="bazaar" /> : null}<OwnerWorkspace v={v} screen={engine.state.screen} role={engine.state.role} onAccount={()=>engine.go('settings')} /></>;
+  return <>{historyPreview && navigationReady ? <RouteSync initialScreen="bazaar" /> : null}<LiveOrderRoute /><OwnerWorkspace v={v} screen={engine.state.screen} role={engine.state.role} onAccount={()=>engine.go('settings')} /></>;
 }
 function App() {
   const ref = useRef<OpsRuntime | null>(null);
