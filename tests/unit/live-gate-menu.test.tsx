@@ -76,6 +76,7 @@ describe('LiveGate: the flavour list each page loads', () => {
   beforeEach(() => {
     engine = new FakeRuntime();
     configured = true;
+    vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'https://configured.example');
   });
 
   it('reads the published menu on a customer page, and never the staff list', async () => {
@@ -89,7 +90,10 @@ describe('LiveGate: the flavour list each page loads', () => {
     // MP-09 c2: the payment methods and shop texts load on every live page.
     expect(engine.loadShopPayment).toHaveBeenCalledExactlyOnceWith(client);
     // B2: the pickup rules, checkout, lookup and waiting list load on every live page too.
-    expect(engine.loadShopOrders).toHaveBeenCalledExactlyOnceWith(client);
+    expect(engine.loadShopOrders).toHaveBeenCalledExactlyOnceWith(
+      client,
+      'https://configured.example'
+    );
     // A signed-in owner on /shop: the token refresh verifies her, but the shop stays public.
     await act(async () => {
       authEvent('TOKEN_REFRESHED');
@@ -116,7 +120,10 @@ describe('LiveGate: the flavour list each page loads', () => {
     expect(engine.loadOperationsHealth).toHaveBeenCalledWith(client);
     expect(engine.loadShopMenu).not.toHaveBeenCalled();
     expect(engine.loadShopPayment).toHaveBeenCalledExactlyOnceWith(client);
-    expect(engine.loadShopOrders).toHaveBeenCalledExactlyOnceWith(client);
+    expect(engine.loadShopOrders).toHaveBeenCalledExactlyOnceWith(
+      client,
+      'https://configured.example'
+    );
   });
 
   it('keeps an active count through a same-role token refresh, but applies a changed role', async () => {
