@@ -219,3 +219,7 @@ see current state for the accepted checkpoint. Customer checkout/status completi
 ## Fluid client Shop — 9 November
 
 The live-only public Shop replaces its fixed-width port beside protected demo files. Product images, availability, quantities, cart removal, totals, checkout, lookup, waiting-list and failed-read recovery remain. Cart thumbnails become explicit name/quantity rows; product photos stay on their cards. Existing checkout handles boxes, add-ons and charges; the menu now uses its approved pricing note. Ask-us allergen warnings and existing privacy wording remain. Actual two-reset SQL/browser/order-replay evidence passes with full-width320–2560px,44px controls and retained warnings. Live build passes; full verification is recorded by the acceptance commit. Physical-device/owner gates remain open.
+
+## Fluid customer checkout — 9 November
+
+The live-only checkout replaces its fixed-width port beside protected demo files, reusing LiveCheckout and its exact requests, retained fields, refusals, local read recovery and receipt actions. Summary comes first on phones and beside the form on desktop; approved neutral tokens replace live form colors. Cookie subtotal is separate from the acknowledged server total; current catalogue line prices are omitted after receipt. Payment timing/proof remains a separate unfinished requirement. Focused/type/lint/review and final connected SQL/browser/visual checks pass at320–2560px with44px controls. Live build passes; full verification is recorded by the acceptance commit. Physical-device/owner gates remain open.

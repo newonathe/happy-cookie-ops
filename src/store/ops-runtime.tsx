@@ -3367,7 +3367,8 @@ export class OpsRuntime extends OpsProvider {
             })
           }
         : {}),
-      ...(this.state.screen === 'shop' && liveScreenFor('shop')
+      ...(CUSTOMER_SCREENS.includes(this.state.screen as ScreenKey) &&
+      liveScreenFor(this.state.screen as ScreenKey)
         ? { pageMax: 'none', pagePad: '0' }
         : {}),
       bareFrame: true,
