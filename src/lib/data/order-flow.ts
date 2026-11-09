@@ -17,6 +17,7 @@ import {
   type PlacedOrder,
   type WaitlistFields
 } from '@/lib/data/orders';
+import { manilaToday } from '@/lib/time/business-clock';
 import { ORDER_COPY } from '@/lib/orders/copy';
 import type { ShopOrderRules } from '@/lib/orders/pickup';
 import {
@@ -50,11 +51,14 @@ export interface OrderFlowHooks {
   /** Re-render the customer page. */
   changed: () => void;
   mintId: () => string;
+  current?: () => boolean;
 }
 
 export class OrderFlow {
   rules: ShopOrderRules | null = null;
   rulesState: RulesState = 'loading';
+  private rulesSeq = 0;
+  private extrasSeq = 0;
   /** B4b: the owner's boxes, add-ons, sampler and same-day rule, and what this customer picked from them. */
   extras: ShopExtras | null = null;
   extrasState: ExtrasState = 'loading';
@@ -88,29 +92,45 @@ export class OrderFlow {
     private readonly hooks: OrderFlowHooks
   ) {}
 
-  /** The pickup rules, read fresh on every live page. A failed read leaves no dates to pick. */
+  /** Keep previous choices as unchecked context; only the latest active read may publish. */
   async loadRules(): Promise<boolean> {
-    try {
-      this.rules = await fetchShopOrderRules(this.client);
-    } catch {
-      this.rules = null;
-    }
-    this.rulesState = this.rules ? 'ready' : 'failed';
+    if (this.hooks.current?.() === false) return false;
+    const sequence = ++this.rulesSeq;
+    this.rulesState = 'loading';
     this.hooks.changed();
-    return this.rules !== null;
+    let rules: ShopOrderRules | null = null;
+    try {
+      rules = await fetchShopOrderRules(this.client);
+    } catch {
+      /* retain the previous read */
+    }
+    if (sequence !== this.rulesSeq || this.hooks.current?.() === false) return false;
+    if (rules) this.rules = rules;
+    this.rulesState = rules ? 'ready' : 'failed';
+    this.hooks.changed();
+    return rules !== null;
   }
 
-  /** The owner's extras, read fresh on every live page. A failed read offers no extras; cookies still order. */
+  /** An unavailable read must not erase selected boxes or add-on text. */
   async loadExtras(): Promise<boolean> {
-    try {
-      this.extras = await fetchShopExtras(this.client);
-    } catch {
-      this.extras = null;
-    }
-    this.extrasState = this.extras ? 'ready' : 'failed';
-    this.pruneSelection();
+    if (this.hooks.current?.() === false) return false;
+    const sequence = ++this.extrasSeq;
+    this.extrasState = 'loading';
     this.hooks.changed();
-    return this.extras !== null;
+    let extras: ShopExtras | null = null;
+    try {
+      extras = await fetchShopExtras(this.client);
+    } catch {
+      /* retain choices and the previous read */
+    }
+    if (sequence !== this.extrasSeq || this.hooks.current?.() === false) return false;
+    if (extras) {
+      this.extras = extras;
+      this.pruneSelection();
+    }
+    this.extrasState = extras ? 'ready' : 'failed';
+    this.hooks.changed();
+    return extras !== null;
   }
 
   /** What was picked stays only while the owner still offers it. */
@@ -206,6 +226,24 @@ export class OrderFlow {
     const picked = this.selection();
     fields = { ...fields, addOns: picked.addOns, boxes: picked.boxes };
     if (!this.attempt) {
+      const needsExtras =
+        fields.pickupDate === manilaToday() ||
+        picked.boxes.length > 0 ||
+        picked.addOns.length > 0 ||
+        (!!this.extras?.sampler.productId &&
+          (fields.items[this.extras.sampler.productId] ?? 0) > 0);
+      if (this.rulesState !== 'ready' || (needsExtras && this.extrasState !== 'ready')) {
+        this.banner = {
+          tone: 'error',
+          text:
+            this.rulesState !== 'ready'
+              ? ORDER_COPY.rulesUnavailable
+              : ORDER_COPY.optionsUnavailable,
+          canWaitlist: false
+        };
+        this.hooks.changed();
+        return;
+      }
       const errors = orderFieldErrors(fields);
       const x = this.extras;
       const samplerId = x?.sampler.productId ?? null;

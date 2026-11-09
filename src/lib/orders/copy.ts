@@ -40,7 +40,8 @@ export const ORDER_COPY = {
   waitlistUnknown: 'We could not confirm that. Tap "Try again": sending it twice does no harm.',
   changeWarning:
     'Check "Find my order" first: your last try may have gone through, and a changed order is a new order.',
-  rulesUnavailable: 'The pickup days could not be loaded. Check your connection and reload.',
+  rulesUnavailable: 'The pickup days could not be loaded. Try reading them again.',
+  optionsUnavailable: 'Order options could not be loaded. Try reading them again.',
   noMenu: 'Nothing is on the menu yet.',
   noOrderToRepeat: 'There is no order on screen to repeat.',
   locked:

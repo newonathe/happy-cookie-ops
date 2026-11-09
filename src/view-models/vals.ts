@@ -517,6 +517,12 @@ export interface OpsVals {
     dates: Array<{ value: string; label: string; sameDay?: boolean }>;
     times: Array<{ value: string; label: string }>;
     rulesState: 'loading' | 'ready' | 'failed';
+    extrasState: 'loading' | 'ready' | 'failed';
+    extrasUnchecked: boolean;
+    canRetryRules: boolean;
+    canRetryExtras: boolean;
+    retryRules: () => void;
+    retryExtras: () => void;
     /** The order is sending or unsettled: the inputs are read-only. */
     readOnly: boolean;
     /** An earlier attempt's outcome is unknown: "Change the order" is offered. */
