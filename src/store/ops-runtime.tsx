@@ -1466,6 +1466,7 @@ export class OpsRuntime extends OpsProvider {
     },
     make: (client, current) =>
       new OrderFlow(client, {
+        current: () => !this.unmounted && current(),
         changed: () => {
           if (!this.unmounted && current()) this.forceUpdate();
         },
@@ -10168,6 +10169,8 @@ export class OpsRuntime extends OpsProvider {
     const current = this.customerActionScope();
     const flow = this.orderFlow;
     const c = (this.state.cust ?? {}) as CustFields;
+    const online = () =>
+      Boolean(this.state.online) && (typeof navigator === 'undefined' || navigator.onLine);
     const rules = flow?.rules ?? null;
     const placed = flow?.placed ?? null;
     const statusUrl = (token: string) => window.location.origin + '/status#t=' + token;
@@ -10267,6 +10270,20 @@ export class OpsRuntime extends OpsProvider {
       extras,
       totalNote: anyExtras || sameDayPicked ? ORDER_COPY.extras.totalNote : '',
       rulesState: flow ? flow.rulesState : 'failed',
+      extrasState: flow?.extrasState ?? 'failed',
+      extrasUnchecked:
+        (anyExtras ||
+          c.pickupDate === manilaToday() ||
+          !!(samplerId && (c.box?.[samplerId] ?? 0) > 0)) &&
+        flow?.extrasState !== 'ready',
+      canRetryRules: !!flow && online() && flow.rulesState !== 'loading',
+      canRetryExtras: !!flow && online() && flow.extrasState !== 'loading',
+      retryRules: () => {
+        if (flow && current() && online() && flow.rulesState !== 'loading') void flow.loadRules();
+      },
+      retryExtras: () => {
+        if (flow && current() && online() && flow.extrasState !== 'loading') void flow.loadExtras();
+      },
       readOnly: (flow?.unresolved ?? false) || (flow?.sending ?? false),
       frozen: flow?.unresolved ?? false,
       sending: flow?.sending ?? false,

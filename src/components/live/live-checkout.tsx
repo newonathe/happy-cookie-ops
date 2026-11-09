@@ -196,7 +196,9 @@ export function LiveCheckout({ v }: { v: OpsVals }) {
   if (live.placed) return <Placed placed={live.placed} />;
   const { fields, errors, readOnly } = live;
   const methods = v.cust.methods ?? [];
-  const canSubmit = !live.sending && live.rulesState === 'ready';
+  const canSubmit =
+    !live.sending && (live.frozen || (live.rulesState === 'ready' && !live.extrasUnchecked));
+  const extrasReadOnly = readOnly || live.extrasState !== 'ready';
   return (
     <>
       <div style={card}>
@@ -236,7 +238,18 @@ export function LiveCheckout({ v }: { v: OpsVals }) {
           <span style={{ fontSize: '12px', color: '#6E574B' }}>Loading the pickup days…</span>
         ) : null}
         {live.rulesState === 'failed' ? (
-          <span style={errorText}>{ORDER_COPY.rulesUnavailable}</span>
+          <div role="status" className="flex flex-col gap-3">
+            <span style={errorText}>{ORDER_COPY.rulesUnavailable}</span>
+            {live.dates.length ? <span>Showing the last read pickup choices.</span> : null}
+            <button
+              type="button"
+              disabled={!live.canRetryRules}
+              onClick={live.retryRules}
+              style={secondaryButton}
+            >
+              Retry pickup days
+            </button>
+          </div>
         ) : null}
         {live.rulesState === 'ready' && live.dates.length === 0 ? (
           <span style={errorText}>{ORDER_COPY.noDates}</span>
@@ -282,6 +295,23 @@ export function LiveCheckout({ v }: { v: OpsVals }) {
           </label>
         ) : null}
       </div>
+      {live.extrasState === 'loading' ? <p role="status">Checking order options…</p> : null}
+      {live.extrasState === 'failed' ? (
+        <div role="status" className="flex flex-col gap-3 text-sm text-ink">
+          <p>{ORDER_COPY.optionsUnavailable}</p>
+          {live.extras ? (
+            <p>Your last choices are kept. Check them again before placing a new order.</p>
+          ) : null}
+          <button
+            type="button"
+            disabled={!live.canRetryExtras}
+            onClick={live.retryExtras}
+            style={secondaryButton}
+          >
+            Retry order options
+          </button>
+        </div>
+      ) : null}
       {live.extras && live.extras.boxes.length > 0 ? (
         <div style={{ ...card, gap: '9px' }}>
           <span style={cardTitle}>{ORDER_COPY.extras.boxesTitle}</span>
@@ -292,7 +322,7 @@ export function LiveCheckout({ v }: { v: OpsVals }) {
               label={b.label}
               qty={b.qty}
               max={b.max}
-              readOnly={readOnly}
+              readOnly={extrasReadOnly}
               onChange={b.setQty}
             />
           ))}
@@ -315,7 +345,7 @@ export function LiveCheckout({ v }: { v: OpsVals }) {
                     name={row.label}
                     qty={row.qty}
                     max={row.max}
-                    readOnly={readOnly}
+                    readOnly={extrasReadOnly}
                     onChange={row.setQty}
                   />
                   {a.textLabel !== null && row.qty > 0 ? (
@@ -324,7 +354,7 @@ export function LiveCheckout({ v }: { v: OpsVals }) {
                       <input
                         value={row.text}
                         onChange={(e) => row.setText(e.target.value)}
-                        readOnly={readOnly}
+                        readOnly={extrasReadOnly}
                         maxLength={a.textMax}
                         style={field}
                       />

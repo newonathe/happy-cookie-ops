@@ -275,6 +275,12 @@ describe('B2: the live checkout', () => {
       retired.submit();
     });
     expect(placeCalls(first.calls)).toEqual([]);
+    const reads = first.calls.length;
+    act(() => {
+      retired.retryRules();
+      retired.retryExtras();
+    });
+    expect(first.calls).toHaveLength(reads);
     act(() => {
       entry.openLookup();
       entry.openWaitlist!();
@@ -364,6 +370,87 @@ describe('B2: the live checkout', () => {
     act(() => first.runtime.renderVals().openWaitlist!());
     act(() => retired.close());
     expect(first.runtime.renderVals().liveWaitlist).not.toBeNull();
+  });
+
+  it('offers local pickup Retry without losing customer fields or writing an order', async () => {
+    let failed = true;
+    const first = await mounted({
+      get_shop_order_rules: () =>
+        failed ? { data: null, error: { code: '57014' } } : { data: RULES, error: null }
+    });
+    custSet(first.runtime, 'name', 'Keep pickup draft');
+    const view = first.runtime.renderVals().liveCheckout!;
+    expect(typeof view.retryRules).toBe('function');
+    const page = render(<CheckoutScreen v={first.runtime.renderVals()} />);
+    expect(page.getByRole('button', { name: 'Retry pickup days' })).toBeTruthy();
+    act(() => first.runtime.setState({ online: false }));
+    const reads = first.calls.length;
+    act(() => view.retryRules());
+    expect(first.calls).toHaveLength(reads);
+    act(() => first.runtime.setState({ online: true }));
+    failed = false;
+    await act(async () => {
+      view.retryRules();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    expect(first.runtime.renderVals().liveCheckout!.rulesState).toBe('ready');
+    expect(first.runtime.renderVals().liveCheckout!.fields.name).toBe('Keep pickup draft');
+    await fillForm(first.runtime, { name: 'Keep pickup draft' });
+    failed = true;
+    await switchCheckoutSource(first.runtime, first.client);
+    expect(first.runtime.renderVals().liveCheckout!.dates.length).toBeGreaterThan(0);
+    await submit(first.runtime);
+    expect(placeCalls(first.calls)).toEqual([]);
+  });
+
+  it('rejects an older pickup answer after a newer read of the same source', async () => {
+    let reads = 0,
+      release!: (reply: Reply) => void;
+    const first = await mounted({
+      get_shop_order_rules: () =>
+        ++reads === 2
+          ? new Promise((resolve) => {
+              release = resolve;
+            })
+          : { data: { ...RULES, pickup_days: reads >= 3 ? [3] : [1] }, error: null }
+    });
+    let pending!: Promise<boolean>;
+    act(() => {
+      pending = first.runtime.loadShopOrders(first.client);
+    });
+    await switchCheckoutSource(first.runtime, first.client);
+    await act(async () => {
+      release({ data: { ...RULES, pickup_days: [1] }, error: null });
+      await pending;
+    });
+    expect(
+      first.runtime
+        .renderVals()
+        .liveCheckout!.dates.every((date) => new Date(date.value + 'T00:00:00Z').getUTCDay() === 3)
+    ).toBe(true);
+  });
+
+  it('keeps exact Try again available when pickup refresh fails after an unanswered order', async () => {
+    let failed = false,
+      attempts = 0;
+    const first = await mounted({
+      get_shop_order_rules: () =>
+        failed ? { data: null, error: { code: '57014' } } : { data: RULES, error: null },
+      place_order: () =>
+        ++attempts === 1
+          ? new TypeError('Lost reply')
+          : { data: [{ ...PLACED, replayed: true }], error: null }
+    });
+    await fillForm(first.runtime);
+    await submit(first.runtime);
+    failed = true;
+    await switchCheckoutSource(first.runtime, first.client);
+    const page = render(<CheckoutScreen v={first.runtime.renderVals()} />);
+    expect((page.getByRole('button', { name: 'Try again' }) as HTMLButtonElement).disabled).toBe(
+      false
+    );
+    await submit(first.runtime);
+    expect(placeCalls(first.calls)[1]).toEqual(placeCalls(first.calls)[0]);
   });
 
   it('offers only the owner’s pickup dates and times from the database', async () => {
