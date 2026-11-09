@@ -504,15 +504,6 @@ export function LiveCheckout({ v }: { v: OpsVals }) {
             </span>
           </div>
         ) : null}
-        <Text
-          id="lc-ref"
-          label="Reference number"
-          hint="(optional)"
-          value={fields.ref}
-          onChange={(x) => live.set('ref', x)}
-          readOnly={readOnly}
-          placeholder={ORDER_COPY.refPlaceholder}
-        />
       </div>
       {errors.items ? <span style={errorText}>{errors.items}</span> : null}
       {live.banner ? (

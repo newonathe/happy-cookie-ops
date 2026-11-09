@@ -43,12 +43,12 @@ exports.run=async({page:owner,context,origin,anon,nonce,width,out,assert})=>{
    assert(await customer.evaluate(()=>Object.values(window.__hcOps.state.cust.box).every(q=>q===0)),'Shop cart did not decrement at '+size);assert(await customer.getByRole('button',{name:'Remove one',exact:true}).first().isDisabled(),'Empty product quantity stayed decrementable at '+size);
   }
   await customer.setViewportSize({width,height:950});await customer.getByRole('button',{name:'Add one',exact:true}).first().click();
-  await customer.getByRole('button',{name:/^Continue/}).click();await customer.waitForFunction(()=>window.__hcOps.renderVals().liveCheckout?.rulesState==='ready');
+  await customer.getByRole('button',{name:/^Continue/}).click();await customer.waitForFunction(()=>window.__hcOps.renderVals().liveCheckout?.rulesState==='ready');assert(await customer.getByRole('textbox',{name:/Reference number/}).count()===0,'Checkout asked for a payment reference before the order');
   await customer.evaluate(label=>{const r=window.__hcOps,v=r.renderVals().liveCheckout,date=v.dates.find(d=>!d.sameDay);if(!date||!v.times.length)throw Error('Real fixture pickup choices required');for(const [k,value] of Object.entries({name:'Local recovery customer',ig:'@local.recovery',mobile:'09123450123',pickupDate:date.value,pickupTime:v.times[0].value,pay:label}))r.custSet(k,value);},label);
   for(const size of [320,390,768,1024,1440,1920,2560]){await customer.setViewportSize({width:size,height:950});const bounds=await customer.getByRole('region',{name:'Customer checkout',exact:true}).boundingBox();assert(bounds&&Math.abs(bounds.x)<1&&Math.abs(bounds.width-size)<1,'Checkout kept a narrow page frame at '+size);const small=await customer.locator('button:visible').evaluateAll(nodes=>nodes.filter(node=>{const box=node.getBoundingClientRect();return box.width<44||box.height<44;}).map(node=>node.textContent));assert(small.length===0,'Checkout touch controls too small at '+size+': '+small.join(', '));await shot('checkout-'+size);}
   await customer.setViewportSize({width,height:950});await customer.getByRole('button',{name:'Place order',exact:true}).click();
   await customer.waitForFunction(()=>window.__hcOps.renderVals().liveCheckout?.frozen&&!window.__hcOps.renderVals().liveCheckout.sending);
-  assert(requests.length===1,'Initial order was not sent exactly once');await shot('lost-ack');
+  assert(requests.length===1&&!Object.hasOwn(requests[0],'pay_ref'),'Initial order was duplicated or asked for a reference before payment');await shot('lost-ack');
   await customer.reload({waitUntil:'domcontentloaded'});await connect(false);
   assert(requests.length===1,'Reload automatically submitted an order');await customer.evaluate(()=>window.__hcOps.go('checkout'));
   await customer.getByRole('button',{name:'Try again',exact:true}).waitFor();

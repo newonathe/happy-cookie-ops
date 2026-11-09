@@ -223,3 +223,7 @@ The live-only public Shop replaces its fixed-width port beside protected demo fi
 ## Fluid customer checkout — 9 November
 
 The live-only checkout replaces its fixed-width port beside protected demo files, reusing LiveCheckout and its exact requests, retained fields, refusals, local read recovery and receipt actions. Summary comes first on phones and beside the form on desktop; approved neutral tokens replace live form colors. Cookie subtotal is separate from the acknowledged server total; current catalogue line prices are omitted after receipt. Payment timing/proof remains a separate unfinished requirement. Focused/type/lint/review and final connected SQL/browser/visual checks pass at320–2560px with44px controls. Live build passes; full verification is recorded by the acceptance commit. Physical-device/owner gates remain open.
+
+## C2 — Order before payment, 9 November
+
+The live checkout no longer collects a reference before payment. The owner’s explicit C2 correction authorizes this removal. Existing backend references, body/schema support and saved historical request replay remain; new regressions protect them. Post-submission payment/proof/status work is separate and unfinished. Focused/type/lint/review and final connected SQL/browser/visual checks pass. Live build passes; full verification is recorded by the acceptance commit. Device/owner acceptance remains pending.
