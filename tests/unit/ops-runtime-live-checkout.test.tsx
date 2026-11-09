@@ -97,14 +97,18 @@ function fakeClient(handlers: Handlers = {}) {
 
 const flush = () => act(async () => void (await new Promise((r) => setTimeout(r, 0))));
 
-async function mounted(handlers: Handlers = {}, screen: ScreenKey = 'checkout') {
+async function mounted(
+  handlers: Handlers = {},
+  screen: ScreenKey = 'checkout',
+  backend: string | null = null
+) {
   const ref: { current: OpsRuntime | null } = { current: null };
   render(<OpsRuntime ref={(r) => void (ref.current = r)} />);
   const runtime = ref.current!;
   const fake = fakeClient(handlers);
   await act(async () => {
     await runtime.loadShopPayment(fake.client);
-    await runtime.loadShopOrders(fake.client);
+    await runtime.loadShopOrders(fake.client, backend);
   });
   act(() =>
     runtime.setState({ screen, cust: { ...(runtime.state.cust as object), box: { dcf: 2 } } })
@@ -150,11 +154,87 @@ const placeCalls = (calls: Array<{ name: string; args: Record<string, unknown> }
 describe('B2: the live checkout', () => {
   beforeEach(() => {
     live = true;
+    sessionStorage.clear();
   });
   afterEach(() => {
     cleanup();
     replacePayAccounts(PORTED.map((m) => ({ ...m })));
     window.history.replaceState(null, '', '/');
+  });
+
+  it('restores the exact backend-scoped request after a new runtime without sending automatically', async () => {
+    const backend = 'https://recovery.example';
+    const first = await mounted(
+      { place_order: () => new TypeError('Lost reply') },
+      'checkout',
+      backend
+    );
+    await fillForm(first.runtime);
+    await submit(first.runtime);
+    const original = placeCalls(first.calls)[0];
+    cleanup();
+    const second = await mounted({}, 'checkout', backend);
+    expect(placeCalls(second.calls)).toEqual([]);
+    expect(second.runtime.renderVals().liveCheckout!.fields.name).toBe('Ana');
+    expect(second.runtime.renderVals().liveCheckout!.frozen).toBe(true);
+    await submit(second.runtime);
+    expect(placeCalls(second.calls)).toEqual([original]);
+    expect(second.runtime.renderVals().liveCheckout!.placed?.orderNo).toBe(PLACED.order_no);
+  });
+
+  it('keeps a saved request out of a different backend and refuses to retag a cached client', async () => {
+    const first = await mounted(
+      { place_order: () => new TypeError('Lost reply') },
+      'checkout',
+      'https://one.example'
+    );
+    await fillForm(first.runtime);
+    await submit(first.runtime);
+    const original = placeCalls(first.calls)[0];
+    await act(async () => {
+      expect(await first.runtime.loadShopOrders(first.client, 'https://two.example')).toBe(false);
+    });
+    expect(first.runtime.renderVals().liveCheckout!.fields.name).toBe('');
+    await submit(first.runtime);
+    expect(placeCalls(first.calls)).toEqual([original]);
+    await act(async () => {
+      await first.runtime.loadShopOrders(first.client, 'https://one.example');
+    });
+    expect(first.runtime.renderVals().liveCheckout!.fields.name).toBe('Ana');
+    cleanup();
+    const second = await mounted({}, 'checkout', 'https://two.example');
+    expect(second.runtime.renderVals().liveCheckout!.frozen).toBe(false);
+    expect(second.runtime.renderVals().liveCheckout!.fields.name).toBe('');
+    expect(placeCalls(second.calls)).toEqual([]);
+  });
+
+  it('preserves an unreadable saved copy and offers storage-only recovery with sending disabled', async () => {
+    const key = 'hc-order-recovery-v1:https%3A%2F%2Frecovery.example';
+    sessionStorage.setItem(key, '{broken');
+    const { runtime, calls } = await mounted({}, 'checkout', 'https://recovery.example');
+    const ui = render(<CheckoutScreen v={runtime.renderVals()} />);
+    expect(ui.getByRole('button', { name: 'Place order' }).hasAttribute('disabled')).toBe(true);
+    expect(ui.getByRole('button', { name: 'Retry checkout recovery' })).toBeTruthy();
+    act(() => runtime.renderVals().liveCheckout!.recovery!.retry());
+    expect(sessionStorage.getItem(key)).toBe('{broken');
+    expect(placeCalls(calls)).toEqual([]);
+  });
+
+  it('keeps a restored receipt when viewing the order and clears it only for an explicit new order', async () => {
+    const first = await mounted({}, 'checkout', 'https://recovery.example');
+    await fillForm(first.runtime);
+    await submit(first.runtime);
+    cleanup();
+    const second = await mounted({}, 'checkout', 'https://recovery.example');
+    const placed = second.runtime.renderVals().liveCheckout!.placed!;
+    expect(placed?.orderNo).toBe(PLACED.order_no);
+    expect(placeCalls(second.calls)).toEqual([]);
+    const before = sessionStorage.length;
+    await act(async () => placed.seeOrder());
+    expect(sessionStorage.length).toBe(before);
+    act(() => second.runtime.setState({ screen: 'checkout' }));
+    act(() => second.runtime.renderVals().liveCheckout!.placed!.orderAgain());
+    expect(sessionStorage.length).toBe(0);
   });
 
   it('renders the live slot: her fields, no email, no amount, no screenshot', async () => {

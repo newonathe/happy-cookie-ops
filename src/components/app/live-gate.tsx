@@ -223,7 +223,8 @@ export function LiveGate({
     // Slice B2: the shop's own name, contact line and tagline, on every live page.
     if (engine instanceof OpsRuntime) void engine.loadShopIdentity(supabase);
     // B2: the pickup rules, the checkout, "Find my order" and the waiting list, on every live page.
-    if (engine instanceof OpsRuntime) void engine.loadShopOrders(supabase);
+    if (engine instanceof OpsRuntime)
+      void engine.loadShopOrders(supabase, process.env.NEXT_PUBLIC_SUPABASE_URL ?? null);
     // B3: the owner's ordering window and "close now" switch, so every page says open or closed as the server does.
     if (engine instanceof OpsRuntime) void engine.loadShopStatus(supabase);
     // MP-09 c1b: customer pages show the owner's published menu (`shop_products`), signed

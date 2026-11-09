@@ -1,5 +1,6 @@
 'use client';
 
+import { OrderRecovery } from '@/lib/orders/order-recovery';
 import { CustomerOrderSources } from '@/store/customer-order-sources';
 import { ShopMenuRead } from '@/store/shop-menu-read';
 import { ShopAvailabilityRead } from '@/store/shop-availability-read';
@@ -1464,14 +1465,22 @@ export class OpsRuntime extends OpsProvider {
     apply: (cust, current, applied) => {
       this.setState(() => (!this.unmounted && current() ? { cust } : null), applied);
     },
-    make: (client, current) =>
-      new OrderFlow(client, {
-        current: () => !this.unmounted && current(),
-        changed: () => {
-          if (!this.unmounted && current()) this.forceUpdate();
+    make: (client, current, backend) =>
+      new OrderFlow(
+        client,
+        {
+          current: () => !this.unmounted && current(),
+          changed: () => {
+            if (!this.unmounted && current()) this.forceUpdate();
+          },
+          mintId: () => crypto.randomUUID()
         },
-        mintId: () => crypto.randomUUID()
-      })
+        backend !== null
+          ? new OrderRecovery(backend, () =>
+              typeof window === 'undefined' ? null : window.sessionStorage
+            )
+          : undefined
+      )
   });
   /** The last fragment this runtime wrote or adopted, so a link pasted into the tab is told apart. */
   private lastHash = '';
@@ -10031,19 +10040,48 @@ export class OpsRuntime extends OpsProvider {
    * `OrderFlow`. With no client (a live build with no Supabase) there is none, and the pages say
    * ordering is unavailable rather than pretending.
    */
-  async loadShopOrders(client: OrderClient | null): Promise<boolean> {
+  async loadShopOrders(
+    client: OrderClient | null,
+    backend: string | null = null
+  ): Promise<boolean> {
     if (!isLiveMode()) return false;
     const previous = this.orderFlow;
-    const { flow } = this.customerOrders.bind(client);
+    const { flow } = this.customerOrders.bind(client, backend);
     this.orderFlow = flow;
     if (previous !== flow && this.customerSheetKind()) this.closeSheet();
     if (!flow) {
       this.forceUpdate();
       return false;
     }
+    if (previous !== flow) this.restoreCustomerCheckout(flow, flow.restoreRecovery());
     this.syncStatusRoute();
     void flow.loadExtras();
     return flow.loadRules();
+  }
+
+  private restoreCustomerCheckout(
+    flow: OrderFlow,
+    body: import('@/lib/data/orders').OrderBody | null
+  ): void {
+    if (!body || this.orderFlow !== flow) return;
+    const current = this.customerOrders.scope();
+    this.setState(() =>
+      !this.unmounted && current() && this.orderFlow === flow
+        ? {
+            cust: {
+              ...BLANK_CUST,
+              name: body.name,
+              ig: body.ig,
+              mobile: body.mobile,
+              pay: body.pay_method,
+              ref: body.pay_ref ?? '',
+              pickupDate: body.pickup_date,
+              pickupTime: body.pickup_window,
+              box: Object.fromEntries(body.items.map((row) => [row.product_id, row.qty]))
+            }
+          }
+        : null
+    );
   }
 
   private async liveSubmit(): Promise<void> {
@@ -10284,7 +10322,30 @@ export class OpsRuntime extends OpsProvider {
       retryExtras: () => {
         if (flow && current() && online() && flow.extrasState !== 'loading') void flow.loadExtras();
       },
-      readOnly: (flow?.unresolved ?? false) || (flow?.sending ?? false),
+      recovery: flow?.hasRecovery
+        ? {
+            ready: flow.recoveryReady,
+            notice:
+              flow.recoveryState === 'empty'
+                ? ''
+                : flow.recoveryState === 'ready'
+                  ? placed
+                    ? 'Your order confirmation is kept in this tab. Closing the tab can remove it.'
+                    : 'Your earlier request is kept in this tab. Try again sends the same request.'
+                  : placed
+                    ? 'Your order was received, but this tab could not save its confirmation. Keep this page open and retry saving it.'
+                    : 'This tab could not safely read or keep its saved order. The saved copy has not been replaced. Keep this page open and retry checkout recovery before sending.',
+            canRetry: !flow.sending && !flow.recoveryReady,
+            retry: () => {
+              if (current() && !flow.sending)
+                this.restoreCustomerCheckout(flow, flow.retryRecovery());
+            }
+          }
+        : null,
+      readOnly:
+        (flow?.unresolved ?? false) ||
+        (flow?.sending ?? false) ||
+        (flow?.hasRecovery === true && !flow.recoveryReady),
       frozen: flow?.unresolved ?? false,
       sending: flow?.sending ?? false,
       banner: flow?.banner ?? null,

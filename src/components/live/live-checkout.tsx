@@ -190,17 +190,44 @@ function Stepper({
   );
 }
 
+function RecoveryNotice({
+  recovery
+}: {
+  recovery: NonNullable<OpsVals['liveCheckout']>['recovery'];
+}) {
+  if (!recovery?.notice) return null;
+  return (
+    <div role="status" aria-label="Checkout recovery" style={card}>
+      <span style={{ fontSize: '13px', lineHeight: '1.5' }}>{recovery.notice}</span>
+      {recovery.canRetry ? (
+        <button type="button" onClick={recovery.retry} style={secondaryButton}>
+          Retry checkout recovery
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
 export function LiveCheckout({ v }: { v: OpsVals }) {
   const live = v.liveCheckout;
   if (!live) return null;
-  if (live.placed) return <Placed placed={live.placed} />;
+  if (live.placed)
+    return (
+      <>
+        <RecoveryNotice recovery={live.recovery} />
+        <Placed placed={live.placed} />
+      </>
+    );
   const { fields, errors, readOnly } = live;
   const methods = v.cust.methods ?? [];
   const canSubmit =
-    !live.sending && (live.frozen || (live.rulesState === 'ready' && !live.extrasUnchecked));
+    (live.recovery?.ready ?? true) &&
+    !live.sending &&
+    (live.frozen || (live.rulesState === 'ready' && !live.extrasUnchecked));
   const extrasReadOnly = readOnly || live.extrasState !== 'ready';
   return (
     <>
+      <RecoveryNotice recovery={live.recovery} />
       <div style={card}>
         <span style={cardTitle}>About you</span>
         <Text

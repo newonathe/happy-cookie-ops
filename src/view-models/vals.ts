@@ -498,6 +498,7 @@ export interface OpsVals {
    * unless it is on screen, and undefined in demo, so the ported screens are unchanged.
    */
   liveCheckout?: {
+    recovery?: { ready: boolean; notice: string; canRetry: boolean; retry: () => void } | null;
     fields: {
       name: string;
       ig: string;
