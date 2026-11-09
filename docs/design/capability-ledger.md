@@ -235,3 +235,7 @@ A cancelled or replaced lookup no longer installs its old private token/status b
 ## F09 — Private status read recovery, 9 November
 
 Retry reads only the current private link and never writes an order or confirms payment. Same-token stale data is explicitly warned; a new link or genuine missing result clears it, while malformed answers fail. Changed/cleared links and retired callbacks cannot retry private reads. The original status-link synchronizer is shared with the preview; protected screens are unchanged.130focused tests and independent review pass. Final real two-reset390/1440 SQL/browser/visual checks pass; Live build passes and full verification is recorded by the acceptance commit; status redesign and post-submission payment work remain separate and unfinished.
+
+## Fluid customer status — 10 November
+
+The live-only page replaces the narrow status port with full-width neutral progress/pickup panels and the same authoritative values/scoped actions. Unknown orders no longer show a placeholder number, empty collection/progress or impossible reorder. Redundant delivery-booking text is removed under the approved direct-pickup requirement; no delivery, payment or SQL rule changes. Read recovery stays outside the locked screen. Registration failed first;71focused tests and independent review pass. Actual two-reset SQL/browser, all seven widths,44px controls and inspected phone/wide visuals pass; Live build passes and full verification is recorded by the acceptance commit; payment/status completion and owner preview B17 remain unfinished.
