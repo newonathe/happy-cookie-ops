@@ -1583,7 +1583,7 @@ export class OpsRuntime extends OpsProvider {
     };
     const { custRestart, custSet } = this;
     this.custRestart = () => {
-      this.orderFlow?.resetCheckout();
+      if (this.orderFlow?.resetCheckout() === false) return;
       custRestart();
     };
     this.custReorder = () => this.liveReorder();
@@ -10088,7 +10088,7 @@ export class OpsRuntime extends OpsProvider {
     for (const item of items) {
       if (PRODUCTS.some((p) => p.id === item.productId)) box[item.productId] = item.qty;
     }
-    this.orderFlow?.resetCheckout();
+    if (this.orderFlow?.resetCheckout() === false) return;
     this.setState({ cust: { ...BLANK_CUST, box } });
     this.go('shop');
     const any = Object.keys(box).length > 0;
@@ -10323,8 +10323,10 @@ export class OpsRuntime extends OpsProvider {
             },
             seeOrder: () => {
               if (!current()) return;
-              flow?.resetCheckout();
-              this.setState({ cust: { ...BLANK_CUST, box: {} } });
+              if (!flow?.hasRecovery) {
+                if (flow?.resetCheckout() === false) return;
+                this.setState({ cust: { ...BLANK_CUST, box: {} } });
+              }
               void flow?.loadStatus(placed.token);
               this.go('status');
             },
