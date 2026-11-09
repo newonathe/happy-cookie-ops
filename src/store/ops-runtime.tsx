@@ -1,5 +1,6 @@
 'use client';
 
+import { CustomerOrderSources } from '@/store/customer-order-sources';
 import { ShopMenuRead } from '@/store/shop-menu-read';
 import { ShopAvailabilityRead } from '@/store/shop-availability-read';
 import { ShopOverrideWrites, shopOverrideMode } from '@/store/shop-override-writes';
@@ -1457,6 +1458,20 @@ export class OpsRuntime extends OpsProvider {
   private recipeDraftLoadSeq = 0;
   private localEventExpense: ((label: string, amount: unknown, cat?: string) => void) | null = null;
   private orderFlow?: OrderFlow;
+  private customerOrders = new CustomerOrderSources<CustFields>({
+    snapshot: () => (this.state.cust ?? {}) as CustFields,
+    empty: () => ({ ...BLANK_CUST, box: {} }),
+    apply: (cust, current, applied) => {
+      this.setState(() => (!this.unmounted && current() ? { cust } : null), applied);
+    },
+    make: (client, current) =>
+      new OrderFlow(client, {
+        changed: () => {
+          if (!this.unmounted && current()) this.forceUpdate();
+        },
+        mintId: () => crypto.randomUUID()
+      })
+  });
   /** The last fragment this runtime wrote or adopted, so a link pasted into the tab is told apart. */
   private lastHash = '';
 
@@ -3323,6 +3338,7 @@ export class OpsRuntime extends OpsProvider {
             .map(healthTool)
         : null;
     const facts = this.liveFacts(starved);
+    const customerAction = this.customerActionScope();
     const productEditor = this.state.sheet as FlavourSheetState | null;
     const statusSheet = this.state.sheet as { kind?: string } | null;
     const closeStatus = statusSheet?.kind === 'dropState' || statusSheet?.kind === 'closeDrop';
@@ -3521,8 +3537,12 @@ export class OpsRuntime extends OpsProvider {
       // S2: the ported start list is never offered in live mode: a day is started from the Bazaar page (`liveBazaar`).
       events: [] as OpsVals['events'],
       cust: this.liveStatusCust(this.livePayCust(starved.cust)),
-      openLookup: () => this.openLookupSheet(),
-      openWaitlist: () => this.openWaitlist(),
+      openLookup: () => {
+        if (customerAction()) this.openLookupSheet();
+      },
+      openWaitlist: () => {
+        if (customerAction()) this.openWaitlist();
+      },
       liveCheckout: this.liveCheckoutVals(),
       livePaymentRead: this.paymentReadVals(),
       liveLookup: this.liveLookupVals(),
@@ -9953,8 +9973,36 @@ export class OpsRuntime extends OpsProvider {
   private uploadImage = (folder: 'qr' | 'flavours') => (file: File) =>
     this.paymentSync ? this.paymentSync.upload(folder, file) : Promise.resolve(null);
 
+  private customerActionScope(): () => boolean {
+    const source = this.customerOrders.scope(),
+      flow = this.orderFlow,
+      screen = this.state.screen,
+      sheet = this.state.sheet;
+    return () =>
+      !this.unmounted &&
+      source() &&
+      this.orderFlow === flow &&
+      this.onCustomerScreen() &&
+      this.state.screen === screen &&
+      this.state.sheet === sheet;
+  }
+
   /** The checkout's methods and QR in live mode: only what the read returned, never the ported accounts. */
   private livePayCust(cust: OpsVals['cust']): OpsVals['cust'] {
+    const current = this.customerActionScope();
+    cust = {
+      ...cust,
+      submit: () => {
+        if (current()) this.custSubmit();
+      },
+      methods: (cust.methods ?? []).map((method) => ({
+        ...method,
+        pick: () => {
+          if (current()) method.pick();
+        }
+      }))
+    };
+
     const sync = this.paymentSync;
     const info = sync?.publicState === 'ready' ? sync.info : null;
     // `noQr` is the ported 'Pick a payment method…' note, which also names a bank number and cash on
@@ -9983,16 +10031,18 @@ export class OpsRuntime extends OpsProvider {
    * ordering is unavailable rather than pretending.
    */
   async loadShopOrders(client: OrderClient | null): Promise<boolean> {
-    if (!isLiveMode() || !client) return false;
-    if (!this.orderFlow) {
-      this.orderFlow = new OrderFlow(client, {
-        changed: () => this.forceUpdate(),
-        mintId: () => crypto.randomUUID()
-      });
+    if (!isLiveMode()) return false;
+    const previous = this.orderFlow;
+    const { flow } = this.customerOrders.bind(client);
+    this.orderFlow = flow;
+    if (previous !== flow && this.customerSheetKind()) this.closeSheet();
+    if (!flow) {
+      this.forceUpdate();
+      return false;
     }
     this.syncStatusRoute();
-    void this.orderFlow.loadExtras();
-    return this.orderFlow.loadRules();
+    void flow.loadExtras();
+    return flow.loadRules();
   }
 
   private async liveSubmit(): Promise<void> {
@@ -10100,11 +10150,13 @@ export class OpsRuntime extends OpsProvider {
 
   /** Not `runLookup`: that is the engine's own instance field, which would replace this method. */
   private async runLiveLookup(orderNo: string, mobile: string): Promise<void> {
-    if (!this.orderFlow) {
+    const flow = this.orderFlow,
+      current = this.customerActionScope();
+    if (!flow) {
       this.toast(ORDER_COPY.lookupError, 'warn');
       return;
     }
-    if ((await this.orderFlow.lookup(orderNo, mobile)) === 'found') {
+    if ((await flow.lookup(orderNo, mobile)) === 'found' && current()) {
       this.closeSheet();
       this.go('status');
     }
@@ -10113,6 +10165,7 @@ export class OpsRuntime extends OpsProvider {
   /** The checkout's live slot (B2): fields, pickup choices, refusals and the placed order. */
   private liveCheckoutVals(): OpsVals['liveCheckout'] {
     if (this.state.screen !== 'checkout') return null;
+    const current = this.customerActionScope();
     const flow = this.orderFlow;
     const c = (this.state.cust ?? {}) as CustFields;
     const rules = flow?.rules ?? null;
@@ -10155,7 +10208,9 @@ export class OpsRuntime extends OpsProvider {
                     ),
                     qty,
                     max: qty + Math.max(0, Math.floor((cookieQty - boxed) / b.size)),
-                    setQty: (n: number) => flow?.setBox(b.size, n)
+                    setQty: (n: number) => {
+                      if (current()) flow?.setBox(b.size, n);
+                    }
                   };
                 })
               : [],
@@ -10178,8 +10233,12 @@ export class OpsRuntime extends OpsProvider {
                   qty,
                   max: a.textLabel !== null ? 1 : qty + Math.max(0, a.maxQty - used),
                   text: line?.text ?? '',
-                  setQty: (n: number) => flow?.setLine(key, { qty: n }),
-                  setText: (t: string) => flow?.setLine(key, { text: t.slice(0, a.textMax) })
+                  setQty: (n: number) => {
+                    if (current()) flow?.setLine(key, { qty: n });
+                  },
+                  setText: (t: string) => {
+                    if (current()) flow?.setLine(key, { text: t.slice(0, a.textMax) });
+                  }
                 };
               })
             };
@@ -10199,7 +10258,9 @@ export class OpsRuntime extends OpsProvider {
         pickupTime: c.pickupTime ?? '',
         pay: c.pay ?? ''
       },
-      set: (key, value) => this.custSet(key, value),
+      set: (key, value) => {
+        if (current()) this.custSet(key, value);
+      },
       errors: flow?.errors ?? {},
       dates,
       times,
@@ -10210,9 +10271,15 @@ export class OpsRuntime extends OpsProvider {
       frozen: flow?.unresolved ?? false,
       sending: flow?.sending ?? false,
       banner: flow?.banner ?? null,
-      submit: () => this.custSubmit(),
-      changeOrder: () => flow?.changeOrder(),
-      openWaitlist: () => this.openWaitlist(),
+      submit: () => {
+        if (current()) this.custSubmit();
+      },
+      changeOrder: () => {
+        if (current()) flow?.changeOrder();
+      },
+      openWaitlist: () => {
+        if (current()) this.openWaitlist();
+      },
       holdNote: rules ? ORDER_COPY.payLater(rules.unpaidHoldHours) : '',
       placed: placed
         ? {
@@ -10222,23 +10289,31 @@ export class OpsRuntime extends OpsProvider {
             pickupText: pickupLabel(placed.pickupDate, placed.pickupWindow),
             extraLines: flow?.placedLines ?? [],
             copyLink: () => {
+              if (!current()) return;
               const write = navigator.clipboard?.writeText(statusUrl(placed.token));
               if (!write) {
                 this.toast(ORDER_COPY.linkCopyFailed, 'warn');
                 return;
               }
               void write.then(
-                () => this.toast(ORDER_COPY.linkCopied),
-                () => this.toast(ORDER_COPY.linkCopyFailed, 'warn')
+                () => {
+                  if (current()) this.toast(ORDER_COPY.linkCopied);
+                },
+                () => {
+                  if (current()) this.toast(ORDER_COPY.linkCopyFailed, 'warn');
+                }
               );
             },
             seeOrder: () => {
+              if (!current()) return;
               flow?.resetCheckout();
               this.setState({ cust: { ...BLANK_CUST, box: {} } });
               void flow?.loadStatus(placed.token);
               this.go('status');
             },
-            orderAgain: () => this.custRestart()
+            orderAgain: () => {
+              if (current()) this.custRestart();
+            }
           }
         : null
     };
@@ -10249,22 +10324,29 @@ export class OpsRuntime extends OpsProvider {
     // other customer screen it is the sheet the shop footer opens.
     const onLookupScreen = this.state.screen === 'lookup';
     if (!onLookupScreen && this.customerSheetKind() !== 'liveLookup') return null;
+    const current = this.customerActionScope();
     return {
       state: this.orderFlow?.lookupState ?? 'idle',
-      run: (orderNo, mobile) => void this.runLiveLookup(orderNo, mobile),
-      close: () => this.closeSheet()
+      run: (orderNo, mobile) => {
+        if (current()) void this.runLiveLookup(orderNo, mobile);
+      },
+      close: () => {
+        if (current()) this.closeSheet();
+      }
     };
   }
 
   private liveWaitlistVals(): OpsVals['liveWaitlist'] {
     if (this.customerSheetKind() !== 'liveWaitlist') return null;
-    const flow = this.orderFlow;
+    const flow = this.orderFlow,
+      current = this.customerActionScope();
     return {
       state: flow?.waitlistState ?? 'idle',
       message: flow?.waitlistMessage ?? '',
       errors: flow?.waitlistErrors ?? {},
       ...waitlistRange(),
       join: (fields) => {
+        if (!current()) return;
         if (!flow) {
           this.toast(ORDER_COPY.unavailable, 'warn');
           return;
@@ -10272,6 +10354,7 @@ export class OpsRuntime extends OpsProvider {
         void flow.joinWaitlist(fields);
       },
       close: () => {
+        if (!current()) return;
         // An unsettled entry stays frozen, so opening the form again resends it under the same id.
         if (flow && flow.waitlistState !== 'unknown') flow.resetWaitlist();
         this.closeSheet();
@@ -10282,13 +10365,16 @@ export class OpsRuntime extends OpsProvider {
   /** The status page's values from `order_status`, never from the engine's local orders. */
   private liveStatusCust(cust: OpsVals['cust']): OpsVals['cust'] {
     if (this.state.screen !== 'status') return cust;
-    const flow = this.orderFlow;
+    const flow = this.orderFlow,
+      current = this.customerActionScope();
     const allergenNote = this.paymentSync?.info?.texts.allergen_note ?? '';
     if (flow?.status && flow.statusState !== 'missing')
       return {
         ...cust,
         ...statusCust(flow.status, { allergenNote }),
-        reorder: () => this.liveReorder()
+        reorder: () => {
+          if (current()) this.liveReorder();
+        }
       };
     const shell = {
       ...cust,
