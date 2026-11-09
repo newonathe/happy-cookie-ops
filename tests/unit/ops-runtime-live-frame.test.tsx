@@ -7,6 +7,7 @@ import { OpsRuntime, deviceForWidth } from '@/store/ops-runtime';
 import { OpsProvider } from '@/store/engine/ops-engine';
 import { render, screen } from '@testing-library/react';
 import { registerLiveScreen } from '@/components/live/live-screens';
+import { CheckoutScreen } from '@/components/screens/checkout';
 import { ShopScreen } from '@/components/screens/shop';
 
 function vals(device: 'mobile' | 'tablet' | 'desktop') {
@@ -60,6 +61,22 @@ describe('live frame: the real app, not the review harness', () => {
       expect(runtime.renderVals().pageMax).toBe('640px');
       live = false;
       runtime.state = { ...runtime.state, screen: 'shop' };
+      expect(runtime.renderVals().pageMax).toBe('640px');
+    } finally {
+      undo();
+    }
+  });
+
+  it('lets a registered live checkout fill the viewport while keeping the unregistered fallback and demo', () => {
+    live = true;
+    const runtime = new OpsRuntime({});
+    runtime.state = { ...runtime.state, screen: 'checkout', device: 'desktop' };
+    expect(runtime.renderVals().pageMax).toBe('640px');
+    const undo = registerLiveScreen('checkout', CheckoutScreen);
+    try {
+      expect(runtime.renderVals().pageMax).toBe('none');
+      expect(runtime.renderVals().pagePad).toBe('0');
+      live = false;
       expect(runtime.renderVals().pageMax).toBe('640px');
     } finally {
       undo();

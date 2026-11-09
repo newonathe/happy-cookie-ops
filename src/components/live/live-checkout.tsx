@@ -20,25 +20,29 @@ import {
  * colour, radius and size below is one the ported checkout already uses.
  */
 const card: React.CSSProperties = {
-  background: '#FFFFFF',
-  border: '1px solid #F0E2CB',
+  background: 'var(--color-surface)',
+  border: '1px solid var(--color-line)',
   borderRadius: '18px',
   padding: '14px',
   display: 'flex',
   flexDirection: 'column',
   gap: '11px'
 };
-const cardTitle: React.CSSProperties = { fontSize: '12px', fontWeight: '700', color: '#6E574B' };
+const cardTitle: React.CSSProperties = {
+  fontSize: '12px',
+  fontWeight: '700',
+  color: 'var(--color-ink-soft)'
+};
 const fieldLabel: React.CSSProperties = { fontSize: '12px', fontWeight: '600' };
 const field: React.CSSProperties = {
   height: '48px',
-  border: '1px solid #EADCC4',
+  border: '1px solid var(--color-line-strong)',
   borderRadius: '12px',
   padding: '0 13px',
   fontSize: '14px',
-  background: '#FFFDF9'
+  background: 'var(--color-surface)'
 };
-const errorText: React.CSSProperties = { fontSize: '11px', color: '#A8231B' };
+const errorText: React.CSSProperties = { fontSize: '11px', color: 'var(--color-danger)' };
 const optionCard: React.CSSProperties = {
   position: 'relative',
   display: 'flex',
@@ -47,8 +51,8 @@ const optionCard: React.CSSProperties = {
   width: '100%',
   textAlign: 'left',
   minHeight: '54px',
-  border: '1px solid #EADCC4',
-  background: '#FFFDF9',
+  border: '1px solid var(--color-line-strong)',
+  background: 'var(--color-surface)',
   borderRadius: '12px',
   padding: '11px 13px',
   transition: 'background-color .18s ease'
@@ -62,7 +66,7 @@ function Radio({ on }: { on: boolean }) {
           style={{
             position: 'absolute',
             inset: '-1px',
-            border: '2px solid #E75F23',
+            border: '2px solid var(--color-brand)',
             borderRadius: '12px'
           }}
         />
@@ -73,7 +77,7 @@ function Radio({ on }: { on: boolean }) {
           width: '20px',
           height: '20px',
           borderRadius: '999px',
-          border: '2px solid #DCC9AE',
+          border: '2px solid var(--color-line-strong)',
           display: 'grid',
           placeItems: 'center',
           flexShrink: '0'
@@ -81,7 +85,12 @@ function Radio({ on }: { on: boolean }) {
       >
         {on ? (
           <span
-            style={{ width: '10px', height: '10px', borderRadius: '999px', background: '#E75F23' }}
+            style={{
+              width: '10px',
+              height: '10px',
+              borderRadius: '999px',
+              background: 'var(--color-brand)'
+            }}
           />
         ) : null}
       </span>
@@ -114,7 +123,9 @@ function Text({
     <label style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
       <span style={fieldLabel}>
         {label}
-        {hint ? <span style={{ color: '#66524A', fontWeight: '400' }}> {hint}</span> : null}
+        {hint ? (
+          <span style={{ color: 'var(--color-ink-mute)', fontWeight: '400' }}> {hint}</span>
+        ) : null}
       </span>
       <input
         id={id}
@@ -131,14 +142,15 @@ function Text({
 }
 
 const stepButton: React.CSSProperties = {
-  width: '38px',
-  height: '38px',
-  border: '1px solid #EADCC4',
+  width: '44px',
+  height: '44px',
+  flexShrink: '0',
+  border: '1px solid var(--color-line-strong)',
   borderRadius: '10px',
-  background: '#FFFDF9',
+  background: 'var(--color-surface)',
   fontSize: '18px',
   fontWeight: '700',
-  color: '#3A1F14'
+  color: 'var(--color-ink)'
 };
 
 /** A quantity with minus and plus, in the checkout's own tokens (a box, or one add-on choice). */
@@ -262,7 +274,9 @@ export function LiveCheckout({ v }: { v: OpsVals }) {
       <div style={{ ...card, gap: '9px' }}>
         <span style={cardTitle}>Pickup</span>
         {live.rulesState === 'loading' ? (
-          <span style={{ fontSize: '12px', color: '#6E574B' }}>Loading the pickup days…</span>
+          <span style={{ fontSize: '12px', color: 'var(--color-ink-soft)' }}>
+            Loading the pickup days…
+          </span>
         ) : null}
         {live.rulesState === 'failed' ? (
           <div role="status" className="flex flex-col gap-3">
@@ -298,7 +312,7 @@ export function LiveCheckout({ v }: { v: OpsVals }) {
         ))}
         {errors.date ? <span style={errorText}>{errors.date}</span> : null}
         {live.extras?.sameDayNotice ? (
-          <span style={{ fontSize: '12px', color: '#6E574B', lineHeight: '1.5' }}>
+          <span style={{ fontSize: '12px', color: 'var(--color-ink-soft)', lineHeight: '1.5' }}>
             {live.extras.sameDayNotice}
           </span>
         ) : null}
@@ -342,7 +356,9 @@ export function LiveCheckout({ v }: { v: OpsVals }) {
       {live.extras && live.extras.boxes.length > 0 ? (
         <div style={{ ...card, gap: '9px' }}>
           <span style={cardTitle}>{ORDER_COPY.extras.boxesTitle}</span>
-          <span style={{ fontSize: '12px', color: '#6E574B' }}>{ORDER_COPY.extras.boxesHelp}</span>
+          <span style={{ fontSize: '12px', color: 'var(--color-ink-soft)' }}>
+            {ORDER_COPY.extras.boxesHelp}
+          </span>
           {live.extras.boxes.map((b) => (
             <Stepper
               key={b.size}
@@ -361,7 +377,7 @@ export function LiveCheckout({ v }: { v: OpsVals }) {
           {live.extras.addOns.map((a) => (
             <div key={a.id} style={{ display: 'flex', flexDirection: 'column', gap: '7px' }}>
               {a.rows.length > 1 ? (
-                <span style={{ fontSize: '12px', color: '#6E574B' }}>
+                <span style={{ fontSize: '12px', color: 'var(--color-ink-soft)' }}>
                   {a.name} · {a.priceText}
                 </span>
               ) : null}
@@ -395,7 +411,7 @@ export function LiveCheckout({ v }: { v: OpsVals }) {
       ) : null}
       {errors.extras ? <span style={errorText}>{errors.extras}</span> : null}
       {live.totalNote ? (
-        <span style={{ fontSize: '12px', color: '#6E574B', lineHeight: '1.5' }}>
+        <span style={{ fontSize: '12px', color: 'var(--color-ink-soft)', lineHeight: '1.5' }}>
           {live.totalNote}
         </span>
       ) : null}
@@ -417,7 +433,7 @@ export function LiveCheckout({ v }: { v: OpsVals }) {
             </button>
           </div>
         ) : null}
-        <span style={{ fontSize: '13px', color: '#6E574B', lineHeight: '1.5' }}>
+        <span style={{ fontSize: '13px', color: 'var(--color-ink-soft)', lineHeight: '1.5' }}>
           {ORDER_COPY.payHelp}
         </span>
         {methods.length === 0 && (!v.livePaymentRead || v.livePaymentRead.state === 'ready') ? (
@@ -445,7 +461,11 @@ export function LiveCheckout({ v }: { v: OpsVals }) {
             >
               <span style={{ fontSize: '13px', fontWeight: '700' }}>{m.label}</span>
               <span
-                style={{ fontSize: '12px', color: '#6E574B', fontVariantNumeric: 'tabular-nums' }}
+                style={{
+                  fontSize: '12px',
+                  color: 'var(--color-ink-soft)',
+                  fontVariantNumeric: 'tabular-nums'
+                }}
               >
                 {[m.num, m.holder].filter(Boolean).join(' · ')}
               </span>
@@ -461,12 +481,12 @@ export function LiveCheckout({ v }: { v: OpsVals }) {
               alignItems: 'center',
               gap: '9px',
               background: '#FFFBF3',
-              border: '1px solid #F0E2CB',
+              border: '1px solid var(--color-line)',
               borderRadius: '14px',
               padding: '14px'
             }}
           >
-            <span style={{ fontSize: '12px', fontWeight: '700', color: '#6E574B' }}>
+            <span style={{ fontSize: '12px', fontWeight: '700', color: 'var(--color-ink-soft)' }}>
               {v.cust.qrTitle}
             </span>
             <span style={s(v.cust.qr)} />
@@ -502,14 +522,15 @@ export function LiveCheckout({ v }: { v: OpsVals }) {
             ...card,
             gap: '9px',
             background: live.banner.tone === 'error' ? '#FFF6F4' : '#FFFBF3',
-            border: '1px solid ' + (live.banner.tone === 'error' ? '#F1C8C2' : '#EADCC4')
+            border:
+              '1px solid ' + (live.banner.tone === 'error' ? '#F1C8C2' : 'var(--color-line-strong)')
           }}
         >
           <span
             style={{
               fontSize: '13px',
               lineHeight: '1.5',
-              color: live.banner.tone === 'error' ? '#A8231B' : '#3A1F14'
+              color: live.banner.tone === 'error' ? 'var(--color-danger)' : 'var(--color-ink)'
             }}
           >
             {live.banner.text}
@@ -529,15 +550,15 @@ export function LiveCheckout({ v }: { v: OpsVals }) {
           minHeight: '56px',
           border: '0',
           borderRadius: '14px',
-          background: '#C24A15',
-          color: '#FFFFFF',
+          background: 'var(--color-brand)',
+          color: 'var(--color-surface)',
           fontSize: '16px',
           fontWeight: '700',
           boxShadow: '0 4px 16px -5px rgba(231,95,35,.6)',
           opacity: canSubmit ? 1 : 0.6,
           transition: 'transform .16s cubic-bezier(.2,.8,.2,1), background-color .2s ease'
         }}
-        hoverStyle={{ background: '#A93D0F' }}
+        hoverStyle={{ background: 'var(--color-brand-deep)' }}
         activeStyle={{ transform: 'scale(.985)' }}
       >
         {live.sending ? 'Sending…' : live.frozen ? 'Try again' : 'Place order'}
@@ -557,7 +578,7 @@ export function LiveCheckout({ v }: { v: OpsVals }) {
             maxWidth: '40ch',
             alignSelf: 'center',
             fontSize: '11px',
-            color: '#66524A',
+            color: 'var(--color-ink-mute)',
             textAlign: 'center',
             lineHeight: '1.5',
             textWrap: 'pretty'
@@ -586,15 +607,15 @@ function Placed({
           fontSize: '13px',
           fontWeight: '700',
           fontVariantNumeric: 'tabular-nums',
-          background: '#FFFFFF',
-          border: '1px solid #F0E2CB',
+          background: 'var(--color-surface)',
+          border: '1px solid var(--color-line)',
           borderRadius: '999px',
           padding: '7px 15px'
         }}
       >
         Order no. {placed.orderNo}
       </span>
-      <span style={{ fontSize: '13px', color: '#6E574B', lineHeight: '1.5' }}>
+      <span style={{ fontSize: '13px', color: 'var(--color-ink-soft)', lineHeight: '1.5' }}>
         {ORDER_COPY.placedBody}
       </span>
       <span style={{ fontSize: '12px', fontWeight: '600' }}>
@@ -602,13 +623,18 @@ function Placed({
         {placed.totalText}
       </span>
       {placed.extraLines.length ? (
-        <span style={{ fontSize: '12px', color: '#6E574B', lineHeight: '1.5' }}>
+        <span style={{ fontSize: '12px', color: 'var(--color-ink-soft)', lineHeight: '1.5' }}>
           {ORDER_COPY.extras.placedLines}: {placed.extraLines.join(' · ')}
         </span>
       ) : null}
       <a
         href={placed.statusUrl}
-        style={{ fontSize: '11px', color: '#C24A15', overflowWrap: 'anywhere', lineHeight: '1.5' }}
+        style={{
+          fontSize: '11px',
+          color: 'var(--color-brand)',
+          overflowWrap: 'anywhere',
+          lineHeight: '1.5'
+        }}
       >
         {placed.statusUrl}
       </a>
@@ -639,7 +665,7 @@ export function LiveLookup({ v }: { v: OpsVals }) {
       }}
       style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}
     >
-      <span style={{ fontSize: '13px', color: '#6E574B', lineHeight: '1.5' }}>
+      <span style={{ fontSize: '13px', color: 'var(--color-ink-soft)', lineHeight: '1.5' }}>
         {ORDER_COPY.lookupIntro}
       </span>
       <label style={labelStyle}>
@@ -665,12 +691,12 @@ export function LiveLookup({ v }: { v: OpsVals }) {
         {live.state === 'busy' ? 'Looking…' : 'Find it'}
       </button>
       {live.state === 'missed' ? (
-        <span style={{ fontSize: '12px', color: '#A8231B', lineHeight: '1.45' }}>
+        <span style={{ fontSize: '12px', color: 'var(--color-danger)', lineHeight: '1.45' }}>
           {ORDER_COPY.lookupMiss}
         </span>
       ) : null}
       {live.state === 'error' ? (
-        <span style={{ fontSize: '12px', color: '#A8231B', lineHeight: '1.45' }}>
+        <span style={{ fontSize: '12px', color: 'var(--color-danger)', lineHeight: '1.45' }}>
           {ORDER_COPY.lookupError}
         </span>
       ) : null}
@@ -755,7 +781,7 @@ export function LiveWaitlistForm({ v }: { v: OpsVals }) {
         {live.state === 'sending' ? 'Sending…' : frozen ? 'Try again' : 'Join the waiting list'}
       </button>
       {live.message ? (
-        <span style={{ fontSize: '12px', color: '#A8231B', lineHeight: '1.45' }}>
+        <span style={{ fontSize: '12px', color: 'var(--color-danger)', lineHeight: '1.45' }}>
           {live.message}
         </span>
       ) : null}
