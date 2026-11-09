@@ -50,6 +50,14 @@ export class ShopAvailabilityRead {
     this.deps.changed();
     return true;
   }
+  retirePending(): void {
+    this.sequence += 1;
+    if (this.state === 'loading') {
+      this.state = 'failed';
+      this.deps.changed();
+    }
+  }
+
   view(): ShopAvailabilityView {
     const sequence = this.sequence,
       client = this.client;

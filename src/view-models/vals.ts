@@ -926,6 +926,7 @@ export interface OpsVals {
     capValue: React.ReactNode;
     closeEarly: (event?: unknown) => void;
     closed: unknown;
+    extend: (event?: unknown) => void;
     extended: unknown;
     no: React.ReactNode;
     preview: (event?: unknown) => void;
