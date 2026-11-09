@@ -3367,6 +3367,9 @@ export class OpsRuntime extends OpsProvider {
             })
           }
         : {}),
+      ...(this.state.screen === 'shop' && liveScreenFor('shop')
+        ? { pageMax: 'none', pagePad: '0' }
+        : {}),
       bareFrame: true,
       showFlowStrip: false,
       flow: null,

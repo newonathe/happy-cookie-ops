@@ -32,17 +32,20 @@ exports.run=async({page:owner,context,origin,anon,nonce,width,out,assert})=>{
  const shot=async name=>{assert(await customer.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Customer order layout overflows');await customer.screenshot({path:`${out}/customer-order-${name}-${width}.png`,fullPage:true});};
  try{
   await payment(true);await set('open');await customer.goto('http://127.0.0.1:4186/?public-shop=1',{waitUntil:'domcontentloaded'});await connect(true);
-  for(const size of [320,390,768,1024,1440]){
+  await customer.waitForFunction(()=>[...document.querySelectorAll('img[alt="The Happy Cookie"]')].some(img=>img.complete&&img.naturalWidth>0));
+  for(const size of [320,390,768,1024,1440,1920,2560]){
    await customer.setViewportSize({width:size,height:950});
+   const bounds=await customer.getByRole('region',{name:'The Happy Cookie shop',exact:true}).boundingBox();assert(bounds&&Math.abs(bounds.x)<1&&Math.abs(bounds.width-size)<1,'Client Shop kept a narrow page frame at '+size);
+   const small=await customer.locator('button:visible').evaluateAll(nodes=>nodes.filter(node=>{const box=node.getBoundingClientRect();return box.width<44||box.height<44;}).map(node=>node.textContent));assert(small.length===0,'Shop touch controls too small at '+size+': '+small.join(', '));
    const add=customer.getByRole('button',{name:'Add one',exact:true}).first();await add.click();
    const target=await add.boundingBox();assert(target&&target.width>=44&&target.height>=44,'Shop touch control too small');
    await shot('shop-'+size);await customer.getByRole('button',{name:'Remove one',exact:true}).first().click();
-   assert(await customer.evaluate(()=>Object.values(window.__hcOps.state.cust.box).every(q=>q===0)),'Shop cart did not decrement at '+size);
+   assert(await customer.evaluate(()=>Object.values(window.__hcOps.state.cust.box).every(q=>q===0)),'Shop cart did not decrement at '+size);assert(await customer.getByRole('button',{name:'Remove one',exact:true}).first().isDisabled(),'Empty product quantity stayed decrementable at '+size);
   }
   await customer.setViewportSize({width,height:950});await customer.getByRole('button',{name:'Add one',exact:true}).first().click();
   await customer.getByRole('button',{name:/^Continue/}).click();await customer.waitForFunction(()=>window.__hcOps.renderVals().liveCheckout?.rulesState==='ready');
   await customer.evaluate(label=>{const r=window.__hcOps,v=r.renderVals().liveCheckout,date=v.dates.find(d=>!d.sameDay);if(!date||!v.times.length)throw Error('Real fixture pickup choices required');for(const [k,value] of Object.entries({name:'Local recovery customer',ig:'@local.recovery',mobile:'09123450123',pickupDate:date.value,pickupTime:v.times[0].value,pay:label}))r.custSet(k,value);},label);
-  for(const size of [320,390,768,1024,1440]){await customer.setViewportSize({width:size,height:950});await shot('checkout-'+size);}
+  for(const size of [320,390,768,1024,1440,1920,2560]){await customer.setViewportSize({width:size,height:950});await shot('checkout-'+size);}
   await customer.setViewportSize({width,height:950});await customer.getByRole('button',{name:'Place order',exact:true}).click();
   await customer.waitForFunction(()=>window.__hcOps.renderVals().liveCheckout?.frozen&&!window.__hcOps.renderVals().liveCheckout.sending);
   assert(requests.length===1,'Initial order was not sent exactly once');await shot('lost-ack');
@@ -57,6 +60,6 @@ exports.run=async({page:owner,context,origin,anon,nonce,width,out,assert})=>{
   assert(!rows.error&&rows.data.filter(row=>row.name==='Local recovery customer').length===1&&rows.data.some(row=>row.id===receipt.orderNo&&row.name==='Local recovery customer'&&row.pay_state==='unpaid'),'Actual owner read did not confirm exactly one order');
   const token=new URL(receipt.url).hash.slice(3),status=await customer.evaluate(token=>window.customerOrderClient.rpc('order_status',{p_token:token}),token);
   assert(!status.error&&status.data.order_no===receipt.orderNo&&status.data.pay_state==='unpaid','Receipt/replay invented payment or changed identity');
-  console.log(JSON.stringify({width,actualOrderRecovery:true,lostCommittedAck:true,reloadNeverSends:true,exactRetry:true,orders:1,payState:'unpaid',responsiveWidths:[320,390,768,1024,1440]}));
+  console.log(JSON.stringify({width,actualOrderRecovery:true,lostCommittedAck:true,reloadNeverSends:true,exactRetry:true,orders:1,payState:'unpaid',responsiveWidths:[320,390,768,1024,1440,1920,2560]}));
  }finally{await customer.close();if(stamp)await payment(false);await set(initial.data.override??null);}
 };
