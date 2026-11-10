@@ -45,7 +45,19 @@ export const STAFF_COPY = {
   pickupMissing: 'Pickup date not saved',
   pickupMissingLong:
     'Pickup date not saved. Ask the customer which day they will collect before you plan the bake.',
-  pickupNoTime: 'time not saved'
+  pickupNoTime: 'time not saved',
+  /**
+   * HCB-002a: the Orders page before its read has answered, when it failed, and when a refresh
+   * failed. Never "no orders" for any of them.
+   */
+  ordersNotRead: 'Your orders have not been read yet.',
+  ordersReadFailed: 'Your orders could not be read. Nothing is shown or counted until they load.',
+  ordersStale: (time: string): string => `Could not refresh. Showing orders as of ${time}.`,
+  /** HCB-004 (Orders slice): rows the server sent that the screens cannot use. */
+  ordersDropped: (n: number): string =>
+    n === 1
+      ? '1 order could not be read. The lists and counts below leave it out.'
+      : `${n} orders could not be read. The lists and counts below leave them out.`
 } as const;
 
 /** The messages sheet (All tools → Customer messages). */
