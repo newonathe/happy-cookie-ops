@@ -311,12 +311,12 @@
         "accepted_functionality": "Scoped stock/books/menu/opening/payment/checkout/status reads; neutral identity fallback; actor/backend-bound staff names and retired reply rejection.",
         "evidence": "Current acceptance commit: focused111/5files+2existingTODO, actual SQL/browser390/1440, build, visual and independent review; full gate in commit log.",
         "remaining_engineering": [
-          "Retire operations-health reads/retries/timer on actor, role, client and unmount changes.",
+          "Distinguish unknown health job facts from confirmed no-run results; preserve scoped health recovery.",
           "Finish principal-flow first-read failure, stale data, Retry, navigation, uncertain write and malformed-answer cases against original F09."
         ],
         "dependencies": [],
         "external_gates": [],
-        "next_authorized_unblocked_task": "Fail first on operations-health late-answer/source retirement, then implement the bounded fix."
+        "next_authorized_unblocked_task": "Fail first on unknown health job labels before changing the bounded read projection."
       },
       "C5": {
         "title": "Sell/payments",
@@ -451,7 +451,7 @@
         "external_gates": [
           "Owner/provider MFA/recovery rehearsal and required physical-device acceptance."
         ],
-        "next_authorized_unblocked_task": "Continue operations-health actor/role retirement, then the next demonstrated native-session/permission gap."
+        "next_authorized_unblocked_task": "Continue the next demonstrated native-session/permission gap after health read-state truth."
       },
       "C12": {
         "title": "Home/navigation/UX",
@@ -515,6 +515,16 @@
         "next_authorized_unblocked_task": "Address demonstrated hardening gaps; retain original assertions and owner/release gates."
       }
     },
-    "remaining_semantics": "Remaining items are unresolved engineering/acceptance obligations, not proof that no implementation exists. Inspect the named current source before editing; do not repeat accepted audits or recreate working features."
+    "remaining_semantics": "Remaining items are unresolved engineering/acceptance obligations, not proof that no implementation exists. Inspect the named current source before editing; do not repeat accepted audits or recreate working features.",
+    "active_slice": {
+      "cycle": "C4",
+      "requirement": "F09 health read retirement and recovery",
+      "branch": "codex/cloud-health-read-scope-20261110",
+      "source_checkpoint": "50774b424a4d8848aaf7e6700cb9f9c1ae17c139",
+      "behavior": "Retire stale health facts/Retry/timer on client/account/role/unmount; post-role-commit reads; explicit read-only Check results again.",
+      "evidence": "7initialreds +2batchedrole reds +3missingUIreds;92focused/6files+2existingTODO; type/lint/review; two actual SQL/browser resets;320/390/1440 touch/overflow and inspected390/1440 failure/recovery; Live build. Full gate recorded by acceptance commit.",
+      "external_limits": "No native offline-auth, hosted backup, device or owner acceptance claimed. No job writers or policy changes.",
+      "next": "F09 unknown-versus-confirmed-no-run health job facts."
+    }
   }
 }

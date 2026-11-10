@@ -226,6 +226,30 @@ afterEach(() => {
 });
 
 describe('the bazaar phone with no signal (A2)', () => {
+  it.each([
+    ['helper', 'owner'],
+    ['owner', 'support']
+  ])('starts fresh health after a batched %s → %s transition', async (before, after) => {
+    vi.mocked(OpsRuntime.prototype.loadOperationsHealth).mockRestore();
+    net.role = before;
+    render(<OpsApp initialScreen="bazaar" />);
+    await tick();
+    const calls = net.rpc.filter((row) => row.name === 'get_operations_health').length;
+    net.role = after;
+    await act(async () => {
+      net.authEvent?.('TOKEN_REFRESHED', { user: { id: 'u1' } });
+      await new Promise((resolve) => setTimeout(resolve, 30));
+    });
+    expect(till().state.role).toBe(after);
+    expect(net.rpc.filter((row) => row.name === 'get_operations_health').length).toBeGreaterThan(
+      calls
+    );
+    // This fixture returns malformed health data: failure must settle, rather than remain loading.
+    expect((net.engine as OpsRuntime).renderVals().healthRows[0]?.value).toBe(
+      'Could not verify current health'
+    );
+  });
+
   it.each(['u1', 'other-account'])(
     'restores offline names only for matching stored account %s',
     async (userId) => {

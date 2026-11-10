@@ -14,6 +14,7 @@ const { FakeRuntime } = vi.hoisted(() => ({
     setRole = vi.fn((role: 'owner' | 'helper') => {
       this.state.role = role;
     });
+    setState = vi.fn((_patch: unknown, callback?: () => void) => callback?.());
     loadSettings = vi.fn();
     saveStallCopy = vi.fn();
     loadFlavours = vi.fn();

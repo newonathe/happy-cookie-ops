@@ -1081,6 +1081,7 @@ export interface OpsVals {
   hasRejects: unknown;
   hasResume: unknown;
   hasSupQ: unknown;
+  healthCanRetry?: boolean;
   healthOk: unknown;
   healthRows: Array<{
     bad: unknown;

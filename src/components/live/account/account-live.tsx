@@ -70,7 +70,19 @@ export function AccountLive({ v }: { v: OpsVals }) {
 export function HealthLive({ v }: { v: OpsVals }) {
   return (
     <div className="w-full max-w-[860px]">
-      <PageTitle title="Health & backups" subtitle="What has been checked, and when." />
+      <PageTitle
+        title="Health & backups"
+        subtitle="What has been checked, and when."
+        actions={
+          <Button
+            variant="secondary"
+            onClick={v.retryBackup}
+            disabled={!v.healthCanRetry || !v.online}
+          >
+            Check results again
+          </Button>
+        }
+      />
       <Panel tone="hero" title={String(v.healthTitle)}>
         <p className="text-caption text-ink-mute">{v.healthSub}</p>
       </Panel>

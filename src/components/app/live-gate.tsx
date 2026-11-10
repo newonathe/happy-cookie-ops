@@ -483,8 +483,20 @@ export function LiveGate({
       const keepStallCopy = () => {
         if (!cancelled && settingsLoaded && engine instanceof OpsRuntime) engine.saveStallCopy();
       };
-      if (engine instanceof OpsRuntime && role !== 'helper')
-        void engine.loadOperationsHealth(supabase);
+      if (engine instanceof OpsRuntime && role !== 'helper') {
+        const epoch = identityEpoch,
+          userId = verifiedUserId;
+        // setRole is batched: read only after its retirement/update has committed.
+        engine.setState({}, () => {
+          if (
+            !cancelled &&
+            epoch === identityEpoch &&
+            userId === verifiedUserId &&
+            engine.state.role === role
+          )
+            void engine.loadOperationsHealth(supabase);
+        });
+      }
       // Slice B2: the signed-in person's own name (the greeting, and who rang a sale up). Asked
       // again at each later check until one read has answered: a stall on weak signal must not
       // spend the day selling as "Helper" because the first try was lost.
