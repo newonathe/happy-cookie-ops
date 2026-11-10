@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act } from 'react';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { rememberStaffName } from '@/lib/auth/staff-name';
 
 /**
  * Slice A2: the live gate, not the demo build. The real `OpsApp`, `OpsRuntime`, `LiveGate`,
@@ -43,6 +44,10 @@ vi.mock('@/lib/supabase/client', async () => {
   const { AuthRetryableFetchError } = await import('@supabase/supabase-js');
   const client = {
     auth: {
+      getSession: async () => ({
+        data: { session: net.user ? { user: { id: 'u1' } } : null },
+        error: null
+      }),
       getUser: async () => {
         net.checks += 1;
         if (net.hang) await new Promise(() => undefined); // a dead connection: no answer, ever
@@ -192,6 +197,7 @@ const storedSession = (on: boolean) => {
 };
 
 beforeEach(() => {
+  vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'https://configured.example');
   Object.assign(net, { up: true, user: true, role: 'owner', active: true, checks: 0, signOuts: 0 });
   net.rpc = [];
   net.hang = false;
@@ -215,10 +221,56 @@ afterEach(() => {
   cleanup();
   vi.useRealTimers();
   vi.restoreAllMocks();
+  vi.unstubAllEnvs();
   Object.defineProperty(window, 'location', { configurable: true, value: realLocation });
 });
 
 describe('the bazaar phone with no signal (A2)', () => {
+  it.each(['u1', 'other-account'])(
+    'restores offline names only for matching stored account %s',
+    async (userId) => {
+      seedEvent();
+      seedCheck(Date.now());
+      net.up = false;
+      onLine = false;
+      rememberStaffName('owner', 'Remembered owner', {
+        userId,
+        business: 'https://configured.example'
+      });
+      render(<OpsApp initialScreen="bazaar" />);
+      await tick();
+      const runtime = net.engine as OpsRuntime;
+      expect(String(runtime.renderVals().clerkName)).toBe(
+        userId === 'u1' ? 'Remembered owner' : 'Owner'
+      );
+      expect(screen.getByTestId('frame')).toHaveTextContent('bazaar');
+      expect(store.size).toBe(0);
+      expect(net.signOuts).toBe(0);
+    }
+  );
+  it('a delayed offline session answer cannot restore names after verification resumes', async () => {
+    const { createClient } = await import('@/lib/supabase/client');
+    let release!: (value: never) => void;
+    vi.spyOn(createClient().auth, 'getSession').mockImplementation(
+      () => new Promise((resolve) => (release = resolve))
+    );
+    seedEvent();
+    seedCheck(Date.now());
+    net.up = false;
+    onLine = false;
+    rememberStaffName('owner', 'Remembered owner', {
+      userId: 'u1',
+      business: 'https://configured.example'
+    });
+    render(<OpsApp initialScreen="bazaar" />);
+    await tick();
+    await signal(true);
+    await act(async () =>
+      release({ data: { session: { user: { id: 'u1' } } }, error: null } as never)
+    );
+    expect(String((net.engine as OpsRuntime).renderVals().clerkName)).toBe('Owner');
+  });
+
   it('verified online with an event open, then a fresh load offline: Bazaar Mode still sells, and each sale arrives once', async () => {
     // Page load 1, with signal: signed in, the server opens the event, one sale goes up.
     const first = render(<OpsApp initialScreen="bazaar" />);
