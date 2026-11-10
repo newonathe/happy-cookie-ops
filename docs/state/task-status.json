@@ -214,5 +214,307 @@
     "S1 bazaar days, built 13 October 2026 (docs/state/bazaar-days.md, branch claude/bazaar-days-s1; local only, the trial stays at 67 of 67 and gets migration 68 only on Ethan's word). Migration 68, 20260101006700_bazaar_days.sql: tables bazaar_days, bazaar_day_lines, bazaar_costs, bazaar_fees, bazaar_losses and bazaar_stock_adds (row security on, no policy, no API grant); four columns on scheduled_events; ten owner-only commands (get_bazaar, save_bazaar_day, save_bazaar_fee, save_bazaar_loss, save_bazaar_cost, save_bazaar_target, start_bazaar_day, add_bazaar_day_stock, close_bazaar_day, finalise_bazaar) and four internal functions (bazaar_summary, bazaar_line_facts, bazaar_held_ledger, recipe_stock_plan). record_production, record_sale_packaging, get_books (from migration 65, its last definition) and close_event (it refuses a bazaar day, or the drawer difference would be booked twice) redefined whole with one change each; record_event_sale untouched (body md5 8cf2bd63). The summary is held to a hand-worked two-day example to the centavo (tests/integration/security/bazaar-days.sql, 211 cases, 94 mutants and 14 grant mutants); role suite 3,260 cases a reset, 1,476 regressions detected; pnpm verify 110 files and 1,991 tests. Review: security-reviewer on Sonnet, PASS WITH FIXES, no P0 or P1; of five P2 three fixed (the old close-out on a bazaar day, a till expense missing from the summary, an unbounded fee date) and two kept by Ethan's decision of 14 October as the design says (a day oversold beyond its recorded stock cannot close until the stock is added; finalise takes recipe packaging for every cookie made). Added to the design's contracts, each recorded in bazaar-days.md 'S1 as built': a client id on add_bazaar_day_stock, updated_at and plan_hash on bazaar_days, a Rounding part so the cookie-cost parts add up, a recipe cost counted only when the recipe is complete, costs dated noon UTC of the day paid (only business_clock names the shop's zone). Cookies sent to the shop (Ethan, 14 October): finalise_bazaar(booking, expected, drop) writes them as an ordinary batch of that drop, taking its ingredients once; a flavour sent to the shop needs a recipe. Also his answers: an oversold day keeps the refusal, recipe packaging is for every cookie made. Also open: a fee cannot be removed once saved; a booking's rent or dates can still be edited after finalise (the stored summary keeps what was posted); a late void or queued sale can arrive after a close or a finalise (the summary is worked out again and says so).",
     "S2 bazaar days, built 14 October 2026 (docs/state/bazaar-days.md, branch claude/bazaar-days-s2; local only, the trial stays at 67 of 67). The Bazaar screen is registered live under 'bazaar' (src/components/live/bazaar/): the owner's event list, event page, day plan and \"Start this day\", and, whenever the phone holds an event, the ported till unchanged (so a helper and a phone with no signal still sell). Data layer src/lib/data/bazaar-days.ts, controller src/store/bazaar-days.ts, OpsRuntime.beginBazaarDay. The old startEvent and the ported start list are closed in live mode (the old start code and its D4 tests are removed; the pending-link retry stays for links saved before S2); Leave and the old close-out refuse on a started day. Tests 2,050 in 113 files; the smoke suite plans, starts and sells day 1 at its own price online and offline, each sale once; 320 px and 200% text show no sideways scroll and axe is clean on the list, event page and plan. Port audit PASS. Opus security review found one high, fixed: resuming an open day on a phone that is not its selling device would have adopted the day with no sales and the full stock, so a day another phone sells is now refused, an open day has no resume button, and starting the books over keeps a started day. Two lows left: the till's drawer float is not restored after a reload (src/lib/offline is locked; for S3), and start_event is still granted to signed-in users. Not built: fees, target and costs on the event page, carrying over, the day review and close (S3). Open with Ethan: \"Plan quantities as a bake batch (S2)\" is unclear and nothing in S2 writes a batch. This build needs migration 68 on the trial: it must not reach the trial before then (the old start is closed).",
     "S3 bazaar days, built 14 October 2026 (docs/state/bazaar-days.md, S3 as built; branch claude/bazaar-days-s3; local only, no new migration, the trial stays at 67 of 67): the day review (src/lib/bazaar/review.ts formats bazaar_summary only), losses, more stock, Close the day with the leftover split, carrying over, fees, target, typed cost per cookie, Close the event with the drop number, the books held line. Tests: bazaar-close, bazaar-review, bazaar-store, ops-runtime-bazaar-close, bazaar-screens; the live smoke suite runs the whole two-day event (14 steps). Ethan 14 October: no bake for bazaar cookies; all four small forms in S3."
-  ]
+  ],
+  "full_application": {
+    "updated_client_date": "2026-11-10",
+    "source_checkpoint": "efe14d590efd0b425740089d43999e297af457a8",
+    "objective": "docs/state/full-goal.md",
+    "status": "engineering incomplete; no full cycle acceptance inferred from passing slices",
+    "planning_horizon": "Six-to-ten weeks is tentative sequencing only, not a release promise.",
+    "registry_reconciliation": {
+      "authority": [
+        "docs/state/full-goal.md",
+        "docs/design/system-audit-2026-11-05.md",
+        "docs/design/client-meeting-2026-11-04.md",
+        "docs/design/reference-v4/coverage.md",
+        "docs/design/reference-v4/flows.md"
+      ],
+      "verified_mapping": {
+        "HCB-001": "C1 / PR51; integration not authorized",
+        "HCB-002a": "C1 / PR53; protected stacked PR and semantic reconciliation pending",
+        "HCB-019": "C7/C12 local acceptance629fcab; count once",
+        "F03": "Accepted production/recipe handoff core C3; preserve it",
+        "F04": "Accepted stock confidence C7/C12; preserve it",
+        "F08": "Accepted Money peso-scale/read recovery C10; preserve it",
+        "F09": "C4 partial; next operations-health retirement",
+        "F10": "C13 partial; wider linked journeys remain"
+      },
+      "missing_source": [
+        "Full numbered127-finding and67acceptance-obligation source lists have not been located/validated here; the complete61canonicalHCB inventory is not included in the checkout or supplied master text.",
+        "Do not invent closure counts or treat all original issues as outstanding; reconcile each available source before changing implementation."
+      ],
+      "effect": "Per-ID final closure cannot yet be asserted. This does not block independent authorized implementation."
+    },
+    "cycles": {
+      "C1": {
+        "title": "Orders PR reconciliation",
+        "local_status": "reviewed; integration not authorized",
+        "full_cycle_accepted": false,
+        "accepted_sha": ["efe14d590efd0b425740089d43999e297af457a8"],
+        "accepted_functionality": "Read-only source reconciliation preserves saved pickup projection and both PRs.",
+        "evidence": "Pinned PR51 e407b702 and PR53 7500b6c2; latest runtime three-way has zero textual conflicts. GitHub metadata API is forbidden here; no fresh CI claim.",
+        "remaining_engineering": [
+          "Preserve Cloud actor/client fences with PR51 saved pickup labels.",
+          "Use one Orders read-state source for PR53; retain malformed/dropped-row and latest-read behavior; add retirement/regrant/late-Retry and Customers scope coverage."
+        ],
+        "dependencies": [],
+        "external_gates": ["Separate integration/merge authorization; OD-12 wording."],
+        "next_authorized_unblocked_task": "Keep the prepared integration recommendation; continue independent C4 work while merge authority is absent.",
+        "protected_pr_heads": {
+          "51": "e407b7020fab95a8afe934639621c95d6efe5452",
+          "53": "7500b6c2b3623650e9175b5cab4828e6c949c2ce"
+        }
+      },
+      "C2": {
+        "title": "Dough/Bake",
+        "local_status": "approved engineering core accepted locally",
+        "full_cycle_accepted": false,
+        "accepted_sha": ["67a827b66b0869e531ef9f9614001d55f6bbcada"],
+        "accepted_functionality": "SQL71–73 separate recipe use/actual yield and dough-only Bake; definite shortages, costs, concurrency, exact historical replay and legacy-write retirement.",
+        "evidence": "Actual two-reset SQL/roles/concurrency and connected390/1440 production evidence at67a827b; safeguards preserved through SQL82.",
+        "remaining_engineering": [
+          "Preserve the accepted core; remaining full-system links are tracked in C13, not a new Bake implementation."
+        ],
+        "dependencies": ["C13 connected purchasing/order chains."],
+        "external_gates": [
+          "Hosted cutover; physical-device and unaided-owner acceptance; unresolved physical dough-count policy."
+        ],
+        "next_authorized_unblocked_task": "No core rebuild; continue C4 and C13 independently of external gates."
+      },
+      "C3": {
+        "title": "Production workspace",
+        "local_status": "approved engineering core accepted locally",
+        "full_cycle_accepted": false,
+        "accepted_sha": [
+          "67a827b66b0869e531ef9f9614001d55f6bbcada",
+          "2e4f8b2662dc36214f98bd10dfde6aed603f7695"
+        ],
+        "accepted_functionality": "First recipe/versioned edit, explicit recipe/Shopping handoff, independent work, retained drafts, ownership, uncertain outcomes and exact reload recovery.",
+        "evidence": "Connected native-lock exclusion/ABA, recipe handoff and SQL readback; local acceptance at67a827b.",
+        "remaining_engineering": [
+          "Complete any outstanding original workspace acceptance through C13 without repeating accepted production audits."
+        ],
+        "dependencies": ["C13 wider linked business journeys."],
+        "external_gates": ["Physical-device and unaided-owner acceptance."],
+        "next_authorized_unblocked_task": "Preserve workspace behavior; proceed with independent read-reliability fixes."
+      },
+      "C4": {
+        "title": "Data reliability",
+        "local_status": "partial; account-cache slice accepted locally",
+        "full_cycle_accepted": false,
+        "accepted_sha": [
+          "efe14d590efd0b425740089d43999e297af457a8",
+          "819ed712ac9766dbd7191bf12a33e98194fd5c92",
+          "40d1857360c714ecf4db8938e6a5a1094f614406",
+          "dc59b0da7a1ed7cc2698ae78f534af3f747ff56d"
+        ],
+        "accepted_functionality": "Scoped stock/books/menu/opening/payment/checkout/status reads; neutral identity fallback; actor/backend-bound staff names and retired reply rejection.",
+        "evidence": "Current acceptance commit: focused111/5files+2existingTODO, actual SQL/browser390/1440, build, visual and independent review; full gate in commit log.",
+        "remaining_engineering": [
+          "Retire operations-health reads/retries/timer on actor, role, client and unmount changes.",
+          "Finish principal-flow first-read failure, stale data, Retry, navigation, uncertain write and malformed-answer cases against original F09."
+        ],
+        "dependencies": [],
+        "external_gates": [],
+        "next_authorized_unblocked_task": "Fail first on operations-health late-answer/source retirement, then implement the bounded fix."
+      },
+      "C5": {
+        "title": "Sell/payments",
+        "local_status": "partial",
+        "full_cycle_accepted": false,
+        "accepted_sha": [
+          "9a8cf38cac379c10c533eb6d15a36c619a83517d",
+          "f5254971da2b5dbb8b4e2bd5501bbc67e301615c"
+        ],
+        "accepted_functionality": "Private recorded payment facts, explicit owner confirmation and one revenue effect; payment is never inferred from order stage or proof.",
+        "evidence": "SQL82 owner confirmation/swap/settlement/refund/token/privacy proof; actual customer Check and one Books effect.",
+        "remaining_engineering": [
+          "Verify remaining order actions: packing/pickup, balance, cancellation, refund, swap, no-show and reopening; no duplicate pickup transaction.",
+          "Complete F05 operational-feed history/count/export claims (60 days, cap500), plus remaining F02 till interaction acceptance."
+        ],
+        "dependencies": [
+          "C1 protected Orders overlap must be reconciled before overlapping stores change."
+        ],
+        "external_gates": ["OD-12 owner wording approval."],
+        "next_authorized_unblocked_task": "Use independent customer/payment or till defects; preserve unmerged Orders implementations."
+      },
+      "C6": {
+        "title": "Public Shop",
+        "local_status": "partial",
+        "full_cycle_accepted": false,
+        "accepted_sha": [
+          "1a680a859cfbdeb09fcff1e02ab232b4e845d4af",
+          "8ade53d4fb5931a3f9df904d7fff3b7ccdc5f62f",
+          "2b1843349102507371029ff7b3e2c36b0bf43f52",
+          "65775c777bdac183a938273fd32dd1d9ec225af9",
+          "9e9e713f0a1c90fb08ba71c3df84cad0ba3b795a"
+        ],
+        "accepted_functionality": "Fluid Shop/checkout/status, owner example, retained exact order requests, post-submit payment instructions and truthful confirmation.",
+        "evidence": "Actual lost committed reply→reload→same-body retry→one order; owner confirmation→fresh Check; seven widths320–2560; inspected phone/wide.",
+        "remaining_engineering": [
+          "Finish remaining public journey requirements: availability/capacity, samplers/box sizes/add-ons, pickup and applicable messages.",
+          "Verify product/allergen/sticker rendering and complete privacy/contact behavior without inventing approved wording."
+        ],
+        "dependencies": ["C5 payment/order edge cases; C13 end-to-end order fulfilment."],
+        "external_gates": [
+          "Owner privacy/contact wording and sticker assets; physical devices and unaided-owner acceptance."
+        ],
+        "next_authorized_unblocked_task": "Implement a demonstrated unblocked public-journey gap after the current C4 fix; do not rebuild fluid layouts."
+      },
+      "C7": {
+        "title": "Stock/inventory",
+        "local_status": "partial",
+        "full_cycle_accepted": false,
+        "accepted_sha": [
+          "629fcabb7de8674f55c321a45e361ebd637e7cb6",
+          "58a3e93aac574a360f43f34824113367c9c68c96"
+        ],
+        "accepted_functionality": "Separate dough/baked balances, stock read recovery and consistent counted/unknown confidence including HCB-019.",
+        "evidence": "Focused/connected SQL and390/1440 Home/Inventory/Shopping proof; unknown zero is distinct from confirmed empty.",
+        "remaining_engineering": [
+          "Complete remaining item-context receiving/count/waste/correction/transfer workflows and their recovery acceptance.",
+          "Verify stock/cost reconciliation throughout C13 A/B/C, retaining missing-cost status rather than zero."
+        ],
+        "dependencies": ["C8 receipts/purchasing; C13 linked stock effects."],
+        "external_gates": ["Separate physical dough-count correction policy remains unanswered."],
+        "next_authorized_unblocked_task": "Inspect the next named receiving/context defect before editing; retain accepted stock-count behavior."
+      },
+      "C8": {
+        "title": "Recipes/planning/purchasing",
+        "local_status": "partial",
+        "full_cycle_accepted": false,
+        "accepted_sha": [
+          "9d3311a9838c8f46be2a811023567b0b14411fdb",
+          "30eccdff23079b3121becbf8e3aff4c414abbcd2",
+          "2e4f8b2662dc36214f98bd10dfde6aed603f7695"
+        ],
+        "accepted_functionality": "Recipe source/typed-cost ownership and explicit recipe/Shopping production handoffs.",
+        "evidence": "First recipe→v2 edit→Prepare/Bake and Shopping handoff in actual local SQL/browser evidence.",
+        "remaining_engineering": [
+          "Finish supplier/item/pack price edits, grouped shopping and useful comparable unit/pack prices; preserve context into receiving.",
+          "Verify F06 account/backend-scoped planned-bake retention, failure disclosure and non-destructive planner handoffs against existing source before rebuilding."
+        ],
+        "dependencies": ["C7 receipts and authoritative inventory costs."],
+        "external_gates": [],
+        "next_authorized_unblocked_task": "Choose the first demonstrated supplier/price-comparison or planned-retention gap outside Orders."
+      },
+      "C9": {
+        "title": "Bazaar",
+        "local_status": "transfer foundation accepted locally; wider cycle partial",
+        "full_cycle_accepted": false,
+        "accepted_sha": [
+          "67a827b66b0869e531ef9f9614001d55f6bbcada",
+          "81e4053ccb26d19a21e657647b06dea63a23a4f8"
+        ],
+        "accepted_functionality": "Idempotent kitchen/table debit, provenance, review/recovery, transfer4→sell3→return1→Money, historical/mixed behavior and large aggregate returns.",
+        "evidence": "Actual SQL/browser and independent readback: ingredients once, dough5/kitchen3, no phantom production or duplicated revenue; role/concurrency/mutants.",
+        "remaining_engineering": [
+          "Complete remaining F07 fee/expense/cost-effect reviews and verified reversals.",
+          "Complete wider selling/payment/drawer/freebie/offline reload/reconnect/void/day-close/event-finalization acceptance in C13 C."
+        ],
+        "dependencies": ["C5 till actions; C10 accounting; C13 full offline chain."],
+        "external_gates": [
+          "Any genuinely unresolved financial-policy choice must remain open, not be inferred."
+        ],
+        "next_authorized_unblocked_task": "Implement the next existing fee/expense review or reversal defect while preserving the accepted transfer foundation."
+      },
+      "C10": {
+        "title": "Money/costing/backup",
+        "local_status": "partial",
+        "full_cycle_accepted": false,
+        "accepted_sha": [
+          "dc59b0da7a1ed7cc2698ae78f534af3f747ff56d",
+          "35ea7c8cf9bd697b0c08ee9bdb48674d05481287"
+        ],
+        "accepted_functionality": "Scoped Books recovery, Home books state, readable peso chart and traceable transfer/return Money effects.",
+        "evidence": "Connected Books300/0/300 at Bazaar boundary; one owner-confirmed customer revenue effect; exact accessible values preserved.",
+        "remaining_engineering": [
+          "Complete selected-period totals/drilldowns/exports and append-only corrections, refund/reversal/open-event/uncosted-use acceptance.",
+          "Reconcile preserved backup edits and prove local restore including PostgreSQL-version compatibility."
+        ],
+        "dependencies": ["C5/C9 source transactions; C13 linked reconciliation."],
+        "external_gates": ["Hosted archive restore drill and approved off-device backup custody."],
+        "next_authorized_unblocked_task": "Finish an independent reporting/export/correction or local backup/restore slice without changing financial policy."
+      },
+      "C11": {
+        "title": "Account/security",
+        "local_status": "partial; staff identity cache accepted locally",
+        "full_cycle_accepted": false,
+        "accepted_sha": ["efe14d590efd0b425740089d43999e297af457a8"],
+        "accepted_functionality": "Cached greetings/clerk names bind to current account/backend; A/B/A, retirement and delayed/offline callbacks are fenced.",
+        "evidence": "Role owner/helper/support tests and controlled-session real SDK/RLS browser reads; native browser offline-auth acceptance is not claimed.",
+        "remaining_engineering": [
+          "Complete native session/account switch, sign-out/reopen/idle/reconnect and role-permission journeys beyond the cache slice.",
+          "Ensure owner capabilities and private cached state never inherit into helper/support contexts."
+        ],
+        "dependencies": ["C4 source retirement; C13 native auth/session journeys."],
+        "external_gates": [
+          "Owner/provider MFA/recovery rehearsal and required physical-device acceptance."
+        ],
+        "next_authorized_unblocked_task": "Continue operations-health actor/role retirement, then the next demonstrated native-session/permission gap."
+      },
+      "C12": {
+        "title": "Home/navigation/UX",
+        "local_status": "partial",
+        "full_cycle_accepted": false,
+        "accepted_sha": [
+          "b29ef94892e10f8afbf22cc2a59dafc3cd22c49d",
+          "629fcabb7de8674f55c321a45e361ebd637e7cb6",
+          "9e9e713f0a1c90fb08ba71c3df84cad0ba3b795a"
+        ],
+        "accepted_functionality": "Manila business clock, honest Home stock counts/books scope and functional local owner status preview.",
+        "evidence": "UTC-device boundary tests, inspected390/1440 views, responsive320–2560 customer checks and no-preview-RPC/context-retention proof.",
+        "remaining_engineering": [
+          "Complete remaining contextual Back/Cancel, keyboard/touch/navigation and useful empty/error states across destinations.",
+          "Reconcile remaining original usability findings without removing capabilities or weakening protected reference files."
+        ],
+        "dependencies": ["C4 data-state correctness; C13/C14 cross-flow acceptance."],
+        "external_gates": ["Unaided-owner and physical-device acceptance."],
+        "next_authorized_unblocked_task": "Fix demonstrated navigation/accessibility issues alongside the current functional slice; preserve accepted Home fixes."
+      },
+      "C13": {
+        "title": "Connected full-system testing",
+        "local_status": "partial",
+        "full_cycle_accepted": false,
+        "accepted_sha": [
+          "67a827b66b0869e531ef9f9614001d55f6bbcada",
+          "9a8cf38cac379c10c533eb6d15a36c619a83517d",
+          "efe14d590efd0b425740089d43999e297af457a8"
+        ],
+        "accepted_functionality": "Production/return/Money core, lost-ACK order recovery and explicit owner confirmation have real local SQL/browser evidence.",
+        "evidence": "Two-reset exact schema/function authority, roles/concurrency/replays/mutants; native Web Locks; phone/wide transactions.",
+        "remaining_engineering": [
+          "Finish A: order→payment→production→stock→packing→pickup→Books. Finish B: plan→supplier comparison→receipt→stock→dough→partial Bake→remaining dough/costs.",
+          "Finish C: event/day→transfer→sell→offline/reload/reconnect/ACK→void→close→return→finalize→Books.",
+          "Reconcile original7v2/15v3 obligations against actual tests; include refunds, missing costs, versions, concurrency, backup/restore and cross-account/period isolation."
+        ],
+        "dependencies": [
+          "Remaining C1/C4–C12 requirements; original obligation source reconciliation."
+        ],
+        "external_gates": ["Hosted/physical-device/unaided-owner gates remain separate."],
+        "next_authorized_unblocked_task": "Build the next missing linked local transaction scenario after its direct engineering prerequisites pass."
+      },
+      "C14": {
+        "title": "Final hardening",
+        "local_status": "partial",
+        "full_cycle_accepted": false,
+        "accepted_sha": [
+          "611d7c62799d73863c7e7bda336187408ad9cbbb",
+          "efe14d590efd0b425740089d43999e297af457a8"
+        ],
+        "accepted_functionality": "Pinned patched dependencies, protected-port checks and recurring full verify/Live build/visual checks.",
+        "evidence": "Dependency checkpoint611d7c6 audited all production severities0; current source tests/build pass in acceptance commits, not a release claim.",
+        "remaining_engineering": [
+          "Measure optimized signed-in loads/navigation/edit/save/refresh; finish accessibility, visual, responsive and applicable security hardening.",
+          "Complete final requirements reconciliation and prepare deployment/migration/rollback instructions for separate approval."
+        ],
+        "dependencies": ["C13 complete local journeys; remaining engineering requirements."],
+        "external_gates": [
+          "Release/deployment/hosted changes require separate approval; native device acceptance."
+        ],
+        "next_authorized_unblocked_task": "Address demonstrated hardening gaps; retain original assertions and owner/release gates."
+      }
+    },
+    "remaining_semantics": "Remaining items are unresolved engineering/acceptance obligations, not proof that no implementation exists. Inspect the named current source before editing; do not repeat accepted audits or recreate working features."
+  }
 }
