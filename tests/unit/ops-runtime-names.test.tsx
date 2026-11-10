@@ -290,6 +290,210 @@ describe('the shop’s own details', () => {
     updated_at: '2026-10-06T01:00:00.000Z'
   };
 
+  function deferredIdentity() {
+    let resolve!: (value: { data: unknown; error: null }) => void;
+    const promise = new Promise<{ data: unknown; error: null }>((done) => (resolve = done));
+    const rpc = vi.fn(() => promise);
+    return { client: { rpc } as never, rpc, resolve };
+  }
+  const NEW_IDENTITY = { ...IDENTITY, owner_name: 'New owner', tagline: 'New shop line.' };
+  const fields = { shopName: 'Edited shop', ownerName: '', contactLine: '', tagline: '' };
+  function identityForm(runtime: OpsRuntime) {
+    act(() => runtime.setState({ sheet: { kind: 'shoptexts' } } as never));
+    return runtime.renderVals().liveTexts!;
+  }
+
+  it('clears the old source while a new source is pending, including save readiness', async () => {
+    const runtime = mount();
+    await act(
+      async () => void (await runtime.loadShopIdentity(identityClient({ data: IDENTITY })))
+    );
+    identityForm(runtime);
+    const next = deferredIdentity();
+    let task!: Promise<boolean>;
+    act(() => void (task = runtime.loadShopIdentity(next.client)));
+    expect(runtime.renderVals().shopTagline).toBe('');
+    expect(runtime.renderVals().liveTexts?.identityReady).toBe(false);
+    expect(ORDER_COPY.lookupMiss).not.toContain(IDENTITY.contact_line);
+    await act(async () => {
+      next.resolve({ data: NEW_IDENTITY, error: null });
+      expect(await task).toBe(true);
+    });
+    expect(runtime.renderVals().shopTagline).toBe(NEW_IDENTITY.tagline);
+  });
+
+  it.each(['different client', 'same client'])(
+    'rejects an older identity reply from the %s',
+    async (source) => {
+      const runtime = mount();
+      const old = deferredIdentity();
+      const latest = identityClient({ data: NEW_IDENTITY });
+      // One client can have two independently settling reads too.
+      const rpc = vi
+        .fn()
+        .mockImplementationOnce(
+          () =>
+            new Promise((resolve) => {
+              old.resolve = resolve;
+            })
+        )
+        .mockResolvedValue({ data: NEW_IDENTITY, error: null });
+      const firstClient = source === 'same client' ? ({ rpc } as never) : old.client;
+      let task!: Promise<boolean>;
+      act(() => void (task = runtime.loadShopIdentity(firstClient)));
+      await act(
+        async () =>
+          void (await runtime.loadShopIdentity(source === 'same client' ? firstClient : latest))
+      );
+      await act(async () => {
+        old.resolve({ data: IDENTITY, error: null });
+        expect(await task).toBe(false);
+      });
+      expect(runtime.renderVals().shopTagline).toBe(NEW_IDENTITY.tagline);
+      expect(text(runtime.renderVals().deniedTitle)).toBe('Only New owner can open this');
+    }
+  );
+
+  it('null source clears identity and retires pending reads even after the same client returns', async () => {
+    const runtime = mount();
+    const old = deferredIdentity();
+    const first = runtime.loadShopIdentity(old.client);
+    await act(async () => void (await runtime.loadShopIdentity(null)));
+    expect(runtime.renderVals().shopTagline).toBe('');
+    const current = runtime.loadShopIdentity(old.client);
+    await act(async () => {
+      old.resolve({ data: IDENTITY, error: null });
+      expect(await first).toBe(false);
+      expect(await current).toBe(true);
+    });
+    await act(async () => void (await runtime.loadShopIdentity(null)));
+    expect(runtime.renderVals().shopTagline).toBe('');
+    expect(ORDER_COPY.lookupMiss).not.toContain(IDENTITY.contact_line);
+    expect(identityForm(runtime).identityReady).toBe(false);
+  });
+
+  it('an unmounted runtime cannot replace the next runtime’s global identity words', async () => {
+    const oldRuntime = mount();
+    const old = deferredIdentity();
+    const task = oldRuntime.loadShopIdentity(old.client);
+    cleanup();
+    const current = mount();
+    await act(
+      async () => void (await current.loadShopIdentity(identityClient({ data: NEW_IDENTITY })))
+    );
+    await act(async () => {
+      old.resolve({ data: IDENTITY, error: null });
+      expect(await task).toBe(false);
+    });
+    expect(text(current.renderVals().deniedTitle)).toBe('Only New owner can open this');
+  });
+
+  it('a retired save reply cannot reload its source or show a saved toast', async () => {
+    const runtime = mount();
+    let release!: (value: unknown) => void;
+    const rpc = vi.fn().mockResolvedValue({ data: IDENTITY, error: null });
+    const client = { rpc } as never;
+    await act(async () => void (await runtime.loadShopIdentity(client)));
+    rpc.mockImplementationOnce(() => new Promise((resolve) => (release = resolve)));
+    const toast = vi.spyOn(runtime, 'toast');
+    const form = identityForm(runtime);
+    act(() => form.saveIdentity(fields));
+    expect(rpc).toHaveBeenCalledTimes(2);
+    await act(
+      async () => void (await runtime.loadShopIdentity(identityClient({ data: NEW_IDENTITY })))
+    );
+    await act(async () => release({ data: [{ updated_at: IDENTITY.updated_at }], error: null }));
+    expect(rpc).toHaveBeenCalledTimes(2);
+    expect(toast).not.toHaveBeenCalled();
+    expect(runtime.renderVals().shopTagline).toBe(NEW_IDENTITY.tagline);
+  });
+
+  it.each(['before acknowledgement', 'during refresh'])(
+    'a newer same-client read retires save feedback %s',
+    async (stage) => {
+      const runtime = mount();
+      const rpc = vi.fn().mockResolvedValue({ data: IDENTITY, error: null });
+      const client = { rpc } as never;
+      await act(async () => void (await runtime.loadShopIdentity(client)));
+      const form = identityForm(runtime);
+      let releaseSave!: (value: unknown) => void;
+      let releaseRefresh!: (value: unknown) => void;
+      rpc.mockImplementationOnce(() => new Promise((resolve) => (releaseSave = resolve)));
+      const toast = vi.spyOn(runtime, 'toast');
+      act(() => form.saveIdentity(fields));
+      if (stage === 'during refresh') {
+        rpc.mockImplementationOnce(() => new Promise((resolve) => (releaseRefresh = resolve)));
+        await act(async () =>
+          releaseSave({ data: [{ updated_at: IDENTITY.updated_at }], error: null })
+        );
+      }
+      rpc.mockResolvedValue({ data: NEW_IDENTITY, error: null });
+      await act(async () => void (await runtime.loadShopIdentity(client)));
+      const calls = rpc.mock.calls.length;
+      await act(async () => {
+        if (stage === 'during refresh') releaseRefresh({ data: IDENTITY, error: null });
+        else releaseSave({ data: [{ updated_at: IDENTITY.updated_at }], error: null });
+      });
+      expect(rpc).toHaveBeenCalledTimes(calls);
+      expect(toast).not.toHaveBeenCalled();
+      expect(runtime.renderVals().shopTagline).toBe(NEW_IDENTITY.tagline);
+    }
+  );
+
+  it.each(['source', 'role', 'sheet'])(
+    'a cached identity save is retired after its %s changes',
+    async (scope) => {
+      const runtime = mount();
+      const firstRpc = vi.fn().mockResolvedValue({ data: IDENTITY, error: null });
+      await act(async () => void (await runtime.loadShopIdentity({ rpc: firstRpc } as never)));
+      const old = identityForm(runtime);
+      const nextRpc = vi.fn().mockResolvedValue({ data: NEW_IDENTITY, error: null });
+      if (scope === 'source') {
+        await act(async () => void (await runtime.loadShopIdentity({ rpc: nextRpc } as never)));
+      } else if (scope === 'role') {
+        act(() => runtime.setRole('helper'));
+        act(() => runtime.setRole('owner'));
+      } else {
+        act(() => runtime.closeSheet());
+        identityForm(runtime);
+      }
+      act(() => old.saveIdentity(fields));
+      expect(firstRpc).toHaveBeenCalledTimes(1);
+      expect(nextRpc).toHaveBeenCalledTimes(scope === 'source' ? 1 : 0);
+    }
+  );
+
+  it.each(['saved', 'conflict'])(
+    'a current identity save preserves CAS and refreshes after %s',
+    async (result) => {
+      const runtime = mount();
+      const rpc = vi.fn().mockResolvedValue({ data: IDENTITY, error: null });
+      const client = { rpc } as never;
+      await act(async () => void (await runtime.loadShopIdentity(client)));
+      const form = identityForm(runtime);
+      rpc
+        .mockResolvedValueOnce(
+          result === 'saved'
+            ? { data: [{ updated_at: NEW_IDENTITY.updated_at }], error: null }
+            : { data: null, error: { code: 'P0002' } }
+        )
+        .mockResolvedValue({ data: NEW_IDENTITY, error: null });
+      const toast = vi.spyOn(runtime, 'toast');
+      await act(async () => form.saveIdentity(fields));
+      expect(rpc).toHaveBeenNthCalledWith(2, 'save_shop_identity', {
+        p_identity: { shop_name: fields.shopName, owner_name: '', contact_line: '', tagline: '' },
+        p_expected_updated_at: IDENTITY.updated_at
+      });
+      expect(rpc).toHaveBeenNthCalledWith(3, 'get_shop_identity');
+      expect(runtime.renderVals().shopTagline).toBe(NEW_IDENTITY.tagline);
+      expect(toast).toHaveBeenCalledWith(
+        ...(result === 'saved'
+          ? ['Shop details saved.']
+          : ['These were changed somewhere else. Check them and save again.', 'warn'])
+      );
+    }
+  );
+
   it('a database without them yet reads as nothing set: neutral wording, no tagline, no error', async () => {
     const runtime = mount('owner');
     for (const answer of [
